@@ -1,4 +1,4 @@
-import { CaptureAccess, type LocalId } from '../schema';
+import { CaptureAccess, type LocalId, type QrlUse } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 
 /** Local value semantics shared by expression and capture lowering. */
@@ -16,12 +16,14 @@ export const enum LocalKind {
   /** A prop member for wrapped destructured props */
   PropMember = 'prop-member',
   PropRest = 'prop-rest',
+  /** A body function lifted to a segment: callers capture its captures and rebind it. */
+  Function = 'function',
 }
 
 export type SetupLocal =
   | {
       /** Read-lowering dispatch (how `x`/`x.value` lowers). */
-      kind: Exclude<LocalKind, LocalKind.PropMember>;
+      kind: Exclude<LocalKind, LocalKind.PropMember | LocalKind.Function>;
       /** Delivery contract when a QRL captures this local. */
       access: CaptureAccess;
       slot: number;
@@ -35,6 +37,14 @@ export type SetupLocal =
       /** How the member reads from its owner, e.g. `props.user.tags[0]`. */
       read: ValueIR;
       defaultValue?: ValueIR;
+    }
+  | {
+      kind: LocalKind.Function;
+      access: CaptureAccess.Direct;
+      slot: -1;
+      binding: number;
+      /** Lifts the function to a segment on its first boundary reference; memoized. */
+      lift: () => QrlUse;
     };
 
 /** Local bindings and their expression-read and capture contracts. */

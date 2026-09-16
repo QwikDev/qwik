@@ -1396,5 +1396,53 @@ describe(`${name}: projection`, () => {
       expect(visibleText(container)).toBe('User is not signed in');
       cleanup();
     });
+
+    it('#7000 renders a promise projected into an initially hidden slot', async () => {
+      const Reveal = component$<{ open: boolean }>(({ open }) => <>{open && <Slot />}</>);
+      const Issue7000 = component$(() => {
+        const open = useSignal(false);
+        async function t(key: string): Promise<string> {
+          return Promise.resolve(key);
+        }
+        return (
+          <>
+            <button onClick$={() => (open.value = !open.value)}></button>
+            <Reveal open={open.value}>{t('I am an async string')}</Reveal>
+          </>
+        );
+      });
+      const { container, cleanup, qwikLoader } = await render(Issue7000);
+      expect(visibleText(container)).toBe('');
+      await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+      expect(visibleText(container)).toBe('I am an async string');
+      cleanup();
+    });
+
+    it('calls a local function that reads a signal from a projection and a handler', async () => {
+      const Wrapper = component$(() => <Slot />);
+      const App = component$(() => {
+        const count = useSignal(1);
+        const last = useSignal('');
+        function label(key: string) {
+          return key + count.value;
+        }
+        return (
+          <Wrapper>
+            <button id="inc" onClick$={() => count.value++}></button>
+            <button id="read" onClick$={() => (last.value = label('h'))}></button>
+            <b>{label('x')}</b>
+            <i>{last.value}</i>
+          </Wrapper>
+        );
+      });
+      const { container, cleanup, qwikLoader } = await render(App);
+      const click = (id: string) => qwikLoader?.dispatch(container.querySelector(id)!, 'click');
+      expect(container.querySelector('b')!.textContent).toBe('x1');
+      await click('#inc');
+      expect(container.querySelector('b')!.textContent).toBe('x2');
+      await click('#read');
+      expect(container.querySelector('i')!.textContent).toBe('h2');
+      cleanup();
+    });
   });
 });

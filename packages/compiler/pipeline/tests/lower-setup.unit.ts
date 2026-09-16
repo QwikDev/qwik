@@ -11,7 +11,7 @@ import {
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
 import { parseModule } from '../analyse/ast/parse';
-import { lowerSetup } from '../analyse/lower-setup';
+import { finalizeLocalFunctions, lowerSetup } from '../analyse/lower-setup';
 import { LocalKind } from '../analyse/locals';
 import { createTestLowerContext, serverSpecialization } from './fixtures';
 import { linkPlans } from '../link/link-plans';
@@ -42,7 +42,9 @@ function lower(statement: string, coreBindings: [string, string][] = [['useSigna
   const statements = parsed.program.body.filter((node) => node.type !== 'ImportDeclaration');
   ctx.coreBindings = imported;
   const count = ctx.plan.bindings.find((binding) => binding.name === 'count')!.id;
-  return { ...lowerSetup(statements, ctx), ctx, count };
+  const lowered = lowerSetup(statements, ctx);
+  finalizeLocalFunctions(ctx);
+  return { ...lowered, ctx, count };
 }
 
 describe('lowerSetup / useSignal', () => {

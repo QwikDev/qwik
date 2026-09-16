@@ -69,6 +69,7 @@ export function linkContent(module: LinkedModule): void {
         { binding: binding!, access: CaptureAccess.Direct },
       ];
       const args = op.contentCaptures?.args ?? [{ pass: ArgPass.Binding, binding: binding! }];
+      const functions = op.contentCaptures?.functions ?? [];
       const expr = value.v === ValueKind.Read || value.v === ValueKind.Computed ? value.expr : null;
       const range =
         value.range ??
@@ -92,6 +93,7 @@ export function linkContent(module: LinkedModule): void {
         authoredAsync: false,
         body: { b: QrlBodyKind.Expr, expr: expr!, initialOnly: false },
         captures,
+        functions,
         params: { authored: 0, used: [], sources: [] },
         origin: {
           range,

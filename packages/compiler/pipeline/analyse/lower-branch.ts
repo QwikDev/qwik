@@ -103,7 +103,7 @@ function lowerArm(
 ): QrlUse {
   const loweredCaptures =
     expression === null
-      ? { captures: [], args: [] }
+      ? { captures: [], functions: [], args: [] }
       : lowerCaptures(expression, ctx, 'a branch arm');
   // The arm's segment and rows come BEFORE its children's — matching legacy allocation order.
   const program = ctx.plan.programs.length;
@@ -125,6 +125,7 @@ function lowerArm(
       authoredAsync: false,
       body: { b: QrlBodyKind.Program, program },
       captures: loweredCaptures.captures,
+      functions: loweredCaptures.functions,
       params: { authored: 0, used: [], sources: [] },
       origin: {
         range,

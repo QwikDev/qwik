@@ -24,22 +24,21 @@ import {
   _markComponent,
   useSignal,
   createComponent,
-  _captures,
   _noopQrl,
+  _captures,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
 } from '@qwik.dev/core';
 import { Child } from './child';
-const component_thenqrl_segment_0_3jr994h4j8ef7 = () => {
-  const [pick] = _captures;
-  return pick;
+const component_pick_segment_0_3dnf2wesexw1y = (v) => {
+  return v.x;
 };
-const q_component_thenqrl_segment_0_3jr994h4j8ef7 = /*#__PURE__*/ _noopQrl(
-  'component_thenqrl_segment_0_3jr994h4j8ef7'
+const q_component_pick_segment_0_3dnf2wesexw1y = /*#__PURE__*/ _noopQrl(
+  'component_pick_segment_0_3dnf2wesexw1y'
 );
-q_component_thenqrl_segment_0_3jr994h4j8ef7.s(component_thenqrl_segment_0_3jr994h4j8ef7);
+q_component_pick_segment_0_3dnf2wesexw1y.s(component_pick_segment_0_3dnf2wesexw1y);
 const component_fallbackqrl_segment_1_3grqawftcqexb = () => {
   return Fallback;
 };
@@ -103,13 +102,12 @@ const Fallback = _markComponent(
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const count = useSignal(1);
-    const pick = (v) => v.x;
-    ctx.addRoot(pick);
+    const pick = component_pick_segment_0_3dnf2wesexw1y;
     ctx.addRoot(count);
     const component0 = createComponent(
       Child,
       {
-        then$: q_component_thenqrl_segment_0_3jr994h4j8ef7.w([pick]),
+        then$: q_component_pick_segment_0_3dnf2wesexw1y,
         fallback$: q_component_fallbackqrl_segment_1_3grqawftcqexb,
         render$: q_component_renderqrl_segment_4_5bp3q9cb45d6.w([count]),
         data$: q_component_dataqrl_segment_5_2mjc43lmu203l.w([count]),
@@ -126,34 +124,30 @@ export default default_component_3rg6kq1so9aio;
 export { Fallback as __qwik_Fallback };
 
 export { Fallback as Fallback_component_meb6nrkqtu05 };
-============================= src/component.tsx_component_thenqrl_segment_0_3jr994h4j8ef7.js (ENTRY POINT)==
+============================= src/component.tsx_component_pick_segment_0_3dnf2wesexw1y.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
-
-export const component_thenqrl_segment_0_3jr994h4j8ef7 = () => {
-  const [pick] = _captures;
-  return pick;
+export const component_pick_segment_0_3dnf2wesexw1y = (v) => {
+  return v.x;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_thenqrl_segment_0_3jr994h4j8ef7",
+  "name": "component_pick_segment_0_3dnf2wesexw1y",
   "entry": null,
-  "displayName": "component_thenqrl_segment_0",
-  "hash": "3jr994h4j8ef7",
-  "canonicalFilename": "component.tsx_component_thenqrl_segment_0_3jr994h4j8ef7",
+  "displayName": "component_pick_segment_0",
+  "hash": "3dnf2wesexw1y",
+  "canonicalFilename": "component.tsx_component_pick_segment_0_3dnf2wesexw1y",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "then$",
-  "captures": true,
+  "ctxName": "pick",
+  "captures": false,
   "loc": [
-    254,
-    258
+    200,
+    217
   ],
-  "paramNames": [],
-  "captureNames": [
-    "pick"
+  "paramNames": [
+    "v"
   ]
 }
 */

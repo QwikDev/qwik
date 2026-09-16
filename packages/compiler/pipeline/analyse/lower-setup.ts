@@ -25,6 +25,8 @@ import type {
   CallExpression,
   Directive,
   Function as FunctionNode,
+  ArrowFunctionExpression,
+  BindingIdentifier,
   Statement,
   VariableDeclarator,
   VariableDeclaration,
@@ -66,7 +68,7 @@ export function lowerConstDeclaration(
   if (declarator.init === null) {
     throw new UnsupportedError('a const declaration without an initializer');
   }
-  const { refs } = lowerCaptures(declarator.init, ctx, 'a const initializer');
+  const { refs } = lowerCaptures(declarator.init, ctx, 'a const initializer', new Set(), false);
   const value = lowerInlineExpressionValue(declarator.init, ctx, refs);
   return lowerConstBinding(declarator.id, value, ctx, locals);
 }
@@ -103,7 +105,7 @@ function lowerSetupBinding(
     throw new UnsupportedError('a non-identifier core API binding');
   }
   const bindings = [...ctx.bindings.bindingsOf(pattern)];
-  const { refs } = lowerCaptures(pattern, ctx, 'a binding pattern');
+  const { refs } = lowerCaptures(pattern, ctx, 'a binding pattern', new Set(), false);
   const target = pattern.type === 'AssignmentPattern' ? pattern.left : pattern;
   const defaultValue =
     pattern.type === 'AssignmentPattern'
@@ -157,10 +159,13 @@ export function lowerSetup(
       }
       if (statement.type === 'FunctionDeclaration') {
         const localComponent = lowerLocalComponent(statement, ctx, locals);
-        if (localComponent !== null) {
-          setup.push(localComponent);
-          continue;
-        }
+        setup.push(
+          localComponent ??
+            lowerLocalFunction(statement, statement.id!, ctx, locals, (scope) =>
+              lowerJsStatement(statement, scope, locals)
+            )
+        );
+        continue;
       }
       if (statement.type === 'ExpressionStatement') {
         const expression = unwrapExpression(statement.expression);
@@ -176,12 +181,17 @@ export function lowerSetup(
         continue;
       }
       for (const declarator of statement.declarations) {
+        const init = declarator.init === null ? null : unwrapExpression(declarator.init);
         // A live alias registers locals and emits nothing.
         const entry =
           lowerLocalComponent({ ...statement, declarations: [declarator] }, ctx, locals) ??
-          (lowerAliasDeclaration(declarator, ctx, locals)
-            ? null
-            : lowerSetupDeclaration(declarator, ctx, locals));
+          (init !== null && isFunctionLike(init) && declarator.id.type === 'Identifier'
+            ? lowerLocalFunction(init, declarator.id, ctx, locals, (scope) =>
+                lowerConstDeclaration(declarator, scope, locals)
+              )
+            : lowerAliasDeclaration(declarator, ctx, locals)
+              ? null
+              : lowerSetupDeclaration(declarator, ctx, locals));
         if (entry !== null) {
           setup.push(entry);
         }
@@ -376,6 +386,61 @@ function lowerAliasDeclaration(
     register(member.node, pathReadIr(source.read, member.path, ctx), defaults[index] ?? undefined)
   );
   return true;
+}
+
+/**
+ * A body function stays authored unless a boundary calls it; then it lifts to a segment the callers
+ * import statically, and the body binds it to its captures instead of declaring it.
+ */
+function lowerLocalFunction(
+  fn: FunctionNode | ArrowFunctionExpression,
+  id: BindingIdentifier,
+  ctx: LowerContext,
+  locals: SetupLocals,
+  lowerAuthored: (scope: LowerContext) => Setup
+): Setup {
+  const binding = ctx.bindings.declaration(id)!;
+  const name = id.name;
+  const entry: Extract<Setup, { s: SetupKind.LocalFunction }> = {
+    s: SetupKind.LocalFunction,
+    binding,
+    hoisted: fn.type === 'FunctionDeclaration',
+  };
+  // Both forms lower later, in the scope of this statement rather than of the module end.
+  const scope = { ...ctx, locals };
+  const lift = () =>
+    (entry.use ??= lowerQrlArgument(fn, scope, {
+      nameCtx: name,
+      subject: `the local function "${name}"`,
+      ctxName: name,
+      boundary: { kind: BoundaryKind.Implicit, role: 'function' },
+      origin: { range: [fn.start, fn.end], calleeRange: null, argumentRanges: [] },
+    }));
+  locals.set(binding, {
+    kind: LocalKind.Function,
+    access: CaptureAccess.Direct,
+    slot: -1,
+    binding,
+    lift,
+  });
+  // Never lifted: the authored statement takes the entry's place, in every copy of the setup.
+  ctx.pendingFunctions.push(() => {
+    if (entry.use === undefined) {
+      const authored = lowerAuthored(scope);
+      for (const key of Object.keys(entry)) {
+        delete (entry as Record<string, unknown>)[key];
+      }
+      Object.assign(entry, authored);
+    }
+  });
+  return entry;
+}
+
+/** Runs once every boundary has been lowered: unreferenced body functions keep their statement. */
+export function finalizeLocalFunctions(ctx: LowerContext): void {
+  for (const finalize of ctx.pendingFunctions.splice(0)) {
+    finalize();
+  }
 }
 
 function lowerLocalComponent(

@@ -261,6 +261,7 @@ function lowerEach(
       authoredAsync: false,
       body: { b: QrlBodyKind.Program, program },
       captures: rowCaptures.captures,
+      functions: rowCaptures.functions,
       params: { authored: callback.params.length, used: [], sources: [] },
       origin: {
         range: rowRange,

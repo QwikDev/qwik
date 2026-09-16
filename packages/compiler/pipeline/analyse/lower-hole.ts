@@ -61,7 +61,13 @@ function createTextHole(expression: Expression, ctx: LowerContext, stringify: bo
     stringify,
     ...(captured === null
       ? {}
-      : { contentCaptures: { captures: captured.captures, args: captured.args } }),
+      : {
+          contentCaptures: {
+            captures: captured.captures,
+            functions: captured.functions,
+            args: captured.args,
+          },
+        }),
   };
 }
 

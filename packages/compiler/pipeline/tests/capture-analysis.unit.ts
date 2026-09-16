@@ -107,6 +107,8 @@ describe('collectCaptures', () => {
       ],
       moduleReads: [],
       locals: [],
+      functions: [],
+      propsRequired: false,
       other: null,
     });
     expect(refs.propsReads.map(([start, end]) => end - start)).toEqual([5, 5]);
@@ -130,6 +132,8 @@ describe('collectCaptures', () => {
       moduleReads: [],
       locals: [],
       other: null,
+      functions: [],
+      propsRequired: false,
     });
   });
 
@@ -145,6 +149,8 @@ describe('collectCaptures', () => {
       moduleReads: [],
       locals: [],
       other: null,
+      functions: [],
+      propsRequired: false,
     });
   });
 });

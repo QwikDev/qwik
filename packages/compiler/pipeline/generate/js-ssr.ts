@@ -29,7 +29,9 @@ import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
   extractPayloadJs,
   captureNames,
+  boundReference,
   capturePrelude,
+  functionPrelude,
   bindHandlerJs,
   inlineValueJs,
   rootArgs,
@@ -179,7 +181,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         this.chunkImports
       ),
       names,
-      { isServer: true, chunkImports: this.chunkImports }
+      {
+        isServer: true,
+        localFunction: (use) => this.localFunctionReference({ names }, use),
+        chunkImports: this.chunkImports,
+      }
     );
     this.flushQrlHoists();
     return source;
@@ -253,7 +259,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         emitQrl,
         (nested, localNames = names) => this.renderProgramById(nested, localNames),
         names,
-        { isServer: true, chunkImports: this.chunkImports }
+        {
+          isServer: true,
+          localFunction: (use) => this.localFunctionReference({ names }, use),
+          chunkImports: this.chunkImports,
+        }
       )
     );
     const setupCount = pass.statements.length;
@@ -443,7 +453,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const core = emitter.renderProgram(qrl, names, options);
     const captures = captureNames(this.module, qrl);
     const emission = emptyFunctionEmission();
-    emission.statements = [...capturePrelude(this.module, qrl), ...core.statements];
+    emission.statements = [
+      ...capturePrelude(this.module, qrl),
+      ...functionPrelude(this.module, qrl, (use) => emitter.localFunctionReference({ names }, use)),
+      ...core.statements,
+    ];
     emission.value = core.value;
     if (captures.length > 0) {
       emission.imports.add(QwikWord.Captures);
@@ -1070,6 +1084,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
    * Emission-side use of a QRL: the reference text with its actual arguments baked in. Function
    * payloads wear `.w([args])`; Value payloads keep a bare reference and receive args separately.
    */
+  /** The server mirrors an invoked segment in-module, so a lifted function binds to that mirror. */
+  localFunctionReference(pass: Pick<RenderPass, 'names'>, use: QrlUse): string {
+    const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
+    this.qrlReference(qrl, true);
+    return boundReference(qrl.name, args, this.imports);
+  }
+
   private useQrl(pass: Pick<RenderPass, 'names'>, use: QrlUse, invoked: boolean) {
     const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
     let ref = this.qrlReference(qrl, invoked);

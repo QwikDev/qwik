@@ -120,7 +120,11 @@ export type Op =
       /** A concat operand keeps JS `String()` coercion instead of JSX text coercion. */
       stringify: boolean;
       /** Lexical reads need captures only if linking selects a content range. */
-      contentCaptures?: { captures: Qrl['captures']; args: QrlUse['args'] };
+      contentCaptures?: {
+        captures: Qrl['captures'];
+        functions?: Qrl['functions'];
+        args: QrlUse['args'];
+      };
     }
   | {
       op: OpKind.Component;
@@ -263,6 +267,8 @@ export const enum SetupKind {
   UseId = 'use-id',
   Style = 'style',
   LocalComponent = 'local-component',
+  /** A body function lifted to a segment; the body binds its captures to the imported function. */
+  LocalFunction = 'local-function',
   RenderValue = 'render-value',
   Js = 'js',
 }
@@ -368,6 +374,15 @@ export type Setup =
       id: string;
       name: string;
       parameter: ComponentParameter | null;
+      guard?: Predicate;
+    }
+  /** A body function a boundary lifted; one never lifted is replaced by its authored statement. */
+  | {
+      s: SetupKind.LocalFunction;
+      binding: LocalId;
+      /** A function declaration hoists, so its binding is a hoisted wrapper. */
+      hoisted: boolean;
+      use?: QrlUse;
       guard?: Predicate;
     }
   | {

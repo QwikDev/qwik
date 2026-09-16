@@ -15,6 +15,8 @@ export interface LowerContext {
   sourceName: string;
   sourceIdentity: string;
   segmentCounter: { next: number };
+  /** Body functions decide at module end whether they were lifted or stay authored. */
+  pendingFunctions: (() => void)[];
   /** Branch seed ordinals, allocated in authored order. */
   branchCounter: { next: number };
   componentCounter: { next: number };
@@ -64,6 +66,7 @@ export function createLowerContext(
     sourceName: basename.replace(/\.[cm]?[jt]sx?$/, ''),
     sourceIdentity,
     segmentCounter: { next: 0 },
+    pendingFunctions: [],
     branchCounter: { next: 0 },
     componentCounter: { next: 0 },
     contentCounter: { next: 0 },

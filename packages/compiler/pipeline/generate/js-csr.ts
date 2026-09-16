@@ -26,7 +26,9 @@ import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
   extractPayloadJs,
   captureNames,
+  boundReference,
   capturePrelude,
+  functionPrelude,
   emptyFunctionEmission,
   bindHandlerJs,
   inlineValueJs,
@@ -155,7 +157,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         staticQrl
       ),
       names,
-      { staticQrl, chunkImports: this.chunkImports }
+      { staticQrl, localFunction: staticQrl, chunkImports: this.chunkImports }
     );
   }
 
@@ -196,7 +198,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       (nested, localNames = names) =>
         this.renderProgram(nested, `${ownerName}_${nested}`, localNames),
       names,
-      { staticQrl, chunkImports: this.chunkImports }
+      { staticQrl, localFunction: staticQrl, chunkImports: this.chunkImports }
     );
     const setupCount = statements.length;
     const params = parameterDefaults(this.module, program, this.imports, emitQrl);
@@ -752,14 +754,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     return resolved.args.length === 0 ? ref : `${ref}.w([${resolved.args.join(', ')}])`;
   }
 
-  private capturedChunkReference(use: QrlUse, propsName: string): string {
+  capturedChunkReference(use: QrlUse, propsName: string): string {
     const resolved = this.resolveQrlUse(use, propsName);
-    const ref = this.chunkSymbol(resolved.qrl);
-    if (resolved.args.length === 0) {
-      return ref;
-    }
-    this.imports.add(QwikWord.WithCaptures);
-    return `${QwikWord.WithCaptures}(${ref}, [${resolved.args.join(', ')}])`;
+    return boundReference(this.chunkSymbol(resolved.qrl), resolved.args, this.imports);
   }
 
   /** An arm's function is a normal render program; source-bodied QRLs replay authored code. */
@@ -791,7 +788,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
         // Captures restore from `_captures` ahead of the render statements.
         const captures = captureNames(this.module, qrl);
-        const statements = [...capturePrelude(this.module, qrl), ...emission.statements];
+        const statements = [
+          ...capturePrelude(this.module, qrl),
+          ...functionPrelude(this.module, qrl, (use) =>
+            emitter.capturedChunkReference(use, names.props)
+          ),
+          ...emission.statements,
+        ];
         return {
           imports: new Set([
             ...(captures.length > 0 ? [QwikWord.Captures] : []),
@@ -849,6 +852,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
     emission.statements = [
       ...capturePrelude(this.module, qrl),
+      ...functionPrelude(this.module, qrl, (use) =>
+        emitter.capturedChunkReference(use, pass.names.props)
+      ),
       ...emitJsSetup(this.module, program, emitter.imports, (use) =>
         emitter.lazyRenderReference(use, pass.names.props)
       ),

@@ -24,7 +24,7 @@ import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
 import { lowerComponentParameter } from './lower-parameter';
-import { lowerSetup } from './lower-setup';
+import { finalizeLocalFunctions, lowerSetup } from './lower-setup';
 import { createLowerContext, pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerRenderExpression } from './lower-jsx';
 import { normalizeSource } from './normalize';
@@ -319,6 +319,7 @@ export async function analyseModule(
     }
     plan.assembly.push({ a: AssemblyKind.Splice, qrl: qrlIndex });
   }
+  finalizeLocalFunctions(lowerContext);
   recordBindingResults(lowerContext);
   return finish();
 }

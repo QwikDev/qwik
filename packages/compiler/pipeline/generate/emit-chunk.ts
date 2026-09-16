@@ -176,6 +176,46 @@ export function qrlPropsName(module: LinkedModule, qrl: LinkedQrl, fallback: str
   return capture === undefined ? fallback : module.bindings[capture.binding].name;
 }
 
+/** A lifted local function rebinds to its imported segment and the captures restored above. */
+export function functionPrelude(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  functionReference: (use: QrlUse) => string
+): string[] {
+  return (qrl.functions ?? []).map(
+    ({ binding, use }) => `const ${module.bindings[binding].name} = ${functionReference(use)};`
+  );
+}
+
+/** The static form of a function QRL: the imported segment, bound to its captures when it has any. */
+export function staticFunctionReference(
+  module: LinkedModule,
+  use: QrlUse,
+  propsName: string,
+  emission: Pick<FunctionEmission, 'imports' | 'chunkImports'>,
+  resolveQrlUse: QrlResolver
+): string {
+  const { qrl, args } = resolveQrlUse(use, propsName);
+  const line = `import { ${qrl.name} } from ${JSON.stringify(`./${chunkCanonicalFilename(module, qrl)}`)};`;
+  if (!emission.chunkImports.includes(line)) {
+    emission.chunkImports.push(line);
+  }
+  return boundReference(qrl.name, args, emission.imports);
+}
+
+/** A statically imported segment, bound to its captures when it has any. */
+export function boundReference(
+  name: string,
+  args: readonly string[],
+  imports: Set<string>
+): string {
+  if (args.length === 0) {
+    return name;
+  }
+  imports.add(QwikWord.WithCaptures);
+  return `${QwikWord.WithCaptures}(${name}, [${args.join(', ')}])`;
+}
+
 /** Restore native arguments from serializable values at extracted boundaries. */
 export function capturePrelude(module: LinkedModule, qrl: LinkedQrl): string[] {
   const captures = captureNames(module, qrl);

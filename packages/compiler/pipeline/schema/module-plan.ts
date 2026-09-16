@@ -94,6 +94,8 @@ export interface Qrl {
       };
   /** Names/kinds read from the binding table. */
   captures: { binding: LocalId; access: CaptureAccess }[];
+  /** Local functions the body calls: their captures ride `captures`, the prelude rebinds them. */
+  functions?: { binding: LocalId; use: QrlUse }[];
   /** Invocation ABI. */
   params: {
     authored: number;

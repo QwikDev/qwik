@@ -168,6 +168,7 @@ function computedQrlValue(
       authoredAsync: false,
       body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
       captures: lowered.captures,
+      functions: lowered.functions,
       params: { authored: 0, used: [], sources: [] },
       origin: {
         range,

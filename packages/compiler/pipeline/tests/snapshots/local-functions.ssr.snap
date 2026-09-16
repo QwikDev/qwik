@@ -1,0 +1,816 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { Reveal } from './reveal';
+export default component$(() => {
+  const count = useSignal(1);
+  const show = useSignal(true);
+  function suffix(key: string) { return key + '!'; }
+  const label = (key: string) => suffix(key) + count.value;
+  async function load(key: string) { return key; }
+  const direct = label('d');
+  return (
+    <Reveal>
+      <b onClick$={() => console.log(label('h'))}>{label('x')}</b>
+      {show.value && <i>{suffix('y')}</i>}
+      {load('z')}
+      {direct}
+    </Reveal>
+  );
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _withCaptures,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  _noopQrl,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  createSsrMarkup,
+  renderSsrBranch,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Reveal } from './reveal';
+const component_suffix_segment_0_37l3bw02arx82 = (key) => {
+  return key + '!';
+};
+const q_component_suffix_segment_0_37l3bw02arx82 = /*#__PURE__*/ _noopQrl(
+  'component_suffix_segment_0_37l3bw02arx82'
+);
+q_component_suffix_segment_0_37l3bw02arx82.s(component_suffix_segment_0_37l3bw02arx82);
+const component_label_segment_1_871sx3hwa26q = (key) => {
+  const [count] = _captures;
+  const suffix = component_suffix_segment_0_37l3bw02arx82;
+  return suffix(key) + count.value;
+};
+const q_component_label_segment_1_871sx3hwa26q = /*#__PURE__*/ _noopQrl(
+  'component_label_segment_1_871sx3hwa26q'
+);
+q_component_label_segment_1_871sx3hwa26q.s(component_label_segment_1_871sx3hwa26q);
+const component_load_segment_9_3myl24trdze9k = async (key) => {
+  return key;
+};
+const q_component_load_segment_9_3myl24trdze9k = /*#__PURE__*/ _noopQrl(
+  'component_load_segment_9_3myl24trdze9k'
+);
+q_component_load_segment_9_3myl24trdze9k.s(component_load_segment_9_3myl24trdze9k);
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  const [count] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [count],
+    q_component_text_segment_4_1fh11zg0n0shg
+  );
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(text0, (text0) => [
+      '<b q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([count])),
+      '>',
+      escapeHTML(text0),
+      '</b>',
+    ]),
+    '<!/s>',
+  ];
+};
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
+const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
+  const [show] = _captures;
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(show);
+  const branch0 = renderSsrBranch(
+    ctx,
+    branchId0,
+    q_component_branch_condition_segment_6_2fzrg2njel5c3.w([show]),
+    q_component_branch_then_segment_7_24n7ce0yehh58,
+    undefined
+  );
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(branch0, (branch0) => ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>']),
+    '<!/s>',
+  ];
+};
+const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_5_3b0t9atn1pfsx'
+);
+q_component_slot_render_segment_5_3b0t9atn1pfsx.s(component_slot_render_segment_5_3b0t9atn1pfsx);
+const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId) => {
+  const rangeId0 = ctx.nextId();
+  const text0 = renderSsrTextExpression(rangeId0, 0, [], q_component_text_segment_11_2cdl3n7fbecf2);
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(text0, (text0) => [
+      '<!b=',
+      createSsrNodeId(rangeId0),
+      '><!t>',
+      escapeHTML(text0),
+      '<!/t><!/b>',
+    ]),
+    '<!/s>',
+  ];
+};
+const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_10_3m3ztgqtay7c7'
+);
+q_component_slot_render_segment_10_3m3ztgqtay7c7.s(component_slot_render_segment_10_3m3ztgqtay7c7);
+const component_slot_render_segment_12_3m3zu8t14mbd9 = (ctx, __rangeId) => {
+  const [direct] = _captures;
+  const rangeId0 = ctx.nextId();
+  ctx.addRoot(direct);
+  const text0 = renderSsrTextExpression(
+    rangeId0,
+    0,
+    [direct],
+    q_component_text_segment_13_2cdl2v57hq8e0
+  );
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(text0, (text0) => [
+      '<!b=',
+      createSsrNodeId(rangeId0),
+      '><!t>',
+      escapeHTML(text0),
+      '<!/t><!/b>',
+    ]),
+    '<!/s>',
+  ];
+};
+const q_component_slot_render_segment_12_3m3zu8t14mbd9 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_12_3m3zu8t14mbd9'
+);
+q_component_slot_render_segment_12_3m3zu8t14mbd9.s(component_slot_render_segment_12_3m3zu8t14mbd9);
+const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_3_2xwygfdmkpoqi'
+);
+const component_text_segment_4_1fh11zg0n0shg = (count) => {
+  const label = _withCaptures(component_label_segment_1_871sx3hwa26q, [count]);
+  return label('x');
+};
+const q_component_text_segment_4_1fh11zg0n0shg = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_4_1fh11zg0n0shg'
+);
+q_component_text_segment_4_1fh11zg0n0shg.s(component_text_segment_4_1fh11zg0n0shg);
+const component_branch_condition_segment_6_2fzrg2njel5c3 = () => {
+  const [show] = _captures;
+  return show.value;
+};
+const q_component_branch_condition_segment_6_2fzrg2njel5c3 = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_6_2fzrg2njel5c3'
+);
+q_component_branch_condition_segment_6_2fzrg2njel5c3.s(
+  component_branch_condition_segment_6_2fzrg2njel5c3
+);
+const component_branch_then_segment_7_24n7ce0yehh58 = (ctx) => {
+  const suffix = component_suffix_segment_0_37l3bw02arx82;
+  const id0 = ctx.nextId();
+  const text0 = renderSsrTextExpression(id0, null, [], q_component_text_segment_8_1fh0xb2pp04b4);
+  return maybeThen(text0, (text0) => [
+    '<i q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</i>',
+  ]);
+};
+const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_7_24n7ce0yehh58'
+);
+q_component_branch_then_segment_7_24n7ce0yehh58.s(component_branch_then_segment_7_24n7ce0yehh58);
+const component_text_segment_11_2cdl3n7fbecf2 = () => {
+  const load = component_load_segment_9_3myl24trdze9k;
+  return load('z');
+};
+const q_component_text_segment_11_2cdl3n7fbecf2 = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_11_2cdl3n7fbecf2'
+);
+q_component_text_segment_11_2cdl3n7fbecf2.s(component_text_segment_11_2cdl3n7fbecf2);
+const component_text_segment_13_2cdl2v57hq8e0 = (direct) => {
+  return direct;
+};
+const q_component_text_segment_13_2cdl2v57hq8e0 = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_13_2cdl2v57hq8e0'
+);
+q_component_text_segment_13_2cdl2v57hq8e0.s(component_text_segment_13_2cdl2v57hq8e0);
+const component_text_segment_8_1fh0xb2pp04b4 = () => {
+  const suffix = component_suffix_segment_0_37l3bw02arx82;
+  return suffix('y');
+};
+const q_component_text_segment_8_1fh0xb2pp04b4 = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_8_1fh0xb2pp04b4'
+);
+q_component_text_segment_8_1fh0xb2pp04b4.s(component_text_segment_8_1fh0xb2pp04b4);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(1);
+    const show = useSignal(true);
+    function suffix() {
+      return component_suffix_segment_0_37l3bw02arx82.apply(this, arguments);
+    }
+    const label = (...args) =>
+      _withCaptures(component_label_segment_1_871sx3hwa26q, [count])(...args);
+    function load() {
+      return component_load_segment_9_3myl24trdze9k.apply(this, arguments);
+    }
+    const direct = label('d');
+    const slotScope0 = createSlotScope();
+    registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([count]));
+    registerProjection(slotScope0, '', q_component_slot_render_segment_5_3b0t9atn1pfsx.w([show]));
+    registerProjection(slotScope0, '', q_component_slot_render_segment_10_3m3ztgqtay7c7);
+    registerProjection(
+      slotScope0,
+      '',
+      q_component_slot_render_segment_12_3m3zu8t14mbd9.w([direct])
+    );
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(Reveal, null, ctx, { slotScope: slotScope0 });
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_suffix_segment_0_37l3bw02arx82.js (ENTRY POINT)==
+
+export const component_suffix_segment_0_37l3bw02arx82 = (key) => {
+  return key + '!';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suffix_segment_0_37l3bw02arx82",
+  "entry": null,
+  "displayName": "component_suffix_segment_0",
+  "hash": "37l3bw02arx82",
+  "canonicalFilename": "component.tsx_component_suffix_segment_0_37l3bw02arx82",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suffix",
+  "captures": false,
+  "loc": [
+    189,
+    220
+  ],
+  "paramNames": [
+    "key"
+  ]
+}
+*/
+============================= src/component.tsx_component_label_segment_1_871sx3hwa26q.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+import { component_suffix_segment_0_37l3bw02arx82 } from './component.tsx_component_suffix_segment_0_37l3bw02arx82';
+
+export const component_label_segment_1_871sx3hwa26q = (key) => {
+  const [count] = _captures;
+  const suffix = component_suffix_segment_0_37l3bw02arx82;
+  return suffix(key) + count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_label_segment_1_871sx3hwa26q",
+  "entry": null,
+  "displayName": "component_label_segment_1",
+  "hash": "871sx3hwa26q",
+  "canonicalFilename": "component.tsx_component_label_segment_1_871sx3hwa26q",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "label",
+  "captures": true,
+  "loc": [
+    248,
+    298
+  ],
+  "paramNames": [
+    "key"
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  createSsrMarkup,
+} from '@qwik.dev/core';
+import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_component_text_segment_4_1fh11zg0n0shg';
+const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_3_2xwygfdmkpoqi'
+);
+const q_component_text_segment_4_1fh11zg0n0shg = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_4_1fh11zg0n0shg'
+);
+q_component_text_segment_4_1fh11zg0n0shg.s(component_text_segment_4_1fh11zg0n0shg);
+
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  const [count] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [count],
+    q_component_text_segment_4_1fh11zg0n0shg
+  );
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(text0, (text0) => [
+      '<b q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([count])),
+      '>',
+      escapeHTML(text0),
+      '</b>',
+    ]),
+    '<!/s>',
+  ];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "entry": null,
+  "displayName": "component_slot_render_segment_2",
+  "hash": "3b0t9ouqyjhtg",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    410,
+    470
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
+
+import { _captures, _withCaptures } from '@qwik.dev/core';
+import { component_label_segment_1_871sx3hwa26q } from './component.tsx_component_label_segment_1_871sx3hwa26q';
+
+export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
+  const [count] = _captures;
+  const label = _withCaptures(component_label_segment_1_871sx3hwa26q, [count]);
+  return console.log(label('h'));
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_3",
+  "hash": "2xwygfdmkpoqi",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    413,
+    453
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_4_1fh11zg0n0shg.js (ENTRY POINT)==
+
+import { _withCaptures } from '@qwik.dev/core';
+import { component_label_segment_1_871sx3hwa26q } from './component.tsx_component_label_segment_1_871sx3hwa26q';
+
+export const component_text_segment_4_1fh11zg0n0shg = (count) => {
+  const label = _withCaptures(component_label_segment_1_871sx3hwa26q, [count]);
+  return label('x');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_4_1fh11zg0n0shg",
+  "entry": null,
+  "displayName": "component_text_segment_4",
+  "hash": "1fh11zg0n0shg",
+  "canonicalFilename": "component.tsx_component_text_segment_4_1fh11zg0n0shg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    455,
+    465
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  renderSsrBranch,
+  createSsrNodeId,
+  maybeThen,
+  createSsrMarkup,
+} from '@qwik.dev/core';
+import { component_branch_condition_segment_6_2fzrg2njel5c3 } from './component.tsx_component_branch_condition_segment_6_2fzrg2njel5c3';
+import { component_branch_then_segment_7_24n7ce0yehh58 } from './component.tsx_component_branch_then_segment_7_24n7ce0yehh58';
+const q_component_branch_condition_segment_6_2fzrg2njel5c3 = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_6_2fzrg2njel5c3'
+);
+q_component_branch_condition_segment_6_2fzrg2njel5c3.s(
+  component_branch_condition_segment_6_2fzrg2njel5c3
+);
+const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_7_24n7ce0yehh58'
+);
+q_component_branch_then_segment_7_24n7ce0yehh58.s(component_branch_then_segment_7_24n7ce0yehh58);
+
+export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
+  const [show] = _captures;
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(show);
+  const branch0 = renderSsrBranch(
+    ctx,
+    branchId0,
+    q_component_branch_condition_segment_6_2fzrg2njel5c3.w([show]),
+    q_component_branch_then_segment_7_24n7ce0yehh58,
+    undefined
+  );
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(branch0, (branch0) => ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>']),
+    '<!/s>',
+  ];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_5_3b0t9atn1pfsx",
+  "entry": null,
+  "displayName": "component_slot_render_segment_5",
+  "hash": "3b0t9atn1pfsx",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    470,
+    513
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "show"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_6_2fzrg2njel5c3.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_branch_condition_segment_6_2fzrg2njel5c3 = () => {
+  const [show] = _captures;
+  return show.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_6_2fzrg2njel5c3",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_6",
+  "hash": "2fzrg2njel5c3",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_6_2fzrg2njel5c3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    478,
+    488
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "show"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_7_24n7ce0yehh58.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_text_segment_8_1fh0xb2pp04b4 } from './component.tsx_component_text_segment_8_1fh0xb2pp04b4';
+import { component_suffix_segment_0_37l3bw02arx82 } from './component.tsx_component_suffix_segment_0_37l3bw02arx82';
+const q_component_text_segment_8_1fh0xb2pp04b4 = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_8_1fh0xb2pp04b4'
+);
+q_component_text_segment_8_1fh0xb2pp04b4.s(component_text_segment_8_1fh0xb2pp04b4);
+const q_component_suffix_segment_0_37l3bw02arx82 = /*#__PURE__*/ _noopQrl(
+  'component_suffix_segment_0_37l3bw02arx82'
+);
+q_component_suffix_segment_0_37l3bw02arx82.s(component_suffix_segment_0_37l3bw02arx82);
+
+export const component_branch_then_segment_7_24n7ce0yehh58 = (ctx) => {
+  const suffix = component_suffix_segment_0_37l3bw02arx82;
+  const id0 = ctx.nextId();
+  const text0 = renderSsrTextExpression(id0, null, [], q_component_text_segment_8_1fh0xb2pp04b4);
+  return maybeThen(text0, (text0) => [
+    '<i q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</i>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_7_24n7ce0yehh58",
+  "entry": null,
+  "displayName": "component_branch_then_segment_7",
+  "hash": "24n7ce0yehh58",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_7_24n7ce0yehh58",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    492,
+    512
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_text_segment_8_1fh0xb2pp04b4.js (ENTRY POINT)==
+
+import { component_suffix_segment_0_37l3bw02arx82 } from './component.tsx_component_suffix_segment_0_37l3bw02arx82';
+
+export const component_text_segment_8_1fh0xb2pp04b4 = () => {
+  const suffix = component_suffix_segment_0_37l3bw02arx82;
+  return suffix('y');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_8_1fh0xb2pp04b4",
+  "entry": null,
+  "displayName": "component_text_segment_8",
+  "hash": "1fh0xb2pp04b4",
+  "canonicalFilename": "component.tsx_component_text_segment_8_1fh0xb2pp04b4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": false,
+  "loc": [
+    496,
+    507
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_load_segment_9_3myl24trdze9k.js (ENTRY POINT)==
+
+export const component_load_segment_9_3myl24trdze9k = async (key) => {
+  return key;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_load_segment_9_3myl24trdze9k",
+  "entry": null,
+  "displayName": "component_load_segment_9",
+  "hash": "3myl24trdze9k",
+  "canonicalFilename": "component.tsx_component_load_segment_9_3myl24trdze9k",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "load",
+  "captures": false,
+  "loc": [
+    302,
+    337
+  ],
+  "paramNames": [
+    "key"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_10_3m3ztgqtay7c7.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  createSsrMarkup,
+} from '@qwik.dev/core';
+import { component_text_segment_11_2cdl3n7fbecf2 } from './component.tsx_component_text_segment_11_2cdl3n7fbecf2';
+const q_component_text_segment_11_2cdl3n7fbecf2 = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_11_2cdl3n7fbecf2'
+);
+q_component_text_segment_11_2cdl3n7fbecf2.s(component_text_segment_11_2cdl3n7fbecf2);
+
+export const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId) => {
+  const rangeId0 = ctx.nextId();
+  const text0 = renderSsrTextExpression(rangeId0, 0, [], q_component_text_segment_11_2cdl3n7fbecf2);
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(text0, (text0) => [
+      '<!b=',
+      createSsrNodeId(rangeId0),
+      '><!t>',
+      escapeHTML(text0),
+      '<!/t><!/b>',
+    ]),
+    '<!/s>',
+  ];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_10_3m3ztgqtay7c7",
+  "entry": null,
+  "displayName": "component_slot_render_segment_10",
+  "hash": "3m3ztgqtay7c7",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_10_3m3ztgqtay7c7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    513,
+    531
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_text_segment_11_2cdl3n7fbecf2.js (ENTRY POINT)==
+
+import { component_load_segment_9_3myl24trdze9k } from './component.tsx_component_load_segment_9_3myl24trdze9k';
+
+export const component_text_segment_11_2cdl3n7fbecf2 = () => {
+  const load = component_load_segment_9_3myl24trdze9k;
+  return load('z');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_11_2cdl3n7fbecf2",
+  "entry": null,
+  "displayName": "component_text_segment_11",
+  "hash": "2cdl3n7fbecf2",
+  "canonicalFilename": "component.tsx_component_text_segment_11_2cdl3n7fbecf2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": false,
+  "loc": [
+    521,
+    530
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_12_3m3zu8t14mbd9.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  createSsrMarkup,
+} from '@qwik.dev/core';
+import { component_text_segment_13_2cdl2v57hq8e0 } from './component.tsx_component_text_segment_13_2cdl2v57hq8e0';
+const q_component_text_segment_13_2cdl2v57hq8e0 = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_13_2cdl2v57hq8e0'
+);
+q_component_text_segment_13_2cdl2v57hq8e0.s(component_text_segment_13_2cdl2v57hq8e0);
+
+export const component_slot_render_segment_12_3m3zu8t14mbd9 = (ctx, __rangeId) => {
+  const [direct] = _captures;
+  const rangeId0 = ctx.nextId();
+  ctx.addRoot(direct);
+  const text0 = renderSsrTextExpression(
+    rangeId0,
+    0,
+    [direct],
+    q_component_text_segment_13_2cdl2v57hq8e0
+  );
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(text0, (text0) => [
+      '<!b=',
+      createSsrNodeId(rangeId0),
+      '><!t>',
+      escapeHTML(text0),
+      '<!/t><!/b>',
+    ]),
+    '<!/s>',
+  ];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_12_3m3zu8t14mbd9",
+  "entry": null,
+  "displayName": "component_slot_render_segment_12",
+  "hash": "3m3zu8t14mbd9",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_12_3m3zu8t14mbd9",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    531,
+    546
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "direct"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_13_2cdl2v57hq8e0.js (ENTRY POINT)==
+
+export const component_text_segment_13_2cdl2v57hq8e0 = (direct) => {
+  return direct;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_13_2cdl2v57hq8e0",
+  "entry": null,
+  "displayName": "component_text_segment_13",
+  "hash": "2cdl2v57hq8e0",
+  "canonicalFilename": "component.tsx_component_text_segment_13_2cdl2v57hq8e0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    539,
+    545
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "direct"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

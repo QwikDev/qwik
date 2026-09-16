@@ -40,10 +40,17 @@ export function lowerQrlArgument(
   ctx: LowerContext,
   boundary: QrlArgumentBoundary
 ): QrlUse {
-  return isFunctionLike(argument)
-    ? lowerFunctionQrl(argument, ctx, boundary)
-    : lowerComputedExpressionValue(argument, ctx, boundary.nameCtx, QrlPayloadKind.Function).resume
-        .qrl;
+  if (isFunctionLike(argument)) {
+    return lowerFunctionQrl(argument, ctx, boundary);
+  }
+  // A body function passed by name is that function's own segment.
+  const binding = argument.type === 'Identifier' ? ctx.bindings.reference(argument) : null;
+  const local = binding === null ? undefined : ctx.locals.get(binding);
+  if (local?.kind === LocalKind.Function) {
+    return local.lift();
+  }
+  return lowerComputedExpressionValue(argument, ctx, boundary.nameCtx, QrlPayloadKind.Function)
+    .resume.qrl;
 }
 
 export function lowerFunctionQrl(
@@ -58,7 +65,7 @@ export function lowerFunctionQrl(
   if (fn.type === 'FunctionExpression' && fn.generator) {
     throw new UnsupportedError('a generator QRL callback');
   }
-  const { captures, args, refs } = lowerCaptures(fn, ctx, boundary.subject);
+  const { captures, functions, args, refs } = lowerCaptures(fn, ctx, boundary.subject);
   ctx = createCapturedContext(ctx, captures);
   if (refs.capturedWrite !== null) {
     throw new InvalidModuleError(
@@ -89,6 +96,7 @@ export function lowerFunctionQrl(
         ...(fn.type === 'FunctionExpression' ? { functionName: fn.id?.name ?? null } : {}),
       },
       captures,
+      functions,
       params: {
         authored: fn.params.length,
         used: [],

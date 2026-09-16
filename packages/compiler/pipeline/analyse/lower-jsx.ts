@@ -940,6 +940,7 @@ function lowerContentRange(
       authoredAsync: false,
       body: { b: QrlBodyKind.Program, program },
       captures: captures.captures,
+      functions: captures.functions,
       params: { authored: 0, used: [], sources: [] },
       origin: {
         range,

@@ -15,6 +15,8 @@ import { QwikWord } from '../words';
 import {
   captureNames,
   capturePrelude,
+  functionPrelude,
+  staticFunctionReference,
   emptyFunctionEmission,
   extractPayloadJs,
   qrlPropsName,
@@ -37,7 +39,13 @@ export function sourceFunctionEmission(
   if (qrl.payloadKind === QrlPayloadKind.Function && captures.length > 0) {
     emission.imports.add(QwikWord.Captures);
   }
-  emission.statements.push(...capturePrelude(module, qrl));
+  const propsName = qrlPropsName(module, qrl, 'props');
+  emission.statements.push(
+    ...capturePrelude(module, qrl),
+    ...functionPrelude(module, qrl, (use) =>
+      staticFunctionReference(module, use, propsName, emission, resolveQrlUse)
+    )
+  );
   const emitQrl = withMarkerEmitter(
     module,
     (use: QrlUse) =>

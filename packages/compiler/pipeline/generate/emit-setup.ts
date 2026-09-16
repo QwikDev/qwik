@@ -116,6 +116,18 @@ export function emitJsSetup(
       }
       return extractPayloadJs(module, entry.payload, payload.range, undefined, edits, emitQrl);
     }
+    if (entry.s === SetupKind.LocalFunction) {
+      if (target.localFunction === undefined || entry.use === undefined) {
+        throw new UnsupportedError('a local function without a static reference');
+      }
+      const name = module.bindings[entry.binding].name;
+      const reference = target.localFunction(entry.use);
+      // Captures are read at call time, so a signal declared below the function still works.
+      if (entry.hoisted) {
+        return `function ${name}() {\n  return ${reference}.apply(this, arguments);\n}`;
+      }
+      return `const ${name} = ${entry.use.args.length === 0 ? reference : `(...args) => ${reference}(...args)`};`;
+    }
     if (entry.s === SetupKind.LocalComponent) {
       if (render === undefined || names === undefined) {
         throw new UnsupportedError('a local component without a renderer');
@@ -201,6 +213,8 @@ export interface SetupEmitTarget {
   isServer?: boolean;
   /** CSR delivers hook callbacks statically, as plain functions with their captures. */
   staticQrl?: (use: QrlUse) => string;
+  /** A lifted body function, bound to its captures, in this module's scope. */
+  localFunction?: (use: QrlUse) => string;
   /** Header import lines of the module emitter, for hook twins outside `@qwik.dev/core`. */
   chunkImports?: string[];
 }

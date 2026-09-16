@@ -394,7 +394,7 @@ export default () => {
 });
 
 test.each(['useTask$', 'useComputed$', 'useCustom$'])(
-  'ships an ordinary function binding to %s as a factory QRL returning it',
+  'ships a body function binding to %s as its own segment',
   async (hook) => {
     const plan = await analyseModule(
       {
@@ -413,9 +413,10 @@ export default () => {
     const call = plan.programs[0].setup.find((entry) => entry.s === SetupKind.Call)!;
     expect(call).toMatchObject({ args: [{ a: ArgKind.Qrl }] });
     const use = (call.args[0] as Extract<Arg, { a: ArgKind.Qrl }>).use;
+    // A body function passed by name lifts to its own segment; nothing wraps it.
     const qrl = plan.qrls.find((entry) => entry.id === use.qrl)!;
-    expect(qrl.body.b).toBe(QrlBodyKind.Expr);
-    expect(qrl.captures).toHaveLength(1);
+    expect(qrl.body.b).toBe(QrlBodyKind.Js);
+    expect(qrl.captures).toHaveLength(0);
   }
 );
 

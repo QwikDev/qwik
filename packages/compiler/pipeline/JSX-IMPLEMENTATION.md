@@ -526,7 +526,9 @@ and dynamic `Slot name`.
         symbol the client manifest maps, the server marks the function with that symbol, and a
         local alias of a component is captured as a value or read live when it indexes a signal
         (`#3727`). `useConstant` calls every function; docs must say `useConstant(() => Cmp)`.
-  - [ ] Open case: a projection capturing a local function (`#7000`).
+  - [x] A body function a boundary calls lifts to a segment its callers import statically; the
+        caller captures the function's captures and rebinds it, so calls stay sync and only
+        loading is lazy (`#7000`). Unreferenced body functions keep their statement.
 - [ ] Combine slots with dynamic content, namespaces, async and error boundaries.
 - [ ] External projections needed by React integration, including runtime/integration work.
 

@@ -1546,7 +1546,9 @@ export default component$(() => {
     for (const name of ['then$', 'fallback$', 'render$', 'data$']) {
       expect(code).toMatch(new RegExp(`"${name.replace('$', '\\$')}": q_`));
     }
-    expect(code).toContain('return pick');
+    // A body function passed as a `$` prop ships as its own segment, nothing wraps it.
+    expect(code).toMatch(/"then\$": q_component_pick_segment_\w+/);
+    expect(code).not.toContain('.w([pick])');
     expect(code).toContain('return Fallback');
     expect(code).toContain('return { a: count.value }');
   });
@@ -2869,6 +2871,50 @@ export default component$(() => {
         ? 'renderSsrDynamicTag(tag0, props0, ctx)'
         : "createDynamicTag(tag0, props0, ctx, 'svg')"
     );
+  });
+
+  test('should lift a local function into a segment its callers import', async () => {
+    const output = await testInput(mode, 'local-functions', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+import { Reveal } from './reveal';
+export default component$(() => {
+  const count = useSignal(1);
+  const show = useSignal(true);
+  function suffix(key: string) { return key + '!'; }
+  const label = (key: string) => suffix(key) + count.value;
+  async function load(key: string) { return key; }
+  const direct = label('d');
+  return (
+    <Reveal>
+      <b onClick$={() => console.log(label('h'))}>{label('x')}</b>
+      {show.value && <i>{suffix('y')}</i>}
+      {load('z')}
+      {direct}
+    </Reveal>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const code = output.modules.map((module) => module.code).join('\n');
+    // The body binds each function to its statically imported segment with its captures.
+    expect(main).toMatch(
+      /function suffix\(\) \{\n\s*return component_suffix_segment_\w+\.apply\(this, arguments\);/
+    );
+    expect(main).toMatch(
+      /const label = \(\.\.\.args\) => _withCaptures\(component_label_segment_\w+, \[count\]\)\(\.\.\.args\);/
+    );
+    expect(main).toMatch(/function load\(\) \{\n\s*return component_load_segment_\w+\.apply/);
+    expect(main).toMatch(/const direct = label\(["']d["']\);/);
+    // A caller captures the function's captures, never the function, and rebinds it in its prelude.
+    expect(code).not.toMatch(/\.w\(\[[^\]]*\b(label|suffix|load)\b[^\]]*\]\)/);
+    expect(code).toMatch(
+      /const \[count\] = _captures;\n\s*const label = _withCaptures\(component_label_segment_\w+, \[count\]\);/
+    );
+    expect(code).toMatch(/const suffix = component_suffix_segment_\w+;/);
+    // The lifted async function keeps its authored shape.
+    expect(code).toMatch(/export const component_load_segment_\w+ = async \(key\)/);
   });
 
   test('should mark every component with the symbol it serializes as', async () => {

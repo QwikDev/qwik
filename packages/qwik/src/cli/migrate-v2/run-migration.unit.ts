@@ -1,0 +1,97 @@
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import type { AppCommand } from '../utils/app-command';
+import { runV2Migration } from './run-migration';
+import { createTmpProject } from './tools/tmp-project';
+
+vi.mock('@clack/prompts', () => ({
+  intro: vi.fn(),
+  confirm: vi.fn(async () => true),
+  isCancel: () => false,
+  log: { info: vi.fn(), warn: vi.fn(), success: vi.fn(), error: vi.fn() },
+}));
+vi.mock('./update-dependencies', () => ({
+  installTsMorph: vi.fn(async () => false),
+  removeTsMorphFromPackageJson: vi.fn(),
+  updateDependencies: vi.fn(),
+}));
+
+describe('runV2Migration', () => {
+  let project: ReturnType<typeof createTmpProject>;
+  afterEach(() => project.cleanup());
+
+  const migrate = () => runV2Migration({} as AppCommand);
+
+  test('rescopes packages and renames qwik-city identifiers', async () => {
+    project = createTmpProject({
+      'package.json': JSON.stringify({
+        devDependencies: { '@builder.io/qwik': '1', '@builder.io/qwik-city': '1' },
+      }),
+      'src/root.tsx': [
+        `import { component$ } from '@builder.io/qwik';`,
+        `import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';`,
+        `export default component$(() => <QwikCityProvider><RouterOutlet /></QwikCityProvider>);`,
+      ].join('\n'),
+    });
+    await migrate();
+    expect(JSON.parse(project.read('package.json')).devDependencies).toEqual({
+      '@qwik.dev/core': '1',
+      '@qwik.dev/router': '1',
+    });
+    expect(project.read('src/root.tsx')).toBe(
+      [
+        `import { component$ } from '@qwik.dev/core';`,
+        `import { QwikRouterProvider, RouterOutlet } from '@qwik.dev/router';`,
+        `export default component$(() => <QwikRouterProvider><RouterOutlet /></QwikRouterProvider>);`,
+      ].join('\n')
+    );
+  });
+
+  test('renames the qwik-city plan, vite plugin and qwik-react', async () => {
+    project = createTmpProject({
+      'package.json': JSON.stringify({ devDependencies: { '@builder.io/qwik-react': '0.5.0' } }),
+      'vite.config.ts': [
+        `import { qwikCity } from '@builder.io/qwik-city/vite';`,
+        `import { qwikReact } from '@builder.io/qwik-react/vite';`,
+        `export default { plugins: [qwikCity(), qwikReact()] };`,
+      ].join('\n'),
+      'src/entry.preview.tsx': [
+        `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';`,
+        `import qwikCityPlan from '@qwik-city-plan';`,
+        `export default createQwikCity({ render, qwikCityPlan });`,
+      ].join('\n'),
+    });
+    await migrate();
+    expect(JSON.parse(project.read('package.json')).devDependencies).toEqual({
+      '@qwik.dev/react': '0.5.0',
+    });
+    expect(project.read('vite.config.ts')).toBe(
+      [
+        `import { qwikRouter } from '@qwik.dev/router/vite';`,
+        `import { qwikReact } from '@qwik.dev/react/vite';`,
+        `export default { plugins: [qwikRouter(), qwikReact()] };`,
+      ].join('\n')
+    );
+    expect(project.read('src/entry.preview.tsx')).toBe(
+      [
+        `import { createQwikRouter } from '@qwik.dev/router/middleware/node';`,
+        `import qwikRouterConfig from '@qwik-router-config';`,
+        `export default createQwikRouter({ render, qwikCityPlan: qwikRouterConfig });`,
+      ].join('\n')
+    );
+  });
+
+  test('keeps the jsx-runtime subpath and jsxs', async () => {
+    project = createTmpProject({
+      'package.json': '{}',
+      'tsconfig.json': JSON.stringify({ compilerOptions: { jsxImportSource: '@builder.io/qwik' } }),
+      'src/a.ts': `import { jsx, jsxs } from '@builder.io/qwik/jsx-runtime';\njsxs('div', {});`,
+    });
+    await migrate();
+    expect(project.read('src/a.ts')).toBe(
+      `import { jsx, jsxs } from '@qwik.dev/core/jsx-runtime';\njsxs('div', {});`
+    );
+    expect(JSON.parse(project.read('tsconfig.json')).compilerOptions.jsxImportSource).toBe(
+      '@qwik.dev/core'
+    );
+  });
+});

@@ -97,3 +97,30 @@ export function appendProperty(obj: ObjectLiteralExpression, text: string) {
     file.insertText(last.getEnd(), `,\n${indent}${text}`);
   }
 }
+
+/** Adds `name` to the named imports of `module`, creating the import declaration if needed. */
+export function ensureNamedImport(
+  file: SourceFile,
+  module: string,
+  name: string,
+  isTypeOnly = false
+) {
+  const decls = file.getImportDeclarations().filter((d) => d.getModuleSpecifierValue() === module);
+  if (
+    decls.some((d) => d.getNamedImports().some((n) => n.getName() === name && !n.getAliasNode()))
+  ) {
+    return;
+  }
+  const decl =
+    decls.find((d) => !d.isTypeOnly() && !d.getNamespaceImport()) ??
+    decls.find((d) => d.isTypeOnly() && isTypeOnly);
+  if (decl) {
+    decl.addNamedImport({ name, isTypeOnly: isTypeOnly && !decl.isTypeOnly() });
+    return;
+  }
+  file.addImportDeclaration({
+    moduleSpecifier: module,
+    namedImports: [name],
+    isTypeOnly,
+  });
+}

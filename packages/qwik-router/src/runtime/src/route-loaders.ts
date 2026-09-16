@@ -677,6 +677,19 @@ export function abortRouteLoaderNavigation(ctx: RouteLoaderCtx) {
   }
 }
 
+/** Search-filtered loaders ignore changes to unlisted params. */
+function isSameLoaderPageUrl(previous: URL, next: URL, search: string[] | undefined) {
+  if (previous.href === next.href) {
+    return true;
+  }
+  return (
+    !!search &&
+    previous.pathname === next.pathname &&
+    filterSearchParams(previous.searchParams, search) ===
+      filterSearchParams(next.searchParams, search)
+  );
+}
+
 export function prepareRouteLoaders(
   mods: readonly (RouteModule | undefined)[],
   state: RouteLoaderState,
@@ -708,11 +721,10 @@ export function prepareRouteLoaders(
     pageUrl: pageUrl.href,
   });
   const loaders = ensureRouteLoaderSignals(mods, state, ctx);
-  const hashes = new Map<string, string>();
+  const routeLoaders = new Map<string, LoaderInternal>();
   for (const loader of loaders) {
-    const hash = loader.__qrl.getHash();
-    hashes.set(loader.__id, hash);
-    current.paths[loader.__id] ||= current.paths[hash] || pageUrl.pathname;
+    routeLoaders.set(loader.__id, loader);
+    current.paths[loader.__id] ||= current.paths[loader.__qrl.getHash()] || pageUrl.pathname;
   }
   for (const id in state) {
     if (id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
@@ -720,7 +732,8 @@ export function prepareRouteLoaders(
     }
     const signal = state[id];
     const old = previous.requests.get(signal);
-    const hash = hashes.get(id) || old?.hash;
+    const loader = routeLoaders.get(id);
+    const hash = loader?.__qrl.getHash() || old?.hash;
     const routePath = current.paths[id] || (hash && current.paths[hash]);
     if (!routePath) {
       if (old) {
@@ -729,17 +742,21 @@ export function prepareRouteLoaders(
       signal.abort();
       continue;
     }
-    const unchanged = old?.active && old.routePath === routePath && old.pageUrl === pageUrl.href;
-    const keepImmutable = unchanged && isImmutableLoader(id);
+    const isSameRequest =
+      old?.active &&
+      old.routePath === routePath &&
+      isSameLoaderPageUrl(new URL(old.pageUrl), pageUrl, loader?.__search);
+    const isUnlistedUrlChange = isSameRequest && old.pageUrl !== pageUrl.href;
+    const keepRequest = isSameRequest && (isUnlistedUrlChange || isImmutableLoader(id));
     current.requests.set(
       signal,
-      keepImmutable ? old : { routePath, pageUrl: pageUrl.href, active: true, hash }
+      keepRequest ? old : { routePath, pageUrl: pageUrl.href, active: true, hash }
     );
     ctx.loaderPaths[id] = routePath;
     const force = forceIds === null || forceIds?.some((value) => value === id || value === hash);
     if (force) {
       signal.invalidate(true);
-    } else if (old && !keepImmutable) {
+    } else if (old && !keepRequest) {
       signal.invalidate();
     }
   }

@@ -186,6 +186,31 @@ describe('route loader execution', () => {
     expect(invalidate).toHaveBeenCalledExactlyOnceWith(true);
   });
 
+  it('keeps search-filtered loaders when only unlisted search params change', () => {
+    const state: RouteLoaderState = {};
+    const ctx: RouteLoaderCtx = { loaderPaths: { filtered: '/a/' } };
+    const filtered = routeLoaderQrl(createQrl('filtered'), { search: ['keep'] });
+    ensureRouteLoaderSignal(filtered, state, ctx);
+    const invalidate = vi.spyOn(state.filtered, 'invalidate').mockImplementation(() => {});
+    const mods = [{ filtered } as unknown as RouteModule];
+    const first = new URL('http://test/a/?keep=one&noise=first');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, first, first, 1);
+    invalidate.mockClear();
+
+    const noise = new URL('http://test/a/?keep=one&noise=second');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, noise, first, 2);
+    expect(invalidate).not.toHaveBeenCalled();
+
+    const keep = new URL('http://test/a/?keep=two&noise=second');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, keep, noise, 3);
+    expect(invalidate).toHaveBeenCalledOnce();
+    invalidate.mockClear();
+
+    const other = new URL('http://test/b/?keep=two&noise=second');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/b/' }, other, keep, 4);
+    expect(invalidate).toHaveBeenCalledOnce();
+  });
+
   it('stores an uninitialized resume marker for never loaders', () => {
     const state = {} as RouteLoaderState;
     const routeLoaderCtx = { loaderPaths: {} };

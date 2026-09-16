@@ -71,3 +71,39 @@ export const keepV1ViewTransitions = (file: SourceFile) => {
   }
   return true;
 };
+
+/**
+ * V1 merged the `head` exports from the page to the root layout, calling functions and merging
+ * objects in that order. v2 merges all objects first (root to page) and then calls the functions
+ * (page to root). Using only functions keeps the v1 order.
+ */
+export const keepV1HeadOrder = (file: SourceFile) => {
+  if (!/\/routes\//.test(file.getFilePath())) {
+    return false;
+  }
+  const exported = new Set(
+    file
+      .getExportDeclarations()
+      .flatMap((d) => (d.getModuleSpecifier() ? [] : d.getNamedExports()))
+      .filter((e) => (e.getAliasNode()?.getText() ?? e.getName()) === 'head')
+      .map((e) => e.getName())
+  );
+  let changed = false;
+  for (const decl of file.getVariableDeclarations()) {
+    const initializer = decl.getInitializer();
+    const isHead =
+      (decl.getName() === 'head' && decl.getVariableStatement()?.isExported()) ||
+      exported.has(decl.getName());
+    if (
+      !isHead ||
+      !initializer ||
+      Node.isArrowFunction(initializer) ||
+      Node.isFunctionExpression(initializer)
+    ) {
+      continue;
+    }
+    initializer.replaceWithText(`() => (${initializer.getText()})`);
+    changed = true;
+  }
+  return changed;
+};

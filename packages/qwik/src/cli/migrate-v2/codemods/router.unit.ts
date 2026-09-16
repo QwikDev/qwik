@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { keepV1ViewTransitions, removeSetupServiceWorker } from './router';
+import { keepV1HeadOrder, keepV1ViewTransitions, removeSetupServiceWorker } from './router';
 import { createProject, type Codemod } from './run-codemods';
 
 const run = (codemod: Codemod, code: string, path = 'src/a.tsx') => {
@@ -87,5 +87,45 @@ describe('keepV1ViewTransitions', () => {
         `});`,
       ].join('\n')
     );
+  });
+});
+
+describe('keepV1HeadOrder', () => {
+  test('turns head objects of routes into functions', () => {
+    expect(
+      run(
+        keepV1HeadOrder,
+        [
+          `import type { DocumentHead } from '@builder.io/qwik-city';`,
+          `export const head: DocumentHead = {`,
+          `  title: 'Home',`,
+          `};`,
+          `const layoutHead = { title: 'Layout' } satisfies DocumentHead;`,
+          `export { layoutHead as head };`,
+        ].join('\n'),
+        'src/routes/index.tsx'
+      ).text
+    ).toBe(
+      [
+        `import type { DocumentHead } from '@builder.io/qwik-city';`,
+        `export const head: DocumentHead = () => ({`,
+        `  title: 'Home',`,
+        `});`,
+        `const layoutHead = () => ({ title: 'Layout' } satisfies DocumentHead);`,
+        `export { layoutHead as head };`,
+      ].join('\n')
+    );
+  });
+
+  test('keeps head functions and files outside routes', () => {
+    for (const [code, path] of [
+      [
+        `export const head: DocumentHead = ({ head }) => ({ title: head.title });`,
+        'src/routes/a.tsx',
+      ],
+      [`export const head = { title: 'x' };`, 'src/components/a.tsx'],
+    ]) {
+      expect(run(keepV1HeadOrder, code, path)).toEqual({ changed: false, text: code });
+    }
   });
 });

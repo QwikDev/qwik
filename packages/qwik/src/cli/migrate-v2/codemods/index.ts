@@ -4,7 +4,7 @@ import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './e
 import { removeSlotChildren, renameHtmlFor } from './jsx';
 import { migrateQwikLabs } from './labs';
 import { warnRemovedApis } from './removed-apis';
-import { keepV1ViewTransitions, removeSetupServiceWorker } from './router';
+import { keepV1HeadOrder, keepV1ViewTransitions, removeSetupServiceWorker } from './router';
 import { keepV1LoaderInvalidation, keepV1RequestBodyLimit } from './router-config';
 import {
   keepV1StreamingDefaults,
@@ -51,4 +51,5 @@ export const codemods: Codemod[] = [
   keepV1LoaderInvalidation,
   keepV1RequestBodyLimit,
   keepV1ViewTransitions,
+  keepV1HeadOrder,
 ];

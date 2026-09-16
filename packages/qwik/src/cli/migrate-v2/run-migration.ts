@@ -4,6 +4,7 @@ import { bgMagenta, bgRed, bold, green } from 'kleur/colors';
 import { bye } from '../utils/utils';
 import { replacePackage } from './replace-package';
 import { takeWarnings, warnMentions } from './report';
+import { updateConfigurations } from './update-configurations';
 import {
   installTsMorph,
   removeTsMorphFromPackageJson,
@@ -98,8 +99,7 @@ export async function runV2Migration(app: AppCommand) {
       await removeTsMorphFromPackageJson();
     }
 
-    // COMMENTED OUT FOR NOW 👇 (as this is fixed in https://github.com/QwikDev/qwik/pull/7159)
-    // updateConfigurations();
+    updateConfigurations();
 
     await updateDependencies();
     const warnings = takeWarnings();

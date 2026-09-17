@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { analyseModule } from '../index';
-import { transformModules } from '../compat/transform-modules';
+import { transformModules } from '../transform-modules';
 import { deepFreeze, loadDefaultFunction, loadChunkFunction, setupOnlyContext } from './fixtures';
 import { QrlBodyKind } from '../schema';
 import * as core from '../../../qwik/src/core/index';

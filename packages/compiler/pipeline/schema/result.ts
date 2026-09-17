@@ -1,4 +1,4 @@
-import type { ValueIR } from '../../src/expr-ir';
+import type { ValueIR } from './value-ir';
 import type { LocalId } from './shared';
 
 /** Analysis-only extensions; executable expressions keep their original lowering. */

@@ -20,13 +20,12 @@ import {
   type Range,
   type LocalId,
 } from '../schema';
-import { ValueIrKind } from '../../src/expr-ir';
+import { ValueIrKind } from '../schema/value-ir';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
 import { QWIK_CORE_IMPORT, QwikWord, SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
-import { assembleGeneratedModule } from '../../src/module-assembly';
-import { applyReplacements } from '../../src/emit-qrl';
-import { createOriginalRangeMapper } from '../../src/normalization';
+import { assembleGeneratedModule } from './source-assembly';
+import { createOriginalRangeMapper } from '../source-maps';
 import type { SourceMap } from 'oxc-transform';
 import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 import { emitBindingImports } from './emit-import';
@@ -523,4 +522,21 @@ export function usedParamPrefix(module: LinkedModule, qrl: LinkedQrl): string[] 
     }
   });
   return params.slice(0, lastUsed + 1).map((binding) => module.bindings[binding].name);
+}
+
+/** Splices replacements into a slice of the module source, last range first. */
+function applyReplacements(
+  source: string,
+  range: Range,
+  replacements: readonly { range: Range; value: string }[]
+): string {
+  let code = source.slice(range[0], range[1]);
+  for (const replacement of [...replacements].sort(
+    (left, right) => right.range[0] - left.range[0]
+  )) {
+    const start = replacement.range[0] - range[0];
+    const end = replacement.range[1] - range[0];
+    code = `${code.slice(0, start)}${replacement.value}${code.slice(end)}`;
+  }
+  return code;
 }

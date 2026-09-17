@@ -35,7 +35,7 @@ import {
   type Setup,
   type Value,
 } from '../schema';
-import { ValueIrKind, collectIrBindingIds, type ValueIR } from '../../src/expr-ir';
+import { ValueIrKind, collectIrBindingIds, type ValueIR } from '../schema/value-ir';
 
 /** Dependencies follow executable edges, never enclosing authored source ranges. */
 function createDependencyCollector(module: ModulePlan | LinkedModule) {

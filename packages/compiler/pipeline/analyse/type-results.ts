@@ -1,5 +1,5 @@
 import type { BindingPattern, Program, TSTypeAnnotation } from 'oxc-parser';
-import { createOriginalRangeMapper } from '../../src/normalization';
+import { createOriginalRangeMapper } from '../source-maps';
 import type { ModulePlan } from '../schema';
 import { createBindingGraph, type BindingGraph } from './ast/bindings';
 

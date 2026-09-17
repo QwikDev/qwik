@@ -4,7 +4,7 @@ import { analyseModule } from '../analyse/analyse-module';
 import { parseModule } from '../analyse/ast/parse';
 import { childPathExpression, generateJsCsr } from '../generate/js-csr';
 import { linkPlans } from '../link/link-plans';
-import { transformModules } from '../compat/transform-modules';
+import { transformModules } from '../transform-modules';
 import {
   BuildMode,
   Environment,

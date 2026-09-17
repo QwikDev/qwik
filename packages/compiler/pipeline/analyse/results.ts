@@ -1,5 +1,5 @@
 import type { Node, BindingPattern } from 'oxc-parser';
-import { ValueIrKind as Ir } from '../../src/expr-ir';
+import { ValueIrKind as Ir } from '../schema/value-ir';
 import type { BindingResult, Result } from '../schema';
 import type { LowerContext } from './lower-context';
 import { identifierName, unwrapExpression } from './ast/utils';

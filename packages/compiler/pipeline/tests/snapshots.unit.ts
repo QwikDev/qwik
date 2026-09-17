@@ -5,7 +5,7 @@
  * STAGED pipeline — review the diff against the fixture's intent before accepting.
  */
 import { describe, expect, test } from 'vitest';
-import { transformModules } from '../compat/transform-modules';
+import { transformModules } from '../transform-modules';
 import { snapshotResult } from './snapshot-format';
 
 interface TestInput {

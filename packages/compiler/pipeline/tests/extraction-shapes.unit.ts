@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, test } from 'vitest';
-import { transformModules } from '../compat/transform-modules';
+import { transformModules } from '../transform-modules';
 import { analyseModule } from '../analyse/analyse-module';
 import { parseModule } from '../analyse/ast/parse';
 import { createBindingGraph } from '../analyse/ast/bindings';

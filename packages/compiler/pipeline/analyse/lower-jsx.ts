@@ -74,7 +74,7 @@ import {
   type LoweredCaptures,
 } from './ast/capture-analysis';
 import { LocalKind } from './locals';
-import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
+import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 import { QRL_SUFFIX, QwikDirective, SegmentContext } from '../words';
 import { lowerFunctionQrl, lowerQrlArgument, type QrlArgumentBoundary } from './lower-function';
 

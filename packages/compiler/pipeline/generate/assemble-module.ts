@@ -7,7 +7,7 @@ import {
   type QrlDeclaration,
 } from '../schema';
 import { QWIK_CORE_IMPORT, QwikWord } from '../words';
-import { assembleModule, type AssembledModule } from '../../src/module-assembly';
+import { assembleModule, type AssembledModule } from './source-assembly';
 import type { SourceMap } from 'oxc-transform';
 import { emitQrlChunks, type FunctionEmission } from './emit-chunk';
 import { planModuleBindingExports, replacedCoreImports, requestBindingImport } from './emit-import';

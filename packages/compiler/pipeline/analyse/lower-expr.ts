@@ -13,7 +13,7 @@ import {
   type Result,
   type Value,
 } from '../schema';
-import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
+import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 import { identifierName, isFunctionLike } from './ast/utils';
 import { lowerRenderExpression, lowerRenderQrl } from './lower-jsx';
 import { SegmentContext } from '../words';

@@ -1,6 +1,6 @@
 import { returnPath, elementPath, numericPath, type ResultPath } from './result-path';
 import { createDeclaredResultReader } from './type-results';
-import { ValueIrKind as Ir } from '../../src/expr-ir';
+import { ValueIrKind as Ir } from '../schema/value-ir';
 import {
   ComponentPropsKind,
   ComponentTargetKind,

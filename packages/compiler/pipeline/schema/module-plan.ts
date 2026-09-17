@@ -1,5 +1,5 @@
 /** The neutral per-module plan: QRLs, declarations, envelope, assembly (DESIGN.md "Model"). */
-import type { ValueIR } from '../../src/expr-ir';
+import type { ValueIR } from './value-ir';
 import type {
   MODULE_PLAN_VERSION,
   BindingScope,

@@ -10,7 +10,7 @@ import type {
   VarKind,
 } from './shared';
 import type { Expr, QrlUse, Value } from './value';
-import type { ValueIR } from '../../src/expr-ir';
+import type { ValueIR } from './value-ir';
 import type { DeclarationKind, Qrl } from './module-plan';
 
 // ---------------------------------------------------------------------------------------------

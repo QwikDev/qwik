@@ -35,7 +35,7 @@ import {
   BindingScope,
 } from '../schema';
 import { SegmentContext } from '../words';
-import { ValueIrKind } from '../../src/expr-ir';
+import { ValueIrKind } from '../schema/value-ir';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
 import { unwrapExpression } from './ast/utils';

@@ -659,6 +659,16 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-17: Cutover plan step 2. The pipeline imports nothing from `../src` any more, and an eslint
+  `no-restricted-imports` rule on `packages/compiler/pipeline/**` keeps it that way. `ValueIR` lives
+  at `schema/value-ir.ts` on `LocalId`, minus the never-produced call, plugin and lambda variants;
+  the range mapper and node source map at `source-maps.ts`; the magic-string assembly at
+  `generate/source-assembly.ts`; `applyReplacements` is private to `emit-chunk.ts`;
+  `compat/transform-modules.ts` is `transform-modules.ts`, the per-module host entry, with
+  `createSourceLocation` inlined; `extractRenderRoots` moved to `render-roots.ts` with its four
+  tests. Legacy keeps its own copies until the cutover commit. Verification: 1200 pipeline tests
+  with every snapshot byte-unchanged, 502 legacy and vite-harness tests, corpus in CSR and resume
+  with only the known Suspense red.
 - 2026-09-17: Cutover plan step 1 ([CUTOVER-PLAN.md](./CUTOVER-PLAN.md)). `readBinding` in
   `link/render-results.ts` no longer overflows on `x.value = x.value.filter(...)` plus a suffix read:
   a query that only grows an active path (infix insertion) or exceeds `MAX_QUERY_PATH` answers

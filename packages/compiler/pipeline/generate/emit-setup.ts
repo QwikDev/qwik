@@ -20,7 +20,7 @@ import {
   HookBodyKind,
   type Maybe,
 } from '../schema';
-import { ValueIrKind } from '../../src/expr-ir';
+import { ValueIrKind } from '../schema/value-ir';
 import { UnsupportedError } from '../errors';
 import {
   expressionJs,

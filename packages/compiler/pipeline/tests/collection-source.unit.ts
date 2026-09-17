@@ -7,7 +7,7 @@ import { _captures, createQRL } from '../../../qwik/src/core/shared/qrl/qrl-clas
 import { retryOnPromise } from '../../../qwik/src/core/shared/utils/promises';
 import { parseModule } from '../analyse/ast/parse';
 import { analyseModule } from '../analyse/analyse-module';
-import { transformModules } from '../compat/transform-modules';
+import { transformModules } from '../transform-modules';
 import { ModuleKind } from '../schema';
 
 test('a derived source without a key is keyed by position', async () => {

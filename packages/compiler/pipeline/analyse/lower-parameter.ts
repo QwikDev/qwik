@@ -14,7 +14,7 @@ import { unwrapExpression } from './ast/utils';
 import { LocalKind, type SetupLocal, type SetupLocals } from './locals';
 import { allocateGeneratedName } from '../names';
 import { QwikGenWord } from '../words';
-import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
+import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import type { Expression } from 'oxc-parser';
 import type { PropPathStep } from './ast/parameter-members';

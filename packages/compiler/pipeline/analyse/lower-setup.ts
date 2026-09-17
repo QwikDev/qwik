@@ -58,7 +58,7 @@ import { findComponentCandidates } from './ast/returns-jsx';
 import { discoverComponents } from './discover';
 import { lowerComponentParameter, pathReadIr } from './lower-parameter';
 import { readObjectParameter } from './ast/parameter-members';
-import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
+import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 
 export function lowerConstDeclaration(
   declarator: VariableDeclarator,

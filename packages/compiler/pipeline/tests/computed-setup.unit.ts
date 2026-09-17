@@ -20,7 +20,7 @@ import {
 } from './fixtures';
 import { UnsupportedError } from '../errors';
 import { ResolutionKind } from '../link/link-plans';
-import { transformModules } from '../compat/transform-modules';
+import { transformModules } from '../transform-modules';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled as renderToString } from '../../../qwik/src/server/ssr-render';
 import type { ComputedQrl } from '../../../qwik/src/core/reactive/computed-qrl';

@@ -27,7 +27,7 @@ import { finalizeLocalFunctions } from './lower-setup';
 import { createLowerContext, pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
-import { createOriginalRangeMapper } from '../../src/normalization';
+import { createOriginalRangeMapper } from '../source-maps';
 
 import { isFunctionLike } from './ast/utils';
 import { explicitQrlRoots, recordFunctionJsx, recordPayloadQrls } from './lower-function';

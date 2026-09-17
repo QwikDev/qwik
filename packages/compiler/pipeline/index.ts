@@ -19,4 +19,5 @@ export {
 export { generateJsCsr } from './generate/js-csr';
 export { generateJsSsr } from './generate/js-ssr';
 export { type GenerateOutput, type PresentationOptions } from './generate/output';
-export { transformModules } from './compat/transform-modules';
+export { transformModules } from './transform-modules';
+export { extractRenderRoots, type ExtractedRenderRoot } from './render-roots';

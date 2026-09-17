@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { transformModules } from '../compat/transform-modules';
+import { transformModules } from '../transform-modules';
 import { loadDefaultFunction } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';

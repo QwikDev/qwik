@@ -1,5 +1,5 @@
 /** Payloads, ESM edges, expressions, tasks, and the five-arm `Value` union (DESIGN.md "Model"). */
-import type { ValueIR } from '../../src/expr-ir';
+import type { ValueIR } from './value-ir';
 import type { BuildConstant, LocalId, PayloadId, PlaceIR, ProgramId, QrlId, Range } from './shared';
 import type { CallTarget, CallTargetKind, Setup } from './program';
 import type { Result } from './result';

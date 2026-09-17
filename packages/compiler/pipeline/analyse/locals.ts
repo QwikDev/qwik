@@ -1,5 +1,5 @@
 import { CaptureAccess, type LocalId, type QrlUse } from '../schema';
-import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
+import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 
 /** Local value semantics shared by expression and capture lowering. */
 export const enum LocalKind {

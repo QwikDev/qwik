@@ -11,7 +11,7 @@ import {
   type Arg,
 } from '../schema';
 import { ResolutionKind } from '../link/link-plans';
-import { transformModules } from '../compat/transform-modules';
+import { transformModules } from '../transform-modules';
 import {
   deepFreeze,
   loadDefaultFunction,

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { eventModifierName, eventScopeName } from '../analyse/events';
-import { transformModules } from '../compat/transform-modules';
+import { transformModules } from '../transform-modules';
 import { analyseModule, generateJsSsr, linkPlans } from '../index';
 import { EntryKind, LinkResultKind } from '../schema';
 import {

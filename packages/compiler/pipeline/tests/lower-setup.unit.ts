@@ -9,7 +9,7 @@ import {
   CoreOperation,
   LinkResultKind,
 } from '../schema';
-import { ValueIrKind } from '../../src/expr-ir';
+import { ValueIrKind } from '../schema/value-ir';
 import { parseModule } from '../analyse/ast/parse';
 import { finalizeLocalFunctions, lowerSetup } from '../analyse/lower-setup';
 import { LocalKind } from '../analyse/locals';

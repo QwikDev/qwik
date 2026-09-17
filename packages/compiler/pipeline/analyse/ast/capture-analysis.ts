@@ -15,7 +15,7 @@ import { InvalidModuleError, UnsupportedError } from '../../errors';
 import { QRL_SUFFIX } from '../../words';
 import type { LowerContext } from '../lower-context';
 import { LocalKind, type SetupLocal } from '../locals';
-import { collectIrBindingIds } from '../../../src/expr-ir';
+import { collectIrBindingIds } from '../../schema/value-ir';
 
 export interface CollectedCaptures {
   capturedWrite: { name: string; range: Range } | null;

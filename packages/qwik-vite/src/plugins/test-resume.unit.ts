@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import { assert, test } from 'vitest';
-import { transformModules } from '../../../compiler/pipeline/compat/transform-modules';
+import { transformModules } from '../../../compiler/pipeline/transform-modules';
 import type { OptimizerOptions } from '../types';
 import { createTestResume, type TestResumeTransformMetadata } from './test-resume';
 import { qwikVite, type QwikVitePlugin } from './vite';

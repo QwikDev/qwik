@@ -22,7 +22,7 @@ import {
   type LinkedQrl,
   type QrlUse,
 } from '../schema';
-import { ValueIrKind } from '../../src/expr-ir';
+import { ValueIrKind } from '../schema/value-ir';
 import { createSegmentSourceIdentity, createSegmentSymbolName } from '../segment-identity';
 import { collectQrlDependencies } from './qrl-dependencies';
 

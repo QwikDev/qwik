@@ -9,7 +9,7 @@ import {
   ValueKind,
   type Op,
 } from '../schema';
-import { ValueIrKind } from '../../src/expr-ir';
+import { ValueIrKind } from '../schema/value-ir';
 import type { Expression } from 'oxc-parser';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';

@@ -1,20 +1,20 @@
 /** Adapts transformModules to analysis, incomplete linking and generation. */
 import type {
+  SourceLocation,
   Diagnostic as OptimizerDiagnostic,
   TransformModulesOptions,
   TransformOutput,
 } from '@qwik.dev/optimizer';
-import { createSourceLocation } from '../../src/source-location';
-import { analyseModule } from '../analyse/analyse-module';
+import { analyseModule } from './analyse/analyse-module';
 import {
   linkPlans,
   ResolutionKind,
   SideEffects,
   type LinkEntry,
   type ResolverSnapshot,
-} from '../link/link-plans';
-import { generateJsCsr } from '../generate/js-csr';
-import { generateJsSsr } from '../generate/js-ssr';
+} from './link/link-plans';
+import { generateJsCsr } from './generate/js-csr';
+import { generateJsSsr } from './generate/js-ssr';
 import {
   BuildMode,
   Environment,
@@ -23,7 +23,7 @@ import {
   type Diagnostic,
   type Specialization,
   type ModulePlan,
-} from '../schema';
+} from './schema';
 
 /** @internal */
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
@@ -133,4 +133,29 @@ function toOptimizerDiagnostic(
     highlights: diagnostic.span === null ? null : [createSourceLocation(source, diagnostic.span)],
     suggestions: null,
   };
+}
+
+function createSourceLocation(source: string, [lo, hi]: readonly [number, number]): SourceLocation {
+  const start = offsetLocation(source, lo);
+  const end = offsetLocation(source, hi);
+  return {
+    lo,
+    hi,
+    startLine: start.line,
+    startCol: start.column + 1,
+    endLine: end.line,
+    endCol: end.column,
+  };
+}
+
+export function offsetLocation(source: string, offset: number): { line: number; column: number } {
+  let line = 1;
+  let lineStart = 0;
+  for (let index = 0; index < offset && index < source.length; index++) {
+    if (source.charCodeAt(index) === 10) {
+      line++;
+      lineStart = index + 1;
+    }
+  }
+  return { line, column: offset - lineStart };
 }

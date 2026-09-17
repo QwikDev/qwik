@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { transformModules } from '../compat/transform-modules';
+import { transformModules } from '../transform-modules';
 import {
   loadChunkFunction,
   loadDefaultFunction,

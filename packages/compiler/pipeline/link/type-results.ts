@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import standardLibrary from 'typescript/lib/lib.es5.d.ts?raw';
-import { ValueIrKind as Ir } from '../../src/expr-ir';
+import { ValueIrKind as Ir } from '../schema/value-ir';
 import type { LinkedModule, Result } from '../schema';
 import { elementPath, numericPath, returnPath, type ResultPath } from './result-path';
 

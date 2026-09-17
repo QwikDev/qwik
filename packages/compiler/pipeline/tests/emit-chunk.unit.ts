@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { ValueIrKind } from '../../src/expr-ir';
+import { ValueIrKind } from '../schema/value-ir';
 import {
   ArgPass,
   BindingScope,

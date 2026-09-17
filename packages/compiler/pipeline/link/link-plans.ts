@@ -34,7 +34,7 @@ import { collectHookDependencies, collectQrlDependencies } from './qrl-dependenc
 import { linkRenderResults, localComponentSetups } from './render-results';
 import { linkContent } from './link-content';
 import { createSetupFacts, linkHookTwins } from './link-hooks';
-import { ValueIrKind } from '../../src/expr-ir';
+import { ValueIrKind } from '../schema/value-ir';
 
 export const enum ResolutionKind {
   Resolved = 'resolved',

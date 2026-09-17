@@ -9,7 +9,7 @@ import {
   type Op,
   type Value,
 } from './schema';
-import { ValueIrKind } from '../src/expr-ir';
+import { ValueIrKind } from './schema/value-ir';
 
 /** The string an inline value always evaluates to, when it is a plain literal. */
 export function inlineStringValue(value: Value): string | null {

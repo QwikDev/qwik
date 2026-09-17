@@ -143,7 +143,13 @@ export function applySegmentDCE(
         // An object or function branch would reparse as a block or declaration
         // once the ternary around it is gone.
         const needsParens = /^[{(]?\s*$|^[{]|^function\b|^class\b/.test(keptText);
-        s.overwrite(node.start, node.end, needsParens ? `(${keptText})` : keptText);
+        // Trim around the kept branch instead of overwriting it, so nested folds can still edit it.
+        s.remove(node.start, kept.start);
+        s.remove(kept.end, node.end);
+        if (needsParens) {
+          s.prependRight(kept.start, '(');
+          s.appendLeft(kept.end, ')');
+        }
         walk(kept, EXPR_CTX);
         return;
       }

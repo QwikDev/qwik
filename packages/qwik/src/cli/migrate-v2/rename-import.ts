@@ -1,49 +1,102 @@
-import { Project, ts } from 'ts-morph';
-import { visitNotIgnoredFiles } from './tools/visit-not-ignored-files';
-import { log } from '@clack/prompts';
+import { Node, type SourceFile, ts } from 'ts-morph';
+import type { Codemod } from './codemods/run-codemods';
+import { isReference } from './codemods/utils';
 
-export function replaceImportInFiles(
+/**
+ * Renames the imports of `library` (and its subpaths) in a file. Usages are only renamed when the
+ * import is not aliased, and only in files that import the name from `library`.
+ */
+export function renameImports(
+  sourceFile: SourceFile,
   changes: [oldImport: string, newImport: string][],
   library: string
-) {
-  const project = new Project();
+): boolean {
+  const renames = new Map<string, string>();
+  let changed = false;
 
-  visitNotIgnoredFiles('.', (path) => {
-    if (!path.endsWith('.ts') && !path.endsWith('.tsx')) {
-      return;
+  for (const importDeclaration of sourceFile.getImportDeclarations()) {
+    // startsWith is used in order to handle nested imports
+    if (!importDeclaration.getModuleSpecifierValue().startsWith(library)) {
+      continue;
     }
-    project.addSourceFileAtPath(path);
-  });
-
-  project.getSourceFiles().forEach((sourceFile) => {
-    let hasChanges = false;
-
-    sourceFile.getImportDeclarations().forEach((importDeclaration) => {
-      // startsWith is used in order to handle nested imports
-      if (importDeclaration.getModuleSpecifierValue().startsWith(library)) {
-        for (const [oldImport, newImport] of changes) {
-          importDeclaration.getNamedImports().forEach((namedImport) => {
-            if (namedImport.getName() === oldImport) {
-              namedImport.setName(newImport);
-              hasChanges = true;
-            }
-          });
+    for (const [oldImport, newImport] of changes) {
+      for (const namedImport of importDeclaration.getNamedImports()) {
+        if (namedImport.getName() === oldImport) {
+          namedImport.setName(newImport);
+          changed = true;
+          if (!namedImport.getAliasNode()) {
+            renames.set(oldImport, newImport);
+          }
         }
       }
-    });
-
-    sourceFile.getDescendantsOfKind(ts.SyntaxKind.Identifier).forEach((identifier) => {
-      for (const [oldImport, newImport] of changes) {
-        if (identifier.getText() === oldImport) {
-          identifier.replaceWithText(newImport);
-          hasChanges = true;
-        }
+      const defaultImport = importDeclaration.getDefaultImport();
+      if (defaultImport?.getText() === oldImport) {
+        renames.set(oldImport, newImport);
       }
-    });
-
-    if (hasChanges) {
-      sourceFile.saveSync();
-      log.info(`Updated imports in ${sourceFile.getFilePath()}`);
     }
-  });
+  }
+
+  for (const identifier of sourceFile.getDescendantsOfKind(ts.SyntaxKind.Identifier)) {
+    if (identifier.wasForgotten()) {
+      continue;
+    }
+    const newName = renames.get(identifier.getText());
+    if (!newName || !isReference(identifier)) {
+      continue;
+    }
+    const parent = identifier.getParent();
+    if (Node.isShorthandPropertyAssignment(parent)) {
+      // keep the property key: `{ oldName }` -> `{ oldName: newName }`
+      parent.replaceWithText(`${identifier.getText()}: ${newName}`);
+    } else {
+      identifier.replaceWithText(newName);
+    }
+    changed = true;
+  }
+  return changed;
 }
+
+/** Renames of the exports that v2 renamed, run after the codemods that match the v1 names. */
+export const importRenames: Codemod[] = [
+  (file) =>
+    renameImports(
+      file,
+      [
+        ['QwikCityProvider', 'QwikRouterProvider'],
+        ['qwikCity', 'qwikRouter'],
+        ['QwikCityVitePluginOptions', 'QwikRouterVitePluginOptions'],
+        ['QwikCityPlugin', 'QwikRouterPlugin'],
+        ['createQwikCity', 'createQwikRouter'],
+        ['QwikCityNodeRequestOptions', 'QwikRouterNodeRequestOptions'],
+        ['QwikCityAwsLambdaOptions', 'QwikRouterAwsLambdaOptions'],
+        ['QwikCityAzureOptions', 'QwikRouterAzureOptions'],
+        ['QwikCityBunOptions', 'QwikRouterBunOptions'],
+        ['QwikCityCloudflarePagesOptions', 'QwikRouterCloudflarePagesOptions'],
+        ['QwikCityDenoOptions', 'QwikRouterDenoOptions'],
+        ['QwikCityFirebaseOptions', 'QwikRouterFirebaseOptions'],
+        ['QwikCityNetlifyOptions', 'QwikRouterNetlifyOptions'],
+        ['QwikCityVercelEdgeOptions', 'QwikRouterVercelEdgeOptions'],
+        ['QwikCityProps', 'QwikRouterProps'],
+        ['QwikCityPlan', 'QwikRouterConfig'],
+        ['QwikCityMockProvider', 'QwikRouterMockProvider'],
+        ['QwikCityMockProps', 'QwikRouterMockProps'],
+        ['QwikCityMockActionProp', 'QwikRouterMockActionProp'],
+        ['QwikCityMockLoaderProp', 'QwikRouterMockLoaderProp'],
+        ['staticAdapter', 'ssgAdapter'],
+        ['StaticGenerateAdapterOptions', 'SsgAdapterOptions'],
+        ['StaticGenerateRenderOptions', 'SsgRenderOptions'],
+        ['StaticGenerateOptions', 'SsgOptions'],
+      ],
+      '@builder.io/qwik-city'
+    ),
+  (file) =>
+    renameImports(
+      file,
+      [
+        ['qwikRollup', 'qwikRolldown'],
+        ['QwikRollupPluginOptions', 'QwikRolldownPluginOptions'],
+      ],
+      '@builder.io/qwik/optimizer'
+    ),
+  (file) => renameImports(file, [['qwikCityPlan', 'qwikRouterConfig']], '@qwik-city-plan'),
+];

@@ -60,6 +60,18 @@ describe('applySegmentDCE', () => {
     expect(out).toContain('const b = ({ late: flag });');
   });
 
+  it('parenthesizes a kept branch that only starts with a brace after nested folds', () => {
+    const code = ['true ? true && { m: 1 } : 2;', 'false ? 1 : false || function f() {};'].join(
+      '\n'
+    );
+
+    const out = applySegmentDCE(code);
+
+    expect(parseSync('s.js', out).errors, `parse errors in:\n${out}`).toEqual([]);
+    expect(out).toContain('({ m: 1 });');
+    expect(out).toContain('(function f() {});');
+  });
+
   it('does not fold boolean literals used as comparison operands', () => {
     const code = [
       'const a = x !== false && y;',

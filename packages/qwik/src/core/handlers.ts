@@ -2,10 +2,11 @@ import { isDev } from '@qwik.dev/core/build';
 import { createQRL, type QRLInternal } from './shared/qrl/qrl-class';
 import { _captures, setCaptures, withCaptures } from './shared/qrl/qrl-captures';
 import { assertQrl } from './shared/qrl/qrl-utils';
-import { retryOnPromise } from './shared/utils/promises';
+import { isPromise, retryOnPromise } from './shared/utils/promises';
 import type { ValueOrPromise } from './shared/utils/types';
 import { getOrCreateContainerContext, type ContainerContext } from './runtime/container-context';
 import type { VisibleTaskSubscription } from './runtime/task';
+import { SubscriberFlags } from './reactive/flags';
 import { invoke, newInvokeContext, type RuntimeInvokeContext } from './runtime/invoke-context';
 
 export { _captures };
@@ -51,9 +52,9 @@ function runCapturedQrl(
 
 /** The server serializes the subscription itself, so the resumed owner tree runs its cleanups. */
 export function createVisibleTaskHandlerQrl(
-  subscription: VisibleTaskSubscription
+  subscriptions: VisibleTaskSubscription[]
 ): QRLInternal<(event: Event, element: Element) => ValueOrPromise<void>> {
-  return createQRL(null, '_visibleTask', _visibleTask, null, [subscription]);
+  return createQRL(null, '_visibleTask', _visibleTask, null, [subscriptions]);
 }
 
 export function _visibleTask(this: string, _event: Event, element: Element): ValueOrPromise<void> {
@@ -64,21 +65,33 @@ export function _visibleTask(this: string, _event: Event, element: Element): Val
   if (typeof this === 'string') {
     return context.restoreCaptures(this).then((captures) => {
       setCaptures(captures);
-      runCapturedVisibleTask(captures);
+      return runCapturedVisibleTask(captures);
     });
   }
-  runCapturedVisibleTask(_captures!);
+  return runCapturedVisibleTask(_captures!);
 }
 
-function runCapturedVisibleTask(captures: Readonly<unknown[]>): void {
-  wakeVisibleTask(captures[0] as VisibleTaskSubscription);
+function runCapturedVisibleTask(captures: Readonly<unknown[]>): ValueOrPromise<void> {
+  return wakeVisibleTasks(captures[0] as VisibleTaskSubscription[]);
 }
 
-/** The trigger performs the initial run only; tracked reruns bypass it. */
-export function wakeVisibleTask(subscription: VisibleTaskSubscription): void {
-  if (subscription.triggered) {
-    return;
+/**
+ * The trigger performs each initial run only once; tracked reruns bypass it. The runs start here,
+ * together, so a failure reaches the loader dispatch instead of the scheduler's log.
+ */
+export function wakeVisibleTasks(subscriptions: VisibleTaskSubscription[]): ValueOrPromise<void> {
+  const pending: Promise<void>[] = [];
+  for (let i = 0; i < subscriptions.length; i++) {
+    const subscription = subscriptions[i];
+    if (subscription.triggered) {
+      continue;
+    }
+    subscription.triggered = true;
+    subscription.flags |= SubscriberFlags.Dirty;
+    const result = subscription.run();
+    if (isPromise(result)) {
+      pending.push(result);
+    }
   }
-  subscription.triggered = true;
-  subscription.scheduler.notify(subscription);
+  return pending.length === 0 ? undefined : Promise.all(pending).then(() => undefined);
 }

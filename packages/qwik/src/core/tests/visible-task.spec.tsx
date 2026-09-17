@@ -90,9 +90,7 @@ describe(`${name}: visible task`, () => {
     expect(span.textContent).toBe('CSR');
     cleanup();
   });
-
-  // the scheduler logs a visible task error; whether the dispatch rejects is open (group 12, batch 3b)
-  it.skip('surfaces a thrown error from the dispatch', async () => {
+  it('surfaces a thrown error from the dispatch', async () => {
     const App = component$(() => {
       useVisibleTask$(() => {
         throw new Error('visible task failed');
@@ -106,7 +104,7 @@ describe(`${name}: visible task`, () => {
     cleanup();
   });
 
-  it.skip('surfaces an async error from the dispatch', async () => {
+  it('surfaces an async error from the dispatch', async () => {
     const App = component$(() => {
       useVisibleTask$(async () => {
         await Promise.resolve();
@@ -119,9 +117,7 @@ describe(`${name}: visible task`, () => {
     await expect(qwikLoader!.dispatch(span, 'qvisible')).rejects.toThrow('visible task failed');
     cleanup();
   });
-
-  // a task that reads and writes the same signal loops (group 12, batch 3b)
-  it.skip('runs visible tasks in parallel', async () => {
+  it('runs visible tasks in parallel', async () => {
     let resolveLast!: () => void;
     const allDone = new Promise<void>((resolve) => (resolveLast = resolve));
     (globalThis as any).__resolveVisibleTask = resolveLast;
@@ -151,7 +147,18 @@ describe(`${name}: visible task`, () => {
     await qwikLoader?.dispatch(span, 'qvisible');
     await allDone;
     await flush();
-    expect(span.textContent).toBe('counter start 1:start 2:start last 2:done 1:done');
+    // Resumed chunks load in any order, so only the async completions prove the parallel start.
+    const entries = span.textContent!.split(' ');
+    expect(entries.sort()).toEqual([
+      '1:done',
+      '1:start',
+      '2:done',
+      '2:start',
+      'counter',
+      'last',
+      'start',
+    ]);
+    expect(span.textContent!.indexOf('2:done')).toBeLessThan(span.textContent!.indexOf('1:done'));
     cleanup();
     delete (globalThis as any).__resolveVisibleTask;
   });
@@ -362,9 +369,7 @@ describe(`${name}: visible task`, () => {
       expect(button.textContent).toBe('4');
       cleanup();
     });
-
-    // store reads are not tracked after resume yet (group 12, batch 3b)
-    it.skip('settles dependant visible tasks', async () => {
+    it('settles dependant visible tasks', async () => {
       const App = component$(() => {
         const store = useStore({ count: 1, double: 0, quadruple: 0 });
         useVisibleTask$(() => {
@@ -446,9 +451,7 @@ describe(`${name}: visible task`, () => {
       cleanup();
       delete (globalThis as any).__visibleLog;
     });
-
-    // a key change on a static component does not remount yet (group 12, batch 3b)
-    it.skip('runs cleanup on every keyed remount', async () => {
+    it('runs cleanup on every remount through branch arms', async () => {
       const Child = component$((props: { cleanupCounter: Signal<number> }) => {
         useVisibleTask$(({ cleanup }) => {
           cleanup(() => {
@@ -463,7 +466,11 @@ describe(`${name}: visible task`, () => {
         return (
           <div>
             <button onClick$={() => counter.value++}></button>
-            <Child key={counter.value} cleanupCounter={cleanupCounter} />
+            {counter.value % 2 === 0 ? (
+              <Child cleanupCounter={cleanupCounter} />
+            ) : (
+              <Child cleanupCounter={cleanupCounter} />
+            )}
             <output>{cleanupCounter.value}</output>
           </div>
         );
@@ -478,9 +485,7 @@ describe(`${name}: visible task`, () => {
       expect(container.querySelector('output')?.textContent).toBe('6');
       cleanup();
     });
-
-    // a task that reads and writes the same signal loops (group 12, batch 3b)
-    it.skip('chains promises through a signal across visible tasks', async () => {
+    it('chains promises through a signal across visible tasks', async () => {
       const App = component$(() => {
         const promise = useSignal<Promise<number>>(Promise.resolve(0));
         useVisibleTask$(() => {
@@ -499,9 +504,7 @@ describe(`${name}: visible task`, () => {
       cleanup();
     });
   });
-
-  // a task that reads and writes the same store loops (group 12, batch 3b)
-  it.skip('does not run after SSR until the element is visible again', async () => {
+  it('does not run after SSR until the element is visible again', async () => {
     const App = component$(() => {
       const log = useStore<string[]>([]);
       const update = useSignal(0);

@@ -1,5 +1,6 @@
 import type { Source, SourceSubs } from './source';
 import { notifySourceSubscribers } from './notify';
+import { dropWriterDependency } from './cleanup';
 import { track } from './tracking';
 
 /** @public */
@@ -22,6 +23,7 @@ export class Signal<T> implements Source<T> {
     }
 
     this.v = next;
+    dropWriterDependency(this);
     notifySourceSubscribers(this);
   }
 

@@ -909,20 +909,24 @@ describe('runtime scheduler and owner lifecycle', () => {
     });
 
     runWithTestContainer(scheduler, () =>
-      useVisibleTask(({ cleanup }) => {
-        const value = count.value;
-        order.push(`run:${value}`);
-        if (value === 1) {
-          resolveSecondRun();
-        }
-        cleanup(async () => {
-          order.push(`cleanup:${value}:start`);
-          await new Promise<void>((resolve) => {
-            releaseCleanup = resolve;
+      useVisibleTask(
+        ({ cleanup }) => {
+          const value = count.value;
+          order.push(`run:${value}`);
+          if (value === 1) {
+            resolveSecondRun();
+          }
+          cleanup(async () => {
+            order.push(`cleanup:${value}:start`);
+            await new Promise<void>((resolve) => {
+              releaseCleanup = resolve;
+            });
+            order.push(`cleanup:${value}:end`);
           });
-          order.push(`cleanup:${value}:end`);
-        });
-      })
+        },
+        // the document strategies run at once on the client; the loader trigger has no test here
+        { strategy: 'document-ready' }
+      )
     );
 
     await scheduler.flushInteraction();

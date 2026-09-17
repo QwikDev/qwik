@@ -10,7 +10,7 @@ import { registerSubscriberToOwner } from './owner';
 import { defaultScheduler, Phase, type TaskScheduler } from './scheduler';
 import { runTaskCleanups, runTaskSubscriber } from './run-task';
 import { useOn, useOnDocument } from './use-on';
-import { createVisibleTaskHandlerQrl, wakeVisibleTask } from '../handlers';
+import { createVisibleTaskHandlerQrl, wakeVisibleTasks } from '../handlers';
 import { getActiveInvokeContext, getActiveInvokeContextOrNull } from './invoke-context';
 import {
   SubscriberKind,
@@ -199,8 +199,8 @@ function registerVisibleTask(
   qrl: TaskQrlRef | undefined,
   options: VisibleTaskOptions | undefined
 ): VisibleTaskSubscription {
-  const invokeContext = getActiveInvokeContextOrNull();
-  const container = invokeContext?.container;
+  const invokeContext = getActiveInvokeContext();
+  const container = invokeContext.container;
   const subscription = registerSubscriberToOwner(
     new VisibleTaskSubscription(
       new VisibleTask(run, qrl, container, invokeContext),
@@ -208,17 +208,33 @@ function registerVisibleTask(
     )
   );
   const strategy = options?.strategy ?? 'intersection-observer';
-  if (qTest ? isServerPlatform() : isServer) {
-    const handler = createVisibleTaskHandlerQrl(subscription);
-    if (strategy === 'intersection-observer') {
-      useOn('qvisible', handler);
-    } else {
-      useOnDocument(strategy === 'document-ready' ? 'qinit' : 'qidle', handler);
-    }
-  } else if (strategy === 'intersection-observer') {
-    useOn('qvisible', () => wakeVisibleTask(subscription));
+  const isServerRender = qTest ? isServerPlatform() : isServer;
+  if (!isServerRender && strategy !== 'intersection-observer') {
+    subscription.triggered = true;
+    subscription.scheduler.notify(subscription);
+    return subscription;
+  }
+  // The loader awaits one handler at a time, so a group starts all its tasks from one handler.
+  const event =
+    strategy === 'intersection-observer'
+      ? 'qvisible'
+      : strategy === 'document-ready'
+        ? 'qinit'
+        : 'qidle';
+  const groups = (invokeContext.visibleTaskGroups ??= {});
+  const group = groups[event];
+  if (group !== undefined) {
+    group.push(subscription);
+    return subscription;
+  }
+  const started = (groups[event] = [subscription]);
+  const handler = isServerRender
+    ? createVisibleTaskHandlerQrl(started)
+    : () => wakeVisibleTasks(started);
+  if (event === 'qvisible') {
+    useOn(event, handler);
   } else {
-    wakeVisibleTask(subscription);
+    useOnDocument(event, handler);
   }
   return subscription;
 }

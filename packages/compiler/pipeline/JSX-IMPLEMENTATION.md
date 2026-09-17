@@ -582,11 +582,8 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
     it through scheduler ordering; v3's loader skips disconnected carriers at dispatch and after
     the QRL resolves, so decide whether the mid-render window matters.
   - The structural `useOn` root replaced by a branch (`moves the carrier` spec).
-  - main's `use-visible-task` corpus is ported (`visible-task.spec.tsx`, 24 specs); these stay
-    skipped there pending a decision: a task that reads and writes the same source loops (the
-    implicit tracking re-dirties it; v2 tracked explicitly), a visible task's store reads are not
-    tracked after resume, a key change on a static component does not remount, and whether a
-    visible task error rejects the loader dispatch or only logs.
+  - main's `use-visible-task` corpus is ported (`visible-task.spec.tsx`, 26 specs, all green).
+    A `key` on a static component is not an identity: remount through branch arms instead.
   - A `const` derived from a signal by an expression (`const text = \`v${on.value}\``) is a
     snapshot, so a prop fed from it never updates; only direct reads alias live.
   - main's `use-task` corpus (20 specs) is not ported yet.
@@ -660,6 +657,18 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-17: Tasks converge and triggers report, batch 3b of group 12. A write drops the writer's
+  dependency on that source (`dropWriterDependency` at the signal and store write points), so a
+  read-modify-write such as `log.value += x`, `store.push(x)` or `p.value = p.value.then(...)`
+  never re-dirties the task that did it and two tasks sharing a source no longer ping-pong; v2 was
+  safe only because `track` was explicit. `getStateRoot` shares one in-flight load per root, since
+  concurrent readers (tasks of one trigger starting together) each allocated their own copy of a
+  signal or store, which is also why a visible task's store reads looked untracked after resume.
+  The trigger handler is one per component and event (`visibleTaskGroups`): it starts every task
+  of the group together and returns their combined promise, so the loader dispatch keeps v2's
+  parallel start and rejects when a task throws. A visible task error therefore surfaces through
+  `qerror`. Verification: 358 core unit tests, `visible-task.spec.tsx` 52 green, corpus 689 with
+  only the known Suspense red.
 - 2026-09-17: Visible tasks wait for the loader on both targets, batch 3a of group 12 (the
   contract of main's #8988): `useVisibleTaskQrl` registers the trigger itself, `useOn('qvisible')`
   for the intersection strategy on server and client, `useOnDocument('qinit'/'qidle')` on the

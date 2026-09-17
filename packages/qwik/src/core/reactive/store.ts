@@ -1,5 +1,6 @@
 import type { Source, SourceSubs } from './source';
 import { notifySourceSubscribers } from './notify';
+import { dropWriterDependency } from './cleanup';
 import { getActiveCollector, track, untrack } from './tracking';
 
 /** @public */
@@ -202,7 +203,11 @@ const shallowStoreHandler: ProxyHandler<StoreTarget> = {
 };
 
 function notifyStoreProp(target: StoreTarget, prop: PropertyKey): void {
-  rawToSources.get(target)?.get(prop)?.notify();
+  const source = rawToSources.get(target)?.get(prop);
+  if (source !== undefined) {
+    dropWriterDependency(source);
+    source.notify();
+  }
 }
 
 function notifyArrayLengthChanges(target: StoreTarget, prop: PropertyKey, oldLength: number): void {
@@ -223,6 +228,7 @@ function notifyArrayLengthChanges(target: StoreTarget, prop: PropertyKey, oldLen
     if (isArrayIndex(source.prop)) {
       const index = Number(source.prop);
       if (index >= target.length && index < oldLength) {
+        dropWriterDependency(source);
         source.notify();
       }
     }

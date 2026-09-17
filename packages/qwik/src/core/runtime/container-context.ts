@@ -25,6 +25,7 @@ export interface ContainerState {
   rootToChunk: StateChunk[];
   forwardRefsChunk: StateChunk | null;
   liveRoots: Map<number, unknown>;
+  loadingRoots?: Map<number, Promise<unknown>>;
   disposedRoots: Set<number>;
   /** Roots materialised but never inflated, so they must stay out of the live owner tree. */
   retiredRoots: WeakSet<object>;
@@ -230,11 +231,22 @@ function getForwardRefs(context: ContainerContext): Array<number | string> | nul
 }
 
 /** The shared root reader; standalone contexts (`_deserialize`) use it too. */
-export async function getStateRoot(context: ContainerContext, id: number): Promise<unknown> {
-  if (context.state.liveRoots.has(id)) {
-    return context.state.liveRoots.get(id);
+export function getStateRoot(context: ContainerContext, id: number): Promise<unknown> {
+  const state = context.state;
+  if (state.liveRoots.has(id)) {
+    return Promise.resolve(state.liveRoots.get(id));
   }
+  // Concurrent readers share one load, or each would allocate its own copy of the root.
+  const loading = (state.loadingRoots ??= new Map());
+  let pending = loading.get(id);
+  if (pending === undefined) {
+    pending = loadStateRoot(context, id).finally(() => loading.delete(id));
+    loading.set(id, pending);
+  }
+  return pending;
+}
 
+async function loadStateRoot(context: ContainerContext, id: number): Promise<unknown> {
   const chunk = context.state.rootToChunk[id];
   if (chunk === undefined) {
     throw new Error(`Missing Qwik state root ${id}.`);

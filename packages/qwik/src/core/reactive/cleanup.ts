@@ -1,4 +1,5 @@
 import { swapRemove } from '../utils/array';
+import { getActiveCollector } from './tracking';
 import { ComputedFlags, SubscriberFlags } from './flags';
 import type { Source } from './source';
 import { detachSubscriberFromOwner } from '../runtime/owner';
@@ -15,6 +16,14 @@ export function cleanupDeps(collector: Collector): void {
   }
 
   collector.deps = null;
+}
+
+/** A collector never depends on a source it writes: a read-modify-write is not a read. */
+export function dropWriterDependency(source: Source): void {
+  const writer = getActiveCollector();
+  if (writer !== null && writer.deps !== null && swapRemove(writer.deps, source)) {
+    removeSubscriber(source, writer as Subscriber);
+  }
 }
 
 function removeSubscriber(source: Source, subscriber: Subscriber): void {

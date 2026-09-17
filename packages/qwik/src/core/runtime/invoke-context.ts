@@ -1,6 +1,7 @@
 import type { ContainerContext } from './container-context';
 import type { ContextScope } from './context-scope';
 import type { Owner } from './owner';
+import type { VisibleTaskSubscription } from './task';
 import type { SlotScope } from '../dom/slot/slot';
 import type { UseOnMap } from './use-on';
 
@@ -15,6 +16,8 @@ export interface RuntimeInvokeContext {
   slotScope: SlotScope | null;
   useOnEvents?: UseOnMap;
   inheritedUseOnEvents?: readonly UseOnMap[];
+  /** Visible tasks per trigger event; one handler starts a whole group together. */
+  visibleTaskGroups?: Record<string, VisibleTaskSubscription[]>;
   styleScopes?: string[];
   /** Work that hooks chain here, which a compiled render waits on before it commits. */
   pendingSetup?: Promise<void>;

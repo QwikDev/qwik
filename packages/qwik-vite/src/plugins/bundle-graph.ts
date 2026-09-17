@@ -76,7 +76,7 @@ export function convertManifestToBundleGraph(
   for (const bundleName of Object.keys(graph)) {
     const bundle = graph[bundleName];
     const imports = bundle.imports?.filter((dep) => graph[dep]) || [];
-    const dynamicImports = bundle.qrlImports?.filter((dep) => graph[dep]) || [];
+    const qrlImports = bundle.qrlImports?.filter((dep) => graph[dep]) || [];
 
     /**
      * Overwrite so we don't mutate the given objects. Be sure to copy all properties we use during
@@ -85,7 +85,7 @@ export function convertManifestToBundleGraph(
     graph[bundleName] = {
       ...bundle,
       imports,
-      dynamicImports,
+      dynamicImports: qrlImports,
     };
   }
 

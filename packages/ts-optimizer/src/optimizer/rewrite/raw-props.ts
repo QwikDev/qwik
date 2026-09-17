@@ -123,6 +123,8 @@ interface SourceRange {
 interface RawPropsTransformPlan {
   replacementParamRange?: SourceRange;
   removeRange?: SourceRange;
+  /** The destructure statement alone, without its line's indent and newline. */
+  statementRange?: SourceRange;
   replacementBaseName: string;
   restLine?: string;
   fieldLocalToKey: Map<string, string>;
@@ -658,6 +660,7 @@ function analyzeBodyDestructureDeclarator(
 
   return {
     removeRange: getStatementRemovalRange(body, stmt, offset),
+    statementRange: { start: stmt.start, end: stmt.end },
     replacementBaseName: baseName,
     restLine: bindings.restElementName
       ? buildRestPropsLine(baseName, bindings.restElementName, bindings.fields)
@@ -962,10 +965,10 @@ export function applyRawPropsTransform(
     );
   }
   const prologueLines = [...plan.dynamicDefaultLines];
-  if (plan.removeRange) {
+  if (plan.removeRange && plan.statementRange) {
     // In place, as a props-derived local declared above would hit a TDZ.
     if (plan.restLine) {
-      session.edits.overwrite(plan.removeRange.start, plan.removeRange.end, plan.restLine);
+      session.edits.overwrite(plan.statementRange.start, plan.statementRange.end, plan.restLine);
     } else {
       session.edits.remove(plan.removeRange.start, plan.removeRange.end);
     }

@@ -42,7 +42,7 @@ describe('raw-props', () => {
     const result = applyRawPropsTransform(body);
 
     expect(result).toBe(
-      '(props) => {\nconst rest = _restProps(props, [\n    "count"\n]);  return { count: props.count, rest };\n}'
+      '(props) => {\n  const rest = _restProps(props, [\n    "count"\n]);\n  return { count: props.count, rest };\n}'
     );
   });
 

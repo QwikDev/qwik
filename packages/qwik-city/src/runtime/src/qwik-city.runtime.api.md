@@ -23,6 +23,7 @@ import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-han
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type * as v from 'valibot';
 import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
@@ -243,14 +244,15 @@ export interface FormSubmitSuccessDetail<T> {
 // @public (undocumented)
 export const getRequestEvent: () => RequestEvent | undefined;
 
+// Warning: (ae-forgotten-export) The symbol "StandardSchemaDataValidator" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ValibotDataValidator" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ZodDataValidator" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z_2.input<TYPE> : never;
+export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaV1.InferInput<TYPE> : VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z_2.input<TYPE> : never;
 
 // @public (undocumented)
-export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z_2.output<TYPE> : never;
+export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaV1.InferOutput<TYPE> : VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z_2.output<TYPE> : never;
 
 // @public (undocumented)
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> = GetValidatorOutputType<VALIDATOR>;
@@ -466,6 +468,20 @@ export const ServiceWorkerRegister: (props: {
     nonce?: string;
 }) => JSXOutput;
 
+// @alpha (undocumented)
+export const standardSchema$: StandardSchemaConstructor;
+
+// @alpha (undocumented)
+export type StandardSchemaConstructor = {
+    <T extends StandardSchemaV1>(schema: T): StandardSchemaDataValidator<T>;
+    <T extends StandardSchemaV1>(schema: (ev: RequestEvent) => T): StandardSchemaDataValidator<T>;
+};
+
+// Warning: (ae-forgotten-export) The symbol "StandardSchemaConstructorQRL" needs to be exported by the entry point index.d.ts
+//
+// @alpha (undocumented)
+export const standardSchemaQrl: StandardSchemaConstructorQRL;
+
 // @public (undocumented)
 export interface StaticGenerate {
     // (undocumented)
@@ -484,7 +500,7 @@ export type StaticGenerateHandler = ({ env, }: {
 export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 // @public (undocumented)
-export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
+export type TypedDataValidator = ValibotDataValidator | ZodDataValidator | StandardSchemaDataValidator;
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //
@@ -508,10 +524,14 @@ export const usePreventNavigate$: (qrl: PreventNavigateCallback) => void;
 // @internal
 export const usePreventNavigateQrl: (fn: QRL<PreventNavigateCallback>) => void;
 
-// Warning: (ae-forgotten-export) The symbol "ValibotConstructor" needs to be exported by the entry point index.d.ts
-//
 // @alpha (undocumented)
 export const valibot$: ValibotConstructor;
+
+// @alpha (undocumented)
+export type ValibotConstructor = {
+    <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: T): ValibotDataValidator<T>;
+    <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: (ev: RequestEvent) => T): ValibotDataValidator<T>;
+};
 
 // Warning: (ae-forgotten-export) The symbol "ValibotConstructorQRL" needs to be exported by the entry point index.d.ts
 //

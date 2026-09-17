@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
+import { collapseToLibInlinedQrl } from '../../../src/optimizer/rewrite/lib-mode-collapse.js';
 import type { TransformModule } from '../../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
 
@@ -12,6 +13,24 @@ function findParent(result: { modules: readonly TransformModule[] }): TransformM
 }
 
 describe('lib-mode emission shape', () => {
+  it('collapses dev-mode noop declarations too, keeping their dev metadata', () => {
+    const source = [
+      'import { _noopQrlDEV } from "@qwik.dev/core";',
+      'const q_A_component_x = /*#__PURE__*/ _noopQrlDEV("A_component_x", { file: "a.tsx", lo: 1, hi: 2, displayName: "A" }).m();',
+      'const A_component_x = () => 1;',
+      'q_A_component_x.s(A_component_x);',
+      'export const A = componentQrl(q_A_component_x);',
+    ].join('\n');
+
+    const out = collapseToLibInlinedQrl(source);
+
+    expect(out).not.toContain('_noopQrlDEV');
+    expect(out).toContain('import { inlinedQrlDEV } from "@qwik.dev/core";');
+    expect(out).toMatch(
+      /componentQrl\(\/\*#__PURE__\*\/ inlinedQrlDEV\(\(\) => 1, "A_component_x", \{ file: "a\.tsx", lo: 1, hi: 2, displayName: "A" \}\)\.m\(\)\)/
+    );
+  });
+
   it('marks a document handler whose capture moved to q:p with .m() under mode=lib', () => {
     const input = `
 import { component$ } from '@qwik.dev/core';

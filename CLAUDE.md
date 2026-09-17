@@ -183,6 +183,18 @@ When a change affects published packages, add a changeset under `.changeset/`.
 - Write the changeset summary in lowercase (e.g. `fix:`)
 - 1 short sentence (10-ish words) focused on the bug fix or feature. Don't include implementation details.
 
+### Commits
+
+- One coherent set of changes per commit. Do not fold an unrelated fix into a commit for another
+  change.
+- Fixes that are independent of the branch's main change get their own commits, placed before it,
+  so they can be reviewed and cherry-picked on their own.
+- Write the subject as a short imperative summary. The body explains the "why" tersely when it is
+  not obvious from the subject. The "what" and "how" live in the code; summarize them only when the
+  commit is large.
+- When a branch has grown out of that shape, rewrite it into that order before review instead of
+  stacking fix-up commits.
+
 ### Code Quality
 
 
@@ -396,6 +408,7 @@ relevant.
 Always-on rules currently in `.ruler/AGENTS.md`:
 
 - `changeset-conventions`
+- `commit-conventions`
 - `code-quality`
 - `generated-output-boundaries`
 - `guidance-source-of-truth`

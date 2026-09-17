@@ -582,7 +582,14 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
     it through scheduler ordering; v3's loader skips disconnected carriers at dispatch and after
     the QRL resolves, so decide whether the mid-render window matters.
   - The structural `useOn` root replaced by a branch (`moves the carrier` spec).
-  - main's `use-visible-task` (27 specs) and `use-task` (20 specs) corpora are not ported yet.
+  - main's `use-visible-task` corpus is ported (`visible-task.spec.tsx`, 24 specs); these stay
+    skipped there pending a decision: a task that reads and writes the same source loops (the
+    implicit tracking re-dirties it; v2 tracked explicitly), a visible task's store reads are not
+    tracked after resume, a key change on a static component does not remount, and whether a
+    visible task error rejects the loader dispatch or only logs.
+  - A `const` derived from a signal by an expression (`const text = \`v${on.value}\``) is a
+    snapshot, so a prop fed from it never updates; only direct reads alias live.
+  - main's `use-task` corpus (20 specs) is not ported yet.
 - [x] `useId()`. A runtime counter, not the legacy seed parameter: the server counts per request
       on the root invoke context (`s…` ids), the client per container (`c…` ids), so ids never
       collide after resume, in rows, branches or later instances. The compiler treats `useId` as
@@ -653,6 +660,18 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-17: Visible tasks wait for the loader on both targets, batch 3a of group 12 (the
+  contract of main's #8988): `useVisibleTaskQrl` registers the trigger itself, `useOn('qvisible')`
+  for the intersection strategy on server and client, `useOnDocument('qinit'/'qidle')` on the
+  server, an immediate run on the client for the document strategies since the document is
+  already ready; the server-only `createVisibleTaskHandlerQrl` emission is gone. The trigger wakes
+  the subscription once (`SubscriberFlags.Triggered`), a `<script>` root takes `qinit` since it
+  never intersects, `setEvent` re-registers scanned events once the scheduler flush has landed
+  (`Scheduler.onFlushed`) so the loader observes client-rendered elements, and the loader re-scans
+  on a repeated registration. A root without an
+  own element wakes through a carrier on the server and, on the client, through the first element
+  of a child component. Verification: 1182 pipeline tests, `visible-task.spec.tsx` (38 green, 14
+  skipped for batch 3b), corpus at 672 with only the known Suspense red.
 - 2026-09-16: Callbacks and headless events, batch 2 of group 12: four context specs cover live
   slot swaps, dynamic tags, promise-rendered and signal-held consumers; eight `use-on` specs port
   main's headless, component-root and `qvisible` cases. Two fixes: a dynamic tag with a component

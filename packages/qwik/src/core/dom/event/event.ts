@@ -1,5 +1,9 @@
 import { getOrCreateContainerContext } from '../../runtime/container-context';
-import { invokeApply, newInvokeContext } from '../../runtime/invoke-context';
+import {
+  getActiveInvokeContextOrNull,
+  invokeApply,
+  newInvokeContext,
+} from '../../runtime/invoke-context';
 import { setCaptures } from '../../shared/qrl/qrl-captures';
 import type { CapturedEventHandler, qWindow, QDispatchHandler, QElement } from '../../shared/types';
 import { retryOnPromise } from '../../shared/utils/promises';
@@ -98,11 +102,20 @@ const needsLoaderAttribute = (key: string) => key.charAt(2) !== 'e' || key === '
 function registerQwikLoaderEvent(element: Element, eventName: string) {
   const qWindow = (qTest ? element.ownerDocument.defaultView : window) as unknown as qWindow;
   const loader = (qWindow._qwikEv ||= [] as any);
-  if (!Array.isArray(loader) && loader.events.has(eventName)) {
+  if (Array.isArray(loader) || !loader.events.has(eventName)) {
+    loader.push(eventName);
     return;
   }
-  loader.push(eventName);
+  if (SCANNED_EVENTS.includes(eventName)) {
+    // The loader scans the document, so the push waits until this flush has inserted the element.
+    const push = () => loader.push(eventName);
+    const scheduler = getActiveInvokeContextOrNull()?.container?.scheduler;
+    scheduler === undefined ? push() : scheduler.onFlushed(push);
+  }
 }
+
+/** The loader finds these by attribute, so a new element needs a re-scan. */
+const SCANNED_EVENTS = ['e:qvisible', 'd:qinit', 'd:qidle'];
 
 function runCapturedEvent(captures: CapturedEventHandler, event: Event, element: Element): unknown {
   return invokeDispatchHandler(captures._qHandler, captures, event, element);

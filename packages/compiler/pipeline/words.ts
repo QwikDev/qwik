@@ -79,7 +79,6 @@ export const enum QwikWord {
   UseOn = 'useOn',
   UseOnDocument = 'useOnDocument',
   UseOnWindow = 'useOnWindow',
-  CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',
   // shared
   CreateComponent = 'createComponent',
   ImplicitFirstArg = 'implicit$FirstArg',

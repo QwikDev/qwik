@@ -586,7 +586,7 @@ export default (props: { title: string; options: object; args: unknown[] }) => {
     });
   });
 
-  test('should register visible tasks as resume events in SSR', async () => {
+  test('should hand visible tasks to the runtime trigger', async () => {
     const output = await testInput(mode, 'setup-visible-task', {
       code: `import { useVisibleTask$, useSignal } from '@qwik.dev/core';
 export default () => {
@@ -599,14 +599,11 @@ export default () => {
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
-    if (mode === 'ssr') {
-      expect(code).toContain('useOn("qvisible", createVisibleTaskHandlerQrl(');
-      expect(code).toContain('useOnDocument("qinit", createVisibleTaskHandlerQrl(');
-      expect(code).toContain('useOnDocument("qidle", createVisibleTaskHandlerQrl(');
-      expect(code).not.toContain('useVisibleTask$(');
-    } else {
-      expect(code).not.toContain('createVisibleTaskHandlerQrl');
-    }
+    // The runtime registers the trigger on both targets; the server ships the task as a QRL.
+    expect(code).not.toContain('useVisibleTask$(');
+    expect(code.match(mode === 'ssr' ? /useVisibleTaskQrl\(/g : /useVisibleTask\(/g)).toHaveLength(
+      3
+    );
   });
 
   test('should rewrite $ hooks to their Qrl and function twins', async () => {

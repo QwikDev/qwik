@@ -618,14 +618,15 @@ const addEventOrRoot = (...eventNames: QwikEventItem[]) => {
             )
           );
         }
-        if (
-          hasInitialized === 1 &&
-          (eventNameOrRoot === 'e:qvisible' ||
-            eventNameOrRoot === 'd:qinit' ||
-            eventNameOrRoot === 'd:qidle')
-        ) {
-          processReadyStateChange();
-        }
+      }
+      // A repeated registration means new elements landed; observe or wake them too.
+      if (
+        hasInitialized === 1 &&
+        (eventNameOrRoot === 'e:qvisible' ||
+          eventNameOrRoot === 'd:qinit' ||
+          eventNameOrRoot === 'd:qidle')
+      ) {
+        processReadyStateChange();
       }
     } else {
       // If it is a new root, we also need this root to catch up to all of the document events so far.

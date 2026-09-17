@@ -68,8 +68,11 @@ function applyToFirstElement(
     return { output, found: false };
   }
   const parts = output.parts.slice();
+  const isScript = parts[0] === '<script';
   for (const key in useOnEvents) {
-    appendEvent(parts, eventAttr(key, useOnEvents[key].qrls), useOnEvents[key]);
+    // A script never intersects: its visible task wakes with the document instead.
+    const eventKey = key === 'q-e:qvisible' && isScript ? 'q-d:qinit' : key;
+    appendEvent(parts, eventAttr(eventKey, useOnEvents[key].qrls), useOnEvents[key]);
   }
   return { output: { ...output, parts }, found: true };
 }

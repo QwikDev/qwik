@@ -39,6 +39,8 @@ type StructuralSubscriber = BranchSubscriber | ForBlockSubscriber | ContentSubsc
 
 export class Scheduler {
   private readonly ownerQueue: Owner[] = [];
+  /** Runs once the flush has nothing left to run, so every DOM write of it has landed. */
+  private afterFlush: (() => void)[] | null = null;
   private flushing = false;
   private flushPending = false;
   private flushPromise: Promise<void> | null = null;
@@ -92,6 +94,14 @@ export class Scheduler {
     }
 
     this.scheduleFlush();
+  }
+
+  onFlushed(callback: () => void): void {
+    if (!this.flushing) {
+      callback();
+      return;
+    }
+    (this.afterFlush ??= []).push(callback);
   }
 
   waitFor(value: ValueOrPromise<unknown>): void {
@@ -159,6 +169,13 @@ export class Scheduler {
       }
     } finally {
       this.flushing = false;
+      const callbacks = this.afterFlush;
+      this.afterFlush = null;
+      if (callbacks !== null) {
+        for (let i = 0; i < callbacks.length; i++) {
+          callbacks[i]();
+        }
+      }
       if (this.pendingPromises !== null || this.ownerQueue.length > 0) {
         this.scheduleFlush();
       }

@@ -179,6 +179,9 @@ export function applyUseOnToCsrOutput(
         continue;
       }
     }
+    if (eventKey === 'q-e:qvisible' && target.tagName === 'SCRIPT') {
+      eventKey = 'q-d:qinit';
+    }
     const scopedName = eventKey.slice(2);
     const existing = (target as QElement)._qDispatch?.[scopedName];
     const handlers =

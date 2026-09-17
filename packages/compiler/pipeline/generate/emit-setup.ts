@@ -8,7 +8,6 @@ import {
   ValueKind,
   DeclarationKind,
   HookTwinKind,
-  VisibleTaskEvent,
   type HookTwin,
   type QrlUse,
   type Arg,
@@ -156,16 +155,6 @@ export function emitJsSetup(
       return `const ${module.bindings[entry.result].name} = ${QwikWord.CreatePropsProxy}(${module.bindings[entry.props].name}, ${JSON.stringify(entry.excluded)});`;
     }
     if (entry.s === SetupKind.Call) {
-      if (target.isServer && entry.visibleTaskEvent !== undefined) {
-        // The server never runs visible tasks; the client wakes the serialized task on this event.
-        const useOn =
-          entry.visibleTaskEvent === VisibleTaskEvent.Visible
-            ? QwikWord.UseOn
-            : QwikWord.UseOnDocument;
-        imports.add(useOn);
-        imports.add(QwikWord.CreateVisibleTaskHandlerQrl);
-        return `${useOn}(${JSON.stringify(entry.visibleTaskEvent)}, ${QwikWord.CreateVisibleTaskHandlerQrl}(${argJs(module, entry.args[0], emitQrl)}));`;
-      }
       const [first] = entry.args;
       // The client fast path: the callback ships with the component as a plain function.
       const isFunctionTwin =

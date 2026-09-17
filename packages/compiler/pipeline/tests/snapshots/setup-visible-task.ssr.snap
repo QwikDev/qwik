@@ -15,10 +15,8 @@ export default () => {
 
 import {
   useSignal,
-  useOn,
-  createVisibleTaskHandlerQrl,
+  useVisibleTaskQrl,
   _captures,
-  useOnDocument,
   createSsrNodeId,
   createSsrOpenTag,
   escapeHTML,
@@ -60,18 +58,13 @@ q_component_useVisibleTaskqrl_segment_2_rykjvx8e624a.s(
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const status = useSignal('waiting');
-    useOn(
-      'qvisible',
-      createVisibleTaskHandlerQrl(q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.w([status]))
-    );
-    useOnDocument(
-      'qinit',
-      createVisibleTaskHandlerQrl(q_component_useVisibleTaskqrl_segment_1_rykjhw4hc03r.w([status]))
-    );
-    useOnDocument(
-      'qidle',
-      createVisibleTaskHandlerQrl(q_component_useVisibleTaskqrl_segment_2_rykjvx8e624a.w([status]))
-    );
+    useVisibleTaskQrl(q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.w([status]));
+    useVisibleTaskQrl(q_component_useVisibleTaskqrl_segment_1_rykjhw4hc03r.w([status]), {
+      strategy: 'document-ready',
+    });
+    useVisibleTaskQrl(q_component_useVisibleTaskqrl_segment_2_rykjvx8e624a.w([status]), {
+      strategy: 'document-idle',
+    });
     const id0 = ctx.nextId();
     ctx.addRoot(status);
     const text0 = renderSsrTextNode(id0, null, status);

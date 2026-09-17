@@ -9,6 +9,8 @@ import { SubscriberFlags } from '../reactive/flags';
 import { registerSubscriberToOwner } from './owner';
 import { defaultScheduler, Phase, type TaskScheduler } from './scheduler';
 import { runTaskCleanups, runTaskSubscriber } from './run-task';
+import { useOn, useOnDocument } from './use-on';
+import { createVisibleTaskHandlerQrl, wakeVisibleTask } from '../handlers';
 import { getActiveInvokeContext, getActiveInvokeContextOrNull } from './invoke-context';
 import {
   SubscriberKind,
@@ -106,6 +108,8 @@ export class VisibleTaskSubscription
   implements VisibleTaskSubscriber
 {
   readonly kind = SubscriberKind.VisibleTask;
+  /** The loader trigger fired once; later triggers never re-run the task. */
+  triggered = false;
 
   constructor(
     readonly task: VisibleTask,
@@ -175,34 +179,48 @@ export const useTask$ = implicit$FirstArg(useTaskQrl) as (
 ) => void;
 
 export function useVisibleTask(run: TaskFn, options?: VisibleTaskOptions): VisibleTaskSubscriber {
-  const invokeContext = getActiveInvokeContextOrNull();
-  const container = invokeContext?.container;
-  const scheduler = container?.scheduler ?? defaultScheduler;
-  const subscriber = registerSubscriberToOwner(
-    new VisibleTaskSubscription(
-      new VisibleTask(run, undefined, container, invokeContext),
-      scheduler
-    )
-  );
-  subscriber.scheduler.notify(subscriber);
-  return subscriber;
+  return registerVisibleTask(run, undefined, options);
 }
 
 export function useVisibleTaskQrl(
   qrl: TaskQrlRef,
   options?: VisibleTaskOptions
 ): VisibleTaskSubscriber {
+  return registerVisibleTask(undefined, qrl, options);
+}
+
+/**
+ * The trigger decides when the initial run happens: the loader fires `qvisible` when the first
+ * element intersects, `qinit`/`qidle` when the document is ready or idle. A client render already
+ * has a ready document, so the document strategies run right away.
+ */
+function registerVisibleTask(
+  run: TaskFn | undefined,
+  qrl: TaskQrlRef | undefined,
+  options: VisibleTaskOptions | undefined
+): VisibleTaskSubscription {
   const invokeContext = getActiveInvokeContextOrNull();
   const container = invokeContext?.container;
-  const scheduler = container?.scheduler ?? defaultScheduler;
-  const subscriber = registerSubscriberToOwner(
+  const subscription = registerSubscriberToOwner(
     new VisibleTaskSubscription(
-      new VisibleTask(undefined, qrl, container, invokeContext),
-      scheduler
+      new VisibleTask(run, qrl, container, invokeContext),
+      container?.scheduler ?? defaultScheduler
     )
   );
-  subscriber.scheduler.notify(subscriber);
-  return subscriber;
+  const strategy = options?.strategy ?? 'intersection-observer';
+  if (qTest ? isServerPlatform() : isServer) {
+    const handler = createVisibleTaskHandlerQrl(subscription);
+    if (strategy === 'intersection-observer') {
+      useOn('qvisible', handler);
+    } else {
+      useOnDocument(strategy === 'document-ready' ? 'qinit' : 'qidle', handler);
+    }
+  } else if (strategy === 'intersection-observer') {
+    useOn('qvisible', () => wakeVisibleTask(subscription));
+  } else {
+    wakeVisibleTask(subscription);
+  }
+  return subscription;
 }
 
 /** @public */

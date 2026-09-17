@@ -11,6 +11,7 @@
 // file. Everything degrades to `null`/in-process on any failure so browser,
 // deno, and constrained environments keep working unchanged.
 
+import { disableRawTransfer } from './optimizer/ast/parse.js';
 import { runTransform } from './transform-run.js';
 
 import type { NapiTransformModulesOptions, NapiTransformOutput } from './create-optimizer.js';
@@ -202,6 +203,7 @@ async function maybeStartWorkerLoop(): Promise<void> {
   if ((wt.workerData as Record<string, unknown> | null)?.[WORKER_FLAG] !== true) {
     return;
   }
+  disableRawTransfer();
   const port = wt.parentPort;
   port.on('message', ({ id, opts }: WorkerRequest) => {
     try {

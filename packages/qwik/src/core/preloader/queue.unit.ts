@@ -88,7 +88,7 @@ test('appends preloads directly to head within a trigger slice', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(2);
 });
 
-test('limits speculative preloads to ten by default', async () => {
+test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {
     MessageChannel: undefined,
@@ -97,17 +97,16 @@ test('limits speculative preloads to ten by default', async () => {
   vi.resetModules();
   await installTestPlatform();
 
-  const headAppend = vi.spyOn(document.head, 'appendChild');
   const { initPreloader } = await import('./bundle-graph');
   const { preload } = await import('./queue');
 
-  const bundles = Array.from({ length: 11 }, (_, index) => `entry-${index}.js`);
+  const bundles = Array.from({ length: 30 }, (_, index) => `entry-${index}.js`);
   initPreloader(bundles);
   preload(bundles, 0.8);
   vi.runAllTimers();
 
-  expect(headAppend).toHaveBeenCalledTimes(11);
-  expect(document.head.querySelectorAll('link').length).toBe(11);
+  // Links never load in the test document, so the limit stays saturated.
+  expect(document.head.querySelectorAll('link').length).toBe(25);
 });
 
 test('yields after the frame budget and resumes later', async () => {

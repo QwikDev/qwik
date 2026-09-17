@@ -197,7 +197,7 @@ describe('preloader', () => {
     expectDeferredUntilAfterPaint(getScriptContent(), false);
   });
 
-  it('emits five speculative preload links by default', async () => {
+  it('emits no speculative preload links before page load by default', async () => {
     const { container, getScriptContent } = createContainer();
     const { includePreloader } = await import('./preload-impl');
     const bundles = Array.from({ length: 6 }, (_, index) => `route-${index + 1}.js`);
@@ -205,7 +205,18 @@ describe('preloader', () => {
     includePreloader(container, undefined, bundles);
 
     const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
-    expect(immediateScript).toContain('route-5.js');
-    expect(immediateScript).not.toContain('route-6.js');
+    expect(immediateScript).toBe('');
+  });
+
+  it('emits speculative preload links when ssrPreloads is opted into', async () => {
+    const { container, getScriptContent } = createContainer();
+    const { includePreloader } = await import('./preload-impl');
+    const bundles = Array.from({ length: 6 }, (_, index) => `route-${index + 1}.js`);
+
+    includePreloader(container, { ssrPreloads: 2 }, bundles);
+
+    const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
+    expect(immediateScript).toContain('route-2.js');
+    expect(immediateScript).not.toContain('route-3.js');
   });
 });

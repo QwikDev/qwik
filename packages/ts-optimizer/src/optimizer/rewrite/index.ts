@@ -6,7 +6,6 @@
  */
 
 import MagicString from 'magic-string';
-import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
@@ -36,6 +35,7 @@ import {
 import { stripExportDeclarations } from './strip-exports.js';
 import type { EmitMode } from '../types/types.js';
 import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
+import { parseWithRawTransfer } from '../ast/parse.js';
 import type {
   AstFunction,
   AstNode,
@@ -53,7 +53,6 @@ import {
   formatImportStatement,
   formatNamedImportPart,
 } from '../edit/import-format.js';
-import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import type { RewriteContext } from './rewrite-context.js';
 import {
   collectNeededImports,
@@ -156,8 +155,7 @@ export function rewriteParentModule(
   elementQpParamsMap?: ReadonlyMap<string, string[]>
 ): ParentRewriteResult {
   const s = new MagicString(source);
-  const program =
-    existingProgram ?? parseSync(relPath, source, RAW_TRANSFER_PARSER_OPTIONS).program;
+  const program = existingProgram ?? parseWithRawTransfer(relPath, source).program;
 
   const ctx: RewriteContext = {
     source,

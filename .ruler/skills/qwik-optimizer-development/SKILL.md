@@ -45,6 +45,17 @@ pnpm vitest run packages/qwik-vite/src/plugins/plugin.unit.ts
 `packages/optimizer/core/Cargo.toml`. Use `pnpm test.rust.update` only when snapshot updates are
 intentional.
 
+## Worker pool changes
+
+The transform worker pool (`packages/ts-optimizer/src/worker-pool.ts`) never starts real workers
+under vitest: the worker entry cannot resolve the `.js`-suffixed imports of the TypeScript sources,
+so pool tests silently fall back to in-process transforms. Verify worker behaviour against the
+built bundle instead: `pnpm build --optimizer`, then a Node script that imports
+`packages/qwik/dist/ts-optimizer.mjs`, runs a few transforms, and reads `VmData` from
+`/proc/self/status` before spawning a child process. Anything a worker reserves counts against the
+host process when it forks (SSG adapters, editors, test runners), so keep raw-transfer parsing and
+other multi-gigabyte reservations out of the workers.
+
 ## Hard Rules
 
 - Do not hand-edit generated optimizer build output in `dist/`, `lib/`, or `target/`.

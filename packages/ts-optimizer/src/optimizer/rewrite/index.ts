@@ -62,6 +62,7 @@ import {
   assembleOutput,
 } from './output-assembly.js';
 import { detectAndRenameCollisions, reserveGeneratedImportAliases } from './symbol-collision.js';
+import { getSentinelCounter } from '../segment/inline-strategy.js';
 import { countJsxKeysInNode } from '../segment/segment-generation.js';
 
 export {
@@ -623,10 +624,10 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
 }
 
 function preComputeQrlVarNames(ctx: RewriteContext): void {
-  let earlyStrippedCounter = 0;
   let inlineSentinelOffset = 0;
-  // Mirrors the declaration-side numbering of stripped top-level QRLs in output assembly.
-  let strippedTopLevelCounter = 0;
+  // Output assembly numbers top-level workers and stripped QRLs in one sequence; mirror it.
+  let topLevelSentinelCounter = 0;
+  let nestedWorkerCounter = 0;
   for (const ext of ctx.extractions) {
     if (ext.isSync) {
       continue;
@@ -640,8 +641,8 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
         ctx.earlyQrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
         inlineSentinelOffset += inlineSentinelStep(ext, false, ctx.inlineOptions.regCtxName);
       } else {
-        const counter = 0xffff0000 + earlyStrippedCounter++ * 2;
-        ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+        const index = ext.parent === null ? topLevelSentinelCounter++ : nestedWorkerCounter++;
+        ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${getSentinelCounter(index)}`);
       }
       continue;
     }
@@ -656,11 +657,11 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
         ctx.inlineOptions.stripCtxName,
         ctx.inlineOptions.stripEventHandlers
       );
-    const offset = ctx.inlineOptions.inline ? inlineSentinelOffset : strippedTopLevelCounter * 2;
+    const offset = ctx.inlineOptions.inline ? inlineSentinelOffset : topLevelSentinelCounter * 2;
     if (ctx.inlineOptions.inline) {
       inlineSentinelOffset += inlineSentinelStep(ext, stripped, ctx.inlineOptions.regCtxName);
     } else if (stripped && ext.parent === null) {
-      strippedTopLevelCounter++;
+      topLevelSentinelCounter++;
     }
     if (stripped) {
       const counter = 0xffff0000 + offset;

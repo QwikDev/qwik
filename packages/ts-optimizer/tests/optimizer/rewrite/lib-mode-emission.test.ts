@@ -12,6 +12,29 @@ function findParent(result: { modules: readonly TransformModule[] }): TransformM
 }
 
 describe('lib-mode emission shape', () => {
+  it('marks a document handler whose capture moved to q:p with .m() under mode=lib', () => {
+    const input = `
+import { component$ } from '@qwik.dev/core';
+export const Outlet = component$(() => {
+  const nav = useNavigate();
+  return <script document:onQRouterPopstate$={(event) => handle(nav, event)} />;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      mode: 'lib',
+      transpileTs: true,
+      transpileJsx: true,
+    });
+
+    const code = findParent(result).code;
+    expect(code).toMatch(/"q:p": nav/);
+    expect(code).toMatch(
+      /"q-d:qrouterpopstate": \/\*\s*[#@]__PURE__\s*\*\/ inlinedQrl\([\s\S]*?\)\.m\(\)/
+    );
+  });
+
   it('emits markerQrl(inlinedQrl(body, name)) for top-level component$ under mode=lib', () => {
     const input = `
 import { component$ } from '@qwik.dev/core';

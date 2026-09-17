@@ -32,9 +32,14 @@ import { parseWithRawTransfer } from '../ast/parse.js';
 import type { AstNode, AstProgram, CallExpression } from '../../ast-types.js';
 import { createTransformSession } from '../edit/transform-session.js';
 
+/** Runtime marker on a QRL whose captures moved to its element; must survive collapse. */
+const MOVED_CAPTURES_MARKER = '.m()';
+
 interface NoopQrlDecl {
   readonly qVarName: string;
   readonly qrlSymbolName: string;
+  /** The decl carried the `.m()` moved-captures marker, which the literal must keep. */
+  readonly hasMovedCaptures: boolean;
   readonly start: number;
   readonly end: number;
 }
@@ -92,7 +97,8 @@ export function collapseToLibInlinedQrl(source: string): string {
     const collapsedBody = substituteInnerQVarsInText(sCall.bodyText, buildInlinedLiteral);
     inProgress.delete(qVar);
     // Bare form; the reference site appends the captures array when it sees `.w([...])`.
-    const literal = `/*#__PURE__*/ inlinedQrl(${collapsedBody}, "${decl.qrlSymbolName}")`;
+    const marker = decl.hasMovedCaptures ? MOVED_CAPTURES_MARKER : '';
+    const literal = `/*#__PURE__*/ inlinedQrl(${collapsedBody}, "${decl.qrlSymbolName}")${marker}`;
     inlinedLiteralsByVar.set(qVar, literal);
     return literal;
   }
@@ -216,11 +222,14 @@ function substituteInnerQVarsInText(
 }
 
 function insertCapturesIntoInlinedQrl(literal: string, captureArgsText: string): string {
-  const lastParen = literal.lastIndexOf(')');
+  const hasMarker = literal.endsWith(MOVED_CAPTURES_MARKER);
+  const call = hasMarker ? literal.slice(0, -MOVED_CAPTURES_MARKER.length) : literal;
+  const lastParen = call.lastIndexOf(')');
   if (lastParen < 0) {
     return literal;
   }
-  return literal.slice(0, lastParen) + `, ${captureArgsText}` + literal.slice(lastParen);
+  const withCaptures = call.slice(0, lastParen) + `, ${captureArgsText}` + call.slice(lastParen);
+  return hasMarker ? withCaptures + MOVED_CAPTURES_MARKER : withCaptures;
 }
 
 function unwrapNoopQrlCall(node: AstNode): CallExpression | null {
@@ -275,6 +284,7 @@ function collectNoopQrlDecls(program: AstProgram, source: string): Map<string, N
     out.set(decl.id.name, {
       qVarName: decl.id.name,
       qrlSymbolName: nameArg.value,
+      hasMovedCaptures: noopQrlCall !== decl.init,
       start: stmt.start,
       end: includeTrailingNewline(source, stmt.end),
     });

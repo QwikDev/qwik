@@ -112,7 +112,7 @@ It is a possible workaround for when devices don't support bundle preloading. We
 
 For each bundle, we have a list of probabilities for other bundles. We encode these as a list of numbers and call it the **bundle graph**: a positive number is the index of the dependency, and a negative number is the probability times `-10` and applies to the bundles following it. For example, `['foo', 'bar', 'myBundle', 0, -6, 1]` means that the bundles `foo` and `bar` don't import anything, and importing `myBundle` gives a 100% chance to import `foo` (meaning it's a direct import) and a 60% chance to import `bar`.
 
-This is made at build time. For dynamic imports, we have to guess the probability of the bundle if it is not provided by Insights.
+This is made at build time. Only qrl edges (a module or segment importing its own `$()` segments) are followed. A user or library `import()` is a cut point: nothing under it is preloaded until that code runs and creates its own qrls. For qrl edges, we have to guess the probability of the bundle if it is not provided by Insights.
 
 A bundle has many origins. The probability is the highest of the probabilities of the origins.
 

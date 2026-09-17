@@ -941,7 +941,8 @@ function addCaptureWrapping(ctx: RewriteContext): void {
       continue;
     }
 
-    if (isEventHandlerOrJsxProp(ext.ctxKind) && !ext.qrlCallee) {
+    // Implicit JSX-prop QRLs get their captures in rewriteCallSites; bare `$()` props do not.
+    if (isEventHandlerOrJsxProp(ext.ctxKind) && !ext.qrlCallee && !ext.isBare) {
       continue;
     }
 

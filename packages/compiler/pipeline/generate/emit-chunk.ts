@@ -391,9 +391,13 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
       return ProgramKind.SlotFallback;
     }
     if (
-      [SegmentContext.DynamicSlot, SegmentContext.DynamicTag, 'jsx-value'].includes(
-        qrl.boundary.role
-      )
+      [
+        SegmentContext.DynamicSlot,
+        SegmentContext.DynamicTag,
+        SegmentContext.SuspenseContent,
+        SegmentContext.SuspenseFallback,
+        'jsx-value',
+      ].includes(qrl.boundary.role)
     ) {
       return ProgramKind.Content;
     }

@@ -186,9 +186,10 @@ export type Op =
     }
   | {
       op: OpKind.Suspense;
-      content: ProgramId;
+      content: QrlUse;
       contentId: Seed;
-      fallback: ProgramId | Value | null;
+      /** A Program-bodied QRL rendering the `fallback$` body, or none. */
+      fallback: QrlUse | null;
       fallbackId: Seed;
       delay: Value | null;
       blocking: boolean;

@@ -34,6 +34,7 @@ import {
   type Qrl,
   type Seed,
   type QrlUse,
+  type Value,
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
 import {
@@ -52,7 +53,7 @@ import { lowerEventAttribute, qrlAttributeExpression } from './lower-event';
 import { lowerText } from './lower-hole';
 import { checkDomNesting } from './dom-nesting';
 import { lowerBranch, type BranchArm } from './lower-branch';
-import { isFunctionLike, jsxAttributeName, unwrapExpression } from './ast/utils';
+import { isFunctionLike, jsxAttributeName, readReturnedBody, unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
 import {
   lowerComputedExpressionValue,
@@ -164,7 +165,11 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   }
   if (/^[A-Z]/.test(nameNode.name)) {
     const binding = requireComponentBinding(nameNode, ctx);
-    return ctx.coreBindings.get(binding) === 'Slot'
+    const core = ctx.coreBindings.get(binding);
+    if (core === 'Suspense') {
+      return lowerSuspense(element, attributes, ctx);
+    }
+    return core === 'Slot'
       ? lowerSlotMarker(element, ctx)
       : lowerComponentOp(
           element,
@@ -951,6 +956,33 @@ function lowerContentRange(
   owner: LifetimeOwner,
   lowerOps: (captures: LoweredCaptures) => { ops: Op[]; id: Seed }
 ): Op {
+  let id: Seed | null = null;
+  const { use, lifetime } = lowerRangeProgram(
+    [element.start, element.end],
+    captured,
+    ctx,
+    subject,
+    nameCtx,
+    owner,
+    (captures) => {
+      const lowered = lowerOps(captures);
+      id = lowered.id;
+      return lowered.ops;
+    }
+  );
+  return { op: OpKind.Content, render: use, id: id!, lifetime };
+}
+
+/** A range's own Program plus the Program-body QRL the generators chunk per target. */
+function lowerRangeProgram(
+  range: [number, number],
+  captured: Node[],
+  ctx: LowerContext,
+  subject: string,
+  nameCtx: SegmentContext,
+  owner: LifetimeOwner,
+  lowerOps: (captures: LoweredCaptures) => Op[]
+): { use: QrlUse; program: number; lifetime: number } {
   const captures = lowerCaptures(captured, ctx, subject);
   const lifetime = ctx.plan.lifetimes.length;
   ctx.plan.lifetimes.push({ id: lifetime, parent: 0, owner, commit: LifetimeCommit.AtomicRange });
@@ -963,7 +995,6 @@ function lowerContentRange(
     needsId: false,
     async: false,
   });
-  const range: [number, number] = [element.start, element.end];
   const { use } = pushQrl(
     ctx,
     {
@@ -988,9 +1019,85 @@ function lowerContentRange(
     },
     captures.args
   );
-  const { ops, id } = lowerOps(captures);
-  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops };
-  return { op: OpKind.Content, render: use, id, lifetime };
+  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerOps(captures) };
+  return { use, program, lifetime };
+}
+
+/**
+ * `<Suspense fallback$={() => <F />} delay={n}>…</Suspense>`: the marker is erased; children and
+ * the fallback body each become a range program the runtime races (MULTI_HEAD_SSR.md).
+ */
+function lowerSuspense(
+  element: JSXElement,
+  attributes: readonly JSXAttributeItem[],
+  ctx: LowerContext
+): Op {
+  let fallback: QrlUse | null = null;
+  let delay: Value | null = null;
+  for (const attribute of attributes) {
+    const name = jsxAttributeName(attribute);
+    const expression =
+      attribute.type === 'JSXAttribute' &&
+      attribute.value?.type === 'JSXExpressionContainer' &&
+      attribute.value.expression.type !== 'JSXEmptyExpression'
+        ? unwrapExpression(attribute.value.expression)
+        : null;
+    if (name === 'fallback$' && expression !== null && isFunctionLike(expression)) {
+      const body = expression.body === null ? null : readReturnedBody(expression.body);
+      if (body === null || body.statements.length > 0 || expression.params.length > 0) {
+        throw new InvalidModuleError(
+          'suspense-fallback',
+          'A Suspense fallback$ is a parameterless function returning JSX.',
+          [expression.start, expression.end]
+        );
+      }
+      const fallbackBody = body.expression;
+      fallback = lowerRangeProgram(
+        [expression.start, expression.end],
+        [fallbackBody],
+        ctx,
+        'a suspense fallback',
+        SegmentContext.SuspenseFallback,
+        LifetimeOwner.Suspense,
+        () => lowerRenderExpression(fallbackBody, ctx)
+      ).use;
+      continue;
+    }
+    if (name === 'delay' && expression !== null) {
+      // Read once at creation, so it stays an inline value.
+      delay = lowerInlineExpressionValue(
+        expression,
+        ctx,
+        collectCaptures(expression, ctx, new Set())
+      );
+      continue;
+    }
+    throw new InvalidModuleError(
+      'suspense-attribute',
+      `Suspense takes only fallback$ and delay; "${name ?? 'spread'}" is not supported.`,
+      [attribute.start, attribute.end]
+    );
+  }
+  const children = element.children;
+  const { use, lifetime } = lowerRangeProgram(
+    [element.start, element.end],
+    [...children],
+    ctx,
+    'a suspense boundary',
+    SegmentContext.SuspenseContent,
+    LifetimeOwner.Suspense,
+    () => lowerJsxChildren(children, ctx)
+  );
+  return {
+    op: OpKind.Suspense,
+    content: use,
+    contentId: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
+    fallback,
+    fallbackId: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
+    delay,
+    blocking: false,
+    lifetime,
+  };
 }
 
 function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): QrlUse | null {

@@ -272,11 +272,9 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
         visitQrlUse(entry.render);
         break;
       case OpKind.Suspense:
-        visitProgram(entry.content);
-        if (typeof entry.fallback === 'number') {
-          visitProgram(entry.fallback);
-        } else if (entry.fallback !== null) {
-          visitValue(entry.fallback);
+        visitQrlUse(entry.content);
+        if (entry.fallback !== null) {
+          visitQrlUse(entry.fallback);
         }
         if (entry.delay !== null) {
           visitValue(entry.delay);

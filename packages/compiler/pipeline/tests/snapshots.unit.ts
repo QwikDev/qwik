@@ -274,6 +274,23 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should lower a Suspense boundary to the runtime race', async () => {
+    await testInput(mode, 'suspense-boundary', {
+      code: `import { component$, useSignal, Suspense } from '@qwik.dev/core';
+import { Slow } from './slow';
+export default component$(() => {
+  const label = useSignal('Loading');
+  return (
+    <section>
+      <Suspense fallback$={() => <p class="fallback">{label.value}</p>} delay={50}>
+        <Slow id="one" />
+      </Suspense>
+    </section>
+  );
+});`,
+    });
+  });
+
   test('should compile component$ returned from a plain function', async () => {
     await testInput(mode, 'component-factory', {
       code: `import { component$ } from '@qwik.dev/core';

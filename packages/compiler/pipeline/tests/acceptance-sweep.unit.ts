@@ -19,10 +19,6 @@ const KNOWN_REJECTS: Record<string, string | { reason: string; isServer: boolean
     'pipeline does not support: an async or generator component function',
   'perf.prod/src/components/component-impl/index.tsx':
     'pipeline does not support: a non-QRL component event handler',
-  'preloader-test/src/components/generated/use-theme.tsx': {
-    reason: 'pipeline: imports/hoists without a component',
-    isServer: true,
-  },
   'qwikrouter-test/src/routes/(common)/catchall-loader/[...slug]/index.tsx':
     'pipeline does not support: a QRL callback capturing "runCount"',
   'qwikrouter-test/src/routes/(common)/server-func/index.tsx':

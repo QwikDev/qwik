@@ -606,7 +606,12 @@ than reimplementing each hook.
 - [ ] Async components.
 - [ ] Promises returning JSX or child arrays.
 - [ ] Thrown-promise retry without duplicate initialization or projection.
-- [ ] Lower `<Suspense>` and `<Reveal>` markers to existing runtime mechanisms.
+- [~] Lower `<Suspense>` and `<Reveal>` markers to existing runtime mechanisms. Suspense is done:
+  recognized by binding identity, the marker erased, children and the `fallback$` body each a
+  range program, `delay` an inline value, emitted as `createSsrSuspense` / `createSuspense` with
+  both chunks imported statically on the client so the fallback shows synchronously
+  (`suspense-boundary` snapshots, `task.spec.tsx` "renders fallback while initial task work is
+  pending" in CSR). Reveal groups follow with ErrorBoundary (cutover plan step 11).
 - [ ] Fallback QRLs, delay, nested boundaries and preservation of previous content.
 - [ ] `ErrorBoundary` with `fallback$` and `useErrorBoundary`: a throw or a rejected promise in a
       projected or nested render selects the nearest boundary's fallback (main has 14 specs, 9 of
@@ -659,6 +664,17 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-17: Cutover plan step 3, the Suspense port (group 13 above). `lowerSuspense` in
+  `lower-jsx.ts` shares `lowerRangeProgram` with content ranges; the op carries QRL uses like
+  `Content` does. A root Suspense returns the fragment's children like a collection, since the
+  fallback is placed before the root mounts. The `imports/hoists without a component` error now
+  names its module. A module without a component (a hook-only module such as the router's
+  `use-functions`) now takes its import and hoist prelude at module top like a chunk instead of
+  failing; that also unblocks `link-component.unit.tsx` in the resume project and removes the
+  last environment-specific known reject from the sweep. Note: the core corpus consumes the built
+  optimizer, so `pnpm build.core.dev` must run before it proves a compiler change. Verification:
+  1202 pipeline tests, corpus in CSR and resume fully green (726) after the rebuild, sweep at 11
+  known rejects.
 - 2026-09-17: Cutover plan step 2. The pipeline imports nothing from `../src` any more, and an eslint
   `no-restricted-imports` rule on `packages/compiler/pipeline/**` keeps it that way. `ValueIR` lives
   at `schema/value-ir.ts` on `LocalId`, minus the never-produced call, plugin and lambda variants;

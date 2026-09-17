@@ -1,0 +1,156 @@
+==INPUT==
+
+import { component$, useSignal, Suspense } from '@qwik.dev/core';
+import { Slow } from './slow';
+export default component$(() => {
+  const label = useSignal('Loading');
+  return (
+    <section>
+      <Suspense fallback$={() => <p class="fallback">{label.value}</p>} delay={50}>
+        <Slow id="one" />
+      </Suspense>
+    </section>
+  );
+});
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _captures,
+  createSsrSuspense,
+  maybeThen,
+  createComponent,
+  _noopQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Slow } from './slow';
+const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
+  const component0 = createComponent(Slow, { id: 'one' }, ctx);
+  return component0;
+};
+const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_1_oznzhxo2l2hq'
+);
+q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
+  component_suspense_content_segment_1_oznzhxo2l2hq
+);
+const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
+  const [label] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(label);
+  const text0 = renderSsrTextNode(id0, null, label);
+  return maybeThen(text0, (text0) => [
+    '<p q:id="',
+    createSsrNodeId(id0),
+    '" class="fallback">',
+    escapeHTML(text0),
+    '</p>',
+  ]);
+};
+const q_component_suspense_fallback_segment_0_1i2rr5w5knxuo = /*#__PURE__*/ _noopQrl(
+  'component_suspense_fallback_segment_0_1i2rr5w5knxuo'
+);
+q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.s(
+  component_suspense_fallback_segment_0_1i2rr5w5knxuo
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const label = useSignal('Loading');
+    const id0 = ctx.nextId();
+    ctx.addRoot(label);
+    const content0 = createSsrSuspense(
+      ctx,
+      id0,
+      q_component_suspense_content_segment_1_oznzhxo2l2hq,
+      q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.w([label]),
+      50
+    );
+    return maybeThen(content0, (content0) => ['<section>', content0, '</section>']);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo.js (ENTRY POINT)==
+
+import {
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+} from '@qwik.dev/core';
+
+export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
+  const [label] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(label);
+  const text0 = renderSsrTextNode(id0, null, label);
+  return maybeThen(text0, (text0) => [
+    '<p q:id="',
+    createSsrNodeId(id0),
+    '" class="fallback">',
+    escapeHTML(text0),
+    '</p>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_fallback_segment_0_1i2rr5w5knxuo",
+  "entry": null,
+  "displayName": "component_suspense_fallback_segment_0",
+  "hash": "1i2rr5w5knxuo",
+  "canonicalFilename": "component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:fallback",
+  "captures": true,
+  "loc": [
+    210,
+    264
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { Slow } from './slow';
+
+export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
+  const component0 = createComponent(Slow, { id: 'one' }, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_content_segment_1_oznzhxo2l2hq",
+  "entry": null,
+  "displayName": "component_suspense_content_segment_1",
+  "hash": "oznzhxo2l2hq",
+  "canonicalFilename": "component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:content",
+  "captures": false,
+  "loc": [
+    200,
+    321
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

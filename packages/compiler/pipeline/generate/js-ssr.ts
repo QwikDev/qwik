@@ -572,6 +572,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Content:
         this.content(pass, op, parts);
         return;
+      case OpKind.Suspense:
+        this.suspense(pass, op, parts);
+        return;
       case OpKind.Branch:
         this.branch(pass, op, parts);
         return;
@@ -579,7 +582,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         this.each(pass, op, parts);
         return;
       default:
-        throw new Error(`pipeline.generateJsSsr: op "${op.op}" not implemented yet`);
+        throw new Error(`pipeline.generateJsSsr: op "${(op as LinkedOp).op}" not implemented yet`);
     }
   }
 
@@ -738,6 +741,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           this.content(pass, child, children);
           break;
         }
+        case OpKind.Suspense: {
+          this.suspense(pass, child, children);
+          break;
+        }
         default: {
           if (!isFullyStaticSubtree(child)) {
             throw new UnsupportedError('a dynamic child inside an element record');
@@ -882,6 +889,31 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     pushMergedStatic(parts, '>');
     parts.push(content);
     pushMergedStatic(parts, '<!/d>');
+  }
+
+  /** The runtime races content against the fallback on its own lane and wraps the range itself. */
+  private suspense(
+    pass: RenderPass,
+    op: Extract<LinkedOp, { op: OpKind.Suspense }>,
+    parts: string[]
+  ): void {
+    const id = pass.next(QwikGenWord.Id);
+    pass.statements.push(`const ${id} = ${pass.names.ctx}.nextId();`);
+    const content = this.useQrl(pass, op.content, true);
+    const fallback = op.fallback === null ? null : this.useQrl(pass, op.fallback, true);
+    const delay = op.delay === null ? '0' : inlineValueJs(this.module, op.delay);
+    const step = pass.next(QwikGenWord.Content);
+    this.imports.add(QwikWord.CreateSsrSuspense);
+    this.pushStep(
+      pass,
+      step,
+      [
+        ...rootArgs(content.qrl, content.args),
+        ...(fallback === null ? [] : rootArgs(fallback.qrl, fallback.args)),
+      ],
+      `${QwikWord.CreateSsrSuspense}(${pass.names.ctx}, ${id}, ${content.ref}, ${fallback === null ? 'undefined' : fallback.ref}, ${delay})`
+    );
+    parts.push(step);
   }
 
   /** A collection renders between `<!f=N>`…`<!/f>` markers; rows reconcile by key. */

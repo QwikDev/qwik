@@ -179,12 +179,10 @@ export function assembleQwikModule(
       }
     }
     // Hoisted components and initializer edits need a module-level prelude.
-    if (placement === 'module-top' || needsModulePrelude) {
+    // A module without a component (hooks, helpers) takes the prelude at its top like a chunk.
+    if (placement === 'module-top' || needsModulePrelude || firstComponentEdit === null) {
       prefix = `${header}${hoists.join('\n')}${hoists.length > 0 ? '\n' : ''}`;
     } else {
-      if (firstComponentEdit === null) {
-        throw new Error('pipeline: imports/hoists without a component');
-      }
       firstComponentEdit.text = `${header}${[...hoists, firstComponentEdit.text].join('\n')}`;
     }
   }

@@ -236,13 +236,16 @@ export function linkRenderResults(
       case OpKind.Content:
         visitQrl(module, op.render.qrl);
         break;
-      case OpKind.Slot:
+      case OpKind.Suspense:
+        visitQrl(module, op.content.qrl);
         if (op.fallback !== null) {
           visitQrl(module, op.fallback.qrl);
         }
         break;
-      case OpKind.Suspense:
-        visitProgram(module, op.content);
+      case OpKind.Slot:
+        if (op.fallback !== null) {
+          visitQrl(module, op.fallback.qrl);
+        }
         break;
     }
   };

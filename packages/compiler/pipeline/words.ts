@@ -25,6 +25,8 @@ export const enum QwikWord {
   SetEvent = 'setEvent',
   CreateCapturedEvent = 'createCapturedEvent',
   BranchRange = 'BranchRange',
+  CreateSuspense = 'createSuspense',
+  CreateSsrSuspense = 'createSsrSuspense',
   CreateBranch = 'createBranch',
   WithCaptures = '_withCaptures',
   QrlSync = '_qrlSync',
@@ -188,4 +190,6 @@ export const enum SegmentContext {
   SlotName = 'slot-name',
   /** The segment a dynamic slot's content range runs: resolve the slot again, tracked. */
   SlotContent = 'slot:content',
+  SuspenseContent = 'suspense:content',
+  SuspenseFallback = 'suspense:fallback',
 }

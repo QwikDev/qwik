@@ -75,7 +75,10 @@ import {
 } from './output';
 
 type TextOp = Extract<LinkedOp, { op: OpKind.Static | OpKind.Hole }>;
-type RangeOp = Extract<LinkedOp, { op: OpKind.Branch | OpKind.Each | OpKind.Content }>;
+type RangeOp = Extract<
+  LinkedOp,
+  { op: OpKind.Branch | OpKind.Each | OpKind.Content | OpKind.Suspense }
+>;
 
 export async function generateJsCsr(
   plan: LinkedPlan,
@@ -333,9 +336,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Branch:
       case OpKind.Each:
       case OpKind.Content:
+      case OpKind.Suspense:
         return this.rangeRoot(op, ownerName, statements, pass);
       default:
-        throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
+        throw new Error(`pipeline.generateJsCsr: op "${(op as LinkedOp).op}" not implemented yet`);
     }
   }
 
@@ -520,7 +524,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         }
         case OpKind.Branch:
         case OpKind.Each:
-        case OpKind.Content: {
+        case OpKind.Content:
+        case OpKind.Suspense: {
           const { start, end } = this.locateRange(path, statements, pass);
           this.mountRange(child, start, end, statements, pass);
           break;
@@ -616,7 +621,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   ): string {
     const { fragment, start, end } = this.createRangeRoot(ownerName, statements, pass);
     this.mountRange(op, start, end, statements, pass);
-    return op.op === OpKind.Each ? `[...${fragment}.childNodes]` : `[${start}, ${end}]`;
+    // Rows and a fallback are already between the comments before the root mounts.
+    return op.op === OpKind.Each || op.op === OpKind.Suspense
+      ? `[...${fragment}.childNodes]`
+      : `[${start}, ${end}]`;
   }
 
   private mountRange(
@@ -633,7 +641,31 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.createCollectionBlock(op, start, end, statements, pass);
       case OpKind.Content:
         return this.createContentBlock(op, start, end, statements, pass);
+      case OpKind.Suspense:
+        return this.createSuspenseBlock(op, start, end, statements, pass);
     }
+  }
+
+  /** Content and fallback are lazy render chunks; the runtime races them inside the range. */
+  private createSuspenseBlock(
+    op: Extract<RangeOp, { op: OpKind.Suspense }>,
+    start: string,
+    end: string,
+    statements: string[],
+    pass: RenderPass
+  ): void {
+    this.imports.add(QwikWord.BranchRange);
+    this.imports.add(QwikWord.CreateSuspense);
+    // Both sides import statically: the fallback must show synchronously while content is pending.
+    const content = this.capturedChunkReference(op.content, pass.names.props);
+    const fallback =
+      op.fallback === null
+        ? 'undefined'
+        : this.capturedChunkReference(op.fallback, pass.names.props);
+    const delay = op.delay === null ? '0' : inlineValueJs(this.module, op.delay);
+    statements.push(
+      `${QwikWord.CreateSuspense}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${content}, ${fallback}, ${delay});`
+    );
   }
 
   private createRangeRoot(ownerName: string, statements: string[], pass: RenderPass) {
@@ -1232,6 +1264,7 @@ function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
       case OpKind.Branch:
       case OpKind.Each:
       case OpKind.Content:
+      case OpKind.Suspense:
         // A dynamic range's start/end comment pair.
         return { op: OpKind.Static as const, html: '<!><!>' };
       case OpKind.Slot:
@@ -1248,6 +1281,7 @@ function templateNodeCount(op: LinkedOp): number {
     case OpKind.Branch:
     case OpKind.Each:
     case OpKind.Content:
+    case OpKind.Suspense:
       return 2;
     default:
       return 1;

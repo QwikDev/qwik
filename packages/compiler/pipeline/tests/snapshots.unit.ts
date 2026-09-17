@@ -274,6 +274,20 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should compile component$ returned from a plain function', async () => {
+    await testInput(mode, 'component-factory', {
+      code: `import { component$ } from '@qwik.dev/core';
+export function factory(Component) {
+  return component$((props) => {
+    return <div class="wrapped"><Component {...props} /></div>;
+  });
+}
+export const Plain = component$(() => <b>plain</b>);
+export const Wrapped = factory(Plain);
+export default component$(() => <main><Wrapped label="x" /></main>);`,
+    });
+  });
+
   test('should lower component$ through the ordinary component pipeline', async () => {
     const output = await testInput(mode, 'component-marker', {
       code: `import { component$ as component, useSignal } from '@qwik.dev/core';

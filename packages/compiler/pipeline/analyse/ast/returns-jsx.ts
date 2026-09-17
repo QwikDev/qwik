@@ -197,6 +197,45 @@ function returnPositionContainsJsx(fn: Node, jsx: JsxAnalysis): boolean {
   return found;
 }
 
+const RUNTIME_JSX_FACTORIES = new Set(['jsx', 'jsxs', 'jsxDEV']);
+
+/** A runtime `jsx()` call builds a tree the compiler never sees — never compilable, so fail loud. */
+export function findRuntimeJsxCall(
+  node: unknown,
+  bindings: BindingGraph,
+  coreBindings: ReadonlyMap<LocalId, string>
+): CallExpression | null {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findRuntimeJsxCall(child, bindings, coreBindings);
+      if (found !== null) {
+        return found;
+      }
+    }
+    return null;
+  }
+  if (!isNode(node)) {
+    return null;
+  }
+  if (node.type === 'CallExpression') {
+    const binding = bindings.reference(node.callee);
+    const imported = binding === null ? undefined : coreBindings.get(binding);
+    if (imported !== undefined && RUNTIME_JSX_FACTORIES.has(imported)) {
+      return node;
+    }
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'type' || key === 'start' || key === 'end' || key === 'range') {
+      continue;
+    }
+    const found = findRuntimeJsxCall((node as WalkableNode)[key], bindings, coreBindings);
+    if (found !== null) {
+      return found;
+    }
+  }
+  return null;
+}
+
 /** Returns of nested functions are not the outer function's returns. */
 function visitReturns(node: unknown, visitor: (argument: unknown) => void, root = true): void {
   if (Array.isArray(node)) {

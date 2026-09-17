@@ -208,10 +208,12 @@ snapshot audit and remaining production-build blockers.
       the previous instance when the tracked read changes. A tag rooted in a module binding
       (`<UI.Button />`) stays a direct call. A setup alias such as `const Tag = props.as` is a
       live prop member (group 5), so `<Tag />` renders like `<props.as />` and re-renders too.
-- [ ] Components returned by factories and wrappers. A `component$` nested in an object literal
-      or returned from a factory is not discovered as a component today. This is the
-      location-independent `$` extraction of group 6; solve it there rather than as a
-      `component$`-only discovery path.
+- [x] Components returned by factories and wrappers. A `component$` below module level is found
+      by the payload scan that extracts `$()` anywhere and lowers as a component value: the
+      compiled `(props, ctx)` arrow prints inline where the call stood, closing over the enclosing
+      scope, so it needs no chunk and carries no serializable symbol (the same limit a compiled
+      component function already has as a reactive tag). A `component$` inside a `$` boundary
+      stays refused (`component-factory` snapshots, `extraction-shapes.unit.ts`).
 - [x] `component$(existingFunction)` and `componentQrl`. `component$(Body)` marks the
       module-level `Body` as a component, whatever its name or shape, and the call stays
       authored: the runtime `component$` is an identity that tags its argument.
@@ -656,6 +658,17 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-17: Cutover plan step 1 ([CUTOVER-PLAN.md](./CUTOVER-PLAN.md)). `readBinding` in
+  `link/render-results.ts` no longer overflows on `x.value = x.value.filter(...)` plus a suffix read:
+  a query that only grows an active path (infix insertion) or exceeds `MAX_QUERY_PATH` answers
+  `Unknown`. `component$` below module level compiles (group 4, above) through
+  `lowerComponentBody`, now shared with module-level declarations. A runtime `jsx()`/`jsxs()`/
+  `jsxDEV()` call is the `runtime-jsx-call` diagnostic. A core `$` export without a setup contract
+  (`event$`) calls its `Qrl` twin. `acceptance-sweep.unit.ts` compiles every e2e app source in both
+  environments against an explicit, shrinking list of known rejects; the earlier "silent rollback"
+  finding was commented-out source. Verification: 1195 pipeline tests, corpus in CSR and resume with
+  only the known Suspense red, e2e sweep at 12 known rejects (was 14).
 
 - 2026-09-17: Tasks converge and triggers report, batch 3b of group 12. A write drops the writer's
   dependency on that source (`dropWriterDependency` at the signal and store write points), so a

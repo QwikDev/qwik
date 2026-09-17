@@ -403,6 +403,15 @@ export interface ComponentDeclarationEmission {
   alias: string | null;
 }
 
+/** A nested `component$` prints as the compiled arrow where the call stood. */
+export function inlineComponentText(emission: ComponentEmission, names: GeneratedNames): string {
+  const params = [names.props, names.ctx, ...(emission.params ?? [])].join(', ');
+  const body = [...emission.statements, `return ${emission.value};`]
+    .map((statement) => `  ${statement}`)
+    .join('\n');
+  return `(${params}) => {\n${body}\n}`;
+}
+
 export function emitComponentFunction(
   qrl: LinkedQrl,
   emission: ComponentEmission,

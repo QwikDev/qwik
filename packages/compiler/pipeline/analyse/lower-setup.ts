@@ -670,17 +670,19 @@ export function resolveSetupCall(
     return null;
   }
   // Named `$` imports and exported `$` locals have twins by convention; other `$` bindings keep their call.
+  // A core `$` export without a setup contract (`event$`) has its `Qrl` twin like any named import.
   const hasTwins =
-    coreApi === undefined &&
     name.endsWith(QRL_SUFFIX) &&
-    (imported !== undefined
-      ? imported.imported === name
-      : ctx.plan.exports.some(
-          (entry) =>
-            entry.e === ExportKind.Local &&
-            entry.target.t === ExportTargetKind.Binding &&
-            entry.target.binding === binding
-        ));
+    (coreApi !== undefined
+      ? !coreSetupCalls.has(coreApi)
+      : imported !== undefined
+        ? imported.imported === name
+        : ctx.plan.exports.some(
+            (entry) =>
+              entry.e === ExportKind.Local &&
+              entry.target.t === ExportTargetKind.Binding &&
+              entry.target.binding === binding
+          ));
   return {
     binding,
     name,

@@ -68,6 +68,7 @@ import {
   emitComponentCall,
   type ComponentEmission,
   type GeneratedNames,
+  inlineComponentText,
 } from './emit-component';
 import { createNameAllocator } from './names';
 import { generateForeignModule } from './foreign';
@@ -195,6 +196,22 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return source;
   }
 
+  /** A nested component prints inline; every other use is a reference to its chunk. */
+  private inlineComponentOrRef(
+    use: QrlUse,
+    names: GeneratedNames,
+    reference: (use: QrlUse) => string
+  ): string {
+    const { qrl } = this.resolveQrlUse(use, names.props);
+    if (qrl.boundary.kind !== BoundaryKind.Component || qrl.declaration !== undefined) {
+      return reference(use);
+    }
+    return inlineComponentText(
+      this.emitProgram(qrl, allocateGeneratedNames(this.module)),
+      allocateGeneratedNames(this.module)
+    );
+  }
+
   emitPayload(payload: number, names: GeneratedNames): string {
     const source = extractPayloadJs(
       this.module,
@@ -204,7 +221,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       [],
       withMarkerEmitter(
         this.module,
-        (use) => this.useQrl({ names }, use, true).ref,
+        (use) =>
+          this.inlineComponentOrRef(use, names, (use) => this.useQrl({ names }, use, true).ref),
         this.chunkImports
       )
     );
@@ -1222,6 +1240,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     for (const usage of this.usedQrls.values()) {
       const { qrl } = usage;
       if (this.hoistSyncQrl(qrl, this)) {
+        continue;
+      }
+      // A nested component already printed inline where its call stood.
+      if (qrl.boundary.kind === BoundaryKind.Component && qrl.declaration === undefined) {
         continue;
       }
       if (usage.invoked) {

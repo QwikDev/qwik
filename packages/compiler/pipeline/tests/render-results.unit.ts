@@ -473,3 +473,67 @@ describe('linked render results', () => {
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 });
+
+// Cutover step 1 seeds: a query cycle through an assignment is a fixpoint, never a stack overflow.
+describe('self-referential assignment', () => {
+  const cases: [string, string][] = [
+    [
+      'signal filter in a handler with a length read',
+      `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const items = useSignal([1, 2]);
+  return <button onClick$={() => { items.value = items.value.filter((x) => x); }}>{items.value.length}</button>;
+});`,
+    ],
+    [
+      'signal filter in setup with an index read',
+      `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const items = useSignal([1, 2]);
+  items.value = items.value.filter((x) => x);
+  return <p>{items.value[0]}</p>;
+});`,
+    ],
+    [
+      'store concat with a length read',
+      `import { component$, useStore } from '@qwik.dev/core';
+export default component$(() => {
+  const store = useStore({ data: [1] });
+  store.data = store.data.concat([2]);
+  return <p>{store.data.length}</p>;
+});`,
+    ],
+    [
+      'signal filter with a mapped render',
+      `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const items = useSignal([{ content: 'a' }]);
+  return <ul onClick$={() => { items.value = items.value.filter((x) => x); }}>{items.value.map((item) => <li>{item.content}</li>)}</ul>;
+});`,
+    ],
+    [
+      'store slice with a join read',
+      `import { component$, useStore } from '@qwik.dev/core';
+export default component$(() => {
+  const state = useStore({ logs: ['a'] });
+  state.logs = state.logs.slice();
+  return <p>{state.logs.join(' ')}</p>;
+});`,
+    ],
+  ];
+
+  test.each(cases)('%s links without overflowing', async (_name, source) => {
+    const plan = await link(source);
+    expect(holes(plan).length).toBeGreaterThan(0);
+  });
+
+  test('a direct read of the written signal keeps linking', async () => {
+    const plan = await link(`import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const items = useSignal([1]);
+  items.value = items.value.filter((x) => x);
+  return <p>{items.value}</p>;
+});`);
+    expect(holes(plan)).toHaveLength(1);
+  });
+});

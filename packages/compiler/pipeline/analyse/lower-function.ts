@@ -20,6 +20,8 @@ import {
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { createCapturedContext, lowerCaptures } from './ast/capture-analysis';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
+import { readComponentFunction } from './discover';
+import { lowerComponentBody } from './lower-component-body';
 import { lowerComputedExpressionValue, recordPayloadJsx, recordPayloadReads } from './lower-expr';
 import { LocalKind } from './locals';
 import { isFunctionLike, parameterPattern, unwrapExpression } from './ast/utils';
@@ -80,7 +82,7 @@ export function lowerFunctionQrl(
   const payload = pushPayload(ctx, [fn.start, fn.end]);
   recordPayloadReads(ctx, payload, refs);
   // Scanning the function itself puts its parameters and locals in scope for nested markers.
-  recordPayloadQrls(ctx, payload, fn);
+  recordPayloadQrls(ctx, payload, fn, 'qrl');
   recordFunctionJsx(ctx, payload, fn, true);
   return pushQrl(
     ctx,
@@ -113,6 +115,61 @@ export function lowerFunctionQrl(
     },
     args
   ).use;
+}
+
+function isComponentMarkerCall(call: CallExpression, ctx: LowerContext): boolean {
+  const binding = ctx.bindings.reference(call.callee);
+  return binding !== null && ctx.coreBindings.get(binding) === QwikMarker.Component;
+}
+
+/**
+ * `component$(fn)` below module level: a compiled component value closing over its scope. It prints
+ * inline where the call stood, so it needs no chunk and carries no serializable symbol.
+ */
+function lowerNestedComponent(call: CallExpression, ctx: LowerContext): QrlUse {
+  const first = call.arguments[0];
+  const fn = first === undefined || first.type === 'SpreadElement' ? null : unwrapExpression(first);
+  if (fn === null || call.arguments.length !== 1 || !isFunctionLike(fn)) {
+    throw new UnsupportedError('a nested component$ without an inline function');
+  }
+  const { captures, refs } = lowerCaptures(fn, ctx, 'a nested component', new Set(), false);
+  if (refs.capturedWrite !== null) {
+    throw new InvalidModuleError(
+      'mutable-capture',
+      `Mutating captured binding "${refs.capturedWrite.name}" inside a $ boundary is not allowed; mutate an object, store or signal property instead.`,
+      refs.capturedWrite.range
+    );
+  }
+  // The body closes over the enclosing scope: every capture is a plain local in a context copy.
+  const capturedLocals = new Map(
+    captures.map(({ binding }) => [
+      binding,
+      { kind: LocalKind.Const, access: CaptureAccess.Direct, slot: -1, binding } as const,
+    ])
+  );
+  const inner = { ...functionScope(ctx, fn), styleScopes: [], propsBinding: null };
+  const component = readComponentFunction(fn);
+  const { program } = lowerComponentBody(component, inner, capturedLocals);
+  const body = fn.body!;
+  return pushQrl(inner, {
+    identity: { kind: QrlIdentityKind.Segment, nameCtx: 'component' },
+    ctxName: QwikMarker.Component,
+    boundary: { kind: BoundaryKind.Component },
+    payloadKind: QrlPayloadKind.Function,
+    authoredAsync: false,
+    body: { b: QrlBodyKind.Program, program },
+    captures: [],
+    params: { authored: fn.params.length, used: [], sources: [] },
+    origin: {
+      range: [call.start, call.end],
+      functionRange: [fn.start, fn.end],
+      calleeRange: [call.callee.start, call.callee.end],
+      argumentRanges: call.arguments.map((arg) => [arg.start, arg.end]),
+      paramRanges: fn.params.map((param) => [param.start, param.end]),
+      bodyRange: [body.start, body.end],
+      bodyKind: body.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
+    },
+  }).use;
 }
 
 /** Callback scopes preserve native execution while JSX captures per-call bindings. */
@@ -168,13 +225,31 @@ function functionScope(
 const extractedCalls = new WeakSet<Node>();
 
 /** Every `$(fn)` under `node` becomes an explicit QRL that replaces the call in the payload. */
-export function recordPayloadQrls(ctx: LowerContext, payload: PayloadId, node: Node): void {
+export function recordPayloadQrls(
+  ctx: LowerContext,
+  payload: PayloadId,
+  node: Node,
+  owner: 'module' | 'qrl' = 'module'
+): void {
   const visit = (current: unknown, scope: LowerContext): void => {
     if (Array.isArray(current)) {
       current.forEach((child) => visit(child, scope));
       return;
     }
     if (!isNode(current) || extractedCalls.has(current)) {
+      return;
+    }
+    if (current.type === 'CallExpression' && isComponentMarkerCall(current, scope)) {
+      if (owner === 'qrl') {
+        throw new UnsupportedError('a component$ inside a $ boundary');
+      }
+      const use = lowerNestedComponent(current, scope);
+      extractedCalls.add(current);
+      const target = ctx.plan.payloads[payload];
+      target.reads = target.reads.filter(
+        ({ range }) => !(range[0] >= current.start && range[1] <= current.end)
+      );
+      target.qrls.push({ range: [current.start, current.end], use });
       return;
     }
     const call = current.type === 'CallExpression' ? markerQrlCall(current, scope) : null;

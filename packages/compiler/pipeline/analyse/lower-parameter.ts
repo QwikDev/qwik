@@ -29,7 +29,10 @@ export function childrenReadError(range: [number, number]): InvalidModuleError {
   );
 }
 
-export function lowerComponentParameter(component: DiscoveredComponent, ctx: LowerContext) {
+export function lowerComponentParameter(
+  component: Pick<DiscoveredComponent, 'param'>,
+  ctx: LowerContext
+) {
   const parameter = component.param;
   const locals: SetupLocals = new Map();
   const setup: Setup[] = [];

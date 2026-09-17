@@ -83,6 +83,21 @@ function describeComponent(
   declarationKind: DeclarationKind,
   bindingNode: BindingIdentifier | null
 ): DiscoveredComponent {
+  return {
+    ...readComponentFunction(fn),
+    name,
+    bindingNode,
+    declarationKind,
+    fn,
+    statement,
+    replacementRange: [statement.start, statement.end],
+  };
+}
+
+/** The parts of a component function every owner lowers: its param, setup and returned JSX. */
+export function readComponentFunction(
+  fn: ArrowFunctionExpression | FunctionNode
+): Pick<DiscoveredComponent, 'param' | 'setupStatements' | 'renderExpression'> {
   if (fn.async || (fn.type !== 'ArrowFunctionExpression' && fn.generator)) {
     throw new UnsupportedError('an async or generator component function');
   }
@@ -101,15 +116,9 @@ function describeComponent(
   }
   const { setupStatements, returned } = componentBody(fn);
   return {
-    name,
-    bindingNode,
-    declarationKind,
     setupStatements,
-    fn,
     param: param === undefined ? null : { node: param, range: [param.start, param.end], object },
     renderExpression: returned,
-    statement,
-    replacementRange: [statement.start, statement.end],
   };
 }
 

@@ -86,6 +86,20 @@ export function localComponentSetups(module: {
   );
 }
 
+/** Query paths longer than this collapse to Unknown; a legitimate member chain never gets close. */
+const MAX_QUERY_PATH = 16;
+
+/** True when every part of `previous` appears in order inside `path`. */
+function growsPath(previous: ResultPath, path: ResultPath): boolean {
+  let index = 0;
+  for (const part of path) {
+    if (index < previous.length && previous[index] === part) {
+      index++;
+    }
+  }
+  return index === previous.length;
+}
+
 export function linkRenderResults(
   plan: LinkedPlan,
   reachable: ReadonlySet<string>,
@@ -409,13 +423,11 @@ export function linkRenderResults(
     }
     const inputKey = bindingKey(moduleIndex, binding);
     const paths = activePaths.get(inputKey) ?? [];
+    // A query that only grows an active path (`x.value = x.value.filter()` inserts `[filter, #return]`
+    // in the middle on every level) is a fixpoint: its kinds are the active query's kinds.
     if (
-      paths.some(
-        (previous) =>
-          path.length > previous.length &&
-          (previous.every((part, index) => part === path[index]) ||
-            previous.every((part, index) => part === path[path.length - previous.length + index]))
-      )
+      path.length > MAX_QUERY_PATH ||
+      paths.some((previous) => path.length > previous.length && growsPath(previous, path))
     ) {
       return Kind.Unknown;
     }

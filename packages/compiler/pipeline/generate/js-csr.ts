@@ -63,6 +63,7 @@ import {
   emitComponentCall,
   type ComponentEmission,
   type GeneratedNames,
+  inlineComponentText,
 } from './emit-component';
 import { createNameAllocator } from './names';
 import { generateForeignModule } from './foreign';
@@ -129,6 +130,22 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     this.resolveQrlUse = createQrlResolver(module);
   }
 
+  /** A nested component prints inline; every other use is a reference to its chunk. */
+  private inlineComponentOrRef(
+    use: QrlUse,
+    names: GeneratedNames,
+    reference: (use: QrlUse) => string
+  ): string {
+    const { qrl } = this.resolveQrlUse(use, names.props);
+    if (qrl.boundary.kind !== BoundaryKind.Component || qrl.declaration !== undefined) {
+      return reference(use);
+    }
+    return inlineComponentText(
+      this.emitProgram(qrl, allocateGeneratedNames(this.module)),
+      allocateGeneratedNames(this.module)
+    );
+  }
+
   emitPayload(payload: number, names: GeneratedNames): string {
     return extractPayloadJs(
       this.module,
@@ -138,7 +155,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       [],
       withMarkerEmitter(
         this.module,
-        (use) => this.lazyRenderReference(use, names.props),
+        (use) =>
+          this.inlineComponentOrRef(use, names, (use) =>
+            this.lazyRenderReference(use, names.props)
+          ),
         this.chunkImports,
         (use) => this.capturedChunkReference(use, names.props)
       )

@@ -69,9 +69,15 @@ export function emitQrlChunks(
           module.source.normalizationMap.sourcesContent?.[0] ?? module.source.code,
           module.source.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
         );
-  // Declared QRLs (components) splice over their authored range — no chunk file (yet).
+  // Declared QRLs (components) splice over their authored range — no chunk file (yet); a nested
+  // component prints inline where its `component$` call stood.
   return module.qrls
-    .filter((qrl) => qrl.declaration === undefined && qrl.boundary.kind !== BoundaryKind.Sync)
+    .filter(
+      (qrl) =>
+        qrl.declaration === undefined &&
+        qrl.boundary.kind !== BoundaryKind.Sync &&
+        qrl.boundary.kind !== BoundaryKind.Component
+    )
     .map((qrl) => {
       const path = `${module.path}_${qrl.name}.js`;
       const assembled = assembleGeneratedModule(

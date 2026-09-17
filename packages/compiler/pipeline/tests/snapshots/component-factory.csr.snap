@@ -1,0 +1,100 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export function factory(Component) {
+  return component$((props) => {
+    return <div class="wrapped"><Component {...props} /></div>;
+  });
+}
+export const Plain = component$(() => <b>plain</b>);
+export const Wrapped = factory(Plain);
+export default component$(() => <main><Wrapped label="x" /></main>);
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0_208o16glymg7p',
+  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+  'component_props_segment_0_208o16glymg7p'
+);
+const component_component_segment_1_1wtreduzn0bln_tmpl0 = _createElementTemplate(
+  '<div class="wrapped"><!></div>'
+);
+const Plain_tmpl0 = _createElementTemplate('<b>plain</b>');
+const default_tmpl0 = _createElementTemplate('<main><!></main>');
+import {
+  _first,
+  _qrlWithChunk,
+  computedProp,
+  readTrackedValue,
+  createDynamicTag,
+  createComponent,
+  _toNodes,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+export function factory(Component) {
+  return (props0, ctx) => {
+    const el0 = component_component_segment_1_1wtreduzn0bln_tmpl0(ctx.document);
+    const prop0 = computedProp(q_component_props_segment_0_208o16glymg7p.w([props0]));
+    const component0 = createComponent(
+      (props0) => createDynamicTag(Component, props0, ctx),
+      readTrackedValue(prop0),
+      ctx
+    );
+    _first(el0).replaceWith(..._toNodes(component0));
+    return el0;
+  };
+}
+export const Plain = (props0, ctx) => {
+  const el0 = Plain_tmpl0(ctx.document);
+  return el0;
+};
+export const Wrapped = factory(Plain);
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const component0 = createComponent(
+    (props0) => createDynamicTag(Wrapped, props0, ctx),
+    { label: 'x' },
+    ctx
+  );
+  _first(el0).replaceWith(..._toNodes(component0));
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+
+export { Plain as Plain_component_25y3k1m6p49gx };
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_props_segment_0_208o16glymg7p = () => {
+  const [props] = _captures;
+  return props;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0_208o16glymg7p",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    162,
+    167
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

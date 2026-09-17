@@ -1,0 +1,102 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export function factory(Component) {
+  return component$((props) => {
+    return <div class="wrapped"><Component {...props} /></div>;
+  });
+}
+export const Plain = component$(() => <b>plain</b>);
+export const Wrapped = factory(Plain);
+export default component$(() => <main><Wrapped label="x" /></main>);
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const component_props_segment_0_208o16glymg7p = () => {
+  const [props] = _captures;
+  return props;
+};
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_0_208o16glymg7p'
+);
+q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
+import {
+  computedProp,
+  readTrackedValue,
+  renderSsrDynamicTag,
+  createComponent,
+  maybeThen,
+  _captures,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+export function factory(Component) {
+  return (props0, ctx) => {
+    const prop0 = computedProp(q_component_props_segment_0_208o16glymg7p.w([props0]));
+    ctx.addRoot(prop0);
+    const component0 = createComponent(
+      (props0) => renderSsrDynamicTag(Component, props0, ctx),
+      readTrackedValue(prop0),
+      ctx
+    );
+    return maybeThen(component0, (component0) => ['<div class="wrapped">', component0, '</div>']);
+  };
+}
+export const Plain = _markComponent(
+  (props0, ctx) => {
+    return '<b>plain</b>';
+  },
+  'Plain_component_25y3k1m6p49gx',
+  './component.tsx'
+);
+export const Wrapped = factory(Plain);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const component0 = createComponent(
+      (props0) => renderSsrDynamicTag(Wrapped, props0, ctx),
+      { label: 'x' },
+      ctx
+    );
+    return maybeThen(component0, (component0) => ['<main>', component0, '</main>']);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Plain as Plain_component_25y3k1m6p49gx };
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_props_segment_0_208o16glymg7p = () => {
+  const [props] = _captures;
+  return props;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0_208o16glymg7p",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    162,
+    167
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

@@ -10,7 +10,6 @@ import {
   LifetimeCommit,
   LifetimeOwner,
   ModuleKind,
-  ProgramBodyKind,
   QrlBodyKind,
   QrlPayloadKind,
   type Diagnostic,
@@ -18,21 +17,14 @@ import {
 } from '../schema';
 import { createBindingGraph } from './ast/bindings';
 import { createJsxAnalysis } from './ast/jsx-analysis';
-import { findComponentCandidates, findHookCandidates } from './ast/returns-jsx';
+import { findComponentCandidates, findHookCandidates, findRuntimeJsxCall } from './ast/returns-jsx';
 import { lowerCoreHookAliases, lowerHooks } from './lower-hook';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
-import { childrenReadError, lowerComponentParameter } from './lower-parameter';
-import { finalizeLocalFunctions, lowerSetup } from './lower-setup';
-import {
-  createLowerContext,
-  pushPayload,
-  pushQrl,
-  QrlIdentityKind,
-  type LowerContext,
-} from './lower-context';
-import { lowerRenderExpression } from './lower-jsx';
+import { lowerComponentBody } from './lower-component-body';
+import { finalizeLocalFunctions } from './lower-setup';
+import { createLowerContext, pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
 import { createOriginalRangeMapper } from '../../src/normalization';
@@ -109,6 +101,14 @@ export async function analyseModule(
   );
   let loweredHooks: Set<Node>;
   try {
+    const runtimeJsxCall = findRuntimeJsxCall(parsed.program, bindings, coreBindings);
+    if (runtimeJsxCall !== null) {
+      throw new InvalidModuleError(
+        'runtime-jsx-call',
+        'JSX must be authored as JSX; a runtime jsx() call cannot be compiled.',
+        [runtimeJsxCall.start, runtimeJsxCall.end]
+      );
+    }
     loweredHooks = lowerHooks(
       findHookCandidates(parsed.program, bindings).filter(
         (hook) => !candidates.some((candidate) => candidate.fn === hook.fn)
@@ -225,47 +225,14 @@ export async function analyseModule(
   for (const component of components) {
     const componentBinding =
       component.bindingNode === null ? null : bindings.declaration(component.bindingNode);
-    let loweredParameter;
-    let rootOps;
-    let setup;
+    let lowered;
     try {
-      loweredParameter = lowerComponentParameter(component, lowerContext);
-      diagnoseChildrenReads(lowerContext);
-      lowerContext.styleScopes = [];
-      setup = lowerSetup(component.setupStatements, lowerContext, loweredParameter.locals);
-      lowerContext.locals = setup.locals;
-      rootOps =
-        component.renderExpression === null
-          ? []
-          : lowerRenderExpression(component.renderExpression, lowerContext);
+      lowered = lowerComponentBody(component, lowerContext);
     } catch (error) {
       recordModuleError(plan, error);
       return finish();
     }
-    plan.programs.push({
-      body: { kind: ProgramBodyKind.Ops, ops: rootOps },
-      setup: [...loweredParameter.setup, ...setup.setup],
-      params: [],
-      lifetime: 0,
-      needsId: false,
-      async: false,
-    });
-    if (component.param !== null) {
-      plan.payloads.push({
-        range: component.param.range,
-        constants: [],
-        qrls: [],
-        reads: [],
-        awaits: [],
-        useIds: [],
-        renders: [],
-        temps: [],
-      });
-    }
-    const parameter =
-      loweredParameter.surface === null
-        ? null
-        : { pattern: plan.payloads.length - 1, surface: loweredParameter.surface };
+    const { parameter } = lowered;
     const body = component.fn.body!;
     // A component IS a QRL: a Program body plus an authored declaration to splice over.
     const { index: qrlIndex } = pushQrl(lowerContext, {
@@ -278,7 +245,7 @@ export async function analyseModule(
       boundary: { kind: BoundaryKind.Component },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
-      body: { b: QrlBodyKind.Program, program: plan.programs.length - 1 },
+      body: { b: QrlBodyKind.Program, program: lowered.program },
       captures: [],
       params: { authored: component.param === null ? 0 : 1, used: [], sources: [] },
       origin: {
@@ -329,24 +296,6 @@ export async function analyseModule(
   finalizeLocalFunctions(lowerContext);
   recordBindingResults(lowerContext);
   return finish();
-}
-
-function diagnoseChildrenReads(ctx: LowerContext): void {
-  if (ctx.propsBinding === null) {
-    return;
-  }
-  for (const { node } of ctx.bindings.referencesOf(ctx.propsBinding)) {
-    const parent = ctx.bindings.parentOf(node);
-    if (
-      parent?.type === 'MemberExpression' &&
-      !parent.computed &&
-      parent.object === node &&
-      parent.property.type === 'Identifier' &&
-      parent.property.name === 'children'
-    ) {
-      throw childrenReadError([parent.start, parent.end]);
-    }
-  }
 }
 
 function recordModuleError(plan: ModulePlan, error: unknown): void {

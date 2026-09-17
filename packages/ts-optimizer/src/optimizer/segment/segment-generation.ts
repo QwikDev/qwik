@@ -58,6 +58,12 @@ import {
   extractDestructuredFieldInfo,
   bodyConsolidatesToRawProps,
   consolidateQpCaptureValues,
+  collectAncestorPropsSources,
+  consolidateRawPropsCaptures,
+  rawPropsBindingNames,
+  resolveRawPropsSlots,
+  type RawPropsConsolidation,
+  type RawPropsSource,
 } from '../rewrite/index.js';
 import { collectSameFileSymbolInfo } from './module-symbols.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
@@ -326,9 +332,8 @@ export interface SegmentGenerationContext {
  * types stay mutable only to match downstream signatures like `SegmentImportData` /
  * `generateSegmentCode`), so the per-extraction code has no setup-time side effects to reason
  * about. `sortedExtractions` is the same reference as `ctx.updatedExtractions`, which
- * {@link computeSegmentGenerationPrep} sorts in place (children before parents). `fieldDefaultsMaps`
- * parallels `fieldMaps`: per parent symbol, destructure-time default expressions keyed by
- * local-binding name (empty inner map ⇒ no defaults, fall through to bare `_rawProps.<key>`).
+ * {@link computeSegmentGenerationPrep} sorts in place (children before parents). `propsSources`
+ * holds each parent's destructured props, keyed by parent symbol.
  */
 export interface SegmentGenerationPrep {
   extBySymbol: Map<string, ConsolidatedSegment>;
@@ -338,125 +343,40 @@ export interface SegmentGenerationPrep {
   renamedExports: Map<string, string>;
   segmentImportList: SegmentImportData['moduleImports'];
   enumValueMap: Map<string, Map<string, string>>;
-  fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
-  fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
-  fieldDynamicDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
+  propsSources: ReadonlyMap<string, RawPropsSource>;
 }
 
-/**
- * Result of {@link consolidateRawPropsCaptures}. Returned (vs in-place mutation) so the caller
- * decides which surface to write to — the inline-strategy path writes `ext.propsFieldCaptures`, the
- * default-strategy path writes `captureInfo.propsFieldCaptures`; both also mutate
- * `ext.captureNames` and `ext.captures`. `newCaptureNames` is sorted and includes the literal
- * `"_rawProps"` sentinel. `propsFieldDefaults` holds destructure-time defaults for captures that
- * resolved to a defaulted parent prop (emitted downstream as `(_rawProps.<key> ?? <default>)`),
- * undefined when none apply.
- */
-export interface RawPropsConsolidation {
-  propsFieldCaptures: Map<string, string>;
-  newCaptureNames: string[];
-  propsFieldDefaults?: Map<string, string>;
-  propsFieldDynamicDefaults?: Map<string, string>;
-}
-
-/**
- * Returns `null` when no captures resolve to parent props fields (the caller then leaves `ext`
- * untouched). Shared by the inline-strategy metadata path and the default-strategy codegen path —
- * identical algorithm, only the write surfaces differ.
- */
-export function consolidateRawPropsCaptures(
-  captureNames: readonly string[],
-  fieldMap: ReadonlyMap<string, string>,
-  fieldDefaults?: ReadonlyMap<string, string>,
-  fieldDynamicDefaults?: ReadonlyMap<string, string>
-): RawPropsConsolidation | null {
-  const propsFieldCaptures = new Map<string, string>();
-  const propsFieldDefaults = new Map<string, string>();
-  const propsFieldDynamicDefaults = new Map<string, string>();
-  const nonPropsCaptures: string[] = [];
-  for (const name of captureNames) {
-    const fieldExpr = fieldMap.get(name);
-    if (fieldExpr !== undefined) {
-      propsFieldCaptures.set(name, fieldExpr);
-      const defaultExpr = fieldDefaults?.get(name);
-      if (defaultExpr !== undefined) {
-        propsFieldDefaults.set(name, defaultExpr);
-      }
-      const dynamicDefaultName = fieldDynamicDefaults?.get(name);
-      if (dynamicDefaultName !== undefined) {
-        propsFieldDynamicDefaults.set(name, dynamicDefaultName);
-        nonPropsCaptures.push(dynamicDefaultName);
-      }
-    } else {
-      nonPropsCaptures.push(name);
-    }
-  }
-  if (propsFieldCaptures.size === 0) {
-    return null;
-  }
-  return {
-    propsFieldCaptures,
-    newCaptureNames: [...nonPropsCaptures, '_rawProps'].sort(),
-    propsFieldDefaults: propsFieldDefaults.size > 0 ? propsFieldDefaults : undefined,
-    propsFieldDynamicDefaults:
-      propsFieldDynamicDefaults.size > 0 ? propsFieldDynamicDefaults : undefined,
-  };
-}
-
-function buildParentFieldMaps(
+function buildPropsSources(
   extractions: readonly ConsolidatedSegment[],
   extBySymbol: ReadonlyMap<string, ConsolidatedSegment>
-): {
-  fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
-  fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
-  fieldDynamicDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
-} {
-  const parentSymbolNames = new Set<string>();
+): Map<string, RawPropsSource> {
+  const propsSources = new Map<string, RawPropsSource>();
   for (const ext of extractions) {
-    if (ext.parent !== null) {
-      parentSymbolNames.add(ext.parent);
+    const parentExt = ext.parent === null ? undefined : extBySymbol.get(ext.parent);
+    if (parentExt !== undefined && !propsSources.has(parentExt.symbolName)) {
+      propsSources.set(parentExt.symbolName, {
+        symbolName: parentExt.symbolName,
+        ...extractDestructuredFieldInfo(parentExt.bodyText),
+      });
     }
   }
-  const fieldMaps = new Map<string, ReadonlyMap<string, string>>();
-  const fieldDefaultsMaps = new Map<string, ReadonlyMap<string, string>>();
-  const fieldDynamicDefaultsMaps = new Map<string, ReadonlyMap<string, string>>();
-  for (const symbolName of parentSymbolNames) {
-    const parentExt = extBySymbol.get(symbolName);
-    if (parentExt !== undefined) {
-      const info = extractDestructuredFieldInfo(parentExt.bodyText);
-      fieldMaps.set(symbolName, info.fieldMap);
-      fieldDefaultsMaps.set(symbolName, info.fieldDefaults);
-      fieldDynamicDefaultsMaps.set(symbolName, info.fieldDynamicDefaults);
-    }
-  }
-  return { fieldMaps, fieldDefaultsMaps, fieldDynamicDefaultsMaps };
+  return propsSources;
 }
 
-/**
- * Returns `null` when consolidation doesn't apply (no parent, no captures, or the parent has no
- * destructured fields). The caller applies the result to its own surface — inline-strategy writes
- * `ext`, default-strategy writes `captureInfo` — so the divergent writes stay explicit at the call
- * site.
- */
+/** `null` when no capture reads a prop field of any ancestor. */
 function tryConsolidateRawProps(
   ext: ConsolidatedSegment,
   prep: SegmentGenerationPrep
 ): RawPropsConsolidation | null {
-  if (ext.parent === null || ext.captureNames.length === 0) {
+  if (ext.captureNames.length === 0) {
     return null;
   }
-  const fieldMap = prep.fieldMaps.get(ext.parent);
-  if (fieldMap === undefined || fieldMap.size === 0) {
-    return null;
-  }
-  const fieldDefaults = prep.fieldDefaultsMaps.get(ext.parent);
-  const fieldDynamicDefaults = prep.fieldDynamicDefaultsMaps.get(ext.parent);
-  return consolidateRawPropsCaptures(
-    ext.captureNames,
-    fieldMap,
-    fieldDefaults,
-    fieldDynamicDefaults
+  const ancestors = collectAncestorPropsSources(
+    ext.parent,
+    (symbolName) => prep.extBySymbol.get(symbolName)?.parent ?? null,
+    (symbolName) => prep.propsSources.get(symbolName)
   );
+  return consolidateRawPropsCaptures(ext.captureNames, ancestors);
 }
 
 /**
@@ -522,10 +442,7 @@ export function computeSegmentGenerationPrep(ctx: SegmentGenerationContext): Seg
 
   const enumValueMap = collectEnumValueMap(ctx.program, ctx.shouldTranspileTs);
 
-  const { fieldMaps, fieldDefaultsMaps, fieldDynamicDefaultsMaps } = buildParentFieldMaps(
-    ctx.updatedExtractions,
-    extBySymbol
-  );
+  const propsSources = buildPropsSources(ctx.updatedExtractions, extBySymbol);
 
   return {
     extBySymbol,
@@ -535,9 +452,7 @@ export function computeSegmentGenerationPrep(ctx: SegmentGenerationContext): Seg
     renamedExports,
     segmentImportList,
     enumValueMap,
-    fieldMaps,
-    fieldDefaultsMaps,
-    fieldDynamicDefaultsMaps,
+    propsSources,
   };
 }
 
@@ -559,6 +474,8 @@ export function buildInlineStrategySegment(
   const rawProps = tryConsolidateRawProps(ext, prep);
   if (rawProps !== null) {
     ext.propsFieldCaptures = rawProps.propsFieldCaptures;
+    ext.propsFieldSources = rawProps.propsFieldSources;
+    ext.rawPropsSources = rawProps.rawPropsSources;
     if (rawProps.propsFieldDefaults !== undefined) {
       ext.propsFieldDefaults = rawProps.propsFieldDefaults;
     }
@@ -1182,6 +1099,7 @@ export function buildNestedCallSites(
   childQrlVarNames: Map<string, string>,
   elementQpParamsMap: Map<string, string[]>,
   extractionLoopMap: Map<string, LoopContext[]>,
+  parentBindingNames: ReadonlyMap<string, string>,
   parentRawPropsFieldMap?: ReadonlyMap<string, string>
 ): NestedCallSiteInfo[] {
   const consolidateParams = (params: string[]): string[] =>
@@ -1195,6 +1113,11 @@ export function buildNestedCallSites(
   const nestedCallSites: NestedCallSiteInfo[] = [];
   for (const child of children) {
     const qrlVarName = childQrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
+    const captureNames = resolveRawPropsSlots(
+      child.captureNames,
+      child.rawPropsSources,
+      parentBindingNames
+    );
     // jSXProp ctxKind covers Component-side `$`-suffix attrs (classified
     // separately from eventHandler). Both flow as JSX-attr call sites;
     // the inner branch's `isComponentEvent` arm keeps the callee raw
@@ -1249,13 +1172,12 @@ export function buildNestedCallSites(
         attrEnd: child.callEnd,
         transformedPropName: propName,
         hoistedSymbolName: hasLoopCrossCaptures ? child.symbolName : undefined,
-        hoistedCaptureNames: hasLoopCrossCaptures ? child.captureNames : undefined,
+        hoistedCaptureNames: hasLoopCrossCaptures ? captureNames : undefined,
         // A JSX-attr child that captures but isn't on the loop-cross hoist path
         // still needs `.w(…)` capture wrapping at the parent's prop call site;
         // the body-transforms consumer reads this only when `hoistedSymbolName`
         // is unset.
-        captureNames:
-          !hasLoopCrossCaptures && child.captureNames.length > 0 ? child.captureNames : undefined,
+        captureNames: !hasLoopCrossCaptures && captureNames.length > 0 ? captureNames : undefined,
         loopLocalParamNames: loopLocalParams.length > 0 ? loopLocalParams : undefined,
         elementQpParams: qp(child.symbolName),
         liftedNonConst: child.liftedNonConst === true || undefined,
@@ -1289,7 +1211,7 @@ export function buildNestedCallSites(
         argEnd: child.argEnd,
         isJsxAttr: false,
         qrlCallee: child.isBare ? undefined : child.qrlCallee || undefined,
-        captureNames: child.captureNames.length > 0 ? child.captureNames : undefined,
+        captureNames: captureNames.length > 0 ? captureNames : undefined,
         explicitCaptures: child.explicitCaptures || undefined,
         explicitCaptureItems:
           explicitCaptureItems && explicitCaptureItems.length > 0
@@ -1374,6 +1296,8 @@ export function buildDefaultStrategySegment(
   if (rawProps !== null) {
     captureInfo.captureNames = rawProps.newCaptureNames;
     captureInfo.propsFieldCaptures = rawProps.propsFieldCaptures;
+    captureInfo.propsFieldSources = rawProps.propsFieldSources;
+    ext.rawPropsSources = rawProps.rawPropsSources;
     if (rawProps.propsFieldDefaults !== undefined) {
       captureInfo.propsFieldDefaults = rawProps.propsFieldDefaults;
     }
@@ -1410,6 +1334,7 @@ export function buildDefaultStrategySegment(
     childQrlVarNames,
     elementQpParamsMap,
     ctx.extractionLoopMap,
+    rawPropsBindingNames([ext]),
     parentRawPropsFieldMap
   );
 

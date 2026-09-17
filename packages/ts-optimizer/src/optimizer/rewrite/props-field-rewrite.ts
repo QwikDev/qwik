@@ -10,6 +10,7 @@ import { createTransformSession } from '../edit/transform-session.js';
 
 interface RewritePropsFieldReferencesOptions {
   memberPropertyMode?: 'all' | 'nonComputed';
+  propsName?: string;
   /**
    * LocalName → default expression source. When set, matching fields emit `(_rawProps.<key> ??
    * <default>)` instead of bare `_rawProps.<key>`.
@@ -27,7 +28,8 @@ function propsFieldIdentifierCollector(
   fieldMap: ReadonlyMap<string, string>,
   defaultValues: ReadonlyMap<string, string> | undefined,
   dynamicDefaults: ReadonlyMap<string, string> | undefined,
-  memberPropertyMode: 'all' | 'nonComputed' | undefined
+  memberPropertyMode: 'all' | 'nonComputed' | undefined,
+  propsName: string
 ): RangeReplacementCollector {
   return (node, ctx) => {
     if (node.type !== 'Identifier') {
@@ -36,6 +38,9 @@ function propsFieldIdentifierCollector(
     const localName = node.name;
     const key = fieldMap.get(localName);
     if (key === undefined) {
+      return null;
+    }
+    if (ctx.inBindingPattern) {
       return null;
     }
 
@@ -51,7 +56,7 @@ function propsFieldIdentifierCollector(
       return null;
     }
 
-    const baseAccessor = buildPropertyAccessor('_rawProps', key);
+    const baseAccessor = buildPropertyAccessor(propsName, key);
     const defaultExpr = defaultValues?.get(localName);
     const dynamicDefaultName = dynamicDefaults?.get(localName);
     let accessor: string;
@@ -111,7 +116,8 @@ export function rewritePropsFieldReferences(
     fieldMap,
     options.defaultValues,
     options.dynamicDefaults,
-    options.memberPropertyMode
+    options.memberPropertyMode,
+    options.propsName ?? '_rawProps'
   );
 
   // Ranges are relative to `wrappedSource`; slicing off the wrapper prefix

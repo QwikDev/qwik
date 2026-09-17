@@ -42,7 +42,7 @@ import {
   matchesRegCtxName,
 } from './predicates.js';
 import { injectUseHmrIntoInlineBody } from '../transform/module-cleanup.js';
-import type { InlineSegmentJsxOptions } from './raw-props.js';
+import { rawPropsBindingNames, type InlineSegmentJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
 import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
 import { stripTypeScript } from '../edit/strip-types.js';
@@ -549,6 +549,39 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     }
   }
 
+  const childrenByParent = new Map<string, ExtractionResult[]>();
+  for (const ext of allNonSync) {
+    if (ext.parent === null) {
+      continue;
+    }
+    const children = childrenByParent.get(ext.parent) ?? [];
+    children.push(ext);
+    childrenByParent.set(ext.parent, children);
+  }
+  const callOrder = new Map<string, number>();
+  const emissionOrder: ExtractionResult[] = [];
+  const visit = (ext: ExtractionResult): void => {
+    for (const child of (childrenByParent.get(ext.symbolName) ?? []).sort(
+      (a, b) => a.callStart - b.callStart
+    )) {
+      visit(child);
+    }
+    const rank = emissionOrder.length;
+    emissionOrder.push(ext);
+    callOrder.set(ext.symbolName, rank);
+    callOrder.set(qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`, rank);
+  };
+  for (const ext of allNonSync
+    .filter((ext) => ext.parent === null)
+    .sort((a, b) => a.callStart - b.callStart)) {
+    visit(ext);
+  }
+  // Inline bodies share one module scope, numbered in `.s()` emission order.
+  const emittedExts = new Set([...nestedExts, ...topNonComponent, ...topComponent]);
+  const rawPropsBindings = rawPropsBindingNames(
+    emissionOrder.filter((ext) => emittedExts.has(ext))
+  );
+
   const processExtraction = (ext: ExtractionResult) => {
     const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
     const {
@@ -575,7 +608,8 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       ctx.isLibMode ? undefined : ctx.isServer,
       deriveIsDev(ctx.mode),
       sharedJsxCallHoister,
-      ctx.elementQpParamsMap
+      ctx.elementQpParamsMap,
+      rawPropsBindings
     );
 
     let sigRewrittenBody = rawBody;
@@ -678,31 +712,6 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     processExtraction(ext);
   }
 
-  const childrenByParent = new Map<string, ExtractionResult[]>();
-  for (const ext of allNonSync) {
-    if (ext.parent === null) {
-      continue;
-    }
-    const children = childrenByParent.get(ext.parent) ?? [];
-    children.push(ext);
-    childrenByParent.set(ext.parent, children);
-  }
-  const callOrder = new Map<string, number>();
-  const visit = (ext: ExtractionResult): void => {
-    for (const child of (childrenByParent.get(ext.symbolName) ?? []).sort(
-      (a, b) => a.callStart - b.callStart
-    )) {
-      visit(child);
-    }
-    const rank = callOrder.size;
-    callOrder.set(ext.symbolName, rank);
-    callOrder.set(qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`, rank);
-  };
-  for (const ext of allNonSync
-    .filter((ext) => ext.parent === null)
-    .sort((a, b) => a.callStart - b.callStart)) {
-    visit(ext);
-  }
   const callRank = (statement: string): number => {
     const name = /^(?:const\s+)?([\w$]+)(?:\s*=|\.s\()/.exec(statement)?.[1];
     return name === undefined

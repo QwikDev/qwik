@@ -32,6 +32,9 @@ import {
   consolidateRawPropsInWCalls,
   replacePropsFieldReferencesInBody,
   bodyConsolidatesToRawProps,
+  groupPropsFieldsByBinding,
+  rawPropsBindingNames,
+  resolveRawPropsSlots,
   consolidateQpCaptureValues,
   extractDestructuredFieldInfo,
   type InlineSegmentJsxOptions,
@@ -85,7 +88,9 @@ export function transformInlineSegmentBody(
    */
   jsxCallHoister?: SignalHoister,
   /** Unified per-element q:ps arrays (slot order) — overrides per-child capture order. */
-  elementQpParamsMap?: ReadonlyMap<string, string[]>
+  elementQpParamsMap?: ReadonlyMap<string, string[]>,
+  /** Module-wide `_rawProps{n}` names, since inline bodies share one module scope. */
+  bindingNames: ReadonlyMap<string, string> = rawPropsBindingNames([ext])
 ): {
   transformedBody: string;
   additionalImports: Map<string, string>;
@@ -155,6 +160,11 @@ export function transformInlineSegmentBody(
     for (const site of sortedNested) {
       const child = site.child;
       const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
+      const childCaptureNames = resolveRawPropsSlots(
+        child.captureNames,
+        child.rawPropsSources,
+        bindingNames
+      );
 
       const relCallStart = site.callStart - bodyOffset;
       const relCallEnd = site.callEnd - bodyOffset;
@@ -165,8 +175,8 @@ export function transformInlineSegmentBody(
           replaceBodyRange(relCallStart, relCallEnd, buildSyncTransform(child.bodyText));
         } else if (child.isBare) {
           let replacement = childVarName;
-          if (child.captureNames.length > 0) {
-            replacement += wCallSuffix(child.captureNames, '        ', '    ');
+          if (childCaptureNames.length > 0) {
+            replacement += wCallSuffix(childCaptureNames, '        ', '    ');
           }
           replaceBodyRange(relCallStart, relCallEnd, replacement);
         } else if (isEventHandlerOrJsxProp(child.ctxKind) && !child.qrlCallee) {
@@ -186,7 +196,7 @@ export function transformInlineSegmentBody(
           const hasLoopCrossCaptures =
             !isRegCtx &&
             child.captures &&
-            child.captureNames.length > 0 &&
+            childCaptureNames.length > 0 &&
             hasUnderscorePlaceholderParams(child.paramNames, child.movedCaptures);
 
           // Stripped child segments emit `= null` bodies; their captures reach
@@ -198,8 +208,8 @@ export function transformInlineSegmentBody(
           const childIsStripped = isStrippedExtraction(child, stripCtxName, stripEventHandlers);
           const promotedParams = childIsStripped ? eventHandlerQpParams(child.paramNames) : [];
 
-          if (childIsStripped && promotedParams.length > 0 && child.captureNames.length > 0) {
-            const wCall = formatWCall(childVarName, child.captureNames, '            ', '        ');
+          if (childIsStripped && promotedParams.length > 0 && childCaptureNames.length > 0) {
+            const wCall = formatWCall(childVarName, childCaptureNames, '            ', '        ');
             strippedLoopWDecls.push({
               decl: `const ${child.symbolName} = ${wCall};`,
               symbolName: child.symbolName,
@@ -208,14 +218,14 @@ export function transformInlineSegmentBody(
           } else if (hasLoopCrossCaptures && !childIsStripped) {
             // The captures are component-scoped, so the `.w()` binding must
             // live in the component body, not at module level.
-            const wCall = formatWCall(childVarName, child.captureNames, '            ', '        ');
+            const wCall = formatWCall(childVarName, childCaptureNames, '            ', '        ');
             strippedLoopWDecls.push({
               decl: `const ${child.symbolName} = ${wCall};`,
               symbolName: child.symbolName,
             });
             qrlRef = child.symbolName;
-          } else if (!isRegCtx && !childIsStripped && child.captureNames.length > 0) {
-            qrlRef += wCallSuffix(child.captureNames, '        ', '    ');
+          } else if (!isRegCtx && !childIsStripped && childCaptureNames.length > 0) {
+            qrlRef += wCallSuffix(childCaptureNames, '        ', '    ');
           }
 
           // A handler from a pre-transformed `_jsxDEV(...)` props bag is an
@@ -230,8 +240,8 @@ export function transformInlineSegmentBody(
         } else if (child.qrlCallee) {
           let replacement = child.qrlCallee + '(' + childVarName;
 
-          if (child.captureNames.length > 0) {
-            replacement += wCallSuffix(child.captureNames, '        ', '    ');
+          if (childCaptureNames.length > 0) {
+            replacement += wCallSuffix(childCaptureNames, '        ', '    ');
           }
 
           // Preserve arguments after the extracted closure (e.g. task options).
@@ -263,7 +273,7 @@ export function transformInlineSegmentBody(
           const childCaptureItems =
             child.isInlinedQrl && liveExplicitCaptures
               ? parseArrayItems(liveExplicitCaptures)
-              : child.captureNames;
+              : childCaptureNames;
           if (childCaptureItems.length > 0) {
             replacement += wCallSuffix(childCaptureItems, '        ', '    ');
           }
@@ -355,7 +365,10 @@ export function transformInlineSegmentBody(
         ? ext.captureNames.filter((n) => !migratedNames.has(n))
         : ext.captureNames;
     if (effectiveCaptures.length > 0) {
-      body = injectCapturesUnpacking(body, effectiveCaptures);
+      body = injectCapturesUnpacking(
+        body,
+        resolveRawPropsSlots(effectiveCaptures, ext.rawPropsSources, bindingNames)
+      );
       additionalImports.set('_captures', '@qwik.dev/core');
     }
   }
@@ -364,7 +377,11 @@ export function transformInlineSegmentBody(
     // contexts like useComputed$'s { cleanup }) — a bare destructured method
     // call loses `this`. inlinedQrl bodies are pre-compiled and excluded.
     const rawPropsResult = !ext.isInlinedQrl
-      ? applyRawPropsTransform(body, rawPropsInfo?.fieldDynamicDefaults)
+      ? applyRawPropsTransform(
+          body,
+          rawPropsInfo?.fieldDynamicDefaults,
+          bindingNames.get(ext.symbolName)
+        )
       : body;
     if (rawPropsResult !== body) {
       body = rawPropsResult;
@@ -379,13 +396,20 @@ export function transformInlineSegmentBody(
   }
 
   if (ext.propsFieldCaptures && ext.propsFieldCaptures.size > 0) {
-    // Pass `propsFieldDefaults` so defaulted fields emit `(_rawProps.<key> ?? <default>)`.
-    body = replacePropsFieldReferencesInBody(
-      body,
+    const groups = groupPropsFieldsByBinding(
       ext.propsFieldCaptures,
-      ext.propsFieldDefaults,
-      ext.propsFieldDynamicDefaults
+      ext.propsFieldSources,
+      bindingNames
     );
+    for (const [propsName, fields] of groups) {
+      body = replacePropsFieldReferencesInBody(
+        body,
+        fields,
+        propsName,
+        ext.propsFieldDefaults,
+        ext.propsFieldDynamicDefaults
+      );
+    }
   }
 
   body = propagateConstLiteralsInBody(body);

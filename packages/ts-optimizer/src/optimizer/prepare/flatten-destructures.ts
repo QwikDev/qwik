@@ -30,6 +30,7 @@ export function flattenDestructureUseCalls(
   const edits = (): MagicString => (s ??= new MagicString(source));
   const decls: FlattenableDecl[] = [];
   const subsByScope = new Map<number, Substitution[]>();
+  const bindingNameCounts = new Map<string, number>();
 
   walk(program, {
     enter(node: AstNode, parent: AstParentNode) {
@@ -41,7 +42,7 @@ export function flattenDestructureUseCalls(
         node.callee?.type === 'Identifier' &&
         node.callee.name === 'component$'
       ) {
-        collectAndApplyDeclsForComponentCall(node, edits, decls, subsByScope);
+        collectAndApplyDeclsForComponentCall(node, edits, decls, subsByScope, bindingNameCounts);
         return;
       }
 
@@ -128,6 +129,12 @@ function isDeclaringIdentifierPosition(node: AstNode, parent: AstParentNode): bo
   }
 }
 
+function uniqueBindingName(base: string, counts: Map<string, number>): string {
+  const used = counts.get(base) ?? 0;
+  counts.set(base, used + 1);
+  return used === 0 ? base : `${base}${used}`;
+}
+
 export function isShorthandPropertyValue(node: AstNode, parent: AstParentNode): boolean {
   return parent?.type === 'Property' && parent.shorthand === true && parent.value === node;
 }
@@ -183,7 +190,8 @@ function collectAndApplyDeclsForComponentCall(
   callNode: CallExpression,
   edits: () => MagicString,
   decls: FlattenableDecl[],
-  subsByScope: Map<number, Substitution[]>
+  subsByScope: Map<number, Substitution[]>,
+  bindingNameCounts: Map<string, number>
 ): void {
   const arrow = callNode.arguments?.[0];
   if (!arrow || arrow.type !== 'ArrowFunctionExpression') {
@@ -300,7 +308,10 @@ function collectAndApplyDeclsForComponentCall(
         continue;
       }
       const calleeName = (seed.call.callee as unknown as { name: string }).name;
-      const newBinding = `${calleeName.slice(3, 4).toLowerCase()}${calleeName.slice(4)}`;
+      const newBinding = uniqueBindingName(
+        `${calleeName.slice(3, 4).toLowerCase()}${calleeName.slice(4)}`,
+        bindingNameCounts
+      );
       const decl: FlattenableDecl = {
         idStart: id.start,
         idEnd: id.end,

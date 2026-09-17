@@ -24,6 +24,8 @@ export interface CollectorContext {
   readonly parentNode?: AstParentNode;
   readonly exprStart: number;
   readonly exprText: string;
+  /** Pattern shorthand and object-literal shorthand share one AST shape. */
+  readonly inBindingPattern?: boolean;
 }
 
 /**
@@ -84,7 +86,8 @@ export function collectRangeReplacements(
   function walk(
     node: AstMaybeNode,
     parentKey: string | undefined,
-    parentNode: AstParentNode | undefined
+    parentNode: AstParentNode | undefined,
+    inBindingPattern: boolean
   ): void {
     if (!node || typeof node !== 'object') {
       return;
@@ -99,7 +102,13 @@ export function collectRangeReplacements(
     ) {
       return;
     }
-    const ctx: CollectorContext = { parentKey, parentNode, exprStart, exprText };
+    const ctx: CollectorContext = {
+      parentKey,
+      parentNode,
+      exprStart,
+      exprText,
+      inBindingPattern,
+    };
 
     let skipSubtree = false;
     for (const collect of collectors) {
@@ -118,11 +127,26 @@ export function collectRangeReplacements(
     if (skipSubtree) {
       return;
     }
-    forEachAstChild(node, (child, key, parent) => walk(child, key, parent));
+    const childrenBind =
+      inBindingPattern || nodeType === 'ObjectPattern' || nodeType === 'ArrayPattern';
+    forEachAstChild(node, (child, key, parent) =>
+      walk(child, key, parent, childrenBind && !isPatternExpressionSlot(node, key))
+    );
   }
 
-  walk(root, undefined, undefined);
+  walk(root, undefined, undefined, false);
   return out;
+}
+
+function isPatternExpressionSlot(node: AstMaybeNode, key: string): boolean {
+  const type = (node as { type?: unknown })?.type;
+  if (type === 'AssignmentPattern') {
+    return key === 'right';
+  }
+  if (type === 'Property') {
+    return key === 'key' && (node as { computed?: boolean }).computed === true;
+  }
+  return type === 'MemberExpression' || type === 'StaticMemberExpression';
 }
 
 export interface ReplaceableIdentifierPositionOptions {

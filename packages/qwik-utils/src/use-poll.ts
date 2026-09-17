@@ -1,4 +1,5 @@
 import { useVisibleTask$, type ComputedSignal } from '@qwik.dev/core';
+import type { _ComputedSignalInternal } from '@qwik.dev/core/internal';
 
 /** Smallest allowed poll interval, so a `0` or negative `expires` can't spin the event loop. */
 const MIN_EXPIRES_MS = 5;
@@ -18,8 +19,9 @@ const MIN_EXPIRES_MS = 5;
 export const usePoll = <T>(signal: ComputedSignal<T>, expires: number): ComputedSignal<T> => {
   useVisibleTask$(
     ({ track, cleanup }) => {
-      const pending = track(() => signal.pending);
-      track(() => signal.error);
+      const signalInternal = signal as _ComputedSignalInternal<T>;
+      const pending = track(() => signalInternal.pending);
+      track(() => signalInternal.error);
       if (!pending) {
         // Interval, not timeout: a recompute that never flips `pending` (sync compute,
         // injected value) would otherwise stop the poll after one tick.

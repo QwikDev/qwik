@@ -1,4 +1,5 @@
 import { component$, useComputed$, type ComputedSignal } from '@qwik.dev/core';
+import type { _ComputedSignalInternal } from '@qwik.dev/core/internal';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { usePoll } from './use-poll';
@@ -45,7 +46,7 @@ describe.each([
           throw new Error('boom');
         }
         return runs;
-      });
+      }) as _ComputedSignalInternal<number>;
       usePoll(signal, 20);
       return <span>{signal.error ? 'err' : signal.value}</span>;
     });

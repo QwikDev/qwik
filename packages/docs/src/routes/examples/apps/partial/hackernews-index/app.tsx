@@ -1,4 +1,11 @@
-import { component$, useComputed$, useSignal, useStyles$, type Signal } from '@qwik.dev/core';
+import {
+  component$,
+  Suspense,
+  useComputed$,
+  useSignal,
+  useStyles$,
+  type Signal,
+} from '@qwik.dev/core';
 import HackerNewsCSS from './hacker-news.css?inline';
 
 export const HackerNews = component$(() => {
@@ -16,7 +23,9 @@ export const HackerNews = component$(() => {
   return (
     <div class="hacker-news">
       <Nav />
-      {data.pending ? <Loading /> : <Stories stories={data.value} bind:page={page} />}
+      <Suspense fallback={<Loading />}>
+        <Stories stories={data} bind:page={page} />
+      </Suspense>
     </div>
   );
 });
@@ -54,7 +63,7 @@ const Nav = component$(() => {
   );
 });
 
-const Stories = component$<{ stories?: IStory[]; 'bind:page': Signal<number> }>(
+const Stories = component$<{ stories: Signal<IStory[]>; 'bind:page': Signal<number> }>(
   ({ stories, 'bind:page': page }) => {
     return (
       <main class="news-view">
@@ -69,7 +78,7 @@ const Stories = component$<{ stories?: IStory[]; 'bind:page': Signal<number> }>(
             </span>
           )}
           <span>page {page.value + 1}</span>
-          {stories && stories.length >= 29 ? (
+          {stories.value.length >= 29 ? (
             <button class="page-link" onClick$={() => (page.value += 1)} aria-label="Next Page">
               more {'>'}
             </button>
@@ -80,13 +89,11 @@ const Stories = component$<{ stories?: IStory[]; 'bind:page': Signal<number> }>(
           )}
         </section>
         <article class="news-list">
-          {stories && (
-            <ul>
-              {stories.map((story: IStory) => (
-                <StoryPreview story={story} />
-              ))}
-            </ul>
-          )}
+          <ul>
+            {stories.value.map((story: IStory) => (
+              <StoryPreview story={story} />
+            ))}
+          </ul>
         </article>
       </main>
     );

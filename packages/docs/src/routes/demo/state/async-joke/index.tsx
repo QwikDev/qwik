@@ -1,10 +1,34 @@
-import { component$, useComputed$, useSignal } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  ErrorBoundary,
+  Suspense,
+  useComputed$,
+  useSignal,
+  type Signal,
+} from '@qwik.dev/core';
 
 type Joke = {
   joke?: string;
   setup?: string;
   delivery?: string;
 };
+
+const JokeList = component$((props: { jokes: Signal<Joke[]> }) => {
+  return props.jokes.value.length === 0 ? (
+    <p>No jokes found</p>
+  ) : (
+    <ul>
+      {props.jokes.value.map((joke, i) => (
+        <li key={i}>
+          <div style={{ whiteSpace: 'pre-wrap' }}>
+            {joke.joke ?? `${joke.setup}\n${joke.delivery}`}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+});
 
 export default component$(() => {
   const query = useSignal('');
@@ -28,33 +52,23 @@ export default component$(() => {
     return data.jokes ?? [];
   });
 
-  let content;
-  if (jokes.pending) {
-    content = <p>Loading...</p>;
-  } else if (jokes.error) {
-    content = <div>Error: {jokes.error.message}</div>;
-  } else if (jokes.value.length === 0) {
-    content = <p>No jokes found</p>;
-  } else {
-    content = (
-      <ul>
-        {jokes.value.map((joke, i) => (
-          <li key={i}>
-            <div style={{ whiteSpace: 'pre-wrap' }}>
-              {joke.joke ?? `${joke.setup}\n${joke.delivery}`}
-            </div>
-          </li>
-        ))}
-      </ul>
-    );
-  }
-
   return (
     <>
       <label>
         Query: <input bind:value={query} />
       </label>
-      {content}
+      <ErrorBoundary
+        fallback$={$((error, reset) => (
+          <div>
+            Error: {error.message}{' '}
+            <button onClick$={() => reset()}>Retry</button>
+          </div>
+        ))}
+      >
+        <Suspense fallback={<p>Loading...</p>}>
+          <JokeList jokes={jokes} />
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 });

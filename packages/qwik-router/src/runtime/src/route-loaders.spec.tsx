@@ -9,6 +9,7 @@
 
 import { createComputed$, implicit$FirstArg, isDev, type QRL } from '@qwik.dev/core';
 import {
+  _ComputedSignalInternal as ComputedSignalInternal,
   _Container as Container,
   _createQRL as createQRL,
   _createStore as createStore,
@@ -284,7 +285,7 @@ describe('route loader store + computed signal tracking', () => {
     await loaderPromise;
     await signal.promise();
 
-    expect(signal.error).toBeUndefined();
+    expect((signal as ComputedSignalInternal<string>).error).toBeUndefined();
     expect(signal.value).toBe('late-loader-value');
   });
 
@@ -314,7 +315,7 @@ describe('route loader store + computed signal tracking', () => {
     await loaderPromise;
     await signal.promise();
 
-    expect(signal.error).toBeUndefined();
+    expect((signal as ComputedSignalInternal<string>).error).toBeUndefined();
     expect(signal.value).toBe('render-loader-value');
   });
 

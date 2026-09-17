@@ -304,7 +304,7 @@ type Loader_2<RETURN> = {
 export { Loader_2 as Loader }
 
 // @public (undocumented)
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<ComputedSignal<any>, 'promise' | 'pending' | 'error' | 'loading'>;
+export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<ComputedSignal<any>, 'promise'>;
 
 // @public (undocumented)
 type NavigationType_2 = 'initial' | 'form' | 'link' | 'popstate';

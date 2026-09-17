@@ -1,10 +1,11 @@
 import { component$, useComputed$, useSignal } from '@qwik.dev/core';
+import type { _ComputedSignalInternal } from '@qwik.dev/core/internal';
 
 const CapturedAsyncError = component$(() => {
   const digestProbe = useSignal('unread');
   const data = useComputed$(async (): Promise<string> => {
     throw new Error('captured-async-boom');
-  });
+  }) as _ComputedSignalInternal<string>;
   if (data.pending) {
     return <span id="async-loading">loading</span>;
   }

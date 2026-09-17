@@ -10631,6 +10631,8 @@ export type VisibleTaskStrategy =
 
 Override the `getLocale` with `lang` within the `fn` execution.
 
+`fn` may be async. The locale stays set until the returned promise settles, even when AsyncLocalStorage is not available.
+
 ```typescript
 export declare function withLocale<T>(locale: string, fn: () => T): T;
 ```

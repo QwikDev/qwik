@@ -73,8 +73,14 @@ pnpm dlx @intellectronica/ruler@0.3.42 apply --no-gitignore --no-mcp
 
 ```bash
 pnpm build.core # for a fresh start
-pnpm build.full # for a fresh start and you are working on the docs (the docs run the optimizer)
+pnpm build.full # for a fresh start and you are working on the docs or the other packages
+pnpm build.rust # only when working on the Rust optimizer; the only step that needs the Rust toolchain
 ```
+
+The local scripts and tests use the TypeScript optimizer (`tsOptimizer: true` in the repo's own
+vite configs and test harnesses), so no Rust toolchain or prebuilt bindings are needed for them.
+Keep that flag on any new repo-owned `qwikVite()` call site; the plugin still defaults to the Rust
+optimizer for published apps.
 ### Iterating
 
 Prefer focused commands and builds over repo-wide commands and builds.
@@ -95,7 +101,7 @@ pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --confi
 
 For Qwik e2e tests, use `--browser=chromium` with `e2e/qwik-e2e/playwright.config.ts`.
 
-Re-run `pnpm build.full` when you are touching the optimizer rust code.
+Re-run `pnpm build.rust` (or `pnpm build.rust.dev`) when you are touching the optimizer rust code.
 
 ### When making a PR
 

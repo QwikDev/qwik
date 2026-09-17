@@ -26,6 +26,61 @@ function findSegmentByCtx(
 }
 
 describe('stripped-QRL parent emission cleanup', () => {
+  it('numbers a top-level worker$ and stripped loaders without collisions', () => {
+    const input = `
+import { worker$ } from '@qwik.dev/core/worker';
+import { routeLoader$ } from '@qwik.dev/router';
+export const doWork = worker$(() => 1);
+export const useFirst = routeLoader$(() => 1);
+export const useSecond = routeLoader$(() => 2);
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+      entryStrategy: { type: 'segment' },
+      stripCtxName: ['route'],
+    });
+
+    const code = findParent(result).code;
+    const refs = [
+      'doWork = workerQrl',
+      'useFirst = routeLoaderQrl',
+      'useSecond = routeLoaderQrl',
+    ].map((site) => code.match(new RegExp(`${site}\\((q_qrl_\\d+)\\)`))?.[1]);
+    expect(new Set(refs).size).toBe(3);
+    for (const ref of refs) {
+      expect(ref).toBeDefined();
+      expect(code).toContain(`const ${ref} = `);
+    }
+    expect(code).toMatch(new RegExp(`const ${refs[0]} = .*_qrlWithChunk\\(`));
+    expect(code).toMatch(/import \{[^}]*\b_qrlWithChunk\b[^}]*\} from "@qwik\.dev\/core"/);
+  });
+
+  it('keeps a regCtx QRL declared even when its ctx name is also in the strip list', () => {
+    const input = `
+import { server$ } from '@qwik.dev/router';
+export const srv = server$(() => 1);
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+      entryStrategy: { type: 'segment' },
+      stripCtxName: ['server'],
+      regCtxName: ['server'],
+    });
+
+    const code = findParent(result).code;
+    const ref = code.match(/srv = serverQrl\((q_[A-Za-z0-9_]+)\)/)?.[1];
+    expect(ref).toBeDefined();
+    expect(ref).not.toMatch(/^q_qrl_/);
+    expect(code).toMatch(new RegExp(`const ${ref} = /\\*#__PURE__\\*/ qrl\\(`));
+    expect(code).toMatch(/import \{[^}]*\bqrl\b[^}]*\} from "@qwik\.dev\/core"/);
+  });
+
   it('wires each stripped top-level loader to its own sentinel QRL', () => {
     const input = `
 import { routeLoader$ } from '@qwik.dev/router';

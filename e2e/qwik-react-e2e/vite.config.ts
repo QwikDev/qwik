@@ -25,7 +25,12 @@ export default defineConfig((): UserConfig => {
   return {
     // Make it easier to debug
     build: { minify: false },
-    plugins: [qwikRouter(), qwikVite(), tsconfigPaths({ root: '.' }), qwikReact()],
+    plugins: [
+      qwikRouter(),
+      qwikVite({ tsOptimizer: true }),
+      tsconfigPaths({ root: '.' }),
+      qwikReact(),
+    ],
     // This tells Vite which dependencies to pre-build in dev mode.
     optimizeDeps: {
       // Put problematic deps that break bundling here, mostly those with binaries.

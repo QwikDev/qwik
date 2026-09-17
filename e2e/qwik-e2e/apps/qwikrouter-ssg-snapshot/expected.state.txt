@@ -311,18 +311,16 @@
   {string} "qr--s"
   RootRef [omitted]
 ]
-8 {string} "q-xxxxxxxx.js"
-9 {string} "s_aRL6GvFyews"
-10 Signal [
+8 Signal [
   Constant undefined
   EffectSubscriptionNoData [
     RootRef [omitted]
     Constant ':'
   ]
 ]
-11 {string} "MANIFEST_HASH"
-12 Object 0
-13 Signal [
+9 {string} "MANIFEST_HASH"
+10 Object 0
+11 Signal [
   Object [
     {string} "type"
     {string} "initial"
@@ -331,7 +329,7 @@
   ]
   RootRef [omitted]
 ]
-14 Store [
+12 Store [
   RootRef [omitted]
   {number} 0
   Map [
@@ -356,8 +354,10 @@
     ]
   ]
 ]
+13 {string} "q-xxxxxxxx.js"
+14 {string} "s_8j8Vrz2yUIM"
 15 {string} "q-xxxxxxxx.js"
-16 {string} "s_8j8Vrz2yUIM"
+16 {string} "s_aRL6GvFyews"
 17 {string} "q-xxxxxxxx.js"
 18 {string} "s_TG0a9Yb7gLI"
 19 RootRef [omitted]

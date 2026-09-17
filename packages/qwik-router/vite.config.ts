@@ -65,7 +65,7 @@ export default defineConfig(() => {
         ],
       },
     },
-    plugins: [qwikVite(), compiledStringPlugin()],
+    plugins: [qwikVite({ tsOptimizer: true }), compiledStringPlugin()],
     clearScreen: false,
     optimizeDeps: {
       force: true,

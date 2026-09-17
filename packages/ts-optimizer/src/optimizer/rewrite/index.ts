@@ -625,6 +625,8 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
 function preComputeQrlVarNames(ctx: RewriteContext): void {
   let earlyStrippedCounter = 0;
   let inlineSentinelOffset = 0;
+  // Mirrors the declaration-side numbering of stripped top-level QRLs in output assembly.
+  let strippedTopLevelCounter = 0;
   for (const ext of ctx.extractions) {
     if (ext.isSync) {
       continue;
@@ -654,9 +656,11 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
         ctx.inlineOptions.stripCtxName,
         ctx.inlineOptions.stripEventHandlers
       );
-    const offset = ctx.inlineOptions.inline ? inlineSentinelOffset : earlyStrippedCounter * 2;
+    const offset = ctx.inlineOptions.inline ? inlineSentinelOffset : strippedTopLevelCounter * 2;
     if (ctx.inlineOptions.inline) {
       inlineSentinelOffset += inlineSentinelStep(ext, stripped, ctx.inlineOptions.regCtxName);
+    } else if (stripped && ext.parent === null) {
+      strippedTopLevelCounter++;
     }
     if (stripped) {
       const counter = 0xffff0000 + offset;

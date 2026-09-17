@@ -26,6 +26,31 @@ function findSegmentByCtx(
 }
 
 describe('stripped-QRL parent emission cleanup', () => {
+  it('wires each stripped top-level loader to its own sentinel QRL', () => {
+    const input = `
+import { routeLoader$ } from '@qwik.dev/router';
+export const useFirst = routeLoader$(() => 1);
+export const useSecond = routeLoader$(({ query }) => query.get('q'));
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+      entryStrategy: { type: 'segment' },
+      stripCtxName: ['route'],
+    });
+
+    const code = findParent(result).code;
+    const first = code.match(/useFirst = routeLoaderQrl\((q_qrl_\d+)\)/)?.[1];
+    const second = code.match(/useSecond = routeLoaderQrl\((q_qrl_\d+)\)/)?.[1];
+    expect(first).toBeDefined();
+    expect(second).toBeDefined();
+    expect(second).not.toBe(first);
+    expect(code).toContain(`const ${first} = `);
+    expect(code).toContain(`const ${second} = `);
+  });
+
   it('counts non-stripped sibling functions in sentinel numbering', () => {
     const input = `
 import { component$, useClientMount$, useTask$ } from '@qwik.dev/core';

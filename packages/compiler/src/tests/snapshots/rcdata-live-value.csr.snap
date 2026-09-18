@@ -1,9 +1,9 @@
 ==INPUT==
 
-export default (props: { init: string; rules: string }) => (
+export default (props: { heading: string; draft: string }) => (
   <div>
-    <script>{props.init}</script>
-    <style>{'.a{'}{props.rules}{'}'}</style>
+    <title>Page: {props.heading}</title>
+    <textarea>{props.draft}</textarea>
   </div>
 );
 == CSR OUTPUT ==
@@ -13,28 +13,27 @@ export default (props: { init: string; rules: string }) => (
 import {
   _first,
   _last,
+  createTextExpressionEffect,
   propSource,
-  createAttrEffect,
-  createAttrExpressionEffect,
+  createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 
-const default_tmpl0 = _createElementTemplate('<div><script></script><style></style></div>');
+const default_tmpl0 = _createElementTemplate('<div><title> </title><textarea> </textarea></div>');
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
-  const el1 = _first(el0);
-  const prop0 = propSource(props, 'init');
-  const effect0 = createAttrEffect(el1, 'dangerouslySetInnerHTML', prop0, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  const el2 = _last(el0);
-  const effect1 = createAttrExpressionEffect(
-    el2,
-    'dangerouslySetInnerHTML',
+  const text0 = _first(_first(el0));
+  const effect0 = createTextExpressionEffect(
+    text0,
     [props],
     component_text_segment_0_1fh10fbkzokfc,
     ctx.scheduler
   );
+  ctx.scheduler.notify(effect0);
+  const text1 = _first(_last(el0));
+  const prop0 = propSource(props, 'draft');
+  const effect1 = createTextNodeEffect(text1, prop0, ctx.scheduler, true);
   ctx.scheduler.notify(effect1);
   return el0;
 };
@@ -42,7 +41,7 @@ export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return `.a{${props.rules}}`;
+  return `Page: ${props.heading}`;
 };
 /*
 {
@@ -58,8 +57,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    108,
-    139
+    83,
+    104
   ],
   "paramNames": [],
   "captureNames": [

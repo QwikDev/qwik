@@ -27,7 +27,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const id0 = ctx.nextId();
     const prop0 = propSource(props, 'heading');
     isSource(prop0) && ctx.addRoot(prop0);
-    const text0 = renderSsrTextNode(id0, null, prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0, undefined, true);
     return maybeThen(text0, (text0) => [
       '<div><style>.a > b { color: red }</style><script>if (a < b) { s = "<\\/script>"; }</script><title q:id="',
       createSsrNodeId(id0),

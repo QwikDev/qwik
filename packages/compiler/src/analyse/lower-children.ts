@@ -5,9 +5,11 @@ import {
   LifetimeCommit,
   LifetimeOwner,
   OpKind,
+  PropKind,
   QrlPayloadKind,
   SeedKind,
   type Op,
+  type Prop,
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
 import { RAW_TEXT_ELEMENTS, RCDATA_ELEMENTS } from '../html';
@@ -16,25 +18,28 @@ import { lowerText } from './lower-text';
 import { lowerBranch, type BranchArm } from './lower-branch';
 import { unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
-import { lowerComputedExpressionValue, lowerTemplateValue } from './lower-expr';
+import {
+  lowerComputedExpressionValue,
+  lowerExpressionValue,
+  lowerTemplateValue,
+} from './lower-expr';
 import type { LowerContext } from './lower-context';
 import { lowerArray } from './lower-array';
 import { QwikDirective } from '../words';
 import { lowerJsx } from './lower-jsx';
 import { findDirective } from './lower-projection';
 /**
- * Content the parser reads as one text node. Raw text is a literal, since a live value belongs to
- * `dangerouslySetInnerHTML`; RCDATA with several parts is one hole, as a marker would show as
- * text.
+ * Content the parser reads as one text node. Literal parts fold into the markup; a live one becomes
+ * element content, because the parser would read a hole's markers as text.
  */
 export function lowerContentChildren(
   tag: string,
   children: readonly JSXChild[],
   ctx: LowerContext
-): Op[] {
+): { ops: Op[]; innerHtml?: Extract<Prop, { k: PropKind.InnerHtml }> } {
   const isRawText = RAW_TEXT_ELEMENTS.has(tag);
   if (!isRawText && !RCDATA_ELEMENTS.has(tag)) {
-    return lowerJsxChildren(children, ctx);
+    return { ops: lowerJsxChildren(children, ctx) };
   }
   const parts: (string | Expression)[] = [];
   for (const child of flattenJsxChildren(children, ctx)) {
@@ -53,38 +58,51 @@ export function lowerContentChildren(
       parts.push(child.expression);
     }
   }
+  const folded = parts.map((part) =>
+    typeof part === 'string' ? part : (textLiteral(part) ?? part)
+  );
+  if (folded.some((part) => typeof part !== 'string')) {
+    const range: [number, number] = [children[0].start, children[children.length - 1].end];
+    const single = folded.length === 1 && typeof folded[0] !== 'string' ? folded[0] : null;
+    const value =
+      single === null
+        ? lowerTemplateValue(folded, ctx, range)
+        : lowerExpressionValue(single, ctx, QwikDirective.InnerHtml);
+    // Raw text is never decoded, so it is element content; RCDATA is text and stays escaped.
+    return isRawText
+      ? { ops: [], innerHtml: { k: PropKind.InnerHtml, value, effect: null } }
+      : { ops: [{ op: OpKind.Hole, value, shape: Shape.Text, effect: null, stringify: true }] };
+  }
+  const text = folded as string[];
   if (isRawText) {
-    const text = parts.map((part) => (typeof part === 'string' ? part : rawTextLiteral(tag, part)));
     // Only `</` could end the element early; nothing else is decoded here.
-    return text.length === 0
-      ? []
-      : [{ op: OpKind.Static, html: text.join('').replace(/<\//g, '<\\/') }];
+    return {
+      ops:
+        text.length === 0
+          ? []
+          : [{ op: OpKind.Static, html: text.join('').replace(/<\//g, '<\\/') }],
+    };
   }
   if (parts.length < 2) {
-    return lowerJsxChildren(children, ctx);
+    return { ops: lowerJsxChildren(children, ctx) };
   }
   const range: [number, number] = [children[0].start, children[children.length - 1].end];
-  return [
-    {
-      op: OpKind.Hole,
-      value: lowerTemplateValue(parts, ctx, range),
-      shape: Shape.Text,
-      effect: null,
-      stringify: true,
-    },
-  ];
+  return {
+    ops: [
+      {
+        op: OpKind.Hole,
+        value: lowerTemplateValue(parts, ctx, range),
+        shape: Shape.Text,
+        effect: null,
+        stringify: true,
+      },
+    ],
+  };
 }
 
-function rawTextLiteral(tag: string, expression: Expression): string {
+function textLiteral(expression: Expression): string | null {
   const node = unwrapExpression(expression);
-  if (node?.type === 'Literal' && typeof node.value === 'string') {
-    return node.value;
-  }
-  throw new InvalidModuleError(
-    'raw-text-content',
-    `<${tag}> takes a string literal; set dynamic content with dangerouslySetInnerHTML.`,
-    [expression.start, expression.end]
-  );
+  return node?.type === 'Literal' && typeof node.value === 'string' ? node.value : null;
 }
 
 /** Lowers a JSX child list — the shared path for fragment-rooted trees. */

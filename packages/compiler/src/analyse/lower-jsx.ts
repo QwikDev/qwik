@@ -111,13 +111,18 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   ctx.namespace =
     tag === 'svg' || tag === 'math' ? tag : tag === 'foreignObject' ? null : elementNamespace;
   ctx.elementStack.push(tag);
-  const children = lowerFormValue(
-    tag,
-    props,
-    expanded,
-    lowerContentChildren(tag, element.children, ctx),
-    ctx
-  );
+  const content = lowerContentChildren(tag, element.children, ctx);
+  if (content.innerHtml !== undefined) {
+    if (props.some((prop) => prop.k === PropKind.InnerHtml)) {
+      throw new InvalidModuleError(
+        'raw-text-content',
+        `<${tag}> takes its content once: drop dangerouslySetInnerHTML or the children.`,
+        [element.start, element.end]
+      );
+    }
+    props.push(content.innerHtml);
+  }
+  const children = lowerFormValue(tag, props, expanded, content.ops, ctx);
   ctx.elementStack.pop();
   ctx.namespace = namespace;
   if (VOID_ELEMENTS.has(tag) && children.length > 0) {

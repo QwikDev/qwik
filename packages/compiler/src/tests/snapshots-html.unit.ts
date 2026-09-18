@@ -290,9 +290,46 @@ export default component$((props: { heading: string }) => (
     }
   });
 
-  test('should refuse a live value inside script and style', async () => {
+  test('should set a live value inside script and style as element content', async () => {
     const output = await testInput(mode, 'raw-text-live-value', {
-      code: `export default (props: { init: string }) => <script>{props.init}</script>;`,
+      code: `export default (props: { init: string; rules: string }) => (
+  <div>
+    <script>{props.init}</script>
+    <style>{'.a{'}{props.rules}{'}'}</style>
+  </div>
+);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // Raw text is never decoded, so it is set as content rather than escaped as text.
+    expect(code).toContain('dangerouslySetInnerHTML');
+    expect(code).not.toContain('escapeHTML');
+  });
+
+  test('should keep a live value inside title and textarea escaped text', async () => {
+    const output = await testInput(mode, 'rcdata-live-value', {
+      code: `export default (props: { heading: string; draft: string }) => (
+  <div>
+    <title>Page: {props.heading}</title>
+    <textarea>{props.draft}</textarea>
+  </div>
+);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // A comment marker would read as text here, so the content is one text node.
+    expect(code).not.toContain('dangerouslySetInnerHTML');
+    expect(code).not.toContain('<!>');
+    if (mode === 'ssr') {
+      expect(code.match(/escapeHTML\(/g)).toHaveLength(2);
+    }
+  });
+
+  test('should refuse content given both as children and as innerHTML', async () => {
+    const output = await testInput(mode, 'raw-text-double-content', {
+      code: `export default (props: { a: string; b: string }) => (
+  <style dangerouslySetInnerHTML={props.a}>{props.b}</style>
+);`,
     });
     expect(output.diagnostics).toMatchObject([{ code: 'raw-text-content' }]);
   });

@@ -27,7 +27,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const text0 = _first(_last(el0));
   const prop0 = propSource(props, 'heading');
-  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
+  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler, true);
   ctx.scheduler.notify(effect0);
   return el0;
 };

@@ -1,0 +1,32 @@
+==INPUT==
+
+export default (props: { a: string; b: string }) => (
+  <style dangerouslySetInnerHTML={props.a}>{props.b}</style>
+);
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== CSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "raw-text-content",
+    "file": "src/component.tsx",
+    "message": "<style> takes its content once: drop dangerouslySetInnerHTML or the children.",
+    "highlights": [
+      {
+        "lo": 56,
+        "hi": 114,
+        "startLine": 2,
+        "startCol": 3,
+        "endLine": 2,
+        "endCol": 60
+      }
+    ],
+    "suggestions": null
+  }
+]

@@ -12,7 +12,6 @@ const appsRoot = resolve(__dirname, '../../../../e2e/qwik-e2e/apps');
  */
 const KNOWN_REJECTS: Record<string, string | { reason: string; isServer: boolean }> = {
   'e2e/src/components/render/render.tsx': 'runtime-jsx-call',
-  'e2e/src/components/signals/signals.tsx': 'raw-text-content',
   'e2e/src/components/streaming/demo.tsx': 'children-function',
   'e2e/src/components/streaming/streaming.tsx': 'children-function',
   'perf.prod/src/components/component-impl/index.tsx':

@@ -1,9 +1,9 @@
 ==INPUT==
 
-export default (props: { init: string; rules: string }) => (
+export default (props: { heading: string; draft: string }) => (
   <div>
-    <script>{props.init}</script>
-    <style>{'.a{'}{props.rules}{'}'}</style>
+    <title>Page: {props.heading}</title>
+    <textarea>{props.draft}</textarea>
   </div>
 );
 == SSR OUTPUT ==
@@ -12,17 +12,18 @@ export default (props: { init: string; rules: string }) => (
 
 import {
   createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
   propSource,
   isSource,
-  renderSsrAttr,
-  renderSsrAttrExpression,
+  renderSsrTextNode,
   maybeThen,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
 
 const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return `.a{${props.rules}}`;
+  return `Page: ${props.heading}`;
 };
 const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
   'component_text_segment_0_1fh10fbkzokfc'
@@ -31,28 +32,28 @@ q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokf
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();
-    const prop0 = propSource(props, 'init');
-    isSource(prop0) && ctx.addRoot(prop0);
-    const attr0 = renderSsrAttr(id0, 'dangerouslySetInnerHTML', prop0);
-    const id1 = ctx.nextId();
     ctx.addRoot(props);
-    const attr1 = renderSsrAttrExpression(
-      id1,
-      'dangerouslySetInnerHTML',
+    const text0 = renderSsrTextExpression(
+      id0,
+      null,
       [props],
       q_component_text_segment_0_1fh10fbkzokfc
     );
-    return maybeThen(attr0, (attr0) =>
-      maybeThen(attr1, (attr1) => [
-        '<div><script q:id="',
+    const id1 = ctx.nextId();
+    const prop0 = propSource(props, 'draft');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text1 = renderSsrTextNode(id1, null, prop0, undefined, true);
+    return maybeThen(text0, (text0) =>
+      maybeThen(text1, (text1) => [
+        '<div><title q:id="',
         createSsrNodeId(id0),
         '">',
-        attr0 ?? '',
-        '</script><style q:id="',
+        escapeHTML(text0),
+        '</title><textarea q:id="',
         createSsrNodeId(id1),
         '">',
-        attr1 ?? '',
-        '</style></div>',
+        escapeHTML(text1.replace(/^\n/, '\n\n')),
+        '</textarea></div>',
       ])
     );
   },
@@ -63,7 +64,7 @@ export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return `.a{${props.rules}}`;
+  return `Page: ${props.heading}`;
 };
 /*
 {
@@ -79,8 +80,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    108,
-    139
+    83,
+    104
   ],
   "paramNames": [],
   "captureNames": [

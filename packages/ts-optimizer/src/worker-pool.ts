@@ -12,6 +12,7 @@
 // deno, and constrained environments keep working unchanged.
 
 import { disableRawTransfer } from './optimizer/ast/parse.js';
+import { RAW_TRANSFER_ENV, shouldUseRawTransfer } from './raw-transfer-policy.js';
 import { runTransform } from './transform-run.js';
 
 import type { NapiTransformModulesOptions, NapiTransformOutput } from './create-optimizer.js';
@@ -203,7 +204,10 @@ async function maybeStartWorkerLoop(): Promise<void> {
   if ((wt.workerData as Record<string, unknown> | null)?.[WORKER_FLAG] !== true) {
     return;
   }
-  disableRawTransfer();
+  // Workers get no memory budget: only an explicit opt-in keeps raw transfer on.
+  if (!shouldUseRawTransfer(process.env[RAW_TRANSFER_ENV], 0)) {
+    disableRawTransfer();
+  }
   const port = wt.parentPort;
   port.on('message', ({ id, opts }: WorkerRequest) => {
     try {

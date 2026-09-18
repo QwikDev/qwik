@@ -24,10 +24,10 @@ export interface PreloaderOptions {
    * bundles before the preloader script is active. This most likely includes the core and the
    * preloader script itself. Setting this to 0 will disable all preload links.
    *
-   * Preload links can delay LCP, which is a Core Web Vital, but it can increase TTI, which is not a
-   * Core Web Vital but more noticeable to the user.
+   * Preload links can delay LCP, which is a Core Web Vital, but they can improve TTI, which is not
+   * a Core Web Vital but more noticeable to the user.
    *
-   * Defaults to `5`
+   * Defaults to `0`, so speculative preloading starts once the page is loaded.
    */
   ssrPreloads?: number;
   /**

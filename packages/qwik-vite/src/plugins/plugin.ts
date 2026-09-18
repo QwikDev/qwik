@@ -469,6 +469,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           preserveSignature: 'allow-extension',
         });
       }
+      // Emit explicitly because raw-source imports can share its chunk group.
+      // The manifest must reference this entry, not an asset URL wrapper.
+      const preloader = await _ctx.resolve(QWIK_PRELOADER_ID, undefined, {
+        skipSelf: true,
+      });
+      if (preloader) {
+        preloaderChunkRef = _ctx.emitFile({
+          id: preloader.id,
+          type: 'chunk',
+          preserveSignature: 'allow-extension',
+        });
+      }
     }
   };
 
@@ -748,11 +760,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         skipSelf: true,
       });
       if (preloader) {
-        preloaderChunkRef = ctx.emitFile({
-          id: preloader.id,
-          type: 'chunk',
-          preserveSignature: 'allow-extension',
-        });
+        if (!preloaderChunkRef) {
+          preloaderChunkRef = ctx.emitFile({
+            id: preloader.id,
+            type: 'chunk',
+            preserveSignature: 'allow-extension',
+          });
+        }
         return preloader;
       }
     } else if (pathId.endsWith(QWIK_HANDLERS_ID)) {
@@ -1194,7 +1208,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const createOutputAnalyzer = (
     rollupBundle: Rolldown.OutputBundle,
-    getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
     qwikLoaderFileName?: string,
     preloaderFileName?: string,
     handlersFileName?: string
@@ -1227,7 +1240,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts,
         debug,
         canonPath,
-        getModuleInfo,
         qwikLoaderFileName,
         preloaderFileName,
         handlersFileName
@@ -1436,7 +1448,6 @@ export const isDev = ${JSON.stringify(isDev)};
     const handlersFileName = handlersChunkRef ? ctx.getFileName(handlersChunkRef) : undefined;
     const outputAnalyzer = createOutputAnalyzer(
       rollupBundle,
-      (id) => ctx.getModuleInfo(id),
       qwikLoaderFileName,
       preloaderFileName,
       handlersFileName

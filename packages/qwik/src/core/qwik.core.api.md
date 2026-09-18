@@ -118,19 +118,15 @@ export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 export interface ComputedSignal<T> extends Signal<T> {
     abort(reason?: any): void;
     clear(): void;
+    error: Error | undefined;
     // @deprecated (undocumented)
     force(): void;
     invalidate(): void;
     invalidate(info?: unknown): void;
-    promise(): Promise<void>;
-}
-
-// @internal
-export interface _ComputedSignalInternal<T> extends ComputedSignal<T> {
-    error: Error | undefined;
     // @deprecated (undocumented)
     loading: boolean;
     pending: boolean;
+    promise(): Promise<void>;
     untrackedError: Error | undefined;
     // @deprecated (undocumented)
     untrackedLoading: boolean;
@@ -1079,6 +1075,11 @@ export interface RenderSSROptions {
     // (undocumented)
     stream: StreamWriter;
 }
+
+// Warning: (ae-forgotten-export) The symbol "Preload" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _requestPreload: Preload;
 
 // @internal (undocumented)
 export const _reR: () => boolean;

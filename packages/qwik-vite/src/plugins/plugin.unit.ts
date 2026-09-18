@@ -2,7 +2,7 @@ import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, createQwikPlugin } from './plugin';
+import { ExperimentalFeatures, QWIK_PRELOADER_ID, createQwikPlugin } from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
@@ -30,6 +30,29 @@ test('defaults', async () => {
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
+});
+
+test('emits the client loader and preloader runtime entries once', async () => {
+  const plugin = await mockPlugin();
+  await plugin.normalizeOptions({ target: 'client' });
+
+  const emittedIds: string[] = [];
+  const context = {
+    resolve: async (id: string) => ({ id: `/resolved/${id}` }),
+    emitFile: (file: { id?: string }) => {
+      emittedIds.push(file.id!);
+      return `ref-${emittedIds.length}`;
+    },
+  } as any;
+
+  await plugin.buildStart(context);
+  expect(emittedIds).toEqual([
+    '/resolved/@qwik.dev/core/qwikloader.js',
+    `/resolved/${QWIK_PRELOADER_ID}`,
+  ]);
+
+  await plugin.resolveId(context, QWIK_PRELOADER_ID);
+  expect(emittedIds).toHaveLength(2);
 });
 
 test('defaults (buildMode: production)', async () => {

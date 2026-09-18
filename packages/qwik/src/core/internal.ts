@@ -93,7 +93,6 @@ export { isTask as _isTask, scheduleTask as _task, Task as _Task } from './use/u
 export { _captures } from './shared/qrl/qrl-class';
 export { _rsc } from './use/use-resource';
 export type { AsyncSignalImpl as _AsyncSignalImpl } from './reactive-primitives/impl/async-signal-impl';
-export type { ComputedSignalInternal as _ComputedSignalInternal } from './reactive-primitives/signal.public';
 export { _injectAsyncSignalValue } from './reactive-primitives/impl/async-signal-impl';
 export {
   EffectProperty as _EffectProperty,
@@ -110,6 +109,7 @@ export {
 } from './shared/projection/external-projection';
 export { delay as _delay, retryOnPromise as _retryOnPromise } from './shared/utils/promises';
 export { _createDeserializeContainer } from './shared/serdes/serdes.public';
+export { requestPreload as _requestPreload } from './preloader/bridge';
 
 /** TESTING */
 export {

@@ -66,7 +66,9 @@ function bootLoader(document: any, window: any) {
     unobserve = vi.fn();
     disconnect = vi.fn();
 
-    constructor(_cb: Function) {}
+    constructor(cb: Function) {
+      window.__qwikLoaderIntersect = cb;
+    }
   };
   const CSSImpl = {
     escape: (value: string) => value.replaceAll(':', '\\:'),
@@ -608,5 +610,93 @@ describe('qwikloader behavior', () => {
     await flushQueuedTasks();
 
     expect(logs).toEqual(['first', 'second']);
+  });
+  test('runs a deferred click handler while a document qcinit handler is still pending', async () => {
+    const { doc } = createLoaderEnvironment(['d:qcinit', 'e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const routerInit = createMockElement(
+      container,
+      {},
+      () => new Promise<void>(() => {}),
+      'd:qcinit'
+    );
+    doc.querySelectorAll.mockReturnValue([routerInit]);
+    const button = createMockElement(container, { 'q-e:click': stopLogHandlerQrl('click') });
+
+    (globalThis as any).__qwikLoaderStopLogs = logs;
+    try {
+      getSingleListener(doc, 'qcinit').handler(createMockEvent(doc, 'qcinit'));
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['click']);
+      });
+    } finally {
+      (globalThis as any).__qwikLoaderStopLogs = previousLogs;
+    }
+  });
+
+  test('runs a deferred click handler while a qvisible handler is still pending', async () => {
+    const { doc, win } = createLoaderEnvironment(['e:qvisible', 'e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const visible = createMockElement(
+      container,
+      {},
+      () => new Promise<void>(() => {}),
+      'e:qvisible'
+    );
+    const button = createMockElement(container, { 'q-e:click': stopLogHandlerQrl('click') });
+    doc.readyState = 'complete';
+    getSingleListener(doc, 'readystatechange').handler(createMockEvent(doc, 'readystatechange'));
+
+    (globalThis as any).__qwikLoaderStopLogs = logs;
+    try {
+      win.__qwikLoaderIntersect([{ isIntersecting: true, target: visible }]);
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['click']);
+      });
+    } finally {
+      (globalThis as any).__qwikLoaderStopLogs = previousLogs;
+    }
+  });
+
+  test('keeps browser event order while an earlier async click handler is still running', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderStopLogs;
+    let finishFirst!: () => void;
+    const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+    const first = createMockElement(
+      container,
+      {},
+      () =>
+        new Promise<void>((resolve) => {
+          finishFirst = () => {
+            logs.push('first');
+            resolve();
+          };
+        }),
+      'e:click'
+    );
+    const second = createMockElement(container, { 'q-e:click': stopLogHandlerQrl('second') });
+
+    (globalThis as any).__qwikLoaderStopLogs = logs;
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(first));
+      getSingleListener(doc, 'click').handler(createMockEvent(second));
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(logs).toEqual([]);
+
+      finishFirst();
+      await vi.waitFor(() => {
+        expect(logs).toEqual(['first', 'second']);
+      });
+    } finally {
+      (globalThis as any).__qwikLoaderStopLogs = previousLogs;
+    }
   });
 });

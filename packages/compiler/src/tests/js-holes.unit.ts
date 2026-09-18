@@ -24,7 +24,7 @@ export default component$(() => {
 });
 `;
 
-async function holes(isServer: boolean, engine?: 'native') {
+async function holes(isServer: boolean, engine?: 'native', code = SOURCE) {
   const output = await transformModules({
     srcDir: 'src',
     sourceMaps: false,
@@ -32,7 +32,7 @@ async function holes(isServer: boolean, engine?: 'native') {
     transpileJsx: true,
     isServer,
     ...(engine === undefined ? {} : { engine }),
-    input: [{ path: 'src/app.tsx', code: SOURCE }],
+    input: [{ path: 'src/app.tsx', code }],
   });
   return output.diagnostics
     .filter((entry) => entry.code === 'js-hole')
@@ -56,6 +56,23 @@ describe('js holes', () => {
     expect(reported).not.toContain('onClick$');
     expect(reported).not.toContain('click$');
     expect(reported).not.toContain('useVisibleTask$');
+  });
+
+  test.each([
+    ['a props member', '({ ...props }: any) => <div>{props.render$([1])}</div>'],
+    ['a destructured prop', '({ render$ }: any) => <div>{render$([1])}</div>'],
+    ['a renamed prop', '({ render$: draw$ }: any) => <div>{draw$([1])}</div>'],
+  ])('names a prop the child invokes through %s', async (_label, body) => {
+    const reported = await holes(
+      true,
+      'native',
+      `import { component$ } from '@qwik.dev/core';
+const Child = component$(${body});
+export default component$(() => <Child render$={(v: number[]) => <b>{v.join()}</b>} />);
+`
+    );
+
+    expect(reported.join('\n')).toContain('render$');
   });
 
   test('says nothing to a javascript engine, nor about the browser', async () => {

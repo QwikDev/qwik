@@ -6,15 +6,18 @@
  * The author's own answer to a warning is `native$`, which describes the body for that engine.
  */
 import {
+  BindingScope,
   BoundaryKind,
   DiagnosticCategory,
   Environment,
   PlanEngine,
   QrlBodyKind,
   SetupKind,
+  ValueIrKind,
   type Diagnostic,
   type LinkedModule,
   type LinkedQrl,
+  type Result,
   type Specialization,
 } from '../schema';
 
@@ -37,9 +40,10 @@ export function reportJsHoles(modules: LinkedModule[], specialization: Specializ
   ) {
     return;
   }
+  const invoked = collectInvokedProps(modules);
   for (const module of modules) {
     for (const qrl of module.qrls) {
-      if (qrl.body.b === QrlBodyKind.Js && isServerReachable(qrl)) {
+      if (qrl.body.b === QrlBodyKind.Js && isServerReachable(qrl, invoked)) {
         module.diagnostics.push(hole(`the ${qrl.ctxName} body`, qrl.origin.range));
       }
     }
@@ -53,7 +57,7 @@ export function reportJsHoles(modules: LinkedModule[], specialization: Specializ
   }
 }
 
-function isServerReachable(qrl: LinkedQrl): boolean {
+function isServerReachable(qrl: LinkedQrl, invoked: ReadonlySet<string>): boolean {
   // A sync handler exists to run in the browser before anything loads.
   if (qrl.boundary.kind === BoundaryKind.Sync) {
     return false;
@@ -61,7 +65,59 @@ function isServerReachable(qrl: LinkedQrl): boolean {
   if (qrl.boundary.kind !== BoundaryKind.Implicit) {
     return true;
   }
+  if (invoked.has(qrl.ctxName)) {
+    return true;
+  }
   return !SERIALIZED_ONLY.has(qrl.boundary.role) && !CLIENT_ONLY_HOOKS.has(qrl.ctxName);
+}
+
+/** `$` props a component calls itself: the server runs those bodies instead of serializing them. */
+function collectInvokedProps(modules: LinkedModule[]): ReadonlySet<string> {
+  const names = new Set<string>();
+  for (const module of modules) {
+    for (const invocation of module.invocations ?? []) {
+      const name = invokedPropName(module, invocation.callee);
+      if (name !== null) {
+        names.add(name);
+      }
+    }
+  }
+  return names;
+}
+
+/** The authored prop key behind a call, whether read off props or destructured, renamed or not. */
+function invokedPropName(module: LinkedModule, callee: Result): string | null {
+  if (callee.kind === ValueIrKind.Member) {
+    return paramBinding(module, callee.obj) === undefined ? null : callee.name;
+  }
+  if (callee.kind !== ValueIrKind.BindingRead) {
+    return null;
+  }
+  const binding = paramBinding(module, callee);
+  if (binding === undefined) {
+    return null;
+  }
+  const source = binding.result?.value;
+  const values = source?.kind === 'union-result' ? source.values : [];
+  for (const value of values) {
+    // a destructured prop may be renamed, so the authored key rides the member it came from
+    if (value.kind === ValueIrKind.Member) {
+      return value.name;
+    }
+  }
+  return binding.name;
+}
+
+function paramBinding(module: LinkedModule, value: Result) {
+  if (value.kind !== ValueIrKind.BindingRead) {
+    return undefined;
+  }
+  const binding = findBinding(module, value.binding);
+  return binding?.scope === BindingScope.Param ? binding : undefined;
+}
+
+function findBinding(module: LinkedModule, id: number) {
+  return module.bindings.find((binding) => binding.id === id);
 }
 
 function hole(construct: string, span: Diagnostic['span']): Diagnostic {

@@ -1,17 +1,13 @@
 /** `analyseModule(file, options) -> ModulePlan` — one file, one plan, pure (DESIGN.md rule 7). */
 import {
   AssemblyKind,
-  BoundaryKind,
   DeclTable,
   DiagnosticCategory,
-  FnBodyKind,
   ExportKind,
   ExportTargetKind,
   LifetimeCommit,
   LifetimeOwner,
   ModuleKind,
-  QrlBodyKind,
-  QrlPayloadKind,
   type Diagnostic,
   type ModulePlan,
 } from '../schema';
@@ -22,9 +18,9 @@ import { lowerCoreHookAliases, lowerHooks } from './lower-hook';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
-import { lowerComponentBody } from './lower-component-body';
+import { pushComponentQrl } from './lower-component-body';
 import { finalizeLocalFunctions } from './lower-setup';
-import { createLowerContext, pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
+import { createLowerContext, pushPayload, QrlIdentityKind } from './lower-context';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
 import { createOriginalRangeMapper } from '../source-maps';
@@ -226,61 +222,44 @@ export async function analyseModule(
   for (const component of components) {
     const componentBinding =
       component.bindingNode === null ? null : bindings.declaration(component.bindingNode);
-    let lowered;
+    let qrlIndex;
     try {
-      lowered = lowerComponentBody(component, lowerContext);
+      // A component IS a QRL: a Program body plus an authored declaration to splice over.
+      qrlIndex = pushComponentQrl(component, lowerContext, {
+        identity: {
+          kind: QrlIdentityKind.Declared,
+          id: `${input.path}#${component.name}`,
+          name: component.name,
+        },
+        ctxName: component.name,
+        captures: [],
+        declaration: (parameter) => ({
+          name: component.name,
+          binding: componentBinding,
+          parameter,
+          root: { name: `q${component.name}-` },
+          replacementRange: component.replacementRange,
+          ...(component.expressionOnly ? { expressionOnly: true } : {}),
+          declarationKind: component.declarationKind,
+          isExported:
+            component.statement.type === 'ExportNamedDeclaration' ||
+            component.statement.type === 'ExportDefaultDeclaration',
+          localName: componentBinding === null ? null : plan.bindings[componentBinding].name,
+          ...(component.expressionOnly
+            ? {}
+            : {
+                symbol: createSegmentSymbolName(
+                  lowerContext.sourceIdentity,
+                  `${sanitizeSegmentName(component.name)}_component`,
+                  'component'
+                ),
+              }),
+        }),
+      }).index;
     } catch (error) {
       recordModuleError(plan, error);
       return finish();
     }
-    const { parameter } = lowered;
-    const body = component.fn.body!;
-    // A component IS a QRL: a Program body plus an authored declaration to splice over.
-    const { index: qrlIndex } = pushQrl(lowerContext, {
-      identity: {
-        kind: QrlIdentityKind.Declared,
-        id: `${input.path}#${component.name}`,
-        name: component.name,
-      },
-      ctxName: component.name,
-      boundary: { kind: BoundaryKind.Component },
-      payloadKind: QrlPayloadKind.Function,
-      authoredAsync: false,
-      body: { b: QrlBodyKind.Program, program: lowered.program },
-      captures: [],
-      params: { authored: component.param === null ? 0 : 1, used: [], sources: [] },
-      origin: {
-        range: [component.statement.start, component.statement.end],
-        functionRange: [component.fn.start, component.fn.end],
-        calleeRange: null,
-        argumentRanges: [],
-        paramRanges: component.param === null ? [] : [component.param.range],
-        bodyRange: [body.start, body.end],
-        bodyKind: body.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
-      },
-      declaration: {
-        name: component.name,
-        binding: componentBinding,
-        parameter,
-        root: { name: `q${component.name}-` },
-        replacementRange: component.replacementRange,
-        ...(component.expressionOnly ? { expressionOnly: true } : {}),
-        declarationKind: component.declarationKind,
-        isExported:
-          component.statement.type === 'ExportNamedDeclaration' ||
-          component.statement.type === 'ExportDefaultDeclaration',
-        localName: componentBinding === null ? null : plan.bindings[componentBinding].name,
-        ...(component.expressionOnly
-          ? {}
-          : {
-              symbol: createSegmentSymbolName(
-                lowerContext.sourceIdentity,
-                `${sanitizeSegmentName(component.name)}_component`,
-                'component'
-              ),
-            }),
-      },
-    });
     if (componentBinding === null) {
       const componentExport = plan.exports.find(
         (entry): entry is Extract<(typeof plan.exports)[number], { e: ExportKind.Local }> =>

@@ -44,7 +44,7 @@ export function emitQrlChunks(
       (qrl) =>
         qrl.declaration === undefined &&
         qrl.boundary.kind !== BoundaryKind.Sync &&
-        qrl.boundary.kind !== BoundaryKind.Component &&
+        !isInlineComponent(qrl) &&
         qrl.delivery.d !== DeliveryKind.Stripped &&
         qrl.delivery.d !== DeliveryKind.Omit
     )
@@ -165,4 +165,9 @@ export function createQrlResolver(module: LinkedModule) {
       }),
     };
   };
+}
+
+/** A nested `component$` value: printed where its call stood, so it is nobody's chunk. */
+export function isInlineComponent(qrl: LinkedQrl): boolean {
+  return qrl.boundary.kind === BoundaryKind.Component && qrl.boundary.inline === true;
 }

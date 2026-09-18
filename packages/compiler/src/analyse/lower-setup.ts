@@ -7,6 +7,7 @@ import {
   ProgramBodyKind,
   VarKind,
   type LocalId,
+  type QrlUse,
   type Setup,
   type Value,
 } from '../schema';
@@ -40,13 +41,13 @@ import { isFunctionLike } from './ast/utils';
 import { recordSetupAwaits } from './lower-component-body';
 import { lowerRenderExpression } from './lower-children';
 import { findComponentCandidates } from './ast/returns-jsx';
-import { discoverComponents } from './discover';
+import { discoverComponents, type DiscoveredComponent } from './discover';
 import { lowerComponentParameter, pathReadIr } from './lower-parameter';
 import { readObjectParameter } from './ast/parameter-members';
 import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 
 import { lowerSetupCall, lowerSetupCallback, resolveSetupCall } from './lower-setup-call';
-import { lowerQrlArgument } from './lower-function';
+import { lowerComponentValue, lowerQrlArgument } from './lower-function';
 import { recordFunctionJsx } from './lower-function';
 export function lowerConstDeclaration(
   declarator: VariableDeclarator,
@@ -385,7 +386,8 @@ function lowerLocalFunction(
   id: BindingIdentifier,
   ctx: LowerContext,
   locals: SetupLocals,
-  lowerAuthored: (scope: LowerContext) => Setup
+  lowerAuthored: (scope: LowerContext) => Setup,
+  liftBody?: (scope: LowerContext) => QrlUse
 ): Setup {
   const binding = ctx.bindings.declaration(id)!;
   const name = id.name;
@@ -397,13 +399,16 @@ function lowerLocalFunction(
   // Both forms lower later, in the scope of this statement rather than of the module end.
   const scope = { ...ctx, locals };
   const lift = () =>
-    (entry.use ??= lowerQrlArgument(fn, scope, {
-      nameCtx: name,
-      subject: `the local function "${name}"`,
-      ctxName: name,
-      boundary: { kind: BoundaryKind.Implicit, role: 'function' },
-      origin: { range: [fn.start, fn.end], calleeRange: null, argumentRanges: [] },
-    }));
+    (entry.use ??=
+      liftBody === undefined
+        ? lowerQrlArgument(fn, scope, {
+            nameCtx: name,
+            subject: `the local function "${name}"`,
+            ctxName: name,
+            boundary: { kind: BoundaryKind.Implicit, role: 'function' },
+            origin: { range: [fn.start, fn.end], calleeRange: null, argumentRanges: [] },
+          })
+        : liftBody(scope));
   locals.set(binding, {
     kind: LocalKind.Function,
     access: CaptureAccess.Direct,
@@ -446,6 +451,26 @@ function lowerLocalComponent(
     return null;
   }
   const component = discoverComponents(candidates)[0];
+  // An anonymous component has no binding to rebind, so it can only stay where it was authored.
+  if (component.bindingNode === null) {
+    return lowerAuthoredComponent(component, ctx, locals);
+  }
+  return lowerLocalFunction(
+    component.fn,
+    component.bindingNode,
+    ctx,
+    locals,
+    (scope) => lowerAuthoredComponent(component, scope, locals),
+    (scope) => lowerComponentValue(component, scope, component.name)
+  );
+}
+
+/** The component prints where it was authored: a closure over the enclosing setup. */
+function lowerAuthoredComponent(
+  component: DiscoveredComponent,
+  ctx: LowerContext,
+  locals: SetupLocals
+): Setup {
   const outerProps = ctx.propsBinding;
   const outerMembers = ctx.propsMembers;
   const outerScopes = ctx.styleScopes;

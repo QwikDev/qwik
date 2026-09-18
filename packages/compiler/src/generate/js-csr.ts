@@ -45,6 +45,7 @@ import {
   createQrlResolver,
   type QrlResolver,
   syncQrlHoists,
+  isInlineComponent,
 } from './qrl-chunks';
 import {
   deferRenderAfterTasks,
@@ -149,7 +150,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     reference: (use: QrlUse) => string
   ): string {
     const { qrl } = this.resolveQrlUse(use, names.props);
-    if (qrl.boundary.kind !== BoundaryKind.Component || qrl.declaration !== undefined) {
+    if (!isInlineComponent(qrl)) {
       return reference(use);
     }
     return inlineComponentText(

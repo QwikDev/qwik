@@ -3,12 +3,21 @@
  * declarations and nested `component$` values.
  */
 import type { DiscoveredComponent } from './discover';
-import type { LowerContext } from './lower-context';
+import { pushQrl, type LowerContext } from './lower-context';
+import { createCapturedContext } from './ast/capture-analysis';
 import { lowerRenderExpression } from './lower-children';
 import { childrenReadError, lowerComponentParameter } from './lower-parameter';
 import { lowerSetup } from './lower-setup';
 import type { SetupLocals } from './locals';
-import { ProgramBodyKind } from '../schema';
+import {
+  BoundaryKind,
+  FnBodyKind,
+  ProgramBodyKind,
+  QrlBodyKind,
+  QrlPayloadKind,
+  type Qrl,
+  type QrlUse,
+} from '../schema';
 
 export interface LoweredComponentBody {
   program: number;
@@ -104,4 +113,66 @@ function diagnoseChildrenReads(ctx: LowerContext): void {
       throw childrenReadError([parent.start, parent.end]);
     }
   }
+}
+
+/** What a component is, everywhere it appears: a Program body behind the `(props, ctx)` render ABI. */
+export function pushComponentQrl(
+  component: Pick<DiscoveredComponent, 'fn' | 'param' | 'setupStatements' | 'renderExpression'> & {
+    statement: { start: number; end: number };
+  },
+  ctx: LowerContext,
+  delivery: {
+    identity: Parameters<typeof pushQrl>[1]['identity'];
+    ctxName: string;
+    /** A nested `component$` value prints inline instead of becoming a chunk. */
+    inline?: true;
+    captures: Qrl['captures'];
+    functions?: Qrl['functions'];
+    args?: QrlUse['args'];
+    /** Bindings the body closes over: its own setup locals from the start. */
+    scoped?: SetupLocals;
+    /** Needs the lowered parameter, so it is built once the body is down. */
+    declaration?: (parameter: LoweredComponentBody['parameter']) => Qrl['declaration'];
+  }
+): { index: number; use: QrlUse } {
+  const fn = component.fn;
+  // A component root answers to wherever it is rendered, never to the tags around its declaration.
+  const inner = {
+    ...createCapturedContext(ctx, delivery.captures),
+    styleScopes: [],
+    elementStack: [],
+    propsBinding: null,
+  };
+  const { program, parameter } = lowerComponentBody(component, inner, delivery.scoped);
+  const body = fn.body!;
+  return pushQrl(
+    inner,
+    {
+      identity: delivery.identity,
+      ctxName: delivery.ctxName,
+      boundary: {
+        kind: BoundaryKind.Component,
+        ...(delivery.inline === undefined ? {} : { inline: delivery.inline }),
+      },
+      payloadKind: QrlPayloadKind.Function,
+      authoredAsync: fn.async === true,
+      body: { b: QrlBodyKind.Program, program },
+      captures: delivery.captures,
+      ...(delivery.functions === undefined ? {} : { functions: delivery.functions }),
+      ...(delivery.declaration === undefined
+        ? {}
+        : { declaration: delivery.declaration(parameter) }),
+      params: { authored: component.param === null ? 0 : 1, used: [], sources: [] },
+      origin: {
+        range: [component.statement.start, component.statement.end],
+        functionRange: [fn.start, fn.end],
+        calleeRange: null,
+        argumentRanges: [],
+        paramRanges: component.param === null ? [] : [component.param.range],
+        bodyRange: [body.start, body.end],
+        bodyKind: body.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
+      },
+    },
+    delivery.args ?? []
+  );
 }

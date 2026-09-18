@@ -79,16 +79,11 @@ export function collectCaptures(
     }
   };
   for (const { node: current, binding, role, isWrite } of ctx.bindings.freeReferences(node)) {
-    // A module component tag is a reference and a local value alias is captured, but a function
-    // declared in the body has no QRL to serialize as.
+    // A module component tag is a reference, not a capture; a body one lifts to its own segment.
     const isTag =
       current.type === 'JSXIdentifier' &&
       ctx.bindings.parentOf(current)?.type !== 'JSXMemberExpression';
     if (isTag && !ctx.locals.has(binding)) {
-      continue;
-    }
-    if (isTag && !localBindings.has(binding) && declaresFunction(ctx, binding)) {
-      other ??= current.name;
       continue;
     }
     if (localBindings.has(binding)) {
@@ -129,17 +124,6 @@ export function collectCaptures(
     }
   }
   return { propsReads, locals, moduleReads, other, capturedWrite, functions, propsRequired };
-}
-
-function declaresFunction(ctx: LowerContext, binding: LocalId): boolean {
-  return ctx.bindings.declarationsOf(binding).some((node) => {
-    const value = node.type === 'VariableDeclarator' ? node.init : node;
-    return (
-      value?.type === 'FunctionDeclaration' ||
-      value?.type === 'ArrowFunctionExpression' ||
-      value?.type === 'FunctionExpression'
-    );
-  });
 }
 
 export interface LoweredCaptures {

@@ -21,9 +21,9 @@ import { InvalidModuleError, UnsupportedError } from '../errors';
 import { createCapturedContext, lowerCaptures } from './ast/capture-analysis';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { readComponentFunction } from './discover';
-import { lowerComponentBody } from './lower-component-body';
+import { pushComponentQrl } from './lower-component-body';
 import { lowerComputedExpressionValue, recordPayloadJsx, recordPayloadReads } from './lower-expr';
-import { LocalKind } from './locals';
+import { LocalKind, type SetupLocal, type SetupLocals } from './locals';
 import { isFunctionLike, parameterPattern, unwrapExpression } from './ast/utils';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { QRL_SUFFIX, QwikMarker } from '../words';
@@ -132,7 +132,57 @@ function lowerNestedComponent(call: CallExpression, ctx: LowerContext): QrlUse {
   if (fn === null || call.arguments.length !== 1 || !isFunctionLike(fn)) {
     throw new UnsupportedError('a nested component$ without an inline function');
   }
-  const { captures, refs } = lowerCaptures(fn, ctx, 'a nested component', new Set(), false);
+  return lowerComponentValue(
+    { ...readComponentFunction(fn), statement: call },
+    functionScope(ctx, fn),
+    null
+  );
+}
+
+/**
+ * A component below module level. Named, it lifts to a chunk and its scope rides `_captures`; an
+ * unnamed one prints where it stands and closes over the live scope, so it delivers nothing.
+ */
+export function lowerComponentValue(
+  component: Parameters<typeof pushComponentQrl>[0],
+  ctx: LowerContext,
+  name: string | null
+): QrlUse {
+  const inline = name === null;
+  const ctxName = name ?? QwikMarker.Component;
+  const subject = inline ? 'a nested component' : `the local component "${name}"`;
+  const { captures, functions, args, refs } = lowerCaptures(
+    component.fn,
+    ctx,
+    subject,
+    new Set(),
+    !inline
+  );
+  refuseCapturedWrite(refs);
+  // Setup locals keep their kind; anything else arrives as a plain value.
+  const scoped: SetupLocals = new Map(
+    captures.map(({ binding }): [number, SetupLocal] => [
+      binding,
+      ctx.locals.get(binding) ?? {
+        kind: LocalKind.Const,
+        access: CaptureAccess.Direct,
+        slot: -1,
+        binding,
+      },
+    ])
+  );
+  return pushComponentQrl(component, ctx, {
+    identity: { kind: QrlIdentityKind.Segment, nameCtx: name ?? 'component' },
+    ctxName,
+    ...(inline ? { inline: true as const, captures: [] } : { captures, functions, args }),
+    scoped,
+  }).use;
+}
+
+/** A `$` boundary may read a captured binding, never write it. */
+function refuseCapturedWrite(refs: {
+  capturedWrite: { name: string; range: [number, number] } | null;
+}): void {
   if (refs.capturedWrite !== null) {
     throw new InvalidModuleError(
       'mutable-capture',
@@ -140,36 +190,6 @@ function lowerNestedComponent(call: CallExpression, ctx: LowerContext): QrlUse {
       refs.capturedWrite.range
     );
   }
-  // The body closes over the enclosing scope: every capture is a plain local in a context copy.
-  const capturedLocals = new Map(
-    captures.map(({ binding }) => [
-      binding,
-      { kind: LocalKind.Const, access: CaptureAccess.Direct, slot: -1, binding } as const,
-    ])
-  );
-  const inner = { ...functionScope(ctx, fn), styleScopes: [], propsBinding: null };
-  const component = readComponentFunction(fn);
-  const { program } = lowerComponentBody(component, inner, capturedLocals);
-  const body = fn.body!;
-  return pushQrl(inner, {
-    identity: { kind: QrlIdentityKind.Segment, nameCtx: 'component' },
-    ctxName: QwikMarker.Component,
-    boundary: { kind: BoundaryKind.Component },
-    payloadKind: QrlPayloadKind.Function,
-    authoredAsync: false,
-    body: { b: QrlBodyKind.Program, program },
-    captures: [],
-    params: { authored: fn.params.length, used: [], sources: [] },
-    origin: {
-      range: [call.start, call.end],
-      functionRange: [fn.start, fn.end],
-      calleeRange: [call.callee.start, call.callee.end],
-      argumentRanges: call.arguments.map((arg) => [arg.start, arg.end]),
-      paramRanges: fn.params.map((param) => [param.start, param.end]),
-      bodyRange: [body.start, body.end],
-      bodyKind: body.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
-    },
-  }).use;
 }
 
 /** Callback scopes preserve native execution while JSX captures per-call bindings. */

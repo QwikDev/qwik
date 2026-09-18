@@ -73,8 +73,8 @@ export interface Qrl {
   name: string;
   ctxName: string;
   /** Neutral boundary facts current emitters require. */
-  boundary:
-    | { kind: BoundaryKind.Component }
+  boundary: /** `inline` marks a nested `component$` value: it prints where its call stood, never a chunk. */
+    | { kind: BoundaryKind.Component; inline?: true }
     | { kind: BoundaryKind.Explicit }
     | { kind: BoundaryKind.Implicit; role: string }
     | { kind: BoundaryKind.Sync };

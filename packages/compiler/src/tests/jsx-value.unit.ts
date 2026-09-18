@@ -171,17 +171,21 @@ test('preserves native object evaluation order and evaluates each spread once', 
   expect(result.html.match(/<i>tail<\/i>/g)).toHaveLength(2);
 });
 
-test('diagnoses a local component crossing a JSX value boundary', async () => {
-  await expect(
-    transformModules({
-      srcDir: 'src',
-      isServer: true,
-      input: [
-        {
-          path: 'src/value.tsx',
-          code: 'export default function App() { function Child() { return <p>stored</p>; } const content = <Child />; return content; }',
-        },
-      ],
-    })
-  ).rejects.toThrow('a const initializer capturing "Child"');
+test('lifts a local component crossing a JSX value boundary', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [
+      {
+        path: 'src/value.tsx',
+        code: 'export default function App() { function Child() { return <p>stored</p>; } const content = <Child />; return content; }',
+      },
+    ],
+  });
+
+  // the value holds the component's own segment, never the body closure
+  expect(output.modules.map((module) => module.path)).toContain(
+    'src/value.tsx_value_Child_segment_0_2sapydfapyod.js'
+  );
+  expect(output.modules[0].code).not.toContain('function Child() {\n  return <p>');
 });

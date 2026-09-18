@@ -51,6 +51,7 @@ import {
   createQrlResolver,
   type QrlResolver,
   syncQrlHoists,
+  isInlineComponent,
 } from './qrl-chunks';
 import {
   deferRenderAfterTasks,
@@ -215,7 +216,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     reference: (use: QrlUse) => string
   ): string {
     const { qrl } = this.resolveQrlUse(use, names.props);
-    if (qrl.boundary.kind !== BoundaryKind.Component || qrl.declaration !== undefined) {
+    if (!isInlineComponent(qrl)) {
       return reference(use);
     }
     return inlineComponentText(
@@ -425,7 +426,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           case ProgramKind.SlotFallback:
             return this.slotContentEmission(qrl);
           case ProgramKind.Component:
-            throw new UnsupportedError('a component program as a chunk');
+            return this.componentEmission(qrl);
         }
     }
   }
@@ -469,6 +470,14 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   private slotContentEmission(qrl: LinkedQrl): FunctionEmission {
     const { emission, names } = this.renderEmission(qrl, { fence: 's' });
     emission.params = [names.ctx, RangeIdParam];
+    return emission;
+  }
+
+  /** A body component lifted to its own chunk keeps the ordinary `(props, ctx)` render ABI. */
+  private componentEmission(qrl: LinkedQrl): FunctionEmission {
+    const { emission, core, names } = this.renderEmission(qrl, {});
+    emission.params = [names.props, names.ctx, ...(core.params ?? [])];
+    emission.async = core.async === true;
     return emission;
   }
 
@@ -1290,7 +1299,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         continue;
       }
       // A nested component already printed inline where its call stood.
-      if (qrl.boundary.kind === BoundaryKind.Component && qrl.declaration === undefined) {
+      if (isInlineComponent(qrl)) {
         continue;
       }
       // A registered boundary is called over RPC, never during render: always mirror it.

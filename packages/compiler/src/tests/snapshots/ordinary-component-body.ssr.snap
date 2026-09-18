@@ -37,15 +37,15 @@ const q_component_increment_segment_0_sk08s17xutli = /*#__PURE__*/ _noopQrl(
   'component_increment_segment_0_sk08s17xutli'
 );
 q_component_increment_segment_0_sk08s17xutli.s(component_increment_segment_0_sk08s17xutli);
-const component_text_segment_1_1fh10tcowimfv = (props) => {
+const component_text_segment_2_1fh117dstcoge = (props) => {
   return props.title;
 };
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_1_1fh10tcowimfv'
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
 );
-q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
-const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_2_2xwygteqhjqr1'
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
 import {
   useSignal,
@@ -87,7 +87,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
         id0,
         null,
         [props],
-        q_component_text_segment_1_1fh10tcowimfv
+        q_component_text_segment_2_1fh117dstcoge
       );
       return maybeThen(text0, (text0) => [
         '<p q:id="',
@@ -119,7 +119,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
               '"',
               ctx.eventAttrParts(
                 'q-e:click',
-                q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label, count, suffix])
+                q_component_q_e_click_segment_1_2xwyfnber1kpg.w([label, count, suffix])
               ),
               '>',
               escapeHTML(text0),
@@ -171,50 +171,22 @@ export const component_increment_segment_0_sk08s17xutli = () => {
   ]
 }
 */
-============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
-
-export const component_text_segment_1_1fh10tcowimfv = (props) => {
-  return props.title;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_1_1fh10tcowimfv",
-  "entry": null,
-  "displayName": "component_text_segment_1",
-  "hash": "1fh10tcowimfv",
-  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    634,
-    645
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   const [label, count, suffix] = _captures;
   label.value = count.value + suffix;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
   "entry": null,
-  "displayName": "component_q_e_click_segment_2",
-  "hash": "2xwygteqhjqr1",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -229,6 +201,34 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
     "label",
     "count",
     "suffix"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
+
+export const component_text_segment_2_1fh117dstcoge = (props) => {
+  return props.title;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2_1fh117dstcoge",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    634,
+    645
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
   ]
 }
 */

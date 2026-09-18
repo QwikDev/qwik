@@ -304,6 +304,25 @@ export default component$(() => (
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should lift a body component a branch arm renders', async () => {
+    const output = await testInput(mode, 'component-local-lifted', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export const Footer = component$(() => {
+  const n = useSignal(0);
+  function Filter({ filter }: { filter: string }) {
+    return <li onClick$={() => n.value++}>{filter}</li>;
+  }
+  return <ul>{n.value > 0 ? <Filter filter="a" /> : null}</ul>;
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // the arm rebinds the component's own segment; the closure never rides a capture
+    expect(code).not.toContain('Filter)');
+    expect(code).toMatch(/const Filter = _withCaptures\(\w*Filter\w*, \[n\]\)/);
+  });
+
   test('should alias component$ of a component reference', async () => {
     const output = await testInput(mode, 'component-reference', {
       code: `import { component$, componentQrl, qrl } from '@qwik.dev/core';

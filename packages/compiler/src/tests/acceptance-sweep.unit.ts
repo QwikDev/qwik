@@ -17,12 +17,8 @@ const KNOWN_REJECTS: Record<string, string | { reason: string; isServer: boolean
     'pipeline does not support: a QRL callback capturing "runCount"',
   'qwikrouter-test/src/routes/(common)/server-func/index.tsx':
     'pipeline does not support: a generator QRL callback',
-  'todo-old-test/src/components/footer/footer.tsx':
-    'pipeline does not support: a branch arm capturing "Filter"',
   'todo-old-test/src/entry.dev.tsx': 'unsupported-runtime-jsx',
   'vdomless-counter/src/build-data/build-data.ts': 'expression-hook',
-  'todo-test/src/components/footer/footer.tsx':
-    'pipeline does not support: a branch arm capturing "Filter"',
 };
 const skipDirs = new Set(['node_modules', 'dist', '.native', 'server']);
 

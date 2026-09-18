@@ -1,0 +1,145 @@
+==INPUT==
+
+import { component$, Slot } from '@qwik.dev/core';
+export const Button = component$<any>(({ onClick$, href }: any) => {
+  const Tag = href ? 'a' : 'button';
+  return (
+    <Tag href={href} onClick$={onClick$}>
+      <Slot />
+    </Tag>
+  );
+});
+export default component$(() => <Button onClick$={() => console.log('go')}>go</Button>);
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  propSource,
+  isSource,
+  readTrackedValue,
+  _props,
+  createSlotScope,
+  forwardSlot,
+  renderSsrDynamicTag,
+  createComponent,
+  _markComponent,
+  registerProjection,
+  _noopQrl,
+  createSsrNodeId,
+} from '@qwik.dev/core';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+  return ['<!s=', createSsrNodeId(__rangeId), '>go<!/s>'];
+};
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+export const Button = _markComponent(
+  (props, ctx) => {
+    const Tag = props.href ? 'a' : 'button';
+    const slotScope0 = createSlotScope();
+    const prop0 = propSource(props, 'href');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const prop1 = propSource(props, 'onClick$');
+    isSource(prop1) && ctx.addRoot(prop1);
+    forwardSlot(slotScope0);
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(
+      (props0) => renderSsrDynamicTag(Tag, props0, ctx),
+      _props(
+        {
+          get href() {
+            return readTrackedValue(prop0);
+          },
+          get onClick$() {
+            return readTrackedValue(prop1);
+          },
+        },
+        { href: prop0, onClick$: prop1 }
+      ),
+      ctx,
+      { slotScope: slotScope0 }
+    );
+    return component0;
+  },
+  'Button_component_12fjhbonwyrlb',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const slotScope0 = createSlotScope();
+    registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(
+      Button,
+      { onClick$: q_component_q_e_click_segment_0_2xwyg1cinvmpz },
+      ctx,
+      { slotScope: slotScope0 }
+    );
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Button as Button_component_12fjhbonwyrlb };
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  return console.log('go');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    285,
+    319
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
+
+import { createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+  return ['<!s=', createSsrNodeId(__rangeId), '>go<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
+  "entry": null,
+  "displayName": "component_slot_render_segment_1",
+  "hash": "3b0tauy2p1nv1",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    320,
+    322
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

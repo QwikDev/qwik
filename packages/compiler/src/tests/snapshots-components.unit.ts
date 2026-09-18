@@ -3,6 +3,22 @@ import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should forward an event-named component prop as an ordinary prop', async () => {
+    const output = await testInput(mode, 'component-forwarded-handler', {
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Button = component$<any>(({ onClick$, href }: any) => {
+  const Tag = href ? 'a' : 'button';
+  return (
+    <Tag href={href} onClick$={onClick$}>
+      <Slot />
+    </Tag>
+  );
+});
+export default component$(() => <Button onClick$={() => console.log('go')}>go</Button>);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should keep an async component body async and await through its setup', async () => {
     const output = await testInput(mode, 'component-async', {
       code: `import { component$ } from '@qwik.dev/core';

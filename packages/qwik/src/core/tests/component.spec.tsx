@@ -1,4 +1,4 @@
-import { component$, createContextId, type QRL } from '@qwik.dev/core';
+import { component$, createContextId, Slot, type QRL } from '@qwik.dev/core';
 import {
   useContext,
   useContextProvider,
@@ -24,6 +24,31 @@ describe(`${name}: component`, () => {
 
     expect(container.innerHTML).toBe('<p>Hello Qwik</p>');
     expect(html).toBe('<p>Hello Qwik</p>');
+
+    cleanup();
+  });
+
+  it('should forward an onClick$ prop through a wrapper', async () => {
+    const Button = component$<any>(({ onClick$ }: any) => (
+      <button id="btn" onClick$={onClick$}>
+        <Slot />
+      </button>
+    ));
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <div>
+          <Button onClick$={() => count.value++}>go</Button>
+          <span id="count">{count.value}</span>
+        </div>
+      );
+    });
+
+    const { container, qwikLoader, cleanup } = await render(App, { debug });
+
+    expect(container.querySelector('#count')?.textContent).toBe('0');
+    await qwikLoader?.dispatch(container.querySelector('#btn')!, 'click');
+    expect(container.querySelector('#count')?.textContent).toBe('1');
 
     cleanup();
   });

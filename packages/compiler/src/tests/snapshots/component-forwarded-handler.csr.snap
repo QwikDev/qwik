@@ -1,0 +1,133 @@
+==INPUT==
+
+import { component$, Slot } from '@qwik.dev/core';
+export const Button = component$<any>(({ onClick$, href }: any) => {
+  const Tag = href ? 'a' : 'button';
+  return (
+    <Tag href={href} onClick$={onClick$}>
+      <Slot />
+    </Tag>
+  );
+});
+export default component$(() => <Button onClick$={() => console.log('go')}>go</Button>);
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  propSource,
+  readTrackedValue,
+  _props,
+  createSlotScope,
+  forwardSlot,
+  createDynamicTag,
+  createComponent,
+  _qrlWithChunk,
+  registerProjection,
+} from '@qwik.dev/core';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz',
+  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+export const Button = (props, ctx) => {
+  const Tag = props.href ? 'a' : 'button';
+  const slotScope0 = createSlotScope();
+  const prop0 = propSource(props, 'href');
+  const prop1 = propSource(props, 'onClick$');
+  forwardSlot(slotScope0);
+  const component0 = createComponent(
+    (props0) => createDynamicTag(Tag, props0, ctx),
+    _props(
+      {
+        get href() {
+          return readTrackedValue(prop0);
+        },
+        get onClick$() {
+          return readTrackedValue(prop1);
+        },
+      },
+      { href: prop0, onClick$: prop1 }
+    ),
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return component0;
+};
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  const component0 = createComponent(
+    Button,
+    { onClick$: q_component_q_e_click_segment_0_2xwyg1cinvmpz },
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return component0;
+};
+export default default_component_3rg6kq1so9aio;
+
+export { Button as Button_component_12fjhbonwyrlb };
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  return console.log('go');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    285,
+    319
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 = createTemplate('go');
+
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
+  const fragment0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
+  "entry": null,
+  "displayName": "component_slot_render_segment_1",
+  "hash": "3b0tauy2p1nv1",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    320,
+    322
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -70,6 +70,22 @@ export function lowerEventAttribute(
   };
 }
 
+/**
+ * Whether every authored handler is already a value: a callback the compiler extracts, a `$`
+ * marker, or a binding. Anything else has to be evaluated, which only an element can do.
+ */
+export function handlersAreDirect(expression: Expression, ctx: LowerContext): boolean {
+  const entries =
+    expression.type === 'ArrayExpression' ? flattenHandlers(expression) : [expression];
+  return entries.every((entry) => {
+    if (isFunctionLike(entry)) {
+      return true;
+    }
+    const marker = entry.type === 'CallExpression' ? markerQrlCall(entry, ctx) : null;
+    return (marker !== null && marker.marker === undefined) || isStaticHandler(entry, ctx);
+  });
+}
+
 /** A handler that already is one: a local QRL, or a module binding the module keeps in scope. */
 function isStaticHandler(handler: Expression, ctx: LowerContext): boolean {
   if (resolveQrlBinding(handler, ctx) !== null) {

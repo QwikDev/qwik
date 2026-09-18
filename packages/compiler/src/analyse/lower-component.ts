@@ -372,10 +372,17 @@ function lowerQrlProp(expression: Expression, ctx: LowerContext, name: string) {
   return lowerQrlArgument(expression, ctx, propQrlBoundary(expression, name, 'a QRL prop', 'prop'));
 }
 
-export function lowerComponentPropValue(expression: Expression, ctx: LowerContext, name: string) {
-  const use = name.endsWith(QRL_SUFFIX)
-    ? lowerQrlProp(expression, ctx, name)
-    : lowerPropFactory(expression, ctx, name);
+export function lowerComponentPropValue(
+  expression: Expression,
+  ctx: LowerContext,
+  name: string,
+  /** The value already is what the prop takes, so wrapping it in a QRL would only add a chunk. */
+  passThrough = false
+) {
+  const use =
+    name.endsWith(QRL_SUFFIX) && !passThrough
+      ? lowerQrlProp(expression, ctx, name)
+      : lowerPropFactory(expression, ctx, name);
   if (use !== null) {
     return { v: ValueKind.Qrl as const, use };
   }

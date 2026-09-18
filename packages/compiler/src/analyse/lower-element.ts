@@ -15,7 +15,7 @@ import {
 import { escapeText, normalizeAttributeName } from '../html';
 import { UnsupportedError } from '../errors';
 import { eventModifierName, eventScopeName, PASSIVE_PREFIX } from './events';
-import { lowerEventAttribute, qrlAttributeExpression } from './lower-event';
+import { handlersAreDirect, lowerEventAttribute, qrlAttributeExpression } from './lower-event';
 import { isFunctionLike, jsxAttributeName, unwrapExpression } from './ast/utils';
 import {
   lowerExpressionValue,
@@ -273,6 +273,16 @@ export function lowerAttribute(
   }
   const scope = eventScopeName(authored, passiveEvents);
   if (scope !== null) {
+    // On a component an `on*$` value is just a prop: the child's own element attaches it.
+    const forwarded = target === 'component' ? qrlAttributeExpression(attribute) : null;
+    if (forwarded !== null && !handlersAreDirect(forwarded, ctx)) {
+      return {
+        k: PropKind.Dynamic,
+        name: authored,
+        value: lowerComponentPropValue(forwarded, ctx, authored, true),
+        effect: null,
+      };
+    }
     const lowered = lowerEventAttribute(attribute, ctx, authored, scope);
     if (lowered === null) {
       return null;

@@ -334,6 +334,37 @@ export default component$((props: { heading: string }) => (
     expect(output.diagnostics).toMatchObject([{ code: 'raw-text-content' }]);
   });
 
+  test('should keep a dynamic table section beside its static siblings', async () => {
+    const output = await testInput(mode, 'table-dynamic-section', {
+      code: `export default (props: { on: boolean; rows: number[] }) => (
+  <table>
+    <thead>
+      <tr>
+        <th>h</th>
+      </tr>
+    </thead>
+    {props.on ? (
+      <tbody>
+        {props.rows.map((row) => (
+          <tr key={row}>
+            <td>{row}</td>
+          </tr>
+        ))}
+      </tbody>
+    ) : (
+      <></>
+    )}
+    <tfoot>
+      <tr>
+        <td>f</td>
+      </tr>
+    </tfoot>
+  </table>
+);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should build svg and math chunk templates in their namespace', async () => {
     const output = await testInput(mode, 'namespace-chunks', {
       code: `import { component$, useSignal } from '@qwik.dev/core';

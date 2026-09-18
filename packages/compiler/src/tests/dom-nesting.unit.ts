@@ -21,6 +21,9 @@ test.each([
   '<textarea><span /></textarea>',
   '<head><div /></head>',
   '<title>{props.a}<b /></title>',
+  '<div>{props.ok && <li />}</div>',
+  '<div>{props.ok ? <option /> : null}</div>',
+  '<table>{props.ok ? <tbody /> : <tr />}</table>',
 ])('diagnoses nesting the parser would restructure: %s', async (jsx) => {
   const plan = await compile(jsx);
   expect(plan.kind).toBe(ModuleKind.Failed);
@@ -31,6 +34,9 @@ test.each([
 test.each([
   '<table><caption>c</caption><tbody><tr><td /></tr>{props.rows.map((row) => <tr key={row} />)}</tbody></table>',
   '<ul>{props.ok && <li />}</ul>',
+  '<table>{props.ok ? <tbody><tr><td /></tr></tbody> : <></>}</table>',
+  '<table>{props.ok && <tfoot><tr><td /></tr></tfoot>}</table>',
+  '<table><tbody>{props.rows.map((row) => <tr key={row}><td /></tr>)}</tbody></table>',
   '<dl><dt /><dd /></dl>',
   '<p><span>text</span></p>',
   '<select><option /><optgroup><option /></optgroup></select>',

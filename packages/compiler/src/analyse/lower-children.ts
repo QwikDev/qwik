@@ -10,6 +10,7 @@ import {
   SeedKind,
   type Op,
   type Prop,
+  type Range,
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
 import { RAW_TEXT_ELEMENTS, RCDATA_ELEMENTS } from '../html';
@@ -18,6 +19,7 @@ import { lowerText } from './lower-text';
 import { lowerBranch, type BranchArm } from './lower-branch';
 import { unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
+import { checkDomNesting } from './dom-nesting';
 import {
   lowerComputedExpressionValue,
   lowerExpressionValue,
@@ -152,18 +154,64 @@ export function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
       if (child.expression.type === 'JSXEmptyExpression') {
         return [];
       }
-      // The parser would wrap dynamic rows in a `tbody` past the range markers.
-      if (ctx.elementStack.at(-1) === 'table') {
-        throw new InvalidModuleError(
-          'dom-nesting',
-          'Dynamic rows must sit inside <tbody>, <thead> or <tfoot>: the HTML parser would insert a body around them.',
-          [child.start, child.end]
-        );
+      // Every tag the expression can produce answers to the same nesting rules as an authored one.
+      const range: Range = [child.start, child.end];
+      const tags = rootTags(ctx.jsx.read(child.expression));
+      if (tags === null) {
+        // The parser would wrap dynamic rows in a `tbody` past the range markers.
+        if (ctx.elementStack.at(-1) === 'table') {
+          throw new InvalidModuleError(
+            'dom-nesting',
+            'Dynamic rows must sit inside <tbody>, <thead> or <tfoot>: the HTML parser would insert a body around them.',
+            range
+          );
+        }
+      } else {
+        for (const tag of tags) {
+          checkDomNesting(tag, ctx.elementStack, range);
+        }
       }
       return lowerRenderExpression(child.expression, ctx);
     }
     default:
       throw new UnsupportedError(`JSX child ${child.type}`);
+  }
+}
+
+/** The element tags an expression can render, or null when any branch is opaque. */
+function rootTags(value: JsxValue): string[] | null {
+  const union = (parts: readonly (JsxValue | null)[]): string[] | null => {
+    const tags: string[] = [];
+    for (const part of parts) {
+      const found = part === null ? null : rootTags(part);
+      if (found === null) {
+        return null;
+      }
+      tags.push(...found);
+    }
+    return tags;
+  };
+  switch (value.kind) {
+    case JsxValueKind.Empty:
+      return [];
+    case JsxValueKind.Element: {
+      const name = value.node.openingElement.name;
+      // Only a native tag is known here; a component's output is its own business.
+      return name.type === 'JSXIdentifier' && /^[a-z]/.test(name.name) ? [name.name] : null;
+    }
+    case JsxValueKind.Fragment:
+      return union(value.children);
+    case JsxValueKind.Conditional:
+      return union([value.then, value.else]);
+    case JsxValueKind.Logical:
+      // `a && b` renders only `b`; its left side is the test, not content.
+      return value.node.operator === '&&'
+        ? rootTags(value.right)
+        : union([value.left, value.right]);
+    case JsxValueKind.Collection:
+      return value.row === null ? null : rootTags(value.row);
+    default:
+      return null;
   }
 }
 

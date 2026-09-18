@@ -680,6 +680,15 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   chromium e2e unable to start because the e2e web server builds the apps through the linked
   build, which stops on server-only stripping (plan step 9). Verification: 1204 pipeline tests,
   corpus in CSR and resume green, vite plugin tests at the four pre-existing failures.
+- 2026-09-18: Cutover plan step 5, the linker. `linkPlans` is an orchestrator over three phases that
+  pass an explicit `Resolution` instead of sharing one closure: `resolve.ts` (edges, imports, binding
+  and export resolution, with the shared `unknown`/`sameDecl` helpers), `materialize.ts` (ops gain
+  resolved declarations, programs their linked facts) and `reachability.ts` (entry roots and the
+  walk). `render-results.ts` stays one file, deliberately: `evaluate`, `readBinding`,
+  `consumerMutationKinds` and `mutationKinds` are mutually recursive, and the phases before them
+  write into the maps the first one builds, so a split would need a late-bound query object and
+  property calls on the linker's hottest path. Verification: 1204 compiler tests with every snapshot
+  byte-unchanged, corpus in CSR and resume green.
 - 2026-09-18: Cutover plan step 5, the responsibility map, first four splits (pure moves; every
   snapshot byte-unchanged). Both name allocators live in the root `names.ts`, since `analyse/` uses
   one of them; `lower-hole.ts` is `lower-text.ts`; the two `type-results.ts` are `type-contracts.ts`

@@ -3,7 +3,6 @@ import {
   createContextId,
   event$,
   // isServer,
-  jsx,
   // SkipRender,
   Slot,
   untrack,
@@ -649,14 +648,10 @@ export const ForLoopItemsAccumulateIssue3643 = component$(() => {
         Toggle
       </button>
       <div id="issue-3643-result">
-        {toggle.value
-          ? jsx('div', { children: 'World' })
-          : jsx('div', { dangerouslySetInnerHTML: 'Hello' })}
+        {toggle.value ? <div>World</div> : <div dangerouslySetInnerHTML="Hello" />}
       </div>
       <div id="issue-3643-result-2">
-        {toggle.value
-          ? jsx('div', { children: 'World' })
-          : jsx('div', { dangerouslySetInnerHTML: 'Hello' })}
+        {toggle.value ? <div>World</div> : <div dangerouslySetInnerHTML="Hello" />}
       </div>
     </div>
   );

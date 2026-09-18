@@ -11,7 +11,7 @@ const appsRoot = resolve(__dirname, '../../../../e2e/qwik-e2e/apps');
  * a later cutover step owns. Shrinking this list is the metric; a new entry needs a hand edit.
  */
 const KNOWN_REJECTS: Record<string, string | { reason: string; isServer: boolean }> = {
-  'e2e/src/components/render/render.tsx': 'runtime-jsx-call',
+  'e2e/src/components/render/render.tsx': 'dom-nesting',
   'e2e/src/components/streaming/demo.tsx': 'children-function',
   'e2e/src/components/streaming/streaming.tsx': 'children-function',
   'perf.prod/src/components/component-impl/index.tsx':

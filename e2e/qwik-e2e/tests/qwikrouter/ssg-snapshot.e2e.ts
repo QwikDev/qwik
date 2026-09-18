@@ -60,6 +60,10 @@ test.describe('router ssg snapshot', () => {
       /"loaderPaths"\s+Object \[\s+\{string\} "[^"]+"\s+\{string\} "\/"/
     );
 
+    expect(normalizedState).not.toMatch(
+      /\{string\} "(?:client|routeLoaderIds|committed|navigationKey)"/
+    );
+
     let expectedHtml = (await readFile(expectedHtmlPath, 'utf-8').catch(() => '')).replace(
       /\r\n/g,
       '\n'

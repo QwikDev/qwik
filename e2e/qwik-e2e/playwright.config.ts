@@ -38,7 +38,9 @@ const config: PlaywrightTestConfig = {
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   testIgnore: /.*example.spec.tsx?$/,
-  retries: 1,
+  // Locally a failure is a result, not something to wait out or paper over with a rerun.
+  timeout: inGithubCI ? 30000 : 10000,
+  retries: inGithubCI ? 1 : 0,
   expect: { timeout: inGithubCI ? 120000 : 3000 },
   outputDir: '../../test-results/',
   webServer: {

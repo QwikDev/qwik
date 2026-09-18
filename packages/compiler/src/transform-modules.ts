@@ -23,7 +23,7 @@ import {
   type Diagnostic,
   type Specialization,
   type ModulePlan,
-  JsHoles,
+  PlanEngine,
 } from './schema';
 
 /** @internal */
@@ -51,7 +51,7 @@ export async function transformModules(options: TransformModulesOptions): Promis
       regCtxName: options.regCtxName ?? [],
     },
     ...(options.buildConstants === undefined ? {} : { constants: options.buildConstants }),
-    ...(options.jsHoles === undefined ? {} : { jsHoles: options.jsHoles as JsHoles }),
+    ...(options.engine === undefined ? {} : { engine: options.engine as PlanEngine }),
   };
   const entries: LinkEntry[] = options.input.map((input) => ({
     kind: EntryKind.Module,

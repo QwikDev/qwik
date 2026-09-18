@@ -30,9 +30,10 @@ import type {
   Qrl,
 } from './module-plan';
 
-export const enum JsHoles {
-  Allow = 'allow',
-  Forbid = 'forbid',
+/** What will execute the plan. Only a native engine cares that a body is JavaScript text. */
+export const enum PlanEngine {
+  Js = 'js',
+  Native = 'native',
 }
 
 export interface Specialization {
@@ -50,8 +51,8 @@ export interface Specialization {
   };
   /** Boolean values the host defines, from vite env and `define`; a missing name stays a read. */
   constants?: Readonly<Record<string, boolean>>;
-  /** Whether authored JavaScript may still stand in for what the server runs. */
-  jsHoles?: JsHoles;
+  /** Defaults to the JavaScript engine, which runs authored text as happily as IR. */
+  engine?: PlanEngine;
 }
 
 export interface DeclRef {

@@ -1,14 +1,15 @@
 /**
- * A hole is authored JavaScript the plan carries as text. The JS generators paste it back, so it
- * costs them nothing; an engine that is not JavaScript cannot run it at all. Client-only code stays
- * text by design, so only what the server reaches counts.
+ * A body the plan carries as JavaScript text rather than IR. A JavaScript engine runs it as happily
+ * as anything else, so it says nothing there. A native engine has to fall back to an embedded
+ * JavaScript runtime for it, which is slower and less portable, so it is warned about.
+ *
+ * The author's own answer to a warning is `native$`, which describes the body for that engine.
  */
-import { eventScopeName } from '../analyse/events';
 import {
   BoundaryKind,
   DiagnosticCategory,
   Environment,
-  JsHoles,
+  PlanEngine,
   QrlBodyKind,
   SetupKind,
   type Diagnostic,
@@ -17,7 +18,10 @@ import {
   type Specialization,
 } from '../schema';
 
-/** Boundaries only the browser runs: their bodies never reach a server engine. */
+/** Roles the server never opens: it writes the symbol into the HTML and the browser runs the body. */
+const SERIALIZED_ONLY = new Set(['event', 'prop', 'slot', 'projection']);
+
+/** Markers whose role does not say it: they wrap a handler, so only the browser runs the body. */
 const CLIENT_ONLY_HOOKS = new Set([
   'useVisibleTask$',
   'useOn$',
@@ -28,7 +32,7 @@ const CLIENT_ONLY_HOOKS = new Set([
 
 export function reportJsHoles(modules: LinkedModule[], specialization: Specialization): void {
   if (
-    specialization.jsHoles !== JsHoles.Forbid ||
+    specialization.engine !== PlanEngine.Native ||
     specialization.environment !== Environment.Server
   ) {
     return;
@@ -50,17 +54,21 @@ export function reportJsHoles(modules: LinkedModule[], specialization: Specializ
 }
 
 function isServerReachable(qrl: LinkedQrl): boolean {
-  if (CLIENT_ONLY_HOOKS.has(qrl.ctxName) || eventScopeName(qrl.ctxName) !== null) {
+  // A sync handler exists to run in the browser before anything loads.
+  if (qrl.boundary.kind === BoundaryKind.Sync) {
     return false;
   }
-  return qrl.boundary.kind !== BoundaryKind.Implicit || qrl.boundary.role !== 'event';
+  if (qrl.boundary.kind !== BoundaryKind.Implicit) {
+    return true;
+  }
+  return !SERIALIZED_ONLY.has(qrl.boundary.role) && !CLIENT_ONLY_HOOKS.has(qrl.ctxName);
 }
 
 function hole(construct: string, span: Diagnostic['span']): Diagnostic {
   return {
     code: 'js-hole',
-    message: `${construct} is carried as JavaScript text, which only a JavaScript engine can run.`,
+    message: `${construct} is JavaScript text, so this engine falls back to a JavaScript runtime for it. Describe it with native$ to avoid that.`,
     span,
-    category: DiagnosticCategory.Error,
+    category: DiagnosticCategory.Warning,
   };
 }

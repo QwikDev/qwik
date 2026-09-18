@@ -1,11 +1,12 @@
 /**
- * A hole is authored JavaScript the plan carries as text. Under `forbid` the link names every one
- * the server reaches, which is the number step 10 drives down; client-only bodies stay text.
+ * A body carried as JavaScript text costs a JavaScript engine nothing and costs a native one an
+ * embedded runtime, so only a native target hears about it. `native$` is the author's answer.
  */
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
 
 const SOURCE = `import { component$, useComputed$, useTask$, useVisibleTask$, useSignal } from '@qwik.dev/core';
+import { Button } from './button';
 export default component$(() => {
   const count = useSignal(0);
   const doubled = useComputed$(() => count.value * 2);
@@ -15,18 +16,22 @@ export default component$(() => {
   useVisibleTask$(() => {
     observe(document.title);
   });
-  return <button onClick$={() => count.value++}>{doubled.value}</button>;
+  return (
+    <div onClick$={() => count.value++}>
+      <Button click$={() => count.value++}>{doubled.value}</Button>
+    </div>
+  );
 });
 `;
 
-async function holes(isServer: boolean, jsHoles?: 'forbid') {
+async function holes(isServer: boolean, engine?: 'native') {
   const output = await transformModules({
     srcDir: 'src',
     sourceMaps: false,
     transpileTs: true,
     transpileJsx: true,
     isServer,
-    ...(jsHoles === undefined ? {} : { jsHoles }),
+    ...(engine === undefined ? {} : { engine }),
     input: [{ path: 'src/app.tsx', code: SOURCE }],
   });
   return output.diagnostics
@@ -35,24 +40,26 @@ async function holes(isServer: boolean, jsHoles?: 'forbid') {
 }
 
 describe('js holes', () => {
-  test('names every body the server reaches', async () => {
-    const reported = await holes(true, 'forbid');
+  test('names every body the server reaches, as a warning', async () => {
+    const reported = await holes(true, 'native');
 
     expect(reported).toHaveLength(2);
+    expect(reported.join('\n')).toContain('native$');
     expect(reported.join('\n')).toContain('useComputed$');
     expect(reported.join('\n')).toContain('useTask$');
   });
 
   test('leaves the browser its own bodies', async () => {
-    const reported = (await holes(true, 'forbid')).join('\n');
+    const reported = (await holes(true, 'native')).join('\n');
 
-    // an event handler and a visible task only ever run where there is a document
+    // the server writes these into the HTML and the browser runs them, whatever they are called
     expect(reported).not.toContain('onClick$');
+    expect(reported).not.toContain('click$');
     expect(reported).not.toContain('useVisibleTask$');
   });
 
-  test('says nothing unless asked, and nothing for the browser', async () => {
+  test('says nothing to a javascript engine, nor about the browser', async () => {
     expect(await holes(true)).toEqual([]);
-    expect(await holes(false, 'forbid')).toEqual([]);
+    expect(await holes(false, 'native')).toEqual([]);
   });
 });

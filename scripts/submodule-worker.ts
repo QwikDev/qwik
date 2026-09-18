@@ -31,12 +31,7 @@ export async function submoduleWorker(config: BuildConfig) {
         fileName: () => 'index.mjs',
       },
       rolldownOptions: {
-        external: [
-          /^@qwik\.dev\/core(?:\/|$)/,
-          './worker.js?worker&url',
-          './worker.node.js?worker&url',
-          'node:worker_threads',
-        ],
+        external: [/^@qwik\.dev\/core(?:\/|$)/, 'node:worker_threads'],
       },
     },
     plugins: [preserveWorkerImports(), qwikVite({ srcDir: 'src/web-worker' })],
@@ -56,16 +51,17 @@ export async function submoduleWorker(config: BuildConfig) {
   console.log('🧵', submodule);
 }
 
+/**
+ * The worker files ship beside the entry and the consumer's bundler emits them. A relative
+ * specifier would be read against whichever chunk imports it, so it names the package instead.
+ */
 function preserveWorkerImports(): Plugin {
   return {
     name: 'preserve-worker-imports',
     enforce: 'pre',
     resolveId(id) {
       if (id === './worker.js?worker&url' || id === './worker.node.js?worker&url') {
-        return {
-          id,
-          external: true,
-        };
+        return { id: `@qwik.dev/core/worker/${id.slice(2)}`, external: true };
       }
       return null;
     },

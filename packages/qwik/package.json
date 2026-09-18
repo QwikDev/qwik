@@ -115,6 +115,7 @@
       "types": "./worker.d.ts",
       "import": "./dist/worker/index.mjs"
     },
+    "./worker/*": "./dist/worker/*",
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
     "./package.json": "./package.json"

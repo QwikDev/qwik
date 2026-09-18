@@ -52,7 +52,6 @@ test('linking keeps import dependencies reachable through QRL uses', async () =>
         ),
       },
     },
-    { claims: [], policies: [], emissions: [] },
     true
   );
   expect(linked.kind).toBe(LinkResultKind.Linked);

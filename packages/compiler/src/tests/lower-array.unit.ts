@@ -73,14 +73,7 @@ describe('lowerArray / reactive rows', () => {
       const { ctx } = lower(
         `<ul>{${source}.map(({ id, title = id } = items.value, index = 10) => <li key={id}>{index}:{title}</li>)}</ul>`
       );
-      const linked = linkPlans(
-        [ctx.plan],
-        [],
-        serverSpecialization(),
-        { edges: {} },
-        { claims: [], policies: [], emissions: [] },
-        false
-      );
+      const linked = linkPlans([ctx.plan], [], serverSpecialization(), { edges: {} }, false);
       if (linked.kind === LinkResultKind.Failed) {
         throw new Error('expected the fixture to link');
       }
@@ -130,14 +123,7 @@ describe('lowerArray / reactive rows', () => {
       const { ctx } = lower(
         `<ul>{${source}.map(({ [items.value.field]: label = items.value.fallback, copy = label, ...rest }) => <li>{copy}</li>)}</ul>`
       );
-      const linked = linkPlans(
-        [ctx.plan],
-        [],
-        serverSpecialization(),
-        { edges: {} },
-        { claims: [], policies: [], emissions: [] },
-        false
-      );
+      const linked = linkPlans([ctx.plan], [], serverSpecialization(), { edges: {} }, false);
       if (linked.kind === LinkResultKind.Failed) {
         throw new Error('expected the fixture to link');
       }
@@ -369,14 +355,7 @@ describe('lowerArray / reactive rows', () => {
         const {} = rest.touch();
         return <li>{label}</li>;
       })}</ul>`);
-      const linked = linkPlans(
-        [ctx.plan],
-        [],
-        serverSpecialization(),
-        { edges: {} },
-        { claims: [], policies: [], emissions: [] },
-        false
-      );
+      const linked = linkPlans([ctx.plan], [], serverSpecialization(), { edges: {} }, false);
       if (linked.kind === LinkResultKind.Failed) {
         throw new Error('expected the fixture to link');
       }

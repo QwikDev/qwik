@@ -50,7 +50,6 @@ test('keeps linked content QRL identity across library relocation and compilatio
             ),
           },
         },
-        { claims: [], policies: [], emissions: [] },
         true
       );
       if (linked.kind !== LinkResultKind.Linked) {
@@ -180,7 +179,6 @@ test('resolves generic imported contracts after library relocation', async () =>
     artifact.entries,
     serverSpecialization(),
     artifact.resolver,
-    { claims: [], policies: [], emissions: [] },
     true
   );
   expect(linked.kind).toBe(LinkResultKind.Linked);

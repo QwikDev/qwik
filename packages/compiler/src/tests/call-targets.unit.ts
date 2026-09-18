@@ -63,7 +63,6 @@ test.each([Environment.Server, Environment.Browser])(
             [input.path]: { 0: { r: ResolutionKind.External }, 1: { r: ResolutionKind.External } },
           },
         },
-        { claims: [], policies: [], emissions: [] },
         true
       );
     const original = link(plan);

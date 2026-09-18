@@ -203,7 +203,6 @@ async function linkedValues(): Promise<Set<string>> {
           ),
         },
       },
-      { claims: [], policies: [], emissions: [] },
       false
     );
     if (linked.kind === LinkResultKind.Linked) {

@@ -128,14 +128,7 @@ const title = format(label), suffix = rest.suffix;
 const signal = useSignal(count), snapshot = signal.value;
 `);
   expect(locals.get(count)?.kind).toBe(LocalKind.Const);
-  const linked = linkPlans(
-    [ctx.plan],
-    [],
-    serverSpecialization(),
-    { edges: {} },
-    { claims: [], policies: [], emissions: [] },
-    false
-  );
+  const linked = linkPlans([ctx.plan], [], serverSpecialization(), { edges: {} }, false);
   if (linked.kind === LinkResultKind.Failed) {
     throw new Error('expected a linked module');
   }

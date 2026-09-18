@@ -55,14 +55,7 @@ export async function transformModules(options: TransformModulesOptions): Promis
     kind: EntryKind.Module,
     module: input.path,
   }));
-  const linked = linkPlans(
-    plans,
-    entries,
-    specialization,
-    resolveInputEdges(plans),
-    { claims: [], policies: [], emissions: [] },
-    false
-  );
+  const linked = linkPlans(plans, entries, specialization, resolveInputEdges(plans), false);
   if (linked.kind === LinkResultKind.Failed) {
     throw new Error(`pipeline link failed: ${linked.diagnostics.map((d) => d.message).join('; ')}`);
   }

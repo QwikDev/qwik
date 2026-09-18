@@ -156,7 +156,6 @@ export default (props) => {
     [{ kind: EntryKind.Module, module: plan.path }],
     serverSpecialization(),
     { edges: { [plan.path]: { 0: { r: ResolutionKind.External } } } },
-    { claims: [], policies: [], emissions: [] },
     true
   );
   expect(result.kind).toBe(LinkResultKind.Linked);

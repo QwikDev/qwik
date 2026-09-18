@@ -13,7 +13,6 @@ export {
   ResolutionKind,
   SideEffects,
   type LinkEntry,
-  type PluginSnapshot,
   type ResolverSnapshot,
 } from './link/link-plans';
 export { generateJsCsr } from './generate/js-csr';

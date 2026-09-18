@@ -45,25 +45,6 @@ export interface ResolverSnapshot {
   >;
 }
 
-export interface PluginSnapshot {
-  claims: { plugin: string; module: string; exports: string[] | '*' }[];
-  policies: {
-    plugin: string;
-    stripCtxName?: string[];
-    regCtxName?: string[];
-    stripEventHandlers?: boolean;
-  }[];
-  emissions: {
-    plugin: string;
-    fnId: string;
-    language: string;
-    argCount: number;
-    async: boolean;
-    files: { path: string; source: string }[];
-    dependencies: Record<string, string>;
-  }[];
-}
-
 export type LinkEntry =
   | { kind: EntryKind.Module; module: string; exposeExports?: boolean }
   | { kind: EntryKind.Export; module: string; export: string };
@@ -78,10 +59,8 @@ export function linkPlans(
   entries: readonly LinkEntry[],
   specialization: Specialization,
   resolver: ResolverSnapshot,
-  plugins: PluginSnapshot,
   complete: boolean
 ): LinkResult {
-  void plugins;
   const diagnostics: LinkDiagnostic[] = [];
   const moduleByPath = new Map<string, number>();
   plans.forEach((plan, index) => {

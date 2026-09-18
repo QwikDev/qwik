@@ -159,7 +159,6 @@ export default () => {
       [{ kind: EntryKind.Module, module: 'src/util.js' }],
       serverSpecialization(),
       { edges: {} },
-      { claims: [], policies: [], emissions: [] },
       true
     );
     expect(linked.kind).toBe(LinkResultKind.Linked);
@@ -177,7 +176,6 @@ export default () => {
       [{ kind: EntryKind.Module, module: 'src/missing.ts' }],
       serverSpecialization(),
       { edges: {} },
-      { claims: [], policies: [], emissions: [] },
       true
     );
     expect(linked.kind).toBe(LinkResultKind.Failed);
@@ -193,7 +191,6 @@ export default () => {
         strip: { exports: [], ctxName: [], regCtxName: [] },
       },
       { edges: {} },
-      { claims: [], policies: [], emissions: [] },
       false
     );
     if (linked.kind !== LinkResultKind.Linked) {

@@ -571,7 +571,6 @@ test('captured parameter plans survive serialization and immutable linking', asy
     [{ kind: EntryKind.Module, module: plan.path }],
     serverSpecialization(),
     { edges: {} },
-    { claims: [], policies: [], emissions: [] },
     true
   );
   expect(linked.kind).toBe(LinkResultKind.Linked);

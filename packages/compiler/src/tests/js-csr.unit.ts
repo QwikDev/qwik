@@ -50,7 +50,6 @@ test('emits mixed multi-root programs as an array', async () => {
       strip: { exports: [], ctxName: [], regCtxName: [] },
     },
     { edges: {} },
-    { claims: [], policies: [], emissions: [] },
     false
   );
   if (linked.kind === LinkResultKind.Failed) {

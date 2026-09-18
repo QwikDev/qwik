@@ -14,8 +14,6 @@ import {
 } from '../schema';
 import { deepFreeze, serverSpecialization } from './fixtures';
 
-const plugins = { claims: [], policies: [], emissions: [] };
-
 const resolved = (path: string) => ({
   r: ResolutionKind.Resolved as const,
   path,
@@ -70,7 +68,6 @@ export function Wrapper() { return <Child />; }`
         [{ kind: EntryKind.Export, module: app.path, export: 'Wrapper' }],
         serverSpecialization(),
         { edges: { [app.path]: { 0: resolved(child.path) } } },
-        plugins,
         true
       );
       expect(result.kind).toBe(LinkResultKind.Linked);
@@ -106,7 +103,6 @@ export default () => <Child />;`
         })),
         serverSpecialization(),
         { edges: {} },
-        plugins,
         true
       );
       expect(result.kind).toBe(LinkResultKind.Linked);
@@ -141,10 +137,10 @@ export default () => <Child />;`
     const plans = deepFreeze([app, child]);
     const entries = [{ kind: EntryKind.Export as const, module: app.path, export: 'default' }];
     const resolver = { edges: { [app.path]: { 0: resolved(child.path) } } };
-    expect(linkPlans(plans, [], serverSpecialization(), resolver, plugins, true).kind).toBe(
+    expect(linkPlans(plans, [], serverSpecialization(), resolver, true).kind).toBe(
       LinkResultKind.Linked
     );
-    const incomplete = linkPlans(plans, entries, serverSpecialization(), resolver, plugins, false);
+    const incomplete = linkPlans(plans, entries, serverSpecialization(), resolver, false);
     expect(incomplete.kind).toBe(LinkResultKind.Linked);
     if (incomplete.kind !== LinkResultKind.Linked) {
       return;
@@ -155,9 +151,7 @@ export default () => <Child />;`
         reason: { why: UnknownWhy.Opaque, code: 'ambiguous-local-binding' },
       },
     });
-    expect(
-      linkPlans(plans, entries, serverSpecialization(), resolver, plugins, true)
-    ).toMatchObject({
+    expect(linkPlans(plans, entries, serverSpecialization(), resolver, true)).toMatchObject({
       kind: LinkResultKind.Failed,
       diagnostics: [{ code: 'ambiguous-local-binding' }],
     });
@@ -176,7 +170,6 @@ export default () => <Child />;`
           'src/app.tsx': { 0: resolved('src/child.tsx') },
         },
       },
-      plugins,
       true
     );
 
@@ -229,7 +222,6 @@ export default () => <Child />;`
       [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
       serverSpecialization(),
       { edges: {} },
-      plugins,
       false
     );
 
@@ -250,7 +242,6 @@ export default () => <Child />;`
       [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
       serverSpecialization(),
       { edges: {} },
-      plugins,
       true
     );
 
@@ -268,7 +259,7 @@ export default () => <Child />;`
 
   test('rejects duplicate module paths deterministically', async () => {
     const [app] = await crossModulePlans();
-    const result = linkPlans([app, app], [], serverSpecialization(), { edges: {} }, plugins, true);
+    const result = linkPlans([app, app], [], serverSpecialization(), { edges: {} }, true);
     expect(result).toEqual({
       kind: LinkResultKind.Failed,
       diagnostics: [
@@ -311,7 +302,6 @@ export default () => <Wrapper><p>Projected</p></Wrapper>;
           [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
           serverSpecialization(),
           { edges: {} },
-          plugins,
           complete
         )
       ).toEqual({
@@ -352,7 +342,6 @@ export default () => <section><Slot><p>Fallback</p></Slot></section>;
           [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
           serverSpecialization(),
           { edges: {} },
-          plugins,
           complete
         )
       ).toEqual({
@@ -392,7 +381,6 @@ export default (props) => <Slot name={props.name} />;
           [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
           serverSpecialization(),
           { edges: {} },
-          plugins,
           complete
         )
       ).toEqual({
@@ -431,7 +419,6 @@ export default () => <main><Child /></main>;
           },
         },
       },
-      plugins,
       true
     );
     expect(result.kind).toBe(LinkResultKind.Linked);
@@ -475,7 +462,6 @@ export default () => <main><Child /></main>;
           'src/barrel.ts': { 0: resolved('src/child.tsx') },
         },
       },
-      plugins,
       true
     );
     expect(result.kind).toBe(LinkResultKind.Linked);
@@ -511,7 +497,6 @@ export default () => <main><Child /></main>;
           'src/b.ts': { 0: resolved('src/a.ts') },
         },
       },
-      plugins,
       true
     );
     expect(result).toMatchObject({
@@ -548,7 +533,6 @@ export * from './two';
           },
         },
       },
-      plugins,
       true
     );
     expect(result).toMatchObject({
@@ -565,7 +549,6 @@ export * from './two';
       [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
       serverSpecialization(),
       { edges: { 'src/app.tsx': { 0: resolved('src/child.tsx') } } },
-      plugins,
       true
     );
     expect(missing).toMatchObject({
@@ -578,7 +561,6 @@ export * from './two';
       [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
       serverSpecialization(),
       { edges: { 'src/app.tsx': { 0: { r: ResolutionKind.External } } } },
-      plugins,
       true
     );
     expect(external.kind).toBe(LinkResultKind.Linked);
@@ -592,7 +574,6 @@ export * from './two';
       [{ kind: EntryKind.Export, module: 'src/entry.tsx', export: 'default' }],
       serverSpecialization(),
       { edges: {} },
-      plugins,
       true
     );
     expect(result.kind).toBe(LinkResultKind.Linked);

@@ -198,7 +198,6 @@ export function createLinkedBuild() {
         ...(config.buildConstants === undefined ? {} : { constants: config.buildConstants }),
       },
       resolver,
-      { claims: [], policies: [], emissions: [] },
       true
     );
     if (linked.kind === LinkResultKind.Failed) {

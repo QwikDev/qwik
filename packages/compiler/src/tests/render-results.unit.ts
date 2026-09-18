@@ -35,7 +35,6 @@ async function link(source: string, library?: string | { path: string; code: str
         ])
       ),
     },
-    { claims: [], policies: [], emissions: [] },
     true
   );
   expect(result.kind, JSON.stringify(result)).toBe(LinkResultKind.Linked);

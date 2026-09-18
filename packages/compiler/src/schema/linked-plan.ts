@@ -30,6 +30,11 @@ import type {
   Qrl,
 } from './module-plan';
 
+export const enum JsHoles {
+  Allow = 'allow',
+  Forbid = 'forbid',
+}
+
 export interface Specialization {
   environment: Environment;
   mode: BuildMode;
@@ -45,6 +50,8 @@ export interface Specialization {
   };
   /** Boolean values the host defines, from vite env and `define`; a missing name stays a read. */
   constants?: Readonly<Record<string, boolean>>;
+  /** Whether authored JavaScript may still stand in for what the server runs. */
+  jsHoles?: JsHoles;
 }
 
 export interface DeclRef {

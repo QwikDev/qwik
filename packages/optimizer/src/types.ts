@@ -54,6 +54,8 @@ export interface TransformOptions {
   isServer?: boolean;
   /** Boolean values the host defines, keyed by `import.meta.env` name. */
   buildConstants?: Readonly<Record<string, boolean>>;
+  /** `forbid` reports every server-reachable body the plan still carries as JavaScript text. */
+  jsHoles?: 'allow' | 'forbid';
 }
 
 /** @public */

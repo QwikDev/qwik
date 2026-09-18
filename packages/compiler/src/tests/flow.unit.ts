@@ -251,20 +251,11 @@ ${prefix === 'export default ' ? '' : 'export default () => <main />;'}`,
     }
   );
 
-  test.each(['function*', 'async function'])(
-    'rejects unsupported function component execution: %s',
-    async (declaration) => {
-      await expect(
-        analyseModule(
-          {
-            path: 'src/app.tsx',
-            code: `export ${declaration} App() { return <p />; }`,
-          },
-          {}
-        )
-      ).rejects.toThrow('an async or generator component function');
-    }
-  );
+  test('rejects a generator component function', async () => {
+    await expect(
+      analyseModule({ path: 'src/app.tsx', code: 'export function* App() { return <p />; }' }, {})
+    ).rejects.toThrow('a generator component function');
+  });
 
   test.each([true, false])(
     'initializes function component hoists before authored calls: SSR=%s',

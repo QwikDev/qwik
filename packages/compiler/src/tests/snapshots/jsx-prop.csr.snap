@@ -45,6 +45,7 @@ import {
   _next,
   createCollection,
   _toNodes,
+  maybeThen,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Display } from './display';
@@ -84,7 +85,8 @@ export function Rows(props, ctx) {
       { fallback: q_component_jsx_segment_4_38vnl4ypf6sea.w([row]) },
       ctx
     );
-    _first(el0).replaceWith(..._toNodes(component0));
+    const marker0 = _first(el0);
+    maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
     return el0;
   }
   createCollection(

@@ -25,8 +25,8 @@ import {
   createTextNodeEffect,
   createComponent,
   _toNodes,
-  getActiveInvokeContextOrNull,
   maybeThen,
+  getActiveInvokeContextOrNull,
   invoke,
 } from '@qwik.dev/core';
 import { component_useTaskqrl_segment_0_1og80iqmttt5c } from './component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c';
@@ -48,7 +48,8 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
       const effect0 = createTextNodeEffect(text0, ready, ctx.scheduler);
       ctx.scheduler.notify(effect0);
       const component0 = createComponent(Child, null, ctx);
-      _last(el0).replaceWith(..._toNodes(component0));
+      const marker0 = _last(el0);
+      maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
       return el0;
     })
   );

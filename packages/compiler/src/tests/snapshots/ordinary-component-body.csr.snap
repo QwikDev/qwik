@@ -50,6 +50,7 @@ import {
   _prev,
   createComponent,
   _toNodes,
+  maybeThen,
   setEvent,
   createTextNodeEffect,
   createContextId,
@@ -97,9 +98,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
       const el1 = _prev(_last(el0));
       const el2 = _last(el0);
       const component0 = createComponent(Header, null, ctx);
-      _first(el0).replaceWith(..._toNodes(component0));
-      const component1 = createComponent(Child, null, ctx);
-      marker0.replaceWith(..._toNodes(component1));
+      const marker1 = _first(el0);
+      maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
+      const component2 = createComponent(Child, null, ctx);
+      maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
       setEvent(el1, 'q-e:click', increment);
       setEvent(el2, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [
         label,

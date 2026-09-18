@@ -77,7 +77,8 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([show]));
   registerProjection(slotScope0, '', q_component_slot_render_segment_6_3b0t84qbb79rc.w([show]));
   const component0 = createComponent(Host, null, ctx, { slotScope: slotScope0 });
-  _first(fragment0).replaceWith(..._toNodes(component0));
+  const marker0 = _first(fragment0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
   const start0 = _first(el0);
   const end0 = _next(start0);
   const branch0 = createBranch(

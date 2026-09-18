@@ -32,6 +32,7 @@ import {
   _props,
   createComponent,
   _toNodes,
+  maybeThen,
   createTextExpressionEffect,
   _createElementTemplate,
   useSignal,
@@ -70,7 +71,8 @@ export const Card = (props, ctx) => {
     ),
     ctx
   );
-  _next(_first(el0)).replaceWith(..._toNodes(component0));
+  const marker0 = _next(_first(el0));
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
   const text1 = _first(el1);
   const effect2 = createTextExpressionEffect(
     text1,

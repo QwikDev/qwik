@@ -21,6 +21,7 @@ import {
   _qrlWithChunk,
   createComponent,
   _toNodes,
+  maybeThen,
 } from '@qwik.dev/core';
 import { component_onClickqrl_segment_0_3rzjkie0i362z } from './component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z';
 import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
@@ -54,7 +55,8 @@ export const default_component_3rg6kq1so9aio = (input, ctx) => {
     { onSave$: q_component_q_e_save_segment_2_3krcacnjwdae8.w([input]) },
     ctx
   );
-  _last(el0).replaceWith(..._toNodes(component0));
+  const marker0 = _last(el0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
   return el0;
 };
 export default default_component_3rg6kq1so9aio;

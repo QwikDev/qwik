@@ -19,7 +19,7 @@ export interface LoweredComponentBody {
 }
 
 export function lowerComponentBody(
-  component: Pick<DiscoveredComponent, 'param' | 'setupStatements' | 'renderExpression'>,
+  component: Pick<DiscoveredComponent, 'param' | 'setupStatements' | 'renderExpression' | 'fn'>,
   ctx: LowerContext,
   /** Bindings a nested component closes over — locals of its setup from the start. */
   capturedLocals: SetupLocals = new Map()
@@ -34,6 +34,7 @@ export function lowerComponentBody(
     new Map([...capturedLocals, ...loweredParameter.locals])
   );
   ctx.locals = setup.locals;
+  recordSetupAwaits(ctx, component.fn);
   const rootOps =
     component.renderExpression === null
       ? []
@@ -44,7 +45,7 @@ export function lowerComponentBody(
     params: [],
     lifetime: 0,
     needsId: false,
-    async: false,
+    async: component.fn.async === true,
   });
   if (component.param !== null) {
     plan.payloads.push({
@@ -65,6 +66,26 @@ export function lowerComponentBody(
         ? null
         : { pattern: plan.payloads.length - 1, surface: loweredParameter.surface },
   };
+}
+
+/** An authored await lands on the payload that prints it: the innermost one holding it. */
+export function recordSetupAwaits(ctx: LowerContext, fn: DiscoveredComponent['fn']): void {
+  for (const node of ctx.bindings.awaitsOf(fn)) {
+    let target: (typeof ctx.plan.payloads)[number] | null = null;
+    for (const payload of ctx.plan.payloads) {
+      const [start, end] = payload.range;
+      if (start > node.start || end < node.end) {
+        continue;
+      }
+      if (target === null || end - start < target.range[1] - target.range[0]) {
+        target = payload;
+      }
+    }
+    target?.awaits.push({
+      range: [node.start, node.end],
+      argumentRange: [node.argument.start, node.argument.end],
+    });
+  }
 }
 
 function diagnoseChildrenReads(ctx: LowerContext): void {

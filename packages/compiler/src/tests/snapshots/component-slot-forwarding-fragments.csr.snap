@@ -52,9 +52,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, 'heading', q_component_slot_render_segment_1_3b0tauy2p1nv1);
   const component0 = createComponent(Wrapper, null, ctx, { slotScope: slotScope0 });
-  _first(el0).replaceWith(..._toNodes(component0));
-  const component1 = createComponent(Wrapper, null, ctx);
-  marker0.replaceWith(..._toNodes(component1));
+  const marker1 = _first(el0);
+  maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
+  const component2 = createComponent(Wrapper, null, ctx);
+  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
   return el0;
 };
 export default default_component_3rg6kq1so9aio;

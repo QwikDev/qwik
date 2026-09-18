@@ -57,10 +57,14 @@ const coreCallNames: Record<CoreOperation, { qrl: QwikHook; fn: QwikHook }> = {
  */
 export function parameterDefaults(
   module: LinkedModule,
-  program: { setup: LinkedModule['programs'][number]['setup'] },
+  program: { setup: LinkedModule['programs'][number]['setup']; async?: boolean },
   imports: Set<string>,
   emitQrl: EmitQrl
 ): string[] {
+  // An async body's awaits are spliced through the helper wherever they sit in the setup.
+  if (program.async === true && module.payloads.some((payload) => payload.awaits.length > 0)) {
+    imports.add(QwikWord.Await);
+  }
   return program.setup.flatMap((entry) => {
     if (entry.s !== SetupKind.PropDefault) {
       return [];
@@ -77,13 +81,17 @@ export function parameterDefaults(
 /** Setup declarations shared by CSR and SSR render programs. */
 export function emitJsSetup(
   module: LinkedModule,
-  program: { setup: LinkedModule['programs'][number]['setup'] },
+  program: { setup: LinkedModule['programs'][number]['setup']; async?: boolean },
   imports: Set<string>,
   emitQrl: EmitQrl,
   render?: (program: number, names?: GeneratedNames) => ComponentEmission,
   names?: GeneratedNames,
   target: SetupEmitTarget = {}
 ): string[] {
+  // An async body's awaits are spliced through the helper wherever they sit in the setup.
+  if (program.async === true && module.payloads.some((payload) => payload.awaits.length > 0)) {
+    imports.add(QwikWord.Await);
+  }
   return program.setup.flatMap((entry) => {
     if (entry.s === SetupKind.PropDefault) {
       return [];
@@ -142,9 +150,10 @@ export function emitJsSetup(
       const emission = render(entry.program, localNames);
       const body = `${emission.statements.join('\n')}\nreturn ${emission.value};`;
       const params = [localNames.props, localNames.ctx, ...(emission.params ?? [])].join(', ');
+      const asyncPrefix = emission.async === true ? 'async ' : '';
       return entry.declarationKind === DeclarationKind.Const
-        ? `const ${entry.name} = (${params}) => {\n${body}\n};`
-        : `function ${entry.name}(${params}) {\n${body}\n}`;
+        ? `const ${entry.name} = ${asyncPrefix}(${params}) => {\n${body}\n};`
+        : `${asyncPrefix}function ${entry.name}(${params}) {\n${body}\n}`;
     }
     if (entry.s === SetupKind.PropRest) {
       imports.add(QwikWord.CreatePropsProxy);

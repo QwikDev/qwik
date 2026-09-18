@@ -250,6 +250,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           )
         : { statements, value }),
       params,
+      async: program.async,
     });
     const ops = program.body.ops;
     if (ops.length === 0) {
@@ -580,7 +581,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   ): void {
     const component = this.createComponent(op, statements, pass);
     this.imports.add(QwikWord.ToNodes);
-    statements.push(`${path}.replaceWith(...${QwikWord.ToNodes}(${component}));`);
+    // A component body may be async, so the placeholder waits the way a slot's does.
+    const marker = this.bindNode(path, QwikGenWord.Marker, statements, pass);
+    const nodes = pass.next(QwikGenWord.Component);
+    this.imports.add(QwikWord.MaybeThen);
+    statements.push(
+      `${QwikWord.MaybeThen}(${component}, (${nodes}) => ${marker}.replaceWith(...${QwikWord.ToNodes}(${nodes})));`
+    );
   }
 
   private mountSlot(

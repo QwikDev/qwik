@@ -46,11 +46,12 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const marker0 = _last(el0);
   const component0 = createComponent(Card, null, ctx);
-  _first(el0).replaceWith(..._toNodes(component0));
+  const marker1 = _first(el0);
+  maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  const component1 = createComponent(Card, null, ctx, { slotScope: slotScope0 });
-  marker0.replaceWith(..._toNodes(component1));
+  const component2 = createComponent(Card, null, ctx, { slotScope: slotScope0 });
+  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
   return el0;
 };
 export default default_component_3rg6kq1so9aio;

@@ -31,6 +31,7 @@ import {
   createDynamicTag,
   createComponent,
   _toNodes,
+  maybeThen,
   createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
@@ -68,9 +69,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     ctx,
     { slotScope: slotScope0 }
   );
-  _first(el0).replaceWith(..._toNodes(component0));
-  const component1 = createComponent(Alias, null, ctx);
-  marker0.replaceWith(..._toNodes(component1));
+  const marker4 = _first(el0);
+  maybeThen(component0, (component1) => marker4.replaceWith(..._toNodes(component1)));
+  const component2 = createComponent(Alias, null, ctx);
+  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
   const end0 = _next(marker1);
   const content0 = createContentBlock(
     ctx,
@@ -83,12 +85,12 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   );
   ctx.scheduler.notify(content0);
   const tag0 = UI.Button;
-  const component2 = createComponent(
+  const component4 = createComponent(
     (props1) => createDynamicTag(tag0, props1, ctx),
     { label: 'x' },
     ctx
   );
-  marker2.replaceWith(..._toNodes(component2));
+  maybeThen(component4, (component5) => marker2.replaceWith(..._toNodes(component5)));
   const end1 = _next(marker3);
   const content1 = createContentBlock(
     ctx,

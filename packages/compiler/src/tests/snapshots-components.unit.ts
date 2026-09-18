@@ -3,6 +3,19 @@ import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should keep an async component body async and await through its setup', async () => {
+    const output = await testInput(mode, 'component-async', {
+      code: `import { component$ } from '@qwik.dev/core';
+import { load } from './load';
+export const AsyncCmp = component$(async (props) => {
+  const value = await load(props.id);
+  return <span id="async-result">{value}</span>;
+});
+export default component$(() => <div><h1 id="prefix">Prefix</h1><AsyncCmp id="a" /></div>);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should compile component$ returned from a plain function', async () => {
     await testInput(mode, 'component-factory', {
       code: `import { component$ } from '@qwik.dev/core';

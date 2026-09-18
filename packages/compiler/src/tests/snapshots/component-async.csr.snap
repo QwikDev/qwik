@@ -1,0 +1,94 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+import { load } from './load';
+export const AsyncCmp = component$(async (props) => {
+  const value = await load(props.id);
+  return <span id="async-result">{value}</span>;
+});
+export default component$(() => <div><h1 id="prefix">Prefix</h1><AsyncCmp id="a" /></div>);
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _await,
+  _first,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
+  _createElementTemplate,
+  _last,
+  createComponent,
+  _toNodes,
+  maybeThen,
+} from '@qwik.dev/core';
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
+  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+const AsyncCmp_tmpl0 = _createElementTemplate('<span id="async-result"><!><!></span>');
+const default_tmpl0 = _createElementTemplate('<div><h1 id="prefix">Prefix</h1><!></div>');
+import { load } from './load';
+export const AsyncCmp = async (props, ctx) => {
+  const value = (await _await(load(props.id)))();
+  const el0 = AsyncCmp_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_text_segment_0_1fh10fbkzokfc.w([value]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return el0;
+};
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const component0 = createComponent(AsyncCmp, { id: 'a' }, ctx);
+  const marker0 = _last(el0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+
+export { AsyncCmp as AsyncCmp_component_gw3thccjtr8j };
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+import { _captures, createDynamicContent } from '@qwik.dev/core';
+
+export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
+  const [value] = _captures;
+  return createDynamicContent(value, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    202,
+    207
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "value"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

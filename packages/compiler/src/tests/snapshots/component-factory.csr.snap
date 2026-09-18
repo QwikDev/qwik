@@ -31,6 +31,7 @@ import {
   createDynamicTag,
   createComponent,
   _toNodes,
+  maybeThen,
   _createElementTemplate,
 } from '@qwik.dev/core';
 export function factory(Component) {
@@ -42,7 +43,8 @@ export function factory(Component) {
       readTrackedValue(prop0),
       ctx
     );
-    _first(el0).replaceWith(..._toNodes(component0));
+    const marker0 = _first(el0);
+    maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
     return el0;
   };
 }
@@ -58,7 +60,8 @@ export const default_component_3rg6kq1so9aio = (props0, ctx) => {
     { label: 'x' },
     ctx
   );
-  _first(el0).replaceWith(..._toNodes(component0));
+  const marker0 = _first(el0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
   return el0;
 };
 export default default_component_3rg6kq1so9aio;

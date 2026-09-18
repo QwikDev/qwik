@@ -97,9 +97,9 @@ function describeComponent(
 /** The parts of a component function every owner lowers: its param, setup and returned JSX. */
 export function readComponentFunction(
   fn: ArrowFunctionExpression | FunctionNode
-): Pick<DiscoveredComponent, 'param' | 'setupStatements' | 'renderExpression'> {
-  if (fn.async || (fn.type !== 'ArrowFunctionExpression' && fn.generator)) {
-    throw new UnsupportedError('an async or generator component function');
+): Pick<DiscoveredComponent, 'param' | 'setupStatements' | 'renderExpression' | 'fn'> {
+  if (fn.type !== 'ArrowFunctionExpression' && fn.generator) {
+    throw new UnsupportedError('a generator component function');
   }
   const params = fn.params;
   if (params.length > 1) {
@@ -116,6 +116,7 @@ export function readComponentFunction(
   }
   const { setupStatements, returned } = componentBody(fn);
   return {
+    fn,
     setupStatements,
     param: param === undefined ? null : { node: param, range: [param.start, param.end], object },
     renderExpression: returned,

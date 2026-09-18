@@ -1,0 +1,106 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+import { load } from './load';
+export const AsyncCmp = component$(async (props) => {
+  const value = await load(props.id);
+  return <span id="async-result">{value}</span>;
+});
+export default component$(() => <div><h1 id="prefix">Prefix</h1><AsyncCmp id="a" /></div>);
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _await,
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  renderSsrDynamicContent,
+  _noopQrl,
+  _markComponent,
+  createComponent,
+} from '@qwik.dev/core';
+import { load } from './load';
+const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
+  const [value] = _captures;
+  return renderSsrDynamicContent(value, ctx0);
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+export const AsyncCmp = _markComponent(
+  async (props, ctx) => {
+    const value = (await _await(load(props.id)))();
+    const id0 = ctx.nextId();
+    ctx.addRoot(value);
+    const content0 = renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_text_segment_0_1fh10fbkzokfc.w([value]),
+      false,
+      true
+    );
+    return maybeThen(content0, (content0) => [
+      '<span id="async-result"><!d=',
+      createSsrNodeId(id0),
+      '>',
+      content0,
+      '<!/d></span>',
+    ]);
+  },
+  'AsyncCmp_component_gw3thccjtr8j',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const component0 = createComponent(AsyncCmp, { id: 'a' }, ctx);
+    return maybeThen(component0, (component0) => [
+      '<div><h1 id="prefix">Prefix</h1>',
+      component0,
+      '</div>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { AsyncCmp as AsyncCmp_component_gw3thccjtr8j };
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
+  const [value] = _captures;
+  return renderSsrDynamicContent(value, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    202,
+    207
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "value"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

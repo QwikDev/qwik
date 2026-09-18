@@ -66,7 +66,8 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   registerProjection(slotScope0, 'title', q_component_slot_render_segment_1_3b0tauy2p1nv1);
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([stored]));
   const component0 = createComponent(Frame, null, ctx, { slotScope: slotScope0 });
-  _first(fragment0).replaceWith(..._toNodes(component0));
+  const marker0 = _first(fragment0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
   const start0 = _first(el0);
   const end0 = _next(start0);
   ctx.scheduler.waitFor(

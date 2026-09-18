@@ -387,6 +387,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return {
       statements,
       value,
+      async: program.async,
       params: parameterDefaults(this.module, program, this.imports, emitQrl),
       rangeIdParam: ownRange === null ? (rootRange?.idParam ?? null) : null,
       needsContext: pass.usedCtx || pass.statements.length > 0,

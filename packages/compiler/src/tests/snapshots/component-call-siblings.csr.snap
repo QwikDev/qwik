@@ -7,7 +7,14 @@ export default () => <main><span>before</span><Child /><span>after</span></main>
 
 ============================= src/component.tsx ==
 
-import { _createElementTemplate, _first, _next, createComponent, _toNodes } from '@qwik.dev/core';
+import {
+  _createElementTemplate,
+  _first,
+  _next,
+  createComponent,
+  _toNodes,
+  maybeThen,
+} from '@qwik.dev/core';
 
 const Child_tmpl0 = _createElementTemplate('<strong>child</strong>');
 const default_tmpl0 = _createElementTemplate(
@@ -20,7 +27,8 @@ export const Child = (props, ctx) => {
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const component0 = createComponent(Child, null, ctx);
-  _next(_first(el0)).replaceWith(..._toNodes(component0));
+  const marker0 = _next(_first(el0));
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
   return el0;
 };
 export default default_component_3rg6kq1so9aio;

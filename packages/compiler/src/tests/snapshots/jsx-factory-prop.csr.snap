@@ -32,6 +32,7 @@ import {
   _qrlWithChunk,
   createComponent,
   _toNodes,
+  maybeThen,
   createPropsProxy,
   useComputedQrl,
   _createElementTemplate,
@@ -47,13 +48,14 @@ export default function App(props, ctx) {
     { render: q_component_render_segment_3_1kxav1tcxzeqy.w([count]) },
     ctx
   );
-  _first(el0).replaceWith(..._toNodes(component0));
-  const component1 = createComponent(
+  const marker1 = _first(el0);
+  maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
+  const component2 = createComponent(
     Display,
     createPropsProxy(useComputedQrl(q_component_props_segment_7_208nyg8uks240.w([options]))),
     ctx
   );
-  marker0.replaceWith(..._toNodes(component1));
+  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
   return el0;
 }
 

@@ -11,14 +11,21 @@ export const Child = () => <strong>child</strong>;
 
 ============================= src/app.tsx ==
 
-import { _first, createComponent, _toNodes, _createElementTemplate } from '@qwik.dev/core';
+import {
+  _first,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  _createElementTemplate,
+} from '@qwik.dev/core';
 
 const default_tmpl0 = _createElementTemplate('<main><!></main>');
 import { Child as RenamedChild } from './child';
 export const default_component_31wgqjs4jy6fg = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const component0 = createComponent(RenamedChild, null, ctx);
-  _first(el0).replaceWith(..._toNodes(component0));
+  const marker0 = _first(el0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
   return el0;
 };
 export default default_component_31wgqjs4jy6fg;

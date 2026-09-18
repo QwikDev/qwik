@@ -15,8 +15,6 @@ const KNOWN_REJECTS: Record<string, string | { reason: string; isServer: boolean
   'e2e/src/components/signals/signals.tsx': 'raw-text-content',
   'e2e/src/components/streaming/demo.tsx': 'children-function',
   'e2e/src/components/streaming/streaming.tsx': 'children-function',
-  'e2e/src/components/streaming/streaming-flush.tsx':
-    'pipeline does not support: an async or generator component function',
   'perf.prod/src/components/component-impl/index.tsx':
     'pipeline does not support: a non-QRL component event handler',
   'qwikrouter-test/src/routes/(common)/catchall-loader/[...slug]/index.tsx':

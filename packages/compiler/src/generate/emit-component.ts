@@ -25,6 +25,8 @@ import { allocateGeneratedName } from '../names';
 export interface ComponentEmission {
   statements: string[];
   value: string;
+  /** An authored async component body; its caller already resolves what it returns. */
+  async?: boolean;
   /** Generated parameters after props and ctx, e.g. prop defaults. */
   params?: string[];
 }
@@ -410,7 +412,7 @@ export function inlineComponentText(emission: ComponentEmission, names: Generate
   const body = [...emission.statements, `return ${emission.value};`]
     .map((statement) => `  ${statement}`)
     .join('\n');
-  return `(${params}) => {\n${body}\n}`;
+  return `${emission.async === true ? 'async ' : ''}(${params}) => {\n${body}\n}`;
 }
 
 export function emitComponentFunction(
@@ -428,7 +430,8 @@ export function emitComponentFunction(
   const body = [...emission.statements, `return ${emission.value};`]
     .map((statement) => `  ${statement}`)
     .join('\n');
-  const arrow = `(${params}) => {\n${body}\n}`;
+  const asyncPrefix = emission.async === true ? 'async ' : '';
+  const arrow = `${asyncPrefix}(${params}) => {\n${body}\n}`;
   const symbol = declaration.expressionOnly ? null : (marker?.symbol ?? null);
   const mark = (value: string) =>
     marker === null || marker.chunk === null || symbol === null
@@ -457,13 +460,13 @@ export function emitComponentFunction(
     case DeclarationKind.DefaultFunction: {
       const name = declaration.localName ?? symbol;
       return {
-        text: `export default function${name ? ` ${name}` : ''}(${params}) {\n${body}\n}${name ? markAfter(name) : ''}`,
+        text: `export default ${asyncPrefix}function${name ? ` ${name}` : ''}(${params}) {\n${body}\n}${name ? markAfter(name) : ''}`,
         alias: name === null ? null : name === symbol ? symbol : alias(name),
       };
     }
     default:
       return {
-        text: `${exportPrefix}function ${declaration.name}(${params}) {\n${body}\n}${markAfter(declaration.name)}`,
+        text: `${exportPrefix}${asyncPrefix}function ${declaration.name}(${params}) {\n${body}\n}${markAfter(declaration.name)}`,
         alias: alias(declaration.name),
       };
   }

@@ -37,6 +37,7 @@ import {
 import { findRuntimeJsx } from './ast/returns-jsx';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { isFunctionLike } from './ast/utils';
+import { recordSetupAwaits } from './lower-component-body';
 import { lowerRenderExpression } from './lower-children';
 import { findComponentCandidates } from './ast/returns-jsx';
 import { discoverComponents } from './discover';
@@ -462,6 +463,7 @@ function lowerLocalComponent(
     }
     const setup = lowerSetup(component.setupStatements, ctx, nestedLocals);
     ctx.locals = setup.locals;
+    recordSetupAwaits(ctx, component.fn);
     const ops =
       component.renderExpression === null
         ? []
@@ -473,7 +475,7 @@ function lowerLocalComponent(
         params: [],
         lifetime: 0,
         needsId: false,
-        async: false,
+        async: component.fn.async === true,
       }) - 1;
     return {
       s: SetupKind.LocalComponent,

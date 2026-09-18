@@ -23,7 +23,8 @@ export interface Payload {
   range: Range;
   /** Text materialized at serialization. */
   text?: string;
-  constants: { range: Range; name: BuildConstant }[];
+  /** `value` is the linker's answer for this environment; absent while the plan stays neutral. */
+  constants: { range: Range; name: BuildConstant; role: ReadRole; value?: boolean }[];
   qrls: {
     range: Range;
     use: QrlUse;

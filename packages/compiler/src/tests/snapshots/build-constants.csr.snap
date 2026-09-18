@@ -1,0 +1,156 @@
+==INPUT==
+
+import { component$, isBrowser, isDev, isServer, useSignal, useTask$ } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  useTask$(() => {
+    if (isServer) {
+      count.value = 1;
+    }
+    if (isBrowser && !isDev) {
+      count.value = 2;
+    }
+  });
+  return (
+    <button onClick$={() => (count.value = isServer ? 3 : 4)}>
+      {isBrowser ? 'client' : 'server'}
+    </button>
+  );
+});
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  useTask,
+  _withCaptures,
+  setEvent,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { component_useTaskqrl_segment_0_1og80iqmttt5c } from './component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
+
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(0);
+  useTask(_withCaptures(component_useTaskqrl_segment_0_1og80iqmttt5c, [count]));
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count]);
+      const text0 = _first(el0);
+      const effect0 = createTextExpressionEffect(
+        text0,
+        [],
+        component_text_segment_2_1fh117dstcoge,
+        ctx.scheduler
+      );
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
+  );
+};
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
+  const [count] = _captures;
+  if (false) {
+    count.value = 1;
+  }
+  if (true && !false) {
+    count.value = 2;
+  }
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useTaskqrl_segment_0_1og80iqmttt5c",
+  "entry": null,
+  "displayName": "component_useTaskqrl_segment_0",
+  "hash": "1og80iqmttt5c",
+  "canonicalFilename": "component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    160,
+    290
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const [count] = _captures;
+  return (count.value = false ? 3 : 4);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    315,
+    363
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
+
+export const component_text_segment_2_1fh117dstcoge = () => {
+  return true ? 'client' : 'server';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2_1fh117dstcoge",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": false,
+  "loc": [
+    373,
+    404
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

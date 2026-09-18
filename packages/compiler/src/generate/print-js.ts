@@ -37,7 +37,7 @@ export function extractPayloadJs(
   edits: { range: Range; value: string }[] = [],
   emitQrl?: EmitQrl
 ): string {
-  const { reads, awaits } = module.payloads[payload];
+  const { reads, awaits, constants } = module.payloads[payload];
   const [start, end] = range;
   const replacements: { range: Range; value: string }[] = [...edits];
   for (const entry of module.payloads[payload].qrls) {
@@ -80,6 +80,20 @@ export function extractPayloadJs(
       replacement = `(0, ${member})`;
     }
     replacements.push({ range: read.range, value: replacement });
+  }
+  for (const constant of constants) {
+    if (constant.value === undefined || constant.range[0] < start || constant.range[1] > end) {
+      continue;
+    }
+    // A shorthand property loses its key when the value stops being a name.
+    const literal = String(constant.value);
+    replacements.push({
+      range: constant.range,
+      value:
+        constant.role === ReadRole.Shorthand
+          ? `${module.source.code.slice(...constant.range)}: ${literal}`
+          : literal,
+    });
   }
   for (const {
     range: [awaitStart, awaitEnd],

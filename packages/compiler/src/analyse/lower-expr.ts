@@ -12,6 +12,8 @@ import {
   type Range,
   type Result,
   type Value,
+  BuildConstant,
+  type LocalId,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 import { identifierName, isFunctionLike } from './ast/utils';
@@ -192,17 +194,38 @@ function computedQrlValue(
   };
 }
 
+/** `isServer`, `isBrowser` and `isDev` are the build's own answers, not module state. */
+export function buildConstantOf(binding: LocalId, ctx: LowerContext): BuildConstant | null {
+  switch (ctx.coreBindings.get(binding)) {
+    case BuildConstant.IsServer:
+      return BuildConstant.IsServer;
+    case BuildConstant.IsBrowser:
+      return BuildConstant.IsBrowser;
+    case BuildConstant.IsDev:
+      return BuildConstant.IsDev;
+    default:
+      return null;
+  }
+}
+
 export function recordPayloadReads(
   ctx: LowerContext,
   payload: PayloadId,
   refs: CollectedCaptures
 ): void {
   const target = ctx.plan.payloads[payload];
-  target.reads.push(
-    ...refs.moduleReads.filter(
-      ({ range }) => range[0] >= target.range[0] && range[1] <= target.range[1]
-    )
-  );
+  for (const read of refs.moduleReads) {
+    if (read.range[0] < target.range[0] || read.range[1] > target.range[1]) {
+      continue;
+    }
+    // A build constant is decided per environment, so the linker folds it where it stands.
+    const constant = buildConstantOf(read.binding, ctx);
+    if (constant === null) {
+      target.reads.push(read);
+    } else {
+      target.constants.push({ range: read.range, name: constant, role: read.role });
+    }
+  }
   for (const entry of refs.locals) {
     const value =
       ctx.bindings.implicitKind(entry.local.binding) !== null && ctx.locals.has(entry.local.binding)

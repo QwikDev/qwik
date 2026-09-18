@@ -38,7 +38,6 @@ const UNCOVERED: Record<string, readonly string[]> = {
     'strip-range',
     'strip-value',
   ],
-  BuildConstant: ['isServer', 'isBrowser', 'isDev'],
   BuildMode: ['dev', 'lib', 'hmr'],
   ComponentTargetKind: ['raw'],
   ContextKind: ['signal', 'store'],

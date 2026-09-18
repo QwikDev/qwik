@@ -1,0 +1,184 @@
+==INPUT==
+
+import { component$, isBrowser, isDev, isServer, useSignal, useTask$ } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  useTask$(() => {
+    if (isServer) {
+      count.value = 1;
+    }
+    if (isBrowser && !isDev) {
+      count.value = 2;
+    }
+  });
+  return (
+    <button onClick$={() => (count.value = isServer ? 3 : 4)}>
+      {isBrowser ? 'client' : 'server'}
+    </button>
+  );
+});
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  useTaskQrl,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
+  const [count] = _captures;
+  if (true) {
+    count.value = 1;
+  }
+  if (false && !false) {
+    count.value = 2;
+  }
+};
+const q_component_useTaskqrl_segment_0_1og80iqmttt5c = /*#__PURE__*/ _noopQrl(
+  'component_useTaskqrl_segment_0_1og80iqmttt5c'
+);
+q_component_useTaskqrl_segment_0_1og80iqmttt5c.s(component_useTaskqrl_segment_0_1og80iqmttt5c);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const component_text_segment_2_1fh117dstcoge = () => {
+  return false ? 'client' : 'server';
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const invokeCtx0 = getActiveInvokeContextOrNull();
+    const count = useSignal(0);
+    useTaskQrl(q_component_useTaskqrl_segment_0_1og80iqmttt5c.w([count]));
+    return maybeThen(ctx.scheduler.flush(), () =>
+      invoke(invokeCtx0, () => {
+        const id0 = ctx.nextId();
+        const text0 = renderSsrTextExpression(
+          id0,
+          null,
+          [],
+          q_component_text_segment_2_1fh117dstcoge
+        );
+        return maybeThen(text0, (text0) => [
+          '<button q:id="',
+          createSsrNodeId(id0),
+          '"',
+          ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count])),
+          '>',
+          escapeHTML(text0),
+          '</button>',
+        ]);
+      })
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
+  const [count] = _captures;
+  if (true) {
+    count.value = 1;
+  }
+  if (false && !false) {
+    count.value = 2;
+  }
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useTaskqrl_segment_0_1og80iqmttt5c",
+  "entry": null,
+  "displayName": "component_useTaskqrl_segment_0",
+  "hash": "1og80iqmttt5c",
+  "canonicalFilename": "component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    160,
+    290
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const [count] = _captures;
+  return (count.value = true ? 3 : 4);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    315,
+    363
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
+
+export const component_text_segment_2_1fh117dstcoge = () => {
+  return false ? 'client' : 'server';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2_1fh117dstcoge",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": false,
+  "loc": [
+    373,
+    404
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

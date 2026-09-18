@@ -666,6 +666,33 @@ export default () => {
     expect(headless).not.toContain('createSsrOpenTag');
   });
 
+  test('should answer a build constant everywhere a payload carries one', async () => {
+    const output = await testInput(mode, 'build-constants', {
+      code: `import { component$, isBrowser, isDev, isServer, useSignal, useTask$ } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  useTask$(() => {
+    if (isServer) {
+      count.value = 1;
+    }
+    if (isBrowser && !isDev) {
+      count.value = 2;
+    }
+  });
+  return (
+    <button onClick$={() => (count.value = isServer ? 3 : 4)}>
+      {isBrowser ? 'client' : 'server'}
+    </button>
+  );
+});`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).not.toContain('isServer');
+    expect(code).not.toContain('isBrowser');
+    expect(code).not.toContain('isDev');
+  });
+
   test('should call custom $ hooks through their twins wherever they appear', async () => {
     const output = await testInput(mode, 'marker-qrl-anywhere', {
       code: `import { useSignal } from '@qwik.dev/core';

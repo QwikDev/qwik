@@ -64,6 +64,30 @@ export function createLinkedBuild() {
     pending = undefined;
   }
 
+  /** Loads an asset through the bundler and keeps its output as an ordinary plan module. */
+  async function collectAsset(
+    ctx: Rolldown.PluginContext,
+    targetId: string,
+    resolvedId: string
+  ): Promise<string | null> {
+    // The plan owns this module now, so its id must not still read as the asset's own type:
+    // vite's css plugins match on the extension anywhere in the id, trailing suffix or not.
+    const path = `${targetId.replace(/[.?&=#]/g, '_')}.js`;
+    if (plans.has(path)) {
+      return path;
+    }
+    const info = await ctx.load({ id: resolvedId, resolveDependencies: false });
+    const code = (info as { code?: string } | null)?.code;
+    if (typeof code !== 'string') {
+      return null;
+    }
+    plans.set(
+      path,
+      await analyseModule({ path, code }, { rootDir: options!.rootDir, scope: options!.scope })
+    );
+    return path;
+  }
+
   async function finishBuild(ctx: Rolldown.PluginContext) {
     const config = options!;
     const visited = new Map<string, boolean>();
@@ -124,12 +148,16 @@ export function createLinkedBuild() {
             sideEffects: SideEffects.Unknown,
           };
           await collect(relocate(libraryEntry.module), isRuntime && !edge.typeOnly);
-        } else if (
-          target.external ||
-          !/\.[cm]?[jt]sx?(?:\?|$)/.test(targetId) ||
-          targetId.includes('/node_modules/')
-        ) {
+        } else if (target.external || targetId.includes('/node_modules/')) {
           edges[edge.id] = { r: ResolutionKind.External };
+        } else if (!/\.[cm]?[jt]sx?(?:\?|$)/.test(targetId)) {
+          // An asset the bundler inlines (`?inline`, `?raw`) is a module once loaded, so the plan
+          // carries its resolved value instead of an import the consumer could never resolve.
+          const carried = await collectAsset(ctx, targetId, target.id);
+          edges[edge.id] =
+            carried === null
+              ? { r: ResolutionKind.External }
+              : { r: ResolutionKind.Resolved, path: carried, sideEffects: SideEffects.Unknown };
         } else {
           await collect(targetId, isRuntime && !edge.typeOnly);
           edges[edge.id] = plans.has(targetId)
@@ -153,7 +181,7 @@ export function createLinkedBuild() {
     }
     const modules = [...plans.values()];
     if (config.library) {
-      library = createLibraryPlan(modules, entries, resolver);
+      library = createLibraryPlan(modules, entries, resolver) ?? undefined;
     }
     const linked = linkPlans(
       modules,
@@ -274,10 +302,14 @@ export function createLinkedBuild() {
       if (entry === undefined) {
         continue;
       }
+      const plan = createLibraryPlan([...plans.values()], [entry], resolver);
+      if (plan === null) {
+        continue;
+      }
       ctx.emitFile({
         type: 'asset',
         fileName: `${chunk.fileName}.qwik-plan.json`,
-        source: JSON.stringify(createLibraryPlan([...plans.values()], [entry], resolver)),
+        source: JSON.stringify(plan),
       });
     }
   }

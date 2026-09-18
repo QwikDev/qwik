@@ -9,13 +9,21 @@ export interface LibraryPlan {
   resolver: ResolverSnapshot;
 }
 
-/** Package-relative module IDs keep library plans independent of the build directory. */
+/**
+ * Package-relative module IDs keep library plans independent of the build directory. Null when an
+ * entry itself cannot be carried: the library then publishes no plan and consumers use its build.
+ */
 export function createLibraryPlan(
   modules: readonly ModulePlan[],
   entries: readonly LinkEntry[],
   resolver: ResolverSnapshot
-): LibraryPlan {
-  const paths = new Map(modules.map((module, index) => [module.path, `module-${index}.tsx`]));
+): LibraryPlan | null {
+  const kept = carriable(modules, resolver);
+  if (entries.some((entry) => !kept.has(entry.module))) {
+    return null;
+  }
+  const carried = modules.filter((module) => kept.has(module.path));
+  const paths = new Map(carried.map((module, index) => [module.path, `module-${index}.tsx`]));
   const relocate = (path: string) => {
     const target = paths.get(path);
     if (target === undefined) {
@@ -23,7 +31,7 @@ export function createLibraryPlan(
     }
     return target;
   };
-  const snapshot = structuredClone({ modules: [...modules], entries: [...entries], resolver });
+  const snapshot = structuredClone({ modules: carried, entries: [...entries], resolver });
   snapshot.modules.forEach((module) => {
     module.path = relocate(module.path);
     module.source.originalPath = module.path;
@@ -41,18 +49,57 @@ export function createLibraryPlan(
     entries: snapshot.entries.map((entry) => ({ ...entry, module: relocate(entry.module) })),
     resolver: {
       edges: Object.fromEntries(
-        Object.entries(snapshot.resolver.edges).map(([path, edges]) => [
-          relocate(path),
-          Object.fromEntries(
-            Object.entries(edges).map(([id, edge]) => [
-              id,
-              edge.r === ResolutionKind.Resolved ? { ...edge, path: relocate(edge.path) } : edge,
-            ])
-          ),
-        ])
+        Object.entries(snapshot.resolver.edges)
+          .filter(([path]) => paths.has(path))
+          .map(([path, edges]) => [
+            relocate(path),
+            Object.fromEntries(
+              Object.entries(edges).map(([id, edge]) => [
+                id,
+                edge.r === ResolutionKind.Resolved && paths.has(edge.path)
+                  ? { ...edge, path: relocate(edge.path) }
+                  : edge.r === ResolutionKind.Resolved
+                    ? { r: ResolutionKind.External }
+                    : edge,
+              ])
+            ),
+          ])
       ),
     },
   };
+}
+
+/**
+ * The modules a consumer can relink; the rest it takes from the published build. A relative import
+ * the link did not resolve is a bundler asset (`?inline`, `?worker&url`), and the plan anonymizes
+ * paths, so the consumer has neither a base nor the file. Whoever imports such a module relatively
+ * cannot resolve it either, so the exclusion carries up its importers.
+ */
+function carriable(
+  modules: readonly ModulePlan[],
+  resolver: ResolverSnapshot
+): ReadonlySet<string> {
+  const kept = new Set(modules.map((module) => module.path));
+  for (let changed = true; changed; ) {
+    changed = false;
+    for (const module of modules) {
+      if (!kept.has(module.path)) {
+        continue;
+      }
+      const lost = module.edges.some((edge) => {
+        if (!edge.specifier.startsWith('.') || edge.typeOnly) {
+          return false;
+        }
+        const target = resolver.edges[module.path]?.[edge.id];
+        return target?.r !== ResolutionKind.Resolved || !kept.has(target.path);
+      });
+      if (lost) {
+        kept.delete(module.path);
+        changed = true;
+      }
+    }
+  }
+  return kept;
 }
 
 export function readLibraryPlan(source: string): LibraryPlan {

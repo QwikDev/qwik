@@ -118,15 +118,19 @@ export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 export interface ComputedSignal<T> extends Signal<T> {
     abort(reason?: any): void;
     clear(): void;
-    error: Error | undefined;
     // @deprecated (undocumented)
     force(): void;
     invalidate(): void;
     invalidate(info?: unknown): void;
+    promise(): Promise<void>;
+}
+
+// @internal
+export interface _ComputedSignalInternal<T> extends ComputedSignal<T> {
+    error: Error | undefined;
     // @deprecated (undocumented)
     loading: boolean;
     pending: boolean;
-    promise(): Promise<void>;
     untrackedError: Error | undefined;
     // @deprecated (undocumented)
     untrackedLoading: boolean;

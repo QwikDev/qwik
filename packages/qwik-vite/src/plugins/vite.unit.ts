@@ -4,7 +4,12 @@ import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
 import { flattenToChunkName } from './vite-utils';
-import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
+import {
+  qwikVite,
+  type QwikVitePlugin,
+  type QwikVitePluginOptions,
+  readBuildConstants,
+} from './vite';
 import {
   createBuildWorkerCoreChunkResolver,
   createBuildWorkerQrlChunkResolver,
@@ -1048,5 +1053,24 @@ describe('worker core chunk rewrites', () => {
       rewritten,
       'import { setPlatform, _deserialize } from "./qwik-worker-core-abcd.js";'
     );
+  });
+});
+
+test('reads only the boolean build flags the host defined', () => {
+  const constants = readBuildConstants({
+    env: { DEV: true, PROD: false, BASE_URL: '/', VITE_BETA: 'true' },
+    define: {
+      __FEATURE__: 'false',
+      'import.meta.env.VITE_NEW': 'true',
+      __VERSION__: '"1.0"',
+    },
+  });
+
+  // a `.env` string stays a string: guessing at one would decide a branch wrong
+  assert.deepEqual(constants, {
+    DEV: true,
+    PROD: false,
+    __FEATURE__: false,
+    VITE_NEW: true,
   });
 });

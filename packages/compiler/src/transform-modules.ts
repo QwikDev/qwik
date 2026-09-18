@@ -49,6 +49,7 @@ export async function transformModules(options: TransformModulesOptions): Promis
       ctxName: options.stripCtxName ?? [],
       regCtxName: options.regCtxName ?? [],
     },
+    ...(options.buildConstants === undefined ? {} : { constants: options.buildConstants }),
   };
   const entries: LinkEntry[] = options.input.map((input) => ({
     kind: EntryKind.Module,

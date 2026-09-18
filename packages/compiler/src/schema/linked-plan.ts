@@ -43,6 +43,8 @@ export interface Specialization {
     ctxName: string[];
     regCtxName: string[];
   };
+  /** Boolean values the host defines, from vite env and `define`; a missing name stays a read. */
+  constants?: Readonly<Record<string, boolean>>;
 }
 
 export interface DeclRef {

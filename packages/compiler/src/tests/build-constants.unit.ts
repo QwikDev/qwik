@@ -90,6 +90,28 @@ export default () => {
     expect(await chunk(true, 'dev')).toContain('observe(true, true, false)');
   });
 
+  test('a host-defined key folds, and one it leaves out does not', async () => {
+    const source = `import { useTask$ } from '@qwik.dev/core';
+export default () => {
+  useTask$(() => {
+    observe(import.meta.env.VITE_BETA, import.meta.env.VITE_OTHER);
+  });
+  return <b>x</b>;
+};
+`;
+    const output = await transformModules({
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+      isServer: true,
+      buildConstants: { VITE_BETA: false },
+      input: [{ path: 'src/app.tsx', code: source }],
+    });
+    const chunk = output.modules.find((module) => /useTaskqrl/.test(module.path))!.code;
+    expect(chunk).toContain('observe(false, import.meta.env.VITE_OTHER)');
+  });
+
   test('a key the build does not define stays authored', async () => {
     const output = await transformModules({
       srcDir: 'src',

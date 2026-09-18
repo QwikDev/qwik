@@ -5,7 +5,11 @@
 import { foldPredicate, type LinkedModule, type Specialization } from '../schema';
 
 export function foldConstants(modules: LinkedModule[], specialization: Specialization): void {
-  const context = { environment: specialization.environment, mode: specialization.mode };
+  const context = {
+    environment: specialization.environment,
+    mode: specialization.mode,
+    constants: specialization.constants,
+  };
   for (const module of modules) {
     for (const payload of module.payloads) {
       for (const constant of payload.constants) {

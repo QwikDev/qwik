@@ -1,7 +1,8 @@
 /**
  * `import.meta.env.SSR`, `.DEV` and `.PROD` are the same build answers the named imports give, so
- * they fold the same way. The read is not a binding reference, so a pass over the program finds it
- * and hands it to the innermost payload that prints it.
+ * they fold the same way; any other key is the host's, decided by the table it supplies. The read
+ * is not a binding reference, so a pass over the program finds it and hands it to the innermost
+ * payload that prints it.
  */
 import { BuildConstant, PredicateKind, ReadRole, type ModulePlan, type Predicate } from '../schema';
 import { isNode, type WalkableNode } from './ast/ast-types';
@@ -78,5 +79,7 @@ function envConstantOf(node: MemberExpression): Predicate | undefined {
   ) {
     return undefined;
   }
-  return ENV_CONSTANTS[node.property.name];
+  const name = node.property.name;
+  // The build answers its own three; every other name is the host's to define, or to leave.
+  return ENV_CONSTANTS[name] ?? { p: PredicateKind.Host, name };
 }

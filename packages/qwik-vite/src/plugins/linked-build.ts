@@ -37,6 +37,7 @@ export interface LinkedBuildOptions {
   stripExports?: string[];
   stripCtxName?: string[];
   regCtxName?: string[];
+  buildConstants?: Readonly<Record<string, boolean>>;
   onOutput: (output: GenerateOutput) => void;
 }
 
@@ -194,6 +195,7 @@ export function createLinkedBuild() {
           ctxName: config.stripCtxName ?? [],
           regCtxName: config.regCtxName ?? [],
         },
+        ...(config.buildConstants === undefined ? {} : { constants: config.buildConstants }),
       },
       resolver,
       { claims: [], policies: [], emissions: [] },

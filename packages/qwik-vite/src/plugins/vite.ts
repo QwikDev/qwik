@@ -478,6 +478,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     async configResolved(config) {
+      qwikPlugin.setBuildConstants(readBuildConstants(config));
       basePathname = config.base;
       if (!(basePathname.startsWith('/') && basePathname.endsWith('/'))) {
         throw new Error(`vite's config.base must begin and end with /`);
@@ -1257,3 +1258,25 @@ export interface QwikVitePluginApi {
 export type QwikVitePlugin = P<QwikVitePluginApi> & {
   name: 'vite-plugin-qwik';
 };
+
+/**
+ * The boolean build flags the host defined, from vite's resolved env and `define`. Only a real
+ * boolean counts: a `.env` string stays a string, and guessing at one would decide a branch wrong.
+ */
+export function readBuildConstants(config: {
+  env?: Record<string, unknown>;
+  define?: Record<string, unknown>;
+}): Record<string, boolean> {
+  const constants: Record<string, boolean> = {};
+  for (const [key, value] of Object.entries(config.env ?? {})) {
+    if (typeof value === 'boolean') {
+      constants[key] = value;
+    }
+  }
+  for (const [key, value] of Object.entries(config.define ?? {})) {
+    if (value === 'true' || value === 'false') {
+      constants[key.replace(/^import\.meta\.env\./, '')] = value === 'true';
+    }
+  }
+  return constants;
+}

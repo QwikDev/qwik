@@ -109,6 +109,7 @@ export function createQwikPlugin(
     !devServer && (opts.target === 'client' || opts.target === 'ssr' || opts.target === 'lib');
   const id = `${Math.round(Math.random() * 899) + 100}`;
 
+  let buildConstants: Readonly<Record<string, boolean>> = {};
   const clientResults = new Map<string, TransformOutput>();
   const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
 
@@ -476,6 +477,7 @@ export function createQwikPlugin(
         library: opts.target === 'lib',
         development: opts.buildMode === 'development',
         sourceMaps: !!opts.sourcemap,
+        buildConstants,
         // The browser build drops server-only code; the server build keeps only what it can call.
         ...(getIsServer(_ctx)
           ? { stripCtxName: CLIENT_STRIP_CTX_NAME, regCtxName: REG_CTX_NAME }
@@ -1511,6 +1513,11 @@ export const isDev = ${JSON.stringify(isDev)};
     opts.sourcemap = sourcemap;
   }
 
+  /** Boolean values the host defines, so the linker can decide a branch the bundler cannot. */
+  function setBuildConstants(constants: Readonly<Record<string, boolean>>) {
+    buildConstants = constants;
+  }
+
   // Only used in Vite dev mode, called per-environment
   function hotUpdate(environment: DevEnvironment, ctx: HotUpdateOptions) {
     const isServer = environment.name === 'ssr';
@@ -1663,6 +1670,7 @@ export const isDev = ${JSON.stringify(isDev)};
     transform,
     validateSource,
     setSourceMapSupport,
+    setBuildConstants,
     configureServer,
     hotUpdate,
     codeSplitting,

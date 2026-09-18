@@ -47,6 +47,7 @@ export const enum BuildConstant {
 
 export const enum PredicateKind {
   Const = 'const',
+  Host = 'host',
   Lit = 'lit',
   Not = 'not',
   And = 'and',
@@ -55,6 +56,8 @@ export const enum PredicateKind {
 
 export type Predicate =
   | { p: PredicateKind.Const; name: BuildConstant }
+  /** A value only the host knows: `import.meta.env.<NAME>`, absent until it supplies one. */
+  | { p: PredicateKind.Host; name: string }
   | { p: PredicateKind.Lit; value: boolean }
   | { p: PredicateKind.Not; operand: Predicate }
   | { p: PredicateKind.And | PredicateKind.Or; left: Predicate; right: Predicate };
@@ -62,6 +65,8 @@ export type Predicate =
 export interface FoldContext {
   environment: Environment;
   mode: BuildMode;
+  /** What the host defined; a name it did not define stays a read. */
+  constants?: Readonly<Record<string, boolean>>;
 }
 
 /**
@@ -72,6 +77,8 @@ export function foldPredicate(predicate: Predicate, context: FoldContext): boole
   switch (predicate.p) {
     case PredicateKind.Lit:
       return predicate.value;
+    case PredicateKind.Host:
+      return context.constants?.[predicate.name] ?? null;
     case PredicateKind.Const:
       switch (predicate.name) {
         case BuildConstant.IsServer:

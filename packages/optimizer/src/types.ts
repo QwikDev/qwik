@@ -52,6 +52,8 @@ export interface TransformOptions {
   stripCtxName?: string[];
   stripEventHandlers?: boolean;
   isServer?: boolean;
+  /** Boolean values the host defines, keyed by `import.meta.env` name. */
+  buildConstants?: Readonly<Record<string, boolean>>;
 }
 
 /** @public */

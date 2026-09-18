@@ -10,6 +10,7 @@ import { ContextRoot } from './components/context/context';
 import { EffectClient } from './components/effect-client/effect-client';
 import { Events } from './components/events/events';
 import { EventsClient } from './components/events/events-client';
+import { EventsLifecycle } from './components/events/events-lifecycle';
 import { RenderExceptions, UseTaskExceptions } from './components/exceptions';
 import { Factory } from './components/factory/factory';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
@@ -75,6 +76,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/signals/issue-5001': () => <NakedObjectStoreReactivityIssue5001 />,
   '/e2e/attributes': () => <Attributes />,
   '/e2e/events-client': () => <EventsClient />,
+  '/e2e/events-lifecycle': () => <EventsLifecycle />,
   '/e2e/no-resume': () => <NoResume />,
   '/e2e/resuming': () => <Resuming1 />,
   '/e2e/sync-qrl': () => <SyncQRL />,

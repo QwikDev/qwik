@@ -1,3 +1,4 @@
+import type { ValueOrPromise } from './utils/types';
 import type { QRL } from './qrl/qrl.public';
 import type { JSXOutput } from './jsx/types/jsx-node';
 import type {
@@ -205,4 +206,4 @@ export const component$ = <PROPS = unknown>(onMount: OnRenderFn<PROPS>): Compone
 };
 
 /** @public */
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
+export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXOutput>;

@@ -20,6 +20,23 @@
       "mdFile": "core.componentbaseprops._q_slot_.md"
     },
     {
+      "name": "\"q:type\"",
+      "id": "componentbaseprops-_q_type_",
+      "hierarchy": [
+        {
+          "name": "ComponentBaseProps",
+          "id": "componentbaseprops-_q_type_"
+        },
+        {
+          "name": "\"q:type\"",
+          "id": "componentbaseprops-_q_type_"
+        }
+      ],
+      "kind": "PropertySignature",
+      "content": "Reported to a parent that reads `props.children`<!-- -->; never rendered.\n\n\n```typescript\n'q:type'?: string;\n```",
+      "mdFile": "core.componentbaseprops._q_type_.md"
+    },
+    {
       "name": "\"xlink:actuate\"",
       "id": "svgattributes-_xlink_actuate_",
       "hierarchy": [
@@ -365,7 +382,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ComponentBaseProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[\"q:slot\"?](#componentbaseprops-_q_slot_)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nkey?\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| number \\| null \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ComponentBaseProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[\"q:slot\"?](#componentbaseprops-_q_slot_)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[\"q:type\"?](#componentbaseprops-_q_type_)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Reported to a parent that reads `props.children`<!-- -->; never rendered.\n\n\n</td></tr>\n<tr><td>\n\nkey?\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| number \\| null \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "core.componentbaseprops.md"
     },
@@ -915,7 +932,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;\n```\n**References:** [JSXOutput](#jsxoutput)",
+      "content": "```typescript\nexport type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXOutput>;\n```\n**References:** [ValueOrPromise](#valueorpromise)<!-- -->, [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts",
       "mdFile": "core.onrenderfn.md"
     },
@@ -1579,7 +1596,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nuseId: () => string\n```\n**Returns:**\n\nstring",
+      "content": "A unique id per render environment: the server counts per request, the client per container, and the prefix keeps the two apart after resume.\n\n\n```typescript\nuseId: () => string\n```\n**Returns:**\n\nstring",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/use-id.ts",
       "mdFile": "core.useid.md"
     },

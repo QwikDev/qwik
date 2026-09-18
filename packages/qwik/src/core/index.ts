@@ -17,7 +17,7 @@ export type { PropsOf, OnRenderFn, Component, PublicProps } from './shared/compo
 
 export { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 
-export { $, sync$, _qrlSync, eventQrl, type SyncQRL } from './shared/qrl/qrl.public';
+export { $, sync$, _qrlSync, event, eventQrl, type SyncQRL } from './shared/qrl/qrl.public';
 export { event$ } from './shared/qrl/qrl.public.dollar';
 export { native$, nativeCode, nativeFrom } from './shared/native/native.public';
 export type { NativeSource, NativeTargets } from './shared/native/native.public';

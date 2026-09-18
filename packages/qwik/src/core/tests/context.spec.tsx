@@ -8,6 +8,7 @@ import {
   useContextProvider,
   useSignal,
   useStore,
+  type JSXOutput,
   type NoSerialize,
   type Signal,
 } from '@qwik.dev/core';
@@ -565,7 +566,7 @@ describe(`${name}: context across rendering callbacks`, () => {
       return (
         <div>
           <button onClick$={() => (content.value = <Consumer />)} />
-          {content.value}
+          {content.value as JSXOutput}
         </div>
       );
     });

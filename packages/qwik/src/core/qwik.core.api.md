@@ -35,6 +35,7 @@ export type Component<PROPS = unknown> = FunctionComponent<PublicProps<PROPS>>;
 export interface ComponentBaseProps {
     // (undocumented)
     'q:slot'?: string;
+    'q:type'?: string;
     // (undocumented)
     key?: string | number | null | undefined;
 }
@@ -217,7 +218,7 @@ export const noSerialize: <T extends object | undefined>(input: T) => NoSerializ
 export const NoSerializeSymbol: unique symbol;
 
 // @public (undocumented)
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
+export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXOutput>;
 
 // @public
 export type PropFunction<T> = QRL<T>;
@@ -1003,7 +1004,7 @@ export const useContext: UseContext;
 // @public (undocumented)
 export const useContextProvider: <STATE>(context: ContextId<STATE>, value: STATE) => void;
 
-// @public (undocumented)
+// @public
 export const useId: () => string;
 
 // Warning: (ae-forgotten-export) The symbol "OnHandler" needs to be exported by the entry point public.d.ts

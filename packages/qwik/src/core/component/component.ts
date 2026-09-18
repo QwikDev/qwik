@@ -14,7 +14,7 @@ import { untrack } from '../reactive/tracking';
 import type { NodeOutput } from '../utils/nodes';
 import { EMPTY_NODES } from '../utils/consts';
 import { applyUseOnToCsrOutput } from '../runtime/use-on';
-import { qDev, qTest } from '../shared/utils/qdev';
+import { qTest } from '../shared/utils/qdev';
 import { isServerPlatform } from '../shared/platform/platform';
 import { applyUseOnToSsrOutput } from '../ssr/use-on';
 import type { SsrEventAttrChunk, SsrOutput } from '../ssr/output';

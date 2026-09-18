@@ -10,6 +10,14 @@ title: \@qwik.dev/qwik API Reference
 'q:slot'?: string;
 ```
 
+<h2 id="componentbaseprops-_q_type_">"q:type"</h2>
+
+Reported to a parent that reads `props.children`; never rendered.
+
+```typescript
+'q:type'?: string;
+```
+
 <h2 id="svgattributes-_xlink_actuate_">"xlink:actuate"</h2>
 
 ```typescript
@@ -381,6 +389,21 @@ string
 </td><td>
 
 _(Optional)_
+
+</td></tr>
+<tr><td>
+
+["q:type"?](#componentbaseprops-_q_type_)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Reported to a parent that reads `props.children`; never rendered.
 
 </td></tr>
 <tr><td>
@@ -1734,10 +1757,10 @@ NoSerializeSymbol: unique symbol
 <h2 id="onrenderfn">OnRenderFn</h2>
 
 ```typescript
-export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
+export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXOutput>;
 ```
 
-**References:** [JSXOutput](#jsxoutput)
+**References:** [ValueOrPromise](#valueorpromise), [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
 
@@ -7020,6 +7043,8 @@ void
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/runtime/context.ts)
 
 <h2 id="useid">useId</h2>
+
+A unique id per render environment: the server counts per request, the client per container, and the prefix keeps the two apart after resume.
 
 ```typescript
 useId: () => string;

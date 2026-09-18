@@ -261,6 +261,10 @@ export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
   return qrl;
 };
 
+export const event = <T>(fn: T): T => {
+  return fn;
+};
+
 /** @public */
 export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
   __brand__SyncQRL__: TYPE;

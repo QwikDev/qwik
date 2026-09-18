@@ -1,5 +1,8 @@
 # @qwik.dev/compiler
 
-Qwik compiler package.
+The Qwik v3 compiler: `analyseModule` → `linkPlans` → `generateJsSsr` / `generateJsCsr`.
 
-See [JSX_TRANSFORM.md](./JSX_TRANSFORM.md) for the JSX transform rules.
+- [pipeline/README.md](./pipeline/README.md): layout and workflow.
+- [pipeline/DESIGN.md](./pipeline/DESIGN.md): the design.
+- [pipeline/CUTOVER-PLAN.md](./pipeline/CUTOVER-PLAN.md): the route to the linked-plan contract.
+- [CONTEXT.md](./CONTEXT.md): vocabulary.

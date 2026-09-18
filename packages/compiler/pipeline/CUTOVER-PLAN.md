@@ -105,6 +105,14 @@ Bar, recorded the day before: `vitest run packages` (core corpus csr/resume/ssr 
 `test.e2e.chromium`, `test.e2e.qwik-react`, `tsc.check`, `build.full`; plus step 1's sweep. Docs'
 `Each`/`Show` imports are not on the bar.
 
+Recorded 2026-09-18 before the flip: `tsc.check` clean; unit run 81 failures, 72 of them the layerA
+suite the delete list removes, the other nine pre-existing (`qwikloader`, `worker-qrl`, `serdes`,
+`bundle-graph`, `vite` lib-mode build); chromium e2e cannot start because the e2e web server
+builds the apps in production mode through the linked build, which stops on server-only stripping
+(step 9), so the browser gate returns with step 9; `build.core.dev` fails in its insights step for
+the same reason. Core runtime symbols without callers stay; their removal is a runtime decision
+outside this route.
+
 ### 5. Responsibility map
 
 Pure moves, gated by byte-unchanged snapshots and plan snapshots; the README layout table is the

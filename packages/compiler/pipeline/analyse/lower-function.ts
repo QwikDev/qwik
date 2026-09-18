@@ -26,7 +26,7 @@ import { lowerComputedExpressionValue, recordPayloadJsx, recordPayloadReads } fr
 import { LocalKind } from './locals';
 import { isFunctionLike, parameterPattern, unwrapExpression } from './ast/utils';
 import { isNode, type WalkableNode } from './ast/ast-types';
-import { QwikMarker } from '../words';
+import { QRL_SUFFIX, QwikMarker } from '../words';
 import { resolveSetupCall } from './lower-setup';
 
 /** Explicit and implicit boundaries share callback extraction and capture semantics. */
@@ -366,7 +366,17 @@ export function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrl
       : { argument, name: 'sync', ctxName: core, boundary: { kind: BoundaryKind.Sync } };
   }
   const callee = resolveSetupCall(node, ctx);
-  if (callee === null || callee.stem === null) {
+  if (callee === null) {
+    return null;
+  }
+  // A core hook met outside setup lowering (`return useComputed$(...)` in a hook body) still
+  // extracts its callback; its twins follow the naming convention (`useComputedQrl`, `useComputed`).
+  const stem =
+    callee.stem ??
+    (callee.contract !== undefined && callee.name.endsWith(QRL_SUFFIX)
+      ? callee.name.slice(0, -QRL_SUFFIX.length)
+      : null);
+  if (stem === null) {
     return null;
   }
   return {
@@ -374,7 +384,7 @@ export function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrl
     name: callee.name,
     ctxName: callee.name,
     boundary: { kind: BoundaryKind.Implicit, role: 'hook' },
-    marker: { kind: CallTargetKind.Marker, binding: callee.binding, stem: callee.stem },
+    marker: { kind: CallTargetKind.Marker, binding: callee.binding, stem },
   };
 }
 

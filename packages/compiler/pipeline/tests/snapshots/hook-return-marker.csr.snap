@@ -1,0 +1,52 @@
+==INPUT==
+
+import { useComputed$, useSignal } from '@qwik.dev/core';
+export function useCounter() {
+  const count = useSignal(0);
+  return useComputed$(() => count.value * 2);
+}
+== CSR OUTPUT ==
+
+============================= src/use-counter.ts ==
+
+import { useSignal, _withCaptures, useComputed$ } from '@qwik.dev/core';
+import { useComputed } from '@qwik.dev/core';
+import { use_counter_useComputedqrl_segment_0_17tyklczwyk76 } from './use-counter.ts_use_counter_useComputedqrl_segment_0_17tyklczwyk76';
+export function useCounter() {
+  const count = useSignal(0);
+  return useComputed(_withCaptures(use_counter_useComputedqrl_segment_0_17tyklczwyk76, [count]));
+}
+============================= src/use-counter.ts_use_counter_useComputedqrl_segment_0_17tyklczwyk76.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const use_counter_useComputedqrl_segment_0_17tyklczwyk76 = () => {
+  const [count] = _captures;
+  return count.value * 2;
+};
+/*
+{
+  "origin": "use-counter.ts",
+  "name": "use_counter_useComputedqrl_segment_0_17tyklczwyk76",
+  "entry": null,
+  "displayName": "use_counter_useComputedqrl_segment_0",
+  "hash": "17tyklczwyk76",
+  "canonicalFilename": "use-counter.ts_use_counter_useComputedqrl_segment_0_17tyklczwyk76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    128,
+    163
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -1,5 +1,5 @@
-// In-process JS render timing for a built e2e app — the counterpart of
-// `qwik-ssr-host --bench`. Build the app first (e2e/qwik-e2e/native-build.ts <app>).
+// In-process JS render timing for a built e2e app (build it first with `vite build` for client
+// and server).
 //   node e2e/qwik-e2e/bench-js.mjs vdomless-counter 200
 /* eslint-disable no-console */
 

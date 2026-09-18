@@ -664,6 +664,22 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-18: Cutover plan step 4, the flip and the delete list. `plugin.ts` calls the pipeline
+  `transformModules` in dev; the `ssrPlan` option, `ssr-plan.ts` and `q-ssr-plan.json` are gone, as
+  are legacy `src/**` (the entry stays and re-exports the pipeline), `generators/**`,
+  `conformance/layerA`, specs 01/02/03/07/08/09 and TODO, `REQUIREMENTS.md`, `PLAN.md`,
+  `TARGET_NATIVE_HANDOFF.md`, `JSX_TRANSFORM.md`, `packages/qwik/native`, the native scripts and CI
+  jobs. Found on the way: a core `$` hook called in expression position of a hook body
+  (`return useComputed$(...)`) was left verbatim; the payload scan now extracts it through the
+  naming-convention twins (`hook-return-marker` snapshots). A Suspense `delay` must be a plain
+  expression over setup values (`suspense-delay`). A generation failure now names its module. The
+  `_await(` splice no longer keeps the whitespace after the keyword. The vite plugin tests that
+  asserted legacy output shapes now assert the pipeline's. Core runtime symbols with no callers
+  were NOT removed: that is a runtime decision, taken separately. Bar recorded before the flip:
+  unit 81 failures (72 of them layerA, now deleted; the rest pre-existing), `tsc.check` clean,
+  chromium e2e unable to start because the e2e web server builds the apps through the linked
+  build, which stops on server-only stripping (plan step 9). Verification: 1204 pipeline tests,
+  corpus in CSR and resume green, vite plugin tests at the four pre-existing failures.
 - 2026-09-17: Cutover plan step 3, the Suspense port (group 13 above). `lowerSuspense` in
   `lower-jsx.ts` shares `lowerRangeProgram` with content ranges; the op carries QRL uses like
   `Content` does. A root Suspense returns the fragment's children like a collection, since the

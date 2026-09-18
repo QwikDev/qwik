@@ -88,7 +88,15 @@ export async function generateJsSsr(
   }
   const modules: GenerateOutput['modules'] = [];
   for (const module of plan.modules) {
-    modules.push(...(await generateModule(module, options)));
+    try {
+      modules.push(...(await generateModule(module, options)));
+    } catch (error) {
+      // A refusal names its module, so a whole-app build failure points at the source.
+      if (error instanceof Error && !error.message.includes(module.path)) {
+        error.message = `${error.message} (in ${module.path})`;
+      }
+      throw error;
+    }
   }
   return makeOutput(plan, modules);
 }

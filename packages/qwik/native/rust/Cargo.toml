@@ -1,3 +1,0 @@
-[workspace]
-resolver = "2"
-members = ["crates/qwik", "crates/qwik-derive", "crates/qwik-ssr-std", "crates/qwik-ssr-fixtures", "crates/qwik-ssr-host"]

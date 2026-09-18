@@ -274,6 +274,17 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should extract a core hook callback returned from a custom hook', async () => {
+    await testInput(mode, 'hook-return-marker', {
+      path: 'src/use-counter.ts',
+      code: `import { useComputed$, useSignal } from '@qwik.dev/core';
+export function useCounter() {
+  const count = useSignal(0);
+  return useComputed$(() => count.value * 2);
+}`,
+    });
+  });
+
   test('should lower a Suspense boundary to the runtime race', async () => {
     await testInput(mode, 'suspense-boundary', {
       code: `import { component$, useSignal, Suspense } from '@qwik.dev/core';

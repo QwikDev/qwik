@@ -5,14 +5,13 @@
       "@qwik.dev/optimizer": ["packages/optimizer/dist/index.d.ts"]
     }
   },
-  "include": ["src", "generators", "pipeline"],
+  "include": ["src", "pipeline"],
   "exclude": [
     "dist",
     "pipeline/tests",
     "**/*.unit.ts",
     "**/*.unit.tsx",
     "**/*.spec.ts",
-    "**/*.spec.tsx",
-    "generators/rust"
+    "**/*.spec.tsx"
   ]
 }

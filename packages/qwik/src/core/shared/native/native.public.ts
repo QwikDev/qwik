@@ -1,5 +1,5 @@
 /**
- * Native implementations (specs/09).
+ * Native implementations.
  *
  * `native$` marks a function that non-JS engines can run themselves. The JS implementation stays
  * the source of truth — it is what runs in the browser and in the JS SSR engine — while the

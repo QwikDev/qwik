@@ -469,8 +469,13 @@ export function extractPayloadJs(
     range: [awaitStart, awaitEnd],
   } of awaits) {
     if (awaitStart >= start && awaitEnd <= end) {
+      // The keyword and the whitespace after it go; a comment between them stays authored.
+      let keywordEnd = awaitStart + 'await'.length;
+      while (keywordEnd < awaitEnd && /\s/.test(module.source.code[keywordEnd])) {
+        keywordEnd++;
+      }
       replacements.push(
-        { range: [awaitStart, awaitStart + 'await'.length], value: `(await ${awaitName}(` },
+        { range: [awaitStart, keywordEnd], value: `(await ${awaitName}(` },
         { range: [awaitEnd, awaitEnd], value: '))()' }
       );
     }

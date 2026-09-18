@@ -1,8 +1,7 @@
 import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { existsSync } from 'node:fs';
-import { transformModules as transformCompilerModules } from '@qwik.dev/compiler';
-import { createSsrPlanCollector } from './ssr-plan';
+import { transformModules } from '@qwik.dev/compiler';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import type {
@@ -154,7 +153,6 @@ export function createQwikPlugin(
     },
     inlineStylesUpToBytes: 20000,
     lint: false,
-    ssrPlan: false,
     strip: {},
     experimental: undefined,
     testTarget: undefined,
@@ -401,9 +399,6 @@ export function createQwikPlugin(
 
     if (typeof updatedOpts.lint === 'boolean') {
       opts.lint = updatedOpts.lint;
-    }
-    if (typeof (updatedOpts as { ssrPlan?: boolean }).ssrPlan === 'boolean') {
-      opts.ssrPlan = (updatedOpts as { ssrPlan?: boolean }).ssrPlan!;
     }
 
     if ('experimental' in updatedOpts) {
@@ -1207,9 +1202,6 @@ export function createQwikPlugin(
         transformOpts.regCtxName = REG_CTX_NAME;
       }
 
-      if (isServer && opts.ssrPlan) {
-        (transformOpts as { emitPlan?: boolean }).emitPlan = true;
-      }
       const now = Date.now();
       const resumeTransform = await testResume?.transform(
         transformOpts,
@@ -1218,11 +1210,7 @@ export function createQwikPlugin(
         path,
         normalizePath
       );
-      const newOutput = resumeTransform?.output ?? (await transformCompilerModules(transformOpts));
-      if (isServer && opts.ssrPlan) {
-        // module plans are build metadata, never rollup modules
-        newOutput.modules = ssrPlanCollector.collect(newOutput.modules);
-      }
+      const newOutput = resumeTransform?.output ?? (await transformModules(transformOpts));
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       if (devPath) {
         const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(devPath);
@@ -1420,22 +1408,6 @@ export function createQwikPlugin(
   };
 
   const getOptions = () => opts;
-  // native$ targets resolve here: the compiler is a pure transform with no filesystem
-  const ssrPlanCollector = createSsrPlanCollector((modulePath, target) => {
-    const path = getOptimizer().sys.path;
-    // plan module paths are srcDir-relative, or rootDir-relative when there is no srcDir
-    const base = opts.srcDir ?? opts.rootDir;
-    const resolved = path.resolve(base, path.dirname(modulePath), target);
-    if (maybeFs == null) {
-      throw new Error(`cannot read the native$ target ${resolved}: no filesystem available`);
-    }
-    // a directory is that language's package; a file is source to splice
-    if (maybeFs.statSync(resolved).isDirectory()) {
-      return { package: resolved };
-    }
-    return { source: maybeFs.readFileSync(resolved, 'utf-8') };
-  });
-  const getSsrPlanCollector = () => ssrPlanCollector;
 
   const getTransformedOutputs = () => {
     return Array.from(clientTransformedOutputs.values()).map((t) => {
@@ -1674,7 +1646,6 @@ export const isDev = ${JSON.stringify(isDev)};
     getPath,
     getSys,
     getTransformedOutputs,
-    getSsrPlanCollector,
     init,
     load,
     debug,
@@ -1842,8 +1813,6 @@ export interface QwikPluginOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
-  /** Emit and link the native SSR plan (`q-ssr-plan.json`) during SSR builds. */
-  ssrPlan?: boolean;
   /**
    * Extra server-only names stripped from the client build, appended to the built-in lists.
    * `ctxName` entries are `$`-API name prefixes (like the built-in `route`, `server`,

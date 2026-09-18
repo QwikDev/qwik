@@ -603,7 +603,9 @@ export default component$(() => {
 
   const loaded = await plugin.load({} as any, eventSegmentId!);
   const code = (loaded as { code: string }).code;
-  expect(code).toContain('import { incrementInWorker } from "./index.js"');
+  expect(code).toContain(
+    'import { __qwik_incrementInWorker as incrementInWorker } from "./index.tsx"'
+  );
   expect(code).toContain('await _await(incrementInWorker(count.value))');
   expect(code).not.toContain('_qrlWithChunkDEV(');
 });
@@ -687,18 +689,18 @@ test('transform uses compiler for core test path', async () => {
     meta: result!.meta,
   }).toMatchInlineSnapshot(`
     {
-      "code": "import { _first, createTemplate } from "@qwik.dev/core";
+      "code": "import { _qrlWithChunk } from "@qwik.dev/core";
 
-    const view_tmpl0 = createTemplate("<p>Hello Qwik</p>");
-    export function view(props, ctx) {
-      const fragment0 = view_tmpl0(ctx.document);
-      const el0 = _first(fragment0);
-      return el0;
+    const q_component_spec_jsx_segment_0_1102ojfss05y2 = /*#__PURE__*/ _qrlWithChunk("./component.spec.tsx_component_spec_jsx_segment_0_1102ojfss05y2", () => import("./component.spec.tsx_component_spec_jsx_segment_0_1102ojfss05y2"), "component_spec_jsx_segment_0_1102ojfss05y2");
+    export function view() {
+    	return q_component_spec_jsx_segment_0_1102ojfss05y2;
     }
     ",
       "map": null,
       "meta": {
-        "qwikdeps": [],
+        "qwikdeps": [
+          "/root/packages/qwik/src/core/tests/component.spec.tsx_component_spec_jsx_segment_0_1102ojfss05y2.js",
+        ],
         "segment": null,
       },
     }

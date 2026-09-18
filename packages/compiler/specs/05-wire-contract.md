@@ -172,13 +172,13 @@ attribute whose joined value is empty is dropped entirely.
 
 ## Conformance
 
-- The **109** compiler snapshots (`packages/compiler/src/snapshots/*.snap`) are **module-code
+- The compiler snapshots (`packages/compiler/pipeline/tests/snapshots/*.snap`) are **module-code
   oracles** (input + prettier-formatted emitted SSR/CSR modules + diagnostics) — they prove
   emission, not rendered bytes.
-- Renderer-level byte oracles: `server/ssr-render.unit.ts`, `ssr-script-emitter.unit.ts`, and
-  the Layer-A shell goldens (`packages/compiler/conformance/layerA/`,
-  [08-conformance.md](./08-conformance.md)). `testing/resume-session.ts` is the behavioral
-  resume proof — and today also the only in-repo `qFuncs` installer.
+- Renderer-level byte oracles: `server/ssr-render.unit.ts` and `ssr-script-emitter.unit.ts`; the
+  reference interpreter over the linked plan (cutover plan step 10) adds the engine-side oracle.
+  `testing/resume-session.ts` is the behavioral resume proof — and today also the only in-repo
+  `qFuncs` installer.
 - Legacy reader paths in the shipped loader (`qwik/json`, `q:container="html"|"text"`) must
   never be triggered by engine output.
 - Known trap: `e2e/qwik-e2e/apps/qwikrouter-ssg-snapshot/dist/index.html` is stale v2 output

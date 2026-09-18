@@ -4,8 +4,9 @@ This file describes the active architecture of `packages/qwik`. The target-nativ
 runtime are the only production renderer. Do not reintroduce the removed VNode, cursor,
 legacy SSR-JSX, old reactive-primitives, or `use/` pipelines.
 
-For the cross-session compiler/runtime handoff, read
-[`packages/compiler/TARGET_NATIVE_HANDOFF.md`](../compiler/TARGET_NATIVE_HANDOFF.md).
+For the compiler's route and vocabulary, read
+[`packages/compiler/pipeline/CUTOVER-PLAN.md`](../compiler/pipeline/CUTOVER-PLAN.md) and
+[`packages/compiler/CONTEXT.md`](../compiler/CONTEXT.md).
 
 ## Production flow
 

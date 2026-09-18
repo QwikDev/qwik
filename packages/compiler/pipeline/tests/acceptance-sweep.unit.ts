@@ -26,6 +26,7 @@ const KNOWN_REJECTS: Record<string, string | { reason: string; isServer: boolean
   'todo-old-test/src/components/footer/footer.tsx':
     'pipeline does not support: a branch arm capturing "Filter"',
   'todo-old-test/src/entry.dev.tsx': 'unsupported-runtime-jsx',
+  'vdomless-counter/src/build-data/build-data.ts': 'expression-hook',
   'todo-test/src/components/footer/footer.tsx':
     'pipeline does not support: a branch arm capturing "Filter"',
 };
@@ -38,7 +39,7 @@ function sources(dir: string, into: string[] = []): string[] {
       if (!skipDirs.has(entry)) {
         sources(path, into);
       }
-    } else if (/\.(tsx|jsx)$/.test(entry)) {
+    } else if (/\.(tsx|jsx|ts)$/.test(entry) && !/\.d\.ts$/.test(entry)) {
       into.push(path);
     }
   }
@@ -66,7 +67,10 @@ describe('acceptance sweep', () => {
             rejected.push(`${path}: ${errors.map((diagnostic) => diagnostic.code).join(', ')}`);
           }
         } catch (error) {
-          rejected.push(`${path}: ${(error as Error).message.split('\n')[0]}`);
+          // Generation names its module in the message; the path already leads the entry.
+          rejected.push(
+            `${path}: ${(error as Error).message.split('\n')[0].replace(/ \(in [^)]*\)$/, '')}`
+          );
         }
       }
       const known = Object.entries(KNOWN_REJECTS)

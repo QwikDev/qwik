@@ -1064,12 +1064,19 @@ function lowerSuspense(
       continue;
     }
     if (name === 'delay' && expression !== null) {
-      // Read once at creation, so it stays an inline value.
+      // Read once at creation: a plain expression over setup values, never a tracked source.
       delay = lowerInlineExpressionValue(
         expression,
         ctx,
         collectCaptures(expression, ctx, new Set())
       );
+      if (delay.v !== ValueKind.Computed || delay.resume.r !== ResumeKind.Inline) {
+        throw new InvalidModuleError(
+          'suspense-delay',
+          'A Suspense delay is a plain expression over setup values.',
+          [expression.start, expression.end]
+        );
+      }
       continue;
     }
     throw new InvalidModuleError(

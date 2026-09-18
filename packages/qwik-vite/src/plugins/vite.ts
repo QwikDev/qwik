@@ -238,7 +238,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         manifestInput: qwikViteOpts.ssr?.manifestInput,
         manifestInputPath: qwikViteOpts.ssr?.manifestInputPath,
         manifestOutput: qwikViteOpts.client?.manifestOutput,
-        ssrPlan: qwikViteOpts.ssrPlan,
       };
 
       const opts = await qwikPlugin.normalizeOptions(pluginOpts);
@@ -755,28 +754,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
           await Promise.all(outputs.map(patchModuleFormat));
         }
-
-        // ssrPlan: link collected module plans beside the server bundle
-        const collector = qwikPlugin.getSsrPlanCollector();
-        if (opts.ssrPlan && collector.size() > 0) {
-          const linked = collector.link();
-          if (linked === null) {
-            console.warn(
-              'Qwik plugin: ssrPlan found no render entry (a `Root` component or a default export in root.tsx); q-ssr-plan.json was not written.'
-            );
-          } else if (sys.env === 'node' || sys.env === 'bun' || sys.env === 'deno') {
-            const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-            const outDir = outputOptions.dir || opts.outDir;
-            await fs.promises.mkdir(outDir, { recursive: true });
-            await fs.promises.writeFile(
-              sys.path.join(outDir, 'q-ssr-plan.json'),
-              JSON.stringify(linked.plan)
-            );
-            qwikPlugin.debug(
-              `ssrPlan: linked ${collector.size()} module plans (entry ${linked.entry})`
-            );
-          }
-        }
       }
     },
     transformIndexHtml() {
@@ -1162,14 +1139,6 @@ interface QwikVitePluginCommonOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
-  /**
-   * Emit the native SSR plan during SSR builds and write the linked `q-ssr-plan.json` beside the
-   * server bundle (compiler specs/01). Native engines consume this artifact.
-   *
-   * Default `false`
-   */
-  ssrPlan?: boolean;
-  /** User compiler plugins (specs/09) forwarded to the TypeScript compiler. */
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases

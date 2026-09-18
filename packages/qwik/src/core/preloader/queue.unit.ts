@@ -88,6 +88,27 @@ test('appends preloads directly to head within a trigger slice', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(2);
 });
 
+test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+
+  const bundles = Array.from({ length: 30 }, (_, index) => `entry-${index}.js`);
+  initPreloader(bundles);
+  preload(bundles, 0.8);
+  vi.runAllTimers();
+
+  // Links never load in the test document, so the limit stays saturated.
+  expect(document.head.querySelectorAll('link').length).toBe(25);
+});
+
 test('yields after the frame budget and resumes later', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

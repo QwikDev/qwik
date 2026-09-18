@@ -10,12 +10,11 @@ import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
 import { isFunction, type ValueOrPromise } from '../utils/types';
+import { requestPreload } from '../../preloader/bridge';
 import type { QRLDev } from './qrl';
 import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
 import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
-// @ts-expect-error we don't have types for the preloader
-import { p as preload } from '@qwik.dev/core/preloader';
 import { DomContainer } from '../../client/dom-container';
 import { loading } from '../serdes/inflate';
 import type { Container } from '../types';
@@ -129,7 +128,7 @@ export class LazyRef<TYPE = unknown> {
 
     /** Preload the chunk with somewhat lower probability when we create the QRL. */
     if (isBrowser && $chunk$) {
-      preload($chunk$, 0.8);
+      requestPreload($chunk$, 0.8);
     }
   }
 
@@ -189,7 +188,7 @@ export class LazyRef<TYPE = unknown> {
 
     if (isBrowser && this.$chunk$) {
       /** We will run the QRL, so now the probability of the chunk is 100% */
-      preload(this.$chunk$, 1);
+      requestPreload(this.$chunk$, 1);
     }
 
     const symbol = this.$symbol$;

@@ -12,7 +12,7 @@ import {
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { limitRequestBody } from '../request-handler/request-body-limit';
 import { normalizeRequestUrl } from '../shared/url';
-import { getStaticFilePathname } from '../shared/static-path';
+import { getStaticFilePath } from '../shared/static-file';
 // @ts-ignore
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 import { isDev } from '@qwik.dev/core/build';
@@ -118,16 +118,8 @@ export function createQwikRouter(opts: QwikRouterDenoOptions): QwikRouterDenoMid
     return null as never;
   };
 
-  const openStaticFile = async (pathname: string) => {
-    const fileName = pathname.slice(pathname.lastIndexOf('/'));
-    let filePath: string;
-    if (fileName.includes('.')) {
-      filePath = join(staticFolder, pathname);
-    } else if (!globalThis.__NO_TRAILING_SLASH__) {
-      filePath = join(staticFolder, pathname + 'index.html');
-    } else {
-      filePath = join(staticFolder, pathname, 'index.html');
-    }
+  const openStaticFile = async (staticFilePath: string) => {
+    const filePath = join(staticFolder, staticFilePath);
     return {
       filePath,
       // @ts-ignore
@@ -140,11 +132,11 @@ export function createQwikRouter(opts: QwikRouterDenoOptions): QwikRouterDenoMid
       const url = getRequestUrl(request, opts);
 
       if (isStaticPath(request.method || 'GET', url)) {
-        const pathname = getStaticFilePathname(url.pathname);
-        if (pathname === undefined) {
+        const staticFilePath = getStaticFilePath(url.pathname);
+        if (staticFilePath === undefined) {
           return null;
         }
-        const { filePath, content } = await openStaticFile(pathname);
+        const { filePath, content } = await openStaticFile(staticFilePath);
         const ext = extname(filePath).replace(/^\./, '');
 
         return new Response(content.readable, {

@@ -222,6 +222,6 @@ export const getBundles = (qrls: QRLInternal[]) => {
 };
 
 const preLoaderOptionsDefault: Required<PreloaderOptions> = {
-  ssrPreloads: 7,
+  ssrPreloads: 0,
   maxIdlePreloads: 25,
 };

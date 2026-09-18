@@ -23,6 +23,9 @@ const createContainer = () => {
     write(content: string) {
       scriptContent += content;
     },
+    writeScript(_attrs: Record<string, string>, body = '') {
+      scriptContent += body;
+    },
     closeElement() {},
   };
 
@@ -64,5 +67,28 @@ describe('preloader', () => {
       },
     ]);
     expect(getScriptContent()).toBe('');
+  });
+
+  it('emits no speculative preload links before page load by default', async () => {
+    const { container, getScriptContent } = createContainer();
+    const { includePreloader } = await import('./preload-impl');
+    const bundles = Array.from({ length: 6 }, (_, index) => `route-${index + 1}.js`);
+
+    includePreloader(container, undefined, bundles);
+
+    const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
+    expect(immediateScript).toBe('');
+  });
+
+  it('emits speculative preload links when ssrPreloads is opted into', async () => {
+    const { container, getScriptContent } = createContainer();
+    const { includePreloader } = await import('./preload-impl');
+    const bundles = Array.from({ length: 6 }, (_, index) => `route-${index + 1}.js`);
+
+    includePreloader(container, { ssrPreloads: 2 }, bundles);
+
+    const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
+    expect(immediateScript).toContain('route-2.js');
+    expect(immediateScript).not.toContain('route-3.js');
   });
 });

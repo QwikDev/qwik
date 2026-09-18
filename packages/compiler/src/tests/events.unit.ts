@@ -637,3 +637,71 @@ describe('eventModifierName', () => {
     expect(eventModifierName('title')).toBe(null);
   });
 });
+
+describe('handler lists', () => {
+  const HEAD = `import { component$, $ } from '@qwik.dev/core';
+import spaInit from './spa-init';
+import { linkPrefetchInit } from './link-prefetch';
+`;
+
+  async function main(jsx: string, isServer = false) {
+    const output = await transformModules({
+      srcDir: 'src',
+      transpileTs: true,
+      transpileJsx: true,
+      isServer,
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `${HEAD}export default component$(() => {\n  return ${jsx};\n});\n`,
+        },
+      ],
+    });
+    return {
+      code: output.modules.find((module) => module.path === 'src/component.tsx')!.code,
+      chunks: output.modules.filter((module) => module.segment !== null).length,
+    };
+  }
+
+  test('a module binding is already a handler, so it stands as written', async () => {
+    const { code, chunks } = await main(`<b onClick$={spaInit}></b>`);
+
+    expect(code).toContain('setEvent(el0, "q-e:click", spaInit)');
+    expect(chunks).toBe(0);
+  });
+
+  test('a list of module bindings keeps the authored order and allocates nothing', async () => {
+    const { code, chunks } = await main(
+      `<script document:onQCInit$={[spaInit, linkPrefetchInit]}></script>`
+    );
+
+    expect(code).toContain('setEvent(el0, "q-d:qcinit", [spaInit, linkPrefetchInit])');
+    expect(chunks).toBe(0);
+  });
+
+  test('every extracted handler in a list gets its own chunk', async () => {
+    const { chunks } = await main(
+      `<button onClick$={[$(() => { document.title = 'a'; }), () => { document.title = 'b'; }]}></button>`
+    );
+
+    expect(chunks).toBe(2);
+  });
+
+  test('a list mixing an extracted handler with a module binding emits both in place', async () => {
+    const { code, chunks } = await main(
+      `<u onClick$={[$(() => { document.title = 'f'; }), spaInit]}></u>`
+    );
+
+    expect(code).toMatch(/setEvent\(el0, "q-e:click", \[component_qrl_segment_0_\w+, spaInit\]\)/);
+    expect(chunks).toBe(1);
+  });
+
+  test('the server prints the same list through its event attribute', async () => {
+    const { code } = await main(
+      `<script document:onQCInit$={[spaInit, linkPrefetchInit]}></script>`,
+      true
+    );
+
+    expect(code).toContain('eventAttrParts("q-d:qcinit", [spaInit, linkPrefetchInit])');
+  });
+});

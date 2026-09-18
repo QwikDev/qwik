@@ -1,4 +1,12 @@
-import { BoundaryKind, HandlerKind, PropKind, ValueKind, type Prop, type Value } from '../schema';
+import {
+  BindingScope,
+  BoundaryKind,
+  HandlerKind,
+  PropKind,
+  ValueKind,
+  type Prop,
+  type Value,
+} from '../schema';
 import type { ArrayExpression, Expression, JSXAttribute } from 'oxc-parser';
 import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
@@ -26,7 +34,7 @@ export function lowerEventAttribute(
       }
     }
     if (handler.type !== 'ArrowFunctionExpression' && handler.type !== 'FunctionExpression') {
-      return resolveQrlBinding(handler, ctx) !== null
+      return isStaticHandler(handler, ctx)
         ? lowerInlineExpressionValue(
             handler,
             ctx,
@@ -60,6 +68,16 @@ export function lowerEventAttribute(
     expression,
     event: { k: PropKind.Event, name: scope, passive: false, handlers },
   };
+}
+
+/** A handler that already is one: a local QRL, or a module binding the module keeps in scope. */
+function isStaticHandler(handler: Expression, ctx: LowerContext): boolean {
+  if (resolveQrlBinding(handler, ctx) !== null) {
+    return true;
+  }
+  const binding = ctx.bindings.reference(handler);
+  const scope = binding === null ? null : ctx.plan.bindings[binding].scope;
+  return scope === BindingScope.Import || scope === BindingScope.Module;
 }
 
 function flattenHandlers(array: ArrayExpression): Expression[] {

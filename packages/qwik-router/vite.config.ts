@@ -59,6 +59,8 @@ export default defineConfig(() => {
           // separate importable id).
           '@qwik-router-config',
           /@qwik\.dev\/core/,
+          // A package never bundles itself: a self-import stays a runtime import.
+          '@qwik.dev/router',
           /@qwik\.dev\/router\//,
           ...Object.keys(pkg.dependencies || {}),
           ...Object.keys(pkg.peerDependencies || {}),

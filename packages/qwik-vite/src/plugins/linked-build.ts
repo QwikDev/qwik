@@ -1,7 +1,26 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import type { Rolldown } from 'vite';
-import { pipeline } from '@qwik.dev/compiler';
+import {
+  BuildMode,
+  EntryKind,
+  Environment,
+  ExportKind,
+  GenerateOutput,
+  LibraryPlan,
+  LinkEntry,
+  LinkResultKind,
+  ModulePlan,
+  ResolutionKind,
+  ResolverSnapshot,
+  SideEffects,
+  analyseModule,
+  createLibraryPlan,
+  generateJsCsr,
+  generateJsSsr,
+  linkPlans,
+  readLibraryPlan,
+} from '@qwik.dev/compiler';
 
 const prefix = '\0qwik-linked:';
 export const isLinkedBuildId = (id: string) => id.startsWith(prefix);
@@ -17,19 +36,19 @@ export interface LinkedBuildOptions {
   sourceMaps: boolean;
   stripExports?: string[];
   stripCtxName?: string[];
-  onOutput: (output: pipeline.GenerateOutput) => void;
+  onOutput: (output: GenerateOutput) => void;
 }
 
 /** Collect through bundler hooks, then emit from one application-wide link. */
 export function createLinkedBuild() {
-  const plans = new Map<string, pipeline.ModulePlan>();
-  const files = new Map<string, pipeline.GenerateOutput['modules'][number]>();
+  const plans = new Map<string, ModulePlan>();
+  const files = new Map<string, GenerateOutput['modules'][number]>();
   const owners = new Map<string, string>();
-  const resolver: pipeline.ResolverSnapshot = { edges: {} };
+  const resolver: ResolverSnapshot = { edges: {} };
   let options: LinkedBuildOptions | undefined;
-  let entries: pipeline.LinkEntry[] = [];
+  let entries: LinkEntry[] = [];
   let pending: Promise<void> | undefined;
-  let library: pipeline.LibraryPlan | undefined;
+  let library: LibraryPlan | undefined;
 
   const virtual = (id: string) => prefix + id;
 
@@ -61,8 +80,7 @@ export function createLinkedBuild() {
       }
       if (isRuntime && !config.server && !config.library) {
         const strippedExport = plan.exports.find(
-          (entry) =>
-            entry.e !== pipeline.ExportKind.Star && config.stripExports?.includes(entry.exported)
+          (entry) => entry.e !== ExportKind.Star && config.stripExports?.includes(entry.exported)
         );
         const boundaryNames = [
           ...plan.imports.filter((entry) => !entry.typeOnly).map((entry) => entry.imported),
@@ -81,14 +99,14 @@ export function createLinkedBuild() {
       for (const edge of plan.edges) {
         if (edges[edge.id] !== undefined) {
           const existing = edges[edge.id];
-          if (existing.r === pipeline.ResolutionKind.Resolved) {
+          if (existing.r === ResolutionKind.Resolved) {
             await collect(existing.path, isRuntime && !edge.typeOnly);
           }
           continue;
         }
         const target = await ctx.resolve(edge.specifier, id, { skipSelf: false });
         if (target === null && edge.typeOnly) {
-          edges[edge.id] = { r: pipeline.ResolutionKind.External };
+          edges[edge.id] = { r: ResolutionKind.External };
           continue;
         }
         if (target === null) {
@@ -98,7 +116,7 @@ export function createLinkedBuild() {
         const companion = `${targetId}.qwik-plan.json`;
         if (!targetId.startsWith('\0') && existsSync(companion)) {
           ctx.addWatchFile(companion);
-          const artifact = pipeline.readLibraryPlan(readFileSync(companion, 'utf8'));
+          const artifact = readLibraryPlan(readFileSync(companion, 'utf8'));
           const relocate = (path: string) => normalize(resolve(`${companion}.modules`, path));
           const libraryEntry = artifact.entries[0];
           if (libraryEntry === undefined) {
@@ -110,16 +128,16 @@ export function createLinkedBuild() {
             resolver.edges[path] = Object.fromEntries(
               Object.entries(artifact.resolver.edges[module.path] ?? {}).map(([key, value]) => [
                 key,
-                value.r === pipeline.ResolutionKind.Resolved
+                value.r === ResolutionKind.Resolved
                   ? { ...value, path: relocate(value.path) }
                   : value,
               ])
             );
           }
           edges[edge.id] = {
-            r: pipeline.ResolutionKind.Resolved,
+            r: ResolutionKind.Resolved,
             path: relocate(libraryEntry.module),
-            sideEffects: pipeline.SideEffects.Unknown,
+            sideEffects: SideEffects.Unknown,
           };
           await collect(relocate(libraryEntry.module), isRuntime && !edge.typeOnly);
         } else if (
@@ -127,16 +145,16 @@ export function createLinkedBuild() {
           !/\.[cm]?[jt]sx?(?:\?|$)/.test(targetId) ||
           targetId.includes('/node_modules/')
         ) {
-          edges[edge.id] = { r: pipeline.ResolutionKind.External };
+          edges[edge.id] = { r: ResolutionKind.External };
         } else {
           await collect(targetId, isRuntime && !edge.typeOnly);
           edges[edge.id] = plans.has(targetId)
             ? {
-                r: pipeline.ResolutionKind.Resolved,
+                r: ResolutionKind.Resolved,
                 path: targetId,
-                sideEffects: pipeline.SideEffects.Unknown,
+                sideEffects: SideEffects.Unknown,
               }
-            : { r: pipeline.ResolutionKind.External };
+            : { r: ResolutionKind.External };
         }
       }
     };
@@ -147,29 +165,25 @@ export function createLinkedBuild() {
       }
       const id = normalize(target.id);
       await collect(id);
-      entries.push({ kind: pipeline.EntryKind.Module, module: id, exposeExports: true });
+      entries.push({ kind: EntryKind.Module, module: id, exposeExports: true });
     }
     const modules = [...plans.values()];
     if (config.library) {
-      library = pipeline.createLibraryPlan(modules, entries, resolver);
+      library = createLibraryPlan(modules, entries, resolver);
     }
-    const linked = pipeline.linkPlans(
+    const linked = linkPlans(
       modules,
       entries,
       {
-        environment: config.server ? pipeline.Environment.Server : pipeline.Environment.Browser,
-        mode: config.library
-          ? pipeline.BuildMode.Lib
-          : config.development
-            ? pipeline.BuildMode.Dev
-            : pipeline.BuildMode.Prod,
+        environment: config.server ? Environment.Server : Environment.Browser,
+        mode: config.library ? BuildMode.Lib : config.development ? BuildMode.Dev : BuildMode.Prod,
         stripExports: [],
       },
       resolver,
       { claims: [], policies: [], emissions: [] },
       true
     );
-    if (linked.kind === pipeline.LinkResultKind.Failed) {
+    if (linked.kind === LinkResultKind.Failed) {
       throw new Error(linked.diagnostics.map((diagnostic) => diagnostic.message).join('\n'));
     }
     if (linked.plan.diagnostics.length > 0) {
@@ -177,14 +191,11 @@ export function createLinkedBuild() {
         linked.plan.diagnostics.map(({ diagnostic }) => diagnostic.message).join('\n')
       );
     }
-    const output = await (config.server ? pipeline.generateJsSsr : pipeline.generateJsCsr)(
-      linked.plan,
-      {
-        rootDir: config.rootDir,
-        outputSourceMaps: config.sourceMaps,
-        explicitExtensions: true,
-      }
-    );
+    const output = await (config.server ? generateJsSsr : generateJsCsr)(linked.plan, {
+      rootDir: config.rootDir,
+      outputSourceMaps: config.sourceMaps,
+      explicitExtensions: true,
+    });
     for (const file of output.modules) {
       const id = normalize(file.path);
       files.set(id, file);
@@ -205,13 +216,13 @@ export function createLinkedBuild() {
     ) {
       return null;
     }
-    const plan = await pipeline.analyseModule(
+    const plan = await analyseModule(
       { path: id, code },
       { transpileTs: true, rootDir: options.rootDir, scope: options.scope }
     );
     plans.set(id, plan);
     const hasDefault = plan.exports.some(
-      (entry) => entry.e !== pipeline.ExportKind.Star && entry.exported === 'default'
+      (entry) => entry.e !== ExportKind.Star && entry.exported === 'default'
     );
     return {
       code: `export * from ${JSON.stringify(virtual(id))};\n${hasDefault ? `export { default } from ${JSON.stringify(virtual(id))};` : ''}`,
@@ -257,7 +268,7 @@ export function createLinkedBuild() {
     const plan = plans.get(owner);
     const edge = plan?.edges.find((edge) => edge.specifier === id && !edge.typeOnly);
     const target = edge === undefined ? undefined : resolver.edges[owner]?.[edge.id];
-    if (target?.r === pipeline.ResolutionKind.Resolved) {
+    if (target?.r === ResolutionKind.Resolved) {
       return virtual(target.path);
     }
     return ctx.resolve(id, owner, { skipSelf: false });
@@ -278,7 +289,7 @@ export function createLinkedBuild() {
       ctx.emitFile({
         type: 'asset',
         fileName: `${chunk.fileName}.qwik-plan.json`,
-        source: JSON.stringify(pipeline.createLibraryPlan([...plans.values()], [entry], resolver)),
+        source: JSON.stringify(createLibraryPlan([...plans.values()], [entry], resolver)),
       });
     }
   }

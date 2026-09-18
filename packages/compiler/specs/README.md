@@ -1,8 +1,8 @@
 # Compiler specs
 
 The engine contract over the linked plan is written once the artifact and the server-hole IR land
-(cutover plan step 12) as `linked-plan.md`. Until then [pipeline/DESIGN.md](../pipeline/DESIGN.md)
-and [pipeline/CUTOVER-PLAN.md](../pipeline/CUTOVER-PLAN.md) carry it.
+(cutover plan step 12) as `linked-plan.md`. Until then [src/DESIGN.md](../src/DESIGN.md)
+and [src/CUTOVER-PLAN.md](../src/CUTOVER-PLAN.md) carry it.
 
 Freeze specs, validated against the runtime; on any conflict the code wins:
 

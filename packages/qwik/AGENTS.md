@@ -5,7 +5,7 @@ runtime are the only production renderer. Do not reintroduce the removed VNode, 
 legacy SSR-JSX, old reactive-primitives, or `use/` pipelines.
 
 For the compiler's route and vocabulary, read
-[`packages/compiler/pipeline/CUTOVER-PLAN.md`](../compiler/pipeline/CUTOVER-PLAN.md) and
+[`packages/compiler/src/CUTOVER-PLAN.md`](../compiler/src/CUTOVER-PLAN.md) and
 [`packages/compiler/CONTEXT.md`](../compiler/CONTEXT.md).
 
 ## Production flow

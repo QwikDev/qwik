@@ -1,7 +1,7 @@
-# `pipeline/` — the staged compiler (analyse → link → generate)
+# `src/` — the compiler (analyse → link → generate)
 
-From-scratch implementation of [DESIGN.md](./DESIGN.md). The legacy pipeline in `../src` stays
-intact and untouched as the **differential oracle** until the cutover commit deletes it.
+Implementation of [DESIGN.md](./DESIGN.md). The legacy compiler it replaced was deleted at the
+cutover (2026-09-18); "the oracle" and "legacy" below refer to that history only.
 
 Follow [CUTOVER-PLAN.md](./CUTOVER-PLAN.md) for the decided route to delete legacy and freeze the
 linked-plan contract; [JSX-IMPLEMENTATION.md](./JSX-IMPLEMENTATION.md) keeps the per-feature checklist
@@ -148,8 +148,8 @@ Slice gates, always:
 
 ```bash
 pnpm build.compiler                                          # oracle fixtures load dist
-npx tsc --noEmit -p packages/compiler/tsconfig.json          # includes pipeline/
-pnpm vitest run packages/compiler/pipeline                   # schema + flow + oracle harness
+npx tsc --noEmit -p packages/compiler/tsconfig.json
+pnpm vitest run packages/compiler/src                        # schema + flow + oracle harness
 pnpm vitest run packages/compiler                            # legacy suites stay green
 ```
 

@@ -680,6 +680,12 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   chromium e2e unable to start because the e2e web server builds the apps through the linked
   build, which stops on server-only stripping (plan step 9). Verification: 1204 pipeline tests,
   corpus in CSR and resume green, vite plugin tests at the four pre-existing failures.
+- 2026-09-18: Cutover plan step 4, the rename. `packages/compiler/pipeline` is `packages/compiler/src`;
+  the entry exports the compiler flat (`transformModules`, `analyseModule`, `linkPlans`,
+  `generateJsSsr`, `generateJsCsr`, `createLibraryPlan`, `readLibraryPlan`, `extractRenderRoots`,
+  the schema); `linked-build.ts` and `test-resume.ts` import them by name; the legacy-import eslint
+  guard is retired with the tree it guarded. Verification: compiler and vite suites unchanged,
+  corpus in CSR and resume green after the rebuild, `tsc.check` clean.
 - 2026-09-17: Cutover plan step 3, the Suspense port (group 13 above). `lowerSuspense` in
   `lower-jsx.ts` shares `lowerRangeProgram` with content ranges; the op carries QRL uses like
   `Content` does. A root Suspense returns the fragment's children like a collection, since the
@@ -692,7 +698,7 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   1202 pipeline tests, corpus in CSR and resume fully green (726) after the rebuild, sweep at 11
   known rejects.
 - 2026-09-17: Cutover plan step 2. The pipeline imports nothing from `../src` any more, and an eslint
-  `no-restricted-imports` rule on `packages/compiler/pipeline/**` keeps it that way. `ValueIR` lives
+  `no-restricted-imports` rule on `packages/compiler/src/**` keeps it that way. `ValueIR` lives
   at `schema/value-ir.ts` on `LocalId`, minus the never-produced call, plugin and lambda variants;
   the range mapper and node source map at `source-maps.ts`; the magic-string assembly at
   `generate/source-assembly.ts`; `applyReplacements` is private to `emit-chunk.ts`;

@@ -1,8 +1,23 @@
-/** The compiler package entry: the staged pipeline. The legacy `src/` tree is deleted at cutover. */
-export { transformModules } from '../pipeline/transform-modules';
-/** @internal */
-export { transformModules as transformPipelineModules } from '../pipeline/transform-modules';
-/** @internal */
-export * as pipeline from '../pipeline';
-/** @internal */
-export { extractRenderRoots, type ExtractedRenderRoot } from '../pipeline/render-roots';
+/**
+ * The staged compiler pipeline: `analyseModule` → `linkPlans` → per-target generators.
+ *
+ * See ./DESIGN.md for the full architecture, model rationale, phases, and verification gates. The
+ * legacy pipeline in `../src` is the differential oracle until the cutover commit.
+ */
+export * from './schema';
+export { createLibraryPlan, readLibraryPlan, type LibraryPlan } from './library-plan';
+export { analyseModule, type AnalyseInput, type AnalyseOptions } from './analyse/analyse-module';
+export { InvalidModuleError, UnsupportedError } from './errors';
+export {
+  linkPlans,
+  ResolutionKind,
+  SideEffects,
+  type LinkEntry,
+  type PluginSnapshot,
+  type ResolverSnapshot,
+} from './link/link-plans';
+export { generateJsCsr } from './generate/js-csr';
+export { generateJsSsr } from './generate/js-ssr';
+export { type GenerateOutput, type PresentationOptions } from './generate/output';
+export { transformModules } from './transform-modules';
+export { extractRenderRoots, type ExtractedRenderRoot } from './render-roots';

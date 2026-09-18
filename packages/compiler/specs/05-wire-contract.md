@@ -172,7 +172,7 @@ attribute whose joined value is empty is dropped entirely.
 
 ## Conformance
 
-- The compiler snapshots (`packages/compiler/pipeline/tests/snapshots/*.snap`) are **module-code
+- The compiler snapshots (`packages/compiler/src/tests/snapshots/*.snap`) are **module-code
   oracles** (input + prettier-formatted emitted SSR/CSR modules + diagnostics) — they prove
   emission, not rendered bytes.
 - Renderer-level byte oracles: `server/ssr-render.unit.ts` and `ssr-script-emitter.unit.ts`; the

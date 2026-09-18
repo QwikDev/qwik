@@ -1,7 +1,4 @@
-import {
-  extractRenderRoots,
-  transformPipelineModules as transformModules,
-} from '@qwik.dev/compiler';
+import { extractRenderRoots, transformModules } from '@qwik.dev/compiler';
 import type { Rollup, ViteDevServer } from 'vite';
 import { dirname, resolve } from 'node:path';
 import type { TransformModule, TransformModulesOptions, TransformOutput } from '../types';

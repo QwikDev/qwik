@@ -109,22 +109,6 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/compiler/pipeline/**/*.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['../src/*', '../../src/*', '../../../src/*', '**/compiler/src/*'],
-              message: 'The staged pipeline must not import the legacy compiler.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
     files: ['packages/docs/**/*.{ts,tsx}'],
     rules: {
       'no-console': 'off',

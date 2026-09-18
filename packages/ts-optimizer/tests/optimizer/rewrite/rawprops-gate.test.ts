@@ -106,7 +106,7 @@ export const C = component$(({ prefetch: prefetchProp, data: dataProp = prefetch
     expectAllModulesParse(result);
   });
 
-  it('preserves a member-access default (non-const)', () => {
+  it('consolidates a member-access default into an untracked binding', () => {
     const input = `
 import { component$ } from '@qwik.dev/core';
 import { config } from './config';
@@ -122,8 +122,10 @@ export const C = component$(({ mode = config.mode }) => {
     });
 
     const code = findParent(result).code;
-    expect(code).not.toMatch(/\(_rawProps\)\s*=>/);
-    expect(code).toMatch(/mode\s*=\s*config\.mode/);
+    expect(code).toMatch(/\(_rawProps\)\s*=>/);
+    expect(code).toMatch(
+      /const _defaultValue = untrack\(\(\) => _rawProps\.mode\) === void 0 \? config\.mode : void 0;/
+    );
   });
 
   it('still consolidates flat destructure with const defaults (parity-safe)', () => {

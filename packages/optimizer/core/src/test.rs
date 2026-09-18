@@ -590,6 +590,163 @@ export const DynamicDefault = component$(({ value = getValue() }) => {
 }
 
 #[test]
+fn dynamic_props_defaults_in_separate_segments() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@qwik.dev/core';
+const defaults = { showDelay: 100, hideDelay: 200 };
+export const Repro = component$(({ showDelay = defaults.showDelay, hideDelay = defaults.hideDelay }) => {
+	const open = useSignal(false);
+	const show$ = $(() => setTimeout(() => (open.value = true), showDelay));
+	const hide$ = $(() => setTimeout(() => (open.value = false), hideDelay));
+	return <div onMouseEnter$={show$} onMouseLeave$={hide$} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_segment_param_does_not_collide_with_captured_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const open = track(() => isOpen?.value ?? true);
+		return open ? initialFee : 0;
+	});
+	return <div>{networkFee.value}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_segments_number_captured_raw_props() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const inner = $(() => track(() => isOpen.value) + initialFee);
+		return inner;
+	});
+	const other = useComputed$(({ track }) => {
+		const deeper = useComputed$(({ track: t2 }) => t2(() => track(() => initialFee)));
+		return deeper;
+	});
+	return <div>{networkFee.value}{other.value}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_segments_number_captured_raw_props_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const inner = $(() => track(() => isOpen.value) + initialFee);
+		return inner;
+	});
+	const other = useComputed$(({ track }) => {
+		const deeper = useComputed$(({ track: t2 }) => t2(() => track(() => initialFee)));
+		return deeper;
+	});
+	return <div>{networkFee.value}{other.value}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn repeated_use_context_destructures_get_distinct_bindings() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useContext } from '@qwik.dev/core';
+import { WalletsContextId, SessionContextId } from './ctx';
+
+export const Cmp = component$(() => {
+	const { wallets } = useContext(WalletsContextId);
+	const { user } = useContext(SessionContextId);
+	return <div>{wallets}{user}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_destructure_rebinding_prop_name() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { flag?: boolean; className?: string }) => {
+	if (props.flag) {
+		const { className, ...rest } = props;
+		console.log(className, rest);
+	}
+	const { className, ...rest } = props;
+	return <div class={className}>{JSON.stringify(rest)}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn local_shadowing_destructured_prop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ value }: { value?: string }) => {
+	const readInput = (e: any) => {
+		const value = e.target.value;
+		return value;
+	};
+	console.log(readInput);
+	return <input value={value} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_props_wrapping() {
 	test_input!(TestInput {
 		code: r#"

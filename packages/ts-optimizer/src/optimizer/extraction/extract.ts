@@ -130,6 +130,10 @@ interface ExtractionPhaseFields {
   liftedNonConst?: boolean;
   parent: SymbolName | null;
   propsFieldCaptures?: Map<string, string>;
+  /** Field local → symbol of the ancestor whose props object it reads. */
+  propsFieldSources?: Map<string, string>;
+  /** One per `_rawProps` capture slot, outermost ancestor first. */
+  rawPropsSources?: string[];
   /**
    * Parallel to `propsFieldCaptures` — for each captured prop field with a destructure-time default
    * (`some = 1+2`), the default expression as source text. Nested segment bodies emit

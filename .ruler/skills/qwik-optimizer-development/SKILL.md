@@ -45,6 +45,28 @@ pnpm vitest run packages/qwik-vite/src/plugins/plugin.unit.ts
 `packages/optimizer/core/Cargo.toml`. Use `pnpm test.rust.update` only when snapshot updates are
 intentional.
 
+## Generated Binding Names
+
+Both optimizers invent bindings (`_rawProps`, `_defaultValue`, the `use*` destructure flattening).
+Neither gets a scope-correct rename for free, so name uniqueness is the transform's job:
+
+- Rust: `private_ident!` plus swc hygiene is not enough once a binding is captured by an extracted
+  segment. Hygiene commits one name per `SyntaxContext` in source order, and segments lifted to
+  module scope are sibling scopes that each keep the base name — the enclosing component scope then
+  carries a duplicate declaration hygiene never revisits. Number generated names at creation.
+- TypeScript: there is no hygiene pass at all, and the rewrite matches identifiers by name. Number
+  every generated binding, skip names inside destructuring patterns, and resolve references through
+  oxc-walker's `ScopeTracker` so names re-bound in a nested scope keep their declaration. Do not
+  bail out of the rewrite on shadowing — Rust still consolidates, and the snapshot diverges.
+- Props objects (`_rawProps`) follow Rust hygiene: each takes the lowest `_rawProps{n}` not held by
+  a props object bound beside it, in emission order. A segment file is its own module; inline `.s()`
+  bodies share one, so never hardcode a suffix — go through `rawPropsBindingNames`.
+
+Pin cross-optimizer behavior with a Rust `test_input!` snapshot registered in
+`packages/ts-optimizer/tests/optimizer/snapshot-options.ts`, not with string asserts in a TS test:
+only the convergence suite catches parity drift. Its mismatches fail in the final
+`convergence summary` test, so a `-t` filter that skips it reports a false pass.
+
 ## Hard Rules
 
 - Do not hand-edit generated optimizer build output in `dist/`, `lib/`, or `target/`.

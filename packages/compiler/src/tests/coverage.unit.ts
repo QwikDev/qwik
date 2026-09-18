@@ -55,7 +55,7 @@ const UNCOVERED: Record<string, readonly string[]> = {
   NativeTargetKind: ['source', 'path'],
   PlaceKind: ['capture', 'row-item', 'task-local', 'def-param'],
   PlanFormat: ['qwik/module-plan'],
-  PredicateKind: ['not', 'and', 'or'],
+  PredicateKind: ['and', 'or'],
   ReadRole: ['write'],
   ResolutionKind: ['resolved', 'unresolved'],
   ResumeKind: ['initial-only'],

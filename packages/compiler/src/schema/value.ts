@@ -1,6 +1,6 @@
 /** Payloads, ESM edges, expressions, tasks, and the five-arm `Value` union (DESIGN.md "Model"). */
 import type { ValueIR } from './value-ir';
-import type { BuildConstant, LocalId, PayloadId, PlaceIR, ProgramId, QrlId, Range } from './shared';
+import type { LocalId, PayloadId, PlaceIR, Predicate, ProgramId, QrlId, Range } from './shared';
 import type { CallTarget, CallTargetKind, Setup } from './program';
 import type { Result } from './result';
 
@@ -24,7 +24,7 @@ export interface Payload {
   /** Text materialized at serialization. */
   text?: string;
   /** `value` is the linker's answer for this environment; absent while the plan stays neutral. */
-  constants: { range: Range; name: BuildConstant; role: ReadRole; value?: boolean }[];
+  constants: { range: Range; predicate: Predicate; role: ReadRole; value?: boolean }[];
   qrls: {
     range: Range;
     use: QrlUse;

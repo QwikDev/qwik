@@ -666,6 +666,31 @@ export default () => {
     expect(headless).not.toContain('createSsrOpenTag');
   });
 
+  test('should answer an import.meta.env build flag the same way', async () => {
+    const output = await testInput(mode, 'build-constants-env', {
+      code: `import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  useTask$(() => {
+    if (import.meta.env.SSR) {
+      count.value = 1;
+    }
+    if (import.meta.env.PROD) {
+      count.value = 2;
+    }
+    observe(import.meta.env.BASE_URL);
+  });
+  return <button>{count.value}</button>;
+});`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).not.toContain('import.meta.env.SSR');
+    expect(code).not.toContain('import.meta.env.PROD');
+    // a key the build does not define is left to the bundler
+    expect(code).toContain('import.meta.env.BASE_URL');
+  });
+
   test('should answer a build constant everywhere a payload carries one', async () => {
     const output = await testInput(mode, 'build-constants', {
       code: `import { component$, isBrowser, isDev, isServer, useSignal, useTask$ } from '@qwik.dev/core';

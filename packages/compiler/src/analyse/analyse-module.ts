@@ -32,6 +32,7 @@ import { createOriginalRangeMapper } from '../source-maps';
 import { isFunctionLike } from './ast/utils';
 import { explicitQrlRoots, recordFunctionJsx, recordPayloadQrls } from './lower-function';
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
+import { recordEnvConstants } from './build-env';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import type { Node } from 'oxc-parser';
 import { recordBindingResults } from './results';
@@ -295,6 +296,7 @@ export async function analyseModule(
   }
   finalizeLocalFunctions(lowerContext);
   recordBindingResults(lowerContext);
+  recordEnvConstants(parsed.program, plan);
   return finish();
 }
 

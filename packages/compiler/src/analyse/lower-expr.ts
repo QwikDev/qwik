@@ -13,6 +13,7 @@ import {
   type Result,
   type Value,
   BuildConstant,
+  PredicateKind,
   type LocalId,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../schema/value-ir';
@@ -223,7 +224,11 @@ export function recordPayloadReads(
     if (constant === null) {
       target.reads.push(read);
     } else {
-      target.constants.push({ range: read.range, name: constant, role: read.role });
+      target.constants.push({
+        range: read.range,
+        predicate: { p: PredicateKind.Const, name: constant },
+        role: read.role,
+      });
     }
   }
   for (const entry of refs.locals) {

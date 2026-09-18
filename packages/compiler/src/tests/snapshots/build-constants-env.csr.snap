@@ -1,0 +1,89 @@
+==INPUT==
+
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  useTask$(() => {
+    if (import.meta.env.SSR) {
+      count.value = 1;
+    }
+    if (import.meta.env.PROD) {
+      count.value = 2;
+    }
+    observe(import.meta.env.BASE_URL);
+  });
+  return <button>{count.value}</button>;
+});
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  useTask,
+  _withCaptures,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { component_useTaskqrl_segment_0_1og80iqmttt5c } from './component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c';
+
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(0);
+  useTask(_withCaptures(component_useTaskqrl_segment_0_1og80iqmttt5c, [count]));
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      const text0 = _first(el0);
+      const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
+  );
+};
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
+  const [count] = _captures;
+  if (false) {
+    count.value = 1;
+  }
+  if (true) {
+    count.value = 2;
+  }
+  observe(import.meta.env.BASE_URL);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useTaskqrl_segment_0_1og80iqmttt5c",
+  "entry": null,
+  "displayName": "component_useTaskqrl_segment_0",
+  "hash": "1og80iqmttt5c",
+  "canonicalFilename": "component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    132,
+    313
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

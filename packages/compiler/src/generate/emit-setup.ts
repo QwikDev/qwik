@@ -22,13 +22,7 @@ import {
 } from '../schema';
 import { ValueIrKind } from '../schema/value-ir';
 import { UnsupportedError } from '../errors';
-import {
-  expressionJs,
-  extractPayloadJs,
-  inlineValueJs,
-  valueIrJs,
-  type EmitQrl,
-} from './emit-chunk';
+import { expressionJs, extractPayloadJs, inlineValueJs, valueIrJs, type EmitQrl } from './print-js';
 import { namedSpecifier, requestBindingImport } from './emit-import';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { allocateGeneratedName } from '../names';

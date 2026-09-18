@@ -10,7 +10,7 @@ import {
 } from '../schema';
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikWord } from '../words';
-import { inlineValueJs } from './emit-chunk';
+import { inlineValueJs } from './print-js';
 import { readSource, type SourcePass } from './emit-setup';
 
 /** Materialize derived sources once, shared by rendering and SSR rooting. */

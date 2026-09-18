@@ -4,7 +4,7 @@
  */
 import type { DiscoveredComponent } from './discover';
 import type { LowerContext } from './lower-context';
-import { lowerRenderExpression } from './lower-jsx';
+import { lowerRenderExpression } from './lower-children';
 import { childrenReadError, lowerComponentParameter } from './lower-parameter';
 import { lowerSetup } from './lower-setup';
 import type { SetupLocals } from './locals';

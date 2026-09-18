@@ -9,7 +9,8 @@ import {
 import { QWIK_CORE_IMPORT, QwikWord } from '../words';
 import { assembleModule, type AssembledModule } from './source-assembly';
 import type { SourceMap } from 'oxc-transform';
-import { emitQrlChunks, type FunctionEmission } from './emit-chunk';
+import { type FunctionEmission } from './emit-function';
+import { emitQrlChunks } from './qrl-chunks';
 import { planModuleBindingExports, replacedCoreImports, requestBindingImport } from './emit-import';
 import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 import {

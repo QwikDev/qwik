@@ -15,7 +15,8 @@ import {
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 import { identifierName, isFunctionLike } from './ast/utils';
-import { lowerRenderExpression, lowerRenderQrl } from './lower-jsx';
+import { lowerRenderExpression } from './lower-children';
+import { lowerRenderQrl } from './lower-render-qrl';
 import { SegmentContext } from '../words';
 import {
   createCapturedContext,

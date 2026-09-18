@@ -27,28 +27,29 @@ import { escapeAttr, NEWLINE_EATING_ELEMENTS, serializeAttrValue } from '../html
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
-  extractPayloadJs,
   captureNames,
   boundReference,
   capturePrelude,
   functionPrelude,
-  dynamicSlotEmission,
-  bindHandlerJs,
-  inlineValueJs,
   rootArgs,
   usedParamPrefix,
+  qrlPropsName,
+} from './captures';
+import {
+  dynamicSlotEmission,
   programKind,
   ProgramKind,
   rowShapeCode,
-  chunkCanonicalFilename,
   emptyFunctionEmission,
-  functionText,
-  qrlPropsName,
+  type FunctionEmission,
+} from './emit-function';
+import { extractPayloadJs, bindHandlerJs, inlineValueJs, functionText } from './print-js';
+import {
+  chunkCanonicalFilename,
   createQrlResolver,
   type QrlResolver,
   syncQrlHoists,
-  type FunctionEmission,
-} from './emit-chunk';
+} from './qrl-chunks';
 import {
   deferRenderAfterTasks,
   emitJsSetup,
@@ -70,7 +71,7 @@ import {
   type GeneratedNames,
   inlineComponentText,
 } from './emit-component';
-import { createNameAllocator } from './names';
+import { createNameAllocator } from '../names';
 import { generateForeignModule } from './foreign';
 import {
   createFailedModule,

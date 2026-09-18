@@ -13,12 +13,9 @@ import {
   type LinkedModule,
   type LinkedQrl,
 } from '../schema';
-import {
-  captureNames,
-  createQrlResolver,
-  extractPayloadJs,
-  functionText,
-} from '../generate/emit-chunk';
+import { captureNames } from '../generate/captures';
+import { extractPayloadJs, functionText } from '../generate/print-js';
+import { createQrlResolver } from '../generate/qrl-chunks';
 import { sourceFunctionEmission } from '../generate/emit-function';
 import { deepFreeze } from './fixtures';
 

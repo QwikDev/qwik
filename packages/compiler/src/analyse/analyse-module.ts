@@ -35,7 +35,7 @@ import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identit
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import type { Node } from 'oxc-parser';
 import { recordBindingResults } from './results';
-import { recordTypeContracts } from './type-results';
+import { recordTypeContracts } from './type-contracts';
 
 export interface AnalyseOptions {
   transpileTs?: boolean;

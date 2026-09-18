@@ -18,7 +18,8 @@ import {
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { readSource } from './emit-setup';
-import { inlineValueJs, rootArgs, valueIrJs } from './emit-chunk';
+import { rootArgs } from './captures';
+import { inlineValueJs, valueIrJs } from './print-js';
 import { allocateGeneratedName } from '../names';
 
 export interface ComponentEmission {

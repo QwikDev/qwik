@@ -24,27 +24,28 @@ import { QwikDirective, QwikWord, QwikGenWord, SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
-  extractPayloadJs,
   captureNames,
   boundReference,
   capturePrelude,
   functionPrelude,
+  usedParamPrefix,
+  qrlPropsName,
+} from './captures';
+import {
   dynamicSlotEmission,
   emptyFunctionEmission,
-  bindHandlerJs,
-  inlineValueJs,
   programKind,
-  usedParamPrefix,
   ProgramKind,
   rowShapeCode,
+  type FunctionEmission,
+} from './emit-function';
+import { extractPayloadJs, bindHandlerJs, inlineValueJs, functionText } from './print-js';
+import {
   chunkCanonicalFilename,
-  qrlPropsName,
   createQrlResolver,
   type QrlResolver,
-  functionText,
   syncQrlHoists,
-  type FunctionEmission,
-} from './emit-chunk';
+} from './qrl-chunks';
 import {
   deferRenderAfterTasks,
   emitJsSetup,
@@ -65,7 +66,7 @@ import {
   type GeneratedNames,
   inlineComponentText,
 } from './emit-component';
-import { createNameAllocator } from './names';
+import { createNameAllocator } from '../names';
 import { generateForeignModule } from './foreign';
 import {
   createFailedModule,

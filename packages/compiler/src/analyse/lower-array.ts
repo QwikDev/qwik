@@ -50,7 +50,7 @@ import {
 } from './lower-expr';
 import { lowerConstBinding, lowerConstDeclaration, lowerSetup } from './lower-setup';
 import { memberReadIr, LocalKind, type SetupLocals } from './locals';
-import { lowerRenderExpression } from './lower-jsx';
+import { lowerRenderExpression } from './lower-children';
 import { expressionResult, patternResult } from './results';
 
 export const DESTRUCTURED_WRAPPED_PARAM = 'item';

@@ -13,7 +13,7 @@ import { ValueIrKind } from '../schema/value-ir';
 import type { Expression } from 'oxc-parser';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
-import { lowerText } from '../analyse/lower-hole';
+import { lowerText } from '../analyse/lower-text';
 import type { LowerContext } from '../analyse/lower-context';
 import { LocalKind } from '../analyse/locals';
 import { createTestLowerContext } from './fixtures';

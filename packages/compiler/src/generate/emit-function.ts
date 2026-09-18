@@ -9,24 +9,21 @@ import {
   type LinkedQrl,
   type Range,
   type QrlUse,
+  Shape,
 } from '../schema';
 import { UnsupportedError } from '../errors';
-import { QwikWord } from '../words';
+import { QwikWord, SegmentContext } from '../words';
 import {
   captureNames,
   capturePrelude,
   functionPrelude,
   staticFunctionReference,
-  emptyFunctionEmission,
-  extractPayloadJs,
   qrlPropsName,
-  type QrlResolver,
-  expressionJs,
-  type FunctionEmission,
-  type EmitQrl,
-} from './emit-chunk';
+} from './captures';
+import { extractPayloadJs, expressionJs, type EmitQrl } from './print-js';
+import { type QrlResolver } from './qrl-chunks';
 import { emitJsSetup, withMarkerEmitter } from './emit-setup';
-import { createNameAllocator } from './names';
+import { createNameAllocator } from '../names';
 
 /** QRL functions share capture restoration across authored and lowered bodies. */
 export function sourceFunctionEmission(
@@ -171,4 +168,101 @@ export function contentFunctionEmission(
     emission.value = `${helper}(${emission.value}, ${ctx})`;
   }
   return emission;
+}
+
+/** One function, as neutral data — printed into chunk files, SSR mirrors, and spliced bodies. */
+export interface FunctionEmission {
+  /** Core imports the function's code needs. */
+  imports: Set<string>;
+  /** Sibling-chunk imports (nested QRL references). */
+  chunkImports: string[];
+  /** Module-level companions, e.g. `createTemplate` consts. */
+  hoists: string[];
+  params: string[];
+  statements: string[];
+  /** Return expression, or empty for a statement-only body. */
+  value: string;
+  async: boolean;
+  /** Undefined denotes arrows; null denotes anonymous function expressions. */
+  functionName?: string | null;
+  /** QRLs the function's body references — the placement satisfies them. */
+  uses: { qrl: LinkedQrl; invoked: boolean }[];
+}
+
+export function emptyFunctionEmission(): FunctionEmission {
+  return {
+    imports: new Set(),
+    chunkImports: [],
+    hoists: [],
+    params: [],
+    statements: [],
+    value: '',
+    async: false,
+    uses: [],
+  };
+}
+
+/** A dynamic slot's content range re-resolves the slot through the target's runtime helper. */
+export function dynamicSlotEmission(helper: QwikWord): FunctionEmission {
+  const emission = emptyFunctionEmission();
+  emission.imports.add(helper);
+  emission.params = ['ctx', 'scope', 'name', 'fallback'];
+  emission.value = `${helper}(ctx, scope, name, fallback)`;
+  return emission;
+}
+
+/** The runtime's RowOutputShape code for a row's plan Shape. */
+export function rowShapeCode(shape: Shape): number {
+  switch (shape) {
+    case Shape.Element:
+      return 0;
+    case Shape.Text:
+      return 1;
+    case Shape.Many:
+      return 2;
+    case Shape.Unknown:
+      return 3;
+  }
+}
+
+export function programKind(qrl: LinkedQrl): ProgramKind {
+  if (qrl.boundary.kind === BoundaryKind.Component) {
+    return ProgramKind.Component;
+  }
+  if (qrl.boundary.kind === BoundaryKind.Implicit) {
+    if (qrl.ctxName === SegmentContext.ForRender) {
+      return ProgramKind.CollectionRow;
+    }
+    if (qrl.boundary.role === 'branch') {
+      return ProgramKind.BranchArm;
+    }
+    if (qrl.boundary.role === 'projection') {
+      return ProgramKind.Projection;
+    }
+    if (qrl.boundary.role === 'slot-fallback') {
+      return ProgramKind.SlotFallback;
+    }
+    if (
+      [
+        SegmentContext.DynamicSlot,
+        SegmentContext.DynamicTag,
+        SegmentContext.SuspenseContent,
+        SegmentContext.SuspenseFallback,
+        'jsx-value',
+      ].includes(qrl.boundary.role)
+    ) {
+      return ProgramKind.Content;
+    }
+  }
+  throw new UnsupportedError(`a program qrl with the boundary "${qrl.boundary.kind}"`);
+}
+
+/** What a Program-bodied QRL renders — each kind has its own emission wrapper per target. */
+export const enum ProgramKind {
+  Component = 'component',
+  BranchArm = 'branch-arm',
+  CollectionRow = 'collection-row',
+  Content = 'content',
+  Projection = 'projection',
+  SlotFallback = 'slot-fallback',
 }

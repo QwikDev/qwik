@@ -27,7 +27,7 @@ import { LocalKind } from './locals';
 import { isFunctionLike, parameterPattern, unwrapExpression } from './ast/utils';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { QRL_SUFFIX, QwikMarker } from '../words';
-import { resolveSetupCall } from './lower-setup';
+import { resolveSetupCall } from './lower-setup-call';
 
 /** Explicit and implicit boundaries share callback extraction and capture semantics. */
 export type QrlArgumentBoundary = Pick<Qrl, 'ctxName' | 'boundary'> & {

@@ -680,6 +680,16 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   chromium e2e unable to start because the e2e web server builds the apps through the linked
   build, which stops on server-only stripping (plan step 9). Verification: 1204 pipeline tests,
   corpus in CSR and resume green, vite plugin tests at the four pre-existing failures.
+- 2026-09-18: Cutover plan step 5, the responsibility map, first four splits (pure moves; every
+  snapshot byte-unchanged). Both name allocators live in the root `names.ts`, since `analyse/` uses
+  one of them; `lower-hole.ts` is `lower-text.ts`; the two `type-results.ts` are `type-contracts.ts`
+  and `type-queries.ts`; `emit-chunk.ts` is gone, split into `print-js.ts`, `captures.ts` and
+  `qrl-chunks.ts` with the emission shapes and `programKind`/`rowShapeCode` in `emit-function.ts`;
+  `lower-jsx.ts` keeps the dispatcher and Suspense, with elements, components, children,
+  projections and render QRLs in their own files; `lower-setup-call.ts` takes the call resolution.
+  Left for their own steps: the two linker closures (`linkRenderResults` 670 lines over 23 locals,
+  `linkPlans` 529 over 19) and the two generator classes (~40 private methods each) need a context
+  object threaded through, which is a restructuring rather than a move.
 - 2026-09-18: Cutover plan step 4, the rename. `packages/compiler/pipeline` is `packages/compiler/src`;
   the entry exports the compiler flat (`transformModules`, `analyseModule`, `linkPlans`,
   `generateJsSsr`, `generateJsCsr`, `createLibraryPlan`, `readLibraryPlan`, `extractRenderRoots`,

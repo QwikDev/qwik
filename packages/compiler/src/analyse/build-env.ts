@@ -65,7 +65,7 @@ function findEnvReads(
 }
 
 /** Exactly `import.meta.env.<NAME>`; a computed or deeper path stays authored. */
-function envConstantOf(node: MemberExpression): Predicate | undefined {
+export function envConstantOf(node: MemberExpression): Predicate | undefined {
   if (node.computed || node.property.type !== 'Identifier') {
     return undefined;
   }

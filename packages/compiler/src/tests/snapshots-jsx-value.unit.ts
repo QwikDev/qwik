@@ -3,6 +3,26 @@ import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should keep only the arm a build constant decides', async () => {
+    const output = await testInput(mode, 'branch-build-constant', {
+      code: `import { component$, isServer, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  return (
+    <div>
+      {isServer ? <button onClick$={() => count.value++}>server only</button> : <b>client</b>}
+    </div>
+  );
+});`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // the condition and the arm that cannot run leave the artifact, chunks included
+    expect(code).not.toContain('branch_condition');
+    expect(code).not.toContain(mode === 'ssr' ? 'client' : 'server only');
+    expect(output.modules.some((module) => /branch_(then|else)/.test(module.path))).toBe(false);
+  });
+
   test('shares JSX lowering across constructor arguments and assignments', async () => {
     await testInput(mode, 'jsx-assignment', {
       code: `import { Box } from './box';

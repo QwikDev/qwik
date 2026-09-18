@@ -15,6 +15,7 @@ import {
   type Value,
 } from '../schema';
 import { SegmentContext } from '../words';
+import { buildPredicateOf } from './build-predicate';
 import { lowerCaptures } from './ast/capture-analysis';
 import { pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { lowerInlineExpressionValue } from './lower-expr';
@@ -52,9 +53,11 @@ export function lowerBranch(
     elseArm === null || elseArm.expression === null
       ? null
       : lowerArm(elseArm, ctx, SegmentContext.BranchElse, lifetime, lowerBody);
+  const predicate = buildPredicateOf(test, ctx);
   return {
     op: OpKind.Branch,
     condition,
+    ...(predicate === undefined ? {} : { predicate }),
     then: thenProgram,
     else: elseProgram,
     id: { kind: SeedKind.Branch, ordinal: ctx.branchCounter.next++ },

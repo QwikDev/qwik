@@ -1,0 +1,66 @@
+==INPUT==
+
+import { component$, isServer, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  return (
+    <div>
+      {isServer ? <button onClick$={() => count.value++}>server only</button> : <b>client</b>}
+    </div>
+  );
+});
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    return [
+      '<div><button',
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count])),
+      '>server only</button></div>',
+    ];
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    177,
+    207
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

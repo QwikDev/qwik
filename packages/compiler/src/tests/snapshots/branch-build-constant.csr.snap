@@ -1,0 +1,26 @@
+==INPUT==
+
+import { component$, isServer, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  return (
+    <div>
+      {isServer ? <button onClick$={() => count.value++}>server only</button> : <b>client</b>}
+    </div>
+  );
+});
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _createElementTemplate } from '@qwik.dev/core';
+const default_tmpl0 = _createElementTemplate('<div><b>client</b></div>');
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const count = useSignal(0);
+  const el0 = default_tmpl0(ctx.document);
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+== CSR DIAGNOSTICS ==
+
+[]

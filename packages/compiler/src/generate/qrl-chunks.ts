@@ -45,7 +45,8 @@ export function emitQrlChunks(
         qrl.declaration === undefined &&
         qrl.boundary.kind !== BoundaryKind.Sync &&
         qrl.boundary.kind !== BoundaryKind.Component &&
-        qrl.delivery.d !== DeliveryKind.Stripped
+        qrl.delivery.d !== DeliveryKind.Stripped &&
+        qrl.delivery.d !== DeliveryKind.Omit
     )
     .map((qrl) => {
       const path = `${module.path}_${qrl.name}.js`;

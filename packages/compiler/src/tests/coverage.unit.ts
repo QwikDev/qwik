@@ -42,7 +42,7 @@ const UNCOVERED: Record<string, readonly string[]> = {
   ComponentTargetKind: ['raw'],
   ContextKind: ['signal', 'store'],
   DeclTable: ['hooks', 'callables', 'contexts', 'natives'],
-  DeliveryKind: ['reference', 'noop', 'omit', 'stripped', 'register'],
+  DeliveryKind: ['reference', 'noop', 'stripped', 'register'],
   DiagnosticCategory: ['warning'],
   EntryKind: ['export'],
   Environment: ['browser'],

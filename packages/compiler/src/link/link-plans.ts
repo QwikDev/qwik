@@ -14,6 +14,7 @@ import { linkContent } from './link-content';
 import { linkHookTwins } from './link-hooks';
 import { resolveModules } from './resolve';
 import { materializeModules } from './materialize';
+import { foldBranches } from './branches';
 import { foldConstants } from './constants';
 import { applyStripping } from './strip';
 import { markReachable, resolveEntries } from './reachability';
@@ -105,6 +106,7 @@ export function linkPlans(
   const { qrlIndexes, importsByBinding, resolveLocalBinding } = resolution;
   const linkedModules = materializeModules(plans, resolution);
   foldConstants(linkedModules, specialization);
+  foldBranches(linkedModules, specialization);
   applyStripping(linkedModules, specialization);
   const linkedEntries = resolveEntries(plans, entries, resolution, diagnostics);
   const visited = markReachable(

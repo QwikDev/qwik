@@ -16,8 +16,8 @@ Use this skill for `packages/optimizer/**` and Rust optimizer work. Keep the rep
    shape before editing.
 3. Keep transform behavior deterministic: prefer explicit parser/AST cases and stable ordering over
    source-text heuristics.
-4. Use Rust-focused verification first; use `pnpm build.full` only when a full optimizer/WASM rebuild
-   is required.
+4. Use Rust-focused verification first; use `pnpm build.rust` only when a full binding/WASM rebuild
+   is required. It is the only build step that needs the Rust toolchain and `wasm-pack`.
 5. If a runtime/core change is also involved, load `qwik-core-development` for that slice.
 
 ## Source Map
@@ -35,15 +35,37 @@ Use this skill for `packages/optimizer/**` and Rust optimizer work. Keep the rep
 Use the smallest command that covers the change:
 
 ```bash
+pnpm lint.rust
 pnpm test.rust
 pnpm test.rust.update
-pnpm build.full
+pnpm build.rust
 pnpm vitest run packages/qwik-vite/src/plugins/plugin.unit.ts
 ```
 
 `pnpm test.rust` maps to `make test`, which runs Cargo tests for
 `packages/optimizer/core/Cargo.toml`. Use `pnpm test.rust.update` only when snapshot updates are
-intentional.
+intentional. The repo's own scripts and tests run on the TypeScript optimizer, so exercising the
+Rust bindings end to end needs an app that uses the default optimizer (for example the starters via
+`pnpm test.e2e.cli`) after `pnpm build.rust`.
+
+## Baselining a TypeScript optimizer failure
+
+The repo's unit and e2e suites run on the TypeScript optimizer, so a parity bug shows up as a
+failing core test rather than a snapshot diff. To tell a TS-only bug from a pre-existing failure:
+
+1. `pnpm build.platform.copy` downloads the published Rust bindings (no toolchain needed).
+2. Flip `tsOptimizer` to `false` in `vitest.config.ts`, rerun the failing file, flip it back.
+3. Transform the failing source with both `createOptimizer`s (`packages/optimizer/dist/index.mjs`
+   and `packages/qwik/dist/ts-optimizer.mjs`) using the plugin's options (server: `hoist`,
+   `minify: 'simplify'`, plus the client `stripCtxName`/`stripExports` and server
+   `stripEventHandlers` lists from `packages/qwik-vite/src/plugins/plugin.ts`) and diff the
+   outputs; without the strip options a diff can look identical while the real build differs.
+   Call sites (`.w([captures])`, `q:p`, stripped `q_qrl_*` sentinels) diverge more often than
+   segment bodies.
+   When an e2e app misbehaves, baseline the app build too, not only the router library: the dev
+   server compiles the fixture apps with whichever optimizer its `qwikVite()` call selects.
+4. Rebuild the bundle with `pnpm build --optimizer --dev` before rerunning core tests; vitest loads
+   `packages/qwik/dist/ts-optimizer.mjs`, not the optimizer source.
 
 ## Worker pool changes
 
@@ -52,9 +74,11 @@ under vitest: the worker entry cannot resolve the `.js`-suffixed imports of the 
 so pool tests silently fall back to in-process transforms. Verify worker behaviour against the
 built bundle instead: `pnpm build --optimizer`, then a Node script that imports
 `packages/qwik/dist/ts-optimizer.mjs`, runs a few transforms, and reads `VmData` from
-`/proc/self/status` before spawning a child process. Anything a worker reserves counts against the
-host process when it forks (SSG adapters, editors, test runners), so keep raw-transfer parsing and
-other multi-gigabyte reservations out of the workers.
+`/proc/self/status` before spawning a child process. fork() fails with ENOMEM when one mapping
+exceeds RAM plus swap, and the raw-transfer buffers of several threads in one process coalesce into
+one mapping (three workers made an 18 GB mapping on a 16 GB host), so keep raw-transfer parsing
+and other multi-gigabyte reservations out of the workers. `QWIK_TS_OPTIMIZER_RAW_TRANSFER=0` turns
+raw transfer off in the host as well when a spawn still fails with ENOMEM.
 
 ## Hard Rules
 

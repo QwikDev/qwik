@@ -134,13 +134,16 @@ enforcement.
 - `snapshots.unit.ts` splits by construct family (`jsx-value`, `events`, `props`, `collections`,
   `projections`, `setup-hooks`, `html-namespaces`, `dynamic-tags`, `async-boundaries`); snap names
   unchanged.
-- Fixtures become exported registries `tests/fixtures/<family>.ts` (`{ name, path?, code }[]`),
-  consumed by the snapshot tests, the artifact gate (step 8), the coverage gate and the reference
-  interpreter (step 10).
-- A third file per fixture, `<name>.plan.snap`, holds the linked server plan JSON with relocated paths.
-- `coverage.unit.ts` links the registry once, collects every discriminant value per schema
-  `const enum` (read from `schema/*.ts` text), fails on any unproduced value outside a hand-kept
-  allowlist. Shrinking the allowlist is the coverage metric.
+- The fixture corpus is the snapshot files themselves: every `.ssr.snap` opens with its authored
+  source, which the coverage gate, the artifact gate (step 8) and the reference interpreter
+  (step 10) read. Separate registry modules would duplicate it.
+- Plan snapshots were dropped: each `.ssr.snap` already opens with the authored source, so the
+  fixture corpus is on disk and the coverage gate reads it from there; a full `LinkedPlan` JSON per
+  fixture would add megabytes that embed the same source again.
+- `coverage.unit.ts` links every fixture, collects the discriminant values their plans carry, and
+  fails on any schema `const enum` value outside a hand-kept allowlist (read from `schema/*.ts`
+  text). Shrinking the allowlist is the coverage metric. Known limit: a value two enums share
+  (`unknown`, `const`) counts for both, so the gate proves a form appears, not which enum made it.
 - No `test.todo` survives. Direct unit tests only for pure helpers (`html.ts`, `static-subtree.ts`,
   `source-maps.ts`; `schema`, `segment-identity`, `library-plan` exist).
 - Named `compiler` project in the root vitest config; root `test.compiler` script.

@@ -680,6 +680,15 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   chromium e2e unable to start because the e2e web server builds the apps through the linked
   build, which stops on server-only stripping (plan step 9). Verification: 1204 pipeline tests,
   corpus in CSR and resume green, vite plugin tests at the four pre-existing failures.
+- 2026-09-18: Cutover plan step 6, the test contract. `snapshots.unit.ts` (3389 lines) is seven
+  family suites over a shared `snapshot-runner.ts`, snapshot names and bytes unchanged; the 16
+  `test.todo` placeholders are gone (covered, owned by a later step, or deleted with the Rust
+  generator). `coverage.unit.ts` links every fixture and fails on any schema enum value outside a
+  calibrated allowlist, taking its corpus from the `==INPUT==` block each `.ssr.snap` already
+  carries, so no registry duplicates the sources and no plan snapshots are needed. A named
+  `compiler` vitest project (rooted at the repo so `vitest packages` still selects it) and a
+  `test.compiler` script. Verification: 1205 compiler tests, full unit run at its 8 pre-existing
+  failures, snapshots byte-unchanged.
 - 2026-09-18: Cutover plan step 5, the linker. `linkPlans` is an orchestrator over three phases that
   pass an explicit `Resolution` instead of sharing one closure: `resolve.ts` (edges, imports, binding
   and export resolution, with the shared `unknown`/`sameDecl` helpers), `materialize.ts` (ops gain

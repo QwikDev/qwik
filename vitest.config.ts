@@ -48,6 +48,27 @@ const renderProject = (testTarget: 'csr' | 'resume' | 'ssr'): TestProjectInlineC
   },
 });
 
+/** The compiler's own project; its tests execute emitted chunks, so it keeps the Qwik plugin. */
+const compilerProject: TestProjectInlineConfiguration = {
+  plugins: [
+    qwikVite({
+      srcDir: fromRoot('./packages/qwik/src'),
+      devTools: { hmr: false },
+      experimental: ['suspense'],
+    }),
+    tsconfigPaths({ ignoreConfigErrors: true }),
+  ],
+  test: {
+    name: 'compiler',
+    // Rooted at the repo so a path filter (`vitest packages`) still selects these files.
+    root: fromRoot('.'),
+    include: ['packages/compiler/src/**/*.unit.ts'],
+    exclude: [...configDefaults.exclude, 'packages/compiler/dist/**'],
+    setupFiles: [fromRoot('./vitest-setup.ts')],
+    testTimeout: 120000,
+  },
+};
+
 export default defineConfig({
   // temporary fix to allow tests to run without the kit package, remove this once we have a proper kit package
   resolve: {
@@ -76,9 +97,16 @@ export default defineConfig({
       'qwik/src/testing/testing.unit.tsx',
       'qwik-router/src/runtime/src/link-component.unit.tsx',
       'qwik/src/testing/resume-session.unit.tsx',
+      'compiler/**',
     ],
     setupFiles: [fromRoot('./vitest-setup.ts')],
-    projects: ['..', renderProject('csr'), renderProject('resume'), renderProject('ssr')],
+    projects: [
+      '..',
+      compilerProject,
+      renderProject('csr'),
+      renderProject('resume'),
+      renderProject('ssr'),
+    ],
     testTimeout: 10000,
   },
 });

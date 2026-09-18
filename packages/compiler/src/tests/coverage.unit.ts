@@ -36,6 +36,7 @@ const UNCOVERED: Record<string, readonly string[]> = {
     'function-render',
     'constant-fold',
     'strip-range',
+    'strip-value',
   ],
   BuildConstant: ['isServer', 'isBrowser', 'isDev'],
   BuildMode: ['dev', 'lib', 'hmr'],
@@ -191,7 +192,11 @@ async function linkedValues(): Promise<Set<string>> {
     const linked = linkPlans(
       [plan],
       [{ kind: EntryKind.Module, module: path }],
-      { environment: Environment.Server, mode: BuildMode.Prod, stripExports: [] },
+      {
+        environment: Environment.Server,
+        mode: BuildMode.Prod,
+        strip: { exports: [], ctxName: [], regCtxName: [] },
+      },
       {
         edges: {
           [path]: Object.fromEntries(

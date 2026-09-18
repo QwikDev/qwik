@@ -5,6 +5,7 @@ import {
   type LinkedModule,
   type LinkedQrl,
   type QrlDeclaration,
+  StripValueForm,
 } from '../schema';
 import { QWIK_CORE_IMPORT, QwikWord } from '../words';
 import { assembleModule, type AssembledModule } from './source-assembly';
@@ -20,6 +21,9 @@ import {
   type ComponentMarker,
   type GeneratedNames,
 } from './emit-component';
+
+const STRIPPED_EXPORT_THROW =
+  "throw new Error('This server-only export is not available in the browser.');";
 
 /** Insertion order IS the emitted import order. */
 export interface QwikModuleEmitter {
@@ -105,6 +109,15 @@ export function assembleQwikModule(
         break;
       case AssemblyKind.StripRange:
         edits.push({ range: intent.range, text: '' });
+        break;
+      case AssemblyKind.StripValue:
+        edits.push({
+          range: intent.range,
+          text:
+            intent.form === StripValueForm.Body
+              ? `{ ${STRIPPED_EXPORT_THROW} }`
+              : `() => { ${STRIPPED_EXPORT_THROW} }`,
+        });
         break;
       case AssemblyKind.Splice: {
         const qrl = module.qrls[intent.qrl];

@@ -167,6 +167,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       [],
       withMarkerEmitter(
         this.module,
+        this.imports,
         (use) =>
           this.inlineComponentOrRef(use, names, (use) =>
             this.lazyRenderReference(use, names.props)
@@ -185,6 +186,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       this.imports,
       withMarkerEmitter(
         this.module,
+        this.imports,
         (use) => this.lazyRenderReference(use, names.props),
         this.chunkImports,
         staticQrl
@@ -219,6 +221,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const staticQrl = (use: QrlUse) => this.capturedChunkReference(use, names.props);
     const emitQrl = withMarkerEmitter(
       this.module,
+      this.imports,
       (use) => this.lazyRenderReference(use, names.props),
       this.chunkImports,
       staticQrl

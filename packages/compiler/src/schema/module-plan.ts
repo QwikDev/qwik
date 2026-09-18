@@ -264,6 +264,9 @@ export interface ModulePlan {
     | {
         e: ExportKind.Local;
         exported: string;
+        /** The initializer or function body a server-only strip replaces with its stub. */
+        valueRange?: Range;
+        valueIsBody?: true;
         target:
           | { t: ExportTargetKind.Binding; binding: LocalId }
           | { t: ExportTargetKind.Declaration; table: DeclTable; index: number };
@@ -295,6 +298,8 @@ export const enum AssemblyKind {
   ConstantFold = 'constant-fold',
   /** Linked-only: pruned span (dead build-constant import). */
   StripRange = 'strip-range',
+  /** Replaces a server-only export's value with a fail-loud stub. */
+  StripValue = 'strip-value',
 }
 
 export const enum StripForm {

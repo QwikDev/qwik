@@ -45,6 +45,7 @@ export function sourceFunctionEmission(
   );
   const emitQrl = withMarkerEmitter(
     module,
+    emission.imports,
     (use: QrlUse) =>
       emitFunctionQrl(use, qrlPropsName(module, qrl, 'props'), emission, resolveQrlUse, true),
     emission.chunkImports

@@ -14,6 +14,7 @@ import { linkContent } from './link-content';
 import { linkHookTwins } from './link-hooks';
 import { resolveModules } from './resolve';
 import { materializeModules } from './materialize';
+import { applyStripping } from './strip';
 import { markReachable, resolveEntries } from './reachability';
 
 export const enum ResolutionKind {
@@ -102,6 +103,7 @@ export function linkPlans(
   }
   const { qrlIndexes, importsByBinding, resolveLocalBinding } = resolution;
   const linkedModules = materializeModules(plans, resolution);
+  applyStripping(linkedModules, specialization);
   const linkedEntries = resolveEntries(plans, entries, resolution, diagnostics);
   const visited = markReachable(
     plans,

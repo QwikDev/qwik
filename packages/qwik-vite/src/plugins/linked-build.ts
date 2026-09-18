@@ -36,6 +36,7 @@ export interface LinkedBuildOptions {
   sourceMaps: boolean;
   stripExports?: string[];
   stripCtxName?: string[];
+  regCtxName?: string[];
   onOutput: (output: GenerateOutput) => void;
 }
 
@@ -77,23 +78,6 @@ export function createLinkedBuild() {
       const plan = plans.get(id);
       if (plan === undefined) {
         return;
-      }
-      if (isRuntime && !config.server && !config.library) {
-        const strippedExport = plan.exports.find(
-          (entry) => entry.e !== ExportKind.Star && config.stripExports?.includes(entry.exported)
-        );
-        const boundaryNames = [
-          ...plan.imports.filter((entry) => !entry.typeOnly).map((entry) => entry.imported),
-          ...plan.qrls.map((qrl) => qrl.ctxName),
-        ];
-        const strippedBoundary = boundaryNames.find((name) =>
-          config.stripCtxName?.some((prefix) => name.startsWith(prefix))
-        );
-        if (strippedExport !== undefined || strippedBoundary !== undefined) {
-          throw new Error(
-            `Linked build requires server-only stripping in ${id}; this pipeline feature is not implemented yet`
-          );
-        }
       }
       const edges = (resolver.edges[id] ??= {});
       for (const edge of plan.edges) {
@@ -177,7 +161,11 @@ export function createLinkedBuild() {
       {
         environment: config.server ? Environment.Server : Environment.Browser,
         mode: config.library ? BuildMode.Lib : config.development ? BuildMode.Dev : BuildMode.Prod,
-        stripExports: [],
+        strip: {
+          exports: config.stripExports ?? [],
+          ctxName: config.stripCtxName ?? [],
+          regCtxName: config.regCtxName ?? [],
+        },
       },
       resolver,
       { claims: [], policies: [], emissions: [] },

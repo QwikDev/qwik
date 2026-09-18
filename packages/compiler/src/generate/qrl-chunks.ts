@@ -2,6 +2,7 @@
 import {
   ArgPass,
   BoundaryKind,
+  DeliveryKind,
   type LinkedModule,
   type LinkedQrl,
   type QrlUse,
@@ -43,7 +44,8 @@ export function emitQrlChunks(
       (qrl) =>
         qrl.declaration === undefined &&
         qrl.boundary.kind !== BoundaryKind.Sync &&
-        qrl.boundary.kind !== BoundaryKind.Component
+        qrl.boundary.kind !== BoundaryKind.Component &&
+        qrl.delivery.d !== DeliveryKind.Stripped
     )
     .map((qrl) => {
       const path = `${module.path}_${qrl.name}.js`;

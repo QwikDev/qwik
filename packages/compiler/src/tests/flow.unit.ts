@@ -187,7 +187,11 @@ export default () => {
     const linked = linkPlans(
       [],
       [],
-      { environment: Environment.Browser, mode: BuildMode.Prod, stripExports: [] },
+      {
+        environment: Environment.Browser,
+        mode: BuildMode.Prod,
+        strip: { exports: [], ctxName: [], regCtxName: [] },
+      },
       { edges: {} },
       { claims: [], policies: [], emissions: [] },
       false

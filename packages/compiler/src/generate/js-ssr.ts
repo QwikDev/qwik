@@ -1,6 +1,8 @@
 /** `generateJsSsr(serverLinkedPlan, options)` — the baseline generator over the server LinkedPlan. */
+import { getSegmentSymbolHash } from '../segment-identity';
 import {
   BoundaryKind,
+  DeliveryKind,
   Environment,
   HandlerKind,
   QrlBodyKind,
@@ -191,6 +193,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       this.imports,
       withMarkerEmitter(
         this.module,
+        this.imports,
         (use) => this.useQrl({ names }, use, true).ref,
         this.chunkImports
       ),
@@ -230,6 +233,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       [],
       withMarkerEmitter(
         this.module,
+        this.imports,
         (use) =>
           this.inlineComponentOrRef(use, names, (use) => this.useQrl({ names }, use, true).ref),
         this.chunkImports
@@ -279,6 +283,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     };
     const emitQrl = withMarkerEmitter(
       this.module,
+      this.imports,
       (use) => this.useQrl(pass, use, true).ref,
       this.chunkImports
     );
@@ -529,7 +534,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         `const q_${nested.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(nested.name)});`
       );
       // Only invoked uses need the function itself; references stay name-only.
-      if (usage.invoked) {
+      if (usage.invoked && nested.delivery.d !== DeliveryKind.Stripped) {
         emission.chunkImports.push(
           `import { ${nested.name} } from ${JSON.stringify(`./${chunkCanonicalFilename(this.module, nested)}`)};`
         );
@@ -1287,7 +1292,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       if (qrl.boundary.kind === BoundaryKind.Component && qrl.declaration === undefined) {
         continue;
       }
-      if (usage.invoked) {
+      // A registered boundary is called over RPC, never during render: always mirror it.
+      // A stripped one keeps only its symbol — this environment must not be able to run it.
+      const registered = qrl.delivery.d === DeliveryKind.Register;
+      if ((usage.invoked || registered) && qrl.delivery.d !== DeliveryKind.Stripped) {
         // The server invokes render expressions in-module: mirror fn + `.s()` registration.
         const emission = this.qrlFunction(qrl);
         for (const binding of qrl.dependencies.bindings) {
@@ -1305,7 +1313,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             existing.invoked = existing.invoked || use.invoked;
           }
         }
-        this.hoists.push(`const ${qrl.name} = ${functionText(emission)};`);
+        if (registered) {
+          this.imports.add(QwikWord.RegSymbol);
+        }
+        const mirror = registered
+          ? `/*#__PURE__*/ ${QwikWord.RegSymbol}(${functionText(emission)}, ${JSON.stringify(getSegmentSymbolHash(qrl.name))})`
+          : functionText(emission);
+        this.hoists.push(`const ${qrl.name} = ${mirror};`);
         this.imports.add(QwikWord.NoopQrl);
         this.hoists.push(
           `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(qrl.name)});`

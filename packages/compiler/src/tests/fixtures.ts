@@ -88,7 +88,11 @@ export function createTestLowerContext(program: Program, source: string, path = 
 }
 
 export function serverSpecialization(): Specialization {
-  return { environment: Environment.Server, mode: BuildMode.Prod, stripExports: [] };
+  return {
+    environment: Environment.Server,
+    mode: BuildMode.Prod,
+    strip: { exports: [], ctxName: [], regCtxName: [] },
+  };
 }
 
 export function emptyLinkedPlan(specialization: Specialization): LinkedPlan {

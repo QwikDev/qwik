@@ -44,7 +44,11 @@ export async function transformModules(options: TransformModulesOptions): Promis
         : options.mode === 'lib'
           ? BuildMode.Lib
           : BuildMode.Prod,
-    stripExports: options.stripExports ?? [],
+    strip: {
+      exports: options.stripExports ?? [],
+      ctxName: options.stripCtxName ?? [],
+      regCtxName: options.regCtxName ?? [],
+    },
   };
   const entries: LinkEntry[] = options.input.map((input) => ({
     kind: EntryKind.Module,

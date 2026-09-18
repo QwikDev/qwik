@@ -44,7 +44,11 @@ test('emits mixed multi-root programs as an array', async () => {
   const linked = linkPlans(
     [analysed],
     [{ kind: EntryKind.Module, module: path }],
-    { environment: Environment.Browser, mode: BuildMode.Prod, stripExports: [] },
+    {
+      environment: Environment.Browser,
+      mode: BuildMode.Prod,
+      strip: { exports: [], ctxName: [], regCtxName: [] },
+    },
     { edges: {} },
     { claims: [], policies: [], emissions: [] },
     false

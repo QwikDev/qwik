@@ -19,12 +19,14 @@ import {
   FnBodyKind,
   HookBodyKind,
   type Maybe,
+  DeliveryKind,
 } from '../schema';
 import { ValueIrKind } from '../schema/value-ir';
 import { UnsupportedError } from '../errors';
 import { expressionJs, extractPayloadJs, inlineValueJs, valueIrJs, type EmitQrl } from './print-js';
 import { namedSpecifier, requestBindingImport } from './emit-import';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
+import { captureNames } from './captures';
 import { allocateGeneratedName } from '../names';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 
@@ -270,6 +272,19 @@ function hookCalleeJs(
   }
 }
 
+/** The stand-in a stripped boundary leaves behind: the symbol, and the captures it would have had. */
+function strippedQrlJs(module: LinkedModule, use: QrlUse, imports: Set<string>): string | null {
+  const qrl = module.qrls.find((entry) => entry.id === use.qrl);
+  if (qrl === undefined || qrl.delivery.d !== DeliveryKind.Stripped) {
+    return null;
+  }
+  imports.add(QwikWord.NoopQrl);
+  const captures = captureNames(module, qrl);
+  return `${QwikWord.NoopQrl}(${JSON.stringify(qrl.name)}${
+    captures.length === 0 ? '' : `, [${captures.join(', ')}]`
+  })`;
+}
+
 function markerTwinJs(
   module: LinkedModule,
   target: Extract<CallTarget, { kind: CallTargetKind.Marker }>,
@@ -282,17 +297,29 @@ function markerTwinJs(
   return hookTwinJs(module, target.twins[form], chunkImports);
 }
 
-/** Lets a payload emitter print custom `$` hook calls: static callbacks take the function twin. */
+/**
+ * Lets a payload emitter print custom `$` hook calls: static callbacks take the function twin. A
+ * stripped boundary keeps its identity through the `Qrl` twin, with a QRL that resolves to
+ * nothing.
+ */
 export function withMarkerEmitter(
   module: LinkedModule,
+  imports: Set<string>,
   emitQrl: EmitQrl,
   chunkImports: string[] | undefined,
   staticQrl?: (use: QrlUse) => string
 ): EmitQrl {
+  const stripped = (use: QrlUse) =>
+    module.qrls.find((qrl) => qrl.id === use.qrl && qrl.delivery.d === DeliveryKind.Stripped);
   return Object.assign(emitQrl, {
     marker: (target: Extract<CallTarget, { kind: CallTargetKind.Marker }>, use: QrlUse) => ({
-      callee: markerTwinJs(module, target, staticQrl === undefined ? 'qrl' : 'fn', chunkImports),
-      argument: (staticQrl ?? emitQrl)(use),
+      callee: markerTwinJs(
+        module,
+        target,
+        staticQrl === undefined || stripped(use) !== undefined ? 'qrl' : 'fn',
+        chunkImports
+      ),
+      argument: strippedQrlJs(module, use, imports) ?? (staticQrl ?? emitQrl)(use),
     }),
   });
 }

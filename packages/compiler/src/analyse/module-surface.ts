@@ -280,7 +280,15 @@ function scanNamedExport(
   ) {
     const binding = bindings.declaration(statement.declaration.id);
     if (binding !== null) {
-      addLocalExport(plan, statement.declaration.id.name, binding);
+      addLocalExport(
+        plan,
+        statement.declaration.id.name,
+        binding,
+        statement.declaration.type === 'FunctionDeclaration' && statement.declaration.body != null
+          ? [statement.declaration.body.start, statement.declaration.body.end]
+          : undefined,
+        statement.declaration.type === 'FunctionDeclaration' ? true : undefined
+      );
     }
   }
   for (const specifier of statement.specifiers) {
@@ -300,16 +308,30 @@ function scanVariableExports(
   bindings: BindingGraph
 ): void {
   for (const declarator of declaration.declarations) {
+    const init = declarator.init;
     for (const binding of bindings.bindingsOf(declarator.id)) {
-      addLocalExport(plan, bindings.bindings[binding].name, binding);
+      addLocalExport(
+        plan,
+        bindings.bindings[binding].name,
+        binding,
+        init == null ? undefined : [init.start, init.end]
+      );
     }
   }
 }
 
-function addLocalExport(plan: ModulePlan, exported: string, binding: LocalId): void {
+function addLocalExport(
+  plan: ModulePlan,
+  exported: string,
+  binding: LocalId,
+  valueRange?: Range,
+  valueIsBody?: true
+): void {
   plan.exports.push({
     e: ExportKind.Local,
     exported,
+    ...(valueRange === undefined ? {} : { valueRange }),
+    ...(valueIsBody === undefined ? {} : { valueIsBody }),
     target: { t: ExportTargetKind.Binding, binding },
   });
 }

@@ -476,8 +476,13 @@ export function createQwikPlugin(
         library: opts.target === 'lib',
         development: opts.buildMode === 'development',
         sourceMaps: !!opts.sourcemap,
-        stripExports: [...SERVER_STRIP_EXPORTS, ...(opts.strip.exports ?? [])],
-        stripCtxName: [...SERVER_STRIP_CTX_NAME, ...(opts.strip.ctxName ?? [])],
+        // The browser build drops server-only code; the server build keeps only what it can call.
+        ...(getIsServer(_ctx)
+          ? { stripCtxName: CLIENT_STRIP_CTX_NAME, regCtxName: REG_CTX_NAME }
+          : {
+              stripExports: [...SERVER_STRIP_EXPORTS, ...(opts.strip.exports ?? [])],
+              stripCtxName: [...SERVER_STRIP_CTX_NAME, ...(opts.strip.ctxName ?? [])],
+            }),
         onOutput(output) {
           for (const module of output.modules) {
             if (module.segment === null) {

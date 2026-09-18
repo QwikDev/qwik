@@ -92,6 +92,6 @@ describe('plan envelopes', () => {
 
   test('specialization is environment + mode + generic policy only', () => {
     const specialization = serverSpecialization();
-    expect(Object.keys(specialization).sort()).toEqual(['environment', 'mode', 'stripExports']);
+    expect(Object.keys(specialization).sort()).toEqual(['environment', 'mode', 'strip']);
   });
 });

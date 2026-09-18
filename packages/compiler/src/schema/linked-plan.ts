@@ -34,10 +34,15 @@ export interface Specialization {
   environment: Environment;
   mode: BuildMode;
   /**
-   * Generic core policy. Context/event stripping and symbol registration are FRAMEWORK policies —
-   * supplied through the plugin snapshot by their owners (Router, test tooling).
+   * What this environment must not ship. The names are framework knowledge the host supplies; the
+   * matching is generic. `exports` and `ctxName` strip from the environment being built;
+   * `regCtxName` registers a boundary's implementation by symbol so the server can call it.
    */
-  stripExports: string[];
+  strip: {
+    exports: string[];
+    ctxName: string[];
+    regCtxName: string[];
+  };
 }
 
 export interface DeclRef {
@@ -82,6 +87,7 @@ export interface LinkedModule {
     | AssemblyIntent
     | { a: AssemblyKind.ConstantFold; range: Range; value: 'true' | 'false' }
     | { a: AssemblyKind.StripRange; range: Range }
+    | { a: AssemblyKind.StripValue; range: Range; form: StripValueForm }
   )[];
   /** Guards folded. */
   diagnostics: Diagnostic[];
@@ -137,6 +143,12 @@ export type LinkedImport =
   | { kind: ImportTargetKind.Declaration; source: ImportSource; target: Maybe<DeclRef> }
   | { kind: ImportTargetKind.Namespace; source: ImportSource; target: Maybe<number> }
   | { kind: ImportTargetKind.TypeOnly; source: ImportSource };
+
+/** What a stripped export's replacement has to be: an initializer, or a function body. */
+export const enum StripValueForm {
+  Initializer = 'initializer',
+  Body = 'body',
+}
 
 export const enum DeliveryKind {
   Chunk = 'chunk',

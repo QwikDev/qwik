@@ -65,8 +65,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       {/* SSR emit cannot lower the Object.entries(...).map JSX collection yet. */}
       {/* <StoreNewKeyReactivityIssue2800 /> */}
       <DateSerializationDeepStoreIssue2889 />
-      {/* A user-invoked QRL callback prop gets the internal render ABI and crashes. */}
-      {/* <PropRenderFunctionIssue3116 /> */}
+      <PropRenderFunctionIssue3116 />
       <CounterToggle />
       <PropsDestructuring
         message="Hello"
@@ -356,7 +355,6 @@ export const DateSerializationDeepStoreIssue2889 = component$(() => {
   );
 });
 
-/* A user-invoked QRL callback prop gets the internal render ABI (ctx first) and crashes.
 type Product = string;
 
 export type ProductRelationProps = {
@@ -376,7 +374,6 @@ export const PropRenderFunctionIssue3116 = component$(() => {
     </>
   );
 });
-*/
 
 export const IssueReorder = component$(() => {
   const cond = useSignal(false);

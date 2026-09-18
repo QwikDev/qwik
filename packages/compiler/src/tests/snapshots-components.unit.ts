@@ -290,6 +290,20 @@ export default component$(() => {
     expect(code).toContain('return { a: count.value }');
   });
 
+  test('should render a QRL callback prop the child invokes itself', async () => {
+    const output = await testInput(mode, 'component-qrl-prop-call', {
+      code: `import { component$ } from '@qwik.dev/core';
+export const ProductRelations = component$((props: any) => {
+  return <div>{props.render$(['from render$'])}</div>;
+});
+export default component$(() => (
+  <ProductRelations render$={(products: string[]) => <b id="r">{products.join('hi')}</b>} />
+));
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should alias component$ of a component reference', async () => {
     const output = await testInput(mode, 'component-reference', {
       code: `import { component$, componentQrl, qrl } from '@qwik.dev/core';

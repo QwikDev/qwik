@@ -137,7 +137,9 @@ export async function renderSsrToDom<Props>(
     throw new Error("Resume rendering requires qwikVite({ testTarget: 'resume' }).");
   }
 
-  const scheduler = options?.scheduler ?? new Scheduler(() => {});
+  // A browser flushes on its own, so late work lands without the test asking: `vi.waitFor` needs
+  // that, and a manual scheduler makes the drain's length decide what a test can observe.
+  const scheduler = options?.scheduler ?? new Scheduler((flush) => queueMicrotask(flush));
   const symbolMapper = shouldResume ? createResumeSymbolMapper(metadata) : undefined;
   let qwikLoader: QwikLoaderTestDriver | undefined;
   let container: HTMLElement | undefined;
@@ -162,12 +164,13 @@ export async function renderSsrToDom<Props>(
         : qwikContainer;
     // `html` is what the server streamed, before inline scripts run.
     const streamedHtml = container.innerHTML;
+    const inFlight: InFlightImports = { count: 0 };
     applyBackpatchScripts(document);
     installSyncQrls(document);
     createContainerContext(qwikContainer, scheduler);
 
     const importModule = shouldResume
-      ? createResumeModuleImporter(metadata, runnerImport!)
+      ? trackPendingImports(createResumeModuleImporter(metadata, runnerImport!), inFlight)
       : undefined;
     setPlatform(
       shouldResume && importModule !== undefined
@@ -175,7 +178,11 @@ export async function renderSsrToDom<Props>(
         : getTestPlatform()
     );
     if (shouldResume && importModule !== undefined && hasQwikLoader(qwikContainer)) {
-      qwikLoader = withSchedulerFlush(await bootQwikLoader(document, importModule), scheduler);
+      qwikLoader = withSchedulerFlush(
+        await bootQwikLoader(document, importModule),
+        scheduler,
+        inFlight
+      );
     }
 
     const nodes = Array.from(container.childNodes);
@@ -190,7 +197,7 @@ export async function renderSsrToDom<Props>(
       nodes,
       scheduler,
       qwikLoader,
-      flush: () => settleScheduler(scheduler),
+      flush: () => settleScheduler(scheduler, inFlight),
       cleanup,
     };
     await scheduler.flushInteraction();
@@ -299,23 +306,48 @@ function hasQwikLoader(container: Element): boolean {
 
 function withSchedulerFlush(
   qwikLoader: QwikLoaderTestDriver,
-  scheduler: Scheduler
+  scheduler: Scheduler,
+  inFlight: InFlightImports
 ): QwikLoaderTestDriver {
   return {
     async dispatch(target, type, payload) {
       const event = await qwikLoader.dispatch(target, type, payload);
-      await settleScheduler(scheduler);
+      await settleScheduler(scheduler, inFlight);
       return event;
     },
     cleanup: () => qwikLoader.cleanup(),
   };
 }
 
-export async function settleScheduler(scheduler: Scheduler): Promise<void> {
-  // ponytail: test-only drain until Scheduler exposes an idle promise.
-  for (let i = 0; i < 50; i++) {
+/** Counts the chunk imports a resumed QRL is waiting on; the scheduler cannot see them. */
+export interface InFlightImports {
+  count: number;
+}
+
+export function trackPendingImports(load: ModuleImport, inFlight: InFlightImports): ModuleImport {
+  return (id) => {
+    inFlight.count++;
+    return load(id).finally(() => {
+      inFlight.count--;
+    });
+  };
+}
+
+/**
+ * Drains a fixed number of turns, then keeps going while a chunk import is still in flight: a
+ * resumed QRL queues its work only once its import lands, which under load is later than any number
+ * of turns chosen in advance.
+ */
+export async function settleScheduler(
+  scheduler: Scheduler,
+  inFlight: InFlightImports = { count: 0 }
+): Promise<void> {
+  for (let turns = 0; turns < 500; turns++) {
     await scheduler.flushInteraction();
     await new Promise((resolve) => setTimeout(resolve, 0));
+    if (turns >= 50 && inFlight.count === 0) {
+      return;
+    }
   }
 }
 

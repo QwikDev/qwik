@@ -195,7 +195,7 @@ async function buildFixtureApp(appDir: string, input = './src/root.tsx') {
     mode: 'production',
     configFile: false,
     clearScreen: false,
-    plugins: [qwikRouter(), qwikVite()],
+    plugins: [qwikRouter(), qwikVite({ tsOptimizer: true })],
     build: {
       minify: false,
       rolldownOptions: input ? { input: resolve(appDir, input) } : undefined,
@@ -219,7 +219,7 @@ async function withDevServer<T>(
     server: {
       middlewareMode: true,
     },
-    plugins: [qwikRouter(), qwikVite()],
+    plugins: [qwikRouter(), qwikVite({ tsOptimizer: true })],
   });
 
   try {
@@ -239,7 +239,7 @@ async function withServedDevServer<T>(
     mode,
     configFile: false,
     clearScreen: false,
-    plugins: [qwikRouter(), qwikVite()],
+    plugins: [qwikRouter(), qwikVite({ tsOptimizer: true })],
     server: {
       port: 0,
     },

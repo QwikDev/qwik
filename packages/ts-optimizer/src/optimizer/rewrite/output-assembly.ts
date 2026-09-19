@@ -245,6 +245,29 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   let inlineSentinelOffset = 0;
   const deferredStrippedQrlVars = new Set<string>();
 
+  const pushWorkerDeclaration = (ext: ExtractionResult, varName: string): void => {
+    const devMeta =
+      isDevMode && devFilePath
+        ? formatDevMeta({
+            file: devFilePath,
+            lo: ext.loc[0],
+            hi: ext.loc[1],
+            displayName: ext.displayName,
+          })
+        : undefined;
+    ctx.qrlDecls.push(
+      buildWorkerQrlDeclaration(
+        varName,
+        ext.symbolName,
+        ext.canonicalFilename,
+        explicitExtensions,
+        outputExtension,
+        devMeta
+      )
+    );
+    ctx.qrlVarNames.set(ext.symbolName, varName);
+  };
+
   if (isInline) {
     for (const ext of allNonSync) {
       const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
@@ -298,11 +321,19 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
     }
   } else if (inlineOptions && !inlineOptions.inline) {
     for (const ext of topLevelNonSync) {
-      const stripped = isStrippedExtraction(
-        ext,
-        inlineOptions.stripCtxName,
-        inlineOptions.stripEventHandlers
-      );
+      if (isWorkerExtraction(ext)) {
+        // Workers take a sentinel binding from the same sequence as stripped QRLs.
+        const varName =
+          ctx.earlyQrlVarNames.get(ext.symbolName) ??
+          `q_qrl_${getSentinelCounter(strippedCounter)}`;
+        strippedCounter++;
+        pushWorkerDeclaration(ext, varName);
+        continue;
+      }
+      const isRegCtx = matchesRegCtxName(ext, inlineOptions.regCtxName);
+      const stripped =
+        !isRegCtx &&
+        isStrippedExtraction(ext, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers);
 
       if (stripped) {
         const idx = strippedCounter++;
@@ -364,26 +395,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         const varName =
           ctx.earlyQrlVarNames.get(ext.symbolName) ??
           `q_qrl_${getSentinelCounter(strippedCounter++)}`;
-        const devMeta =
-          isDevMode && devFilePath
-            ? formatDevMeta({
-                file: devFilePath,
-                lo: ext.loc[0],
-                hi: ext.loc[1],
-                displayName: ext.displayName,
-              })
-            : undefined;
-        ctx.qrlDecls.push(
-          buildWorkerQrlDeclaration(
-            varName,
-            ext.symbolName,
-            ext.canonicalFilename,
-            explicitExtensions,
-            outputExtension,
-            devMeta
-          )
-        );
-        ctx.qrlVarNames.set(ext.symbolName, varName);
+        pushWorkerDeclaration(ext, varName);
         continue;
       }
       if (movedMarkerSymbols.has(ext.symbolName) && !(isDevMode && devFilePath)) {

@@ -39,7 +39,7 @@ export async function submoduleWorker(config: BuildConfig) {
         ],
       },
     },
-    plugins: [preserveWorkerImports(), qwikVite({ srcDir: 'src/web-worker' })],
+    plugins: [preserveWorkerImports(), qwikVite({ srcDir: 'src/web-worker', tsOptimizer: true })],
   });
 
   rmSync(join(distDir, 'assets'), { recursive: true, force: true });

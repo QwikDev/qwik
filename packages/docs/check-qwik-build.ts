@@ -21,9 +21,9 @@ const qwikPkgDir = path.join(__dirname, '..', 'qwik', 'dist');
 
 if (!fs.existsSync(path.join(qwikPkgDir, 'core-internal.d.ts'))) {
   console.warn(
-    `\n\n=== Running 'pnpm run build.local' to generate missing imports for the docs ===\n`
+    `\n\n=== Running 'pnpm run build.full' to generate missing imports for the docs ===\n`
   );
-  const out = spawnSync('pnpm', ['run', 'build.local'], {
+  const out = spawnSync('pnpm', ['run', 'build.full'], {
     cwd: path.join(__dirname, '..', '..'),
     stdio: 'inherit',
   });

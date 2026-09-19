@@ -225,6 +225,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          tsOptimizer: true,
           entryStrategy: { type: 'segment' },
           client: {
             outDir: join(appDistDir, appName),
@@ -252,6 +253,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          tsOptimizer: true,
           experimental: ['each', 'show', 'suspense', 'errorBoundary', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,

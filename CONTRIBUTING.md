@@ -54,7 +54,7 @@ That's why if the CI checks aren't passing your PR branch is probably not up to 
 
 1. Merge `main` into your PR branch
 2. Run `pnpm api.update`
-3. Run `pnpm build.local` or `pnpm build.full` if you made a change to the Rust code
+3. Run `pnpm build.full` (add `pnpm build.rust` if you made a change to the Rust code)
 4. Commit and push any changes as a result of the above steps
 
 ## Local development
@@ -69,7 +69,7 @@ You need to have these tools up and running in your local machine:
 - one of the following:
   - [Nix](https://nixos.org)
   - [Docker](https://www.docker.com/)
-  - Locally installed NodeJS v22+ and optionally Rust
+  - Locally installed NodeJS v22+ (Rust is only needed for the Rust optimizer, see below)
 
 #### Nix
 
@@ -150,13 +150,15 @@ $ podman run --rm \
 
 If you're not able to use the dev container, make sure you have NodeJS v18+ installed, as well as `pnpm`.
 
-Furthermore, to build the optimizer you optionally need Rust.
+1. Node version >= `22`.
+2. Make sure you have [pnpm](https://pnpm.io/installation) installed.
+3. run `pnpm install`
+
+The local scripts and tests use the TypeScript optimizer, so no Rust toolchain is needed for
+day-to-day work. Only building or testing the Rust optimizer (`@qwik.dev/optimizer`) needs it:
 
 1. Make sure [Rust](https://www.rust-lang.org/tools/install) is installed.
 2. Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) with `cargo install wasm-pack` .
-3. Node version >= `22`.
-4. Make sure you have [pnpm](https://pnpm.io/installation) installed.
-5. run `pnpm install`
 
 > On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/). You can also select _Desktop development with C++_
 > while installing Visual Studio.
@@ -193,13 +195,13 @@ by hand. Update `.ruler/` and rerun `ruler apply`.
 To build Qwik for local development, install the dev dependencies using [pnpm](https://pnpm.io/) and then do an initial build.
 
 ```shell
-pnpm install && pnpm build.local
+pnpm install && pnpm build.full
 ```
 
-If you want to work on the Rust code, use `build.full` instead of `build.local`.
+This builds every JavaScript package with the TypeScript optimizer and does not need Rust. If you want to work on the Rust optimizer, see [Rust optimizer build](#rust-optimizer-build).
 
 > [!NOTE]
-> After running `build.local`, you may see Git diffs for API-related files and `JSXNode`. You should run the `api.update` script to resolve them.
+> After running `build.full`, you may see Git diffs for API-related files and `JSXNode`. You should run the `api.update` script to resolve them.
 
 ### Fast build
 
@@ -230,19 +232,9 @@ You can run `pnpm build` without parameters to see which flags are available. No
 
 E.g. to build only the React integration, you'd run `pnpm build --qwikreact`.
 
-### Full build without Rust
+### Full build
 
-This builds everything except Rust prerequisites and the optimizer binaries. Instead, those binaries are copied from the latest Qwik package on NPM.
-
-```shell
-pnpm build.local
-```
-
-### Full build with Rust
-
-It will build **everything**, including Rust packages and WASM.
-
-> First build might be very slow.
+It will build **everything** except the Rust optimizer bindings.
 
 - Builds each submodule
 - Generates bundled `.d.ts` files for each submodule with [API Extractor](https://api-extractor.com/)
@@ -256,7 +248,19 @@ pnpm build.full
 
 The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@qwik.dev/core](https://www.npmjs.com/package/@qwik.dev/core).
 
-To update the Rust test snapshots after you've made changes to the Rust code, run `pnpm test.rust.update`.
+### Rust optimizer build
+
+The Rust optimizer (`@qwik.dev/optimizer`) is kept for parity comparison and is still what published apps use by default. It is built separately, and only this step needs the Rust toolchain and `wasm-pack`:
+
+```shell
+pnpm build.rust
+```
+
+> First build might be very slow. Use `pnpm build.rust.dev` for a faster unoptimized build.
+
+This writes the native and WASM bindings to `packages/optimizer/bindings`. Alternatively, `pnpm build.platform.copy` downloads the published bindings instead of compiling them. The bindings are only needed by projects that use the Rust optimizer, such as the starters exercised by `pnpm test.e2e.cli`.
+
+Rust-specific commands: `pnpm lint.rust`, `pnpm test.rust`, and `pnpm test.rust.update` to update the Rust test snapshots after you've made changes to the Rust code.
 
 ### Run in your own app
 

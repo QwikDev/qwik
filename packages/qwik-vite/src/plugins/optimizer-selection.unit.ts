@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { beforeEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createQwikPlugin } from './plugin';
 
 const optimizers = vi.hoisted(() => ({
@@ -19,6 +19,10 @@ beforeEach(() => {
   optimizers.typescript.mockReset().mockResolvedValue(optimizer);
 });
 
+afterEach(() => {
+  delete process.env.QWIK_OPTIMIZER;
+});
+
 test('uses the Rust optimizer by default', async () => {
   await createQwikPlugin().init();
 
@@ -31,4 +35,25 @@ test('uses the TypeScript optimizer when requested', async () => {
 
   expect(optimizers.typescript).toHaveBeenCalledOnce();
   expect(optimizers.rust).not.toHaveBeenCalled();
+});
+
+test('QWIK_OPTIMIZER=rust overrides a config that asks for the TypeScript optimizer', async () => {
+  process.env.QWIK_OPTIMIZER = 'rust';
+  await createQwikPlugin({ tsOptimizer: true }).init();
+
+  expect(optimizers.rust).toHaveBeenCalledOnce();
+  expect(optimizers.typescript).not.toHaveBeenCalled();
+});
+
+test('QWIK_OPTIMIZER=ts overrides the default', async () => {
+  process.env.QWIK_OPTIMIZER = 'ts';
+  await createQwikPlugin().init();
+
+  expect(optimizers.typescript).toHaveBeenCalledOnce();
+  expect(optimizers.rust).not.toHaveBeenCalled();
+});
+
+test('an unknown QWIK_OPTIMIZER value fails instead of picking an optimizer', async () => {
+  process.env.QWIK_OPTIMIZER = 'typescript';
+  await expect(createQwikPlugin().init()).rejects.toThrow(/QWIK_OPTIMIZER/);
 });

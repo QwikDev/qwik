@@ -64,6 +64,10 @@ failing core test rather than a snapshot diff. To tell a TS-only bug from a pre-
    segment bodies.
    When an e2e app misbehaves, baseline the app build too, not only the router library: the dev
    server compiles the fixture apps with whichever optimizer its `qwikVite()` call selects.
+   Compare `segment.entry` per display name as well, in `mode: 'prod'`: a grouping gap shows up
+   only as a different bundle count in the app's `q-manifest.json`, never as a failing test.
+   The router SSG snapshot e2e runs on both optimizers in CI, so any output difference between
+   them fails there; keep it that way instead of skipping one leg.
 4. Rebuild the bundle with `pnpm build --optimizer --dev` before rerunning core tests; vitest loads
    `packages/qwik/dist/ts-optimizer.mjs`, not the optimizer source.
 

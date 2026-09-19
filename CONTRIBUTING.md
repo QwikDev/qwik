@@ -262,6 +262,8 @@ This writes the native and WASM bindings to `packages/optimizer/bindings`. Alter
 
 Rust-specific commands: `pnpm lint.rust`, `pnpm test.rust`, and `pnpm test.rust.update` to update the Rust test snapshots after you've made changes to the Rust code.
 
+To run the e2e suites against the Rust optimizer once the bindings exist, set `QWIK_OPTIMIZER=rust`; it overrides the `tsOptimizer` option everywhere (`QWIK_OPTIMIZER=ts` does the reverse). CI runs the qwik, adapters and React e2e suites on both optimizers.
+
 ### Run in your own app
 
 Say you made changes to the repo and you want to try them out in your app. Once built, all the Qwik packages are directly usable in your project by using the linking in your package manager.

@@ -85,7 +85,9 @@ pnpm build.rust # only when working on the Rust optimizer; the only step that ne
 The local scripts and tests use the TypeScript optimizer (`tsOptimizer: true` in the repo's own
 vite configs and test harnesses), so no Rust toolchain or prebuilt bindings are needed for them.
 Keep that flag on any new repo-owned `qwikVite()` call site; the plugin still defaults to the Rust
-optimizer for published apps.
+optimizer for published apps. `QWIK_OPTIMIZER=rust` (or `ts`) overrides the flag for a whole run, which
+is how CI runs the e2e suites on both optimizers; it needs `pnpm build.rust` or
+`pnpm build.platform.copy` first.
 ### Iterating
 
 Prefer focused commands and builds over repo-wide commands and builds.

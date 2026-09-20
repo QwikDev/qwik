@@ -202,6 +202,9 @@ function applyReplacements(
 }
 /** Chunks and SSR mirrors share the same function syntax. */
 export function functionText(emission: FunctionEmission): string {
+  if (emission.alias !== undefined) {
+    return emission.alias;
+  }
   const body = [
     ...emission.statements,
     ...(emission.value === '' ? [] : [`return ${emission.value};`]),

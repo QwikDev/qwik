@@ -100,9 +100,7 @@ export const component_pick_segment_0_3dnf2wesexw1y = (v) => {
 
 import { __qwik_Fallback as Fallback } from './component.tsx';
 
-export const component_fallbackqrl_segment_1_3grqawftcqexb = () => {
-  return Fallback;
-};
+export const component_fallbackqrl_segment_1_3grqawftcqexb = Fallback;
 /*
 {
   "origin": "component.tsx",

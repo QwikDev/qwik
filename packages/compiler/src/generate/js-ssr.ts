@@ -42,6 +42,7 @@ import {
   programKind,
   ProgramKind,
   rowShapeCode,
+  aliasEmission,
   emptyFunctionEmission,
   type FunctionEmission,
 } from './emit-function';
@@ -401,6 +402,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       return dynamicSlotEmission(QwikWord.RenderSsrSlotContent);
     }
     switch (qrl.body.b) {
+      case QrlBodyKind.Alias:
+        return aliasEmission(this.module, qrl.body.binding);
       case QrlBodyKind.Js:
       case QrlBodyKind.Expr:
         return contentFunctionEmission(

@@ -39,9 +39,7 @@ const q_component_pick_segment_0_3dnf2wesexw1y = /*#__PURE__*/ _noopQrl(
   'component_pick_segment_0_3dnf2wesexw1y'
 );
 q_component_pick_segment_0_3dnf2wesexw1y.s(component_pick_segment_0_3dnf2wesexw1y);
-const component_fallbackqrl_segment_1_3grqawftcqexb = () => {
-  return Fallback;
-};
+const component_fallbackqrl_segment_1_3grqawftcqexb = Fallback;
 const q_component_fallbackqrl_segment_1_3grqawftcqexb = /*#__PURE__*/ _noopQrl(
   'component_fallbackqrl_segment_1_3grqawftcqexb'
 );
@@ -155,9 +153,7 @@ export const component_pick_segment_0_3dnf2wesexw1y = (v) => {
 
 import { __qwik_Fallback as Fallback } from './component.tsx';
 
-export const component_fallbackqrl_segment_1_3grqawftcqexb = () => {
-  return Fallback;
-};
+export const component_fallbackqrl_segment_1_3grqawftcqexb = Fallback;
 /*
 {
   "origin": "component.tsx",

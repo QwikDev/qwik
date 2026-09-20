@@ -33,6 +33,7 @@ import {
 } from './captures';
 import {
   dynamicSlotEmission,
+  aliasEmission,
   emptyFunctionEmission,
   programKind,
   ProgramKind,
@@ -846,6 +847,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       return dynamicSlotEmission(QwikWord.RenderSlotContent);
     }
     switch (qrl.body.b) {
+      case QrlBodyKind.Alias:
+        return aliasEmission(this.module, qrl.body.binding);
       case QrlBodyKind.Js:
       case QrlBodyKind.Expr:
         return contentFunctionEmission(

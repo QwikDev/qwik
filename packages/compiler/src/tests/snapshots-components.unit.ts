@@ -286,7 +286,8 @@ export default component$(() => {
     // A body function passed as a `$` prop ships as its own segment, nothing wraps it.
     expect(code).toMatch(/"then\$": q_component_pick_segment_\w+/);
     expect(code).not.toContain('.w([pick])');
-    expect(code).toContain('return Fallback');
+    // a module binding passed to `$` aliases its export instead of wrapping it
+    expect(code).toMatch(/component_fallbackqrl_segment_\w+ = Fallback;/);
     expect(code).toContain('return { a: count.value }');
   });
 

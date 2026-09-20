@@ -43,6 +43,8 @@ export const enum QrlBodyKind {
   Task = 'task',
   Expr = 'expr',
   Js = 'js',
+  /** `$(binding)`: the segment IS that binding, so resolving the QRL hands back the value itself. */
+  Alias = 'alias',
 }
 
 export const enum CaptureAccess {
@@ -86,6 +88,7 @@ export interface Qrl {
     | { b: QrlBodyKind.Program; program: ProgramId }
     | { b: QrlBodyKind.Task; task: TaskBody }
     | { b: QrlBodyKind.Expr; expr: Expr; initialOnly: boolean }
+    | { b: QrlBodyKind.Alias; binding: LocalId }
     | {
         b: QrlBodyKind.Js;
         payload: PayloadId;

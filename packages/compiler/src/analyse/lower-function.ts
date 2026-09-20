@@ -2,10 +2,12 @@ import type {
   ArrowFunctionExpression,
   CallExpression,
   Expression,
+  IdentifierReference as Identifier,
   Function as FunctionNode,
   Node,
 } from 'oxc-parser';
 import {
+  BindingScope,
   BoundaryKind,
   CallTargetKind,
   CaptureAccess,
@@ -13,6 +15,7 @@ import {
   QrlBodyKind,
   QrlPayloadKind,
   type CallTarget,
+  type LocalId,
   type PayloadId,
   type Qrl,
   type QrlUse,
@@ -51,8 +54,42 @@ export function lowerQrlArgument(
   if (local?.kind === LocalKind.Function) {
     return local.lift();
   }
+  if (binding !== null && local === undefined && isModuleBinding(ctx, binding)) {
+    return aliasQrl(argument as Identifier, binding, ctx, boundary);
+  }
   return lowerComputedExpressionValue(argument, ctx, boundary.nameCtx, QrlPayloadKind.Function)
     .resume.qrl;
+}
+
+const isModuleBinding = (ctx: LowerContext, binding: LocalId): boolean => {
+  const scope = ctx.plan.bindings[binding]?.scope;
+  return scope === BindingScope.Module || scope === BindingScope.Import;
+};
+
+/** `$(Name)` on a module binding: the segment re-exports it, so the QRL resolves to the value. */
+function aliasQrl(
+  argument: Identifier,
+  binding: LocalId,
+  ctx: LowerContext,
+  boundary: QrlArgumentBoundary
+): QrlUse {
+  return pushQrl(ctx, {
+    identity: { kind: QrlIdentityKind.Segment, nameCtx: boundary.nameCtx },
+    ctxName: boundary.ctxName,
+    boundary: boundary.boundary,
+    payloadKind: QrlPayloadKind.Function,
+    authoredAsync: false,
+    body: { b: QrlBodyKind.Alias, binding },
+    captures: [],
+    params: { authored: 0, used: [], sources: [] },
+    origin: {
+      ...boundary.origin,
+      functionRange: [argument.start, argument.end],
+      paramRanges: [],
+      bodyRange: [argument.start, argument.end],
+      bodyKind: FnBodyKind.Expression,
+    },
+  }).use;
 }
 
 export function lowerFunctionQrl(

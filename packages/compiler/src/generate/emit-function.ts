@@ -173,6 +173,8 @@ export function contentFunctionEmission(
 
 /** One function, as neutral data — printed into chunk files, SSR mirrors, and spliced bodies. */
 export interface FunctionEmission {
+  /** `$(Name)`: the segment is that binding, so it prints as the name instead of a function. */
+  alias?: string;
   /** Core imports the function's code needs. */
   imports: Set<string>;
   /** Sibling-chunk imports (nested QRL references). */
@@ -266,4 +268,11 @@ export const enum ProgramKind {
   Content = 'content',
   Projection = 'projection',
   SlotFallback = 'slot-fallback',
+}
+
+/** A `$(Name)` segment: nothing to build, the binding itself is the value. */
+export function aliasEmission(module: LinkedModule, binding: number): FunctionEmission {
+  const emission = emptyFunctionEmission();
+  emission.alias = module.bindings[binding].name;
+  return emission;
 }

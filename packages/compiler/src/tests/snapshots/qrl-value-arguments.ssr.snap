@@ -24,23 +24,17 @@ const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
   'component_qrl_segment_0_2fpowujm1ejve'
 );
 q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
-const component_qrl_segment_1_2fpox8kpy8lvx = () => {
-  return config;
-};
+const component_qrl_segment_1_2fpox8kpy8lvx = config;
 const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _noopQrl(
   'component_qrl_segment_1_2fpox8kpy8lvx'
 );
 q_component_qrl_segment_1_2fpox8kpy8lvx.s(component_qrl_segment_1_2fpox8kpy8lvx);
-const component_useTaskqrl_segment_2_1og81asunhx6e = () => {
-  return tick;
-};
+const component_useTaskqrl_segment_2_1og81asunhx6e = tick;
 const q_component_useTaskqrl_segment_2_1og81asunhx6e = /*#__PURE__*/ _noopQrl(
   'component_useTaskqrl_segment_2_1og81asunhx6e'
 );
 q_component_useTaskqrl_segment_2_1og81asunhx6e.s(component_useTaskqrl_segment_2_1og81asunhx6e);
-const component_later_segment_3_3i4odul1ji17c = () => {
-  return tick;
-};
+const component_later_segment_3_3i4odul1ji17c = tick;
 const q_component_later_segment_3_3i4odul1ji17c = /*#__PURE__*/ _noopQrl(
   'component_later_segment_3_3i4odul1ji17c'
 );
@@ -144,9 +138,7 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
 
 import { config } from './config';
 
-export const component_qrl_segment_1_2fpox8kpy8lvx = () => {
-  return config;
-};
+export const component_qrl_segment_1_2fpox8kpy8lvx = config;
 /*
 {
   "origin": "component.tsx",
@@ -158,11 +150,11 @@ export const component_qrl_segment_1_2fpox8kpy8lvx = () => {
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "qrl",
+  "ctxName": "$",
   "captures": false,
   "loc": [
-    207,
-    213
+    205,
+    214
   ],
   "paramNames": []
 }
@@ -171,9 +163,7 @@ export const component_qrl_segment_1_2fpox8kpy8lvx = () => {
 
 import { __qwik_tick as tick } from './component.tsx';
 
-export const component_useTaskqrl_segment_2_1og81asunhx6e = () => {
-  return tick;
-};
+export const component_useTaskqrl_segment_2_1og81asunhx6e = tick;
 /*
 {
   "origin": "component.tsx",
@@ -188,8 +178,8 @@ export const component_useTaskqrl_segment_2_1og81asunhx6e = () => {
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    291,
-    295
+    282,
+    296
   ],
   "paramNames": []
 }
@@ -198,9 +188,7 @@ export const component_useTaskqrl_segment_2_1og81asunhx6e = () => {
 
 import { __qwik_tick as tick } from './component.tsx';
 
-export const component_later_segment_3_3i4odul1ji17c = () => {
-  return tick;
-};
+export const component_later_segment_3_3i4odul1ji17c = tick;
 /*
 {
   "origin": "component.tsx",
@@ -212,11 +200,11 @@ export const component_later_segment_3_3i4odul1ji17c = () => {
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "later",
+  "ctxName": "$",
   "captures": false,
   "loc": [
-    316,
-    320
+    314,
+    321
   ],
   "paramNames": []
 }

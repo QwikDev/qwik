@@ -304,6 +304,7 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
     visitPayload,
     visitExpression,
     visitQrlUse,
+    visitBinding: (binding: number) => bindings.add(binding),
     dependencies: (): LinkedQrl['dependencies'] => ({ bindings: [...bindings], qrls: [...qrls] }),
   };
 }
@@ -312,7 +313,7 @@ export function collectQrlDependencies(
   module: ModulePlan | LinkedModule,
   qrl: Qrl
 ): LinkedQrl['dependencies'] {
-  const { visitPayload, visitExpression, visitProgram, visitQrlUse, dependencies } =
+  const { visitPayload, visitExpression, visitProgram, visitQrlUse, visitBinding, dependencies } =
     createDependencyCollector(module);
   switch (qrl.body.b) {
     case QrlBodyKind.Js:
@@ -323,6 +324,9 @@ export function collectQrlDependencies(
       break;
     case QrlBodyKind.Program:
       visitProgram(qrl.body.program);
+      break;
+    case QrlBodyKind.Alias:
+      visitBinding(qrl.body.binding);
       break;
   }
   qrl.params.sources.forEach(visitPayload);

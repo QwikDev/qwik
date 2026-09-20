@@ -557,12 +557,14 @@ export default component$(() => {
     });
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
-    // Every marker is extracted; a non-function argument ships as a factory returning it.
+    // Every marker is extracted; a value the segment must compute ships as a factory returning it.
     expect(code).not.toContain('$(');
     expect(code).not.toContain('useTask$');
     expect(code).toMatch(/return ["']hello["']/);
-    for (const returned of ['return config', 'return tick', 'return count']) {
-      expect(code).toContain(returned);
+    expect(code).toContain('return count');
+    // A module binding needs no factory: the segment is that binding.
+    for (const alias of ['config', 'tick']) {
+      expect(code).toMatch(new RegExp(`_segment_\\w+ = ${alias};`));
     }
     // The setup local is captured, the module function is imported.
     expect(code).toContain('const [count] = _captures;');

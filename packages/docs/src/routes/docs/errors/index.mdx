@@ -219,7 +219,7 @@ A plain function (not wrapped in `$()`) was found in serializable state. Wrap it
 
 **Cannot read .value of a clientOnly async signal during SSR**
 
-You accessed `.value` on an async signal with `clientOnly: true` during server-side rendering. Since `clientOnly` signals skip computation on the server, there is no value available. Use `.pending` to show a loading state, or provide an `initial` value in the options.
+You accessed `.value` on an async signal with `clientOnly: true` during server-side rendering. Since `clientOnly` signals skip computation on the server, there is no value available. Provide an `initial` value in the options.
 
 ## Q36
 

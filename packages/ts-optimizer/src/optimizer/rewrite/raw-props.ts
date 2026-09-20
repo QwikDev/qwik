@@ -42,6 +42,7 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import type { DevSuffixOptions } from '../jsx/jsx.js';
+import { ScopeTracker, walk } from 'oxc-walker';
 
 function isRawPropsMemberExpression(
   node: unknown
@@ -122,9 +123,10 @@ interface SourceRange {
 interface RawPropsTransformPlan {
   replacementParamRange?: SourceRange;
   removeRange?: SourceRange;
+  /** The destructure statement alone, without its line's indent and newline. */
+  statementRange?: SourceRange;
   replacementBaseName: string;
   restLine?: string;
-  restLineInPlace?: boolean;
   fieldLocalToKey: Map<string, string>;
   fieldLocalToDefault: Map<string, string>;
   fieldLocalToDynamicDefault: Map<string, string>;
@@ -373,15 +375,26 @@ function referencesDestructuredName(node: unknown, bindingLocals: ReadonlySet<st
     if (found) {
       return;
     }
-    const isPropertyKey =
-      key === 'key' &&
-      parent.type === 'Property' &&
-      (parent as { computed?: boolean }).computed !== true;
-    if (!isPropertyKey && referencesDestructuredName(child, bindingLocals)) {
+    if (isNameOnlyPosition(key, parent)) {
+      return;
+    }
+    if (referencesDestructuredName(child, bindingLocals)) {
       found = true;
     }
   });
   return found;
+}
+
+function isNameOnlyPosition(key: string, parent: AstNode): boolean {
+  const type: string = parent.type;
+  const computed = (parent as { computed?: boolean }).computed === true;
+  if (type === 'Property') {
+    return key === 'key' && !computed;
+  }
+  if (type === 'MemberExpression' || type === 'StaticMemberExpression') {
+    return key === 'property' && !computed;
+  }
+  return false;
 }
 
 function collectIdentifierNames(node: unknown, names = new Set<string>()): Set<string> {
@@ -407,11 +420,7 @@ function collectReferenceNames(node: unknown, names = new Set<string>()): Set<st
     return names;
   }
   forEachAstChild(node, (child, key, parent) => {
-    const isPropertyKey =
-      key === 'key' &&
-      parent.type === 'Property' &&
-      (parent as { computed?: boolean }).computed !== true;
-    if (!isPropertyKey) {
+    if (!isNameOnlyPosition(key, parent)) {
       collectReferenceNames(child, names);
     }
   });
@@ -511,7 +520,8 @@ function arrowBodyLooksLikeComponent(body: AstMaybeNode): boolean {
 function analyzeRawPropsTransform(
   session: FunctionTransformSession,
   body: string,
-  preferredDynamicDefaultNames?: ReadonlyMap<string, string>
+  preferredDynamicDefaultNames?: ReadonlyMap<string, string>,
+  propsName = '_rawProps'
 ): RawPropsTransformPlan | null {
   const { fn, offset } = session;
   const firstParam = fn.params[0];
@@ -551,14 +561,14 @@ function analyzeRawPropsTransform(
 
   return {
     replacementParamRange: { start: firstParam.start, end: firstParam.end },
-    replacementBaseName: '_rawProps',
+    replacementBaseName: propsName,
     restLine: bindings.restElementName
-      ? buildRestPropsLine('_rawProps', bindings.restElementName, bindings.fields)
+      ? buildRestPropsLine(propsName, bindings.restElementName, bindings.fields)
       : undefined,
     fieldLocalToKey: toFieldLocalToKey(bindings.fields),
     fieldLocalToDefault: toFieldLocalToDefault(bindings.fields),
     fieldLocalToDynamicDefault: toFieldLocalToDynamicDefault(bindings.fields),
-    dynamicDefaultLines: buildDynamicDefaultLines('_rawProps', bindings.fields),
+    dynamicDefaultLines: buildDynamicDefaultLines(propsName, bindings.fields),
     excludedRanges: [{ start: firstParam.start, end: firstParam.end }],
   };
 }
@@ -584,14 +594,7 @@ function analyzeBodyDestructurePlan(
     }
 
     for (const declarator of stmt.declarations ?? []) {
-      const plan = analyzeBodyDestructureDeclarator(
-        propsDerived,
-        baseName,
-        declarator,
-        stmt,
-        body,
-        offset
-      );
+      const plan = analyzeBodyDestructureDeclarator(propsDerived, declarator, stmt, body, offset);
       if (plan) {
         return plan;
       }
@@ -629,7 +632,6 @@ function collectPropsDerivedLocals(baseName: string, statements: readonly unknow
 
 function analyzeBodyDestructureDeclarator(
   propsDerived: ReadonlySet<string>,
-  firstParamName: string,
   declarator: unknown,
   stmt: { start: number; end: number },
   body: string,
@@ -658,11 +660,11 @@ function analyzeBodyDestructureDeclarator(
 
   return {
     removeRange: getStatementRemovalRange(body, stmt, offset),
+    statementRange: { start: stmt.start, end: stmt.end },
     replacementBaseName: baseName,
     restLine: bindings.restElementName
       ? buildRestPropsLine(baseName, bindings.restElementName, bindings.fields)
       : undefined,
-    restLineInPlace: baseName !== firstParamName,
     fieldLocalToKey: toFieldLocalToKey(bindings.fields),
     fieldLocalToDefault: toFieldLocalToDefault(bindings.fields),
     fieldLocalToDynamicDefault: new Map(),
@@ -691,9 +693,13 @@ function buildIdentifierReplacementsCollector(
   fieldLocalToKey: ReadonlyMap<string, string>,
   offset: number,
   out: IdentifierReplacement[],
+  shadowedStarts: ReadonlySet<number>,
   excludedRanges?: ReadonlyArray<{ start: number; end: number }>
 ): RangeReplacementCollector {
   return (node, ctx) => {
+    if (hasRange(node) && shadowedStarts.has(node.start)) {
+      return null;
+    }
     if (
       hasRange(node) &&
       isExcludedRange(node, excludedRanges as Array<{ start: number; end: number }> | undefined)
@@ -765,21 +771,50 @@ function buildIdentifierReplacementsCollector(
 }
 
 function collectIdentifierReplacements(
-  root: unknown,
+  session: FunctionTransformSession,
   fieldLocalToKey: Map<string, string>,
-  offset: number,
   excludedRanges?: Array<{ start: number; end: number }>
 ): IdentifierReplacement[] {
-  if (!isAstNode(root)) {
-    return [];
-  }
   const out: IdentifierReplacement[] = [];
-  // `root` is an `AstCompatNode` narrowed via `isAstNode`; it shares the
-  // structural fields the orchestrator reads, so the cast to `AstNode` is safe.
-  collectRangeReplacements(root as AstNode, 0, '', [
-    buildIdentifierReplacementsCollector(fieldLocalToKey, offset, out, excludedRanges),
+  const shadowedStarts = collectShadowedIdentifierStarts(session.fn, fieldLocalToKey);
+  collectRangeReplacements(session.program as unknown as AstNode, 0, '', [
+    buildIdentifierReplacementsCollector(
+      fieldLocalToKey,
+      session.offset,
+      out,
+      shadowedStarts,
+      excludedRanges
+    ),
   ]);
   return out;
+}
+
+function collectShadowedIdentifierStarts(
+  fn: FunctionTransformSession['fn'],
+  fieldLocalToKey: ReadonlyMap<string, string>
+): Set<number> {
+  const tracker = new ScopeTracker({ preserveExitedScopes: true });
+  walk(fn, { scopeTracker: tracker });
+  tracker.freeze();
+
+  const shadowedStarts = new Set<number>();
+  let bodyScope: string | undefined;
+  walk(fn, {
+    scopeTracker: tracker,
+    enter(node) {
+      if (node === fn.body) {
+        bodyScope = tracker.getCurrentScope();
+      }
+      const name = (node as { name?: unknown }).name;
+      if (bodyScope === undefined || typeof name !== 'string' || !fieldLocalToKey.has(name)) {
+        return;
+      }
+      if (tracker.getDeclaration(name)?.scope.startsWith(`${bodyScope}-`)) {
+        shadowedStarts.add(node.start);
+      }
+    },
+  });
+  return shadowedStarts;
 }
 
 function applyIdentifierReplacements(
@@ -909,14 +944,15 @@ export function consolidateRawPropsInWCalls(body: string): string {
 
 export function applyRawPropsTransform(
   body: string,
-  preferredDynamicDefaultNames?: ReadonlyMap<string, string>
+  preferredDynamicDefaultNames?: ReadonlyMap<string, string>,
+  propsName = '_rawProps'
 ): string {
   const session = createFunctionTransformSession(body);
   if (!session) {
     return body;
   }
 
-  const plan = analyzeRawPropsTransform(session, body, preferredDynamicDefaultNames);
+  const plan = analyzeRawPropsTransform(session, body, preferredDynamicDefaultNames, propsName);
   if (!plan) {
     return body;
   }
@@ -925,29 +961,24 @@ export function applyRawPropsTransform(
     session.edits.overwrite(
       plan.replacementParamRange.start,
       plan.replacementParamRange.end,
-      '_rawProps'
+      propsName
     );
   }
   const prologueLines = [...plan.dynamicDefaultLines];
-  if (plan.removeRange) {
-    // A props-derived local declared mid-body would hit a TDZ if the rest line
-    // were inserted at the prologue, so emit it in place of the destructure.
-    if (plan.restLine && plan.restLineInPlace) {
-      session.edits.overwrite(plan.removeRange.start, plan.removeRange.end, plan.restLine);
+  if (plan.removeRange && plan.statementRange) {
+    // In place, as a props-derived local declared above would hit a TDZ.
+    if (plan.restLine) {
+      session.edits.overwrite(plan.statementRange.start, plan.statementRange.end, plan.restLine);
     } else {
       session.edits.remove(plan.removeRange.start, plan.removeRange.end);
-      if (plan.restLine) {
-        prologueLines.push(plan.restLine);
-      }
     }
   } else if (plan.restLine) {
     prologueLines.push(plan.restLine);
   }
   if (plan.fieldLocalToKey.size > 0) {
     const replacements = collectIdentifierReplacements(
-      session.program,
+      session,
       plan.fieldLocalToKey,
-      session.offset,
       plan.excludedRanges
     );
     applyIdentifierReplacements(
@@ -979,6 +1010,162 @@ export function bodyConsolidatesToRawProps(body: string): boolean {
   return analyzeRawPropsTransform(session, body)?.replacementParamRange !== undefined;
 }
 
+/** A consolidated ancestor's destructured props, as seen by the segments nested in it. */
+export interface RawPropsSource extends DestructuredFieldInfo {
+  readonly symbolName: string;
+}
+
+export interface RawPropsConsolidation {
+  propsFieldCaptures: Map<string, string>;
+  /** Field local → symbol of the ancestor whose props object it reads. */
+  propsFieldSources: Map<string, string>;
+  /** One per `_rawProps` capture slot, outermost ancestor first. */
+  rawPropsSources: string[];
+  newCaptureNames: string[];
+  propsFieldDefaults?: Map<string, string>;
+  propsFieldDynamicDefaults?: Map<string, string>;
+}
+
+/**
+ * Replace captured prop fields with one `_rawProps` slot per ancestor props object they read.
+ * `ancestors` runs nearest first; `null` when no capture is a prop field.
+ */
+export function consolidateRawPropsCaptures(
+  captureNames: readonly string[],
+  ancestors: readonly RawPropsSource[]
+): RawPropsConsolidation | null {
+  const propsFieldCaptures = new Map<string, string>();
+  const propsFieldSources = new Map<string, string>();
+  const propsFieldDefaults = new Map<string, string>();
+  const propsFieldDynamicDefaults = new Map<string, string>();
+  const nonPropsCaptures: string[] = [];
+  for (const name of captureNames) {
+    // ponytail: resolves by name, so an intermediate local named like an outer prop still maps to it.
+    const source = ancestors.find((ancestor) => ancestor.fieldMap.has(name));
+    if (source === undefined) {
+      nonPropsCaptures.push(name);
+      continue;
+    }
+    propsFieldCaptures.set(name, source.fieldMap.get(name)!);
+    propsFieldSources.set(name, source.symbolName);
+    const defaultExpr = source.fieldDefaults.get(name);
+    if (defaultExpr !== undefined) {
+      propsFieldDefaults.set(name, defaultExpr);
+    }
+    const dynamicDefaultName = source.fieldDynamicDefaults.get(name);
+    if (dynamicDefaultName !== undefined) {
+      propsFieldDynamicDefaults.set(name, dynamicDefaultName);
+      nonPropsCaptures.push(dynamicDefaultName);
+    }
+  }
+  if (propsFieldCaptures.size === 0) {
+    return null;
+  }
+  const usedSources = new Set(propsFieldSources.values());
+  const rawPropsSources = ancestors
+    .map((ancestor) => ancestor.symbolName)
+    .filter((symbolName) => usedSources.has(symbolName))
+    .reverse();
+  return {
+    propsFieldCaptures,
+    propsFieldSources,
+    rawPropsSources,
+    // Stable sort keeps the `_rawProps` slots in `rawPropsSources` order.
+    newCaptureNames: [...nonPropsCaptures, ...rawPropsSources.map(() => '_rawProps')].sort(),
+    propsFieldDefaults: propsFieldDefaults.size > 0 ? propsFieldDefaults : undefined,
+    propsFieldDynamicDefaults:
+      propsFieldDynamicDefaults.size > 0 ? propsFieldDynamicDefaults : undefined,
+  };
+}
+
+/** Destructured props of `parent` and each ancestor above it that has any, nearest first. */
+export function collectAncestorPropsSources(
+  parent: string | null,
+  parentOf: (symbolName: string) => string | null,
+  sourceOf: (symbolName: string) => RawPropsSource | undefined
+): RawPropsSource[] {
+  const ancestors: RawPropsSource[] = [];
+  for (let symbolName = parent; symbolName !== null; symbolName = parentOf(symbolName)) {
+    const source = sourceOf(symbolName);
+    if (source !== undefined && source.fieldMap.size > 0) {
+      ancestors.push(source);
+    }
+  }
+  return ancestors;
+}
+
+/** The segment fields that decide which props objects its body binds. */
+export interface RawPropsBindingOwner {
+  readonly symbolName: string;
+  readonly bodyText: string;
+  readonly isInlinedQrl: boolean;
+  readonly rawPropsSources?: readonly string[];
+}
+
+/**
+ * Rust hygiene numbering for the props objects bound across one module's `bodies`: in body order,
+ * each takes the lowest `_rawProps{n}` not held by a props object bound beside it.
+ */
+export function rawPropsBindingNames(bodies: readonly RawPropsBindingOwner[]): Map<string, string> {
+  const ownersPerBody = bodies.map((body) => [
+    ...(!body.isInlinedQrl && bodyConsolidatesToRawProps(body.bodyText) ? [body.symbolName] : []),
+    ...(body.rawPropsSources ?? []),
+  ]);
+  const nameAt = (index: number) => (index === 0 ? '_rawProps' : `_rawProps${index}`);
+  const names = new Map<string, string>();
+  for (const owners of ownersPerBody) {
+    for (const owner of owners) {
+      if (names.has(owner)) {
+        continue;
+      }
+      const taken = new Set(
+        ownersPerBody
+          .filter((other) => other.includes(owner))
+          .flatMap((other) => other.map((o) => names.get(o)))
+      );
+      let index = 0;
+      while (taken.has(nameAt(index))) {
+        index++;
+      }
+      names.set(owner, nameAt(index));
+    }
+  }
+  return names;
+}
+
+/** `captureNames` with each `_rawProps` slot renamed to its source's binding in `bindingNames`. */
+export function resolveRawPropsSlots(
+  captureNames: readonly string[],
+  rawPropsSources: readonly string[] | undefined,
+  bindingNames: ReadonlyMap<string, string>
+): string[] {
+  let slot = 0;
+  return captureNames.map((name) => {
+    if (name !== '_rawProps') {
+      return name;
+    }
+    const source = rawPropsSources?.[slot++];
+    return (source !== undefined && bindingNames.get(source)) || name;
+  });
+}
+
+/** Captured prop fields grouped by the binding their props object has in this segment. */
+export function groupPropsFieldsByBinding(
+  propsFieldCaptures: ReadonlyMap<string, string>,
+  propsFieldSources: ReadonlyMap<string, string> | undefined,
+  bindingNames: ReadonlyMap<string, string>
+): Map<string, Map<string, string>> {
+  const groups = new Map<string, Map<string, string>>();
+  for (const [local, key] of propsFieldCaptures) {
+    const source = propsFieldSources?.get(local);
+    const binding = (source !== undefined && bindingNames.get(source)) || '_rawProps';
+    const group = groups.get(binding) ?? new Map<string, string>();
+    group.set(local, key);
+    groups.set(binding, group);
+  }
+  return groups;
+}
+
 export function consolidateQpCaptureValues(
   params: readonly string[],
   fieldMap: ReadonlyMap<string, string>
@@ -1005,11 +1192,13 @@ export function consolidateQpCaptureValues(
 export function replacePropsFieldReferencesInBody(
   body: string,
   fieldMap: Map<string, string>,
+  propsName: string,
   defaultValues?: ReadonlyMap<string, string>,
   dynamicDefaults?: ReadonlyMap<string, string>
 ): string {
   return rewritePropsFieldReferences(body, fieldMap, {
     memberPropertyMode: 'nonComputed',
+    propsName,
     defaultValues,
     dynamicDefaults,
   });

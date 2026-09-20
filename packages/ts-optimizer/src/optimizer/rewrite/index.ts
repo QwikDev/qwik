@@ -6,7 +6,6 @@
  */
 
 import MagicString from 'magic-string';
-import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
@@ -36,6 +35,7 @@ import {
 import { stripExportDeclarations } from './strip-exports.js';
 import type { EmitMode } from '../types/types.js';
 import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
+import { parseWithRawTransfer } from '../ast/parse.js';
 import type {
   AstFunction,
   AstNode,
@@ -53,7 +53,6 @@ import {
   formatImportStatement,
   formatNamedImportPart,
 } from '../edit/import-format.js';
-import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import type { RewriteContext } from './rewrite-context.js';
 import {
   collectNeededImports,
@@ -62,6 +61,7 @@ import {
   assembleOutput,
 } from './output-assembly.js';
 import { detectAndRenameCollisions, reserveGeneratedImportAliases } from './symbol-collision.js';
+import { getSentinelCounter } from '../segment/inline-strategy.js';
 import { countJsxKeysInNode } from '../segment/segment-generation.js';
 
 export {
@@ -75,9 +75,21 @@ export {
   applyRawPropsTransform,
   bodyConsolidatesToRawProps,
   consolidateQpCaptureValues,
+  collectAncestorPropsSources,
+  consolidateRawPropsCaptures,
+  groupPropsFieldsByBinding,
+  rawPropsBindingNames,
+  resolveRawPropsSlots,
+  type RawPropsConsolidation,
+  type RawPropsSource,
 } from './raw-props.js';
 
-import { extractDestructuredFieldInfo } from './raw-props.js';
+import {
+  collectAncestorPropsSources,
+  consolidateRawPropsCaptures,
+  extractDestructuredFieldInfo,
+  type RawPropsSource,
+} from './raw-props.js';
 
 export interface InlineStrategyOptions {
   readonly inline: boolean;
@@ -156,8 +168,7 @@ export function rewriteParentModule(
   elementQpParamsMap?: ReadonlyMap<string, string[]>
 ): ParentRewriteResult {
   const s = new MagicString(source);
-  const program =
-    existingProgram ?? parseSync(relPath, source, RAW_TRANSFER_PARSER_OPTIONS).program;
+  const program = existingProgram ?? parseWithRawTransfer(relPath, source).program;
 
   const ctx: RewriteContext = {
     source,
@@ -531,100 +542,91 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
   // handlers (q:p slots) consolidate under every strategy so the SSR-emitted
   // slot value and the handler segment's params stay paired.
   const isInline = ctx.inlineOptions?.inline === true;
+  const extBySymbol = new Map(ctx.extractions.map((ext) => [ext.symbolName as string, ext]));
+  const propsSources = new Map<string, RawPropsSource>();
+  const propsSourceOf = (symbolName: string): RawPropsSource | undefined => {
+    const ext = extBySymbol.get(symbolName);
+    if (ext === undefined) {
+      return undefined;
+    }
+    let source = propsSources.get(symbolName);
+    if (source === undefined) {
+      source = { symbolName, ...extractDestructuredFieldInfo(ext.bodyText) };
+      propsSources.set(symbolName, source);
+    }
+    return source;
+  };
+  const parentOf = (symbolName: string) => extBySymbol.get(symbolName)?.parent ?? null;
+
   for (const ext of ctx.extractions) {
-    if (ext.parent === null) {
+    const parentSource = ext.parent === null ? undefined : propsSourceOf(ext.parent);
+    if (parentSource === undefined) {
       continue;
     }
-    const hasPromotedParams = ext.captureNames.length === 0 && ext.paramNames.length > 2;
-    if (!isInline && !hasPromotedParams) {
+    const wip = ext as Mutable<ConsolidatedSegment>;
+    if (ext.captureNames.length === 0) {
+      if (ext.paramNames.length > 2) {
+        consolidatePromotedParams(wip, parentSource);
+      }
       continue;
     }
-    if (ext.captureNames.length === 0 && !hasPromotedParams) {
-      continue;
-    }
-
-    const parentExt = ctx.extractions.find((e) => e.symbolName === ext.parent);
-    if (!parentExt) {
-      continue;
-    }
-
-    // Defaults let nested-segment field rewrites emit `(_rawProps.<key> ?? <default>)`
-    // for fields the parent destructure defaulted; undefaulted fields stay bare.
-    const {
-      fieldMap,
-      fieldDefaults: fieldDefaultsMap,
-      fieldDynamicDefaults,
-    } = extractDestructuredFieldInfo(parentExt.bodyText);
-    if (fieldMap.size === 0) {
+    if (!isInline) {
       continue;
     }
 
-    const nonPropsCaptures: string[] = [];
-    let hasPropsFields = false;
-    const propsFieldCaptures = new Map<string, string>();
-    const propsFieldDefaults = new Map<string, string>();
-    const propsFieldDynamicDefaults = new Map<string, string>();
-    const collectField = (name: string): boolean => {
-      if (!fieldMap.has(name)) {
-        return false;
-      }
-      hasPropsFields = true;
-      propsFieldCaptures.set(name, fieldMap.get(name)!);
-      const defaultExpr = fieldDefaultsMap.get(name);
-      if (defaultExpr !== undefined) {
-        propsFieldDefaults.set(name, defaultExpr);
-      }
-      const dynamicDefaultName = fieldDynamicDefaults.get(name);
-      if (dynamicDefaultName !== undefined) {
-        propsFieldDynamicDefaults.set(name, dynamicDefaultName);
-        nonPropsCaptures.push(dynamicDefaultName);
-      }
-      return true;
-    };
-    for (const name of ext.captureNames) {
-      if (!collectField(name)) {
-        nonPropsCaptures.push(name);
-      }
+    const rawProps = consolidateRawPropsCaptures(
+      ext.captureNames,
+      collectAncestorPropsSources(ext.parent, parentOf, propsSourceOf)
+    );
+    if (rawProps === null) {
+      continue;
     }
-    // Promoted handler params (`(_, _1, field)`) consolidate the same way:
-    // the positional slot must carry the whole props proxy, not a field read
-    // that loses the proxy identity through serialization.
-    let consolidatedParams: string[] | null = null;
-    if (hasPromotedParams) {
-      const mapped: string[] = ext.paramNames.slice(0, 2) as string[];
-      for (let i = 2; i < ext.paramNames.length; i++) {
-        const p = ext.paramNames[i];
-        const target = collectField(p) ? '_rawProps' : p;
-        if (!mapped.includes(target) || target !== '_rawProps') {
-          mapped.push(target);
-        }
-      }
-      if (hasPropsFields) {
-        consolidatedParams = mapped;
-      }
+    wip.propsFieldCaptures = rawProps.propsFieldCaptures;
+    wip.propsFieldSources = rawProps.propsFieldSources;
+    wip.rawPropsSources = rawProps.rawPropsSources;
+    if (rawProps.propsFieldDefaults !== undefined) {
+      wip.propsFieldDefaults = rawProps.propsFieldDefaults;
     }
-    if (hasPropsFields) {
-      const wip = ext as Mutable<ConsolidatedSegment>;
-      wip.propsFieldCaptures = propsFieldCaptures;
-      if (propsFieldDefaults.size > 0) {
-        wip.propsFieldDefaults = propsFieldDefaults;
-      }
-      if (propsFieldDynamicDefaults.size > 0) {
-        wip.propsFieldDynamicDefaults = propsFieldDynamicDefaults;
-      }
-      if (consolidatedParams) {
-        wip.paramNames = consolidatedParams;
-      } else {
-        wip.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
-        wip.captures = wip.captureNames.length > 0;
-      }
+    if (rawProps.propsFieldDynamicDefaults !== undefined) {
+      wip.propsFieldDynamicDefaults = rawProps.propsFieldDynamicDefaults;
     }
+    wip.captureNames = rawProps.newCaptureNames;
+    wip.captures = wip.captureNames.length > 0;
   }
 }
 
+/**
+ * Promoted handler params (`(_, _1, field)`) carry the whole props proxy in their slot: a field
+ * read would lose the proxy identity through serialization.
+ */
+function consolidatePromotedParams(
+  ext: Mutable<ConsolidatedSegment>,
+  parent: RawPropsSource
+): void {
+  const rawProps = consolidateRawPropsCaptures(ext.paramNames.slice(2), [parent]);
+  if (rawProps === null) {
+    return;
+  }
+  ext.propsFieldCaptures = rawProps.propsFieldCaptures;
+  if (rawProps.propsFieldDefaults !== undefined) {
+    ext.propsFieldDefaults = rawProps.propsFieldDefaults;
+  }
+  if (rawProps.propsFieldDynamicDefaults !== undefined) {
+    ext.propsFieldDynamicDefaults = rawProps.propsFieldDynamicDefaults;
+  }
+  const slots = ext.paramNames
+    .slice(2)
+    .map((param) => (rawProps.propsFieldCaptures.has(param) ? '_rawProps' : param));
+  ext.paramNames = [
+    ...ext.paramNames.slice(0, 2),
+    ...slots.filter((slot, i) => slot !== '_rawProps' || slots.indexOf(slot) === i),
+  ];
+}
+
 function preComputeQrlVarNames(ctx: RewriteContext): void {
-  let earlyStrippedCounter = 0;
   let inlineSentinelOffset = 0;
+  // Output assembly numbers top-level workers and stripped QRLs in one sequence; mirror it.
+  let topLevelSentinelCounter = 0;
   for (const ext of ctx.extractions) {
     if (ext.isSync) {
       continue;
@@ -637,9 +639,10 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
       if (ctx.inlineOptions?.inline) {
         ctx.earlyQrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
         inlineSentinelOffset += inlineSentinelStep(ext, false, ctx.inlineOptions.regCtxName);
-      } else {
-        const counter = 0xffff0000 + earlyStrippedCounter++ * 2;
-        ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+      } else if (ext.parent === null) {
+        // Nested workers are named by their parent segment; only top-level names are read here.
+        const index = topLevelSentinelCounter++;
+        ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${getSentinelCounter(index)}`);
       }
       continue;
     }
@@ -654,9 +657,11 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
         ctx.inlineOptions.stripCtxName,
         ctx.inlineOptions.stripEventHandlers
       );
-    const offset = ctx.inlineOptions.inline ? inlineSentinelOffset : earlyStrippedCounter * 2;
+    const offset = ctx.inlineOptions.inline ? inlineSentinelOffset : topLevelSentinelCounter * 2;
     if (ctx.inlineOptions.inline) {
       inlineSentinelOffset += inlineSentinelStep(ext, stripped, ctx.inlineOptions.regCtxName);
+    } else if (stripped && ext.parent === null) {
+      topLevelSentinelCounter++;
     }
     if (stripped) {
       const counter = 0xffff0000 + offset;
@@ -941,7 +946,8 @@ function addCaptureWrapping(ctx: RewriteContext): void {
       continue;
     }
 
-    if (isEventHandlerOrJsxProp(ext.ctxKind) && !ext.qrlCallee) {
+    // Implicit JSX-prop QRLs get their captures in rewriteCallSites; bare `$()` props do not.
+    if (isEventHandlerOrJsxProp(ext.ctxKind) && !ext.qrlCallee && !ext.isBare) {
       continue;
     }
 

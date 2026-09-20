@@ -98,11 +98,12 @@ export class Job<T> implements ComputeCtx<T> {
     }
   }
 
-  cleanup(callback: () => void) {
+  // Arrow property so the compute function can destructure `cleanup` from the context.
+  cleanup = (callback: () => void) => {
     if (typeof callback === 'function') {
       (this.$cleanups$ ||= []).push(callback);
     }
-  }
+  };
 }
 
 /**

@@ -182,15 +182,11 @@ export type AsyncFn<T> = ComputedFn<T>;
 
 An AsyncSignal holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.
 
-If the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.
-
-While the async function is running, the `.loading` property will be set to `true`. Once the function completes, `loading` will be set to `false`.
-
 If the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.
 
 If the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.
 
-If the async function threw an error, reading the `.value` will throw that same error. Read from `.error` to check if there was an error.
+If the async function threw an error, reading the `.value` will throw that same error.
 
 ```typescript
 export type AsyncSignal<T = unknown> = ComputedSignal<T>;
@@ -634,125 +630,6 @@ export interface ComputedSignal<T> extends Signal<T>
 
 <table><thead><tr><th>
 
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-error
-
-</td><td>
-
-</td><td>
-
-Error \| undefined
-
-</td><td>
-
-The error that occurred while computing the signal, if any, including synchronous throws. This will be cleared when the signal is successfully computed. It also triggers lazy computation of the signal. While the error is set, reading `.value` throws it.
-
-</td></tr>
-<tr><td>
-
-loading
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-pending
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-Whether the signal is currently loading. This will trigger lazy computation of the signal, so you can use it like this:
-
-```tsx
-signal.pending ? (
-  <Loading />
-) : signal.error ? (
-  <Error />
-) : (
-  <Component value={signal.value} />
-);
-```
-
-</td></tr>
-<tr><td>
-
-untrackedError
-
-</td><td>
-
-</td><td>
-
-Error \| undefined
-
-</td><td>
-
-Lets you read the error state without subscribing to `.error` updates. It also triggers lazy computation of the signal.
-
-Setting it will trigger listeners for `.error`.
-
-</td></tr>
-<tr><td>
-
-untrackedLoading
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-untrackedPending
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-Lets you read the pending state without subscribing to `.pending` updates. It also triggers lazy computation of the signal.
-
-Setting it will trigger listeners for `.pending`.
-
-</td></tr>
-</tbody></table>
-
-<table><thead><tr><th>
-
 Method
 
 </th><th>
@@ -1085,7 +962,7 @@ prevState
 
 Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.
 
-The QRL must be a function which returns the value of the signal. The function must not have side effects. Every synchronous signal or store read is tracked automatically; reads after the first `await` must use the `track()` provided on the context argument. When the function is async, the returned signal exposes the async API (`.pending`, `.error`, `.promise()`), and reading an unresolved `.value` throws the computation promise.
+The QRL must be a function which returns the value of the signal. The function must not have side effects. Every synchronous signal or store read is tracked automatically; reads after the first `await` must use the `track()` provided on the context argument. When the function is async, reading an unresolved `.value` throws the computation promise, and reading a failed `.value` throws the error.
 
 ```typescript
 createComputed$: <T>(
@@ -4106,7 +3983,7 @@ StreamWriter
 
 > Warning: This API is now obsolete.
 >
-> Use `useComputed$` instead. Read the `pending` and `error` properties from the returned signal to determine the status.
+> Use `useComputed$` instead.
 
 ```tsx
 const Cmp = component$(() => {
@@ -4124,14 +4001,7 @@ const Cmp = component$(() => {
   return (
     <div>
       <input name="city" bind:value={city} />
-      <div>
-        Temperature:{" "}
-        {weather.pending
-          ? "Loading..."
-          : weather.error
-            ? `Error: ${weather.error.message}`
-            : weather.value.temp}
-      </div>
+      <div>Temperature: {weather.value.temp}</div>
     </div>
   );
 });
@@ -9414,7 +9284,7 @@ T
 
 Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
 
-Every synchronous signal or store read is tracked automatically. Reads after an `await` are not: the tracking context is lost, so track them explicitly with the `track()` provided on the context argument. When the function is async, the returned signal exposes the async API: reading an unresolved `.value` throws the computation promise, and `.pending` and `.error` expose the computation state.
+Every synchronous signal or store read is tracked automatically. Reads after an `await` are not: the tracking context is lost, so track them explicitly with the `track()` provided on the context argument. When the function is async, reading an unresolved `.value` throws the computation promise, and reading a failed `.value` throws the error.
 
 The function must not have any side effects.
 

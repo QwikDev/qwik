@@ -1,5 +1,6 @@
 import { $ } from '@qwik.dev/core';
 import {
+  _ComputedSignalInternal as ComputedSignalInternal,
   Fragment as Component,
   Fragment,
   Fragment as Signal,
@@ -568,7 +569,7 @@ describe.each([
             await delay(10);
           }
           return countValue * 2;
-        });
+        }) as ComputedSignalInternal<number>;
         return (
           <button onClick$={() => count.value++}>
             {doubleCount.pending ? 'loading' : doubleCount.value}
@@ -648,7 +649,7 @@ describe.each([
             throw new Error('test');
           }
           return countValue * 2;
-        });
+        }) as ComputedSignalInternal<number>;
         return (
           <button onClick$={() => count.value++}>
             {doubleCount.error ? 'error' : doubleCount.value}
@@ -709,7 +710,7 @@ describe.each([
         const asyncValue = useComputed$(async ({ track }) => track(count) * 2, {
           clientOnly: true,
           initial: 0,
-        });
+        }) as ComputedSignalInternal<number>;
         return (
           <div>
             {asyncValue.pending ? (
@@ -840,7 +841,7 @@ describe.each([
             return Promise.resolve(current * 3);
           },
           { clientOnly: true, initial: 0 }
-        );
+        ) as ComputedSignalInternal<number>;
         return (
           <div>
             {asyncValue.pending ? (
@@ -897,7 +898,7 @@ describe.each([
             return 'yes';
           },
           { clientOnly: true }
-        );
+        ) as ComputedSignalInternal<string>;
         useTask$(({ track }) => {
           track(() => asyncValue.pending);
           if (asyncValue.pending) {

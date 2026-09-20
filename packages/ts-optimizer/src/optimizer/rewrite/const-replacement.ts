@@ -4,11 +4,10 @@
  */
 
 import MagicString from 'magic-string';
-import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import { ScopeQueryTracker } from '../analysis/scope-query-tracker.js';
 import type { AstNode, AstParentNode, AstProgram } from '../../ast-types.js';
-import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
+import { parseWithRawTransfer } from '../ast/parse.js';
 import type { EmitMode } from '../types/types.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 
@@ -164,7 +163,7 @@ export function foldConstantsInBodyText(
   const wrapped = `(${body})`;
   let parsed;
   try {
-    parsed = parseSync('__const_fold__.tsx', wrapped, RAW_TRANSFER_PARSER_OPTIONS);
+    parsed = parseWithRawTransfer('__const_fold__.tsx', wrapped);
   } catch {
     return body;
   }

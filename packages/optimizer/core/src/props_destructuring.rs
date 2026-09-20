@@ -17,6 +17,8 @@ struct PropsDestructuring<'a> {
 	pub identifiers: HashMap<Id, ast::Expr>,
 	pub global_collect: &'a mut GlobalCollect,
 	pub core_module: &'a Atom,
+	/// Hygiene can't rename across sibling segment scopes, so number defaults here.
+	dynamic_default_count: usize,
 }
 
 pub fn transform_props_destructuring(
@@ -33,6 +35,7 @@ pub fn transform_props_destructuring(
 		identifiers: HashMap::new(),
 		global_collect,
 		core_module,
+		dynamic_default_count: 0,
 	});
 }
 
@@ -107,6 +110,16 @@ impl<'a> PropsDestructuring<'a> {
 			self.transform_component_body(body);
 		}
 	}
+	fn next_dynamic_default_name(&mut self) -> Atom {
+		let n = self.dynamic_default_count;
+		self.dynamic_default_count += 1;
+		if n == 0 {
+			"_defaultValue".into()
+		} else {
+			format!("_defaultValue{n}").into()
+		}
+	}
+
 	fn transform_component_body(&mut self, body: &mut ast::BlockStmt) {
 		// Skip already-preprocessed QRL function bodies (from lib builds).
 		// These have _captures destructuring at the top that must not be inlined,
@@ -525,7 +538,7 @@ fn create_dynamic_default(
 	value: Box<ast::Expr>,
 	props_transform: &mut PropsDestructuring,
 ) -> (ast::Expr, ast::Stmt) {
-	let default_ident = private_ident!("_defaultValue");
+	let default_ident = private_ident!(props_transform.next_dynamic_default_name());
 	let untrack_fn = props_transform
 		.global_collect
 		.import(&UNTRACK, props_transform.core_module);

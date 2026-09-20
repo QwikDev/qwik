@@ -1,10 +1,11 @@
 import { component$, ErrorBoundary, useComputed$ } from '@qwik.dev/core';
+import type { _ComputedSignalInternal } from '@qwik.dev/core/internal';
 import { defaultFallback } from '../../components/error-boundary/error-boundary';
 
 const AsyncErrorInline = component$(() => {
   const data = useComputed$(async () => {
     throw new Error('expected-async-error');
-  });
+  }) as _ComputedSignalInternal<never>;
   if (data.pending) {
     return <span id="async-loading">loading</span>;
   }

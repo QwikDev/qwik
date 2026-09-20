@@ -1,4 +1,5 @@
 import { component$, useComputed$, useSignal } from '@qwik.dev/core';
+import type { _ComputedSignalInternal } from '@qwik.dev/core/internal';
 
 export const AsyncRoot = component$(() => {
   const rerender = useSignal(0);
@@ -47,7 +48,7 @@ export const PendingComponent = component$(() => {
           resolve(track(count) * 2);
         }, 1000);
       })
-  );
+  ) as _ComputedSignalInternal<number>;
 
   return (
     <div>

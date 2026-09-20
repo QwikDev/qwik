@@ -169,7 +169,7 @@ These won't cause compile errors but will break runtime behavior if not addresse
 
 ### useComputed$ now supports async
 
-In v1 `useComputed$` rejected async functions. In v2 it accepts them: pass an `async` function (or return a Promise) and the signal exposes `.pending`, `.error`, and `.value`. Qwik auto-tracks the signals and stores the function reads before the first `await`; reads after an `await` must use the `track()` provided on the context argument.
+In v1 `useComputed$` rejected async functions. In v2 it accepts them: pass an `async` function (or return a Promise) and `.value` holds the resolved result. Qwik auto-tracks the signals and stores the function reads before the first `await`; reads after an `await` must use the `track()` provided on the context argument.
 
 ```typescript
 // v2 — useComputed$ handles async directly
@@ -180,21 +180,22 @@ const data = useComputed$(async ({ abortSignal }) => {
 ```
 
 <Note title="READING COMPUTEDSIGNAL.VALUE">
-`.value` throws while unresolved. Always branch on `.pending` / `.error` first, or provide an `initial` value.
+`.value` throws while unresolved, and re-throws the error if the computation failed. Read it inside [`<Suspense>`](/docs/labs/suspense/index.mdx) and [`<ErrorBoundary>`](/docs/labs/error-boundary/index.mdx), or provide an `initial` value.
 </Note>
 
 ```tsx
-let content: JSXOutput;
+const DataView = component$((props: { data: Signal<unknown> }) => {
+  return <p>{JSON.stringify(props.data.value)}</p>;
+});
 
-if (data.pending) {
-  content = <p>Loading...</p>;
-} else if (data.error) {
-  content = <p>Error: {data.error.message}</p>;
-} else {
-  content = <p>{JSON.stringify(data.value)}</p>;
-}
-
-return <div>{content}</div>;
+// In the component that owns `data`:
+return (
+  <ErrorBoundary fallback$={$((error) => <p>Error: {error.message}</p>)}>
+    <Suspense fallback={<p>Loading...</p>}>
+      <DataView data={data} />
+    </Suspense>
+  </ErrorBoundary>
+);
 ```
 
 ### useVisibleTask$ eagerness removed
@@ -337,7 +338,7 @@ Still compile in v2, removed in v3.
 | Previous value | - | `ctx.previous` |
 | Polling | - | `usePoll(signal, ms)` from `@qwik.dev/utils` |
 | Initial value | - | `options.initial` |
-| Rendering | `<Resource onResolved={} />` | `.pending`/`.error` branching or `<Suspense>` |
+| Rendering | `<Resource onResolved={} />` | read `.value` inside `<Suspense>` / `<ErrorBoundary>` |
 
 <LongNote title="Full before/after example">
 
@@ -376,7 +377,11 @@ const Cmp = component$(() => {
 v2:
 
 ```tsx
-import { useComputed$ } from '@qwik.dev/core';
+import { $, ErrorBoundary, Suspense, useComputed$, type Signal } from '@qwik.dev/core';
+
+const Temperature = component$((props: { weather: Signal<{ temp: number }> }) => {
+  return <div>Temperature: {props.weather.value.temp}</div>;
+});
 
 const Cmp = component$(() => {
   const city = useSignal('');
@@ -389,20 +394,14 @@ const Cmp = component$(() => {
     return res.json() as Promise<{ temp: number }>;
   });
 
-  let content: JSXOutput;
-
-  if (weather.pending) {
-    content = <div>Loading...</div>;
-  } else if (weather.error) {
-    content = <div>Error: {weather.error.message}</div>;
-  } else {
-    content = <div>Temperature: {weather.value.temp}</div>;
-  }
-
   return (
     <div>
       <input name="city" bind:value={city} />
-      {content}
+      <ErrorBoundary fallback$={$((error) => <div>Error: {error.message}</div>)}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Temperature weather={weather} />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 });
@@ -416,7 +415,7 @@ What changed:
 
 - `track(() => signal.value)` → read `signal.value` directly before the first `await` (auto-tracked); after an `await`, keep using the provided `track()`
 - Manual `AbortController` + `cleanup()` → `ctx.abortSignal`
-- `<Resource onResolved={} />` → `if`/`else` branching
+- `<Resource onPending onRejected onResolved />` → `<Suspense>` and `<ErrorBoundary>`
 - `.value` is `T` directly, not `Promise<T>`
 - `.error` is `Error | undefined`
 - For unlimited parallel fetches, pass `{ concurrency: 0 }`

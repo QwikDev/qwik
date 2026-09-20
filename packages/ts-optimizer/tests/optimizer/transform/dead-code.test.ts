@@ -42,6 +42,36 @@ describe('applySegmentDCE', () => {
     expect(out.replace(/\}\s*else/g, 'X')).not.toMatch(/(^|[^}])\s*else\b/m);
   });
 
+  it('folds a constant ternary whose kept branch contains further folds', () => {
+    const code = [
+      'const a = true ? make((x) => {',
+      '  const late = true && x.streaming;',
+      '  return late ? 1 : 2;',
+      '}) : null;',
+      'const b = false ? null : { late: !false && flag };',
+    ].join('\n');
+
+    const out = applySegmentDCE(code);
+
+    expect(parseSync('s.js', out).errors, `parse errors in:\n${out}`).toEqual([]);
+    expect(out).toContain('const a = make((x) => {');
+    expect(out).toContain('const late = x.streaming;');
+    expect(out).not.toContain(': null');
+    expect(out).toContain('const b = ({ late: flag });');
+  });
+
+  it('parenthesizes a kept branch that only starts with a brace after nested folds', () => {
+    const code = ['true ? true && { m: 1 } : 2;', 'false ? 1 : false || function f() {};'].join(
+      '\n'
+    );
+
+    const out = applySegmentDCE(code);
+
+    expect(parseSync('s.js', out).errors, `parse errors in:\n${out}`).toEqual([]);
+    expect(out).toContain('({ m: 1 });');
+    expect(out).toContain('(function f() {});');
+  });
+
   it('does not fold boolean literals used as comparison operands', () => {
     const code = [
       'const a = x !== false && y;',

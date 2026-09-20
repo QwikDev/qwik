@@ -18,6 +18,7 @@ import {
   _UNINITIALIZED,
   SerializerSymbol,
   type _AsyncSignalImpl,
+  type _ComputedSignalInternal,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import type {
@@ -675,7 +676,7 @@ export const isImmutableLoader = (loaderId: string) => immutableLoaderIds.has(lo
 
 export function abortRouteLoaderNavigation(ctx: RouteLoaderCtx) {
   for (const [signal, request] of clientRouteLoaders.get(ctx)?.current.requests ?? []) {
-    if (signal.untrackedPending) {
+    if ((signal as _ComputedSignalInternal<unknown>).untrackedPending) {
       request.isAborted = true;
     }
     signal.abort();

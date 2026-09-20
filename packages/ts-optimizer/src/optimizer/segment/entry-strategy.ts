@@ -4,30 +4,28 @@ type EntryStrategyType = 'smart' | 'segment' | 'hook' | 'component' | 'single' |
 
 interface EntrySegment {
   symbolName: string;
+  rootContext: string | null;
   origin: string;
   ctxKind: 'eventHandler' | 'function' | 'jSXProp';
   ctxName: string;
   captures: boolean;
 }
 
-function getRootComponent(segment: EntrySegment): string | null {
-  const marker = '_component';
-  const markerIndex = segment.symbolName.indexOf(marker);
-  if (markerIndex < 0) {
+const routeParamFileStem = /^\[\[\.\.\.(.+)\]\]$|^\[(.+)\]$/;
+
+/** Rust names a default export's entry after the raw file stem, brackets included. */
+function getRootEntryName(segment: EntrySegment): string | null {
+  const root = segment.rootContext;
+  if (root === null) {
     return null;
   }
-
-  const root = segment.symbolName.slice(0, markerIndex);
   const fileStem = getFileStem(segment.origin);
-  const routeName = fileStem
-    .match(/^\[\[\.\.\.(.+)\]\]$|^\[(.+)\]$/)
-    ?.slice(1)
-    .find(Boolean);
-  return routeName === root ? fileStem : root;
+  const routeParam = fileStem.match(routeParamFileStem)?.slice(1).find(Boolean);
+  return routeParam === root ? fileStem : root;
 }
 
-function getComponentEntry(segment: EntrySegment): string | null {
-  const root = getRootComponent(segment);
+function getRootEntry(segment: EntrySegment): string | null {
+  const root = getRootEntryName(segment);
   return root ? `${segment.origin}_entry_${root}` : null;
 }
 
@@ -49,11 +47,12 @@ export function resolveEntryField(
     case 'hook':
       return null;
     case 'component':
-      return getComponentEntry(segment) ?? 'entry_segments';
+      return getRootEntry(segment) ?? 'entry_segments';
     case 'smart':
+      // Capture-free handlers load on their own; everything else loads with its root.
       if (!segment.captures && (segment.ctxKind !== 'function' || segment.ctxName === 'event$')) {
         return null;
       }
-      return getComponentEntry(segment);
+      return getRootEntry(segment);
   }
 }

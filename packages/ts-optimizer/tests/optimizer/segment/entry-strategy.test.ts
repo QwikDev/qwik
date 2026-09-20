@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { resolveEntryField } from '../../../src/optimizer/segment/entry-strategy.js';
 
+// Prod-mode symbol names carry only the hash; grouping must come from the context stack.
 const segment = {
-  symbolName: 'App_component_abc123',
+  symbolName: 's_abc123',
+  rootContext: 'App' as string | null,
   origin: 'test.tsx',
   ctxKind: 'function' as const,
   ctxName: 'component$',
@@ -13,12 +15,22 @@ describe('resolveEntryField', () => {
   describe('smart strategy', () => {
     it('keeps capture-free event handlers separate', () => {
       expect(
+        resolveEntryField('smart', { ...segment, ctxKind: 'eventHandler' }, undefined)
+      ).toBeNull();
+    });
+
+    it('keeps capture-free event$ functions separate', () => {
+      expect(resolveEntryField('smart', { ...segment, ctxName: 'event$' }, undefined)).toBeNull();
+    });
+
+    it('groups event handlers that capture with their component', () => {
+      expect(
         resolveEntryField(
           'smart',
-          { ...segment, symbolName: 'App_component_div_q_e_click_xyz', ctxKind: 'eventHandler' },
+          { ...segment, ctxKind: 'eventHandler', captures: true },
           undefined
         )
-      ).toBeNull();
+      ).toBe('test.tsx_entry_App');
     });
 
     it('returns null for segment strategy (alias of smart)', () => {
@@ -35,25 +47,21 @@ describe('resolveEntryField', () => {
   });
 
   describe('component strategy', () => {
-    it('returns parent component symbol for non-component segments', () => {
-      expect(
-        resolveEntryField(
-          'component',
-          { ...segment, symbolName: 'App_component_useTask_xyz', ctxName: 'useTask$' },
-          undefined
-        )
-      ).toBe('test.tsx_entry_App');
+    it('groups inner segments with their root', () => {
+      expect(resolveEntryField('component', { ...segment, ctxName: 'useTask$' }, undefined)).toBe(
+        'test.tsx_entry_App'
+      );
     });
 
-    it('returns null for component segments themselves', () => {
+    it('groups the component segment itself', () => {
       expect(resolveEntryField('component', segment, undefined)).toBe('test.tsx_entry_App');
     });
 
-    it('returns null when no parent component exists', () => {
+    it('falls back to the shared entry without a root context', () => {
       expect(
         resolveEntryField(
           'component',
-          { ...segment, symbolName: 'someHandler_xyz', ctxKind: 'eventHandler' },
+          { ...segment, rootContext: null, ctxKind: 'eventHandler' },
           undefined
         )
       ).toBe('entry_segments');
@@ -62,12 +70,12 @@ describe('resolveEntryField', () => {
 
   describe('manual strategy', () => {
     it('returns mapped value when symbol is in manual map', () => {
-      const manual = { App_component_abc123: 'vendor' };
+      const manual = { s_abc123: 'vendor' };
       expect(resolveEntryField('smart', segment, manual)).toBe('vendor');
     });
 
     it('falls back to the selected strategy when symbol is not mapped', () => {
-      const manual = { Other_component_xyz: 'vendor' };
+      const manual = { s_other: 'vendor' };
       expect(resolveEntryField('smart', segment, manual)).toBe('test.tsx_entry_App');
     });
   });
@@ -83,11 +91,25 @@ describe('resolveEntryField', () => {
       expect(resolveEntryField('smart', segment, undefined)).toBe('test.tsx_entry_App');
     });
 
+    it('groups the segments of a hook by the hook', () => {
+      expect(
+        resolveEntryField(
+          'smart',
+          { ...segment, rootContext: 'useThing', ctxName: 'useTask$' },
+          undefined
+        )
+      ).toBe('test.tsx_entry_useThing');
+    });
+
+    it('leaves a top-level segment without a root context ungrouped', () => {
+      expect(resolveEntryField('smart', { ...segment, rootContext: null }, undefined)).toBeNull();
+    });
+
     it('keeps route syntax in default component entry names', () => {
       expect(
         resolveEntryField(
           'smart',
-          { ...segment, symbolName: 'slug_component_abc123', origin: 'routes/[[...slug]].tsx' },
+          { ...segment, rootContext: 'slug', origin: 'routes/[[...slug]].tsx' },
           undefined
         )
       ).toBe('routes/[[...slug]].tsx_entry_[[...slug]]');

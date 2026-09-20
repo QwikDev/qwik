@@ -19,13 +19,13 @@ For this tutorial, we would like to fetch the list of repositories for a given G
 
 Qwik provides [`useComputed$()`](/docs/(qwik)/core/state/index.mdx) to help you lazily fetch and display data from the server. With an async function it returns a `ComputedSignal<T>` which has these states:
 
-- pending: the data is being fetched from the server => Render `loading...` indicator. `.pending` is `true` while data is being fetched.
+- pending: the data is being fetched from the server => Render a `loading...` indicator with `<Suspense>`. Reading `.value` makes rendering wait while data is being fetched.
 - resolved: the data has successfully been fetched from the server => Render the data. `.value` contains the last fetched data or the initial value.
-- errored: the data could not be fetched from the server due to an error => Render the error. `.error` contains the error, if any.
+- errored: the data could not be fetched from the server due to an error => Render the error with `<ErrorBoundary>`. Reading `.value` re-throws the error.
 
 These states are reactive, meaning that if you use them and they change, your component will automatically re-render to reflect the new state.
 
-Note that when reading `.pending`, it will trigger the actual loading of the data. So you typically won't have to trigger the load manually.
+Note that reading `.value` triggers the actual loading of the data. So you typically won't have to trigger the load manually.
 
 ## Fetching data
 
@@ -49,14 +49,16 @@ The [`useComputed$()`](/docs/(qwik)/core/state/index.mdx) function returns a `Co
 
 ## Rendering data
 
-The `ComputedSignal` provides the `.pending`, `.error`, and `.value` reactive properties to allow you to render different content depending if the resource is `pending`, `resolved` or `rejected`.
+Read `.value` in a child component, and wrap it in `<Suspense>` for the `pending` state and `<ErrorBoundary>` for the `rejected` state.
 
 On the server, rendering pauses until the resource is resolved and will always render as either `resolved` or `rejected`. (On the client, all states including `pending` are rendered.)
 
 ```jsx
-{reposResource.pending && <div>Loading...</div>}
-{reposResource.error && <div>Error: {reposResource.error.message}</div>}
-{reposResource.value && <div>{reposResource.value}</div>}
+<ErrorBoundary fallback$={$((error, reset) => <div>Error: {error.message} <button onClick$={() => reset()}>Retry</button></div>)}>
+  <Suspense fallback={<div>Loading...</div>}>
+    <Repos org={githubOrg} repos={reposResource} />
+  </Suspense>
+</ErrorBoundary>
 ```
 
 ## SSR vs Client

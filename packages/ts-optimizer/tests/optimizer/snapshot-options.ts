@@ -355,6 +355,36 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'inline' },
     transpileTs: true,
   },
+  dynamic_props_defaults_in_separate_segments: {
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+    transpileTs: true,
+  },
+  local_shadowing_destructured_prop: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  nested_destructure_rebinding_prop_name: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  nested_segments_number_captured_raw_props: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  nested_segments_number_captured_raw_props_inline: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
+  nested_segment_param_does_not_collide_with_captured_props: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  repeated_use_context_destructures_get_distinct_bindings: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   example_input_bind: {
     entryStrategy: { type: 'inline' },
     transpileTs: true,

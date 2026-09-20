@@ -18,6 +18,7 @@ relevant.
 Always-on rules currently in `.ruler/AGENTS.md`:
 
 - `changeset-conventions`
+- `commit-conventions`
 - `code-quality`
 - `generated-output-boundaries`
 - `guidance-source-of-truth`

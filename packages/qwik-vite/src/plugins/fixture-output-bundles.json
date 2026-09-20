@@ -2266,5 +2266,187 @@
       "source": "<removed 32345 bytes>",
       "type": "asset"
     }
+  },
+  "moduleInfo": {
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_ErrorBoundary_component_6VMZkqoH00Q.js": {
+      "segment": true,
+      "dynamicallyImportedIds": [
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_ErrorBoundary_component_useOnWindow_1F0Ft5Y9bOI.js"
+      ]
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_ErrorBoundary_component_useOnWindow_1F0Ft5Y9bOI.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_Form_form_onSubmit_5DbAsQLGGo4.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_GetForm_component_form_onSubmit_YCi2vDzuhns.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_GetForm_component_vXTAPbOW0Ig.js": {
+      "segment": true,
+      "dynamicallyImportedIds": [
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_GetForm_component_form_onSubmit_YCi2vDzuhns.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_GetForm_component_form_onSubmit_1_ANY7TPAnAd8.js"
+      ]
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_GetForm_component_form_onSubmit_1_ANY7TPAnAd8.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_Link_component_handlePrefetch_0xCNPioszTk.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_Link_component_lTNqDDf58lI.js": {
+      "segment": true,
+      "dynamicallyImportedIds": [
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_Link_component_handlePrefetch_0xCNPioszTk.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_Link_component_handleClick_lWJp5Z4VtFs.js"
+      ]
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_Link_component_handleClick_lWJp5Z4VtFs.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_spaInit_event_3mjmVvTlJqo.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterProvider_component_useStyles_BMutFDNOKhc.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterProvider_component_9fcUDoGM9Wo.js": {
+      "segment": true,
+      "dynamicallyImportedIds": [
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterProvider_component_useStyles_BMutFDNOKhc.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterProvider_component_registerPreventNav_BdwdOv10pp0.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterProvider_component_useTask_LopIayqLfMo.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterProvider_component_goto_s3XioIi2Huw.js"
+      ]
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterProvider_component_registerPreventNav_BdwdOv10pp0.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterProvider_component_useTask_LopIayqLfMo.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterProvider_component_goto_s3XioIi2Huw.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_RouterOutlet_component_q56DrQcc9VE.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_routeActionQrl_action_submit_rufUrhffR5k.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterMockProvider_component_goto_dNtHVLGwESE.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterMockProvider_component_cH9twROgaEg.js": {
+      "segment": true,
+      "dynamicallyImportedIds": [
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterMockProvider_component_goto_dNtHVLGwESE.js"
+      ]
+    },
+    "/src/routes/index.tsx_routes_component_vG0UuU4cNCg.js": {
+      "segment": true,
+      "dynamicallyImportedIds": [
+        "/src/routes/index.tsx_routes_component_handleClick_ep3t0fF0SDA.js",
+        "/src/routes/index.tsx_routes_component_useTask_99K9SAWjPFQ.js",
+        "/src/routes/index.tsx_routes_component_useStyles_Iyy38y0K3Hw.js",
+        "/src/routes/index.tsx_routes_component_div_button_onClick_BjxcCeNQ9ak.js",
+        "/src/routes/index.tsx_routes_component_useVisibleTask_HEFxKy9cwuk.js"
+      ]
+    },
+    "/src/routes/index.tsx_routes_component_handleClick_ep3t0fF0SDA.js": {
+      "segment": true
+    },
+    "/src/routes/index.tsx_routes_component_useTask_99K9SAWjPFQ.js": {
+      "segment": true
+    },
+    "/src/routes/index.tsx_routes_component_useStyles_Iyy38y0K3Hw.js": {
+      "segment": true
+    },
+    "/src/routes/index.tsx_routes_component_div_button_onClick_BjxcCeNQ9ak.js": {
+      "segment": true
+    },
+    "/src/routes/index.tsx_routes_component_useVisibleTask_HEFxKy9cwuk.js": {
+      "segment": true
+    },
+    "/src/routes/form/index.tsx_form_component_useStyles_0pasaG6nmEA.js": {
+      "segment": true
+    },
+    "/src/routes/form/index.tsx_form_component_ds9jIPT1g9s.js": {
+      "segment": true,
+      "dynamicallyImportedIds": [
+        "/src/routes/form/index.tsx_form_component_useStyles_0pasaG6nmEA.js"
+      ]
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_serverQrl_rpc_Nhj4Mq4ilm8.js": {
+      "segment": true
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_VjDx6RO4Kis.js": {
+      "segment": true
+    },
+    "/src/components/router-head/router-head.tsx_RouterHead_component_dAo05yeFq1I.js": {
+      "segment": true
+    },
+    "/src/root.tsx_root_component_9PcKHFjikV0.js": {
+      "segment": true
+    },
+    "/src/routes/about/index.tsx_about_component_useStyles_WOcPLNnm2is.js": {
+      "segment": true
+    },
+    "/src/routes/about/index.tsx_about_component_m7u9ARcfDGU.js": {
+      "segment": true,
+      "dynamicallyImportedIds": [
+        "/src/routes/about/index.tsx_about_component_useStyles_WOcPLNnm2is.js"
+      ]
+    },
+    "/src/routes/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js": {
+      "segment": true
+    },
+    "/src/routes/layout.tsx_layout_component_div_header_div_label_input_bind_checked_eevMxFvmCM8.js": {
+      "segment": true
+    },
+    "/src/routes/layout.tsx_layout_component_SHtFir1Ia94.js": {
+      "segment": true,
+      "dynamicallyImportedIds": [
+        "/src/routes/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
+        "/src/routes/layout.tsx_layout_component_div_header_div_label_input_bind_checked_eevMxFvmCM8.js"
+      ]
+    },
+    "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs": {
+      "dynamicallyImportedIds": [
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_ErrorBoundary_component_6VMZkqoH00Q.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_Form_form_onSubmit_5DbAsQLGGo4.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_GetForm_component_vXTAPbOW0Ig.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_Link_component_lTNqDDf58lI.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_spaInit_event_3mjmVvTlJqo.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterProvider_component_9fcUDoGM9Wo.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_RouterOutlet_component_q56DrQcc9VE.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_routeActionQrl_action_submit_rufUrhffR5k.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_QwikRouterMockProvider_component_cH9twROgaEg.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_serverQrl_rpc_Nhj4Mq4ilm8.js",
+        "/home/wmertens/Projects/qwik/packages/qwik-router/lib/index.qwik.mjs_usePreventNavigateQrl_useVisibleTask_VjDx6RO4Kis.js"
+      ]
+    },
+    "/src/routes/index.tsx": {
+      "dynamicallyImportedIds": ["/src/routes/index.tsx_routes_component_vG0UuU4cNCg.js"]
+    },
+    "/src/routes/form/index.tsx": {
+      "dynamicallyImportedIds": ["/src/routes/form/index.tsx_form_component_ds9jIPT1g9s.js"]
+    },
+    "/src/components/router-head/router-head.tsx": {
+      "dynamicallyImportedIds": [
+        "/src/components/router-head/router-head.tsx_RouterHead_component_dAo05yeFq1I.js"
+      ]
+    },
+    "/src/root.tsx": {
+      "dynamicallyImportedIds": ["/src/root.tsx_root_component_9PcKHFjikV0.js"]
+    },
+    "/src/routes/about/index.tsx": {
+      "dynamicallyImportedIds": ["/src/routes/about/index.tsx_about_component_m7u9ARcfDGU.js"]
+    },
+    "/src/routes/layout.tsx": {
+      "dynamicallyImportedIds": ["/src/routes/layout.tsx_layout_component_SHtFir1Ia94.js"]
+    }
   }
 }

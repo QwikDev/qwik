@@ -42,7 +42,7 @@ import {
   matchesRegCtxName,
 } from './predicates.js';
 import { injectUseHmrIntoInlineBody } from '../transform/module-cleanup.js';
-import type { InlineSegmentJsxOptions } from './raw-props.js';
+import { rawPropsBindingNames, type InlineSegmentJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
 import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
 import { stripTypeScript } from '../edit/strip-types.js';
@@ -54,6 +54,23 @@ function isCustomInlined(ext: ExtractionResult, originalImports: Map<string, Imp
     }
   }
   return true;
+}
+
+type TopLevelQrlKind = 'worker' | 'stripped' | 'regular';
+
+/** How a top-level QRL is declared under strip options; imports and declarations must agree. */
+function classifyTopLevelQrl(
+  ext: ExtractionResult,
+  inlineOptions: NonNullable<RewriteContext['inlineOptions']>
+): TopLevelQrlKind {
+  if (isWorkerExtraction(ext)) {
+    return 'worker';
+  }
+  const isRegCtx = matchesRegCtxName(ext, inlineOptions.regCtxName);
+  const stripped =
+    !isRegCtx &&
+    isStrippedExtraction(ext, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers);
+  return stripped ? 'stripped' : 'regular';
 }
 
 export function collectNeededImports(ctx: RewriteContext): void {
@@ -95,26 +112,25 @@ export function collectNeededImports(ctx: RewriteContext): void {
     }
   } else if (inlineOptions && !inlineOptions.inline) {
     if (hasTopLevelNonSync) {
-      const hasNonStripped = topLevel.some(
-        (e) =>
-          !e.isSync &&
-          !isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers)
+      const kinds = new Set(
+        topLevel.filter((e) => !e.isSync).map((e) => classifyTopLevelQrl(e, inlineOptions))
       );
-      const hasStripped = topLevel.some(
-        (e) =>
-          !e.isSync &&
-          isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers)
-      );
-      if (hasNonStripped) {
+      if (kinds.has('regular')) {
         const qrlSymbol = isDevMode ? 'qrlDEV' : 'qrl';
         if (!alreadyImported.has(qrlSymbol)) {
           neededImports.set(qrlSymbol, '@qwik.dev/core');
         }
       }
-      if (hasStripped) {
+      if (kinds.has('stripped')) {
         const noopSymbol = isDevMode ? '_noopQrlDEV' : '_noopQrl';
         if (!alreadyImported.has(noopSymbol)) {
           neededImports.set(noopSymbol, '@qwik.dev/core');
+        }
+      }
+      if (kinds.has('worker')) {
+        const chunkSymbol = isDevMode ? '_qrlWithChunkDEV' : '_qrlWithChunk';
+        if (!alreadyImported.has(chunkSymbol)) {
+          neededImports.set(chunkSymbol, '@qwik.dev/core');
         }
       }
     }
@@ -245,6 +261,29 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   let inlineSentinelOffset = 0;
   const deferredStrippedQrlVars = new Set<string>();
 
+  const pushWorkerDeclaration = (ext: ExtractionResult, varName: string): void => {
+    const devMeta =
+      isDevMode && devFilePath
+        ? formatDevMeta({
+            file: devFilePath,
+            lo: ext.loc[0],
+            hi: ext.loc[1],
+            displayName: ext.displayName,
+          })
+        : undefined;
+    ctx.qrlDecls.push(
+      buildWorkerQrlDeclaration(
+        varName,
+        ext.symbolName,
+        ext.canonicalFilename,
+        explicitExtensions,
+        outputExtension,
+        devMeta
+      )
+    );
+    ctx.qrlVarNames.set(ext.symbolName, varName);
+  };
+
   if (isInline) {
     for (const ext of allNonSync) {
       const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
@@ -298,13 +337,18 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
     }
   } else if (inlineOptions && !inlineOptions.inline) {
     for (const ext of topLevelNonSync) {
-      const stripped = isStrippedExtraction(
-        ext,
-        inlineOptions.stripCtxName,
-        inlineOptions.stripEventHandlers
-      );
+      const kind = classifyTopLevelQrl(ext, inlineOptions);
+      if (kind === 'worker') {
+        // Workers take a sentinel binding from the same sequence as stripped QRLs.
+        const varName =
+          ctx.earlyQrlVarNames.get(ext.symbolName) ??
+          `q_qrl_${getSentinelCounter(strippedCounter)}`;
+        strippedCounter++;
+        pushWorkerDeclaration(ext, varName);
+        continue;
+      }
 
-      if (stripped) {
+      if (kind === 'stripped') {
         const idx = strippedCounter++;
         if (isDevMode && devFilePath) {
           ctx.qrlDecls.push(
@@ -364,26 +408,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         const varName =
           ctx.earlyQrlVarNames.get(ext.symbolName) ??
           `q_qrl_${getSentinelCounter(strippedCounter++)}`;
-        const devMeta =
-          isDevMode && devFilePath
-            ? formatDevMeta({
-                file: devFilePath,
-                lo: ext.loc[0],
-                hi: ext.loc[1],
-                displayName: ext.displayName,
-              })
-            : undefined;
-        ctx.qrlDecls.push(
-          buildWorkerQrlDeclaration(
-            varName,
-            ext.symbolName,
-            ext.canonicalFilename,
-            explicitExtensions,
-            outputExtension,
-            devMeta
-          )
-        );
-        ctx.qrlVarNames.set(ext.symbolName, varName);
+        pushWorkerDeclaration(ext, varName);
         continue;
       }
       if (movedMarkerSymbols.has(ext.symbolName) && !(isDevMode && devFilePath)) {
@@ -549,6 +574,39 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     }
   }
 
+  const childrenByParent = new Map<string, ExtractionResult[]>();
+  for (const ext of allNonSync) {
+    if (ext.parent === null) {
+      continue;
+    }
+    const children = childrenByParent.get(ext.parent) ?? [];
+    children.push(ext);
+    childrenByParent.set(ext.parent, children);
+  }
+  const callOrder = new Map<string, number>();
+  const emissionOrder: ExtractionResult[] = [];
+  const visit = (ext: ExtractionResult): void => {
+    for (const child of (childrenByParent.get(ext.symbolName) ?? []).sort(
+      (a, b) => a.callStart - b.callStart
+    )) {
+      visit(child);
+    }
+    const rank = emissionOrder.length;
+    emissionOrder.push(ext);
+    callOrder.set(ext.symbolName, rank);
+    callOrder.set(qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`, rank);
+  };
+  for (const ext of allNonSync
+    .filter((ext) => ext.parent === null)
+    .sort((a, b) => a.callStart - b.callStart)) {
+    visit(ext);
+  }
+  // Inline bodies share one module scope, numbered in `.s()` emission order.
+  const emittedExts = new Set([...nestedExts, ...topNonComponent, ...topComponent]);
+  const rawPropsBindings = rawPropsBindingNames(
+    emissionOrder.filter((ext) => emittedExts.has(ext))
+  );
+
   const processExtraction = (ext: ExtractionResult) => {
     const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
     const {
@@ -575,7 +633,8 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       ctx.isLibMode ? undefined : ctx.isServer,
       deriveIsDev(ctx.mode),
       sharedJsxCallHoister,
-      ctx.elementQpParamsMap
+      ctx.elementQpParamsMap,
+      rawPropsBindings
     );
 
     let sigRewrittenBody = rawBody;
@@ -678,31 +737,6 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     processExtraction(ext);
   }
 
-  const childrenByParent = new Map<string, ExtractionResult[]>();
-  for (const ext of allNonSync) {
-    if (ext.parent === null) {
-      continue;
-    }
-    const children = childrenByParent.get(ext.parent) ?? [];
-    children.push(ext);
-    childrenByParent.set(ext.parent, children);
-  }
-  const callOrder = new Map<string, number>();
-  const visit = (ext: ExtractionResult): void => {
-    for (const child of (childrenByParent.get(ext.symbolName) ?? []).sort(
-      (a, b) => a.callStart - b.callStart
-    )) {
-      visit(child);
-    }
-    const rank = callOrder.size;
-    callOrder.set(ext.symbolName, rank);
-    callOrder.set(qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`, rank);
-  };
-  for (const ext of allNonSync
-    .filter((ext) => ext.parent === null)
-    .sort((a, b) => a.callStart - b.callStart)) {
-    visit(ext);
-  }
   const callRank = (statement: string): number => {
     const name = /^(?:const\s+)?([\w$]+)(?:\s*=|\.s\()/.exec(statement)?.[1];
     return name === undefined
@@ -862,19 +896,14 @@ function orderedNeededImports(ctx: RewriteContext): Array<[string, string]> {
     if (ctx.isInline) {
       add(ctx.isDevMode ? '_noopQrlDEV' : '_noopQrl');
     } else if (ctx.inlineOptions && !ctx.inlineOptions.inline) {
-      add(
-        isStrippedExtraction(
-          ext,
-          ctx.inlineOptions.stripCtxName,
-          ctx.inlineOptions.stripEventHandlers
-        )
-          ? ctx.isDevMode
-            ? '_noopQrlDEV'
-            : '_noopQrl'
-          : ctx.isDevMode
-            ? 'qrlDEV'
-            : 'qrl'
-      );
+      const kind = classifyTopLevelQrl(ext, ctx.inlineOptions);
+      if (kind === 'worker') {
+        add(ctx.isDevMode ? '_qrlWithChunkDEV' : '_qrlWithChunk');
+      } else if (kind === 'stripped') {
+        add(ctx.isDevMode ? '_noopQrlDEV' : '_noopQrl');
+      } else {
+        add(ctx.isDevMode ? 'qrlDEV' : 'qrl');
+      }
     } else {
       add(
         isWorkerExtraction(ext)

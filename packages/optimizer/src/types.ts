@@ -16,7 +16,9 @@ export interface OptimizerOptions {
   /** Enable sourcemaps */
   sourcemap?: boolean;
   /**
-   * Use the TypeScript optimizer (`@qwik.dev/ts-optimizer`) instead of the Rust one.
+   * Use the TypeScript optimizer (`@qwik.dev/ts-optimizer`) instead of the Rust one. The
+   * `QWIK_OPTIMIZER` environment variable (`ts` or `rust`) overrides this, so a project can be
+   * built or tested on the other optimizer without changing its config.
    *
    * Default `false`
    */

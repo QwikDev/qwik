@@ -4,7 +4,13 @@ import {
 } from '../edit/transform-session.js';
 import { formatBindingPattern } from '../ast/binding-pattern.js';
 import { rewriteImportSource } from '../rewrite/rewrite-imports.js';
-import { extractDestructuredFieldInfo, inlineConstCaptures } from '../rewrite/index.js';
+import {
+  extractDestructuredFieldInfo,
+  groupPropsFieldsByBinding,
+  inlineConstCaptures,
+  rawPropsBindingNames,
+  resolveRawPropsSlots,
+} from '../rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
 import type { ConsolidatedSegment } from '../extraction/extract.js';
 import {
@@ -63,6 +69,7 @@ export interface SegmentCaptureInfo {
   }>;
   skipCaptureInjection?: boolean;
   propsFieldCaptures?: Map<string, string>;
+  propsFieldSources?: Map<string, string>;
   propsFieldDefaults?: Map<string, string>;
   propsFieldDynamicDefaults?: Map<string, string>;
   constLiterals?: Map<string, string>;
@@ -136,11 +143,13 @@ interface SegmentImportSpec {
 function replacePropsFieldReferences(
   bodyText: string,
   fieldMap: Map<string, string>,
+  propsName: string,
   defaultValues?: ReadonlyMap<string, string>,
   dynamicDefaults?: ReadonlyMap<string, string>
 ): string {
   return rewritePropsFieldReferences(bodyText, fieldMap, {
     memberPropertyMode: 'all',
+    propsName,
     defaultValues,
     dynamicDefaults,
   });
@@ -682,6 +691,8 @@ function applyBodyTransforms(
     bodyText = inlineEnumReferences(bodyText, enumValueMap);
   }
 
+  const bindingNames = rawPropsBindingNames([extraction]);
+
   // `inlinedQrl` bodies are pre-compiled library code: their first arg is a
   // finished closure whose destructured first param (e.g. a `useTask$`'s
   // `({ track })` context) is NOT component props and must not be normalised to
@@ -695,23 +706,35 @@ function applyBodyTransforms(
 
   const propsFieldCaptures = captureInfo?.propsFieldCaptures;
   if (propsFieldCaptures && propsFieldCaptures.size > 0) {
-    // Pass `propsFieldDefaults` so defaulted fields emit
-    // `(_rawProps.<key> ?? <default>)`.
-    bodyText = replacePropsFieldReferences(
-      bodyText,
+    const groups = groupPropsFieldsByBinding(
       propsFieldCaptures,
-      captureInfo?.propsFieldDefaults,
-      captureInfo?.propsFieldDynamicDefaults
+      captureInfo?.propsFieldSources,
+      bindingNames
     );
+    for (const [propsName, fields] of groups) {
+      bodyText = replacePropsFieldReferences(
+        bodyText,
+        fields,
+        propsName,
+        captureInfo?.propsFieldDefaults,
+        captureInfo?.propsFieldDynamicDefaults
+      );
+    }
   }
 
   let liveCaptureInfo = captureInfo;
-  const constLiterals = captureInfo?.constLiterals;
-  if (constLiterals && constLiterals.size > 0 && captureInfo) {
-    bodyText = inlineConstCaptures(bodyText, constLiterals);
+  if (captureInfo) {
+    const constLiterals = captureInfo.constLiterals ?? new Map<string, string>();
+    if (constLiterals.size > 0) {
+      bodyText = inlineConstCaptures(bodyText, constLiterals);
+    }
     liveCaptureInfo = {
       ...captureInfo,
-      captureNames: captureInfo.captureNames.filter((n) => !constLiterals.has(n)),
+      captureNames: resolveRawPropsSlots(
+        captureInfo.captureNames.filter((n) => !constLiterals.has(n)),
+        extraction.rawPropsSources,
+        bindingNames
+      ),
     };
   }
 

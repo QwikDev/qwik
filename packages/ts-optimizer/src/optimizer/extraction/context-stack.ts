@@ -65,6 +65,11 @@ export class ContextStack {
     return [...this.stack];
   }
 
+  /** Outermost enclosing name; the entry strategies group segments by it, like Rust's stack_ctxt. */
+  getRootContext(): string | null {
+    return this.stack[0] ?? null;
+  }
+
   get depth(): number {
     return this.stack.length;
   }

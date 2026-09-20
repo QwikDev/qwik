@@ -32,9 +32,16 @@ import { parseWithRawTransfer } from '../ast/parse.js';
 import type { AstNode, AstProgram, CallExpression } from '../../ast-types.js';
 import { createTransformSession } from '../edit/transform-session.js';
 
+/** Runtime marker on a QRL whose captures moved to its element; must survive collapse. */
+const MOVED_CAPTURES_MARKER = '.m()';
+
 interface NoopQrlDecl {
   readonly qVarName: string;
   readonly qrlSymbolName: string;
+  /** The decl carried the `.m()` moved-captures marker, which the literal must keep. */
+  readonly hasMovedCaptures: boolean;
+  /** Source text of the dev metadata argument of a `_noopQrlDEV` decl. */
+  readonly devMetaText?: string;
   readonly start: number;
   readonly end: number;
 }
@@ -74,6 +81,7 @@ export function collapseToLibInlinedQrl(source: string): string {
   }
 
   const inlinedLiteralsByVar = new Map<string, string>();
+  const usedHelpers = new Set<string>();
   const inProgress = new Set<string>();
   function buildInlinedLiteral(qVar: string): string | null {
     const cached = inlinedLiteralsByVar.get(qVar);
@@ -92,7 +100,11 @@ export function collapseToLibInlinedQrl(source: string): string {
     const collapsedBody = substituteInnerQVarsInText(sCall.bodyText, buildInlinedLiteral);
     inProgress.delete(qVar);
     // Bare form; the reference site appends the captures array when it sees `.w([...])`.
-    const literal = `/*#__PURE__*/ inlinedQrl(${collapsedBody}, "${decl.qrlSymbolName}")`;
+    const marker = decl.hasMovedCaptures ? MOVED_CAPTURES_MARKER : '';
+    const helper = decl.devMetaText === undefined ? 'inlinedQrl' : 'inlinedQrlDEV';
+    const devMeta = decl.devMetaText === undefined ? '' : `, ${decl.devMetaText}`;
+    usedHelpers.add(helper);
+    const literal = `/*#__PURE__*/ ${helper}(${collapsedBody}, "${decl.qrlSymbolName}"${devMeta})${marker}`;
     inlinedLiteralsByVar.set(qVar, literal);
     return literal;
   }
@@ -148,7 +160,7 @@ export function collapseToLibInlinedQrl(source: string): string {
     edits.remove(r.start, r.end);
   }
 
-  rewriteImports(edits, source);
+  rewriteImports(edits, source, usedHelpers);
 
   return edits.toString();
 }
@@ -216,18 +228,21 @@ function substituteInnerQVarsInText(
 }
 
 function insertCapturesIntoInlinedQrl(literal: string, captureArgsText: string): string {
-  const lastParen = literal.lastIndexOf(')');
+  const hasMarker = literal.endsWith(MOVED_CAPTURES_MARKER);
+  const call = hasMarker ? literal.slice(0, -MOVED_CAPTURES_MARKER.length) : literal;
+  const lastParen = call.lastIndexOf(')');
   if (lastParen < 0) {
     return literal;
   }
-  return literal.slice(0, lastParen) + `, ${captureArgsText}` + literal.slice(lastParen);
+  const withCaptures = call.slice(0, lastParen) + `, ${captureArgsText}` + call.slice(lastParen);
+  return hasMarker ? withCaptures + MOVED_CAPTURES_MARKER : withCaptures;
 }
 
 function unwrapNoopQrlCall(node: AstNode): CallExpression | null {
   if (
     node.type === 'CallExpression' &&
     node.callee.type === 'Identifier' &&
-    node.callee.name === '_noopQrl'
+    (node.callee.name === '_noopQrl' || node.callee.name === '_noopQrlDEV')
   ) {
     return node;
   }
@@ -272,9 +287,12 @@ function collectNoopQrlDecls(program: AstProgram, source: string): Map<string, N
     if (!nameArg || nameArg.type !== 'Literal' || typeof nameArg.value !== 'string') {
       continue;
     }
+    const devMetaArg = args[1];
     out.set(decl.id.name, {
       qVarName: decl.id.name,
       qrlSymbolName: nameArg.value,
+      hasMovedCaptures: noopQrlCall !== decl.init,
+      devMetaText: devMetaArg ? source.slice(devMetaArg.start, devMetaArg.end) : undefined,
       start: stmt.start,
       end: includeTrailingNewline(source, stmt.end),
     });
@@ -463,14 +481,16 @@ function collectQVarReferenceRanges(
   return out;
 }
 
-function rewriteImports(edits: MagicString, source: string): void {
-  const noopImportRe = /import\s*\{\s*_noopQrl\s*\}\s*from\s*(["'])@qwik\.dev\/core\1\s*;\s*\n?/g;
+function rewriteImports(edits: MagicString, source: string, usedHelpers: Set<string>): void {
+  const noopImportRe =
+    /import\s*\{\s*_noopQrl(?:DEV)?\s*\}\s*from\s*(["'])@qwik\.dev\/core\1\s*;\s*\n?/g;
   const match = noopImportRe.exec(source);
   if (match) {
+    const helpers = [...usedHelpers].sort().join(', ');
     edits.overwrite(
       match.index,
       match.index + match[0].length,
-      `import { inlinedQrl } from "@qwik.dev/core";\n`
+      `import { ${helpers} } from "@qwik.dev/core";\n`
     );
   }
 }

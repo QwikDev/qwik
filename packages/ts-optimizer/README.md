@@ -94,6 +94,14 @@ const output = await optimizer.transformModules({
 });
 ```
 
+### Environment variables
+
+- `QWIK_TS_OPTIMIZER_WORKERS` — size of the transform worker pool; `0` transforms in-process.
+- `QWIK_TS_OPTIMIZER_RAW_TRANSFER` — `1` or `0` forces oxc's raw-transfer parsing on or off. It
+  is faster but reserves about 6 GB of address space per thread, and a process whose threads
+  reserved more than its RAM can no longer spawn children. By default the host keeps it when
+  physical memory holds at least two such reservations, and pool workers never use it.
+
 ## What it emits — before / after
 
 **Input** (`test.tsx`):

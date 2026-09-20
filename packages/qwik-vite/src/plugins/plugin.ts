@@ -102,6 +102,18 @@ export interface QwikPackages {
   path: string;
 }
 
+/** `QWIK_OPTIMIZER=ts|rust` overrides the option so a project can be tested on the other optimizer. */
+const resolveTsOptimizerChoice = (tsOptimizer: boolean | undefined): boolean => {
+  const override = typeof process === 'object' ? process.env?.QWIK_OPTIMIZER : undefined;
+  if (override === undefined || override === '') {
+    return !!tsOptimizer;
+  }
+  if (override === 'ts' || override === 'rust') {
+    return override === 'ts';
+  }
+  throw new Error(`QWIK_OPTIMIZER must be "ts" or "rust", got "${override}"`);
+};
+
 export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
 
@@ -158,7 +170,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (optimizerOptions._optimizer) {
           return optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer');
         }
-        if (optimizerOptions.tsOptimizer) {
+        if (resolveTsOptimizerChoice(optimizerOptions.tsOptimizer)) {
           return (await import('@qwik.dev/ts-optimizer')) as unknown as typeof import('@qwik.dev/optimizer');
         }
         return import('@qwik.dev/optimizer');

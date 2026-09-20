@@ -918,7 +918,7 @@ export const App = component$(() => {
     expect(seg.hash).toBeTruthy();
     expect(seg.canonicalFilename).toBeTruthy();
     expect(seg.extension).toMatch(/^(tsx|ts|js)$/);
-    expect(seg.entry).toBeNull();
+    expect(seg.entry).toBe('test.tsx_entry_App');
     expect(seg.captures).toBe(false);
     expect(seg.loc).toHaveLength(2);
     expect(seg.loc[0]).toBeGreaterThan(0);

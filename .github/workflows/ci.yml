@@ -1034,7 +1034,7 @@ jobs:
   test-e2e:
     # Sometimes the tests just hang
     timeout-minutes: 20
-    name: E2E Tests (${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
+    name: E2E Tests (${{ matrix.settings.optimizer }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
     if: always() && needs.changes.outputs.build-e2e == 'true'
 
     needs:
@@ -1046,55 +1046,87 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: ubuntu-latest
+          - optimizer: ts
+            host: ubuntu-latest
             browser: chromium
             shard: 1
             shardTotal: 2
-          - host: ubuntu-latest
+          - optimizer: ts
+            host: ubuntu-latest
             browser: chromium
             shard: 2
             shardTotal: 2
-          - host: ubuntu-latest
+          - optimizer: ts
+            host: ubuntu-latest
             browser: firefox
             shard: 1
             shardTotal: 2
-          - host: ubuntu-latest
+          - optimizer: ts
+            host: ubuntu-latest
             browser: firefox
             shard: 2
             shardTotal: 2
-          - host: windows-latest
+          - optimizer: ts
+            host: windows-latest
             browser: chromium
             shard: 1
             shardTotal: 4
-          - host: windows-latest
+          - optimizer: ts
+            host: windows-latest
             browser: chromium
             shard: 2
             shardTotal: 4
-          - host: windows-latest
+          - optimizer: ts
+            host: windows-latest
             browser: chromium
             shard: 3
             shardTotal: 4
-          - host: windows-latest
+          - optimizer: ts
+            host: windows-latest
             browser: chromium
             shard: 4
             shardTotal: 4
-          - host: macos-latest
+          - optimizer: ts
+            host: macos-latest
             browser: webkit
             shard: 1
             shardTotal: 4
-          - host: macos-latest
+          - optimizer: ts
+            host: macos-latest
             browser: webkit
             shard: 2
             shardTotal: 4
-          - host: macos-latest
+          - optimizer: ts
+            host: macos-latest
             browser: webkit
             shard: 3
             shardTotal: 4
-          - host: macos-latest
+          - optimizer: ts
+            host: macos-latest
             browser: webkit
             shard: 4
             shardTotal: 4
 
+          - optimizer: rust
+            host: ubuntu-latest
+            browser: chromium
+            shard: 1
+            shardTotal: 2
+          - optimizer: rust
+            host: ubuntu-latest
+            browser: chromium
+            shard: 2
+            shardTotal: 2
+          - optimizer: rust
+            host: ubuntu-latest
+            browser: firefox
+            shard: 1
+            shardTotal: 2
+          - optimizer: rust
+            host: ubuntu-latest
+            browser: firefox
+            shard: 2
+            shardTotal: 2
     runs-on: ${{ matrix.settings.host }}
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
@@ -1155,13 +1187,15 @@ jobs:
         run: pnpm exec playwright install ${{ matrix.settings.browser }}
 
       - name: Playwright E2E Tests
+        env:
+          QWIK_OPTIMIZER: ${{ matrix.settings.optimizer }}
         run: pnpm exec playwright test e2e/qwik-e2e/tests --browser=${{ matrix.settings.browser }} --config=e2e/qwik-e2e/playwright.config.ts --shard=${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }}
 
       - name: Upload Playwright Trace
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: failure() # only when tests fail
         with:
-          name: playwright-report-${{ matrix.settings.host }}-${{ matrix.settings.browser }}-${{ matrix.settings.shard }}-${{ matrix.settings.shardTotal }}
+          name: playwright-report-${{ matrix.settings.optimizer }}-${{ matrix.settings.host }}-${{ matrix.settings.browser }}-${{ matrix.settings.shard }}-${{ matrix.settings.shardTotal }}
           path: test-results/ # or test-results/ depending on your config
           retention-days: 30
  
@@ -1170,7 +1204,7 @@ jobs:
         if: failure()
 
   test-cli-e2e:
-    name: E2E CLI Tests (${{ matrix.settings.runtime }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
+    name: E2E CLI Tests (${{ matrix.settings.optimizer }}, ${{ matrix.settings.runtime }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
     if: always() && needs.changes.outputs.build-cli-e2e == 'true'
 
     needs:
@@ -1182,7 +1216,8 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: ubuntu-latest
+          - optimizer: ts
+            host: ubuntu-latest
             browser: chromium
             runtime: node
             integration-config: e2e/adapters-e2e/playwright.config.ts
@@ -1192,7 +1227,8 @@ jobs:
             shardTotal: 2
             cliShard: 1
             cliShardTotal: 2
-          - host: ubuntu-latest
+          - optimizer: ts
+            host: ubuntu-latest
             browser: chromium
             runtime: node
             integration-config: e2e/adapters-e2e/playwright.config.ts
@@ -1202,7 +1238,8 @@ jobs:
             shardTotal: 2
             cliShard: 2
             cliShardTotal: 2
-          - host: ubuntu-latest
+          - optimizer: ts
+            host: ubuntu-latest
             browser: chromium
             runtime: bun
             integration-config: e2e/adapters-e2e/playwright.bun.config.ts
@@ -1210,7 +1247,8 @@ jobs:
             run-qwik-react: false
             shard: 1
             shardTotal: 2
-          - host: ubuntu-latest
+          - optimizer: ts
+            host: ubuntu-latest
             browser: chromium
             runtime: bun
             integration-config: e2e/adapters-e2e/playwright.bun.config.ts
@@ -1218,7 +1256,8 @@ jobs:
             run-qwik-react: false
             shard: 2
             shardTotal: 2
-          - host: ubuntu-latest
+          - optimizer: ts
+            host: ubuntu-latest
             browser: chromium
             runtime: deno
             integration-config: e2e/adapters-e2e/playwright.deno.config.ts
@@ -1226,7 +1265,8 @@ jobs:
             run-qwik-react: false
             shard: 1
             shardTotal: 2
-          - host: ubuntu-latest
+          - optimizer: ts
+            host: ubuntu-latest
             browser: chromium
             runtime: deno
             integration-config: e2e/adapters-e2e/playwright.deno.config.ts
@@ -1234,7 +1274,8 @@ jobs:
             run-qwik-react: false
             shard: 2
             shardTotal: 2
-          - host: macos-latest
+          - optimizer: ts
+            host: macos-latest
             browser: webkit
             runtime: node
             integration-config: e2e/adapters-e2e/playwright.config.ts
@@ -1244,7 +1285,8 @@ jobs:
             shardTotal: 2
             cliShard: 1
             cliShardTotal: 2
-          - host: macos-latest
+          - optimizer: ts
+            host: macos-latest
             browser: webkit
             runtime: node
             integration-config: e2e/adapters-e2e/playwright.config.ts
@@ -1254,7 +1296,8 @@ jobs:
             shardTotal: 2
             cliShard: 2
             cliShardTotal: 2
-          - host: windows-latest
+          - optimizer: ts
+            host: windows-latest
             browser: chromium
             runtime: node
             integration-config: e2e/adapters-e2e/playwright.config.ts
@@ -1264,7 +1307,8 @@ jobs:
             shardTotal: 4
             cliShard: 1
             cliShardTotal: 2
-          - host: windows-latest
+          - optimizer: ts
+            host: windows-latest
             browser: chromium
             runtime: node
             integration-config: e2e/adapters-e2e/playwright.config.ts
@@ -1274,7 +1318,8 @@ jobs:
             shardTotal: 4
             cliShard: 2
             cliShardTotal: 2
-          - host: windows-latest
+          - optimizer: ts
+            host: windows-latest
             browser: chromium
             runtime: node
             integration-config: e2e/adapters-e2e/playwright.config.ts
@@ -1282,7 +1327,8 @@ jobs:
             run-qwik-react: true
             shard: 3
             shardTotal: 4
-          - host: windows-latest
+          - optimizer: ts
+            host: windows-latest
             browser: chromium
             runtime: node
             integration-config: e2e/adapters-e2e/playwright.config.ts
@@ -1291,6 +1337,24 @@ jobs:
             shard: 4
             shardTotal: 4
 
+          - optimizer: rust
+            host: ubuntu-latest
+            browser: chromium
+            runtime: node
+            integration-config: e2e/adapters-e2e/playwright.config.ts
+            run-cli: false
+            run-qwik-react: true
+            shard: 1
+            shardTotal: 2
+          - optimizer: rust
+            host: ubuntu-latest
+            browser: chromium
+            runtime: node
+            integration-config: e2e/adapters-e2e/playwright.config.ts
+            run-cli: false
+            run-qwik-react: true
+            shard: 2
+            shardTotal: 2
     runs-on: ${{ matrix.settings.host }}
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
@@ -1363,10 +1427,14 @@ jobs:
         run: pnpm exec playwright install ${{ matrix.settings.browser }}
 
       - name: Playwright E2E Integration Tests
+        env:
+          QWIK_OPTIMIZER: ${{ matrix.settings.optimizer }}
         run: pnpm exec playwright test e2e/adapters-e2e/tests --project=${{ matrix.settings.browser }} --config=${{ matrix.settings.integration-config }} --shard=${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }}
 
       - name: Playwright E2E Qwik React Tests
         if: matrix.settings.run-qwik-react
+        env:
+          QWIK_OPTIMIZER: ${{ matrix.settings.optimizer }}
         run: pnpm exec playwright test e2e/qwik-react-e2e/tests --project=${{ matrix.settings.browser }} --config=e2e/qwik-react-e2e/playwright.config.ts --shard=${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }}
       - name: CLI E2E Tests
         if: matrix.settings.run-cli

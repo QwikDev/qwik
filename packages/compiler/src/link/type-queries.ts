@@ -2,9 +2,10 @@ import ts from 'typescript';
 import standardLibrary from 'typescript/lib/lib.es5.d.ts?raw';
 import { ValueIrKind as Ir } from '../schema/value-ir';
 import type { LinkedModule, Result } from '../schema';
+import { ResultKind } from '../schema';
 import { elementPath, numericPath, returnPath, type ResultPath } from './result-path';
 
-const unknown: Result = { kind: 'unknown-result' };
+const unknown: Result = { kind: ResultKind.Unknown };
 const libraryPath = '/lib.es5.d.ts';
 
 /** Query declared contracts without inferring lifetime types from initializers. */
@@ -102,7 +103,7 @@ function createReader(modules: readonly LinkedModule[]) {
     }
     if (type.isUnion()) {
       return {
-        kind: 'union-result',
+        kind: ResultKind.Union,
         values: type.types.map((part) => resultOf(part, path, location)),
       };
     }
@@ -113,7 +114,7 @@ function createReader(modules: readonly LinkedModule[]) {
         return signatures.length === 0
           ? unknown
           : {
-              kind: 'union-result',
+              kind: ResultKind.Union,
               values: signatures.map((signature) =>
                 resultOf(checker.getReturnTypeOfSignature(signature), rest, location)
               ),
@@ -150,13 +151,13 @@ function createReader(modules: readonly LinkedModule[]) {
       }
     }
     if (type.flags & ts.TypeFlags.StringLike) {
-      return { kind: 'string-result' };
+      return { kind: ResultKind.String };
     }
     if (type.flags & ts.TypeFlags.NumberLike) {
-      return { kind: 'number-result' };
+      return { kind: ResultKind.Number };
     }
     if (type.flags & ts.TypeFlags.BigIntLike) {
-      return { kind: 'scalar-result' };
+      return { kind: ResultKind.Scalar };
     }
     if (type.flags & (ts.TypeFlags.BooleanLike | ts.TypeFlags.Null)) {
       return { kind: Ir.Lit, value: null };

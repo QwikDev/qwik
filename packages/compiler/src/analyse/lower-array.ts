@@ -9,6 +9,8 @@ import type {
   VariableDeclarator,
 } from 'oxc-parser';
 import {
+  ResultKind,
+  type Result,
   BoundaryKind,
   CaptureAccess,
   EachSourceKind,
@@ -186,10 +188,10 @@ function lowerEach(
     if (parameter.type === 'TSParameterProperty' || parameter.type === 'RestElement') {
       return;
     }
-    const value =
+    const value: Result =
       index === 1
-        ? { kind: 'number-result' as const }
-        : { kind: 'element-result' as const, source: sourceResult };
+        ? { kind: ResultKind.Number }
+        : { kind: ResultKind.Element, source: sourceResult };
     ctx.plan.bindings[paramBindings[index]].result = { value, writes: [], escapes: [] };
     for (const binding of ctx.bindings.bindingsOf(parameter)) {
       const result = patternResult(parameter, binding, value, ctx);

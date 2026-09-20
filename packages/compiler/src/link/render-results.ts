@@ -28,6 +28,7 @@ import {
   type Result,
   type Setup,
   type Value,
+  ResultKind,
 } from '../schema';
 
 const enum Kind {
@@ -60,7 +61,7 @@ const stringMethods = new Set([
   'padEnd',
   'concat',
 ]);
-const unknown: Result = { kind: 'unknown-result' };
+const unknown: Result = { kind: ResultKind.Unknown };
 const bindingKey = (module: number, binding: number) => `${module}:${binding}`;
 const escapesBinding = (result: BindingResult | undefined) =>
   result?.escapes.some((path) => path.length === 0) ||
@@ -257,11 +258,11 @@ export function linkRenderResults(
     })
   );
 
-  const functions = new Map<string, Extract<Result, { kind: 'function-result' }>[]>();
-  const collectFunctions = (value: Result): Extract<Result, { kind: 'function-result' }>[] =>
-    value.kind === 'function-result'
+  const functions = new Map<string, Extract<Result, { kind: ResultKind.Function }>[]>();
+  const collectFunctions = (value: Result): Extract<Result, { kind: ResultKind.Function }>[] =>
+    value.kind === ResultKind.Function
       ? [value]
-      : value.kind === 'union-result'
+      : value.kind === ResultKind.Union
         ? value.values.flatMap(collectFunctions)
         : [];
   modules.forEach((module, index) =>
@@ -289,8 +290,8 @@ export function linkRenderResults(
   modules.forEach((module, moduleIndex) => {
     for (const invocation of module.invocations ?? []) {
       let targetModule = moduleIndex;
-      let declarations: Extract<Result, { kind: 'function-result' }>[] = [];
-      if (invocation.callee.kind === 'function-result') {
+      let declarations: Extract<Result, { kind: ResultKind.Function }>[] = [];
+      if (invocation.callee.kind === ResultKind.Function) {
         declarations = [invocation.callee];
       } else if (invocation.callee.kind === Ir.BindingRead) {
         const resolved = resolveBinding(moduleIndex, invocation.callee.binding);
@@ -310,7 +311,7 @@ export function linkRenderResults(
         }
       }
       const spreadIndex = invocation.args.findIndex(
-        (argument) => argument.kind === 'spread-argument-result'
+        (argument) => argument.kind === ResultKind.SpreadArgument
       );
       for (const fn of declarations) {
         fn.params.forEach((parameter, index) => {
@@ -376,7 +377,7 @@ export function linkRenderResults(
     path: ResultPath,
     seen: Set<string>
   ): number => {
-    if (consumer.target.kind === 'function-result' && consumer.property === undefined) {
+    if (consumer.target.kind === ResultKind.Function && consumer.property === undefined) {
       const parameter = consumer.target.params[consumer.argument];
       return parameter == null ? Kind.Unknown : mutationKinds(module, parameter, path, seen);
     }
@@ -545,29 +546,29 @@ export function linkRenderResults(
 
   const evaluate = (module: number, result: Result, path: ResultPath = []): number => {
     switch (result.kind) {
-      case 'unknown-result':
+      case ResultKind.Unknown:
         return Kind.Unknown;
-      case 'render-result':
+      case ResultKind.Render:
         return path.length === 0 ? Kind.Render : Kind.Unknown;
-      case 'scalar-result':
+      case ResultKind.Scalar:
         return path.length === 0 ? Kind.Text : Kind.Unknown;
-      case 'number-result':
+      case ResultKind.Number:
         return path.length === 0 ? Kind.Number : Kind.Unknown;
-      case 'string-result':
+      case ResultKind.String:
         return path.length === 0
           ? Kind.String
           : path.length === 1 && path[0] === 'length'
             ? Kind.Number
             : Kind.Unknown;
-      case 'initializer-result': {
+      case ResultKind.Initializer: {
         const kinds = evaluate(module, result.value, path);
         return evaluate(module, result.value) & Kind.Render
           ? (kinds & ~Kind.Render) | evaluate(module, result.value, [returnPath, ...path])
           : kinds;
       }
-      case 'element-result':
+      case ResultKind.Element:
         return evaluate(module, result.source, [elementPath, ...path]);
-      case 'array-rest-result': {
+      case ResultKind.ArrayRest: {
         if (path.length === 0) {
           return Kind.Array;
         }
@@ -582,7 +583,7 @@ export function linkRenderResults(
         }
         return evaluate(module, result.source, path);
       }
-      case 'union-result':
+      case ResultKind.Union:
         return result.values.reduce((kinds, value) => kinds | evaluate(module, value, path), 0);
       case Ir.BindingRead:
         return readBinding(module, result.binding, path);
@@ -600,7 +601,7 @@ export function linkRenderResults(
         return evaluate(
           module,
           {
-            kind: 'default-result',
+            kind: ResultKind.Default,
             value: {
               kind: Ir.Member,
               obj: { kind: Ir.BindingRead, binding: result.binding },
@@ -610,7 +611,7 @@ export function linkRenderResults(
           },
           path
         );
-      case 'default-result': {
+      case ResultKind.Default: {
         const initial = evaluate(module, result.value);
         const fallback =
           initial & (Kind.Undefined | Kind.Missing) ? evaluate(module, result.fallback, path) : 0;
@@ -661,12 +662,12 @@ export function linkRenderResults(
         return evaluate(
           module,
           {
-            kind: 'spread-result',
+            kind: ResultKind.Spread,
             parts: result.entries.map(([name, value]) => ({ name, value })),
           },
           path
         );
-      case 'spread-result': {
+      case ResultKind.Spread: {
         if (path.length === 0) {
           return Kind.Object;
         }
@@ -694,16 +695,16 @@ export function linkRenderResults(
         }
         return kinds;
       }
-      case 'rest-result':
+      case ResultKind.Rest:
         return typeof path[0] === 'string' && result.excluded.includes(path[0])
           ? Kind.Missing
           : evaluate(module, result.source, path) |
               (path.length > 0 && result.hasComputedExclusions ? Kind.Missing : 0);
-      case 'function-result':
+      case ResultKind.Function:
         return path[0] === returnPath
           ? evaluate(module, result.result, path.slice(1))
           : Kind.Render;
-      case 'invoke-result':
+      case ResultKind.Invoke:
         if (
           result.callee.kind === Ir.Member &&
           stringMethods.has(result.callee.name) &&
@@ -779,7 +780,7 @@ function valueResult(module: LinkedModule, value: Value): Result {
       return value.value === undefined ? { kind: Ir.Undef } : { kind: Ir.Lit, value: value.value };
     case ValueKind.Render:
     case ValueKind.Qrl:
-      return { kind: 'render-result' };
+      return { kind: ResultKind.Render };
     case ValueKind.Computed:
     case ValueKind.Read:
       return value.expr.kind === ExprKind.Js
@@ -796,7 +797,7 @@ function propsResult(
     const id = op.props.compute.qrl;
     const qrl = module.qrls.find((qrl) => qrl.id === id)!;
     return {
-      kind: 'spread-result',
+      kind: ResultKind.Spread,
       parts: qrl.propsParts.map((part) => {
         switch (part.kind) {
           case PropsPartKind.Spread:
@@ -810,13 +811,13 @@ function propsResult(
                 part.value === undefined ? { kind: Ir.Undef } : { kind: Ir.Lit, value: part.value },
             };
           case PropsPartKind.Event:
-            return { name: part.name, value: { kind: 'render-result' } };
+            return { name: part.name, value: { kind: ResultKind.Render } };
         }
       }),
     };
   }
   return {
-    kind: 'spread-result',
+    kind: ResultKind.Spread,
     parts: op.props.props.map((prop) => {
       switch (prop.k) {
         case PropKind.Static:

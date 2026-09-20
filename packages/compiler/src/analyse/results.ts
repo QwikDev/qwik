@@ -1,15 +1,16 @@
 import type { Node, BindingPattern } from 'oxc-parser';
 import { ValueIrKind as Ir } from '../schema/value-ir';
 import type { BindingResult, Result } from '../schema';
+import { ResultKind } from '../schema';
 import type { LowerContext } from './lower-context';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { LocalKind } from './locals';
 import { ImplicitBindingKind } from './ast/bindings';
 import { JsxValueKind } from './ast/jsx-analysis';
 
-const unknown: Result = { kind: 'unknown-result' };
+const unknown: Result = { kind: ResultKind.Unknown };
 const empty: Result = { kind: Ir.Undef };
-const text: Result = { kind: 'scalar-result' };
+const text: Result = { kind: ResultKind.Scalar };
 const read = (binding: number): Result => ({ kind: Ir.BindingRead, binding });
 
 /** Retains value dependencies without changing executable payloads or captures. */
@@ -37,13 +38,13 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
       }
       const local = ctx.locals.get(binding);
       if (local?.kind === LocalKind.RowIndex) {
-        return { kind: 'number-result' };
+        return { kind: ResultKind.Number };
       }
       return read(binding);
     }
     case 'JSXElement':
     case 'JSXFragment':
-      return { kind: 'render-result' };
+      return { kind: ResultKind.Render };
     case 'MemberExpression': {
       const name = node.computed
         ? node.property.type === 'Literal'
@@ -65,7 +66,7 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
       return text;
     case 'ConditionalExpression':
       return {
-        kind: 'union-result',
+        kind: ResultKind.Union,
         values: [expressionResult(node.consequent, ctx), expressionResult(node.alternate, ctx)],
       };
     case 'LogicalExpression':
@@ -82,14 +83,14 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
         ? expressionResult(node.right, ctx)
         : ['&&=', '||=', '??='].includes(node.operator)
           ? {
-              kind: 'union-result',
+              kind: ResultKind.Union,
               values: [expressionResult(node.left, ctx), expressionResult(node.right, ctx)],
             }
           : text;
     case 'AwaitExpression':
       return expressionResult(node.argument, ctx);
     case 'ChainExpression':
-      return { kind: 'union-result', values: [empty, expressionResult(node.expression, ctx)] };
+      return { kind: ResultKind.Union, values: [empty, expressionResult(node.expression, ctx)] };
     case 'ArrayExpression':
       return {
         kind: Ir.Array,
@@ -99,7 +100,7 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
       };
     case 'ObjectExpression':
       return {
-        kind: 'spread-result',
+        kind: ResultKind.Spread,
         parts: node.properties.map((property) => {
           if (property.type === 'SpreadElement') {
             return { name: null, value: expressionResult(property.argument, ctx) };
@@ -132,7 +133,7 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
       const core = binding === null ? undefined : ctx.coreBindings.get(binding);
       const args = node.arguments.map((arg) =>
         arg.type === 'SpreadElement'
-          ? ({ kind: 'spread-argument-result' } as Result)
+          ? ({ kind: ResultKind.SpreadArgument } as Result)
           : expressionResult(arg, ctx)
       );
       if (core === '$') {
@@ -142,7 +143,7 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
         return { kind: Ir.Object, entries: [['value', args[0] ?? empty]] };
       }
       if (core === 'useStore') {
-        return { kind: 'initializer-result', value: args[0] ?? unknown };
+        return { kind: ResultKind.Initializer, value: args[0] ?? unknown };
       }
       if (
         core === 'useComputed$' ||
@@ -156,11 +157,11 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
             [
               'value',
               {
-                kind: 'union-result',
+                kind: ResultKind.Union,
                 values: [
-                  { kind: 'invoke-result', callee: args[0] ?? unknown, args: [] },
+                  { kind: ResultKind.Invoke, callee: args[0] ?? unknown, args: [] },
                   {
-                    kind: 'initializer-result',
+                    kind: ResultKind.Initializer,
                     value: { kind: Ir.Member, obj: args[1] ?? empty, name: 'initial' },
                   },
                 ],
@@ -169,7 +170,7 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
           ],
         };
       }
-      return { kind: 'invoke-result', callee: expressionResult(node.callee, ctx), args };
+      return { kind: ResultKind.Invoke, callee: expressionResult(node.callee, ctx), args };
     }
     case 'FunctionDeclaration':
     case 'FunctionExpression':
@@ -186,11 +187,11 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
         results.push(expressionResult(node.body, ctx));
       }
       return {
-        kind: 'function-result',
+        kind: ResultKind.Function,
         params: node.params.map((param) =>
           param.type === 'Identifier' ? ctx.bindings.declaration(param) : null
         ),
-        result: { kind: 'union-result', values: results },
+        result: { kind: ResultKind.Union, values: results },
       };
     }
     default:
@@ -203,14 +204,16 @@ export function recordBindingResults(ctx: LowerContext): void {
   ctx.plan.invocations = ctx.bindings.calls.map((call) => ({
     callee: expressionResult(call.callee, ctx),
     args: call.arguments.map((arg) =>
-      arg.type === 'SpreadElement' ? { kind: 'spread-argument-result' } : expressionResult(arg, ctx)
+      arg.type === 'SpreadElement'
+        ? { kind: ResultKind.SpreadArgument }
+        : expressionResult(arg, ctx)
     ),
   }));
   for (const binding of ctx.plan.bindings) {
     const values: Result[] = binding.result === undefined ? [] : [binding.result.value];
     if (ctx.bindings.implicitKind(binding.id) === ImplicitBindingKind.Arguments) {
       values.push({
-        kind: 'spread-result',
+        kind: ResultKind.Spread,
         parts: [
           { name: null, value: unknown },
           { name: 'length', value: text },
@@ -230,7 +233,7 @@ export function recordBindingResults(ctx: LowerContext): void {
       }
     }
     const facts: BindingResult = {
-      value: { kind: 'union-result', values },
+      value: { kind: ResultKind.Union, values },
       writes: [],
       escapes: [],
       consumers: [],
@@ -322,7 +325,7 @@ export function recordBindingResults(ctx: LowerContext): void {
     const path: string[] = [];
     const seen = new Set([binding.id]);
     while (true) {
-      if (value.kind === 'union-result' && value.values.length === 1) {
+      if (value.kind === ResultKind.Union && value.values.length === 1) {
         value = value.values[0];
       }
       if (value.kind === Ir.Member) {
@@ -375,7 +378,7 @@ export function patternResult(
             property.argument,
             binding,
             {
-              kind: 'rest-result',
+              kind: ResultKind.Rest,
               source,
               excluded: [...excluded],
               ...(hasComputedExclusions ? { hasComputedExclusions: true as const } : {}),
@@ -423,7 +426,7 @@ export function patternResult(
             ? patternResult(
                 element.argument,
                 binding,
-                { kind: 'array-rest-result', source, start: index },
+                { kind: ResultKind.ArrayRest, source, start: index },
                 ctx
               )
             : patternResult(
@@ -442,5 +445,5 @@ export function patternResult(
 }
 
 function defaultResult(value: Result, fallback: Result): Result {
-  return { kind: 'default-result', value, fallback };
+  return { kind: ResultKind.Default, value, fallback };
 }

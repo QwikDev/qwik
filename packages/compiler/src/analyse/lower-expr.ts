@@ -1,4 +1,5 @@
 import {
+  ResultKind,
   BoundaryKind,
   ExprKind,
   FnBodyKind,
@@ -144,7 +145,7 @@ export function lowerTemplateValue(
   };
   return computedQrlValue(
     { kind: ExprKind.Ir, ir },
-    { kind: 'string-result' },
+    { kind: ResultKind.String },
     ctx,
     lowered,
     range,

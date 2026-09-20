@@ -19,6 +19,7 @@ import {
   type LinkedQrl,
   type Result,
   type Specialization,
+  ResultKind,
 } from '../schema';
 
 /** Roles the server never opens: it writes the symbol into the HTML and the browser runs the body. */
@@ -98,7 +99,7 @@ function invokedPropName(module: LinkedModule, callee: Result): string | null {
     return null;
   }
   const source = binding.result?.value;
-  const values = source?.kind === 'union-result' ? source.values : [];
+  const values = source?.kind === ResultKind.Union ? source.values : [];
   for (const value of values) {
     // a destructured prop may be renamed, so the authored key rides the member it came from
     if (value.kind === ValueIrKind.Member) {

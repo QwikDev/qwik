@@ -16,6 +16,7 @@ import {
   type ModulePlan,
   type Op,
   type Unknown,
+  ResultKind,
 } from '../schema';
 import { ValueIrKind } from '../schema/value-ir';
 import { ResolutionKind, type LinkDiagnostic, type ResolverSnapshot } from './link-plans';
@@ -141,7 +142,7 @@ export function resolveModules(
       return target.ok ? resolveExport(target.value, imported.imported) : target;
     }
     let result = plans[module].bindings[binding]?.result?.value;
-    while (result?.kind === 'union-result' && result.values.length === 1) {
+    while (result?.kind === ResultKind.Union && result.values.length === 1) {
       result = result.values[0];
     }
     if (result?.kind === ValueIrKind.BindingRead) {

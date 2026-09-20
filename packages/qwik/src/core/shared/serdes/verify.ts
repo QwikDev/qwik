@@ -2,7 +2,7 @@ import { QError, qError } from '../error/error';
 import { isNode } from '../utils/element';
 import { isPromise } from '../utils/promises';
 import { isArray, isFunction, isObject, isSerializableObject } from '../utils/types';
-import { isQrl } from '../qrl/qrl-utils';
+import { isQrl, qrlOfBody } from '../qrl/qrl-utils';
 import { isQwikComponent } from '../component.public';
 import { Computed } from '../../reactive/computed';
 import { Signal } from '../../reactive/signal';
@@ -150,8 +150,8 @@ const isKnownSerializableValue = (value: unknown): boolean => {
     return true;
   }
   if (type === 'function') {
-    // component-tagged functions (lifted local components) serialize as their QRL
-    return isQrl(value) || isQwikComponent(value);
+    // a QRL, a tagged component, or a body that came from one: each serializes as its QRL
+    return isQrl(value) || isQwikComponent(value) || qrlOfBody(value) !== undefined;
   }
   if (!isObject(value)) {
     return false;

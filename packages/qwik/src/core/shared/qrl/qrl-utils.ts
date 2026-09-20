@@ -27,3 +27,17 @@ export const getSymbolHash = (symbolName: string) => {
   const index = symbolName.lastIndexOf('_') + 1;
   return symbolName.slice(index);
 };
+
+const QRL_OF_BODY = Symbol('qrl-of-body');
+
+/** The body carries its QRL, so a value that crossed `resolve()` can still say what it is. */
+export const rememberQrlOfBody = (body: object, qrl: QRL<unknown>): void => {
+  if (!(QRL_OF_BODY in body)) {
+    Object.defineProperty(body, QRL_OF_BODY, { value: qrl });
+  }
+};
+
+export const qrlOfBody = (body: unknown): QRLInternal<unknown> | undefined =>
+  typeof body === 'function'
+    ? (body as Record<symbol, QRLInternal<unknown>>)[QRL_OF_BODY]
+    : undefined;

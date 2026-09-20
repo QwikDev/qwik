@@ -38,7 +38,7 @@ import type { RuntimeInvokeContext } from '../../runtime/invoke-context';
 import type { SerdesWriter, SsrWriteChunk } from './writer';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { isQrl } from '../qrl/qrl-utils';
+import { isQrl, qrlOfBody } from '../qrl/qrl-utils';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { createQRL } from '../qrl/qrl-class';
 import {
@@ -451,9 +451,9 @@ export class Serializer {
           const marker = (value as { [SERIALIZABLE_STATE]?: [string, string] })[SERIALIZABLE_STATE];
           const qrlValue = isQrl(value)
             ? value
-            : marker === undefined
-              ? null
-              : createQRL(marker[1], marker[0], null, null, null);
+            : marker !== undefined
+              ? createQRL(marker[1], marker[0], null, null, null)
+              : (qrlOfBody(value) ?? null);
           if (qrlValue !== null) {
             if (this.getSeenRefOrOutput(value, index)) {
               const [chunk, symbol, captureDeltasFromZero] = qrlToString(

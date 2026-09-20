@@ -17,7 +17,7 @@ import { isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
 import { withCaptures } from './qrl-captures';
 import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
-import { getSymbolHash, SYNC_QRL } from './qrl-utils';
+import { getSymbolHash, rememberQrlOfBody, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
@@ -262,10 +262,21 @@ export class QRLClass<TYPE> {
     // If it is plain value with deserialized or missing captures, resolve it immediately
     // Otherwise we keep using the async path so we can wait for qrls to load
     if ($lazy$.$ref$ != null && typeof this.$captures$ !== 'string' && !isPromise($lazy$.$ref$)) {
-      this.resolved = withCaptures($lazy$.$ref$ as TYPE, this.$captures$);
+      this.resolved = bindResolved(this, withCaptures($lazy$.$ref$ as TYPE, this.$captures$));
     }
   }
 }
+
+/**
+ * A resolved body is an ordinary function, so nothing on it says where it came from. Remembering
+ * its QRL is what lets serialization write the symbol instead of refusing the closure.
+ */
+const bindResolved = <TYPE>(qrl: QRLClass<TYPE>, resolved: TYPE): TYPE => {
+  if (typeof resolved === 'function') {
+    rememberQrlOfBody(resolved as object, makeQrlFn(qrl));
+  }
+  return resolved;
+};
 
 const qrlCallFn = function <TYPE>(
   this: QRLClass<TYPE> | QRLCallable<TYPE>,
@@ -310,7 +321,7 @@ const qrlSetRef = function <TYPE>(
   const qrl = getInstance<TYPE>(this);
   qrl.$lazy$.$setRef$(ref);
   if (typeof qrl.$captures$ !== 'string' && !isPromise(ref)) {
-    qrl.resolved = withCaptures(ref as TYPE, qrl.$captures$);
+    qrl.resolved = bindResolved(qrl, withCaptures(ref as TYPE, qrl.$captures$));
   } else {
     qrl.resolved = undefined;
   }
@@ -510,7 +521,7 @@ const $resolve$ = <TYPE>(
   const maybePromise = maybeThen(
     promiseAll([rawOrPromise, capturesOrPromise] as const),
     ([raw, captures]) => {
-      qrl.resolved = withCaptures(raw, captures);
+      qrl.resolved = bindResolved(qrl, withCaptures(raw, captures));
     }
   );
 

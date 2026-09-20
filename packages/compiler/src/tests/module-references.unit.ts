@@ -79,20 +79,23 @@ export const App = () => <button onClick$={() => value}>save</button>;`,
 });
 
 test.each(['value++', 'value = 2', '({ value } = source)'])(
-  'writes to module bindings remain unsupported: %s',
+  'a segment writes a module binding in place: %s',
   async (expression) => {
-    await expect(
-      transformModules({
-        input: [
-          {
-            path: 'app.tsx',
-            code: `let value = 1;
+    const output = await transformModules({
+      input: [
+        {
+          path: 'app.tsx',
+          code: `let value = 1;
+const source = { value: 3 };
 export default () => <button onClick$={() => { ${expression}; }}>save</button>;`,
-          },
-        ],
-        isServer: false,
-      })
-    ).rejects.toThrow('capturing "value"');
+        },
+      ],
+      isServer: false,
+    });
+
+    expect(output.modules[0].code).toContain('export { value as __qwik_value');
+    expect(output.modules[1].code).toContain('__qwik_value as value');
+    expect(output.modules[1].code).toContain(`${expression};`);
   }
 );
 
@@ -142,4 +145,25 @@ export default () => { const title = format(); return <p>{title}</p>; };`,
   });
   expect(output.diagnostics).toEqual([]);
   expect(output.modules[0].code).not.toContain('__qwik_');
+});
+
+test('a segment may write a module binding through the same alias it reads', async () => {
+  const output = await transformModules({
+    input: [
+      {
+        path: 'src/app.tsx',
+        code: `import { $ } from '@qwik.dev/core';
+let runCount = 0;
+export const bump = $(() => ++runCount);`,
+      },
+    ],
+    isServer: true,
+  });
+
+  // an imported alias is how a chunk reaches the one declaration, reads and writes alike
+  expect(output.modules[0].code).toContain('export { runCount as __qwik_runCount };');
+  expect(output.modules[1].code).toContain(
+    'import { __qwik_runCount as runCount } from "./app.tsx";'
+  );
+  expect(output.modules[1].code).toContain('++runCount');
 });

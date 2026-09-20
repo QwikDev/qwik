@@ -13,8 +13,6 @@ const appsRoot = resolve(__dirname, '../../../../e2e/qwik-e2e/apps');
 const KNOWN_REJECTS: Record<string, string | { reason: string; isServer: boolean }> = {
   'e2e/src/components/streaming/demo.tsx': 'children-function',
   'e2e/src/components/streaming/streaming.tsx': 'children-function',
-  'qwikrouter-test/src/routes/(common)/catchall-loader/[...slug]/index.tsx':
-    'pipeline does not support: a QRL callback capturing "runCount"',
   'qwikrouter-test/src/routes/(common)/server-func/index.tsx':
     'pipeline does not support: a generator QRL callback',
   'todo-old-test/src/entry.dev.tsx': 'unsupported-runtime-jsx',

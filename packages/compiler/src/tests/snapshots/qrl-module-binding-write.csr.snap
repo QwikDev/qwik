@@ -1,0 +1,77 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+let runCount = 0;
+const settings = { suffix: '!' };
+export default () => {
+  const count = useSignal(0);
+  return (
+    <button onClick$={() => { count.value = ++runCount; settings.suffix = '?'; }}>
+      {count.value}
+    </button>
+  );
+};
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+let runCount = 0;
+const settings = { suffix: '!' };
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const count = useSignal(0);
+  const el0 = default_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count]);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+
+export { runCount as __qwik_runCount, settings as __qwik_settings };
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+import { __qwik_runCount as runCount, __qwik_settings as settings } from './component.tsx';
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  const [count] = _captures;
+  count.value = ++runCount;
+  settings.suffix = '?';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    172,
+    217
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

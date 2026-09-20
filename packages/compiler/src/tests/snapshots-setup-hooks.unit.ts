@@ -19,6 +19,23 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should write a module binding from the chunk that mutates it', async () => {
+    const output = await testInput(mode, 'qrl-module-binding-write', {
+      code: `import { useSignal } from '@qwik.dev/core';
+let runCount = 0;
+const settings = { suffix: '!' };
+export default () => {
+  const count = useSignal(0);
+  return (
+    <button onClick$={() => { count.value = ++runCount; settings.suffix = '?'; }}>
+      {count.value}
+    </button>
+  );
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should import module references in event computed and task chunks', async () => {
     const output = await testInput(mode, 'qrl-imports', {
       code: `import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';

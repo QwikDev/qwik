@@ -1,0 +1,89 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+let runCount = 0;
+const settings = { suffix: '!' };
+export default () => {
+  const count = useSignal(0);
+  return (
+    <button onClick$={() => { count.value = ++runCount; settings.suffix = '?'; }}>
+      {count.value}
+    </button>
+  );
+};
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+let runCount = 0;
+const settings = { suffix: '!' };
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    const id0 = ctx.nextId();
+    ctx.addRoot(count);
+    const text0 = renderSsrTextNode(id0, null, count);
+    return maybeThen(text0, (text0) => [
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count])),
+      '>',
+      escapeHTML(text0),
+      '</button>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { runCount as __qwik_runCount, settings as __qwik_settings };
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+import { __qwik_runCount as runCount, __qwik_settings as settings } from './component.tsx';
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  const [count] = _captures;
+  count.value = ++runCount;
+  settings.suffix = '?';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    172,
+    217
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

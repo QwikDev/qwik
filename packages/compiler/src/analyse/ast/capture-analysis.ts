@@ -113,10 +113,11 @@ export function collectCaptures(
     } else if (setupLocal !== undefined) {
       addLocal(name, setupLocal, { range: [current.start, current.end] as Range, role });
     } else if (
-      !isWrite &&
-      (ctx.plan.bindings[binding].scope === BindingScope.Module ||
-        (ctx.plan.bindings[binding].scope === BindingScope.Import &&
-          ctx.plan.imports.some((entry) => entry.binding === binding && !entry.typeOnly)))
+      // reads and writes both reach the one declaration through the module's alias export
+      ctx.plan.bindings[binding].scope === BindingScope.Module ||
+      (!isWrite &&
+        ctx.plan.bindings[binding].scope === BindingScope.Import &&
+        ctx.plan.imports.some((entry) => entry.binding === binding && !entry.typeOnly))
     ) {
       moduleReads.push({ range: [current.start, current.end], binding, role });
     } else {

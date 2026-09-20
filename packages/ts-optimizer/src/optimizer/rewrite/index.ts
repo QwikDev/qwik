@@ -18,6 +18,7 @@ import type { RelativePath } from '../types/brands.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { buildSyncTransform, isWorkerExtraction, needsPureAnnotation } from './rewrite-calls.js';
 import { getQrlCalleeName, isLibModePreservedMarker } from '../qwik/qrl-naming.js';
+import { isQwikPackageSource } from '../qwik/qwik-packages.js';
 import {
   inlineSentinelStep,
   isEventHandlerOrJsxProp,
@@ -120,8 +121,21 @@ export interface ParentRewriteResult {
   jsxRegionKeyBases?: ReadonlyMap<number, number>;
 }
 
-function isMarkerSpecifier(importedName: string, extractedCalleeNames: Set<string>): boolean {
-  return extractedCalleeNames.has(importedName);
+/**
+ * Whether an import specifier is a marker the extraction consumed. A bundled chunk can export any
+ * symbol under a marker name (`$ as basePathname`), so an aliased binding only counts when it comes
+ * from a Qwik package.
+ */
+function isMarkerSpecifier(
+  spec: ImportSpecifier,
+  importedName: string,
+  source: string,
+  extractedCalleeNames: Set<string>
+): boolean {
+  if (!extractedCalleeNames.has(importedName)) {
+    return false;
+  }
+  return spec.local.name === importedName || isQwikPackageSource(source);
 }
 
 /**
@@ -405,7 +419,7 @@ function processImports(ctx: RewriteContext): void {
         continue;
       }
       const importedName = importedSpecifierName(spec);
-      if (isMarkerSpecifier(importedName, extractedCalleeNames)) {
+      if (isMarkerSpecifier(spec, importedName, sourceNode.value, extractedCalleeNames)) {
         if (isLibMode && isLibModePreservedMarker(importedName)) {
           continue;
         }

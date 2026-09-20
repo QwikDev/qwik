@@ -407,7 +407,7 @@ export function generateManifestFromBundles(
   // A /qwikloader route could shadow a chunk-name match.
   manifest.qwikLoader = qwikLoaderFileName ? canonPath(qwikLoaderFileName) : undefined;
 
-  // Group names come from plugin.ts; qwik-core also holds the handlers.
+  // Group names come from plugin.ts; qwik-core serves the handlers when their facade merged in.
   for (const outputBundle of Object.values(outputBundles)) {
     const bundleFileName = getBundleName(outputBundle.fileName);
     if (outputBundle.name === 'qwik-core') {
@@ -427,6 +427,7 @@ export function generateManifestFromBundles(
   if (handlersFileName && handlersFileName in outputBundles) {
     qwikHandlersName = canonPath(handlersFileName);
   }
+  requireHandlerExports(qwikHandlersName, outputBundles, canonPath);
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
   for (const outputBundle of Object.values(outputBundles)) {
@@ -570,4 +571,30 @@ export function generateManifestFromBundles(
   // );
 
   return updateSortAndPriorities(manifest);
+}
+
+/**
+ * SSR writes a handler symbol into the HTML and the manifest names the chunk to load it from, so a
+ * chunk that mangled those names away fails in the browser, on click. Fail the build instead.
+ */
+function requireHandlerExports(
+  handlersName: string | undefined,
+  outputBundles: Rolldown.OutputBundle,
+  canonPath: (p: string) => string
+): void {
+  if (handlersName === undefined) {
+    return;
+  }
+  const chunk = Object.values(outputBundles).find(
+    (bundle) => bundle.type === 'chunk' && canonPath(bundle.fileName) === handlersName
+  );
+  if (chunk === undefined || chunk.type !== 'chunk') {
+    return;
+  }
+  const missing = [...extraSymbols].filter((symbol) => !chunk.exports.includes(symbol));
+  if (missing.length > 0) {
+    throw new Error(
+      `Qwik core handlers ${missing.join(', ')} are not exported by "${handlersName}"; the handlers facade must stay its own chunk.`
+    );
+  }
 }

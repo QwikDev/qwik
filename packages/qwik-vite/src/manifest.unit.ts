@@ -3,12 +3,18 @@ import { describe, expect, test } from 'vitest';
 import { generateManifestFromBundles } from './manifest';
 
 describe('generateManifestFromBundles', () => {
-  const chunk = (name: string, fileName: string, moduleIds: string[] = []) => ({
+  const HANDLERS = ['_chk', '_res', '_run', '_val', '_visibleTask'];
+  const chunk = (
+    name: string,
+    fileName: string,
+    moduleIds: string[] = [],
+    exports: string[] = HANDLERS
+  ) => ({
     type: 'chunk' as const,
     name,
     fileName,
     code: '',
-    exports: [],
+    exports,
     imports: [],
     dynamicImports: [],
     moduleIds,
@@ -90,6 +96,24 @@ describe('generateManifestFromBundles', () => {
 
     expect(manifest.preloader).toBe('q-preloader.js');
     expect(manifest.mapping['_run']).toBe('q-core.js');
+  });
+
+  test('refuses a handlers chunk that mangled the handler names away', () => {
+    expect(() =>
+      generate(
+        {
+          'q-core.js': chunk(
+            'qwik-core',
+            'q-core.js',
+            ['/app/node_modules/@qwik.dev/core/dist/core.prod.mjs'],
+            ['a', 'b']
+          ),
+        },
+        undefined,
+        undefined,
+        undefined
+      )
+    ).toThrow('_chk, _res, _run, _val, _visibleTask');
   });
 
   test('a user route named "qwikloader" does not shadow the real loader chunk', () => {

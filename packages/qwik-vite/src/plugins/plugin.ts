@@ -1551,10 +1551,10 @@ export const isDev = ${JSON.stringify(isDev)};
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
     groups: [
-      // core and handlers share a chunk: no import waterfall
+      // The handlers facade stays its own emitted entry: a group chunk mangles its export names.
       {
         name: 'qwik-core',
-        test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
+        test: /[/\\](core|qwik)[/\\]dist[/\\]core(\.prod|\.min)?\.[cm]js$/,
         includeDependenciesRecursively: false,
       },
       {

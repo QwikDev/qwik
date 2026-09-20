@@ -5,11 +5,11 @@ import { isStaticPath, requestHandler } from '@qwik.dev/router/middleware/reques
 import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Http2ServerRequest } from 'node:http2';
-import { basename, extname, join } from 'node:path';
+import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { devPreloadedRouteLoaders } from '../request-handler/dev-preloaded-route-loader';
-import { getStaticFilePathname } from '../shared/static-path';
+import { getStaticFilePath } from '../shared/static-file';
 import { computeOrigin, fromNodeHttp, getUrl } from './http';
 
 // @qwik.dev/router/middleware/node
@@ -113,18 +113,11 @@ export function createQwikRouter(
       const origin = computeOrigin(req, opts);
       const url = getUrl(req, origin);
       if (isStaticPath(req.method || 'GET', url)) {
-        const pathname = getStaticFilePathname(url.pathname);
-        if (pathname === undefined) {
+        const staticFilePath = getStaticFilePath(url.pathname);
+        if (staticFilePath === undefined) {
           return next();
         }
-        let filePath: string;
-        if (basename(pathname).includes('.')) {
-          filePath = join(staticFolder, pathname);
-        } else if (!globalThis.__NO_TRAILING_SLASH__) {
-          filePath = join(staticFolder, pathname + 'index.html');
-        } else {
-          filePath = join(staticFolder, pathname, 'index.html');
-        }
+        const filePath = join(staticFolder, staticFilePath);
         const ext = extname(filePath).replace(/^\./, '');
         const stream = createReadStream(filePath);
         stream.on('error', next);

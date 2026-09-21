@@ -1,8 +1,9 @@
 ==INPUT==
 
-export default (props: { a: string; b: string }) => (
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { a: string; b: string }) => (
   <style dangerouslySetInnerHTML={props.a}>{props.b}</style>
-);
+));
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -19,11 +20,11 @@ export default (props: { a: string; b: string }) => (
     "message": "<style> takes its content once: drop dangerouslySetInnerHTML or the children.",
     "highlights": [
       {
-        "lo": 56,
-        "hi": 114,
-        "startLine": 2,
+        "lo": 112,
+        "hi": 170,
+        "startLine": 3,
         "startCol": 3,
-        "endLine": 2,
+        "endLine": 3,
         "endCol": 60
       }
     ],

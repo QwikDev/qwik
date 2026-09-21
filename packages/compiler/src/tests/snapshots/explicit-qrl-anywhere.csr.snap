@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { useOn, useSignal, $ } from '@qwik.dev/core';
+import { component$, useOn, useSignal, $ } from '@qwik.dev/core';
 export function later(run: () => void) {
   return $(() => run());
 }
-export default () => {
+export default component$(() => {
   const count = useSignal(0);
   useOn('click', $(() => { count.value++; }));
   const wrapped = [1].map((step) => $(() => (count.value += step)));
@@ -13,7 +13,7 @@ export default () => {
       {count.value}
     </button>
   );
-};
+});
 
 == CSR OUTPUT ==
 
@@ -92,8 +92,8 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    104,
-    118
+    116,
+    130
   ],
   "paramNames": [],
   "captureNames": [
@@ -123,8 +123,8 @@ export const component_qrl_segment_1_2fpox8kpy8lvx = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    192,
-    219
+    215,
+    242
   ],
   "paramNames": [],
   "captureNames": [
@@ -154,8 +154,8 @@ export const component_qrl_segment_2_2fpow2he7qfuc = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    258,
-    288
+    281,
+    311
   ],
   "paramNames": [],
   "captureNames": [
@@ -186,8 +186,8 @@ export const component_qrl_segment_3_2fpowgii4khuv = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    345,
-    367
+    368,
+    390
   ],
   "paramNames": [],
   "captureNames": [
@@ -223,8 +223,8 @@ export const component_q_e_click_segment_4_2xwyeh830jenv = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    314,
-    370
+    337,
+    393
   ],
   "paramNames": [],
   "captureNames": [
@@ -251,8 +251,8 @@ export const component_data_n_segment_5_brpnebuasbbh = (wrapped) => {
   "ctxName": "data-n",
   "captures": true,
   "loc": [
-    388,
-    402
+    411,
+    425
   ],
   "paramNames": [],
   "captureNames": [

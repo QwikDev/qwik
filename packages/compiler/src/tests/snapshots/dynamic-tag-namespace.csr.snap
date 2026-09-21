@@ -1,10 +1,11 @@
 ==INPUT==
 
-export default (props: { shape: string }) => (
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { shape: string }) => (
   <svg viewBox="0 0 10 10">
     <props.shape r="1" />
   </svg>
-);
+));
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -16,7 +17,6 @@ import {
   createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
-
 const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_tag_dynamic_segment_0_331xea01t87eh',
   () => import('./component.tsx_component_tag_dynamic_segment_0_331xea01t87eh'),
@@ -68,8 +68,8 @@ export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   "ctxName": "tag:dynamic",
   "captures": true,
   "loc": [
-    79,
-    100
+    135,
+    156
   ],
   "paramNames": [],
   "captureNames": [

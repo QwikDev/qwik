@@ -1,9 +1,10 @@
 ==INPUT==
 
+import { component$ } from '@qwik.dev/core';
 const prefix = 'p-';
-export default () => {
+export default component$(() => {
   return <ul>{['a', 'b'].map((item) => <li>{prefix + item}</li>)}</ul>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -16,16 +17,15 @@ import {
   _textValue,
   _createElementTemplate,
 } from '@qwik.dev/core';
-
-const semantic_collectionRender_57_107_1hgwyeb4bdu2g_tmpl0 = _createElementTemplate('<li> </li>');
+const semantic_collectionRender_113_163_2u34inv59lcar_tmpl0 = _createElementTemplate('<li> </li>');
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 const prefix = 'p-';
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
-  function semantic_collectionRender_57_107_1hgwyeb4bdu2g(ctx, item) {
-    const el0 = semantic_collectionRender_57_107_1hgwyeb4bdu2g_tmpl0(ctx.document);
+  function semantic_collectionRender_113_163_2u34inv59lcar(ctx, item) {
+    const el0 = semantic_collectionRender_113_163_2u34inv59lcar_tmpl0(ctx.document);
     _first(el0).data = _textValue(prefix + item);
     return el0;
   }
@@ -35,7 +35,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     end0,
     ['a', 'b'],
     null,
-    semantic_collectionRender_57_107_1hgwyeb4bdu2g,
+    semantic_collectionRender_113_163_2u34inv59lcar,
     0,
     0,
     true

@@ -1,7 +1,8 @@
 ==INPUT==
 
+import { component$ } from '@qwik.dev/core';
 import { Badge, UI } from './ui';
-export default (props: { as: string; component: any }) => {
+export default component$((props: { as: string; component: any }) => {
   const Heading = 'h2';
   const Alias = Badge;
   const Chosen = props.as;
@@ -14,7 +15,7 @@ export default (props: { as: string; component: any }) => {
       <props.component />
     </section>
   );
-};
+});
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -35,7 +36,6 @@ import {
   createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
-
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
@@ -129,8 +129,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    222,
-    228
+    278,
+    284
   ],
   "paramNames": []
 }
@@ -176,8 +176,8 @@ export const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
   "ctxName": "tag:dynamic",
   "captures": true,
   "loc": [
-    261,
-    284
+    317,
+    340
   ],
   "paramNames": [],
   "captureNames": [
@@ -209,8 +209,8 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    269,
-    275
+    325,
+    331
   ],
   "paramNames": []
 }
@@ -239,8 +239,8 @@ export const component_tag_dynamic_segment_3_331xd3wq2q1cw = (ctx) => {
   "ctxName": "tag:dynamic",
   "captures": true,
   "loc": [
-    321,
-    340
+    377,
+    396
   ],
   "paramNames": [],
   "captureNames": [

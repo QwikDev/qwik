@@ -12,10 +12,11 @@ const options = (code: string) => ({
 
 describe('pipeline diagnostic boundary', () => {
   test('returns authored user diagnostics through the optimizer contract', async () => {
-    const code = `type Props = { label: string };
-export default (props: Props) => {
+    const code = `import { component$ } from '@qwik.dev/core';
+type Props = { label: string };
+export default component$((props: Props) => {
   return <p><br>x</br>{props.label}</p>;
-};
+});
 `;
     const output = await transformModules(options(code));
 
@@ -31,17 +32,17 @@ export default (props: Props) => {
       suggestions: null,
     });
     const highlight = output.diagnostics[0].highlights?.[0];
-    expect(highlight).toMatchObject({ startLine: 3 });
+    expect(highlight).toMatchObject({ startLine: 4 });
     expect(code.slice(highlight!.lo, highlight!.hi)).toBe('<br>x</br>');
   });
 
   test('keeps UnsupportedError as an implementation failure', async () => {
     await expect(
       transformModules(
-        options(`import { Slot } from '@qwik.dev/core';
-export default (props: { name: string }) => {
+        options(`import { component$, Slot } from '@qwik.dev/core';
+export default component$((props: { name: string }) => {
   return <div><Slot {...props} /></div>;
-};
+});
 `)
       )
     ).rejects.toThrow('pipeline does not support: Slot attributes');

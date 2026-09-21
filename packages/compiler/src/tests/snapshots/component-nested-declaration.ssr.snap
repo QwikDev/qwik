@@ -1,0 +1,46 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  const Child = component$(() => <b>{count.value}</b>);
+  return <p><Child /></p>;
+});
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  createComponent,
+  _markComponent,
+} from '@qwik.dev/core';
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    const Child = (props, ctx) => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(count);
+      const text0 = renderSsrTextNode(id0, null, count);
+      return maybeThen(text0, (text0) => [
+        '<b q:id="',
+        createSsrNodeId(id0),
+        '">',
+        escapeHTML(text0),
+        '</b>',
+      ]);
+    };
+    const component0 = createComponent(Child, null, ctx);
+    return maybeThen(component0, (component0) => ['<p>', component0, '</p>']);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+== SSR DIAGNOSTICS ==
+
+[]

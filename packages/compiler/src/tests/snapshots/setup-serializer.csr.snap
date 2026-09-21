@@ -1,7 +1,7 @@
 ==INPUT==
 
-import { useSerializer$, useSignal } from '@qwik.dev/core';
-export default () => {
+import { component$, useSerializer$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const start = useSignal(5);
   const count = useSerializer$({
     deserialize: (value: number) => ({ n: value }),
@@ -10,7 +10,7 @@ export default () => {
   });
   const date = useSerializer$(() => ({ deserialize: (value: string) => new Date(value), serialize: (date: Date) => date.toISOString() }));
   return <span>{count.value.n}{date.value.getFullYear()}</span>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -100,8 +100,8 @@ export const component_count_segment_0_1adkz2bcpjjfs = () => {
   "ctxName": "count",
   "captures": true,
   "loc": [
-    144,
-    277
+    167,
+    300
   ],
   "paramNames": [],
   "captureNames": [
@@ -131,8 +131,8 @@ export const component_date_segment_1_89fc8zvxt5qk = () => {
   "ctxName": "useSerializer$",
   "captures": false,
   "loc": [
-    295,
-    417
+    318,
+    440
   ],
   "paramNames": []
 }
@@ -159,8 +159,8 @@ export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    435,
-    448
+    458,
+    471
   ],
   "paramNames": [],
   "captureNames": [
@@ -190,8 +190,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    450,
-    474
+    473,
+    497
   ],
   "paramNames": [],
   "captureNames": [

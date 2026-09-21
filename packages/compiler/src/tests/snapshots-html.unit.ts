@@ -28,76 +28,81 @@ export default component$(() => {
 
   test('should compile a static default-arrow component', async () => {
     await testInput(mode, 'static-default-arrow', {
-      code: `export default () => {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <p>Hello Qwik</p>;
-};
+});
 `,
     });
   });
 
   test('should emit static attributes, bare booleans, JSX aliases, and aria', async () => {
     await testInput(mode, 'static-attributes', {
-      code: `export default () => {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <main className="shell" htmlFor="x" hidden aria-hidden="false" title="A&B"></main>;
-};
+});
 `,
     });
   });
 
   test('should render a text hole reading props', async () => {
     await testInput(mode, 'text-hole-props', {
-      code: `export default (props: { title: string }) => {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { title: string }) => {
   return <p>{props.title}</p>;
-};
+});
 `,
     });
   });
 
   test('should render a text hole in an expression-body arrow', async () => {
     await testInput(mode, 'text-hole-expression-body', {
-      code: `export default (props: { name: string }) => <p>{props.name}</p>;
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { name: string }) => <p>{props.name}</p>);
 `,
     });
   });
 
   test('should render a props text hole with sibling children', async () => {
     await testInput(mode, 'text-hole-siblings-props', {
-      code: `export default (props: { title: string }) => {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { title: string }) => {
   return <p>a{props.title}b</p>;
-};
+});
 `,
     });
   });
 
   test('should render a signal-read text hole with sibling children', async () => {
     await testInput(mode, 'text-hole-siblings-signal', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   return <p>Count: {count.value}!</p>;
-};
+});
 `,
     });
   });
   test('should decompose a concat into static text and a stringify signal hole', async () => {
     await testInput(mode, 'text-hole-concat', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   return <p>{'Count: ' + count.value}</p>;
-};
+});
 `,
     });
   });
 
   test('should render multiple signal-read text holes with sibling children', async () => {
     await testInput(mode, 'text-hole-multi-siblings-signal', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   const name = useSignal('Qwik');
   return <p>{name.value} count: {count.value}!</p>;
-};
+});
 `,
     });
   });
@@ -315,12 +320,13 @@ export default component$((props: { heading: string }) => (
 
   test('should set a live value inside script and style as element content', async () => {
     const output = await testInput(mode, 'raw-text-live-value', {
-      code: `export default (props: { init: string; rules: string }) => (
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { init: string; rules: string }) => (
   <div>
     <script>{props.init}</script>
     <style>{'.a{'}{props.rules}{'}'}</style>
   </div>
-);`,
+));`,
     });
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
@@ -331,12 +337,13 @@ export default component$((props: { heading: string }) => (
 
   test('should keep a live value inside title and textarea escaped text', async () => {
     const output = await testInput(mode, 'rcdata-live-value', {
-      code: `export default (props: { heading: string; draft: string }) => (
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { heading: string; draft: string }) => (
   <div>
     <title>Page: {props.heading}</title>
     <textarea>{props.draft}</textarea>
   </div>
-);`,
+));`,
     });
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
@@ -350,16 +357,18 @@ export default component$((props: { heading: string }) => (
 
   test('should refuse content given both as children and as innerHTML', async () => {
     const output = await testInput(mode, 'raw-text-double-content', {
-      code: `export default (props: { a: string; b: string }) => (
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { a: string; b: string }) => (
   <style dangerouslySetInnerHTML={props.a}>{props.b}</style>
-);`,
+));`,
     });
     expect(output.diagnostics).toMatchObject([{ code: 'raw-text-content' }]);
   });
 
   test('should keep a dynamic table section beside its static siblings', async () => {
     const output = await testInput(mode, 'table-dynamic-section', {
-      code: `export default (props: { on: boolean; rows: number[] }) => (
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { on: boolean; rows: number[] }) => (
   <table>
     <thead>
       <tr>
@@ -383,7 +392,7 @@ export default component$((props: { heading: string }) => (
       </tr>
     </tfoot>
   </table>
-);`,
+));`,
     });
     expect(output.diagnostics).toEqual([]);
   });
@@ -474,25 +483,26 @@ export default component$(() => {
 
   test('should ignore empty event attributes', async () => {
     await testInput(mode, 'empty-event-attributes', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export const Child = (props) => <button onClick$>{props.title}</button>;
-export default () => {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export const Child = component$((props) => <button onClick$>{props.title}</button>);
+export default component$(() => {
   const attributes = useSignal({ title: 'save' });
   return <Child {...attributes.value} onSave$ />;
-};
+});
 `,
     });
   });
 
   test('should keep a leading newline the parser would drop in pre and textarea', async () => {
     const output = await testInput(mode, 'leading-newline', {
-      code: `export default (props: { code: string }) => (
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { code: string }) => (
   <div>
     <pre>{props.code}</pre>
     <pre>{'\\nfixed'}</pre>
     <textarea value={props.code} />
   </div>
-);`,
+));`,
     });
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
@@ -505,12 +515,13 @@ export default () => {
 
   test('should fold several parts of text-only content into one hole', async () => {
     const output = await testInput(mode, 'text-only-content', {
-      code: `export default (props: { page: string; line: string; count: number }) => (
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { page: string; line: string; count: number }) => (
   <div>
     <title>{props.page} - Site</title>
     <textarea>{props.line}{props.line}</textarea>
   </div>
-);`,
+));`,
     });
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
@@ -521,11 +532,11 @@ export default () => {
 
   test('should render a bare signal child as its tracked value', async () => {
     const output = await testInput(mode, 'text-hole-signal-child', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(1);
   return <span>{count}</span>;
-};`,
+});`,
     });
     const code = output.modules.map((module) => module.code).join('\n');
     expect(code).toContain(mode === 'ssr' ? 'renderSsrTextNode(' : 'createTextNodeEffect(');

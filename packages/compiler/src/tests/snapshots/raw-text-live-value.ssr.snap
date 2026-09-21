@@ -1,11 +1,12 @@
 ==INPUT==
 
-export default (props: { init: string; rules: string }) => (
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { init: string; rules: string }) => (
   <div>
     <script>{props.init}</script>
     <style>{'.a{'}{props.rules}{'}'}</style>
   </div>
-);
+));
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -20,7 +21,6 @@ import {
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
-
 const component_text_segment_0_1fh10fbkzokfc = (props) => {
   return `.a{${props.rules}}`;
 };
@@ -79,8 +79,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    108,
-    139
+    164,
+    195
   ],
   "paramNames": [],
   "captureNames": [

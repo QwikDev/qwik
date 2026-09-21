@@ -22,7 +22,8 @@ test.each([
     input: [
       {
         path: 'src/component.tsx',
-        code: `export default ({ ${pattern}, onSave: save }) => <button onClick$={() => save({ heading })}>{heading}</button>;`,
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ ${pattern}, onSave: save }) => <button onClick$={() => save({ heading })}>{heading}</button>);`,
       },
     ],
   });
@@ -102,11 +103,11 @@ test.each(['data-title', 'quote"slash\\key'])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useComputed$ } from '@qwik.dev/core';
-export default ({ ${JSON.stringify(key)}: props }) => {
+          code: `import { component$, useComputed$ } from '@qwik.dev/core';
+export default component$(({ ${JSON.stringify(key)}: props }) => {
   const heading = useComputed$(() => props.toUpperCase());
   return <strong>{heading.value}</strong>;
-};`,
+});`,
         },
       ],
     });
@@ -134,10 +135,11 @@ test.each(['format', 'useFormat'])('calls the prop alias %s in setup', async (al
     input: [
       {
         path: 'src/component.tsx',
-        code: `export default ({ format: ${alias} }) => {
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ format: ${alias} }) => {
   const label = ${alias}('title');
   return <b />;
-};`,
+});`,
       },
     ],
   });
@@ -165,7 +167,8 @@ test('a signal passed through a prop alias remains reactive', async () => {
     input: [
       {
         path: 'src/component.tsx',
-        code: `export default ({ count: counter }) => <b>{counter.value}</b>;`,
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ count: counter }) => <b>{counter.value}</b>);`,
       },
     ],
   });
@@ -194,7 +197,8 @@ test('an aliased children binding rendered as content is a diagnostic', async ()
     input: [
       {
         path: 'src/component.tsx',
-        code: `export default ({ 'children': content }) => <section>{content}</section>;`,
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ 'children': content }) => <section>{content}</section>);`,
       },
     ],
   });
@@ -205,7 +209,11 @@ test('keeps a computed key outside the module explicit', async () => {
   await expect(
     transformModules({
       input: [
-        { path: 'src/component.tsx', code: `export default ({ [key]: heading }) => <span />;` },
+        {
+          path: 'src/component.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ [key]: heading }) => <span />);`,
+        },
       ],
       isServer: true,
     })
@@ -217,7 +225,8 @@ test('reads a nested parameter pattern through its prop path', async () => {
     input: [
       {
         path: 'src/component.tsx',
-        code: `export default ({ nested: { title } }) => <span>{title}</span>;`,
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ nested: { title } }) => <span>{title}</span>);`,
       },
     ],
     isServer: true,

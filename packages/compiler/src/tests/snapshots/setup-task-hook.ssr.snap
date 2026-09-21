@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { implicit$FirstArg, useTaskQrl, useTask$ as task, useSignal } from '@qwik.dev/core';
+import { component$, implicit$FirstArg, useTaskQrl, useTask$ as task, useSignal } from '@qwik.dev/core';
 const useCustom$ = implicit$FirstArg(useTaskQrl);
-export default () => {
+export default component$(() => {
   const count = useSignal(1);
   useCustom$(({ cleanup }) => {
     const value = count.value;
@@ -11,7 +11,7 @@ export default () => {
   });
   task(() => console.log(count.value), { deferUpdates: true });
   return <span>{count.value}</span>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -99,8 +99,8 @@ export const component_useCustomqrl_segment_0_heif5ecaq0pq = ({ cleanup }) => {
   "ctxName": "useCustom$",
   "captures": true,
   "loc": [
-    198,
-    337
+    221,
+    360
   ],
   "paramNames": [
     "{ cleanup }"
@@ -132,8 +132,8 @@ export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    341,
-    401
+    364,
+    424
   ],
   "paramNames": [],
   "captureNames": [

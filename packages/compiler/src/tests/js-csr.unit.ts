@@ -40,7 +40,13 @@ describe('childPathExpression', () => {
 
 test('emits mixed multi-root programs as an array', async () => {
   const path = 'src/component.tsx';
-  const analysed = await analyseModule({ path, code: 'export default () => <p />;' }, {});
+  const analysed = await analyseModule(
+    {
+      path,
+      code: "import { component$ } from '@qwik.dev/core';\nexport default component$(() => <p />);",
+    },
+    {}
+  );
   const linked = linkPlans(
     [analysed],
     [{ kind: EntryKind.Module, module: path }],
@@ -85,15 +91,15 @@ test('collection setup restores outer captures before evaluating local consts', 
     input: [
       {
         path: 'src/component.tsx',
-        code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+        code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const suffix = useSignal('!');
   const items = useSignal(['title']);
   return <ul>{items.value.map((item) => {
     const title = item + suffix.value;
     return <li>{title + title}</li>;
   })}</ul>;
-};`,
+});`,
       },
     ],
   });

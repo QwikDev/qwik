@@ -41,12 +41,12 @@ describe('JSX lowering + static folding', () => {
   test.each(['', '{...spread.value}'])(
     'component keys stay outside props and props proxies: %s',
     async (spread) => {
-      const source = `import { useSignal } from '@qwik.dev/core';
-export const Child = () => <b />;
-export default (props) => {
+      const source = `import { component$, useSignal } from '@qwik.dev/core';
+export const Child = component$(() => <b />);
+export default component$((props) => {
   const spread = useSignal({ title: 'Title' });
   return <Child ${spread} key={props.keyOnly} title="Title" />;
-};`;
+});`;
       const withKey = await analyseModule(
         { path: 'src/app.tsx', code: source },
         { transpileTs: true }
@@ -120,7 +120,7 @@ export default (props) => {
     const plan = await analyseModule(
       {
         path: 'src/app.tsx',
-        code: 'export default (props) => <p>one<>two</>{props.value}<i /><b /><em /></p>;',
+        code: "import { component$ } from '@qwik.dev/core';\nexport default component$((props) => <p>one<>two</>{props.value}<i /><b /><em /></p>);",
       },
       {}
     );
@@ -155,9 +155,9 @@ test('fragment projections preserve slot names without crossing element boundari
   const plan = await analyseModule(
     {
       path: 'src/app.tsx',
-      code: `import { Slot } from '@qwik.dev/core';
-export const Card = () => <Slot />;
-export default () => <Card><><h1 q:slot="header">Title</h1><section><p q:slot="nested">Body</p></section></><p>After</p></Card>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Card = component$(() => <Slot />);
+export default component$(() => <Card><><h1 q:slot="header">Title</h1><section><p q:slot="nested">Body</p></section></><p>After</p></Card>);
 `,
     },
     { transpileTs: true }
@@ -171,9 +171,9 @@ test('empty fragments create neither projections nor fallback QRLs', async () =>
   const plan = await analyseModule(
     {
       path: 'src/app.tsx',
-      code: `import { Slot } from '@qwik.dev/core';
-export const Card = () => <Slot><>{/* empty */}{(<></>)}</></Slot>;
-export default () => <Card><><></>{/* empty */}</></Card>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Card = component$(() => <Slot><>{/* empty */}{(<></>)}</></Slot>);
+export default component$(() => <Card><><></>{/* empty */}</></Card>);
 `,
     },
     { transpileTs: true }
@@ -192,9 +192,9 @@ test('a direct Slot child forwards its named projection without a render QRL', a
   const plan = await analyseModule(
     {
       path: 'src/app.tsx',
-      code: `import { Slot } from '@qwik.dev/core';
-export const Inner = () => <Slot name="target" />;
-export default () => <Inner><Slot name="source" q:slot="target" /></Inner>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Inner = component$(() => <Slot name="target" />);
+export default component$(() => <Inner><Slot name="source" q:slot="target" /></Inner>);
 `,
     },
     { transpileTs: true }
@@ -217,8 +217,8 @@ test('a dynamic Slot name lowers inside one render QRL', async () => {
   const plan = await analyseModule(
     {
       path: 'src/app.tsx',
-      code: `import { Slot } from '@qwik.dev/core';
-export default (props) => <Slot name={props.name} />;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export default component$((props) => <Slot name={props.name} />);
 `,
     },
     { transpileTs: true }
@@ -255,12 +255,12 @@ test('a conditional child projects into its statically named slot', async () => 
   const plan = await analyseModule(
     {
       path: 'src/app.tsx',
-      code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <Slot name="start" />;
-export default () => {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <Slot name="start" />);
+export default component$(() => {
   const show = useSignal(true);
   return <Panel>{show.value && <span q:slot="start">start</span>}</Panel>;
-};
+});
 `,
     },
     { transpileTs: true }
@@ -280,12 +280,12 @@ describe.each([
     const plan = await analyseModule(
       {
         path: 'src/app.tsx',
-        code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot /></main>;
-export default () => {
+        code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
+export default component$(() => {
   const items = useSignal([{ id: 1, title: 'Title' }]);
   return <Panel>{${source}.map((item) => <h2 key={item.id} ${attribute}>${children}</h2>)}</Panel>;
-};
+});
 `,
       },
       { transpileTs: true }
@@ -344,12 +344,12 @@ export default () => {
     const plan = await analyseModule(
       {
         path: 'src/app.tsx',
-        code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot /></main>;
-export default () => {
+        code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
+export default component$(() => {
   const items = useSignal([{ id: 1, title: 'Title' }]);
   return <Panel>{${source}.map((item) => ${row})}</Panel>;
-};
+});
 `,
       },
       { transpileTs: true }
@@ -370,12 +370,12 @@ test('a conditional child splits across its statically named slots', async () =>
   const plan = await analyseModule(
     {
       path: 'src/app.tsx',
-      code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="x" /><Slot name="y" /></main>;
-export default () => {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="x" /><Slot name="y" /></main>);
+export default component$(() => {
   const flip = useSignal(false);
   return <Panel>{flip.value ? <a q:slot="x">alpha</a> : <b q:slot="y">bravo</b>}</Panel>;
-};
+});
 `,
     },
     { transpileTs: true }
@@ -410,9 +410,9 @@ test.each([
     const plan = await analyseModule(
       {
         path: 'src/app.tsx',
-        code: `import { Slot } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot /></main>;
-export default (props) => <Panel>{${expression}}</Panel>;
+        code: `import { component$, Slot } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
+export default component$((props) => <Panel>{${expression}}</Panel>);
 `,
       },
       { transpileTs: true }

@@ -1,6 +1,7 @@
 ==INPUT==
 
-export default (props: { name: string }) => <p>{props.name}</p>;
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { name: string }) => <p>{props.name}</p>);
 
 == SSR OUTPUT ==
 
@@ -15,7 +16,6 @@ import {
   maybeThen,
   _markComponent,
 } from '@qwik.dev/core';
-
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();

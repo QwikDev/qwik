@@ -1,12 +1,12 @@
 ==INPUT==
 
-import { $, useSignal } from '@qwik.dev/core';
-export default (props) => {
+import { component$, $, useSignal } from '@qwik.dev/core';
+export default component$((props) => {
   const count = useSignal(0);
   let action = $(() => { count.value++; });
   if (props.disabled) action = null;
   return <button onClick$={action}>{count.value}</button>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -95,8 +95,8 @@ export const component_action_segment_0_2k64kau1v2n45 = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    120,
-    147
+    143,
+    170
   ],
   "paramNames": [],
   "captureNames": [
@@ -123,8 +123,8 @@ export const component_onClickqrl_segment_1_3rzjk4cwl942g = (action) => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    213,
-    219
+    236,
+    242
   ],
   "paramNames": [],
   "captureNames": [

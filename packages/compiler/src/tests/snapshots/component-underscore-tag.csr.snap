@@ -1,22 +1,15 @@
 ==INPUT==
 
+import { component$ } from '@qwik.dev/core';
 import Layout from './layout';
 const _Layout = Layout;
 function _createContent(props) {
   return <p>{props.text}</p>;
 }
-export default () => <_Layout><_createContent text="hi" /></_Layout>;
+export default component$(() => <_Layout><_createContent text="hi" /></_Layout>);
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
-
-import {
-  _qrlWithChunk,
-  createSlotScope,
-  _EMPTY_OBJ,
-  registerProjection,
-  createComponent,
-} from '@qwik.dev/core';
 
 const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
@@ -28,6 +21,13 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithCh
   () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );
+import {
+  _qrlWithChunk,
+  createSlotScope,
+  _EMPTY_OBJ,
+  registerProjection,
+  createComponent,
+} from '@qwik.dev/core';
 import Layout from './layout';
 const _Layout = Layout;
 function _createContent(props) {
@@ -90,8 +90,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    97,
-    116
+    142,
+    161
   ],
   "paramNames": [],
   "captureNames": [
@@ -121,8 +121,8 @@ export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    101,
-    111
+    146,
+    156
   ],
   "paramNames": [],
   "captureNames": [
@@ -157,8 +157,8 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    150,
-    178
+    206,
+    234
   ],
   "paramNames": []
 }

@@ -5,49 +5,49 @@ import { testInput, testInputs } from './snapshot-runner';
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should share module bindings with QRL chunks', async () => {
     const output = await testInput(mode, 'qrl-module-bindings', {
-      code: `import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
+      code: `import { component$, useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
 const prefix = 'Saved';
 const settings = { suffix: '!' };
 function format(value) { return prefix + ': ' + value; }
-export default () => {
+export default component$(() => {
   const count = useSignal(2);
   const title = useComputed$(() => format(count.value));
   useTask$(() => console.log(settings.suffix, title.value));
   return <button onClick$={() => console.log(format(count.value), settings)}>{title.value}</button>;
-};`,
+});`,
     });
     expect(output.diagnostics).toEqual([]);
   });
 
   test('should write a module binding from the chunk that mutates it', async () => {
     const output = await testInput(mode, 'qrl-module-binding-write', {
-      code: `import { useSignal } from '@qwik.dev/core';
+      code: `import { component$, useSignal } from '@qwik.dev/core';
 let runCount = 0;
 const settings = { suffix: '!' };
-export default () => {
+export default component$(() => {
   const count = useSignal(0);
   return (
     <button onClick$={() => { count.value = ++runCount; settings.suffix = '?'; }}>
       {count.value}
     </button>
   );
-};`,
+});`,
     });
     expect(output.diagnostics).toEqual([]);
   });
 
   test('should keep a generator head on a QRL callback', async () => {
     const output = await testInput(mode, 'qrl-generator', {
-      code: `import { $, useSignal } from '@qwik.dev/core';
+      code: `import { component$, $, useSignal } from '@qwik.dev/core';
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 export const stream = $(async function* () {
   for (let i = 0; i < 3; i++) { await delay(10); yield i; }
 });
-export default () => {
+export default component$(() => {
   const step = useSignal(1);
   const counted = $(function* count() { yield step.value; });
   return <button onClick$={() => counted}>{step.value}</button>;
-};`,
+});`,
     });
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
@@ -59,14 +59,14 @@ export default () => {
 
   test('should import module references in event computed and task chunks', async () => {
     const output = await testInput(mode, 'qrl-imports', {
-      code: `import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
+      code: `import { component$, useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
 import { calculate, save } from './pricing';
-export default () => {
+export default component$(() => {
   const count = useSignal(2);
   const total: { value: number } = useComputed$(() => calculate(count.value));
   useTask$(() => save(total.value));
   return <button onClick$={() => save(count.value)}>{total.value}</button>;
-};`,
+});`,
     });
     expect(output.diagnostics).toEqual([]);
   });
@@ -119,9 +119,9 @@ export default component$(() => {
 
   test('should keep setup aliases of props, stores and signals live', async () => {
     const output = await testInput(mode, 'setup-live-aliases', {
-      code: `import { useSignal, useStore } from '@qwik.dev/core';
+      code: `import { component$, useSignal, useStore } from '@qwik.dev/core';
 import { Child } from './child';
-export default (props: { label: string; title: string; as: string }) => {
+export default component$((props: { label: string; title: string; as: string }) => {
   const label = props.label;
   const { title } = props;
   const count = useSignal(0);
@@ -136,7 +136,7 @@ export default (props: { label: string; title: string; as: string }) => {
       <Child state={store} />
     </Tag>
   );
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -168,22 +168,22 @@ export default (props: { label: string; title: string; as: string }) => {
 
   test('should pass context through nested component scopes', async () => {
     const output = await testInput(mode, 'setup-context', {
-      code: `import { createContextId, useSignal, useContextProvider as provide, useContext as read } from '@qwik.dev/core';
+      code: `import { component$, createContextId, useSignal, useContextProvider as provide, useContext as read } from '@qwik.dev/core';
 const Counter = createContextId('counter');
-export const Child = () => {
+export const Child = component$(() => {
   const count: { value: number } = read(Counter);
   return <button onClick$={() => count.value++}>{count.value}</button>;
-};
-export const Nested = () => {
+});
+export const Nested = component$(() => {
   const count = useSignal(10);
   provide(Counter, count);
   return <Child />;
-};
-export default () => {
+});
+export default component$(() => {
   const count = useSignal(1);
   provide(Counter, count);
   return <main><Child /><Nested /><Child /></main>;
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -196,11 +196,11 @@ export default () => {
 
   test('should compile store setup through a plain hook call', async () => {
     const output = await testInput(mode, 'setup-store', {
-      code: `import { useStore as store } from '@qwik.dev/core';
-export default (props: { initial: number }) => {
+      code: `import { component$, useStore as store } from '@qwik.dev/core';
+export default component$((props: { initial: number }) => {
   const state = store(() => ({ count: props.initial }), { deep: false });
   return <button onClick$={() => state.count++}>{state.count}</button>;
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -208,8 +208,8 @@ export default (props: { initial: number }) => {
 
   test('should restore await context across hook, explicit and event QRLs', async () => {
     await testInput(mode, 'qrl-await', {
-      code: `import { $, useSignal, useTask$ } from '@qwik.dev/core';
-export default (props) => {
+      code: `import { component$, $, useSignal, useTask$ } from '@qwik.dev/core';
+export default component$((props) => {
   const count = useSignal(1);
   const run = $(async function run(value = props.initial) {
     await Promise.resolve(value);
@@ -226,23 +226,23 @@ export default (props) => {
     catch { console.log(count.value); }
     await run();
   }}>run</button>;
-};
+});
 `,
     });
   });
 
   test('should reuse one setup QRL across hooks and events', async () => {
     const output = await testInput(mode, 'setup-hook-qrl', {
-      code: `import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
+      code: `import { component$, $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
 import { useCustom$ as custom } from './hooks';
-export default (props) => {
+export default component$((props) => {
   const count = useSignal(1);
   const read = $(() => count.value);
   useTask$((read));
   custom(read, props.options);
   const total: { value: number } = useComputed$(read);
   return <button onClick$={read}>{total.value}</button>;
-};
+});
 `,
     });
     expect(
@@ -255,28 +255,28 @@ export default (props) => {
 
   test('should compile generic setup hooks by their imported binding', async () => {
     await testInput(mode, 'setup-custom-hook', {
-      code: `import { useSignal } from '@qwik.dev/core';
+      code: `import { component$, useSignal } from '@qwik.dev/core';
 import { useCustom$ as custom } from './hooks';
-export default (props: { title: string; options: object; args: unknown[] }) => {
+export default component$((props: { title: string; options: object; args: unknown[] }) => {
   const count = useSignal(1);
   const { label }: { label: string } = custom(() => count.value, props.options);
   custom(() => props.title, ...props.args);
   return <span>{label}</span>;
-};
+});
 `,
     });
   });
 
   test('should hand visible tasks to the runtime trigger', async () => {
     const output = await testInput(mode, 'setup-visible-task', {
-      code: `import { useVisibleTask$, useSignal } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useVisibleTask$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const status = useSignal('waiting');
   useVisibleTask$(() => { status.value = 'visible'; });
   useVisibleTask$(({ cleanup }) => { cleanup(() => console.log(status.value)); }, { strategy: 'document-ready' });
   useVisibleTask$(() => console.log(status.value), { strategy: 'document-idle' });
   return <output>{status.value}</output>;
-};
+});
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
@@ -289,12 +289,12 @@ export default () => {
 
   test('should rewrite $ hooks to their Qrl and function twins', async () => {
     const output = await testInput(mode, 'setup-marker-hooks', {
-      code: `import { $, implicit$FirstArg, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
+      code: `import { component$, $, implicit$FirstArg, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 import { useCustom$ } from './hooks';
 export const useLocalQrl = (qrl) => qrl;
 export const useLocal = (fn) => fn;
 export const useLocal$ = implicit$FirstArg(useLocalQrl);
-export default () => {
+export default component$(() => {
   const count = useSignal(1);
   const read = $(() => count.value);
   useTask$(read);
@@ -302,7 +302,7 @@ export default () => {
   useCustom$(() => count.value);
   useLocal$(() => count.value);
   return <span>{total.value}</span>;
-};
+});
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
@@ -324,13 +324,13 @@ export default () => {
 
   test('should compile global and scoped styles without QRLs', async () => {
     const output = await testInput(mode, 'setup-styles', {
-      code: `import { useSignal, useStyles$, useStylesScoped$ } from '@qwik.dev/core';
+      code: `import { component$, useSignal, useStyles$, useStylesScoped$ } from '@qwik.dev/core';
 const STYLE = \`.container { color: red; }\`;
-export const Child = () => {
+export const Child = component$(() => {
   useStylesScoped$(STYLE);
   return <div class="container">child</div>;
-};
-export default () => {
+});
+export default component$(() => {
   useStyles$('.global { color: blue; }');
   const scope = useStylesScoped$(\`.local { color: green; }\`);
   const active = useSignal(false);
@@ -342,7 +342,7 @@ export default () => {
       <Child />
     </section>
   );
-};
+});
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
@@ -365,8 +365,8 @@ export default () => {
 
   test('should compile serializer arguments as factories', async () => {
     const output = await testInput(mode, 'setup-serializer', {
-      code: `import { useSerializer$, useSignal } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSerializer$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const start = useSignal(5);
   const count = useSerializer$({
     deserialize: (value: number) => ({ n: value }),
@@ -375,7 +375,7 @@ export default () => {
   });
   const date = useSerializer$(() => ({ deserialize: (value: string) => new Date(value), serialize: (date: Date) => date.toISOString() }));
   return <span>{count.value.n}{date.value.getFullYear()}</span>;
-};
+});
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
@@ -390,16 +390,16 @@ export default () => {
 
   test('should wait for initial tasks before rendering', async () => {
     const output = await testInput(mode, 'setup-task-wait', {
-      code: `import { useTask$, useSignal } from '@qwik.dev/core';
-export const Child = () => <b>child</b>;
-export default () => {
+      code: `import { component$, useTask$, useSignal } from '@qwik.dev/core';
+export const Child = component$(() => <b>child</b>);
+export default component$(() => {
   const ready = useSignal('pending');
   useTask$(async () => {
     await Promise.resolve();
     ready.value = 'done';
   });
   return <section><span>{ready.value}</span><Child /></section>;
-};
+});
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
@@ -415,9 +415,9 @@ export default () => {
 
   test('should compile local implicit hooks and task setup', async () => {
     await testInput(mode, 'setup-task-hook', {
-      code: `import { implicit$FirstArg, useTaskQrl, useTask$ as task, useSignal } from '@qwik.dev/core';
+      code: `import { component$, implicit$FirstArg, useTaskQrl, useTask$ as task, useSignal } from '@qwik.dev/core';
 const useCustom$ = implicit$FirstArg(useTaskQrl);
-export default () => {
+export default component$(() => {
   const count = useSignal(1);
   useCustom$(({ cleanup }) => {
     const value = count.value;
@@ -426,22 +426,22 @@ export default () => {
   });
   task(() => console.log(count.value), { deferUpdates: true });
   return <span>{count.value}</span>;
-};
+});
 `,
     });
   });
 
   test('should compile an async computed setup signal', async () => {
     const output = await testInput(mode, 'setup-computed-async', {
-      code: `import { useSignal, useComputed$ } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(1);
   const doubled = useComputed$(async () => {
     await Promise.resolve();
     return count.value * 2;
   });
   return <span>{doubled.value}</span>;
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -449,15 +449,15 @@ export default () => {
 
   test('should forward computed options for inline and existing QRLs', async () => {
     const output = await testInput(mode, 'setup-computed-options', {
-      code: `import { $, useComputed$ as computed } from '@qwik.dev/core';
-export default (props: { initial: number }) => {
+      code: `import { component$, $, useComputed$ as computed } from '@qwik.dev/core';
+export default component$((props: { initial: number }) => {
   const initial = props.initial;
   const options = { initial, timeout: 1000 };
   const read = $(async () => 42);
   const first = computed(async () => 42, { ...options, initial: () => initial });
   const second: { value: number } = computed(read, ...[options]);
   return <span>{first.value}:{second.value}</span>;
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -471,20 +471,20 @@ export default (props: { initial: number }) => {
 
   test('should compile a synchronous computed setup signal', async () => {
     await testInput(mode, 'setup-computed', {
-      code: `import { useSignal, useComputed$ } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(1);
   const doubled = useComputed$(() => count.value * 2);
   return <span>{doubled.value}</span>;
-};
+});
 `,
     });
   });
 
   test('should chain computed setup signals with captured props', async () => {
     await testInput(mode, 'setup-computed-chain', {
-      code: `import { useSignal, useComputed$ as computed } from '@qwik.dev/core';
-export default (props) => {
+      code: `import { component$, useSignal, useComputed$ as computed } from '@qwik.dev/core';
+export default component$((props) => {
   const count = useSignal(1);
   const doubled = computed(() => count.value * 2);
   const label = computed(function () {
@@ -492,47 +492,48 @@ export default (props) => {
     return props.prefix + value;
   });
   return <button title={label.value} onClick$={() => count.value++}>{label.value}</button>;
-};
+});
 `,
     });
   });
 
   test('should reuse an explicit setup QRL across events', async () => {
     await testInput(mode, 'setup-qrl', {
-      code: `import { $, useSignal } from '@qwik.dev/core';
-export default (props) => {
+      code: `import { component$, $, useSignal } from '@qwik.dev/core';
+export default component$((props) => {
   const count = useSignal(0);
   const onSave = $((event) => {
     count.value++;
     props.onSave$(props.id, event.type);
   });
   return <main><button onClick$={onSave}>save</button><button onClick$={onSave}>again</button></main>;
-};
+});
 `,
     });
   });
 
   test('should keep a const sibling statement', async () => {
     await testInput(mode, 'const-sibling-statement', {
-      code: `const title = 'Hello';
-export default () => {
+      code: `import { component$ } from '@qwik.dev/core';
+const title = 'Hello';
+export default component$(() => {
   return <p>Hello Qwik</p>;
-};
+});
 `,
     });
   });
 
   test('should lower component const setup with hook and event captures', async () => {
     const output = await testInput(mode, 'component-const-setup', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export const Card = (props: { title?: string; suffix: string; start: number }) => {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export const Card = component$((props: { title?: string; suffix: string; start: number }) => {
   const { title = 'Untitled', ...rest } = props;
   const label = title.toUpperCase(), suffix = rest.suffix;
   const count = useSignal(props.start), initial = count.value;
   return <button onClick$={() => console.log(count.value++, label)}>
     {label + suffix + initial}:{count.value}
   </button>;
-};`,
+});`,
     });
     expect(output.diagnostics).toEqual([]);
     const event = output.modules.find((module) => module.segment?.ctxName === 'onClick$');
@@ -541,22 +542,22 @@ export const Card = (props: { title?: string; suffix: string; start: number }) =
 
   test('should subscribe a signal-read text hole', async () => {
     await testInput(mode, 'use-signal-hole', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   return <p>{count.value}</p>;
-};
+});
 `,
     });
   });
 
   test('should extract explicit $ calls wherever they appear', async () => {
     const output = await testInput(mode, 'explicit-qrl-anywhere', {
-      code: `import { useOn, useSignal, $ } from '@qwik.dev/core';
+      code: `import { component$, useOn, useSignal, $ } from '@qwik.dev/core';
 export function later(run: () => void) {
   return $(() => run());
 }
-export default () => {
+export default component$(() => {
   const count = useSignal(0);
   useOn('click', $(() => { count.value++; }));
   const wrapped = [1].map((step) => $(() => (count.value += step)));
@@ -565,7 +566,7 @@ export default () => {
       {count.value}
     </button>
   );
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -671,13 +672,13 @@ export const Maybe = component$((props: { flag: boolean }) => {
   test('should merge setup useOn events into the root element on the server', async () => {
     const output = await testInputs(mode, 'setup-use-on', [
       {
-        code: `import { useOn, useSignal, $ } from '@qwik.dev/core';
+        code: `import { component$, useOn, useSignal, $ } from '@qwik.dev/core';
 import { useClick } from './hooks';
-export default () => {
+export default component$(() => {
   const count = useSignal(0);
   useOn('click', $(() => count.value++), { capture: true });
   return <button onClick$={() => count.value--}>{count.value}</button>;
-};
+});
 `,
       },
       {
@@ -760,12 +761,12 @@ export default component$(() => {
 
   test('should call custom $ hooks through their twins wherever they appear', async () => {
     const output = await testInput(mode, 'marker-qrl-anywhere', {
-      code: `import { useSignal } from '@qwik.dev/core';
+      code: `import { component$, useSignal } from '@qwik.dev/core';
 import { useCustom$ } from './hooks';
 export function make(count) {
   return useCustom$(() => count.value);
 }
-export default () => {
+export default component$(() => {
   const count = useSignal(0);
   const handles = [useCustom$(() => count.value + 1)];
   return (
@@ -773,7 +774,7 @@ export default () => {
       {count.value}
     </button>
   );
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);

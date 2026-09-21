@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { Slot } from '@qwik.dev/core';
-export const Child = ({ label }) => <section title={label}><Slot /></section>;
-export default ({ title: heading = 'heading', ...rest }) => (
+import { component$, Slot } from '@qwik.dev/core';
+export const Child = component$(({ label }) => <section title={label}><Slot /></section>);
+export default component$(({ title: heading = 'heading', ...rest }) => (
   <Child {...rest} title={heading}><Slot /></Child>
-);
+));
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -100,8 +100,8 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    183,
-    214
+    218,
+    249
   ],
   "paramNames": [],
   "captureNames": [

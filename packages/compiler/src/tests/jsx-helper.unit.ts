@@ -86,8 +86,9 @@ test.each(['module', 'local'])(
       input: [
         {
           path: 'src/helper.tsx',
-          code: `import { Display } from './display';
-export default function App() { ${body} }
+          code: `import { component$ } from '@qwik.dev/core';
+import { Display } from './display';
+export default component$(function App() { ${body} })
 ${scope === 'module' ? helper : ''}`,
         },
       ],

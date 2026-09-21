@@ -5,13 +5,14 @@ export function makeNode(label) { return <b>{label}</b>; }
 export const makeFactory = (prefix) => (label) => <i>{prefix + label}</i>;
 
 // src/app.tsx
+import { component$ } from '@qwik.dev/core';
 import { makeNode, makeFactory } from './helper';
 import { Display } from './display';
-const sibling = (label) => <u>{label}</u>, App = () => {
+const sibling = (label) => <u>{label}</u>, App = component$(() => {
   const values = [makeNode('one'), makeFactory('prefix:')('two'), local('three'), sibling('four')];
   function local(label) { return <span>{label}</span>; }
   return <Display values={values} />;
-};
+});
 export default App;
 
 == SSR OUTPUT ==
@@ -256,16 +257,6 @@ export const helper_text_segment_3_2krfxpmh85jlb = (prefix, label) => {
 */
 ============================= src/app.tsx ==
 
-import {
-  _captures,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextExpression,
-  maybeThen,
-  _noopQrl,
-  createComponent,
-} from '@qwik.dev/core';
-
 const app_jsx_segment_0_3qpc3dhc6i5ki = (ctx) => {
   const [label] = _captures;
   const id0 = ctx.nextId();
@@ -310,6 +301,15 @@ const q_app_text_segment_3_16w11pm3tti25 = /*#__PURE__*/ _noopQrl(
   'app_text_segment_3_16w11pm3tti25'
 );
 q_app_text_segment_3_16w11pm3tti25.s(app_text_segment_3_16w11pm3tti25);
+import {
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  createComponent,
+} from '@qwik.dev/core';
 import { makeNode, makeFactory } from './helper';
 import { Display } from './display';
 const sibling = (label) => q_app_jsx_segment_0_3qpc3dhc6i5ki.w([label]),
@@ -370,8 +370,8 @@ export const app_jsx_segment_0_3qpc3dhc6i5ki = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    114,
-    128
+    159,
+    173
   ],
   "paramNames": [],
   "captureNames": [
@@ -398,8 +398,8 @@ export const app_text_segment_1_16w10xjw05e13 = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    118,
-    123
+    163,
+    168
   ],
   "paramNames": [],
   "captureNames": [
@@ -450,8 +450,8 @@ export const app_jsx_segment_2_3qpc2lf4cu1jg = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    277,
-    297
+    333,
+    353
   ],
   "paramNames": [],
   "captureNames": [
@@ -478,8 +478,8 @@ export const app_text_segment_3_16w11pm3tti25 = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    284,
-    289
+    340,
+    345
   ],
   "paramNames": [],
   "captureNames": [

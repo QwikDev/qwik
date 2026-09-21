@@ -1,30 +1,19 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
+import { component$, useSignal } from '@qwik.dev/core';
 import { Display } from './display';
-export default function App() {
+export default component$(function App() {
   const count = useSignal(0);
   const options = useSignal({ title: 'title' });
   return <main>
     <Display render={(value: number) => <button onClick$={() => count.value += value}>{value}</button>} />
     <Display {...options.value} onResolved={({ label }: { label: string }) => { const text = label; return <b>{text}</b>; }} />
   </main>;
-}
+})
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
-const q_component_render_segment_3_1kxav1tcxzeqy = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_render_segment_3_1kxav1tcxzeqy',
-  () => import('./component.tsx_component_render_segment_3_1kxav1tcxzeqy'),
-  'component_render_segment_3_1kxav1tcxzeqy'
-);
-const q_component_props_segment_7_208nyg8uks240 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_7_208nyg8uks240',
-  () => import('./component.tsx_component_props_segment_7_208nyg8uks240'),
-  'component_props_segment_7_208nyg8uks240'
-);
-const default_tmpl0 = _createElementTemplate('<main><!><!></main>');
 import {
   useSignal,
   _first,
@@ -37,8 +26,19 @@ import {
   useComputedQrl,
   _createElementTemplate,
 } from '@qwik.dev/core';
+const q_component_render_segment_3_1kxav1tcxzeqy = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_render_segment_3_1kxav1tcxzeqy',
+  () => import('./component.tsx_component_render_segment_3_1kxav1tcxzeqy'),
+  'component_render_segment_3_1kxav1tcxzeqy'
+);
+const q_component_props_segment_7_208nyg8uks240 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_7_208nyg8uks240',
+  () => import('./component.tsx_component_props_segment_7_208nyg8uks240'),
+  'component_props_segment_7_208nyg8uks240'
+);
+const default_tmpl0 = _createElementTemplate('<main><!><!></main>');
 import { Display } from './display';
-export default function App(props, ctx) {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   const options = useSignal({ title: 'title' });
   const el0 = default_tmpl0(ctx.document);
@@ -57,9 +57,8 @@ export default function App(props, ctx) {
   );
   maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
   return el0;
-}
-
-export { App as default_component_3rg6kq1so9aio };
+};
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
@@ -101,8 +100,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    248,
-    310
+    271,
+    333
   ],
   "paramNames": [],
   "captureNames": [
@@ -133,8 +132,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    256,
-    293
+    279,
+    316
   ],
   "paramNames": [],
   "captureNames": [
@@ -162,8 +161,8 @@ export const component_text_segment_2_1fh117dstcoge = (value) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    295,
-    300
+    318,
+    323
   ],
   "paramNames": [],
   "captureNames": [
@@ -198,8 +197,8 @@ export const component_render_segment_3_1kxav1tcxzeqy = (value) => {
   "ctxName": "render",
   "captures": true,
   "loc": [
-    221,
-    310
+    244,
+    333
   ],
   "paramNames": [
     "value"
@@ -247,8 +246,8 @@ export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    422,
-    435
+    445,
+    458
   ],
   "paramNames": [],
   "captureNames": [
@@ -275,8 +274,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (text) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    426,
-    430
+    449,
+    453
   ],
   "paramNames": [],
   "captureNames": [
@@ -311,8 +310,8 @@ export const component_onResolved_segment_6_cb9rinp6vivg = ({ label }) => {
   "ctxName": "onResolved",
   "captures": false,
   "loc": [
-    347,
-    415
+    370,
+    438
   ],
   "paramNames": [
     "{ label }"
@@ -346,8 +345,8 @@ export const component_props_segment_7_208nyg8uks240 = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    320,
-    416
+    343,
+    439
   ],
   "paramNames": [],
   "captureNames": [

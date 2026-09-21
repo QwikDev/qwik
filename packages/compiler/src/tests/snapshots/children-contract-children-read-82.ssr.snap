@@ -1,0 +1,33 @@
+==INPUT==
+
+import { component$, Slot } from '@qwik.dev/core';
+export const Wrapper = component$((props) => <section>{props.children}</section>);
+export default component$(() => <Wrapper><p>Projected</p></Wrapper>);
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "children-read",
+    "file": "src/component.tsx",
+    "message": "Read child info with useChildrenInfo(), or render them with <Slot />.",
+    "highlights": [
+      {
+        "lo": 106,
+        "hi": 120,
+        "startLine": 2,
+        "startCol": 56,
+        "endLine": 2,
+        "endCol": 69
+      }
+    ],
+    "suggestions": null
+  }
+]

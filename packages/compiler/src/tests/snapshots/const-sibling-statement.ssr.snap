@@ -1,17 +1,17 @@
 ==INPUT==
 
+import { component$ } from '@qwik.dev/core';
 const title = 'Hello';
-export default () => {
+export default component$(() => {
   return <p>Hello Qwik</p>;
-};
+});
 
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
-const title = 'Hello';
 import { _markComponent } from '@qwik.dev/core';
-
+const title = 'Hello';
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     return '<p>Hello Qwik</p>';

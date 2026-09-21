@@ -1,7 +1,7 @@
 ==INPUT==
 
-import { useSignal, useComputed$ as computed } from '@qwik.dev/core';
-export default (props) => {
+import { component$, useSignal, useComputed$ as computed } from '@qwik.dev/core';
+export default component$((props) => {
   const count = useSignal(1);
   const doubled = computed(() => count.value * 2);
   const label = computed(function () {
@@ -9,7 +9,7 @@ export default (props) => {
     return props.prefix + value;
   });
   return <button title={label.value} onClick$={() => count.value++}>{label.value}</button>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -68,8 +68,8 @@ export const component_doubled_segment_0_2yvob8vshk72o = () => {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    146,
-    177
+    169,
+    200
   ],
   "paramNames": [],
   "captureNames": [
@@ -100,8 +100,8 @@ export const component_label_segment_1_871sx3hwa26q = function () {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    195,
-    288
+    218,
+    311
   ],
   "paramNames": [],
   "captureNames": [
@@ -132,8 +132,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    327,
-    357
+    350,
+    380
   ],
   "paramNames": [],
   "captureNames": [

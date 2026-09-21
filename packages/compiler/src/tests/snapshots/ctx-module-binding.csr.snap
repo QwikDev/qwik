@@ -1,16 +1,16 @@
 ==INPUT==
 
+import { component$ } from '@qwik.dev/core';
 const ctx = 1;
-export default () => {
+export default component$(() => {
   return <p>Hello Qwik</p>;
-};
+});
 
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _createElementTemplate } from '@qwik.dev/core';
-
 const default_tmpl0 = _createElementTemplate('<p>Hello Qwik</p>');
 const ctx = 1;
 export const default_component_3rg6kq1so9aio = (props, ctx0) => {

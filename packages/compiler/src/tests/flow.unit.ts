@@ -20,7 +20,10 @@ import { loadDefaultFunction, serverSpecialization } from './fixtures';
 describe('pipeline flow', () => {
   test('a binding named undefined is not empty render output', async () => {
     const plan = await analyseModule(
-      { path: 'src/app.tsx', code: 'export default (undefined) => <p>{undefined}</p>;' },
+      {
+        path: 'src/app.tsx',
+        code: "import { component$ } from '@qwik.dev/core';\nexport default component$((undefined) => <p>{undefined}</p>);",
+      },
       {}
     );
     expect(plan.kind).toBe(ModuleKind.Qwik);
@@ -39,32 +42,6 @@ describe('pipeline flow', () => {
           {}
         )
       ).rejects.toThrow('component$');
-    }
-  );
-
-  test.each([true, false])(
-    'component$ and plain components emit identical code (SSR: %s)',
-    async (isServer) => {
-      const fn = `({ title = 'default', ...rest }) => <section title={title}><Slot /></section>`;
-      for (const declaration of ['export const App =', 'export default']) {
-        const compile = (expression: string) =>
-          transformModules({
-            input: [
-              {
-                path: 'src/app.tsx',
-                code: `import { component$, Slot } from '@qwik.dev/core';\n${declaration} ${expression};`,
-              },
-            ],
-            isServer,
-            transpileTs: true,
-          });
-        const plain = await compile(fn);
-        const marked = await compile(`component$(${fn})`);
-        expect(marked.diagnostics).toEqual([]);
-        const formatted = (output: typeof plain) =>
-          Promise.all(output.modules.map(({ code }) => format(code, { parser: 'babel' })));
-        expect(await formatted(marked)).toEqual(await formatted(plain));
-      }
     }
   );
 
@@ -107,11 +84,11 @@ describe('pipeline flow', () => {
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+          code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const text0 = useSignal(0);
   return <p>{text0.value}</p>;
-};
+});
 `,
         },
       ],
@@ -224,67 +201,29 @@ export default () => {
     expect(plan.qrls.every((qrl) => qrl.boundary.kind !== BoundaryKind.Component)).toBe(true);
   });
 
-  test.each(['', 'export ', 'export default '])(
-    'function components remain callable before their declaration: %s',
-    async (prefix) => {
-      const output = await transformModules({
-        input: [
-          {
-            path: 'src/app.tsx',
-            code: `observe(App());
-${prefix}function App() { return <p>child</p>; }
-${prefix === 'export default ' ? '' : 'export default () => <main />;'}`,
-          },
-        ],
-        isServer: true,
-      });
-      expect(output.diagnostics).toEqual([]);
-      const observed: unknown[] = [];
-      const render = loadDefaultFunction(output.modules[0], {
-        observe: (value: unknown) => observed.push(value),
-      });
-      expect(observed).toEqual(['<p>child</p>']);
-      expect(render()).toBe(prefix === 'export default ' ? '<p>child</p>' : '<main></main>');
-    }
-  );
-
   test('rejects a generator component function', async () => {
     await expect(
-      analyseModule({ path: 'src/app.tsx', code: 'export function* App() { return <p />; }' }, {})
+      analyseModule(
+        {
+          path: 'src/app.tsx',
+          code: "import { component$ } from '@qwik.dev/core';\nexport const App = component$(function* App() { return <p />; });",
+        },
+        {}
+      )
     ).rejects.toThrow('a generator component function');
   });
-
-  test.each([true, false])(
-    'initializes function component hoists before authored calls: SSR=%s',
-    async (isServer) => {
-      const output = await transformModules({
-        input: [
-          {
-            path: 'src/app.tsx',
-            code: `observe(App);
-import { useSignal } from '@qwik.dev/core';
-export default function App() {
-  const count = useSignal(1);
-  return <p>{count.value + 1}</p>;
-}`,
-          },
-        ],
-        isServer,
-      });
-      expect(output.diagnostics).toEqual([]);
-      const code = output.modules[0].code;
-      const hoist = code.indexOf(isServer ? 'const q_' : 'const default_tmpl');
-      expect(hoist).toBeGreaterThanOrEqual(0);
-      expect(hoist).toBeLessThan(code.indexOf('observe(App)'));
-    }
-  );
 
   test.each(['', 'export { Child as Renamed };', 'export default 42;'])(
     'discovers a local component without an exported component: %s',
     async (exports) => {
       const output = await transformModules({
         input: [
-          { path: 'src/local.tsx', code: `const Child = () => <span>child</span>;\n${exports}` },
+          {
+            path: 'src/local.tsx',
+            code: `import { component$ } from '@qwik.dev/core';
+const Child = component$(() => <span>child</span>);
+${exports}`,
+          },
         ],
         isServer: true,
       });
@@ -297,7 +236,9 @@ export default function App() {
     }
   );
 
-  test.each(['let Child = () => <span />;'])(
+  test.each([
+    "import { component$ } from '@qwik.dev/core';\nlet Child = component$(() => <span />);",
+  ])(
     'rejects unsupported local declarations without discarding authored code: %s',
     async (code) => {
       await expect(analyseModule({ path: 'src/local.tsx', code }, {})).rejects.toThrow(
@@ -311,7 +252,7 @@ export default function App() {
       analyseModule(
         {
           path: 'src/mixed.tsx',
-          code: 'const content = <p>x</p>;\nexport default () => <p>Hello</p>;',
+          code: "import { component$ } from '@qwik.dev/core';\nconst content = <p>x</p>;\nexport default component$(() => <p>Hello</p>);",
         },
         { transpileTs: true }
       )
@@ -323,7 +264,7 @@ export default function App() {
       analyseModule(
         {
           path: 'src/counter.tsx',
-          code: 'const count = { value: 0 };\nexport default () => {\n  return <button onClick$={() => count.value++}>go</button>;\n};\n',
+          code: "import { component$ } from '@qwik.dev/core';\nconst count = { value: 0 };\nexport default component$(() => {\n  return <button onClick$={() => count.value++}>go</button>;\n});\n",
         },
         { transpileTs: true }
       )
@@ -339,7 +280,7 @@ export default function App() {
       analyseModule(
         {
           path: 'src/outer.tsx',
-          code: 'const title = "x";\nexport default () => {\n  return <p>{title}</p>;\n};\n',
+          code: 'import { component$ } from \'@qwik.dev/core\';\nconst title = "x";\nexport default component$(() => {\n  return <p>{title}</p>;\n});\n',
         },
         { transpileTs: true }
       )
@@ -357,7 +298,8 @@ export default function App() {
         analyseModule(
           {
             path: 'src/block.tsx',
-            code: `export default () => <button onClick$={${handler}}>go</button>;`,
+            code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => <button onClick$={${handler}}>go</button>);`,
           },
           { transpileTs: true }
         )
@@ -374,7 +316,7 @@ export default function App() {
       input: [
         {
           path: 'src/setup.tsx',
-          code: 'export default (props) => { const x = props.compute(); return <p>{x.value}</p>; };',
+          code: "import { component$ } from '@qwik.dev/core';\nexport default component$((props) => { const x = props.compute(); return <p>{x.value}</p>; });",
         },
       ],
       isServer: true,
@@ -389,7 +331,7 @@ export default function App() {
       analyseModule(
         {
           path: 'src/setup.tsx',
-          code: 'export default () => { const x = <b>nested</b>; return <p>{x}</p>; };',
+          code: "import { component$ } from '@qwik.dev/core';\nexport default component$(() => { const x = <b>nested</b>; return <p>{x}</p>; });",
         },
         { transpileTs: true }
       )
@@ -400,7 +342,7 @@ export default function App() {
     const plan = await analyseModule(
       {
         path: 'src/mixed.tsx',
-        code: 'export default (cond) => {\n  return cond ? <p>x</p> : "text";\n};\n',
+        code: 'import { component$ } from \'@qwik.dev/core\';\nexport default component$((cond) => {\n  return cond ? <p>x</p> : "text";\n});\n',
       },
       { transpileTs: true }
     );
@@ -411,7 +353,7 @@ export default function App() {
     const plan = await analyseModule(
       {
         path: 'src/bad.tsx',
-        code: 'export default () => {\n  return <p><br>x</br></p>;\n};\n',
+        code: "import { component$ } from '@qwik.dev/core';\nexport default component$(() => {\n  return <p><br>x</br></p>;\n});\n",
       },
       { transpileTs: true }
     );

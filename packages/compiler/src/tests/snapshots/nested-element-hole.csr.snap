@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export default () => {
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   return <div><span>{count.value}</span></div>;
-};
+});
 
 == CSR OUTPUT ==
 

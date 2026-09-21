@@ -1,15 +1,15 @@
 ==INPUT==
 
-export default () => {
+import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <button class="cta" onClick$={() => console.log(1)} hidden>go</button>;
-};
+});
 
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _noopQrl, _markComponent } from '@qwik.dev/core';
-
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
@@ -44,8 +44,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    52,
-    83
+    108,
+    139
   ],
   "paramNames": []
 }

@@ -21,14 +21,15 @@ export default component$(() => {
 });
 `;
 
-const ROUTE = `import { routeLoader$, server$ } from '@qwik.dev/router';
+const ROUTE = `import { component$ } from '@qwik.dev/core';
+import { routeLoader$, server$ } from '@qwik.dev/router';
 export const useData = routeLoader$(async () => ({ total: secret() }));
 export const send = server$(async (value: number) => value * secret());
 export const onGet = () => new Response(String(secret()));
 function secret() {
   return 42;
 }
-export default () => <button onClick$={() => send(1)}>go</button>;
+export default component$(() => <button onClick$={() => send(1)}>go</button>);
 `;
 
 async function compile(

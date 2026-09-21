@@ -1,37 +1,19 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
+import { component$, useSignal } from '@qwik.dev/core';
 import { Display } from './display';
-export function Direct() { return <Display fallback={<b>ready</b>} />; }
-export function Spread() {
+export const Direct = component$(function Direct() { return <Display fallback={<b>ready</b>} />; });
+export const Spread = component$(function Spread() {
   const options = useSignal({ title: 'title' });
   return <Display {...options.value} fallback={<b>ready</b>} />;
-}
-export function Rows() {
+});
+export const Rows = component$(function Rows() {
   return <ul>{[1, 2].map(row => <li><Display fallback={<b>{row}</b>} /></li>)}</ul>;
-}
+});
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
-const q_component_fallback_segment_1_5cu25viqhgwy = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_fallback_segment_1_5cu25viqhgwy',
-  () => import('./component.tsx_component_fallback_segment_1_5cu25viqhgwy'),
-  'component_fallback_segment_1_5cu25viqhgwy'
-);
-const q_component_props_segment_3_208o00da84a64 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_3_208o00da84a64',
-  () => import('./component.tsx_component_props_segment_3_208o00da84a64'),
-  'component_props_segment_3_208o00da84a64'
-);
-const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_4_38vnl4ypf6sea',
-  () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
-  'component_jsx_segment_4_38vnl4ypf6sea'
-);
-const semantic_collectionRender_334_399_1rvvd24vhg1k1_tmpl0 =
-  _createElementTemplate('<li><!></li>');
-const Rows_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 import {
   _qrlWithChunk,
   computedProp,
@@ -48,8 +30,25 @@ import {
   maybeThen,
   _createElementTemplate,
 } from '@qwik.dev/core';
+const q_component_fallback_segment_1_5cu25viqhgwy = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_fallback_segment_1_5cu25viqhgwy',
+  () => import('./component.tsx_component_fallback_segment_1_5cu25viqhgwy'),
+  'component_fallback_segment_1_5cu25viqhgwy'
+);
+const q_component_props_segment_3_208o00da84a64 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_3_208o00da84a64',
+  () => import('./component.tsx_component_props_segment_3_208o00da84a64'),
+  'component_props_segment_3_208o00da84a64'
+);
+const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_jsx_segment_4_38vnl4ypf6sea',
+  () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
+  'component_jsx_segment_4_38vnl4ypf6sea'
+);
+const semantic_collectionRender_426_491_vvwvz7f3ncoy_tmpl0 = _createElementTemplate('<li><!></li>');
+const Rows_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 import { Display } from './display';
-export function Direct(props, ctx) {
+export const Direct = (props, ctx) => {
   const prop0 = computedProp(q_component_fallback_segment_1_5cu25viqhgwy);
   const component0 = createComponent(
     Display,
@@ -64,8 +63,8 @@ export function Direct(props, ctx) {
     ctx
   );
   return component0;
-}
-export function Spread(props, ctx) {
+};
+export const Spread = (props, ctx) => {
   const options = useSignal({ title: 'title' });
   const component0 = createComponent(
     Display,
@@ -73,13 +72,13 @@ export function Spread(props, ctx) {
     ctx
   );
   return component0;
-}
-export function Rows(props, ctx) {
+};
+export const Rows = (props, ctx) => {
   const el0 = Rows_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
-  function semantic_collectionRender_334_399_1rvvd24vhg1k1(ctx, row) {
-    const el0 = semantic_collectionRender_334_399_1rvvd24vhg1k1_tmpl0(ctx.document);
+  function semantic_collectionRender_426_491_vvwvz7f3ncoy(ctx, row) {
+    const el0 = semantic_collectionRender_426_491_vvwvz7f3ncoy_tmpl0(ctx.document);
     const component0 = createComponent(
       Display,
       { fallback: q_component_jsx_segment_4_38vnl4ypf6sea.w([row]) },
@@ -95,13 +94,13 @@ export function Rows(props, ctx) {
     end0,
     [1, 2],
     null,
-    semantic_collectionRender_334_399_1rvvd24vhg1k1,
+    semantic_collectionRender_426_491_vvwvz7f3ncoy,
     0,
     0,
     true
   );
   return el0;
-}
+};
 
 export {
   Direct as Direct_component_2ps3ihhdyldo6,
@@ -131,8 +130,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    134,
-    146
+    172,
+    184
   ],
   "paramNames": []
 }
@@ -163,8 +162,8 @@ export const component_fallback_segment_1_5cu25viqhgwy = () => {
   "ctxName": "fallback",
   "captures": false,
   "loc": [
-    134,
-    146
+    172,
+    184
   ],
   "paramNames": []
 }
@@ -192,8 +191,8 @@ export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    277,
-    289
+    343,
+    355
   ],
   "paramNames": []
 }
@@ -225,8 +224,8 @@ export const component_props_segment_3_208o00da84a64 = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    240,
-    290
+    306,
+    356
   ],
   "paramNames": [],
   "captureNames": [
@@ -259,8 +258,8 @@ export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    377,
-    389
+    469,
+    481
   ],
   "paramNames": [],
   "captureNames": [

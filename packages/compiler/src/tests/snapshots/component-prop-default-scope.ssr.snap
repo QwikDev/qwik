@@ -1,20 +1,16 @@
 ==INPUT==
 
+import { component$ } from '@qwik.dev/core';
 const fallback = 'outer';
 function side(value) { console.log(value); return value; }
-export default ({ a = side('a'), b = a, label = fallback }) => {
+export default component$(({ a = side('a'), b = a, label = fallback }) => {
   const fallback = 'inner';
   return <p title={fallback}>{a}{b}{label}</p>;
-};
+});
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
-const fallback = 'outer';
-function side(value) {
-  console.log(value);
-  return value;
-}
 import {
   createSsrNodeId,
   renderSsrAttrExpression,
@@ -27,7 +23,11 @@ import {
   renderSsrDynamicContent,
   _markComponent,
 } from '@qwik.dev/core';
-
+const fallback = 'outer';
+function side(value) {
+  console.log(value);
+  return value;
+}
 const component_title_segment_0_2f0r0xivypjmx = (fallback) => {
   return fallback;
 };
@@ -160,8 +160,8 @@ export const component_title_segment_0_2f0r0xivypjmx = (fallback) => {
   "ctxName": "title",
   "captures": true,
   "loc": [
-    197,
-    205
+    253,
+    261
   ],
   "paramNames": [],
   "captureNames": [
@@ -191,8 +191,8 @@ export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    208,
-    209
+    264,
+    265
   ],
   "paramNames": [],
   "captureNames": [
@@ -223,8 +223,8 @@ export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    211,
-    212
+    267,
+    268
   ],
   "paramNames": [],
   "captureNames": [
@@ -255,8 +255,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    214,
-    219
+    270,
+    275
   ],
   "paramNames": [],
   "captureNames": [

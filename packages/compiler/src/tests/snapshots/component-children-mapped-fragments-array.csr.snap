@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot /></main>;
-export default () => {
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
+export default component$(() => {
   const items = useSignal([{ title: 'Title', description: 'Body' }]);
   return <Panel>{[{ title: 'Title', description: 'Body' }].map((item) => <><h2 q:slot="header">{item.title}</h2><><b q:slot="header">!</b><p>{item.description}</p></></>)}</Panel>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -62,14 +62,14 @@ export { Panel as Panel_component_5q1hs6sb6j5z };
 
 import { _first, _next, createTemplate, createCollection, _textValue } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
-const semantic_collectionRender_235_393_3n6jd0m4ieo7n_tmpl0 = createTemplate('<h2> </h2><b>!</b>');
+const semantic_collectionRender_270_428_8epy2bcitwhv_tmpl0 = createTemplate('<h2> </h2><b>!</b>');
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
-  function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, item) {
-    const fragment0 = semantic_collectionRender_235_393_3n6jd0m4ieo7n_tmpl0(ctx.document);
+  function semantic_collectionRender_270_428_8epy2bcitwhv(ctx, item) {
+    const fragment0 = semantic_collectionRender_270_428_8epy2bcitwhv_tmpl0(ctx.document);
     _first(_first(fragment0)).data = _textValue(item.title);
     return [...fragment0.childNodes];
   }
@@ -84,7 +84,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
       },
     ],
     null,
-    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
+    semantic_collectionRender_270_428_8epy2bcitwhv,
     0,
     2,
     true
@@ -105,8 +105,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    225,
-    386
+    260,
+    421
   ],
   "paramNames": []
 }
@@ -122,14 +122,14 @@ import {
   _createElementTemplate,
 } from '@qwik.dev/core';
 const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 = createTemplate('<!><!>');
-const semantic_collectionRender_235_393_3n6jd0m4ieo7n_tmpl0 = _createElementTemplate('<p> </p>');
+const semantic_collectionRender_270_428_8epy2bcitwhv_tmpl0 = _createElementTemplate('<p> </p>');
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
   const fragment0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
-  function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, item) {
-    const el0 = semantic_collectionRender_235_393_3n6jd0m4ieo7n_tmpl0(ctx.document);
+  function semantic_collectionRender_270_428_8epy2bcitwhv(ctx, item) {
+    const el0 = semantic_collectionRender_270_428_8epy2bcitwhv_tmpl0(ctx.document);
     _first(el0).data = _textValue(item.description);
     return el0;
   }
@@ -144,7 +144,7 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
       },
     ],
     null,
-    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
+    semantic_collectionRender_270_428_8epy2bcitwhv,
     0,
     0,
     true
@@ -165,8 +165,8 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    225,
-    386
+    260,
+    421
   ],
   "paramNames": []
 }

@@ -27,8 +27,9 @@ test.each([
     input: [
       {
         path: 'src/callback.tsx',
-        code: `import { Display } from './display';
-export default function App() { ${body} return <Display />; }`,
+        code: `import { component$ } from '@qwik.dev/core';
+import { Display } from './display';
+export default component$(function App() { ${body} return <Display />; });`,
       },
     ],
   });
@@ -74,9 +75,9 @@ test.each([
     input: [
       {
         path: 'src/callback.tsx',
-        code: `import { $, useTask$, useComputed$ } from '@qwik.dev/core';
+        code: `import { component$, $, useTask$, useComputed$ } from '@qwik.dev/core';
 import { Display } from './display';
-export default function App() { ${body} }`,
+export default component$(function App() { ${body} })`,
       },
     ],
   });

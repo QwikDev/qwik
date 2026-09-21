@@ -14,7 +14,7 @@ test('a derived source without a key is keyed by position', async () => {
   const plan = await analyseModule(
     {
       path: 'src/component.tsx',
-      code: 'export default (props) => <ul>{props.items.map((item) => <li>{item.id}</li>)}</ul>;',
+      code: "import { component$ } from '@qwik.dev/core';\nexport default component$((props) => <ul>{props.items.map((item) => <li>{item.id}</li>)}</ul>);",
     },
     {}
   );
@@ -32,11 +32,11 @@ test.each([false, true])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+          code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const items = useSignal([]);
   return <ul>{items.value.filter((item) => item.visible).map((item) => <li key={item.id}>{item.id}</li>)}</ul>;
-};`,
+});`,
         },
       ],
     });

@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { Slot, useSignal } from '@qwik.dev/core';
-export const Wrapper = () => <section><Slot /></section>;
-export default () => {
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Wrapper = component$(() => <section><Slot /></section>);
+export default component$(() => {
   const count = useSignal(1);
   return <Wrapper><p>{count.value}</p></Wrapper>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -71,8 +71,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    179,
-    199
+    214,
+    234
   ],
   "paramNames": [],
   "captureNames": [

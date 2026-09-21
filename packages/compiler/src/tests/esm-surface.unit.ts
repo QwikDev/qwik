@@ -70,7 +70,7 @@ export default () => <main></main>;
       {
         e: ExportKind.Local,
         exported: 'default',
-        target: { t: ExportTargetKind.Declaration, table: 'qrls', index: 0 },
+        target: { t: ExportTargetKind.Binding, binding: expect.any(Number) },
       },
     ]);
     expect(plan.edges.map((edge) => edge.order)).toEqual([0, 1, 2, 3]);
@@ -81,11 +81,12 @@ export default () => <main></main>;
     const plan = await analyseModule(
       {
         path: 'src/exports.tsx',
-        code: `const value = 1;
+        code: `import { component$ } from '@qwik.dev/core';
+const value = 1;
 export { value as answer };
 export { remote as renamed } from './dep';
 export * from './more';
-export const App = () => <main></main>;
+export const App = component$(() => <main></main>);
 `,
       },
       { transpileTs: true }
@@ -101,10 +102,10 @@ export const App = () => <main></main>;
     expect(plan.exports).toContainEqual({
       e: ExportKind.Reexport,
       exported: 'renamed',
-      edge: 0,
+      edge: 1,
       imported: 'remote',
     });
-    expect(plan.exports).toContainEqual({ e: ExportKind.Star, edge: 1 });
+    expect(plan.exports).toContainEqual({ e: ExportKind.Star, edge: 2 });
     const app = plan.exports.find(
       (entry) => entry.e === ExportKind.Local && entry.exported === 'App'
     );

@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export default () => {
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   return <ul>{['a', 'b'].map((item) => <li>{item + count.value}</li>)}</ul>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -20,15 +20,15 @@ import {
 } from '@qwik.dev/core';
 import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 
-const semantic_collectionRender_109_164_1vj5zgtfkxhpd_tmpl0 = _createElementTemplate('<li> </li>');
+const semantic_collectionRender_132_187_nlmihxthc3k8_tmpl0 = _createElementTemplate('<li> </li>');
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
-  function semantic_collectionRender_109_164_1vj5zgtfkxhpd(ctx, item) {
-    const el0 = semantic_collectionRender_109_164_1vj5zgtfkxhpd_tmpl0(ctx.document);
+  function semantic_collectionRender_132_187_nlmihxthc3k8(ctx, item) {
+    const el0 = semantic_collectionRender_132_187_nlmihxthc3k8_tmpl0(ctx.document);
     const text0 = _first(el0);
     const effect0 = createTextExpressionEffect(
       text0,
@@ -45,7 +45,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     end0,
     ['a', 'b'],
     null,
-    semantic_collectionRender_109_164_1vj5zgtfkxhpd,
+    semantic_collectionRender_132_187_nlmihxthc3k8,
     0,
     0,
     true
@@ -72,8 +72,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (item, count) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    141,
-    159
+    164,
+    182
   ],
   "paramNames": [],
   "captureNames": [

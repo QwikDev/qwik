@@ -1,0 +1,34 @@
+==INPUT==
+
+import { component$, Slot } from '@qwik.dev/core';
+import { Card } from './card';
+export const Wrapper = component$(() => <Card children={<b>x</b>} />);
+export default component$(() => <Wrapper><p>Projected</p></Wrapper>);
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "children-attribute",
+    "file": "src/component.tsx",
+    "message": "Pass children as JSX children; a children attribute is not projected.",
+    "highlights": [
+      {
+        "lo": 128,
+        "hi": 147,
+        "startLine": 3,
+        "startCol": 47,
+        "endLine": 3,
+        "endCol": 65
+      }
+    ],
+    "suggestions": null
+  }
+]

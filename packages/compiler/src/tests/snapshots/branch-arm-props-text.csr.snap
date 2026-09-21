@@ -1,8 +1,9 @@
 ==INPUT==
 
-export default (props: { enabled: boolean; label: string }) => {
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { enabled: boolean; label: string }) => {
   return <div>{props.enabled ? <b>{props.label}</b> : null}</div>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -62,8 +63,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    80,
-    93
+    136,
+    149
   ],
   "paramNames": [],
   "captureNames": [
@@ -105,8 +106,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    96,
-    116
+    152,
+    172
   ],
   "paramNames": [],
   "captureNames": [

@@ -22,9 +22,9 @@ test.each([
     input: [
       {
         path: 'src/prop.tsx',
-        code: `import { useSignal } from '@qwik.dev/core';
+        code: `import { component$, useSignal } from '@qwik.dev/core';
 import { Display, Loading } from './display';
-export default function App() { ${body} }`,
+export default component$(function App() { ${body} })`,
       },
     ],
   });

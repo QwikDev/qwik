@@ -1,10 +1,11 @@
 ==INPUT==
 
+import { component$ } from '@qwik.dev/core';
 import { createTitle, createHandler } from './defaults';
-export default ({ title: heading = createTitle(), suffix = '!', onSave$: save = createHandler() }) => {
+export default component$(({ title: heading = createTitle(), suffix = '!', onSave$: save = createHandler() }) => {
   const initial = heading;
   return <button title={heading} onClick$={() => save({ heading, initial })}>{heading + suffix}</button>;
-};
+});
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -73,8 +74,8 @@ export const component_title_segment_0_2f0r0xivypjmx = (props, defaultValue) => 
   "ctxName": "title",
   "captures": true,
   "loc": [
-    212,
-    219
+    268,
+    275
   ],
   "paramNames": [],
   "captureNames": [
@@ -108,8 +109,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    221,
-    264
+    277,
+    320
   ],
   "paramNames": [],
   "captureNames": [
@@ -141,8 +142,8 @@ export const component_text_segment_2_1fh117dstcoge = (props, defaultValue) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    266,
-    282
+    322,
+    338
   ],
   "paramNames": [],
   "captureNames": [

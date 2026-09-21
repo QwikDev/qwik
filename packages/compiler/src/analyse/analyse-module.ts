@@ -70,7 +70,7 @@ export async function analyseModule(
     normalized.map === null ? null : parseModule(input.path, input.code).program;
   const coreBindings = scanModuleSurface(parsed.program, authoredProgram, plan, bindings);
   const jsx = createJsxAnalysis(bindings, coreBindings);
-  const candidates = findComponentCandidates(parsed.program, jsx, bindings, coreBindings);
+  const candidates = findComponentCandidates(parsed.program, bindings, coreBindings);
   const components = discoverComponents(candidates);
   const componentStatements = new Set(components.map((component) => component.statement));
   const authoredStatements: Node[] = parsed.program.body.flatMap((statement): Node[] => {

@@ -49,8 +49,8 @@ test.each([false, true])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+          code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   const title = 'outer';
   return <button onClick$={(event) => {
@@ -67,7 +67,7 @@ export default () => {
       event.reads.push('finally');
     }
   }}>go</button>;
-};`,
+});`,
         },
       ],
     });
@@ -107,7 +107,8 @@ test.each([false, true])(
         input: [
           {
             path: 'src/component.tsx',
-            code: `export default () => <button onClick$={${handler}}>go</button>;`,
+            code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => <button onClick$={${handler}}>go</button>);`,
           },
         ],
       });
@@ -189,10 +190,11 @@ test.each([false, true])('handler parameter semantics (SSR: %s)', async (isServe
       input: [
         {
           path: 'src/component.tsx',
-          code: `export default () => {
+          code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   const fallback = 7;
   return <button onClick$={${handler}}>go</button>;
-};`,
+});`,
         },
       ],
     });
@@ -220,10 +222,11 @@ test.each([false, true])('handler defaults retain parameter TDZ (SSR: %s)', asyn
       input: [
         {
           path: 'src/component.tsx',
-          code: `export default () => {
+          code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   const fallback = 7;
   return <button onClick$={${handler}}>go</button>;
-};`,
+});`,
         },
       ],
     });
@@ -282,10 +285,11 @@ test.each([false, true])(
         input: [
           {
             path: 'src/component.tsx',
-            code: `export default (input) => {
+            code: `import { component$ } from '@qwik.dev/core';
+export default component$((input) => {
   const suffix = '!';
   return <button onClick$={${handler}}>save</button>;
-};`,
+});`,
           },
         ],
       });
@@ -357,11 +361,11 @@ test.each([false, true])(
         input: [
           {
             path: 'src/component.tsx',
-            code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+            code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const rows = useSignal([]);
   return <ul>{rows.value.map(({ id, label }, index) => <button key={id} title={JSON.stringify({ id, label, index })} onClick$={${handler}}>read</button>)}</ul>;
-};`,
+});`,
           },
         ],
       });
@@ -400,11 +404,11 @@ test.each([false, true])('alias calls preserve authored receivers (SSR: %s)', as
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+          code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const rows = useSignal([]);
   return <ul>{rows.value.map(({ id, save, api }) => <button key={id} title={save()} onClick$={${handler}}>save</button>)}</ul>;
-};`,
+});`,
         },
       ],
     });
@@ -478,7 +482,8 @@ test.each([false, true])(
         input: [
           {
             path: 'src/component.tsx',
-            code: `export default (props) => <button onClick$={${handler}}>save</button>;`,
+            code: `import { component$ } from '@qwik.dev/core';
+export default component$((props) => <button onClick$={${handler}}>save</button>);`,
           },
         ],
       });
@@ -505,8 +510,9 @@ test.each([false, true])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `export default (props) =>
-  <button onClick$={function read(value) { return value ? props.label : read; }} />;`,
+          code: `import { component$ } from '@qwik.dev/core';
+export default component$((props) =>
+  <button onClick$={function read(value) { return value ? props.label : read; }} />);`,
         },
       ],
     });
@@ -527,7 +533,8 @@ test.each(['function () { return this; }', 'function read(value = props.label) {
       input: [
         {
           path: 'src/component.tsx',
-          code: `export default (props) => <button onClick$={${handler}} />;`,
+          code: `import { component$ } from '@qwik.dev/core';
+export default component$((props) => <button onClick$={${handler}} />);`,
         },
       ],
     });
@@ -546,7 +553,7 @@ test('a generator handler keeps its head', async () => {
     input: [
       {
         path: 'src/component.tsx',
-        code: 'export default () => <button onClick$={function* () { yield 1; }} />;',
+        code: "import { component$ } from '@qwik.dev/core';\nexport default component$(() => <button onClick$={function* () { yield 1; }} />);",
       },
     ],
   });
@@ -559,10 +566,11 @@ test('captured parameter plans survive serialization and immutable linking', asy
   const plan = await analyseModule(
     {
       path: 'src/component.tsx',
-      code: `export default (props) => {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props) => {
   const fallback = 7;
   return <button onClick$={function read(value = props.initial + fallback) { return value; }} />;
-};`,
+});`,
     },
     {}
   );
@@ -592,7 +600,7 @@ test('compiles JSX in event parameter defaults', async () => {
       input: [
         {
           path: 'src/component.tsx',
-          code: 'export default () => <button onClick$={(value = <span />) => value} />;',
+          code: "import { component$ } from '@qwik.dev/core';\nexport default component$(() => <button onClick$={(value = <span />) => value} />);",
         },
       ],
     })

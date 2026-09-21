@@ -12,8 +12,8 @@ test('await facts exclude nested functions and survive JSON serialization', asyn
     {
       path: 'component.tsx',
       code: `
-import { $ } from '@qwik.dev/core';
-export default () => {
+import { component$, $ } from '@qwik.dev/core';
+export default component$(() => {
   const run = $(async (value = 1) => {
     await Promise.resolve(value);
     const nested = async () => { await Promise.resolve('nested'); };
@@ -21,7 +21,7 @@ export default () => {
     return await (await Promise.resolve(2));
   });
   return <button onClick$={run} />;
-};`,
+});`,
     },
     {}
   );
@@ -93,8 +93,8 @@ test.each([false, true])(
         {
           path: 'src/component.tsx',
           code: `
-import { useSignal, useTask$ } from '@qwik.dev/core';
-export default () => {
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(1);
   useTask$(async ({ cleanup }) => {
     try { await Promise.${reject ? 'reject' : 'resolve'}('result'); }
@@ -103,7 +103,7 @@ export default () => {
     cleanup(() => console.log('cleanup'));
   });
   return <span />;
-};`,
+});`,
         },
       ],
     });
@@ -150,8 +150,9 @@ test('await edits compose with destructured row reads without changing the recei
     input: [
       {
         path: 'src/component.tsx',
-        code: `export default (props) => <main>{props.rows.map(({ id, read }) =>
-  <button key={id} onClick$={async () => { return await read(); }} />)}</main>;`,
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$((props) => <main>{props.rows.map(({ id, read }) =>
+  <button key={id} onClick$={async () => { return await read(); }} />)}</main>);`,
       },
     ],
   });

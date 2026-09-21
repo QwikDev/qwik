@@ -13,7 +13,8 @@ test('prop default setup describes initialization rather than tracking control f
   const plan = await analyseModule(
     {
       path: 'component.tsx',
-      code: `export default ({ title = createTitle() }) => <b>{title}</b>;`,
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ title = createTitle() }) => <b>{title}</b>);`,
     },
     {}
   );
@@ -46,10 +47,11 @@ test.each([true, false])(
       input: [
         {
           path: 'component.tsx',
-          code: `export default ({ 'data-title': heading = createTitle(), suffix = '!', metadata = createMetadata() }) => {
+          code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ 'data-title': heading = createTitle(), suffix = '!', metadata = createMetadata() }) => {
   const defaultValue = 'occupied';
   return <button title={heading}>{heading + suffix}</button>;
-};`,
+});`,
         },
       ],
       isServer,
@@ -128,7 +130,8 @@ test('non-literal defaults retain the same object across reads and captures', as
     input: [
       {
         path: 'component.tsx',
-        code: `export default ({ metadata = createMetadata() }) => <button onClick$={() => metadata}>{metadata.label}</button>;`,
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ metadata = createMetadata() }) => <button onClick$={() => metadata}>{metadata.label}</button>);`,
       },
     ],
     isServer: true,
@@ -168,8 +171,9 @@ test.each([undefined, null, 'initial'])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { createTitle } from './defaults';
-export default ({ title: heading = createTitle() }) => <button onClick$={() => ({ heading })}>{heading}</button>;`,
+          code: `import { component$ } from '@qwik.dev/core';
+import { createTitle } from './defaults';
+export default component$(({ title: heading = createTitle() }) => <button onClick$={() => ({ heading })}>{heading}</button>);`,
         },
       ],
     });
@@ -244,7 +248,13 @@ test.each([
 ])('rejects deferred parameter defaults: %s', async (pattern) => {
   await expect(
     transformModules({
-      input: [{ path: 'component.tsx', code: `export default ({ ${pattern} }) => <span />;` }],
+      input: [
+        {
+          path: 'component.tsx',
+          code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ ${pattern} }) => <span />);`,
+        },
+      ],
       isServer: true,
     })
   ).rejects.toThrow('pipeline does not support');
@@ -255,7 +265,8 @@ test('a children default is a diagnostic pointing at the slot fallback', async (
     input: [
       {
         path: 'component.tsx',
-        code: `export default ({ children = createTitle() }) => <span />;`,
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ children = createTitle() }) => <span />);`,
       },
     ],
     isServer: true,
@@ -270,11 +281,12 @@ test.each(['', 'import { createTitle } from "./defaults";'])(
       input: [
         {
           path: 'component.tsx',
-          code: `${prefix}
-export default ({ title = createTitle() }) => {
+          code: `import { component$ } from '@qwik.dev/core';
+${prefix}
+export default component$(({ title = createTitle() }) => {
   const createTitle = () => 'local';
   return <b>{title}</b>;
-};`,
+});`,
         },
       ],
       isServer: true,
@@ -290,7 +302,11 @@ export default ({ title = createTitle() }) => {
 test('only the initial prop check is untracked', async () => {
   const output = await transformModules({
     input: [
-      { path: 'component.tsx', code: `export default ({ title = createTitle() }) => <b />;` },
+      {
+        path: 'component.tsx',
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$(({ title = createTitle() }) => <b />);`,
+      },
     ],
     isServer: true,
   });

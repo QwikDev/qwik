@@ -1,15 +1,15 @@
 ==INPUT==
 
-export default () => {
+import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <section><h1 title="hi">A&B</h1><br/><p>x</p></section>;
-};
+});
 
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _markComponent } from '@qwik.dev/core';
-
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     return '<section><h1 title="hi">A&B</h1><br><p>x</p></section>';

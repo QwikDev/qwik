@@ -1,15 +1,15 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
-export default () => {
+import { component$, useSignal } from '@qwik.dev/core';
+export const Button = component$((props) => <button onClick$={props.onSave$}>save</button>);
+export default component$(() => {
   const count = useSignal(0);
   return <Button onSave$={() => {
     const next = count.value + 1;
     if (next > 10) return;
     count.value = next;
   }} />;
-};
+});
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -92,8 +92,8 @@ export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    95,
-    108
+    118,
+    131
   ],
   "paramNames": [],
   "captureNames": [
@@ -125,8 +125,8 @@ export const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
   "ctxName": "onSave$",
   "captures": true,
   "loc": [
-    195,
-    278
+    230,
+    313
   ],
   "paramNames": [],
   "captureNames": [

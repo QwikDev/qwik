@@ -6,16 +6,16 @@ test.each([true, false])('module bindings are shared through ESM (SSR: %s)', asy
     input: [
       {
         path: 'src/app.tsx',
-        code: `import { useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
+        code: `import { component$, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 const prefix = 'Saved';
 const settings = { suffix: '!' };
 function format(value) { return prefix + ': ' + value; }
-export const App = () => {
+export const App = component$(() => {
   const count = useSignal(2);
   const title = useComputed$(() => format(count.value));
   useTask$(() => console.log(settings.suffix, title.value));
   return <button onClick$={() => console.log(format(count.value), settings)}>{title.value}</button>;
-};`,
+});`,
       },
     ],
     isServer,
@@ -50,8 +50,9 @@ test.each([
     input: [
       {
         path: 'app.tsx',
-        code: `${declaration}
-export const App = () => <button onClick$={() => console.log(value)}>save</button>;`,
+        code: `import { component$ } from '@qwik.dev/core';
+${declaration}
+export const App = component$(() => <button onClick$={() => console.log(value)}>save</button>);`,
       },
     ],
     isServer: false,
@@ -66,10 +67,11 @@ test('a default export snapshot is not reused as a live binding', async () => {
     input: [
       {
         path: 'app.tsx',
-        code: `let value = 1;
+        code: `import { component$ } from '@qwik.dev/core';
+let value = 1;
 export default value;
 value = 2;
-export const App = () => <button onClick$={() => value}>save</button>;`,
+export const App = component$(() => <button onClick$={() => value}>save</button>);`,
       },
     ],
     isServer: false,
@@ -85,9 +87,10 @@ test.each(['value++', 'value = 2', '({ value } = source)'])(
       input: [
         {
           path: 'app.tsx',
-          code: `let value = 1;
+          code: `import { component$ } from '@qwik.dev/core';
+let value = 1;
 const source = { value: 3 };
-export default () => <button onClick$={() => { ${expression}; }}>save</button>;`,
+export default component$(() => <button onClick$={() => { ${expression}; }}>save</button>);`,
         },
       ],
       isServer: false,
@@ -104,11 +107,12 @@ test('synthetic export names avoid authored exports', async () => {
     input: [
       {
         path: 'app.tsx',
-        code: `const value = 1;
+        code: `import { component$ } from '@qwik.dev/core';
+const value = 1;
 export { value as __qwik_other };
 export const __qwik_value = 2;
 const other = 3;
-export default () => <button onClick$={() => console.log(other)}>save</button>;`,
+export default component$(() => <button onClick$={() => console.log(other)}>save</button>);`,
       },
     ],
     isServer: false,
@@ -122,8 +126,9 @@ test('shadowed callback parameters do not export module bindings', async () => {
     input: [
       {
         path: 'app.tsx',
-        code: `const value = 1;
-export default () => <button onClick$={(value) => console.log(value)}>save</button>;`,
+        code: `import { component$ } from '@qwik.dev/core';
+const value = 1;
+export default component$(() => <button onClick$={(value) => console.log(value)}>save</button>);`,
       },
     ],
     isServer: false,
@@ -137,8 +142,9 @@ test('module-only uses do not create synthetic exports', async () => {
     input: [
       {
         path: 'app.tsx',
-        code: `function format() { return 'title'; }
-export default () => { const title = format(); return <p>{title}</p>; };`,
+        code: `import { component$ } from '@qwik.dev/core';
+function format() { return 'title'; }
+export default component$(() => { const title = format(); return <p>{title}</p>; });`,
       },
     ],
     isServer: true,

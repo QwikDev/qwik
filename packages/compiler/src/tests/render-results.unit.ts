@@ -67,30 +67,43 @@ function holes(plan: Awaited<ReturnType<typeof link>>) {
 
 describe('linked render results', () => {
   test.each([
-    ['export default (props: { title: string }) => <p>{props.title}</p>;', [Shape.Text]],
-    ['export default ({ title }: { title: string }) => <p>{title}</p>;', [Shape.Text]],
-    ['export default (props: { title?: string }) => <p>{props.title}</p>;', [Shape.Text]],
     [
-      'export default (props: { items: { title: string }[] }) => <ul>{props.items.map((item, index) => <li key={index}>{item.title}</li>)}</ul>;',
+      "import { component$ } from '@qwik.dev/core';\nexport default component$((props: { title: string }) => <p>{props.title}</p>);",
       [Shape.Text],
     ],
     [
-      'export default () => { const state: { value: number } = external(); return <p>{state.value}</p>; };',
+      "import { component$ } from '@qwik.dev/core';\nexport default component$(({ title }: { title: string }) => <p>{title}</p>);",
       [Shape.Text],
     ],
     [
-      'export default (props: { value: string | string[] }) => <p>{props.value}</p>;',
+      "import { component$ } from '@qwik.dev/core';\nexport default component$((props: { title?: string }) => <p>{props.title}</p>);",
+      [Shape.Text],
+    ],
+    [
+      "import { component$ } from '@qwik.dev/core';\nexport default component$((props: { items: { title: string }[] }) => <ul>{props.items.map((item, index) => <li key={index}>{item.title}</li>)}</ul>);",
+      [Shape.Text],
+    ],
+    [
+      "import { component$ } from '@qwik.dev/core';\nexport default component$(() => { const state: { value: number } = external(); return <p>{state.value}</p>; });",
+      [Shape.Text],
+    ],
+    [
+      "import { component$ } from '@qwik.dev/core';\nexport default component$((props: { value: string | string[] }) => <p>{props.value}</p>);",
       [Shape.Unknown],
     ],
-    ['export default (props: { value: unknown }) => <p>{props.value}</p>;', [Shape.Unknown]],
+    [
+      "import { component$ } from '@qwik.dev/core';\nexport default component$((props: { value: unknown }) => <p>{props.value}</p>);",
+      [Shape.Unknown],
+    ],
   ])('uses declared value contracts for unresolved inputs: %s', async (source, expected) => {
     expect(holes(await link(source))).toEqual(expected);
   });
 
   test('keeps declared contracts scoped after TypeScript normalization', async () => {
-    const plan = await link(`
-      const Label = ({ value }: { value: string }) => <p>{value}</p>;
-      export default ({ value }: { value: unknown }) => <><Label value={external()} /><p>{value}</p></>;
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+
+      const Label = component$(({ value }: { value: string }) => <p>{value}</p>);
+      export default component$(({ value }: { value: unknown }) => <><Label value={external()} /><p>{value}</p></>);
     `);
     expect(holes(plan)).toEqual([Shape.Text, Shape.Unknown]);
   });
@@ -99,9 +112,11 @@ describe('linked render results', () => {
     'preserves declared library %s contracts through neutral plan serialization',
     async (contract) => {
       const plan = await link(
-        `import { Label, read } from './lib'; export default () => <Label value={read()} />;`,
-        `export function read()${contract === 'function' ? ': string' : ''} { return external(); }
-       export const Label = (props${contract === 'prop' ? ': {value: string}' : ''}) => <p>{props.value}</p>;`
+        `import { component$ } from '@qwik.dev/core';
+import { Label, read } from './lib'; export default component$(() => <Label value={read()} />);`,
+        `import { component$ } from '@qwik.dev/core';
+export function read()${contract === 'function' ? ': string' : ''} { return external(); }
+       export const Label = component$((props${contract === 'prop' ? ': {value: string}' : ''}) => <p>{props.value}</p>);`
       );
       expect(holes(plan)).toEqual([Shape.Text]);
     }
@@ -124,26 +139,29 @@ describe('linked render results', () => {
     'interface Input {value: string} interface Input {other: number}',
     'interface Recursive {value: string; next?: Recursive} type Input = Recursive;',
   ])('resolves equivalent named contracts: %s', async (declaration) => {
-    const plan = await link(`${declaration}
-      export default (props: Input) => <p>{props.value}</p>;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+${declaration}
+      export default component$((props: Input) => <p>{props.value}</p>);`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('uses generic constraints without inferring from initializers', async () => {
     const plan = await link(
-      `export default <T extends string,>(props: {value: T}) => <p>{props.value}</p>;`
+      `import { component$ } from '@qwik.dev/core';
+export default component$(<T extends string,>(props: {value: T}) => <p>{props.value}</p>);`
     );
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('resolves scoped aliases independently of value bindings', async () => {
-    const plan = await link(`type Input = {value: unknown}; const Input = 0;
-      function Label(props: Input) { return <p>{props.value}</p>; }
-      export default () => {
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+type Input = {value: unknown}; const Input = 0;
+      const Label = component$(function Label(props: Input) { return <p>{props.value}</p>; });
+      export default component$(() => {
         type Input = {value: string};
         const Inner = (props: Input) => <p>{props.value}</p>;
         return <><Label value={external()} /><Inner value={external()} /></>;
-      };`);
+      });`);
     expect(holes(plan)).toEqual([Shape.Unknown, Shape.Text]);
   });
 
@@ -161,22 +179,24 @@ describe('linked render results', () => {
   test.each(['unknown', 'any', 'Missing', 'string | string[]'])(
     'keeps unresolved or dynamic contracts conservative: %s',
     async (value) => {
-      const plan = await link(`type Input = {value: ${value}};
-        export default (props: Input) => <p>{props.value}</p>;`);
+      const plan = await link(`import { component$ } from '@qwik.dev/core';
+type Input = {value: ${value}};
+        export default component$((props: Input) => <p>{props.value}</p>);`);
       expect(holes(plan)).toEqual([Shape.Unknown]);
     }
   );
 
   test('keeps known JSX callers even when a declaration claims text', async () => {
-    const plan = await link(`const Label = (props: {value: string}) => <p>{props.value}</p>;
-      export default () => <Label value={<b />} />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$((props: {value: string}) => <p>{props.value}</p>);
+      export default component$(() => <Label value={<b />} />);`);
     expect(holes(plan)).toEqual([Shape.Element]);
   });
 
   test('discovers explicitly marked components returning only a prop', async () => {
     const plan = await link(`import { component$ } from '@qwik.dev/core';
       const Content = component$(props => props.value);
-      export default () => <Content value={external()} />;`);
+      export default component$(() => <Content value={external()} />);`);
     expect(plan.modules[0].qrls.some((qrl) => qrl.declaration?.name === 'Content')).toBe(true);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
@@ -184,7 +204,7 @@ describe('linked render results', () => {
   test('emits proven text at the component root without dynamic content', async () => {
     const plan = await link(`import { component$ } from '@qwik.dev/core';
       const Content = component$(props => props.value);
-      export default () => <Content value="text" />;`);
+      export default component$(() => <Content value="text" />);`);
     expect(holes(plan)).toEqual([Shape.Text]);
     for (const generate of [generateJsSsr, generateJsCsr]) {
       const output = await generate(
@@ -204,54 +224,65 @@ describe('linked render results', () => {
   });
   test('resolves library props from application calls after serialization', async () => {
     const plan = await link(
-      `import { Label } from './lib'; export default () => <Label value="text" />;`,
-      `export const Label = props => <p>{props.value}</p>;`
+      `import { component$ } from '@qwik.dev/core';
+import { Label } from './lib'; export default component$(() => <Label value="text" />);`,
+      `import { component$ } from '@qwik.dev/core';
+export const Label = component$(props => <p>{props.value}</p>);`
     );
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('resolves a component binding alias', async () => {
-    const plan = await link(`const Label = props => <p>{props.value}</p>;
-      const Alias = Label; export default () => <Alias value="text" />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(props => <p>{props.value}</p>);
+      const Alias = Label; export default component$(() => <Alias value="text" />);`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('resolves props across reexports and import aliases', async () => {
     const plan = await link(
-      `import { Caption as Label } from './lib';
-      export default () => <Label value="text" />;`,
+      `import { component$ } from '@qwik.dev/core';
+import { Caption as Label } from './lib';
+      export default component$(() => <Label value="text" />);`,
       [
         { path: 'lib.tsx', code: `export { Label as Caption } from './definition';` },
-        { path: 'definition.tsx', code: 'export const Label = props => <p>{props.value}</p>;' },
+        {
+          path: 'definition.tsx',
+          code: "import { component$ } from '@qwik.dev/core';\nexport const Label = component$(props => <p>{props.value}</p>);",
+        },
       ]
     );
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('resolves props of a component declared inside its caller', async () => {
-    const plan = await link(`export default () => {
-      function Label(props) { return <p>{props.value}</p>; }
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+export default component$(() => {
+      const Label = component$(function Label(props) { return <p>{props.value}</p>; });
       return <Label value="text" />;
-    };`);
+    });`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('ignores calls in unreachable components', async () => {
-    const plan = await link(`const Label = props => <p>{props.value}</p>;
-      const Unused = () => <Label value={external()} />;
-      export default () => <Label value="text" />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(props => <p>{props.value}</p>);
+      const Unused = component$(() => <Label value={external()} />);
+      export default component$(() => <Label value="text" />);`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('preserves known fields after an unknown spread overwrites a different field', async () => {
-    const plan = await link(`const Label = props => <p>{props.value}</p>;
-      export default () => <Label value="first" {...{other: external()}} />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(props => <p>{props.value}</p>);
+      export default component$(() => <Label value="first" {...{other: external()}} />);`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('keeps an unknown last spread unknown', async () => {
-    const plan = await link(`const Label = props => <p>{props.value}</p>;
-      export default () => <Label value="first" {...external()} />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(props => <p>{props.value}</p>);
+      export default component$(() => <Label value="first" {...external()} />);`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
@@ -261,9 +292,13 @@ describe('linked render results', () => {
       input: [
         {
           path: 'src/app.tsx',
-          code: `import { Label } from './label'; export default () => <Label value="text" />;`,
+          code: `import { component$ } from '@qwik.dev/core';
+import { Label } from './label'; export default component$(() => <Label value="text" />);`,
         },
-        { path: 'src/label.tsx', code: 'export const Label = props => <p>{props.value}</p>;' },
+        {
+          path: 'src/label.tsx',
+          code: "import { component$ } from '@qwik.dev/core';\nexport const Label = component$(props => <p>{props.value}</p>);",
+        },
       ],
     });
     expect(output.modules.map((module) => module.code).join('\n')).not.toContain(
@@ -276,33 +311,38 @@ describe('linked render results', () => {
     ['["text", <b />]', Shape.Many],
     ['external()', Shape.Unknown],
   ])('resolves %s passed to a local component', async (value, shape) => {
-    const plan = await link(`const Label = props => <p>{props.value}</p>;
-      export default () => <Label value={${value}} />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(props => <p>{props.value}</p>);
+      export default component$(() => <Label value={${value}} />);`);
     expect(holes(plan)).toEqual([shape]);
   });
 
   test('unions all calls instead of choosing the first', async () => {
-    const plan = await link(`const Label = props => <p>{props.value}</p>;
-      export default () => <><Label value="text" /><Label value={<b />} /></>;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(props => <p>{props.value}</p>);
+      export default component$(() => <><Label value="text" /><Label value={<b />} /></>);`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('propagates forwarding, defaults and rest spreads', async () => {
-    const plan = await link(`const Label = ({value = 'default'}) => <p>{value}</p>;
-      const Forward = ({ignored, ...rest}) => <Label {...rest} />;
-      export default () => <Forward ignored={external()} value="text" />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(({value = 'default'}) => <p>{value}</p>);
+      const Forward = component$(({ignored, ...rest}) => <Label {...rest} />);
+      export default component$(() => <Forward ignored={external()} value="text" />);`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('respects spread overwrite order without poisoning unrelated fields', async () => {
-    const plan = await link(`const Label = props => <p>{props.value}</p>;
-      export default () => <Label {...external()} value="text" other={external()} />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(props => <p>{props.value}</p>);
+      export default component$(() => <Label {...external()} value="text" other={external()} />);`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('resolves fields of an object passed to a known component', async () => {
-    const plan = await link(`const Label = props => <p>{props.record.title}</p>;
-      export default () => { const record = { title: 'text' }; return <Label record={record} />; };`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(props => <p>{props.record.title}</p>);
+      export default component$(() => { const record = { title: 'text' }; return <Label record={record} />; });`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
@@ -325,52 +365,59 @@ describe('linked render results', () => {
   });
 
   test('includes mutations through a component prop', async () => {
-    const plan = await link(`const Label = props => {
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(props => {
       props.record.title = external(); return <p>{props.record.title}</p>;
-    }; export default () => { const record = { title: 'text' }; return <Label record={record} />; };`);
+    }); export default component$(() => { const record = { title: 'text' }; return <Label record={record} />; });`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('keeps scalar writes through a component prop as text', async () => {
-    const plan = await link(`import { useSignal } from '@qwik.dev/core';
-      const Counter = props => { const bump = () => { props.count.value++; }; return <p>{props.count.value}</p>; };
-      export default () => { const count = useSignal(0); return <div><Counter count={count} /><b>{count.value}</b></div>; };`);
+    const plan = await link(`import { component$, useSignal } from '@qwik.dev/core';
+      const Counter = component$(props => { const bump = () => { props.count.value++; }; return <p>{props.count.value}</p>; });
+      export default component$(() => { const count = useSignal(0); return <div><Counter count={count} /><b>{count.value}</b></div>; });`);
     expect(holes(plan)).toEqual([Shape.Text, Shape.Text]);
   });
 
   test('leaves external entry props unknown', async () => {
-    expect(holes(await link(`export default props => <p>{props.value}</p>;`))).toEqual([
-      Shape.Unknown,
-    ]);
+    expect(
+      holes(
+        await link(`import { component$ } from '@qwik.dev/core';
+export default component$(props => <p>{props.value}</p>);`)
+      )
+    ).toEqual([Shape.Unknown]);
   });
 
   test.each(['`${props.value}`', 'String(props.value)', "'' + props.value"])(
     'preserves explicit string conversion: %s',
     async (expression) => {
-      expect(holes(await link(`export default props => <p>{${expression}}</p>;`))).toEqual([
-        Shape.Text,
-      ]);
+      expect(
+        holes(
+          await link(`import { component$ } from '@qwik.dev/core';
+export default component$(props => <p>{${expression}}</p>);`)
+        )
+      ).toEqual([Shape.Text]);
     }
   );
 
   test('includes later signal writes', async () => {
-    const plan = await link(`import { useSignal } from '@qwik.dev/core';
-      export default () => { const value = useSignal('text');
+    const plan = await link(`import { component$, useSignal } from '@qwik.dev/core';
+      export default component$(() => { const value = useSignal('text');
         const change = () => { value.value = external(); };
-        return <p>{value.value}</p>; };`);
+        return <p>{value.value}</p>; });`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('includes the initial value of an async computed', async () => {
-    const plan = await link(`import { useComputed$ } from '@qwik.dev/core';
-      export default props => { const value = useComputed$(async () => 'text', { initial: props.value });
-        return <p>{value.value}</p>; };`);
+    const plan = await link(`import { component$, useComputed$ } from '@qwik.dev/core';
+      export default component$(props => { const value = useComputed$(async () => 'text', { initial: props.value });
+        return <p>{value.value}</p>; });`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('preserves function values stored in signals', async () => {
-    const plan = await link(`import { useSignal } from '@qwik.dev/core';
-      export default () => { const value = useSignal(() => 'text'); return <p>{value.value}</p>; };`);
+    const plan = await link(`import { component$, useSignal } from '@qwik.dev/core';
+      export default component$(() => { const value = useSignal(() => 'text'); return <p>{value.value}</p>; });`);
     expect(holes(plan)).toEqual([Shape.Element]);
   });
 
@@ -379,47 +426,51 @@ describe('linked render results', () => {
     `const { value: items } = value; items.push(<b />);`,
     `value.value ||= external();`,
   ])('includes mutations through aliases and methods: %s', async (mutation) => {
-    const plan = await link(`import { useSignal } from '@qwik.dev/core';
-      export default () => { const value = useSignal(['text']);
+    const plan = await link(`import { component$, useSignal } from '@qwik.dev/core';
+      export default component$(() => { const value = useSignal(['text']);
         const change = () => { ${mutation} };
-        return <p>{value.value[0]}</p>; };`);
+        return <p>{value.value[0]}</p>; });`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('includes writes through component parameter aliases', async () => {
-    const plan = await link(`const Label = ({record}) => {
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(({record}) => {
       const change = () => { record.value = external(); };
       return <p>{record.value}</p>;
-    }; export default () => <Label record={{value: 'text'}} />;`);
+    }); export default component$(() => <Label record={{value: 'text'}} />);`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('resolves imported ordinary bindings', async () => {
     const plan = await link(
-      `import { title, getTitle } from './lib';
-      export default () => <p>{title}{getTitle()}</p>;`,
+      `import { component$ } from '@qwik.dev/core';
+import { title, getTitle } from './lib';
+      export default component$(() => <p>{title}{getTitle()}</p>);`,
       `export const title = 'text'; export function getTitle() { return title; }`
     );
     expect(holes(plan)).toEqual([Shape.Text, Shape.Text]);
   });
 
   test('finds function calls in event statements', async () => {
-    const plan = await link(`export default () => <button onClick$={() => {
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+export default component$(() => <button onClick$={() => {
       const native = value => <b>{value}</b>; external(native('text'));
-    }}>run</button>;`);
+    }}>run</button>);`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('does not fix argument positions after a spread of unknown length', async () => {
-    const plan = await link(`const second = (first, value) => value;
-      export default () => <p>{second(...external(), 'text')}</p>;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const second = (first, value) => value;
+      export default component$(() => <p>{second(...external(), 'text')}</p>);`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('resolves an optional member of a computed function result', async () => {
-    const plan = await link(`import { useComputed$ } from '@qwik.dev/core';
-      export default () => { const value = useComputed$(async () => ({label: 'text'}));
-        return <p>{value.value?.label}</p>; };`);
+    const plan = await link(`import { component$, useComputed$ } from '@qwik.dev/core';
+      export default component$(() => { const value = useComputed$(async () => ({label: 'text'}));
+        return <p>{value.value?.label}</p>; });`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
@@ -436,39 +487,45 @@ describe('linked render results', () => {
   });
 
   test('distinguishes numeric row indexes from literal zero', async () => {
-    const plan = await link(`export default () => <div>{['one', 'two'].map((value, index) =>
-      <p>{['first', external()][index]}</p>)}</div>;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+export default component$(() => <div>{['one', 'two'].map((value, index) =>
+      <p>{['first', external()][index]}</p>)}</div>);`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('includes assignments to individual array elements', async () => {
-    const plan = await link(`export default () => { const items = ['first'];
-      items[1] = external(); return <div>{items.map((value, index) => <p key={index}>{value}</p>)}</div>; };`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+export default component$(() => { const items = ['first'];
+      items[1] = external(); return <div>{items.map((value, index) => <p key={index}>{value}</p>)}</div>; });`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('solves forwarding cycles with known input', async () => {
-    const plan = await link(`const A = p => <><span>{p.value}</span><B value={p.value} /></>;
-      const B = p => <A value={p.value} />;
-      export default () => <A value="text" />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const A = component$(p => <><span>{p.value}</span><B value={p.value} /></>);
+      const B = component$(p => <A value={p.value} />);
+      export default component$(() => <A value="text" />);`);
     expect(holes(plan)).toEqual([Shape.Text]);
   });
 
   test('terminates cycles that keep expanding a property path', async () => {
-    const plan = await link(`const A = props => <><p>{props.value}</p><A {...props.next} /></>;
-      export default () => <A value="text" next={external()} />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const A = component$(props => <><p>{props.value}</p><A {...props.next} /></>);
+      export default component$(() => <A value="text" next={external()} />);`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('does not specialize a component passed to an unknown consumer', async () => {
-    const plan = await link(`const Label = props => <p>{props.value}</p>;
-      external(Label); export default () => <Label value="text" />;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+const Label = component$(props => <p>{props.value}</p>);
+      external(Label); export default component$(() => <Label value="text" />);`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
   test('includes external inputs to an exported entry function', async () => {
-    const plan = await link(`export default function get(value) { return value; }
-      const result = get('text'); export const App = () => <p>{result}</p>;`);
+    const plan = await link(`import { component$ } from '@qwik.dev/core';
+export default function get(value) { return value; }
+      const result = get('text'); export const App = component$(() => <p>{result}</p>);`);
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 });

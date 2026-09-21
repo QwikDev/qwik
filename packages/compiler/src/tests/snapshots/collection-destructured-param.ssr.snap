@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export default () => {
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const items = useSignal([{ id: 'a', label: 'Alpha' }]);
   return <ul>{items.value.map(({ id, label }) => <li key={id}>{label}</li>)}</ul>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -133,8 +133,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    174,
-    199
+    197,
+    222
   ],
   "paramNames": [
     "{ id, label }"
@@ -160,8 +160,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = ({ id, label }) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    183,
-    185
+    206,
+    208
   ],
   "paramNames": [
     "{ id, label }"
@@ -187,8 +187,8 @@ export const component_text_segment_2_1fh117dstcoge = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    188,
-    193
+    211,
+    216
   ],
   "paramNames": [],
   "captureNames": [

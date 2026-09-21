@@ -10,15 +10,10 @@ import type {
 } from 'oxc-parser';
 import { isNode, type WalkableNode } from './ast-types';
 import { identifierName, isFunctionLike, unwrapExpression } from './utils';
-import type { JsxAnalysis } from './jsx-analysis';
 import type { BindingGraph } from './bindings';
 import type { LocalId } from '../../schema';
 import { QwikMarker } from '../../words';
 import { UnsupportedError } from '../../errors';
-
-function hasComponentName(name: string | null): boolean {
-  return name === null || /^[A-Z]/.test(name);
-}
 
 export interface ComponentCandidate {
   statement: Statement;
@@ -29,7 +24,6 @@ export interface ComponentCandidate {
 /** Explicit markers and JSX-returning functions share component discovery. */
 export function findComponentCandidates(
   program: Pick<Program, 'body'>,
-  jsx: JsxAnalysis,
   bindings: BindingGraph,
   coreBindings: ReadonlyMap<LocalId, string>
 ): ComponentCandidate[] {
@@ -86,11 +80,8 @@ export function findComponentCandidates(
   for (const { value, call, name, statement } of declared) {
     const fn = unwrapExpression(call === null ? value : call.arguments[0]);
     const isMarked = call !== null || (name !== null && marked.has(name));
-    if (
-      fn !== null &&
-      isFunctionLike(fn) &&
-      (isMarked || (hasComponentName(name) && returnPositionContainsJsx(fn, jsx)))
-    ) {
+    // Only the marker makes a component; a function that merely returns JSX is a helper.
+    if (fn !== null && isFunctionLike(fn) && isMarked) {
       candidates.push({ statement, fn, name });
     }
   }
@@ -184,19 +175,6 @@ export function findRuntimeJsx(node: unknown): JSXElement | JSXFragment | null {
   return null;
 }
 
-function returnPositionContainsJsx(fn: Node, jsx: JsxAnalysis): boolean {
-  const body = unwrapExpression((fn as WalkableNode).body);
-  if (body?.type !== 'BlockStatement') {
-    return body !== null && jsx.read(body).hasJsxValue;
-  }
-  let found = false;
-  visitReturns(body, (argument) => {
-    const value = unwrapExpression(argument);
-    found ||= value !== null && jsx.read(value).hasJsxValue;
-  });
-  return found;
-}
-
 const RUNTIME_JSX_FACTORIES = new Set(['jsx', 'jsxs', 'jsxDEV']);
 
 /** A runtime `jsx()` call builds a tree the compiler never sees — never compilable, so fail loud. */
@@ -237,27 +215,3 @@ export function findRuntimeJsxCall(
 }
 
 /** Returns of nested functions are not the outer function's returns. */
-function visitReturns(node: unknown, visitor: (argument: unknown) => void, root = true): void {
-  if (Array.isArray(node)) {
-    for (const child of node) {
-      visitReturns(child, visitor, false);
-    }
-    return;
-  }
-  if (!isNode(node)) {
-    return;
-  }
-  if (!root && isFunctionLike(node)) {
-    return;
-  }
-  if (node.type === 'ReturnStatement') {
-    visitor(node.argument);
-    return;
-  }
-  for (const key of Object.keys(node)) {
-    if (key === 'type' || key === 'start' || key === 'end' || key === 'range') {
-      continue;
-    }
-    visitReturns((node as WalkableNode)[key], visitor, false);
-  }
-}

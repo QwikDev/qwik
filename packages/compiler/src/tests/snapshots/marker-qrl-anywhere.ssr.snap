@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
+import { component$, useSignal } from '@qwik.dev/core';
 import { useCustom$ } from './hooks';
 export function make(count) {
   return useCustom$(() => count.value);
 }
-export default () => {
+export default component$(() => {
   const count = useSignal(0);
   const handles = [useCustom$(() => count.value + 1)];
   return (
@@ -13,7 +13,7 @@ export default () => {
       {count.value}
     </button>
   );
-};
+});
 
 == SSR OUTPUT ==
 
@@ -114,8 +114,8 @@ export const component_useCustomqrl_segment_0_heif5ecaq0pq = () => {
   "ctxName": "useCustom$",
   "captures": true,
   "loc": [
-    121,
-    150
+    133,
+    162
   ],
   "paramNames": [],
   "captureNames": [
@@ -145,8 +145,8 @@ export const component_useCustomqrl_segment_1_heifjfg7k2q9 = () => {
   "ctxName": "useCustom$",
   "captures": true,
   "loc": [
-    226,
-    259
+    249,
+    282
   ],
   "paramNames": [],
   "captureNames": [
@@ -176,8 +176,8 @@ export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
   "ctxName": "useCustom$",
   "captures": true,
   "loc": [
-    303,
-    332
+    326,
+    355
   ],
   "paramNames": [],
   "captureNames": [
@@ -213,8 +213,8 @@ export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    285,
-    304
+    308,
+    327
   ],
   "paramNames": [],
   "captureNames": [
@@ -241,8 +241,8 @@ export const component_data_n_segment_4_brpn0aqdy9ay = (handles) => {
   "ctxName": "data-n",
   "captures": true,
   "loc": [
-    345,
-    359
+    368,
+    382
   ],
   "paramNames": [],
   "captureNames": [

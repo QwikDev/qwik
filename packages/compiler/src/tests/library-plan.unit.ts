@@ -9,7 +9,10 @@ import { generateForeignModule } from '../generate/foreign';
 
 test('publishes immutable neutral library plans with portable module IDs', async () => {
   const module = await analyseModule(
-    { path: '/build/library.tsx', code: 'export const Label = p => <p>{p.value}</p>;' },
+    {
+      path: '/build/library.tsx',
+      code: "import { component$ } from '@qwik.dev/core';\nexport const Label = component$(p => <p>{p.value}</p>);",
+    },
     {}
   );
   const source = JSON.stringify(module);
@@ -73,7 +76,7 @@ test('carries only the modules an entry reaches, type imports included', async (
   const entry = await analyseModule(
     {
       path: '/lib/entry.tsx',
-      code: "import { used } from './used'; import type { T } from './types'; export const Entry = (p: T) => <p>{used}</p>;",
+      code: "import { component$ } from '@qwik.dev/core';\nimport { used } from './used'; import type { T } from './types'; export const Entry = component$((p: T) => <p>{used}</p>);",
     },
     {}
   );
@@ -113,8 +116,8 @@ test('keeps linked content QRL identity across library relocation and compilatio
     const module = await analyseModule(
       {
         path: 'library.tsx',
-        code: `import { useSignal } from '@qwik.dev/core';
-      export default () => { const value = useSignal(external()); return <p>{value.value}</p>; };`,
+        code: `import { component$, useSignal } from '@qwik.dev/core';
+      export default component$(() => { const value = useSignal(external()); return <p>{value.value}</p>; });`,
       },
       { scope }
     );
@@ -171,7 +174,10 @@ test.each(['entry', 'edge', 'owner', 'duplicate'] as const)(
   'rejects invalid %s module references',
   async (invalid) => {
     const module = await analyseModule(
-      { path: 'library.tsx', code: 'export default () => <p />;' },
+      {
+        path: 'library.tsx',
+        code: "import { component$ } from '@qwik.dev/core';\nexport default component$(() => <p />);",
+      },
       {}
     );
     const plan = createLibraryPlan([module], [{ kind: EntryKind.Module, module: module.path }], {
@@ -205,7 +211,7 @@ test.each(['version', 'source', 'binding', 'offset'] as const)(
     const module = await analyseModule(
       {
         path: 'library.tsx',
-        code: 'export default (props: {value: string}) => <p>{props.value}</p>;',
+        code: "import { component$ } from '@qwik.dev/core';\nexport default component$((props: {value: string}) => <p>{props.value}</p>);",
       },
       { transpileTs: true }
     );
@@ -237,7 +243,7 @@ test('resolves generic imported contracts after library relocation', async () =>
     [
       {
         path: 'library.tsx',
-        code: 'import type {Input} from "./types"; export default (props: Input) => <p>{props.value}</p>;',
+        code: 'import { component$ } from \'@qwik.dev/core\';\nimport type {Input} from "./types"; export default component$((props: Input) => <p>{props.value}</p>);',
       },
       { path: 'types.ts', code: 'interface Box<T> {value: T} export type Input = Box<string>;' },
     ].map((source) => analyseModule(source, { transpileTs: true }))
@@ -251,7 +257,7 @@ test('resolves generic imported contracts after library relocation', async () =>
         {
           edges: {
             'library.tsx': {
-              0: { r: ResolutionKind.Resolved, path: 'types.ts', sideEffects: SideEffects.Free },
+              1: { r: ResolutionKind.Resolved, path: 'types.ts', sideEffects: SideEffects.Free },
             },
           },
         }

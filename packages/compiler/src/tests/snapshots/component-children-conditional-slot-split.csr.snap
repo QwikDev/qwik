@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="x" /><Slot name="y" /></main>;
-export default () => {
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="x" /><Slot name="y" /></main>);
+export default component$(() => {
   const flip = useSignal(false);
   return <Panel>{flip.value ? <a q:slot="x">alpha</a> : <b q:slot="y">bravo</b>}</Panel>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -102,8 +102,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    192,
-    262
+    227,
+    297
   ],
   "paramNames": [],
   "captureNames": [
@@ -133,8 +133,8 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    199,
-    209
+    234,
+    244
   ],
   "paramNames": [],
   "captureNames": [
@@ -165,8 +165,8 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    212,
-    235
+    247,
+    270
   ],
   "paramNames": []
 }
@@ -225,8 +225,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    192,
-    262
+    227,
+    297
   ],
   "paramNames": [],
   "captureNames": [
@@ -256,8 +256,8 @@ export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    199,
-    209
+    234,
+    244
   ],
   "paramNames": [],
   "captureNames": [
@@ -284,8 +284,8 @@ export const component_branch_then_segment_5_24n7d63685l6a = () => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    212,
-    235
+    247,
+    270
   ],
   "paramNames": []
 }
@@ -313,8 +313,8 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
   "ctxName": "branch:else",
   "captures": false,
   "loc": [
-    238,
-    261
+    273,
+    296
   ],
   "paramNames": []
 }

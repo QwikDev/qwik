@@ -19,7 +19,8 @@ test.each([
     input: [
       {
         path: 'src/component.tsx',
-        code: `export default function App(props) { return ${expression}; }`,
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$(function App(props) { return ${expression}; });`,
       },
     ],
   });
@@ -61,8 +62,9 @@ test('a CSR fragment returns flat nodes when its children return arrays', async 
     input: [
       {
         path: 'src/component.tsx',
-        code: `import { Child } from './child';
-export default () => <><Child /><Child /></>;`,
+        code: `import { component$ } from '@qwik.dev/core';
+import { Child } from './child';
+export default component$(() => <><Child /><Child /></>);`,
       },
     ],
   });
@@ -87,7 +89,12 @@ test.each(['props.visible.value ? <b>on</b> : null', 'props.visible.value && <b>
     const output = await transformModules({
       srcDir: 'src',
       isServer: false,
-      input: [{ path: 'src/component.tsx', code: `export default (props) => ${expression};` }],
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `import { component$ } from '@qwik.dev/core';\nexport default component$((props) => ${expression});`,
+        },
+      ],
     });
     expect(output.diagnostics).toEqual([]);
     const globals: Record<string, unknown> = {

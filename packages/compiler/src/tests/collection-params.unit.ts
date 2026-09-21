@@ -21,15 +21,15 @@ test.each([false, true])(
           input: [
             {
               path: 'src/component.tsx',
-              code: `import { useSignal } from '@qwik.dev/core';
-export default (props) => {
+              code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$((props) => {
   const items = useSignal([]);
   return <ul>{${source}.map(({ id }) => {
     const visible = props.visible;
     const key = props.prefix + id;
     return ${row};
   })}</ul>;
-};`,
+});`,
             },
           ],
         });
@@ -67,9 +67,10 @@ test.each([false, true])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `export default (props) => <ul>{props.items.map(item => props.choose
+          code: `import { component$ } from '@qwik.dev/core';
+export default component$((props) => <ul>{props.items.map(item => props.choose
   ? (props.visible && <li key={item.id + props.a} />)
-  : (props.visible ? null : <li key={item.id + props.b} />))}</ul>;`,
+  : (props.visible ? null : <li key={item.id + props.b} />))}</ul>);`,
         },
       ],
     });
@@ -114,7 +115,7 @@ test.each([false, true])(
       input: [
         {
           path: 'src/component.tsx',
-          code: 'export default (props) => <ul>{props.items.map(item => item.visible && <li key={item.details.id} />)}</ul>;',
+          code: "import { component$ } from '@qwik.dev/core';\nexport default component$((props) => <ul>{props.items.map(item => item.visible && <li key={item.details.id} />)}</ul>);",
         },
       ],
     });
@@ -147,8 +148,8 @@ test.each([false, true])(
         input: [
           {
             path: 'src/component.tsx',
-            code: `import { useSignal } from '@qwik.dev/core';
-export default (props) => {
+            code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$((props) => {
   const items = useSignal([]);
   return <ul>{${source}.map(({ id }, index) => {
     const prefix = props.prefix;
@@ -158,7 +159,7 @@ export default (props) => {
       ? (props.left ? <li key={id + props.a}>{title}</li> : <li key={id + props.b}>{title}</li>)
       : (props.right ? <li key={id + props.c}>{title}</li> : <li key={last + props.d}>{title}</li>);
   })}</ul>;
-};`,
+});`,
           },
         ],
       });
@@ -300,8 +301,8 @@ test.each([false, true])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useSignal } from '@qwik.dev/core';
-export default (props) => {
+          code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$((props) => {
   const items = useSignal([]);
   const fallback = useSignal('fallback');
   return <ul>{items.value.map((item, index) => {
@@ -311,7 +312,7 @@ export default (props) => {
     const key = prefix + id + index + ((unused) => unused)('!');
     return <li key={key}>{title + unused}</li>;
   })}</ul>;
-};`,
+});`,
         },
       ],
     });
@@ -357,14 +358,14 @@ test.each([false, true])(
         input: [
           {
             path: 'src/component.tsx',
-            code: `import { useSignal } from '@qwik.dev/core';
-export default (props) => {
+            code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$((props) => {
   const fallback = useSignal({ id: 'given' });
   return <ul>{props.items.map((${pattern}, index) => {
     const key = ${read} + index;
     return <li key={key}>Row</li>;
   })}</ul>;
-};`,
+});`,
           },
         ],
       });
@@ -391,12 +392,12 @@ test.each([false, true])(
         input: [
           {
             path: 'src/component.tsx',
-            code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+            code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const items = useSignal([]);
   const fallback = useSignal(null);
   return <ul>{items.value.map((${pattern}) => <li key={${keyExpression}}>Row</li>)}</ul>;
-};`,
+});`,
           },
         ],
       });
@@ -437,12 +438,12 @@ test.each([false, true])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useSignal } from '@qwik.dev/core';
-export default (props) => {
+          code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$((props) => {
   const items = useSignal([]);
   const fallback = useSignal('fallback');
   return <ul>{items.value.map(({ [props.field]: id = fallback.value, copy = id, ...rest }) => <li key={copy + rest.suffix}>{id}</li>)}</ul>;
-};`,
+});`,
         },
       ],
     });
@@ -471,11 +472,11 @@ test.each([false, true])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useSignal } from '@qwik.dev/core';
-export default (props) => {
+          code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$((props) => {
   const items = useSignal([]);
   return <ul>{items.value.map((item, index = props.unused) => <li key={item.id}>{index}</li>)}</ul>;
-};`,
+});`,
         },
       ],
     });

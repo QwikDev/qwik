@@ -2,7 +2,7 @@
 
 import { component$, useSignal } from '@qwik.dev/core';
 import { Child } from './child';
-const Fallback = () => <p>loading</p>;
+const Fallback = component$(() => <p>loading</p>);
 export default component$(() => {
   const count = useSignal(1);
   const pick = (v) => v.x;
@@ -141,8 +141,8 @@ export const component_pick_segment_0_3dnf2wesexw1y = (v) => {
   "ctxName": "pick",
   "captures": false,
   "loc": [
-    200,
-    217
+    212,
+    229
   ],
   "paramNames": [
     "v"
@@ -168,8 +168,8 @@ export const component_fallbackqrl_segment_1_3grqawftcqexb = Fallback;
   "ctxName": "fallback$",
   "captures": false,
   "loc": [
-    277,
-    285
+    289,
+    297
   ],
   "paramNames": []
 }
@@ -223,8 +223,8 @@ export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    309,
-    333
+    321,
+    345
   ],
   "paramNames": [],
   "captureNames": [
@@ -252,8 +252,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (v, count) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    313,
-    328
+    325,
+    340
   ],
   "paramNames": [],
   "captureNames": [
@@ -289,8 +289,8 @@ export const component_renderqrl_segment_4_5bp3q9cb45d6 = (v) => {
   "ctxName": "render$",
   "captures": true,
   "loc": [
-    293,
-    333
+    305,
+    345
   ],
   "paramNames": [
     "v"
@@ -322,8 +322,8 @@ export const component_dataqrl_segment_5_2mjc43lmu203l = () => {
   "ctxName": "data$",
   "captures": true,
   "loc": [
-    348,
-    366
+    360,
+    378
   ],
   "paramNames": [],
   "captureNames": [

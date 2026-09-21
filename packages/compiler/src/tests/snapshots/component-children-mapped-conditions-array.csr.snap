@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot /></main>;
-export default () => {
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
+export default component$(() => {
   const items = useSignal([{ title: 'Title', featured: true, visible: false }]);
   return <Panel>{[{ title: 'Title', featured: true, visible: false }].map(({ title, featured, visible }, index) => featured && index === 0 ? <h2 q:slot="header">{index}:{title}</h2> : visible && <p>{title}</p>)}</Panel>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -73,7 +73,7 @@ import {
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
-const semantic_collectionRender_248_448_x8ucqnr6r572_tmpl0 = createTemplate('<!><!>');
+const semantic_collectionRender_283_483_23tqk7jfw23oy_tmpl0 = createTemplate('<!><!>');
 const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n',
   () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
@@ -84,8 +84,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
-  function semantic_collectionRender_248_448_x8ucqnr6r572(ctx, item, index) {
-    const fragment0 = semantic_collectionRender_248_448_x8ucqnr6r572_tmpl0(ctx.document);
+  function semantic_collectionRender_283_483_23tqk7jfw23oy(ctx, item, index) {
+    const fragment0 = semantic_collectionRender_283_483_23tqk7jfw23oy_tmpl0(ctx.document);
     const start0 = _first(fragment0);
     const end0 = _next(start0);
     const branch0 = createBranch(
@@ -110,7 +110,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
       },
     ],
     null,
-    semantic_collectionRender_248_448_x8ucqnr6r572,
+    semantic_collectionRender_283_483_23tqk7jfw23oy,
     0,
     3,
     true
@@ -131,8 +131,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    236,
-    437
+    271,
+    472
   ],
   "paramNames": []
 }
@@ -159,8 +159,8 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    341,
-    364
+    376,
+    399
   ],
   "paramNames": [],
   "captureNames": [
@@ -198,8 +198,8 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    367,
-    407
+    402,
+    442
   ],
   "paramNames": [],
   "captureNames": [
@@ -222,7 +222,7 @@ import {
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_4_2fzrgupr899d5 } from './component.tsx_component_branch_condition_segment_4_2fzrgupr899d5';
 const component_slot_render_segment_3_3b0ta2vuvdjtz_tmpl0 = createTemplate('<!><!>');
-const semantic_collectionRender_248_448_x8ucqnr6r572_tmpl0 = createTemplate('<!><!>');
+const semantic_collectionRender_283_483_23tqk7jfw23oy_tmpl0 = createTemplate('<!><!>');
 const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_branch_then_segment_5_24n7d63685l6a',
   () => import('./component.tsx_component_branch_then_segment_5_24n7d63685l6a'),
@@ -238,16 +238,16 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
   const fragment0 = component_slot_render_segment_3_3b0ta2vuvdjtz_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
-  function semantic_collectionRender_248_448_x8ucqnr6r572(ctx, item_10, index) {
-    const fragment0 = semantic_collectionRender_248_448_x8ucqnr6r572_tmpl0(ctx.document);
+  function semantic_collectionRender_283_483_23tqk7jfw23oy(ctx, item_11, index) {
+    const fragment0 = semantic_collectionRender_283_483_23tqk7jfw23oy_tmpl0(ctx.document);
     const start0 = _first(fragment0);
     const end0 = _next(start0);
     const branch0 = createBranch(
       ctx,
       new BranchRange(ctx.document, start0, end0),
-      _withCaptures(component_branch_condition_segment_4_2fzrgupr899d5, [item_10, index]),
+      _withCaptures(component_branch_condition_segment_4_2fzrgupr899d5, [item_11, index]),
       q_component_branch_then_segment_5_24n7d63685l6a,
-      q_component_branch_else_segment_6_19dvsnjetbnih.w([item_10])
+      q_component_branch_else_segment_6_19dvsnjetbnih.w([item_11])
     );
     ctx.scheduler.notify(branch0);
     return [start0, end0];
@@ -264,7 +264,7 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
       },
     ],
     null,
-    semantic_collectionRender_248_448_x8ucqnr6r572,
+    semantic_collectionRender_283_483_23tqk7jfw23oy,
     0,
     3,
     true
@@ -285,8 +285,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    236,
-    437
+    271,
+    472
   ],
   "paramNames": []
 }
@@ -296,8 +296,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
-  const [item_10, index] = _captures;
-  return item_10.featured && index === 0;
+  const [item_11, index] = _captures;
+  return item_11.featured && index === 0;
 };
 /*
 {
@@ -313,12 +313,12 @@ export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    341,
-    364
+    376,
+    399
   ],
   "paramNames": [],
   "captureNames": [
-    "item_10",
+    "item_11",
     "index"
   ]
 }
@@ -342,8 +342,8 @@ export const component_branch_then_segment_5_24n7d63685l6a = () => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    367,
-    407
+    402,
+    442
   ],
   "paramNames": []
 }
@@ -369,15 +369,15 @@ const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _qrlWithCh
 );
 
 export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
-  const [item_10] = _captures;
+  const [item_11] = _captures;
   const fragment0 = component_branch_else_segment_6_19dvsnjetbnih_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
     new BranchRange(ctx.document, start0, end0),
-    _withCaptures(component_branch_condition_segment_7_2fzrfomfhr3bk, [item_10]),
-    q_component_branch_then_segment_8_24n7f48psbv8x.w([item_10]),
+    _withCaptures(component_branch_condition_segment_7_2fzrfomfhr3bk, [item_11]),
+    q_component_branch_then_segment_8_24n7f48psbv8x.w([item_11]),
     undefined
   );
   ctx.scheduler.notify(branch0);
@@ -397,12 +397,12 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    410,
-    435
+    445,
+    470
   ],
   "paramNames": [],
   "captureNames": [
-    "item_10"
+    "item_11"
   ]
 }
 */
@@ -411,8 +411,8 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
-  const [item_10] = _captures;
-  return item_10.visible;
+  const [item_11] = _captures;
+  return item_11.visible;
 };
 /*
 {
@@ -428,12 +428,12 @@ export const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    410,
-    417
+    445,
+    452
   ],
   "paramNames": [],
   "captureNames": [
-    "item_10"
+    "item_11"
   ]
 }
 */
@@ -443,9 +443,9 @@ import { _captures, _first, _textValue, _createElementTemplate } from '@qwik.dev
 const component_branch_then_segment_8_24n7f48psbv8x_tmpl0 = _createElementTemplate('<p> </p>');
 
 export const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
-  const [item_10] = _captures;
+  const [item_11] = _captures;
   const el0 = component_branch_then_segment_8_24n7f48psbv8x_tmpl0(ctx.document);
-  _first(el0).data = _textValue(item_10.title);
+  _first(el0).data = _textValue(item_11.title);
   return el0;
 };
 /*
@@ -462,12 +462,12 @@ export const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    421,
-    435
+    456,
+    470
   ],
   "paramNames": [],
   "captureNames": [
-    "item_10"
+    "item_11"
   ]
 }
 */

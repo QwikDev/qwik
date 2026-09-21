@@ -1,8 +1,9 @@
 ==INPUT==
 
-export default () => {
+import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <ul>{['first', 'second'].map((item, index) => <li>{index}:{item}</li>)}</ul>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -15,10 +16,9 @@ import {
   maybeThen,
   _markComponent,
 } from '@qwik.dev/core';
-
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
-    function semantic_collectionRender_36_101_jq7m1nahy0mr(ctx, __rangeId, __rowId, item, index) {
+    function semantic_collectionRender_92_157_3cyrhngke1pvy(ctx, __rangeId, __rowId, item, index) {
       return ['<li>', escapeHTML(_textValue(index)), ':', escapeHTML(_textValue(item)), '</li>'];
     }
     const collection0 = renderSsrCollection(
@@ -26,7 +26,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       undefined,
       ['first', 'second'],
       undefined,
-      semantic_collectionRender_36_101_jq7m1nahy0mr,
+      semantic_collectionRender_92_157_3cyrhngke1pvy,
       0,
       false,
       0

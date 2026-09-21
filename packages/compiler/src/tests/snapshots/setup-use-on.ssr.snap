@@ -1,13 +1,13 @@
 ==INPUT==
 
 // src/component.tsx
-import { useOn, useSignal, $ } from '@qwik.dev/core';
+import { component$, useOn, useSignal, $ } from '@qwik.dev/core';
 import { useClick } from './hooks';
-export default () => {
+export default component$(() => {
   const count = useSignal(0);
   useOn('click', $(() => count.value++), { capture: true });
   return <button onClick$={() => count.value--}>{count.value}</button>;
-};
+});
 
 // src/headless.tsx
 import { useOnDocument, $ } from '@qwik.dev/core';
@@ -88,8 +88,8 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    160,
-    182
+    183,
+    205
   ],
   "paramNames": [],
   "captureNames": [
@@ -119,8 +119,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    221,
-    251
+    244,
+    274
   ],
   "paramNames": [],
   "captureNames": [
@@ -130,7 +130,6 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 */
 ============================= src/headless.tsx ==
 
-import { useOnDocument, _noopQrl, _markComponent } from '@qwik.dev/core';
 const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
   return 1;
 };
@@ -138,15 +137,18 @@ const q_headless_qrl_segment_0_1g1rt7jroxou2 = /*#__PURE__*/ _noopQrl(
   'headless_qrl_segment_0_1g1rt7jroxou2'
 );
 q_headless_qrl_segment_0_1g1rt7jroxou2.s(headless_qrl_segment_0_1g1rt7jroxou2);
-export const default_component_35p4jjiq8gazo = _markComponent(
-  (props, ctx) => {
-    useOnDocument('scroll', q_headless_qrl_segment_0_1g1rt7jroxou2);
-    return 'headless';
-  },
-  'default_component_35p4jjiq8gazo',
-  './headless.tsx'
+const headless_jsx_segment_1_bxsy7ls1385l = (ctx) => {
+  return 'headless';
+};
+const q_headless_jsx_segment_1_bxsy7ls1385l = /*#__PURE__*/ _noopQrl(
+  'headless_jsx_segment_1_bxsy7ls1385l'
 );
-export default default_component_35p4jjiq8gazo;
+q_headless_jsx_segment_1_bxsy7ls1385l.s(headless_jsx_segment_1_bxsy7ls1385l);
+import { _noopQrl, useOnDocument } from '@qwik.dev/core';
+export default () => {
+  useOnDocument('scroll', q_headless_qrl_segment_0_1g1rt7jroxou2);
+  return q_headless_jsx_segment_1_bxsy7ls1385l;
+};
 ============================= src/headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2.js (ENTRY POINT)==
 
 export const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
@@ -168,6 +170,31 @@ export const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
   "loc": [
     100,
     110
+  ],
+  "paramNames": []
+}
+*/
+============================= src/headless.tsx_headless_jsx_segment_1_bxsy7ls1385l.js (ENTRY POINT)==
+
+export const headless_jsx_segment_1_bxsy7ls1385l = (ctx) => {
+  return 'headless';
+};
+/*
+{
+  "origin": "headless.tsx",
+  "name": "headless_jsx_segment_1_bxsy7ls1385l",
+  "entry": null,
+  "displayName": "headless_jsx_segment_1",
+  "hash": "bxsy7ls1385l",
+  "canonicalFilename": "headless.tsx_headless_jsx_segment_1_bxsy7ls1385l",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": false,
+  "loc": [
+    122,
+    135
   ],
   "paramNames": []
 }

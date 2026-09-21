@@ -1,11 +1,12 @@
 ==INPUT==
 
-export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
-export default (props) => <main>
+import { component$ } from '@qwik.dev/core';
+export const Button = component$((props) => <button onClick$={props.onSave$}>save</button>);
+export default component$((props) => <main>
   <button onClick$={function onClick(event) { return [this, arguments.length, event.type]; }}>plain</button>
   <Button onSave$={function save(value = props.initial) { return props.onSave$(value); }} />
   <button onClick$={async function (event) { await Promise.resolve(); return props.onSave$(event.type); }}>async</button>
-</main>;
+</main>);
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -84,8 +85,8 @@ export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    51,
-    64
+    107,
+    120
   ],
   "paramNames": [],
   "captureNames": [
@@ -112,8 +113,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = function onClick(even
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    124,
-    203
+    192,
+    271
   ],
   "paramNames": [
     "event"
@@ -144,8 +145,8 @@ export const component_q_e_save_segment_2_3krcacnjwdae8 = function () {
   "ctxName": "onSave$",
   "captures": true,
   "loc": [
-    233,
-    282
+    301,
+    350
   ],
   "paramNames": [
     "value = props.initial"
@@ -178,8 +179,8 @@ export const component_q_e_click_segment_3_2xwygfdmkpoqi = async function (event
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    326,
-    387
+    394,
+    455
   ],
   "paramNames": [
     "event"

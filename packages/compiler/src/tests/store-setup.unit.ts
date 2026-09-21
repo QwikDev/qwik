@@ -13,11 +13,11 @@ test.each(['props.initial', '() => props.initial'])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useStore as store } from '@qwik.dev/core';
-export default (props) => {
+          code: `import { component$, useStore as store } from '@qwik.dev/core';
+export default component$((props) => {
   const state = store(${initial}, props.options);
   return <button onClick$={() => state.count++}>{'<count:' + state.count + '>'}</button>;
-};`,
+});`,
         },
       ],
     });

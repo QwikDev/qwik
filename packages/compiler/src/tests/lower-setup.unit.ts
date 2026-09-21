@@ -205,13 +205,13 @@ test('signal initializers retain module references alongside local arguments', a
   const plan = await analyseModule(
     {
       path: 'component.tsx',
-      code: `import { useSignal } from '@qwik.dev/core';
+      code: `import { component$, useSignal } from '@qwik.dev/core';
 import { initial } from './config';
-export default (props) => {
+export default component$((props) => {
   const offset = props.offset;
   const count = useSignal(initial + offset);
   return <span>{count.value}</span>;
-};`,
+});`,
     },
     {}
   );

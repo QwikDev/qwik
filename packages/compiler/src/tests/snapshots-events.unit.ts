@@ -5,104 +5,110 @@ import { testInput, testInputs } from './snapshot-runner';
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test('should emit block event handlers through the shared QRL emitter', async () => {
     const output = await testInput(mode, 'event-block-body', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
-export default () => {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export const Button = component$((props) => <button onClick$={props.onSave$}>save</button>);
+export default component$(() => {
   const count = useSignal(0);
   return <Button onSave$={() => {
     const next = count.value + 1;
     if (next > 10) return;
     count.value = next;
   }} />;
-};`,
+});`,
     });
     expect(output.diagnostics).toEqual([]);
   });
 
   test('should extract native function event handlers', async () => {
     await testInput(mode, 'event-function-handlers', {
-      code: `export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
-export default (props) => <main>
+      code: `import { component$ } from '@qwik.dev/core';
+export const Button = component$((props) => <button onClick$={props.onSave$}>save</button>);
+export default component$((props) => <main>
   <button onClick$={function onClick(event) { return [this, arguments.length, event.type]; }}>plain</button>
   <Button onSave$={function save(value = props.initial) { return props.onSave$(value); }} />
   <button onClick$={async function (event) { await Promise.resolve(); return props.onSave$(event.type); }}>async</button>
-</main>;`,
+</main>);`,
     });
   });
 
   test('should preserve event parameter patterns and captured defaults', async () => {
     await testInput(mode, 'event-parameter-patterns', {
-      code: `export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
-export default () => {
+      code: `import { component$ } from '@qwik.dev/core';
+export const Button = component$((props) => <button onClick$={props.onSave$}>save</button>);
+export default component$(() => {
   const fallback = 'click';
   return <Button
     onSave$={({ type = fallback } = {}, ...rest) => [type, rest.length]}
     onReset$={([first, ...rest], { id = 'button' }) => [first, rest, id]}
   />;
-};`,
+});`,
     });
   });
 
   test('should capture component props in event bodies and defaults', async () => {
     await testInput(mode, 'event-props-captures', {
-      code: `export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
-export default (input) => {
+      code: `import { component$ } from '@qwik.dev/core';
+export const Button = component$((props) => <button onClick$={props.onSave$}>save</button>);
+export default component$((input) => {
   const suffix = '!';
   return <main>
     <button onClick$={() => input.onSave$(input.id + suffix)}>save</button>
     <Button onSave$={({ value = input.initial } = {}) => input.onSave$(value)} />
   </main>;
-};`,
+});`,
     });
   });
 
   test('should capture a signal in an event handler', async () => {
     await testInput(mode, 'capturing-event', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   return <button onClick$={() => count.value++}>go</button>;
-};
+});
 `,
     });
   });
 
   test('should wire an event handler without captures', async () => {
     await testInput(mode, 'event-no-captures', {
-      code: `export default () => {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <button onClick$={() => console.log(1)}>go</button>;
-};
+});
 `,
     });
   });
 
   test('should wire an event handler with a parameter', async () => {
     await testInput(mode, 'event-with-param', {
-      code: `export default () => {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <button onDblClick$={(ev) => console.log(ev)}>go</button>;
-};
+});
 `,
     });
   });
 
   test('should wire an event handler alongside static attributes', async () => {
     await testInput(mode, 'event-alongside-static-attrs', {
-      code: `export default () => {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <button class="cta" onClick$={() => console.log(1)} hidden>go</button>;
-};
+});
 `,
     });
   });
 
   test('should inline sync$ handlers under a stable key', async () => {
     const output = await testInput(mode, 'sync-handlers', {
-      code: `import { sync$ } from '@qwik.dev/core';
+      code: `import { component$, sync$ } from '@qwik.dev/core';
 export const stop = sync$((event: Event) => event.preventDefault());
-export default () => (
+export default component$(() => (
   <a href="/x" onClick$={sync$((_event: Event, element: Element) => element.setAttribute('data-sync', 'ran'))}>
     go
   </a>
-);
+));
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -116,8 +122,8 @@ export default () => (
 
   test('should extract every function of an event handler array', async () => {
     const output = await testInput(mode, 'event-handler-arrays', {
-      code: `import { $, useSignal } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, $, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   const log = $(() => console.log(count.value));
   return (
@@ -125,7 +131,7 @@ export default () => {
       {count.value}
     </button>
   );
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -140,8 +146,8 @@ export default () => {
 
   test('should scope window and document events and keep event modifiers', async () => {
     const output = await testInput(mode, 'event-scopes-modifiers', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   return (
     <div window:onDblClick$={() => count.value++} document:onScroll$={() => count.value++} passive:scroll>
@@ -150,7 +156,7 @@ export default () => {
       </a>
     </div>
   );
-};
+});
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
@@ -205,13 +211,13 @@ export default component$(() => {
 
   test('should render mutable QRL event bindings', async () => {
     const output = await testInput(mode, 'mutable-qrl-event', {
-      code: `import { $, useSignal } from '@qwik.dev/core';
-export default (props) => {
+      code: `import { component$, $, useSignal } from '@qwik.dev/core';
+export default component$((props) => {
   const count = useSignal(0);
   let action = $(() => { count.value++; });
   if (props.disabled) action = null;
   return <button onClick$={action}>{count.value}</button>;
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);

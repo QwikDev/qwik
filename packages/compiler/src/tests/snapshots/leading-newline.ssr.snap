@@ -1,12 +1,13 @@
 ==INPUT==
 
-export default (props: { code: string }) => (
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { code: string }) => (
   <div>
     <pre>{props.code}</pre>
     <pre>{'\nfixed'}</pre>
     <textarea value={props.code} />
   </div>
-);
+));
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -22,7 +23,6 @@ import {
   maybeThen,
   _markComponent,
 } from '@qwik.dev/core';
-
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();

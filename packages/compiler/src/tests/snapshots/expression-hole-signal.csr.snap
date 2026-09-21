@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export default () => {
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(0);
   return <p>{count.value + 1}</p>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -52,8 +52,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (count) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    110,
-    125
+    133,
+    148
   ],
   "paramNames": [],
   "captureNames": [

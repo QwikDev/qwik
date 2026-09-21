@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export default () => {
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const show = useSignal(false);
   return <div>{show.value ? <b>on</b> : <i>off</i>}</div>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -89,8 +89,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    115,
-    125
+    138,
+    148
   ],
   "paramNames": [],
   "captureNames": [
@@ -117,8 +117,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = () => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    128,
-    137
+    151,
+    160
   ],
   "paramNames": []
 }
@@ -142,8 +142,8 @@ export const component_branch_else_segment_2_19dvu7nugnvkl = () => {
   "ctxName": "branch:else",
   "captures": false,
   "loc": [
-    140,
-    150
+    163,
+    173
   ],
   "paramNames": []
 }

@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot /></main>;
-export default () => {
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
+export default component$(() => {
   const items = useSignal([{ title: 'Title', description: 'Body' }]);
   return <Panel>{[{ title: 'Title', description: 'Body' }].map((item) => <><h2 q:slot="header">{item.title}</h2><><b q:slot="header">!</b><p>{item.description}</p></></>)}</Panel>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -26,7 +26,7 @@ import {
   _noopQrl,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_270_428_8epy2bcitwhv(ctx, __rangeId, __rowId, item) {
     return ['<h2>', escapeHTML(_textValue(item.title)), '</h2><b>!</b>'];
   }
   const collection0 = renderSsrCollection(
@@ -39,7 +39,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
       },
     ],
     undefined,
-    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
+    semantic_collectionRender_270_428_8epy2bcitwhv,
     0,
     false,
     2
@@ -57,7 +57,7 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
 const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_270_428_8epy2bcitwhv(ctx, __rangeId, __rowId, item) {
     return ['<p>', escapeHTML(_textValue(item.description)), '</p>'];
   }
   const collection0 = renderSsrCollection(
@@ -70,7 +70,7 @@ const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
       },
     ],
     undefined,
-    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
+    semantic_collectionRender_270_428_8epy2bcitwhv,
     0,
     false,
     0
@@ -130,7 +130,7 @@ import {
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_270_428_8epy2bcitwhv(ctx, __rangeId, __rowId, item) {
     return ['<h2>', escapeHTML(_textValue(item.title)), '</h2><b>!</b>'];
   }
   const collection0 = renderSsrCollection(
@@ -143,7 +143,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
       },
     ],
     undefined,
-    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
+    semantic_collectionRender_270_428_8epy2bcitwhv,
     0,
     false,
     2
@@ -170,8 +170,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    225,
-    386
+    260,
+    421
   ],
   "paramNames": []
 }
@@ -187,7 +187,7 @@ import {
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_270_428_8epy2bcitwhv(ctx, __rangeId, __rowId, item) {
     return ['<p>', escapeHTML(_textValue(item.description)), '</p>'];
   }
   const collection0 = renderSsrCollection(
@@ -200,7 +200,7 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
       },
     ],
     undefined,
-    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
+    semantic_collectionRender_270_428_8epy2bcitwhv,
     0,
     false,
     0
@@ -227,8 +227,8 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    225,
-    386
+    260,
+    421
   ],
   "paramNames": []
 }

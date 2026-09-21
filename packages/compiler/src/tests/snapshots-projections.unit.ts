@@ -5,31 +5,43 @@ import { testInput, testInputs } from './snapshot-runner';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
   test.each([
-    ['children-read', `export const Wrapper = (props) => <section>{props.children}</section>;`],
-    ['children-read', `export const Wrapper = ({ children }) => <section>{children}</section>;`],
-    ['children-read', `export const Wrapper = (props) => <p>{props.children?.length}<Slot /></p>;`],
+    [
+      'children-read',
+      `export const Wrapper = component$((props) => <section>{props.children}</section>);`,
+    ],
+    [
+      'children-read',
+      `export const Wrapper = component$(({ children }) => <section>{children}</section>);`,
+    ],
+    [
+      'children-read',
+      `export const Wrapper = component$((props) => <p>{props.children?.length}<Slot /></p>);`,
+    ],
     [
       'children-read',
       `import { Card } from './card';
-export const Wrapper = (props) => <Card>{props.children}</Card>;`,
+export const Wrapper = component$((props) => <Card>{props.children}</Card>);`,
     ],
     [
       'children-attribute',
       `import { Card } from './card';
-export const Wrapper = () => <Card children={<b>x</b>} />;`,
+export const Wrapper = component$(() => <Card children={<b>x</b>} />);`,
     ],
     [
       'children-read',
-      `export const Wrapper = ({ children = <p>none</p> }) => <section><Slot /></section>;`,
+      `export const Wrapper = component$(({ children = <p>none</p> }) => <section><Slot /></section>);`,
     ],
     [
       'children-function',
       `import { Card } from './card';
-export const Wrapper = () => <Card>{(value: number) => <b>{value}</b>}</Card>;`,
+export const Wrapper = component$(() => <Card>{(value: number) => <b>{value}</b>}</Card>);`,
     ],
   ])('should diagnose children used as content: %s', async (code, source) => {
     const output = await testInput(mode, `children-contract-${code}-${source.length}`, {
-      code: `import { Slot } from '@qwik.dev/core';\n${source}\nexport default () => <Wrapper><p>Projected</p></Wrapper>;\n`,
+      code: `import { component$, Slot } from '@qwik.dev/core';
+${source}
+export default component$(() => <Wrapper><p>Projected</p></Wrapper>);
+`,
     });
     // Children is projected content: only <Slot /> renders it, useChildrenInfo() describes it.
     expect(output.diagnostics).toMatchObject([{ code }]);
@@ -113,41 +125,41 @@ export default component$(() => {
 
   test('should project component children through the Slot marker', async () => {
     await testInput(mode, 'component-children-slot', {
-      code: `import { Slot } from '@qwik.dev/core';
-export const Wrapper = () => <section><Slot /></section>;
-export default () => <Wrapper><p>Projected</p></Wrapper>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Wrapper = component$(() => <section><Slot /></section>);
+export default component$(() => <Wrapper><p>Projected</p></Wrapper>);
 `,
     });
   });
 
   test('should capture signals used by projected component children', async () => {
     await testInput(mode, 'component-children-signal', {
-      code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Wrapper = () => <section><Slot /></section>;
-export default () => {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Wrapper = component$(() => <section><Slot /></section>);
+export default component$(() => {
   const count = useSignal(1);
   return <Wrapper><p>{count.value}</p></Wrapper>;
-};
+});
 `,
     });
   });
 
   test('should project component children through static named slots', async () => {
     await testInput(mode, 'component-children-named-slot', {
-      code: `import { Slot } from '@qwik.dev/core';
-export const Card = () => <article><header><Slot name="header" /></header><Slot /></article>;
-export default () => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Card = component$(() => <article><header><Slot name="header" /></header><Slot /></article>);
+export default component$(() => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>);
 `,
     });
   });
 
   test('should project nested fragments into default and named slots', async () => {
-    const code = `import { Slot, useSignal } from '@qwik.dev/core';
-export const Card = () => <article><header><Slot name="header" /></header><Slot /></article>;
-export default () => {
+    const code = `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Card = component$(() => <article><header><Slot name="header" /></header><Slot /></article>);
+export default component$(() => {
   const count = useSignal(1);
   return <Card><><h1 q:slot="header">Title</h1><>{/* comment */}<p>Count:<> </>{count.value}<i /><b /><em /></p></></></Card>;
-};
+});
 `;
     const flattened = await transformModules({
       srcDir: 'src',
@@ -164,12 +176,12 @@ export default () => {
 
   test('should project mapped rows into static named slots', async () => {
     const output = await testInput(mode, 'component-children-mapped-slots', {
-      code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot name="footer" /><Slot /></main>;
-export default () => {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot name="footer" /><Slot /></main>);
+export default component$(() => {
   const items = useSignal([{ id: 1, title: 'Title' }]);
   return <Panel>{items.value.map((item) => <h2 key={item.id} q:slot="header">{item.title}</h2>)}{['End'].map((label) => <p q:slot="footer">{label}</p>)}{items.value.map((item) => <section key={item.id}><span q:slot="nested">{item.title}</span></section>)}</Panel>;
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -189,12 +201,12 @@ export default () => {
     ['array', "[{ title: 'Title', description: 'Body' }]"],
   ])('should split mapped fragments into slots: %s', async (kind, source) => {
     const output = await testInput(mode, `component-children-mapped-fragments-${kind}`, {
-      code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot /></main>;
-export default () => {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
+export default component$(() => {
   const items = useSignal([{ title: 'Title', description: 'Body' }]);
   return <Panel>{${source}.map((item) => <><h2 q:slot="header">{item.title}</h2><><b q:slot="header">!</b><p>{item.description}</p></></>)}</Panel>;
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -205,12 +217,12 @@ export default () => {
     ['array', "[{ title: 'Title', featured: true, visible: false }]"],
   ])('should project conditional mapped rows: %s', async (kind, source) => {
     const output = await testInput(mode, `component-children-mapped-conditions-${kind}`, {
-      code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot /></main>;
-export default () => {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
+export default component$(() => {
   const items = useSignal([{ title: 'Title', featured: true, visible: false }]);
   return <Panel>{${source}.map(({ title, featured, visible }, index) => featured && index === 0 ? <h2 q:slot="header">{index}:{title}</h2> : visible && <p>{title}</p>)}</Panel>;
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -222,12 +234,12 @@ export default () => {
   ])('should project rows with a single return block: %s', async (kind, source) => {
     const row = '<h2 q:slot="header">{title}</h2>';
     const callback = `({ title }) => { /* row */ return (${row}); }`;
-    const code = `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /></main>;
-export default () => {
+    const code = `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /></main>);
+export default component$(() => {
   const items = useSignal([{ title: 'Title' }]);
   return <Panel>{${source}.map(${callback})}</Panel>;
-};
+});
 `;
     const output = await testInput(mode, `component-children-mapped-return-${kind}`, { code });
     expect(output.diagnostics).toEqual([]);
@@ -252,9 +264,9 @@ export default () => {
     ['array', "[{ title: 'Title' }]"],
   ])('should preserve local consts in mapped projections: %s', async (kind, source) => {
     const output = await testInput(mode, `component-children-mapped-const-${kind}`, {
-      code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /></main>;
-export default () => {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /></main>);
+export default component$(() => {
   const suffix = useSignal('!');
   const items = useSignal([{ title: 'Title' }]);
   return <Panel>{${source}.map(({ title }, index) => {
@@ -262,7 +274,7 @@ export default () => {
     const numbered = index + ':' + label, visible = label.length > 0;
     return visible && <h2 q:slot="header" title={numbered} onClick$={() => console.log(label)}>{label}:{numbered}</h2>;
   })}</Panel>;
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -273,9 +285,9 @@ export default () => {
     ['array', "[{ details: { parts: ['First', 'Skip', 'Last'] }, fallback: 'Title' }]"],
   ])('should destructure local consts in mapped projections: %s', async (kind, source) => {
     const output = await testInput(mode, `component-children-mapped-destructure-${kind}`, {
-      code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /></main>;
-export default () => {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /></main>);
+export default component$(() => {
   const suffix = useSignal('!');
   const items = useSignal([{ details: { parts: ['First', 'Skip', 'Last'] }, fallback: 'Title' }]);
   return <Panel>{${source}.map(({ details, fallback }, index) => {
@@ -283,7 +295,7 @@ export default () => {
     const [first = copy, , ...tail] = rest.parts;
     return <h2 q:slot="header" onClick$={() => console.log(label, first, tail)}>{label}:{first}:{position}:{tail.length}</h2>;
   })}</Panel>;
-};
+});
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -321,10 +333,10 @@ export default component$(() => {
 
   test('should forward slots and render fallback through fragments', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fragments', {
-      code: `import { Slot } from '@qwik.dev/core';
-export const Inner = () => <article><Slot name="title" /></article>;
-export const Wrapper = () => <Inner>{(<><Slot name="heading" q:slot="title"><><h2>Fallback</h2></></Slot></>)}</Inner>;
-export default () => <main><Wrapper><><h1 q:slot="heading">Provided</h1></></Wrapper><Wrapper><>{/* empty */}<></></></Wrapper></main>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Inner = component$(() => <article><Slot name="title" /></article>);
+export const Wrapper = component$(() => <Inner>{(<><Slot name="heading" q:slot="title"><><h2>Fallback</h2></></Slot></>)}</Inner>);
+export default component$(() => <main><Wrapper><><h1 q:slot="heading">Provided</h1></></Wrapper><Wrapper><>{/* empty */}<></></></Wrapper></main>);
 `,
     });
     expect(output.modules).toHaveLength(3);
@@ -332,61 +344,61 @@ export default () => <main><Wrapper><><h1 q:slot="heading">Provided</h1></></Wra
 
   test('should switch component children through a dynamic slot name', async () => {
     await testInput(mode, 'component-children-dynamic-slot', {
-      code: `import { Slot } from '@qwik.dev/core';
-export const Switch = (props) => <Slot name={props.name} />;
-export default (props) => <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:slot="b">Bravo</b></Switch>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Switch = component$((props) => <Slot name={props.name} />);
+export default component$((props) => <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:slot="b">Bravo</b></Switch>);
 `,
     });
   });
 
   test('should project a conditional child into its statically named slot', async () => {
     await testInput(mode, 'component-children-conditional-slot', {
-      code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="start" /><Slot /></main>;
-export default () => {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="start" /><Slot /></main>);
+export default component$(() => {
   const show = useSignal(true);
   return <Panel>{show.value && <span q:slot="start">start</span>}</Panel>;
-};
+});
 `,
     });
   });
 
   test('should split a conditional child across its statically named slots', async () => {
     await testInput(mode, 'component-children-conditional-slot-split', {
-      code: `import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="x" /><Slot name="y" /></main>;
-export default () => {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="x" /><Slot name="y" /></main>);
+export default component$(() => {
   const flip = useSignal(false);
   return <Panel>{flip.value ? <a q:slot="x">alpha</a> : <b q:slot="y">bravo</b>}</Panel>;
-};
+});
 `,
     });
   });
 
   test('should render a slot fallback only without a projection', async () => {
     await testInput(mode, 'component-slot-fallback', {
-      code: `import { Slot } from '@qwik.dev/core';
-export const Card = () => <section><Slot><p>Empty</p></Slot></section>;
-export default () => <main><Card /><Card><p>Projected</p></Card></main>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Card = component$(() => <section><Slot><p>Empty</p></Slot></section>);
+export default component$(() => <main><Card /><Card><p>Projected</p></Card></main>);
 `,
     });
   });
 
   test('should split nested conditional fragments into named and default projections', async () => {
     await testInput(mode, 'component-children-nested-conditional-fragments', {
-      code: `import { Slot } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot /></main>;
-export default (props) => <Panel>{props.show ? <><h1 q:slot="header">Title</h1>{props.details && <><p>Details</p><p>More</p></>}</> : null}</Panel>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
+export default component$((props) => <Panel>{props.show ? <><h1 q:slot="header">Title</h1>{props.details && <><p>Details</p><p>More</p></>}</> : null}</Panel>);
 `,
     });
   });
 
   test('should forward a projection through a nested slot', async () => {
     const output = await testInput(mode, 'component-slot-forwarding', {
-      code: `import { Slot } from '@qwik.dev/core';
-export const Inner = () => <article><Slot /></article>;
-export const Wrapper = () => <Inner><Slot /></Inner>;
-export default () => <Wrapper><p>Forwarded</p></Wrapper>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Inner = component$(() => <article><Slot /></article>);
+export const Wrapper = component$(() => <Inner><Slot /></Inner>);
+export default component$(() => <Wrapper><p>Forwarded</p></Wrapper>);
 `,
     });
     expect(output.modules).toHaveLength(2);
@@ -394,10 +406,10 @@ export default () => <Wrapper><p>Forwarded</p></Wrapper>;
 
   test('should forward a named projection under a different name', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-named', {
-      code: `import { Slot } from '@qwik.dev/core';
-export const Inner = () => <article><Slot name="title" /></article>;
-export const Wrapper = () => <Inner><Slot name="heading" q:slot="title" /></Inner>;
-export default () => <Wrapper><h1 q:slot="heading">Hello</h1></Wrapper>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Inner = component$(() => <article><Slot name="title" /></article>);
+export const Wrapper = component$(() => <Inner><Slot name="heading" q:slot="title" /></Inner>);
+export default component$(() => <Wrapper><h1 q:slot="heading">Hello</h1></Wrapper>);
 `,
     });
     expect(output.modules).toHaveLength(2);
@@ -405,10 +417,10 @@ export default () => <Wrapper><h1 q:slot="heading">Hello</h1></Wrapper>;
 
   test('should use a fallback when a forwarded named projection is absent', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fallback', {
-      code: `import { Slot } from '@qwik.dev/core';
-export const Inner = () => <article><Slot name="title" /></article>;
-export const Wrapper = () => <Inner><Slot name="heading" q:slot="title"><h2>Fallback</h2></Slot></Inner>;
-export default () => <main><Wrapper><h1 q:slot="heading">Provided</h1></Wrapper><Wrapper /></main>;
+      code: `import { component$, Slot } from '@qwik.dev/core';
+export const Inner = component$(() => <article><Slot name="title" /></article>);
+export const Wrapper = component$(() => <Inner><Slot name="heading" q:slot="title"><h2>Fallback</h2></Slot></Inner>);
+export default component$(() => <main><Wrapper><h1 q:slot="heading">Provided</h1></Wrapper><Wrapper /></main>);
 `,
     });
     expect(output.modules).toHaveLength(3);

@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { Slot, useSignal } from '@qwik.dev/core';
-export const Card = () => <article><header><Slot name="header" /></header><Slot /></article>;
-export default () => {
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Card = component$(() => <article><header><Slot name="header" /></header><Slot /></article>);
+export default component$(() => {
   const count = useSignal(1);
   return <Card><><h1 q:slot="header">Title</h1><>{/* comment */}<p>Count:<> </>{count.value}<i /><b /><em /></p></></></Card>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -77,8 +77,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    214,
-    244
+    249,
+    279
   ],
   "paramNames": []
 }
@@ -120,8 +120,8 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    261,
-    309
+    296,
+    344
   ],
   "paramNames": [],
   "captureNames": [

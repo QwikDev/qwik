@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { useSignal, useComputed$ } from '@qwik.dev/core';
+import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
 import { register, load } from './consumer';
-export default function App() {
+export default component$(function App() {
   const count = useSignal(0);
   register((value: string) => Promise.resolve(<b>{value}</b>));
   register((value: string) => load(value).then((label: string) => <i>{label}</i>));
@@ -16,10 +16,22 @@ export default function App() {
     return create('ready');
   });
   return <output>{result.value?.label}</output>;
-}
+})
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  useComputed,
+  _withCaptures,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_result_segment_8_1732eo28f3tsm } from './component.tsx_component_result_segment_8_1732eo28f3tsm';
+import { component_text_segment_9_1fh0xp3tlu6bn } from './component.tsx_component_text_segment_9_1fh0xp3tlu6bn';
 
 const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
@@ -37,19 +49,8 @@ const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
   'component_jsx_segment_4_38vnl4ypf6sea'
 );
 const default_tmpl0 = _createElementTemplate('<output> </output>');
-import {
-  useSignal,
-  _qrlWithChunk,
-  useComputed,
-  _withCaptures,
-  _first,
-  createTextExpressionEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_result_segment_8_1732eo28f3tsm } from './component.tsx_component_result_segment_8_1732eo28f3tsm';
-import { component_text_segment_9_1fh0xp3tlu6bn } from './component.tsx_component_text_segment_9_1fh0xp3tlu6bn';
 import { register, load } from './consumer';
-export default function App(props, ctx) {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   register((value) => Promise.resolve(q_component_jsx_segment_0_38vnjku9rukc6.w([value])));
   register((value) =>
@@ -70,9 +71,8 @@ export default function App(props, ctx) {
   );
   ctx.scheduler.notify(effect0);
   return el0;
-}
-
-export { App as default_component_3rg6kq1so9aio };
+};
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
@@ -111,8 +111,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    211,
-    225
+    234,
+    248
   ],
   "paramNames": [],
   "captureNames": [
@@ -139,8 +139,8 @@ export const component_text_segment_1_1fh10tcowimfv = (value) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    215,
-    220
+    238,
+    243
   ],
   "paramNames": [],
   "captureNames": [
@@ -186,8 +186,8 @@ export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    295,
-    309
+    318,
+    332
   ],
   "paramNames": [],
   "captureNames": [
@@ -214,8 +214,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    299,
-    304
+    322,
+    327
   ],
   "paramNames": [],
   "captureNames": [
@@ -261,8 +261,8 @@ export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    399,
-    413
+    422,
+    436
   ],
   "paramNames": [],
   "captureNames": [
@@ -289,8 +289,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    403,
-    408
+    426,
+    431
   ],
   "paramNames": [],
   "captureNames": [
@@ -336,8 +336,8 @@ export const component_jsx_segment_6_38vnkcwhliod8 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    589,
-    603
+    612,
+    626
   ],
   "paramNames": [],
   "captureNames": [
@@ -364,8 +364,8 @@ export const component_text_segment_7_1fh135jcdiyj1 = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    593,
-    598
+    616,
+    621
   ],
   "paramNames": [],
   "captureNames": [
@@ -409,8 +409,8 @@ export const component_result_segment_8_1732eo28f3tsm = async () => {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    436,
-    646
+    459,
+    669
   ],
   "paramNames": [],
   "captureNames": [
@@ -437,8 +437,8 @@ export const component_text_segment_9_1fh0xp3tlu6bn = (result) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    666,
-    685
+    689,
+    708
   ],
   "paramNames": [],
   "captureNames": [

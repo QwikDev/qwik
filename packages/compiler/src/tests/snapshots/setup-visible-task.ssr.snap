@@ -1,13 +1,13 @@
 ==INPUT==
 
-import { useVisibleTask$, useSignal } from '@qwik.dev/core';
-export default () => {
+import { component$, useVisibleTask$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const status = useSignal('waiting');
   useVisibleTask$(() => { status.value = 'visible'; });
   useVisibleTask$(({ cleanup }) => { cleanup(() => console.log(status.value)); }, { strategy: 'document-ready' });
   useVisibleTask$(() => console.log(status.value), { strategy: 'document-idle' });
   return <output>{status.value}</output>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -100,8 +100,8 @@ export const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {
   "ctxName": "useVisibleTask$",
   "captures": true,
   "loc": [
-    125,
-    177
+    148,
+    200
   ],
   "paramNames": [],
   "captureNames": [
@@ -131,8 +131,8 @@ export const component_useVisibleTaskqrl_segment_1_rykjhw4hc03r = ({ cleanup }) 
   "ctxName": "useVisibleTask$",
   "captures": true,
   "loc": [
-    181,
-    292
+    204,
+    315
   ],
   "paramNames": [
     "{ cleanup }"
@@ -164,8 +164,8 @@ export const component_useVisibleTaskqrl_segment_2_rykjvx8e624a = () => {
   "ctxName": "useVisibleTask$",
   "captures": true,
   "loc": [
-    296,
-    375
+    319,
+    398
   ],
   "paramNames": [],
   "captureNames": [

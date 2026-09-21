@@ -1,8 +1,9 @@
 ==INPUT==
 
-export default () => {
+import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <ul>{['a', 'b'].map((item) => <li id={'row-' + item} class={item}>x</li>)}</ul>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -15,10 +16,9 @@ import {
   maybeThen,
   _markComponent,
 } from '@qwik.dev/core';
-
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
-    function semantic_collectionRender_36_104_jq7n7qm8g6oc(ctx, __rangeId, __rowId, item) {
+    function semantic_collectionRender_92_160_3cxy867u1oma4(ctx, __rangeId, __rowId, item) {
       const attr0 = serializeAttrExpressionValue('id', 'row-' + item);
       const attr1 = serializeAttrExpressionValue('class', item);
       return [
@@ -33,7 +33,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       undefined,
       ['a', 'b'],
       undefined,
-      semantic_collectionRender_36_104_jq7n7qm8g6oc,
+      semantic_collectionRender_92_160_3cxy867u1oma4,
       0,
       false,
       0

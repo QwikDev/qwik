@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { useSignal, useStore } from '@qwik.dev/core';
-export default (props: { label?: string; content?: any }) => {
+import { component$, useSignal, useStore } from '@qwik.dev/core';
+export default component$((props: { label?: string; content?: any }) => {
   const count = useSignal(1);
   return <div>{[<b>a</b>, count.value]}</div>;
-};
+});
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==

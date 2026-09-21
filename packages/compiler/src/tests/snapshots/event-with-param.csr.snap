@@ -1,8 +1,9 @@
 ==INPUT==
 
-export default () => {
+import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <button onDblClick$={(ev) => console.log(ev)}>go</button>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -37,8 +38,8 @@ export const component_q_e_dblclick_segment_0_3cy9sja0qxi3h = (ev) => {
   "ctxName": "onDblClick$",
   "captures": false,
   "loc": [
-    40,
-    77
+    96,
+    133
   ],
   "paramNames": [
     "ev"

@@ -1,9 +1,10 @@
 ==INPUT==
 
-export const Child = (props) => <strong>{props.label}</strong>;
-export default (props) => (
+import { component$ } from '@qwik.dev/core';
+export const Child = component$((props) => <strong>{props.label}</strong>);
+export default component$((props) => (
   <Child label="before" {...props.base} middle="middle" {...props.overrides} label="after" />
-);
+));
 
 == SSR OUTPUT ==
 
@@ -24,7 +25,6 @@ import {
   _captures,
   _noopQrl,
 } from '@qwik.dev/core';
-
 const component_props_segment_0_208o16glymg7p = () => {
   const [props] = _captures;
   return props.base;
@@ -105,8 +105,8 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    120,
-    130
+    188,
+    198
   ],
   "paramNames": [],
   "captureNames": [
@@ -136,8 +136,8 @@ export const component_props_segment_1_208o0sfi1se76 = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    152,
-    167
+    220,
+    235
   ],
   "paramNames": [],
   "captureNames": [

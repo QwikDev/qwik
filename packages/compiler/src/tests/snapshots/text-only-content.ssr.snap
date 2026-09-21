@@ -1,11 +1,12 @@
 ==INPUT==
 
-export default (props: { page: string; line: string; count: number }) => (
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { page: string; line: string; count: number }) => (
   <div>
     <title>{props.page} - Site</title>
     <textarea>{props.line}{props.line}</textarea>
   </div>
-);
+));
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -18,7 +19,6 @@ import {
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
-
 const component_text_segment_0_1fh10fbkzokfc = (props) => {
   return `${props.page} - Site`;
 };
@@ -87,8 +87,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    88,
-    113
+    144,
+    169
   ],
   "paramNames": [],
   "captureNames": [
@@ -115,8 +115,8 @@ export const component_text_segment_1_1fh10tcowimfv = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    127,
-    160
+    183,
+    216
   ],
   "paramNames": [],
   "captureNames": [

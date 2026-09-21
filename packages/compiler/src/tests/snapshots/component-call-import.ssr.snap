@@ -1,19 +1,20 @@
 ==INPUT==
 
 // src/app.tsx
+import { component$ } from '@qwik.dev/core';
 import { Child as RenamedChild } from './child';
-export default () => <main><RenamedChild /></main>;
+export default component$(() => <main><RenamedChild /></main>);
 
 // src/child.tsx
-export const Child = () => <strong>child</strong>;
+import { component$ } from '@qwik.dev/core';
+export const Child = component$(() => <strong>child</strong>);
 
 == SSR OUTPUT ==
 
 ============================= src/app.tsx ==
 
-import { Child as RenamedChild } from './child';
 import { createComponent, maybeThen, _markComponent } from '@qwik.dev/core';
-
+import { Child as RenamedChild } from './child';
 export const default_component_31wgqjs4jy6fg = _markComponent(
   (props, ctx) => {
     const component0 = createComponent(RenamedChild, null, ctx);
@@ -26,7 +27,6 @@ export default default_component_31wgqjs4jy6fg;
 ============================= src/child.tsx ==
 
 import { _markComponent } from '@qwik.dev/core';
-
 export const Child = _markComponent(
   (props, ctx) => {
     return '<strong>child</strong>';

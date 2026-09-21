@@ -1,12 +1,13 @@
 ==INPUT==
 
+import { component$ } from '@qwik.dev/core';
 import { Box } from './box';
-export default function App() {
+export default component$(function App() {
   let content;
   content = new Box(<b>assigned</b>).value;
   const alias = content;
   return <main>{content}{alias}</main>;
-}
+})
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -20,7 +21,6 @@ import {
   createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
-
 const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
@@ -38,7 +38,7 @@ const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ _qrlWithChunk(
 );
 const default_tmpl0 = _createElementTemplate('<main><!><!><!><!></main>');
 import { Box } from './box';
-export default function App(props, ctx) {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   let content;
   content = new Box(q_component_jsx_segment_0_38vnjku9rukc6).value;
   const alias = content;
@@ -68,9 +68,8 @@ export default function App(props, ctx) {
   );
   ctx.scheduler.notify(content1);
   return el0;
-}
-
-export { App as default_component_3rg6kq1so9aio };
+};
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';
@@ -94,8 +93,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    96,
-    111
+    152,
+    167
   ],
   "paramNames": []
 }
@@ -122,8 +121,8 @@ export const component_content_segment_1_185248kf949cp = (ctx0) => {
   "ctxName": "content",
   "captures": true,
   "loc": [
-    161,
-    168
+    217,
+    224
   ],
   "paramNames": [],
   "captureNames": [
@@ -153,8 +152,8 @@ export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
   "ctxName": "content",
   "captures": true,
   "loc": [
-    170,
-    175
+    226,
+    231
   ],
   "paramNames": [],
   "captureNames": [

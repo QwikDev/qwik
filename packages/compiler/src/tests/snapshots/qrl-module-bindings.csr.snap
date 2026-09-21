@@ -1,15 +1,15 @@
 ==INPUT==
 
-import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
+import { component$, useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
 const prefix = 'Saved';
 const settings = { suffix: '!' };
 function format(value) { return prefix + ': ' + value; }
-export default () => {
+export default component$(() => {
   const count = useSignal(2);
   const title = useComputed$(() => format(count.value));
   useTask$(() => console.log(settings.suffix, title.value));
   return <button onClick$={() => console.log(format(count.value), settings)}>{title.value}</button>;
-};
+});
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -79,8 +79,8 @@ export const component_title_segment_0_2f0r0xivypjmx = () => {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    252,
-    291
+    275,
+    314
   ],
   "paramNames": [],
   "captureNames": [
@@ -111,8 +111,8 @@ export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    295,
-    352
+    318,
+    375
   ],
   "paramNames": [],
   "captureNames": [
@@ -143,8 +143,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    371,
-    430
+    394,
+    453
   ],
   "paramNames": [],
   "captureNames": [

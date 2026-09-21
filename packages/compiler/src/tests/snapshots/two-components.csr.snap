@@ -1,18 +1,18 @@
 ==INPUT==
 
-export const Header = () => {
+import { component$ } from '@qwik.dev/core';
+export const Header = component$(() => {
   return <h1>Hi</h1>;
-};
-export default () => {
+});
+export default component$(() => {
   return <p>Hello Qwik</p>;
-};
+});
 
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _createElementTemplate } from '@qwik.dev/core';
-
 const Header_tmpl0 = _createElementTemplate('<h1>Hi</h1>');
 const default_tmpl0 = _createElementTemplate('<p>Hello Qwik</p>');
 export const Header = (props, ctx) => {

@@ -36,9 +36,9 @@ test.each([
     input: [
       {
         path: 'src/async.tsx',
-        code: `import { $ } from '@qwik.dev/core';
+        code: `import { component$, $ } from '@qwik.dev/core';
 import { Display } from './display';
-export default function App() { const factory = ${callback}; register(factory); return <Display />; }`,
+export default component$(function App() { const factory = ${callback}; register(factory); return <Display />; })`,
       },
     ],
   });
@@ -80,10 +80,11 @@ test('keeps rejection identity and catch/finally order in async JSX callbacks', 
     input: [
       {
         path: 'src/async.tsx',
-        code: `export default function App() {
+        code: `import { component$ } from '@qwik.dev/core';
+export default component$(function App() {
       register(async () => { try { await fail(); return <b>unused</b>; } catch (error) { record(error); throw error; } finally { record('finally'); } });
       return <p>done</p>;
-    }`,
+    })`,
       },
     ],
   });

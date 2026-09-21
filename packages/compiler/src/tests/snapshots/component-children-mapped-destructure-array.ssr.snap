@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /></main>;
-export default () => {
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /></main>);
+export default component$(() => {
   const suffix = useSignal('!');
   const items = useSignal([{ details: { parts: ['First', 'Skip', 'Last'] }, fallback: 'Title' }]);
   return <Panel>{[{ details: { parts: ['First', 'Skip', 'Last'] }, fallback: 'Title' }].map(({ details, fallback }, index) => {
@@ -10,7 +10,7 @@ export default () => {
     const [first = copy, , ...tail] = rest.parts;
     return <h2 q:slot="header" onClick$={() => console.log(label, first, tail)}>{label}:{first}:{position}:{tail.length}</h2>;
   })}</Panel>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -33,7 +33,7 @@ import {
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   const [suffix] = _captures;
-  function semantic_collectionRender_301_710_2q9lnxoxqq41u(ctx, __rangeId, __rowId, item, index) {
+  function semantic_collectionRender_336_745_5xh5k2879b8a(ctx, __rangeId, __rowId, item, index) {
     const {
       title: label = item.fallback,
       copy = label,
@@ -100,7 +100,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
       },
     ],
     undefined,
-    semantic_collectionRender_301_710_2q9lnxoxqq41u,
+    semantic_collectionRender_336_745_5xh5k2879b8a,
     0,
     false,
     0
@@ -218,7 +218,7 @@ q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuh
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   const [suffix] = _captures;
-  function semantic_collectionRender_301_710_2q9lnxoxqq41u(ctx, __rangeId, __rowId, item, index) {
+  function semantic_collectionRender_336_745_5xh5k2879b8a(ctx, __rangeId, __rowId, item, index) {
     const {
       title: label = item.fallback,
       copy = label,
@@ -285,7 +285,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
       },
     ],
     undefined,
-    semantic_collectionRender_301_710_2q9lnxoxqq41u,
+    semantic_collectionRender_336_745_5xh5k2879b8a,
     0,
     false,
     0
@@ -312,8 +312,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    279,
-    685
+    314,
+    720
   ],
   "paramNames": [],
   "captureNames": [
@@ -343,8 +343,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    584,
-    632
+    619,
+    667
   ],
   "paramNames": [],
   "captureNames": [
@@ -373,8 +373,8 @@ export const component_text_segment_2_1fh117dstcoge = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    634,
-    639
+    669,
+    674
   ],
   "paramNames": [],
   "captureNames": [
@@ -401,8 +401,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (first) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    642,
-    647
+    677,
+    682
   ],
   "paramNames": [],
   "captureNames": [
@@ -429,8 +429,8 @@ export const component_text_segment_4_1fh11zg0n0shg = (position) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    650,
-    658
+    685,
+    693
   ],
   "paramNames": [],
   "captureNames": [
@@ -457,8 +457,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (tail) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    661,
-    672
+    696,
+    707
   ],
   "paramNames": [],
   "captureNames": [

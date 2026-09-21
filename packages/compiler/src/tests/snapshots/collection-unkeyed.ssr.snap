@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export default () => {
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const items = useSignal([{ label: 'Alpha' }]);
   return <ul>{items.value.map((item) => <li>{item.label}</li>)}</ul>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -121,8 +121,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    156,
-    177
+    179,
+    200
   ],
   "paramNames": [
     "item"
@@ -148,8 +148,8 @@ export const component_text_segment_1_1fh10tcowimfv = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    161,
-    171
+    184,
+    194
   ],
   "paramNames": [],
   "captureNames": [

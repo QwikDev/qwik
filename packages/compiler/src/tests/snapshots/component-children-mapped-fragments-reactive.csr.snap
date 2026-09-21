@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { Slot, useSignal } from '@qwik.dev/core';
-export const Panel = () => <main><Slot name="header" /><Slot /></main>;
-export default () => {
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
+export default component$(() => {
   const items = useSignal([{ title: 'Title', description: 'Body' }]);
   return <Panel>{items.value.map((item) => <><h2 q:slot="header">{item.title}</h2><><b q:slot="header">!</b><p>{item.description}</p></></>)}</Panel>;
-};
+});
 
 == CSR OUTPUT ==
 
@@ -101,8 +101,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    225,
-    356
+    260,
+    391
   ],
   "paramNames": [],
   "captureNames": [
@@ -142,8 +142,8 @@ export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item) => {
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    258,
-    354
+    293,
+    389
   ],
   "paramNames": [
     "item"
@@ -169,8 +169,8 @@ export const component_text_segment_2_1fh117dstcoge = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    281,
-    291
+    316,
+    326
   ],
   "paramNames": [],
   "captureNames": [
@@ -217,8 +217,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    225,
-    356
+    260,
+    391
   ],
   "paramNames": [],
   "captureNames": [
@@ -258,8 +258,8 @@ export const component_for_render_segment_4_asyro5hcbuaz = (ctx, item) => {
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    258,
-    354
+    293,
+    389
   ],
   "paramNames": [
     "item"
@@ -285,8 +285,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    327,
-    343
+    362,
+    378
   ],
   "paramNames": [],
   "captureNames": [

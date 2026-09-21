@@ -1,0 +1,42 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  const Child = component$(() => <b>{count.value}</b>);
+  return <p><Child /></p>;
+});
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+  createComponent,
+  _toNodes,
+  maybeThen,
+} from '@qwik.dev/core';
+const default_1_tmpl0 = _createElementTemplate('<b> </b>');
+const default_tmpl0 = _createElementTemplate('<p><!></p>');
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const count = useSignal(0);
+  const Child = (props, ctx) => {
+    const el0 = default_1_tmpl0(ctx.document);
+    const text0 = _first(el0);
+    const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+    ctx.scheduler.notify(effect0);
+    return el0;
+  };
+  const el0 = default_tmpl0(ctx.document);
+  const component0 = createComponent(Child, null, ctx);
+  const marker0 = _first(el0);
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+== CSR DIAGNOSTICS ==
+
+[]

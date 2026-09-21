@@ -33,13 +33,13 @@ test('generated computed setup tracks dependencies, caches and renders escaped S
     input: [
       {
         path: 'src/component.tsx',
-        code: `import { useSignal, useComputed$ } from '@qwik.dev/core';
-export default () => {
+        code: `import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(1);
   const doubled = useComputed$(() => count.value * 2);
   const label = useComputed$(function () { return '<value:' + doubled.value + '>'; });
   return <span>{label.value}</span>;
-};`,
+});`,
       },
     ],
   });
@@ -108,8 +108,8 @@ test('async computed setup caches, tracks after await and recovers from errors',
     input: [
       {
         path: 'src/component.tsx',
-        code: `import { useSignal, useComputed$ } from '@qwik.dev/core';
-export default () => {
+        code: `import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(1);
   const doubled = useComputed$(async function () {
     await ready();
@@ -117,7 +117,7 @@ export default () => {
     return count.value * 2;
   });
   return <span />;
-};`,
+});`,
       },
     ],
   });
@@ -174,11 +174,11 @@ test('SSR waits beyond the initial computed value and escapes resolved text', as
     input: [
       {
         path: 'src/component.tsx',
-        code: `import { useComputed$ } from '@qwik.dev/core';
-export default () => {
+        code: `import { component$, useComputed$ } from '@qwik.dev/core';
+export default component$(() => {
   const label = useComputed$(async () => await loadLabel(), { initial: () => '<initial&>' });
   return <span>{label.value}</span>;
-};`,
+});`,
       },
     ],
   });
@@ -231,15 +231,15 @@ describe.each([false, true])('computed options (forwarded QRL: %s)', (forwarded)
         input: [
           {
             path: 'src/component.tsx',
-            code: `import { $, useComputed$ } from '@qwik.dev/core';
-export default (props) => {
+            code: `import { component$, $, useComputed$ } from '@qwik.dev/core';
+export default component$((props) => {
   const seed = props.initial;
   const options = props.options;
   const extras = [options];
   ${forwarded ? 'const read = $(async () => 42);' : ''}
   const answer = useComputed$(${forwarded ? 'read' : 'async () => 42'}, ${argument});
   return <span />;
-};`,
+});`,
           },
         ],
       });
@@ -290,12 +290,12 @@ test('computed setup uses existing invocation and signal-read plans', async () =
   const plan = await analyseModule(
     {
       path: 'component.tsx',
-      code: `import { useSignal, useComputed$ as computed } from '@qwik.dev/core';
-export default () => {
+      code: `import { component$, useSignal, useComputed$ as computed } from '@qwik.dev/core';
+export default component$(() => {
   const count = useSignal(1);
   const doubled = computed(() => count.value * 2, { initial: count.value });
   return <span>{doubled.value}</span>;
-};`,
+});`,
     },
     {}
   );
@@ -339,8 +339,8 @@ test.each(['useComputed$()', 'useComputed$(...callbacks)'])(
       analyseModule(
         {
           path: 'component.tsx',
-          code: `import { useComputed$ } from '@qwik.dev/core';
-export default () => { const result = ${initializer}; return <span>{result.value}</span>; };`,
+          code: `import { component$, useComputed$ } from '@qwik.dev/core';
+export default component$(() => { const result = ${initializer}; return <span>{result.value}</span>; });`,
         },
         {}
       )
@@ -358,11 +358,11 @@ test.each([false, true])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useComputed$ } from '@qwik.dev/core';
-export default () => {
+          code: `import { component$, useComputed$ } from '@qwik.dev/core';
+export default component$(() => {
   const answer = useComputed$(() => 42);
   return <span>{answer.value}</span>;
-};`,
+});`,
         },
       ],
     });
@@ -383,11 +383,12 @@ test('a local useComputed$ function is not a core hook', async () => {
   const plan = await analyseModule(
     {
       path: 'component.tsx',
-      code: `export default () => {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   const useComputed$ = (compute) => ({ value: compute() });
   const answer = useComputed$(() => 42);
   return <span>{answer.value}</span>;
-};`,
+});`,
     },
     {}
   );

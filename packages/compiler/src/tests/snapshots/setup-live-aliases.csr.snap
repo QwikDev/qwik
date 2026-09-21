@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { useSignal, useStore } from '@qwik.dev/core';
+import { component$, useSignal, useStore } from '@qwik.dev/core';
 import { Child } from './child';
-export default (props: { label: string; title: string; as: string }) => {
+export default component$((props: { label: string; title: string; as: string }) => {
   const label = props.label;
   const { title } = props;
   const count = useSignal(0);
@@ -17,7 +17,7 @@ export default (props: { label: string; title: string; as: string }) => {
       <Child state={store} />
     </Tag>
   );
-};
+});
 
 == CSR OUTPUT ==
 
@@ -147,8 +147,8 @@ export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   "ctxName": "tag:dynamic",
   "captures": true,
   "loc": [
-    459,
-    612
+    482,
+    635
   ],
   "paramNames": [],
   "captureNames": [
@@ -180,8 +180,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    464,
-    515
+    487,
+    538
   ],
   "paramNames": [],
   "captureNames": [
@@ -217,8 +217,8 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    517,
-    531
+    540,
+    554
   ],
   "paramNames": [],
   "captureNames": [
@@ -252,8 +252,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    525,
-    538
+    548,
+    561
   ],
   "paramNames": [],
   "captureNames": [
@@ -292,8 +292,8 @@ export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    532,
-    541
+    555,
+    564
   ],
   "paramNames": [],
   "captureNames": [
@@ -320,8 +320,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (count) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    539,
-    540
+    562,
+    563
   ],
   "paramNames": [],
   "captureNames": [
@@ -377,8 +377,8 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    539,
-    553
+    562,
+    576
   ],
   "paramNames": [],
   "captureNames": [
@@ -408,8 +408,8 @@ export const component_text_segment_7_1fh135jcdiyj1 = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    542,
-    552
+    565,
+    575
   ],
   "paramNames": [],
   "captureNames": [
@@ -448,8 +448,8 @@ export const component_slot_render_segment_8_3b0t7co3hj5qa = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    547,
-    571
+    570,
+    594
   ],
   "paramNames": [],
   "captureNames": [
@@ -476,8 +476,8 @@ export const component_text_segment_9_1fh0xp3tlu6bn = (store) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    554,
-    570
+    577,
+    593
   ],
   "paramNames": [],
   "captureNames": [
@@ -509,8 +509,8 @@ export const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    578,
-    601
+    601,
+    624
   ],
   "paramNames": [],
   "captureNames": [

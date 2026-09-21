@@ -1,12 +1,12 @@
 ==INPUT==
 
-import { sync$ } from '@qwik.dev/core';
+import { component$, sync$ } from '@qwik.dev/core';
 export const stop = sync$((event: Event) => event.preventDefault());
-export default () => (
+export default component$(() => (
   <a href="/x" onClick$={sync$((_event: Event, element: Element) => element.setAttribute('data-sync', 'ran'))}>
     go
   </a>
-);
+));
 
 == CSR OUTPUT ==
 

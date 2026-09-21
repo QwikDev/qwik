@@ -1,13 +1,13 @@
 ==INPUT==
 
-const Child = () => <><span>first</span><span>second</span></>;
-export default (props) => { return <><Child /><b>tail</b></>; };
+import { component$ } from '@qwik.dev/core';
+const Child = component$(() => <><span>first</span><span>second</span></>);
+export default component$((props) => { return <><Child /><b>tail</b></>; });
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _markComponent, createComponent, maybeThen } from '@qwik.dev/core';
-
 const Child = _markComponent(
   (props0, ctx) => {
     return '<span>first</span><span>second</span>';

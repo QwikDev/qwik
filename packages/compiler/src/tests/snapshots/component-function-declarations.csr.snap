@@ -1,18 +1,18 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export function Wrapper() { return <App />; }
-export default function App() { return <Child />; }
-function Child() {
+import { component$, useSignal } from '@qwik.dev/core';
+export const Wrapper = component$(function Wrapper() { return <App />; });
+const App = component$(function App() { return <Child />; });
+export default App;
+const Child = component$(function Child() {
   const count = useSignal(1);
   return <button onClick$={() => count.value++}>{count.value}</button>;
-}
+});
 
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
-const Child_tmpl0 = _createElementTemplate('<button> </button>');
 import {
   createComponent,
   useSignal,
@@ -22,15 +22,18 @@ import {
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
-export function Wrapper(props, ctx) {
+
+const Child_tmpl0 = _createElementTemplate('<button> </button>');
+export const Wrapper = (props, ctx) => {
   const component0 = createComponent(App, null, ctx);
   return component0;
-}
-export default function App(props, ctx) {
+};
+const App = (props, ctx) => {
   const component0 = createComponent(Child, null, ctx);
   return component0;
-}
-function Child(props, ctx) {
+};
+export default App;
+const Child = (props, ctx) => {
   const count = useSignal(1);
   const el0 = Child_tmpl0(ctx.document);
   setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count]);
@@ -38,11 +41,11 @@ function Child(props, ctx) {
   const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
   ctx.scheduler.notify(effect0);
   return el0;
-}
+};
 
 export {
   Wrapper as Wrapper_component_1yrb0pezcavja,
-  App as default_component_3rg6kq1so9aio,
+  App as App_component_d9hqa5uju2ca,
   Child as Child_component_syc3erfxihm7,
 };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
@@ -67,8 +70,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    208,
-    238
+    304,
+    334
   ],
   "paramNames": [],
   "captureNames": [

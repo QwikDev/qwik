@@ -1,12 +1,13 @@
 ==INPUT==
 
-export default (props: { items: { id: string; primary: boolean }[]; visible: boolean; prefix: string }) => <ul>{props.items.map(({ id, primary }, index) => {
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { items: { id: string; primary: boolean }[]; visible: boolean; prefix: string }) => <ul>{props.items.map(({ id, primary }, index) => {
   const visible = props.visible;
   const key = props.prefix + id;
   return primary
     ? (visible ? <li key={key}>{id}</li> : null)
     : visible && <li key={index}>{id}</li>;
-})}</ul>;
+})}</ul>);
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -98,8 +99,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) =>
   "ctxName": "for:render",
   "captures": true,
   "loc": [
-    156,
-    236
+    212,
+    292
   ],
   "paramNames": [
     "{ id, primary }",
@@ -134,8 +135,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
   "ctxName": "for:key",
   "captures": true,
   "loc": [
-    233,
-    332
+    289,
+    388
   ],
   "paramNames": [
     "{ id, primary }",
@@ -168,8 +169,8 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    233,
-    240
+    289,
+    296
   ],
   "paramNames": [],
   "captureNames": [
@@ -226,8 +227,8 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    248,
-    288
+    304,
+    344
   ],
   "paramNames": [],
   "captureNames": [
@@ -259,8 +260,8 @@ export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    248,
-    255
+    304,
+    311
   ],
   "paramNames": [],
   "captureNames": [
@@ -306,8 +307,8 @@ export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    258,
-    281
+    314,
+    337
   ],
   "paramNames": [],
   "captureNames": [
@@ -335,8 +336,8 @@ export const component_text_segment_6_1fh12ri8gowii = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    273,
-    275
+    329,
+    331
   ],
   "paramNames": [],
   "captureNames": [
@@ -393,8 +394,8 @@ export const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    296,
-    332
+    352,
+    388
   ],
   "paramNames": [],
   "captureNames": [
@@ -426,8 +427,8 @@ export const component_branch_condition_segment_8_2fzrlj3269xjh = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    296,
-    303
+    352,
+    359
   ],
   "paramNames": [],
   "captureNames": [
@@ -473,8 +474,8 @@ export const component_branch_then_segment_9_24n7eq7lvht8e = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    307,
-    332
+    363,
+    388
   ],
   "paramNames": [],
   "captureNames": [
@@ -502,8 +503,8 @@ export const component_text_segment_10_2cdl418j88efl = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    324,
-    326
+    380,
+    382
   ],
   "paramNames": [],
   "captureNames": [

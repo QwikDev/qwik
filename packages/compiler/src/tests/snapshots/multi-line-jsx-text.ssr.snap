@@ -1,20 +1,20 @@
 ==INPUT==
 
-export default () => {
+import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return (
     <p>
       one
       two
     </p>
   );
-};
+});
 
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _markComponent } from '@qwik.dev/core';
-
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     return '<p>one two</p>';

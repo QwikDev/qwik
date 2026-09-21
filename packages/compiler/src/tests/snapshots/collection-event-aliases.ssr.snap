@@ -1,7 +1,7 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export default () => {
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
   const rows = useSignal([{ id: 'a', label: 'Alpha' }]);
   return <ul>{rows.value.map(({ id, label }, index) =>
     <li key={id}>
@@ -12,7 +12,7 @@ export default () => {
       }}>default</button>
     </li>
   )}</ul>;
-};
+});
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -168,8 +168,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    183,
-    495
+    206,
+    518
   ],
   "paramNames": [
     "{ id, label }",
@@ -196,8 +196,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = ({ id, label }, index) 
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    192,
-    194
+    215,
+    217
   ],
   "paramNames": [
     "{ id, label }",
@@ -228,8 +228,8 @@ export const component_title_segment_2_2f0r05go51flv = (item, index) => {
   "ctxName": "title",
   "captures": true,
   "loc": [
-    218,
-    254
+    241,
+    277
   ],
   "paramNames": [],
   "captureNames": [
@@ -264,8 +264,8 @@ export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    256,
-    295
+    279,
+    318
   ],
   "paramNames": [],
   "captureNames": [
@@ -299,8 +299,8 @@ export const component_q_e_click_segment_4_2xwyeh830jenv = (...args0) => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    324,
-    458
+    347,
+    481
   ],
   "paramNames": [
     "value = id",

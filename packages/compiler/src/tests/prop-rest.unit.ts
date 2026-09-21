@@ -15,9 +15,9 @@ test.each([true, false])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { Slot } from '@qwik.dev/core';
+          code: `import { component$, Slot } from '@qwik.dev/core';
 import { Child } from './child';
-export default ({ title: heading, ...rest }) => <Child {...rest} title={heading}><Slot /></Child>;`,
+export default component$(({ title: heading, ...rest }) => <Child {...rest} title={heading}><Slot /></Child>);`,
         },
       ],
     });
@@ -86,11 +86,11 @@ test.each(['...rest', 'title: heading, ...rest'])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { useComputed$ } from '@qwik.dev/core';
-export default ({ ${pattern} }) => {
+          code: `import { component$, useComputed$ } from '@qwik.dev/core';
+export default component$(({ ${pattern} }) => {
   const label = useComputed$(() => rest.label.toUpperCase());
   return <strong>{label.value}</strong>;
-};`,
+});`,
         },
       ],
     });
@@ -124,7 +124,7 @@ test('rejects a default referencing the rest binding', async () => {
       input: [
         {
           path: 'component.tsx',
-          code: 'export default ({ title = rest.label, ...rest }) => <b>{title}</b>;',
+          code: "import { component$ } from '@qwik.dev/core';\nexport default component$(({ title = rest.label, ...rest }) => <b>{title}</b>);",
         },
       ],
     })
@@ -139,7 +139,7 @@ test.each([true, false])(
       input: [
         {
           path: 'component.tsx',
-          code: "import { Child } from './child'; export default ({ title, ...rest }) => <Child {...rest} />;",
+          code: "import { component$ } from '@qwik.dev/core';\nimport { Child } from './child'; export default component$(({ title, ...rest }) => <Child {...rest} />);",
         },
       ],
     });

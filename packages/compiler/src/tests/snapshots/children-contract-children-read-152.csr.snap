@@ -1,0 +1,26 @@
+==INPUT==
+
+import { component$, Slot } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
+import { Card } from './card';
+export const Wrapper = component$((props) => <Card>{props.children}</Card>);
+export default component$(() => <Wrapper><p>Projected</p></Wrapper>);
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== CSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "parse-error",
+    "file": "src/component.tsx",
+    "message": "Identifier `component$` has already been declared",
+    "highlights": null,
+    "suggestions": null
+  }
+]

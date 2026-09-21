@@ -1,13 +1,14 @@
 ==INPUT==
 
-export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
-export default (input) => {
+import { component$ } from '@qwik.dev/core';
+export const Button = component$((props) => <button onClick$={props.onSave$}>save</button>);
+export default component$((input) => {
   const suffix = '!';
   return <main>
     <button onClick$={() => input.onSave$(input.id + suffix)}>save</button>
     <Button onSave$={({ value = input.initial } = {}) => input.onSave$(value)} />
   </main>;
-};
+});
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -81,8 +82,8 @@ export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    51,
-    64
+    107,
+    120
   ],
   "paramNames": [],
   "captureNames": [
@@ -112,8 +113,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    159,
-    208
+    227,
+    276
   ],
   "paramNames": [],
   "captureNames": [
@@ -144,8 +145,8 @@ export const component_q_e_save_segment_2_3krcacnjwdae8 = (...args0) => {
   "ctxName": "onSave$",
   "captures": true,
   "loc": [
-    235,
-    301
+    303,
+    369
   ],
   "paramNames": [
     "{ value = input.initial } = {}"

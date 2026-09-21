@@ -1,12 +1,12 @@
 ==INPUT==
 
-import { useSignal, useStyles$, useStylesScoped$ } from '@qwik.dev/core';
+import { component$, useSignal, useStyles$, useStylesScoped$ } from '@qwik.dev/core';
 const STYLE = `.container { color: red; }`;
-export const Child = () => {
+export const Child = component$(() => {
   useStylesScoped$(STYLE);
   return <div class="container">child</div>;
-};
-export default () => {
+});
+export default component$(() => {
   useStyles$('.global { color: blue; }');
   const scope = useStylesScoped$(`.local { color: green; }`);
   const active = useSignal(false);
@@ -18,7 +18,7 @@ export default () => {
       <Child />
     </section>
   );
-};
+});
 
 == CSR OUTPUT ==
 
@@ -124,8 +124,8 @@ export const component_class_segment_0_3htuygud1guoj = (scope) => {
   "ctxName": "class",
   "captures": true,
   "loc": [
-    415,
-    420
+    450,
+    455
   ],
   "paramNames": [],
   "captureNames": [
@@ -152,8 +152,8 @@ export const component_class_segment_1_3htuy2t94mso0 = (active) => {
   "ctxName": "class",
   "captures": true,
   "loc": [
-    469,
-    493
+    504,
+    528
   ],
   "paramNames": [],
   "captureNames": [
@@ -183,8 +183,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    495,
-    532
+    530,
+    567
   ],
   "paramNames": [],
   "captureNames": [
@@ -214,8 +214,8 @@ export const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    553,
-    565
+    588,
+    600
   ],
   "paramNames": [],
   "captureNames": [
@@ -248,8 +248,8 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    568,
-    588
+    603,
+    623
   ],
   "paramNames": []
 }

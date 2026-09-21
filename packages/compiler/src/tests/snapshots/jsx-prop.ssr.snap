@@ -1,19 +1,36 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
+import { component$, useSignal } from '@qwik.dev/core';
 import { Display } from './display';
-export function Direct() { return <Display fallback={<b>ready</b>} />; }
-export function Spread() {
+export const Direct = component$(function Direct() { return <Display fallback={<b>ready</b>} />; });
+export const Spread = component$(function Spread() {
   const options = useSignal({ title: 'title' });
   return <Display {...options.value} fallback={<b>ready</b>} />;
-}
-export function Rows() {
+});
+export const Rows = component$(function Rows() {
   return <ul>{[1, 2].map(row => <li><Display fallback={<b>{row}</b>} /></li>)}</ul>;
-}
+});
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
+import {
+  computedProp,
+  readTrackedValue,
+  _props,
+  createComponent,
+  _noopQrl,
+  _markComponent,
+  useSignal,
+  createPropsProxy,
+  useComputedQrl,
+  _captures,
+  maybeThen,
+  renderSsrCollection,
+  escapeHTML,
+  _textValue,
+} from '@qwik.dev/core';
+import { Display } from './display';
 const component_fallback_segment_1_5cu25viqhgwy = () => {
   return q_component_jsx_segment_0_38vnjku9rukc6;
 };
@@ -51,75 +68,67 @@ const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _noopQrl(
   'component_jsx_segment_4_38vnl4ypf6sea'
 );
 q_component_jsx_segment_4_38vnl4ypf6sea.s(component_jsx_segment_4_38vnl4ypf6sea);
-import {
-  computedProp,
-  readTrackedValue,
-  _props,
-  createComponent,
-  _noopQrl,
-  _markComponent,
-  useSignal,
-  createPropsProxy,
-  useComputedQrl,
-  _captures,
-  maybeThen,
-  renderSsrCollection,
-  escapeHTML,
-  _textValue,
-} from '@qwik.dev/core';
-import { Display } from './display';
-export function Direct(props, ctx) {
-  const prop0 = computedProp(q_component_fallback_segment_1_5cu25viqhgwy);
-  ctx.addRoot(prop0);
-  const component0 = createComponent(
-    Display,
-    _props(
-      {
-        get fallback() {
-          return readTrackedValue(prop0);
-        },
-      },
-      { fallback: prop0 }
-    ),
-    ctx
-  );
-  return component0;
-}
-_markComponent(Direct, 'Direct_component_2ps3ihhdyldo6', './component.tsx');
-export function Spread(props, ctx) {
-  const options = useSignal({ title: 'title' });
-  ctx.addRoot(options);
-  const component0 = createComponent(
-    Display,
-    createPropsProxy(useComputedQrl(q_component_props_segment_3_208o00da84a64.w([options]))),
-    ctx
-  );
-  return component0;
-}
-_markComponent(Spread, 'Spread_component_2bstbt3vj7y3s', './component.tsx');
-export function Rows(props, ctx) {
-  function semantic_collectionRender_334_399_1rvvd24vhg1k1(ctx, __rangeId, __rowId, row) {
-    ctx.addRoot(row);
+export const Direct = _markComponent(
+  (props, ctx) => {
+    const prop0 = computedProp(q_component_fallback_segment_1_5cu25viqhgwy);
+    ctx.addRoot(prop0);
     const component0 = createComponent(
       Display,
-      { fallback: q_component_jsx_segment_4_38vnl4ypf6sea.w([row]) },
+      _props(
+        {
+          get fallback() {
+            return readTrackedValue(prop0);
+          },
+        },
+        { fallback: prop0 }
+      ),
       ctx
     );
-    return maybeThen(component0, (component0) => ['<li>', component0, '</li>']);
-  }
-  const collection0 = renderSsrCollection(
-    ctx,
-    undefined,
-    [1, 2],
-    undefined,
-    semantic_collectionRender_334_399_1rvvd24vhg1k1,
-    0,
-    false,
-    0
-  );
-  return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
-}
-_markComponent(Rows, 'Rows_component_1vadfxnxfhuga', './component.tsx');
+    return component0;
+  },
+  'Direct_component_2ps3ihhdyldo6',
+  './component.tsx'
+);
+export const Spread = _markComponent(
+  (props, ctx) => {
+    const options = useSignal({ title: 'title' });
+    ctx.addRoot(options);
+    const component0 = createComponent(
+      Display,
+      createPropsProxy(useComputedQrl(q_component_props_segment_3_208o00da84a64.w([options]))),
+      ctx
+    );
+    return component0;
+  },
+  'Spread_component_2bstbt3vj7y3s',
+  './component.tsx'
+);
+export const Rows = _markComponent(
+  (props, ctx) => {
+    function semantic_collectionRender_426_491_vvwvz7f3ncoy(ctx, __rangeId, __rowId, row) {
+      ctx.addRoot(row);
+      const component0 = createComponent(
+        Display,
+        { fallback: q_component_jsx_segment_4_38vnl4ypf6sea.w([row]) },
+        ctx
+      );
+      return maybeThen(component0, (component0) => ['<li>', component0, '</li>']);
+    }
+    const collection0 = renderSsrCollection(
+      ctx,
+      undefined,
+      [1, 2],
+      undefined,
+      semantic_collectionRender_426_491_vvwvz7f3ncoy,
+      0,
+      false,
+      0
+    );
+    return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
+  },
+  'Rows_component_1vadfxnxfhuga',
+  './component.tsx'
+);
 
 export {
   Direct as Direct_component_2ps3ihhdyldo6,
@@ -145,8 +154,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    134,
-    146
+    172,
+    184
   ],
   "paramNames": []
 }
@@ -177,8 +186,8 @@ export const component_fallback_segment_1_5cu25viqhgwy = () => {
   "ctxName": "fallback",
   "captures": false,
   "loc": [
-    134,
-    146
+    172,
+    184
   ],
   "paramNames": []
 }
@@ -202,8 +211,8 @@ export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    277,
-    289
+    343,
+    355
   ],
   "paramNames": []
 }
@@ -235,8 +244,8 @@ export const component_props_segment_3_208o00da84a64 = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    240,
-    290
+    306,
+    356
   ],
   "paramNames": [],
   "captureNames": [
@@ -266,8 +275,8 @@ export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    377,
-    389
+    469,
+    481
   ],
   "paramNames": [],
   "captureNames": [

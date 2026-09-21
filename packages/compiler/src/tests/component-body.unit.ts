@@ -31,7 +31,11 @@ const bodies = [
     `const label = format('ok'); function format(value) { return value.toUpperCase(); } return <p>{label}</p>;`,
     'OK',
   ],
-  ['local component', `function Child() { return <p>ok</p>; } return <Child />;`, 'ok'],
+  [
+    'local component',
+    `const Child = component$(function Child() { return <p>ok</p>; }); return <Child />;`,
+    'ok',
+  ],
   ['local arrow component', `const Child = component$(() => <p>ok</p>); return <Child />;`, 'ok'],
   [
     'ordinary core calls',
@@ -75,12 +79,12 @@ const bodies = [
   ],
   [
     'multiple local declarators',
-    `const first = record('first'), Child = () => <p>ok</p>, last = record('last'); return <Child />;`,
+    `const first = record('first'), Child = component$(() => <p>ok</p>), last = record('last'); return <Child />;`,
     'ok',
   ],
   [
     'outer props in a local component',
-    `function Child() { return <p>{props.label ?? 'ok'}</p>; } return <Child />;`,
+    `const Child = component$(function Child() { return <p>{props.label ?? 'ok'}</p>; }); return <Child />;`,
     'ok',
   ],
   [
@@ -126,7 +130,8 @@ export default component$(() => { let count = 0; const action = $(() => { ${muta
       input: [
         {
           path: 'src/body.tsx',
-          code: `export default () => { let count; var suffix = '!', other; count = 0; count++; suffix += '!'; return <p>{count + suffix}</p>; };`,
+          code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => { let count; var suffix = '!', other; count = 0; count++; suffix += '!'; return <p>{count + suffix}</p>; });`,
         },
       ],
     });
@@ -223,7 +228,8 @@ export default component$((props) => { ${body} });`,
       input: [
         {
           path: 'src/body.tsx',
-          code: `const before = record('before'), Child = () => <p>ok</p>, after = record('after'); export default () => <Child />;`,
+          code: `import { component$ } from '@qwik.dev/core';
+const before = record('before'), Child = component$(() => <p>ok</p>), after = record('after'); export default component$(() => <Child />);`,
         },
       ],
     });

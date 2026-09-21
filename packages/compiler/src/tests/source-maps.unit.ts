@@ -7,11 +7,11 @@ import { ModuleKind } from '../schema';
 describe('pipeline authored source locations', () => {
   test('keeps normalized and authored import ranges in their own source spaces', async () => {
     const code = `type Count = number;
-import { useSignal as signal } from '@qwik.dev/core';
-export default () => {
+import { useSignal as signal, component$ } from '@qwik.dev/core';
+export default component$(() => {
   const count = signal(0 as Count);
   return <p>{count.value}</p>;
-};
+});
 `;
     const plan = await analyseModule({ path: 'src/imports.tsx', code }, { transpileTs: true });
     const edge = plan.edges[0];
@@ -24,10 +24,11 @@ export default () => {
   });
 
   test('maps diagnostics from normalized code to authored TSX', async () => {
-    const code = `type Props = { label: string };
-export default (props: Props) => {
+    const code = `import { component$ } from '@qwik.dev/core';
+type Props = { label: string };
+export default component$((props: Props) => {
   return <p><br>x</br>{props.label}</p>;
-};
+});
 `;
     const plan = await analyseModule({ path: 'src/bad.tsx', code }, { transpileTs: true });
 
@@ -43,12 +44,12 @@ export default (props: Props) => {
   ] as const)(
     'maps generated %s modules and segment metadata to authored TSX',
     async (_, isServer) => {
-      const code = `import { useSignal } from '@qwik.dev/core';
+      const code = `import { component$, useSignal } from '@qwik.dev/core';
 type Props = { label: string };
-export default (props: Props) => {
+export default component$((props: Props) => {
   const count = useSignal(0);
   return <button onClick$={() => count.value++}>{props.label}</button>;
-};
+});
 `;
       const output = await transformModules({
         input: [{ path: 'src/counter.tsx', code }],

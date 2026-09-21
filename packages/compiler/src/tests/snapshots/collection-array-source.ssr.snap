@@ -1,18 +1,18 @@
 ==INPUT==
 
-export default () => {
+import { component$ } from '@qwik.dev/core';
+export default component$(() => {
   return <ul>{['first', 'second'].map(() => <li>Item</li>)}</ul>;
-};
+});
 
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { renderSsrCollection, maybeThen, _markComponent } from '@qwik.dev/core';
-
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
-    function semantic_collectionRender_36_80_37i7juaxs2aht(ctx, __rangeId, __rowId) {
+    function semantic_collectionRender_92_136_3cx6onvdq2f07(ctx, __rangeId, __rowId) {
       return '<li>Item</li>';
     }
     const collection0 = renderSsrCollection(
@@ -20,7 +20,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       undefined,
       ['first', 'second'],
       undefined,
-      semantic_collectionRender_36_80_37i7juaxs2aht,
+      semantic_collectionRender_92_136_3cx6onvdq2f07,
       0,
       false,
       0

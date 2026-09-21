@@ -25,36 +25,38 @@ async function renderSource(code: string) {
 }
 
 test.each(['Fragment', 'F'])('renders imported %s as a transparent fragment', async (name) => {
-  const { html } = await renderSource(`import { Fragment as ${name} } from '@qwik.dev/core';
-export default () => <${name}><span>A</span><${name}><b>B</b></${name}><${name} /></${name}>;`);
+  const { html } =
+    await renderSource(`import { component$, Fragment as ${name} } from '@qwik.dev/core';
+export default component$(() => <${name}><span>A</span><${name}><b>B</b></${name}><${name} /></${name}>);`);
   expect(html).toContain('<span>A</span><b>B</b>');
 });
 
 test('preserves fragment text boundaries and escaping', async () => {
-  const { html } = await renderSource(`import { Fragment as F } from '@qwik.dev/core';
-export default () => <p>before<F> middle <b>{'<unsafe>'}</b></F> after</p>;`);
+  const { html } = await renderSource(`import { component$, Fragment as F } from '@qwik.dev/core';
+export default component$(() => <p>before<F> middle <b>{'<unsafe>'}</b></F> after</p>);`);
   expect(html).toMatch(/<p>before middle <b[^>]*>&lt;unsafe&gt;<\/b> after<\/p>/);
 });
 
 test('routes named children through an explicit fragment projection', async () => {
-  const { html } = await renderSource(`import { Fragment as F, Slot } from '@qwik.dev/core';
-const Frame = () => <article><Slot name="title" /><Slot /></article>;
-export default () => <Frame><F><h1 q:slot="title">title</h1><p>body</p></F></Frame>;`);
+  const { html } =
+    await renderSource(`import { component$, Fragment as F, Slot } from '@qwik.dev/core';
+const Frame = component$(() => <article><Slot name="title" /><Slot /></article>);
+export default component$(() => <Frame><F><h1 q:slot="title">title</h1><p>body</p></F></Frame>);`);
   expect(html).toContain('<h1>title</h1>');
   expect(html).toContain('<p>body</p>');
 });
 
 test('lowers a fragment created by a helper as a stored JSX value', async () => {
-  const { html } = await renderSource(`import { Fragment as F } from '@qwik.dev/core';
+  const { html } = await renderSource(`import { component$, Fragment as F } from '@qwik.dev/core';
 function makeNode() { return <F><i>helper</i><b>value</b></F>; }
-export default () => { const content = [<F><span>stored</span></F>, makeNode()]; return <main>{content}</main>; };`);
+export default component$(() => { const content = [<F><span>stored</span></F>, makeNode()]; return <main>{content}</main>; });`);
   expect(html).toContain('<span>stored</span>');
   expect(html).toContain('<i>helper</i><b>value</b>');
 });
 
 test('preserves a local component shadowing an imported Fragment', async () => {
-  const { html } = await renderSource(`import { Fragment } from '@qwik.dev/core';
-export default () => { const Fragment = () => <b>local</b>; return <Fragment />; };`);
+  const { html } = await renderSource(`import { component$, Fragment } from '@qwik.dev/core';
+export default component$(() => { const Fragment = component$(() => <b>local</b>); return <Fragment />; });`);
   expect(html).toContain('<b>local</b>');
 });
 
@@ -65,7 +67,8 @@ test.each(['Fragment', 'F'])('preserves unrelated imports named %s', async (name
     input: [
       {
         path: 'src/fragment.tsx',
-        code: `import { Fragment as ${name} } from './other'; export default () => <${name} />;`,
+        code: `import { component$ } from '@qwik.dev/core';
+import { Fragment as ${name} } from './other'; export default component$(() => <${name} />);`,
       },
     ],
   });
@@ -76,8 +79,9 @@ test.each(['Fragment', 'F'])('preserves unrelated imports named %s', async (name
 });
 
 test('retains an explicit fragment collection key', async () => {
-  const { html } = await renderSource(`import { Fragment as F, useSignal } from '@qwik.dev/core';
-export default () => { const rows = useSignal([{ id: 'one' }, { id: 'two' }]); return <main>{rows.value.map(row => <F key={row.id}><b>{row.id}</b><i>end</i></F>)}</main>; };`);
+  const { html } =
+    await renderSource(`import { component$, Fragment as F, useSignal } from '@qwik.dev/core';
+export default component$(() => { const rows = useSignal([{ id: 'one' }, { id: 'two' }]); return <main>{rows.value.map(row => <F key={row.id}><b>{row.id}</b><i>end</i></F>)}</main>; });`);
   expect(html).toContain('>one</b>');
   expect(html).toContain('>two</b>');
 });
@@ -91,7 +95,7 @@ test.each(['children={<b />}', '{...props}', 'q:slot="title"'])(
         input: [
           {
             path: 'src/fragment.tsx',
-            code: `import { Fragment } from '@qwik.dev/core'; export default (props) => <Fragment ${attribute} />;`,
+            code: `import { component$, Fragment } from '@qwik.dev/core'; export default component$((props) => <Fragment ${attribute} />);`,
           },
         ],
       })
@@ -100,7 +104,8 @@ test.each(['children={<b />}', '{...props}', 'q:slot="title"'])(
 );
 
 test('keeps lowercase JSX tags native even when an import uses that name', async () => {
-  const { html } = await renderSource(`import { Fragment as fragment } from '@qwik.dev/core';
-export default () => <fragment><b>native</b></fragment>;`);
+  const { html } =
+    await renderSource(`import { component$, Fragment as fragment } from '@qwik.dev/core';
+export default component$(() => <fragment><b>native</b></fragment>);`);
   expect(html).toContain('<fragment><b>native</b></fragment>');
 });

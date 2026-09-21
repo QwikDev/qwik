@@ -68,8 +68,8 @@ test('diagnoses a hook called inside a collection row', async () => {
   const plan = await analyseModule(
     {
       path: 'component.tsx',
-      code: `import { useSignal } from '@qwik.dev/core';
-export default (props) => <ul>{props.rows.map((row) => { const open = useSignal(false); return <li key={row}>{open.value}</li>; })}</ul>;`,
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$((props) => <ul>{props.rows.map((row) => { const open = useSignal(false); return <li key={row}>{open.value}</li>; })}</ul>);`,
     },
     {}
   );
@@ -81,7 +81,8 @@ test('diagnoses an async collection row', async () => {
   const plan = await analyseModule(
     {
       path: 'component.tsx',
-      code: `export default (props) => <ul>{props.rows.map(async (row) => <li key={row}>{await row}</li>)}</ul>;`,
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props) => <ul>{props.rows.map(async (row) => <li key={row}>{await row}</li>)}</ul>);`,
     },
     {}
   );

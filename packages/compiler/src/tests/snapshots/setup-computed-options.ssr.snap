@@ -1,14 +1,14 @@
 ==INPUT==
 
-import { $, useComputed$ as computed } from '@qwik.dev/core';
-export default (props: { initial: number }) => {
+import { component$, $, useComputed$ as computed } from '@qwik.dev/core';
+export default component$((props: { initial: number }) => {
   const initial = props.initial;
   const options = { initial, timeout: 1000 };
   const read = $(async () => 42);
   const first = computed(async () => 42, { ...options, initial: () => initial });
   const second: { value: number } = computed(read, ...[options]);
   return <span>{first.value}:{second.value}</span>;
-};
+});
 
 == SSR OUTPUT ==
 
@@ -89,8 +89,8 @@ export const component_read_segment_0_1zbzildyw5vrf = async () => {
   "ctxName": "$",
   "captures": false,
   "loc": [
-    205,
-    222
+    228,
+    245
   ],
   "paramNames": []
 }
@@ -114,8 +114,8 @@ export const component_first_segment_1_bivl4x5fgl56 = async () => {
   "ctxName": "useComputed$",
   "captures": false,
   "loc": [
-    240,
-    304
+    263,
+    327
   ],
   "paramNames": []
 }

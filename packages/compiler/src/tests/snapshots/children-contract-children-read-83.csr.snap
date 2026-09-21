@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { Slot } from '@qwik.dev/core';
-export const Wrapper = ({ children = <p>none</p> }) => <section><Slot /></section>;
-export default () => <Wrapper><p>Projected</p></Wrapper>;
+import { component$, Slot } from '@qwik.dev/core';
+export const Wrapper = component$(({ children }) => <section>{children}</section>);
+export default component$(() => <Wrapper><p>Projected</p></Wrapper>);
 
 == CSR OUTPUT ==
 
@@ -20,12 +20,12 @@ export default () => <Wrapper><p>Projected</p></Wrapper>;
     "message": "Read child info with useChildrenInfo(), or render them with <Slot />.",
     "highlights": [
       {
-        "lo": 65,
-        "hi": 73,
+        "lo": 88,
+        "hi": 96,
         "startLine": 2,
-        "startCol": 27,
+        "startCol": 38,
         "endLine": 2,
-        "endCol": 34
+        "endCol": 45
       }
     ],
     "suggestions": null

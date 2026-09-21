@@ -1,12 +1,13 @@
 ==INPUT==
 
-export default (props: { code: string }) => (
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { code: string }) => (
   <div>
     <pre>{props.code}</pre>
     <pre>{'\nfixed'}</pre>
     <textarea value={props.code} />
   </div>
-);
+));
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -20,7 +21,6 @@ import {
   _textValue,
   _createElementTemplate,
 } from '@qwik.dev/core';
-
 const default_tmpl0 = _createElementTemplate(
   '<div><pre> </pre><pre>\n\nfixed</pre><textarea> </textarea></div>'
 );

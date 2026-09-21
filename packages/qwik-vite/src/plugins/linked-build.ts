@@ -61,6 +61,8 @@ export function createLinkedBuild() {
   const plans = new Map<string, ModulePlan>();
   const files = new Map<string, GenerateOutput['modules'][number]>();
   const owners = new Map<string, string>();
+  // A source module several library bundles carry links once, under the path that came first.
+  const identities = new Map<string, string>();
   const resolver: ResolverSnapshot = { edges: {} };
   let options: LinkedBuildOptions | undefined;
   let entries: LinkEntry[] = [];
@@ -141,13 +143,21 @@ export function createLinkedBuild() {
         if (!targetId.startsWith('\0') && existsSync(companion)) {
           ctx.addWatchFile(companion);
           const artifact = readLibraryPlan(readFileSync(companion, 'utf8'));
-          const relocate = (path: string) => normalize(resolve(`${companion}.modules`, path));
+          // readLibraryPlan requires the namespace, which names the same source in every bundle
+          const identity = (path: string) =>
+            artifact.modules.find((module) => module.path === path)!.source.symbolNamespace!;
+          const relocate = (path: string) =>
+            identities.get(identity(path)) ?? normalize(resolve(`${companion}.modules`, path));
           const libraryEntry = artifact.entries[0];
           if (libraryEntry === undefined) {
             throw new Error(`Library plan has no entry: ${companion}`);
           }
           for (const module of artifact.modules) {
+            if (identities.has(identity(module.path))) {
+              continue;
+            }
             const path = relocate(module.path);
+            identities.set(identity(module.path), path);
             plans.set(path, { ...module, path });
             resolver.edges[path] = Object.fromEntries(
               Object.entries(artifact.resolver.edges[module.path] ?? {}).map(([key, value]) => [

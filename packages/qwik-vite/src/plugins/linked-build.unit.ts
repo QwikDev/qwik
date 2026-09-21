@@ -405,6 +405,82 @@ test('re-resolves an import the library left external when the application provi
   }
 }, 20000);
 
+test('links a module two library bundles both carry only once', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const shared = join(directory, 'shared.tsx');
+  const first = join(directory, 'first.tsx');
+  const second = join(directory, 'second.tsx');
+  const application = join(directory, 'application.tsx');
+  await writeFile(
+    shared,
+    `export const Shared = (props: { value: string }) => <button onClick$={() => console.log('shared-marker')}>{props.value}</button>;`
+  );
+  await writeFile(first, `export { Shared as First } from './shared';`);
+  await writeFile(second, `export { Shared as Second } from './shared';`);
+  await writeFile(
+    application,
+    `import { First } from './lib/first.js'; import { Second } from './lib/second.js';
+    export default () => <><First value="a" /><Second value="b" /></>;`
+  );
+  const segments: string[] = [];
+  async function build(entries: string[], isLibrary: boolean) {
+    const compiler = createLinkedBuild();
+    const bundle = await rolldown({
+      input: entries,
+      external: (id) => id.startsWith('@qwik.dev/core'),
+      plugins: [
+        {
+          name: 'linked-build-test',
+          buildStart() {
+            return compiler.buildStart(this, {
+              entries,
+              rootDir: directory,
+              server: false,
+              library: isLibrary,
+              development: false,
+              sourceMaps: false,
+              onOutput(output) {
+                if (!isLibrary) {
+                  segments.push(
+                    ...output.modules.flatMap((m) => (m.segment ? [m.segment.name] : []))
+                  );
+                }
+              },
+            });
+          },
+          resolveId(id, importer) {
+            return compiler.resolveId(this, id, importer);
+          },
+          load(id) {
+            return compiler.load(this, id);
+          },
+          transform(code, id) {
+            return compiler.transform(code, id);
+          },
+          generateBundle(_, output) {
+            compiler.generateBundle(this, output);
+          },
+        },
+      ],
+    });
+    try {
+      return await bundle.write({ dir: join(directory, isLibrary ? 'lib' : 'app'), format: 'es' });
+    } finally {
+      await bundle.close();
+    }
+  }
+  try {
+    await build([first, second], true);
+    await build([application], false);
+    const sharedSegments = segments.filter((name) => name.startsWith('shared_'));
+    // both plans carry shared.tsx; the application links it once, so its segment has one owner
+    expect(sharedSegments.length).toBeGreaterThan(0);
+    expect(new Set(sharedSegments).size).toBe(sharedSegments.length);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 20000);
+
 test('links a generated JSX module whose id carries a query, as image ?jsx imports do', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
   const application = join(directory, 'application.tsx');

@@ -10,7 +10,7 @@ interface LocaleStore {
   asyncStore: AsyncLocalStorage<string> | undefined;
 }
 
-const localeStore = registerSingleton<LocaleStore>('localeStore', () => ({
+const localeStore = /*#__PURE__*/ registerSingleton<LocaleStore>('localeStore', () => ({
   locale: undefined,
   asyncStore: undefined,
 }));

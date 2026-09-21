@@ -9,7 +9,7 @@ import type { CorePlatform } from './types';
 
 // This is see also qrl.ts - importing from there causes loop
 const symbolRegistry = isServer
-  ? registerSingleton('regSymbols', () => new Map<string, any>())
+  ? /*#__PURE__*/ registerSingleton('regSymbols', () => new Map<string, any>())
   : undefined;
 
 export const createPlatform = (): CorePlatform => {
@@ -71,6 +71,8 @@ export const toUrl = (doc: Document, containerEl: Element, url: string | URL): U
   return new URL(url, base);
 };
 
+// Deliberately not a singleton: a server renders many apps, and each render installs its own
+// platform carrying that app's manifest, so the platform belongs to the bundle, not the process.
 let _platform = /*#__PURE__ */ createPlatform();
 
 // <docs markdown="./readme.md#setPlatform">

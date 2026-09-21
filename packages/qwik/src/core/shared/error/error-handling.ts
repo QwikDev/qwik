@@ -12,6 +12,7 @@ import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import type { VNode } from '../vnode/vnode';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
 import { CatchPhase } from './catch-phase';
+import { qwikSymbol, registerSingleton } from '../singletons';
 
 export { CatchPhase } from './catch-phase';
 
@@ -68,7 +69,7 @@ const errorDigest = (err: unknown): string =>
     )
   );
 
-const REDACTED = /*#__PURE__*/ Symbol();
+const REDACTED: unique symbol = /*#__PURE__*/ qwikSymbol('redacted');
 
 export const redactToGeneric = (err: unknown): Error & { digest: string } => {
   const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
@@ -164,7 +165,10 @@ export const fireOnError = (
   }
 };
 
-const boundariesWithDeferredError = /*#__PURE__*/ new WeakSet<CatchStore>();
+const boundariesWithDeferredError = /*#__PURE__*/ registerSingleton(
+  'deferredErrorBoundaries',
+  () => new WeakSet<CatchStore>()
+);
 
 export const markErrorFromDeferredSegment = (store: CatchStore): void => {
   boundariesWithDeferredError.add(store);
@@ -173,7 +177,7 @@ export const markErrorFromDeferredSegment = (store: CatchStore): void => {
 export const isErrorFromDeferredSegment = (store: CatchStore): boolean =>
   boundariesWithDeferredError.has(store);
 
-const ERROR_PHASE = /*#__PURE__*/ Symbol('qErrorPhase');
+const ERROR_PHASE: unique symbol = /*#__PURE__*/ qwikSymbol('qErrorPhase');
 
 export const tagErrorPhase = (err: unknown, phase: CatchPhase): void => {
   try {

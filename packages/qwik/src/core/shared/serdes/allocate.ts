@@ -29,7 +29,7 @@ import { needsInflation } from './deser-proxy';
 import { createQRLWithBackChannel } from './qrl-to-string';
 import { SubscriptionPatch } from './subscription-patch';
 
-export const resolvers = registerSingleton(
+export const resolvers = /*#__PURE__*/ registerSingleton(
   'resolvers',
   () => new WeakMap<Promise<any>, [Function, Function]>()
 );

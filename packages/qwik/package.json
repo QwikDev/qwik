@@ -198,6 +198,7 @@
     "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
   },
   "sideEffects": [
+    "./src/core/shared/duplicate-core.ts",
     "./src/testing/vdom-diff.unit-util.ts",
     "./src/testing/mocks.ts"
   ],

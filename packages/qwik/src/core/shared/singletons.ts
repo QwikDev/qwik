@@ -1,38 +1,28 @@
-import { isDev, isServer } from '@qwik.dev/core/build';
-import { qError, QError } from './error/error';
+import { isServer } from '@qwik.dev/core/build';
 import { version } from '../version';
 
 type Singletons = Record<string, unknown>;
-type QwikGlobal = { version?: string | undefined } & { [version: string]: Singletons };
+export type QwikGlobal = { version?: string; singletons?: Singletons } & {
+  [version: string]: Singletons | string | undefined;
+};
 
-const QWIK = ((globalThis as any).__qwik__ ||= {}) as QwikGlobal;
+/** Process-wide home of the state that every copy of Qwik in this process shares. */
+export const qwikGlobal = ((globalThis as any).__qwik__ ||= {}) as QwikGlobal;
 
-// This will probably never happen, but better be safe
-if (isDev && import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    (globalThis as any).__qwik__ = undefined;
-  });
-}
+// The server shares one registry across copies; the client keeps one registry per Qwik version,
+// so containers rendered by different builds stay independent.
+const singletons: Singletons = isServer
+  ? (qwikGlobal.singletons ||= Object.create(null))
+  : ((qwikGlobal[version] ||= Object.create(null)) as Singletons);
 
-let singletons: Singletons;
-
-if (isServer) {
-  // We can only have 1 Qwik version
-  const existing = QWIK.version;
-  if (existing) {
-    if (existing !== version) {
-      // Server allows only one Qwik version per process; same-version coexistence is fine
-      // and gets to share the singleton state.
-      qError(QError.duplicateQwik, [existing, version]);
-    }
-  } else {
-    QWIK.version = version;
-  }
-  singletons = QWIK.singletons ||= {};
-} else {
-  // On the client, we can have multiple Qwik versions coexisting, but they don't share state.
-  singletons = QWIK[version] ||= {};
-}
+/**
+ * A marker symbol shared by every copy of this Qwik version. `Symbol.for` keys are global to the
+ * realm, so the version keeps markers apart when several Qwik versions share a page.
+ *
+ * @internal
+ */
+export const qwikSymbol = <S extends symbol = symbol>(name: string): S =>
+  Symbol.for(`qwik.${version}.${name}`) as S;
 
 /**
  * Get or create a singleton shared by all Qwik module instances in this process/version.

@@ -18,6 +18,7 @@ import { ComputedSignalFlags, type EffectSubscription } from '../types';
 import type { WrappedSignalImpl } from './wrapped-signal-impl';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { SSRSegmentContainer } from '../../ssr/ssr-types';
+import { Brand, brandClass } from '../../shared/utils/brand';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -154,3 +155,4 @@ export class SignalImpl<T = any> implements Signal<T> {
     return { value: this.$untrackedValue$ };
   }
 }
+brandClass(SignalImpl, Brand.Signal);

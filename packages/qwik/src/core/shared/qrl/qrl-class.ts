@@ -6,7 +6,7 @@ import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
-import { registerSingleton } from '../singletons';
+import { registerSingleton, qwikSymbol } from '../singletons';
 import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
@@ -87,7 +87,10 @@ export type QRLInternalMethods<TYPE> = {
   readonly $lazy$: LazyRef<TYPE>;
 };
 
-let reportedChunkFailures: WeakMap<Container, Set<string>> | undefined;
+const reportedChunkFailures = /*#__PURE__*/ registerSingleton(
+  'reportedChunkFailures',
+  () => new WeakMap<Container, Set<string>>()
+);
 
 let getLazyRef: <TYPE>(
   chunk: string | null,
@@ -153,12 +156,12 @@ export class LazyRef<TYPE = unknown> {
             const failureKey =
               this.$chunk$ === null ? `symbol:${this.$symbol$}` : `chunk:${this.$chunk$}`;
             const container = this.$container$;
-            let containerFailures = container && reportedChunkFailures?.get(container);
+            let containerFailures = container && reportedChunkFailures.get(container);
             if (!containerFailures?.has(failureKey)) {
               if (container) {
                 if (!containerFailures) {
                   containerFailures = new Set();
-                  (reportedChunkFailures ||= new WeakMap()).set(container, containerFailures);
+                  reportedChunkFailures.set(container, containerFailures);
                 }
                 containerFailures.add(failureKey);
               }
@@ -215,7 +218,7 @@ qDev &&
     getLazyRef = fn;
   });
 
-const QRL_STATE = Symbol('qrl-state');
+const QRL_STATE: unique symbol = /*#__PURE__*/ qwikSymbol('qrl-state');
 
 type QRLCallable<TYPE = unknown> = QRLInternal<TYPE> & {
   [QRL_STATE]: QRLClass<TYPE>;
@@ -467,7 +470,7 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
  *
  * @internal
  */
-export const _capturesObj = registerSingleton<{ _: Readonly<unknown[]> | null }>(
+export const _capturesObj = /*#__PURE__*/ registerSingleton<{ _: Readonly<unknown[]> | null }>(
   'qrlCaptures',
   () => ({ _: null })
 );

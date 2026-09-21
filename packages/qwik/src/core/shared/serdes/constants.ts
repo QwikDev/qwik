@@ -4,9 +4,10 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 // Keep last
 import { Slot } from '../jsx/slot.public';
 import { Fragment } from '../jsx/jsx-runtime';
+import { qwikSymbol } from '../singletons';
 
 /** Used to represent an undefined value that must be serialized */
-export const explicitUndefined = Symbol('undefined');
+export const explicitUndefined: unique symbol = /*#__PURE__*/ qwikSymbol('undefined');
 export const EMPTY_OBJECT_PAYLOAD = 0;
 
 export const enum Constants {

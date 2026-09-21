@@ -48,9 +48,12 @@ import type { SubscriptionPatch } from './subscription-patch';
 interface LoadingHolder {
   p: Promise<void>;
 }
-export const loadingHolder = registerSingleton<LoadingHolder>('loadingHolder', () => ({
-  p: Promise.resolve(),
-}));
+export const loadingHolder = /*#__PURE__*/ registerSingleton<LoadingHolder>(
+  'loadingHolder',
+  () => ({
+    p: Promise.resolve(),
+  })
+);
 
 const dangerousObjectKeys = new Set([
   'constructor',

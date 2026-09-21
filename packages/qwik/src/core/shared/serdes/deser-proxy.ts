@@ -2,14 +2,14 @@ import { TypeIds } from './constants';
 import type { DomContainer } from '../../client/dom-container';
 import { vnode_isVNode } from '../../client/vnode-utils';
 import { isObject } from '../utils/types';
-import { registerSingleton } from '../singletons';
+import { registerSingleton, qwikSymbol } from '../singletons';
 import { allocate, beginDeserialization, endDeserialization } from './allocate';
 import { inflate } from './inflate';
 
 /** Arrays/Objects are special-cased so their identifiers is a single digit. */
 export const needsInflation = (typeId: TypeIds) =>
   typeId >= TypeIds.Error || typeId === TypeIds.Array || typeId === TypeIds.Object;
-const deserializedProxyMap = registerSingleton(
+const deserializedProxyMap = /*#__PURE__*/ registerSingleton(
   'deserializedProxyMap',
   () => new WeakMap<object, unknown[]>()
 );
@@ -19,7 +19,7 @@ export const isDeserializerProxy = (value: unknown): value is DeserializerProxy 
   return isObject(value) && SERIALIZER_PROXY_UNWRAP in value;
 };
 
-export const SERIALIZER_PROXY_UNWRAP = Symbol('UNWRAP');
+export const SERIALIZER_PROXY_UNWRAP: unique symbol = /*#__PURE__*/ qwikSymbol('UNWRAP');
 /** Call this on the serialized root state */
 export const wrapDeserializerProxy = (container: DomContainer, data: unknown): unknown[] => {
   if (

@@ -174,7 +174,12 @@ export function createLinkedBuild() {
             sideEffects: SideEffects.Unknown,
           };
           await collect(relocate(libraryEntry.module), isRuntime && !edge.typeOnly);
-        } else if (target.external || targetId.includes('/node_modules/')) {
+        } else if (
+          target.external ||
+          targetId.includes('/node_modules/') ||
+          // a \0 module belongs to its plugin, which may itself load linked modules to build it
+          targetId.startsWith('\0')
+        ) {
           edges[edge.id] = { r: ResolutionKind.External };
         } else if (!SCRIPT_ID.test(targetId)) {
           // An asset the bundler inlines (`?inline`, `?raw`) is a module once loaded, so the plan

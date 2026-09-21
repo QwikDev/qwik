@@ -5,6 +5,7 @@ import { rolldown } from 'rolldown';
 import { expect, test } from 'vitest';
 import { createLinkedBuild } from './linked-build';
 import { qwikRolldown } from './rolldown';
+import type { Rolldown } from 'vite';
 import { Q_MANIFEST_FILENAME } from './plugin';
 import type { QwikManifest } from '../types';
 
@@ -401,6 +402,75 @@ test('re-resolves an import the library left external when the application provi
     // the route reached through the generated table is linked, not left for the bundler to guess
     expect(code).toContain('route-marker-text');
   } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 20000);
+
+test('leaves a \\0 virtual module to its plugin, even one that loads linked modules itself', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const route = join(directory, 'route.tsx');
+  const application = join(directory, 'application.tsx');
+  await writeFile(route, `export default () => <b>route-marker-text</b>;`);
+  await writeFile(
+    application,
+    `import 'virtual:collect'; import Route from './route'; export default () => <Route />;`
+  );
+  // the router's server-fns module reads every route's linked code while it is being loaded
+  const collector = {
+    name: 'collector',
+    resolveId: (id: string) => (id === 'virtual:collect' ? '\0virtual:collect' : null),
+    async load(this: Rolldown.PluginContext, id: string) {
+      if (id !== '\0virtual:collect') {
+        return null;
+      }
+      const info = await this.load({ id: route, resolveDependencies: true });
+      // follow the linked module the route's stub re-exports, as the server-fns walk does
+      const linked = await Promise.all(
+        info.importedIds.map((id) => this.load({ id, resolveDependencies: true }))
+      );
+      return `export const collected = ${JSON.stringify(linked.map((module) => module.id))};`;
+    },
+  };
+  const compiler = createLinkedBuild();
+  const bundle = await rolldown({
+    input: [application],
+    external: (id) => id.startsWith('@qwik.dev/core'),
+    plugins: [
+      {
+        name: 'linked-build-test',
+        buildStart() {
+          return compiler.buildStart(this, {
+            entries: [application],
+            rootDir: directory,
+            server: true,
+            library: false,
+            development: false,
+            sourceMaps: false,
+            onOutput() {},
+          });
+        },
+        resolveId(id, importer) {
+          return compiler.resolveId(this, id, importer);
+        },
+        load(id) {
+          return compiler.load(this, id);
+        },
+        transform(code, id) {
+          return compiler.transform(code, id);
+        },
+      },
+      collector,
+    ],
+  });
+  try {
+    const output = await bundle.write({ dir: join(directory, 'app'), format: 'es' });
+    const code = output.output
+      .filter((file) => file.type === 'chunk')
+      .map((file) => file.code)
+      .join('\n');
+    expect(code).toContain('qwik-linked:');
+  } finally {
+    await bundle.close();
     await rm(directory, { recursive: true, force: true });
   }
 }, 20000);

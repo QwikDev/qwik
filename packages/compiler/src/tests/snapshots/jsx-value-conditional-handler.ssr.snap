@@ -1,0 +1,309 @@
+==INPUT==
+
+import { $ } from '@qwik.dev/core';
+export const form = ({ action, onSubmit$, ...rest }) =>
+  action
+    ? <form {...rest} onSubmit$={[onSubmit$, $(async (_evt, form) => { await action.submit(form); })]} />
+    : <form {...rest} onSubmit$={onSubmit$} />;
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [rest, onSubmit$, action] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(rest);
+  ctx.addRoot(onSubmit$);
+  ctx.addRoot(action);
+  const domProps0 = renderSsrProps(
+    id0,
+    [rest, onSubmit$, action],
+    q_component_props_segment_2_208o0eee4yc6n,
+    ctx.eventAttr
+  );
+  return maybeThen(domProps0, (domProps0) => [
+    (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
+    createSsrOpenTag('<form q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+    '</form>',
+  ]);
+};
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
+const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
+  const [rest, onSubmit$] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(rest);
+  ctx.addRoot(onSubmit$);
+  const domProps0 = renderSsrProps(
+    id0,
+    [rest, onSubmit$],
+    q_component_props_segment_4_208nzmc6ba85l,
+    ctx.eventAttr
+  );
+  return maybeThen(domProps0, (domProps0) => [
+    (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
+    createSsrOpenTag('<form q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+    '</form>',
+  ]);
+};
+const q_component_jsx_segment_3_38vnj6t5v0ibn = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_3_38vnj6t5v0ibn'
+);
+q_component_jsx_segment_3_38vnj6t5v0ibn.s(component_jsx_segment_3_38vnj6t5v0ibn);
+const component_props_segment_2_208o0eee4yc6n = (rest, onSubmit$, action) => {
+  return { ...rest, onSubmit$: [onSubmit$, q_component_qrl_segment_1_2fpox8kpy8lvx.w([action])] };
+};
+const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_2_208o0eee4yc6n'
+);
+q_component_props_segment_2_208o0eee4yc6n.s(component_props_segment_2_208o0eee4yc6n);
+const component_props_segment_4_208nzmc6ba85l = (rest, onSubmit$) => {
+  return { ...rest, onSubmit$: onSubmit$ };
+};
+const q_component_props_segment_4_208nzmc6ba85l = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_4_208nzmc6ba85l'
+);
+q_component_props_segment_4_208nzmc6ba85l.s(component_props_segment_4_208nzmc6ba85l);
+const component_qrl_segment_1_2fpox8kpy8lvx = async (_evt, form) => {
+  const [action] = _captures;
+  (await _await(action.submit(form)))();
+};
+const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _noopQrl(
+  'component_qrl_segment_1_2fpox8kpy8lvx'
+);
+q_component_qrl_segment_1_2fpox8kpy8lvx.s(component_qrl_segment_1_2fpox8kpy8lvx);
+import {
+  _captures,
+  renderSsrProps,
+  createSsrNodeId,
+  createSsrOpenTag,
+  maybeThen,
+  _noopQrl,
+  $,
+  _await,
+} from '@qwik.dev/core';
+export const form = ({ action, onSubmit$, ...rest }) =>
+  action
+    ? q_component_jsx_segment_0_38vnjku9rukc6.w([rest, onSubmit$, action])
+    : q_component_jsx_segment_3_38vnj6t5v0ibn.w([rest, onSubmit$]);
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  renderSsrProps,
+  createSsrNodeId,
+  createSsrOpenTag,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_props_segment_2_208o0eee4yc6n } from './component.tsx_component_props_segment_2_208o0eee4yc6n';
+const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_2_208o0eee4yc6n'
+);
+q_component_props_segment_2_208o0eee4yc6n.s(component_props_segment_2_208o0eee4yc6n);
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [rest, onSubmit$, action] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(rest);
+  ctx.addRoot(onSubmit$);
+  ctx.addRoot(action);
+  const domProps0 = renderSsrProps(
+    id0,
+    [rest, onSubmit$, action],
+    q_component_props_segment_2_208o0eee4yc6n,
+    ctx.eventAttr
+  );
+  return maybeThen(domProps0, (domProps0) => [
+    (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
+    createSsrOpenTag('<form q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+    '</form>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    107,
+    206
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "onSubmit$",
+    "action"
+  ]
+}
+*/
+============================= src/component.tsx_component_qrl_segment_1_2fpox8kpy8lvx.js (ENTRY POINT)==
+
+import { _captures, _await } from '@qwik.dev/core';
+
+export const component_qrl_segment_1_2fpox8kpy8lvx = async (_evt, form) => {
+  const [action] = _captures;
+  (await _await(action.submit(form)))();
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_qrl_segment_1_2fpox8kpy8lvx",
+  "entry": null,
+  "displayName": "component_qrl_segment_1",
+  "hash": "2fpox8kpy8lvx",
+  "canonicalFilename": "component.tsx_component_qrl_segment_1_2fpox8kpy8lvx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    146,
+    201
+  ],
+  "paramNames": [
+    "_evt",
+    "form"
+  ],
+  "captureNames": [
+    "action"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
+
+import { _noopQrl, $ } from '@qwik.dev/core';
+import { component_qrl_segment_1_2fpox8kpy8lvx } from './component.tsx_component_qrl_segment_1_2fpox8kpy8lvx';
+const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _noopQrl(
+  'component_qrl_segment_1_2fpox8kpy8lvx'
+);
+q_component_qrl_segment_1_2fpox8kpy8lvx.s(component_qrl_segment_1_2fpox8kpy8lvx);
+
+export const component_props_segment_2_208o0eee4yc6n = (rest, onSubmit$, action) => {
+  return { ...rest, onSubmit$: [onSubmit$, q_component_qrl_segment_1_2fpox8kpy8lvx.w([action])] };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2_208o0eee4yc6n",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "208o0eee4yc6n",
+  "canonicalFilename": "component.tsx_component_props_segment_2_208o0eee4yc6n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    108,
+    203
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "onSubmit$",
+    "action"
+  ]
+}
+*/
+============================= src/component.tsx_component_jsx_segment_3_38vnj6t5v0ibn.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  renderSsrProps,
+  createSsrNodeId,
+  createSsrOpenTag,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_props_segment_4_208nzmc6ba85l } from './component.tsx_component_props_segment_4_208nzmc6ba85l';
+const q_component_props_segment_4_208nzmc6ba85l = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_4_208nzmc6ba85l'
+);
+q_component_props_segment_4_208nzmc6ba85l.s(component_props_segment_4_208nzmc6ba85l);
+
+export const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
+  const [rest, onSubmit$] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(rest);
+  ctx.addRoot(onSubmit$);
+  const domProps0 = renderSsrProps(
+    id0,
+    [rest, onSubmit$],
+    q_component_props_segment_4_208nzmc6ba85l,
+    ctx.eventAttr
+  );
+  return maybeThen(domProps0, (domProps0) => [
+    (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
+    createSsrOpenTag('<form q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+    '</form>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_3_38vnj6t5v0ibn",
+  "entry": null,
+  "displayName": "component_jsx_segment_3",
+  "hash": "38vnj6t5v0ibn",
+  "canonicalFilename": "component.tsx_component_jsx_segment_3_38vnj6t5v0ibn",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    213,
+    253
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "onSubmit$"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_4_208nzmc6ba85l.js (ENTRY POINT)==
+
+export const component_props_segment_4_208nzmc6ba85l = (rest, onSubmit$) => {
+  return { ...rest, onSubmit$: onSubmit$ };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_4_208nzmc6ba85l",
+  "entry": null,
+  "displayName": "component_props_segment_4",
+  "hash": "208nzmc6ba85l",
+  "canonicalFilename": "component.tsx_component_props_segment_4_208nzmc6ba85l",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    214,
+    250
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "onSubmit$"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,214 @@
+==INPUT==
+
+import { $ } from '@qwik.dev/core';
+export const form = ({ action, onSubmit$, ...rest }) =>
+  action
+    ? <form {...rest} onSubmit$={[onSubmit$, $(async (_evt, form) => { await action.submit(form); })]} />
+    : <form {...rest} onSubmit$={onSubmit$} />;
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+  () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+const q_component_jsx_segment_3_38vnj6t5v0ibn = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_jsx_segment_3_38vnj6t5v0ibn',
+  () => import('./component.tsx_component_jsx_segment_3_38vnj6t5v0ibn'),
+  'component_jsx_segment_3_38vnj6t5v0ibn'
+);
+import { _qrlWithChunk } from '@qwik.dev/core';
+export const form = ({ action, onSubmit$, ...rest }) =>
+  action
+    ? q_component_jsx_segment_0_38vnjku9rukc6.w([rest, onSubmit$, action])
+    : q_component_jsx_segment_3_38vnj6t5v0ibn.w([rest, onSubmit$]);
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+import { _captures, createPropsEffect, _createElementTemplate } from '@qwik.dev/core';
+import { component_props_segment_2_208o0eee4yc6n } from './component.tsx_component_props_segment_2_208o0eee4yc6n';
+const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = _createElementTemplate('<form></form>');
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [rest, onSubmit$, action] = _captures;
+  const el0 = component_jsx_segment_0_38vnjku9rukc6_tmpl0(ctx.document);
+  const effect0 = createPropsEffect(
+    el0,
+    [rest, onSubmit$, action],
+    component_props_segment_2_208o0eee4yc6n,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect0.run());
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    107,
+    206
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "onSubmit$",
+    "action"
+  ]
+}
+*/
+============================= src/component.tsx_component_qrl_segment_1_2fpox8kpy8lvx.js (ENTRY POINT)==
+
+import { _captures, _await } from '@qwik.dev/core';
+
+export const component_qrl_segment_1_2fpox8kpy8lvx = async (_evt, form) => {
+  const [action] = _captures;
+  (await _await(action.submit(form)))();
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_qrl_segment_1_2fpox8kpy8lvx",
+  "entry": null,
+  "displayName": "component_qrl_segment_1",
+  "hash": "2fpox8kpy8lvx",
+  "canonicalFilename": "component.tsx_component_qrl_segment_1_2fpox8kpy8lvx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    146,
+    201
+  ],
+  "paramNames": [
+    "_evt",
+    "form"
+  ],
+  "captureNames": [
+    "action"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
+
+import { _qrlWithChunk, $ } from '@qwik.dev/core';
+const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_qrl_segment_1_2fpox8kpy8lvx',
+  () => import('./component.tsx_component_qrl_segment_1_2fpox8kpy8lvx'),
+  'component_qrl_segment_1_2fpox8kpy8lvx'
+);
+
+export const component_props_segment_2_208o0eee4yc6n = (rest, onSubmit$, action) => {
+  return { ...rest, onSubmit$: [onSubmit$, q_component_qrl_segment_1_2fpox8kpy8lvx.w([action])] };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2_208o0eee4yc6n",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "208o0eee4yc6n",
+  "canonicalFilename": "component.tsx_component_props_segment_2_208o0eee4yc6n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    108,
+    203
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "onSubmit$",
+    "action"
+  ]
+}
+*/
+============================= src/component.tsx_component_jsx_segment_3_38vnj6t5v0ibn.js (ENTRY POINT)==
+
+import { _captures, createPropsEffect, _createElementTemplate } from '@qwik.dev/core';
+import { component_props_segment_4_208nzmc6ba85l } from './component.tsx_component_props_segment_4_208nzmc6ba85l';
+const component_jsx_segment_3_38vnj6t5v0ibn_tmpl0 = _createElementTemplate('<form></form>');
+
+export const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
+  const [rest, onSubmit$] = _captures;
+  const el0 = component_jsx_segment_3_38vnj6t5v0ibn_tmpl0(ctx.document);
+  const effect0 = createPropsEffect(
+    el0,
+    [rest, onSubmit$],
+    component_props_segment_4_208nzmc6ba85l,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect0.run());
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_3_38vnj6t5v0ibn",
+  "entry": null,
+  "displayName": "component_jsx_segment_3",
+  "hash": "38vnj6t5v0ibn",
+  "canonicalFilename": "component.tsx_component_jsx_segment_3_38vnj6t5v0ibn",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    213,
+    253
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "onSubmit$"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_4_208nzmc6ba85l.js (ENTRY POINT)==
+
+export const component_props_segment_4_208nzmc6ba85l = (rest, onSubmit$) => {
+  return { ...rest, onSubmit$: onSubmit$ };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_4_208nzmc6ba85l",
+  "entry": null,
+  "displayName": "component_props_segment_4",
+  "hash": "208nzmc6ba85l",
+  "canonicalFilename": "component.tsx_component_props_segment_4_208nzmc6ba85l",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    214,
+    250
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "onSubmit$"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -16,6 +16,21 @@ export default function (opts) {
     expect(output.modules[0].code).toMatch(/renderToStream\(q_component_jsx_segment_0_\w+, opts\)/);
   });
 
+  test('should keep a $() inside a conditional JSX value with its own render program', async () => {
+    // a helper: each arm is a JSX value whose program extracts the handler, spliced once
+    const output = await testInput(mode, 'jsx-value-conditional-handler', {
+      code: `import { $ } from '@qwik.dev/core';
+export const form = ({ action, onSubmit$, ...rest }) =>
+  action
+    ? <form {...rest} onSubmit$={[onSubmit$, $(async (_evt, form) => { await action.submit(form); })]} />
+    : <form {...rest} onSubmit$={onSubmit$} />;`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    expect(output.modules[0].code).toMatch(
+      /action \? q_\w+\.w\(\[[^\]]*\]\) : q_\w+\.w\(\[[^\]]*\]\);/
+    );
+  });
+
   test('should keep only the arm a build constant decides', async () => {
     const output = await testInput(mode, 'branch-build-constant', {
       code: `import { component$, isServer, useSignal } from '@qwik.dev/core';

@@ -294,6 +294,10 @@ export function recordPayloadQrls(
     if (!isNode(current) || extractedCalls.has(current)) {
       return;
     }
+    // JSX lowers as a render program that extracts its own `$()`; splicing both would overlap.
+    if (current.type === 'JSXElement' || current.type === 'JSXFragment') {
+      return;
+    }
     if (current.type === 'CallExpression' && isComponentMarkerCall(current, scope)) {
       if (owner === 'qrl') {
         throw new UnsupportedError('a component$ inside a $ boundary');

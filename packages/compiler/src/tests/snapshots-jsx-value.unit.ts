@@ -3,6 +3,19 @@ import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should hand a module-level JSX value to renderToStream as a JSX value', async () => {
+    // the starter entry: the root is JSX, which the compiler hands over as a resumable value
+    const output = await testInput(mode, 'jsx-value-root', {
+      code: `import { renderToStream } from '@qwik.dev/core/server';
+import Root from './root';
+export default function (opts) {
+  return renderToStream(<Root />, opts);
+}`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    expect(output.modules[0].code).toMatch(/renderToStream\(q_component_jsx_segment_0_\w+, opts\)/);
+  });
+
   test('should keep only the arm a build constant decides', async () => {
     const output = await testInput(mode, 'branch-build-constant', {
       code: `import { component$, isServer, useSignal } from '@qwik.dev/core';

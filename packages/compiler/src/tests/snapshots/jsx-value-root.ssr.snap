@@ -1,0 +1,58 @@
+==INPUT==
+
+import { renderToStream } from '@qwik.dev/core/server';
+import Root from './root';
+export default function (opts) {
+  return renderToStream(<Root />, opts);
+}
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createComponent, _noopQrl } from '@qwik.dev/core';
+
+const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const component0 = createComponent(Root, null, ctx);
+  return component0;
+};
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
+import { renderToStream } from '@qwik.dev/core/server';
+import Root from './root';
+export default function (opts) {
+  return renderToStream(q_component_jsx_segment_0_38vnjku9rukc6, opts);
+}
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import Root from './root';
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const component0 = createComponent(Root, null, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": false,
+  "loc": [
+    140,
+    148
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

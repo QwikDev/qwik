@@ -89,7 +89,7 @@ export function findComponentCandidates(
     if (
       fn !== null &&
       isFunctionLike(fn) &&
-      (isMarked || (hasComponentName(name) && returnPositionContainsJsx(fn, jsx)))
+      (isMarked || (hasComponentName(name) && returnPositionContainsJsx(fn, jsx, name === null)))
     ) {
       candidates.push({ statement, fn, name });
     }
@@ -184,15 +184,42 @@ export function findRuntimeJsx(node: unknown): JSXElement | JSXFragment | null {
   return null;
 }
 
-function returnPositionContainsJsx(fn: Node, jsx: JsxAnalysis): boolean {
+/**
+ * JSX is what the `return` yields: the element itself or an arm around it. JSX handed to a call
+ * (`renderToStream(<Root />)`) is a value the function uses, not what it renders — the only signal
+ * an anonymous default export has, since it carries no component name.
+ */
+function isJsxReturnValue(node: unknown): boolean {
+  const value = isNode(node) ? unwrapExpression(node) : null;
+  if (value === null) {
+    return false;
+  }
+  switch (value.type) {
+    case 'JSXElement':
+    case 'JSXFragment':
+      return true;
+    case 'ConditionalExpression':
+      return isJsxReturnValue(value.consequent) || isJsxReturnValue(value.alternate);
+    case 'LogicalExpression':
+      return isJsxReturnValue(value.left) || isJsxReturnValue(value.right);
+    case 'SequenceExpression':
+      return isJsxReturnValue(value.expressions[value.expressions.length - 1]);
+    default:
+      return false;
+  }
+}
+
+function returnPositionContainsJsx(fn: Node, jsx: JsxAnalysis, anonymous: boolean): boolean {
+  const returnsJsx = anonymous
+    ? isJsxReturnValue
+    : (value: unknown) => isNode(value) && jsx.read(unwrapExpression(value) ?? value).hasJsxValue;
   const body = unwrapExpression((fn as WalkableNode).body);
   if (body?.type !== 'BlockStatement') {
-    return body !== null && jsx.read(body).hasJsxValue;
+    return returnsJsx(body);
   }
   let found = false;
   visitReturns(body, (argument) => {
-    const value = unwrapExpression(argument);
-    found ||= value !== null && jsx.read(value).hasJsxValue;
+    found ||= returnsJsx(argument);
   });
   return found;
 }

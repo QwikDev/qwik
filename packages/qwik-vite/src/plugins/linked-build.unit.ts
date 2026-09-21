@@ -324,3 +324,146 @@ test.each([false, true])(
   },
   20000
 );
+
+test('re-resolves an import the library left external when the application provides it', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const library = join(directory, 'library.tsx');
+  const route = join(directory, 'route.tsx');
+  const application = join(directory, 'application.tsx');
+  await writeFile(
+    library,
+    `import { routes } from '@app-routes';
+    export const Example = () => <p>{routes.length}</p>;`
+  );
+  await writeFile(route, `export default () => <b>route-marker-text</b>;`);
+  await writeFile(
+    application,
+    `import { Example } from './lib/library.js'; export default () => <Example />;`
+  );
+  // the library cannot know the application's route table; the application generates it
+  const routeTable = {
+    name: 'route-table',
+    resolveId: (id: string) => (id === '@app-routes' ? id : null),
+    load: (id: string) =>
+      id === '@app-routes'
+        ? `export const routes = [() => import(${JSON.stringify(route)})];`
+        : null,
+  };
+  async function build(entry: string, isLibrary: boolean) {
+    const compiler = createLinkedBuild();
+    const bundle = await rolldown({
+      input: entry,
+      external: (id) => id.startsWith('@qwik.dev/core') || (isLibrary && id === '@app-routes'),
+      plugins: [
+        {
+          name: 'linked-build-test',
+          buildStart() {
+            return compiler.buildStart(this, {
+              entries: [entry],
+              rootDir: directory,
+              server: false,
+              library: isLibrary,
+              development: false,
+              sourceMaps: false,
+              onOutput() {},
+            });
+          },
+          resolveId(id, importer) {
+            return compiler.resolveId(this, id, importer);
+          },
+          load(id) {
+            return compiler.load(this, id);
+          },
+          transform(code, id) {
+            return compiler.transform(code, id);
+          },
+          generateBundle(_, output) {
+            compiler.generateBundle(this, output);
+          },
+        },
+        ...(isLibrary ? [] : [routeTable]),
+      ],
+    });
+    try {
+      return await bundle.write({ dir: join(directory, isLibrary ? 'lib' : 'app'), format: 'es' });
+    } finally {
+      await bundle.close();
+    }
+  }
+  try {
+    await build(library, true);
+    const output = await build(application, false);
+    const code = output.output
+      .filter((file) => file.type === 'chunk')
+      .map((file) => file.code)
+      .join('\n');
+
+    // the route reached through the generated table is linked, not left for the bundler to guess
+    expect(code).toContain('route-marker-text');
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 20000);
+
+test('links a generated JSX module whose id carries a query, as image ?jsx imports do', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const application = join(directory, 'application.tsx');
+  await writeFile(
+    application,
+    `import Img from './photo.png?jsx'; export default () => <div><Img alt="x" /></div>;`
+  );
+  const generatedId = `virtual:${join(directory, 'photo.png.h4sh.qwik.jsx')}?jsx=&w=100`;
+  const imageJsx = {
+    name: 'image-jsx-test',
+    resolveId: (id: string) => (id.endsWith('photo.png?jsx') ? generatedId : null),
+    load: (id: string) =>
+      id === generatedId
+        ? `export const QwikImg = (p) => <img decoding="async" {...p} width={100} />; export default QwikImg;`
+        : null,
+  };
+  const compiler = createLinkedBuild();
+  const bundle = await rolldown({
+    input: application,
+    external: (id) => id.startsWith('@qwik.dev/core'),
+    plugins: [
+      {
+        name: 'linked-build-test',
+        buildStart() {
+          return compiler.buildStart(this, {
+            entries: [application],
+            rootDir: directory,
+            server: false,
+            library: false,
+            development: false,
+            sourceMaps: false,
+            onOutput() {},
+          });
+        },
+        resolveId(id, importer) {
+          return compiler.resolveId(this, id, importer);
+        },
+        load(id) {
+          return compiler.load(this, id);
+        },
+        transform(code, id) {
+          return compiler.transform(code, id);
+        },
+      },
+      imageJsx,
+    ],
+  });
+  try {
+    const output = await bundle.write({ dir: join(directory, 'app'), format: 'es' });
+    const code = output.output
+      .filter((file) => file.type === 'chunk')
+      .map((file) => file.code)
+      .join('\n');
+
+    // the generated module is compiled like any authored one: its JSX lowers, nothing is left to guess
+    expect(code).toContain('decoding');
+    expect(code).not.toContain('jsx(');
+  } finally {
+    await bundle.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 20000);

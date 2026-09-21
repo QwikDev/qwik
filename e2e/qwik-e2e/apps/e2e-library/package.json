@@ -1,4 +1,18 @@
 {
   "name": "e2e-library",
-  "type": "module"
+  "description": "Qwik library fixture that the external-library app keeps external on the server.",
+  "private": true,
+  "type": "module",
+  "main": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.mjs",
+  "types": "./src/index.tsx",
+  "exports": {
+    ".": {
+      "types": "./src/index.tsx",
+      "default": "./lib/index.qwik.mjs"
+    }
+  },
+  "peerDependencies": {
+    "@qwik.dev/core": "*"
+  }
 }

@@ -1,0 +1,14 @@
+{
+  "name": "external-library",
+  "description": "Renders a Qwik library that stays external on the server, so core is evaluated twice.",
+  "private": true,
+  "type": "module",
+  "__qwik__": {
+    "externalLibraries": [
+      "e2e-library"
+    ]
+  },
+  "dependencies": {
+    "e2e-library": "*"
+  }
+}

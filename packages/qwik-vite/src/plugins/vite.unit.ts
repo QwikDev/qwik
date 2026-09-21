@@ -1005,3 +1005,106 @@ describe('worker core chunk rewrites', () => {
     );
   });
 });
+
+describe('qwik libraries as server externals', () => {
+  const writeInstalledPackage = async (
+    fs: typeof import('node:fs'),
+    root: string,
+    name: string,
+    pkg: Record<string, unknown>,
+    entryCode: string
+  ) => {
+    const dir = path.join(root, 'node_modules', name);
+    await fs.promises.mkdir(dir, { recursive: true });
+    await fs.promises.writeFile(
+      path.join(dir, 'package.json'),
+      JSON.stringify({ name, qwik: './index.qwik.mjs', ...pkg })
+    );
+    await fs.promises.writeFile(path.join(dir, 'index.qwik.mjs'), entryCode);
+  };
+
+  test('only libraries that use v1 package names stay in the server bundle', async () => {
+    const fs = await import('node:fs');
+    const os = await import('node:os');
+    const root = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'qwik-vite-externals-'));
+    try {
+      await fs.promises.writeFile(
+        path.join(root, 'package.json'),
+        JSON.stringify({
+          name: 'app',
+          dependencies: {
+            'core-lib': '*',
+            'router-peer-lib': '*',
+            'router-import-lib': '*',
+            'router-dev-lib': '*',
+            'unscannable-lib': '*',
+            'v1-lib': '*',
+          },
+        })
+      );
+      const corePeer = { peerDependencies: { '@qwik.dev/core': '*' } };
+      await writeInstalledPackage(fs, root, 'core-lib', corePeer, 'export const a = 1;');
+      await writeInstalledPackage(
+        fs,
+        root,
+        'router-peer-lib',
+        { peerDependencies: { '@qwik.dev/core': '*', '@qwik.dev/router': '*' } },
+        'export const b = 1;'
+      );
+      await writeInstalledPackage(
+        fs,
+        root,
+        'router-import-lib',
+        corePeer,
+        `import { Link } from "@qwik.dev/router";\nexport { Link };`
+      );
+      // The library starter lists the router as a devDependency without importing it
+      await writeInstalledPackage(
+        fs,
+        root,
+        'router-dev-lib',
+        { devDependencies: { '@qwik.dev/core': '*', '@qwik.dev/router': '*' } },
+        'export const c = 1;'
+      );
+      await writeInstalledPackage(fs, root, 'unscannable-lib', corePeer, 'export const d = 1;');
+      const unscannableDir = path.join(root, 'node_modules', 'unscannable-lib', 'chunks');
+      await fs.promises.mkdir(unscannableDir);
+      for (let i = 0; i < 501; i++) {
+        await fs.promises.writeFile(path.join(unscannableDir, `chunk-${i}.js`), 'export {};');
+      }
+      await writeInstalledPackage(
+        fs,
+        root,
+        'v1-lib',
+        { peerDependencies: { '@builder.io/qwik': '*' } },
+        `import { component$ } from "@builder.io/qwik";\nexport { component$ };`
+      );
+
+      const externalsPlugin = await (
+        qwikVite({ optimizerOptions: mockOptimizerOptions() }) as any
+      )[2];
+      const result = await externalsPlugin.config.handler({ root }, { command: 'build' });
+
+      assert.deepEqual([...result.optimizeDeps.exclude].sort(), [
+        'core-lib',
+        'router-dev-lib',
+        'router-import-lib',
+        'router-peer-lib',
+        'unscannable-lib',
+        'v1-lib',
+      ]);
+      // Router users stay external too; a library with more files than the scan covers is
+      // bundled, the safe default
+      assert.deepEqual([...result.ssr.noExternal].sort(), ['unscannable-lib', 'v1-lib']);
+
+      // The dev server transforms every library, so its SSR can serve their QRL segments
+      const devResult = await externalsPlugin.config.handler({ root }, { command: 'serve' });
+      assert.deepEqual(
+        [...devResult.ssr.noExternal].sort(),
+        [...result.optimizeDeps.exclude].sort()
+      );
+    } finally {
+      await fs.promises.rm(root, { recursive: true, force: true });
+    }
+  });
+});

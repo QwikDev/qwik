@@ -2,8 +2,8 @@ import {
   component$,
   createContextId,
   event$,
-  // isServer,
-  // SkipRender,
+  isServer,
+  SkipRender,
   Slot,
   untrack,
   useContext,
@@ -17,7 +17,7 @@ import {
   type QRL,
   type Signal,
 } from '@qwik.dev/core';
-// import { SSRComment, SSRRaw } from '@qwik.dev/core/internal';
+import { SSRComment, SSRRaw } from '@qwik.dev/core/internal';
 import { delay } from '../delay';
 
 export const Render = component$(() => {
@@ -62,8 +62,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <InlineJsxComponentOrderIssue1475 />
       <BindingsNotPrintingIssue2563 />
       <BrokenRenderingBehaviorIssue2608 />
-      {/* SSR emit cannot lower the Object.entries(...).map JSX collection yet. */}
-      {/* <StoreNewKeyReactivityIssue2800 /> */}
+      <StoreNewKeyReactivityIssue2800 />
       <DateSerializationDeepStoreIssue2889 />
       <PropRenderFunctionIssue3116 />
       <CounterToggle />
@@ -87,8 +86,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <ClickHandlersExecutedMultipleTimesIssue3479 />
       <SpreadReplacesExistingPropsIssue3481 />
       <ReactImportKeySpreadLoopIssue3468 />
-      {/* useStore in non-linear setup (IIFE argument) is unsupported in v3. */}
-      {/* <Pr3475 /> */}
+      <Pr3475 />
       <DestructuringAssignmentBrokenIssue3561 />
       <UndefinedVariableAfterUpgradeIssue3542 atom={{ code: 1 }} />
       <ForLoopItemsAccumulateIssue3643 />
@@ -96,18 +94,16 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <WrongDynamicListRenderingIssue3731 />
       <OptimizerSyntaxErrorConditionalIssue3702 />
       <VariableAssignmentsOptimizedIssue3795 />
-      {/* Member-expression JSX tags are not supported by the compiler. */}
-      {/* <DynamicComponentsWithSignalsIssue4029 /> */}
+      <DynamicComponentsWithSignalsIssue4029 />
       <UndefinedRefPropIssue4346 />
-      {/* <SkipRenderTest /> */}
-      {/* <SSRRawTest /> */}
+      <SkipRenderTest />
+      <SSRRawTest />
       <ProxyOwnKeysDuplicateEntriesIssue4292 />
       <OptimizerRemovesLocalConstIssue4386 />
       <RangeInputInitialValueStepIssue4455 />
       <DynamicTagBreaksReactivityIssue5266 />
       <DynamicButton id="dynamic-button" />;<RerenderOnce />
-      {/* SSR emit refuses PropSpreadLogicBrokenCsrIssue8213Parent: unlowerable construct. */}
-      {/* <PropSpreadLogicBrokenCsrIssue8213 /> */}
+      <PropSpreadLogicBrokenCsrIssue8213 />
     </>
   );
 });
@@ -294,7 +290,6 @@ export const BrokenRenderingBehaviorIssue2608 = component$(() => {
   );
 });
 
-/* SSR emit cannot lower the Object.entries(...).map JSX collection yet.
 export const StoreNewKeyReactivityIssue2800 = component$(() => {
   const store = useStore<Record<string, number>>({
     alpha: 1,
@@ -323,7 +318,6 @@ export const StoreNewKeyReactivityIssue2800 = component$(() => {
     </div>
   );
 });
-*/
 
 export const DateSerializationDeepStoreIssue2889 = component$(() => {
   const appState = useStore(
@@ -593,14 +587,13 @@ export const ReactImportKeySpreadLoopIssue3468 = component$(() => {
   );
 });
 
-/* useStore in non-linear setup (IIFE argument) is unsupported in v3.
 export const Pr3475 = component$(() =>
   ((store) => (
     <button id="pr-3475-button" onClick$={() => delete store.key}>
       {store.key}
     </button>
   ))(useStore<{ key?: string }>({ key: 'data' }))
-); */
+);
 
 export const DestructuringAssignmentBrokenIssue3561 = component$(() => {
   const props = useStore({
@@ -760,7 +753,6 @@ export const VariableAssignmentsOptimizedIssue3795 = component$(() => {
   );
 });
 
-/* Member-expression JSX tags (<Comp.value />) are not supported by the compiler.
 export const DynamicComponentsWithSignalsIssue4029 = component$(() => {
   const Comp = useSignal<any>(CompA);
   return (
@@ -775,9 +767,8 @@ export const DynamicComponentsWithSignalsIssue4029 = component$(() => {
 
 export const CompA = component$(() => <div id="issue-4029-result">CompA</div>);
 export const CompB = component$(() => <div id="issue-4029-result">CompB</div>);
-*/
 
-/* export const SkipRenderTest = component$(() => {
+export const SkipRenderTest = component$(() => {
   const count = useSignal(0);
   if (count.value % 3 !== 0) {
     return SkipRender;
@@ -791,9 +782,8 @@ export const CompB = component$(() => <div id="issue-4029-result">CompB</div>);
       <div id="skip-render-result">Number: {count.value}</div>
     </>
   );
-}); */
+});
 
-/* TODO(v3): restore SSRRaw coverage when the API returns.
 export const SSRRawTest = component$(() => {
   return (
     <div id="ssr-raw-test-result" data-mounted={isServer ? 'server' : 'browser'}>
@@ -803,7 +793,6 @@ export const SSRRawTest = component$(() => {
     </div>
   );
 });
-*/
 
 type A = PropsOf<'button'>;
 
@@ -950,7 +939,6 @@ export const RerenderOnce = component$(() => {
   );
 });
 
-/* SSR emit refuses PropSpreadLogicBrokenCsrIssue8213Parent: unlowerable construct.
 const ctxId = createContextId<{
   isTitle: Signal<boolean>;
 }>('my-PropSpreadLogicBrokenCsrIssue8213');
@@ -1007,4 +995,3 @@ const PropSpreadLogicBrokenCsrIssue8213 = component$(() => {
     </div>
   );
 });
-*/

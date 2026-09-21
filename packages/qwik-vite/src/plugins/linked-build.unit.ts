@@ -405,6 +405,63 @@ test('re-resolves an import the library left external when the application provi
   }
 }, 20000);
 
+test('links an entry a plugin provides under an extension-less virtual id', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const label = join(directory, 'label.tsx');
+  await writeFile(label, `export const Label = () => <b>virtual-entry-marker</b>;`);
+  const entry = '@app-entry';
+  const virtualEntry = {
+    name: 'virtual-entry',
+    resolveId: (id: string) => (id === entry ? entry : null),
+    load: (id: string) =>
+      id === entry
+        ? `import { Label } from ${JSON.stringify(label)}; export const render = () => Label;`
+        : null,
+  };
+  const compiler = createLinkedBuild();
+  const bundle = await rolldown({
+    input: [entry],
+    external: (id) => id.startsWith('@qwik.dev/core'),
+    plugins: [
+      {
+        name: 'linked-build-test',
+        buildStart() {
+          return compiler.buildStart(this, {
+            entries: [entry],
+            rootDir: directory,
+            server: false,
+            library: false,
+            development: false,
+            sourceMaps: false,
+            onOutput() {},
+          });
+        },
+        resolveId(id, importer) {
+          return compiler.resolveId(this, id, importer);
+        },
+        load(id) {
+          return compiler.load(this, id);
+        },
+        transform(code, id) {
+          return compiler.transform(code, id);
+        },
+      },
+      virtualEntry,
+    ],
+  });
+  try {
+    const output = await bundle.write({ dir: join(directory, 'app'), format: 'es' });
+    const code = output.output
+      .filter((file) => file.type === 'chunk')
+      .map((file) => file.code)
+      .join('\n');
+    expect(code).toContain('virtual-entry-marker');
+  } finally {
+    await bundle.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 20000);
+
 test('links a module two library bundles both carry only once', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
   const shared = join(directory, 'shared.tsx');

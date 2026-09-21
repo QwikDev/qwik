@@ -264,7 +264,8 @@ export function createLinkedBuild() {
       options === undefined ||
       id.startsWith('\0') ||
       id.includes('/node_modules/') ||
-      !SCRIPT_ID.test(id)
+      // a configured entry is a script whatever a plugin named it
+      (!SCRIPT_ID.test(id) && !options.entries.includes(id))
     ) {
       return null;
     }

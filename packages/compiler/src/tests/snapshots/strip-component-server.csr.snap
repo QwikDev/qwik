@@ -1,0 +1,75 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
+export default component$(() => {
+  const count = useSignal(0);
+  const read = server$(() => count.value);
+  return <button onClick$={async () => (count.value = await read())}>go</button>;
+});
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _noopQrl,
+  setEvent,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { serverQrl } from '@qwik.dev/router';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+
+const default_tmpl0 = _createElementTemplate('<button>go</button>');
+import { server$ } from '@qwik.dev/router';
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(0);
+  const read = serverQrl(_noopQrl('component_read_segment_0_1zbzildyw5vrf', [count]));
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count, read]);
+      return el0;
+    })
+  );
+};
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures, _await } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = async () => {
+  const [count, read] = _captures;
+  return (count.value = (await _await(read()))());
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    224,
+    274
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count",
+    "read"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

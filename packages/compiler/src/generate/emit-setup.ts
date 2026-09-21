@@ -161,16 +161,24 @@ export function emitJsSetup(
     }
     if (entry.s === SetupKind.Call) {
       const [first] = entry.args;
+      // A stripped callback keeps only its symbol, so the call takes the QRL twin.
+      const stripped =
+        target.staticQrl !== undefined && first?.a === ArgKind.Qrl
+          ? strippedQrlJs(module, first.use, imports)
+          : null;
       // The client fast path: the callback ships with the component as a plain function.
       const isFunctionTwin =
+        stripped === null &&
         target.staticQrl !== undefined &&
         first?.a === ArgKind.Qrl &&
         (entry.target.kind === CallTargetKind.Core || entry.target.kind === CallTargetKind.Marker);
       const callee = hookCalleeJs(module, entry.target, isFunctionTwin, imports, target);
       const args = entry.args.map((arg, index) =>
-        isFunctionTwin && index === 0 && arg.a === ArgKind.Qrl
-          ? target.staticQrl!(arg.use)
-          : argJs(module, arg, emitQrl)
+        index === 0 && arg.a === ArgKind.Qrl && stripped !== null
+          ? stripped
+          : isFunctionTwin && index === 0 && arg.a === ArgKind.Qrl
+            ? target.staticQrl!(arg.use)
+            : argJs(module, arg, emitQrl)
       );
       return bindCallResult(module, entry, `${callee}(${args.join(', ')})`);
     }

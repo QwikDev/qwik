@@ -12,16 +12,28 @@ export interface TestInput {
   path?: string;
 }
 
-export async function testInput(mode: 'ssr' | 'csr', snapshotName: string, input: TestInput) {
-  return testInputs(mode, snapshotName, [input]);
+/** Per-environment knobs a golden may pin; each maps straight onto `transformModules`. */
+export interface TestOptions {
+  stripCtxName?: string[];
+}
+
+export async function testInput(
+  mode: 'ssr' | 'csr',
+  snapshotName: string,
+  input: TestInput,
+  options: TestOptions = {}
+) {
+  return testInputs(mode, snapshotName, [input], options);
 }
 
 export async function testInputs(
   mode: 'ssr' | 'csr',
   snapshotName: string,
-  inputs: readonly TestInput[]
+  inputs: readonly TestInput[],
+  options: TestOptions = {}
 ) {
   const output = await transformModules({
+    ...options,
     srcDir: 'src',
     sourceMaps: false,
     transpileTs: true,

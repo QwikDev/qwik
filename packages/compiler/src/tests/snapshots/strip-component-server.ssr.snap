@@ -1,0 +1,127 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
+export default component$(() => {
+  const count = useSignal(0);
+  const read = server$(() => count.value);
+  return <button onClick$={async () => (count.value = await read())}>go</button>;
+});
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _captures,
+  createSsrOpenTag,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { serverQrl } from '@qwik.dev/router';
+import { server$ } from '@qwik.dev/router';
+const component_read_segment_0_1zbzildyw5vrf = () => {
+  const [count] = _captures;
+  return count.value;
+};
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
+  'component_read_segment_0_1zbzildyw5vrf'
+);
+q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const invokeCtx0 = getActiveInvokeContextOrNull();
+    const count = useSignal(0);
+    const read = serverQrl(q_component_read_segment_0_1zbzildyw5vrf.w([count]));
+    return maybeThen(ctx.scheduler.flush(), () =>
+      invoke(invokeCtx0, () => {
+        return [
+          createSsrOpenTag(
+            '<button',
+            ctx.eventAttr(
+              'q-e:click',
+              q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count, read])
+            ),
+            '>'
+          ),
+          'go</button>',
+        ];
+      })
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_read_segment_0_1zbzildyw5vrf = () => {
+  const [count] = _captures;
+  return count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_read_segment_0_1zbzildyw5vrf",
+  "entry": null,
+  "displayName": "component_read_segment_0",
+  "hash": "1zbzildyw5vrf",
+  "canonicalFilename": "component.tsx_component_read_segment_0_1zbzildyw5vrf",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "server$",
+  "captures": true,
+  "loc": [
+    179,
+    205
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures, _await } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = async () => {
+  const [count, read] = _captures;
+  return (count.value = (await _await(read()))());
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    224,
+    274
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count",
+    "read"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

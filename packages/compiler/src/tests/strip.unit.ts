@@ -5,6 +5,7 @@
  */
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
+import { testInput } from './snapshot-runner';
 
 const SERVER_CTX_NAMES = ['route', 'server', 'action$', 'loader$', 'globalAction$'];
 const SERVER_EXPORTS = ['onGet', 'onPost', 'onRequest'];
@@ -61,6 +62,42 @@ describe('server-only stripping', () => {
     // the callback's body never reaches the browser
     expect(main).not.toContain('value * secret()');
   });
+
+  test('the client keeps a captured server$ inside a component as a symbol with its captures', async () => {
+    const code = `import { component$, useSignal } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
+export default component$(() => {
+  const count = useSignal(0);
+  const read = server$(() => count.value);
+  return <button onClick$={async () => (count.value = await read())}>go</button>;
+});
+`;
+    const { main, chunks } = await compile(false, { stripCtxName: SERVER_CTX_NAMES }, code);
+    expect(chunks.filter((path) => /read_segment/.test(path))).toEqual([]);
+    expect(main).not.toContain('_withCaptures(');
+    expect(main).toMatch(/serverQrl\(_noopQrl\("index_read_segment_\d+_[a-z0-9]+", \[count\]\)\)/);
+  });
+
+  test.each(['ssr', 'csr'] as const)(
+    '%s golden: a captured server$ inside a component',
+    async (mode) => {
+      const output = await testInput(
+        mode,
+        'strip-component-server',
+        {
+          code: `import { component$, useSignal } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
+export default component$(() => {
+  const count = useSignal(0);
+  const read = server$(() => count.value);
+  return <button onClick$={async () => (count.value = await read())}>go</button>;
+});`,
+        },
+        mode === 'csr' ? { stripCtxName: SERVER_CTX_NAMES } : {}
+      );
+      expect(output.diagnostics).toEqual([]);
+    }
+  );
 
   test('the client replaces a server-only export body with a fail-loud stub', async () => {
     const { main } = await compile(false, { stripExports: SERVER_EXPORTS });

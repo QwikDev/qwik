@@ -215,6 +215,6 @@ export function functionText(emission: FunctionEmission): string {
   const head =
     emission.functionName === undefined
       ? `${params} =>`
-      : `function${emission.functionName === null ? '' : ` ${emission.functionName}`}${params}`;
+      : `function${emission.generator ? '*' : ''}${emission.functionName === null ? '' : ` ${emission.functionName}`}${params}`;
   return `${emission.async ? 'async ' : ''}${head} {\n${body}\n}`;
 }

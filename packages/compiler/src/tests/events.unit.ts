@@ -540,18 +540,19 @@ test.each(['function () { return this; }', 'function read(value = props.label) {
   }
 );
 
-test('generator handlers remain explicitly unsupported', async () => {
-  await expect(
-    transformModules({
-      srcDir: 'src',
-      input: [
-        {
-          path: 'src/component.tsx',
-          code: 'export default () => <button onClick$={function* () { yield 1; }} />;',
-        },
-      ],
-    })
-  ).rejects.toThrow('a generator QRL callback');
+test('a generator handler keeps its head', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    input: [
+      {
+        path: 'src/component.tsx',
+        code: 'export default () => <button onClick$={function* () { yield 1; }} />;',
+      },
+    ],
+  });
+
+  // the body is copied as authored, so the rebuilt head must still declare a generator
+  expect(output.modules.map((module) => module.code).join('\n')).toMatch(/= function\*\s*\(\)/);
 });
 
 test('captured parameter plans survive serialization and immutable linking', async () => {

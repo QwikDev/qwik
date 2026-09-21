@@ -893,6 +893,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           statements,
           value: emission.value,
           async: false,
+          generator: false,
           uses: [],
         };
       }

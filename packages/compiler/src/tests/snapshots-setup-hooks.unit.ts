@@ -36,6 +36,27 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should keep a generator head on a QRL callback', async () => {
+    const output = await testInput(mode, 'qrl-generator', {
+      code: `import { $, useSignal } from '@qwik.dev/core';
+const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+export const stream = $(async function* () {
+  for (let i = 0; i < 3; i++) { await delay(10); yield i; }
+});
+export default () => {
+  const step = useSignal(1);
+  const counted = $(function* count() { yield step.value; });
+  return <button onClick$={() => counted}>{step.value}</button>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // the copied body still says `yield`, so the rebuilt head must still say `function*`
+    expect(code).toMatch(/= async function\*\s*\(\)/);
+    // with captures the wrapper stays plain and only applies the authored generator
+    expect(code).toMatch(/= function\s*\(\)[^]*?\(function\* count\(\)/);
+  });
+
   test('should import module references in event computed and task chunks', async () => {
     const output = await testInput(mode, 'qrl-imports', {
       code: `import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';

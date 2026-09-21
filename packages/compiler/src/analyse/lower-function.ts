@@ -101,9 +101,6 @@ export function lowerFunctionQrl(
   if (body === null) {
     throw new UnsupportedError('a bodyless QRL callback');
   }
-  if (fn.type === 'FunctionExpression' && fn.generator) {
-    throw new UnsupportedError('a generator QRL callback');
-  }
   const { captures, functions, args, refs } = lowerCaptures(fn, ctx, boundary.subject);
   ctx = createCapturedContext(ctx, captures);
   if (refs.capturedWrite !== null) {
@@ -133,6 +130,7 @@ export function lowerFunctionQrl(
         b: QrlBodyKind.Js,
         payload,
         ...(fn.type === 'FunctionExpression' ? { functionName: fn.id?.name ?? null } : {}),
+        ...(fn.type === 'FunctionExpression' && fn.generator ? { generator: true as const } : {}),
       },
       captures,
       functions,

@@ -38,11 +38,12 @@ export default (props: Props) => {
   test('keeps UnsupportedError as an implementation failure', async () => {
     await expect(
       transformModules(
-        options(`export default () => {
-  return <button onClick$={function* () { yield 1; }}>go</button>;
+        options(`import { Slot } from '@qwik.dev/core';
+export default (props: { name: string }) => {
+  return <div><Slot {...props} /></div>;
 };
 `)
       )
-    ).rejects.toThrow('pipeline does not support: a generator QRL callback');
+    ).rejects.toThrow('pipeline does not support: Slot attributes');
   });
 });

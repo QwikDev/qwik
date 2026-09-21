@@ -1,0 +1,173 @@
+==INPUT==
+
+import { $, useSignal } from '@qwik.dev/core';
+const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+export const stream = $(async function* () {
+  for (let i = 0; i < 3; i++) { await delay(10); yield i; }
+});
+export default () => {
+  const step = useSignal(1);
+  const counted = $(function* count() { yield step.value; });
+  return <button onClick$={() => counted}>{step.value}</button>;
+};
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const component_qrl_segment_0_2fpowujm1ejve = async function* () {
+  for (let i = 0; i < 3; i++) {
+    (await _await(delay(10)))();
+    yield i;
+  }
+};
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
+  'component_qrl_segment_0_2fpowujm1ejve'
+);
+q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
+const component_counted_segment_1_2a19h1ljxbgrm = function () {
+  const [step] = _captures;
+  return function* count() {
+    yield step.value;
+  }.apply(this, arguments);
+};
+const q_component_counted_segment_1_2a19h1ljxbgrm = /*#__PURE__*/ _noopQrl(
+  'component_counted_segment_1_2a19h1ljxbgrm'
+);
+q_component_counted_segment_1_2a19h1ljxbgrm.s(component_counted_segment_1_2a19h1ljxbgrm);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+import {
+  _await,
+  _noopQrl,
+  useSignal,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _markComponent,
+} from '@qwik.dev/core';
+const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+export const stream = q_component_qrl_segment_0_2fpowujm1ejve;
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const step = useSignal(1);
+    const counted = q_component_counted_segment_1_2a19h1ljxbgrm.w([step]);
+    const id0 = ctx.nextId();
+    ctx.addRoot(step);
+    const text0 = renderSsrTextNode(id0, null, step);
+    return maybeThen(text0, (text0) => [
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([counted])),
+      '>',
+      escapeHTML(text0),
+      '</button>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { delay as __qwik_delay };
+============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
+
+import { _await } from '@qwik.dev/core';
+import { __qwik_delay as delay } from './component.tsx';
+
+export const component_qrl_segment_0_2fpowujm1ejve = async function* () {
+  for (let i = 0; i < 3; i++) {
+    (await _await(delay(10)))();
+    yield i;
+  }
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_qrl_segment_0_2fpowujm1ejve",
+  "entry": null,
+  "displayName": "component_qrl_segment_0",
+  "hash": "2fpowujm1ejve",
+  "canonicalFilename": "component.tsx_component_qrl_segment_0_2fpowujm1ejve",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    130,
+    215
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_counted_segment_1_2a19h1ljxbgrm.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_counted_segment_1_2a19h1ljxbgrm = function () {
+  const [step] = _captures;
+  return function* count() {
+    yield step.value;
+  }.apply(this, arguments);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_counted_segment_1_2a19h1ljxbgrm",
+  "entry": null,
+  "displayName": "component_counted_segment_1",
+  "hash": "2a19h1ljxbgrm",
+  "canonicalFilename": "component.tsx_component_counted_segment_1_2a19h1ljxbgrm",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    287,
+    329
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "step"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [counted] = _captures;
+  return counted;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    348,
+    372
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "counted"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

@@ -94,6 +94,8 @@ export interface Qrl {
         payload: PayloadId;
         /** Undefined denotes arrows; null denotes anonymous function expressions. */
         functionName?: string | null;
+        /** `function*`: the head must say so, or `yield` in the copied body is a syntax error. */
+        generator?: true;
       };
   /** Names/kinds read from the binding table. */
   captures: { binding: LocalId; access: CaptureAccess }[];

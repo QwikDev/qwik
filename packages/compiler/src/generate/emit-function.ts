@@ -67,10 +67,12 @@ export function sourceFunctionEmission(
   if (body.b === QrlBodyKind.Js && body.functionName !== undefined) {
     emission.functionName = body.functionName;
     if (captures.length > 0 && (body.functionName !== null || qrl.params.capturesBeforeParams)) {
+      // the authored text keeps its own head, generator star included; this wrapper only applies it
       emission.functionName = null;
       emission.value = `(${readSource(module.payloads[body.payload].range)}).apply(this, arguments)`;
       return emission;
     }
+    emission.generator = body.generator === true;
   }
   // Native parameter scopes preserve defaults, closures, and mutable bindings.
   if (body.b === QrlBodyKind.Js && qrl.params.capturesBeforeParams) {
@@ -188,6 +190,7 @@ export interface FunctionEmission {
   async: boolean;
   /** Undefined denotes arrows; null denotes anonymous function expressions. */
   functionName?: string | null;
+  generator: boolean;
   /** QRLs the function's body references — the placement satisfies them. */
   uses: { qrl: LinkedQrl; invoked: boolean }[];
 }
@@ -201,6 +204,7 @@ export function emptyFunctionEmission(): FunctionEmission {
     statements: [],
     value: '',
     async: false,
+    generator: false,
     uses: [],
   };
 }

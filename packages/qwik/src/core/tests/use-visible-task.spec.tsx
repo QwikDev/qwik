@@ -120,6 +120,30 @@ describe.each([
     );
   });
 
+  it('should rerun visible task that invalidates its own tracked signal', async () => {
+    const VisibleCmp = component$(() => {
+      const count = useSignal(1);
+      const state = useSignal('no-change');
+      useVisibleTask$(({ track }) => {
+        track(count);
+        if (count.value === 1) {
+          count.value = 2;
+        } else {
+          state.value = 'change';
+        }
+      });
+      return (
+        <span>
+          {count.value}|{state.value}
+        </span>
+      );
+    });
+
+    const { document } = await render(<VisibleCmp />, { debug });
+    await trigger(document.body, 'span', 'qvisible');
+    expect(document.querySelector('span')!.textContent).toBe('2|change');
+  });
+
   it('should execute async visible task', async () => {
     (globalThis as any).log = [] as string[];
     const VisibleCmp = component$(() => {

@@ -145,21 +145,20 @@ Redirect the old package name so your package manager doesn't install v1 alongsi
 
 ### ssr.noExternal
 
-Qwik libraries must be bundled into the server build for the optimizer to process them:
+Qwik libraries no longer need to be bundled into the server build. The Vite plugin finds them in your dependencies and excludes them from dependency optimization. A production server build treats them like any other dependency, so your config decides whether they are external, and an external library shares Qwik's runtime state with your app, Qwik Router included. The dev server and builds with a `NODE_ENV` other than `production` always bundle them, because those builds contain the development version of Qwik, while Node loads the production version for an external library.
+
+A production server loads an external library from `node_modules` at runtime, and the library imports `@qwik.dev/core` (and often `@qwik.dev/router`) there too. Keep those packages in `dependencies` rather than `devDependencies` when you deploy with `npm install --omit=dev`, and make the library resolve the same `@qwik.dev/core` version as your app; the server refuses to load two Qwik versions. Otherwise add the library to `resolve.noExternal` to bundle it. The production build warns about each of these.
+
+Libraries built for Qwik v1 import `@builder.io/qwik`, which only the bundler resolves, so they must stay bundled. Add them to `resolve.noExternal`, which reaches every server environment, including the one static site generation adapters build in, together with the [package manager overrides](#package-manager-overrides):
 
 ```typescript
 // vite.config.ts
 export default defineConfig({
-  ssr: {
-    noExternal: ['some-qwik-library'],
-  },
-  optimizeDeps: {
-    exclude: ['some-qwik-library'],
+  resolve: {
+    noExternal: ['some-v1-qwik-library'],
   },
 });
 ```
-
-<Note>Without this, you'll see `Code(Q30)` duplicate runtime errors or "external dependency" warnings.</Note>
 
 ---
 
@@ -521,7 +520,7 @@ A class instance or plain function in a store/signal/prop (error Q3). Wrap with 
 
 ### Qwik version X already imported while importing Y
 
-Two copies of Qwik loaded (error Q30). Add [package manager overrides](#package-manager-overrides) and [ssr.noExternal](#ssrnoexternal).
+Two different Qwik versions loaded on the server (error Q30). Add [package manager overrides](#package-manager-overrides) so every library resolves to the same `@qwik.dev/core`.
 
 ### IMPORTANT: This dependency was pre-bundled by Vite
 
@@ -529,7 +528,7 @@ Add the library to `optimizeDeps.exclude`. See [ssr.noExternal](#ssrnoexternal).
 
 ### [package] is being treated as an external dependency
 
-Add to both `ssr.noExternal` and `optimizeDeps.exclude`. See [ssr.noExternal](#ssrnoexternal).
+The dev server and development builds bundle every Qwik library, but this one is not listed in your `package.json`, for example because another library depends on it. Add it to your dependencies, or to both `resolve.noExternal` and `optimizeDeps.exclude`. See [ssr.noExternal](#ssrnoexternal).
 
 ### Cannot find module '@builder.io/qwik'
 

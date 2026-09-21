@@ -13,10 +13,10 @@ const SubLayout = ()=>import("<app>/src/routes/sub/layout");
 /** Qwik Router Routes (2) */
 export const routes = {
   _I: ()=>import("<app>/src/routes/index"),
-  _R: "__LOADERS:<app>/src/routes/index.tsx__",
+  _D: "__LOADERS:<app>/src/routes/index.tsx__",
   "sub": {
     _L: SubLayout,
-    _R: "__LOADERS:<app>/src/routes/sub/404.tsx|<app>/src/routes/sub/layout.tsx__",
+    _R: "__LOADERS:<app>/src/routes/sub/layout.tsx__",
     _4: ()=>import("<app>/src/routes/sub/404"),
   },
 };

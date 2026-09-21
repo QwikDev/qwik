@@ -1,34 +1,242 @@
 import { describe, expect, it, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
 import {
-  applyClientRouteLoaderPath,
+  abortRouteLoaderNavigation,
+  prepareRouteLoaders,
+  commitRouteLoaders,
+  restoreRouteLoaders,
   ensureRouteLoaderSignal,
+  getClientRouteLoaders,
   getRouteLoaderResponse,
-  invalidateNavRouteLoaders,
   isImmutableLoader,
   loadRouteLoader,
   routeLoaderQrl,
   type RouteLoaderState,
+  type RouteLoaderCtx,
 } from './route-loaders';
+import { loadRoute } from './routing';
 import { ServerError } from '../../middleware/request-handler/server-error';
-import type { LoaderInternal } from './types';
+import type { LoaderInternal, RouteModule } from './types';
 
 describe('route loader execution', () => {
-  it('assigns candidate paths only when their loader is used', () => {
-    const routeLoaderCtx = {
-      loaderPaths: { 'unused-loader': '/previous/' },
-      routeLoaderCandidates: {
-        'session-loader': '/dashboard/',
-        'unused-loader': '/dashboard/',
-      },
+  it('keeps client state per context without modifying the context', () => {
+    const ctx: RouteLoaderCtx = { loaderPaths: { shared: '/a/' } };
+    const otherCtx: RouteLoaderCtx = { loaderPaths: { shared: '/a/' } };
+    const client = getClientRouteLoaders(ctx, 'http://test/a/');
+
+    expect(getClientRouteLoaders(ctx, 'http://test/b/')).toBe(client);
+    expect(getClientRouteLoaders(otherCtx, 'http://test/a/')).not.toBe(client);
+    expect(client.current.pageUrl).toBe('http://test/a/');
+    expect(client.committed).toBe(client.current);
+    expect(ctx).toEqual({ loaderPaths: { shared: '/a/' } });
+  });
+
+  it('rewrite metadata does not retain the departed layout signal', async () => {
+    const parent = createLoader('departed-layout', async () => 'parent');
+    const target = createLoader('target-page', async () => 'target');
+    const layoutModule = { parent } as unknown as RouteModule;
+    const targetModule = { target } as unknown as RouteModule;
+    const routes = {
+      _L: () => layoutModule,
+      _R: ['departed-layout'],
+      target: { _I: [() => targetModule], _D: ['target-page'] },
+      alias: { _G: 'target' },
     };
+    const state: RouteLoaderState = {};
+    const ctx: RouteLoaderCtx = { loaderPaths: { 'departed-layout': '/' } };
+    ensureRouteLoaderSignal(parent, state, ctx);
+    vi.spyOn(state['departed-layout'], 'invalidate').mockImplementation(() => {});
+    const next = await loadRoute(routes, false, '/alias/');
+    prepareRouteLoaders(
+      next.$mods$,
+      state,
+      ctx,
+      next.$loaderPaths$,
+      new URL('http://test/alias/'),
+      new URL('http://test/'),
+      1
+    );
+    commitRouteLoaders(state, ctx, 1);
+    expect(
+      Object.keys(state).filter((id) => !id.startsWith('__qwik_route_loader_value__'))
+    ).toEqual(['target-page']);
+  });
 
-    applyClientRouteLoaderPath('session-loader', routeLoaderCtx);
+  it('refreshes a resumed loader whose module export is still lazy', () => {
+    const state: RouteLoaderState = {};
+    const ctx: RouteLoaderCtx = { loaderPaths: { shared: '/a/' } };
+    const shared = createLoader('shared', async () => 'shared');
+    const child = createLoader('child', async () => 'child');
+    const signal = ensureRouteLoaderSignal(shared, state, ctx);
+    const invalidate = vi.spyOn(signal, 'invalidate').mockImplementation(() => {});
 
-    expect(routeLoaderCtx.loaderPaths).toEqual({
-      'session-loader': '/dashboard/',
-      'unused-loader': '/previous/',
+    prepareRouteLoaders(
+      [{ child } as unknown as RouteModule],
+      state,
+      ctx,
+      { shared: '/a/', child: '/a/child/' },
+      new URL('http://test/a/child/'),
+      new URL('http://test/a/'),
+      1
+    );
+
+    expect(invalidate).toHaveBeenCalledOnce();
+    expect(getClientRouteLoaders(ctx).current.requests.get(signal)).toMatchObject({
+      active: true,
+      pageUrl: 'http://test/a/child/',
     });
+    commitRouteLoaders(state, ctx, 1);
+    expect(state.shared).toBe(signal);
+  });
+
+  it('keeps shared signals and retires departed loaders only on the latest commit', () => {
+    const state: RouteLoaderState = {};
+    const ctx: RouteLoaderCtx = { loaderPaths: { parent: '/a/', shared: '/' } };
+    const parent = createLoader('parent', async () => 'parent');
+    const shared = createLoader('shared', async () => 'shared');
+    const child = createLoader('child', async () => 'child');
+    ensureRouteLoaderSignal(parent, state, ctx);
+    ensureRouteLoaderSignal(shared, state, ctx);
+    const parentSignal = state.parent;
+    const sharedSignal = state.shared;
+    const sharedInvalidate = vi.spyOn(sharedSignal, 'invalidate').mockImplementation(() => {});
+    const parentInvalidate = vi.spyOn(parentSignal, 'invalidate').mockImplementation(() => {});
+    prepareRouteLoaders(
+      [{ shared, child } as unknown as RouteModule],
+      state,
+      ctx,
+      { shared: '/', child: '/a/child/' },
+      new URL('http://test/a/child/'),
+      new URL('http://test/a/'),
+      1
+    );
+    expect(parentInvalidate).not.toHaveBeenCalled();
+    expect(sharedInvalidate).toHaveBeenCalledOnce();
+    expect(state.parent).toBe(parentSignal);
+    expect(state.shared).toBe(sharedSignal);
+    commitRouteLoaders(state, ctx, 0);
+    expect(state.parent).toBe(parentSignal);
+    commitRouteLoaders(state, ctx, 1);
+    const client = getClientRouteLoaders(ctx);
+    expect([...client.current.requests.keys()]).toEqual([sharedSignal, state.child]);
+    expect(client.committed).toBe(client.current);
+    expect(state.parent).toBeUndefined();
+    expect(Object.keys(state).some((key) => key.endsWith('__parent'))).toBe(false);
+    expect(ctx.loaderPaths.parent).toBeUndefined();
+    prepareRouteLoaders(
+      [{ parent, shared } as unknown as RouteModule],
+      state,
+      ctx,
+      { parent: '/a/', shared: '/' },
+      new URL('http://test/a/'),
+      new URL('http://test/a/child/'),
+      2
+    );
+    expect(state.parent).not.toBe(parentSignal);
+    expect(state.shared).toBe(sharedSignal);
+  });
+
+  it('restores the committed route and isolates another router', () => {
+    const parent = createLoader('parent', async () => 'parent');
+    const child = createLoader('child', async () => 'child');
+    const state: RouteLoaderState = {};
+    const ctx: RouteLoaderCtx = { loaderPaths: { parent: '/a/' } };
+    const other: RouteLoaderState = {};
+    const otherCtx: RouteLoaderCtx = { loaderPaths: { parent: '/a/' } };
+    ensureRouteLoaderSignal(parent, state, ctx);
+    ensureRouteLoaderSignal(parent, other, otherCtx);
+    const signal = state.parent;
+    vi.spyOn(signal, 'invalidate').mockImplementation(() => {});
+    const otherSignal = other.parent;
+    prepareRouteLoaders(
+      [{ child } as unknown as RouteModule],
+      state,
+      ctx,
+      { child: '/b/' },
+      new URL('http://test/b/'),
+      new URL('http://test/a/'),
+      1
+    );
+    restoreRouteLoaders(state, ctx, 1);
+    expect(state.parent).toBe(signal);
+    expect(state.child).toBeUndefined();
+    expect(other.parent).toBe(otherSignal);
+    expect(ctx.loaderPaths).toEqual({ parent: '/a/' });
+    const client = getClientRouteLoaders(ctx);
+    expect([...client.current.requests.keys()]).toEqual([signal]);
+    expect(client.committed).toBe(client.current);
+  });
+
+  it('refreshes immutable inputs and forces actions once across task retries', () => {
+    const state: RouteLoaderState = {};
+    const ctx: RouteLoaderCtx = { loaderPaths: { immutable: '/a/' } };
+    const immutable = routeLoaderQrl(createQrl('immutable'), { cacheControl: 'immutable' });
+    ensureRouteLoaderSignal(immutable, state, ctx);
+    const invalidate = vi.spyOn(state.immutable, 'invalidate').mockImplementation(() => {});
+    const mods = [{ immutable } as unknown as RouteModule];
+    const url = new URL('http://test/a/');
+    prepareRouteLoaders(mods, state, ctx, { immutable: '/a/' }, url, url, 1);
+    expect(invalidate).not.toHaveBeenCalled();
+    const next = new URL('http://test/b/');
+    prepareRouteLoaders(mods, state, ctx, { immutable: '/b/' }, next, url, 2);
+    expect(invalidate).toHaveBeenCalledOnce();
+    invalidate.mockClear();
+    const key = {};
+    prepareRouteLoaders(mods, state, ctx, { immutable: '/b/' }, next, next, 3, null, key);
+    prepareRouteLoaders(mods, state, ctx, { immutable: '/b/' }, next, next, 3, null, key);
+    expect(invalidate).toHaveBeenCalledExactlyOnceWith(true);
+  });
+
+  it('keeps search-filtered loaders when only unlisted search params change', () => {
+    const state: RouteLoaderState = {};
+    const ctx: RouteLoaderCtx = { loaderPaths: { filtered: '/a/' } };
+    const filtered = routeLoaderQrl(createQrl('filtered'), { search: ['keep'] });
+    ensureRouteLoaderSignal(filtered, state, ctx);
+    const invalidate = vi.spyOn(state.filtered, 'invalidate').mockImplementation(() => {});
+    const mods = [{ filtered } as unknown as RouteModule];
+    const first = new URL('http://test/a/?keep=one&noise=first');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, first, first, 1);
+    invalidate.mockClear();
+
+    const noise = new URL('http://test/a/?keep=one&noise=second');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, noise, first, 2);
+    expect(invalidate).not.toHaveBeenCalled();
+
+    const keep = new URL('http://test/a/?keep=two&noise=second');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, keep, noise, 3);
+    expect(invalidate).toHaveBeenCalledOnce();
+    invalidate.mockClear();
+
+    const other = new URL('http://test/b/?keep=two&noise=second');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/b/' }, other, keep, 4);
+    expect(invalidate).toHaveBeenCalledOnce();
+  });
+
+  it('refetches a kept loader whose pending fetch was aborted by an interrupting navigation', () => {
+    const state: RouteLoaderState = {};
+    const ctx: RouteLoaderCtx = { loaderPaths: { filtered: '/a/' } };
+    const filtered = routeLoaderQrl(createQrl('filtered'), { search: ['keep'] });
+    ensureRouteLoaderSignal(filtered, state, ctx);
+    const signal = state.filtered;
+    const invalidate = vi.spyOn(signal, 'invalidate').mockImplementation(() => {});
+    vi.spyOn(signal, 'abort').mockImplementation(() => {});
+    let isPending = false;
+    Object.defineProperty(signal, 'untrackedPending', { get: () => isPending });
+    const mods = [{ filtered } as unknown as RouteModule];
+    const first = new URL('http://test/a/?keep=one&noise=first');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, first, first, 1);
+    invalidate.mockClear();
+
+    abortRouteLoaderNavigation(ctx);
+    const settled = new URL('http://test/a/?keep=one&noise=second');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, settled, first, 2);
+    expect(invalidate).not.toHaveBeenCalled();
+
+    isPending = true;
+    abortRouteLoaderNavigation(ctx);
+    const interrupted = new URL('http://test/a/?keep=one&noise=third');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, interrupted, settled, 3);
+    expect(invalidate).toHaveBeenCalledOnce();
   });
 
   it('stores an uninitialized resume marker for never loaders', () => {
@@ -60,25 +268,6 @@ describe('route loader execution', () => {
 
     expect(isImmutableLoader(immutable.__id)).toBe(true);
     expect(isImmutableLoader(normal.__id)).toBe(false);
-  });
-
-  it('invalidates loader signals on nav, skipping resumed values and immutable loaders', () => {
-    const state = {} as RouteLoaderState;
-    const routeLoaderCtx = { loaderPaths: {} };
-    const immutable = routeLoaderQrl(createQrl('nav-immutable-loader'), {
-      cacheControl: 'immutable',
-    }) as LoaderInternal;
-    const normal = createLoader('nav-normal-loader', async () => undefined);
-
-    ensureRouteLoaderSignal(immutable, state, routeLoaderCtx);
-    ensureRouteLoaderSignal(normal, state, routeLoaderCtx);
-    const immutableInvalidate = vi.spyOn(state[immutable.__id], 'invalidate');
-    const normalInvalidate = vi.spyOn(state['nav-normal-loader'], 'invalidate');
-
-    invalidateNavRouteLoaders(state);
-
-    expect(normalInvalidate).toHaveBeenCalledOnce();
-    expect(immutableInvalidate).not.toHaveBeenCalled();
   });
 
   it('memoizes in-flight loader executions on the request', async () => {
@@ -149,7 +338,7 @@ function createLoader(
   fn: (thisArg: unknown, ev: any) => unknown,
   serializationStrategy: SerializationStrategy = 'never'
 ): LoaderInternal {
-  return {
+  return Object.assign(() => {}, {
     __brand: 'server_loader',
     __id: id,
     __qrl: createQrl(id, fn),
@@ -158,7 +347,7 @@ function createLoader(
     __eTag: undefined,
     __cacheKey: undefined,
     __search: undefined,
-  } as any;
+  }) as any;
 }
 
 function createQrl(id: string, fn: (thisArg: unknown, ev: any) => unknown = async () => undefined) {

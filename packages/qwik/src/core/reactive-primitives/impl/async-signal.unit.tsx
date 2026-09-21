@@ -22,6 +22,7 @@ import { createSignal, createAsyncQrl } from '../signal.public';
 import { getSubscriber } from '../subscriber';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ELEMENT_SEQ } from '../../shared/utils/markers';
+import type { SignalImpl } from './signal-impl';
 import type { AsyncSignalImpl } from './async-signal-impl';
 
 let computeInitialCalls = 0;
@@ -52,6 +53,167 @@ describe('async signal', () => {
   });
 
   describe('invalidate info', () => {
+    it('cleans computations without disposing their dependencies', async () => {
+      await withContainer(async () => {
+        const source = createSignal(1);
+        const ref = { cleanups: 0 };
+        const signal = createAsync(async ({ track, cleanup }) => {
+          cleanup(() => {
+            ref.cleanups++;
+          });
+          return track(source) * 2;
+        });
+        await retryOnPromise(() => effect$(() => signal.value));
+        await signal.promise();
+        const subscribers = (source as SignalImpl<number>).$effects$?.size;
+        expect(subscribers).toBeGreaterThan(0);
+        await signal.$destroy$();
+        expect(ref.cleanups).toBe(1);
+        expect(signal.$disposed$).toBeUndefined();
+        expect((source as SignalImpl<number>).$effects$?.size).toBe(subscribers);
+        source.value = 2;
+        await signal.promise();
+        expect(signal.value).toBe(4);
+      });
+    });
+
+    it('abort signal acquired after disposal is already aborted', async () => {
+      await withContainer(async () => {
+        const ref = { finish: () => {}, aborted: false };
+        const signal = createAsync(
+          async (ctx) => {
+            await new Promise<void>((resolve) => {
+              ref.finish = resolve;
+            });
+            ref.aborted = ctx.abortSignal.aborted;
+            return 99;
+          },
+          { initial: 7 }
+        );
+        effect$(() => signal.value);
+        void signal.promise();
+        await delay(0);
+        signal.$dispose();
+        ref.finish();
+        await signal.promise();
+        expect(ref.aborted).toBe(true);
+      });
+    });
+
+    it('does not resubscribe after disposal during an await', async () => {
+      await withContainer(async () => {
+        const source = createSignal(0);
+        const ref = { finish: () => {}, error: undefined as Error | undefined };
+        const signal = createAsync(
+          async ({ track }) => {
+            await new Promise<void>((resolve) => {
+              ref.finish = resolve;
+            });
+            try {
+              return track(source);
+            } catch (error) {
+              ref.error = error as Error;
+              throw error;
+            }
+          },
+          { initial: 7 }
+        );
+        effect$(() => signal.value);
+        void signal.promise();
+        await delay(0);
+        signal.$dispose();
+        ref.finish();
+        await signal.promise();
+        expect((source as SignalImpl<number>).$effects$?.size ?? 0).toBe(0);
+        expect(ref.error).toMatchObject({
+          name: 'Error',
+          message: expect.stringContaining('Code(Q39)'),
+        });
+        expect(signal.error).toBeUndefined();
+      });
+    });
+
+    it('does not retry suspended computation after disposal', async () => {
+      await withContainer(async () => {
+        const ref = { calls: 0, finish: () => {}, gate: null as unknown as Promise<void> };
+        ref.gate = new Promise<void>((resolve) => {
+          ref.finish = resolve;
+        });
+        const signal = createAsync(
+          async () => {
+            ref.calls++;
+            if (ref.calls === 1) {
+              throw ref.gate;
+            }
+            return 99;
+          },
+          { initial: 7 }
+        );
+        effect$(() => signal.value);
+        void signal.promise();
+        await delay(0);
+        signal.$dispose();
+        ref.finish();
+        await signal.promise();
+        expect(ref.calls).toBe(1);
+      });
+    });
+
+    it('does not start a queued computation after disposal', async () => {
+      await withContainer(async () => {
+        const ref = { calls: 0 };
+        const signal = createAsync(async () => ++ref.calls, { initial: 0 });
+        effect$(() => signal.value);
+        await signal.promise();
+        expect(ref.calls).toBe(1);
+        signal.invalidate();
+        signal.$dispose();
+        await delay(0);
+        expect(ref.calls).toBe(1);
+        expect(signal.value).toBe(1);
+      });
+    });
+
+    it('disposes pending work without publishing late results or restarting', async () => {
+      await withContainer(async () => {
+        const source = createSignal(0);
+        const ref = { calls: 0, aborted: false, cleanups: 0, finish: () => {} };
+        const signal = createAsync(
+          async ({ track, abortSignal, cleanup }) => {
+            track(source);
+            ref.calls++;
+            abortSignal.addEventListener('abort', () => {
+              ref.aborted = true;
+            });
+            cleanup(() => {
+              ref.cleanups++;
+            });
+            await new Promise<void>((resolve) => {
+              ref.finish = resolve;
+            });
+            return 99;
+          },
+          { initial: 7 }
+        );
+        effect$(() => signal.value);
+        void signal.promise();
+        await delay(0);
+        signal.invalidate();
+        signal.$dispose();
+        signal.$dispose();
+        expect(ref.aborted).toBe(true);
+        expect((source as SignalImpl<number>).$effects$?.size ?? 0).toBe(0);
+        ref.finish();
+        await signal.promise();
+        source.value++;
+        signal.invalidate();
+        await delay(0);
+        expect(signal.value).toBe(7);
+        expect(ref.calls).toBe(1);
+        expect(ref.cleanups).toBe(1);
+      });
+    });
+
     it('should expose invalidate info to the next computation', async () => {
       await withContainer(async () => {
         const infos: unknown[] = [];

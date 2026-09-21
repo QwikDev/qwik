@@ -1,9 +1,11 @@
 import { expect, test } from 'vitest';
 import { analyseModule } from '../analyse/analyse-module';
 import { createLibraryPlan, readLibraryPlan } from '../library-plan';
-import { EntryKind, MODULE_PLAN_VERSION, LinkResultKind } from '../schema';
+import { EntryKind, Environment, MODULE_PLAN_VERSION, LinkResultKind } from '../schema';
 import { deepFreeze, serverSpecialization } from './fixtures';
 import { linkPlans, ResolutionKind, SideEffects } from '../link/link-plans';
+import { generateJsCsr } from '../generate/js-csr';
+import { generateForeignModule } from '../generate/foreign';
 
 test('publishes immutable neutral library plans with portable module IDs', async () => {
   const module = await analyseModule(
@@ -21,6 +23,50 @@ test('publishes immutable neutral library plans with portable module IDs', async
   expect(restored.modules[0].path).toBe('module-0.tsx');
   expect(restored.modules[0].bindings.some((binding) => binding.result !== undefined)).toBe(true);
   expect(restored.modules[0].version).toBe(MODULE_PLAN_VERSION);
+});
+
+test('keeps the authored extension so TypeScript-only syntax still transpiles', async () => {
+  const module = await analyseModule(
+    { path: '/lib/util.ts', code: 'export const id = <T>(x: T) => x;' },
+    {}
+  );
+  const restored = readLibraryPlan(
+    JSON.stringify(
+      createLibraryPlan([module], [{ kind: EntryKind.Module, module: module.path }], { edges: {} })
+    )
+  );
+  const [plan] = restored.modules;
+  expect(plan.path).toBe('module-0.ts');
+  const linked = linkPlans(
+    [plan],
+    [{ kind: EntryKind.Module, module: plan.path }],
+    { ...serverSpecialization(), environment: Environment.Browser },
+    { edges: { [plan.path]: {} } },
+    true
+  );
+  if (linked.kind !== LinkResultKind.Linked) {
+    throw new Error(JSON.stringify(linked));
+  }
+  const output = await generateJsCsr(linked.plan, {});
+  expect(output.modules[0].code).toContain('export const id = (x) => x;');
+});
+
+test('fails loud when a foreign module does not parse in its language', async () => {
+  const module = await analyseModule(
+    { path: '/lib/util.ts', code: 'export const id = <T>(x: T) => x;' },
+    {}
+  );
+  const linked = linkPlans(
+    [{ ...module, path: 'module-0.tsx' }],
+    [{ kind: EntryKind.Module, module: 'module-0.tsx' }],
+    { ...serverSpecialization(), environment: Environment.Browser },
+    { edges: { 'module-0.tsx': {} } },
+    true
+  );
+  if (linked.kind !== LinkResultKind.Linked) {
+    throw new Error(JSON.stringify(linked));
+  }
+  await expect(generateForeignModule(linked.plan.modules[0], {})).rejects.toThrow(/module-0\.tsx/);
 });
 
 test('keeps linked content QRL identity across library relocation and compilation scopes', async () => {

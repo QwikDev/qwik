@@ -14,6 +14,9 @@ export async function generateForeignModule(
     cwd: options.rootDir,
     sourcemap: !!options.outputSourceMaps,
   });
+  if (result.errors.length > 0) {
+    throw new Error(`${module.path}: ${result.errors.map((error) => error.message).join('\n')}`);
+  }
   return {
     path: module.path,
     code: result.code,

@@ -23,7 +23,13 @@ export function createLibraryPlan(
     return null;
   }
   const carried = modules.filter((module) => kept.has(module.path));
-  const paths = new Map(carried.map((module, index) => [module.path, `module-${index}.tsx`]));
+  // The authored extension picks the parser; TypeScript-only syntax is invalid under `.tsx`.
+  const paths = new Map(
+    carried.map((module, index) => [
+      module.path,
+      `module-${index}${/\.[A-Za-z0-9]+$/.exec(module.path)?.[0] ?? '.tsx'}`,
+    ])
+  );
   const relocate = (path: string) => {
     const target = paths.get(path);
     if (target === undefined) {
@@ -127,7 +133,7 @@ export function readLibraryPlan(source: string): LibraryPlan {
       !Array.isArray(module.payloads) ||
       typeof module.source?.code !== 'string' ||
       typeof module.source.symbolNamespace !== 'string' ||
-      !/^module-\d+\.tsx$/.test(module.path) ||
+      !/^module-\d+\.[A-Za-z0-9]+$/.test(module.path) ||
       paths.has(module.path)
     ) {
       throw new Error('Unsupported Qwik module plan format, version or module ID');

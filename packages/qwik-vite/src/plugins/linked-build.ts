@@ -25,7 +25,8 @@ import {
 const prefix = '\0qwik-linked:';
 export const isLinkedBuildId = (id: string) => id.startsWith(prefix);
 const normalize = (path: string) => path.replaceAll('\\', '/');
-const SCRIPT_ID = /\.[cm]?[jt]sx?(?:\?|$)/;
+// Markdown arrives as authored JSX from the router's transform, so it compiles like a script.
+const SCRIPT_ID = /\.(?:[cm]?[jt]sx?|mdx?|markdown)(?:\?|$)/;
 /**
  * A generated module may carry a query (`photo.png.h4sh.qwik.jsx?jsx=&w=100`): the plan and its
  * chunks need a path a file system and a bundler both accept, so the query folds into the name.

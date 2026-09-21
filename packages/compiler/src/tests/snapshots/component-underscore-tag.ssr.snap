@@ -1,0 +1,221 @@
+==INPUT==
+
+import Layout from './layout';
+const _Layout = Layout;
+function _createContent(props) {
+  return <p>{props.text}</p>;
+}
+export default () => <_Layout><_createContent text="hi" /></_Layout>;
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  _noopQrl,
+  renderSsrDynamicContent,
+  createSlotScope,
+  _EMPTY_OBJ,
+  registerProjection,
+  createComponent,
+  renderSsrDynamicTag,
+  _markComponent,
+} from '@qwik.dev/core';
+
+const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [props] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const content0 = renderSsrContent(
+    ctx,
+    id0,
+    [],
+    q_component_text_segment_1_1fh10tcowimfv.w([props]),
+    false,
+    true
+  );
+  return maybeThen(content0, (content0) => [
+    '<p><!d=',
+    createSsrNodeId(id0),
+    '>',
+    content0,
+    '<!/d></p>',
+  ]);
+};
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
+const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
+  const [props] = _captures;
+  return renderSsrDynamicContent(props.text, ctx0);
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  const component0 = createComponent(
+    (props0) => renderSsrDynamicTag(_createContent, props0, ctx),
+    { text: 'hi' },
+    ctx
+  );
+  return maybeThen(component0, (component0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '>',
+    component0,
+    '<!/s>',
+  ]);
+};
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
+import Layout from './layout';
+const _Layout = Layout;
+function _createContent(props) {
+  return q_component_jsx_segment_0_38vnjku9rukc6.w([props]);
+}
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const slotScope0 = createSlotScope(null, [_EMPTY_OBJ]);
+    registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(_Layout, null, ctx, { slotScope: slotScope0 });
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { _createContent as __qwik__createContent };
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+import { _noopQrl, _captures, renderSsrContent, createSsrNodeId, maybeThen } from '@qwik.dev/core';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [props] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const content0 = renderSsrContent(
+    ctx,
+    id0,
+    [],
+    q_component_text_segment_1_1fh10tcowimfv.w([props]),
+    false,
+    true
+  );
+  return maybeThen(content0, (content0) => [
+    '<p><!d=',
+    createSsrNodeId(id0),
+    '>',
+    content0,
+    '<!/d></p>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    97,
+    116
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
+  const [props] = _captures;
+  return renderSsrDynamicContent(props.text, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    101,
+    111
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
+
+import { createSsrNodeId, renderSsrDynamicTag, createComponent, maybeThen } from '@qwik.dev/core';
+import { __qwik__createContent as _createContent } from './component.tsx';
+
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  const component0 = createComponent(
+    (props0) => renderSsrDynamicTag(_createContent, props0, ctx),
+    { text: 'hi' },
+    ctx
+  );
+  return maybeThen(component0, (component0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '>',
+    component0,
+    '<!/s>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "entry": null,
+  "displayName": "component_slot_render_segment_2",
+  "hash": "3b0t9ouqyjhtg",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    150,
+    178
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

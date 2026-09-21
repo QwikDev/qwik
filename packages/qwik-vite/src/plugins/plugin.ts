@@ -1722,6 +1722,10 @@ const TRANSFORM_EXTS = {
   '.jsx': true,
   '.ts': true,
   '.tsx': true,
+  // Markdown arrives as authored JSX from the router's transform.
+  '.md': true,
+  '.mdx': true,
+  '.markdown': true,
 } as const;
 
 /**

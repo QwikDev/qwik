@@ -26,8 +26,8 @@ describe('mdx', async () => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        "code": "import { jsx } from '@qwik.dev/core';
-      import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@qwik.dev/core/jsx-runtime";
+        "code": "/*@jsxRuntime automatic*/
+      /*@jsxImportSource @qwik.dev/core*/
       export const headings = [{
         "text": "Hello",
         "id": "hello",
@@ -41,39 +41,20 @@ describe('mdx', async () => {
           span: "span",
           ...props.components
         };
-        return _jsxs(_Fragment, {
-          children: [_jsxs(_components.h1, {
-            id: "hello",
-            children: [_jsx(_components.a, {
-              "aria-hidden": "true",
-              tabindex: "-1",
-              href: "#hello",
-              children: _jsx(_components.span, {
-                class: "icon icon-link"
-              })
-            }), "Hello"]
-          }), "\\n", _jsx("a", {
-            href: "http://example.com",
-            children: "Hello"
-          }), "\\n", _jsx("div", {
-            children: "World"
-          })]
-        });
+        return <><_components.h1 id="hello"><_components.a aria-hidden="true" tabindex="-1" href="#hello"><_components.span class="icon icon-link" /></_components.a>{"Hello"}</_components.h1>{"\\n"}<a href="http://example.com">{"Hello"}</a>{"\\n"}<div>{"World"}</div></>;
       }
 
       function _missingMdxReference(id, component, place) {
         throw new Error("file.mdx: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
       }
-      const WrappedMdxContent = () => {
-        const content = _createMdxContent({});
-        return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
-      };
-      export default WrappedMdxContent;
+      export default _createMdxContent;
       ",
         "map": {
           "file": "file.mdx",
-          "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;UACE;;;gBAC2B;;gBACxB",
-          "names": [],
+          "mappings": ";;;;;;;;;;;;;;;gKACE,uCACCA,sBAA0B,wBACxB",
+          "names": [
+            "[object Object]",
+          ],
           "sources": [
             "file.mdx",
           ],
@@ -98,8 +79,8 @@ export default function Layout({ children: content }) {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        "code": "import { jsx } from '@qwik.dev/core';
-      import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@qwik.dev/core/jsx-runtime";
+        "code": "/*@jsxRuntime automatic*/
+      /*@jsxImportSource @qwik.dev/core*/
       export const headings = [{
         "text": "Hello",
         "id": "hello",
@@ -107,9 +88,7 @@ export default function Layout({ children: content }) {
       }];
       export const frontmatter = undefined;
       const MDXLayout = function Layout({children: content}) {
-        return _jsx("main", {
-          children: content
-        });
+        return <main>{content}</main>;
       };
       function _createMdxContent(props) {
         const _components = {
@@ -118,41 +97,22 @@ export default function Layout({ children: content }) {
           span: "span",
           ...props.components
         };
-        return _jsxs(_Fragment, {
-          children: [_jsxs(_components.h1, {
-            id: "hello",
-            children: [_jsx(_components.a, {
-              "aria-hidden": "true",
-              tabindex: "-1",
-              href: "#hello",
-              children: _jsx(_components.span, {
-                class: "icon icon-link"
-              })
-            }), "Hello"]
-          }), "\\n", "\\n", _jsx("a", {
-            href: "http://example.com",
-            children: "Hello"
-          }), "\\n", _jsx("div", {
-            children: "World"
-          })]
-        });
+        return <><_components.h1 id="hello"><_components.a aria-hidden="true" tabindex="-1" href="#hello"><_components.span class="icon icon-link" /></_components.a>{"Hello"}</_components.h1>{"\\n"}{"\\n"}<a href="http://example.com">{"Hello"}</a>{"\\n"}<div>{"World"}</div></>;
       }
 
       function _missingMdxReference(id, component, place) {
         throw new Error("file.mdx: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
       }
-      const WrappedMdxContent = () => {
-        const content = _createMdxContent({});
-        return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
-      };
-      export default WrappedMdxContent;
+      export default () => <MDXLayout><_createMdxContent /></MDXLayout>;
       ",
         "map": {
           "file": "file.mdx",
-          "mappings": ";;;;;;;kBAGe,iBAAkBA,UAAUC;cACjC;cAAMA;;;;;;;;;;;;;;;;;;;;UAHd;;;gBAM2B;;gBACxB",
+          "mappings": ";;;;;;;;kBAGe,iBAAkBA,UAAUC;UACjCC,MAAMD,UAAUC;;;;;;;;;gKAHxB,6CAMCC,sBAA0B,wBACxB",
           "names": [
             "children",
             "content",
+            "main",
+            "[object Object]",
           ],
           "sources": [
             "file.mdx",

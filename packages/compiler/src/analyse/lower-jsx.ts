@@ -63,7 +63,8 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   if (alias !== null) {
     return lowerDynamicTag(element, attributes, alias.value, alias.root, ctx);
   }
-  if (/^[A-Z]/.test(nameNode.name)) {
+  // JSX: only a lowercase-initial tag is an element; anything else names a component.
+  if (!/^[a-z]/.test(nameNode.name)) {
     const binding = requireComponentBinding(nameNode, ctx);
     const core = ctx.coreBindings.get(binding);
     if (core === 'Suspense') {
@@ -77,9 +78,6 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
           { t: ComponentTargetKind.Raw, binding, ...tagNamespace(ctx.namespace) },
           ctx
         );
-  }
-  if (!/^[a-z]/.test(nameNode.name)) {
-    throw new UnsupportedError('a non-native JSX tag');
   }
   const tag = nameNode.name;
   const expanded = attributes.flatMap(expandLiteralSpread);

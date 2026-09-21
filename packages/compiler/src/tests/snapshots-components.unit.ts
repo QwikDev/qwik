@@ -68,6 +68,17 @@ export default ({ title: heading = 'heading', ...rest }) => (
     });
     expect(output.diagnostics).toEqual([]);
   });
+  test('should treat any tag that does not start lowercase as a component', async () => {
+    const output = await testInput(mode, 'component-underscore-tag', {
+      code: `import Layout from './layout';
+const _Layout = Layout;
+function _createContent(props) {
+  return <p>{props.text}</p>;
+}
+export default () => <_Layout><_createContent text="hi" /></_Layout>;`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
   test('should keep a body rest of props live like a parameter rest', async () => {
     const output = await testInput(mode, 'component-body-prop-rest', {
       code: `import { Slot } from '@qwik.dev/core';

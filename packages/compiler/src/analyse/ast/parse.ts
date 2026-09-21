@@ -26,15 +26,9 @@ export function getLang(path: string): 'js' | 'jsx' | 'ts' | 'tsx' {
   if (path.endsWith('.ts')) {
     return 'ts';
   }
-  if (path.endsWith('.jsx')) {
-    return 'jsx';
-  }
-  if (/\.qwik\.[mc]?js$/.test(path)) {
-    return 'jsx';
-  }
-  return 'js';
+  return isJsxPath(path) ? 'jsx' : 'js';
 }
 
 export const isTypeScriptPath = (path: string) => path.endsWith('.ts') || path.endsWith('.tsx');
-export const isJsxPath = (path: string) =>
-  path.endsWith('.jsx') || path.endsWith('.tsx') || /\.qwik\.[mc]?js$/.test(path);
+// Library twins and markdown (authored JSX from the router's MDX transform) parse as JSX.
+export const isJsxPath = (path: string) => /\.(?:[jt]sx|qwik\.[mc]?js|mdx?|markdown)$/.test(path);

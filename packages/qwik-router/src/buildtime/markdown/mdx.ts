@@ -48,6 +48,8 @@ export async function createMdxTransformer(ctx: RoutingContext): Promise<MdxTran
     SourceMapGenerator,
     jsxImportSource: '@qwik.dev/core',
     ...userMdxOpts,
+    // The compiler lowers authored JSX only; a runtime jsx() call has no v3 implementation.
+    jsx: true,
     elementAttributeNameCase: 'html',
     remarkPlugins: [
       ...userRemarkPlugins,
@@ -70,22 +72,22 @@ export async function createMdxTransformer(ctx: RoutingContext): Promise<MdxTran
       const file = new VFile({ value: code, path: id });
       const compiled = await compile(file, options);
       const output = String(compiled.value);
-      const addImport = `import { jsx } from '@qwik.dev/core';\n`;
-      // the _missingMdxReference call is automatically added by mdxjs
-      const newDefault = `
-function _missingMdxReference(id, component, place) {
-  throw new Error("${id}: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
-}
-const WrappedMdxContent = () => {
-  const content = _createMdxContent({});
-  return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
-};
-export default WrappedMdxContent;
-`;
       const exportIndex = output.lastIndexOf('export default ');
       if (exportIndex === -1) {
         throw new Error('Could not find default export in mdx output');
       }
+      const body = output.slice(0, exportIndex);
+      // MDX declares MDXLayout only for a default-exported layout; the content is a component itself.
+      const newDefault = `
+function _missingMdxReference(id, component, place) {
+  throw new Error("${id}: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
+}
+${
+  /\bconst MDXLayout\b/.test(body)
+    ? 'export default () => <MDXLayout><_createMdxContent /></MDXLayout>;'
+    : 'export default _createMdxContent;'
+}
+`;
       // For plain .md files (not .mdx), auto-generate an eTag from the content hash.
       // .mdx files can contain JS that may change behavior without changing the content hash,
       // so they must export eTag manually if desired.
@@ -94,7 +96,7 @@ export default WrappedMdxContent;
         const hash = createHash('sha256').update(code).digest('hex').slice(0, 16);
         eTagExport = `export const eTag = ${JSON.stringify(hash)};\n`;
       }
-      const wrappedOutput = addImport + output.slice(0, exportIndex) + eTagExport + newDefault;
+      const wrappedOutput = body + eTagExport + newDefault;
       return {
         code: wrappedOutput,
         map: compiled.map,

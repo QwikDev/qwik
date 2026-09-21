@@ -377,7 +377,8 @@ test.describe('render', () => {
       await expect(result).toHaveText('CompB');
     });
 
-    test('skip render', async ({ page }) => {
+    // v3: SkipRender is not part of the core API (fixture is also disabled)
+    test.skip('skip render', async ({ page }) => {
       const increment = page.locator('#skip-render-button');
       const result = page.locator('#skip-render-result');
 
@@ -409,7 +410,8 @@ test.describe('render', () => {
       await expect(result).toHaveText('Number: 6');
     });
 
-    test('ssr raw', async ({ page }) => {
+    // v3: SSRRaw and SSRComment are not part of the core API (fixture is also disabled)
+    test.skip('ssr raw', async ({ page }) => {
       const result = page.locator('#ssr-raw-test-result');
       const mounted = await result.getAttribute('data-mounted');
       if (mounted === 'server') {
@@ -495,7 +497,8 @@ test.describe('render', () => {
 
     tests(false);
 
-    test('pr3475', async ({ page }) => {
+    // v3: a hook inside an expression is rejected by the compiler (fixture is also disabled)
+    test.skip('pr3475', async ({ page }) => {
       const ref = page.locator('#pr-3475-button');
       await expect(ref).toHaveText('data');
       await ref.click();

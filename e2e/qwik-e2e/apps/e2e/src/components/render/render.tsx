@@ -2,8 +2,8 @@ import {
   component$,
   createContextId,
   event$,
-  isServer,
-  SkipRender,
+  // isServer,
+  // SkipRender,
   Slot,
   untrack,
   useContext,
@@ -17,7 +17,7 @@ import {
   type QRL,
   type Signal,
 } from '@qwik.dev/core';
-import { SSRComment, SSRRaw } from '@qwik.dev/core/internal';
+// import { SSRComment, SSRRaw } from '@qwik.dev/core/internal';
 import { delay } from '../delay';
 
 export const Render = component$(() => {
@@ -86,7 +86,8 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <ClickHandlersExecutedMultipleTimesIssue3479 />
       <SpreadReplacesExistingPropsIssue3481 />
       <ReactImportKeySpreadLoopIssue3468 />
-      <Pr3475 />
+      {/* A hook inside an expression (IIFE argument) is rejected by the compiler. */}
+      {/* <Pr3475 /> */}
       <DestructuringAssignmentBrokenIssue3561 />
       <UndefinedVariableAfterUpgradeIssue3542 atom={{ code: 1 }} />
       <ForLoopItemsAccumulateIssue3643 />
@@ -96,8 +97,9 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <VariableAssignmentsOptimizedIssue3795 />
       <DynamicComponentsWithSignalsIssue4029 />
       <UndefinedRefPropIssue4346 />
-      <SkipRenderTest />
-      <SSRRawTest />
+      {/* SkipRender, SSRRaw and SSRComment are not part of the v3 core API. */}
+      {/* <SkipRenderTest /> */}
+      {/* <SSRRawTest /> */}
       <ProxyOwnKeysDuplicateEntriesIssue4292 />
       <OptimizerRemovesLocalConstIssue4386 />
       <RangeInputInitialValueStepIssue4455 />
@@ -587,6 +589,7 @@ export const ReactImportKeySpreadLoopIssue3468 = component$(() => {
   );
 });
 
+/* A hook inside an expression (IIFE argument) is rejected by the compiler (expression-hook).
 export const Pr3475 = component$(() =>
   ((store) => (
     <button id="pr-3475-button" onClick$={() => delete store.key}>
@@ -594,6 +597,7 @@ export const Pr3475 = component$(() =>
     </button>
   ))(useStore<{ key?: string }>({ key: 'data' }))
 );
+*/
 
 export const DestructuringAssignmentBrokenIssue3561 = component$(() => {
   const props = useStore({
@@ -768,6 +772,7 @@ export const DynamicComponentsWithSignalsIssue4029 = component$(() => {
 export const CompA = component$(() => <div id="issue-4029-result">CompA</div>);
 export const CompB = component$(() => <div id="issue-4029-result">CompB</div>);
 
+/* SkipRender is not part of the v3 core API.
 export const SkipRenderTest = component$(() => {
   const count = useSignal(0);
   if (count.value % 3 !== 0) {
@@ -783,7 +788,9 @@ export const SkipRenderTest = component$(() => {
     </>
   );
 });
+*/
 
+/* SSRRaw and SSRComment are not part of the v3 core API.
 export const SSRRawTest = component$(() => {
   return (
     <div id="ssr-raw-test-result" data-mounted={isServer ? 'server' : 'browser'}>
@@ -793,6 +800,7 @@ export const SSRRawTest = component$(() => {
     </div>
   );
 });
+*/
 
 type A = PropsOf<'button'>;
 

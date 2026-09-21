@@ -9,11 +9,13 @@ import { vnode_isDescendantOf } from '../../client/vnode-utils';
 import type { Container } from '../types';
 import type { Cursor } from './cursor';
 import { getCursorData, mergeCursorJournalAndBoundaries, type CursorData } from './cursor-props';
+import { registerSingleton } from '../singletons';
 
+// Every copy of core drains the same queues, since the tick that drains them is shared too.
 /** Global cursor queue array. Cursors are sorted by priority. */
-const globalCursorQueue: Cursor[] = [];
+const globalCursorQueue = registerSingleton<Cursor[]>('cursorQueue', () => []);
 
-const pausedCursorQueue: Cursor[] = [];
+const pausedCursorQueue = registerSingleton<Cursor[]>('pausedCursorQueue', () => []);
 
 /**
  * Adds a cursor to the global queue.

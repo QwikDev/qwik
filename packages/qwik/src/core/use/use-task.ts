@@ -21,6 +21,7 @@ import { newInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 import { cleanupAsyncDestroyable } from './utils/destroyable';
 import { cleanupFn, trackFn } from './utils/tracker';
+import { Brand, brandClass, hasBrand } from '../shared/utils/brand';
 
 /** @internal */
 export const enum TaskFlags {
@@ -246,9 +247,10 @@ export class Task<T = unknown, B = T> extends BackRef {
     super();
   }
 }
+brandClass(Task, Brand.Task);
 /** @internal */
 export const isTask = (value: any): value is Task => {
-  return value instanceof Task;
+  return hasBrand(value, Brand.Task);
 };
 
 /**

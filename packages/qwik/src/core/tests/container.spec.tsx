@@ -479,7 +479,7 @@ describe('serializer v2', () => {
           ssr.addRoot(computed);
         });
         const got = container.$getObjectById$(0);
-        expect(got.$untrackedValue$).toMatchInlineSnapshot(`Symbol(invalid)`);
+        expect(got.$untrackedValue$).toMatchInlineSnapshot(`Symbol(qwik.invalid)`);
         expect(!!(got.$flags$ & ComputedSignalFlags.INVALID)).toBe(true);
         expect(await retryOnPromise(() => got.value)).toBe('test!');
       });

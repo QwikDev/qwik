@@ -149,7 +149,7 @@ export const componentQrl = <PROPS extends Record<any, any>>(
 };
 
 /** @internal */
-export const SERIALIZABLE_STATE = Symbol('serializable-data');
+export const SERIALIZABLE_STATE = Symbol.for('qwik.serializable-data');
 
 export const isQwikComponent = <T extends Component<any>>(component: unknown): component is T => {
   return typeof component == 'function' && (component as any)[SERIALIZABLE_STATE] !== undefined;

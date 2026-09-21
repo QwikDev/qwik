@@ -3,7 +3,7 @@ import type { ValueOrPromise } from '../shared/utils/types';
 import type { StackValue } from './ssr-render-jsx';
 import type { SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 
-const InternalServerComponentSymbol = Symbol('qInternalServerComponent');
+const InternalServerComponentSymbol = Symbol.for('qwik.qInternalServerComponent');
 
 /** @internal */
 export type InternalServerComponentHandler = (

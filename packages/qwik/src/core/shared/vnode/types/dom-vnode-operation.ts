@@ -1,3 +1,4 @@
+import { Brand, brandClass } from '../../utils/brand';
 export type VNodeOperation =
   | DeleteOperation
   | RemoveAllChildrenOperation
@@ -8,10 +9,12 @@ export type VNodeOperation =
 export class DeleteOperation {
   constructor(public target: Element | Text) {}
 }
+brandClass(DeleteOperation, Brand.DeleteOperation);
 
 export class RemoveAllChildrenOperation {
   constructor(public target: Element) {}
 }
+brandClass(RemoveAllChildrenOperation, Brand.RemoveAllChildrenOperation);
 
 export class SetTextOperation {
   constructor(
@@ -19,6 +22,7 @@ export class SetTextOperation {
     public text: string
   ) {}
 }
+brandClass(SetTextOperation, Brand.SetTextOperation);
 
 export class InsertOrMoveOperation {
   constructor(
@@ -27,6 +31,7 @@ export class InsertOrMoveOperation {
     public beforeTarget: Element | Text | null
   ) {}
 }
+brandClass(InsertOrMoveOperation, Brand.InsertOrMoveOperation);
 
 export class SetAttributeOperation {
   constructor(
@@ -37,6 +42,7 @@ export class SetAttributeOperation {
     public isSvg: boolean
   ) {}
 }
+brandClass(SetAttributeOperation, Brand.SetAttributeOperation);
 
 /** Factory functions to create operations with consistent hidden classes. */
 export const createDeleteOperation = (target: Element | Text): DeleteOperation =>

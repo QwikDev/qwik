@@ -87,7 +87,10 @@ export type QRLInternalMethods<TYPE> = {
   readonly $lazy$: LazyRef<TYPE>;
 };
 
-let reportedChunkFailures: WeakMap<Container, Set<string>> | undefined;
+const reportedChunkFailures = registerSingleton(
+  'reportedChunkFailures',
+  () => new WeakMap<Container, Set<string>>()
+);
 
 let getLazyRef: <TYPE>(
   chunk: string | null,
@@ -153,12 +156,12 @@ export class LazyRef<TYPE = unknown> {
             const failureKey =
               this.$chunk$ === null ? `symbol:${this.$symbol$}` : `chunk:${this.$chunk$}`;
             const container = this.$container$;
-            let containerFailures = container && reportedChunkFailures?.get(container);
+            let containerFailures = container && reportedChunkFailures.get(container);
             if (!containerFailures?.has(failureKey)) {
               if (container) {
                 if (!containerFailures) {
                   containerFailures = new Set();
-                  (reportedChunkFailures ||= new WeakMap()).set(container, containerFailures);
+                  reportedChunkFailures.set(container, containerFailures);
                 }
                 containerFailures.add(failureKey);
               }
@@ -215,7 +218,7 @@ qDev &&
     getLazyRef = fn;
   });
 
-const QRL_STATE = Symbol('qrl-state');
+const QRL_STATE = Symbol.for('qwik.qrl-state');
 
 type QRLCallable<TYPE = unknown> = QRLInternal<TYPE> & {
   [QRL_STATE]: QRLClass<TYPE>;

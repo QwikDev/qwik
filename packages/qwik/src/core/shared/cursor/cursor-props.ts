@@ -5,8 +5,12 @@ import type { Container } from '../types';
 import type { VNodeJournal } from '../../client/vnode-utils';
 import type { Task } from '../../use/use-task';
 import type { CursorBoundary } from '../../use/use-cursor-boundary';
+import { registerSingleton } from '../singletons';
 
-export const cursorDatas = new WeakMap<Cursor, CursorData>();
+export const cursorDatas = registerSingleton(
+  'cursorDatas',
+  () => new WeakMap<Cursor, CursorData>()
+);
 
 /** Key used to store pending node prop updates in vNode props. */
 export const NODE_PROPS_DATA_KEY = ':nodeProps';
@@ -16,7 +20,10 @@ export const HOST_SIGNAL = ':signal';
 export const INLINE_COMPONENT_DATA_KEY = ':inlineComponentData';
 
 /** Qwik loader events to (re)register once the cursor's journal is flushed to the DOM. */
-const pendingQwikLoaderEvents = new WeakMap<CursorData, string[]>();
+const pendingQwikLoaderEvents = registerSingleton(
+  'pendingQwikLoaderEvents',
+  () => new WeakMap<CursorData, string[]>()
+);
 
 export function queueQwikLoaderEvent(cursorData: CursorData, eventName: string): void {
   let loaderEvents = pendingQwikLoaderEvents.get(cursorData);

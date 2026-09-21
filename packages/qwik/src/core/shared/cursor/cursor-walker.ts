@@ -43,24 +43,25 @@ import {
   getOwnCursorBoundary,
   resolveCursorBoundaries,
 } from '../../use/use-cursor-boundary';
+import { registerSingleton } from '../singletons';
 
 const DEBUG = false;
 
 const nextMicroTask = createMicroTask(processCursorQueue);
 const nextMacroTask = createMacroTask(processCursorQueue);
-let isNextTickScheduled = false;
+const cursorTick = registerSingleton('cursorTick', () => ({ isScheduled: false }));
 
 export function triggerCursors(): void {
-  if (!isNextTickScheduled) {
-    isNextTickScheduled = true;
+  if (!cursorTick.isScheduled) {
+    cursorTick.isScheduled = true;
     nextMicroTask();
   }
 }
 
 /** Schedule continuation as macrotask to yield to browser (for time-slicing) */
 function scheduleYield(): void {
-  if (!isNextTickScheduled) {
-    isNextTickScheduled = true;
+  if (!cursorTick.isScheduled) {
+    cursorTick.isScheduled = true;
     nextMacroTask();
   }
 }
@@ -71,7 +72,7 @@ function scheduleYield(): void {
  * @param options - Walk options (time budget, etc.)
  */
 export function processCursorQueue(): void {
-  isNextTickScheduled = false;
+  cursorTick.isScheduled = false;
   const startTime = performance.now();
   const yieldTime = startTime + 15; // 16 ms = 60 FPS, use 15 to yield slightly before next frame
 

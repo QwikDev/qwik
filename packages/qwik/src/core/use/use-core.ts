@@ -15,6 +15,7 @@ import type { Container, HostElement } from '../shared/types';
 import { RenderEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
 import { setLocale } from './use-locale';
+import { registerSingleton } from '../shared/singletons';
 
 export type PossibleEvents = Event | typeof TaskEvent | typeof RenderEvent;
 
@@ -37,10 +38,13 @@ export interface InvokeContext {
   $container$: Container | undefined;
 }
 
-let _context: InvokeContext | undefined;
+const invokeContext = registerSingleton<{ current: InvokeContext | undefined }>(
+  'invokeContext',
+  () => ({ current: undefined })
+);
 
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
-  return _context;
+  return invokeContext.current;
 };
 
 export const getInvokeContext = (): InvokeContext => {
@@ -97,12 +101,12 @@ export function invokeApply<FN extends (this: THIS, ...args: any[]) => any, THIS
   fn: FN,
   args?: Parameters<FN>
 ): ReturnType<FN> {
-  const previousContext = _context;
+  const previousContext = invokeContext.current;
   try {
-    _context = context;
+    invokeContext.current = context;
     return fn.apply(this, args!);
   } finally {
-    _context = previousContext;
+    invokeContext.current = previousContext;
   }
 }
 
@@ -170,13 +174,13 @@ export const untrack = <T, A extends any[]>(
   ...args: A
 ): T => {
   if (typeof expr === 'function') {
-    if (_context) {
-      const sub = _context.$effectSubscriber$;
+    if (invokeContext.current) {
+      const sub = invokeContext.current.$effectSubscriber$;
       try {
-        _context.$effectSubscriber$ = undefined;
+        invokeContext.current.$effectSubscriber$ = undefined;
         return (expr as (...args: A) => T)(...args);
       } finally {
-        _context.$effectSubscriber$ = sub;
+        invokeContext.current.$effectSubscriber$ = sub;
       }
     } else {
       return (expr as (...args: A) => T)(...args);

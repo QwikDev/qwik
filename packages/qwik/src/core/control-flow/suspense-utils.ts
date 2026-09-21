@@ -11,6 +11,7 @@ import {
   type RevealRegistrationLike,
 } from '../shared/utils/reveal';
 import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
+import { registerSingleton } from '../shared/singletons';
 import { tryGetInvokeContext } from '../use/use-core';
 import type { SSRContainer } from '../ssr/ssr-types';
 
@@ -25,7 +26,11 @@ export type OutOfOrderRevealBoundary = {
 };
 
 type OutOfOrderRevealOrderCode = 'p' | 's' | 'r' | 't';
-const outOfOrderRevealIds = new WeakMap<Container, number>();
+// The id lands in the HTML, so every copy of core rendering into a container must count together.
+const outOfOrderRevealIds = registerSingleton(
+  'outOfOrderRevealIds',
+  () => new WeakMap<Container, number>()
+);
 
 /** @internal */
 export class OutOfOrderRevealCoordinator<ITEM extends RevealItemLike = RevealItemLike> {

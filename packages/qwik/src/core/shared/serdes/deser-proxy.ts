@@ -19,7 +19,7 @@ export const isDeserializerProxy = (value: unknown): value is DeserializerProxy 
   return isObject(value) && SERIALIZER_PROXY_UNWRAP in value;
 };
 
-export const SERIALIZER_PROXY_UNWRAP = Symbol('UNWRAP');
+export const SERIALIZER_PROXY_UNWRAP = Symbol.for('qwik.UNWRAP');
 /** Call this on the serialized root state */
 export const wrapDeserializerProxy = (container: DomContainer, data: unknown): unknown[] => {
   if (

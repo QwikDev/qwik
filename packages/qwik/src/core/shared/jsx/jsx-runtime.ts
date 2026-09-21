@@ -1,6 +1,7 @@
 import { _jsxSplit, Virtual } from './jsx-internal';
 import { JSXNodeImpl } from './jsx-node';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
+import { registerSingleton } from '../singletons';
 
 export type { QwikJSX as JSX } from './types/jsx-qwik';
 
@@ -74,10 +75,11 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
   return _jsxSplit(type, props!, null, normalizedProps.children, 0, key);
 }
 
+// The renderer recognizes it by identity, so all copies of core share the one function.
 /** @public */
-export const Fragment: FunctionComponent<{ children?: any; key?: string | number | null }> = (
-  props
-) => props.children;
+export const Fragment = registerSingleton<
+  FunctionComponent<{ children?: any; key?: string | number | null }>
+>('Fragment', () => (props) => props.children);
 
 /** @public */
 export const RenderOnce: FunctionComponent<{

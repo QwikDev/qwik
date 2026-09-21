@@ -30,9 +30,10 @@ import {
   createSsrNodeId,
   type SsrEventAttrChunk,
   type SsrOutput,
-  type SsrRecordPart,
 } from '../../ssr/output';
-import { applyDomProps, renderDomPropsToString } from '../effect/dom-props';
+import { createPropsEffect } from '../effect/effect';
+import { renderSsrProps, type DomPropsQrl } from '../effect/ssr-effect';
+import { inlinedQrl } from '../../shared/qrl/qrl';
 
 type SlotRenderFn = (ctx: ContainerContext) => MaybeNodeOutput | Promise<MaybeNodeOutput>;
 type SsrSlotRenderFn = (ctx: SsrSlotContext, rangeId: number) => ValueOrPromise<SsrOutput>;
@@ -297,12 +298,14 @@ export interface SsrDynamicTagContext extends SsrSlotContext {
 
 type SsrTagRender = (props: unknown, ctx: SsrDynamicTagContext) => ValueOrPromise<SsrOutput>;
 
+/** A dynamic tag's whole props record rides one props effect. @internal */
+export function _tagProps(props: Record<string, unknown>): Record<string, unknown> {
+  return props;
+}
+
 /**
  * A capitalized tag whose binding is a plain value — `const Tag = props.tag ?? 'h1'`. Only the
  * value says which it is: a string renders an element, anything else renders as a component.
- *
- * The element arm writes its attributes once. A reactive prop re-renders the enclosing component
- * instead of patching the attribute, because a runtime tag has no compiled per-attribute effect.
  */
 export function renderSsrDynamicTag(
   tag: unknown,
@@ -312,21 +315,26 @@ export function renderSsrDynamicTag(
   if (typeof tag !== 'string') {
     return (tag as SsrTagRender)(props, ctx);
   }
-  const { attrs, innerHTML, ref } = renderDomPropsToString(props, ctx.eventAttr);
-  const open: SsrRecordPart[] = [`<${tag}`];
-  if (ref !== undefined) {
-    const nodeId = ctx.nextId();
-    open.push(' q:id="', createSsrNodeId(nodeId), '"');
-    ctx.setRef(ref, nodeId);
-  }
-  open.push(...attrs, '>');
-  const element = createSsrOpenTag(...open);
-  if (VOID_TAGS.has(tag)) {
-    return element;
-  }
-  // children arrive as the default projection, the same carrier the component arm registers
-  const children = innerHTML ?? renderSsrSlot(ctx, '');
-  return maybeThen(children, (children) => [element, children, `</${tag}>`]);
+  const invokeContext = getActiveInvokeContextOrNull();
+  const nodeId = ctx.nextId();
+  const domProps = renderSsrProps(
+    nodeId,
+    [props],
+    inlinedQrl(_tagProps, '_tagProps') as DomPropsQrl<[Record<string, unknown>]>,
+    ctx.eventAttr
+  );
+  return maybeThen(domProps, ({ attrs, innerHTML, ref }) => {
+    if (ref !== undefined) {
+      ctx.setRef(ref, nodeId);
+    }
+    const element = createSsrOpenTag(`<${tag} q:id="`, createSsrNodeId(nodeId), '"', ...attrs, '>');
+    if (VOID_TAGS.has(tag)) {
+      return element;
+    }
+    // children arrive as the default projection, the same carrier the component arm registers
+    const children = innerHTML ?? renderSsrSlot(ctx, EMPTY_STRING, undefined, invokeContext);
+    return maybeThen(children, (children) => [element, children, `</${tag}>`]);
+  });
 }
 
 type CsrTagRender = (props: unknown, ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
@@ -345,8 +353,8 @@ export function createDynamicTag(
     namespace === undefined
       ? ctx.document.createElement(tag)
       : ctx.document.createElementNS(namespace === 'svg' ? SVG_NS : MATH_NS, tag);
-  applyDomProps(element, props);
-  // applyDomProps already wrote dangerouslySetInnerHTML, so projecting on top would duplicate it
+  ctx.scheduler.waitFor(createPropsEffect(element, [props], _tagProps, ctx.scheduler).run());
+  // the props effect already wrote dangerouslySetInnerHTML, so projecting on top would duplicate it
   if (VOID_TAGS.has(tag) || props[DangerousInnerHTMLAttr] !== undefined) {
     return element;
   }

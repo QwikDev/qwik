@@ -474,6 +474,7 @@ describe('convertManifestToBundleGraph', () => {
           '_chk',
           '_res',
           '_run',
+          '_tagProps',
           '_val',
           '_visibleTask',
         ]),

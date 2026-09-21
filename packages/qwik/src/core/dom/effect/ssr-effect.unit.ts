@@ -24,6 +24,8 @@ import { type Signal } from '../../reactive/signal';
 import { useSignal } from '../../reactive/public-api';
 import { createOwner, runWithOwner } from '../../runtime/owner';
 import { toArray } from '../../test-utils';
+import { renderSsrDynamicTag } from '../slot/slot';
+import { createSsrNodeId, createSsrOpenTag } from '../../ssr/output';
 
 describe('SSR DOM effect helpers', () => {
   it('creates a text node subscriber and collects the source dependency', () => {
@@ -240,6 +242,28 @@ describe('SSR DOM effect helpers', () => {
     expect(effect.deps).toEqual([title]);
     expect(effect.targetId).toBe(4);
     expect(effect).not.toHaveProperty('target');
+  });
+
+  it('subscribes a dynamic tag to its props record through the core handler', () => {
+    const value = useSignal('foo');
+    const ctx = { nextId: () => 6, eventAttr: () => '', setRef: () => undefined };
+    const props = {
+      get 'data-v'() {
+        return value.value;
+      },
+    };
+
+    const rendered = createOwned(() => renderSsrDynamicTag('input', props, ctx as any));
+    const effect = toArray(value.subs)[0] as SsrPropsEffect;
+
+    expect(rendered).toEqual(
+      createSsrOpenTag('<input q:id="', createSsrNodeId(6), '"', ' data-v="foo"', '>')
+    );
+    expect(effect).toBeInstanceOf(SsrPropsEffect);
+    expect(effect.deps).toEqual([value]);
+    expect(effect.targetId).toBe(6);
+    expect(effect.args).toEqual([props]);
+    expect(effect.qrl.$symbol$).toBe('_tagProps');
   });
 
   it('tracks an initially missing event for resume', () => {

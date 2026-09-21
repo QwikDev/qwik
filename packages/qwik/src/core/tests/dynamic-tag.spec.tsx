@@ -1,4 +1,4 @@
-import { component$, Slot, useStore, type Component } from '@qwik.dev/core';
+import { component$, Slot, useSignal, useStore, type Component } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -47,6 +47,30 @@ describe(`${name}: dynamic tags`, () => {
     const { container, cleanup } = await render(App);
     try {
       expect(container.querySelector('button')?.textContent).toBe('press');
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('patches a string tag attribute when the prop it reads changes', async () => {
+    const Tagged = component$((props: { v: string }) => {
+      const Tag = 'span' as const;
+      return <Tag id="tag" data-v={props.v} />;
+    });
+    const App = component$(() => {
+      const state = useSignal('foo');
+      return (
+        <>
+          <button onClick$={() => (state.value = 'bar')} />
+          <Tagged v={state.value} />
+        </>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    try {
+      expect(container.querySelector('#tag')?.getAttribute('data-v')).toBe('foo');
+      await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+      expect(container.querySelector('#tag')?.getAttribute('data-v')).toBe('bar');
     } finally {
       cleanup();
     }

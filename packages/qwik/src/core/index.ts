@@ -265,6 +265,7 @@ export {
   isSlotScope,
   registerProjection,
   renderSsrDynamicTag,
+  _tagProps,
   renderSsrSlot,
   renderSsrSlotContent,
   resolveSlot,

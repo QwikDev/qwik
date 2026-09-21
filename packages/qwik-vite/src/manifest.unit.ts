@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { generateManifestFromBundles } from './manifest';
 
 describe('generateManifestFromBundles', () => {
-  const HANDLERS = ['_chk', '_res', '_run', '_val', '_visibleTask'];
+  const HANDLERS = ['_chk', '_res', '_run', '_tagProps', '_val', '_visibleTask'];
   const chunk = (
     name: string,
     fileName: string,
@@ -113,7 +113,7 @@ describe('generateManifestFromBundles', () => {
         undefined,
         undefined
       )
-    ).toThrow('_chk, _res, _run, _val, _visibleTask');
+    ).toThrow('_chk, _res, _run, _tagProps, _val, _visibleTask');
   });
 
   test('a user route named "qwikloader" does not shadow the real loader chunk', () => {

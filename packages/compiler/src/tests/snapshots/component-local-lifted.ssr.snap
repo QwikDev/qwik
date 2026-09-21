@@ -20,21 +20,35 @@ import {
   renderSsrBranch,
   createSsrNodeId,
   maybeThen,
+  escapeHTML,
+  propSource,
+  isSource,
+  renderSsrTextNode,
   _noopQrl,
   renderSsrDynamicTag,
   createComponent,
-  escapeHTML,
-  renderSsrTextExpression,
   _markComponent,
 } from '@qwik.dev/core';
-const component_Filter_segment_4_2k94p7exz8x39 = ({ filter }) => {
+const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
   const [n] = _captures;
-  return q_component_jsx_segment_1_38vnjyvdoomcp.w([n, filter]);
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'filter');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
+  return maybeThen(text0, (text0) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([n])),
+    '>',
+    escapeHTML(text0),
+    '</li>',
+  ]);
 };
-const q_component_Filter_segment_4_2k94p7exz8x39 = /*#__PURE__*/ _noopQrl(
-  'component_Filter_segment_4_2k94p7exz8x39'
+const q_component_Filter_segment_2_2k94mv8ai8l03 = /*#__PURE__*/ _noopQrl(
+  'component_Filter_segment_2_2k94mv8ai8l03'
 );
-q_component_Filter_segment_4_2k94p7exz8x39.s(component_Filter_segment_4_2k94p7exz8x39);
+q_component_Filter_segment_2_2k94mv8ai8l03.s(component_Filter_segment_2_2k94mv8ai8l03);
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   const [n] = _captures;
   return n.value > 0;
@@ -45,9 +59,9 @@ const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
-const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
+const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [n] = _captures;
-  const Filter = _withCaptures(component_Filter_segment_4_2k94p7exz8x39, [n]);
+  const Filter = _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]);
   const component0 = createComponent(
     (props0) => renderSsrDynamicTag(Filter, props0, ctx),
     { filter: 'a' },
@@ -55,49 +69,18 @@ const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
   );
   return component0;
 };
-const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_5_24n7d63685l6a'
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_3_24n7atwir5934'
 );
-q_component_branch_then_segment_5_24n7d63685l6a.s(component_branch_then_segment_5_24n7d63685l6a);
-const component_jsx_segment_1_38vnjyvdoomcp = (ctx) => {
-  const [n, filter] = _captures;
-  const id0 = ctx.nextId();
-  ctx.addRoot(filter);
-  const text0 = renderSsrTextExpression(
-    id0,
-    null,
-    [filter],
-    q_component_text_segment_3_1fh11lewq6qgx
-  );
-  return maybeThen(text0, (text0) => [
-    '<li q:id="',
-    createSsrNodeId(id0),
-    '"',
-    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([n])),
-    '>',
-    escapeHTML(text0),
-    '</li>',
-  ]);
-};
-const q_component_jsx_segment_1_38vnjyvdoomcp = /*#__PURE__*/ _noopQrl(
-  'component_jsx_segment_1_38vnjyvdoomcp'
+q_component_branch_then_segment_3_24n7atwir5934.s(component_branch_then_segment_3_24n7atwir5934);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
-q_component_jsx_segment_1_38vnjyvdoomcp.s(component_jsx_segment_1_38vnjyvdoomcp);
-const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_2_2xwygteqhjqr1'
-);
-const component_text_segment_3_1fh11lewq6qgx = (filter) => {
-  return filter;
-};
-const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_3_1fh11lewq6qgx'
-);
-q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
 export const Footer = _markComponent(
-  (props, ctx) => {
+  (props0, ctx) => {
     const n = useSignal(0);
     function Filter() {
-      return _withCaptures(component_Filter_segment_4_2k94p7exz8x39, [n]).apply(this, arguments);
+      return _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]).apply(this, arguments);
     }
     const branchId0 = ctx.nextId();
     ctx.addRoot(n);
@@ -105,7 +88,7 @@ export const Footer = _markComponent(
       ctx,
       branchId0,
       q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([n]),
-      q_component_branch_then_segment_5_24n7d63685l6a.w([n]),
+      q_component_branch_then_segment_3_24n7atwir5934.w([n]),
       undefined
     );
     return maybeThen(branch0, (branch0) => [
@@ -152,85 +135,22 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   ]
 }
 */
-============================= src/component.tsx_component_jsx_segment_1_38vnjyvdoomcp.js (ENTRY POINT)==
-
-import {
-  _noopQrl,
-  _captures,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextExpression,
-  maybeThen,
-} from '@qwik.dev/core';
-import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
-const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
-  'component_q_e_click_segment_2_2xwygteqhjqr1'
-);
-const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_3_1fh11lewq6qgx'
-);
-q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
-
-export const component_jsx_segment_1_38vnjyvdoomcp = (ctx) => {
-  const [n, filter] = _captures;
-  const id0 = ctx.nextId();
-  ctx.addRoot(filter);
-  const text0 = renderSsrTextExpression(
-    id0,
-    null,
-    [filter],
-    q_component_text_segment_3_1fh11lewq6qgx
-  );
-  return maybeThen(text0, (text0) => [
-    '<li q:id="',
-    createSsrNodeId(id0),
-    '"',
-    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([n])),
-    '>',
-    escapeHTML(text0),
-    '</li>',
-  ]);
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_jsx_segment_1_38vnjyvdoomcp",
-  "entry": null,
-  "displayName": "component_jsx_segment_1",
-  "hash": "38vnjyvdoomcp",
-  "canonicalFilename": "component.tsx_component_jsx_segment_1_38vnjyvdoomcp",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "jsx",
-  "captures": true,
-  "loc": [
-    186,
-    230
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "n",
-    "filter"
-  ]
-}
-*/
-============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   const [n] = _captures;
   return n.value++;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
   "entry": null,
-  "displayName": "component_q_e_click_segment_2",
-  "hash": "2xwygteqhjqr1",
-  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
@@ -246,55 +166,46 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   ]
 }
 */
-============================= src/component.tsx_component_text_segment_3_1fh11lewq6qgx.js (ENTRY POINT)==
+============================= src/component.tsx_component_Filter_segment_2_2k94mv8ai8l03.js (ENTRY POINT)==
 
-export const component_text_segment_3_1fh11lewq6qgx = (filter) => {
-  return filter;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_3_1fh11lewq6qgx",
-  "entry": null,
-  "displayName": "component_text_segment_3",
-  "hash": "1fh11lewq6qgx",
-  "canonicalFilename": "component.tsx_component_text_segment_3_1fh11lewq6qgx",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    218,
-    224
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "filter"
-  ]
-}
-*/
-============================= src/component.tsx_component_Filter_segment_4_2k94p7exz8x39.js (ENTRY POINT)==
-
-import { _noopQrl, _captures } from '@qwik.dev/core';
-import { component_jsx_segment_1_38vnjyvdoomcp } from './component.tsx_component_jsx_segment_1_38vnjyvdoomcp';
-const q_component_jsx_segment_1_38vnjyvdoomcp = /*#__PURE__*/ _noopQrl(
-  'component_jsx_segment_1_38vnjyvdoomcp'
+import {
+  _noopQrl,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  propSource,
+  isSource,
+  renderSsrTextNode,
+  maybeThen,
+} from '@qwik.dev/core';
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
-q_component_jsx_segment_1_38vnjyvdoomcp.s(component_jsx_segment_1_38vnjyvdoomcp);
 
-export const component_Filter_segment_4_2k94p7exz8x39 = ({ filter }) => {
+export const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
   const [n] = _captures;
-  return q_component_jsx_segment_1_38vnjyvdoomcp.w([n, filter]);
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'filter');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
+  return maybeThen(text0, (text0) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([n])),
+    '>',
+    escapeHTML(text0),
+    '</li>',
+  ]);
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_Filter_segment_4_2k94p7exz8x39",
+  "name": "component_Filter_segment_2_2k94mv8ai8l03",
   "entry": null,
-  "displayName": "component_Filter_segment_4",
-  "hash": "2k94p7exz8x39",
-  "canonicalFilename": "component.tsx_component_Filter_segment_4_2k94p7exz8x39",
+  "displayName": "component_Filter_segment_2",
+  "hash": "2k94mv8ai8l03",
+  "canonicalFilename": "component.tsx_component_Filter_segment_2_2k94mv8ai8l03",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -312,7 +223,7 @@ export const component_Filter_segment_4_2k94p7exz8x39 = ({ filter }) => {
   ]
 }
 */
-============================= src/component.tsx_component_branch_then_segment_5_24n7d63685l6a.js (ENTRY POINT)==
+============================= src/component.tsx_component_branch_then_segment_3_24n7atwir5934.js (ENTRY POINT)==
 
 import {
   _noopQrl,
@@ -321,15 +232,15 @@ import {
   createComponent,
   _withCaptures,
 } from '@qwik.dev/core';
-import { component_Filter_segment_4_2k94p7exz8x39 } from './component.tsx_component_Filter_segment_4_2k94p7exz8x39';
-const q_component_Filter_segment_4_2k94p7exz8x39 = /*#__PURE__*/ _noopQrl(
-  'component_Filter_segment_4_2k94p7exz8x39'
+import { component_Filter_segment_2_2k94mv8ai8l03 } from './component.tsx_component_Filter_segment_2_2k94mv8ai8l03';
+const q_component_Filter_segment_2_2k94mv8ai8l03 = /*#__PURE__*/ _noopQrl(
+  'component_Filter_segment_2_2k94mv8ai8l03'
 );
-q_component_Filter_segment_4_2k94p7exz8x39.s(component_Filter_segment_4_2k94p7exz8x39);
+q_component_Filter_segment_2_2k94mv8ai8l03.s(component_Filter_segment_2_2k94mv8ai8l03);
 
-export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
+export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [n] = _captures;
-  const Filter = _withCaptures(component_Filter_segment_4_2k94p7exz8x39, [n]);
+  const Filter = _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]);
   const component0 = createComponent(
     (props0) => renderSsrDynamicTag(Filter, props0, ctx),
     { filter: 'a' },
@@ -340,11 +251,11 @@ export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_branch_then_segment_5_24n7d63685l6a",
+  "name": "component_branch_then_segment_3_24n7atwir5934",
   "entry": null,
-  "displayName": "component_branch_then_segment_5",
-  "hash": "24n7d63685l6a",
-  "canonicalFilename": "component.tsx_component_branch_then_segment_5_24n7d63685l6a",
+  "displayName": "component_branch_then_segment_3",
+  "hash": "24n7atwir5934",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_3_24n7atwir5934",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

@@ -274,8 +274,7 @@ function functionScope(
       binding,
     });
   }
-  // a helper's JSX has no DOM parent of its own; nesting is checked where its value lands
-  return { ...ctx, locals, inlineParams: null, elementStack: [] };
+  return { ...ctx, locals, inlineParams: null };
 }
 
 const extractedCalls = new WeakSet<Node>();

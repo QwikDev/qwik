@@ -1,14 +1,13 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export const Primary = component$(() => <b>Primary</b>);
-export default component$((props) => <ul>{props.items.map(({ id, primary, secondary }, index) => {
+export const Primary = () => <b>Primary</b>;
+export default (props) => <ul>{props.items.map(({ id, primary, secondary }, index) => {
   const prefix = props.prefix;
   const key = prefix + id;
   return primary ? <Primary key={key} /> : (
     secondary ? <li key={id}>Secondary</li> : <li key={index}>Other</li>
   );
-})}</ul>);
+})}</ul>;
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -107,8 +106,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) =>
   "ctxName": "for:render",
   "captures": true,
   "loc": [
-    199,
-    267
+    131,
+    199
   ],
   "paramNames": [
     "{ id, primary, secondary }",
@@ -144,8 +143,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
   "ctxName": "for:key",
   "captures": true,
   "loc": [
-    268,
-    376
+    200,
+    308
   ],
   "paramNames": [
     "{ id, primary, secondary }",
@@ -178,8 +177,8 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    268,
-    275
+    200,
+    207
   ],
   "paramNames": [],
   "captureNames": [
@@ -211,8 +210,8 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    278,
-    299
+    210,
+    231
   ],
   "paramNames": [],
   "captureNames": [
@@ -274,8 +273,8 @@ export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    308,
-    376
+    240,
+    308
   ],
   "paramNames": [],
   "captureNames": [
@@ -306,8 +305,8 @@ export const component_branch_condition_segment_5_2fzrggonbf7cm = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    308,
-    317
+    240,
+    249
   ],
   "paramNames": [],
   "captureNames": [
@@ -340,8 +339,8 @@ export const component_branch_then_segment_6_24n7cs22bbj5r = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    320,
-    347
+    252,
+    279
   ],
   "paramNames": [],
   "captureNames": [
@@ -374,8 +373,8 @@ export const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    350,
-    376
+    282,
+    308
   ],
   "paramNames": [],
   "captureNames": [

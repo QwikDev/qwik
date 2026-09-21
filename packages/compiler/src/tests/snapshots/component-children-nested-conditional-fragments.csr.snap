@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { component$, Slot } from '@qwik.dev/core';
-export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
-export default component$((props) => <Panel>{props.show ? <><h1 q:slot="header">Title</h1>{props.details && <><p>Details</p><p>More</p></>}</> : null}</Panel>);
+import { Slot } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot /></main>;
+export default (props) => <Panel>{props.show ? <><h1 q:slot="header">Title</h1>{props.details && <><p>Details</p><p>More</p></>}</> : null}</Panel>;
 
 == CSR OUTPUT ==
 
@@ -101,8 +101,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    173,
-    285
+    138,
+    250
   ],
   "paramNames": [],
   "captureNames": [
@@ -132,8 +132,8 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    180,
-    190
+    145,
+    155
   ],
   "paramNames": [],
   "captureNames": [
@@ -166,8 +166,8 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    193,
-    277
+    158,
+    242
   ],
   "paramNames": [],
   "captureNames": [
@@ -224,8 +224,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    173,
-    285
+    138,
+    250
   ],
   "paramNames": [],
   "captureNames": [
@@ -255,8 +255,8 @@ export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    180,
-    190
+    145,
+    155
   ],
   "paramNames": [],
   "captureNames": [
@@ -313,8 +313,8 @@ export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    193,
-    277
+    158,
+    242
   ],
   "paramNames": [],
   "captureNames": [
@@ -344,8 +344,8 @@ export const component_branch_condition_segment_6_2fzrg2njel5c3 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    226,
-    239
+    191,
+    204
   ],
   "paramNames": [],
   "captureNames": [
@@ -378,8 +378,8 @@ export const component_branch_then_segment_7_24n7ce0yehh58 = (ctx) => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    243,
-    273
+    208,
+    238
   ],
   "paramNames": []
 }

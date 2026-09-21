@@ -1,14 +1,14 @@
 ==INPUT==
 
-import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
-export default component$(() => {
+import { useSignal, useComputed$ } from '@qwik.dev/core';
+export default () => {
   const count = useSignal(1);
   const doubled = useComputed$(async () => {
     await Promise.resolve();
     return count.value * 2;
   });
   return <span>{doubled.value}</span>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -58,8 +58,8 @@ export const component_doubled_segment_0_2yvob8vshk72o = async () => {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    152,
-    240
+    129,
+    217
   ],
   "paramNames": [],
   "captureNames": [

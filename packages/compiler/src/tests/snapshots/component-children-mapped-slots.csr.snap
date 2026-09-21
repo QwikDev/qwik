@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, Slot, useSignal } from '@qwik.dev/core';
-export const Panel = component$(() => <main><Slot name="header" /><Slot name="footer" /><Slot /></main>);
-export default component$(() => {
+import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot name="footer" /><Slot /></main>;
+export default () => {
   const items = useSignal([{ id: 1, title: 'Title' }]);
   return <Panel>{items.value.map((item) => <h2 key={item.id} q:slot="header">{item.title}</h2>)}{['End'].map((label) => <p q:slot="footer">{label}</p>)}{items.value.map((item) => <section key={item.id}><span q:slot="nested">{item.title}</span></section>)}</Panel>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -111,8 +111,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    268,
-    354
+    233,
+    319
   ],
   "paramNames": [],
   "captureNames": [
@@ -152,8 +152,8 @@ export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item) => {
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    301,
-    352
+    266,
+    317
   ],
   "paramNames": [
     "item"
@@ -179,8 +179,8 @@ export const component_for_key_segment_2_24ursol8ttrxy = (item) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    310,
-    317
+    275,
+    282
   ],
   "paramNames": [
     "item"
@@ -206,8 +206,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    336,
-    346
+    301,
+    311
   ],
   "paramNames": [],
   "captureNames": [
@@ -226,14 +226,14 @@ import {
   _createElementTemplate,
 } from '@qwik.dev/core';
 const component_slot_render_segment_4_3b0t8wsj4vdse_tmpl0 = createTemplate('<!><!>');
-const semantic_collectionRender_358_412_soutgdwghs6n_tmpl0 = _createElementTemplate('<p> </p>');
+const semantic_collectionRender_323_377_3uyuznkedsah_tmpl0 = _createElementTemplate('<p> </p>');
 
 export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
   const fragment0 = component_slot_render_segment_4_3b0t8wsj4vdse_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
-  function semantic_collectionRender_358_412_soutgdwghs6n(ctx, label) {
-    const el0 = semantic_collectionRender_358_412_soutgdwghs6n_tmpl0(ctx.document);
+  function semantic_collectionRender_323_377_3uyuznkedsah(ctx, label) {
+    const el0 = semantic_collectionRender_323_377_3uyuznkedsah_tmpl0(ctx.document);
     _first(el0).data = _textValue(label);
     return el0;
   }
@@ -243,7 +243,7 @@ export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
     end0,
     ['End'],
     null,
-    semantic_collectionRender_358_412_soutgdwghs6n,
+    semantic_collectionRender_323_377_3uyuznkedsah,
     0,
     0,
     true
@@ -264,8 +264,8 @@ export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    353,
-    410
+    318,
+    375
   ],
   "paramNames": []
 }
@@ -310,8 +310,8 @@ export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    409,
-    513
+    374,
+    478
   ],
   "paramNames": [],
   "captureNames": [
@@ -353,8 +353,8 @@ export const component_for_render_segment_6_asysg7p5zyc1 = (ctx, item) => {
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    437,
-    511
+    402,
+    476
   ],
   "paramNames": [
     "item"
@@ -380,8 +380,8 @@ export const component_for_key_segment_7_24urumqse020l = (item) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    451,
-    458
+    416,
+    423
   ],
   "paramNames": [
     "item"
@@ -407,8 +407,8 @@ export const component_text_segment_8_1fh0xb2pp04b4 = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    483,
-    493
+    448,
+    458
   ],
   "paramNames": [],
   "captureNames": [

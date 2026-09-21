@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, Slot, useSignal } from '@qwik.dev/core';
-export const Panel = component$(() => <main><Slot name="start" /><Slot /></main>);
-export default component$(() => {
+import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="start" /><Slot /></main>;
+export default () => {
   const show = useSignal(true);
   return <Panel>{show.value && <span q:slot="start">start</span>}</Panel>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -100,8 +100,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    221,
-    276
+    186,
+    241
   ],
   "paramNames": [],
   "captureNames": [
@@ -131,8 +131,8 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    228,
-    238
+    193,
+    203
   ],
   "paramNames": [],
   "captureNames": [
@@ -164,8 +164,8 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    242,
-    275
+    207,
+    240
   ],
   "paramNames": []
 }

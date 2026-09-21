@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { component$, useSignal, useStore } from '@qwik.dev/core';
-export default component$((props: { label?: string; content?: any }) => {
+import { useSignal, useStore } from '@qwik.dev/core';
+export default (props: { label?: string; content?: any }) => {
   const count = useSignal(1);
   const store = useStore({ v: 1 }); return <div>{store.v}</div>;
-});
+};
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -53,8 +53,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (store) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    219,
-    226
+    196,
+    203
   ],
   "paramNames": [],
   "captureNames": [

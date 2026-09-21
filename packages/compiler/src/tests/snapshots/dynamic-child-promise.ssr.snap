@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { component$, useSignal, useStore } from '@qwik.dev/core';
-export default component$((props: { label?: string; content?: any }) => {
+import { useSignal, useStore } from '@qwik.dev/core';
+export default (props: { label?: string; content?: any }) => {
   const count = useSignal(1);
   return <div>{Promise.resolve(<b>late</b>)}</div>;
-});
+};
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -75,8 +75,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    201,
-    212
+    178,
+    189
   ],
   "paramNames": []
 }
@@ -107,8 +107,8 @@ export const component_content_segment_1_185248kf949cp = (ctx0) => {
   "ctxName": "content",
   "captures": false,
   "loc": [
-    185,
-    213
+    162,
+    190
   ],
   "paramNames": []
 }

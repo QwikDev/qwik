@@ -1,8 +1,7 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export const Child = component$(() => <strong>child</strong>);
-export default component$(() => <main><span>before</span><Child /><span>after</span></main>);
+export const Child = () => <strong>child</strong>;
+export default () => <main><span>before</span><Child /><span>after</span></main>;
 
 == CSR OUTPUT ==
 
@@ -16,6 +15,7 @@ import {
   _toNodes,
   maybeThen,
 } from '@qwik.dev/core';
+
 const Child_tmpl0 = _createElementTemplate('<strong>child</strong>');
 const default_tmpl0 = _createElementTemplate(
   '<main><span>before</span><!><span>after</span></main>'

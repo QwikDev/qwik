@@ -28,9 +28,8 @@ async function crossModulePlans() {
   const app = await analyseModule(
     {
       path: 'src/app.tsx',
-      code: `import { component$ } from '@qwik.dev/core';
-import { Child as RenamedChild } from './child';
-export default component$(() => <main><RenamedChild /></main>);
+      code: `import { Child as RenamedChild } from './child';
+export default () => <main><RenamedChild /></main>;
 `,
     },
     { transpileTs: true }
@@ -38,8 +37,7 @@ export default component$(() => <main><RenamedChild /></main>);
   const child = await analyseModule(
     {
       path: 'src/child.tsx',
-      code: `import { component$ } from '@qwik.dev/core';
-export const Child = component$(() => <strong>child</strong>);
+      code: `export const Child = () => <strong>child</strong>;
 `,
     },
     { transpileTs: true }
@@ -53,31 +51,30 @@ describe('linkPlans', () => {
     async (name) => {
       const child = await analyse(
         'src/child.tsx',
-        `import { component$ } from '@qwik.dev/core';
-export default component$(function ${name}() { return <span />; })`
+        `export default function ${name}() { return <span />; }`
       );
       const app = await analyse(
         'src/app.tsx',
-        `import { component$ } from '@qwik.dev/core';
-import Child from './child';
-export const Wrapper = component$(function Wrapper() { return <Child />; });`
+        `import Child from './child';
+export function Wrapper() { return <Child />; }`
       );
-      // the authored name lives inside the marker call; the export is the only module binding
       const declaration = child.qrls[0].declaration!;
-      expect(declaration.binding).toBe(null);
-      expect(declaration.localName).toBe(null);
+      expect(declaration.binding).toBe(
+        name === '' ? null : child.bindings.find((binding) => binding.name === name)!.id
+      );
+      expect(declaration.localName).toBe(name === '' ? null : name);
       const result = linkPlans(
         deepFreeze([app, child]),
         [{ kind: EntryKind.Export, module: app.path, export: 'Wrapper' }],
         serverSpecialization(),
-        { edges: { [app.path]: { 1: resolved(child.path) } } },
+        { edges: { [app.path]: { 0: resolved(child.path) } } },
         true
       );
       expect(result.kind).toBe(LinkResultKind.Linked);
       if (result.kind !== LinkResultKind.Linked) {
         throw new Error('expected a linked function component');
       }
-      expect(result.plan.modules[0].imports[1]).toMatchObject({
+      expect(result.plan.modules[0].imports[0]).toMatchObject({
         target: { ok: true, value: { module: 1, table: DeclTable.Qrls, index: 0 } },
       });
     }
@@ -88,10 +85,9 @@ export const Wrapper = component$(function Wrapper() { return <Child />; });`
     async (exports) => {
       const module = await analyse(
         'src/app.tsx',
-        `import { component$ } from '@qwik.dev/core';
-const Child = component$(() => <strong>child</strong>);
+        `const Child = () => <strong>child</strong>;
 ${exports}
-export default component$(() => <Child />);`
+export default () => <Child />;`
       );
       const binding = module.bindings.find((binding) => binding.name === 'Child')!.id;
       const qrl = module.qrls.findIndex((qrl) => qrl.declaration?.binding === binding);
@@ -140,7 +136,7 @@ export default component$(() => <Child />);`
     }
     const plans = deepFreeze([app, child]);
     const entries = [{ kind: EntryKind.Export as const, module: app.path, export: 'default' }];
-    const resolver = { edges: { [app.path]: { 1: resolved(child.path) } } };
+    const resolver = { edges: { [app.path]: { 0: resolved(child.path) } } };
     expect(linkPlans(plans, [], serverSpecialization(), resolver, true).kind).toBe(
       LinkResultKind.Linked
     );
@@ -149,7 +145,7 @@ export default component$(() => <Child />);`
     if (incomplete.kind !== LinkResultKind.Linked) {
       return;
     }
-    expect(incomplete.plan.modules[0].imports[1]).toMatchObject({
+    expect(incomplete.plan.modules[0].imports[0]).toMatchObject({
       target: {
         ok: false,
         reason: { why: UnknownWhy.Opaque, code: 'ambiguous-local-binding' },
@@ -171,7 +167,7 @@ export default component$(() => <Child />);`
       serverSpecialization(),
       {
         edges: {
-          'src/app.tsx': { 1: resolved('src/child.tsx') },
+          'src/app.tsx': { 0: resolved('src/child.tsx') },
         },
       },
       true
@@ -191,12 +187,14 @@ export default component$(() => <Child />);`
         target: { ok: true, value: { module: 0, table: DeclTable.Qrls, index: 0 } },
       },
     ]);
-    expect(app.imports[1]).toEqual({
-      kind: ImportTargetKind.Declaration,
-      source: plans[0].imports[1],
-      target: { ok: true, value: target },
-    });
-    expect(app.edges[1].runtime).toBe(true);
+    expect(app.imports).toEqual([
+      {
+        kind: ImportTargetKind.Declaration,
+        source: plans[0].imports[0],
+        target: { ok: true, value: target },
+      },
+    ]);
+    expect(app.edges[0].runtime).toBe(true);
     const body = app.programs[0].body;
     expect(body.kind).toBe(ProgramBodyKind.Ops);
     if (body.kind !== ProgramBodyKind.Ops) {
@@ -231,7 +229,7 @@ export default component$(() => <Child />);`
     if (result.kind !== LinkResultKind.Linked) {
       return;
     }
-    expect(result.plan.modules[0].imports[1]).toMatchObject({
+    expect(result.plan.modules[0].imports[0]).toMatchObject({
       kind: ImportTargetKind.Declaration,
       target: { ok: false, reason: { why: UnknownWhy.Unresolved } },
     });
@@ -279,9 +277,9 @@ export default component$(() => <Child />);`
     async (complete) => {
       const plan = await analyse(
         'src/app.tsx',
-        `import { component$, Slot } from '@qwik.dev/core';
-export const Wrapper = component$(() => <section><Slot /></section>);
-export default component$(() => <Wrapper><p>Projected</p></Wrapper>);
+        `import { Slot } from '@qwik.dev/core';
+export const Wrapper = () => <section><Slot /></section>;
+export default () => <Wrapper><p>Projected</p></Wrapper>;
 `
       );
       const component = plan.programs
@@ -324,8 +322,8 @@ export default component$(() => <Wrapper><p>Projected</p></Wrapper>);
     async (complete) => {
       const plan = await analyse(
         'src/app.tsx',
-        `import { component$, Slot } from '@qwik.dev/core';
-export default component$(() => <section><Slot><p>Fallback</p></Slot></section>);
+        `import { Slot } from '@qwik.dev/core';
+export default () => <section><Slot><p>Fallback</p></Slot></section>;
 `
       );
       const slot = plan.programs
@@ -364,8 +362,8 @@ export default component$(() => <section><Slot><p>Fallback</p></Slot></section>)
     async (complete) => {
       const plan = await analyse(
         'src/app.tsx',
-        `import { component$, Slot } from '@qwik.dev/core';
-export default component$((props) => <Slot name={props.name} />);
+        `import { Slot } from '@qwik.dev/core';
+export default (props) => <Slot name={props.name} />;
 `
       );
       const dynamicSlot = plan.programs
@@ -401,17 +399,13 @@ export default component$((props) => <Slot name={props.name} />);
   test('links default and namespace imports without consumer-specific logic', async () => {
     const app = await analyse(
       'src/app.tsx',
-      `import { component$ } from '@qwik.dev/core';
-import Child from './child';
+      `import Child from './child';
 import * as helpers from './helpers';
 import type { Model } from './types';
-export default component$(() => <main><Child /></main>);
+export default () => <main><Child /></main>;
 `
     );
-    const child = await analyse(
-      'src/child.tsx',
-      "import { component$ } from '@qwik.dev/core';\nexport default component$(() => <strong>child</strong>);\n"
-    );
+    const child = await analyse('src/child.tsx', 'export default () => <strong>child</strong>;\n');
     const helpers = await analyse('src/helpers.ts', 'export const value = 1;\n');
     const result = linkPlans(
       [app, child, helpers],
@@ -420,8 +414,8 @@ export default component$(() => <main><Child /></main>);
       {
         edges: {
           'src/app.tsx': {
-            1: resolved('src/child.tsx'),
-            2: resolved('src/helpers.ts'),
+            0: resolved('src/child.tsx'),
+            1: resolved('src/helpers.ts'),
           },
         },
       },
@@ -433,21 +427,14 @@ export default component$(() => <main><Child /></main>);
     }
     expect(result.plan.modules[0].imports.map((entry) => entry.kind)).toEqual([
       ImportTargetKind.Declaration,
-      ImportTargetKind.Declaration,
       ImportTargetKind.Namespace,
       ImportTargetKind.TypeOnly,
     ]);
-    expect(result.plan.modules[0].imports[2]).toMatchObject({
+    expect(result.plan.modules[0].imports[1]).toMatchObject({
       kind: ImportTargetKind.Namespace,
       target: { ok: true, value: 2 },
     });
-    // the marker import is compile-time only
-    expect(result.plan.modules[0].edges.map((edge) => edge.runtime)).toEqual([
-      false,
-      true,
-      false,
-      false,
-    ]);
+    expect(result.plan.modules[0].edges.map((edge) => edge.runtime)).toEqual([true, false, false]);
   });
 
   test.each([
@@ -456,15 +443,14 @@ export default component$(() => <main><Child /></main>);
   ])('links through a %s', async (_name, barrelSource) => {
     const app = await analyse(
       'src/app.tsx',
-      `import { component$ } from '@qwik.dev/core';
-import { Child } from './barrel';
-export default component$(() => <main><Child /></main>);
+      `import { Child } from './barrel';
+export default () => <main><Child /></main>;
 `
     );
     const barrel = await analyse('src/barrel.ts', barrelSource);
     const child = await analyse(
       'src/child.tsx',
-      "import { component$ } from '@qwik.dev/core';\nexport const Child = component$(() => <strong>child</strong>);\n"
+      'export const Child = () => <strong>child</strong>;\n'
     );
     const result = linkPlans(
       [app, barrel, child],
@@ -472,7 +458,7 @@ export default component$(() => <main><Child /></main>);
       serverSpecialization(),
       {
         edges: {
-          'src/app.tsx': { 1: resolved('src/barrel.ts') },
+          'src/app.tsx': { 0: resolved('src/barrel.ts') },
           'src/barrel.ts': { 0: resolved('src/child.tsx') },
         },
       },
@@ -482,7 +468,7 @@ export default component$(() => <main><Child /></main>);
     if (result.kind !== LinkResultKind.Linked) {
       return;
     }
-    expect(result.plan.modules[0].imports[1]).toMatchObject({
+    expect(result.plan.modules[0].imports[0]).toMatchObject({
       target: {
         ok: true,
         value: { module: 2, table: DeclTable.Qrls, index: 0 },
@@ -494,9 +480,8 @@ export default component$(() => <main><Child /></main>);
   test('reports cyclic export-star chains', async () => {
     const app = await analyse(
       'src/app.tsx',
-      `import { component$ } from '@qwik.dev/core';
-import { Child } from './a';
-export default component$(() => <main><Child /></main>);
+      `import { Child } from './a';
+export default () => <main><Child /></main>;
 `
     );
     const a = await analyse('src/a.ts', `export * from './b';\n`);
@@ -507,7 +492,7 @@ export default component$(() => <main><Child /></main>);
       serverSpecialization(),
       {
         edges: {
-          'src/app.tsx': { 1: resolved('src/a.ts') },
+          'src/app.tsx': { 0: resolved('src/a.ts') },
           'src/a.ts': { 0: resolved('src/b.ts') },
           'src/b.ts': { 0: resolved('src/a.ts') },
         },
@@ -523,9 +508,8 @@ export default component$(() => <main><Child /></main>);
   test('reports ambiguous export-star chains', async () => {
     const app = await analyse(
       'src/app.tsx',
-      `import { component$ } from '@qwik.dev/core';
-import { Child } from './barrel';
-export default component$(() => <main><Child /></main>);
+      `import { Child } from './barrel';
+export default () => <main><Child /></main>;
 `
     );
     const barrel = await analyse(
@@ -534,21 +518,15 @@ export default component$(() => <main><Child /></main>);
 export * from './two';
 `
     );
-    const one = await analyse(
-      'src/one.tsx',
-      "import { component$ } from '@qwik.dev/core';\nexport const Child = component$(() => <p>one</p>);\n"
-    );
-    const two = await analyse(
-      'src/two.tsx',
-      "import { component$ } from '@qwik.dev/core';\nexport const Child = component$(() => <p>two</p>);\n"
-    );
+    const one = await analyse('src/one.tsx', 'export const Child = () => <p>one</p>;\n');
+    const two = await analyse('src/two.tsx', 'export const Child = () => <p>two</p>;\n');
     const result = linkPlans(
       [app, barrel, one, two],
       [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
       serverSpecialization(),
       {
         edges: {
-          'src/app.tsx': { 1: resolved('src/barrel.ts') },
+          'src/app.tsx': { 0: resolved('src/barrel.ts') },
           'src/barrel.ts': {
             0: resolved('src/one.tsx'),
             1: resolved('src/two.tsx'),
@@ -570,7 +548,7 @@ export * from './two';
       [app, child],
       [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
       serverSpecialization(),
-      { edges: { 'src/app.tsx': { 1: resolved('src/child.tsx') } } },
+      { edges: { 'src/app.tsx': { 0: resolved('src/child.tsx') } } },
       true
     );
     expect(missing).toMatchObject({
@@ -582,7 +560,7 @@ export * from './two';
       [app],
       [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
       serverSpecialization(),
-      { edges: { 'src/app.tsx': { 1: { r: ResolutionKind.External } } } },
+      { edges: { 'src/app.tsx': { 0: { r: ResolutionKind.External } } } },
       true
     );
     expect(external.kind).toBe(LinkResultKind.Linked);
@@ -590,10 +568,7 @@ export * from './two';
 
   test('does not reject an unresolved call outside the entry closure', async () => {
     const [unused] = await crossModulePlans();
-    const entry = await analyse(
-      'src/entry.tsx',
-      "import { component$ } from '@qwik.dev/core';\nexport default component$(() => <main>entry</main>);\n"
-    );
+    const entry = await analyse('src/entry.tsx', 'export default () => <main>entry</main>;\n');
     const result = linkPlans(
       [unused, entry],
       [{ kind: EntryKind.Export, module: 'src/entry.tsx', export: 'default' }],

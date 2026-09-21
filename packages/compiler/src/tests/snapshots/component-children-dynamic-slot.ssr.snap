@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { component$, Slot } from '@qwik.dev/core';
-export const Switch = component$((props) => <Slot name={props.name} />);
-export default component$((props) => <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:slot="b">Bravo</b></Switch>);
+import { Slot } from '@qwik.dev/core';
+export const Switch = (props) => <Slot name={props.name} />;
+export default (props) => <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:slot="b">Bravo</b></Switch>;
 
 == SSR OUTPUT ==
 
@@ -124,8 +124,8 @@ export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   "ctxName": "slot:dynamic",
   "captures": true,
   "loc": [
-    95,
-    121
+    72,
+    98
   ],
   "paramNames": [],
   "captureNames": [
@@ -154,8 +154,8 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    187,
-    210
+    152,
+    175
   ],
   "paramNames": []
 }
@@ -181,8 +181,8 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    210,
-    233
+    175,
+    198
   ],
   "paramNames": []
 }

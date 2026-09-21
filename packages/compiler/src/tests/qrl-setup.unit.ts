@@ -9,11 +9,11 @@ import { _captures } from '../../../qwik/src/core/shared/qrl/qrl-captures';
 import type { QRLInternal } from '../../../qwik/src/core/shared/qrl/qrl-class';
 
 test('explicit boundaries retain binding identity and source ranges', async () => {
-  const code = `import { component$, $ as lazy } from '@qwik.dev/core';
-export default component$((props) => {
+  const code = `import { $ as lazy } from '@qwik.dev/core';
+export default (props) => {
   const onSave = lazy((value: number = props.id) => value);
   return <button onClick$={onSave}/>;
-});`;
+};`;
   const plan = await analyseModule({ path: 'component.tsx', code }, { transpileTs: true });
   const callback = plan.qrls.find((qrl) => qrl.boundary.kind === BoundaryKind.Explicit)!;
   expect(callback.payloadKind).toBe(QrlPayloadKind.Function);
@@ -49,11 +49,11 @@ test.each([false, true])(
         input: [
           {
             path: 'src/component.tsx',
-            code: `import { component$, $ } from '@qwik.dev/core';
-export default component$((props) => {
+            code: `import { $ } from '@qwik.dev/core';
+export default (props) => {
   const handler = $(${callback});
   return <button onClick$={handler}/>;
-});`,
+};`,
           },
         ],
       });
@@ -76,13 +76,13 @@ test.each([false, true])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { component$, $, useSignal } from '@qwik.dev/core';
-export const Child = component$(() => <span/>);
-export default component$((props) => {
+          code: `import { $, useSignal } from '@qwik.dev/core';
+export const Child = () => <span/>;
+export default (props) => {
   const attributes = useSignal({ title: 'save' });
   const onSave = $(() => props.onSave$(props.id));
   return <main><Child onSave$={onSave}/><Child {...attributes.value} onSave$={onSave}/></main>;
-});`,
+};`,
         },
       ],
     });
@@ -105,8 +105,8 @@ test.each(['$()', '$(...handlers)', '$(() => {}, 1)', '$?.(() => {})'])(
       analyseModule(
         {
           path: 'component.tsx',
-          code: `import { component$, $ } from '@qwik.dev/core';
-export default component$(() => { const onSave = ${initializer}; return <button onClick$={onSave}/>; });`,
+          code: `import { $ } from '@qwik.dev/core';
+export default () => { const onSave = ${initializer}; return <button onClick$={onSave}/>; };`,
         },
         {}
       )
@@ -119,8 +119,7 @@ test('a non-event $ attribute on an element fails closed', async () => {
     analyseModule(
       {
         path: 'component.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-export default component$(() => <div then$={() => 1} />);`,
+        code: `export default () => <div then$={() => 1} />;`,
       },
       {}
     )
@@ -131,12 +130,12 @@ test('a shadowed marker remains an ordinary local call', async () => {
   const plan = await analyseModule(
     {
       path: 'component.tsx',
-      code: `import { component$, $ } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { $ } from '@qwik.dev/core';
+export default () => {
   const $ = (value) => value;
   const onSave = $(() => 1);
   return <button onClick$={onSave}/>;
-});`,
+};`,
     },
     {}
   );
@@ -151,12 +150,12 @@ test('SSR reuses a callable QRL instance and isolates captures between renders',
     input: [
       {
         path: 'src/component.tsx',
-        code: `import { component$, $ } from '@qwik.dev/core';
-export default component$((props) => {
+        code: `import { $ } from '@qwik.dev/core';
+export default (props) => {
   const onSave = $(() => props.onSave$(props.id));
   const result = onSave();
   return <main><button onClick$={onSave}/><button onClick$={onSave}/></main>;
-});`,
+};`,
       },
     ],
   });
@@ -198,15 +197,15 @@ test.each([false, true])('setup QRLs share one captured callback (SSR: %s)', asy
     input: [
       {
         path: 'src/component.tsx',
-        code: `import { component$, $ as lazy, useSignal } from '@qwik.dev/core';
-export default component$((props) => {
+        code: `import { $ as lazy, useSignal } from '@qwik.dev/core';
+export default (props) => {
   const count = useSignal(0);
   const onSave = lazy((event) => {
     count.value++;
     return props.onSave$(props.id, event.type);
   });
   return <main><button onClick$={onSave}/><button onClick$={onSave}/></main>;
-});`,
+};`,
       },
     ],
   });

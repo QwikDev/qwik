@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { component$, Slot } from '@qwik.dev/core';
-export const Card = component$(({ title: heading, 'data-label': label, onSave$: save }) => (
+import { Slot } from '@qwik.dev/core';
+export const Card = ({ title: heading, 'data-label': label, onSave$: save }) => (
   <section><h2>{heading}</h2><button onClick$={() => save({ label })}>{label}</button><Slot /></section>
-));
-export default component$(() => <Card title="Title" data-label="Label"><p>Projected</p></Card>);
+);
+export default () => <Card title="Title" data-label="Label"><p>Projected</p></Card>;
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -105,8 +105,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    181,
-    213
+    158,
+    190
   ],
   "paramNames": [],
   "captureNames": [
@@ -135,8 +135,8 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    324,
-    340
+    289,
+    305
   ],
   "paramNames": []
 }

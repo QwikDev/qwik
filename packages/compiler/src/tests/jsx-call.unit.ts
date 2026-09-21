@@ -8,13 +8,7 @@ async function renderBody(body: string, globals: Record<string, unknown> = {}) {
   const output = await transformModules({
     srcDir: 'src',
     isServer: true,
-    input: [
-      {
-        path: 'src/call.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-export default component$(function App() { ${body} })`,
-      },
-    ],
+    input: [{ path: 'src/call.tsx', code: `export default function App() { ${body} }` }],
   });
   expect(output.diagnostics).toEqual([]);
   const render = loadDefaultFunction(

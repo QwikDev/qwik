@@ -1,7 +1,7 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export default () => {
   const count = useSignal(0);
   return (
     <div window:onDblClick$={() => count.value++} document:onScroll$={() => count.value++} passive:scroll>
@@ -10,7 +10,7 @@ export default component$(() => {
       </a>
     </div>
   );
-});
+};
 
 == CSR OUTPUT ==
 
@@ -56,8 +56,8 @@ export const component_q_w_dblclick_segment_0_tisevbdmqsib = () => {
   "ctxName": "window:onDblClick$",
   "captures": true,
   "loc": [
-    140,
-    180
+    117,
+    157
   ],
   "paramNames": [],
   "captureNames": [
@@ -87,8 +87,8 @@ export const component_q_dp_scroll_segment_1_owxjdujcmr14 = () => {
   "ctxName": "document:onScroll$",
   "captures": true,
   "loc": [
-    181,
-    221
+    158,
+    198
   ],
   "paramNames": [],
   "captureNames": [
@@ -118,8 +118,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    314,
-    344
+    291,
+    321
   ],
   "paramNames": [],
   "captureNames": [

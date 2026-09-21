@@ -1,15 +1,15 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export default component$(() => {
+export default () => {
   return <section><h1 title="hi">A&B</h1><br/><p>x</p></section>;
-});
+};
 
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _createElementTemplate } from '@qwik.dev/core';
+
 const default_tmpl0 = _createElementTemplate(
   '<section><h1 title="hi">A&B</h1><br><p>x</p></section>'
 );

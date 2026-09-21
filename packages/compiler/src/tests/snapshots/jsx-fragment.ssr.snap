@@ -1,14 +1,14 @@
 ==INPUT==
 
-import { component$, Fragment, Fragment as F, Slot, useSignal } from '@qwik.dev/core';
-const Frame = component$(() => <article><Slot name="title" /><Slot /></article>);
-export default component$(() => {
+import { Fragment, Fragment as F, Slot, useSignal } from '@qwik.dev/core';
+const Frame = () => <article><Slot name="title" /><Slot /></article>;
+export default () => {
   const rows = useSignal([{ id: 'one' }, { id: 'two' }]);
   const stored = <F><em>stored</em><F /></F>;
   return <Fragment><Frame><F><h1 q:slot="title">title</h1>{stored}</F></Frame>
     <section>{rows.value.map(row => <F key={row.id}><b>{row.id}</b><i>end</i></F>)}</section>
   </Fragment>;
-});
+};
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -178,8 +178,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    278,
-    305
+    243,
+    270
   ],
   "paramNames": []
 }
@@ -205,8 +205,8 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    336,
-    365
+    301,
+    330
   ],
   "paramNames": []
 }
@@ -256,8 +256,8 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    362,
-    373
+    327,
+    338
   ],
   "paramNames": [],
   "captureNames": [
@@ -287,8 +287,8 @@ export const component_content_segment_3_18523gi7fg5bn = (ctx0) => {
   "ctxName": "content",
   "captures": true,
   "loc": [
-    366,
-    372
+    331,
+    337
   ],
   "paramNames": [],
   "captureNames": [
@@ -339,8 +339,8 @@ export const component_for_render_segment_4_asyro5hcbuaz = (ctx, __rangeId, __ro
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    422,
-    467
+    387,
+    432
   ],
   "paramNames": [
     "row"
@@ -366,8 +366,8 @@ export const component_for_key_segment_5_24urtuokkbxzj = (row) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    430,
-    436
+    395,
+    401
   ],
   "paramNames": [
     "row"
@@ -393,8 +393,8 @@ export const component_text_segment_6_1fh12ri8gowii = (row) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    442,
-    448
+    407,
+    413
   ],
   "paramNames": [],
   "captureNames": [

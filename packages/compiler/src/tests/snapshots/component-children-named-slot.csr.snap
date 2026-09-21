@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { component$, Slot } from '@qwik.dev/core';
-export const Card = component$(() => <article><header><Slot name="header" /></header><Slot /></article>);
-export default component$(() => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>);
+import { Slot } from '@qwik.dev/core';
+export const Card = () => <article><header><Slot name="header" /></header><Slot /></article>;
+export default () => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>;
 
 == CSR OUTPUT ==
 
@@ -72,8 +72,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    195,
-    225
+    160,
+    190
   ],
   "paramNames": []
 }
@@ -102,8 +102,8 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    225,
-    239
+    190,
+    204
   ],
   "paramNames": []
 }

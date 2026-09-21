@@ -116,13 +116,7 @@ test.each([
   const output = await transformModules({
     srcDir: 'src',
     isServer: true,
-    input: [
-      {
-        path: 'src/value.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-export default component$(function App() { ${body} })`,
-      },
-    ],
+    input: [{ path: 'src/value.tsx', code: `export default function App() { ${body} }` }],
   });
   expect(output.diagnostics).toEqual([]);
   const render = loadDefaultFunction(
@@ -147,13 +141,12 @@ test('preserves native object evaluation order and evaluates each spread once', 
     input: [
       {
         path: 'src/value.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-export default component$(function App() {
+        code: `export default function App() {
       const tail = <i>tail</i>;
       const base = { get footer() { record('spread'); return tail; } };
       const views = { [record('header')]: <b>head</b>, ...base, label: record('label') };
       return <main>{views.header}{views.footer}{views.footer}{views.label}</main>;
-    })`,
+    }`,
       },
     ],
   });
@@ -185,7 +178,7 @@ test('lifts a local component crossing a JSX value boundary', async () => {
     input: [
       {
         path: 'src/value.tsx',
-        code: "import { component$ } from '@qwik.dev/core';\nexport default component$(function App() { const Child = component$(function Child() { return <p>stored</p>; }); const content = <Child />; return content; });",
+        code: 'export default function App() { function Child() { return <p>stored</p>; } const content = <Child />; return content; }',
       },
     ],
   });

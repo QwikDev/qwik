@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ id: 'a' }]);
   return <ul>{items.value.map((item) => <li key={item.id}>Item</li>)}</ul>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -58,8 +58,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx) => {
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    172,
-    199
+    149,
+    176
   ],
   "paramNames": [
     "item"
@@ -85,8 +85,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    181,
-    188
+    158,
+    165
   ],
   "paramNames": [
     "item"

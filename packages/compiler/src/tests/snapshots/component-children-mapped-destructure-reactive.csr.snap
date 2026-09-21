@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { component$, Slot, useSignal } from '@qwik.dev/core';
-export const Panel = component$(() => <main><Slot name="header" /></main>);
-export default component$(() => {
+import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /></main>;
+export default () => {
   const suffix = useSignal('!');
   const items = useSignal([{ details: { parts: ['First', 'Skip', 'Last'] }, fallback: 'Title' }]);
   return <Panel>{items.value.map(({ details, fallback }, index) => {
@@ -10,7 +10,7 @@ export default component$(() => {
     const [first = copy, , ...tail] = rest.parts;
     return <h2 q:slot="header" onClick$={() => console.log(label, first, tail)}>{label}:{first}:{position}:{tail.length}</h2>;
   })}</Panel>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -105,8 +105,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    314,
-    661
+    279,
+    626
   ],
   "paramNames": [],
   "captureNames": [
@@ -203,8 +203,8 @@ export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item, index) =>
   "ctxName": "for:render",
   "captures": true,
   "loc": [
-    371,
-    533
+    336,
+    498
   ],
   "paramNames": [
     "{ details, fallback }",
@@ -237,8 +237,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    560,
-    608
+    525,
+    573
   ],
   "paramNames": [],
   "captureNames": [
@@ -267,8 +267,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    610,
-    615
+    575,
+    580
   ],
   "paramNames": [],
   "captureNames": [
@@ -295,8 +295,8 @@ export const component_text_segment_4_1fh11zg0n0shg = (first) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    618,
-    623
+    583,
+    588
   ],
   "paramNames": [],
   "captureNames": [
@@ -323,8 +323,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (position) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    626,
-    634
+    591,
+    599
   ],
   "paramNames": [],
   "captureNames": [
@@ -351,8 +351,8 @@ export const component_text_segment_6_1fh12ri8gowii = (tail) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    637,
-    648
+    602,
+    613
   ],
   "paramNames": [],
   "captureNames": [

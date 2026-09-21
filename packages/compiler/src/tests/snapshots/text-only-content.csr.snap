@@ -1,12 +1,11 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export default component$((props: { page: string; line: string; count: number }) => (
+export default (props: { page: string; line: string; count: number }) => (
   <div>
     <title>{props.page} - Site</title>
     <textarea>{props.line}{props.line}</textarea>
   </div>
-));
+);
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -56,8 +55,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    144,
-    169
+    88,
+    113
   ],
   "paramNames": [],
   "captureNames": [
@@ -84,8 +83,8 @@ export const component_text_segment_1_1fh10tcowimfv = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    183,
-    216
+    127,
+    160
   ],
   "paramNames": [],
   "captureNames": [

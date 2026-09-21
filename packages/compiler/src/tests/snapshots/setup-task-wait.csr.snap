@@ -1,15 +1,15 @@
 ==INPUT==
 
-import { component$, useTask$, useSignal } from '@qwik.dev/core';
-export const Child = component$(() => <b>child</b>);
-export default component$(() => {
+import { useTask$, useSignal } from '@qwik.dev/core';
+export const Child = () => <b>child</b>;
+export default () => {
   const ready = useSignal('pending');
   useTask$(async () => {
     await Promise.resolve();
     ready.value = 'done';
   });
   return <section><span>{ready.value}</span><Child /></section>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -80,8 +80,8 @@ export const component_useTaskqrl_segment_0_1og80iqmttt5c = async () => {
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    193,
-    275
+    158,
+    240
   ],
   "paramNames": [],
   "captureNames": [

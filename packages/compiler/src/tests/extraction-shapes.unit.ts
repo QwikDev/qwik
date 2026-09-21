@@ -74,7 +74,12 @@ export const Toggle = component$(() => {
       emptyModulePlan('src/suspense.tsx', code),
       bindings
     );
-    const candidates = findComponentCandidates(parsed.program, bindings, coreBindings);
+    const candidates = findComponentCandidates(
+      parsed.program,
+      createJsxAnalysis(bindings, coreBindings),
+      bindings,
+      coreBindings
+    );
     const lowered = new Set(plan.qrls.map((qrl) => qrl.declaration?.name));
     const silent = candidates.filter(
       (candidate) => candidate.name !== null && !lowered.has(candidate.name)

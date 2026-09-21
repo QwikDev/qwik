@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.className}: {props.count}</strong>);
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.className}: {props.count}</strong>;
+export default () => {
   const count = useSignal(1);
   return <Child className="total" count={count.value} />;
-});
+};
 
 == SSR OUTPUT ==
 

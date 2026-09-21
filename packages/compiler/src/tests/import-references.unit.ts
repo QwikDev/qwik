@@ -4,15 +4,15 @@ import { EntryKind, LinkResultKind } from '../schema';
 import { ResolutionKind } from '../link/link-plans';
 import { deepFreeze, serverSpecialization } from './fixtures';
 
-const code = `import { component$, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
+const code = `import { useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 import fallback, { calculate as price, save, unused } from './pricing';
 import * as logger from './logger';
-export const App = component$(() => {
+export const App = () => {
   const count = useSignal(2);
   const total = useComputed$(() => price(count.value, fallback));
   useTask$(() => logger.write(total.value));
   return <button onClick$={() => save(count.value)}>{total.value}</button>;
-});`;
+};`;
 
 test.each([true, false])(
   'imports remain module references in every QRL (SSR: %s)',
@@ -73,8 +73,8 @@ test.each([true, false])(
       input: [
         {
           path: 'app.tsx',
-          code: `import { component$, useComputed$, getLocale as locale } from '@qwik.dev/core';
-export default component$(() => { const lang = useComputed$(() => locale()); return <p>{lang.value}</p>; });`,
+          code: `import { useComputed$, getLocale as locale } from '@qwik.dev/core';
+export default () => { const lang = useComputed$(() => locale()); return <p>{lang.value}</p>; };`,
         },
       ],
       isServer,
@@ -94,9 +94,8 @@ test('shadowing and object property names do not import unrelated bindings', asy
     input: [
       {
         path: 'app.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-import { save } from './api';
-export default component$(() => <button onClick$={(save) => ({ save, value: save })}>save</button>);`,
+        code: `import { save } from './api';
+export default () => <button onClick$={(save) => ({ save, value: save })}>save</button>;`,
       },
     ],
     isServer: false,
@@ -111,9 +110,8 @@ test('quoted import names and import attributes survive chunk emission', async (
     input: [
       {
         path: 'app.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-import { 'a-b' as label } from './labels.json' with { type: 'json' };
-export default component$(() => <button onClick$={() => ({ label })}>save</button>);`,
+        code: `import { 'a-b' as label } from './labels.json' with { type: 'json' };
+export default () => <button onClick$={() => ({ label })}>save</button>;`,
       },
     ],
     isServer: false,
@@ -132,10 +130,9 @@ test.each([true, false])(
       input: [
         {
           path: 'app.tsx',
-          code: `import { component$ } from '@qwik.dev/core';
-import { Card, Label } from './components';
+          code: `import { Card, Label } from './components';
 import { save } from './api';
-export default component$(() => <Card><Label /><button onClick$={() => save()}>save</button></Card>);`,
+export default () => <Card><Label /><button onClick$={() => save()}>save</button></Card>;`,
         },
       ],
       isServer,
@@ -156,8 +153,8 @@ test('a core import used directly in setup remains in the main module', async ()
     input: [
       {
         path: 'app.tsx',
-        code: `import { component$, getLocale as locale } from '@qwik.dev/core';
-export default component$(() => { const languages = [locale()]; return <p>{languages[0]}</p>; });`,
+        code: `import { getLocale as locale } from '@qwik.dev/core';
+export default () => { const languages = [locale()]; return <p>{languages[0]}</p>; };`,
       },
     ],
     isServer: false,

@@ -1,16 +1,16 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
+import { useSignal } from '@qwik.dev/core';
 let runCount = 0;
 const settings = { suffix: '!' };
-export default component$(() => {
+export default () => {
   const count = useSignal(0);
   return (
     <button onClick$={() => { count.value = ++runCount; settings.suffix = '?'; }}>
       {count.value}
     </button>
   );
-});
+};
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -75,8 +75,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    195,
-    240
+    172,
+    217
   ],
   "paramNames": [],
   "captureNames": [

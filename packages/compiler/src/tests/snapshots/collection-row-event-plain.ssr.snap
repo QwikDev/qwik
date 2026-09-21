@@ -1,7 +1,7 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ id: 'a' }]);
   return (
     <ul>
@@ -12,7 +12,7 @@ export default component$(() => {
       ))}
     </ul>
   );
-});
+};
 
 == SSR OUTPUT ==
 
@@ -102,8 +102,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx) => {
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    195,
-    288
+    172,
+    265
   ],
   "paramNames": [
     "item"
@@ -129,8 +129,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    204,
-    211
+    181,
+    188
   ],
   "paramNames": [
     "item"
@@ -156,8 +156,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    232,
-    263
+    209,
+    240
   ],
   "paramNames": []
 }

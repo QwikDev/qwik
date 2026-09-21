@@ -1,7 +1,7 @@
 ==INPUT==
 
-import { component$, $, useSignal, useTask$ } from '@qwik.dev/core';
-export default component$((props) => {
+import { $, useSignal, useTask$ } from '@qwik.dev/core';
+export default (props) => {
   const count = useSignal(1);
   const run = $(async function run(value = props.initial) {
     await Promise.resolve(value);
@@ -18,7 +18,7 @@ export default component$((props) => {
     catch { console.log(count.value); }
     await run();
   }}>run</button>;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -110,8 +110,8 @@ export const component_run_segment_0_3puv0fmsn52m6 = function () {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    152,
-    260
+    129,
+    237
   ],
   "paramNames": [
     "value = props.initial"
@@ -149,8 +149,8 @@ export const component_useTaskqrl_segment_1_1og80wrqqnv5v = async () => {
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    264,
-    452
+    241,
+    429
   ],
   "paramNames": [],
   "captureNames": [
@@ -186,8 +186,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = async () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    471,
-    589
+    448,
+    566
   ],
   "paramNames": [],
   "captureNames": [

@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export default () => {
   const count = useSignal(0);
   return <p>{count.value > 2 && 'Count is greater than 2 and equal to ' + count.value}</p>;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -91,8 +91,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    133,
-    148
+    110,
+    125
   ],
   "paramNames": [],
   "captureNames": [
@@ -128,8 +128,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId0) => 
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    152,
-    205
+    129,
+    182
   ],
   "paramNames": [],
   "captureNames": [

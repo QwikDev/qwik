@@ -1,15 +1,15 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
 const prefix = 'p-';
-export default component$(() => {
+export default () => {
   return <ul>{['a', 'b'].map((item) => <li>{prefix + item}</li>)}</ul>;
-});
+};
 
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
+const prefix = 'p-';
 import {
   escapeHTML,
   _textValue,
@@ -17,10 +17,10 @@ import {
   maybeThen,
   _markComponent,
 } from '@qwik.dev/core';
-const prefix = 'p-';
+
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
-    function semantic_collectionRender_113_163_2u34inv59lcar(ctx, __rangeId, __rowId, item) {
+    function semantic_collectionRender_57_107_1hgwyeb4bdu2g(ctx, __rangeId, __rowId, item) {
       return ['<li>', escapeHTML(_textValue(prefix + item)), '</li>'];
     }
     const collection0 = renderSsrCollection(
@@ -28,7 +28,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       undefined,
       ['a', 'b'],
       undefined,
-      semantic_collectionRender_113_163_2u34inv59lcar,
+      semantic_collectionRender_57_107_1hgwyeb4bdu2g,
       0,
       false,
       0

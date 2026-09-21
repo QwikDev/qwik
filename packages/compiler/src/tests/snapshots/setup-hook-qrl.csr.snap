@@ -1,15 +1,15 @@
 ==INPUT==
 
-import { component$, $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
+import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
 import { useCustom$ as custom } from './hooks';
-export default component$((props) => {
+export default (props) => {
   const count = useSignal(1);
   const read = $(() => count.value);
   useTask$((read));
   custom(read, props.options);
   const total: { value: number } = useComputed$(read);
   return <button onClick$={read}>{total.value}</button>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -78,8 +78,8 @@ export const component_read_segment_0_1zbzildyw5vrf = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    215,
-    235
+    192,
+    212
   ],
   "paramNames": [],
   "captureNames": [

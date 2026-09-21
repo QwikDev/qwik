@@ -1,10 +1,9 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
 const KEY = 'dyn';
-export default component$(({ user: { name, tags: [first] }, [KEY]: keyed, meta: { count = 0 } }) => (
+export default ({ user: { name, tags: [first] }, [KEY]: keyed, meta: { count = 0 } }) => (
   <p title={keyed} onClick$={() => console.log(name, first)}>{name}{first}{count}</p>
-));
+);
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -113,8 +112,8 @@ export const component_title_segment_0_2f0r0xivypjmx = (props) => {
   "ctxName": "title",
   "captures": true,
   "loc": [
-    178,
-    183
+    122,
+    127
   ],
   "paramNames": [],
   "captureNames": [
@@ -144,8 +143,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    185,
-    226
+    129,
+    170
   ],
   "paramNames": [],
   "captureNames": [
@@ -175,8 +174,8 @@ export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    228,
-    232
+    172,
+    176
   ],
   "paramNames": [],
   "captureNames": [
@@ -206,8 +205,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    234,
-    239
+    178,
+    183
   ],
   "paramNames": [],
   "captureNames": [
@@ -237,8 +236,8 @@ export const component_text_segment_4_1fh11zg0n0shg = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    241,
-    246
+    185,
+    190
   ],
   "paramNames": [],
   "captureNames": [

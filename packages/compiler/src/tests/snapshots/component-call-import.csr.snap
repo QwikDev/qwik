@@ -1,13 +1,11 @@
 ==INPUT==
 
 // src/app.tsx
-import { component$ } from '@qwik.dev/core';
 import { Child as RenamedChild } from './child';
-export default component$(() => <main><RenamedChild /></main>);
+export default () => <main><RenamedChild /></main>;
 
 // src/child.tsx
-import { component$ } from '@qwik.dev/core';
-export const Child = component$(() => <strong>child</strong>);
+export const Child = () => <strong>child</strong>;
 
 == CSR OUTPUT ==
 
@@ -20,6 +18,7 @@ import {
   maybeThen,
   _createElementTemplate,
 } from '@qwik.dev/core';
+
 const default_tmpl0 = _createElementTemplate('<main><!></main>');
 import { Child as RenamedChild } from './child';
 export const default_component_31wgqjs4jy6fg = (props, ctx) => {
@@ -33,6 +32,7 @@ export default default_component_31wgqjs4jy6fg;
 ============================= src/child.tsx ==
 
 import { _createElementTemplate } from '@qwik.dev/core';
+
 const Child_tmpl0 = _createElementTemplate('<strong>child</strong>');
 export const Child = (props, ctx) => {
   const el0 = Child_tmpl0(ctx.document);

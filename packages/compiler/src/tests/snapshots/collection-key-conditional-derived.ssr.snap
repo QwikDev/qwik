@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export const Done = component$((props: { title: string }) => <b>{props.title}</b>);
-export default component$((props: { items: { id: string; done: boolean }[]; prefix: string; title: string }) => {
+import { useSignal } from '@qwik.dev/core';
+export const Done = (props: { title: string }) => <b>{props.title}</b>;
+export default (props: { items: { id: string; done: boolean }[]; prefix: string; title: string }) => {
   const items = useSignal([]);
   const selected = useSignal(true);
   return <ul>{props.items.map(({ id, done }, index) => {
@@ -13,7 +13,7 @@ export default component$((props: { items: { id: string; done: boolean }[]; pref
       ? <Done key={prefix + id} title={title} />
       : <li key={index + ':' + id}>{title}</li>;
   })}</ul>;
-});
+};
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -241,8 +241,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
   "ctxName": "for:render",
   "captures": true,
   "loc": [
-    376,
-    502
+    341,
+    467
   ],
   "paramNames": [
     "{ id, done }",
@@ -279,8 +279,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
   "ctxName": "for:key",
   "captures": true,
   "loc": [
-    497,
-    601
+    462,
+    566
   ],
   "paramNames": [
     "{ id, done }",
@@ -314,8 +314,8 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    497,
-    504
+    462,
+    469
   ],
   "paramNames": [],
   "captureNames": [
@@ -367,8 +367,8 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    513,
-    553
+    478,
+    518
   ],
   "paramNames": [],
   "captureNames": [
@@ -417,8 +417,8 @@ export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    562,
-    601
+    527,
+    566
   ],
   "paramNames": [],
   "captureNames": [

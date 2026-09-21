@@ -1,12 +1,11 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
 const fallback = 'outer';
 function side(value) { console.log(value); return value; }
-export default component$(({ a = side('a'), b = a, label = fallback }) => {
+export default ({ a = side('a'), b = a, label = fallback }) => {
   const fallback = 'inner';
   return <p title={fallback}>{a}{b}{label}</p>;
-});
+};
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -124,8 +123,8 @@ export const component_title_segment_0_2f0r0xivypjmx = (fallback) => {
   "ctxName": "title",
   "captures": true,
   "loc": [
-    253,
-    261
+    197,
+    205
   ],
   "paramNames": [],
   "captureNames": [
@@ -155,8 +154,8 @@ export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    264,
-    265
+    208,
+    209
   ],
   "paramNames": [],
   "captureNames": [
@@ -187,8 +186,8 @@ export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    267,
-    268
+    211,
+    212
   ],
   "paramNames": [],
   "captureNames": [
@@ -219,8 +218,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    270,
-    275
+    214,
+    219
   ],
   "paramNames": [],
   "captureNames": [

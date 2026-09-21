@@ -1,9 +1,9 @@
 ==INPUT==
 
-import { component$, Slot } from '@qwik.dev/core';
-export const Inner = component$(() => <article><Slot /></article>);
-export const Wrapper = component$(() => <Inner><Slot /></Inner>);
-export default component$(() => <Wrapper><p>Forwarded</p></Wrapper>);
+import { Slot } from '@qwik.dev/core';
+export const Inner = () => <article><Slot /></article>;
+export const Wrapper = () => <Inner><Slot /></Inner>;
+export default () => <Wrapper><p>Forwarded</p></Wrapper>;
 
 == SSR OUTPUT ==
 
@@ -81,8 +81,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    226,
-    242
+    179,
+    195
   ],
   "paramNames": []
 }

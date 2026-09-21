@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { $, component$, createContextId, getLocale, useSignal } from '@qwik.dev/core';
-const before = observe('before'), Header = component$(() => <h1>Title</h1>), after = observe('after');
+const before = observe('before'), Header = () => <h1>Title</h1>, after = observe('after');
 export default component$((props: { title: string; hidden?: boolean; failed?: boolean }) => {
   let count = useSignal(1);
   var suffix = '!';
@@ -35,11 +35,7 @@ const q_component_increment_segment_0_sk08s17xutli = /*#__PURE__*/ _qrlWithChunk
   () => import('./component.tsx_component_increment_segment_0_sk08s17xutli'),
   'component_increment_segment_0_sk08s17xutli'
 );
-const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_2_38vniss1y6gb4',
-  () => import('./component.tsx_component_jsx_segment_2_38vniss1y6gb4'),
-  'component_jsx_segment_2_38vniss1y6gb4'
-);
+const default_5_tmpl0 = _createElementTemplate('<p> </p>');
 const default_2_tmpl0 = _createElementTemplate(
   '<section><!><!><button>increment</button><button> </button></section>'
 );
@@ -48,18 +44,19 @@ import {
   useSignal,
   _qrlWithChunk,
   _first,
+  createTextExpressionEffect,
   _next,
   _last,
   _prev,
   createComponent,
   _toNodes,
   maybeThen,
-  createDynamicTag,
   setEvent,
   createTextNodeEffect,
   createContextId,
   getLocale,
 } from '@qwik.dev/core';
+import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
 import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 const before = observe('before'),
   Header = (props0, ctx) => {
@@ -80,8 +77,17 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   }
   label.value = format(count.value);
   suffix += '!';
-  function Child() {
-    return q_component_jsx_segment_2_38vniss1y6gb4.w([props]);
+  function Child(props0, ctx) {
+    const el0 = default_5_tmpl0(ctx.document);
+    const text0 = _first(el0);
+    const effect0 = createTextExpressionEffect(
+      text0,
+      [props],
+      component_text_segment_2_1fh117dstcoge,
+      ctx.scheduler
+    );
+    ctx.scheduler.notify(effect0);
+    return el0;
   }
   if (props.hidden) return [];
   try {
@@ -94,11 +100,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
       const component0 = createComponent(Header, null, ctx);
       const marker1 = _first(el0);
       maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
-      const component2 = createComponent(
-        (props0) => createDynamicTag(Child, props0, ctx),
-        null,
-        ctx
-      );
+      const component2 = createComponent(Child, null, ctx);
       maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
       setEvent(el1, 'q-e:click', increment);
       setEvent(el2, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [
@@ -142,8 +144,8 @@ export const component_increment_segment_0_sk08s17xutli = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    461,
-    488
+    449,
+    476
   ],
   "paramNames": [],
   "captureNames": [
@@ -173,8 +175,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    845,
-    864
+    833,
+    852
   ],
   "paramNames": [],
   "captureNames": [
@@ -184,42 +186,27 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   ]
 }
 */
-============================= src/component.tsx_component_jsx_segment_2_38vniss1y6gb4.js (ENTRY POINT)==
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-import {
-  _captures,
-  _first,
-  propSource,
-  createTextNodeEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-const component_jsx_segment_2_38vniss1y6gb4_tmpl0 = _createElementTemplate('<p> </p>');
-
-export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
-  const [props] = _captures;
-  const el0 = component_jsx_segment_2_38vniss1y6gb4_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const prop0 = propSource(props, 'title');
-  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
+export const component_text_segment_2_1fh117dstcoge = (props) => {
+  return props.title;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_jsx_segment_2_38vniss1y6gb4",
+  "name": "component_text_segment_2_1fh117dstcoge",
   "entry": null,
-  "displayName": "component_jsx_segment_2",
-  "hash": "38vniss1y6gb4",
-  "canonicalFilename": "component.tsx_component_jsx_segment_2_38vniss1y6gb4",
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "jsx",
+  "ctxName": "text",
   "captures": true,
   "loc": [
-    642,
-    662
+    634,
+    645
   ],
   "paramNames": [],
   "captureNames": [

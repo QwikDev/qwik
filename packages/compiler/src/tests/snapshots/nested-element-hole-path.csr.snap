@@ -1,9 +1,8 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export default component$((props: { title: string }) => {
+export default (props: { title: string }) => {
   return <div><b>bold</b><span>a{props.title}b</span></div>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -17,6 +16,7 @@ import {
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
+
 const default_tmpl0 = _createElementTemplate('<div><b>bold</b><span>a<!>b</span></div>');
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);

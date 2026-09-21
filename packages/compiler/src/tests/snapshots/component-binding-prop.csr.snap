@@ -1,14 +1,14 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.count.value}</strong>);
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.count.value}</strong>;
+export default () => {
   const show = useSignal(true);
   const count = useSignal(0);
   let label = 'a';
   label = 'b';
   return <div>{show.value ? <Child count={count} label={label} /> : null}</div>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -87,8 +87,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    108,
-    125
+    85,
+    102
   ],
   "paramNames": [],
   "captureNames": [
@@ -118,8 +118,8 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    283,
-    293
+    248,
+    258
   ],
   "paramNames": [],
   "captureNames": [
@@ -151,8 +151,8 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    296,
-    333
+    261,
+    298
   ],
   "paramNames": [],
   "captureNames": [

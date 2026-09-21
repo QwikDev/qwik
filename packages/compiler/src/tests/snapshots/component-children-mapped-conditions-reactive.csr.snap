@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, Slot, useSignal } from '@qwik.dev/core';
-export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
-export default component$(() => {
+import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot /></main>;
+export default () => {
   const items = useSignal([{ title: 'Title', featured: true, visible: false }]);
   return <Panel>{items.value.map(({ title, featured, visible }, index) => featured && index === 0 ? <h2 q:slot="header">{index}:{title}</h2> : visible && <p>{title}</p>)}</Panel>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -102,8 +102,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    271,
-    431
+    236,
+    396
   ],
   "paramNames": [],
   "captureNames": [
@@ -158,8 +158,8 @@ export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item, index) =>
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    335,
-    429
+    300,
+    394
   ],
   "paramNames": [
     "{ title, featured, visible }",
@@ -189,8 +189,8 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    335,
-    358
+    300,
+    323
   ],
   "paramNames": [],
   "captureNames": [
@@ -252,8 +252,8 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    361,
-    401
+    326,
+    366
   ],
   "paramNames": [],
   "captureNames": [
@@ -281,8 +281,8 @@ export const component_text_segment_4_1fh11zg0n0shg = (index) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    382,
-    387
+    347,
+    352
   ],
   "paramNames": [],
   "captureNames": [
@@ -309,8 +309,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    390,
-    395
+    355,
+    360
   ],
   "paramNames": [],
   "captureNames": [
@@ -357,8 +357,8 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    271,
-    431
+    236,
+    396
   ],
   "paramNames": [],
   "captureNames": [
@@ -390,16 +390,16 @@ const q_component_branch_else_segment_10_3nwbuwgvts9b8 = /*#__PURE__*/ _qrlWithC
 );
 const component_for_render_segment_7_asys26l95wbi_tmpl0 = createTemplate('<!><!>');
 
-export const component_for_render_segment_7_asys26l95wbi = (ctx, item_11, index) => {
+export const component_for_render_segment_7_asys26l95wbi = (ctx, item_10, index) => {
   const fragment0 = component_for_render_segment_7_asys26l95wbi_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
     new BranchRange(ctx.document, start0, end0),
-    _withCaptures(component_branch_condition_segment_8_2fzrlj3269xjh, [item_11, index]),
+    _withCaptures(component_branch_condition_segment_8_2fzrlj3269xjh, [item_10, index]),
     q_component_branch_then_segment_9_24n7eq7lvht8e,
-    q_component_branch_else_segment_10_3nwbuwgvts9b8.w([item_11])
+    q_component_branch_else_segment_10_3nwbuwgvts9b8.w([item_10])
   );
   ctx.scheduler.notify(branch0);
   return [...fragment0.childNodes];
@@ -418,8 +418,8 @@ export const component_for_render_segment_7_asys26l95wbi = (ctx, item_11, index)
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    335,
-    429
+    300,
+    394
   ],
   "paramNames": [
     "{ title, featured, visible }",
@@ -432,8 +432,8 @@ export const component_for_render_segment_7_asys26l95wbi = (ctx, item_11, index)
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_8_2fzrlj3269xjh = () => {
-  const [item_11, index] = _captures;
-  return item_11.featured && index.value === 0;
+  const [item_10, index] = _captures;
+  return item_10.featured && index.value === 0;
 };
 /*
 {
@@ -449,12 +449,12 @@ export const component_branch_condition_segment_8_2fzrlj3269xjh = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    335,
-    358
+    300,
+    323
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11",
+    "item_10",
     "index"
   ]
 }
@@ -478,8 +478,8 @@ export const component_branch_then_segment_9_24n7eq7lvht8e = () => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    361,
-    401
+    326,
+    366
   ],
   "paramNames": []
 }
@@ -505,15 +505,15 @@ const q_component_branch_then_segment_12_1yfee1u0hawl8 = /*#__PURE__*/ _qrlWithC
 );
 
 export const component_branch_else_segment_10_3nwbuwgvts9b8 = (ctx) => {
-  const [item_11] = _captures;
+  const [item_10] = _captures;
   const fragment0 = component_branch_else_segment_10_3nwbuwgvts9b8_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
     new BranchRange(ctx.document, start0, end0),
-    _withCaptures(component_branch_condition_segment_11_2xihdxeq133e1, [item_11]),
-    q_component_branch_then_segment_12_1yfee1u0hawl8.w([item_11]),
+    _withCaptures(component_branch_condition_segment_11_2xihdxeq133e1, [item_10]),
+    q_component_branch_then_segment_12_1yfee1u0hawl8.w([item_10]),
     undefined
   );
   ctx.scheduler.notify(branch0);
@@ -533,12 +533,12 @@ export const component_branch_else_segment_10_3nwbuwgvts9b8 = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    404,
-    429
+    369,
+    394
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */
@@ -547,8 +547,8 @@ export const component_branch_else_segment_10_3nwbuwgvts9b8 = (ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_11_2xihdxeq133e1 = () => {
-  const [item_11] = _captures;
-  return item_11.visible;
+  const [item_10] = _captures;
+  return item_10.visible;
 };
 /*
 {
@@ -564,12 +564,12 @@ export const component_branch_condition_segment_11_2xihdxeq133e1 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    404,
-    411
+    369,
+    376
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */
@@ -585,12 +585,12 @@ import { component_text_segment_13_2cdl2v57hq8e0 } from './component.tsx_compone
 const component_branch_then_segment_12_1yfee1u0hawl8_tmpl0 = _createElementTemplate('<p> </p>');
 
 export const component_branch_then_segment_12_1yfee1u0hawl8 = (ctx) => {
-  const [item_11] = _captures;
+  const [item_10] = _captures;
   const el0 = component_branch_then_segment_12_1yfee1u0hawl8_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
     text0,
-    [item_11],
+    [item_10],
     component_text_segment_13_2cdl2v57hq8e0,
     ctx.scheduler
   );
@@ -611,19 +611,19 @@ export const component_branch_then_segment_12_1yfee1u0hawl8 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    415,
-    429
+    380,
+    394
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */
 ============================= src/component.tsx_component_text_segment_13_2cdl2v57hq8e0.js (ENTRY POINT)==
 
-export const component_text_segment_13_2cdl2v57hq8e0 = (item_11) => {
-  return item_11.title;
+export const component_text_segment_13_2cdl2v57hq8e0 = (item_10) => {
+  return item_10.title;
 };
 /*
 {
@@ -639,12 +639,12 @@ export const component_text_segment_13_2cdl2v57hq8e0 = (item_11) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    419,
-    424
+    384,
+    389
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */

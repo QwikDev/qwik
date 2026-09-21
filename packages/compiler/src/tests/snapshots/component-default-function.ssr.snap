@@ -1,20 +1,22 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export default component$(function () { return <span>child</span>; })
+export default function () { return <span>child</span>; }
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _markComponent } from '@qwik.dev/core';
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    return '<span>child</span>';
-  },
+
+export default function default_component_3rg6kq1so9aio(props, ctx) {
+  return '<span>child</span>';
+}
+_markComponent(
+  default_component_3rg6kq1so9aio,
   'default_component_3rg6kq1so9aio',
   './component.tsx'
 );
-export default default_component_3rg6kq1so9aio;
+
+export { default_component_3rg6kq1so9aio };
 == SSR DIAGNOSTICS ==
 
 []

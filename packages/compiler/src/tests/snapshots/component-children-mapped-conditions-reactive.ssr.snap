@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, Slot, useSignal } from '@qwik.dev/core';
-export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
-export default component$(() => {
+import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot /></main>;
+export default () => {
   const items = useSignal([{ title: 'Title', featured: true, visible: false }]);
   return <Panel>{items.value.map(({ title, featured, visible }, index) => featured && index === 0 ? <h2 q:slot="header">{index}:{title}</h2> : visible && <p>{title}</p>)}</Panel>;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -108,16 +108,16 @@ const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_1_asysu8t2u0ck'
 );
 q_component_for_render_segment_1_asysu8t2u0ck.s(component_for_render_segment_1_asysu8t2u0ck);
-const component_for_render_segment_7_asys26l95wbi = (ctx, __rangeId, __rowId, item_11, index) => {
+const component_for_render_segment_7_asys26l95wbi = (ctx, __rangeId, __rowId, item_10, index) => {
   const branchId0 = ctx.nextId();
-  ctx.addRoot(item_11);
+  ctx.addRoot(item_10);
   ctx.addRoot(index);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_8_2fzrlj3269xjh.w([item_11, index]),
+    q_component_branch_condition_segment_8_2fzrlj3269xjh.w([item_10, index]),
     q_component_branch_then_segment_9_24n7eq7lvht8e,
-    q_component_branch_else_segment_10_3nwbuwgvts9b8.w([item_11])
+    q_component_branch_else_segment_10_3nwbuwgvts9b8.w([item_10])
   );
   return maybeThen(branch0, (branch0) => [
     '<!r=',
@@ -166,8 +166,8 @@ const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_3_24n7atwir5934.s(component_branch_then_segment_3_24n7atwir5934);
 const component_branch_condition_segment_8_2fzrlj3269xjh = () => {
-  const [item_11, index] = _captures;
-  return item_11.featured && index.value === 0;
+  const [item_10, index] = _captures;
+  return item_10.featured && index.value === 0;
 };
 const q_component_branch_condition_segment_8_2fzrlj3269xjh = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_8_2fzrlj3269xjh'
@@ -183,14 +183,14 @@ const q_component_branch_then_segment_9_24n7eq7lvht8e = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_9_24n7eq7lvht8e.s(component_branch_then_segment_9_24n7eq7lvht8e);
 const component_branch_else_segment_10_3nwbuwgvts9b8 = (ctx) => {
-  const [item_11] = _captures;
+  const [item_10] = _captures;
   const branchId0 = ctx.nextId();
-  ctx.addRoot(item_11);
+  ctx.addRoot(item_10);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_11_2xihdxeq133e1.w([item_11]),
-    q_component_branch_then_segment_12_1yfee1u0hawl8.w([item_11]),
+    q_component_branch_condition_segment_11_2xihdxeq133e1.w([item_10]),
+    q_component_branch_then_segment_12_1yfee1u0hawl8.w([item_10]),
     undefined
   );
   return maybeThen(branch0, (branch0) => [
@@ -220,8 +220,8 @@ const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuhz);
 const component_branch_condition_segment_11_2xihdxeq133e1 = () => {
-  const [item_11] = _captures;
-  return item_11.visible;
+  const [item_10] = _captures;
+  return item_10.visible;
 };
 const q_component_branch_condition_segment_11_2xihdxeq133e1 = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_11_2xihdxeq133e1'
@@ -230,13 +230,13 @@ q_component_branch_condition_segment_11_2xihdxeq133e1.s(
   component_branch_condition_segment_11_2xihdxeq133e1
 );
 const component_branch_then_segment_12_1yfee1u0hawl8 = (ctx) => {
-  const [item_11] = _captures;
+  const [item_10] = _captures;
   const id0 = ctx.nextId();
-  ctx.addRoot(item_11);
+  ctx.addRoot(item_10);
   const text0 = renderSsrTextExpression(
     id0,
     null,
-    [item_11],
+    [item_10],
     q_component_text_segment_13_2cdl2v57hq8e0
   );
   return maybeThen(text0, (text0) => [
@@ -251,8 +251,8 @@ const q_component_branch_then_segment_12_1yfee1u0hawl8 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_12_1yfee1u0hawl8'
 );
 q_component_branch_then_segment_12_1yfee1u0hawl8.s(component_branch_then_segment_12_1yfee1u0hawl8);
-const component_text_segment_13_2cdl2v57hq8e0 = (item_11) => {
-  return item_11.title;
+const component_text_segment_13_2cdl2v57hq8e0 = (item_10) => {
+  return item_10.title;
 };
 const q_component_text_segment_13_2cdl2v57hq8e0 = /*#__PURE__*/ _noopQrl(
   'component_text_segment_13_2cdl2v57hq8e0'
@@ -348,8 +348,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    271,
-    431
+    236,
+    396
   ],
   "paramNames": [],
   "captureNames": [
@@ -414,8 +414,8 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    335,
-    429
+    300,
+    394
   ],
   "paramNames": [
     "{ title, featured, visible }",
@@ -445,8 +445,8 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    335,
-    358
+    300,
+    323
   ],
   "paramNames": [],
   "captureNames": [
@@ -508,8 +508,8 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    361,
-    401
+    326,
+    366
   ],
   "paramNames": [],
   "captureNames": [
@@ -537,8 +537,8 @@ export const component_text_segment_4_1fh11zg0n0shg = (index) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    382,
-    387
+    347,
+    352
   ],
   "paramNames": [],
   "captureNames": [
@@ -565,8 +565,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    390,
-    395
+    355,
+    360
   ],
   "paramNames": [],
   "captureNames": [
@@ -627,8 +627,8 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    271,
-    431
+    236,
+    396
   ],
   "paramNames": [],
   "captureNames": [
@@ -661,18 +661,18 @@ export const component_for_render_segment_7_asys26l95wbi = (
   ctx,
   __rangeId,
   __rowId,
-  item_11,
+  item_10,
   index
 ) => {
   const branchId0 = ctx.nextId();
-  ctx.addRoot(item_11);
+  ctx.addRoot(item_10);
   ctx.addRoot(index);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_8_2fzrlj3269xjh.w([item_11, index]),
+    q_component_branch_condition_segment_8_2fzrlj3269xjh.w([item_10, index]),
     q_component_branch_then_segment_9_24n7eq7lvht8e,
-    q_component_branch_else_segment_10_3nwbuwgvts9b8.w([item_11])
+    q_component_branch_else_segment_10_3nwbuwgvts9b8.w([item_10])
   );
   return maybeThen(branch0, (branch0) => [
     '<!r=',
@@ -698,8 +698,8 @@ export const component_for_render_segment_7_asys26l95wbi = (
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    335,
-    429
+    300,
+    394
   ],
   "paramNames": [
     "{ title, featured, visible }",
@@ -712,8 +712,8 @@ export const component_for_render_segment_7_asys26l95wbi = (
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_8_2fzrlj3269xjh = () => {
-  const [item_11, index] = _captures;
-  return item_11.featured && index.value === 0;
+  const [item_10, index] = _captures;
+  return item_10.featured && index.value === 0;
 };
 /*
 {
@@ -729,12 +729,12 @@ export const component_branch_condition_segment_8_2fzrlj3269xjh = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    335,
-    358
+    300,
+    323
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11",
+    "item_10",
     "index"
   ]
 }
@@ -758,8 +758,8 @@ export const component_branch_then_segment_9_24n7eq7lvht8e = () => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    361,
-    401
+    326,
+    366
   ],
   "paramNames": []
 }
@@ -781,14 +781,14 @@ const q_component_branch_then_segment_12_1yfee1u0hawl8 = /*#__PURE__*/ _noopQrl(
 q_component_branch_then_segment_12_1yfee1u0hawl8.s(component_branch_then_segment_12_1yfee1u0hawl8);
 
 export const component_branch_else_segment_10_3nwbuwgvts9b8 = (ctx) => {
-  const [item_11] = _captures;
+  const [item_10] = _captures;
   const branchId0 = ctx.nextId();
-  ctx.addRoot(item_11);
+  ctx.addRoot(item_10);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_11_2xihdxeq133e1.w([item_11]),
-    q_component_branch_then_segment_12_1yfee1u0hawl8.w([item_11]),
+    q_component_branch_condition_segment_11_2xihdxeq133e1.w([item_10]),
+    q_component_branch_then_segment_12_1yfee1u0hawl8.w([item_10]),
     undefined
   );
   return maybeThen(branch0, (branch0) => [
@@ -813,12 +813,12 @@ export const component_branch_else_segment_10_3nwbuwgvts9b8 = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    404,
-    429
+    369,
+    394
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */
@@ -827,8 +827,8 @@ export const component_branch_else_segment_10_3nwbuwgvts9b8 = (ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_11_2xihdxeq133e1 = () => {
-  const [item_11] = _captures;
-  return item_11.visible;
+  const [item_10] = _captures;
+  return item_10.visible;
 };
 /*
 {
@@ -844,12 +844,12 @@ export const component_branch_condition_segment_11_2xihdxeq133e1 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    404,
-    411
+    369,
+    376
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */
@@ -870,13 +870,13 @@ const q_component_text_segment_13_2cdl2v57hq8e0 = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_13_2cdl2v57hq8e0.s(component_text_segment_13_2cdl2v57hq8e0);
 
 export const component_branch_then_segment_12_1yfee1u0hawl8 = (ctx) => {
-  const [item_11] = _captures;
+  const [item_10] = _captures;
   const id0 = ctx.nextId();
-  ctx.addRoot(item_11);
+  ctx.addRoot(item_10);
   const text0 = renderSsrTextExpression(
     id0,
     null,
-    [item_11],
+    [item_10],
     q_component_text_segment_13_2cdl2v57hq8e0
   );
   return maybeThen(text0, (text0) => [
@@ -901,19 +901,19 @@ export const component_branch_then_segment_12_1yfee1u0hawl8 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    415,
-    429
+    380,
+    394
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */
 ============================= src/component.tsx_component_text_segment_13_2cdl2v57hq8e0.js (ENTRY POINT)==
 
-export const component_text_segment_13_2cdl2v57hq8e0 = (item_11) => {
-  return item_11.title;
+export const component_text_segment_13_2cdl2v57hq8e0 = (item_10) => {
+  return item_10.title;
 };
 /*
 {
@@ -929,12 +929,12 @@ export const component_text_segment_13_2cdl2v57hq8e0 = (item_11) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    419,
-    424
+    384,
+    389
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */

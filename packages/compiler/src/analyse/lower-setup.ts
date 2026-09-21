@@ -468,7 +468,12 @@ function lowerLocalComponent(
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup | null {
-  const candidates = findComponentCandidates({ body: [statement] }, ctx.bindings, ctx.coreBindings);
+  const candidates = findComponentCandidates(
+    { body: [statement] },
+    ctx.jsx,
+    ctx.bindings,
+    ctx.coreBindings
+  );
   if (candidates.length !== 1) {
     return null;
   }

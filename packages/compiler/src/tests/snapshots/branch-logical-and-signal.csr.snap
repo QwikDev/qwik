@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export default () => {
   const show = useSignal(false);
   return <div>{show.value && <span>yes</span>}</div>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -66,8 +66,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    138,
-    148
+    115,
+    125
   ],
   "paramNames": [],
   "captureNames": [
@@ -99,8 +99,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    152,
-    168
+    129,
+    145
   ],
   "paramNames": []
 }

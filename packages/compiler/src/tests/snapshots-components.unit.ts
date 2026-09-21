@@ -60,70 +60,55 @@ export default component(() => <Counter initial={1} />);`,
 
   test('should forward reactive component rest props and project children', async () => {
     const output = await testInput(mode, 'component-prop-rest', {
-      code: `import { component$, Slot } from '@qwik.dev/core';
-export const Child = component$(({ label }) => <section title={label}><Slot /></section>);
-export default component$(({ title: heading = 'heading', ...rest }) => (
+      code: `import { Slot } from '@qwik.dev/core';
+export const Child = ({ label }) => <section title={label}><Slot /></section>;
+export default ({ title: heading = 'heading', ...rest }) => (
   <Child {...rest} title={heading}><Slot /></Child>
-));`,
+);`,
     });
     expect(output.diagnostics).toEqual([]);
   });
   test('should treat any tag that does not start lowercase as a component', async () => {
     const output = await testInput(mode, 'component-underscore-tag', {
-      code: `import { component$ } from '@qwik.dev/core';
-import Layout from './layout';
+      code: `import Layout from './layout';
 const _Layout = Layout;
 function _createContent(props) {
   return <p>{props.text}</p>;
 }
-export default component$(() => <_Layout><_createContent text="hi" /></_Layout>);`,
+export default () => <_Layout><_createContent text="hi" /></_Layout>;`,
     });
     expect(output.diagnostics).toEqual([]);
   });
-  test('should lift a component declared inside another', async () => {
-    const output = await testInput(mode, 'component-nested-declaration', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
-  const count = useSignal(0);
-  const Child = component$(() => <b>{count.value}</b>);
-  return <p><Child /></p>;
-});`,
-    });
-    expect(output.diagnostics).toEqual([]);
-  });
-
   test('should keep a body rest of props live like a parameter rest', async () => {
     const output = await testInput(mode, 'component-body-prop-rest', {
-      code: `import { component$, Slot } from '@qwik.dev/core';
-export const Child = component$(({ label }) => <section title={label}><Slot /></section>);
-export default component$((props) => {
+      code: `import { Slot } from '@qwik.dev/core';
+export const Child = ({ label }) => <section title={label}><Slot /></section>;
+export default (props) => {
   const { title: heading = 'heading', ...rest } = props;
   return <Child {...rest} title={heading}><Slot /></Child>;
-});`,
+};`,
     });
     expect(output.diagnostics).toEqual([]);
   });
   test('should initialize prop defaults once and retain reactive alias reads', async () => {
     const output = await testInput(mode, 'component-prop-defaults', {
-      code: `import { component$ } from '@qwik.dev/core';
-import { createTitle, createHandler } from './defaults';
-export default component$(({ title: heading = createTitle(), suffix = '!', onSave$: save = createHandler() }) => {
+      code: `import { createTitle, createHandler } from './defaults';
+export default ({ title: heading = createTitle(), suffix = '!', onSave$: save = createHandler() }) => {
   const initial = heading;
   return <button title={heading} onClick$={() => save({ heading, initial })}>{heading + suffix}</button>;
-});`,
+};`,
     });
     expect(output.diagnostics).toEqual([]);
   });
 
   test('should evaluate prop defaults in parameter scope and in order', async () => {
     const output = await testInput(mode, 'component-prop-default-scope', {
-      code: `import { component$ } from '@qwik.dev/core';
-const fallback = 'outer';
+      code: `const fallback = 'outer';
 function side(value) { console.log(value); return value; }
-export default component$(({ a = side('a'), b = a, label = fallback }) => {
+export default ({ a = side('a'), b = a, label = fallback }) => {
   const fallback = 'inner';
   return <p title={fallback}>{a}{b}{label}</p>;
-});`,
+};`,
     });
     expect(output.diagnostics).toEqual([]);
     const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
@@ -136,11 +121,10 @@ export default component$(({ a = side('a'), b = a, label = fallback }) => {
 
   test('should read nested and computed parameter patterns as prop paths', async () => {
     const output = await testInput(mode, 'component-nested-params', {
-      code: `import { component$ } from '@qwik.dev/core';
-const KEY = 'dyn';
-export default component$(({ user: { name, tags: [first] }, [KEY]: keyed, meta: { count = 0 } }) => (
+      code: `const KEY = 'dyn';
+export default ({ user: { name, tags: [first] }, [KEY]: keyed, meta: { count = 0 } }) => (
   <p title={keyed} onClick$={() => console.log(name, first)}>{name}{first}{count}</p>
-));`,
+);`,
     });
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
@@ -152,11 +136,11 @@ export default component$(({ user: { name, tags: [first] }, [KEY]: keyed, meta: 
 
   test('should preserve reactive prop aliases and aliased children', async () => {
     const output = await testInput(mode, 'component-prop-aliases', {
-      code: `import { component$, Slot } from '@qwik.dev/core';
-export const Card = component$(({ title: heading, 'data-label': label, onSave$: save }) => (
+      code: `import { Slot } from '@qwik.dev/core';
+export const Card = ({ title: heading, 'data-label': label, onSave$: save }) => (
   <section><h2>{heading}</h2><button onClick$={() => save({ label })}>{label}</button><Slot /></section>
-));
-export default component$(() => <Card title="Title" data-label="Label"><p>Projected</p></Card>);`,
+);
+export default () => <Card title="Title" data-label="Label"><p>Projected</p></Card>;`,
     });
     expect(output.diagnostics).toEqual([]);
   });
@@ -167,23 +151,21 @@ export default component$(() => <Card title="Title" data-label="Label"><p>Projec
     ['logical', 'props.visible && <b>on</b>'],
   ])('should lower a %s component return through render expressions', async (name, expression) => {
     const output = await testInput(mode, `component-return-${name}`, {
-      code: `import { component$ } from '@qwik.dev/core';
-const Child = component$(() => <><span>first</span><span>second</span></>);
-export default component$((props) => { return ${expression}; });`,
+      code: `const Child = () => <><span>first</span><span>second</span></>;
+export default (props) => { return ${expression}; };`,
     });
     expect(output.diagnostics).toEqual([]);
   });
 
   test('should preserve function component declarations and default bindings', async () => {
     const output = await testInput(mode, 'component-function-declarations', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export const Wrapper = component$(function Wrapper() { return <App />; });
-const App = component$(function App() { return <Child />; });
-export default App;
-const Child = component$(function Child() {
+      code: `import { useSignal } from '@qwik.dev/core';
+export function Wrapper() { return <App />; }
+export default function App() { return <Child />; }
+function Child() {
   const count = useSignal(1);
   return <button onClick$={() => count.value++}>{count.value}</button>;
-});
+}
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -191,18 +173,17 @@ const Child = component$(function Child() {
 
   test('should preserve an anonymous default function component', async () => {
     const output = await testInput(mode, 'component-default-function', {
-      code: "import { component$ } from '@qwik.dev/core';\nexport default component$(function () { return <span>child</span>; })",
+      code: 'export default function () { return <span>child</span>; }',
     });
     expect(output.diagnostics).toEqual([]);
   });
 
   test('should preserve local component declarations without exporting them', async () => {
     const output = await testInput(mode, 'component-local-declaration', {
-      code: `import { component$ } from '@qwik.dev/core';
-const Settings = { label: 'ordinary value' };
+      code: `const Settings = { label: 'ordinary value' };
 export const Format = (value) => value;
-const Child = component$((props) => <strong>{props.label}</strong>);
-export default component$(() => <main><Child label="child" /></main>);
+const Child = (props) => <strong>{props.label}</strong>;
+export default () => <main><Child label="child" /></main>;
 `,
     });
     expect(output.diagnostics).toEqual([]);
@@ -216,91 +197,84 @@ export default component$(() => <main><Child label="child" /></main>);
 
   test('should compile a named const-export component', async () => {
     await testInput(mode, 'named-const-export', {
-      code: `import { component$ } from '@qwik.dev/core';
-export const App = component$(() => {
+      code: `export const App = () => {
   return <p>Hello Qwik</p>;
-});
+};
 `,
     });
   });
 
   test('should compile two components in one module', async () => {
     await testInput(mode, 'two-components', {
-      code: `import { component$ } from '@qwik.dev/core';
-export const Header = component$(() => {
+      code: `export const Header = () => {
   return <h1>Hi</h1>;
-});
-export default component$(() => {
+};
+export default () => {
   return <p>Hello Qwik</p>;
-});
+};
 `,
     });
   });
 
   test('should normalize multi-line JSX text', async () => {
     await testInput(mode, 'multi-line-jsx-text', {
-      code: `import { component$ } from '@qwik.dev/core';
-export default component$(() => {
+      code: `export default () => {
   return (
     <p>
       one
       two
     </p>
   );
-});
+};
 `,
     });
   });
 
   test('should compile a component with an unused props param', async () => {
     await testInput(mode, 'unused-props-param', {
-      code: `import { component$ } from '@qwik.dev/core';
-export default component$((props) => {
+      code: `export default (props) => {
   return <p>Hello Qwik</p>;
-});
+};
 `,
     });
   });
 
   test('should reuse the authored props param name', async () => {
     await testInput(mode, 'authored-props-name', {
-      code: `import { component$ } from '@qwik.dev/core';
-export default component$((myProps) => {
+      code: `export default (myProps) => {
   return <p>Hello Qwik</p>;
-});
+};
 `,
     });
   });
 
   test('should allocate a fresh name around a module binding named ctx', async () => {
     await testInput(mode, 'ctx-module-binding', {
-      code: `import { component$ } from '@qwik.dev/core';
-const ctx = 1;
-export default component$(() => {
+      code: `const ctx = 1;
+export default () => {
   return <p>Hello Qwik</p>;
-});
+};
 `,
     });
   });
 
   test('should keep an import sibling', async () => {
     await testInput(mode, 'import-sibling', {
-      code: `import { component$ } from '@qwik.dev/core';
-import { something } from './helpers';
-export default component$(() => {
+      code: `import { something } from './helpers';
+export default () => {
   return <p>Hello Qwik</p>;
-});
+};
 `,
     });
   });
 
   test('should compose the counter from events, captures, and signal reads', async () => {
     await testInput(mode, 'counter', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const count = useSignal(0);
   return <button onClick$={() => count.value++}>{count.value}</button>;
-});
+};
 `,
     });
   });
@@ -309,7 +283,7 @@ export default component$(() => {
     const output = await testInput(mode, 'component-qrl-props', {
       code: `import { component$, useSignal } from '@qwik.dev/core';
 import { Child } from './child';
-const Fallback = component$(() => <p>loading</p>);
+const Fallback = () => <p>loading</p>;
 export default component$(() => {
   const count = useSignal(1);
   const pick = (v) => v.x;
@@ -406,9 +380,8 @@ export const Lazy = componentQrl(qrl(() => import('./body'), 'Body'));
 
   test('should render a local component call', async () => {
     const output = await testInput(mode, 'component-call-local', {
-      code: `import { component$ } from '@qwik.dev/core';
-export const Child = component$(() => <strong>child</strong>);
-export default component$(() => <Child />);
+      code: `export const Child = () => <strong>child</strong>;
+export default () => <Child />;
 `,
     });
     expect(output.modules[0].code).toContain('createComponent(Child, null, ctx)');
@@ -416,39 +389,39 @@ export default component$(() => <Child />);
 
   test('should pass static and signal props to a component', async () => {
     await testInput(mode, 'component-props', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.className}: {props.count}</strong>);
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.className}: {props.count}</strong>;
+export default () => {
   const count = useSignal(1);
   return <Child className="total" count={count.value} />;
-});
+};
 `,
     });
   });
 
   test('should pass a computed signal prop to a component', async () => {
     await testInput(mode, 'component-computed-prop', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.total}</strong>);
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.total}</strong>;
+export default () => {
   const count = useSignal(2);
   return <Child total={count.value * 2} />;
-});
+};
 `,
     });
   });
 
   test('should pass local bindings as component props without a QRL', async () => {
     const output = await testInput(mode, 'component-binding-prop', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.count.value}</strong>);
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.count.value}</strong>;
+export default () => {
   const show = useSignal(true);
   const count = useSignal(0);
   let label = 'a';
   label = 'b';
   return <div>{show.value ? <Child count={count} label={label} /> : null}</div>;
-});
+};
 `,
     });
     expect(output.modules.map((module) => module.code).join('\n')).not.toContain('readExpression');
@@ -456,61 +429,60 @@ export default component$(() => {
 
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
-      code: `import { component$ } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.label}</strong>);
-export default component$((props) => (
+      code: `export const Child = (props) => <strong>{props.label}</strong>;
+export default (props) => (
   <Child label="before" {...props.base} middle="middle" {...props.overrides} label="after" />
-));
+);
 `,
     });
   });
 
   test('should proxy a reactive component prop spread', async () => {
     await testInput(mode, 'component-props-reactive-spread', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.label}</strong>);
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.label}</strong>;
+export default () => {
   const attributes = useSignal({ label: 'first' });
   return <Child {...attributes.value} />;
-});
+};
 `,
     });
   });
 
   test('should proxy mixed reactive component props in authored order', async () => {
     await testInput(mode, 'component-props-reactive-spread-mixed', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.title}: {props.count}</strong>);
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.title}: {props.count}</strong>;
+export default () => {
   const count = useSignal(1);
   const attributes = useSignal({ title: 'spread' });
   return <Child title="before" {...attributes.value} count={count.value} title="after" />;
-});
+};
 `,
     });
   });
 
   test('should keep event props lazy inside a reactive component props proxy', async () => {
     await testInput(mode, 'component-props-reactive-spread-event', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <button onClick$={props.onSave$}>{props.title}</button>);
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <button onClick$={props.onSave$}>{props.title}</button>;
+export default () => {
   const count = useSignal(0);
   const attributes = useSignal({ title: 'save' });
   return <Child {...attributes.value} onSave$={() => count.value++} />;
-});
+};
 `,
     });
   });
 
   test('should forward an event prop through a component', async () => {
     await testInput(mode, 'component-event-prop', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <button onClick$={props.onSave$}>save</button>);
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <button onClick$={props.onSave$}>save</button>;
+export default () => {
   const count = useSignal(0);
   return <Child onSave$={() => count.value++} on-save$={() => count.value--} />;
-});
+};
 `,
     });
   });
@@ -524,9 +496,9 @@ export default component$(() => {
           ? 'collection-key-conditional-reactive'
           : 'collection-key-conditional-derived',
         {
-          code: `import { component$, useSignal } from '@qwik.dev/core';
-export const Done = component$((props: { title: string }) => <b>{props.title}</b>);
-export default component$((props: { items: { id: string; done: boolean }[]; prefix: string; title: string }) => {
+          code: `import { useSignal } from '@qwik.dev/core';
+export const Done = (props: { title: string }) => <b>{props.title}</b>;
+export default (props: { items: { id: string; done: boolean }[]; prefix: string; title: string }) => {
   const items = useSignal([]);
   const selected = useSignal(true);
   return <ul>{${source}.map(({ id, done }, index) => {
@@ -537,7 +509,7 @@ export default component$((props: { items: { id: string; done: boolean }[]; pref
       ? <Done key={prefix + id} title={title} />
       : <li key={index + ':' + id}>{title}</li>;
   })}</ul>;
-});`,
+};`,
         }
       );
       expect(output.diagnostics).toEqual([]);
@@ -640,9 +612,8 @@ export default component$(() => {
 
   test('should defer plain-value and member tags to the runtime dynamic tag', async () => {
     const output = await testInput(mode, 'component-dynamic-tags', {
-      code: `import { component$ } from '@qwik.dev/core';
-import { Badge, UI } from './ui';
-export default component$((props: { as: string; component: any }) => {
+      code: `import { Badge, UI } from './ui';
+export default (props: { as: string; component: any }) => {
   const Heading = 'h2';
   const Alias = Badge;
   const Chosen = props.as;
@@ -655,7 +626,7 @@ export default component$((props: { as: string; component: any }) => {
       <props.component />
     </section>
   );
-});`,
+};`,
     });
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
@@ -678,15 +649,13 @@ export default component$((props: { as: string; component: any }) => {
     await testInputs(mode, 'component-call-import', [
       {
         path: 'src/app.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-import { Child as RenamedChild } from './child';
-export default component$(() => <main><RenamedChild /></main>);
+        code: `import { Child as RenamedChild } from './child';
+export default () => <main><RenamedChild /></main>;
 `,
       },
       {
         path: 'src/child.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-export const Child = component$(() => <strong>child</strong>);
+        code: `export const Child = () => <strong>child</strong>;
 `,
       },
     ]);
@@ -711,9 +680,8 @@ export const Shell = component$((props: { id: string }) => (
 
 test('csr replaces an embedded component marker in place', async () => {
   await testInput('csr', 'component-call-siblings', {
-    code: `import { component$ } from '@qwik.dev/core';
-export const Child = component$(() => <strong>child</strong>);
-export default component$(() => <main><span>before</span><Child /><span>after</span></main>);
+    code: `export const Child = () => <strong>child</strong>;
+export default () => <main><span>before</span><Child /><span>after</span></main>;
 `,
   });
 });

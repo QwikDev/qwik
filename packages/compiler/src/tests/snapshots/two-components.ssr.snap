@@ -1,18 +1,18 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export const Header = component$(() => {
+export const Header = () => {
   return <h1>Hi</h1>;
-});
-export default component$(() => {
+};
+export default () => {
   return <p>Hello Qwik</p>;
-});
+};
 
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _markComponent } from '@qwik.dev/core';
+
 export const Header = _markComponent(
   (props, ctx) => {
     return '<h1>Hi</h1>';

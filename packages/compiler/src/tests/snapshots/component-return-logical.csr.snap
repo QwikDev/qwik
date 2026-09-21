@@ -1,8 +1,7 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-const Child = component$(() => <><span>first</span><span>second</span></>);
-export default component$((props) => { return props.visible && <b>on</b>; });
+const Child = () => <><span>first</span><span>second</span></>;
+export default (props) => { return props.visible && <b>on</b>; };
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -68,8 +67,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    167,
-    180
+    99,
+    112
   ],
   "paramNames": [],
   "captureNames": [
@@ -100,8 +99,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    184,
-    193
+    116,
+    125
   ],
   "paramNames": []
 }

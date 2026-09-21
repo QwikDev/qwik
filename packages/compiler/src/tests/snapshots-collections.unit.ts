@@ -38,30 +38,30 @@ export default component$((props: { items: string[] }) => {
 
   test('should render a keyed collection with a static item', async () => {
     await testInput(mode, 'collection-static-item', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ id: 'a' }]);
   return <ul>{items.value.map((item) => <li key={item.id}>Item</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should render a reactive text hole inside a collection row', async () => {
     await testInput(mode, 'collection-reactive-row', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ id: 'a', label: 'Alpha' }]);
   return <ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should wire a row event handler capturing the loop item', async () => {
     await testInput(mode, 'collection-row-event', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ id: 'a' }]);
   return (
     <ul>
@@ -72,15 +72,15 @@ export default component$(() => {
       ))}
     </ul>
   );
-});
+};
 `,
     });
   });
 
   test('should materialize collection aliases in event handlers', async () => {
     await testInput(mode, 'collection-event-aliases', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const rows = useSignal([{ id: 'a', label: 'Alpha' }]);
   return <ul>{rows.value.map(({ id, label }, index) =>
     <li key={id}>
@@ -91,27 +91,27 @@ export default component$(() => {
       }}>default</button>
     </li>
   )}</ul>;
-});`,
+};`,
     });
   });
 
   test('should preserve receivers when calling collection aliases', async () => {
     await testInput(mode, 'collection-alias-calls', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const rows = useSignal([]);
   return <ul>{rows.value.map(({ id, save, api }) => <li key={id}>
     <button title={save()} onClick$={() => save()}>save</button>
     <button onClick$={(value = save?.()) => [value, (save)(), api.save()]}>optional</button>
   </li>)}</ul>;
-});`,
+};`,
     });
   });
 
   test('should give a capture-less row handler the plain ctx signature', async () => {
     await testInput(mode, 'collection-row-event-plain', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ id: 'a' }]);
   return (
     <ul>
@@ -122,135 +122,131 @@ export default component$(() => {
       ))}
     </ul>
   );
-});
+};
 `,
     });
   });
 
   test('should render a literal array collection with an inline row', async () => {
     await testInput(mode, 'collection-array-source', {
-      code: `import { component$ } from '@qwik.dev/core';
-export default component$(() => {
+      code: `export default () => {
   return <ul>{['first', 'second'].map(() => <li>Item</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should renumber rows through a reactive index param', async () => {
     await testInput(mode, 'collection-index-signal', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ id: 'a', label: 'Alpha' }]);
   return <ul>{items.value.map((item, index) => <li key={item.id}>{index}</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should wrap a fragment row in a comment marker range', async () => {
     await testInput(mode, 'collection-fragment-row', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ label: 'Alpha' }]);
   return <ul>{items.value.map((item) => <>{item.label}<b>!</b></>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should wrap a text-only fragment row in a comment marker range', async () => {
     await testInput(mode, 'collection-text-row', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ label: 'Alpha' }]);
   return <ul>{items.value.map((item) => <>{item.label}</>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should interpolate lexical loop params in an inline array row', async () => {
     await testInput(mode, 'collection-array-index', {
-      code: `import { component$ } from '@qwik.dev/core';
-export default component$(() => {
+      code: `export default () => {
   return <ul>{['first', 'second'].map((item, index) => <li>{index}:{item}</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should reconcile an unkeyed reactive collection by position', async () => {
     await testInput(mode, 'collection-unkeyed', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ label: 'Alpha' }]);
   return <ul>{items.value.map((item) => <li>{item.label}</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should destructure the row param into member reads', async () => {
     await testInput(mode, 'collection-destructured-param', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ id: 'a', label: 'Alpha' }]);
   return <ul>{items.value.map(({ id, label }) => <li key={id}>{label}</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should rewrite destructured names inside an opaque row expression', async () => {
     await testInput(mode, 'collection-destructured-opaque', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ id: 'a', label: 'Alpha' }]);
   return <ul>{items.value.map(({ id, label }) => <li key={id}>{label + '!' + id}</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should bind a dynamic class on a collection row root', async () => {
     await testInput(mode, 'collection-row-dynamic-class', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([{ id: 'a', label: 'Alpha', done: false }]);
   return <ul>{items.value.map((item) => <li key={item.id} class={item.done ? 'done' : 'todo'}>{item.label}</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should render a reactive expression inside an inline array row', async () => {
     await testInput(mode, 'collection-inline-signal-text', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const count = useSignal(0);
   return <ul>{['a', 'b'].map((item) => <li>{item + count.value}</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should render a props read inside an inline array row', async () => {
     await testInput(mode, 'collection-inline-props-text', {
-      code: `import { component$ } from '@qwik.dev/core';
-export default component$((props) => {
+      code: `export default (props) => {
   return <ul>{['a', 'b'].map((item) => <li>{props.title + item}</li>)}</ul>;
-});
+};
 `,
     });
   });
 
   test('should set attributes read from an inline array row once', async () => {
     const output = await testInput(mode, 'collection-inline-row-attr', {
-      code: `import { component$ } from '@qwik.dev/core';
-export default component$(() => {
+      code: `export default () => {
   return <ul>{['a', 'b'].map((item) => <li id={'row-' + item} class={item}>x</li>)}</ul>;
-});
+};
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
@@ -265,11 +261,10 @@ export default component$(() => {
 
   test('should splice a module const inside an inline array row', async () => {
     await testInput(mode, 'collection-inline-module-const', {
-      code: `import { component$ } from '@qwik.dev/core';
-const prefix = 'p-';
-export default component$(() => {
+      code: `const prefix = 'p-';
+export default () => {
   return <ul>{['a', 'b'].map((item) => <li>{prefix + item}</li>)}</ul>;
-});
+};
 `,
     });
   });
@@ -316,11 +311,11 @@ export default component$(() => {
     ],
   ])('should render expression collection sources: %s', async (kind, source, params, text) => {
     const output = await testInput(mode, `collection-source-${kind}`, {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$((props: { items: { id: number; title: string; visible: boolean }[] }) => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default (props: { items: { id: number; title: string; visible: boolean }[] }) => {
   const items = useSignal([{ id: 1, title: 'Title', visible: true }]);
   return <ul>{${source}.map(${params} => <li key={item.id}>{${text}}</li>)}</ul>;
-});`,
+};`,
     });
     expect(output.diagnostics).toEqual([]);
   });
@@ -330,12 +325,12 @@ export default component$((props: { items: { id: number; title: string; visible:
     ['array', '[id, , title = fallback.value, ...rest]', 'title + rest.length'],
   ])('should destructure collection parameters: %s', async (kind, pattern, text) => {
     const output = await testInput(mode, `collection-param-${kind}`, {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([]);
   const fallback = useSignal('Untitled');
   return <ul>{items.value.map((${pattern}) => <li key={id} onClick$={() => console.log(title)}>{${text}}</li>)}</ul>;
-});`,
+};`,
     });
     expect(output.diagnostics).toEqual([]);
   });
@@ -346,41 +341,39 @@ export default component$(() => {
     ['array', '[id, title] = fallback.value', 'id', 'title'],
   ])('should default collection parameters: %s', async (kind, pattern, key, title) => {
     const output = await testInput(mode, `collection-param-default-${kind}`, {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([]);
   const fallback = useSignal(null);
   return <ul>{items.value.map((${pattern}) => <li key={${key}} onClick$={() => console.log(${title})}>{${title}}</li>)}</ul>;
-});`,
+};`,
     });
     expect(output.diagnostics).toEqual([]);
   });
 
   test('should keep collection keys independent of empty arms', async () => {
     const output = await testInput(mode, 'collection-key-empty-arms', {
-      code: `import { component$ } from '@qwik.dev/core';
-export default component$((props: { items: { id: string; primary: boolean }[]; visible: boolean; prefix: string }) => <ul>{props.items.map(({ id, primary }, index) => {
+      code: `export default (props: { items: { id: string; primary: boolean }[]; visible: boolean; prefix: string }) => <ul>{props.items.map(({ id, primary }, index) => {
   const visible = props.visible;
   const key = props.prefix + id;
   return primary
     ? (visible ? <li key={key}>{id}</li> : null)
     : visible && <li key={index}>{id}</li>;
-})}</ul>);`,
+})}</ul>;`,
     });
     expect(output.diagnostics).toEqual([]);
   });
 
   test('should key nested conditional collection arms', async () => {
     const output = await testInput(mode, 'collection-key-nested-conditional', {
-      code: `import { component$ } from '@qwik.dev/core';
-export const Primary = component$(() => <b>Primary</b>);
-export default component$((props) => <ul>{props.items.map(({ id, primary, secondary }, index) => {
+      code: `export const Primary = () => <b>Primary</b>;
+export default (props) => <ul>{props.items.map(({ id, primary, secondary }, index) => {
   const prefix = props.prefix;
   const key = prefix + id;
   return primary ? <Primary key={key} /> : (
     secondary ? <li key={id}>Secondary</li> : <li key={index}>Other</li>
   );
-})}</ul>);`,
+})}</ul>;`,
     });
     expect(output.diagnostics).toEqual([]);
   });
@@ -438,11 +431,11 @@ export default component$(() => {
 
   test('should read a signal held by a row value', async () => {
     const output = await testInput(mode, 'collection-row-signal', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
   const signals = useSignal([useSignal(1), useSignal(2)]);
   return <ul>{signals.value.map((signal, index) => <li key={index}>{signal.value}</li>)}</ul>;
-});`,
+};`,
     });
     expect(output.diagnostics).toEqual([]);
     expect(output.modules.map((module) => module.code).join('\n')).toContain('signal.value');
@@ -450,8 +443,8 @@ export default component$(() => {
 
   test('should select collection key setup by binding dependencies', async () => {
     const output = await testInput(mode, 'collection-key-const', {
-      code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$((props: { title: string }) => {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default (props: { title: string }) => {
   const items = useSignal([]);
   const separator = useSignal(':');
   return <ul>{items.value.map(({ id, type }, index) => {
@@ -459,7 +452,7 @@ export default component$((props: { title: string }) => {
     const key = prefix + id + index;
     return <li key={key}>{title}</li>;
   })}</ul>;
-});`,
+};`,
     });
     expect(output.diagnostics).toEqual([]);
   });

@@ -1,9 +1,9 @@
 ==INPUT==
 
-import { component$, Slot } from '@qwik.dev/core';
-export const Inner = component$(() => <article><Slot name="title" /></article>);
-export const Wrapper = component$(() => <Inner><Slot name="heading" q:slot="title" /></Inner>);
-export default component$(() => <Wrapper><h1 q:slot="heading">Hello</h1></Wrapper>);
+import { Slot } from '@qwik.dev/core';
+export const Inner = () => <article><Slot name="title" /></article>;
+export const Wrapper = () => <Inner><Slot name="heading" q:slot="title" /></Inner>;
+export default () => <Wrapper><h1 q:slot="heading">Hello</h1></Wrapper>;
 
 == CSR OUTPUT ==
 
@@ -71,8 +71,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    269,
-    300
+    222,
+    253
   ],
   "paramNames": []
 }

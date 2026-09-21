@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <button onClick$>{props.title}</button>);
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <button onClick$>{props.title}</button>;
+export default () => {
   const attributes = useSignal({ title: 'save' });
   return <Child {...attributes.value} onSave$ />;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -70,8 +70,8 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    236,
-    271
+    201,
+    236
   ],
   "paramNames": [],
   "captureNames": [

@@ -5,13 +5,13 @@
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
 
-const SOURCE = `import { component$, isDev, isServer, useTask$ } from '@qwik.dev/core';
-export default component$(() => {
+const SOURCE = `import { isDev, isServer, useTask$ } from '@qwik.dev/core';
+export default () => {
   useTask$(() => {
     observe(isServer, isDev);
   });
   return <b>x</b>;
-});
+};
 `;
 
 async function taskChunk(isServer: boolean, mode?: 'dev' | 'lib') {
@@ -38,13 +38,13 @@ describe('build constants', () => {
       input: [
         {
           path: 'src/app.tsx',
-          code: `import { component$, isServer, useTask$ } from '@qwik.dev/core';
-export default component$(() => {
+          code: `import { isServer, useTask$ } from '@qwik.dev/core';
+export default () => {
   useTask$(() => {
     observe({ isServer: isServer });
   });
   return <b>x</b>;
-});
+};
 `,
         },
       ],
@@ -64,13 +64,13 @@ export default component$(() => {
   });
 
   test('import.meta.env answers the same way, and PROD is the negation of dev', async () => {
-    const env = `import { component$, useTask$ } from '@qwik.dev/core';
-export default component$(() => {
+    const env = `import { useTask$ } from '@qwik.dev/core';
+export default () => {
   useTask$(() => {
     observe(import.meta.env.SSR, import.meta.env.DEV, import.meta.env.PROD);
   });
   return <b>x</b>;
-});
+};
 `;
     const chunk = async (isServer: boolean, mode?: 'dev') => {
       const output = await transformModules({
@@ -91,13 +91,13 @@ export default component$(() => {
   });
 
   test('a host-defined key folds, and one it leaves out does not', async () => {
-    const source = `import { component$, useTask$ } from '@qwik.dev/core';
-export default component$(() => {
+    const source = `import { useTask$ } from '@qwik.dev/core';
+export default () => {
   useTask$(() => {
     observe(import.meta.env.VITE_BETA, import.meta.env.VITE_OTHER);
   });
   return <b>x</b>;
-});
+};
 `;
     const output = await transformModules({
       srcDir: 'src',
@@ -122,13 +122,13 @@ export default component$(() => {
       input: [
         {
           path: 'src/app.tsx',
-          code: `import { component$, useTask$ } from '@qwik.dev/core';
-export default component$(() => {
+          code: `import { useTask$ } from '@qwik.dev/core';
+export default () => {
   useTask$(() => {
     observe(import.meta.env.BASE_URL);
   });
   return <b>x</b>;
-});
+};
 `,
         },
       ],

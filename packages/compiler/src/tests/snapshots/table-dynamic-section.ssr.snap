@@ -1,7 +1,6 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export default component$((props: { on: boolean; rows: number[] }) => (
+export default (props: { on: boolean; rows: number[] }) => (
   <table>
     <thead>
       <tr>
@@ -25,7 +24,7 @@ export default component$((props: { on: boolean; rows: number[] }) => (
       </tr>
     </tfoot>
   </table>
-));
+);
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -43,6 +42,7 @@ import {
   renderSsrTextExpression,
   _markComponent,
 } from '@qwik.dev/core';
+
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   const [props] = _captures;
   return props.on;
@@ -162,8 +162,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    199,
-    207
+    143,
+    151
   ],
   "paramNames": [],
   "captureNames": [
@@ -230,8 +230,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    218,
-    355
+    162,
+    299
   ],
   "paramNames": [],
   "captureNames": [
@@ -280,8 +280,8 @@ export const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, __rangeId, __ro
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    271,
-    328
+    215,
+    272
   ],
   "paramNames": [
     "row"
@@ -307,8 +307,8 @@ export const component_for_key_segment_3_24urt2mcqntyh = (row) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    280,
-    283
+    224,
+    227
   ],
   "paramNames": [
     "row"
@@ -334,8 +334,8 @@ export const component_text_segment_4_1fh11zg0n0shg = (row) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    303,
-    306
+    247,
+    250
   ],
   "paramNames": [],
   "captureNames": [
@@ -362,8 +362,8 @@ export const component_branch_else_segment_5_19dvrhg32thgw = () => {
   "ctxName": "branch:else",
   "captures": false,
   "loc": [
-    372,
-    377
+    316,
+    321
   ],
   "paramNames": []
 }

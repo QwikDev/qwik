@@ -1,10 +1,9 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.label}</strong>);
-export default component$((props) => (
+export const Child = (props) => <strong>{props.label}</strong>;
+export default (props) => (
   <Child label="before" {...props.base} middle="middle" {...props.overrides} label="after" />
-));
+);
 
 == CSR OUTPUT ==
 
@@ -21,6 +20,7 @@ import {
   mergeProps,
   createComponent,
 } from '@qwik.dev/core';
+
 const Child_tmpl0 = _createElementTemplate('<strong> </strong>');
 const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_props_segment_0_208o16glymg7p',
@@ -81,8 +81,8 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    188,
-    198
+    120,
+    130
   ],
   "paramNames": [],
   "captureNames": [
@@ -112,8 +112,8 @@ export const component_props_segment_1_208o0sfi1se76 = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    220,
-    235
+    152,
+    167
   ],
   "paramNames": [],
   "captureNames": [

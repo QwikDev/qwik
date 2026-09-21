@@ -3,9 +3,9 @@ import { analyseModule, generateJsCsr, generateJsSsr, linkPlans, ResolutionKind 
 import { EntryKind, Environment, LinkResultKind, SetupKind } from '../schema';
 import { deepFreeze, serverSpecialization } from './fixtures';
 
-const source = `import { component$, useSignal as signal, useComputed$ as computed } from '@qwik.dev/core';
+const source = `import { useSignal as signal, useComputed$ as computed } from '@qwik.dev/core';
 import { useCustom as hook } from './hooks';
-export default component$(({ format: formatter }) => {
+export default ({ format: formatter }) => {
   const count = signal(1);
   const doubled = computed(() => count.value * 2);
   const result = hook();
@@ -13,7 +13,7 @@ export default component$(({ format: formatter }) => {
   const plain = local(result);
   const label = formatter(plain);
   return <span>{label}</span>;
-});`;
+};`;
 
 test('setup calls have one semantic target, independent of JS spelling', async () => {
   const plan = await analyseModule({ path: 'component.tsx', code: source }, {});

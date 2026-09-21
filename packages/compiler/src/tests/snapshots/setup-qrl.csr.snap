@@ -1,14 +1,14 @@
 ==INPUT==
 
-import { component$, $, useSignal } from '@qwik.dev/core';
-export default component$((props) => {
+import { $, useSignal } from '@qwik.dev/core';
+export default (props) => {
   const count = useSignal(0);
   const onSave = $((event) => {
     count.value++;
     props.onSave$(props.id, event.type);
   });
   return <main><button onClick$={onSave}>save</button><button onClick$={onSave}>again</button></main>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -64,8 +64,8 @@ export const component_onSave_segment_0_2tdav5vx5sjh3 = (event) => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    145,
-    224
+    122,
+    201
   ],
   "paramNames": [
     "event"

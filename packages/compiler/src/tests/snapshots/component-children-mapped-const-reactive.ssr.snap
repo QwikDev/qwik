@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { component$, Slot, useSignal } from '@qwik.dev/core';
-export const Panel = component$(() => <main><Slot name="header" /></main>);
-export default component$(() => {
+import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /></main>;
+export default () => {
   const suffix = useSignal('!');
   const items = useSignal([{ title: 'Title' }]);
   return <Panel>{items.value.map(({ title }, index) => {
@@ -10,7 +10,7 @@ export default component$(() => {
     const numbered = index + ':' + label, visible = label.length > 0;
     return visible && <h2 q:slot="header" title={numbered} onClick$={() => console.log(label)}>{label}:{numbered}</h2>;
   })}</Panel>;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -247,8 +247,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    264,
-    560
+    229,
+    525
   ],
   "paramNames": [],
   "captureNames": [
@@ -319,8 +319,8 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
   "ctxName": "for:render",
   "captures": true,
   "loc": [
-    309,
-    439
+    274,
+    404
   ],
   "paramNames": [
     "{ title }",
@@ -353,8 +353,8 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    446,
-    453
+    411,
+    418
   ],
   "paramNames": [],
   "captureNames": [
@@ -441,8 +441,8 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    457,
-    553
+    422,
+    518
   ],
   "paramNames": [],
   "captureNames": [
@@ -470,8 +470,8 @@ export const component_title_segment_4_2f0r2hnbm1rp1 = (numbered) => {
   "ctxName": "title",
   "captures": true,
   "loc": [
-    484,
-    492
+    449,
+    457
   ],
   "paramNames": [],
   "captureNames": [
@@ -501,8 +501,8 @@ export const component_q_e_click_segment_5_2xwye36z3pcnc = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    494,
-    529
+    459,
+    494
   ],
   "paramNames": [],
   "captureNames": [
@@ -529,8 +529,8 @@ export const component_text_segment_6_1fh12ri8gowii = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    531,
-    536
+    496,
+    501
   ],
   "paramNames": [],
   "captureNames": [
@@ -557,8 +557,8 @@ export const component_text_segment_7_1fh135jcdiyj1 = (numbered) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    539,
-    547
+    504,
+    512
   ],
   "paramNames": [],
   "captureNames": [

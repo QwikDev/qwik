@@ -1,13 +1,13 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-const Child = component$(() => <><span>first</span><span>second</span></>);
-export default component$((props) => { return <><Child /><b>tail</b></>; });
+const Child = () => <><span>first</span><span>second</span></>;
+export default (props) => { return <><Child /><b>tail</b></>; };
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { createTemplate, _first, createComponent, _toNodes, maybeThen } from '@qwik.dev/core';
+
 const Child_tmpl0 = createTemplate('<span>first</span><span>second</span>');
 const default_tmpl0 = createTemplate('<!><b>tail</b>');
 const Child = (props0, ctx) => {

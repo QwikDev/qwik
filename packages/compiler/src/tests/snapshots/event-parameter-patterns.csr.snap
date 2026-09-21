@@ -1,14 +1,13 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export const Button = component$((props) => <button onClick$={props.onSave$}>save</button>);
-export default component$(() => {
+export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
+export default () => {
   const fallback = 'click';
   return <Button
     onSave$={({ type = fallback } = {}, ...rest) => [type, rest.length]}
     onReset$={([first, ...rest], { id = 'button' }) => [first, rest, id]}
   />;
-});
+};
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -78,8 +77,8 @@ export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    107,
-    120
+    51,
+    64
   ],
   "paramNames": [],
   "captureNames": [
@@ -109,8 +108,8 @@ export const component_q_e_save_segment_1_3krcbiqvmvgft = (...args0) => {
   "ctxName": "onSave$",
   "captures": true,
   "loc": [
-    221,
-    289
+    153,
+    221
   ],
   "paramNames": [
     "{ type = fallback } = {}",
@@ -143,8 +142,8 @@ export const component_q_e_reset_segment_2_3clnjugf9bxli = (
   "ctxName": "onReset$",
   "captures": false,
   "loc": [
-    294,
-    363
+    226,
+    295
   ],
   "paramNames": [
     "[first, ...rest]",

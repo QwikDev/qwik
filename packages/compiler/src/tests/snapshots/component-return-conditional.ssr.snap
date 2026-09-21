@@ -1,8 +1,7 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-const Child = component$(() => <><span>first</span><span>second</span></>);
-export default component$((props) => { return props.visible ? <b>on</b> : null; });
+const Child = () => <><span>first</span><span>second</span></>;
+export default (props) => { return props.visible ? <b>on</b> : null; };
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -15,6 +14,7 @@ import {
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
+
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   const [props] = _captures;
   return props.visible;
@@ -86,8 +86,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    167,
-    180
+    99,
+    112
   ],
   "paramNames": [],
   "captureNames": [
@@ -114,8 +114,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = () => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    183,
-    192
+    115,
+    124
   ],
   "paramNames": []
 }

@@ -1,14 +1,14 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export const Child = component$(() => <strong>child</strong>);
-export default component$(() => <Child />);
+export const Child = () => <strong>child</strong>;
+export default () => <Child />;
 
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _createElementTemplate, createComponent } from '@qwik.dev/core';
+
 const Child_tmpl0 = _createElementTemplate('<strong>child</strong>');
 export const Child = (props, ctx) => {
   const el0 = Child_tmpl0(ctx.document);

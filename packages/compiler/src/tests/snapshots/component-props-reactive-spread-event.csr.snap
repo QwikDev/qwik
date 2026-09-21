@@ -1,12 +1,12 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <button onClick$={props.onSave$}>{props.title}</button>);
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <button onClick$={props.onSave$}>{props.title}</button>;
+export default () => {
   const count = useSignal(0);
   const attributes = useSignal({ title: 'save' });
   return <Child {...attributes.value} onSave$={() => count.value++} />;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -82,8 +82,8 @@ export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    117,
-    130
+    94,
+    107
   ],
   "paramNames": [],
   "captureNames": [
@@ -113,8 +113,8 @@ export const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
   "ctxName": "onSave$",
   "captures": true,
   "loc": [
-    310,
-    339
+    275,
+    304
   ],
   "paramNames": [],
   "captureNames": [
@@ -149,8 +149,8 @@ export const component_props_segment_2_208o0eee4yc6n = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    282,
-    339
+    247,
+    304
   ],
   "paramNames": [],
   "captureNames": [

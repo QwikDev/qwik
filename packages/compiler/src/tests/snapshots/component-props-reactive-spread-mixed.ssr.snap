@@ -1,12 +1,12 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.title}: {props.count}</strong>);
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.title}: {props.count}</strong>;
+export default () => {
   const count = useSignal(1);
   const attributes = useSignal({ title: 'spread' });
   return <Child title="before" {...attributes.value} count={count.value} title="after" />;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -102,8 +102,8 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    280,
-    350
+    245,
+    315
   ],
   "paramNames": [],
   "captureNames": [

@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { component$, $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
+import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
 import { consume } from './consumer';
-export default component$(function App() {
+export default function App() {
   const count = useSignal(0);
   const factory = $((value: number) => <b>{value}</b>);
   const computed = useComputed$(() => <i>computed</i>);
@@ -12,26 +12,11 @@ export default component$(function App() {
     const native = (value) => <small>{value}</small>;
     consume(native(count.value), factory, computed.value, <b>event</b>);
   }}>run</button>;
-})
+}
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  useComputedQrl,
-  useTaskQrl,
-  _captures,
-  getActiveInvokeContextOrNull,
-  maybeThen,
-  invoke,
-  _noopQrl,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextExpression,
-  _markComponent,
-} from '@qwik.dev/core';
-import { consume } from './consumer';
 const component_factory_segment_2_1uubroervc02z = (value) => {
   return q_component_jsx_segment_0_38vnjku9rukc6.w([value]);
 };
@@ -128,34 +113,47 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
   'component_text_segment_1_1fh10tcowimfv'
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const invokeCtx0 = getActiveInvokeContextOrNull();
-    const count = useSignal(0);
-    const factory = q_component_factory_segment_2_1uubroervc02z;
-    const computed = useComputedQrl(q_component_computed_segment_4_2s31kgmgmz0s);
-    useTaskQrl(q_component_useTaskqrl_segment_6_1og82uxaau58i);
-    consume((value) => {
-      const label = value;
-      return q_component_jsx_segment_7_38vnkqxlicqdr.w([label]);
-    });
-    return maybeThen(ctx.scheduler.flush(), () =>
-      invoke(invokeCtx0, () => {
-        return [
-          '<button',
-          ctx.eventAttrParts(
-            'q-e:click',
-            q_component_q_e_click_segment_12_3lkvrpkpzrkb6.w([count, factory, computed])
-          ),
-          '>run</button>',
-        ];
-      })
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import {
+  useSignal,
+  useComputedQrl,
+  useTaskQrl,
+  _captures,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+  _noopQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  _markComponent,
+} from '@qwik.dev/core';
+import { consume } from './consumer';
+export default function App(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(0);
+  const factory = q_component_factory_segment_2_1uubroervc02z;
+  const computed = useComputedQrl(q_component_computed_segment_4_2s31kgmgmz0s);
+  useTaskQrl(q_component_useTaskqrl_segment_6_1og82uxaau58i);
+  consume((value) => {
+    const label = value;
+    return q_component_jsx_segment_7_38vnkqxlicqdr.w([label]);
+  });
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      return [
+        '<button',
+        ctx.eventAttrParts(
+          'q-e:click',
+          q_component_q_e_click_segment_12_3lkvrpkpzrkb6.w([count, factory, computed])
+        ),
+        '>run</button>',
+      ];
+    })
+  );
+}
+_markComponent(App, 'default_component_3rg6kq1so9aio', './component.tsx');
+
+export { App as default_component_3rg6kq1so9aio };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
@@ -204,8 +202,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    233,
-    247
+    210,
+    224
   ],
   "paramNames": [],
   "captureNames": [
@@ -232,8 +230,8 @@ export const component_text_segment_1_1fh10tcowimfv = (value) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    237,
-    242
+    214,
+    219
   ],
   "paramNames": [],
   "captureNames": [
@@ -267,8 +265,8 @@ export const component_factory_segment_2_1uubroervc02z = (value) => {
   "ctxName": "$",
   "captures": false,
   "loc": [
-    212,
-    248
+    189,
+    225
   ],
   "paramNames": [
     "value"
@@ -294,8 +292,8 @@ export const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    288,
-    303
+    265,
+    280
   ],
   "paramNames": []
 }
@@ -326,8 +324,8 @@ export const component_computed_segment_4_2s31kgmgmz0s = () => {
   "ctxName": "useComputed$",
   "captures": false,
   "loc": [
-    269,
-    304
+    246,
+    281
   ],
   "paramNames": []
 }
@@ -351,8 +349,8 @@ export const component_jsx_segment_5_38vnliztc0uet = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    331,
-    348
+    308,
+    325
   ],
   "paramNames": []
 }
@@ -384,8 +382,8 @@ export const component_useTaskqrl_segment_6_1og82uxaau58i = () => {
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    308,
-    350
+    285,
+    327
   ],
   "paramNames": []
 }
@@ -438,8 +436,8 @@ export const component_jsx_segment_7_38vnkqxlicqdr = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    411,
-    435
+    388,
+    412
   ],
   "paramNames": [],
   "captureNames": [
@@ -466,8 +464,8 @@ export const component_text_segment_8_1fh0xb2pp04b4 = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    420,
-    425
+    397,
+    402
   ],
   "paramNames": [],
   "captureNames": [
@@ -523,8 +521,8 @@ export const component_jsx_segment_9_38vnn348zd2gx = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    506,
-    528
+    483,
+    505
   ],
   "paramNames": [],
   "captureNames": [
@@ -551,8 +549,8 @@ export const component_text_segment_10_2cdl418j88efl = (value) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    514,
-    519
+    491,
+    496
   ],
   "paramNames": [],
   "captureNames": [
@@ -579,8 +577,8 @@ export const component_jsx_segment_11_2wo80qpf8geko = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    588,
-    600
+    565,
+    577
   ],
   "paramNames": []
 }
@@ -619,8 +617,8 @@ export const component_q_e_click_segment_12_3lkvrpkpzrkb6 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    458,
-    535
+    435,
+    512
   ],
   "paramNames": [],
   "captureNames": [

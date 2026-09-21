@@ -38,13 +38,13 @@ test.each([
     input: [
       {
         path: 'src/factory.tsx',
-        code: `import { component$, useSignal } from '@qwik.dev/core';
+        code: `import { useSignal } from '@qwik.dev/core';
 import { Display } from './display';
-export default component$(function App() {
+export default function App() {
   const prefix = 'prefix:';
   const options = useSignal({ title: 'title' });
   return ${jsx};
-});`,
+}`,
       },
     ],
   });

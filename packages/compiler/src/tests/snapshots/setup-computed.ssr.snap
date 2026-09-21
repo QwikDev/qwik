@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
-export default component$(() => {
+import { useSignal, useComputed$ } from '@qwik.dev/core';
+export default () => {
   const count = useSignal(1);
   const doubled = useComputed$(() => count.value * 2);
   return <span>{doubled.value}</span>;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -71,8 +71,8 @@ export const component_doubled_segment_0_2yvob8vshk72o = () => {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    152,
-    187
+    129,
+    164
   ],
   "paramNames": [],
   "captureNames": [

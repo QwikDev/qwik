@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, Slot, useSignal } from '@qwik.dev/core';
-export const Panel = component$(() => <main><Slot name="header" /><Slot /></main>);
-export default component$(() => {
+import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot /></main>;
+export default () => {
   const items = useSignal([{ title: 'Title', featured: true, visible: false }]);
   return <Panel>{[{ title: 'Title', featured: true, visible: false }].map(({ title, featured, visible }, index) => featured && index === 0 ? <h2 q:slot="header">{index}:{title}</h2> : visible && <p>{title}</p>)}</Panel>;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -28,7 +28,7 @@ import {
   _textValue,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  function semantic_collectionRender_283_483_23tqk7jfw23oy(ctx, __rangeId, __rowId, item, index) {
+  function semantic_collectionRender_248_448_x8ucqnr6r572(ctx, __rangeId, __rowId, item, index) {
     const branchId0 = ctx.nextId();
     ctx.addRoot(item);
     ctx.addRoot(index);
@@ -58,7 +58,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
       },
     ],
     undefined,
-    semantic_collectionRender_283_483_23tqk7jfw23oy,
+    semantic_collectionRender_248_448_x8ucqnr6r572,
     0,
     false,
     3
@@ -76,22 +76,16 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
 const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
-  function semantic_collectionRender_283_483_23tqk7jfw23oy(
-    ctx,
-    __rangeId,
-    __rowId,
-    item_11,
-    index
-  ) {
+  function semantic_collectionRender_248_448_x8ucqnr6r572(ctx, __rangeId, __rowId, item_10, index) {
     const branchId0 = ctx.nextId();
-    ctx.addRoot(item_11);
+    ctx.addRoot(item_10);
     ctx.addRoot(index);
     const branch0 = renderSsrBranch(
       ctx,
       branchId0,
-      q_component_branch_condition_segment_4_2fzrgupr899d5.w([item_11, index]),
+      q_component_branch_condition_segment_4_2fzrgupr899d5.w([item_10, index]),
       q_component_branch_then_segment_5_24n7d63685l6a,
-      q_component_branch_else_segment_6_19dvsnjetbnih.w([item_11])
+      q_component_branch_else_segment_6_19dvsnjetbnih.w([item_10])
     );
     return maybeThen(branch0, (branch0) => [
       '<!b=',
@@ -112,7 +106,7 @@ const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
       },
     ],
     undefined,
-    semantic_collectionRender_283_483_23tqk7jfw23oy,
+    semantic_collectionRender_248_448_x8ucqnr6r572,
     0,
     false,
     3
@@ -148,8 +142,8 @@ const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
 const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
-  const [item_11, index] = _captures;
-  return item_11.featured && index === 0;
+  const [item_10, index] = _captures;
+  return item_10.featured && index === 0;
 };
 const q_component_branch_condition_segment_4_2fzrgupr899d5 = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_4_2fzrgupr899d5'
@@ -165,14 +159,14 @@ const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_5_24n7d63685l6a.s(component_branch_then_segment_5_24n7d63685l6a);
 const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
-  const [item_11] = _captures;
+  const [item_10] = _captures;
   const branchId0 = ctx.nextId();
-  ctx.addRoot(item_11);
+  ctx.addRoot(item_10);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_7_2fzrfomfhr3bk.w([item_11]),
-    q_component_branch_then_segment_8_24n7f48psbv8x.w([item_11]),
+    q_component_branch_condition_segment_7_2fzrfomfhr3bk.w([item_10]),
+    q_component_branch_then_segment_8_24n7f48psbv8x.w([item_10]),
     undefined
   );
   return maybeThen(branch0, (branch0) => [
@@ -188,8 +182,8 @@ const q_component_branch_else_segment_6_19dvsnjetbnih = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_else_segment_6_19dvsnjetbnih.s(component_branch_else_segment_6_19dvsnjetbnih);
 const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
-  const [item_11] = _captures;
-  return item_11.visible;
+  const [item_10] = _captures;
+  return item_10.visible;
 };
 const q_component_branch_condition_segment_7_2fzrfomfhr3bk = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_7_2fzrfomfhr3bk'
@@ -198,8 +192,8 @@ q_component_branch_condition_segment_7_2fzrfomfhr3bk.s(
   component_branch_condition_segment_7_2fzrfomfhr3bk
 );
 const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
-  const [item_11] = _captures;
-  return ['<p>', escapeHTML(_textValue(item_11.title)), '</p>'];
+  const [item_10] = _captures;
+  return ['<p>', escapeHTML(_textValue(item_10.title)), '</p>'];
 };
 const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_8_24n7f48psbv8x'
@@ -262,7 +256,7 @@ const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
 q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  function semantic_collectionRender_283_483_23tqk7jfw23oy(ctx, __rangeId, __rowId, item, index) {
+  function semantic_collectionRender_248_448_x8ucqnr6r572(ctx, __rangeId, __rowId, item, index) {
     const branchId0 = ctx.nextId();
     ctx.addRoot(item);
     ctx.addRoot(index);
@@ -292,7 +286,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
       },
     ],
     undefined,
-    semantic_collectionRender_283_483_23tqk7jfw23oy,
+    semantic_collectionRender_248_448_x8ucqnr6r572,
     0,
     false,
     3
@@ -319,8 +313,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    271,
-    472
+    236,
+    437
   ],
   "paramNames": []
 }
@@ -347,8 +341,8 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    376,
-    399
+    341,
+    364
   ],
   "paramNames": [],
   "captureNames": [
@@ -379,8 +373,8 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    402,
-    442
+    367,
+    407
   ],
   "paramNames": [],
   "captureNames": [
@@ -418,22 +412,16 @@ const q_component_branch_else_segment_6_19dvsnjetbnih = /*#__PURE__*/ _noopQrl(
 q_component_branch_else_segment_6_19dvsnjetbnih.s(component_branch_else_segment_6_19dvsnjetbnih);
 
 export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
-  function semantic_collectionRender_283_483_23tqk7jfw23oy(
-    ctx,
-    __rangeId,
-    __rowId,
-    item_11,
-    index
-  ) {
+  function semantic_collectionRender_248_448_x8ucqnr6r572(ctx, __rangeId, __rowId, item_10, index) {
     const branchId0 = ctx.nextId();
-    ctx.addRoot(item_11);
+    ctx.addRoot(item_10);
     ctx.addRoot(index);
     const branch0 = renderSsrBranch(
       ctx,
       branchId0,
-      q_component_branch_condition_segment_4_2fzrgupr899d5.w([item_11, index]),
+      q_component_branch_condition_segment_4_2fzrgupr899d5.w([item_10, index]),
       q_component_branch_then_segment_5_24n7d63685l6a,
-      q_component_branch_else_segment_6_19dvsnjetbnih.w([item_11])
+      q_component_branch_else_segment_6_19dvsnjetbnih.w([item_10])
     );
     return maybeThen(branch0, (branch0) => [
       '<!b=',
@@ -454,7 +442,7 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) =>
       },
     ],
     undefined,
-    semantic_collectionRender_283_483_23tqk7jfw23oy,
+    semantic_collectionRender_248_448_x8ucqnr6r572,
     0,
     false,
     3
@@ -481,8 +469,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    271,
-    472
+    236,
+    437
   ],
   "paramNames": []
 }
@@ -492,8 +480,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) =>
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
-  const [item_11, index] = _captures;
-  return item_11.featured && index === 0;
+  const [item_10, index] = _captures;
+  return item_10.featured && index === 0;
 };
 /*
 {
@@ -509,12 +497,12 @@ export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    376,
-    399
+    341,
+    364
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11",
+    "item_10",
     "index"
   ]
 }
@@ -538,8 +526,8 @@ export const component_branch_then_segment_5_24n7d63685l6a = () => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    402,
-    442
+    367,
+    407
   ],
   "paramNames": []
 }
@@ -561,14 +549,14 @@ const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _noopQrl(
 q_component_branch_then_segment_8_24n7f48psbv8x.s(component_branch_then_segment_8_24n7f48psbv8x);
 
 export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
-  const [item_11] = _captures;
+  const [item_10] = _captures;
   const branchId0 = ctx.nextId();
-  ctx.addRoot(item_11);
+  ctx.addRoot(item_10);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_7_2fzrfomfhr3bk.w([item_11]),
-    q_component_branch_then_segment_8_24n7f48psbv8x.w([item_11]),
+    q_component_branch_condition_segment_7_2fzrfomfhr3bk.w([item_10]),
+    q_component_branch_then_segment_8_24n7f48psbv8x.w([item_10]),
     undefined
   );
   return maybeThen(branch0, (branch0) => [
@@ -593,12 +581,12 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    445,
-    470
+    410,
+    435
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */
@@ -607,8 +595,8 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
-  const [item_11] = _captures;
-  return item_11.visible;
+  const [item_10] = _captures;
+  return item_10.visible;
 };
 /*
 {
@@ -624,12 +612,12 @@ export const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    445,
-    452
+    410,
+    417
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */
@@ -638,8 +626,8 @@ export const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
 import { _captures, escapeHTML, _textValue } from '@qwik.dev/core';
 
 export const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
-  const [item_11] = _captures;
-  return ['<p>', escapeHTML(_textValue(item_11.title)), '</p>'];
+  const [item_10] = _captures;
+  return ['<p>', escapeHTML(_textValue(item_10.title)), '</p>'];
 };
 /*
 {
@@ -655,12 +643,12 @@ export const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    456,
-    470
+    421,
+    435
   ],
   "paramNames": [],
   "captureNames": [
-    "item_11"
+    "item_10"
   ]
 }
 */

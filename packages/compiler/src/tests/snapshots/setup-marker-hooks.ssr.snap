@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, $, implicit$FirstArg, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
+import { $, implicit$FirstArg, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 import { useCustom$ } from './hooks';
 export const useLocalQrl = (qrl) => qrl;
 export const useLocal = (fn) => fn;
 export const useLocal$ = implicit$FirstArg(useLocalQrl);
-export default component$(() => {
+export default () => {
   const count = useSignal(1);
   const read = $(() => count.value);
   useTask$(read);
@@ -13,7 +13,7 @@ export default component$(() => {
   useCustom$(() => count.value);
   useLocal$(() => count.value);
   return <span>{total.value}</span>;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -122,8 +122,8 @@ export const component_read_segment_0_1zbzildyw5vrf = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    353,
-    373
+    330,
+    350
   ],
   "paramNames": [],
   "captureNames": [
@@ -153,8 +153,8 @@ export const component_total_segment_1_33cb9ycgfz3ta = () => {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    409,
-    460
+    386,
+    437
   ],
   "paramNames": [],
   "captureNames": [
@@ -184,8 +184,8 @@ export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
   "ctxName": "useCustom$",
   "captures": true,
   "loc": [
-    464,
-    493
+    441,
+    470
   ],
   "paramNames": [],
   "captureNames": [
@@ -215,8 +215,8 @@ export const component_useLocalqrl_segment_3_34296ojkgual = () => {
   "ctxName": "useLocal$",
   "captures": true,
   "loc": [
-    497,
-    525
+    474,
+    502
   ],
   "paramNames": [],
   "captureNames": [

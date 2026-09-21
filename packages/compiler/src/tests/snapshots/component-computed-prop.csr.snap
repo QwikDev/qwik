@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export const Child = component$((props) => <strong>{props.total}</strong>);
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.total}</strong>;
+export default () => {
   const count = useSignal(2);
   return <Child total={count.value * 2} />;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -79,8 +79,8 @@ export const component_total_segment_0_33cbacdkct5tt = () => {
   "ctxName": "total",
   "captures": true,
   "loc": [
-    219,
-    234
+    184,
+    199
   ],
   "paramNames": [],
   "captureNames": [

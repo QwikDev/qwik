@@ -1,11 +1,10 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export default component$((props: { shape: string }) => (
+export default (props: { shape: string }) => (
   <svg viewBox="0 0 10 10">
     <props.shape r="1" />
   </svg>
-));
+);
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -20,6 +19,7 @@ import {
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
+
 const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   const [props] = _captures;
   const tag0 = props.shape;
@@ -86,8 +86,8 @@ export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   "ctxName": "tag:dynamic",
   "captures": true,
   "loc": [
-    135,
-    156
+    79,
+    100
   ],
   "paramNames": [],
   "captureNames": [

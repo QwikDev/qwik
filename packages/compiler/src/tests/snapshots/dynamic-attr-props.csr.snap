@@ -1,15 +1,15 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export default component$((props) => {
+export default (props) => {
   return <p title={props.title}>x</p>;
-});
+};
 
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { propSource, createAttrEffect, _createElementTemplate } from '@qwik.dev/core';
+
 const default_tmpl0 = _createElementTemplate('<p>x</p>');
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);

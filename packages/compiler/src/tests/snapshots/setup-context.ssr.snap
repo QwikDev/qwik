@@ -1,21 +1,21 @@
 ==INPUT==
 
-import { component$, createContextId, useSignal, useContextProvider as provide, useContext as read } from '@qwik.dev/core';
+import { createContextId, useSignal, useContextProvider as provide, useContext as read } from '@qwik.dev/core';
 const Counter = createContextId('counter');
-export const Child = component$(() => {
+export const Child = () => {
   const count: { value: number } = read(Counter);
   return <button onClick$={() => count.value++}>{count.value}</button>;
-});
-export const Nested = component$(() => {
+};
+export const Nested = () => {
   const count = useSignal(10);
   provide(Counter, count);
   return <Child />;
-});
-export default component$(() => {
+};
+export default () => {
   const count = useSignal(1);
   provide(Counter, count);
   return <main><Child /><Nested /><Child /></main>;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -130,8 +130,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    275,
-    305
+    252,
+    282
   ],
   "paramNames": [],
   "captureNames": [
@@ -158,8 +158,8 @@ export const component_text_segment_1_1fh10tcowimfv = (count) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    307,
-    318
+    284,
+    295
   ],
   "paramNames": [],
   "captureNames": [

@@ -13,22 +13,22 @@ test.each(['export ', ''])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { component$, createContextId, useSignal, useContextProvider, useContext } from '@qwik.dev/core';
+          code: `import { createContextId, useSignal, useContextProvider, useContext } from '@qwik.dev/core';
 const Counter = createContextId('counter');
-${prefix}const Child = component$(() => {
+${prefix}const Child = () => {
   const count = useContext(Counter);
   return <button onClick$={() => count.value++}>{'<count:' + count.value + '>'}</button>;
-});
-${prefix}const Nested = component$(() => {
+};
+${prefix}const Nested = () => {
   const count = useSignal(10);
   useContextProvider(Counter, count);
   return <Child />;
-});
-export default component$(() => {
+};
+export default () => {
   const count = useSignal(1);
   useContextProvider(Counter, count);
   return <main><Child /><Nested /><Child /></main>;
-});`,
+};`,
         },
       ],
     });

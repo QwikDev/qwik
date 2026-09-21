@@ -1,13 +1,13 @@
 ==INPUT==
 
-import { component$, useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
+import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
 import { calculate, save } from './pricing';
-export default component$(() => {
+export default () => {
   const count = useSignal(2);
   const total: { value: number } = useComputed$(() => calculate(count.value));
   useTask$(() => save(total.value));
   return <button onClick$={() => save(count.value)}>{total.value}</button>;
-});
+};
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -71,8 +71,8 @@ export const component_total_segment_0_33cbacdkct5tt = () => {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    224,
-    266
+    201,
+    243
   ],
   "paramNames": [],
   "captureNames": [
@@ -103,8 +103,8 @@ export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    270,
-    303
+    247,
+    280
   ],
   "paramNames": [],
   "captureNames": [
@@ -135,8 +135,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    322,
-    356
+    299,
+    333
   ],
   "paramNames": [],
   "captureNames": [

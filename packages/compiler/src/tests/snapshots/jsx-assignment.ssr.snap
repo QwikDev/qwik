@@ -1,13 +1,12 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
 import { Box } from './box';
-export default component$(function App() {
+export default function App() {
   let content;
   content = new Box(<b>assigned</b>).value;
   const alias = content;
   return <main>{content}{alias}</main>;
-})
+}
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -21,7 +20,7 @@ import {
   renderSsrDynamicContent,
   _markComponent,
 } from '@qwik.dev/core';
-import { Box } from './box';
+
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   return '<b>assigned</b>';
 };
@@ -45,49 +44,48 @@ const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ _noopQrl(
   'component_content_segment_2_185232h3im3b4'
 );
 q_component_content_segment_2_185232h3im3b4.s(component_content_segment_2_185232h3im3b4);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    let content;
-    content = new Box(q_component_jsx_segment_0_38vnjku9rukc6).value;
-    const alias = content;
-    const id0 = ctx.nextId();
-    ctx.addRoot(content);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_content_segment_1_185248kf949cp.w([content]),
-      false,
-      true
-    );
-    const id1 = ctx.nextId();
-    ctx.addRoot(alias);
-    const content1 = renderSsrContent(
-      ctx,
-      id1,
-      [],
-      q_component_content_segment_2_185232h3im3b4.w([alias]),
-      false,
-      true
-    );
-    return maybeThen(content0, (content0) =>
-      maybeThen(content1, (content1) => [
-        '<main><!d=',
-        createSsrNodeId(id0),
-        '>',
-        content0,
-        '<!/d><!d=',
-        createSsrNodeId(id1),
-        '>',
-        content1,
-        '<!/d></main>',
-      ])
-    );
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import { Box } from './box';
+export default function App(props, ctx) {
+  let content;
+  content = new Box(q_component_jsx_segment_0_38vnjku9rukc6).value;
+  const alias = content;
+  const id0 = ctx.nextId();
+  ctx.addRoot(content);
+  const content0 = renderSsrContent(
+    ctx,
+    id0,
+    [],
+    q_component_content_segment_1_185248kf949cp.w([content]),
+    false,
+    true
+  );
+  const id1 = ctx.nextId();
+  ctx.addRoot(alias);
+  const content1 = renderSsrContent(
+    ctx,
+    id1,
+    [],
+    q_component_content_segment_2_185232h3im3b4.w([alias]),
+    false,
+    true
+  );
+  return maybeThen(content0, (content0) =>
+    maybeThen(content1, (content1) => [
+      '<main><!d=',
+      createSsrNodeId(id0),
+      '>',
+      content0,
+      '<!/d><!d=',
+      createSsrNodeId(id1),
+      '>',
+      content1,
+      '<!/d></main>',
+    ])
+  );
+}
+_markComponent(App, 'default_component_3rg6kq1so9aio', './component.tsx');
+
+export { App as default_component_3rg6kq1so9aio };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
@@ -107,8 +105,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    152,
-    167
+    96,
+    111
   ],
   "paramNames": []
 }
@@ -135,8 +133,8 @@ export const component_content_segment_1_185248kf949cp = (ctx0) => {
   "ctxName": "content",
   "captures": true,
   "loc": [
-    217,
-    224
+    161,
+    168
   ],
   "paramNames": [],
   "captureNames": [
@@ -166,8 +164,8 @@ export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
   "ctxName": "content",
   "captures": true,
   "loc": [
-    226,
-    231
+    170,
+    175
   ],
   "paramNames": [],
   "captureNames": [

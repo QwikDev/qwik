@@ -1,14 +1,14 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export const Child = component$(() => <strong>child</strong>);
-export default component$(() => <Child />);
+export const Child = () => <strong>child</strong>;
+export default () => <Child />;
 
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _markComponent, createComponent } from '@qwik.dev/core';
+
 export const Child = _markComponent(
   (props, ctx) => {
     return '<strong>child</strong>';

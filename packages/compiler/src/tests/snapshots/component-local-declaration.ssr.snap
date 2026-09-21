@@ -1,15 +1,16 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
 const Settings = { label: 'ordinary value' };
 export const Format = (value) => value;
-const Child = component$((props) => <strong>{props.label}</strong>);
-export default component$(() => <main><Child label="child" /></main>);
+const Child = (props) => <strong>{props.label}</strong>;
+export default () => <main><Child label="child" /></main>;
 
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
+const Settings = { label: 'ordinary value' };
+export const Format = (value) => value;
 import {
   createSsrNodeId,
   escapeHTML,
@@ -20,8 +21,7 @@ import {
   _markComponent,
   createComponent,
 } from '@qwik.dev/core';
-const Settings = { label: 'ordinary value' };
-export const Format = (value) => value;
+
 const Child = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();

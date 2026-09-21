@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([]);
   const fallback = useSignal(null);
   return <ul>{items.value.map((item = fallback.value) => <li key={item.id} onClick$={() => console.log(item.title)}>{item.title}</li>)}</ul>;
-});
+};
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -21,9 +21,9 @@ import {
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
-const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item_6) => {
+const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item_5) => {
   const [fallback] = _captures;
-  const item = item_6 === void 0 ? fallback.value : item_6;
+  const item = item_5 === void 0 ? fallback.value : item_5;
   const id0 = ctx.nextId();
   ctx.addRoot(item);
   const text0 = renderSsrTextExpression(
@@ -46,9 +46,9 @@ const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_0_asyt89wzo2d3'
 );
 q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
-const component_for_key_segment_1_24ursak4wzpxf = (item_6) => {
+const component_for_key_segment_1_24ursak4wzpxf = (item_5) => {
   const [fallback] = _captures;
-  const item = item_6 === void 0 ? fallback.value : item_6;
+  const item = item_5 === void 0 ? fallback.value : item_5;
   return item.id;
 };
 const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
@@ -113,9 +113,9 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
 
-export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item_6) => {
+export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item_5) => {
   const [fallback] = _captures;
-  const item = item_6 === void 0 ? fallback.value : item_6;
+  const item = item_5 === void 0 ? fallback.value : item_5;
   const id0 = ctx.nextId();
   ctx.addRoot(item);
   const text0 = renderSsrTextExpression(
@@ -148,8 +148,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   "ctxName": "for:render",
   "captures": true,
   "loc": [
-    214,
-    290
+    191,
+    267
   ],
   "paramNames": [
     "item = fallback.value"
@@ -163,9 +163,9 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_for_key_segment_1_24ursak4wzpxf = (item_6) => {
+export const component_for_key_segment_1_24ursak4wzpxf = (item_5) => {
   const [fallback] = _captures;
-  const item = item_6 === void 0 ? fallback.value : item_6;
+  const item = item_5 === void 0 ? fallback.value : item_5;
   return item.id;
 };
 /*
@@ -182,8 +182,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item_6) => {
   "ctxName": "for:key",
   "captures": true,
   "loc": [
-    223,
-    230
+    200,
+    207
   ],
   "paramNames": [
     "item = fallback.value"
@@ -215,8 +215,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    232,
-    272
+    209,
+    249
   ],
   "paramNames": [],
   "captureNames": [
@@ -243,8 +243,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    274,
-    284
+    251,
+    261
   ],
   "paramNames": [],
   "captureNames": [

@@ -35,14 +35,13 @@ test.each([
     input: [
       {
         path: 'src/component.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-${declaration}
-export default component$((props) => {
+        code: `${declaration}
+export default (props) => {
   const { label } = ${callee}(() => props.label, first(), ...rest());
   ${callee}(label);
   ${callee}();
   return <span />;
-});`,
+};`,
       },
     ],
   });
@@ -81,9 +80,8 @@ test('optional plain hook calls remain explicitly unsupported', async () => {
     analyseModule(
       {
         path: 'component.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-import { useCustom } from './hooks';
-export default component$(() => { useCustom?.(); return <span />; });`,
+        code: `import { useCustom } from './hooks';
+export default () => { useCustom?.(); return <span />; };`,
       },
       {}
     )
@@ -98,9 +96,8 @@ test.each([
   const plan = await analyseModule(
     {
       path: 'component.tsx',
-      code: `import { component$ } from '@qwik.dev/core';
-${declaration}
-export default component$(() => { ${callee}(() => 1); return <span />; });`,
+      code: `${declaration}
+export default () => { ${callee}(() => 1); return <span />; };`,
     },
     {}
   );
@@ -118,10 +115,9 @@ test.each(['useCustom$()', 'useCustom$(...callbacks)', 'useCustom$?.(() => 1)'])
       analyseModule(
         {
           path: 'component.tsx',
-          code: `import { component$ } from '@qwik.dev/core';
-
+          code: `
 import { useCustom$ } from './hooks';
-export default component$(() => { ${call}; return <span />; });`,
+export default () => { ${call}; return <span />; };`,
         },
         {}
       )
@@ -133,12 +129,11 @@ test('generic hooks link the authored import and retain callback captures', asyn
   const plan = await analyseModule(
     {
       path: 'component.tsx',
-      code: `import { component$ } from '@qwik.dev/core';
-import { useCustom$ as custom } from './hooks';
-export default component$((props) => {
+      code: `import { useCustom$ as custom } from './hooks';
+export default (props) => {
   const { result } = custom(() => props.value, props.options);
   return <span>{result}</span>;
-});`,
+};`,
     },
     {}
   );
@@ -147,7 +142,7 @@ export default component$((props) => {
     s: SetupKind.Call,
     target: {
       kind: CallTargetKind.Marker,
-      binding: plan.imports[1].binding,
+      binding: plan.imports[0].binding,
       stem: 'useCustom',
     },
     args: [{ a: ArgKind.Qrl }, { a: ArgKind.Expr }],
@@ -160,14 +155,14 @@ export default component$((props) => {
     deepFreeze([restored]),
     [{ kind: EntryKind.Module, module: plan.path }],
     serverSpecialization(),
-    { edges: { [plan.path]: { 1: { r: ResolutionKind.External } } } },
+    { edges: { [plan.path]: { 0: { r: ResolutionKind.External } } } },
     true
   );
   expect(result.kind).toBe(LinkResultKind.Linked);
   if (result.kind !== LinkResultKind.Linked) {
     return;
   }
-  expect(result.plan.modules[0].edges[1].runtime).toBe(true);
+  expect(result.plan.modules[0].edges[0].runtime).toBe(true);
   expect(restored).toEqual(plan);
 });
 
@@ -178,13 +173,12 @@ test('custom hooks preserve lazy callbacks, return patterns and argument evaluat
     input: [
       {
         path: 'src/component.tsx',
-        code: `import { component$ } from '@qwik.dev/core';
-import { useCustom$ as custom } from './hooks';
-export default component$(() => {
+        code: `import { useCustom$ as custom } from './hooks';
+export default () => {
   const { label } = custom(() => read(), first(), ...rest());
   custom(() => label);
   return <span />;
-});`,
+};`,
       },
     ],
   });
@@ -230,9 +224,9 @@ test('generated task and local custom hook track signals and dispose cleanups', 
     input: [
       {
         path: 'src/component.tsx',
-        code: `import { component$, useSignal, useTask$ as task, useTaskQrl, implicit$FirstArg } from '@qwik.dev/core';
+        code: `import { useSignal, useTask$ as task, useTaskQrl, implicit$FirstArg } from '@qwik.dev/core';
 const useCustom$ = implicit$FirstArg(useTaskQrl);
-export default component$(() => {
+export default () => {
   const count = useSignal(1);
   useCustom$(({ cleanup }) => {
     const value = count.value;
@@ -245,7 +239,7 @@ export default component$(() => {
     cleanup(() => console.log('cleanup-task', value));
   });
   return <span />;
-});`,
+};`,
       },
     ],
   });
@@ -304,10 +298,10 @@ test.each([true, false])(
         input: [
           {
             path: 'src/component.tsx',
-            code: `import { component$, implicit$FirstArg } from '@qwik.dev/core';
+            code: `import { implicit$FirstArg } from '@qwik.dev/core';
 const useLocalQrl = (qrl) => qrl;
 export const useLocal$ = implicit$FirstArg(useLocalQrl);
-export default component$(() => { useLocal$(() => 1); return <span />; });`,
+export default () => { useLocal$(() => 1); return <span />; };`,
           },
         ],
       })
@@ -319,10 +313,9 @@ test('a custom useComputed$ name does not inherit core callback restrictions', a
   const plan = await analyseModule(
     {
       path: 'component.tsx',
-      code: `import { component$ } from '@qwik.dev/core';
-
+      code: `
 import { useComputed$ } from './hooks';
-export default component$(() => { useComputed$(async () => 1, { custom: true }); return <span />; });`,
+export default () => { useComputed$(async () => 1, { custom: true }); return <span />; };`,
     },
     {}
   );
@@ -337,16 +330,16 @@ test('forwarded setup QRLs retain identity and per-render captures across hooks'
       {
         path: 'src/component.tsx',
         code: `
-import { component$, $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
+import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
 import { useCustom$ } from './hooks';
-export default component$(() => {
+export default () => {
   const count = useSignal(1);
   const read = $(() => count.value);
   useTask$(read);
   useCustom$(read);
   const total = useComputed$(read);
   return <span />;
-});`,
+};`,
       },
     ],
   });
@@ -406,13 +399,13 @@ test.each(['useTask$', 'useComputed$', 'useCustom$'])(
       {
         path: 'component.tsx',
         code: `
-import { component$, useTask$, useComputed$ } from '@qwik.dev/core';
+import { useTask$, useComputed$ } from '@qwik.dev/core';
 import { useCustom$ } from './hooks';
-export default component$(() => {
+export default () => {
   const callback = () => 1;
   const result = ${hook}(callback);
   return <span />;
-});`,
+};`,
       },
       {}
     );
@@ -434,12 +427,12 @@ test.each(['useTask$?.(callback)', 'useComputed$?.(callback, {})', 'useTask$(...
         {
           path: 'component.tsx',
           code: `
-import { component$, $, useTask$, useComputed$ } from '@qwik.dev/core';
-export default component$(() => {
+import { $, useTask$, useComputed$ } from '@qwik.dev/core';
+export default () => {
   const callback = $(() => 1);
   const result = ${call};
   return <span />;
-});`,
+};`,
         },
         {}
       )

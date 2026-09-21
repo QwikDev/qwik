@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export default () => {
   const count = useSignal(0);
   return <ul>{['a', 'b'].map((item) => <li>{item + count.value}</li>)}</ul>;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -30,7 +30,7 @@ q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokf
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const count = useSignal(0);
-    function semantic_collectionRender_132_187_nlmihxthc3k8(ctx, __rangeId, __rowId, item) {
+    function semantic_collectionRender_109_164_1vj5zgtfkxhpd(ctx, __rangeId, __rowId, item) {
       const id0 = ctx.nextId();
       ctx.addRoot(item);
       ctx.addRoot(count);
@@ -53,7 +53,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       undefined,
       ['a', 'b'],
       undefined,
-      semantic_collectionRender_132_187_nlmihxthc3k8,
+      semantic_collectionRender_109_164_1vj5zgtfkxhpd,
       0,
       false,
       0
@@ -83,8 +83,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (item, count) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    164,
-    182
+    141,
+    159
   ],
   "paramNames": [],
   "captureNames": [

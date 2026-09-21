@@ -1,15 +1,29 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
 import Layout from './layout';
 const _Layout = Layout;
 function _createContent(props) {
   return <p>{props.text}</p>;
 }
-export default component$(() => <_Layout><_createContent text="hi" /></_Layout>);
+export default () => <_Layout><_createContent text="hi" /></_Layout>;
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
+
+import {
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  _noopQrl,
+  renderSsrDynamicContent,
+  createSlotScope,
+  _EMPTY_OBJ,
+  registerProjection,
+  createComponent,
+  renderSsrDynamicTag,
+  _markComponent,
+} from '@qwik.dev/core';
 
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   const [props] = _captures;
@@ -61,20 +75,6 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );
 q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
-import {
-  _captures,
-  renderSsrContent,
-  createSsrNodeId,
-  maybeThen,
-  _noopQrl,
-  renderSsrDynamicContent,
-  createSlotScope,
-  _EMPTY_OBJ,
-  registerProjection,
-  createComponent,
-  renderSsrDynamicTag,
-  _markComponent,
-} from '@qwik.dev/core';
 import Layout from './layout';
 const _Layout = Layout;
 function _createContent(props) {
@@ -137,8 +137,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    142,
-    161
+    97,
+    116
   ],
   "paramNames": [],
   "captureNames": [
@@ -168,8 +168,8 @@ export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    146,
-    156
+    101,
+    111
   ],
   "paramNames": [],
   "captureNames": [
@@ -210,8 +210,8 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    206,
-    234
+    150,
+    178
   ],
   "paramNames": []
 }

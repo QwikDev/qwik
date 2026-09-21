@@ -1,11 +1,11 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export default component$(() => {
+import { useSignal } from '@qwik.dev/core';
+export default () => {
   const items = useSignal([]);
   const fallback = useSignal('Untitled');
   return <ul>{items.value.map(([id, , title = fallback.value, ...rest]) => <li key={id} onClick$={() => console.log(title)}>{title + rest.length}</li>)}</ul>;
-});
+};
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -150,8 +150,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   "ctxName": "for:render",
   "captures": true,
   "loc": [
-    238,
-    313
+    215,
+    290
   ],
   "paramNames": [
     "[id, , title = fallback.value, ...rest]"
@@ -184,8 +184,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
   "ctxName": "for:key",
   "captures": true,
   "loc": [
-    247,
-    249
+    224,
+    226
   ],
   "paramNames": [
     "[id, , title = fallback.value, ...rest]"
@@ -217,8 +217,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    251,
-    286
+    228,
+    263
   ],
   "paramNames": [],
   "captureNames": [
@@ -245,8 +245,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (title, rest) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    288,
-    307
+    265,
+    284
   ],
   "paramNames": [],
   "captureNames": [

@@ -1,10 +1,10 @@
 ==INPUT==
 
-import { component$, useSignal, useStore } from '@qwik.dev/core';
-export default component$((props: { label?: string; content?: any }) => {
+import { useSignal, useStore } from '@qwik.dev/core';
+export default (props: { label?: string; content?: any }) => {
   const count = useSignal(1);
   return <div>{count.value > 1 ? 'text' : [<b>a</b>, <i>b</i>]}</div>;
-});
+};
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -70,8 +70,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    185,
-    200
+    162,
+    177
   ],
   "paramNames": [],
   "captureNames": [
@@ -103,8 +103,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   "ctxName": "branch:then",
   "captures": false,
   "loc": [
-    203,
-    209
+    180,
+    186
   ],
   "paramNames": []
 }
@@ -132,8 +132,8 @@ export const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
   "ctxName": "branch:else",
   "captures": false,
   "loc": [
-    212,
-    232
+    189,
+    209
   ],
   "paramNames": []
 }

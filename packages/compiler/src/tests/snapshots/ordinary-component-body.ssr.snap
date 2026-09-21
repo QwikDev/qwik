@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { $, component$, createContextId, getLocale, useSignal } from '@qwik.dev/core';
-const before = observe('before'), Header = component$(() => <h1>Title</h1>), after = observe('after');
+const before = observe('before'), Header = () => <h1>Title</h1>, after = observe('after');
 export default component$((props: { title: string; hidden?: boolean; failed?: boolean }) => {
   let count = useSignal(1);
   var suffix = '!';
@@ -37,39 +37,26 @@ const q_component_increment_segment_0_sk08s17xutli = /*#__PURE__*/ _noopQrl(
   'component_increment_segment_0_sk08s17xutli'
 );
 q_component_increment_segment_0_sk08s17xutli.s(component_increment_segment_0_sk08s17xutli);
-const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
-  const [props] = _captures;
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'title');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(text0, (text0) => [
-    '<p q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</p>',
-  ]);
+const component_text_segment_2_1fh117dstcoge = (props) => {
+  return props.title;
 };
-const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _noopQrl(
-  'component_jsx_segment_2_38vniss1y6gb4'
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
 );
-q_component_jsx_segment_2_38vniss1y6gb4.s(component_jsx_segment_2_38vniss1y6gb4);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
 const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
 import {
   useSignal,
   _captures,
-  createComponent,
-  renderSsrDynamicTag,
   createSsrNodeId,
   escapeHTML,
-  renderSsrTextNode,
+  renderSsrTextExpression,
   maybeThen,
+  createComponent,
+  renderSsrTextNode,
   _noopQrl,
-  propSource,
-  isSource,
   _markComponent,
   createContextId,
   getLocale,
@@ -93,19 +80,29 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     }
     label.value = format(count.value);
     suffix += '!';
-    function Child() {
-      return q_component_jsx_segment_2_38vniss1y6gb4.w([props]);
+    function Child(props0, ctx) {
+      const id0 = ctx.nextId();
+      ctx.addRoot(props);
+      const text0 = renderSsrTextExpression(
+        id0,
+        null,
+        [props],
+        q_component_text_segment_2_1fh117dstcoge
+      );
+      return maybeThen(text0, (text0) => [
+        '<p q:id="',
+        createSsrNodeId(id0),
+        '">',
+        escapeHTML(text0),
+        '</p>',
+      ]);
     }
     if (props.hidden) return '';
     try {
       if (props.failed) throw new Error('failed');
       return (() => {
         const component0 = createComponent(Header, null, ctx);
-        const component1 = createComponent(
-          (props0) => renderSsrDynamicTag(Child, props0, ctx),
-          null,
-          ctx
-        );
+        const component1 = createComponent(Child, null, ctx);
         const id0 = ctx.nextId();
         ctx.addRoot(label);
         const text0 = renderSsrTextNode(id0, null, label);
@@ -165,8 +162,8 @@ export const component_increment_segment_0_sk08s17xutli = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    461,
-    488
+    449,
+    476
   ],
   "paramNames": [],
   "captureNames": [
@@ -196,8 +193,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    845,
-    864
+    833,
+    852
   ],
   "paramNames": [],
   "captureNames": [
@@ -207,48 +204,27 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   ]
 }
 */
-============================= src/component.tsx_component_jsx_segment_2_38vniss1y6gb4.js (ENTRY POINT)==
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-import {
-  _captures,
-  createSsrNodeId,
-  escapeHTML,
-  propSource,
-  isSource,
-  renderSsrTextNode,
-  maybeThen,
-} from '@qwik.dev/core';
-
-export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
-  const [props] = _captures;
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'title');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(text0, (text0) => [
-    '<p q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</p>',
-  ]);
+export const component_text_segment_2_1fh117dstcoge = (props) => {
+  return props.title;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_jsx_segment_2_38vniss1y6gb4",
+  "name": "component_text_segment_2_1fh117dstcoge",
   "entry": null,
-  "displayName": "component_jsx_segment_2",
-  "hash": "38vniss1y6gb4",
-  "canonicalFilename": "component.tsx_component_jsx_segment_2_38vniss1y6gb4",
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "jsx",
+  "ctxName": "text",
   "captures": true,
   "loc": [
-    642,
-    662
+    634,
+    645
   ],
   "paramNames": [],
   "captureNames": [

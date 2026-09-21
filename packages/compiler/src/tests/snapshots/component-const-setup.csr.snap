@@ -1,14 +1,14 @@
 ==INPUT==
 
-import { component$, useSignal } from '@qwik.dev/core';
-export const Card = component$((props: { title?: string; suffix: string; start: number }) => {
+import { useSignal } from '@qwik.dev/core';
+export const Card = (props: { title?: string; suffix: string; start: number }) => {
   const { title = 'Untitled', ...rest } = props;
   const label = title.toUpperCase(), suffix = rest.suffix;
   const count = useSignal(props.start), initial = count.value;
   return <button onClick$={() => console.log(count.value++, label)}>
     {label + suffix + initial}:{count.value}
   </button>;
-});
+};
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
@@ -75,8 +75,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    339,
-    389
+    316,
+    366
   ],
   "paramNames": [],
   "captureNames": [
@@ -104,8 +104,8 @@ export const component_text_segment_1_1fh10tcowimfv = (label, suffix, count) => 
   "ctxName": "text",
   "captures": true,
   "loc": [
-    396,
-    420
+    373,
+    397
   ],
   "paramNames": [],
   "captureNames": [

@@ -1,9 +1,8 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export default component$(() => {
+export default () => {
   return <ul>{['a', 'b'].map((item) => <li id={'row-' + item} class={item}>x</li>)}</ul>;
-});
+};
 
 == CSR OUTPUT ==
 
@@ -16,14 +15,15 @@ import {
   patchAttrValue,
   _createElementTemplate,
 } from '@qwik.dev/core';
-const semantic_collectionRender_92_160_3cxy867u1oma4_tmpl0 = _createElementTemplate('<li>x</li>');
+
+const semantic_collectionRender_36_104_jq7n7qm8g6oc_tmpl0 = _createElementTemplate('<li>x</li>');
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
-  function semantic_collectionRender_92_160_3cxy867u1oma4(ctx, item) {
-    const el0 = semantic_collectionRender_92_160_3cxy867u1oma4_tmpl0(ctx.document);
+  function semantic_collectionRender_36_104_jq7n7qm8g6oc(ctx, item) {
+    const el0 = semantic_collectionRender_36_104_jq7n7qm8g6oc_tmpl0(ctx.document);
     patchAttrValue(el0, 'id', 'row-' + item);
     patchAttrValue(el0, 'class', item);
     return el0;
@@ -34,7 +34,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     end0,
     ['a', 'b'],
     null,
-    semantic_collectionRender_92_160_3cxy867u1oma4,
+    semantic_collectionRender_36_104_jq7n7qm8g6oc,
     0,
     0,
     true

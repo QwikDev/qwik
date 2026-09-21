@@ -1,9 +1,8 @@
 ==INPUT==
 
-import { component$ } from '@qwik.dev/core';
-export default component$((props: { enabled: boolean; label: string }) => {
+export default (props: { enabled: boolean; label: string }) => {
   return <div>{props.enabled ? <b>{props.label}</b> : null}</div>;
-});
+};
 
 == SSR OUTPUT ==
 
@@ -21,6 +20,7 @@ import {
   renderSsrTextNode,
   _markComponent,
 } from '@qwik.dev/core';
+
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   const [props] = _captures;
   return props.enabled;
@@ -94,8 +94,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    136,
-    149
+    80,
+    93
   ],
   "paramNames": [],
   "captureNames": [
@@ -143,8 +143,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    152,
-    172
+    96,
+    116
   ],
   "paramNames": [],
   "captureNames": [

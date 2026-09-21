@@ -1,8 +1,8 @@
 ==INPUT==
 
-import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
+import { useSignal, useComputed$ } from '@qwik.dev/core';
 import { register, load } from './consumer';
-export default component$(function App() {
+export default function App() {
   const count = useSignal(0);
   register((value: string) => Promise.resolve(<b>{value}</b>));
   register((value: string) => load(value).then((label: string) => <i>{label}</i>));
@@ -16,24 +16,11 @@ export default component$(function App() {
     return create('ready');
   });
   return <output>{result.value?.label}</output>;
-})
+}
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  _captures,
-  useComputedQrl,
-  createSsrNodeId,
-  escapeHTML,
-  renderSsrTextExpression,
-  maybeThen,
-  _noopQrl,
-  _await as _await0,
-  _markComponent,
-} from '@qwik.dev/core';
-import { register, load } from './consumer';
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   const [value] = _captures;
   const id0 = ctx.nextId();
@@ -173,38 +160,49 @@ const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
   'component_text_segment_7_1fh135jcdiyj1'
 );
 q_component_text_segment_7_1fh135jcdiyj1.s(component_text_segment_7_1fh135jcdiyj1);
-export const default_component_3rg6kq1so9aio = _markComponent(
-  (props, ctx) => {
-    const count = useSignal(0);
-    register((value) => Promise.resolve(q_component_jsx_segment_0_38vnjku9rukc6.w([value])));
-    register((value) =>
-      load(value).then((label) => q_component_jsx_segment_2_38vniss1y6gb4.w([label]))
-    );
-    register(async (value) => {
-      const label = await load(value);
-      return q_component_jsx_segment_4_38vnl4ypf6sea.w([label]);
-    });
-    const result = useComputedQrl(q_component_result_segment_8_1732eo28f3tsm.w([count]));
-    const id0 = ctx.nextId();
-    ctx.addRoot(result);
-    const text0 = renderSsrTextExpression(
-      id0,
-      null,
-      [result],
-      q_component_text_segment_9_1fh0xp3tlu6bn
-    );
-    return maybeThen(text0, (text0) => [
-      '<output q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</output>',
-    ]);
-  },
-  'default_component_3rg6kq1so9aio',
-  './component.tsx'
-);
-export default default_component_3rg6kq1so9aio;
+import {
+  useSignal,
+  _captures,
+  useComputedQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  _await as _await0,
+  _markComponent,
+} from '@qwik.dev/core';
+import { register, load } from './consumer';
+export default function App(props, ctx) {
+  const count = useSignal(0);
+  register((value) => Promise.resolve(q_component_jsx_segment_0_38vnjku9rukc6.w([value])));
+  register((value) =>
+    load(value).then((label) => q_component_jsx_segment_2_38vniss1y6gb4.w([label]))
+  );
+  register(async (value) => {
+    const label = await load(value);
+    return q_component_jsx_segment_4_38vnl4ypf6sea.w([label]);
+  });
+  const result = useComputedQrl(q_component_result_segment_8_1732eo28f3tsm.w([count]));
+  const id0 = ctx.nextId();
+  ctx.addRoot(result);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [result],
+    q_component_text_segment_9_1fh0xp3tlu6bn
+  );
+  return maybeThen(text0, (text0) => [
+    '<output q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</output>',
+  ]);
+}
+_markComponent(App, 'default_component_3rg6kq1so9aio', './component.tsx');
+
+export { App as default_component_3rg6kq1so9aio };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
@@ -253,8 +251,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    234,
-    248
+    211,
+    225
   ],
   "paramNames": [],
   "captureNames": [
@@ -281,8 +279,8 @@ export const component_text_segment_1_1fh10tcowimfv = (value) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    238,
-    243
+    215,
+    220
   ],
   "paramNames": [],
   "captureNames": [
@@ -338,8 +336,8 @@ export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    318,
-    332
+    295,
+    309
   ],
   "paramNames": [],
   "captureNames": [
@@ -366,8 +364,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    322,
-    327
+    299,
+    304
   ],
   "paramNames": [],
   "captureNames": [
@@ -423,8 +421,8 @@ export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    422,
-    436
+    399,
+    413
   ],
   "paramNames": [],
   "captureNames": [
@@ -451,8 +449,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    426,
-    431
+    403,
+    408
   ],
   "paramNames": [],
   "captureNames": [
@@ -508,8 +506,8 @@ export const component_jsx_segment_6_38vnkcwhliod8 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    612,
-    626
+    589,
+    603
   ],
   "paramNames": [],
   "captureNames": [
@@ -536,8 +534,8 @@ export const component_text_segment_7_1fh135jcdiyj1 = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    616,
-    621
+    593,
+    598
   ],
   "paramNames": [],
   "captureNames": [
@@ -581,8 +579,8 @@ export const component_result_segment_8_1732eo28f3tsm = async () => {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    459,
-    669
+    436,
+    646
   ],
   "paramNames": [],
   "captureNames": [
@@ -609,8 +607,8 @@ export const component_text_segment_9_1fh0xp3tlu6bn = (result) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    689,
-    708
+    666,
+    685
   ],
   "paramNames": [],
   "captureNames": [

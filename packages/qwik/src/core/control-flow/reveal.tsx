@@ -163,19 +163,17 @@ type SSRRevealSlotProps = {
   coordinator: OutOfOrderRevealCoordinator;
 };
 
-const SSRRevealSlot = __EXPERIMENTAL__.suspense
-  ? /*#__PURE__*/ createInternalServerComponent<SSRRevealSlotProps>(
-      (ssr, jsx, _options, enqueue) => {
-        const coordinator = jsx.varProps.coordinator as OutOfOrderRevealCoordinator;
-        enqueue(() => {
-          const script = coordinator.script();
-          if (!script) {
-            return;
-          }
-          ssr.emitOutOfOrderExecutorIfNeeded();
-          ssr.emitInlineScript(script);
-        });
-        enqueue(/*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, 'u7_0'));
+const SSRRevealSlot = /*#__PURE__*/ createInternalServerComponent<SSRRevealSlotProps>(
+  (ssr, jsx, _options, enqueue) => {
+    const coordinator = jsx.varProps.coordinator as OutOfOrderRevealCoordinator;
+    enqueue(() => {
+      const script = coordinator.script();
+      if (!script) {
+        return;
       }
-    )
-  : null!;
+      ssr.emitOutOfOrderExecutorIfNeeded();
+      ssr.emitInlineScript(script);
+    });
+    enqueue(/*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, 'u7_0'));
+  }
+);

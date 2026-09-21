@@ -209,33 +209,33 @@ type SSRFallbackProps = {
   state: Signal<SuspenseState>;
 };
 
-const SSRFallback = __EXPERIMENTAL__.suspense
-  ? /*#__PURE__*/ createInternalServerComponent<SSRFallbackProps>((ssr, jsx, _options, enqueue) => {
-      const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
-      const fallbackStyle = jsx.varProps.fallbackStyle as Signal<{ display: string }>;
-      const showFallback = jsx.varProps.showFallback === true;
-      const state = jsx.varProps.state as Signal<SuspenseState>;
-      if (showFallback) {
-        if (boundaryState) {
-          enqueue(() => scheduleOutOfOrderFallbackDelay(ssr, boundaryState, state));
-        } else {
-          state.value = 'fallback';
-        }
+const SSRFallback = /*#__PURE__*/ createInternalServerComponent<SSRFallbackProps>(
+  (ssr, jsx, _options, enqueue) => {
+    const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
+    const fallbackStyle = jsx.varProps.fallbackStyle as Signal<{ display: string }>;
+    const showFallback = jsx.varProps.showFallback === true;
+    const state = jsx.varProps.state as Signal<SuspenseState>;
+    if (showFallback) {
+      if (boundaryState) {
+        enqueue(() => scheduleOutOfOrderFallbackDelay(ssr, boundaryState, state));
+      } else {
+        state.value = 'fallback';
       }
-      enqueue(
-        /*#__PURE__*/ _jsxSorted(
-          'div',
-          {
-            style: fallbackStyle,
-          },
-          null,
-          jsx.children as JSXOutput,
-          1,
-          null
-        )
-      );
-    })
-  : null!;
+    }
+    enqueue(
+      /*#__PURE__*/ _jsxSorted(
+        'div',
+        {
+          style: fallbackStyle,
+        },
+        null,
+        jsx.children as JSXOutput,
+        1,
+        null
+      )
+    );
+  }
+);
 
 type SSRDeferredSlotProps = {
   boundary: SSROutOfOrderBoundaryState | null;
@@ -244,51 +244,51 @@ type SSRDeferredSlotProps = {
   reveal: OutOfOrderRevealBoundary | null;
 };
 
-const SSRDeferredSlot = __EXPERIMENTAL__.suspense
-  ? /*#__PURE__*/ createInternalServerComponent<SSRDeferredSlotProps>(async (ssr, jsx, options) => {
-      const boundaryId = jsx.varProps.boundaryId as number;
-      const contentSegment = `${boundaryId}`;
-      const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
-      const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
-      const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
-      const errorBoundaryStore =
-        __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
-          ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
-              | ErrorBoundaryStore
-              | undefined)
-          : undefined;
-      const content = ssr.segment(
-        contentSegment,
-        createClaimedDeferredSlot(ssr, jsx, options),
-        options
-      );
+const SSRDeferredSlot = /*#__PURE__*/ createInternalServerComponent<SSRDeferredSlotProps>(
+  async (ssr, jsx, options) => {
+    const boundaryId = jsx.varProps.boundaryId as number;
+    const contentSegment = `${boundaryId}`;
+    const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
+    const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
+    const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
+    const errorBoundaryStore =
+      __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
+        ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
+            | ErrorBoundaryStore
+            | undefined)
+        : undefined;
+    const content = ssr.segment(
+      contentSegment,
+      createClaimedDeferredSlot(ssr, jsx, options),
+      options
+    );
 
-      ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
-      ssr.emitOutOfOrderExecutorIfNeeded();
-      ssr.queueOutOfOrderSegment(
-        content
-          .then((rendered) =>
-            emitRenderedOutOfOrderSegment(
-              ssr,
-              boundaryId,
-              rendered,
-              contentStyle,
-              revealBoundary,
-              boundaryState
-            )
+    ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
+    ssr.emitOutOfOrderExecutorIfNeeded();
+    ssr.queueOutOfOrderSegment(
+      content
+        .then((rendered) =>
+          emitRenderedOutOfOrderSegment(
+            ssr,
+            boundaryId,
+            rendered,
+            contentStyle,
+            revealBoundary,
+            boundaryState
           )
-          .catch((error) => {
-            if (errorBoundaryStore?.$emitFallback$) {
-              return errorBoundaryStore.$emitFallback$(error);
-            }
-            if (errorBoundaryStore?.error !== undefined) {
-              return;
-            }
-            throw error;
-          })
-      );
-    })
-  : null!;
+        )
+        .catch((error) => {
+          if (errorBoundaryStore?.$emitFallback$) {
+            return errorBoundaryStore.$emitFallback$(error);
+          }
+          if (errorBoundaryStore?.error !== undefined) {
+            return;
+          }
+          throw error;
+        })
+    );
+  }
+);
 
 function createClaimedDeferredSlot(
   ssr: SSRContainer,

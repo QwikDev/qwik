@@ -172,6 +172,28 @@ describe('store runtime', () => {
     expect(length.value).toBe(0);
   });
 
+  it('tracks key enumeration only for added and removed keys', () => {
+    const state = useStore<Record<string, number>>({ a: 1 });
+    let runs = 0;
+    const keys = createOwned(() =>
+      useComputed(() => {
+        runs++;
+        return Object.keys(state).join(',');
+      })
+    );
+
+    expect(keys.value).toBe('a');
+    state.a = 2;
+    expect(keys.value).toBe('a');
+    expect(runs).toBe(1);
+
+    state.b = 3;
+    expect(keys.value).toBe('a,b');
+    delete state.a;
+    expect(keys.value).toBe('b');
+    expect(runs).toBe(3);
+  });
+
   it('tracks property existence', () => {
     const state = useStore<{ a?: number; b?: number }>({ a: 1 });
     const hasA = createOwned(() => useComputed(() => 'a' in state));
@@ -220,6 +242,36 @@ describe(`${name}: stores`, () => {
     expect(button.textContent).toBe('0');
     await qwikLoader?.dispatch(button, 'click');
     expect(button.textContent).toBe('1');
+
+    cleanup();
+  });
+
+  it('renders a key added to the store after an event', async () => {
+    const App = () => {
+      const state = useStore<Record<string, number>>({ a: 1 });
+      return (
+        <>
+          <button onClick$={() => (state[`k${Object.keys(state).length}`] = 1)} />
+          <ul>
+            {Object.entries(state).map(([key, value]) => (
+              <li key={key}>
+                {key}={value}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+    const rows = () => Array.from(container.querySelectorAll('li'), (li) => li.textContent);
+
+    expect(rows()).toEqual(['a=1']);
+    await qwikLoader?.dispatch(button, 'click');
+    expect(rows()).toEqual(['a=1', 'k1=1']);
+    await qwikLoader?.dispatch(button, 'click');
+    expect(rows()).toEqual(['a=1', 'k1=1', 'k2=1']);
 
     cleanup();
   });

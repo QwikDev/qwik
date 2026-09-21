@@ -146,6 +146,9 @@ function trackStoreProp(target: StoreTarget, prop: PropertyKey): void {
   }
 }
 
+/** The source a key enumeration reads; a string so it serializes like any store prop. */
+export const STORE_KEYS = '\0keys';
+
 const storeHandler: ProxyHandler<StoreTarget> = {
   get(target, prop, receiver) {
     const value = Reflect.get(target, prop, receiver);
@@ -167,6 +170,9 @@ const storeHandler: ProxyHandler<StoreTarget> = {
     ) {
       notifyStoreProp(target, prop);
     }
+    if (!had) {
+      notifyStoreProp(target, STORE_KEYS);
+    }
 
     notifyArrayLengthChanges(target, prop, oldLength);
     return true;
@@ -179,6 +185,7 @@ const storeHandler: ProxyHandler<StoreTarget> = {
     }
     if (had) {
       notifyStoreProp(target, prop);
+      notifyStoreProp(target, STORE_KEYS);
     }
     return true;
   },
@@ -186,6 +193,11 @@ const storeHandler: ProxyHandler<StoreTarget> = {
   has(target, prop) {
     trackStoreProp(target, prop);
     return prop in target;
+  },
+
+  ownKeys(target) {
+    trackStoreProp(target, STORE_KEYS);
+    return Reflect.ownKeys(target);
   },
 
   getOwnPropertyDescriptor(target, prop) {

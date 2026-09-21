@@ -947,7 +947,12 @@ export function createQwikPlugin(
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
   ): Promise<Rolldown.LoadResult> => {
     if (isLinkedBuildId(id)) {
-      return linkedBuild.load(ctx, id);
+      const loaded = await linkedBuild.load(ctx, id);
+      // linked output never passes through transform; a library keeps the flags for its consumer
+      if (loaded !== null && opts.target !== 'lib') {
+        loaded.code = replaceExperimentalFlags(loaded.code, opts.experimental);
+      }
+      return loaded;
     }
     if (id === '\0editor') {
       // This doesn't get used, but we need to return something
@@ -1133,14 +1138,9 @@ export function createQwikPlugin(
           : 'prod';
 
     if (mode !== 'lib') {
-      // this messes a bit with the source map, but it's ok for if statements
-      code = code.replaceAll(/__EXPERIMENTAL__\.(\w+)/g, (_, feature) => {
-        shouldReturn = true;
-        if (opts.experimental?.[feature as ExperimentalFeatures]) {
-          return 'true';
-        }
-        return 'false';
-      });
+      const replaced = replaceExperimentalFlags(code, opts.experimental);
+      shouldReturn ||= replaced !== code;
+      code = replaced;
     }
 
     if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId)) {
@@ -1717,6 +1717,21 @@ function shouldAutoAddHandlers(id: string, _opts: NormalizedQwikPluginOptions) {
 }
 
 const isPublicVirtualId = (id: string) => id.startsWith('virtual:');
+
+/**
+ * `__EXPERIMENTAL__.x` becomes `true` or `false` per the enabled features. It messes a bit with the
+ * source map, but it's ok for if statements.
+ *
+ * @internal
+ */
+export function replaceExperimentalFlags(
+  code: string,
+  experimental: Partial<Record<ExperimentalFeatures, boolean>> | undefined
+): string {
+  return code.replaceAll(/__EXPERIMENTAL__\.(\w+)/g, (_, feature) =>
+    experimental?.[feature as ExperimentalFeatures] ? 'true' : 'false'
+  );
+}
 
 const TRANSFORM_EXTS = {
   '.jsx': true,

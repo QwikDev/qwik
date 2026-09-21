@@ -2,7 +2,7 @@ import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, createQwikPlugin } from './plugin';
+import { ExperimentalFeatures, createQwikPlugin, replaceExperimentalFlags } from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
@@ -217,6 +217,17 @@ test('resolveQwikBuild false', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ resolveQwikBuild: false });
   assert.deepEqual(opts.resolveQwikBuild, false);
+});
+
+test('replaceExperimentalFlags decides each feature flag, unknown ones off', () => {
+  // assembled at runtime: the test pipeline would rewrite the literal in this very file
+  const flag = (name: string) => `__EXPERIMENTAL${'__'}.${name}`;
+  expect(
+    replaceExperimentalFlags(`if (${flag('noSPA')} || ${flag('other')}) {}`, {
+      noSPA: true,
+    } as never)
+  ).toBe('if (true || false) {}');
+  expect(replaceExperimentalFlags('const a = 1;', undefined)).toBe('const a = 1;');
 });
 
 test('experimental[]', async () => {

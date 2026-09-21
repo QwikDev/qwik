@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from 'vitest';
 import {
   createQRL,
   inlinedQrl,
+  _markComponent,
   _val,
   createSsrNodeId,
   createSsrOpenTag,
@@ -28,6 +29,7 @@ import {
 import {
   renderToStreamCompiled as renderToStream,
   renderToStringCompiled as renderToString,
+  renderToString as publicRenderToString,
   type SsrRenderRoot,
 } from './ssr-render';
 
@@ -36,6 +38,22 @@ const FINAL_ATTRIBUTE_PATCH = '[0,"aria-describedby","final-id"]';
 const maybeThenAll = (parts: unknown[]) => Promise.all(parts) as Promise<SsrOutput[]> as never;
 
 describe('SSR context markers', () => {
+  test('the public entry renders a JSX value or a component as the root, the v2 contract', async () => {
+    // the compiler hands `renderToStream(<Root />)` a JSX value: a QRL over `(ctx) => output`
+    const jsxRoot = inlinedQrl(
+      (ctx: { nextId(): number }) => ['<p q:id="', createSsrNodeId(ctx.nextId()), '">jsx-root</p>'],
+      'jsx_root'
+    );
+    const component = _markComponent(() => '<p>component-root</p>', 'sym', './x');
+
+    expect((await publicRenderToString(jsxRoot as never)).html).toMatch(
+      /<p q:id="[^"]+">jsx-root<\/p>/
+    );
+    expect((await publicRenderToString(component as never)).html).toContain(
+      '<p>component-root</p>'
+    );
+  });
+
   test('passes root props without a JSX wrapper', async () => {
     const result = await renderToString((props: { label: string }) => `<p>${props.label}</p>`, {
       props: { label: 'root-props' },

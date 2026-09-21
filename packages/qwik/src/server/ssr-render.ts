@@ -28,6 +28,9 @@ import {
   type SsrReferenceChunk,
   version,
   withLocale,
+  isQwikComponent,
+  renderSsrDynamicContent,
+  type JSXOutput,
 } from '@qwik.dev/core';
 import {
   QContainerValue,
@@ -555,10 +558,21 @@ export const renderToStreamCompiled = async <Props = undefined>(
   }
 };
 
+/**
+ * The public root is JSX (the v2 contract), which the compiler hands over as a JSX value; a
+ * component is accepted as the shorthand for `<Root />`.
+ */
+const renderRoot = <Props>(root: unknown): SsrRenderRoot<Props> =>
+  isQwikComponent(root)
+    ? (root as SsrRenderRoot<Props>)
+    : (_props, ctx) => renderSsrDynamicContent(root as JSXOutput, ctx as never);
+
 /** @public */
-export const renderToString = renderToStringCompiled as RenderToString;
+export const renderToString = ((root: unknown, opts?: RenderToStringOptions) =>
+  renderToStringCompiled(renderRoot(root), opts)) as RenderToString;
 /** @public */
-export const renderToStream = renderToStreamCompiled as RenderToStream;
+export const renderToStream = ((root: unknown, opts: RenderToStreamOptions) =>
+  renderToStreamCompiled(renderRoot(root), opts)) as RenderToStream;
 
 function collectDeferredSubscriptions(
   serializationCtx: SerializationContext,

@@ -185,6 +185,50 @@ component as soon as SSR error teardown determines it; store its VNode reference
 projection cut prevents the client owner walk. Re-key the highest wrapper below that author so
 normal diffing recreates emptied projected content without projection-wide scheduling.
 
+## Duplicated Core Copies
+
+A Qwik library kept external on the server evaluates its own copy of `@qwik.dev/core`, and it
+evaluates before the app bundle (ESM hoists external imports). `e2e/qwik-e2e/tests/external-library.e2e.ts`
+renders such a library; `packages/qwik/src/core/shared/singletons.unit.ts` loads core twice in vitest.
+Keep these invariants so both keep passing:
+
+- Mutable module-level state that another copy may read goes through `registerSingleton` in
+  `shared/singletons.ts`; never a `let` binding or a module-level `Map`/`WeakMap`. The one
+  exception is the platform: each app render installs a platform carrying its own manifest, so it
+  stays per bundle (the `multi-container` error-handling e2e renders two apps in one process).
+- Marker symbols are `Symbol.for('qwik.…')`; a plain `Symbol()` is invisible to the other copy.
+  The server allows one version per process (`shared/duplicate-core.ts` throws Q30 otherwise); the
+  client keeps a registry per version, since every container may come from a different build.
+- A class that is checked with `instanceof` gets `brandClass(Class, Brand.X)` right after its
+  declaration (`shared/utils/brand.ts`); the serializer's unknown-type error (Q20) is the usual sign
+  of an unbranded class.
+- A component the renderer recognizes by identity (`Slot`, `Fragment`, `SSRComment`, `SSRRaw`,
+  `SSRStream`, `SSRStreamBlock`) is created through `registerSingleton`; a library's `<Slot>`
+  from its own copy of core otherwise renders as a plain component and its projected children lose
+  their context (Q8).
+- Never read `__EXPERIMENTAL__.feature` at module top level. The bundler only substitutes literals
+  in bundled copies; an unbundled copy resolves the flags lazily from the bundled copy through
+  `shared/duplicate-core.ts`, which runs once per copy and must stay listed in `sideEffects` in
+  `packages/qwik/package.json`.
+- `dist/preloader.mjs` and `dist/server.mjs` embed their own copy of the registry; keep
+  `shared/singletons.ts` free of heavy imports, and keep `globalThis.QWIK_VERSION` defined in every
+  bundle that embeds it.
+- `src/web-worker/worker.shared.js` may import only what `QWIK_WORKER_CORE_CODE` in
+  `packages/qwik-vite/src/plugins/worker-core.ts` re-exports; a new import there fails only in the
+  `worker.e2e.ts` and adapters `worker.spec.ts` suites.
+- Keep `_captures` exported from core and both optimizers accepting `_captures[N]`: libraries
+  already published against v2 betas read it from their own copy.
+- The Vite plugin leaves Qwik libraries external in server builds by default; only libraries that
+  import a v1 package name (`checkExternals` in `packages/qwik-vite/src/plugins/vite.ts`) stay
+  bundled, because the v1 aliases exist only inside the app bundle. The dev server keeps every
+  library `noExternal`: its SSR maps a QRL to a segment URL through the QRL's parent module,
+  which a raw library cannot provide, and it runs the development core build, whose `$…$`
+  property names differ from the production build Node would resolve for the library. The router runtime must keep
+  evaluating without the app build: its config comes from `getRouterConfig()` in
+  `packages/qwik-router/src/runtime/src/router-config.ts`, never from a static
+  `@qwik-router-config` import (`validate-build.ts` checks the lib's imports). That config stays
+  per bundle like the platform, since the e2e dev server hosts several apps in one process.
+
 ## Keep This Reference Fresh
 
 Before finishing a core task, ask:

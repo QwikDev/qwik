@@ -69,6 +69,44 @@ test('fails loud when a foreign module does not parse in its language', async ()
   await expect(generateForeignModule(linked.plan.modules[0], {})).rejects.toThrow(/module-0\.tsx/);
 });
 
+test('carries only the modules an entry reaches, type imports included', async () => {
+  const entry = await analyseModule(
+    {
+      path: '/lib/entry.tsx',
+      code: "import { used } from './used'; import type { T } from './types'; export const Entry = (p: T) => <p>{used}</p>;",
+    },
+    {}
+  );
+  const used = await analyseModule({ path: '/lib/used.ts', code: 'export const used = 1;' }, {});
+  const types = await analyseModule({ path: '/lib/types.ts', code: 'export type T = {};' }, {});
+  const unused = await analyseModule(
+    { path: '/lib/unused.ts', code: 'export const unused = 2;' },
+    {}
+  );
+  const resolved = (path: string) => ({
+    r: ResolutionKind.Resolved,
+    path,
+    sideEffects: SideEffects.Free,
+  });
+  const plan = createLibraryPlan(
+    [entry, used, types, unused],
+    [{ kind: EntryKind.Module, module: entry.path }],
+    {
+      edges: {
+        [entry.path]: {
+          [entry.edges[0].id]: resolved(used.path),
+          [entry.edges[1].id]: resolved(types.path),
+        },
+      },
+    }
+  );
+  expect(plan!.modules.map((module) => module.source.code)).toEqual([
+    entry.source.code,
+    used.source.code,
+    types.source.code,
+  ]);
+});
+
 test('keeps linked content QRL identity across library relocation and compilation scopes', async () => {
   const names: string[] = [];
   for (const scope of ['first', 'second']) {

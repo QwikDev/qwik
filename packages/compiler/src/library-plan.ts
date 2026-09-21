@@ -22,7 +22,8 @@ export function createLibraryPlan(
   if (entries.some((entry) => !kept.has(entry.module))) {
     return null;
   }
-  const carried = modules.filter((module) => kept.has(module.path));
+  const reachable = reachableFrom(entries, modules, resolver, kept);
+  const carried = modules.filter((module) => reachable.has(module.path));
   // The authored extension picks the parser; TypeScript-only syntax is invalid under `.tsx`.
   const paths = new Map(
     carried.map((module, index) => [
@@ -81,6 +82,34 @@ export function createLibraryPlan(
  * paths, so the consumer has neither a base nor the file. Whoever imports such a module relatively
  * cannot resolve it either, so the exclusion carries up its importers.
  */
+/**
+ * One build plans every module for all its entries; a bundle's plan carries only what its own
+ * entries reach. Type imports count: the consumer links their contracts too.
+ */
+function reachableFrom(
+  entries: readonly LinkEntry[],
+  modules: readonly ModulePlan[],
+  resolver: ResolverSnapshot,
+  kept: ReadonlySet<string>
+): ReadonlySet<string> {
+  const byPath = new Map(modules.map((module) => [module.path, module]));
+  const reachable = new Set<string>();
+  const pending = entries.map((entry) => entry.module);
+  for (let path = pending.pop(); path !== undefined; path = pending.pop()) {
+    if (reachable.has(path) || !kept.has(path)) {
+      continue;
+    }
+    reachable.add(path);
+    for (const edge of byPath.get(path)!.edges) {
+      const target = resolver.edges[path]?.[edge.id];
+      if (target?.r === ResolutionKind.Resolved) {
+        pending.push(target.path);
+      }
+    }
+  }
+  return reachable;
+}
+
 function carriable(
   modules: readonly ModulePlan[],
   resolver: ResolverSnapshot

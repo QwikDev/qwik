@@ -68,6 +68,17 @@ export default ({ title: heading = 'heading', ...rest }) => (
     });
     expect(output.diagnostics).toEqual([]);
   });
+  test('should keep a body rest of props live like a parameter rest', async () => {
+    const output = await testInput(mode, 'component-body-prop-rest', {
+      code: `import { Slot } from '@qwik.dev/core';
+export const Child = ({ label }) => <section title={label}><Slot /></section>;
+export default (props) => {
+  const { title: heading = 'heading', ...rest } = props;
+  return <Child {...rest} title={heading}><Slot /></Child>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
   test('should initialize prop defaults once and retain reactive alias reads', async () => {
     const output = await testInput(mode, 'component-prop-defaults', {
       code: `import { createTitle, createHandler } from './defaults';

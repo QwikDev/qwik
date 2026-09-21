@@ -14,6 +14,7 @@ export const Card = (props: { title?: string; suffix: string; start: number }) =
 ============================= src/component.tsx ==
 
 import {
+  createPropsProxy,
   useSignal,
   setEvent,
   _first,
@@ -27,8 +28,8 @@ import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_componen
 
 const Card_tmpl0 = _createElementTemplate('<button><!>:<!></button>');
 export const Card = (props, ctx) => {
-  const { title = 'Untitled', ...rest } = props;
-  const label = title.toUpperCase();
+  const rest = createPropsProxy(props, ['title']);
+  const label = (props.title === void 0 ? 'Untitled' : props.title).toUpperCase();
   const suffix = rest.suffix;
   const count = useSignal(props.start);
   const el0 = Card_tmpl0(ctx.document);

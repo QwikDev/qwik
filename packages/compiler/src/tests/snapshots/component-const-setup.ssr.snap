@@ -14,6 +14,7 @@ export const Card = (props: { title?: string; suffix: string; start: number }) =
 ============================= src/component.tsx ==
 
 import {
+  createPropsProxy,
   useSignal,
   createSsrNodeId,
   escapeHTML,
@@ -35,8 +36,8 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 export const Card = _markComponent(
   (props, ctx) => {
-    const { title = 'Untitled', ...rest } = props;
-    const label = title.toUpperCase();
+    const rest = createPropsProxy(props, ['title']);
+    const label = (props.title === void 0 ? 'Untitled' : props.title).toUpperCase();
     const suffix = rest.suffix;
     const count = useSignal(props.start);
     const id0 = ctx.nextId();

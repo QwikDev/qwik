@@ -1,0 +1,91 @@
+==INPUT==
+
+import { Slot } from '@qwik.dev/core';
+export const Child = ({ label }) => <section title={label}><Slot /></section>;
+export default (props) => {
+  const { title: heading = 'heading', ...rest } = props;
+  return <Child {...rest} title={heading}><Slot /></Child>;
+};
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  propSource,
+  createAttrEffect,
+  _first,
+  maybeThen,
+  createSlot,
+  _createElementTemplate,
+  createPropsProxy,
+  _qrlWithChunk,
+  useComputedQrl,
+  createSlotScope,
+  forwardSlot,
+  createComponent,
+} from '@qwik.dev/core';
+const Child_tmpl0 = _createElementTemplate('<section><!></section>');
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0_208o16glymg7p',
+  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+  'component_props_segment_0_208o16glymg7p'
+);
+export const Child = (props0, ctx) => {
+  const el0 = Child_tmpl0(ctx.document);
+  const prop0 = propSource(props0, 'label');
+  const effect0 = createAttrEffect(el0, 'title', prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  const marker0 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  return el0;
+};
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const rest = createPropsProxy(props, ['title']);
+  const slotScope0 = createSlotScope();
+  forwardSlot(slotScope0);
+  const component0 = createComponent(
+    Child,
+    createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([rest, props]))),
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return component0;
+};
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_props_segment_0_208o16glymg7p = () => {
+  const [rest, props] = _captures;
+  return { ...rest, title: props.title === void 0 ? 'heading' : props.title };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0_208o16glymg7p",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    213,
+    244
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

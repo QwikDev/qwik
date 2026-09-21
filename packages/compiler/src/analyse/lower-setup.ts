@@ -178,9 +178,7 @@ export function lowerSetup(
             ? lowerLocalFunction(init, declarator.id, ctx, locals, (scope) =>
                 lowerConstDeclaration(declarator, scope, locals)
               )
-            : lowerAliasDeclaration(declarator, ctx, locals)
-              ? null
-              : lowerSetupDeclaration(declarator, ctx, locals));
+            : lowerAliasOrSetupDeclaration(declarator, ctx, locals));
         if (entry !== null) {
           setup.push(entry);
         }
@@ -336,16 +334,28 @@ function aliasSource(expression: Expression, ctx: LowerContext): AliasSource | n
   return { ...source, read };
 }
 
-/** `const x = props.y` and `const { a, b: c } = store` register live aliases; true when handled. */
+function lowerAliasOrSetupDeclaration(
+  declarator: VariableDeclarator,
+  ctx: LowerContext,
+  locals: SetupLocals
+): Setup | null {
+  const alias = lowerAliasDeclaration(declarator, ctx, locals);
+  return alias === undefined ? lowerSetupDeclaration(declarator, ctx, locals) : alias;
+}
+
+/**
+ * `const x = props.y` and `const { a, b: c } = store` register live aliases and emit nothing;
+ * `const { a, ...rest } = props` also emits the rest proxy. Undefined when not an alias.
+ */
 function lowerAliasDeclaration(
   declarator: VariableDeclarator,
   ctx: LowerContext,
   locals: SetupLocals
-): boolean {
+): Setup | null | undefined {
   const init = declarator.init === null ? null : unwrapExpression(declarator.init);
   const source = init === null ? null : aliasSource(init, ctx);
   if (source === null) {
-    return false;
+    return undefined;
   }
   const register = (node: Node, read: ValueIR, defaultValue?: ValueIR) =>
     locals.set(ctx.bindings.declaration(node)!, {
@@ -358,23 +368,40 @@ function lowerAliasDeclaration(
     });
   if (declarator.id.type === 'Identifier') {
     register(declarator.id, source.read);
-    return true;
+    return null;
   }
   const object = readObjectParameter(declarator.id);
-  if (object === null || object.rest !== null) {
-    return false;
+  if (object === null) {
+    return undefined;
+  }
+  // A rest is only live off the props object itself, where a proxy can exclude the named keys.
+  const isPropsRest =
+    source.read.kind === ValueIrKind.BindingRead && source.root === ctx.propsBinding;
+  if (object.rest !== null && !isPropsRest) {
+    return undefined;
   }
   const defaults = object.members.map((member) =>
     member.defaultValue === null ? undefined : tryLowerExprIr(member.defaultValue, ctx)
   );
   // A default the IR cannot carry keeps the whole pattern a native snapshot.
   if (defaults.some((value) => value === null)) {
-    return false;
+    return undefined;
   }
   object.members.forEach((member, index) =>
     register(member.node, pathReadIr(source.read, member.path, ctx), defaults[index] ?? undefined)
   );
-  return true;
+  if (object.rest === null) {
+    return null;
+  }
+  const rest = ctx.bindings.declaration(object.rest)!;
+  locals.set(rest, {
+    kind: LocalKind.PropRest,
+    access: CaptureAccess.Direct,
+    binding: rest,
+    slot: -1,
+  });
+  const excluded = [...new Set(object.members.map((member) => member.name))];
+  return { s: SetupKind.PropRest, result: rest, props: source.root, excluded };
 }
 
 /**

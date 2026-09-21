@@ -29,6 +29,7 @@ import {
 } from '../../utils/fs';
 import { parseRoutesDir } from '../build';
 import { createBuildContext, resetBuildContext, resolveBasePathname } from '../context';
+import { isIgnoredRoutePath } from '../routing/ignore-routes';
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
@@ -155,7 +156,9 @@ function isRouterSourceFileForContext(filePath: string, ctx: RoutingContext) {
   return (
     isRouterSourceFilePath(normalizedPath) &&
     (isPathInDir(normalizedPath, ctx.opts.routesDir) ||
-      isPathInDir(normalizedPath, ctx.opts.serverPluginsDir))
+      isPathInDir(normalizedPath, ctx.opts.serverPluginsDir)) &&
+    // An ignored file is not a route, so editing it must not dirty the context.
+    !isIgnoredRoutePath(ctx.opts, normalizedPath)
   );
 }
 
@@ -425,7 +428,8 @@ function qwikRouterPlugin(
         config.base,
         userOpts,
         target,
-        !userOpts?.staticImportRoutes
+        !userOpts?.staticImportRoutes,
+        viteCommand === 'serve'
       );
       buildContextRef.current = ctx;
 

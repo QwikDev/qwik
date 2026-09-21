@@ -36,6 +36,14 @@ export interface RoutingContext {
   menus: BuiltMenu[];
   frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
+  /** Route paths (relative to `routesDir`) skipped by `ignoreRoutes`, folders with a trailing `/` */
+  ignoredRoutePaths: string[];
+  /** Recognised route files skipped by `ignoreRoutes` - the guardrails need their kind */
+  ignoredRouteFiles: RouteSourceFile[];
+  /** `ignoreRoutes` guardrails warn instead of failing while the dev server is running */
+  isDevServer: boolean;
+  /** The `ignoreRoutes` summary is logged once, not on every dev re-scan */
+  hasLoggedIgnoredRoutes: boolean;
   target: 'ssr' | 'client' | undefined;
   dynamicImports: boolean;
   isDirty: boolean;
@@ -166,6 +174,18 @@ export interface PluginOptions {
   platform?: Record<string, unknown>;
   /** Configuration to rewrite url paths */
   rewriteRoutes?: RewriteRouteOption[];
+  /**
+   * Globs matched against file and folder paths relative to `routesDir`. Matching files are not
+   * routes and are not built, for client, SSR or SSG alike.
+   *
+   * Patterns are anchored and used as written: `dev/**` matches the top-level `dev` folder, while
+   * `**\/dev/**` matches one at any depth. Brace, star and question-mark wildcards apply, but `[`,
+   * `]`, `(` and `)` are literal, so patterns look like the route folder tree. Matching is
+   * case-insensitive, and an ignored folder drops its whole subtree.
+   *
+   * Vary it per Vite command to keep a route in dev but out of the production build.
+   */
+  ignoreRoutes?: string[];
   /** The serialization strategy for route loaders. Defaults to `never`. */
   defaultLoadersSerializationStrategy?: SerializationStrategy;
   /**

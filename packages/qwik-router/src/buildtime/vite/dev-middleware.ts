@@ -10,7 +10,7 @@ import {
   trimRecognizedInternalPathname,
 } from '../../middleware/request-handler/request-path';
 import { devPreloadedRouteLoaders } from '../../middleware/request-handler/dev-preloaded-route-loader';
-import { updateRoutingContext } from '../build';
+import { parseRoutesDir } from '../build';
 import { routeSortCompare } from '../routing/sort-routes';
 import type { RoutingContext } from '../types';
 import { formatError } from './format-error';
@@ -49,7 +49,16 @@ export const makeRouterDevMiddleware =
     }
     const renderer = mod.default;
     if (ctx!.isDirty) {
-      await updateRoutingContext(ctx!);
+      try {
+        // parseRoutesDir, not updateRoutingContext: it is what reports the scan's diagnostics.
+        await parseRoutesDir(ctx!);
+      } catch (e: any) {
+        if (e instanceof Error) {
+          server.ssrFixStacktrace(e);
+          formatError(e);
+        }
+        return next(e);
+      }
       ctx!.isDirty = false;
     }
     const preloadedRouteLoader = await preloadQLoaderRouteLoader(server, ctx!, req);

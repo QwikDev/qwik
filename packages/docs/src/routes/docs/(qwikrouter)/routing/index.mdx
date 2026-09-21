@@ -444,6 +444,144 @@ rewriteRoutes: [
 ],
 ```
 
+## Ignoring routes
+
+A route guarded by a server-side 404 is still a route. The router finds it on disk, lists it in the
+generated route config, and the client build compiles and publishes its chunk - so a design-system
+gallery or an internal admin page under a `dev` folder ships to production even though its URL
+answers 404. **A 404 hides a page; it does not un-ship its code.**
+
+`ignoreRoutes` removes those files from the route scan entirely, so they are not routes and are not
+built for the client, SSR or SSG:
+
+```ts title="vite.config.ts"
+import { defineConfig } from 'vite';
+import { qwikRouter } from '@qwik.dev/router/vite';
+
+export default defineConfig(({ command }) => ({
+  plugins: [
+    qwikRouter({
+      ignoreRoutes: command === 'build' ? ['dev/**', '(internal)/**'] : [],
+    }),
+  ],
+}));
+```
+
+Branching on `command` keeps the pages reachable while you develop and drops them from every
+production build. There is no built-in dev/build switch - if you forget to branch, the route also
+disappears in dev, which you notice immediately.
+
+### Pattern examples
+
+Patterns are matched against file and folder paths **relative to `routesDir`**, and they are
+anchored - so they read like the folder tree itself:
+
+| Pattern | What it ignores |
+| --- | --- |
+| `dev/**` | the top-level `dev` folder and everything under it |
+| `dev` | the same thing - naming a folder always drops its whole subtree |
+| `**/dev/**` | a `dev` folder at **any** depth, e.g. `blog/dev/` and `shop/admin/dev/` |
+| `(internal)/**` | the `(internal)` route group - parentheses are literal, not a glob group |
+| `blog/[slug]/preview/**` | `preview` under the dynamic segment - brackets are literal too |
+| `[...rest]/**` | a catch-all folder |
+| `{dev,playground}/**` | both folders, in one pattern |
+| `*/fixtures/**` | `fixtures` exactly one level down (`blog/fixtures`, not `a/b/fixtures`) |
+| `**/__fixtures__/**` | that folder wherever it appears |
+| `issue?/**` | `issue1`, `issueA` - one character, not `issue` or `issue12` |
+
+`*`, `**`, `?` and `{a,b}` are the only wildcards. Everything else is literal, which is what lets
+`[`, `]`, `(` and `)` appear in patterns unescaped. Matching is case-insensitive, the way route
+segments become lowercase URLs.
+
+Anything the route scan recognises can be ignored - `index`, `layout`, `404`, `error`, `menu.md`,
+`entry` and `service-worker`.
+
+<LongNote title="Patterns that do not do what they look like">
+Patterns are used **as written**, with no normalisation. `./dev/**` and `/dev/**` match nothing at
+all, so the build fails and names the pattern rather than silently shipping the folder.
+
+`dev/*` is rarely what you want: it drops everything directly inside `dev` but keeps the `dev` node
+itself. Prefer `dev/**` (or just `dev`) to remove the folder outright.
+
+There is no negation and no re-include. Once a folder matches, its whole subtree goes with it, so
+you cannot keep one page out of an ignored folder - move that page instead.
+</LongNote>
+
+### Common setups
+
+#### Dev-only pages
+
+A `dev/` folder holding a component gallery, seeded fixtures or a debug panel is useful while you
+work and has no reason to exist in production. Branching on Vite's `command` keeps those routes live
+under `vite dev` and drops them from every `vite build`, without moving a single file: the folder
+stays in the repo and in your editor exactly as it is.
+
+```ts title="vite.config.ts"
+import { defineConfig } from 'vite';
+import { qwikRouter } from '@qwik.dev/router/vite';
+
+export default defineConfig(({ command }) => ({
+  plugins: [
+    qwikRouter({
+      ignoreRoutes: command === 'build' ? ['dev/**', '**/__fixtures__/**'] : [],
+    }),
+  ],
+}));
+```
+
+In dev, `/dev/` renders as always. In the build, its route modules are never compiled, `/dev/`
+returns the app's normal 404, and no `dev` chunk appears in `dist/build/` or `q-manifest.json`.
+
+#### Internal tooling that ships to one deployment
+
+Some apps build the same codebase for more than one target: a public storefront and an internal back
+office, say. `ignoreRoutes` is plain config, so any signal Vite can read can decide it - here an env
+var set by the deploy pipeline. The internal build keeps the admin routes; the public build never
+compiles them.
+
+```ts title="vite.config.ts"
+import { defineConfig } from 'vite';
+import { qwikRouter } from '@qwik.dev/router/vite';
+
+export default defineConfig(({ command }) => {
+  const isInternalDeploy = process.env.DEPLOY_TARGET === 'internal';
+  return {
+    plugins: [
+      qwikRouter({
+        ignoreRoutes: command === 'build' && !isInternalDeploy ? ['(internal)/**', 'admin/**'] : [],
+      }),
+    ],
+  };
+});
+```
+
+Because the decision happens at scan time, the public bundle has no admin code in it at all. That is
+a stronger guarantee than an `onRequest` guard, which still ships the page and then declines to
+render it.
+
+### Guardrails
+
+The option exists to prevent a silent leak, so it refuses to create new ones. A pattern that matches
+nothing fails the build (and warns in dev), because a stale pattern is exactly the drift this guards
+against. Ignoring a `layout` while keeping the routes it wraps is an error - layouts often hold auth
+`onRequest` guards, and those routes would ship unguarded. Ignoring a `404`/`error` boundary that
+still covers kept routes warns, as does a markdown link pointing at an ignored page. Leaving zero
+routes is an error. A successful build logs one line naming what was skipped.
+
+<LongNote title="What ignoreRoutes does not do">
+The promise is route-level. Route modules, layouts, boundaries and loaders under an ignored path are
+not built, but a module imported by **both** an ignored route and a kept route still ships, because
+it is still reachable.
+
+Ignoring a folder also frees its URLs: once `dev/` is gone, a sibling `[...rest]` catch-all answers
+`/dev/*`. Blocking a URL is a different job from removing code - use an `onRequest` 404 in the
+catch-all, plus your adapter's `ssg.exclude`.
+
+Server plugins (`plugin@*`) are not routes and are not affected; point `serverPluginsDir` at a
+different folder per command instead. And if you ignore your `service-worker`, the generated
+registration turns into an *un*registration, which is what you want when the worker is gone.
+</LongNote>
+
 ## Advanced routing
 
 Qwik Router also supports:

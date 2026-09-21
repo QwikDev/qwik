@@ -1,0 +1,145 @@
+==INPUT==
+
+import { component$, useStylesScoped$ } from '@qwik.dev/core';
+export default component$(() => {
+  useStylesScoped$(`.from-static { color: red } .from-attr { color: blue }`);
+  const attr: Record<string, string> = { class: 'from-attr' };
+  return (
+    <>
+      <div id="r1" class="from-static" {...attr}>a</div>
+      <div id="r2" {...attr} class="from-static">b</div>
+      <div id="r3" class="only-static">c</div>
+    </>
+  );
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useStylesScoped,
+  renderSsrProps,
+  createSsrNodeId,
+  createSsrOpenTag,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_props_segment_0_208o16glymg7p = (attr) => {
+  return { id: 'r1', class: 'from-static', ...attr };
+};
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_0_208o16glymg7p'
+);
+q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
+const component_props_segment_1_208o0sfi1se76 = (attr) => {
+  return { id: 'r2', ...attr, class: 'from-static' };
+};
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_1_208o0sfi1se76'
+);
+q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    useStylesScoped(
+      '.from-static { color: red } .from-attr { color: blue }',
+      'f5nwzpjzm8yb-0',
+      true
+    );
+    const attr = { class: 'from-attr' };
+    const id0 = ctx.nextId();
+    ctx.addRoot(attr);
+    const domProps0 = renderSsrProps(
+      id0,
+      [attr],
+      q_component_props_segment_0_208o16glymg7p,
+      ctx.eventAttr,
+      undefined,
+      '⚡️f5nwzpjzm8yb-0'
+    );
+    const id1 = ctx.nextId();
+    const domProps1 = renderSsrProps(
+      id1,
+      [attr],
+      q_component_props_segment_1_208o0sfi1se76,
+      ctx.eventAttr,
+      undefined,
+      '⚡️f5nwzpjzm8yb-0'
+    );
+    return maybeThen(domProps0, (domProps0) =>
+      maybeThen(domProps1, (domProps1) => [
+        (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
+        createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+        domProps0.innerHTML ?? ['a'],
+        '</div>',
+        (domProps1.ref === undefined || ctx.setRef(domProps1.ref, id1), ''),
+        createSsrOpenTag('<div q:id="', createSsrNodeId(id1), '"', ...domProps1.attrs, '>'),
+        domProps1.innerHTML ?? ['b'],
+        '</div><div id="r3" class="⚡️f5nwzpjzm8yb-0 only-static">c</div>',
+      ])
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
+
+export const component_props_segment_0_208o16glymg7p = (attr) => {
+  return { id: 'r1', class: 'from-static', ...attr };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0_208o16glymg7p",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    267,
+    304
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "attr"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+export const component_props_segment_1_208o0sfi1se76 = (attr) => {
+  return { id: 'r2', ...attr, class: 'from-static' };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    324,
+    361
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "attr"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

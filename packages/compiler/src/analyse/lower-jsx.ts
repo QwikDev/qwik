@@ -100,7 +100,8 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
         })
       : [];
   const styleScopedId = ctx.styleScopes.length === 0 ? null : ctx.styleScopes.join(' ');
-  if (styleScopedId !== null) {
+  // With a spread the runtime props object writes `class`, scope included; a static one would print twice.
+  if (styleScopedId !== null && propsEffect === null) {
     scopeStaticClass(props, styleScopedId);
   }
   checkDomNesting(tag, ctx.elementStack, [element.start, element.end]);

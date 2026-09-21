@@ -3,6 +3,29 @@ import { describe, expect, test } from 'vitest';
 import { testInput, testInputs } from './snapshot-runner';
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should let the runtime own the scoped class when a spread owns the attributes', async () => {
+    const output = await testInput(mode, 'element-spread-scoped-class', {
+      code: `import { component$, useStylesScoped$ } from '@qwik.dev/core';
+export default component$(() => {
+  useStylesScoped$(\`.from-static { color: red } .from-attr { color: blue }\`);
+  const attr: Record<string, string> = { class: 'from-attr' };
+  return (
+    <>
+      <div id="r1" class="from-static" {...attr}>a</div>
+      <div id="r2" {...attr} class="from-static">b</div>
+      <div id="r3" class="only-static">c</div>
+    </>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules[0].code;
+    // a spread makes the runtime props object the one writer of `class`; only the spread-free
+    // element keeps a static scope class, so the scope must not print a second time on the others
+    expect(code.match(/class=\\?"⚡️/g)).toHaveLength(1);
+  });
+
   test('should compile a static default-arrow component', async () => {
     await testInput(mode, 'static-default-arrow', {
       code: `export default () => {

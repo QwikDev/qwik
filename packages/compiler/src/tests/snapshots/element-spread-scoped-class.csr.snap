@@ -1,0 +1,110 @@
+==INPUT==
+
+import { component$, useStylesScoped$ } from '@qwik.dev/core';
+export default component$(() => {
+  useStylesScoped$(`.from-static { color: red } .from-attr { color: blue }`);
+  const attr: Record<string, string> = { class: 'from-attr' };
+  return (
+    <>
+      <div id="r1" class="from-static" {...attr}>a</div>
+      <div id="r2" {...attr} class="from-static">b</div>
+      <div id="r3" class="only-static">c</div>
+    </>
+  );
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useStylesScoped, _first, _next, createPropsEffect, createTemplate } from '@qwik.dev/core';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
+import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
+
+const default_tmpl0 = createTemplate(
+  '<div>a</div><div>b</div><div id="r3" class="⚡️f5nwzpjzm8yb-0 only-static">c</div>'
+);
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  useStylesScoped('.from-static { color: red } .from-attr { color: blue }', 'f5nwzpjzm8yb-0', true);
+  const attr = { class: 'from-attr' };
+  const fragment0 = default_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const effect0 = createPropsEffect(
+    el0,
+    [attr],
+    component_props_segment_0_208o16glymg7p,
+    ctx.scheduler,
+    '⚡️f5nwzpjzm8yb-0'
+  );
+  ctx.scheduler.waitFor(effect0.run());
+  const el1 = _next(_first(fragment0));
+  const effect1 = createPropsEffect(
+    el1,
+    [attr],
+    component_props_segment_1_208o0sfi1se76,
+    ctx.scheduler,
+    '⚡️f5nwzpjzm8yb-0'
+  );
+  ctx.scheduler.waitFor(effect1.run());
+  return [...fragment0.childNodes];
+};
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
+
+export const component_props_segment_0_208o16glymg7p = (attr) => {
+  return { id: 'r1', class: 'from-static', ...attr };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0_208o16glymg7p",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    267,
+    304
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "attr"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+export const component_props_segment_1_208o0sfi1se76 = (attr) => {
+  return { id: 'r2', ...attr, class: 'from-static' };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    324,
+    361
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "attr"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

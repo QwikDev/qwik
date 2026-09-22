@@ -1,0 +1,35 @@
+{
+  "description": "Use Qwik Testing Library into your Qwik app",
+  "__qwik__": {
+    "displayName": "Integration: Qwik Testing Library (Unit Test)",
+    "priority": -15,
+    "viteConfig": {},
+    "docs": [
+      "https://github.com/ianlet/qwik-testing-library",
+      "https://qwik.dev/integrations/integration/testing-library/",
+      "https://testing-library.com/docs/"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        "⚡ Happy Testing!",
+        "",
+        "Have a look at the example component in 'src/components/example'",
+        "There you will see a '.spec.tsx' file which is the component test"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@noma.to/qwik-testing-library": "^1.2.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@vitest/ui": "^2.1.1",
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.1"
+  },
+  "scripts": {
+    "test.unit": "vitest run components",
+    "test.unit.ui": "vitest --ui components"
+  }
+}

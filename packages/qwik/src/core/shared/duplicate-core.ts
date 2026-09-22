@@ -7,9 +7,10 @@ import { getSingleton, qwikGlobal, registerSingleton } from './singletons';
 // bundles that embed the registry do not take part.
 if (isServer) {
   // The server allows one Qwik version per process; same-version copies share the registry.
+  // The client keeps versions apart instead, since each container may come from another build.
   const existing = qwikGlobal.version;
   if (existing && existing !== version) {
-    qError(QError.duplicateQwik, [existing, version]);
+    throw qError(QError.duplicateQwik, [existing, version]);
   }
   qwikGlobal.version = version;
 

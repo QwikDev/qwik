@@ -189,7 +189,7 @@ _This code is no longer used: `useComputed$` now supports async functions. See [
 
 **Qwik version already imported**
 
-Two different copies of Qwik were loaded. This causes shared internal structures to diverge and leads to subtle bugs. Ensure only one version is installed by checking your `resolve.noExternal[]` and `optimizeDeps.exclude` settings in Vite config.
+Two different versions of Qwik were loaded on the server. Copies of the same version share their runtime state, but different versions cannot, which leads to subtle bugs. Make sure every Qwik library resolves to the same `@qwik.dev/core` version, for example with package manager overrides.
 
 ## Q31
 

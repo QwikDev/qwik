@@ -1,5 +1,5 @@
 import type { QRL } from '@qwik.dev/core';
-import workerUrl from './worker.js?worker&url';
+import { browserWorkerUrl as workerUrl } from './worker-assets';
 import {
   getOrCreateWorker,
   getWorkerName,

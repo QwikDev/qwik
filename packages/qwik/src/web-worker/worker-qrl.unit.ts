@@ -13,12 +13,9 @@ const nodeWorkerThreads = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('./worker.js?worker&url', () => ({
-  default: '/mock/assets/worker.js',
-}));
-
-vi.mock('./worker.node.js?worker&url', () => ({
-  default: '/mock/assets/worker.node.js',
+vi.mock('./worker-assets', () => ({
+  browserWorkerUrl: '/mock/assets/worker.js',
+  nodeWorkerAssetUrl: '/mock/assets/worker.node.js',
 }));
 
 vi.mock('node:worker_threads', () => ({

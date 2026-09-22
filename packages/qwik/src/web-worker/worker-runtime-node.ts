@@ -1,5 +1,5 @@
 import type { QRL } from '@qwik.dev/core';
-import nodeWorkerAssetUrl from './worker.node.js?worker&url';
+import { nodeWorkerAssetUrl } from './worker-assets';
 import type { Worker as NodeWorker } from 'node:worker_threads';
 import {
   getNodeDistUrl as resolveNodeDistUrl,

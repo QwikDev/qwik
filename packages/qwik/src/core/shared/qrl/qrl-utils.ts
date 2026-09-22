@@ -39,5 +39,5 @@ export const rememberQrlOfBody = (body: object, qrl: QRL<unknown>): void => {
 
 export const qrlOfBody = (body: unknown): QRLInternal<unknown> | undefined =>
   typeof body === 'function'
-    ? (body as Record<symbol, QRLInternal<unknown>>)[QRL_OF_BODY]
+    ? (body as unknown as Record<symbol, QRLInternal<unknown>>)[QRL_OF_BODY]
     : undefined;

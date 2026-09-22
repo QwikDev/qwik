@@ -254,11 +254,11 @@ export function createRequestEvent(
       if (url) {
         if (
           // //test.com
-          /^\/\//.test(url) ||
+          /^[/\\]{2,}/.test(url) ||
           // /test//path
-          /([^:])\/\/+/.test(url)
+          /([^:])[/\\]{2,}/.test(url)
         ) {
-          const fixedURL = url.replace(/^\/\/+/, '/').replace(/([^:])\/\/+/g, '$1/');
+          const fixedURL = url.replace(/^[/\\]{2,}/, '/').replace(/([^:])[/\\]{2,}/g, '$1/');
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
           url = fixedURL;
         }

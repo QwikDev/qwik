@@ -809,7 +809,9 @@ export type LoaderOptions = {
    * object) or a function of the request event; the function may return `null` to skip the header.
    * A `Cache-Control` header set inside the loader function wins over this option.
    *
-   * Defaults to `no-cache` (always revalidate; combine with `eTag` for cheap 304s).
+   * Defaults to `private, no-cache` (browser revalidation without shared caching; combine with
+   * `eTag` for cheap 304s). Explicit `'no-cache'` and numeric values allow shared caching; numeric
+   * values include `s-maxage`.
    *
    * The literal value `'immutable'` also marks the loader's data as static, so SSG writes a
    * per-loader JSON file at build time.
@@ -840,7 +842,8 @@ export type LoaderOptions = {
    * - `true` — use the default key `${pathname}|${filteredSearch}|${loaderId}` (suffixed with
    *   `|${eTag}` when an eTag is set).
    * - Function `(requestEv, eTag) => string | null` — return a custom key, or `null` to skip caching
-   *   this request.
+   *   this request. For user-specific data, include user identity and relevant permissions in the
+   *   key or disable this cache.
    *
    * On cache miss the loader runs, the serialized response is stored alongside its eTag (computed
    * from the data when no `eTag` option is set), and the response is sent. On cache hit the stored

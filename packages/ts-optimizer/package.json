@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/ts-optimizer",
   "description": "A TypeScript implementation of the Qwik optimizer.",
-  "version": "0.0.1",
+  "version": "0.0.2-beta.0",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@oxc-project/types": "0.144.0",

@@ -245,7 +245,7 @@ test.each([
   'export const onGet = () => "server implementation";',
   `import { server$ } from '@qwik.dev/router'; export const load = server$(() => "server implementation");`,
 ])(
-  'does not emit server implementations before pipeline stripping is supported: %s',
+  'strips a server implementation from the client bundle: %s',
   async (code) => {
     const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-policy-'));
     const entry = join(directory, 'entry.ts');
@@ -257,9 +257,12 @@ test.each([
         plugins: [qwikRolldown({ target: 'client', rootDir: directory, srcDir: directory })],
       });
       try {
-        await expect(bundle.generate({ format: 'es' })).rejects.toThrow(
-          /requires server-only stripping/
-        );
+        const output = await bundle.generate({ format: 'es' });
+        const code = output.output
+          .filter((file) => file.type === 'chunk')
+          .map((file) => file.code)
+          .join('\n');
+        expect(code).not.toContain('server implementation');
       } finally {
         await bundle.close();
       }
@@ -302,12 +305,6 @@ test.each([false, true])(
         ],
       });
       try {
-        if (isRuntime) {
-          await expect(bundle.generate({ format: 'es' })).rejects.toThrow(
-            /requires server-only stripping/
-          );
-          return;
-        }
         const output = await bundle.generate({ format: 'es' });
         const code = output.output
           .filter((file) => file.type === 'chunk')

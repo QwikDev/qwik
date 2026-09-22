@@ -79,6 +79,33 @@ export default component$(() => {
   });
 
   test.each(['ssr', 'csr'] as const)(
+    '%s golden: a listed export is stubbed in a module that never imports Qwik',
+    async (mode) => {
+      const output = await testInput(
+        mode,
+        'strip-foreign-export',
+        {
+          path: 'src/routes/index.ts',
+          code: `export const onGet = () => 'server implementation';
+export function onPost() {
+  return 'server implementation';
+}
+export const shared = 'both sides';`,
+        },
+        mode === 'csr' ? { stripExports: SERVER_EXPORTS } : {}
+      );
+      expect(output.diagnostics).toEqual([]);
+      const main = output.modules.find((module) => module.path === 'src/routes/index.ts')!.code;
+      expect(main).toContain('both sides');
+      if (mode === 'csr') {
+        expect(main).not.toContain('server implementation');
+      } else {
+        expect(main).toContain('server implementation');
+      }
+    }
+  );
+
+  test.each(['ssr', 'csr'] as const)(
     '%s golden: a stripped body still reports the imports only it reached',
     async (mode) => {
       const output = await testInputs(

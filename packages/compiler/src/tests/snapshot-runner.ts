@@ -15,6 +15,7 @@ export interface TestInput {
 /** Per-environment knobs a golden may pin; each maps straight onto `transformModules`. */
 export interface TestOptions {
   stripCtxName?: string[];
+  stripExports?: string[];
 }
 
 export async function testInput(

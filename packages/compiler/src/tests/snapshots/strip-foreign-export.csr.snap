@@ -1,0 +1,21 @@
+==INPUT==
+
+export const onGet = () => 'server implementation';
+export function onPost() {
+  return 'server implementation';
+}
+export const shared = 'both sides';
+== CSR OUTPUT ==
+
+============================= src/routes/index.ts ==
+
+export const onGet = () => {
+  throw new Error('This server-only export is not available in the browser.');
+};
+export function onPost() {
+  throw new Error('This server-only export is not available in the browser.');
+}
+export const shared = 'both sides';
+== CSR DIAGNOSTICS ==
+
+[]

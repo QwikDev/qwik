@@ -1,0 +1,19 @@
+==INPUT==
+
+export const onGet = () => 'server implementation';
+export function onPost() {
+  return 'server implementation';
+}
+export const shared = 'both sides';
+== SSR OUTPUT ==
+
+============================= src/routes/index.ts ==
+
+export const onGet = () => 'server implementation';
+export function onPost() {
+  return 'server implementation';
+}
+export const shared = 'both sides';
+== SSR DIAGNOSTICS ==
+
+[]

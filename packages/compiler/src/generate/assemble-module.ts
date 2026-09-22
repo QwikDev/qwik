@@ -26,6 +26,13 @@ import {
 const STRIPPED_EXPORT_THROW =
   "throw new Error('This server-only export is not available in the browser.');";
 
+/** What replaces a stripped export's initializer or function body. */
+export function strippedValueJs(form: StripValueForm): string {
+  return form === StripValueForm.Body
+    ? `{ ${STRIPPED_EXPORT_THROW} }`
+    : `() => { ${STRIPPED_EXPORT_THROW} }`;
+}
+
 /** Insertion order IS the emitted import order. */
 export interface QwikModuleEmitter {
   /** Only the server serializes, so only it marks components with their symbol. */
@@ -130,13 +137,7 @@ export function assembleQwikModule(
         edits.push({ range: intent.range, text: '' });
         break;
       case AssemblyKind.StripValue:
-        edits.push({
-          range: intent.range,
-          text:
-            intent.form === StripValueForm.Body
-              ? `{ ${STRIPPED_EXPORT_THROW} }`
-              : `() => { ${STRIPPED_EXPORT_THROW} }`,
-        });
+        edits.push({ range: intent.range, text: strippedValueJs(intent.form) });
         break;
       case AssemblyKind.Splice: {
         const qrl = module.qrls[intent.qrl];

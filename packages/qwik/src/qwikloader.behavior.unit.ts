@@ -146,9 +146,13 @@ function createMockElement(
     isConnected: true,
     getAttribute: (name: string) => attributeMap.get(name) ?? null,
     hasAttribute: (name: string) => attributeMap.has(name),
+    removeAttribute: (name: string) => attributeMap.delete(name),
     closest: (selector: string) => {
       let current = element as any;
       while (current) {
+        if (selector === 'q\\:template' && current.tagName === 'Q:TEMPLATE') {
+          return current;
+        }
         if (
           selector === '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])' &&
           current.hasAttribute('q:container') &&
@@ -196,6 +200,35 @@ async function flushQueuedTasks() {
 }
 
 describe('qwikloader behavior', () => {
+  test.each([
+    ['d:qinit', 'q-d:qinit', '_qInit'],
+    ['d:qidle', 'q-d:qidle', '_qIdle'],
+  ])('defers %s inside an unclaimed projection', async (eventName, attributeName, markerName) => {
+    const { doc, win } = createLoaderEnvironment([eventName]);
+    const handler = vi.fn();
+    const template = createMockElement(null, {});
+    template.tagName = 'Q:TEMPLATE';
+    const element = createMockElement(template, { [attributeName]: true }, handler, eventName);
+    doc.querySelectorAll.mockReturnValue([element]);
+    win.setTimeout.mockImplementation((callback: () => void) => callback());
+
+    doc.readyState = 'complete';
+    getSingleListener(doc, 'readystatechange').handler(createMockEvent(doc, 'readystatechange'));
+    await flushQueuedTasks();
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(element.hasAttribute(attributeName)).toBe(true);
+    expect(template[markerName]).toBe(true);
+
+    element.parentElement = null;
+    template[markerName] = false;
+    win._qwikEv.push(eventName);
+    await flushQueuedTasks();
+
+    expect(handler).toHaveBeenCalledOnce();
+    expect(element.hasAttribute(attributeName)).toBe(false);
+  });
+
   test('registers listeners for each scope and supports late event registration', () => {
     const { doc, win } = createLoaderEnvironment([
       'e:click',

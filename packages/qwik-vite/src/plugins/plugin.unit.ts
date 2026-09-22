@@ -2,10 +2,18 @@ import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, createQwikPlugin, replaceExperimentalFlags } from './plugin';
+import {
+  ExperimentalFeatures,
+  createQwikPlugin,
+  replaceExperimentalFlags,
+  replaceManifestPlaceholder,
+} from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
+
+// assembled at runtime: this very file passes through the plugin, which rewrites the literal
+const MANIFEST_KEY = `globalThis.${'__QWIK'}_MANIFEST__`;
 
 const cwd = process.cwd();
 
@@ -217,6 +225,17 @@ test('resolveQwikBuild false', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ resolveQwikBuild: false });
   assert.deepEqual(opts.resolveQwikBuild, false);
+});
+
+test('replaceManifestPlaceholder wires the manifest where core reads it', () => {
+  const key = MANIFEST_KEY;
+  const code = `if (!${key}) { throw 1; } const m = ${key};`;
+  expect(replaceManifestPlaceholder(code, '{"mapping":{}}').toString()).toBe(
+    'if (false) { throw 1; } const m = {"mapping":{}};'
+  );
+  expect(replaceManifestPlaceholder(code, null).toString()).toBe(
+    `if (false) { throw 1; } const m = ${key};`
+  );
 });
 
 test('replaceExperimentalFlags decides each feature flag, unknown ones off', () => {
@@ -764,7 +783,7 @@ async function mockPlugin(os = process.platform, useMockBinding = true) {
   return plugin;
 }
 
-describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
+describe('transform: manifest placeholder replacement', () => {
   const sampleManifest: QwikManifest = {
     manifestHash: 'abc123',
     mapping: { symbol_abc: 'chunk.js' },
@@ -773,19 +792,19 @@ describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
     version: '1',
   };
 
-  test('replaces !globalThis.__QWIK_MANIFEST__ with false when no manifest is available', async () => {
+  test('replaces the manifest check with false when no manifest is available', async () => {
     const plugin = await mockPlugin();
     await plugin.normalizeOptions({ target: 'ssr', buildMode: 'development' });
 
-    const code = `if (!globalThis.__QWIK_MANIFEST__) { throw new Error('no manifest'); }`;
+    const code = `if (!${MANIFEST_KEY}) { throw new Error('no manifest'); }`;
     const result = await plugin.transform({} as any, code, '/root/src/server.js');
 
     expect(result).toBeTruthy();
     expect(result!.code).toContain('false');
-    expect(result!.code).not.toContain('!globalThis.__QWIK_MANIFEST__');
+    expect(result!.code).not.toContain(`!${MANIFEST_KEY}`);
   });
 
-  test('replaces globalThis.__QWIK_MANIFEST__ with manifest JSON when manifest is available', async () => {
+  test('replaces the manifest read with manifest JSON when manifest is available', async () => {
     const plugin = await mockPlugin();
     await plugin.normalizeOptions({
       target: 'ssr',
@@ -793,11 +812,11 @@ describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
       manifestInput: sampleManifest,
     });
 
-    const code = `const m = globalThis.__QWIK_MANIFEST__;`;
+    const code = `const m = ${MANIFEST_KEY};`;
     const result = await plugin.transform({} as any, code, '/root/src/server.js');
 
     expect(result).toBeTruthy();
-    expect(result!.code).not.toContain('globalThis.__QWIK_MANIFEST__');
+    expect(result!.code).not.toContain(MANIFEST_KEY);
     expect(result!.code).toContain('"manifestHash":"abc123"');
   });
 
@@ -809,7 +828,7 @@ describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
       manifestInput: sampleManifest,
     });
 
-    const code = `const m = globalThis.__QWIK_MANIFEST__;`;
+    const code = `const m = ${MANIFEST_KEY};`;
     const result = await plugin.transform({} as any, code, '/root/src/server.js');
 
     expect(result).toBeTruthy();

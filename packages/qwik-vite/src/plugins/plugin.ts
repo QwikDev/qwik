@@ -951,6 +951,10 @@ export function createQwikPlugin(
       // linked output never passes through transform; a library keeps the flags for its consumer
       if (loaded !== null && opts.target !== 'lib') {
         loaded.code = replaceExperimentalFlags(loaded.code, opts.experimental);
+        const withManifest = await injectServerManifest(loaded.code, getIsServer(ctx, loadOpts));
+        if (withManifest !== null) {
+          loaded.code = withManifest.toString();
+        }
       }
       return loaded;
     }
@@ -1320,19 +1324,11 @@ export function createQwikPlugin(
       shouldReturn = true;
     }
 
-    if (code.includes(`globalThis.${globalManifestKey}`)) {
-      if (theManifest === undefined) {
-        theManifest = await getQwikServerManifest(isServer);
-      }
-      const s = new MagicString(code);
-      // Always replace the check
-      s.replace(`!globalThis.${globalManifestKey}`, 'false');
-      if (theManifest) {
-        s.replace(`globalThis.${globalManifestKey}`, theManifest);
-      }
-      code = s.toString();
+    const withManifest = await injectServerManifest(code, isServer);
+    if (withManifest !== null) {
+      code = withManifest.toString();
       // Don't clobber the original source map if we already have one from the transform
-      map ||= s.generateMap({ source: id, includeContent: false });
+      map ||= withManifest.generateMap({ source: id, includeContent: false });
       shouldReturn = true;
       debug(`transform(${count})`, `Replaced globalThis.${globalManifestKey} with manifest input`);
     }
@@ -1460,6 +1456,20 @@ export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
 export const isDev = ${JSON.stringify(isDev)};
 `;
+  }
+
+  /** The server bundle carries the client manifest where core reads it; null when nothing to do. */
+  async function injectServerManifest(
+    code: string,
+    isServer: boolean
+  ): Promise<MagicString | null> {
+    if (!code.includes(`globalThis.${globalManifestKey}`)) {
+      return null;
+    }
+    if (theManifest === undefined) {
+      theManifest = await getQwikServerManifest(isServer);
+    }
+    return replaceManifestPlaceholder(code, theManifest);
   }
 
   async function getQwikServerManifest(isServer: boolean) {
@@ -1877,3 +1887,16 @@ export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 export type QwikBuildMode = 'production' | 'development';
 
 const globalManifestKey = '__QWIK_MANIFEST__';
+
+/**
+ * `!globalThis.__QWIK_MANIFEST__` always becomes `false` (the build wires the manifest); the read
+ * itself becomes the manifest JSON when one is known.
+ *
+ * @internal
+ */
+export function replaceManifestPlaceholder(code: string, manifestJson: string | null): MagicString {
+  const placeholder = new RegExp(`(!?)globalThis\\.${globalManifestKey}`, 'g');
+  return new MagicString(code).replace(placeholder, (read, isCheck) =>
+    isCheck ? 'false' : (manifestJson ?? read)
+  );
+}

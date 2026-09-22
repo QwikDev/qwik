@@ -93,7 +93,7 @@ export function resolveCacheKey(
 /** Build the default SSR cache key. eTag slot is dropped when no eTag was resolved. */
 export function defaultSsrCacheKey(requestEv: RequestEvent, eTag: string): string {
   const status = requestEv.status();
-  const pathname = requestEv.url.pathname;
+  const pathname = requestEv.originalUrl.pathname;
   return eTag ? `${status}|${eTag}|${pathname}` : `${status}|${pathname}`;
 }
 

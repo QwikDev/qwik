@@ -310,6 +310,10 @@ const qrlSetRef = function <TYPE>(
   ref: ValueOrPromise<TYPE>
 ) {
   const qrl = getInstance<TYPE>(this);
+  if (qTest ? isServerPlatform() : isServer) {
+    const symbols = ((globalThis as any).__qwik_reg_symbols ??= new Map<string, unknown>());
+    symbols.set(qrl.$lazy$.$hash$, ref);
+  }
   qrl.$lazy$.$setRef$(ref);
   qrl.resolved = bindCaptures(qrl, ref as TYPE);
 };

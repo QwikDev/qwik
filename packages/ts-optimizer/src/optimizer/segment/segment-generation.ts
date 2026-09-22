@@ -639,7 +639,13 @@ function buildDescendantSentinelIndexes(
       }
     }
   };
-  visit(parentSymbol);
+  let rootSymbol = parentSymbol;
+  let parent = extractions.find((ext) => ext.symbolName === rootSymbol)?.parent ?? null;
+  while (parent !== null) {
+    rootSymbol = parent;
+    parent = extractions.find((ext) => ext.symbolName === rootSymbol)?.parent ?? null;
+  }
+  visit(rootSymbol);
   return indexes;
 }
 
@@ -1453,11 +1459,14 @@ export function buildDefaultStrategySegment(
     segmentCode = hoistInlinedQrlBodies(segmentCode);
   }
 
-  const entryField = resolveEntryField(
-    entryStrategy.type,
-    ext,
-    hasManualEntryMap(entryStrategy) ? entryStrategy.manual : undefined
-  );
+  const manualEntries = hasManualEntryMap(entryStrategy) ? entryStrategy.manual : undefined;
+  const parentExt = ext.parent === null ? undefined : prep.extBySymbol.get(ext.parent);
+  const entryField =
+    entryStrategy.type === 'smart' &&
+    parentExt?.ctxKind === 'eventHandler' &&
+    !(manualEntries && ext.symbolName in manualEntries)
+      ? null
+      : resolveEntryField(entryStrategy.type, ext, manualEntries);
 
   const outputExtension = resolveSegmentFileExtension(
     ext.symbolName,
@@ -1538,7 +1547,17 @@ export function generateAllSegmentModules(ctx: SegmentGenerationContext): Transf
       const inlineModule = buildInlineStrategySegment(ext, ctx, prep, stripped);
       // null result means non-stripped inline — body inlined into parent,
       // no segment file emitted.
-      if (inlineModule !== null) {
+      if (
+        inlineModule !== null &&
+        !(
+          ctx.options.stripEventHandlers &&
+          ext.ctxKind === 'eventHandler' &&
+          ctx.updatedExtractions.some(
+            (child) =>
+              child.parent === ext.symbolName && matchesRegCtxName(child, ctx.options.regCtxName)
+          )
+        )
+      ) {
         allModules.push(inlineModule);
       }
       continue;

@@ -1,5 +1,12 @@
 # @qwik.dev/devtools
 
+## 2.0.0-beta.45
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @qwik.dev/core@2.0.0-beta.45
+
 ## 2.0.0-beta.44
 
 ### Patch Changes

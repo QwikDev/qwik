@@ -1069,6 +1069,65 @@ export const Works = component$((props) => {
 	});
 }
 
+fn issue_3189_source() -> String {
+	r#"
+import { component$, $ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
+
+export default component$(() => {
+	const name = 'world';
+	const capitalize = $((v: string) => v[0].toUpperCase() + v.substring(1));
+	return (
+		<div>
+			<button
+				onClick$={async () => {
+					server$(async () => {
+						console.log(`Hello ${await capitalize(name)}!`);
+					})();
+				}}
+			>
+				Click
+			</button>
+		</div>
+	);
+});
+"#
+	.to_string()
+}
+
+#[test]
+fn issue_3189_client_nested_qrls() {
+	test_input!(TestInput {
+		code: issue_3189_source(),
+		filename: "src/routes/index.tsx".to_string(),
+		src_dir: "/project/src".to_string(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		explicit_extensions: true,
+		is_server: Some(false),
+		strip_ctx_name: Some(vec!["server".into()]),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn issue_3189_ssr_nested_qrls() {
+	test_input!(TestInput {
+		code: issue_3189_source(),
+		filename: "src/routes/index.tsx".to_string(),
+		src_dir: "/project/src".to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		transpile_ts: true,
+		transpile_jsx: true,
+		explicit_extensions: true,
+		is_server: Some(true),
+		strip_event_handlers: true,
+		reg_ctx_name: Some(vec!["server".into()]),
+		..TestInput::default()
+	});
+}
+
 #[test]
 fn reports_import_used_only_in_stripped_segment() {
 	let output = test_input!(TestInput {

@@ -1,0 +1,179 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
+
+export default component$(() => {
+	const name = 'world';
+	const capitalize = $((v: string) => v[0].toUpperCase() + v.substring(1));
+	return (
+		<div>
+			<button
+				onClick$={async () => {
+					server$(async () => {
+						console.log(`Hello ${await capitalize(name)}!`);
+					})();
+				}}
+			>
+				Click
+			</button>
+		</div>
+	);
+});
+
+============================= src/routes/index.tsx_routes_component_div_button_q_e_click_server_FYoUGLhfwRw.js (ENTRY POINT)==
+
+export const routes_component_div_button_q_e_click_server_FYoUGLhfwRw = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "src/routes/index.tsx",
+  "name": "routes_component_div_button_q_e_click_server_FYoUGLhfwRw",
+  "entry": null,
+  "displayName": "index.tsx_routes_component_div_button_q_e_click_server",
+  "hash": "FYoUGLhfwRw",
+  "canonicalFilename": "index.tsx_routes_component_div_button_q_e_click_server_FYoUGLhfwRw",
+  "path": "src/routes",
+  "extension": "js",
+  "parent": "routes_component_div_button_q_e_click_vRp183j5UWQ",
+  "ctxKind": "function",
+  "ctxName": "server$",
+  "captures": true,
+  "loc": [
+    0,
+    0
+  ],
+  "captureNames": [
+    "capitalize"
+  ]
+}
+*/
+============================= src/routes/index.tsx_routes_component_pCYUo1eiS0w.js ==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_routes_component_capitalize_QZiVHYK0F5c = /*#__PURE__*/ qrl(()=>import("./index.tsx_routes_component_capitalize_QZiVHYK0F5c.js"), "routes_component_capitalize_QZiVHYK0F5c");
+const q_routes_component_div_button_q_e_click_vRp183j5UWQ = /*#__PURE__*/ qrl(()=>import("./index.tsx_routes_component_div_button_q_e_click_vRp183j5UWQ.js"), "routes_component_div_button_q_e_click_vRp183j5UWQ").m();
+//
+export const routes_component_pCYUo1eiS0w = ()=>{
+    const capitalize = q_routes_component_capitalize_QZiVHYK0F5c;
+    return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted("button", {
+        "q:p": capitalize
+    }, {
+        "q-e:click": q_routes_component_div_button_q_e_click_vRp183j5UWQ
+    }, "Click", 7, null), 1, "dC_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/project/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\";;;;;;4CAI0B;IAEzB,MAAM;IACN,qBACC,WAAC,iCACA,WAAC;;;QACA,WAAQ;OAKR;AAKJ\"}")
+/*
+{
+  "origin": "src/routes/index.tsx",
+  "name": "routes_component_pCYUo1eiS0w",
+  "entry": "src/routes/index.tsx_entry_routes",
+  "displayName": "index.tsx_routes_component",
+  "hash": "pCYUo1eiS0w",
+  "canonicalFilename": "index.tsx_routes_component_pCYUo1eiS0w",
+  "path": "src/routes",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    121,
+    426
+  ]
+}
+*/
+============================= src/routes/index.tsx_routes_component_div_button_q_e_click_vRp183j5UWQ.js (ENTRY POINT)==
+
+import { _noopQrl } from "@qwik.dev/core";
+import { serverQrl } from "@qwik.dev/router";
+//
+const q_qrl_4294901762 = /*#__PURE__*/ _noopQrl("routes_component_div_button_q_e_click_server_FYoUGLhfwRw");
+//
+export const routes_component_div_button_q_e_click_vRp183j5UWQ = async (_, _1, capitalize)=>{
+    serverQrl(q_qrl_4294901762.w([
+        capitalize
+    ]))();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/project/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\";;;;;iEAUc;IACT;;;AAGD\"}")
+/*
+{
+  "origin": "src/routes/index.tsx",
+  "name": "routes_component_div_button_q_e_click_vRp183j5UWQ",
+  "entry": null,
+  "displayName": "index.tsx_routes_component_div_button_q_e_click",
+  "hash": "vRp183j5UWQ",
+  "canonicalFilename": "index.tsx_routes_component_div_button_q_e_click_vRp183j5UWQ",
+  "path": "src/routes",
+  "extension": "js",
+  "parent": "routes_component_pCYUo1eiS0w",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    270,
+    382
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "capitalize"
+  ]
+}
+*/
+============================= src/routes/index.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_routes_component_pCYUo1eiS0w = /*#__PURE__*/ qrl(()=>import("./index.tsx_routes_component_pCYUo1eiS0w.js"), "routes_component_pCYUo1eiS0w");
+//
+export default /*#__PURE__*/ componentQrl(q_routes_component_pCYUo1eiS0w);
+
+
+Some("{\"version\":3,\"sources\":[\"/project/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,6BAAe,6CAgBZ\"}")
+============================= src/routes/index.tsx_routes_component_capitalize_QZiVHYK0F5c.js ==
+
+export const routes_component_capitalize_QZiVHYK0F5c = (v)=>v[0].toUpperCase() + v.substring(1);
+
+
+Some("{\"version\":3,\"sources\":[\"/project/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\"uDAMsB,CAAC,IAAc,CAAC,CAAC,EAAE,CAAC,WAAW,KAAK,EAAE,SAAS,CAAC\"}")
+/*
+{
+  "origin": "src/routes/index.tsx",
+  "name": "routes_component_capitalize_QZiVHYK0F5c",
+  "entry": "src/routes/index.tsx_entry_routes",
+  "displayName": "index.tsx_routes_component_capitalize",
+  "hash": "QZiVHYK0F5c",
+  "canonicalFilename": "index.tsx_routes_component_capitalize_QZiVHYK0F5c",
+  "path": "src/routes",
+  "extension": "js",
+  "parent": "routes_component_pCYUo1eiS0w",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    174,
+    224
+  ],
+  "paramNames": [
+    "v"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

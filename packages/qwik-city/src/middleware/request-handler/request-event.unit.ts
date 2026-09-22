@@ -122,6 +122,36 @@ describe('request-event redirect', () => {
     );
   });
 
+  it('should fix protocol-relative URL redirects using backslashes', () => {
+    // Browsers treat backslashes as forward slashes in http(s) URLs, so these
+    // are protocol-relative redirects to evil.com and must be collapsed to a path.
+    for (const evil of ['/\\evil.com', '\\/evil.com', '\\\\evil.com', '/\\/evil.com']) {
+      const requestEv = createMockRequestEvent();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = requestEv.redirect(302, evil);
+
+      expect(result).toBeInstanceOf(RedirectMessage);
+      const location = requestEv.headers.get('Location')!;
+      // must stay same-origin: the browser-resolved host must remain localhost
+      expect(new URL(location, 'http://localhost:3000').host).toBe('localhost:3000');
+      expect(location).toBe('/evil.com');
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    }
+  });
+
+  it('should fix mixed slash/backslash sequences in the path', () => {
+    const requestEv = createMockRequestEvent();
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const result = requestEv.redirect(302, '/path/\\with\\/mixed');
+
+    expect(result).toBeInstanceOf(RedirectMessage);
+    expect(requestEv.headers.get('Location')).toBe('/path/with/mixed');
+    expect(consoleSpy).toHaveBeenCalled();
+  });
+
   it('should preserve valid URLs with protocols', () => {
     const requestEv = createMockRequestEvent();
 

@@ -237,12 +237,14 @@ export function createRequestEvent(
       status = statusCode;
       if (url) {
         if (
-          // //test.com
-          /^\/\//.test(url) ||
-          // /test//path
-          /([^:])\/\/+/.test(url)
+          // protocol-relative URL, e.g. //test.com — browsers also treat backslashes
+          // as forward slashes in http(s) URLs, so /\test.com, \\test.com, \/test.com
+          // are equivalent and must be collapsed too.
+          /^[/\\]{2,}/.test(url) ||
+          // /test//path or /test/\path
+          /[^:][/\\]{2,}/.test(url)
         ) {
-          const fixedURL = url.replace(/^\/\/+/, '/').replace(/([^:])\/\/+/g, '$1/');
+          const fixedURL = url.replace(/^[/\\]{2,}/, '/').replace(/([^:])[/\\]{2,}/g, '$1/');
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
           url = fixedURL;
         }

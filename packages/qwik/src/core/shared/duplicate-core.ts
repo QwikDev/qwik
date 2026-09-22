@@ -6,12 +6,22 @@ import { getSingleton, qwikGlobal, registerSingleton } from './singletons';
 // Runs once per copy of core: only the public entry imports this, so the server and preloader
 // bundles that embed the registry do not take part.
 if (isServer) {
-  // The server allows one Qwik version per process; same-version copies share the registry.
-  const existing = qwikGlobal.version;
-  if (existing && existing !== version) {
-    qError(QError.duplicateQwik, [existing, version]);
+  // Only the production build mangles `$…$` property names, so its objects are foreign to the
+  // development build even at the same version. A class instance keeps the minifier from folding
+  // the probe at build time, and the substring check survives its rewriting of string literals.
+  class BuildProbe {
+    $probe$ = 0;
   }
-  qwikGlobal.version = version;
+  const isMangled = !Object.keys(new BuildProbe()).some((name) => name.includes('probe'));
+  const build = isMangled ? 'production' : 'development';
+  const versionAndBuild = `${version} (${build})`;
+  // The server allows one Qwik version per process; same-version copies share the registry.
+  // The client keeps versions apart instead, since each container may come from another build.
+  const existing = qwikGlobal.version;
+  if (existing && existing !== versionAndBuild) {
+    throw qError(QError.duplicateQwik, [existing, versionAndBuild]);
+  }
+  qwikGlobal.version = versionAndBuild;
 
   /**
    * The bundler replaces every `__EXPERIMENTAL__.feature` read with a literal. A copy of core that

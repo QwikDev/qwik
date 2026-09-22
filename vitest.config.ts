@@ -20,7 +20,7 @@ export default defineConfig({
       devTools: { hmr: false },
       experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary'],
     }),
-    tsconfigPaths({ ignoreConfigErrors: true }),
+    tsconfigPaths({ ignoreConfigErrors: true, loose: true }),
   ],
   test: {
     root: fromRoot('./packages'),

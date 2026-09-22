@@ -301,7 +301,18 @@ export function createLinkedBuild() {
     if (file === undefined) {
       throw new Error(`Missing linked output: ${id}`);
     }
-    return { code: file.code, map: file.map, meta: { segment: file.segment } };
+    // resolved here: the router's server$ walk resolves ids without an importer
+    const qwikdeps = await Promise.all(
+      (file.imports ?? []).map((specifier) => resolveId(ctx, specifier, id))
+    );
+    return {
+      code: file.code,
+      map: file.map,
+      meta: {
+        segment: file.segment,
+        qwikdeps: qwikdeps.map((dep) => (typeof dep === 'string' ? dep : dep?.id)).filter(Boolean),
+      },
+    };
   }
 
   async function resolveId(

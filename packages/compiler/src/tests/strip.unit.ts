@@ -5,7 +5,7 @@
  */
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../transform-modules';
-import { testInput } from './snapshot-runner';
+import { testInput, testInputs } from './snapshot-runner';
 
 const SERVER_CTX_NAMES = ['route', 'server', 'action$', 'loader$', 'globalAction$'];
 const SERVER_EXPORTS = ['onGet', 'onPost', 'onRequest'];
@@ -77,6 +77,44 @@ export default component$(() => {
     expect(main).not.toContain('_withCaptures(');
     expect(main).toMatch(/serverQrl\(_noopQrl\("index_read_segment_\d+_[a-z0-9]+", \[count\]\)\)/);
   });
+
+  test.each(['ssr', 'csr'] as const)(
+    '%s golden: a stripped body still reports the imports only it reached',
+    async (mode) => {
+      const output = await testInputs(
+        mode,
+        'strip-keeps-body-imports',
+        [
+          {
+            path: 'src/routes/index.tsx',
+            code: `import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+import { ping } from '../shared/server-fn';
+import { formatLabel } from '../shared/label';
+export default component$(() => {
+  const result = useSignal('pending');
+  useVisibleTask$(async () => {
+    result.value = await ping();
+  });
+  return <div>{formatLabel(result.value)}</div>;
+});`,
+          },
+          {
+            path: 'src/shared/server-fn.ts',
+            code: `import { server$ } from '@qwik.dev/router';
+export const ping = server$(async () => 'pong');`,
+          },
+          {
+            path: 'src/shared/label.ts',
+            code: `export const formatLabel = (value: string) => value.toUpperCase();`,
+          },
+        ],
+        mode === 'ssr' ? { stripCtxName: CLIENT_CTX_NAMES } : { stripCtxName: SERVER_CTX_NAMES }
+      );
+      expect(output.diagnostics).toEqual([]);
+      const route = output.modules.find((module) => module.path === 'src/routes/index.tsx')!;
+      expect(route.imports).toEqual(mode === 'ssr' ? ['../shared/server-fn'] : []);
+    }
+  );
 
   test.each(['ssr', 'csr'] as const)(
     '%s golden: a captured server$ inside a component',

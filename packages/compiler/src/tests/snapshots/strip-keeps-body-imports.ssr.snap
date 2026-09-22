@@ -1,0 +1,144 @@
+==INPUT==
+
+// src/routes/index.tsx
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+import { ping } from '../shared/server-fn';
+import { formatLabel } from '../shared/label';
+export default component$(() => {
+  const result = useSignal('pending');
+  useVisibleTask$(async () => {
+    result.value = await ping();
+  });
+  return <div>{formatLabel(result.value)}</div>;
+});
+// src/shared/server-fn.ts
+import { server$ } from '@qwik.dev/router';
+export const ping = server$(async () => 'pong');
+// src/shared/label.ts
+export const formatLabel = (value: string) => value.toUpperCase();
+== SSR OUTPUT ==
+
+============================= src/routes/index.tsx ==
+
+import {
+  useSignal,
+  useVisibleTaskQrl,
+  _captures,
+  createSsrNodeId,
+  createSsrOpenTag,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { ping } from '../shared/server-fn';
+import { formatLabel } from '../shared/label';
+const q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = /*#__PURE__*/ _noopQrl(
+  'index_useVisibleTaskqrl_segment_0_xu37ccow27t1'
+);
+const index_text_segment_1_1ipiow57gf7g4 = (result) => {
+  return formatLabel(result.value);
+};
+const q_index_text_segment_1_1ipiow57gf7g4 = /*#__PURE__*/ _noopQrl(
+  'index_text_segment_1_1ipiow57gf7g4'
+);
+q_index_text_segment_1_1ipiow57gf7g4.s(index_text_segment_1_1ipiow57gf7g4);
+export const default_component_tv8h7w8tm3v2 = _markComponent(
+  (props, ctx) => {
+    const result = useSignal('pending');
+    useVisibleTaskQrl(q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.w([result]));
+    const id0 = ctx.nextId();
+    ctx.addRoot(result);
+    const text0 = renderSsrTextExpression(
+      id0,
+      null,
+      [result],
+      q_index_text_segment_1_1ipiow57gf7g4
+    );
+    return maybeThen(text0, (text0) => [
+      createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', '>'),
+      escapeHTML(text0),
+      '</div>',
+    ]);
+  },
+  'default_component_tv8h7w8tm3v2',
+  './index.tsx'
+);
+export default default_component_tv8h7w8tm3v2;
+/* stripped-body imports: ["../shared/server-fn"] */
+============================= src/routes/index.tsx_index_text_segment_1_1ipiow57gf7g4.js (ENTRY POINT)==
+
+import { formatLabel } from '../shared/label';
+
+export const index_text_segment_1_1ipiow57gf7g4 = (result) => {
+  return formatLabel(result.value);
+};
+/*
+{
+  "origin": "index.tsx",
+  "name": "index_text_segment_1_1ipiow57gf7g4",
+  "entry": null,
+  "displayName": "index_text_segment_1",
+  "hash": "1ipiow57gf7g4",
+  "canonicalFilename": "index.tsx_index_text_segment_1_1ipiow57gf7g4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    323,
+    348
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "result"
+  ]
+}
+*/
+============================= src/shared/server-fn.ts ==
+
+import { _noopQrl } from '@qwik.dev/core';
+import { serverQrl } from '@qwik.dev/router';
+
+const server_fn_serverqrl_segment_0_1ni2pdgfbji7l = async () => {
+  return 'pong';
+};
+const q_server_fn_serverqrl_segment_0_1ni2pdgfbji7l = /*#__PURE__*/ _noopQrl(
+  'server_fn_serverqrl_segment_0_1ni2pdgfbji7l'
+);
+q_server_fn_serverqrl_segment_0_1ni2pdgfbji7l.s(server_fn_serverqrl_segment_0_1ni2pdgfbji7l);
+import { server$ } from '@qwik.dev/router';
+export const ping = serverQrl(q_server_fn_serverqrl_segment_0_1ni2pdgfbji7l);
+============================= src/shared/server-fn.ts_server_fn_serverqrl_segment_0_1ni2pdgfbji7l.js (ENTRY POINT)==
+
+export const server_fn_serverqrl_segment_0_1ni2pdgfbji7l = async () => {
+  return 'pong';
+};
+/*
+{
+  "origin": "server-fn.ts",
+  "name": "server_fn_serverqrl_segment_0_1ni2pdgfbji7l",
+  "entry": null,
+  "displayName": "server_fn_serverqrl_segment_0",
+  "hash": "1ni2pdgfbji7l",
+  "canonicalFilename": "server-fn.ts_server_fn_serverqrl_segment_0_1ni2pdgfbji7l",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "server$",
+  "captures": false,
+  "loc": [
+    64,
+    91
+  ],
+  "paramNames": []
+}
+*/
+============================= src/shared/label.ts ==
+
+export const formatLabel = (value) => value.toUpperCase();
+== SSR DIAGNOSTICS ==
+
+[]

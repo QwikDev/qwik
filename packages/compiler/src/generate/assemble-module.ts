@@ -1,6 +1,7 @@
 import {
   AssemblyKind,
   DeclarationKind,
+  DeliveryKind,
   type HookDecl,
   type LinkedModule,
   type LinkedQrl,
@@ -57,6 +58,7 @@ export function generateQwikModule(
     map: assembled.map,
     isEntry: false,
     origPath: null,
+    imports: strippedBodyImports(module),
     segment: null,
   };
   return [
@@ -68,6 +70,23 @@ export function generateQwikModule(
       bindingExports.names
     ),
   ];
+}
+
+/** A stripped body vanishes with its imports, yet the build must still follow those edges. */
+function strippedBodyImports(module: LinkedModule): string[] {
+  const edges = new Set<number>();
+  for (const qrl of module.qrls) {
+    if (qrl.delivery.d !== DeliveryKind.Stripped) {
+      continue;
+    }
+    for (const binding of qrl.dependencies.bindings) {
+      const source = module.imports.find((entry) => entry.source.binding === binding)?.source;
+      if (source !== undefined && !source.typeOnly) {
+        edges.add(source.edge);
+      }
+    }
+  }
+  return [...edges].map((edge) => module.edges[edge].specifier);
 }
 
 /** Splice components and helper payloads, then attach imports and hoists. */

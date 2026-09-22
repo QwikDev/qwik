@@ -1,0 +1,126 @@
+==INPUT==
+
+// src/routes/index.tsx
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+import { ping } from '../shared/server-fn';
+import { formatLabel } from '../shared/label';
+export default component$(() => {
+  const result = useSignal('pending');
+  useVisibleTask$(async () => {
+    result.value = await ping();
+  });
+  return <div>{formatLabel(result.value)}</div>;
+});
+// src/shared/server-fn.ts
+import { server$ } from '@qwik.dev/router';
+export const ping = server$(async () => 'pong');
+// src/shared/label.ts
+export const formatLabel = (value: string) => value.toUpperCase();
+== CSR OUTPUT ==
+
+============================= src/routes/index.tsx ==
+
+import {
+  useSignal,
+  useVisibleTask,
+  _withCaptures,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { index_useVisibleTaskqrl_segment_0_xu37ccow27t1 } from './index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1';
+import { index_text_segment_1_1ipiow57gf7g4 } from './index.tsx_index_text_segment_1_1ipiow57gf7g4';
+
+const default_tmpl0 = _createElementTemplate('<div> </div>');
+import { ping } from '../shared/server-fn';
+import { formatLabel } from '../shared/label';
+export const default_component_tv8h7w8tm3v2 = (props, ctx) => {
+  const result = useSignal('pending');
+  useVisibleTask(_withCaptures(index_useVisibleTaskqrl_segment_0_xu37ccow27t1, [result]));
+  const el0 = default_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [result],
+    index_text_segment_1_1ipiow57gf7g4,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+export default default_component_tv8h7w8tm3v2;
+============================= src/routes/index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.js (ENTRY POINT)==
+
+import { _captures, _await } from '@qwik.dev/core';
+import { ping } from '../shared/server-fn';
+
+export const index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = async () => {
+  const [result] = _captures;
+  result.value = (await _await(ping()))();
+};
+/*
+{
+  "origin": "index.tsx",
+  "name": "index_useVisibleTaskqrl_segment_0_xu37ccow27t1",
+  "entry": null,
+  "displayName": "index_useVisibleTaskqrl_segment_0",
+  "hash": "xu37ccow27t1",
+  "canonicalFilename": "index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useVisibleTask$",
+  "captures": true,
+  "loc": [
+    239,
+    306
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "result"
+  ]
+}
+*/
+============================= src/routes/index.tsx_index_text_segment_1_1ipiow57gf7g4.js (ENTRY POINT)==
+
+import { formatLabel } from '../shared/label';
+
+export const index_text_segment_1_1ipiow57gf7g4 = (result) => {
+  return formatLabel(result.value);
+};
+/*
+{
+  "origin": "index.tsx",
+  "name": "index_text_segment_1_1ipiow57gf7g4",
+  "entry": null,
+  "displayName": "index_text_segment_1",
+  "hash": "1ipiow57gf7g4",
+  "canonicalFilename": "index.tsx_index_text_segment_1_1ipiow57gf7g4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    323,
+    348
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "result"
+  ]
+}
+*/
+============================= src/shared/server-fn.ts ==
+
+import { _noopQrl } from '@qwik.dev/core';
+import { serverQrl } from '@qwik.dev/router';
+
+import { server$ } from '@qwik.dev/router';
+export const ping = serverQrl(_noopQrl('server_fn_serverqrl_segment_0_1ni2pdgfbji7l'));
+============================= src/shared/label.ts ==
+
+export const formatLabel = (value) => value.toUpperCase();
+== CSR DIAGNOSTICS ==
+
+[]

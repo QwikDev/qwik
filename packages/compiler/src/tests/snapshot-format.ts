@@ -22,6 +22,9 @@ async function snapshotTransformOutput(label: string, result: TransformOutput): 
     if (module.map) {
       output += `\n\n${module.map}`;
     }
+    if (module.imports?.length) {
+      output += `\n/* stripped-body imports: ${JSON.stringify(module.imports)} */`;
+    }
     if (module.segment) {
       output += `\n/*\n${JSON.stringify(module.segment, null, 2)}\n*/`;
     }

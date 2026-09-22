@@ -211,6 +211,22 @@ test('comments', () => {
 test('global selector', () => {
   assert.equal(scopeStylesheet(':global(*) {}', '_'), '* {}');
 });
+test('global selector in nested rule', () => {
+  assert.equal(
+    scopeStylesheet('ul { color: green; > :global(a) { color: red; } }', '_'),
+    'ul.⚡️_ { color: green; > a { color: red; } }'
+  );
+  assert.equal(
+    scopeStylesheet('ul { &:hover > :global(a:hover) { color: red; } }', '_'),
+    'ul.⚡️_ { &:hover > a:hover { color: red; } }'
+  );
+});
+test('global-like values in declarations', () => {
+  assert.equal(
+    scopeStylesheet('div { --selector: :global(a); content: ":global(span)"; }', '_'),
+    'div.⚡️_ { --selector: :global(a); content: ":global(span)"; }'
+  );
+});
 test('global selector with attribute', () => {
   assert.equal(scopeStylesheet(':global([t="("]) {}', '_'), '[t="("] {}');
 

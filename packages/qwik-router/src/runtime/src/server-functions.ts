@@ -110,19 +110,31 @@ Action.run() can only be called on the browser, for example when a user clicks a
       }
       const submission = {};
       latestSubmission.current = submission;
-      return new Promise<RouteActionResolver>((resolve) => {
-        if (data instanceof FormData) {
-          state.formData = data;
-        }
-        state.submitted = true;
-        state.isRunning = true;
-        loc.isNavigating = true;
-        currentAction.value = {
-          data: data as Record<string, unknown>,
-          id,
-          resolve: noSerialize(resolve),
-        };
-      }).then(({ result, status }) => {
+      const previousDispatch = currentAction.pendingDispatch ?? Promise.resolve();
+      let resolveDispatch!: () => void;
+      currentAction.pendingDispatch = noSerialize(
+        new Promise<void>((resolve) => {
+          resolveDispatch = resolve;
+        })
+      );
+      const run = previousDispatch.then(
+        () =>
+          new Promise<RouteActionResolver>((resolve) => {
+            if (data instanceof FormData) {
+              state.formData = data;
+            }
+            state.submitted = true;
+            state.isRunning = true;
+            loc.isNavigating = true;
+            currentAction.value = {
+              data: data as Record<string, unknown>,
+              id,
+              resolve: noSerialize(resolve),
+              resolveDispatch: noSerialize(resolveDispatch),
+            };
+          })
+      );
+      return run.then(({ result, status }) => {
         const isLatestSubmission = latestSubmission.current === submission;
         if (isLatestSubmission) {
           state.isRunning = false;

@@ -33,6 +33,22 @@ test.describe('actions', () => {
         await expect(finished).toContainText('true');
       });
     });
+
+    test.describe('issue3334', () => {
+      test.beforeEach(async ({ page }) => {
+        await page.goto('/qwikrouter-test/actions/issue3334/');
+      });
+
+      test('should run different actions submitted together', async ({ page }) => {
+        await page.locator('#different-actions').click();
+        await expect(page.locator('#different-actions-result')).toHaveText('first:second');
+      });
+
+      test('should resolve repeated submissions in order', async ({ page }) => {
+        await page.locator('#same-action').click();
+        await expect(page.locator('#same-action-result')).toHaveText('first:second:second');
+      });
+    });
   });
 
   function MPA_and_SPA_tests() {

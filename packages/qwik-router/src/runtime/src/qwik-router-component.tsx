@@ -537,6 +537,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     async ({ track }) => {
       const navigation = track(routeInternal);
       const action = track(actionState);
+      action?.resolveDispatch?.();
+      if (action) {
+        action.resolveDispatch = undefined;
+      }
 
       const prevUrl = routeLocation.url;
       const navType = action ? 'form' : navigation.type;
@@ -1142,6 +1146,10 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
 
   useTask$(async ({ track }) => {
     const action = track(actionState);
+    action?.resolveDispatch?.();
+    if (action) {
+      action.resolveDispatch = undefined;
+    }
     if (!action?.resolve) {
       return;
     }

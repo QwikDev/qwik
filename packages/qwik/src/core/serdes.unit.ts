@@ -911,8 +911,8 @@ describe('serdes emit-only', () => {
       Constants.Null,
       TypeIds.Array,
       [TypeIds.Plain, firstIndex, TypeIds.Plain, secondIndex],
-      TypeIds.Constant,
-      Constants.EmptyString,
+      TypeIds.Plain,
+      3,
     ]);
 
     subscription.block.reconcile(subscription, key, render);

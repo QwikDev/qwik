@@ -1,5 +1,14 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.45
+
+### Patch Changes
+
+- 🐞🩹 prevent protocol-relative redirects using backslashes (by [@gioboa](https://github.com/gioboa) in [`340b419`](https://github.com/QwikDev/qwik/commit/340b41959f0c4f0b10df9c81bddefb0dd07d0beb))
+
+- Updated dependencies []:
+  - @qwik.dev/core@2.0.0-beta.45
+
 ## 2.0.0-beta.44
 
 ### Major Changes

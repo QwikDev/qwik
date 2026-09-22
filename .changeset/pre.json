@@ -379,6 +379,7 @@
     "rude-sloths-help",
     "safe-bytes-rest",
     "safe-errors-rest",
+    "safe-redirect-paths",
     "safe-slots-rest",
     "salty-poets-remain",
     "secure-server-fn-middleware",

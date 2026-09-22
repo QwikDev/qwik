@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
+// The build defines the version; the duplicate-version guard compares it between copies.
+(globalThis as any).QWIK_VERSION ??= '0.0.0-test';
+
 /**
  * Loads a fresh instance of the core modules, as happens when an app and an externalized library
  * each bundle their own copy of `@qwik.dev/core`. Every call returns a distinct module instance.
@@ -160,6 +163,16 @@ describe('duplicate core copies share runtime state', async () => {
       second.createOutOfOrderRevealCoordinator('parallel', false)
     );
     expect(idOf(fromSecond)).toBe(idOf(fromFirst) + 1);
+  });
+
+  test('a copy of another Qwik version is rejected on the server', async () => {
+    vi.resetModules();
+    vi.doMock('../version', () => ({ version: '0.0.0-other' }));
+    try {
+      await expect(import('../index')).rejects.toThrow(/Q30|already imported/);
+    } finally {
+      vi.doUnmock('../version');
+    }
   });
 
   test('runtime QRL symbols never collide between copies', () => {

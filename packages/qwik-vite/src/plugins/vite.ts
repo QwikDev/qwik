@@ -205,9 +205,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             : qwikViteOpts.ssr?.input
           : undefined;
       const clientInput = target === 'client' ? qwikViteOpts.client?.input : undefined;
+      // Vite's lib mode owns its entry; the linked build still has to know it as the entry.
       const libraryInput = viteConfig.build?.lib ? viteConfig.build.lib.entry : undefined;
-      let input =
-        viteConfig.build?.rolldownOptions?.input || clientInput || ssrInput || libraryInput;
+      let input = viteConfig.build?.rolldownOptions?.input || clientInput || ssrInput;
       if (input && typeof input === 'string') {
         input = [input];
       }
@@ -234,14 +234,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         lint: qwikViteOpts.lint,
         experimental: qwikViteOpts.experimental,
         testTarget: target === 'test' ? qwikViteOpts.testTarget : undefined,
-        input,
+        input: input || libraryInput,
         manifestInput: qwikViteOpts.ssr?.manifestInput,
         manifestInputPath: qwikViteOpts.ssr?.manifestInputPath,
         manifestOutput: qwikViteOpts.client?.manifestOutput,
       };
 
       const opts = await qwikPlugin.normalizeOptions(pluginOpts);
-      input ||= opts.input;
+      if (libraryInput === undefined) {
+        input ||= opts.input;
+      }
 
       // Cache pluginOpts for use in configResolved()
       cachedPluginOpts = pluginOpts;

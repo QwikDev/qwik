@@ -740,7 +740,15 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         | undefined;
 
       const { readable, writable } = new TextEncoderStream();
-      const writableStream = requestEv.getWritableStream();
+      // Headers commit when the response stream is created, so defer it to the first rendered
+      // chunk: a render that fails before any output still lets the error handler answer.
+      let responseWriter: WritableStreamDefaultWriter<Uint8Array> | undefined;
+      const lazyResponseSink = new WritableStream<Uint8Array>({
+        write(chunk) {
+          responseWriter ||= requestEv.getWritableStream().getWriter();
+          return responseWriter.write(chunk);
+        },
+      });
 
       let cacheChunks: Uint8Array[] | undefined;
       let pipeSource: ReadableStream<Uint8Array> = readable;
@@ -756,7 +764,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       }
 
       let pipeError: unknown;
-      const pipe = pipeSource.pipeTo(writableStream, { preventClose: true }).catch((error) => {
+      const pipe = pipeSource.pipeTo(lazyResponseSink, { preventClose: true }).catch((error) => {
         pipeError = error;
       });
       const stream = writable.getWriter();
@@ -776,9 +784,13 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
           await stream.write((result as any as RenderToStringResult).html);
         }
       } finally {
-        await stream.ready;
-        await stream.close();
-        await pipe;
+        try {
+          await stream.ready;
+          await stream.close();
+        } finally {
+          await pipe;
+          responseWriter?.releaseLock();
+        }
       }
       if (pipeError) {
         throw pipeError;
@@ -799,7 +811,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         setCachedSsr(cachePlan.key, { eTag: cachedETag, body: html });
       }
 
-      await writableStream.close();
+      if (responseWriter) {
+        await requestEv.getWritableStream().close();
+      }
     };
   }
 

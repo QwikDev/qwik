@@ -3,6 +3,7 @@ import {
   getPathname,
   fixTrailingSlash,
   resolveRequestHandlers,
+  renderQwikMiddleware,
   streamServerFunctionResult,
 } from './resolve-request-handlers-core';
 import { RequestEvHttpStatusMessage, RequestEvSharedActionId } from './request-event-core';
@@ -52,6 +53,49 @@ function createMockRequestEvent(url = 'http://localhost:3000/test', trailingSlas
 }
 
 describe('resolve-request-handler', () => {
+  describe('renderQwikMiddleware', () => {
+    function createResponseSpy() {
+      const chunks: Uint8Array[] = [];
+      let closed = false;
+      const serverRequestEv = createMockServerRequestEvent();
+      serverRequestEv.getWritableStream = vi.fn(
+        () =>
+          new WritableStream<Uint8Array>({
+            write: (chunk) => {
+              chunks.push(chunk);
+            },
+            close: () => {
+              closed = true;
+            },
+          })
+      );
+      const requestEv = createRequestEvent(serverRequestEv, mockRoute, [], '/', vi.fn());
+      return { requestEv, chunks, closed: () => closed };
+    }
+
+    it('leaves the response uncommitted when the render fails before any output', async () => {
+      const { requestEv } = createResponseSpy();
+      const middleware = renderQwikMiddleware(async () => {
+        throw new Error('boom');
+      });
+      await expect(middleware(requestEv)).rejects.toThrow('boom');
+      // headers never committed, so the error handler can still answer with a status
+      expect(requestEv.headersSent).toBe(false);
+    });
+
+    it('commits the response on the first rendered chunk and closes it after', async () => {
+      const { requestEv, chunks, closed } = createResponseSpy();
+      const middleware = renderQwikMiddleware(async ({ stream }) => {
+        await stream.write('<p>hi</p>');
+        return {} as never;
+      });
+      await middleware(requestEv);
+      expect(requestEv.headersSent).toBe(true);
+      expect(new TextDecoder().decode(chunks[0])).toBe('<p>hi</p>');
+      expect(closed()).toBe(true);
+    });
+  });
+
   describe('getPathname', () => {
     it('should handle pathname with trailing slash', () => {
       globalThis.__NO_TRAILING_SLASH__ = false;

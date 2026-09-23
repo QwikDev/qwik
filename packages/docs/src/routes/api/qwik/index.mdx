@@ -630,6 +630,55 @@ export interface ComputedSignal<T> extends Signal<T>
 
 <table><thead><tr><th>
 
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+error
+
+</td><td>
+
+</td><td>
+
+Error \| undefined
+
+</td><td>
+
+The computation error, if any. Reading it starts a lazy computation if needed. While set, reading `.value` throws the error.
+
+</td></tr>
+<tr><td>
+
+pending
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+Whether the signal is currently loading. Reading it starts a lazy computation if needed.
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
 Method
 
 </th><th>

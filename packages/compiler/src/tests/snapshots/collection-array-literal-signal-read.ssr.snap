@@ -1,0 +1,208 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const view = useSignal('a');
+  return <ul>{[view.value].map((item) => <li>{item}</li>)}</ul>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _captures,
+  _wrapArray,
+  renderSsrCollection,
+  createSsrNodeId,
+  maybeThen,
+  _noopQrl,
+  escapeHTML,
+  renderSsrTextExpression,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_collection_source_segment_0_21yfn4vi2lwwj = () => {
+  const [view] = _captures;
+  return [view.value];
+};
+const q_component_collection_source_segment_0_21yfn4vi2lwwj = /*#__PURE__*/ _noopQrl(
+  'component_collection_source_segment_0_21yfn4vi2lwwj'
+);
+q_component_collection_source_segment_0_21yfn4vi2lwwj.s(
+  component_collection_source_segment_0_21yfn4vi2lwwj
+);
+const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, item) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(item);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [item],
+    q_component_text_segment_2_1fh117dstcoge
+  );
+  return maybeThen(text0, (text0) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '" q:row>',
+    escapeHTML(text0),
+    '</li>',
+  ]);
+};
+const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
+  'component_for_render_segment_1_asysu8t2u0ck'
+);
+q_component_for_render_segment_1_asysu8t2u0ck.s(component_for_render_segment_1_asysu8t2u0ck);
+const component_text_segment_2_1fh117dstcoge = (item) => {
+  return item;
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const view = useSignal('a');
+    const collectionSource0 = _wrapArray(
+      q_component_collection_source_segment_0_21yfn4vi2lwwj.w([view])
+    );
+    const collectionId0 = ctx.nextId();
+    ctx.addRoot(collectionSource0);
+    const collection0 = renderSsrCollection(
+      ctx,
+      collectionId0,
+      collectionSource0,
+      undefined,
+      q_component_for_render_segment_1_asysu8t2u0ck,
+      0,
+      false,
+      0
+    );
+    return maybeThen(collection0, (collection0) => [
+      '<ul><!f=',
+      createSsrNodeId(collectionId0),
+      '>',
+      collection0,
+      '<!/f></ul>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_collection_source_segment_0_21yfn4vi2lwwj.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_collection_source_segment_0_21yfn4vi2lwwj = () => {
+  const [view] = _captures;
+  return [view.value];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_collection_source_segment_0_21yfn4vi2lwwj",
+  "entry": null,
+  "displayName": "component_collection_source_segment_0",
+  "hash": "21yfn4vi2lwwj",
+  "canonicalFilename": "component.tsx_component_collection_source_segment_0_21yfn4vi2lwwj",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "collection:source",
+  "captures": true,
+  "loc": [
+    112,
+    124
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "view"
+  ]
+}
+*/
+============================= src/component.tsx_component_for_render_segment_1_asysu8t2u0ck.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+
+export const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, item) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(item);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [item],
+    q_component_text_segment_2_1fh117dstcoge
+  );
+  return maybeThen(text0, (text0) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '" q:row>',
+    escapeHTML(text0),
+    '</li>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_for_render_segment_1_asysu8t2u0ck",
+  "entry": null,
+  "displayName": "component_for_render_segment_1",
+  "hash": "asysu8t2u0ck",
+  "canonicalFilename": "component.tsx_component_for_render_segment_1_asysu8t2u0ck",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:render",
+  "captures": false,
+  "loc": [
+    139,
+    154
+  ],
+  "paramNames": [
+    "item"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
+
+export const component_text_segment_2_1fh117dstcoge = (item) => {
+  return item;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2_1fh117dstcoge",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    144,
+    148
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "item"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

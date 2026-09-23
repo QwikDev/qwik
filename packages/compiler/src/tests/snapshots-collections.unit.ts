@@ -233,6 +233,20 @@ export default () => {
     });
   });
 
+  test('should re-run an array literal whose element reads a signal', async () => {
+    const output = await testInput(mode, 'collection-array-literal-signal-read', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const view = useSignal('a');
+  return <ul>{[view.value].map((item) => <li>{item}</li>)}</ul>;
+};
+`,
+    });
+    const main = output.modules.find((module) => module.segment === null)!.code;
+    // the source is a tracked derived segment, never an inline static array
+    expect(main).toContain('collection_source_segment');
+  });
+
   test('should render a props read inside an inline array row', async () => {
     await testInput(mode, 'collection-inline-props-text', {
       code: `export default (props) => {

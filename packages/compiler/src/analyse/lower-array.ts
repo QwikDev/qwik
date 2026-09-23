@@ -384,10 +384,34 @@ function deriveRowShape(program: number, ctx: LowerContext): Shape {
   }
 }
 
+/** Only a tree of literals is static; `[signal.value]` must re-run like any other source. */
+function isLiteralTree(node: Expression | null | undefined): boolean {
+  const unwrapped = node && unwrapExpression(node);
+  switch (unwrapped?.type) {
+    case 'Literal':
+      return true;
+    case 'TemplateLiteral':
+      return unwrapped.expressions.length === 0;
+    case 'UnaryExpression':
+      return isLiteralTree(unwrapped.argument);
+    case 'ArrayExpression':
+      return unwrapped.elements.every(
+        (element) => element !== null && element.type !== 'SpreadElement' && isLiteralTree(element)
+      );
+    case 'ObjectExpression':
+      return unwrapped.properties.every(
+        (property) =>
+          property.type === 'Property' && !property.computed && isLiteralTree(property.value)
+      );
+    default:
+      return false;
+  }
+}
+
 /** Literal arrays render inline; other expressions become direct or derived Sources. */
 function lowerSource(node: Expression, ctx: LowerContext): { s: EachSourceKind; value: Value } {
   const unwrapped = unwrapExpression(node);
-  if (unwrapped?.type === 'ArrayExpression') {
+  if (unwrapped?.type === 'ArrayExpression' && isLiteralTree(unwrapped)) {
     const payload = pushPayload(ctx, [unwrapped.start, unwrapped.end]);
     return {
       s: EachSourceKind.Array,

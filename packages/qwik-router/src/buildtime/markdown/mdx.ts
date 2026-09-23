@@ -76,7 +76,9 @@ export async function createMdxTransformer(ctx: RoutingContext): Promise<MdxTran
       if (exportIndex === -1) {
         throw new Error('Could not find default export in mdx output');
       }
-      const body = output.slice(0, exportIndex);
+      // MDX names its content function `_createMdxContent`; the compiler compiles a function as a
+      // component only under a capitalized name, so the content gets one.
+      const body = output.slice(0, exportIndex).replace(/\b_createMdxContent\b/g, 'MdxContent');
       // MDX declares MDXLayout only for a default-exported layout; the content is a component itself.
       const newDefault = `
 function _missingMdxReference(id, component, place) {
@@ -84,8 +86,8 @@ function _missingMdxReference(id, component, place) {
 }
 ${
   /\bconst MDXLayout\b/.test(body)
-    ? 'export default () => <MDXLayout><_createMdxContent /></MDXLayout>;'
-    : 'export default _createMdxContent;'
+    ? 'export default () => <MDXLayout><MdxContent /></MDXLayout>;'
+    : 'export default MdxContent;'
 }
 `;
       // For plain .md files (not .mdx), auto-generate an eTag from the content hash.

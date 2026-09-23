@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import {
   createQRL,
+  _qrlSync,
   inlinedQrl,
   _markComponent,
   _val,
@@ -243,6 +244,72 @@ describe('SSR context markers', () => {
     const head = result.html.slice(result.html.indexOf('<head>'), result.html.indexOf('</head>'));
     expect(head).toContain('<script hidden q-d:qinit="listener.js#_handler"></script>');
     expect(result.html.indexOf('<script hidden')).toBeLessThan(result.html.indexOf('<body>'));
+  });
+
+  test('moves a carrier into a head following a projected slot marker', async () => {
+    const handler = createQRL('./listener.js', '_handler', () => {}, null, []);
+    const result = await renderToString(
+      (_props, ctx) => {
+        const carrier: SsrOutput = [
+          {
+            ...createSsrOpenTag('<script hidden', ctx.eventAttr('q-d:qinit', handler), '>'),
+            headlessCarrier: true,
+          },
+          '</script>',
+        ];
+        return [
+          '<!s=',
+          createSsrNodeId(ctx.nextId()),
+          '>',
+          createSsrOpenTag('<head', '>'),
+          '<meta charset="utf-8"></head><body><p>value</p></body><!/s>',
+          carrier,
+        ];
+      },
+      { containerTagName: 'html' }
+    );
+
+    expect(result.html.match(/<head>/g)).toHaveLength(1);
+    expect(result.html.match(/<body>/g)).toHaveLength(1);
+    expect(result.html).toContain(
+      '<head><script hidden q-d:qinit="listener.js#_handler"></script><meta charset="utf-8"></head>'
+    );
+  });
+
+  test('does not insert carriers into head text inside a body comment', async () => {
+    const handler = createQRL('./listener.js', '_handler', () => {}, null, []);
+    const result = await renderToString(
+      () => {
+        useOnDocument('qinit', handler);
+        return '<body><!-- <head> --><p>value</p></body>';
+      },
+      { containerTagName: 'html' }
+    );
+
+    expect(result.html).toContain(
+      '<head><script hidden q-d:qinit="listener.js#_handler"></script></head>'
+    );
+    expect(result.html).toContain('<body><!-- <head> --><p>value</p></body>');
+  });
+
+  test('defines a cross-module sync handler inside the authored head', async () => {
+    const handler = _qrlSync((event: Event) => event.preventDefault(), 'sync_key');
+    const result = await renderToString(
+      () => {
+        useOnDocument('qinit', handler);
+        return [
+          createSsrOpenTag('<head', '>'),
+          '<meta charset="utf-8"></head><body><p>value</p></body>',
+        ];
+      },
+      { containerTagName: 'html' }
+    );
+
+    const head = result.html.indexOf('<head');
+    const definition = result.html.indexOf('<script q:func="qwik/json"');
+    expect(definition).toBeGreaterThan(result.html.indexOf('>', head));
+    expect(definition).toBeLessThan(result.html.indexOf('</head>'));
+    expect(result.html.match(/<head(?:\s|>)/g)).toHaveLength(1);
   });
 
   test('flushes task work before serializing the root output', async () => {

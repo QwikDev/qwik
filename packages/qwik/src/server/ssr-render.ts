@@ -377,7 +377,12 @@ export const renderToStreamCompiled = async <Props = undefined>(
         }
       }
       pending.clear();
-      return writer.finish(defs.length === 0 ? output : [defs, output]);
+      if (defs.length === 0) {
+        return writer.finish(output);
+      }
+      // Scripts before <head> make browsers discard the authored tag.
+      const inHead = containerTagName === 'html' ? insertAfterElement(output, 'head', defs) : null;
+      return writer.finish(inHead ?? [defs, output]);
     };
     const waitForWork = () => new Promise<void>((resolve) => (wake = resolve));
     const throwIfFailed = () => {
@@ -708,7 +713,7 @@ function relocateHeadlessCarriers(output: SsrOutput): SsrOutput {
   if (withHead !== null) {
     return withHead;
   }
-  return hasElement(withoutCarriers, 'body')
+  return hasOutputPattern(withoutCarriers, /<body(\s|>|\/)/i)
     ? ['<head>', carriers, '</head>', withoutCarriers]
     : ['<head>', carriers, '</head><body>', withoutCarriers, '</body>'];
 }
@@ -764,13 +769,6 @@ function insertAfterElement(
     }
   }
   return null;
-}
-
-function hasElement(output: SsrOutput, tag: string): boolean {
-  if (Array.isArray(output)) {
-    return output.some((child) => hasElement(child, tag));
-  }
-  return isSsrRecordChunk(output) && recordOpensTag(output, tag);
 }
 
 /** Cold path (document assembly only): identify the record by its open-tag markup. */

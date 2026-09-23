@@ -35,6 +35,8 @@ interface RoutedContentProps {
 function RoutedContent({ level }: RoutedContentProps) {
   const levels = useContext(RoutedLevelsContext);
   const cmp = levels.signals[level];
+  // A one-row collection keyed by identity: a branch would not re-run for a → b (both truthy)
+  // and a dynamic tag is evaluated once, so only a row swap remounts the level's component.
   return (
     <>
       {[cmp.value].map((Cmp) => {

@@ -1,5 +1,15 @@
 # eslint-plugin-qwik
 
+## 1.20.0
+
+## 1.19.2
+
+## 1.19.1
+
+### Patch Changes
+
+- Support ESLint v10 (by [@azat-io](https://github.com/azat-io) in [#8395](https://github.com/QwikDev/qwik/pull/8395))
+
 ## 1.19.0
 
 ## 1.18.0

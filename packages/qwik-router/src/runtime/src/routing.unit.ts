@@ -285,8 +285,8 @@ test('loadRoute — loader params match each loader path', async () => {
           _P: 'agentId',
           _R: ['agent-loader'],
           view: {
-            _R: ['page-loader'],
             _I: makeLoader(),
+            _D: ['page-loader'],
           },
         },
       },

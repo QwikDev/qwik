@@ -1,5 +1,6 @@
 import { isPromise, maybeThen } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
+import type { Scheduler } from '../runtime/scheduler';
 import type { Subscriber } from '../runtime/subscriber';
 import type { Source, SourceSub } from './source';
 
@@ -10,7 +11,10 @@ export class LazySerialized<T> {
   private resolved = false;
   private value: T | undefined;
 
-  constructor(private readonly loader: () => ValueOrPromise<T>) {}
+  constructor(
+    private readonly loader: () => ValueOrPromise<T>,
+    readonly scheduler: Scheduler | null = null
+  ) {}
 
   get isResolved(): boolean {
     return this.resolved;
@@ -50,6 +54,7 @@ export function createLazySourceSubs(
   return new Proxy(new Array<SourceSub>(length), new LazySourceSubsHandler(length, create));
 }
 
+/** Await notification so it can register further lazy loads. */
 export function resolveLazySubscribers(source: Source, notify: () => void): boolean {
   const subs = source.subs;
   if (subs === null) {
@@ -67,7 +72,8 @@ export function resolveLazySubscribers(source: Source, notify: () => void): bool
       return subscriber;
     });
     if (isPromise<Subscriber>(value)) {
-      void value.then(notify);
+      const notified = value.then(notify);
+      subs.scheduler?.waitFor(notified);
     } else {
       notify();
     }
@@ -75,6 +81,7 @@ export function resolveLazySubscribers(source: Source, notify: () => void): bool
   }
 
   let pending: Array<Promise<Subscriber>> | null = null;
+  let scheduler: Scheduler | null = null;
   let resolved = false;
   for (let i = 0; i < subs.length; i++) {
     const sub = subs[i];
@@ -82,6 +89,7 @@ export function resolveLazySubscribers(source: Source, notify: () => void): bool
       continue;
     }
     resolved = true;
+    scheduler ??= sub.scheduler;
     const value = maybeThen(sub.resolve(), (subscriber) =>
       replaceLazySubscriber(source, subs, sub, subscriber)
     );
@@ -98,7 +106,8 @@ export function resolveLazySubscribers(source: Source, notify: () => void): bool
   if (pending === null) {
     notify();
   } else {
-    void Promise.all(pending).then(notify);
+    const notified = Promise.all(pending).then(notify);
+    scheduler?.waitFor(notified);
   }
   return true;
 }

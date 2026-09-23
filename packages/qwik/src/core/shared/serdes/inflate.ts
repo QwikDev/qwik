@@ -106,11 +106,7 @@ function lazySubscriber(
   container: ContainerContext,
   load: () => ValueOrPromise<Subscriber>
 ): LazySerialized<Subscriber> {
-  return new LazySerialized<Subscriber>(() => {
-    const pending = load();
-    container.scheduler.waitFor(pending);
-    return pending;
-  });
+  return new LazySerialized<Subscriber>(load, container.scheduler);
 }
 
 export function restoreStreamedSubscribers(

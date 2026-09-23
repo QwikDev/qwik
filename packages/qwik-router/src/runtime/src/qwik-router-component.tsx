@@ -88,7 +88,6 @@ import {
   restoreScroll,
   saveScrollHistory,
 } from './scroll-restoration';
-import spaInit from './spa-init';
 import {
   clearNavFetchCache,
   ensureRouteLoaderSignals,
@@ -1340,8 +1339,5 @@ function initializeSPA(goto: RouteNavigate, scroller: HTMLElement) {
 
     removeEventListener('scroll', window._qRouterInitScroll!);
     window._qRouterInitScroll = undefined;
-
-    // Cache SPA recovery script.
-    spaInit.resolve();
   }
 }

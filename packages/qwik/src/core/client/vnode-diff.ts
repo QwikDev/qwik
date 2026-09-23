@@ -5,17 +5,12 @@ import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import {
-  AsyncSignalFlags,
-  ComputedSignalFlags,
-  EffectProperty,
-  type Consumer,
-} from '../reactive-primitives/types';
+import { ComputedSignalFlags, EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { isCursor, type Cursor } from '../shared/cursor/cursor';
 import { abandonCursor } from '../shared/cursor/cursor-queue';
-import { getCursorData } from '../shared/cursor/cursor-props';
+import { getCursorData, queueQwikLoaderEvent } from '../shared/cursor/cursor-props';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
@@ -31,7 +26,7 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { QElement, qWindow } from '../shared/types';
+import type { QElement } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
@@ -51,6 +46,7 @@ import {
   QCursorBoundary,
   QSlot,
   QTemplate,
+  QwikLoaderScanEvent,
   dangerouslySetInnerHTML,
   debugStyleScopeIdPrefixAttr,
 } from '../shared/utils/markers';
@@ -74,6 +70,7 @@ import { VNodeFlags, type ClientContainer } from './types';
 import { mapApp_findIndx, mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
 import {
+  registerQwikLoaderEvent,
   vnode_ensureElementInflated,
   vnode_getDomParentVNode,
   vnode_getElementName,
@@ -1101,12 +1098,22 @@ function registerEventHandlers(
     );
   }
 
-  // window and document events need attrs so qwik loader can find them
+  const isQVisible = scopedKebabName === QwikLoaderScanEvent.qvisible;
+  // window, document and qvisible events need attrs so qwik loader can find them
   // TODO only do these when not already present
-  if (key.charAt(2) !== 'e') {
+  if (key.charAt(2) !== 'e' || isQVisible) {
     vnode_setAttr(diffContext.$journal$, vnode, key, '');
   }
-  registerQwikLoaderEvent(diffContext, scopedKebabName);
+  if (
+    isQVisible ||
+    scopedKebabName === QwikLoaderScanEvent.qinit ||
+    scopedKebabName === QwikLoaderScanEvent.qidle
+  ) {
+    // the loader scans the DOM for these, so notify it only after the flush
+    queueQwikLoaderEvent(getCursorData(diffContext.$cursor$)!, scopedKebabName);
+  } else {
+    registerQwikLoaderEvent(diffContext.$container$, scopedKebabName);
+  }
 }
 
 function createElementWithNamespace(diffContext: DiffContext, elementName: string): Element {
@@ -1295,15 +1302,6 @@ const patchProperty = (
     originalValue
   );
 };
-
-function registerQwikLoaderEvent(diffContext: DiffContext, eventName: string) {
-  const qWindow = qTest
-    ? (diffContext.$container$.document.defaultView as qWindow | null)
-    : (window as unknown as qWindow);
-  if (qWindow) {
-    (qWindow._qwikEv ||= [] as any).push(eventName);
-  }
-}
 
 function retrieveChildWithKey(
   diffContext: DiffContext,
@@ -1854,6 +1852,12 @@ function handleChangedProps(
       }
       const newValue = src[key];
       const oldValue = dst?.[key];
+      // Every parent render creates an equivalent wrapper, but only the old one has subscribers.
+      // handleProps() swaps the props owner, so keep the subscribed instance or they are orphaned.
+      if (dst && newValue !== oldValue && areDiffValuesEqual(newValue, oldValue)) {
+        src[key] = oldValue;
+        continue;
+      }
       if (
         !dst ||
         !(areDiffValuesEqual(newValue, oldValue) || areSignalValuesEqual(newValue, oldValue))
@@ -1963,27 +1967,28 @@ export function cleanup(
             const obj = seq[i];
             if (isObject(obj)) {
               const objIsTask = isTask(obj);
-              if (objIsTask && obj.$flags$ & TaskFlags.VISIBLE_TASK) {
-                obj.$flags$ |= TaskFlags.NEEDS_CLEANUP;
-                markVNodeDirty(container, vCursor, ChoreBits.CLEANUP, cursorRoot);
+              if (objIsTask) {
+                clearAllEffects(container, obj);
+                if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
+                  obj.$flags$ |= TaskFlags.NEEDS_CLEANUP;
+                  markVNodeDirty(container, vCursor, ChoreBits.CLEANUP, cursorRoot);
 
-                // don't call cleanupDestroyable yet, do it by the scheduler
-                continue;
+                  // don't call cleanupDestroyable yet, do it by the scheduler
+                  continue;
+                }
+                cleanupDestroyable(obj);
               }
               // Stores and plain signals are only producers; their subscriptions are removed
               // when cleaning the consumers that read them. They don't own reactive backrefs.
               else if (obj instanceof ComputedSignalImpl || obj instanceof WrappedSignalImpl) {
-                if (!(obj.$flags$ & ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP)) {
+                if (obj.$flags$ & ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP) {
+                  continue;
+                }
+                if (obj instanceof ComputedSignalImpl) {
+                  obj.$dispose();
+                } else {
                   clearAllEffects(container, obj as Consumer);
                 }
-              }
-
-              if (
-                objIsTask ||
-                (obj instanceof ComputedSignalImpl &&
-                  (obj.$flags$ & AsyncSignalFlags.ASYNC_MODE || obj.$current$))
-              ) {
-                cleanupDestroyable(obj);
               }
             }
           }

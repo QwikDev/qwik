@@ -22,6 +22,8 @@ export type {
   DocumentMeta,
   DocumentScript,
   DocumentStyle,
+  // Surfaces in routeActionQrl's inferred return type, so it belongs to the public API.
+  Editable,
   ExcludeControlFlow,
   FailReturn,
   HttpStatus as HttpErrorProps,
@@ -57,7 +59,6 @@ export type {
   ZodConstructor,
 } from './types';
 
-export { ErrorBoundary } from './error-boundary';
 export { Link, type LinkProps, type PrefetchStrategy } from './link-component';
 export {
   QWIK_CITY_SCROLLER,

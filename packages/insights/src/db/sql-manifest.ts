@@ -5,16 +5,61 @@ import { latencyColumnSums, toVector } from './query-helpers';
 
 export async function dbGetManifests(
   db: AppDatabase,
-  publicApiKey: string
+  publicApiKey: string,
+  { limit = 1000 }: { limit?: number } = {}
 ): Promise<ManifestRow[]> {
   const manifests = await db
     .select()
     .from(manifestTable)
     .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
     .orderBy(sql`${manifestTable.timestamp} DESC`)
-    .limit(1000)
+    .limit(limit)
     .all();
   return manifests;
+}
+
+export async function dbGetLatestManifests(
+  db: AppDatabase,
+  publicApiKeys: string[]
+): Promise<ManifestRow[]> {
+  if (publicApiKeys.length === 0) {
+    return [];
+  }
+
+  const rankedManifests = db
+    .select({
+      id: manifestTable.id,
+      publicApiKey: manifestTable.publicApiKey,
+      hash: manifestTable.hash,
+      timestamp: manifestTable.timestamp,
+      rank: sql<number>`row_number() over (
+        partition by ${manifestTable.publicApiKey}
+        order by ${manifestTable.timestamp} desc, ${manifestTable.id} desc
+      )`.as('manifest_rank'),
+    })
+    .from(manifestTable)
+    .where(inArray(manifestTable.publicApiKey, publicApiKeys))
+    .as('ranked_manifests');
+
+  const manifests = await db
+    .select({
+      id: rankedManifests.id,
+      publicApiKey: rankedManifests.publicApiKey,
+      hash: rankedManifests.hash,
+      timestamp: rankedManifests.timestamp,
+    })
+    .from(rankedManifests)
+    .where(eq(rankedManifests.rank, 1))
+    .all();
+
+  const applicationOrder = new Map(
+    publicApiKeys.map((publicApiKey, index) => [publicApiKey, index])
+  );
+  return manifests.sort(
+    (a, b) =>
+      (applicationOrder.get(a.publicApiKey ?? '') ?? Number.MAX_SAFE_INTEGER) -
+      (applicationOrder.get(b.publicApiKey ?? '') ?? Number.MAX_SAFE_INTEGER)
+  );
 }
 
 export interface ManifestStatsRow {
@@ -25,9 +70,10 @@ export interface ManifestStatsRow {
 
 export async function dbGetManifestStats(
   db: AppDatabase,
-  publicApiKey: string
+  publicApiKey: string,
+  { limit = 100 }: { limit?: number } = {}
 ): Promise<ManifestStatsRow[]> {
-  const manifestHashes = await dbGetManifestHashes(db, publicApiKey);
+  const manifestHashes = await dbGetManifestHashes(db, publicApiKey, { limit });
   if (manifestHashes.length === 0) {
     return [];
   }
@@ -50,7 +96,7 @@ export async function dbGetManifestStats(
     )
     .groupBy(manifestTable.hash)
     .orderBy(sql`${manifestTable.timestamp} DESC`)
-    .limit(100)
+    .limit(limit)
     .all();
   return manifests.map((manifest) => {
     return {

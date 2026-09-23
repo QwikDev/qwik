@@ -9,7 +9,6 @@ export const HOOK_GROUPS = {
     'useStyles',
     'useStylesScoped',
     'useConstant',
-    'useErrorBoundary',
     'useSerializer',
     'useServerData',
     'useLocation',

@@ -1,10 +1,12 @@
 import { $ } from '@qwik.dev/core';
 import {
+  _ComputedSignalInternal as ComputedSignalInternal,
   Fragment as Component,
   Fragment,
   Fragment as Signal,
   Slot,
   _captures,
+  _markSignalAsExternallyOwned,
   _jsxSorted,
   _wrapProp,
   component$,
@@ -15,7 +17,6 @@ import {
   untrack,
   useComputed$,
   useComputedQrl,
-  useErrorBoundary,
   useSignal,
   useStore,
   useTask$,
@@ -23,10 +24,13 @@ import {
 } from '@qwik.dev/core/internal';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
+import type { ComputedSignal } from '../reactive-primitives/signal.public';
 import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty, NEEDS_COMPUTATION } from '../reactive-primitives/types';
 import { delay } from '../shared/utils/promises';
+import { useConstant } from '../use/use-signal';
+import { useErrorBoundaryStore } from '../use/use-error-boundary-store';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -341,6 +345,35 @@ describe.each([
   });
 
   describe('async', () => {
+    it('should auto-track synchronous reads', async () => {
+      const Counter = component$(() => {
+        const explicitlyTracked = useSignal(1);
+        const autoTracked = useSignal(10);
+        const sum = useComputed$(({ track }) => {
+          return Promise.resolve(track(explicitlyTracked) + autoTracked.value);
+        });
+        return (
+          <div>
+            <button id="explicit" onClick$={() => explicitlyTracked.value++}></button>
+            <button id="auto" onClick$={() => autoTracked.value++}></button>
+            <span>{sum.value}</span>
+          </div>
+        );
+      });
+
+      const { container } = await render(<Counter />, { debug });
+      const renderedSum = () => container.document.querySelector('span')!.textContent;
+      expect(renderedSum()).toBe('11');
+
+      await trigger(container.element, 'button#auto', 'click');
+      await waitForDrain(container);
+      expect(renderedSum()).toBe('12');
+
+      await trigger(container.element, 'button#explicit', 'click');
+      await waitForDrain(container);
+      expect(renderedSum()).toBe('13');
+    });
+
     it('should compute async computed result from async computed result', async () => {
       const Counter = component$(() => {
         const count = useSignal(1);
@@ -414,7 +447,7 @@ describe.each([
     it('should throw error on value if promise is rejected', async () => {
       (globalThis as any).log = [];
       const ErrorBoundary = component$(() => {
-        const store = useErrorBoundary();
+        const store = useErrorBoundaryStore();
         (globalThis as any).log.push(`rendering error boundary, ${store.error || 'no error'}`);
         return store.error ? <div>{JSON.stringify(store.error)}</div> : <Slot />;
       });
@@ -536,7 +569,7 @@ describe.each([
             await delay(10);
           }
           return countValue * 2;
-        });
+        }) as ComputedSignalInternal<number>;
         return (
           <button onClick$={() => count.value++}>
             {doubleCount.pending ? 'loading' : doubleCount.value}
@@ -616,7 +649,7 @@ describe.each([
             throw new Error('test');
           }
           return countValue * 2;
-        });
+        }) as ComputedSignalInternal<number>;
         return (
           <button onClick$={() => count.value++}>
             {doubleCount.error ? 'error' : doubleCount.value}
@@ -677,7 +710,7 @@ describe.each([
         const asyncValue = useComputed$(async ({ track }) => track(count) * 2, {
           clientOnly: true,
           initial: 0,
-        });
+        }) as ComputedSignalInternal<number>;
         return (
           <div>
             {asyncValue.pending ? (
@@ -808,7 +841,7 @@ describe.each([
             return Promise.resolve(current * 3);
           },
           { clientOnly: true, initial: 0 }
-        );
+        ) as ComputedSignalInternal<number>;
         return (
           <div>
             {asyncValue.pending ? (
@@ -865,7 +898,7 @@ describe.each([
             return 'yes';
           },
           { clientOnly: true }
-        );
+        ) as ComputedSignalInternal<string>;
         useTask$(({ track }) => {
           track(() => asyncValue.pending);
           if (asyncValue.pending) {
@@ -925,6 +958,84 @@ describe.each([
   });
 
   describe('cleanup', () => {
+    it.each([false, true])(
+      'destroys removed computed signals (evaluated: %s)',
+      async (evaluated) => {
+        (globalThis as any).removedComputeCalls = 0;
+        const Child = component$((props: { evaluated: boolean }) => {
+          const computed = useComputed$(() => ++(globalThis as any).removedComputeCalls);
+          return (
+            <button
+              id="save-computed"
+              onClick$={() => ((globalThis as any).removedComputed = computed)}
+            >
+              {props.evaluated ? computed.value : 'unused'}
+            </button>
+          );
+        });
+        const Parent = component$(() => {
+          const visible = useSignal(true);
+          return (
+            <>
+              <button id="remove-computed" onClick$={() => (visible.value = false)}>
+                remove
+              </button>
+              {visible.value && <Child evaluated={evaluated} />}
+            </>
+          );
+        });
+        const { container } = await render(<Parent />, { debug });
+        await trigger(container.element, '#save-computed', 'click');
+        await trigger(container.element, '#remove-computed', 'click');
+        const computed = (globalThis as any).removedComputed as ComputedSignalImpl<number>;
+        const calls = (globalThis as any).removedComputeCalls;
+        computed.invalidate();
+        await computed.promise();
+        expect((globalThis as any).removedComputeCalls).toBe(calls);
+        expect(computed.$disposed$).toBe(true);
+      }
+    );
+
+    it('keeps externally owned computations alive after removing a consumer', async () => {
+      (globalThis as any).sharedComputeCleanups = 0;
+      const Child = component$((props: { shared: ComputedSignal<number> }) => {
+        const shared = useConstant(() => props.shared);
+        return <span id="shared-child">{shared.value}</span>;
+      });
+      const Parent = component$(() => {
+        const count = useSignal(1);
+        const visible = useSignal(true);
+        const shared = useComputed$(async ({ track, cleanup }) => {
+          cleanup(() => {
+            (globalThis as any).sharedComputeCleanups++;
+          });
+          return track(count) * 2;
+        });
+        _markSignalAsExternallyOwned(shared);
+        return (
+          <>
+            <button id="increment-shared" onClick$={() => count.value++}>
+              increment
+            </button>
+            <button id="remove-consumer" onClick$={() => (visible.value = false)}>
+              remove
+            </button>
+            <span id="shared-parent">{shared.value}</span>
+            {visible.value && <Child shared={shared} />}
+          </>
+        );
+      });
+      const { container } = await render(<Parent />, { debug });
+      await trigger(container.element, '#increment-shared', 'click');
+      expect(container.element.querySelector('#shared-parent')?.textContent).toBe('4');
+      const cleanups = (globalThis as any).sharedComputeCleanups;
+      await trigger(container.element, '#remove-consumer', 'click');
+      expect(container.element.querySelector('#shared-child')).toBeFalsy();
+      expect((globalThis as any).sharedComputeCleanups).toBe(cleanups);
+      await trigger(container.element, '#increment-shared', 'click');
+      expect(container.element.querySelector('#shared-parent')?.textContent).toBe('6');
+    });
+
     it('should run cleanup on destroy', async () => {
       (globalThis as any).log = [];
 

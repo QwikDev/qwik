@@ -2,4 +2,4 @@
 '@qwik.dev/router': patch
 ---
 
-fix: preserve matched params in ancestor layout route loaders
+fix: scope ancestor route loader params to the params matched at their own path

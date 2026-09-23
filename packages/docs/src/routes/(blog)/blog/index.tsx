@@ -20,4 +20,12 @@ export default component$(() => {
 
 export const head: DocumentHead = {
   title: 'Qwik Blog',
+  links: [
+    {
+      rel: 'alternate',
+      type: 'application/rss+xml',
+      title: 'Qwik Blog RSS feed',
+      href: '/blog/rss.xml',
+    },
+  ],
 };

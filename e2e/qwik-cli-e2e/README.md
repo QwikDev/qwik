@@ -8,6 +8,8 @@ Tests can be invoked by running `pnpm run test.e2e.cli`.
 
 **Note that running E2E tests requires the workspace projects to be prebuilt manually!**
 
+The scaffolded starters use the default (Rust) optimizer, so `@qwik.dev/optimizer` needs its bindings in `packages/optimizer/bindings`. Build them with `pnpm build.rust` (requires the Rust toolchain) or download the published ones with `pnpm build.platform.copy`.
+
 E2E project does the following internally:
 
 0. Vitest is configured to run a setup function once **PRIOR TO ALL** tests. During the setup `@qwik.dev/core`, `@qwik.dev/router` and `eslint-plugin-qwik` packages will be packed with `pnpm pack` Those will be used at a step 2 for every test. Tarballs are located in `temp/tarballs` folder within this repo. It is assumed that packages are built before E2E is executed.

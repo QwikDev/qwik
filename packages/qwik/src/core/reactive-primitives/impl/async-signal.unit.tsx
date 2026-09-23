@@ -9,12 +9,20 @@ import type { Container, HostElement } from '../../shared/types';
 import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task, TaskFlags } from '../../use/use-task';
-import { AsyncSignalFlags, EffectProperty, NEEDS_COMPUTATION, ComputedSignalFlags } from '../types';
+import {
+  type AsyncSignalOptions,
+  AsyncSignalFlags,
+  type ComputeCtx,
+  EffectProperty,
+  NEEDS_COMPUTATION,
+  ComputedSignalFlags,
+} from '../types';
 import { clearAllEffects } from '../cleanup';
-import { createSignal, createAsync$, createAsyncQrl } from '../signal.public';
+import { createSignal, createAsyncQrl } from '../signal.public';
 import { getSubscriber } from '../subscriber';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ELEMENT_SEQ } from '../../shared/utils/markers';
+import type { SignalImpl } from './signal-impl';
 import type { AsyncSignalImpl } from './async-signal-impl';
 
 let computeInitialCalls = 0;
@@ -22,6 +30,11 @@ const computeInitialFn = async () => {
   computeInitialCalls++;
   return 42;
 };
+
+const createAsync = implicit$FirstArg(createAsyncQrl) as <T>(
+  qrl: (ctx: ComputeCtx<T>) => Promise<T>,
+  options?: AsyncSignalOptions<T>
+) => AsyncSignalImpl<T>;
 
 describe('async signal', () => {
   const log: any[] = [];
@@ -40,10 +53,171 @@ describe('async signal', () => {
   });
 
   describe('invalidate info', () => {
+    it('cleans computations without disposing their dependencies', async () => {
+      await withContainer(async () => {
+        const source = createSignal(1);
+        const ref = { cleanups: 0 };
+        const signal = createAsync(async ({ track, cleanup }) => {
+          cleanup(() => {
+            ref.cleanups++;
+          });
+          return track(source) * 2;
+        });
+        await retryOnPromise(() => effect$(() => signal.value));
+        await signal.promise();
+        const subscribers = (source as SignalImpl<number>).$effects$?.size;
+        expect(subscribers).toBeGreaterThan(0);
+        await signal.$destroy$();
+        expect(ref.cleanups).toBe(1);
+        expect(signal.$disposed$).toBeUndefined();
+        expect((source as SignalImpl<number>).$effects$?.size).toBe(subscribers);
+        source.value = 2;
+        await signal.promise();
+        expect(signal.value).toBe(4);
+      });
+    });
+
+    it('abort signal acquired after disposal is already aborted', async () => {
+      await withContainer(async () => {
+        const ref = { finish: () => {}, aborted: false };
+        const signal = createAsync(
+          async (ctx) => {
+            await new Promise<void>((resolve) => {
+              ref.finish = resolve;
+            });
+            ref.aborted = ctx.abortSignal.aborted;
+            return 99;
+          },
+          { initial: 7 }
+        );
+        effect$(() => signal.value);
+        void signal.promise();
+        await delay(0);
+        signal.$dispose();
+        ref.finish();
+        await signal.promise();
+        expect(ref.aborted).toBe(true);
+      });
+    });
+
+    it('does not resubscribe after disposal during an await', async () => {
+      await withContainer(async () => {
+        const source = createSignal(0);
+        const ref = { finish: () => {}, error: undefined as Error | undefined };
+        const signal = createAsync(
+          async ({ track }) => {
+            await new Promise<void>((resolve) => {
+              ref.finish = resolve;
+            });
+            try {
+              return track(source);
+            } catch (error) {
+              ref.error = error as Error;
+              throw error;
+            }
+          },
+          { initial: 7 }
+        );
+        effect$(() => signal.value);
+        void signal.promise();
+        await delay(0);
+        signal.$dispose();
+        ref.finish();
+        await signal.promise();
+        expect((source as SignalImpl<number>).$effects$?.size ?? 0).toBe(0);
+        expect(ref.error).toMatchObject({
+          name: 'Error',
+          message: expect.stringContaining('Code(Q39)'),
+        });
+        expect(signal.error).toBeUndefined();
+      });
+    });
+
+    it('does not retry suspended computation after disposal', async () => {
+      await withContainer(async () => {
+        const ref = { calls: 0, finish: () => {}, gate: null as unknown as Promise<void> };
+        ref.gate = new Promise<void>((resolve) => {
+          ref.finish = resolve;
+        });
+        const signal = createAsync(
+          async () => {
+            ref.calls++;
+            if (ref.calls === 1) {
+              throw ref.gate;
+            }
+            return 99;
+          },
+          { initial: 7 }
+        );
+        effect$(() => signal.value);
+        void signal.promise();
+        await delay(0);
+        signal.$dispose();
+        ref.finish();
+        await signal.promise();
+        expect(ref.calls).toBe(1);
+      });
+    });
+
+    it('does not start a queued computation after disposal', async () => {
+      await withContainer(async () => {
+        const ref = { calls: 0 };
+        const signal = createAsync(async () => ++ref.calls, { initial: 0 });
+        effect$(() => signal.value);
+        await signal.promise();
+        expect(ref.calls).toBe(1);
+        signal.invalidate();
+        signal.$dispose();
+        await delay(0);
+        expect(ref.calls).toBe(1);
+        expect(signal.value).toBe(1);
+      });
+    });
+
+    it('disposes pending work without publishing late results or restarting', async () => {
+      await withContainer(async () => {
+        const source = createSignal(0);
+        const ref = { calls: 0, aborted: false, cleanups: 0, finish: () => {} };
+        const signal = createAsync(
+          async ({ track, abortSignal, cleanup }) => {
+            track(source);
+            ref.calls++;
+            abortSignal.addEventListener('abort', () => {
+              ref.aborted = true;
+            });
+            cleanup(() => {
+              ref.cleanups++;
+            });
+            await new Promise<void>((resolve) => {
+              ref.finish = resolve;
+            });
+            return 99;
+          },
+          { initial: 7 }
+        );
+        effect$(() => signal.value);
+        void signal.promise();
+        await delay(0);
+        signal.invalidate();
+        signal.$dispose();
+        signal.$dispose();
+        expect(ref.aborted).toBe(true);
+        expect((source as SignalImpl<number>).$effects$?.size ?? 0).toBe(0);
+        ref.finish();
+        await signal.promise();
+        source.value++;
+        signal.invalidate();
+        await delay(0);
+        expect(signal.value).toBe(7);
+        expect(ref.calls).toBe(1);
+        expect(ref.cleanups).toBe(1);
+      });
+    });
+
     it('should expose invalidate info to the next computation', async () => {
       await withContainer(async () => {
         const infos: unknown[] = [];
-        const signal = createAsync$(
+        const signal = createAsync(
           async ({ info }) => {
             infos.push(info);
             return infos.length;
@@ -64,7 +238,7 @@ describe('async signal', () => {
     it('should reset invalidate info after computation completes', async () => {
       await withContainer(async () => {
         const infos: unknown[] = [];
-        const signal = createAsync$(
+        const signal = createAsync(
           async ({ info }) => {
             infos.push(info);
             return infos.length;
@@ -87,7 +261,7 @@ describe('async signal', () => {
     it('should use the latest invalidate info before recalculation starts', async () => {
       await withContainer(async () => {
         const infos: unknown[] = [];
-        const signal = createAsync$(
+        const signal = createAsync(
           async ({ info }) => {
             infos.push(info);
             return infos.length;
@@ -224,7 +398,7 @@ describe('async signal', () => {
           resolve: undefined as ((value: number) => void) | undefined,
         };
 
-        const signal = createAsync$(
+        const signal = createAsync(
           async ({ abortSignal }) => {
             abortSignal.addEventListener('abort', () => {
               ref.aborted = true;
@@ -257,7 +431,7 @@ describe('async signal', () => {
           resolve: undefined as ((value: number) => void) | undefined,
         };
 
-        const signal = createAsync$(
+        const signal = createAsync(
           async ({ abortSignal }) => {
             abortSignal.addEventListener('abort', () => {
               ref.capturedReason = abortSignal.reason;
@@ -291,7 +465,7 @@ describe('async signal', () => {
           taskResolve: undefined as ((value: number) => void) | undefined,
         };
 
-        const signal = createAsync$(async ({ abortSignal }) => {
+        const signal = createAsync(async ({ abortSignal }) => {
           abortSignal.addEventListener('abort', () => {
             if (ref.taskResolve) {
               ref.abortedBeforeTaskComplete = true;
@@ -303,7 +477,7 @@ describe('async signal', () => {
           });
         }) as AsyncSignalImpl<number>;
         const signal2 = (await retryOnPromise(() =>
-          createAsync$(async () => 0, { initial: 0 })
+          createAsync(async () => 0, { initial: 0 })
         )) as AsyncSignalImpl<number>;
 
         effect$(() => {
@@ -339,7 +513,7 @@ describe('async signal', () => {
           resolve: undefined as ((value: number) => void) | undefined,
         };
 
-        const signal = createAsync$(
+        const signal = createAsync(
           async ({ abortSignal }) => {
             abortSignal.addEventListener('abort', () => {
               ref.aborted = true;
@@ -368,7 +542,7 @@ describe('async signal', () => {
       await withContainer(async () => {
         const ref = { aborted: false, cleanupCalls: 0 };
 
-        const signal = createAsync$(
+        const signal = createAsync(
           async ({ abortSignal, cleanup }) => {
             abortSignal.addEventListener('abort', () => {
               ref.aborted = true;
@@ -405,7 +579,7 @@ describe('async signal', () => {
           resolvers: [] as Array<(value: number) => void>,
         };
         const signal = (await retryOnPromise(() =>
-          createAsync$(
+          createAsync(
             async () => {
               ref.started++;
               return new Promise<number>((resolve) => {
@@ -456,7 +630,7 @@ describe('async signal', () => {
           rejecters: [] as Array<(error: Error) => void>,
         };
         const signal = (await retryOnPromise(() =>
-          createAsync$(
+          createAsync(
             async () => {
               ref.started++;
               return new Promise<number>((resolve, reject) => {
@@ -509,7 +683,7 @@ describe('async signal', () => {
           resolveCurrent: undefined as ((value: number) => void) | undefined,
         };
 
-        const signal = createAsync$(
+        const signal = createAsync(
           async ({ abortSignal }) => {
             ref.started++;
 
@@ -567,7 +741,7 @@ describe('async signal', () => {
           rejectFirst: undefined as ((error: Error) => void) | undefined,
           resolveSecond: undefined as ((value: number) => void) | undefined,
         };
-        const signal = createAsync$(
+        const signal = createAsync(
           async () => {
             ref.started++;
             if (ref.started === 1) {
@@ -626,7 +800,7 @@ describe('async signal', () => {
   describe('initial value', () => {
     it('should return initial value on first read', async () => {
       await withContainer(async () => {
-        const signal = createAsync$(async () => 42, {
+        const signal = createAsync(async () => 42, {
           initial: 10,
         }) as AsyncSignalImpl<number>;
 
@@ -637,7 +811,7 @@ describe('async signal', () => {
     it('should invoke compute on first read without promise()', async () => {
       await withContainer(async () => {
         computeInitialCalls = 0;
-        const signal = createAsync$(computeInitialFn, {
+        const signal = createAsync(computeInitialFn, {
           initial: 10,
         }) as AsyncSignalImpl<number>;
 
@@ -657,7 +831,7 @@ describe('async signal', () => {
     it('should eagerly evaluate initial function on construction', async () => {
       await withContainer(async () => {
         let initCalls = 0;
-        const signal = createAsync$(async () => 42, {
+        const signal = createAsync(async () => 42, {
           initial: () => {
             initCalls++;
             return 20;
@@ -673,7 +847,7 @@ describe('async signal', () => {
       await withContainer(async () => {
         const error = new Error('initial failed');
         expect(() => {
-          createAsync$(async () => 42, {
+          createAsync(async () => 42, {
             initial: () => {
               throw error;
             },
@@ -684,7 +858,7 @@ describe('async signal', () => {
 
     it('initial value should be replaced by computed promise', async () => {
       await withContainer(async () => {
-        const signal = createAsync$(async () => 42, {
+        const signal = createAsync(async () => 42, {
           initial: 10,
         }) as AsyncSignalImpl<number>;
 
@@ -700,7 +874,7 @@ describe('async signal', () => {
   describe('value setter', () => {
     it('should clear INVALID flag when writing value', async () => {
       await withContainer(async () => {
-        const signal = createAsync$(async () => 42, {
+        const signal = createAsync(async () => 42, {
           initial: 10,
         }) as AsyncSignalImpl<number>;
 
@@ -721,7 +895,7 @@ describe('async signal', () => {
           resolve: undefined as ((value: number) => void) | undefined,
         };
 
-        const signal = createAsync$(
+        const signal = createAsync(
           async () => {
             return new Promise<number>((resolve) => {
               ref.resolve = resolve;
@@ -754,7 +928,7 @@ describe('async signal', () => {
 
     it('should clear error state when writing value', async () => {
       await withContainer(async () => {
-        const signal = createAsync$(
+        const signal = createAsync(
           async () => {
             throw new Error('compute error');
           },
@@ -775,7 +949,7 @@ describe('async signal', () => {
 
     it('should fire effects when writing a new value', async () => {
       await withContainer(async () => {
-        const signal = createAsync$(async () => 42, {
+        const signal = createAsync(async () => 42, {
           initial: 10,
         }) as AsyncSignalImpl<number>;
 
@@ -792,7 +966,7 @@ describe('async signal', () => {
     it('should not trigger computation after writing value', async () => {
       await withContainer(async () => {
         let computeCalls = 0;
-        const signal = createAsync$(
+        const signal = createAsync(
           async () => {
             computeCalls++;
             return computeCalls * 10;
@@ -821,7 +995,7 @@ describe('async signal', () => {
   describe('clientOnly', () => {
     it('should set CLIENT_ONLY flag when clientOnly option is true', async () => {
       await withContainer(async () => {
-        const signal = createAsync$(async () => 42, {
+        const signal = createAsync(async () => 42, {
           initial: 10,
           clientOnly: true,
         }) as AsyncSignalImpl<number>;
@@ -832,7 +1006,7 @@ describe('async signal', () => {
 
     it('should not set CLIENT_ONLY flag when clientOnly option is false or omitted', async () => {
       await withContainer(async () => {
-        const signal = createAsync$(async () => 42, {
+        const signal = createAsync(async () => 42, {
           initial: 10,
         }) as AsyncSignalImpl<number>;
 
@@ -843,7 +1017,7 @@ describe('async signal', () => {
     it('should compute on browser when clientOnly is set', async () => {
       await withContainer(async () => {
         const ref = { computeCalls: 0 };
-        const signal = createAsync$(
+        const signal = createAsync(
           async () => {
             ref.computeCalls++;
             return 42;
@@ -870,7 +1044,7 @@ describe('async signal', () => {
           aborted: false,
         };
 
-        const signal = createAsync$(
+        const signal = createAsync(
           async ({ abortSignal, cleanup }) => {
             ref.computeCalls++;
             abortSignal.addEventListener('abort', () => {
@@ -912,7 +1086,7 @@ describe('async signal', () => {
           resolve: undefined as ((value: number) => void) | undefined,
         };
 
-        const signal = createAsync$(
+        const signal = createAsync(
           async ({ abortSignal }) => {
             abortSignal.addEventListener('abort', () => {
               ref.capturedReason = abortSignal.reason;
@@ -948,7 +1122,7 @@ describe('async signal', () => {
           started: 0,
         };
 
-        const signal = createAsync$(
+        const signal = createAsync(
           async () => {
             ref.started++;
             return new Promise<number>((resolve) => {
@@ -985,7 +1159,7 @@ describe('async signal', () => {
           started: 0,
         };
 
-        const signal = createAsync$(async () => {
+        const signal = createAsync(async () => {
           ref.started++;
           return new Promise<number>((resolve) => {
             ref.resolve = resolve;

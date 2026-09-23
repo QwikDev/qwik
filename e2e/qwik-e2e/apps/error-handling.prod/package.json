@@ -1,0 +1,9 @@
+{
+  "name": "error-handling.prod",
+  "description": "Prod-mode (qDev=false) twin of the error-handling router app; re-exports its routes.",
+  "private": true,
+  "type": "module",
+  "__qwik__": {
+    "qwikRouter": true
+  }
+}

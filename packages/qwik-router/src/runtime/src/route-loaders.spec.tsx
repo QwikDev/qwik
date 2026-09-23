@@ -1,15 +1,15 @@
 /**
  * Spec tests for route loader signal reactivity.
  *
- * These test the core mechanism: useStore + createAsync$ + track() + invalidate(__v). They run in
- * the qwik core test infrastructure since they need ssrRenderToDom/domRender.
+ * These test the core mechanism: useStore + createComputed$ + track() + invalidate(__v). They run
+ * in the qwik core test infrastructure since they need ssrRenderToDom/domRender.
  */
 // This file should be moved to packages/qwik/src/core/tests/ if it needs the rendering infra.
 // For now, test the mechanism at the unit level using the signal test infrastructure.
 
-import { createAsync$, implicit$FirstArg, isDev, type QRL } from '@qwik.dev/core';
+import { createComputed$, implicit$FirstArg, isDev, type QRL } from '@qwik.dev/core';
 import {
-  _AsyncSignalImpl as AsyncSignalImpl,
+  _ComputedSignalInternal as ComputedSignalInternal,
   _Container as Container,
   _createQRL as createQRL,
   _createStore as createStore,
@@ -28,12 +28,19 @@ import {
 } from '@qwik.dev/core/internal';
 import { createDocument } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getModuleRouteLoaders, routeLoaderQrl, setLoaderSignalValue } from './route-loaders';
-import type { LoaderInternal, RouteModule } from './types';
+import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
+import {
+  ensureRouteLoaderSignal,
+  getModuleRouteLoaders,
+  loadRouteLoader,
+  routeLoaderQrl,
+  setLoaderSignalValue,
+} from './route-loaders';
+import type { LoaderInternal, RequestEvent, RouteModule } from './types';
 
 const taskFlag = 1 << 1; // TaskFlags.TASK
 
-describe('route loader store + async signal tracking', () => {
+describe('route loader store + computed signal tracking', () => {
   let container: Container = null!;
   let task: Task | null = null;
 
@@ -53,11 +60,11 @@ describe('route loader store + async signal tracking', () => {
       const ctx = createStore(container, { pageUrl: '/a' }, 1 /* StoreFlags.RECURSIVE */);
 
       const computeLog: string[] = [];
-      const signal = createAsync$(async ({ track }) => {
+      const signal = createComputed$(async ({ track }) => {
         const url = track(ctx, 'pageUrl') as string;
         computeLog.push(url);
         return `loaded:${url}`;
-      }) as AsyncSignalImpl<string>;
+      });
 
       // Subscribe so effects fire
       await retryOnPromise(() => {
@@ -85,11 +92,11 @@ describe('route loader store + async signal tracking', () => {
       );
 
       const computeLog: string[] = [];
-      const signal = createAsync$(async ({ track }) => {
+      const signal = createComputed$(async ({ track }) => {
         const path = track(ctx.loaderPaths, 'x') as string | undefined;
         computeLog.push(path || 'none');
         return `path:${path}`;
-      }) as AsyncSignalImpl<string>;
+      });
 
       await retryOnPromise(() => {
         effect$(() => signal.value);
@@ -111,7 +118,7 @@ describe('route loader store + async signal tracking', () => {
       const ctx = createStore(container, { pageUrl: '/initial' }, 1 /* StoreFlags.RECURSIVE */);
 
       const computeLog: string[] = [];
-      const signal = createAsync$(async ({ track, info }) => {
+      const signal = createComputed$(async ({ track, info }) => {
         const url = track(ctx, 'pageUrl') as string;
         if (info && typeof info === 'object' && '__v' in (info as object)) {
           computeLog.push(`__v`);
@@ -119,7 +126,7 @@ describe('route loader store + async signal tracking', () => {
         }
         computeLog.push(`fetch:${url}`);
         return `fetched:${url}`;
-      }) as AsyncSignalImpl<string>;
+      });
 
       await retryOnPromise(() => {
         effect$(() => signal.value);
@@ -149,7 +156,7 @@ describe('route loader store + async signal tracking', () => {
       const ctx = createStore(container, { pageUrl: '/initial' }, 1 /* StoreFlags.RECURSIVE */);
 
       const computeLog: string[] = [];
-      const signal = createAsync$(async ({ track, info }) => {
+      const signal = createComputed$(async ({ track, info }) => {
         const url = track(ctx, 'pageUrl') as string;
         if (info && typeof info === 'object' && '__v' in (info as object)) {
           computeLog.push('__v');
@@ -157,7 +164,7 @@ describe('route loader store + async signal tracking', () => {
         }
         computeLog.push(`fetch:${url}`);
         return `fetched:${url}`;
-      }) as AsyncSignalImpl<string>;
+      });
 
       setLoaderSignalValue(signal, 'ssr-value');
       await retryOnPromise(() => {
@@ -180,7 +187,7 @@ describe('route loader store + async signal tracking', () => {
       const ctx = createStore(container, { pageUrl: '/initial' }, 1 /* StoreFlags.RECURSIVE */);
 
       const computeLog: string[] = [];
-      const signal = createAsync$(async ({ track, info }) => {
+      const signal = createComputed$(async ({ track, info }) => {
         const url = track(ctx, 'pageUrl') as string;
         if (info && typeof info === 'object' && '__v' in (info as object)) {
           computeLog.push(`__v`);
@@ -188,7 +195,7 @@ describe('route loader store + async signal tracking', () => {
         }
         computeLog.push(`fetch:${url}`);
         return `fetched:${url}`;
-      }) as AsyncSignalImpl<string>;
+      });
 
       await retryOnPromise(() => {
         effect$(() => signal.value);
@@ -219,10 +226,10 @@ describe('route loader store + async signal tracking', () => {
     await withContainer(async () => {
       const ctx = createStore(container, { pageUrl: '/page0' }, 1 /* StoreFlags.RECURSIVE */);
 
-      const signal = createAsync$(async ({ track }) => {
+      const signal = createComputed$(async ({ track }) => {
         const url = track(ctx, 'pageUrl') as string;
         return `loaded:${url}`;
-      }) as AsyncSignalImpl<string>;
+      });
 
       await retryOnPromise(() => {
         effect$(() => signal.value);
@@ -244,14 +251,82 @@ describe('route loader store + async signal tracking', () => {
     });
   });
 
+  it('resolves a pending blockSSR:false loader without AsyncLocalStorage', async () => {
+    let resolve!: (value: string) => void;
+    const pendingValue = new Promise<string>((r) => (resolve = r));
+    const loader = Object.assign(() => {}, {
+      __brand: 'server_loader' as const,
+      __id: 'late-loader',
+      __qrl: createQRL(null, 'late-loader', () => pendingValue),
+      __validators: undefined,
+      __serializationStrategy: 'never' as const,
+      __cacheControl: undefined,
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: undefined,
+      __blockSSR: false,
+    }) as unknown as LoaderInternal;
+    const requestEv = {
+      sharedMap: new Map(),
+      cookie: {},
+      url: new URL('http://localhost/'),
+    } as unknown as RequestEvent;
+
+    const loaderPromise = loadRouteLoader(loader, requestEv);
+    const ctx = newInvokeContext();
+    ctx.$container$ = container;
+    const signal = invoke(ctx, () => {
+      const signal = ensureRouteLoaderSignal(loader, {}, { loaderPaths: {} }, requestEv);
+      void signal.promise();
+      return signal;
+    });
+
+    resolve('late-loader-value');
+    await loaderPromise;
+    await signal.promise();
+
+    expect((signal as ComputedSignalInternal<string>).error).toBeUndefined();
+    expect(signal.value).toBe('late-loader-value');
+  });
+
+  it('passes the RequestEvent to a loader created during render', async () => {
+    let resolve!: (value: string) => void;
+    const pendingValue = new Promise<string>((r) => (resolve = r));
+    const loader = routeLoaderQrl(
+      createQRL(null, 'render-loader', () => pendingValue)
+    ) as LoaderInternal;
+    const requestEv = {
+      sharedMap: new Map(),
+      cookie: {},
+      url: new URL('http://localhost/'),
+    } as unknown as RequestEvent;
+    const loaderPromise = loadRouteLoader(loader, requestEv);
+    const host = vnode_newVirtual();
+    container.setContext(host, RouteStateContext, {});
+    container.setContext(host, RouteLoaderCtxContext, { loaderPaths: {} });
+    container.$serverData$.qwikrouter = { ev: requestEv };
+    const ctx = newInvokeContext();
+    ctx.$container$ = container;
+    ctx.$hostElement$ = host;
+
+    const signal = invoke(ctx, loader);
+
+    resolve('render-loader-value');
+    await loaderPromise;
+    await signal.promise();
+
+    expect((signal as ComputedSignalInternal<string>).error).toBeUndefined();
+    expect(signal.value).toBe('render-loader-value');
+  });
+
   it('should verify store is reactive', async () => {
     await withContainer(async () => {
       const ctx = createStore(container, { pageUrl: '/test' }, 1 /* StoreFlags.RECURSIVE */);
       expect(isStore(ctx)).toBe(true);
 
-      const signal = createAsync$(async ({ track }) => {
+      const signal = createComputed$(async ({ track }) => {
         return track(ctx, 'pageUrl') as string;
-      }) as AsyncSignalImpl<string>;
+      });
 
       await retryOnPromise(() => {
         effect$(() => signal.value);

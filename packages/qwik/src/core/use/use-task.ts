@@ -1,5 +1,6 @@
 import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import { BackRef } from '../reactive-primitives/backref';
+import { ErrorBoundaryPhase, tagErrorPhase } from '../shared/error/error-handling';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import {
@@ -29,6 +30,7 @@ export const enum TaskFlags {
   RENDER_BLOCKING = 1 << 3,
   NEEDS_CLEANUP = 1 << 4,
   EVENTS_REGISTERED = 1 << 5,
+  EXECUTED = 1 << 6,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -181,8 +183,11 @@ export const runTask = (
     return pendingTask;
   }
 
-  task.$flags$ &= ~TaskFlags.DIRTY;
-  const handleError = (reason: unknown) => container.handleError(reason, host);
+  task.$flags$ = (task.$flags$ & ~TaskFlags.DIRTY) | TaskFlags.EXECUTED;
+  const handleError = (reason: unknown) => {
+    tagErrorPhase(reason, ErrorBoundaryPhase.Hook);
+    container.handleError(reason, host, ErrorBoundaryPhase.Hook);
+  };
 
   let taskPromise: Promise<void> | null = null;
   const result = maybeThen(cleanupAsyncDestroyable(task, handleError), () => {
@@ -205,7 +210,7 @@ export const runTask = (
               task.$taskPromise$ = null;
             }
             return runTask(task, container, host);
-          });
+          }, handleError);
         } else {
           handleError(err);
         }
@@ -259,6 +264,14 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
       setCaptures(deserializeCaptureDeltas(container, this));
     }
     const task = _captures![0] as Task;
+    if (!task.$el$) {
+      // An ErrorBoundary tore the host down; the task has nothing left to run against.
+      return;
+    }
+    if (task.$flags$ & (TaskFlags.DIRTY | TaskFlags.EXECUTED)) {
+      // the trigger event only performs the initial run
+      return;
+    }
     task.$flags$ |= TaskFlags.DIRTY;
     markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
   });

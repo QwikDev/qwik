@@ -1,0 +1,33 @@
+import { parseSync, type ParseResult } from 'oxc-parser';
+import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
+
+/**
+ * Raw transfer reserves one large ArrayBuffer per parse, which a memory-constrained machine can
+ * refuse even when the plain parser fits — a Windows CI runner hit this on the SSG build. The plain
+ * parser yields the same ESTree, so fall back to it and stop asking once the allocation has
+ * failed.
+ */
+let rawTransferUnavailable = false;
+
+/**
+ * Raw transfer also reserves ~6 GB of address space per thread, which fork() must account for. Pool
+ * workers switch to the plain parser so the host process stays able to spawn children.
+ */
+export function disableRawTransfer(): void {
+  rawTransferUnavailable = true;
+}
+
+export function parseWithRawTransfer(filename: string, sourceText: string): ParseResult {
+  if (rawTransferUnavailable || !RAW_TRANSFER_PARSER_OPTIONS.experimentalRawTransfer) {
+    return parseSync(filename, sourceText);
+  }
+  try {
+    return parseSync(filename, sourceText, RAW_TRANSFER_PARSER_OPTIONS);
+  } catch (err) {
+    if (!(err instanceof RangeError)) {
+      throw err;
+    }
+    rawTransferUnavailable = true;
+    return parseSync(filename, sourceText);
+  }
+}

@@ -1,6 +1,6 @@
 import { inlinedQrl, isDev, type QRL } from '@qwik.dev/core';
 import { _serialize, _verifySerializable } from '@qwik.dev/core/internal';
-import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
+import type { Render, RenderToStreamResult, RenderToStringResult } from '@qwik.dev/core/server';
 import type {
   ActionInternal,
   ContentModule,
@@ -17,6 +17,7 @@ import type {
 import {
   clearRouteLoaderData,
   getRouteLoaderCtx,
+  getRouteLoaderParams,
   getRouteLoaderValues,
   loadRouteLoader,
   matchesRouteLoaderId,
@@ -26,6 +27,7 @@ import { ensureSlash } from '../../utils/pathname';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
 import {
   getRequestMode,
+  RequestEvErrorBoundaryCaught,
   RequestEvETagCacheKey,
   RequestEvHttpStatusMessage,
   RequestEvShareServerTiming,
@@ -38,6 +40,7 @@ import { loaderHandler } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
 import { actionHandler } from './handlers/action-handler';
 import { IsQLoader, QLoaderId } from './request-path';
+import { isStaticPath } from './static-paths';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import { resolveRouteConfig } from '../../runtime/src/head';
@@ -122,9 +125,7 @@ function createResolveRequestHandlers() {
       requestHandlers.push(loaderHandler(routeLoaders, route.$loaderPaths$));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
-      if (!route.$notFound$) {
-        requestHandlers.push(fixTrailingSlash);
-      }
+      requestHandlers.push(route.$notFound$ ? fixStaticTrailingSlash : fixTrailingSlash);
     }
 
     if (isPageRoute) {
@@ -364,7 +365,7 @@ function createResolveRequestHandlers() {
       Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
     }
     if (route.$loaderParams$) {
-      Object.assign(routeLoaderCtx.loaderParams, route.$loaderParams$);
+      Object.assign(getRouteLoaderParams(requestEv), route.$loaderParams$);
     }
 
     // Store loader internals so SSG can check __cacheControl.
@@ -492,6 +493,7 @@ function createResolveRequestHandlers() {
 
         const status = e.status as number;
         requestEv.status(status);
+        requestEv.headers.set('Cache-Control', 'no-store');
 
         // $errorLoader$ is the error boundary's chain, rendered as-is — a bare error.tsx in its
         // layouts, `error!.tsx` standalone. Undefined → built-in fallback.
@@ -516,6 +518,8 @@ function createResolveRequestHandlers() {
     requestEv.sharedMap.delete(RequestEvSharedActionId);
     requestEv.sharedMap.delete(RequestEvSharedActionFormData);
     requestEv.sharedMap.delete('@actionResult');
+    // The error document must never read or write the page's SSR cache entry.
+    requestEv.sharedMap.delete(RequestEvETagCacheKey);
   }
 
   async function runValidators(
@@ -648,6 +652,21 @@ function createResolveRequestHandlers() {
     }
   }
 
+  /**
+   * Prerendered pages are pruned from the production server route plan, so a request missing the
+   * canonical trailing slash lands here as not found. Redirect it when the canonical path was
+   * prerendered, and leave a genuine 404 alone.
+   */
+  function fixStaticTrailingSlash(ev: RequestEvent) {
+    const canonicalUrl = new URL(ev.originalUrl);
+    canonicalUrl.pathname = globalThis.__NO_TRAILING_SLASH__
+      ? canonicalUrl.pathname.replace(/\/$/, '')
+      : ensureSlash(canonicalUrl.pathname);
+    if (isStaticPath(ev.request.method, canonicalUrl)) {
+      fixTrailingSlash(ev);
+    }
+  }
+
   function verifySerializable(data: any, qrl: QRL) {
     try {
       _verifySerializable(data, undefined);
@@ -742,7 +761,15 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         | undefined;
 
       const { readable, writable } = new TextEncoderStream();
-      const writableStream = requestEv.getWritableStream();
+      // Headers commit when the response stream is created, so defer it to the first rendered
+      // chunk — onBeforeFirstFlush can still change them.
+      let responseWriter: WritableStreamDefaultWriter<Uint8Array> | undefined;
+      const lazyResponseSink = new WritableStream<Uint8Array>({
+        write(chunk) {
+          responseWriter ||= requestEv.getWritableStream().getWriter();
+          return responseWriter.write(chunk);
+        },
+      });
 
       let cacheChunks: Uint8Array[] | undefined;
       let pipeSource: ReadableStream<Uint8Array> = readable;
@@ -758,7 +785,10 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       }
 
       let pipeError: unknown;
-      const pipe = pipeSource.pipeTo(writableStream, { preventClose: true }).catch((error) => {
+      let boundaryErrored = false;
+      let noStoreSent = false;
+      let overrodeCacheControl = false;
+      const pipe = pipeSource.pipeTo(lazyResponseSink, { preventClose: true }).catch((error) => {
         pipeError = error;
       });
       const stream = writable.getWriter();
@@ -778,20 +808,46 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
             ['q:render']: isStatic ? 'static' : '',
             ...serverData.containerAttributes,
           },
+          onBeforeFirstFlush: (info: { errorBoundaryCaught: boolean }) => {
+            if (info.errorBoundaryCaught) {
+              boundaryErrored = true;
+              noStoreSent = true;
+              overrodeCacheControl = responseHeaders.has('Cache-Control');
+              responseHeaders.set('Cache-Control', 'no-store');
+            }
+          },
         });
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
         }
+        boundaryErrored ||= (result as RenderToStreamResult).errorBoundaryCaught === true;
+        if (boundaryErrored) {
+          requestEv.sharedMap.set(RequestEvErrorBoundaryCaught, true);
+        }
       } finally {
-        await stream.ready;
-        await stream.close();
-        await pipe;
+        try {
+          await stream.ready;
+          await stream.close();
+        } finally {
+          await pipe;
+          responseWriter?.releaseLock();
+        }
       }
       if (pipeError) {
         throw pipeError;
       }
 
-      if (cachePlan && cacheChunks && cacheChunks.length > 0) {
+      // Only worth a log when the developer configured caching and the error disabled it.
+      if (boundaryErrored && (noStoreSent ? cachePlan || overrodeCacheControl : !!cachePlan)) {
+        console.warn(
+          `An <ErrorBoundary> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
+            (noStoreSent
+              ? 'the response was sent with Cache-Control: no-store.'
+              : 'the SSR cache was skipped (response headers were already sent).')
+        );
+      }
+
+      if (cachePlan && cacheChunks && cacheChunks.length > 0 && !boundaryErrored) {
         const totalLength = cacheChunks.reduce((sum, chunk) => sum + chunk.length, 0);
         const combined = new Uint8Array(totalLength);
         let offset = 0;
@@ -806,7 +862,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         setCachedSsr(cachePlan.key, { eTag: cachedETag, body: html });
       }
 
-      await writableStream.close();
+      if (responseWriter) {
+        await requestEv.getWritableStream().close();
+      }
     };
   }
 
@@ -836,6 +894,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
     actionsMiddleware,
     checkBrand,
     checkCSRF,
+    fixStaticTrailingSlash,
     fixTrailingSlash,
     getPathname,
     isLastModulePageRoute,
@@ -853,6 +912,7 @@ export const {
   actionsMiddleware,
   checkBrand,
   checkCSRF,
+  fixStaticTrailingSlash,
   fixTrailingSlash,
   getPathname,
   isLastModulePageRoute,

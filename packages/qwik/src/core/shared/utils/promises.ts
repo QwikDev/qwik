@@ -4,8 +4,12 @@ import type { ValueOrPromise } from './types';
 export const MAX_RETRY_ON_PROMISE_COUNT = 100;
 
 export const isPromise = <T>(value: any): value is Promise<T> => {
-  // not using "value instanceof Promise" to have zone.js support
-  return !!value && typeof value == 'object' && typeof value.then === 'function';
+  try {
+    // not using "value instanceof Promise" to have zone.js support
+    return !!value && typeof value == 'object' && typeof value.then === 'function';
+  } catch {
+    return false;
+  }
 };
 
 export const safeCall = <T, B, C>(
@@ -93,8 +97,12 @@ export const delay = (timeout: number) => {
 };
 
 const checkError = (e: Error) => {
-  if (isServer && e instanceof ReferenceError && e.message.includes('window')) {
-    e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
+  try {
+    if (isServer && e instanceof ReferenceError && e.message.includes('window')) {
+      e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
+    }
+  } catch {
+    // ignore
   }
 };
 const justThrow = (e: any) => {

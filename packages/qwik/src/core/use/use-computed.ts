@@ -18,6 +18,11 @@ import { useConstant } from './use-signal';
 // ctx is not `ComputeCtx<T>`: putting T in a parameter position breaks return-type inference, so
 // `ctx.previous` is `unknown` and must be cast if its type is needed.
 export type ComputedFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
+/**
+ * @deprecated Use `ComputedFn` instead.
+ * @public
+ */
+export type AsyncFn<T> = ComputedFn<T>;
 /** @public */
 export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 
@@ -41,9 +46,8 @@ export const useComputedQrl = <T>(
  *
  * Every synchronous signal or store read is tracked automatically. Reads after an `await` are not:
  * the tracking context is lost, so track them explicitly with the `track()` provided on the context
- * argument. When the function is async, the returned signal exposes the async API: reading an
- * unresolved `.value` throws the computation promise, and `.pending` and `.error` expose the
- * computation state.
+ * argument. When the function is async, reading an unresolved `.value` throws the computation
+ * promise, and reading a failed `.value` throws the error.
  *
  * The function must not have any side effects.
  *

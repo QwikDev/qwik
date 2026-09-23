@@ -15,6 +15,7 @@ import {
 import { extname, join } from 'node:path';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { normalizeRequestUrl } from '../shared/url';
+import { getStaticFilePath } from '../shared/static-file';
 
 /** @public */
 export interface QwikRouterBunMiddleware {
@@ -115,17 +116,8 @@ export function createQwikRouter(opts: QwikRouterBunOptions): QwikRouterBunMiddl
     return null as never;
   };
 
-  const openStaticFile = async (url: URL) => {
-    const pathname = url.pathname;
-    const fileName = pathname.slice(url.pathname.lastIndexOf('/'));
-    let filePath: string;
-    if (fileName.includes('.')) {
-      filePath = join(staticFolder, pathname);
-    } else if (!globalThis.__NO_TRAILING_SLASH__) {
-      filePath = join(staticFolder, pathname + 'index.html');
-    } else {
-      filePath = join(staticFolder, pathname, 'index.html');
-    }
+  const openStaticFile = async (staticFilePath: string) => {
+    const filePath = join(staticFolder, staticFilePath);
     return {
       filePath,
       content: Bun.file(filePath),
@@ -137,7 +129,11 @@ export function createQwikRouter(opts: QwikRouterBunOptions): QwikRouterBunMiddl
       const url = getRequestUrl(request, opts);
 
       if (isStaticPath(request.method || 'GET', url)) {
-        const { filePath, content } = await openStaticFile(url);
+        const staticFilePath = getStaticFilePath(url.pathname);
+        if (staticFilePath === undefined) {
+          return null;
+        }
+        const { filePath, content } = await openStaticFile(staticFilePath);
         // We know that it's in the static folder, but it could still be missing
         // If we start the stream with a missing file, it will throw a 500 error during the stream
         if (!(await content.exists())) {

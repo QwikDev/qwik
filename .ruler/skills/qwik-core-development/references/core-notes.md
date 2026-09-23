@@ -41,7 +41,7 @@ Current API and implementation facts:
   `AsyncSignalImpl` only parses options and sets `AsyncSignalFlags.ASYNC_MODE | CTX_ARG`.
 - All compute fns receive the ComputeCtx argument (`track`, `previous`, `info`, `cleanup`,
   `abortSignal`); sync computeds allocate an AsyncJob per compute and run the previous job's
-  cleanups before recomputing. `CTX_ARG` signals (useAsync$/useResource$) track only via the
+  cleanups before recomputing. `CTX_ARG` signals (`createAsyncQrl`/`useResource$`) track only via the
   explicit `ctx.track()`; computeds auto-track synchronous reads via a dedicated invoke context,
   but that context is lost after the first `await` — later reads must use `ctx.track()`.
 - A computed whose fn returns a promise lazily switches on `ASYNC_MODE` (loading state stays
@@ -94,7 +94,7 @@ Use the current test helpers already present in nearby tests:
 
 ```typescript
 await withContainer(async () => {
-  const signal = createAsync$(async () => 42) as AsyncSignalImpl<number>;
+  const signal = createAsyncQrl($(async () => 42)) as AsyncSignalImpl<number>;
 
   await retryOnPromise(() => {
     effect$(() => signal.value);
@@ -127,7 +127,7 @@ When a core value gains serialized state:
 1. Update the serializer and inflater together.
 2. Keep array positions or marker encodings documented in the code that owns them.
 3. Add a round-trip test in `shared/serdes` or the closest subsystem.
-4. Check SSR and client resume behavior when the value affects hydration or streamed state.
+4. Check SSR and client resume behavior when the value affects resumed or streamed state.
 
 For AsyncSignal fields, inspect the serdes tests that deserialize async signals and verify
 concurrency, timeout, stale value, and error/loading state behavior.
@@ -173,6 +173,17 @@ streaming, navigation, or integration with fixture apps. For Qwik e2e, load
 `qwik-e2e-verification`.
 
 Never use `pnpm test.unit` for agent verification in this repo.
+
+## ErrorBoundary (experimental `errorBoundary`)
+
+Keep error state non-enumerable and out of serialized state. Store the raw throw and project it only
+at display sites; redaction is origin-based — the server display redacts in production unless the
+app returns an `Error` from `transformError`; the client display always shows the error as thrown.
+
+Reset must re-render the component that authored projected children. Identify and retain that
+component as soon as SSR error teardown determines it; store its VNode reference only when the
+projection cut prevents the client owner walk. Re-key the highest wrapper below that author so
+normal diffing recreates emptied projected content without projection-wide scheduling.
 
 ## Keep This Reference Fresh
 

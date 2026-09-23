@@ -22,7 +22,12 @@ export function addCursorBoundary(cursorData: CursorData, vNode: VNode): void {
   if (!__EXPERIMENTAL__.suspense) {
     return;
   }
-  const boundary = getNearestCursorBoundary(vNode);
+  let boundary: CursorBoundary | null = null;
+  let current: VNode | null = vNode;
+  while (current && !boundary) {
+    boundary = getNearestCursorBoundary(current);
+    current = current.slotParent || current.parent;
+  }
   if (!boundary) {
     return;
   }

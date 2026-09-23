@@ -26,7 +26,8 @@ contributors:
   - jemsco
   - tzdesign
   - shairez
-updated_at: '2023-12-15T11:00:00Z'
+  - syrfmy
+updated_at: '2026-08-10T21:28:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -472,3 +473,81 @@ export const useLogin = globalAction$((data) => {
   // ...
 });
 ```
+
+## Redirecting after a POST
+
+When JavaScript is disabled, a native form `POST` is stored in browser history. Reloading the page triggers a **"Confirm Form Resubmission"** warning and re-runs the action. To prevent this, use the [Post/Redirect/Get (PRG)](https://en.wikipedia.org/wiki/Post/Redirect/Get) pattern: detect if the submission came from the browser (no-JS) and redirect to a `GET` request instead.
+
+A native browser form submission always includes `text/html` in the `Accept` header. Use that to detect when to apply the redirect:
+
+```tsx title="src/routes/index.tsx" // ⚠️ without PRG
+import { component$ } from '@qwik.dev/core';
+import { routeAction$, zod$, z } from '@qwik.dev/router';
+
+export const useCreatePost = routeAction$(
+  async (data) => {
+    const postId = await db.posts.create(data);
+    return { postId };
+  },
+  zod$({ title: z.string() })
+);
+
+export default component$(() => {
+  const action = useCreatePost();
+  return (
+    // ⚠️ Native form POST — reloading the result page triggers "Confirm Form Resubmission"
+    <form method="POST" action={action.actionPath}>
+      <input name="title" />
+      <button type="submit">Create post</button>
+    </form>
+  );
+});
+```
+
+To fix this, detect the submission type using the `Accept` header and `throw redirect()` for browser submissions:
+
+```tsx title="src/routes/index.tsx"
+import { component$ } from '@qwik.dev/core';
+import { routeAction$, routeLoader$, Form, zod$, z } from '@qwik.dev/router';
+
+export const useCreatePost = routeAction$(
+  async (data, { request, redirect }) => {
+    const postId = await db.posts.create(data);
+
+    // Browser (no-JS) submissions include text/html in the Accept header.
+    // Redirect to a GET so the user can safely reload the result page.
+    if (request.headers.get('accept')?.includes('text/html')) {
+      throw redirect(303, `/?created=${postId}`);
+    }
+
+    return { postId };
+  },
+  zod$({ title: z.string() })
+);
+
+// Read the search param set by the redirect on the destination page
+export const useCreatedId = routeLoader$(({ url }) => {
+  return { createdId: url.searchParams.get('created') };
+});
+
+export default component$(() => {
+  const action = useCreatePost();
+  const loader = useCreatedId();
+
+  // JS path: action.value holds the result directly.
+  // No-JS path: loader.value holds the param passed via the redirect.
+  const createdId = action.value?.postId ?? loader.value.createdId;
+
+  return (
+    <Form action={action}>
+      <input name="title" />
+      <button type="submit">Create post</button>
+      {createdId && <p>Post {createdId} created!</p>}
+    </Form>
+  );
+});
+```
+
+When JS is enabled, Qwik intercepts the form submission as a fetch and the redirect is never triggered — `action.value` holds the result as usual. The redirect only fires for native browser submissions. However, `<Form/>` uses [progressive enhancement](https://developer.mozilla.org/en-US/docs/Glossary/Progressive_Enhancement) and falls back to a native form `POST` if JS has not yet loaded or fails to load, so the PRG pattern is still needed for these cases.
+
+<Note>You can also pass state across a redirect using cookies instead of search params, which is useful for flash messages or session data. See the [cookie section in the middleware docs](/docs/(qwikrouter)/middleware/#cookie) for usage.</Note>

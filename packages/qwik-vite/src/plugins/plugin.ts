@@ -85,6 +85,8 @@ export enum ExperimentalFeatures {
   show = 'show',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
+  /** Enable the ErrorBoundary primitive */
+  errorBoundary = 'errorBoundary',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
@@ -99,6 +101,18 @@ export interface QwikPackages {
   id: string;
   path: string;
 }
+
+/** `QWIK_OPTIMIZER=ts|rust` overrides the option so a project can be tested on the other optimizer. */
+const resolveTsOptimizerChoice = (tsOptimizer: boolean | undefined): boolean => {
+  const override = typeof process === 'object' ? process.env?.QWIK_OPTIMIZER : undefined;
+  if (override === undefined || override === '') {
+    return !!tsOptimizer;
+  }
+  if (override === 'ts' || override === 'rust') {
+    return override === 'ts';
+  }
+  throw new Error(`QWIK_OPTIMIZER must be "ts" or "rust", got "${override}"`);
+};
 
 export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
@@ -152,10 +166,16 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   let maybeFs: typeof import('fs') | undefined | null;
   const init = async () => {
     if (!internalOptimizer) {
-      const createOptimizer = (
-        (optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer')) ||
-        (await import('@qwik.dev/optimizer'))
-      ).createOptimizer;
+      const loadOptimizerModule = async () => {
+        if (optimizerOptions._optimizer) {
+          return optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer');
+        }
+        if (resolveTsOptimizerChoice(optimizerOptions.tsOptimizer)) {
+          return (await import('@qwik.dev/ts-optimizer')) as unknown as typeof import('@qwik.dev/optimizer');
+        }
+        return import('@qwik.dev/optimizer');
+      };
+      const createOptimizer = (await loadOptimizerModule()).createOptimizer;
       internalOptimizer = await createOptimizer(optimizerOptions);
       lazyNormalizePath = makeNormalizePath(internalOptimizer.sys);
       if (
@@ -1186,6 +1206,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const createOutputAnalyzer = (
     rollupBundle: Rolldown.OutputBundle,
+    getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
     qwikLoaderFileName?: string,
     preloaderFileName?: string,
     handlersFileName?: string
@@ -1218,6 +1239,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts,
         debug,
         canonPath,
+        getModuleInfo,
         qwikLoaderFileName,
         preloaderFileName,
         handlersFileName
@@ -1426,6 +1448,7 @@ export const isDev = ${JSON.stringify(isDev)};
     const handlersFileName = handlersChunkRef ? ctx.getFileName(handlersChunkRef) : undefined;
     const outputAnalyzer = createOutputAnalyzer(
       rollupBundle,
+      (id) => ctx.getModuleInfo(id),
       qwikLoaderFileName,
       preloaderFileName,
       handlersFileName

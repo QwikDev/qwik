@@ -282,9 +282,7 @@ describe.each([
     });
 
     const { vNode, document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
+    await trigger(document.body, 'div', 'qvisible');
     expect(vNode).toMatchVDOM(
       <Component>
         <div></div>
@@ -346,9 +344,7 @@ describe.each([
 
       const { container } = await render(<Cmp />, { debug });
 
-      if (render === ssrRenderToDom) {
-        await trigger(container.element, 'div', 'qvisible');
-      }
+      await trigger(container.element, 'div', 'qvisible');
 
       expect(
         // wrapped signal on the pre element

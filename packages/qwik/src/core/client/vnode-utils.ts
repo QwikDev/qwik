@@ -127,6 +127,7 @@ import {
   DEBUG_TYPE,
   QContainerValue,
   type QElement,
+  type qWindow,
   VirtualType,
   VirtualTypeName,
 } from '../shared/types';
@@ -455,6 +456,15 @@ export const vnode_setAttr = (
         (vNode.flags & VNodeFlags.NS_svg) !== 0
       )
     );
+  }
+};
+
+export const registerQwikLoaderEvent = (container: ClientContainer, eventName: string) => {
+  const win = qTest
+    ? (container.document.defaultView as qWindow | null)
+    : (window as unknown as qWindow);
+  if (win) {
+    (win._qwikEv ||= [] as any).push(eventName);
   }
 };
 

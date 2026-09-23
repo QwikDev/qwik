@@ -1,6 +1,6 @@
 // ... other imports
 import { guessLocale } from "compiled-i18n";
-import type { RequestHandler } from "@builder.io/qwik-city";
+import type { RequestHandler } from "@qwik.dev/router";
 
 /**
  * Handle incoming requests to determine and set the appropriate locale.

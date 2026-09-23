@@ -14,10 +14,11 @@ export default defineConfig({
   },
   plugins: [
     qwikVite({
+      tsOptimizer: true,
       debug: !true,
       srcDir: fromRoot('./packages/qwik/src'),
       devTools: { hmr: false },
-      experimental: ['each', 'show', 'suspense'],
+      experimental: ['each', 'show', 'suspense', 'errorBoundary'],
     }),
     tsconfigPaths({ ignoreConfigErrors: true }),
   ],

@@ -44,7 +44,9 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
         url.hostname !== '127.0.0.1' &&
         url.hostname !== 'localhost' &&
         url.port === '' &&
-        request.method === 'GET';
+        request.method === 'GET' &&
+        !request.headers.has('Cookie') &&
+        !request.headers.has('Authorization');
       const cacheKey = new Request(url.href, request);
       const cache = useCache ? await caches.open('custom:qwikrouter') : null;
       if (cache) {
@@ -65,11 +67,16 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
           },
         },
         getWritableStream: (status, headers, cookies, resolve) => {
-          const { readable, writable } = new TransformStream<Uint8Array>();
-          const response = new Response(readable, {
+          const responseInit = {
             status,
             headers: mergeHeadersCookies(headers, cookies),
-          });
+          };
+          if (status === 204 || status === 205 || status === 304) {
+            resolve(new Response(null, responseInit));
+            return new WritableStream<Uint8Array>();
+          }
+          const { readable, writable } = new TransformStream<Uint8Array>();
+          const response = new Response(readable, responseInit);
           resolve(response);
           return writable;
         },
@@ -96,7 +103,7 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
         });
         const response = await handledResponse.response;
         if (response) {
-          if (response.ok && cache && response.headers.has('Cache-Control')) {
+          if (response.ok && cache && isSharedCacheable(response)) {
             // Store the fetched response as cacheKey
             // Use waitUntil so you can return the response without blocking on
             // writing to cache
@@ -127,6 +134,19 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
 
   return onCloudflarePagesFetch;
 }
+
+const uncacheableDirectives = new Set(['private', 'no-store', 'no-cache']);
+
+const isSharedCacheable = (response: Response) => {
+  const cacheControl = response.headers.get('Cache-Control');
+  if (!cacheControl || response.headers.has('Set-Cookie')) {
+    return false;
+  }
+  return !cacheControl.split(',').some((value) => {
+    const directive = value.trim().split('=', 1)[0].toLowerCase();
+    return uncacheableDirectives.has(directive);
+  });
+};
 
 /**
  * @deprecated Use `createQwikRouter` instead. Will be removed in V3

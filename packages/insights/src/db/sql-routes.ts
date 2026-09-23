@@ -3,6 +3,8 @@ import { routesTable, type AppDatabase } from '.';
 import { listToVector, sumTimelineCount, timelineDelayAsList } from './query-helpers';
 import { time } from './logging';
 
+const ROUTE_SYMBOL_LIMIT = 5_000;
+
 export interface RouteSymbolRow {
   route: string;
   symbol: string;
@@ -30,7 +32,7 @@ export async function getRoutes(
       .where(where)
       .groupBy(routesTable.route, routesTable.symbol)
       .orderBy(sql`${routesTable.route}`, desc(sumTimelineCount))
-      .limit(1000)
+      .limit(ROUTE_SYMBOL_LIMIT)
       .all();
     return query.map((row) => ({
       route: row.route,
@@ -101,7 +103,7 @@ export async function getRouteTimeline(
       .where(where)
       .groupBy(routesTable.route, routesTable.symbol)
       .orderBy(sql`${routesTable.route}`, desc(sumTimelineCount))
-      .limit(1000)
+      .limit(ROUTE_SYMBOL_LIMIT)
       .all();
     return query.map((row) => ({
       route: row.route,

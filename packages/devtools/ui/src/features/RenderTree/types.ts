@@ -25,7 +25,6 @@ export const HOOK_TYPES = [
   'useConstant',
   'useComputed',
   'useAsyncComputed',
-  'useErrorBoundary',
   'useServerData',
   'useSerializer',
   'useLocation',

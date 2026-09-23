@@ -295,3 +295,20 @@ test.describe('events client side', () => {
     await expect(div).toHaveClass('isOver');
   });
 });
+
+test.describe('events during lifecycle handlers', () => {
+  test('runs a click while a qinit handler is still pending', async ({ page }) => {
+    await page.goto('/e2e/events-lifecycle');
+    const counter = page.locator('#lifecycle-counter');
+    const initState = page.locator('#init-state');
+
+    await page.waitForFunction(() => typeof (window as any).releaseQinit === 'function');
+    await counter.click();
+
+    await expect(counter).toHaveText('Count 1');
+    await expect(initState).toHaveText('pending');
+
+    await page.evaluate(() => (window as any).releaseQinit());
+    await expect(initState).toHaveText('done');
+  });
+});

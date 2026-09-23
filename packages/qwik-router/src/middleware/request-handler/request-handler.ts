@@ -2,7 +2,7 @@ import { isDev } from '@qwik.dev/core';
 import type { Render } from '@qwik.dev/core/server';
 import { loadRoute } from '../../runtime/src/routing';
 import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../runtime/src/route-loaders';
-import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
+import type { QwikRouterConfig } from '../../runtime/src/types';
 import { _asyncRequestStore } from './async-request-store';
 import { devPreloadedRouteLoaders } from './dev-preloaded-route-loader';
 import {
@@ -13,6 +13,7 @@ import {
   trimRecognizedInternalPathname,
 } from './request-path';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers-core';
+import { getStaticPathRedirect } from './static-paths';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { runQwikRouter, type QwikRouterRun } from './user-response';
 
@@ -20,12 +21,19 @@ let qwikRouterConfig: QwikRouterConfig;
 
 async function getConfig(): Promise<QwikRouterConfig> {
   if (isDev) {
-    return (await import('@qwik-router-config')) as any as QwikRouterConfig;
+    const config = (await import('@qwik-router-config')) as any as QwikRouterConfig;
+    // Dev re-imports the config each request for freshness, but server$
+    // registration side effects must still run before serving.
+    await config.importEagerModules?.();
+    return config;
   }
   if (!qwikRouterConfig) {
     // The production server build prunes this plan (drops prerendered server-free routes); full
     // when nothing is excluded. See the router config `load`.
-    qwikRouterConfig = (await import('@qwik-router-config')) as any as QwikRouterConfig;
+    const config = (await import('@qwik-router-config')) as any as QwikRouterConfig;
+    // Run the server$ modules' registration side effects before serving.
+    await config.importEagerModules?.();
+    qwikRouterConfig = config;
   }
   return qwikRouterConfig;
 }
@@ -47,6 +55,36 @@ export async function requestHandler<T = unknown>(
   if (pathname === '/.well-known' || pathname.startsWith('/.well-known/')) {
     return null;
   }
+  // Static paths can be pruned from the route trie, so slash-redirects must be read from the static paths list.
+  const staticPathRedirect = getStaticPathRedirect(
+    serverRequestEv.request.method,
+    serverRequestEv.url
+  );
+  const rebuildRouteInfo = async (url: URL) => {
+    const cleanPathname = trimInternalPathname(url.pathname);
+    return loadRequestHandlers(
+      config,
+      cleanPathname,
+      serverRequestEv.request.method,
+      checkOrigin ?? true,
+      render,
+      serverRequestEv
+    );
+  };
+
+  if (staticPathRedirect) {
+    return runQwikRouter(
+      serverRequestEv,
+      { $routeName$: pathname, $params$: {}, $mods$: [] },
+      [
+        (event) => {
+          throw event.redirect(301, staticPathRedirect);
+        },
+      ],
+      rebuildRouteInfo,
+      config.basePathname
+    );
+  }
   // TODO cache pages
   const { loadedRoute, requestHandlers } = await loadRequestHandlers(
     config,
@@ -61,18 +99,6 @@ export async function requestHandler<T = unknown>(
   if (config.fallthrough && loadedRoute.$notFound$) {
     return null;
   }
-
-  const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
-    const cleanPathname = trimInternalPathname(url.pathname);
-    return loadRequestHandlers(
-      config,
-      cleanPathname,
-      serverRequestEv.request.method,
-      checkOrigin ?? true,
-      render,
-      serverRequestEv
-    );
-  };
 
   return runQwikRouter(
     serverRequestEv,

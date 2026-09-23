@@ -1,5 +1,5 @@
-import { cloudflarePagesAdapter as cloudflareWorkersAdapter } from "@builder.io/qwik-city/adapters/cloudflare-pages/vite";
-import { extendConfig } from "@builder.io/qwik-city/vite";
+import { cloudflarePagesAdapter as cloudflareWorkersAdapter } from "@qwik.dev/router/adapters/cloudflare-pages/vite";
+import { extendConfig } from "@qwik.dev/router/vite";
 import baseConfig from "../../vite.config";
 
 export default extendConfig(baseConfig, () => {
@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rolldownOptions: {
-        input: ["src/entry.cloudflare-pages.tsx", "@qwik-city-plan"],
+        input: ["src/entry.cloudflare-pages.tsx"],
       },
     },
     plugins: [cloudflareWorkersAdapter()],

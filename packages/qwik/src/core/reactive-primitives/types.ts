@@ -4,7 +4,6 @@ import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializerSymbol } from '../shared/serdes/verify';
 import type { ComputedFn } from '../use/use-computed';
-import type { AsyncFn } from '../use/use-async';
 import type { Container, SerializationStrategy } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ISsrNode } from '../ssr/ssr-types';
@@ -50,7 +49,7 @@ export type ComputeCtx<T = unknown> = {
   readonly info?: unknown;
 };
 /** @deprecated Use `ComputeQRL` instead. */
-export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
+export type AsyncQRL<T> = ComputeQRL<T>;
 
 /** @public */
 export interface ComputedOptions<T = unknown> {

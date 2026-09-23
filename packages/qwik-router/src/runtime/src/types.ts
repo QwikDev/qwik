@@ -326,8 +326,10 @@ export interface RouteData {
   _M?: RouteData[];
   /** Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal. */
   _N?: MenuModuleLoader;
-  /** Array of routeLoader$ hashes for this node's loaders */
+  /** Inherited layout and server plugin routeLoader$ hashes. */
   _R?: string[];
+  /** Page loader hashes; override pages include their selected layouts and plugins. */
+  _D?: string[];
   /** Child route segments (any key not starting with `_`) */
   [part: string]:
     | RouteData
@@ -355,6 +357,12 @@ export interface QwikRouterConfig {
   readonly cacheModules?: boolean;
   /** When true, return null instead of rendering the 404 page, letting the adapter handle it */
   readonly fallthrough?: boolean;
+  /**
+   * Imports the modules containing `server$` functions so their registration side effects run.
+   * Called by the request handler before serving; deliberately async so the config module itself
+   * evaluates without touching the runtime (see the import-cycle notes in `route-loaders.ts`).
+   */
+  readonly importEagerModules?: () => Promise<unknown>;
 }
 
 /** @public */
@@ -503,6 +511,7 @@ export interface SimpleURL {
   hash: string;
 }
 
+/** @public */
 export type Editable<T> = {
   -readonly [P in keyof T]: T[P];
 };
@@ -1003,7 +1012,7 @@ export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
-  Pick<ComputedSignal<any>, 'promise' | 'pending' | 'error' | 'loading'>;
+  Pick<ComputedSignal<any>, 'promise'>;
 
 /** @public */
 export type Loader<RETURN> = {
@@ -1123,8 +1132,8 @@ export type ZodConstructor = {
   <T extends z.ZodRawShape>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: T): ZodDataValidator<T>;
-  <T extends z.Schema>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: T): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 
 /** @public */
@@ -1133,8 +1142,8 @@ export type ZodConstructorQRL = {
   <T extends z.ZodRawShape>(
     schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: QRL<T>): ZodDataValidator<T>;
-  <T extends z.Schema>(schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: QRL<T>): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>): ZodDataValidator<T>;
 };
 
 /** @public */

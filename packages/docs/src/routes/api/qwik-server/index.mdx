@@ -577,6 +577,25 @@ _(Optional)_ Root-count threshold for eager yielded state prewarm during client 
 Defaults to `false`, keeping state fully lazy. Set to a number to enable eager prewarm when serialized state has at least that many roots.
 
 </td></tr>
+<tr><td>
+
+transformError?
+
+</td><td>
+
+</td><td>
+
+(error: unknown) =&gt; Error \| undefined \| null \| void
+
+</td><td>
+
+_(Optional)_ Server-only. Projects a thrown error into the `Error` an `<ErrorBoundary>` fallback displays during SSR; `onError$` still receives the original. It never runs on the client, where a re-derived fallback shows the error as thrown.
+
+Return an `Error` to project it, or `undefined`/`null` to decline; any other return, or a throw, redacts to the generic error.
+
+It is called synchronously, so it cannot be `async`: a returned promise redacts every error.
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
@@ -702,6 +721,21 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+onBeforeFirstFlush?
+
+</td><td>
+
+</td><td>
+
+(info: \{ errorBoundaryCaught: boolean; }) =&gt; void
+
+</td><td>
+
+_(Optional)_ Called synchronously just before the first chunk is written — the last moment response headers can still change. `errorBoundaryCaught` is true when an `<ErrorBoundary>` already swapped in its fallback during SSR.
+
+</td></tr>
+<tr><td>
+
 stream
 
 </td><td>
@@ -758,6 +792,21 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+errorBoundaryCaught?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ True when an `<ErrorBoundary>` caught during the render, no matter where in the stream.
+
+</td></tr>
+<tr><td>
 
 flushes
 

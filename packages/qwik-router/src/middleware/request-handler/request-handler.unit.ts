@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../runtime/src/route-loaders';
 import { getLoaderName } from './request-path';
 import { getRequestHandlerPathname, requestHandler } from './request-handler';
+import { getStaticPathRedirect, isStaticPath, staticPaths } from './static-paths';
 import type { ServerRequestEvent } from './types';
 
 function createMockServerRequestEvent(url = 'http://localhost/.well-known', init?: RequestInit) {
@@ -25,11 +26,18 @@ function createMockServerRequestEvent(url = 'http://localhost/.well-known', init
       return {
         getWriter: () => writer,
         locked: false,
+        close: vi.fn(),
         pipeTo: vi.fn(),
       } as any;
     }),
   } as unknown as ServerRequestEvent;
 }
+
+afterEach(() => {
+  staticPaths.delete('/playground/');
+  staticPaths.delete('//evil/');
+  globalThis.__NO_TRAILING_SLASH__ = false;
+});
 
 describe('requestHandler .well-known ignore', () => {
   it('returns null for /.well-known', async () => {
@@ -47,6 +55,42 @@ describe('requestHandler .well-known ignore', () => {
     });
     expect(result).toBeNull();
   });
+});
+
+it.each([
+  [false, '/playground?mode=prod', '/playground/?mode=prod'],
+  [true, '/playground/?mode=prod', '/playground?mode=prod'],
+])(
+  'redirects a prerendered route to its configured slash form',
+  async (noSlash, path, location) => {
+    globalThis.__NO_TRAILING_SLASH__ = noSlash;
+    staticPaths.add('/playground/');
+    const ev = createMockServerRequestEvent(`http://localhost${path}`);
+
+    expect(isStaticPath('GET', ev.url)).toBe(false);
+    const canonicalUrl = new URL(location, ev.url);
+    expect(isStaticPath('GET', canonicalUrl)).toBe(true);
+    expect(getStaticPathRedirect('GET', canonicalUrl)).toBeUndefined();
+
+    const result = await requestHandler(ev, {
+      render: (async () => ({ html: '' })) as any,
+    });
+    await result?.completion;
+
+    expect(ev.getWritableStream).toHaveBeenCalledWith(
+      301,
+      expect.objectContaining({}),
+      expect.anything(),
+      expect.anything(),
+      expect.anything()
+    );
+    expect((ev.getWritableStream as any).mock.calls[0][1].get('Location')).toBe(location);
+  }
+);
+
+it('does not create protocol-relative static redirects', () => {
+  staticPaths.add('//evil/');
+  expect(getStaticPathRedirect('GET', new URL('http://localhost//evil'))).toBeUndefined();
 });
 
 describe('getRequestHandlerPathname', () => {

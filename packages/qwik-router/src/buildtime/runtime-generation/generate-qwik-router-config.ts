@@ -20,9 +20,13 @@ export function generateQwikRouterConfig(
   c.push(`\nimport { isDev } from '@qwik.dev/core/build';`);
 
   if (isSSR) {
-    // Eagerly import all modules containing server$ functions so their _regSymbol
-    // side effects run before any RPC request arrives
-    esmImports.push(`import 'virtual:qwik-router-server-fns';`);
+    // The request handler awaits this before serving so the `server$` modules'
+    // _regSymbol side effects run ahead of any RPC request — async on purpose,
+    // so the config module evaluates without importing the runtime eagerly.
+    esmImports.push(
+      `import { importEagerModules } from 'virtual:qwik-router-server-fns';`,
+      `export { importEagerModules } from 'virtual:qwik-router-server-fns';`
+    );
   }
 
   createServerPlugins(ctx, qwikPlugin, c, esmImports, isSSR);
@@ -46,6 +50,12 @@ export function generateQwikRouterConfig(
 
   c.push(`export const cacheModules = !isDev;`);
 
-  c.push(`export default { routes, serverPlugins, trailingSlash, basePathname, cacheModules };`);
+  if (isSSR) {
+    c.push(
+      `export default { routes, serverPlugins, trailingSlash, basePathname, cacheModules, importEagerModules };`
+    );
+  } else {
+    c.push(`export default { routes, serverPlugins, trailingSlash, basePathname, cacheModules };`);
+  }
   return esmImports.join('\n') + c.join('\n');
 }

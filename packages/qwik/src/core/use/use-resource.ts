@@ -4,7 +4,7 @@ import { _captures } from '../internal';
 import { createStore } from '../reactive-primitives/impl/store';
 import {
   createAsyncQrl,
-  type AsyncSignal,
+  type ComputedSignalInternal,
   type Signal,
 } from '../reactive-primitives/signal.public';
 import type { ComputeCtx } from '../reactive-primitives/types';
@@ -48,7 +48,7 @@ export interface ResourceReturnInternal<T> {
   __brand: 'resource';
   value: Promise<T>;
   loading: boolean;
-  signal: AsyncSignal<{ r: T }>;
+  signal: ComputedSignalInternal<{ r: T }>;
 }
 
 /**
@@ -143,7 +143,7 @@ export interface ResourceProps<T> {
  * const Cmp = component$(() => {
  *   const city = useSignal('');
  *
- *   const weather = useAsync$(async ({ track, cleanup, abortSignal }) => {
+ *   const weather = useComputed$(async ({ track, cleanup, abortSignal }) => {
  *     const cityName = track(city);
  *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
  *       signal: abortSignal,
@@ -155,21 +155,13 @@ export interface ResourceProps<T> {
  *   return (
  *     <div>
  *       <input name="city" bind:value={city} />
- *       <div>
- *         Temperature:{' '}
- *         {weather.loading
- *           ? 'Loading...'
- *           : weather.error
- *             ? `Error: ${weather.error.message}`
- *             : weather.value.temp}
- *       </div>
+ *       <div>Temperature: {weather.value.temp}</div>
  *     </div>
  *   );
  * });
  * ```
  *
- * @deprecated Use `useAsync$` instead, which is more efficient, and has a more flexible API. Just
- *   read the `loading` and `error` properties from the returned signal to determine the status.
+ * @deprecated Use `useComputed$` instead.
  * @public
  */
 export const Resource = <T>({
@@ -183,14 +175,14 @@ export const Resource = <T>({
     return value.then(onResolved, onRejected) as unknown as JSXOutput;
   }
   const isRes = isResourceReturn<T>(value);
-  const signal = isRes ? value.signal : (value as any as AsyncSignal<number>);
-  if (onPending && (signal as AsyncSignal<T>).loading) {
+  const signal = (isRes ? value.signal : value) as ComputedSignalInternal<unknown>;
+  if (onPending && signal.loading) {
     return onPending() as unknown as JSXOutput;
   }
-  if (onRejected && (signal as AsyncSignal<T>).error) {
-    return onRejected((signal as AsyncSignal<T>).error!) as unknown as JSXOutput;
+  if (onRejected && signal.error) {
+    return onRejected(signal.error) as unknown as JSXOutput;
   }
-  const val = isRes ? (signal as AsyncSignal<{ r: T }>).value?.r : (signal as AsyncSignal<T>).value;
+  const val = isRes ? (signal.value as { r: T } | undefined)?.r : (signal.value as T);
   return (isPromise<T>(val!)
     ? val.then(onResolved, onRejected)
     : onResolved(val!)) as unknown as JSXOutput;

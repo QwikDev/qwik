@@ -142,7 +142,7 @@ However, if the origin of your application is not static because you're hosting 
 
 ```ts
 // Provide ORIGIN=https://example.com in your environment
-createQwikCity({
+createQwikRouter({
   origin: process.env.ORIGIN,
 });
 ```
@@ -150,7 +150,7 @@ createQwikCity({
 2) Compute origin using forwarded headers (common when behind proxies). Use the headers your proxy provides, e.g. `X-Forwarded-Proto` and `X-Forwarded-Host`:
 
 ```ts
-createQwikCity({
+createQwikRouter({
   getOrigin(req) {
     const proto = req.headers['x-forwarded-proto'] as string | undefined;
     const host = req.headers['x-forwarded-host'] as string | undefined || (req.headers.host as string | undefined);
@@ -164,7 +164,7 @@ createQwikCity({
 
 ```ts
 // starters/adapters/cloud-run entry (illustrative)
-createQwikCity({
+createQwikRouter({
   getOrigin(req) {
     // Cloud Run sets X-Forwarded-Proto and Host headers
     const proto = req.headers['x-forwarded-proto'] as string | undefined;

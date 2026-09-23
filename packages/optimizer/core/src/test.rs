@@ -138,7 +138,7 @@ export const App = () => {
 		);
 	});
 	return Header;
-});
+};
 "#
 		.to_string(),
 		..TestInput::default()
@@ -517,6 +517,7 @@ fn example_props_optimization() {
 		code: r#"
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
+const getValue = () => 0;
 export const Works = component$(({
 	count,
 	some = 1+2,
@@ -545,20 +546,201 @@ export const NoWorks2 = component$(({count, stuff: {hey}}) => {
 	);
 });
 
-export const NoWorks3 = component$(({count, stuff = hola()}) => {
+export const DynamicDefaults = component$(({count, stuff = getValue(), other: value = getValue()}) => {
 	console.log(stuff);
 	useTask$(({track}) => {
-		track(() => count);
-		console.log(count);
+		track(() => stuff);
+		track(() => value);
+		console.log(count, stuff, value);
 	});
 	return (
-		<div class={count}>{count}</div>
+		<div class={stuff}>{value}</div>
 	);
+});
+
+export const ReferencedDefault = component$(({first = getValue(second), second}) => (
+	<div>{first}{second}</div>
+));
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn dynamic_props_defaults_do_not_subscribe_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+const getValue = () => 0;
+export const DynamicDefault = component$(({ value = getValue() }) => {
+	console.log(value);
+	return <div>{value}</div>;
 });
 "#
 		.to_string(),
 		transpile_jsx: true,
 		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn dynamic_props_defaults_in_separate_segments() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@qwik.dev/core';
+const defaults = { showDelay: 100, hideDelay: 200 };
+export const Repro = component$(({ showDelay = defaults.showDelay, hideDelay = defaults.hideDelay }) => {
+	const open = useSignal(false);
+	const show$ = $(() => setTimeout(() => (open.value = true), showDelay));
+	const hide$ = $(() => setTimeout(() => (open.value = false), hideDelay));
+	return <div onMouseEnter$={show$} onMouseLeave$={hide$} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_segment_param_does_not_collide_with_captured_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const open = track(() => isOpen?.value ?? true);
+		return open ? initialFee : 0;
+	});
+	return <div>{networkFee.value}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_segments_number_captured_raw_props() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const inner = $(() => track(() => isOpen.value) + initialFee);
+		return inner;
+	});
+	const other = useComputed$(({ track }) => {
+		const deeper = useComputed$(({ track: t2 }) => t2(() => track(() => initialFee)));
+		return deeper;
+	});
+	return <div>{networkFee.value}{other.value}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_segments_number_captured_raw_props_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const inner = $(() => track(() => isOpen.value) + initialFee);
+		return inner;
+	});
+	const other = useComputed$(({ track }) => {
+		const deeper = useComputed$(({ track: t2 }) => t2(() => track(() => initialFee)));
+		return deeper;
+	});
+	return <div>{networkFee.value}{other.value}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn repeated_use_context_destructures_get_distinct_bindings() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useContext } from '@qwik.dev/core';
+import { WalletsContextId, SessionContextId } from './ctx';
+
+export const Cmp = component$(() => {
+	const { wallets } = useContext(WalletsContextId);
+	const { user } = useContext(SessionContextId);
+	return <div>{wallets}{user}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_destructure_rebinding_prop_name() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { flag?: boolean; className?: string }) => {
+	if (props.flag) {
+		const { className, ...rest } = props;
+		console.log(className, rest);
+	}
+	const { className, ...rest } = props;
+	return <div class={className}>{JSON.stringify(rest)}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn local_shadowing_destructured_prop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ value }: { value?: string }) => {
+	const readInput = (e: any) => {
+		const value = e.target.value;
+		return value;
+	};
+	console.log(readInput);
+	return <input value={value} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
 		transpile_ts: true,
 		..TestInput::default()
 	});
@@ -2251,7 +2433,7 @@ export const App = component$((props) => {
 			>
 				<p>Hello Qwik</p>
 			</Div>
-			[].map(() => (
+			{[].map(() => (
 				<Model
 					class={state}
 					remove$={remove}
@@ -2262,7 +2444,7 @@ export const App = component$((props) => {
 					mutable2={(() => console.log(state.count))()}
 					mutable3={[1, 2, state, null, {}]}
 				/>
-			));
+			))}
 		</>
 	);
 });
@@ -3460,6 +3642,9 @@ export const Local = component$(() => {
 	)
 });
 "#;
+	let snapshot_inputs = format!(
+		"==INPUT ../../node_modules/dep/dist/lib.mjs==\n\n{dep}\n==INPUT components/main.tsx==\n\n{code}"
+	);
 	let res = transform_modules(TransformModulesOptions {
 		src_dir: "/path/to/app/src/thing".into(),
 		root_dir: Some("/path/to/app/".into()),
@@ -3492,7 +3677,7 @@ export const Local = component$(() => {
 		reg_ctx_name: None,
 		is_server: None,
 	});
-	snapshot_res!(&res, "".into());
+	snapshot_res!(&res, snapshot_inputs);
 }
 #[test]
 fn consistent_hashes() {
@@ -6415,18 +6600,18 @@ export const Tree = component$((props) => {
 fn component_level_self_referential_qrl() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useAsync$ } from '@qwik.dev/core';
+import { component$, useComputed$ } from '@qwik.dev/core';
 		
 // Component-level self-referential component
 export const Foo = component$((props) => {
-	const sig = useAsync$(async ({cleanup}) => {
+	const sig = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			sig.value++;
 		}, 1000);
 		cleanup(() => clearInterval(timer));
 		return 0;
 	});
-	const other = useAsync$(async ({cleanup}) => {
+	const other = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			other.value++;
 		}, 900);
@@ -6870,11 +7055,11 @@ fn inlined_qrl_after_ref_identifiers_forward_ref() {
 	let res = test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
-import { useAsyncQrl } from '@qwik.dev/core';
+import { useComputedQrl } from '@qwik.dev/core';
 
 export const TestComponent = component$(() => {
 	// This should be hoisted with an identifier
-	const asyncSig = useAsyncQrl$(async () => {
+	const asyncSig = useComputedQrl$(async () => {
 		return 42;
 	});
 	return <div>{asyncSig}</div>;
@@ -7289,6 +7474,38 @@ export function qwikifyQrl(reactCmp$, opts) {
 			name, captures_str, combined_code
 		);
 	}
+}
+
+#[test]
+fn inlined_qrl_in_capture_is_extracted() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { inlinedQrl } from '@qwik.dev/core';
+
+const context = {};
+export const handler = inlinedQrl(() => {}, "outer_abc", [
+	inlinedQrl(() => {}, "inner_def", [context]),
+]);
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Segment,
+		mode: EmitMode::Prod,
+		is_server: Some(true),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let segments: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.map(|segment| segment.name.as_ref())
+		.collect();
+	assert!(
+		segments.contains(&"s_def"),
+		"nested QRL captured by another QRL must be emitted as a segment, got {segments:?}"
+	);
 }
 
 #[test]

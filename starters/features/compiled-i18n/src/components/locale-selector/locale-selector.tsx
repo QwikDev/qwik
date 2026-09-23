@@ -1,4 +1,4 @@
-import { component$, getLocale } from "@builder.io/qwik";
+import { component$, getLocale } from "@qwik.dev/core";
 import { _, locales } from "compiled-i18n";
 
 export const LocaleSelector = component$(() => {

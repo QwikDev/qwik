@@ -337,6 +337,8 @@ bun install qwik-image
 
 <Note>This is a pluggable component so devs could connect different image loaders to it (like builder.io or other CDNs)</Note>
 
+<Note>Images load lazily by default. Add the `priority` prop to an above-the-fold image so it loads eagerly with a high fetch priority.</Note>
+
 <CodeSandbox src="/src/routes/demo/integration/img/qwik-image/index.tsx" style={{ height: '40em' }}>
 ```tsx
 import { $, component$ } from '@qwik.dev/core';

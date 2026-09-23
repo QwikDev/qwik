@@ -13,7 +13,7 @@ import { invokeApply, newInvokeContext, tryGetInvokeContext } from '../../use/us
 import type { Tracker } from '../../use/use-task';
 import { trackFn } from '../../use/utils/tracker';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
-import { clearEffectSubscription } from '../cleanup';
+import { clearAllEffects, clearEffectSubscription } from '../cleanup';
 import { getSubscriber } from '../subscriber';
 import {
   AsyncSignalFlags,
@@ -63,11 +63,24 @@ export class Job<T> implements ComputeCtx<T> {
   }
 
   get track(): Tracker {
-    return (this.$track$ ||= trackFn(this.$signal$, this.$signal$.$container$));
+    if (!this.$track$) {
+      const track = trackFn(this.$signal$, this.$signal$.$container$);
+      this.$track$ = (obj: any, prop?: any) => {
+        if (this.$signal$.$disposed$) {
+          throw qError(QError.computedSignalDisposed);
+        }
+        return track(obj, prop);
+      };
+    }
+    return this.$track$;
   }
 
   get abortSignal(): AbortSignal {
-    return (this.$abortController$ ||= new AbortController()).signal;
+    const controller = (this.$abortController$ ||= new AbortController());
+    if (this.$cleanupRequested$) {
+      controller.abort();
+    }
+    return controller.signal;
   }
 
   /** Backward compatible cache method for resource */
@@ -85,11 +98,12 @@ export class Job<T> implements ComputeCtx<T> {
     }
   }
 
-  cleanup(callback: () => void) {
+  // Arrow property so the compute function can destructure `cleanup` from the context.
+  cleanup = (callback: () => void) => {
     if (typeof callback === 'function') {
       (this.$cleanups$ ||= []).push(callback);
     }
-  }
+  };
 }
 
 /**
@@ -126,6 +140,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   declare $timeoutMs$: number | undefined;
   declare $loadingEffects$: undefined | Set<EffectSubscription>;
   declare $errorEffects$: undefined | Set<EffectSubscription>;
+  declare $disposed$: boolean | undefined;
   declare $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
   declare $info$: unknown | undefined;
   declare $infoVersion$: number | undefined;
@@ -178,6 +193,9 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   invalidate(info?: unknown) {
+    if (this.$disposed$) {
+      return;
+    }
     if (arguments.length > 0) {
       this.$info$ = info;
       this.$infoVersion$ = this.$infoVersion$ === undefined ? 1 : this.$infoVersion$ + 1;
@@ -377,6 +395,9 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   $setInvalid$(allowRecalc: boolean): void {
+    if (this.$disposed$) {
+      return;
+    }
     this.$flags$ |= ComputedSignalFlags.INVALID;
     if (
       allowRecalc &&
@@ -411,7 +432,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   /** Returns a promise resolves when the signal finished computing. */
   async promise(): Promise<void> {
-    this.$computeIfNeeded$();
+    await retryOnPromise(() => this.$computeIfNeeded$());
     // Wait for the current computation to finish, but if we became invalid while running, we need to wait for the new computation instead. So we loop until we are no longer invalid
     while (this.$current$?.$promise$) {
       await this.$current$?.$promise$;
@@ -420,7 +441,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   /** Run the computation if needed */
   $computeIfNeeded$(): void {
-    if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
+    if (this.$disposed$ || !(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
     if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
@@ -480,11 +501,14 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   /**
-   * Invoke the compute fn with the ComputeCtx argument. CTX_ARG signals (useAsync$, useResource$)
-   * only track via its explicit track(). Computeds auto-track every synchronous read instead; after
-   * the first await they must use the explicit track() too.
+   * Invoke the compute fn with the ComputeCtx argument. CTX_ARG signals (createAsyncQrl,
+   * useResource$) only track via its explicit track(). Computeds auto-track every synchronous read
+   * instead; after the first await they must use the explicit track() too.
    */
   $invokeComputeFn$(fn: Function, job: Job<T>): T | Promise<T> {
+    if (this.$disposed$) {
+      throw qError(QError.computedSignalDisposed);
+    }
     const computeFn = fn as (job: Job<T>) => T;
     if (this.$flags$ & AsyncSignalFlags.CTX_ARG) {
       // Strip the ambient effect subscriber: these compute fns track only via their track()
@@ -552,7 +576,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       // subscribers know the value isn't ready yet.
       this.untrackedPending = true;
       fn = await this.$computeQrl$.resolve();
-      if (running.$abortController$?.signal.aborted) {
+      if (this.$disposed$ || running.$abortController$?.signal.aborted) {
         DEBUG && log('Computation aborted before it started');
         running.$promise$ = null;
         return;
@@ -623,7 +647,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$setError$(running, err as Error);
     }
 
-    if (isCurrent()) {
+    if (isCurrent() && !this.$disposed$) {
       clearTimeout(this.$computationTimeoutId$);
       if (running.$infoVersion$ === this.$infoVersion$) {
         this.$info$ = undefined;
@@ -657,7 +681,28 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     this.untrackedValue = NEEDS_COMPUTATION;
   }
 
-  /** Called after SSR/unmount */
+  /** Permanently stop computations; keep this cross-package name stable. */
+  $dispose(): void {
+    if (this.$disposed$) {
+      return;
+    }
+    this.$disposed$ = true;
+    this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    clearTimeout(this.$computationTimeoutId$);
+    if (this.$container$) {
+      clearAllEffects(this.$container$, this);
+    }
+    const jobs = new Set(this.$jobs$);
+    if (this.$current$) {
+      jobs.add(this.$current$);
+    }
+    for (const job of jobs) {
+      job.$canWrite$ = false;
+      this.$requestCleanups$(job);
+    }
+  }
+
+  /** Clean computations after SSR while preserving dependencies for serialization. */
   async $destroy$() {
     clearTimeout(this.$computationTimeoutId$);
     const current = this.$current$;

@@ -1,5 +1,25 @@
 /* eslint-disable no-console */
-import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  ErrorBoundary,
+  Suspense,
+  useSignal,
+  useComputed$,
+  type Signal,
+} from '@qwik.dev/core';
+
+const Repos = component$((props: { org: Signal<string>; repos: Signal<string[]> }) => {
+  return (
+    <ul>
+      {props.repos.value.map((repo) => (
+        <li>
+          <a href={`https://github.com/${props.org.value}/${repo}`}>{repo}</a>
+        </li>
+      ))}
+    </ul>
+  );
+});
 
 export default component$(() => {
   const githubOrg = useSignal('QwikDev');
@@ -25,17 +45,17 @@ export default component$(() => {
         </label>
       </p>
       <section>
-        {repos.pending && <>Loading...</>}
-        {repos.error && <>Error: {repos.error.message}</>}
-        {repos.value && (
-          <ul>
-            {repos.value.map((repo) => (
-              <li>
-                <a href={`https://github.com/${githubOrg.value}/${repo}`}>{repo}</a>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ErrorBoundary
+          fallback$={$((error, reset) => (
+            <>
+              Error: {error.message} <button onClick$={() => reset()}>Retry</button>
+            </>
+          ))}
+        >
+          <Suspense fallback={<>Loading...</>}>
+            <Repos org={githubOrg} repos={repos} />
+          </Suspense>
+        </ErrorBoundary>
       </section>
     </main>
   );

@@ -1,8 +1,58 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 3415
 expression: output
 ---
+==INPUT ../../node_modules/dep/dist/lib.mjs==
+
+
+import { componentQrl, inlinedQrl, useStore, useLexicalScope } from "@qwik.dev/core";
+import { jsx, jsxs } from "@qwik.dev/core/jsx-runtime";
+import { state } from './sibling';
+
+const useData = () => {
+	return useStore({
+		count: 0
+	});
+}
+
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+	const store = useData();
+	return /*#__PURE__*/ jsxs("div", {
+		children: [
+			/*#__PURE__*/ jsxs("p", {
+				children: [
+					"Count: ",
+					store.count
+				]
+			}),
+			/*#__PURE__*/ jsx("p", {
+				children: /*#__PURE__*/ jsx("button", {
+					onClick$: inlinedQrl(()=>{
+						const [store] = useLexicalScope();
+						return store.count++;
+					}, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+						store
+					]),
+					children: "Click"
+				})
+			})
+		]
+	});
+}, "App_component_AkbU84a8zes"));
+
+
+==INPUT components/main.tsx==
+
+
+import { component$, $ } from '@qwik.dev/core';
+import { state } from './sibling';
+
+export const Local = component$(() => {
+	return (
+		<div>{state}</div>
+	)
+});
+
 ============================= ../../node_modules/dep/dist/lib.mjs_App_component_div_p_button_onClick_8dWUa0cJAr4.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";

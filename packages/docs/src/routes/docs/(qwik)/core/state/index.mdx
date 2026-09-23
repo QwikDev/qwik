@@ -296,27 +296,47 @@ const user = useComputed$(async ({ track }) => {
 });
 ```
 
-While the async work is running, the signal is pending. Read `.pending` for the state, and `.value` or `.error` for the result. If you read `.value` before it is ready, that part of the UI can wait and a [`<Suspense>`](/docs/labs/suspense/index.mdx) boundary can show fallback UI.
+While the async work is running, reading `.value` makes that part of the UI wait, and a [`<Suspense>`](/docs/labs/suspense/index.mdx) boundary can show fallback UI. If the work fails, reading `.value` re-throws the error, and an [`<ErrorBoundary>`](/docs/labs/error-boundary/index.mdx) can render a fallback for it.
 
 The async work can run during SSR and in the browser. For values that need to stay up to date, poll the signal with `usePoll` from `@qwik.dev/utils`.
 
-<Note title="Migrating from useAsync$">
-`useAsync$()`, `createAsync$()`, and the `AsyncSignal` type are deprecated. Use `useComputed$()`, `createComputed$()`, and `ComputedSignal` instead. Synchronous reads before the first `await` are now tracked automatically; `track()` is still provided on the context argument for reads after an `await`.
-</Note>
-
 #### Example
 
-Below, `useComputed$()` fetches programming jokes for the current query. Reading `query.value` reruns the function when the query changes, and `abortSignal` cancels any previous request.
+Below, `useComputed$()` fetches programming jokes for the current query. Reading `query.value` reruns the function when the query changes, and `abortSignal` cancels any previous request. `JokeList` reads `jokes.value` inside `<Suspense>` and `<ErrorBoundary>`.
 
 <CodeSandbox src="/src/routes/demo/state/async-joke/index.tsx" style={{ height: '20em' }}>
-```tsx /useComputed$/ /query.value/ /abortSignal/
-import { component$, useComputed$, useSignal } from '@qwik.dev/core';
+```tsx /useComputed$/ /query.value/ /abortSignal/ /Suspense/ /ErrorBoundary/
+import {
+  $,
+  component$,
+  ErrorBoundary,
+  Suspense,
+  useComputed$,
+  useSignal,
+  type Signal,
+} from '@qwik.dev/core';
 
 type Joke = {
   joke?: string;
   setup?: string;
   delivery?: string;
 };
+
+const JokeList = component$((props: { jokes: Signal<Joke[]> }) => {
+  return props.jokes.value.length === 0 ? (
+    <p>No jokes found</p>
+  ) : (
+    <ul>
+      {props.jokes.value.map((joke, i) => (
+        <li key={i}>
+          <div style={{ whiteSpace: 'pre-wrap' }}>
+            {joke.joke ?? `${joke.setup}\n${joke.delivery}`}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+});
 
 export default component$(() => {
   const query = useSignal('');
@@ -340,45 +360,32 @@ export default component$(() => {
     return data.jokes ?? [];
   });
 
-  let content;
-  if (jokes.pending) {
-    content = <p>Loading...</p>;
-  } else if (jokes.error) {
-    content = <div>Error: {jokes.error.message}</div>;
-  } else if (jokes.value.length === 0) {
-    content = <p>No jokes found</p>;
-  } else {
-    content = (
-      <ul>
-        {jokes.value.map((joke, i) => (
-          <li key={i}>
-            <div style={{ whiteSpace: 'pre-wrap' }}>
-              {joke.joke ?? `${joke.setup}\n${joke.delivery}`}
-            </div>
-          </li>
-        ))}
-      </ul>
-    );
-  }
-
   return (
     <>
       <label>
         Query: <input bind:value={query} />
       </label>
-      {content}
+      <ErrorBoundary
+        fallback$={$((error, reset) => (
+          <div>
+            Error: {error.message} <button onClick$={() => reset()}>Retry</button>
+          </div>
+        ))}
+      >
+        <Suspense fallback={<p>Loading...</p>}>
+          <JokeList jokes={jokes} />
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 });
 ```
 </CodeSandbox>
 
-The code handles pending and error states inline with `.pending` and `.error`. During SSR, Qwik waits for the async work before rendering the result.
+`<Suspense>` shows the loading fallback until the first result arrives, and `<ErrorBoundary>` renders the error if the request fails. During SSR, Qwik waits for the async work before rendering the result.
 
 <Note title="Async computed values and Suspense">
-The jokes example handles several UI states inline: loading, error, no results, and results.
-
-That is useful when each state needs its own markup. If you only need fallback UI while `.value` is not ready, wrap that part of the UI in [`<Suspense>`](/docs/labs/suspense/index.mdx).
+When the query changes, `jokes.value` keeps returning the previous jokes until the new ones arrive, so the fallback only shows on the first load. Call `jokes.clear()` when readers should see the fallback again while the new value computes.
 </Note>
 
 <LongNote title="Advanced: channel example">
@@ -413,7 +420,7 @@ export default component$(() => {
 </LongNote>
 
 <LongNote title="API reference">
-Most apps only need `.value`, `.pending`, and `.error`. The full API also includes options for cleanup, cancellation, timeouts, and manual invalidation.
+Most apps only need `.value`. The full API also includes options for cleanup, cancellation, timeouts, and manual invalidation.
 
 ```tsx
 function useComputed$<T>(

@@ -77,8 +77,8 @@ async function runBenchmarks(): Promise<{
       'vitest',
       'bench',
       BENCH_ENTRY,
-      '--outputJson',
-      outputJsonPath,
+      '--reporter=json',
+      `--outputFile=${outputJsonPath}`,
       '--maxWorkers=1',
       '--no-file-parallelism',
       '--run',
@@ -105,31 +105,44 @@ async function runBenchmarks(): Promise<{
   }
 
   const report = JSON.parse(await readFile(outputJsonPath, 'utf-8')) as {
-    files: Array<{
-      groups: Array<{
-        benchmarks: Array<
-          BenchmarkMetrics & {
+    testResults: Array<{
+      assertionResults: Array<{
+        benchmarks: Array<{
+          tasks: Array<{
             name: string;
-          }
-        >;
+            latency: {
+              mean?: number;
+              p50?: number;
+              p75?: number;
+              p99?: number;
+              p995?: number;
+              p999?: number;
+              rme?: number;
+              samplesCount?: number;
+            };
+          }>;
+        }>;
       }>;
     }>;
   };
 
   const benchmarks: Record<string, BenchmarkMetrics> = {};
-  for (const file of report.files) {
-    for (const group of file.groups) {
-      for (const benchmark of group.benchmarks) {
-        benchmarks[benchmark.name] = {
-          mean: benchmark.mean ?? 0,
-          median: benchmark.median ?? 0,
-          p75: benchmark.p75 ?? benchmark.median ?? 0,
-          p99: benchmark.p99 ?? 0,
-          p995: benchmark.p995 ?? benchmark.p99 ?? 0,
-          p999: benchmark.p999 ?? benchmark.p995 ?? benchmark.p99 ?? 0,
-          rme: benchmark.rme ?? 0,
-          sampleCount: benchmark.sampleCount ?? 0,
-        };
+  for (const testResult of report.testResults) {
+    for (const assertion of testResult.assertionResults) {
+      for (const group of assertion.benchmarks) {
+        for (const benchmark of group.tasks) {
+          const latency = benchmark.latency;
+          benchmarks[benchmark.name] = {
+            mean: latency.mean ?? 0,
+            median: latency.p50 ?? 0,
+            p75: latency.p75 ?? latency.p50 ?? 0,
+            p99: latency.p99 ?? 0,
+            p995: latency.p995 ?? latency.p99 ?? 0,
+            p999: latency.p999 ?? latency.p995 ?? latency.p99 ?? 0,
+            rme: latency.rme ?? 0,
+            sampleCount: latency.samplesCount ?? 0,
+          };
+        }
       }
     }
   }

@@ -1,5 +1,5 @@
 import type { ContainerContext } from './runtime/container-context';
-import { getActiveInvokeContext } from './runtime/invoke-context';
+import { getActiveInvokeContextOrNull } from './runtime/invoke-context';
 
 export { isDev, isServer } from '@qwik.dev/core/build';
 export { getPlatform, setPlatform } from './shared/platform/platform';
@@ -38,9 +38,13 @@ export type {
 } from './runtime/container-context';
 export { Scheduler } from './runtime/scheduler';
 
-/** @internal */
+/**
+ * Undefined outside a context: a QRL called from a microtask or after an `await` has none.
+ *
+ * @internal
+ */
 export const _getContextContainer = (): ContainerContext | undefined =>
-  getActiveInvokeContext().container;
+  getActiveInvokeContextOrNull()?.container;
 
 /** @internal */
 export const _waitUntilRendered = (container: ContainerContext): Promise<void> =>

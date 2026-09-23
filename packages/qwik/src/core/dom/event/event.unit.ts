@@ -1,8 +1,13 @@
 import { describe, expect, test, vi } from 'vitest';
-import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
+import {
+  getActiveInvokeContextOrNull,
+  invoke,
+  newInvokeContext,
+} from '../../runtime/invoke-context';
 import { _captures } from '../../shared/qrl/qrl-captures';
 import type { CapturedEventHandler, qWindow, QElement } from '../../shared/types';
 import { removeEvent, setEvent } from './event';
+import { Scheduler } from '../../runtime/scheduler';
 
 describe('setEvent', () => {
   test('wraps plain handlers so bare dispatch still calls them', () => {
@@ -125,6 +130,33 @@ describe('setEvent', () => {
     setEvent(element, 'q-e:click', (_event: Event, _element: Element) => {});
 
     expect(push).not.toHaveBeenCalled();
+  });
+
+  test('registers a scanned event only after the flush that inserts its element', async () => {
+    // the loader finds qvisible by scanning the DOM, so a push before the row lands finds nothing,
+    // even on the first registration of the event
+    const element = createElementTarget();
+    const push = vi.fn();
+    (element.ownerDocument.defaultView as unknown as qWindow)._qwikEv = {
+      events: new Set(['e:click']),
+      roots: new Set(),
+      push,
+    };
+    const scheduler = new Scheduler(() => {});
+    const container = { scheduler } as unknown as NonNullable<
+      ReturnType<typeof getActiveInvokeContextOrNull>
+    >['container'];
+    let release!: () => void;
+    scheduler.waitFor(new Promise<void>((resolve) => (release = resolve)));
+    const flush = scheduler.flushInteraction();
+    await Promise.resolve();
+
+    invoke(newInvokeContext({ container }), () => setEvent(element, 'q-e:qvisible', () => {}));
+
+    expect(push).not.toHaveBeenCalled();
+    release();
+    await flush;
+    expect(push).toHaveBeenCalledWith('e:qvisible');
   });
 
   test('removes local and carrier event handlers', () => {

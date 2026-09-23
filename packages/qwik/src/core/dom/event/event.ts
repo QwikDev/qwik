@@ -102,15 +102,18 @@ const needsLoaderAttribute = (key: string) => key.charAt(2) !== 'e' || key === '
 function registerQwikLoaderEvent(element: Element, eventName: string) {
   const qWindow = (qTest ? element.ownerDocument.defaultView : window) as unknown as qWindow;
   const loader = (qWindow._qwikEv ||= [] as any);
-  if (Array.isArray(loader) || !loader.events.has(eventName)) {
-    loader.push(eventName);
+  const push = () => loader.push(eventName);
+  if (Array.isArray(loader)) {
+    // not booted yet: the loader scans the whole document when it starts
+    push();
     return;
   }
   if (SCANNED_EVENTS.includes(eventName)) {
     // The loader scans the document, so the push waits until this flush has inserted the element.
-    const push = () => loader.push(eventName);
     const scheduler = getActiveInvokeContextOrNull()?.container?.scheduler;
     scheduler === undefined ? push() : scheduler.onFlushed(push);
+  } else if (!loader.events.has(eventName)) {
+    push();
   }
 }
 

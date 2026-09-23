@@ -36,6 +36,21 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should name a $ passed to a Qrl twin after the $ callee', async () => {
+    const output = await testInput(mode, 'qrl-twin-callee', {
+      path: 'src/plugin@session.ts',
+      code: `import { $ } from '@qwik.dev/core';
+import { routeLoaderQrl } from '@qwik.dev/router';
+export const useSession = routeLoaderQrl($(({ sharedMap }) => sharedMap.get('session')));
+export const useNested = routeLoaderQrl(wrap($(() => 1)));
+export const bare = $(() => 2);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const ctxNames = output.modules.flatMap((module) => module.segment?.ctxName ?? []);
+    // only the direct argument of `fooQrl(...)` is the twin spelling of `foo$(...)`
+    expect(ctxNames).toEqual(['routeLoader$', '$', '$']);
+  });
+
   test('should keep a generator head on a QRL callback', async () => {
     const output = await testInput(mode, 'qrl-generator', {
       code: `import { $, useSignal } from '@qwik.dev/core';

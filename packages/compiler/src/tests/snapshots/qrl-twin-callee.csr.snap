@@ -1,0 +1,111 @@
+==INPUT==
+
+import { $ } from '@qwik.dev/core';
+import { routeLoaderQrl } from '@qwik.dev/router';
+export const useSession = routeLoaderQrl($(({ sharedMap }) => sharedMap.get('session')));
+export const useNested = routeLoaderQrl(wrap($(() => 1)));
+export const bare = $(() => 2);
+== CSR OUTPUT ==
+
+============================= src/plugin@session.ts ==
+
+const q_plugin_session_qrl_segment_0_3015o61q3dwg9 = /*#__PURE__*/ _qrlWithChunk(
+  './plugin@session.ts_plugin_session_qrl_segment_0_3015o61q3dwg9',
+  () => import('./plugin@session.ts_plugin_session_qrl_segment_0_3015o61q3dwg9'),
+  'plugin_session_qrl_segment_0_3015o61q3dwg9'
+);
+const q_plugin_session_qrl_segment_1_3015ns0m6jufq = /*#__PURE__*/ _qrlWithChunk(
+  './plugin@session.ts_plugin_session_qrl_segment_1_3015ns0m6jufq',
+  () => import('./plugin@session.ts_plugin_session_qrl_segment_1_3015ns0m6jufq'),
+  'plugin_session_qrl_segment_1_3015ns0m6jufq'
+);
+const q_plugin_session_qrl_segment_2_3015ndzi9psf7 = /*#__PURE__*/ _qrlWithChunk(
+  './plugin@session.ts_plugin_session_qrl_segment_2_3015ndzi9psf7',
+  () => import('./plugin@session.ts_plugin_session_qrl_segment_2_3015ndzi9psf7'),
+  'plugin_session_qrl_segment_2_3015ndzi9psf7'
+);
+import { _qrlWithChunk } from '@qwik.dev/core';
+import { routeLoaderQrl } from '@qwik.dev/router';
+export const useSession = routeLoaderQrl(q_plugin_session_qrl_segment_0_3015o61q3dwg9);
+export const useNested = routeLoaderQrl(wrap(q_plugin_session_qrl_segment_1_3015ns0m6jufq));
+export const bare = q_plugin_session_qrl_segment_2_3015ndzi9psf7;
+============================= src/plugin@session.ts_plugin_session_qrl_segment_0_3015o61q3dwg9.js (ENTRY POINT)==
+
+export const plugin_session_qrl_segment_0_3015o61q3dwg9 = ({ sharedMap }) => {
+  return sharedMap.get('session');
+};
+/*
+{
+  "origin": "plugin@session.ts",
+  "name": "plugin_session_qrl_segment_0_3015o61q3dwg9",
+  "entry": null,
+  "displayName": "plugin_session_qrl_segment_0",
+  "hash": "3015o61q3dwg9",
+  "canonicalFilename": "plugin@session.ts_plugin_session_qrl_segment_0_3015o61q3dwg9",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "routeLoader$",
+  "captures": false,
+  "loc": [
+    128,
+    174
+  ],
+  "paramNames": [
+    "{ sharedMap }"
+  ]
+}
+*/
+============================= src/plugin@session.ts_plugin_session_qrl_segment_1_3015ns0m6jufq.js (ENTRY POINT)==
+
+export const plugin_session_qrl_segment_1_3015ns0m6jufq = () => {
+  return 1;
+};
+/*
+{
+  "origin": "plugin@session.ts",
+  "name": "plugin_session_qrl_segment_1_3015ns0m6jufq",
+  "entry": null,
+  "displayName": "plugin_session_qrl_segment_1",
+  "hash": "3015ns0m6jufq",
+  "canonicalFilename": "plugin@session.ts_plugin_session_qrl_segment_1_3015ns0m6jufq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    222,
+    232
+  ],
+  "paramNames": []
+}
+*/
+============================= src/plugin@session.ts_plugin_session_qrl_segment_2_3015ndzi9psf7.js (ENTRY POINT)==
+
+export const plugin_session_qrl_segment_2_3015ndzi9psf7 = () => {
+  return 2;
+};
+/*
+{
+  "origin": "plugin@session.ts",
+  "name": "plugin_session_qrl_segment_2_3015ndzi9psf7",
+  "entry": null,
+  "displayName": "plugin_session_qrl_segment_2",
+  "hash": "3015ndzi9psf7",
+  "canonicalFilename": "plugin@session.ts_plugin_session_qrl_segment_2_3015ndzi9psf7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    256,
+    266
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

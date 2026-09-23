@@ -29,7 +29,7 @@ import { lowerComputedExpressionValue, recordPayloadJsx, recordPayloadReads } fr
 import { LocalKind, type SetupLocal, type SetupLocals } from './locals';
 import { isFunctionLike, parameterPattern, unwrapExpression } from './ast/utils';
 import { isNode, type WalkableNode } from './ast/ast-types';
-import { QRL_SUFFIX, QwikMarker } from '../words';
+import { QRL_SUFFIX, QRL_TWIN_SUFFIX, QwikMarker } from '../words';
 import { resolveSetupCall } from './lower-setup-call';
 
 /** Explicit and implicit boundaries share callback extraction and capture semantics. */
@@ -286,9 +286,9 @@ export function recordPayloadQrls(
   node: Node,
   owner: 'module' | 'qrl' = 'module'
 ): void {
-  const visit = (current: unknown, scope: LowerContext): void => {
+  const visit = (current: unknown, scope: LowerContext, twinCtxName: string | null): void => {
     if (Array.isArray(current)) {
-      current.forEach((child) => visit(child, scope));
+      current.forEach((child) => visit(child, scope, twinCtxName));
       return;
     }
     if (!isNode(current) || extractedCalls.has(current)) {
@@ -313,7 +313,12 @@ export function recordPayloadQrls(
     }
     const call = current.type === 'CallExpression' ? markerQrlCall(current, scope) : null;
     if (call !== null && current.type === 'CallExpression') {
-      const use = lowerMarkerQrl(current, call, scope);
+      // `fooQrl($(fn))` is the twin spelling of `foo$(fn)`, so discovery keys on `foo$`
+      const named =
+        twinCtxName === null || call.marker !== undefined
+          ? call
+          : { ...call, ctxName: twinCtxName };
+      const use = lowerMarkerQrl(current, named, scope);
       extractedCalls.add(current);
       // The callee and callback are replaced, so their reads belong to no payload of this module.
       const target = ctx.plan.payloads[payload];
@@ -335,17 +340,30 @@ export function recordPayloadQrls(
               },
             }
       );
-      visit(current.arguments.slice(1), scope);
+      visit(current.arguments.slice(1), scope, null);
+      return;
+    }
+    if (current.type === 'CallExpression') {
+      visit(current.callee, scope, null);
+      visit(current.arguments, scope, qrlTwinCtxName(current));
       return;
     }
     const inner = isFunctionLike(current) ? functionScope(scope, current) : scope;
     for (const key of Object.keys(current)) {
       if (key !== 'parent') {
-        visit((current as WalkableNode)[key], inner);
+        visit((current as WalkableNode)[key], inner, null);
       }
     }
   };
-  visit(node, ctx);
+  visit(node, ctx, null);
+}
+
+/** `fooQrl(...)` → `foo$`; the direct `$()` arguments of that call carry it as ctxName. */
+function qrlTwinCtxName(call: CallExpression): string | null {
+  const callee = call.callee;
+  return callee.type === 'Identifier' && callee.name.endsWith(QRL_TWIN_SUFFIX)
+    ? callee.name.slice(0, -QRL_TWIN_SUFFIX.length) + QRL_SUFFIX
+    : null;
 }
 
 /**
@@ -382,7 +400,8 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
     }
     if (
       isFunctionLike(node) ||
-      (node.type === 'CallExpression' && markerQrlCall(node, ctx) !== null)
+      (node.type === 'CallExpression' &&
+        (markerQrlCall(node, ctx) !== null || qrlTwinCtxName(node) !== null))
     ) {
       if (containsQrlCall(node)) {
         roots.push(node);

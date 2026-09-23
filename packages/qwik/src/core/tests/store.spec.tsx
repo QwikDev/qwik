@@ -41,6 +41,13 @@ describe('store runtime', () => {
     expect(useStore(raw, { reactive: false })).toBe(raw);
   });
 
+  it('reads frozen objects through a deep store without wrapping them', () => {
+    // a proxy must hand back the exact value of a frozen target's property, or the read throws
+    const menu = Object.freeze({ items: Object.freeze([{ title: 'Docs' }]) });
+    expect(useStore(menu).items).toBe(menu.items);
+    expect(useStore({ menu }).menu).toBe(menu);
+  });
+
   it('caches deep and shallow proxies independently', () => {
     const raw = { count: 0 };
     const deep = useStore(raw);

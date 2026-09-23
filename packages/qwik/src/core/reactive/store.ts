@@ -153,7 +153,10 @@ const storeHandler: ProxyHandler<StoreTarget> = {
   get(target, prop, receiver) {
     const value = Reflect.get(target, prop, receiver);
     trackStoreProp(target, prop);
-    return isWrappable(value) ? getOrCreateDeepStore(value) : value;
+    // A frozen target's property must come back as-is (proxy invariant); a frozen value can't change.
+    return isWrappable(value) && !Object.isFrozen(value) && !Object.isFrozen(target)
+      ? getOrCreateDeepStore(value)
+      : value;
   },
 
   set(target, prop, value) {

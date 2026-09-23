@@ -3,6 +3,7 @@ import { transformModules } from '../index';
 
 test.each([true, false])('module bindings are shared through ESM (SSR: %s)', async (isServer) => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'src/app.tsx',
@@ -47,6 +48,7 @@ test.each([
   ['const value = 1; export { value as "a-b" };', '"a-b" as value'],
 ])('existing exports are reused: %s', async (declaration, specifier) => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'app.tsx',
@@ -63,6 +65,7 @@ export const App = () => <button onClick$={() => console.log(value)}>save</butto
 
 test('a default export snapshot is not reused as a live binding', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'app.tsx',
@@ -82,6 +85,7 @@ test.each(['value++', 'value = 2', '({ value } = source)'])(
   'a segment writes a module binding in place: %s',
   async (expression) => {
     const output = await transformModules({
+      srcDir: 'src',
       input: [
         {
           path: 'app.tsx',
@@ -101,6 +105,7 @@ export default () => <button onClick$={() => { ${expression}; }}>save</button>;`
 
 test('synthetic export names avoid authored exports', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'app.tsx',
@@ -119,6 +124,7 @@ export default () => <button onClick$={() => console.log(other)}>save</button>;`
 
 test('shadowed callback parameters do not export module bindings', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'app.tsx',
@@ -132,8 +138,9 @@ export default () => <button onClick$={(value) => console.log(value)}>save</butt
   expect(output.modules[1].code).not.toContain('./app.tsx');
 });
 
-test('module-only uses do not create synthetic exports', async () => {
+test('a component body exposes the module bindings it reads like the Rust optimizer did', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'app.tsx',
@@ -144,11 +151,13 @@ export default () => { const title = format(); return <p>{title}</p>; };`,
     isServer: true,
   });
   expect(output.diagnostics).toEqual([]);
-  expect(output.modules[0].code).not.toContain('__qwik_');
+  // the route module scan relies on this for an unexported `routeLoader$` a component calls
+  expect(output.modules[0].code).toContain('export { format as __qwik_format };');
 });
 
 test('a segment may write a module binding through the same alias it reads', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'src/app.tsx',

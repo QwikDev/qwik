@@ -79,6 +79,8 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 };
 export default default_component_3rg6kq1so9aio;
 
+export { Counter as __qwik_Counter };
+
 export { Child as Child_component_syc3erfxihm7, Nested as Nested_component_2kgczrffrnn78 };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 

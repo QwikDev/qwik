@@ -120,6 +120,7 @@ export default ({ ${pattern} }) => {
 test('rejects a default referencing the rest binding', async () => {
   await expect(
     transformModules({
+      srcDir: 'src',
       isServer: true,
       input: [
         {
@@ -135,6 +136,7 @@ test.each([true, false])(
   'forwards a rest-only spread without computation (SSR: %s)',
   async (isServer) => {
     const output = await transformModules({
+      srcDir: 'src',
       isServer,
       input: [
         {

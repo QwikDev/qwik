@@ -327,6 +327,8 @@ const sibling = (label) => q_app_jsx_segment_0_3qpc3dhc6i5ki.w([label]),
     return component0;
   };
 export default App;
+
+export { sibling as __qwik_sibling };
 ============================= src/app.tsx_app_jsx_segment_0_3qpc3dhc6i5ki.js (ENTRY POINT)==
 
 import {

@@ -41,7 +41,7 @@ export const default_component_3rg6kq1so9aio = (props0, ctx) => {
 };
 export default default_component_3rg6kq1so9aio;
 
-export { _createContent as __qwik__createContent };
+export { _createContent as __qwik__createContent, _Layout as __qwik__Layout };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {

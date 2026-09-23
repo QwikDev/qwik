@@ -257,6 +257,7 @@ describe('linked render results', () => {
 
   test('links supplied modules through the transform compatibility entry', async () => {
     const output = await transformModules({
+      srcDir: 'src',
       isServer: false,
       input: [
         {
@@ -273,6 +274,7 @@ describe('linked render results', () => {
 
   test('keeps the authored document head as an SSR open-tag record', async () => {
     const output = await transformModules({
+      srcDir: 'src',
       isServer: true,
       input: [
         {

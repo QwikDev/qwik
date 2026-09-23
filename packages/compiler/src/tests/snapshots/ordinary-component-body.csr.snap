@@ -122,6 +122,8 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   return [];
 };
 export default default_component_3rg6kq1so9aio;
+
+export { Header as __qwik_Header };
 ============================= src/component.tsx_component_increment_segment_0_sk08s17xutli.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

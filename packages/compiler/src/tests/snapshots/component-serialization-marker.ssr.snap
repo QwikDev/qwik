@@ -91,6 +91,8 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 );
 export default default_component_3rg6kq1so9aio;
 
+export { Hidden as __qwik_Hidden };
+
 export {
   Body as Body_component_3fvssuocvtjmf,
   Hidden as Hidden_component_3u75huwji431r,

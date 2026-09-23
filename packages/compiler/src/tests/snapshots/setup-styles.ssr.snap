@@ -148,6 +148,8 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 );
 export default default_component_3rg6kq1so9aio;
 
+export { STYLE as __qwik_STYLE };
+
 export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
 

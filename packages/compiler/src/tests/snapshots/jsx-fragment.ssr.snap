@@ -158,6 +158,8 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 );
 export default default_component_3rg6kq1so9aio;
 
+export { Frame as __qwik_Frame };
+
 export { Frame as Frame_component_3fvtje3o9mga4 };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 

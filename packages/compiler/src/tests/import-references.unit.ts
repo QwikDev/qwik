@@ -18,6 +18,7 @@ test.each([true, false])(
   'imports remain module references in every QRL (SSR: %s)',
   async (isServer) => {
     const output = await transformModules({
+      srcDir: 'src',
       input: [{ path: 'src/app.tsx', code }],
       isServer,
       transpileTs: true,
@@ -70,6 +71,7 @@ test.each([true, false])(
   'restores core aliases in chunks and SSR mirrors (SSR: %s)',
   async (isServer) => {
     const output = await transformModules({
+      srcDir: 'src',
       input: [
         {
           path: 'app.tsx',
@@ -91,6 +93,7 @@ export default () => { const lang = useComputed$(() => locale()); return <p>{lan
 
 test('shadowing and object property names do not import unrelated bindings', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'app.tsx',
@@ -107,6 +110,7 @@ export default () => <button onClick$={(save) => ({ save, value: save })}>save</
 
 test('quoted import names and import attributes survive chunk emission', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'app.tsx',
@@ -127,6 +131,7 @@ test.each([true, false])(
   'projection chunks own their imports, not their event imports (SSR: %s)',
   async (isServer) => {
     const output = await transformModules({
+      srcDir: 'src',
       input: [
         {
           path: 'app.tsx',
@@ -150,6 +155,7 @@ export default () => <Card><Label /><button onClick$={() => save()}>save</button
 
 test('a core import used directly in setup remains in the main module', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'app.tsx',

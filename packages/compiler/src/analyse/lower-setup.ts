@@ -428,7 +428,10 @@ function bindResultToTemp(
   locals: SetupLocals
 ): { source: AliasSource; setup: Setup } | null {
   const setup = lowerSetupDeclaration(declarator, ctx, locals);
-  if (!('result' in setup) || setup.result?.bind !== BindTargetKind.Pattern) {
+  if (
+    (setup.s !== SetupKind.Const && setup.s !== SetupKind.Call) ||
+    setup.result?.bind !== BindTargetKind.Pattern
+  ) {
     return null;
   }
   const callee = init.type === 'CallExpression' ? unwrapExpression(init.callee) : null;

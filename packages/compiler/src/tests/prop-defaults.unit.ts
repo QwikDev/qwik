@@ -43,6 +43,7 @@ test.each([true, false])(
   'defaults preserve identity, order and undefined semantics (SSR: %s)',
   async (isServer) => {
     const output = await transformModules({
+      srcDir: 'src',
       input: [
         {
           path: 'component.tsx',
@@ -125,6 +126,7 @@ test.each([true, false])(
 
 test('non-literal defaults retain the same object across reads and captures', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'component.tsx',
@@ -244,6 +246,7 @@ test.each([
 ])('rejects deferred parameter defaults: %s', async (pattern) => {
   await expect(
     transformModules({
+      srcDir: 'src',
       input: [{ path: 'component.tsx', code: `export default ({ ${pattern} }) => <span />;` }],
       isServer: true,
     })
@@ -252,6 +255,7 @@ test.each([
 
 test('a children default is a diagnostic pointing at the slot fallback', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'component.tsx',
@@ -267,6 +271,7 @@ test.each(['', 'import { createTitle } from "./defaults";'])(
   'evaluates defaults in the parameter scope, out of reach of body shadowing: %s',
   async (prefix) => {
     const output = await transformModules({
+      srcDir: 'src',
       input: [
         {
           path: 'component.tsx',
@@ -289,6 +294,7 @@ export default ({ title = createTitle() }) => {
 
 test('only the initial prop check is untracked', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       { path: 'component.tsx', code: `export default ({ title = createTitle() }) => <b />;` },
     ],

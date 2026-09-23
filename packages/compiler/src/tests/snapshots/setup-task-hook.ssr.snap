@@ -75,6 +75,8 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   './component.tsx'
 );
 export default default_component_3rg6kq1so9aio;
+
+export { useCustom$ as __qwik_useCustom$ };
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

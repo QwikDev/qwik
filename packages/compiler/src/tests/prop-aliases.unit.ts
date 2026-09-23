@@ -204,6 +204,7 @@ test('an aliased children binding rendered as content is a diagnostic', async ()
 test('keeps a computed key outside the module explicit', async () => {
   await expect(
     transformModules({
+      srcDir: 'src',
       input: [
         { path: 'src/component.tsx', code: `export default ({ [key]: heading }) => <span />;` },
       ],
@@ -214,6 +215,7 @@ test('keeps a computed key outside the module explicit', async () => {
 
 test('reads a nested parameter pattern through its prop path', async () => {
   const output = await transformModules({
+    srcDir: 'src',
     input: [
       {
         path: 'src/component.tsx',

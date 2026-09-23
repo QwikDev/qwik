@@ -52,6 +52,8 @@ function Child(props, ctx) {
 }
 _markComponent(Child, 'Child_component_syc3erfxihm7', './component.tsx');
 
+export { App as __qwik_App, Child as __qwik_Child };
+
 export {
   Wrapper as Wrapper_component_1yrb0pezcavja,
   App as default_component_3rg6kq1so9aio,

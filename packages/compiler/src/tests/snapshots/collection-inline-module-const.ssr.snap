@@ -39,6 +39,8 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   './component.tsx'
 );
 export default default_component_3rg6kq1so9aio;
+
+export { prefix as __qwik_prefix };
 == SSR DIAGNOSTICS ==
 
 []

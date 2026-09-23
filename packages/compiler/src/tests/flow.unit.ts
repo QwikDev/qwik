@@ -49,6 +49,7 @@ describe('pipeline flow', () => {
       for (const declaration of ['export const App =', 'export default']) {
         const compile = (expression: string) =>
           transformModules({
+            srcDir: 'src',
             input: [
               {
                 path: 'src/app.tsx',
@@ -85,6 +86,7 @@ describe('pipeline flow', () => {
     'component$ explicitly marks a headless component: %s',
     async (fn) => {
       const output = await transformModules({
+        srcDir: 'src',
         input: [
           {
             path: 'src/app.tsx',
@@ -228,6 +230,7 @@ export default () => {
     'function components remain callable before their declaration: %s',
     async (prefix) => {
       const output = await transformModules({
+        srcDir: 'src',
         input: [
           {
             path: 'src/app.tsx',
@@ -258,6 +261,7 @@ ${prefix === 'export default ' ? '' : 'export default () => <main />;'}`,
     'initializes function component hoists before authored calls: SSR=%s',
     async (isServer) => {
       const output = await transformModules({
+        srcDir: 'src',
         input: [
           {
             path: 'src/app.tsx',
@@ -283,6 +287,7 @@ export default function App() {
     'discovers a local component without an exported component: %s',
     async (exports) => {
       const output = await transformModules({
+        srcDir: 'src',
         input: [
           { path: 'src/local.tsx', code: `const Child = () => <span>child</span>;\n${exports}` },
         ],
@@ -371,6 +376,7 @@ export default function App() {
 
   test('ordinary component setup calls retain authored JavaScript', async () => {
     const output = await transformModules({
+      srcDir: 'src',
       input: [
         {
           path: 'src/setup.tsx',

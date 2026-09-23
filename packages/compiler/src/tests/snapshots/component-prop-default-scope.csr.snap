@@ -104,6 +104,8 @@ export const default_component_3rg6kq1so9aio = (
   return el0;
 };
 export default default_component_3rg6kq1so9aio;
+
+export { side as __qwik_side, fallback as __qwik_fallback };
 ============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
 
 export const component_title_segment_0_2f0r0xivypjmx = (fallback) => {

@@ -23,6 +23,8 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 };
 export default default_component_3rg6kq1so9aio;
 
+export { Child as __qwik_Child };
+
 export { Child as Child_component_syc3erfxihm7 };
 == CSR DIAGNOSTICS ==
 

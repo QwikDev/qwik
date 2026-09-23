@@ -1,6 +1,7 @@
 import {
   CaptureAccess,
   BindTargetKind,
+  BindingScope,
   SetupKind,
   BoundaryKind,
   ValueKind,
@@ -24,6 +25,7 @@ import type {
   Node,
 } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
+import { allocateGeneratedName } from '../names';
 import { UnsupportedError } from '../errors';
 import { QwikMarker } from '../words';
 import { localReadIr, LocalKind, type SetupLocals } from './locals';
@@ -353,16 +355,36 @@ function lowerAliasDeclaration(
   locals: SetupLocals
 ): Setup | null | undefined {
   const init = declarator.init === null ? null : unwrapExpression(declarator.init);
-  const source = init === null ? null : aliasSource(init, ctx);
-  if (source === null) {
+  if (init === null) {
     return undefined;
   }
+  const object = readObjectParameter(declarator.id);
+  const defaults = (object?.members ?? []).map((member) =>
+    member.defaultValue === null ? undefined : tryLowerExprIr(member.defaultValue, ctx)
+  );
+  // A default the IR cannot carry keeps the whole pattern a native snapshot.
+  if (defaults.some((value) => value === null)) {
+    return undefined;
+  }
+  let source = aliasSource(init, ctx);
+  let setup: Setup | null = null;
+  if (source === null) {
+    if (object === null || object.rest !== null) {
+      return undefined;
+    }
+    const bound = bindResultToTemp(declarator, init, ctx, locals);
+    if (bound === null) {
+      return undefined;
+    }
+    ({ source, setup } = bound);
+  }
+  const root = source.root;
   const register = (node: Node, read: ValueIR, defaultValue?: ValueIR) =>
     locals.set(ctx.bindings.declaration(node)!, {
       kind: LocalKind.PropMember,
       access: source.access,
       slot: -1,
-      binding: source.root,
+      binding: root,
       read,
       defaultValue,
     });
@@ -370,28 +392,19 @@ function lowerAliasDeclaration(
     register(declarator.id, source.read);
     return null;
   }
-  const object = readObjectParameter(declarator.id);
   if (object === null) {
     return undefined;
   }
   // A rest is only live off the props object itself, where a proxy can exclude the named keys.
-  const isPropsRest =
-    source.read.kind === ValueIrKind.BindingRead && source.root === ctx.propsBinding;
+  const isPropsRest = source.read.kind === ValueIrKind.BindingRead && root === ctx.propsBinding;
   if (object.rest !== null && !isPropsRest) {
-    return undefined;
-  }
-  const defaults = object.members.map((member) =>
-    member.defaultValue === null ? undefined : tryLowerExprIr(member.defaultValue, ctx)
-  );
-  // A default the IR cannot carry keeps the whole pattern a native snapshot.
-  if (defaults.some((value) => value === null)) {
     return undefined;
   }
   object.members.forEach((member, index) =>
     register(member.node, pathReadIr(source.read, member.path, ctx), defaults[index] ?? undefined)
   );
   if (object.rest === null) {
-    return null;
+    return setup;
   }
   const rest = ctx.bindings.declaration(object.rest)!;
   locals.set(rest, {
@@ -401,7 +414,43 @@ function lowerAliasDeclaration(
     slot: -1,
   });
   const excluded = [...new Set(object.members.map((member) => member.name))];
-  return { s: SetupKind.PropRest, result: rest, props: source.root, excluded };
+  return { s: SetupKind.PropRest, result: rest, props: root, excluded };
+}
+
+/**
+ * `const { a, b } = useX()` binds the result to a generated local so the members alias it: a member
+ * read stays a live read of the result (a store from a hook, most often), not a snapshot.
+ */
+function bindResultToTemp(
+  declarator: VariableDeclarator,
+  init: Expression,
+  ctx: LowerContext,
+  locals: SetupLocals
+): { source: AliasSource; setup: Setup } | null {
+  const setup = lowerSetupDeclaration(declarator, ctx, locals);
+  if (!('result' in setup) || setup.result?.bind !== BindTargetKind.Pattern) {
+    return null;
+  }
+  const callee = init.type === 'CallExpression' ? unwrapExpression(init.callee) : null;
+  const hook =
+    callee?.type === 'Identifier' && callee.name.startsWith('use') ? callee.name.slice(3) : '';
+  const name = hook === '' ? '_destructured' : `_${hook.replace(/^./, (c) => c.toLowerCase())}`;
+  const temp = ctx.bindings.addSynthetic(
+    allocateGeneratedName(
+      name,
+      ctx.plan.bindings.map((binding) => binding.name)
+    ),
+    BindingScope.Local
+  );
+  setup.result = { bind: BindTargetKind.Binding, binding: temp };
+  locals.set(temp, {
+    kind: LocalKind.Const,
+    access: CaptureAccess.Direct,
+    slot: -1,
+    binding: temp,
+  });
+  const read: ValueIR = { kind: ValueIrKind.BindingRead, binding: temp };
+  return { setup, source: { read, root: temp, access: CaptureAccess.Direct } };
 }
 
 /**

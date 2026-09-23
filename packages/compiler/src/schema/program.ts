@@ -242,11 +242,14 @@ export type Prop =
 export const enum BindTargetKind {
   Slot = 'slot',
   Pattern = 'pattern',
+  /** A compiler-owned binding, printed by name: no authored pattern text exists for it. */
+  Binding = 'binding',
 }
 
 export type BindTarget =
   | { bind: BindTargetKind.Slot; slot: number }
-  | { bind: BindTargetKind.Pattern; pattern: PayloadId; bindings: LocalId[] };
+  | { bind: BindTargetKind.Pattern; pattern: PayloadId; bindings: LocalId[] }
+  | { bind: BindTargetKind.Binding; binding: LocalId };
 
 export const enum ArgKind {
   Spread = 'spread',

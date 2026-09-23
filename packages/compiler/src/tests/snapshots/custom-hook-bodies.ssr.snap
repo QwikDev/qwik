@@ -122,16 +122,16 @@ const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
   'component_qrl_segment_0_2fpowujm1ejve'
 );
 q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
-const component_onClickqrl_segment_1_3rzjk4cwl942g = (bump) => {
-  return bump;
+const component_onClickqrl_segment_1_3rzjk4cwl942g = (_counter) => {
+  return _counter.bump;
 };
 const q_component_onClickqrl_segment_1_3rzjk4cwl942g = /*#__PURE__*/ _noopQrl(
   'component_onClickqrl_segment_1_3rzjk4cwl942g'
 );
 q_component_onClickqrl_segment_1_3rzjk4cwl942g.s(component_onClickqrl_segment_1_3rzjk4cwl942g);
 const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [count] = _captures;
-  return renderSsrDynamicContent(count.value, ctx0);
+  const [_counter] = _captures;
+  return renderSsrDynamicContent(_counter.count.value, ctx0);
 };
 const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
   'component_text_segment_2_1fh117dstcoge'
@@ -155,25 +155,24 @@ export const Clicker = _markComponent(
 export const Counter = _markComponent(
   (props0, ctx) => {
     const invokeCtx0 = getActiveInvokeContextOrNull();
-    const { count, bump } = useCounter(1);
+    const _counter = useCounter(1);
     return maybeThen(ctx.scheduler.flush(), () =>
       invoke(invokeCtx0, () => {
         const id0 = ctx.nextId();
-        ctx.addRoot(bump);
+        ctx.addRoot(_counter);
         const effect0 = renderSsrEvent(
           id0,
           'q-e:click',
-          [bump],
+          [_counter],
           q_component_onClickqrl_segment_1_3rzjk4cwl942g,
           ctx.eventAttr
         );
         const id1 = ctx.nextId();
-        ctx.addRoot(count);
         const content0 = renderSsrContent(
           ctx,
           id1,
           [],
-          q_component_text_segment_2_1fh117dstcoge.w([count]),
+          q_component_text_segment_2_1fh117dstcoge.w([_counter]),
           false,
           true
         );
@@ -237,8 +236,8 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
 */
 ============================= src/component.tsx_component_onClickqrl_segment_1_3rzjk4cwl942g.js (ENTRY POINT)==
 
-export const component_onClickqrl_segment_1_3rzjk4cwl942g = (bump) => {
-  return bump;
+export const component_onClickqrl_segment_1_3rzjk4cwl942g = (_counter) => {
+  return _counter.bump;
 };
 /*
 {
@@ -259,7 +258,7 @@ export const component_onClickqrl_segment_1_3rzjk4cwl942g = (bump) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "bump"
+    "_counter"
   ]
 }
 */
@@ -268,8 +267,8 @@ export const component_onClickqrl_segment_1_3rzjk4cwl942g = (bump) => {
 import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [count] = _captures;
-  return renderSsrDynamicContent(count.value, ctx0);
+  const [_counter] = _captures;
+  return renderSsrDynamicContent(_counter.count.value, ctx0);
 };
 /*
 {
@@ -290,7 +289,7 @@ export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "count"
+    "_counter"
   ]
 }
 */

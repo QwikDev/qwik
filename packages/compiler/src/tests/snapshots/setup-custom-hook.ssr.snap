@@ -44,8 +44,8 @@ const q_component_useCustomqrl_segment_1_heifjfg7k2q9 = /*#__PURE__*/ _noopQrl(
   'component_useCustomqrl_segment_1_heifjfg7k2q9'
 );
 q_component_useCustomqrl_segment_1_heifjfg7k2q9.s(component_useCustomqrl_segment_1_heifjfg7k2q9);
-const component_text_segment_2_1fh117dstcoge = (label) => {
-  return label;
+const component_text_segment_2_1fh117dstcoge = (_destructured) => {
+  return _destructured.label;
 };
 const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
   'component_text_segment_2_1fh117dstcoge'
@@ -55,7 +55,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const invokeCtx0 = getActiveInvokeContextOrNull();
     const count = useSignal(1);
-    const { label } = useCustomQrl(
+    const _destructured = useCustomQrl(
       q_component_useCustomqrl_segment_0_heif5ecaq0pq.w([count]),
       props.options
     );
@@ -63,11 +63,11 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     return maybeThen(ctx.scheduler.flush(), () =>
       invoke(invokeCtx0, () => {
         const id0 = ctx.nextId();
-        ctx.addRoot(label);
+        ctx.addRoot(_destructured);
         const text0 = renderSsrTextExpression(
           id0,
           null,
-          [label],
+          [_destructured],
           q_component_text_segment_2_1fh117dstcoge
         );
         return maybeThen(text0, (text0) => [
@@ -146,8 +146,8 @@ export const component_useCustomqrl_segment_1_heifjfg7k2q9 = () => {
 */
 ============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-export const component_text_segment_2_1fh117dstcoge = (label) => {
-  return label;
+export const component_text_segment_2_1fh117dstcoge = (_destructured) => {
+  return _destructured.label;
 };
 /*
 {
@@ -168,7 +168,7 @@ export const component_text_segment_2_1fh117dstcoge = (label) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "label"
+    "_destructured"
   ]
 }
 */

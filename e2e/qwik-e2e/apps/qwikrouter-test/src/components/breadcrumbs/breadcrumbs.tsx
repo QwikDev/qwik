@@ -1,18 +1,18 @@
 import { Link, useContent, useLocation, type ContentMenu } from '@qwik.dev/router';
-import { component$, useStyles$ } from '@qwik.dev/core';
+import { component$, useComputed$, useStyles$ } from '@qwik.dev/core';
 import styles from './breadcrumbs.css?inline';
 
 export const Breadcrumbs = component$(() => {
   useStyles$(styles);
 
-  const { menu } = useContent();
+  const content = useContent();
   const { url } = useLocation();
 
-  const breadcrumbs = createBreadcrumbs(menu, url.pathname);
+  const breadcrumbs = useComputed$(() => createBreadcrumbs(content.menu, url.pathname));
 
-  return breadcrumbs.length === 0 ? null : (
+  return breadcrumbs.value.length === 0 ? null : (
     <nav class="breadcrumbs">
-      {breadcrumbs.map((b, i) => (
+      {breadcrumbs.value.map((b, i) => (
         <span data-test-breadcrumb={i} key={b.text}>
           {b.href ? <Link href={b.href}>{b.text}</Link> : b.text}
         </span>

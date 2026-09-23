@@ -33,7 +33,7 @@ import { useCustom$ as custom } from './hooks';
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
-  const { label } = useCustom(
+  const _destructured = useCustom(
     _withCaptures(component_useCustomqrl_segment_0_heif5ecaq0pq, [count]),
     props.options
   );
@@ -44,7 +44,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
       const text0 = _first(el0);
       const effect0 = createTextExpressionEffect(
         text0,
-        [label],
+        [_destructured],
         component_text_segment_2_1fh117dstcoge,
         ctx.scheduler
       );
@@ -118,8 +118,8 @@ export const component_useCustomqrl_segment_1_heifjfg7k2q9 = () => {
 */
 ============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-export const component_text_segment_2_1fh117dstcoge = (label) => {
-  return label;
+export const component_text_segment_2_1fh117dstcoge = (_destructured) => {
+  return _destructured.label;
 };
 /*
 {
@@ -140,7 +140,7 @@ export const component_text_segment_2_1fh117dstcoge = (label) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "label"
+    "_destructured"
   ]
 }
 */

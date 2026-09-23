@@ -117,6 +117,29 @@ export default component$(() => {
     expect(code).not.toMatch(/import \{[^}]*\s\$[,\s][^}]*\} from "@qwik.dev\/core"/);
   });
 
+  test('should keep a destructured hook result live through a generated binding', async () => {
+    const output = await testInput(mode, 'setup-live-destructured-hook-result', {
+      code: `import { useLocation } from './location';
+export default () => {
+  const { url, params } = useLocation();
+  return (
+    <h1 onClick$={() => console.log(params.id)}>
+      {params.category} at {url.pathname}
+    </h1>
+  );
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // the result binds whole; every member read goes through it, in render and in the handler
+    expect(code).toContain('const _location = useLocation();');
+    expect(code).not.toContain('const { url, params }');
+    expect(code).toContain('_location.params.category');
+    expect(code).toContain('_location.url.pathname');
+    expect(code).toContain('_location.params.id');
+  });
+
   test('should keep setup aliases of props, stores and signals live', async () => {
     const output = await testInput(mode, 'setup-live-aliases', {
       code: `import { useSignal, useStore } from '@qwik.dev/core';

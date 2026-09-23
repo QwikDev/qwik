@@ -132,14 +132,14 @@ export const Clicker = (props0, ctx) => {
 };
 export const Counter = (props0, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
-  const { count, bump } = useCounter(1);
+  const _counter = useCounter(1);
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = Counter_tmpl0(ctx.document);
       const effect0 = createEventEffect(
         el0,
         'q-e:click',
-        [bump],
+        [_counter],
         component_onClickqrl_segment_1_3rzjk4cwl942g,
         ctx.scheduler
       );
@@ -151,7 +151,7 @@ export const Counter = (props0, ctx) => {
         start0,
         end0,
         [],
-        q_component_text_segment_2_1fh117dstcoge.w([count]),
+        q_component_text_segment_2_1fh117dstcoge.w([_counter]),
         false,
         true
       );
@@ -198,8 +198,8 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
 */
 ============================= src/component.tsx_component_onClickqrl_segment_1_3rzjk4cwl942g.js (ENTRY POINT)==
 
-export const component_onClickqrl_segment_1_3rzjk4cwl942g = (bump) => {
-  return bump;
+export const component_onClickqrl_segment_1_3rzjk4cwl942g = (_counter) => {
+  return _counter.bump;
 };
 /*
 {
@@ -220,7 +220,7 @@ export const component_onClickqrl_segment_1_3rzjk4cwl942g = (bump) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "bump"
+    "_counter"
   ]
 }
 */
@@ -229,8 +229,8 @@ export const component_onClickqrl_segment_1_3rzjk4cwl942g = (bump) => {
 import { _captures, createDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [count] = _captures;
-  return createDynamicContent(count.value, ctx0);
+  const [_counter] = _captures;
+  return createDynamicContent(_counter.count.value, ctx0);
 };
 /*
 {
@@ -251,7 +251,7 @@ export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "count"
+    "_counter"
   ]
 }
 */

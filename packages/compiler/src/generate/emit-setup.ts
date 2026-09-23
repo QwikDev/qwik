@@ -193,9 +193,9 @@ export function emitJsSetup(
       const args = [css, JSON.stringify(entry.styleId), ...(entry.scoped ? ['true'] : [])];
       return bindCallResult(module, entry, `${hook}(${args.join(', ')})`);
     }
-    if (entry.s === SetupKind.Const && entry.result.bind === BindTargetKind.Pattern) {
+    if (entry.s === SetupKind.Const && entry.result.bind !== BindTargetKind.Slot) {
       if (entry.value === undefined) {
-        return `${entry.declarationKind} ${extractPayloadJs(module, entry.result.pattern)};`;
+        return `${entry.declarationKind} ${bindTargetJs(module, entry.result)};`;
       }
       const value =
         entry.value.v === ValueKind.Qrl
@@ -205,7 +205,7 @@ export function emitJsSetup(
         entry.defaultValue === undefined
           ? value
           : `${value} === void 0 ? (${inlineValueJs(module, entry.defaultValue, emitQrl)}) : ${value}`;
-      return `${entry.declarationKind ?? 'const'} ${extractPayloadJs(module, entry.result.pattern)} = ${initial};`;
+      return `${entry.declarationKind ?? 'const'} ${bindTargetJs(module, entry.result)} = ${initial};`;
     }
     throw new UnsupportedError(`the setup entry "${entry.s}" in a JS render`);
   });
@@ -230,10 +230,18 @@ function bindCallResult(
   if (entry.result === null) {
     return `${call};`;
   }
-  if (entry.result.bind !== BindTargetKind.Pattern) {
-    throw new UnsupportedError('a call result without a binding pattern');
+  return `${entry.declarationKind ?? 'const'} ${bindTargetJs(module, entry.result)} = ${call};`;
+}
+
+function bindTargetJs(module: LinkedModule, target: BindTarget): string {
+  switch (target.bind) {
+    case BindTargetKind.Pattern:
+      return extractPayloadJs(module, target.pattern);
+    case BindTargetKind.Binding:
+      return module.bindings[target.binding].name;
+    case BindTargetKind.Slot:
+      throw new UnsupportedError('a call result without a binding pattern');
   }
-  return `${entry.declarationKind ?? 'const'} ${extractPayloadJs(module, entry.result.pattern)} = ${call};`;
 }
 
 /** A linked fact the emitter must honour unless it is known false. */

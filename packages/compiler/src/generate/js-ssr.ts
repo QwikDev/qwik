@@ -572,7 +572,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return;
       case OpKind.Element:
         // A marked root always renders through element() so the marker lands in its open tag.
-        if (rootMarker === null && !hookEvents && isFullyStaticSubtree(op)) {
+        if (rootMarker === null && !hookEvents && op.tag !== 'head' && isFullyStaticSubtree(op)) {
           pushMergedStatic(parts, foldStaticOp(op));
           return;
         }
@@ -661,7 +661,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
     // A runtime props object splices its attributes into the open-tag record, like hook events.
     const propsStep = op.propsEffect === null ? null : this.propsEffect(pass, op, idVariable!);
-    const record = hookEvents || propsStep !== null;
+    const record = hookEvents || propsStep !== null || op.tag === 'head';
     const openTag: string[] = record ? [] : parts;
     pushMergedStatic(openTag, `<${op.tag}`);
     if (idVariable !== null) {
@@ -741,7 +741,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           break;
         }
         case OpKind.Element: {
-          if (isFullyStaticSubtree(child)) {
+          if (child.tag !== 'head' && isFullyStaticSubtree(child)) {
             pushMergedStatic(children, foldStaticOp(child));
           } else {
             this.element(pass, child, children);

@@ -271,6 +271,21 @@ describe('linked render results', () => {
     );
   });
 
+  test('keeps the authored document head as an SSR open-tag record', async () => {
+    const output = await transformModules({
+      isServer: true,
+      input: [
+        {
+          path: 'src/app.tsx',
+          code: 'export default () => <><head><meta charset="utf-8" /></head><body>content</body></>;',
+        },
+      ],
+    });
+
+    expect(output.diagnostics).toEqual([]);
+    expect(output.modules[0].code).toContain('createSsrOpenTag("<head", ">")');
+  });
+
   test.each([
     ['<b />', Shape.Element],
     ['["text", <b />]', Shape.Many],

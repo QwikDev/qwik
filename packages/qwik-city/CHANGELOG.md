@@ -1,5 +1,11 @@
 # @builder.io/qwik-city
 
+## 1.20.1
+
+### Patch Changes
+
+- 🐞🩹 prevent static middleware from reading files outside configured directories (by [@github-actions](https://github.com/apps/github-actions) in [#9035](https://github.com/QwikDev/qwik/pull/9035))
+
 ## 1.20.0
 
 ### Minor Changes

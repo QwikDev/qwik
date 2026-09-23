@@ -905,7 +905,7 @@ jobs:
       # Do this before other release steps to avoid
       # publishing temporary files
       - name: Create Release Pull Request or Publish to npm
-        if: github.ref == 'refs/heads/upcoming'
+        if: github.ref == 'refs/heads/v1'
         id: changesets
         uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1
         with:

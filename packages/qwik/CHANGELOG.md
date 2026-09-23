@@ -1,5 +1,19 @@
 # @builder.io/qwik
 
+## 1.20.1
+
+### Patch Changes
+
+- Async functions in `useComputed$` are no longer deprecated, since they now remain supported in Qwik v2. (by [@wmertens](https://github.com/wmertens) in [#8888](https://github.com/QwikDev/qwik/pull/8888))
+
+- ✨ `qwik migrate-v2` now migrates renamed and removed APIs, `tsconfig.json`, `package.json` and Vite 8, adds options that keep the v1 behavior where v2 changed it, and lists the changes that need manual attention. (by [@Varixo](https://github.com/Varixo) in [#9015](https://github.com/QwikDev/qwik/pull/9015))
+
+- 🐞🩹 prevent unsafe virtual attribute names in server-rendered HTML (by [@github-actions](https://github.com/apps/github-actions) in [#9035](https://github.com/QwikDev/qwik/pull/9035))
+
+- 🐞🩹 Rollup now has stable hashes with large parallel builds, so now Qwik doesn't enforce the workaround any more. (by [@wmertens](https://github.com/wmertens) in [#8691](https://github.com/QwikDev/qwik/pull/8691))
+
+- 🐞🩹 `useConstant()` now retains a `null` factory result instead of re-running the factory on every render. The retention guard changed from `!= null` to `!== undefined`, so any defined value (including `null`) is cached for the lifetime of the component; only a factory that returns `undefined` is re-run on each render. (by [@youdie006](https://github.com/youdie006) in [#8827](https://github.com/QwikDev/qwik/pull/8827))
+
 ## 1.20.0
 
 ## 1.19.2

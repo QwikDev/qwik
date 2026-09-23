@@ -8,6 +8,7 @@ const renderTests = [
   'packages/qwik/src/core/tests/*.spec.tsx',
   'packages/qwik/src/testing/testing.unit.tsx',
   'packages/qwik-router/src/runtime/src/link-component.unit.tsx',
+  'packages/qwik-router/src/runtime/src/document-head-tags.unit.tsx',
 ];
 const renderProject = (testTarget: 'csr' | 'resume' | 'ssr'): TestProjectInlineConfiguration => ({
   plugins: [
@@ -96,6 +97,7 @@ export default defineConfig({
       'qwik/src/core/tests/*.spec.tsx',
       'qwik/src/testing/testing.unit.tsx',
       'qwik-router/src/runtime/src/link-component.unit.tsx',
+      'qwik-router/src/runtime/src/document-head-tags.unit.tsx',
       'qwik/src/testing/resume-session.unit.tsx',
       'compiler/**',
     ],

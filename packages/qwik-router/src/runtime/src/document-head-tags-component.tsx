@@ -1,4 +1,4 @@
-import { component$ } from '@qwik.dev/core';
+import { component$, useComputed$ } from '@qwik.dev/core';
 import { useDocumentHead } from '.';
 import type { DocumentHeadValue } from './types';
 
@@ -26,18 +26,19 @@ import type { DocumentHeadValue } from './types';
  */
 export const DocumentHeadTags = component$((props: DocumentHeadValue) => {
   const documentHead = useDocumentHead();
-  const head = props ? { ...documentHead, ...props } : documentHead;
+  // one live merge: a head or prop change re-evaluates it and every read below re-runs
+  const head = useComputed$(() => ({ ...documentHead, ...props }));
 
   return (
     <>
-      {head.title && <title>{head.title}</title>}
-      {head.meta.map((m) => (
+      {head.value.title && <title>{head.value.title}</title>}
+      {head.value.meta.map((m) => (
         <meta {...m} />
       ))}
-      {head.links.map((l) => (
+      {head.value.links.map((l) => (
         <link {...l} />
       ))}
-      {head.styles.map((s) => {
+      {head.value.styles.map((s) => {
         // Support for the old `props` property
         const props = s.props || s;
         return (
@@ -48,7 +49,7 @@ export const DocumentHeadTags = component$((props: DocumentHeadValue) => {
           />
         );
       })}
-      {head.scripts.map((s) => {
+      {head.value.scripts.map((s) => {
         // Support for the old `props` property
         const props = s.props || s;
         return (

@@ -1,4 +1,4 @@
-import { isDev, useComputed$ } from '@qwik.dev/core';
+import { disposeOwner, isDev, useComputed$ } from '@qwik.dev/core';
 import { createOwner, runWithOwner } from '@qwik.dev/core/internal';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
@@ -46,6 +46,27 @@ describe('route loader execution', () => {
     expect(
       Object.entries(state).filter(([key]) => key.startsWith('__qwik_route_loader_value__'))
     ).toEqual([['__qwik_route_loader_value__never-loader', _UNINITIALIZED]]);
+  });
+
+  it('keeps a loader signal alive after the component that first used it is disposed', async () => {
+    // a plugin loader first reached from the footer must survive the footer's row being swapped
+    const state = {} as RouteLoaderState;
+    const routeLoaderCtx = { loaderPaths: {} };
+    const loader = routeLoaderQrl(
+      createQrl('shared-loader', ({ info }) => info?.__v ?? 'fetched')
+    ) as LoaderInternal;
+    const footer = createOwner(null);
+    const signal = runWithOwner(footer, () =>
+      ensureRouteLoaderSignal(loader, state, routeLoaderCtx)
+    );
+
+    // route-wide state is not owned by whichever component reached for it first
+    expect((signal as { owner?: unknown }).owner).not.toBe(footer);
+    disposeOwner(footer);
+    setLoaderSignalValue(signal, 'still here');
+    await signal.promise();
+
+    expect(signal.value).toBe('still here');
   });
 
   it('registers immutable loaders so nav-wide invalidation skips them', () => {

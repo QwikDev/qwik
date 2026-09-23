@@ -14,6 +14,8 @@ import {
   _deserialize,
   _verifySerializable,
   _UNINITIALIZED,
+  createOwner,
+  runWithOwner,
   SerializerSymbol,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
@@ -289,114 +291,117 @@ const createRouteLoaderSignal = (
   const searchFilter = loader.__search;
   // Keep the raw payload to preserve object identity when data is unchanged.
   const lastFetch: { raw?: string } = {};
-  return useComputed$(
-    (ctx) => {
-      const { track, info, previous, abortSignal } = ctx;
-      const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
-      // Track route dependencies before any early return: the SSR and injected-value paths
-      // must also subscribe so a resumed loader re-fetches on the first SPA navigation.
-      const trackedRoutePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
-      const trackedPagePathname = track(routeLoaderCtx, 'pagePathname') as string | undefined;
-      const trackedPageSearch = track(routeLoaderCtx, 'pageSearch') as string | undefined;
-      // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
-      // an action response).
-      if (hasInjectedValue) {
-        const value = (info as { __v: unknown }).__v;
-        if (!isServer && resumeValueKey in stateValues) {
-          stateValues[resumeValueKey] = value;
+  // Route-wide state: it must outlive the component that happened to reach for it first.
+  return runWithOwner(createOwner(null), () =>
+    useComputed$(
+      (ctx) => {
+        const { track, info, previous, abortSignal } = ctx;
+        const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
+        // Track route dependencies before any early return: the SSR and injected-value paths
+        // must also subscribe so a resumed loader re-fetches on the first SPA navigation.
+        const trackedRoutePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
+        const trackedPagePathname = track(routeLoaderCtx, 'pagePathname') as string | undefined;
+        const trackedPageSearch = track(routeLoaderCtx, 'pageSearch') as string | undefined;
+        // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
+        // an action response).
+        if (hasInjectedValue) {
+          const value = (info as { __v: unknown }).__v;
+          if (!isServer && resumeValueKey in stateValues) {
+            stateValues[resumeValueKey] = value;
+          }
+          // The injected value may differ from the last fetched text; don't skip the next fetch
+          lastFetch.raw = undefined;
+          return value;
         }
-        // The injected value may differ from the last fetched text; don't skip the next fetch
-        lastFetch.raw = undefined;
-        return value;
-      }
-      if (isServer) {
-        // synchronous when the middleware precomputed the value — sync readers (tasks
-        // tracking the loader) must never see a pending compute in the standard flow
-        return (capture as ServerRouteLoaderCapture).load();
-      }
-      // the async client tail keeps the compute itself synchronous up to the first await
-      return (async () => {
-        const routePath = trackedRoutePath;
-        // The client page path/search fields are only assigned on SPA navigation; before
-        // that, `location` is the source of truth and avoids serializing a duplicate URL in SSR state.
-        const pagePathname = trackedPagePathname || location.pathname;
-        const pageSearch = trackedPageSearch || location.search;
-        const pageUrl = new URL(pagePathname + pageSearch, location.href);
-        const mHash = routeLoaderCtx.manifestHash || 'dev';
-        const basePath = (await loadRouterConfig()).basePathname ?? '/';
-        const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
-        const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
-        // A loader that's never been on any route we've visited has no fetch path yet —
-        // return whatever value it has (undefined on the very first run). In practice
-        // this branch only fires on the initial client-side read for a loader that
-        // wasn't prefilled by SSR; normal navs leave stale entries in loaderPaths so
-        // this compute only runs when there's a fresh path to fetch against.
-        if (!fetchRoutePath) {
-          return previous;
+        if (isServer) {
+          // synchronous when the middleware precomputed the value — sync readers (tasks
+          // tracking the loader) must never see a pending compute in the standard flow
+          return (capture as ServerRouteLoaderCapture).load();
         }
-
-        // Build a URL with only the allowed search params for the fetch
-        let fetchUrl = pageUrl;
-        if (searchFilter) {
-          fetchUrl = new URL(pageUrl.href);
-          fetchUrl.search = filterSearchParams(pageUrl.searchParams, searchFilter);
-        }
-
-        const result = await fetchRouteLoaderData(id, fetchRoutePath, mHash, {
-          pageUrl: fetchUrl,
-          basePath,
-          ignoreCache: info === true,
-          signal: abortSignal,
-        });
-        if (!result) {
-          throw new Error(`Loader ${id} returned empty response`);
-        }
-        let response: LoaderResponse;
-        if (result.raw === undefined) {
-          response = result;
-        } else {
-          if (result.raw === lastFetch.raw && previous !== undefined) {
+        // the async client tail keeps the compute itself synchronous up to the first await
+        return (async () => {
+          const routePath = trackedRoutePath;
+          // The client page path/search fields are only assigned on SPA navigation; before
+          // that, `location` is the source of truth and avoids serializing a duplicate URL in SSR state.
+          const pagePathname = trackedPagePathname || location.pathname;
+          const pageSearch = trackedPageSearch || location.search;
+          const pageUrl = new URL(pagePathname + pageSearch, location.href);
+          const mHash = routeLoaderCtx.manifestHash || 'dev';
+          const basePath = (await loadRouterConfig()).basePathname ?? '/';
+          const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
+          const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
+          // A loader that's never been on any route we've visited has no fetch path yet —
+          // return whatever value it has (undefined on the very first run). In practice
+          // this branch only fires on the initial client-side read for a loader that
+          // wasn't prefilled by SSR; normal navs leave stale entries in loaderPaths so
+          // this compute only runs when there's a fresh path to fetch against.
+          if (!fetchRoutePath) {
             return previous;
           }
-          response = (await _deserialize<LoaderResponse>(result.raw)) as LoaderResponse;
-          if (!response) {
+
+          // Build a URL with only the allowed search params for the fetch
+          let fetchUrl = pageUrl;
+          if (searchFilter) {
+            fetchUrl = new URL(pageUrl.href);
+            fetchUrl.search = filterSearchParams(pageUrl.searchParams, searchFilter);
+          }
+
+          const result = await fetchRouteLoaderData(id, fetchRoutePath, mHash, {
+            pageUrl: fetchUrl,
+            basePath,
+            ignoreCache: info === true,
+            signal: abortSignal,
+          });
+          if (!result) {
             throw new Error(`Loader ${id} returned empty response`);
           }
-        }
-        if (response.r) {
-          // Redirect — fire SPA goto if available, else full page nav. We don't
-          // await or coordinate with the current nav: the new nav starts while
-          // this one finishes committing, producing a brief flash of stale data
-          // before the new route's loaders resolve. That trade-off is intentional
-          // — awaiting all loader promises just to catch redirects is too costly
-          // for the common case.
-          //
-          const goto = routeLoaderCtx.goto;
-          if (goto) {
-            goto(response.r, { replaceState: true });
+          let response: LoaderResponse;
+          if (result.raw === undefined) {
+            response = result;
           } else {
-            location.href = response.r;
+            if (result.raw === lastFetch.raw && previous !== undefined) {
+              return previous;
+            }
+            response = (await _deserialize<LoaderResponse>(result.raw)) as LoaderResponse;
+            if (!response) {
+              throw new Error(`Loader ${id} returned empty response`);
+            }
           }
-          // Return `previous` (stale data) rather than throwing:  a ComputedSignal
-          // in error state can drop Resource subscriptions, which would prevent
-          // the redirect-target fetch from updating the UI once it arrives.
-          return previous;
-        }
-        if (response.e) {
-          // Error — throw so signal enters error state
-          throw response.e;
-        }
-        lastFetch.raw = result.raw;
-        if (needsResumeFetch) {
-          stateValues[resumeValueKey] = response.d;
-        }
-        return response.d;
-      })();
-    },
+          if (response.r) {
+            // Redirect — fire SPA goto if available, else full page nav. We don't
+            // await or coordinate with the current nav: the new nav starts while
+            // this one finishes committing, producing a brief flash of stale data
+            // before the new route's loaders resolve. That trade-off is intentional
+            // — awaiting all loader promises just to catch redirects is too costly
+            // for the common case.
+            //
+            const goto = routeLoaderCtx.goto;
+            if (goto) {
+              goto(response.r, { replaceState: true });
+            } else {
+              location.href = response.r;
+            }
+            // Return `previous` (stale data) rather than throwing:  a ComputedSignal
+            // in error state can drop Resource subscriptions, which would prevent
+            // the redirect-target fetch from updating the UI once it arrives.
+            return previous;
+          }
+          if (response.e) {
+            // Error — throw so signal enters error state
+            throw response.e;
+          }
+          lastFetch.raw = result.raw;
+          if (needsResumeFetch) {
+            stateValues[resumeValueKey] = response.d;
+          }
+          return response.d;
+        })();
+      },
 
-    {
-      serializationStrategy: loader.__serializationStrategy,
-    }
+      {
+        serializationStrategy: loader.__serializationStrategy,
+      }
+    )
   );
 };
 

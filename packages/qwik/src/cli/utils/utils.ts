@@ -122,10 +122,11 @@ export function getPackageManager() {
 
 export function pmRunCmd() {
   const pm = getPackageManager();
-  if (pm !== 'npm') {
-    return pm;
+  // npm and nub have no implicit script shortcut, so scripts run via `<pm> run`.
+  if (pm === 'npm' || pm === 'nub') {
+    return `${pm} run`;
   }
-  return `${pm} run`;
+  return pm;
 }
 
 export function panic(msg: string) {

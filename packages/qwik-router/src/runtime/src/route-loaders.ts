@@ -44,6 +44,7 @@ import type {
   LoaderConstructorQRL,
   LoaderInternal,
   LoaderOptions,
+  PathParams,
   QwikRouterEnvData,
   RequestEvent,
   RequestEventLoader,
@@ -61,6 +62,7 @@ import type {
 
 const REQUEST_ROUTE_LOADER_STATE = '@routeLoaderState';
 const REQUEST_LOADER_PATHS_STORE = '@loaderPathsStore';
+const REQUEST_LOADER_PARAMS_STORE = '@loaderParamsStore';
 const REQUEST_ROUTE_LOADERS = '@routeLoaders';
 const REQUEST_ROUTE_LOADER_PROMISES = '@routeLoaderPromises';
 const REQUEST_ROUTE_LOADER_EVENTS = '@routeLoaderEvents';
@@ -635,6 +637,18 @@ export function getRouteLoaderCtx(requestEv: RequestEventBase): RouteLoaderCtx {
   return ctx;
 }
 
+/** Server-only loader ID → params matched at its loader path; never serialized to the client. */
+export function getRouteLoaderParams(
+  requestEv: RequestEventBase
+): Record<string, PathParams | undefined> {
+  let params = requestEv.sharedMap.get(REQUEST_LOADER_PARAMS_STORE);
+  if (!params) {
+    params = {};
+    requestEv.sharedMap.set(REQUEST_LOADER_PARAMS_STORE, params);
+  }
+  return params;
+}
+
 export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]) => {
   const routeLoaders: LoaderInternal[] = [];
   const seen = new Map<string, LoaderInternal>();
@@ -942,6 +956,11 @@ export const getLoaderRequestEvent = (
   if (pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search) {
     return rootRequestEv;
   }
+  // An ancestor path only sees params matched up to it; fail closed if none were recorded.
+  const params =
+    pathname === rootRequestEv.url.pathname
+      ? rootRequestEv.params
+      : getRouteLoaderParams(rootRequestEv)[loader.__id] || {};
 
   let events: Map<string, RequestEvent> = rootRequestEv.sharedMap.get(REQUEST_ROUTE_LOADER_EVENTS);
   if (!events) {
@@ -961,7 +980,7 @@ export const getLoaderRequestEvent = (
         enumerable: true,
       },
       params: {
-        value: rootRequestEv.params,
+        value: params,
         enumerable: true,
       },
       pathname: {

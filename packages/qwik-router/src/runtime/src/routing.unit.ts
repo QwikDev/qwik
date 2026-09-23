@@ -274,6 +274,36 @@ test('loadRoute — child routes inherit layout loaders but not parent page load
   }
 });
 
+test('loadRoute — loader params match each loader path', async () => {
+  const routes: RouteData = {
+    _R: ['root-loader'],
+    _W: {
+      _P: 'tenantSlug',
+      _R: ['tenant-loader'],
+      agents: {
+        _W: {
+          _P: 'agentId',
+          _R: ['agent-loader'],
+          view: {
+            _I: makeLoader(),
+            _D: ['page-loader'],
+          },
+        },
+      },
+    },
+  };
+
+  const result = await loadRoute(routes, false, '/acme/agents/42/view');
+
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$loaderParams$, {
+    'root-loader': {},
+    'tenant-loader': { tenantSlug: 'acme' },
+    'agent-loader': { tenantSlug: 'acme', agentId: '42' },
+    'page-loader': { tenantSlug: 'acme', agentId: '42' },
+  });
+});
+
 test('loadRoute — miss renders the nearest _4 inside gathered layouts', async () => {
   const rootLayout = { default: () => 'layout' };
   const notFound = { default: () => 'not-found' };
@@ -882,6 +912,7 @@ test('loadRoute — layout overrides exclude inherited loader metadata', async (
   const isolated = await loadRoute(routes, false, '/isolated/');
   assert.deepEqual(isolated.$loaders$, ['plugin', 'page']);
   assert.deepEqual(isolated.$loaderPaths$, { plugin: '/', page: '/isolated/' });
+  assert.deepEqual(isolated.$loaderParams$, { plugin: {}, page: {} });
   const named = await loadRoute(routes, false, '/named/');
   assert.deepEqual(named.$loaders$, ['plugin', 'named-layout', 'page']);
   assert.deepEqual(named.$loaderPaths$, {
@@ -931,6 +962,12 @@ test('loadRoute — chained rewrites keep target layout paths and dynamic params
     group: '/target/',
     layout: '/target/42/',
     page: '/source/42/',
+  });
+  assert.deepEqual(result.$loaderParams$, {
+    plugin: {},
+    group: {},
+    layout: { id: '42' },
+    page: { id: '42' },
   });
   assert.deepEqual(result.$params$, { id: '42' });
 });

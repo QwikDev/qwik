@@ -17,6 +17,7 @@ import type {
 import {
   clearRouteLoaderData,
   getRouteLoaderCtx,
+  getRouteLoaderParams,
   getRouteLoaderValues,
   loadRouteLoader,
   matchesRouteLoaderId,
@@ -362,6 +363,9 @@ function createResolveRequestHandlers() {
     const routeLoaderCtx = getRouteLoaderCtx(requestEv);
     if (route.$loaderPaths$) {
       Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
+    }
+    if (route.$loaderParams$) {
+      Object.assign(getRouteLoaderParams(requestEv), route.$loaderParams$);
     }
 
     // Store loader internals so SSG can check __cacheControl.

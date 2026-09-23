@@ -277,7 +277,7 @@ const dispatch = (
   /** A capture handler queued work, so bubbling must not overtake it. */
   afterCapture = false
 ) => {
-  let defer = queuedTasks !== undefined || afterCapture;
+  let defer = afterCapture;
   /** Async progress within this event's own chain — sync qrls only wait for these. */
   let chainAsync = false;
   if (kebabName) {

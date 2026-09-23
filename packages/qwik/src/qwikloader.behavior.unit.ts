@@ -363,7 +363,7 @@ describe('qwikloader behavior', () => {
     expect(logs).toEqual(['child bubble']);
   });
 
-  test('queues later events behind a pending handler', async () => {
+  test('dispatches later events while an earlier handler is still pending', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];
     let calls = 0;
@@ -383,12 +383,13 @@ describe('qwikloader behavior', () => {
     listener(createMockEvent(button));
     listener(createMockEvent(button));
 
-    expect(logs).toEqual(['start 1']);
+    // native listeners start every event in its own dispatch; nothing waits on a pending promise
+    expect(logs).toEqual(['start 1', 'start 2', 'end 2']);
 
     resolveFirst();
     await flushQueuedTasks();
 
-    expect(logs).toEqual(['start 1', 'end 1', 'start 2', 'end 2']);
+    expect(logs).toEqual(['start 1', 'start 2', 'end 2', 'end 1']);
   });
 
   test('runs sync qrls during dispatch while a prior event is still pending', async () => {

@@ -76,7 +76,7 @@ Verified by `component-body.unit.ts`, `lower-setup.unit.ts`, the
 resume projects. Native helper calls in setup, local components, empty results, exceptions,
 block scope, var hoisting, native mutation and explicit shared object captures are covered.
 Mutable QRL event bindings, reassignment and null handlers are verified in CSR and resume.
-Function-reference QRL extraction remains tracked in group 6; for-loop setup remains unsupported.
+Function-reference QRL extraction remains tracked in group 6. Setup hooks in for-loop headers remain unsupported.
 
 QRLs capture initialized values at creation; later local reassignment does not update those
 captures. Shared mutable state uses object, store or signal properties. Assignment, update,

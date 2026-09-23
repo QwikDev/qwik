@@ -71,8 +71,8 @@ describe('SSR context markers', () => {
     const result = await renderToString((_props, ctx) => {
       useContextProvider(context, 'value');
       scope = getActiveInvokeContext().localContextScope!;
-      firstRef = ctx.contextScopeRef();
-      secondRef = ctx.contextScopeRef();
+      firstRef = ctx.optionalContextScopeRef()!;
+      secondRef = ctx.optionalContextScopeRef()!;
       return [createSsrMarkup('<!c=', firstRef, '>'), '<p>value</p>', '<!/c>'];
     });
 
@@ -80,6 +80,24 @@ describe('SSR context markers', () => {
     expect(secondRef).toEqual(firstRef);
     expect(scope.id).toBeNull();
     expect(result.html).toContain('<!c=0><p>value</p><!/c>');
+  });
+
+  test('only references a context scope when a provider ran', async () => {
+    const context = { id: 'conditional-context' } as ContextId<string>;
+
+    for (const shouldProvide of [false, true]) {
+      const result = await renderToString((_props, ctx) => {
+        if (shouldProvide) {
+          useContextProvider(context, 'value');
+        }
+        const scope = ctx.optionalContextScopeRef();
+        return scope === null
+          ? '<p>empty</p>'
+          : [createSsrMarkup('<!c=', scope, '>'), '<p>value</p>', '<!/c>'];
+      });
+
+      expect(result.html.includes('<!c=')).toBe(shouldProvide);
+    }
   });
 
   test('materializes event captures and nested structured output without coercion', async () => {

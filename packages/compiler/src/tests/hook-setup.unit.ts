@@ -20,6 +20,7 @@ import {
 } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { defaultScheduler } from '../../../qwik/src/core/runtime/scheduler';
+import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';
 import { isQrl } from '../../../qwik/src/core/shared/qrl/qrl-utils';
 import type { QRL } from '../../../qwik/src/core/shared/qrl/qrl.public';
 import { UnsupportedError } from '../errors';
@@ -75,6 +76,118 @@ export default (props) => {
   expect(calls.slice(1)).toEqual([['result'], []]);
 });
 
+test('a single-statement loop body captures each iteration for a QRL', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [
+      {
+        path: 'src/component.tsx',
+        code: `import { useCustom$ } from './hooks';
+export default () => {
+  for (const value of [10, 20]) useCustom$(() => value);
+  return <span />;
+};`,
+      },
+    ],
+  });
+  expect(output.diagnostics).toEqual([]);
+  const callbacks: QRL<() => number>[] = [];
+  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+    ...core,
+    useCustomQrl: (callback: QRL<() => number>) => callbacks.push(callback),
+    get _captures() {
+      return core._captures;
+    },
+  });
+  render({}, setupOnlyContext);
+  expect(await Promise.all(callbacks.map((callback) => callback()))).toEqual([10, 20]);
+});
+
+test('a provider in a loop emits a scope only when the loop runs', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [
+      {
+        path: 'src/component.tsx',
+        code: `import { createContextId, useContextProvider } from '@qwik.dev/core';
+const Context = createContextId('loop');
+export default (props) => {
+  for (const value of props.values) useContextProvider(Context, value);
+  return <span />;
+};`,
+      },
+    ],
+  });
+  expect(output.diagnostics).toEqual([]);
+  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, core);
+  for (const values of [[], ['value']]) {
+    const result = await renderToStringCompiled(render, { props: { values } });
+    expect(result.html.includes('<!c=')).toBe(values.length > 0);
+    expect(result.html.includes('<!/c>')).toBe(values.length > 0);
+  }
+});
+
+test('an async hook keeps for await and its per-iteration capture', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [
+      {
+        path: 'src/hooks.ts',
+        code: `import { useTask$ } from '@qwik.dev/core';
+export async function useItems(values) {
+  for await (const value of values) useTask$(() => value);
+}`,
+      },
+    ],
+  });
+  expect(output.diagnostics).toEqual([]);
+  expect(output.modules.map((module) => module.code).join('\n')).toContain('for await (');
+});
+
+test.each(['useSignal(0)', 'wrap(useSignal(0))'])(
+  'a hook in a loop header retains the authored fallback: %s',
+  async (initial) => {
+    const plan = await analyseModule(
+      {
+        path: 'hooks.ts',
+        code: `import { useSignal } from '@qwik.dev/core';
+const wrap = (value) => value;
+export function useItems() {
+  for (let index = ${initial}; index.value < 2; index.value++) {}
+}`,
+      },
+      {}
+    );
+    expect(plan.hooks).toHaveLength(0);
+  }
+);
+
+test('multiple setup declarations in a single-statement loop body stay inside the loop', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [
+      {
+        path: 'src/component.tsx',
+        code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  for (let index = 0; index < 2; index++) var first = useSignal(index), second = useSignal(first.value);
+  return <span />;
+};`,
+      },
+    ],
+  });
+  expect(output.diagnostics).toEqual([]);
+  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+    ...core,
+    useSignal: (value: number) => ({ value }),
+  });
+  expect(() => render({}, setupOnlyContext)).not.toThrow();
+});
+
 test('optional plain hook calls remain explicitly unsupported', async () => {
   await expect(
     analyseModule(
@@ -86,6 +199,67 @@ export default () => { useCustom?.(); return <span />; };`,
       {}
     )
   ).rejects.toThrow(UnsupportedError);
+});
+
+test.each([
+  'for (let index = 0; index < values.length; index++) { useTask$(() => values[index]); }',
+  'for (const value of values) { useTask$(() => value); }',
+  'for (const key in values) { useTask$(() => values[key]); }',
+])('lowers hooks in a loop and providers after it: %s', async (loop) => {
+  const plan = await analyseModule(
+    {
+      path: 'hooks.ts',
+      code: `import { useTask$, useContextProvider } from '@qwik.dev/core';
+export function useItems(values, context) {
+  ${loop}
+  useContextProvider(context, values);
+}`,
+    },
+    {}
+  );
+  expect(plan.hooks.map((hook) => hook.name)).toContain('useItems');
+  expect(plan.payloads.flatMap((payload) => payload.setups ?? [])).not.toHaveLength(0);
+  expect(plan.hooks[0].body).toMatchObject({
+    kind: 'setup',
+    setup: expect.arrayContaining([expect.objectContaining({ providesContext: true })]),
+  });
+  for (const isServer of [true, false]) {
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer,
+      input: [{ path: 'src/hooks.ts', code: plan.source.code }],
+    });
+    expect(output.diagnostics).toEqual([]);
+    expect(output.modules.map((module) => module.code).join('\n')).toContain('for (');
+  }
+});
+
+test('a loop before a provider makes the imported hook visible to SSR', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [
+      {
+        path: 'src/hooks.ts',
+        code: `import { useContextProvider } from '@qwik.dev/core';
+export function useItems(context, values) {
+  for (const value of values) console.log(value);
+  useContextProvider(context, values);
+}`,
+      },
+      {
+        path: 'src/component.tsx',
+        code: `import { useItems } from './hooks';
+export default (props) => {
+  useItems(props.context, props.values);
+  return <span />;
+};`,
+      },
+    ],
+  });
+  expect(output.diagnostics).toEqual([]);
+  const component = output.modules.find((module) => module.path === 'src/component.tsx');
+  expect(component?.code).toContain('optionalContextScopeRef()');
 });
 
 test.each([

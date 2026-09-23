@@ -24,6 +24,13 @@ export function createDeclaredResultReader(modules: readonly LinkedModule[]) {
 }
 
 function createReader(modules: readonly LinkedModule[]) {
+  const libraryText =
+    typeof standardLibrary === 'string'
+      ? standardLibrary
+      : ts.sys?.readFile(ts.getDefaultLibFilePath({ target: ts.ScriptTarget.ES5 }));
+  if (libraryText === undefined) {
+    throw new Error('Missing TypeScript standard library.');
+  }
   const files = modules.map((module, index) =>
     ts.createSourceFile(
       `/module-${index}.tsx`,
@@ -33,7 +40,7 @@ function createReader(modules: readonly LinkedModule[]) {
       ts.ScriptKind.TSX
     )
   );
-  const library = ts.createSourceFile(libraryPath, standardLibrary, ts.ScriptTarget.Latest, true);
+  const library = ts.createSourceFile(libraryPath, libraryText, ts.ScriptTarget.Latest, true);
   const sources = new Map([...files, library].map((file) => [file.fileName, file]));
   const owners = new Map(files.map((file, index) => [file.fileName, index]));
   const host: ts.CompilerHost = {

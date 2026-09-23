@@ -610,9 +610,28 @@ function lowerJsStatement(
 ): Setup {
   const payload = pushPayload(ctx, [statement.start, statement.end]);
   const target = ctx.plan.payloads[payload];
-  const visit = (node: unknown, root = false, parent: Node | null = null): void => {
+  const hasHeaderHook = (node: unknown): boolean => {
     if (Array.isArray(node)) {
-      node.forEach((child) => visit(child));
+      return node.some(hasHeaderHook);
+    }
+    if (!isNode(node) || isFunctionLike(node)) {
+      return false;
+    }
+    if (node.type === 'CallExpression' && /^use.+/.test(resolveSetupCall(node, ctx)?.name ?? '')) {
+      return true;
+    }
+    return Object.keys(node).some(
+      (key) => key !== 'parent' && hasHeaderHook((node as WalkableNode)[key])
+    );
+  };
+  const visit = (
+    node: unknown,
+    root = false,
+    parent: Node | null = null,
+    inLoopHeader = false
+  ): void => {
+    if (Array.isArray(node)) {
+      node.forEach((child) => visit(child, false, parent, inLoopHeader));
       return;
     }
     if (!isNode(node)) {
@@ -623,10 +642,21 @@ function lowerJsStatement(
       node.type === 'ForInStatement' ||
       node.type === 'ForOfStatement'
     ) {
-      throw new UnsupportedError('a for loop in component setup');
+      // The header declares plain locals; only the body may hold setup work.
+      const header =
+        node.type === 'ForStatement'
+          ? [node.init, node.test, node.update]
+          : [node.left, node.right];
+      if (hasHeaderHook(header)) {
+        throw new UnsupportedError('a setup hook in a for loop header');
+      }
+      visit(header, false, node, true);
+      visit(node.body, false, node);
+      return;
     }
     if (
       !root &&
+      !inLoopHeader &&
       (node.type === 'VariableDeclaration' ||
         node.type === 'FunctionDeclaration' ||
         node.type === 'ExpressionStatement')
@@ -635,6 +665,9 @@ function lowerJsStatement(
         parent?.type === 'IfStatement' ||
         parent?.type === 'WhileStatement' ||
         parent?.type === 'DoWhileStatement' ||
+        parent?.type === 'ForStatement' ||
+        parent?.type === 'ForInStatement' ||
+        parent?.type === 'ForOfStatement' ||
         parent?.type === 'LabeledStatement';
       (target.setups ??= []).push({
         range: [node.start, node.end],
@@ -676,7 +709,7 @@ function lowerJsStatement(
     }
     for (const key of Object.keys(node)) {
       if (key !== 'parent') {
-        visit((node as WalkableNode)[key], false, node);
+        visit((node as WalkableNode)[key], false, node, inLoopHeader);
       }
     }
   };

@@ -72,7 +72,8 @@ export interface SsrRenderContext extends ServerDataContext {
   nextId(): number;
   setRef(value: unknown, nodeId: number): void;
   addRoot(value: unknown): number;
-  contextScopeRef(): SsrReferenceChunk;
+  /** Null when the component ended up providing no context. */
+  optionalContextScopeRef(): SsrReferenceChunk | null;
   eventAttr(name: string, value: unknown, needsInvokeContext?: boolean): SsrEventAttrChunk;
   /** Flat-output form: ` name="…"` as string/reference parts, [] when there are no handlers. */
   eventAttrParts(
@@ -245,12 +246,9 @@ export const renderToStreamCompiled = async <Props = undefined>(
       addRoot(value) {
         return serializationCtx.$addRoot$(value);
       },
-      contextScopeRef() {
+      optionalContextScopeRef() {
         const scope = getActiveInvokeContextOrNull()?.localContextScope ?? null;
-        if (isDev && scope === null) {
-          throw new Error('Missing context scope for context provider.');
-        }
-        return createSsrRootRef(serializationCtx.$addRoot$(scope!));
+        return scope === null ? null : createSsrRootRef(serializationCtx.$addRoot$(scope));
       },
       // `getLocale()` inside a resumed handler reads the container, so localized apps wrap.
       eventAttr(name, value, needsInvokeContext = false) {

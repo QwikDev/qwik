@@ -331,10 +331,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         ? pass.next(QwikGenWord.ContextScope)
         : null;
     if (contextScope !== null) {
-      pass.statements.push(`const ${contextScope} = ${names.ctx}.contextScopeRef();`);
-      pushMergedStatic(parts, '<!c=');
-      parts.push(contextScope);
-      pushMergedStatic(parts, '>');
+      pass.statements.push(`const ${contextScope} = ${names.ctx}.optionalContextScopeRef();`);
+      parts.push(`...(${contextScope} ? ['<!c=', ${contextScope}, '>'] : [])`);
     }
     if (ownRange !== null) {
       pushMergedStatic(parts, '<!b=');
@@ -363,7 +361,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pushMergedStatic(parts, '<!/b>');
     }
     if (contextScope !== null) {
-      pushMergedStatic(parts, '<!/c>');
+      parts.push(`...(${contextScope} ? ['<!/c>'] : [])`);
     }
     let value = parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
     const lastStep = pass.asyncSteps[pass.asyncSteps.length - 1];

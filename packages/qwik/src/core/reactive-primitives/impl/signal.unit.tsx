@@ -109,9 +109,9 @@ describe('signal types', () => {
     expectTypeOf(signal.trigger()).toEqualTypeOf<void>();
     expectTypeOf(await signal.promise()).toEqualTypeOf<void>();
     expectTypeOf(signal.value).toEqualTypeOf<number>();
-    expectTypeOf(signal).not.toHaveProperty('pending');
+    expectTypeOf(signal.pending).toEqualTypeOf<boolean>();
     expectTypeOf(signal).not.toHaveProperty('loading');
-    expectTypeOf(signal).not.toHaveProperty('error');
+    expectTypeOf(signal.error).toEqualTypeOf<Error | undefined>();
     expectTypeOf(signal.untrackedValue).toEqualTypeOf<number>();
     expectTypeOf(signal.abort()).toEqualTypeOf<void>();
     expectTypeOf(signal.invalidate()).toEqualTypeOf<void>();

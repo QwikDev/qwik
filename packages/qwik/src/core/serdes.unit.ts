@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { _captures, createQRL, type QRLInternal } from './shared/qrl/qrl-class';
 import { needsInflation } from './shared/serdes/constants';
-import { deserializeData, inflate } from './shared/serdes/inflate';
+import { deserializeData, inflate, restoreStreamedSubscribers } from './shared/serdes/inflate';
 import { createSerializationContext } from './shared/serdes/serialization-context';
 import { Constants, EMPTY_OBJECT_PAYLOAD, TypeIds } from './shared/serdes/constants';
 import { allocate } from './shared/serdes/allocate';
@@ -925,6 +925,37 @@ describe('serdes emit-only', () => {
     expect(subscription.block.indexSignals).toEqual([secondIndex, firstIndex]);
     expect(secondIndex.value).toBe(0);
     expect(firstIndex.value).toBe(1);
+  });
+
+  it('holds the flush until a woken lazy subscriber has loaded', async () => {
+    // two levels written in one flush: the parent must not re-render over the child while the
+    // child's serialized subscription is still loading
+    const win = createWindow({ html: '<div q:container></div>' });
+    const scheduler = new Scheduler(() => {});
+    const container = createContainerContext(
+      win.document.body.firstElementChild as HTMLElement,
+      scheduler
+    );
+    const signal = useSignal(1);
+    const computed = createOwned(() =>
+      useComputedQrl(createQRL('chunk', 'double', () => signal.value * 2))
+    );
+    let release!: (subscriber: unknown) => void;
+    container.getRoot = () => new Promise((resolve) => (release = resolve));
+    restoreStreamedSubscribers(container, signal, [5]);
+
+    signal.value = 2;
+    let flushed = false;
+    const flush = scheduler.flushInteraction().then(() => {
+      flushed = true;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(flushed).toBe(false);
+
+    release(computed);
+    await flush;
+    expect(flushed).toBe(true);
+    expect(computed.value).toBe(4);
   });
 
   it('serializes structural content subscriptions', async () => {

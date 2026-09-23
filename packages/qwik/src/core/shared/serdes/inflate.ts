@@ -98,6 +98,21 @@ import { _props, restorePropsProxyState, type PropSource } from '../../component
 
 export { allocate, needsInflation };
 
+/**
+ * A woken subscriber's load joins the flush that woke it, so no effect of that flush commits over a
+ * subtree whose state is still loading (a parent level re-rendering while its child inflates).
+ */
+function lazySubscriber(
+  container: ContainerContext,
+  load: () => ValueOrPromise<Subscriber>
+): LazySerialized<Subscriber> {
+  return new LazySerialized<Subscriber>(() => {
+    const pending = load();
+    container.scheduler.waitFor(pending);
+    return pending;
+  });
+}
+
 export function restoreStreamedSubscribers(
   container: ContainerContext,
   source: unknown,
@@ -107,7 +122,7 @@ export function restoreStreamedSubscribers(
     const subscriberId = subscriberIds[i];
     appendSourceSubscriber(
       source as Source,
-      new LazySerialized<Subscriber>(() => container.getRoot(subscriberId) as Promise<Subscriber>)
+      lazySubscriber(container, () => container.getRoot(subscriberId) as Promise<Subscriber>)
     );
   }
 }
@@ -771,7 +786,7 @@ function createLazySourceSubscribers(
     if (typeId === TypeIds.Plain) {
       return value as Subscriber;
     }
-    return new LazySerialized<Subscriber>(async () => {
+    return lazySubscriber(container, async () => {
       const subscriber = (await deserializeData(container, typeId, value)) as Subscriber;
       if (
         resumeItems !== null &&

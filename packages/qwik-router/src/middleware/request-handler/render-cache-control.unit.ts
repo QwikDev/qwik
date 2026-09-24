@@ -1,15 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
+import { clearSsrCache } from './etag';
 import { requestHandler } from './request-handler';
 import { ServerError } from './server-error';
 import type { ServerRequestEvent } from './types';
 
 const { routeState } = vi.hoisted(() => ({
-  routeState: { module: {} as Record<string, unknown> },
+  routeState: {
+    module: {} as Record<string, unknown>,
+    rewriteModule: {} as Record<string, unknown>,
+  },
 }));
 
 vi.mock('@qwik-router-config', () => ({
   routes: {
     _I: async () => routeState.module,
+    first: { _I: async () => routeState.rewriteModule },
+    second: { _I: async () => routeState.rewriteModule },
     'etag-error': { _I: async () => routeState.module },
     'etag-late': { _I: async () => routeState.module },
   },
@@ -54,6 +60,49 @@ const createRender = (errorBoundaryCaught: boolean) =>
   });
 
 describe('render cache control', () => {
+  it('keeps SSR cache entries separate for original URLs rewritten to the same route', async () => {
+    clearSsrCache();
+    routeState.module = {
+      default: () => null,
+      routeConfig: { eTag: 'rewrite-cache-v1', cacheKey: true },
+    };
+    routeState.rewriteModule = {
+      default: () => null,
+      onGet: (ev: { rewrite: (path: string) => unknown }) => {
+        throw ev.rewrite('/');
+      },
+    };
+    const render = vi.fn(async (opts: any) => {
+      opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+      await opts.stream.write(opts.serverData.url);
+      return { flushes: 1, size: 10, isStatic: false, timing: {} };
+    });
+
+    try {
+      const first = createServerRequestEvent('http://localhost/first/');
+      const firstRun = await requestHandler(first.ev, { render: render as any });
+      await firstRun!.completion;
+
+      const second = createServerRequestEvent('http://localhost/second/');
+      const secondRun = await requestHandler(second.ev, { render: render as any });
+      await secondRun!.completion;
+
+      const secondHtml = new TextDecoder().decode(
+        Buffer.concat(second.captured.chunks.map((chunk) => Buffer.from(chunk)))
+      );
+      expect(secondHtml).toBe('http://localhost/second/');
+      expect(second.captured.headers?.get('X-SSR-Cache')).toBeNull();
+
+      const repeated = createServerRequestEvent('http://localhost/first/');
+      const repeatedRun = await requestHandler(repeated.ev, { render: render as any });
+      await repeatedRun!.completion;
+      expect(repeated.captured.headers?.get('X-SSR-Cache')).toBe('HIT');
+      expect(render).toHaveBeenCalledTimes(2);
+    } finally {
+      clearSsrCache();
+    }
+  });
+
   it('a boundary error caught before the first flush responds with no-store', async () => {
     routeState.module = { default: () => null };
     const { ev, captured } = createServerRequestEvent();

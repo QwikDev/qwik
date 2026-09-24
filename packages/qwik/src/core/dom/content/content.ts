@@ -26,6 +26,7 @@ import {
   type Owner,
 } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
+import { registerSuspenseBoundary } from './suspense-boundary';
 import {
   SubscriberKind,
   type ContentSubscriber,
@@ -324,6 +325,9 @@ export function createSuspense(
   };
   if (!isPromise(content)) {
     holdForReveal(content);
+    if (subscription.block.currentOwner !== null) {
+      registerSuspenseBoundary(subscription.block.currentOwner, subscription);
+    }
     return subscription;
   }
   let isPending = true;
@@ -395,6 +399,9 @@ export function createSuspense(
     (nodes) => {
       finish();
       holdForReveal(nodes);
+      if (subscription.block.currentOwner !== null) {
+        registerSuspenseBoundary(subscription.block.currentOwner, subscription);
+      }
     },
     (error) => {
       finish();

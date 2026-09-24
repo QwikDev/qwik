@@ -8,6 +8,7 @@ import { createContainerContext, type ContainerContext } from '../../runtime/con
 import { invoke, newInvokeContext } from '../../runtime/invoke-context';
 import { createOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
+import { findSuspenseBoundary } from './suspense-boundary';
 import { BranchRange } from '../branch/branch';
 import { createTextNodeEffect } from '../effect/text-effect';
 import { toArray } from '../../test-utils';
@@ -213,6 +214,20 @@ describe('ContentBlock', () => {
 });
 
 describe('createSuspense', () => {
+  it('finds a boundary through a projection render parent', () => {
+    const { content } = setupSuspense(renderQrl((ctx) => ctx!.document.createTextNode('ready')));
+    const boundaryOwner = content.block.currentOwner!;
+    const lifetimeOwner = createOwner(null);
+    const projectionOwner = createOwner(lifetimeOwner);
+
+    expect(findSuspenseBoundary(projectionOwner)).toBeUndefined();
+    projectionOwner.renderParent = boundaryOwner;
+    expect(findSuspenseBoundary(projectionOwner)).toBe(content);
+    expect(projectionOwner.parent).toBe(lifetimeOwner);
+    projectionOwner.renderParent = null;
+    expect(findSuspenseBoundary(projectionOwner)).toBeUndefined();
+  });
+
   it('passes the container context to content and fallback renders', () => {
     const pending = deferred<Node>();
     let contentContext: ContainerContext | undefined;
@@ -253,7 +268,7 @@ describe('createSuspense', () => {
     let fallbackRuns = 0;
     const fallbackNode = textNode('loading');
     const readyNode = textNode('ready');
-    const { host, start, end } = setupSuspense(
+    const { content, host, start, end } = setupSuspense(
       renderQrl(() => {
         contentRuns++;
         return pending.promise;
@@ -273,6 +288,7 @@ describe('createSuspense', () => {
 
     expect(Array.from(host.childNodes)).toEqual([start, readyNode, end]);
     expect(fallbackRuns).toBe(1);
+    expect(findSuspenseBoundary(content.block.currentOwner)).toBe(content);
   });
 
   it('skips a delayed fallback when content wins', async () => {

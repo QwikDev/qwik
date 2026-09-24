@@ -32,13 +32,13 @@ describe('body-transforms', () => {
   describe('injectCapturesUnpacking', () => {
     it('injects captures into block bodies via the shared function session', () => {
       expect(injectCapturesUnpacking('(props) => {\n  return props.count;\n}', ['count'])).toBe(
-        '(props) => {\nconst count = _captures[0];\n  return props.count;\n}'
+        '(props) => {\nlet count = _capturesObj._[0];\n  return props.count;\n}'
       );
     });
 
     it('converts expression bodies to block bodies when injecting captures', () => {
       expect(injectCapturesUnpacking('(props) => props.count + 1', ['count', 'label'])).toBe(
-        '(props) => {\nconst count = _captures[0], label = _captures[1];\nreturn props.count + 1;\n}'
+        '(props) => {\nlet count = _capturesObj._[0], label = _capturesObj._[1];\nreturn props.count + 1;\n}'
       );
     });
   });

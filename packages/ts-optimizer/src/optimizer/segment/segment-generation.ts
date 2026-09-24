@@ -206,6 +206,7 @@ export function buildSegmentImportList(
     '_noopQrl',
     '_noopQrlDEV',
     '_qrlSync',
+    '_capturesObj',
     '_captures',
     '_jsxSorted',
     '_jsxSplit',

@@ -1,9 +1,10 @@
 import { createMacroTask } from '../shared/platform/next-tick';
-import { config, isJSRegex, isBrowser, yieldInterval } from './constants';
-import { adjustProbabilities, bundles, shouldResetFactor, nextTriggerMacroTask } from './queue';
+import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
+import { adjustProbabilities, bundles, nextTriggerMacroTask, shouldResetFactor } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
-import { BundleImportState_None, BundleImportState_Alias } from './types';
+import { BundleImportState_Alias, BundleImportState_None } from './types';
 
+// Note, making these singletons pulls in too much code and they are ok being module-scoped
 export let base: string | undefined;
 export let graph: BundleGraph;
 

@@ -19,6 +19,27 @@ interface IdentifierRecord {
   readonly isShorthand: boolean;
 }
 
+/** True for a `_capturesObj._[N]` unpack, or the legacy `_captures[N]` of pre-built libraries. */
+function isCapturesRead(node: AstNode | undefined): boolean {
+  if (node?.type !== 'MemberExpression') {
+    return false;
+  }
+  const holder = (node as never as { object: AstNode }).object;
+  if (holder.type === 'Identifier') {
+    return (holder as never as { name: string }).name === '_captures';
+  }
+  if (holder.type !== 'MemberExpression') {
+    return false;
+  }
+  const { object, property } = holder as never as { object: AstNode; property: AstNode };
+  return (
+    object.type === 'Identifier' &&
+    (object as never as { name: string }).name === '_capturesObj' &&
+    property.type === 'Identifier' &&
+    (property as never as { name: string }).name === '_'
+  );
+}
+
 export function applyModuleHygieneRenames(code: string, filename: string): string {
   let program: AstProgram;
   try {
@@ -35,7 +56,7 @@ export function applyModuleHygieneRenames(code: string, filename: string): strin
   // declaration node's position so distinct bindings of one name separate).
   const records: IdentifierRecord[] = [];
   const allNames = new Set<string>();
-  // `const fieldN = _captures[i]` unpacks mirror an outer binding SWC renames
+  // `const fieldN = _capturesObj._[i]` unpacks mirror an outer binding SWC renames
   // in lockstep — their names are reusable, not collisions.
   const captureUnpackNames = new Set<string>();
   const captureUnpackDeclKeys = new Set<string>();
@@ -76,11 +97,7 @@ export function applyModuleHygieneRenames(code: string, filename: string): strin
       const isCaptureUnpack =
         p?.type === 'VariableDeclarator' &&
         (p as never as { id: AstNode }).id === n &&
-        (p as never as { init?: AstNode }).init?.type === 'MemberExpression' &&
-        (
-          (p as never as { init: { object?: { type: string; name?: string } } }).init.object ??
-          ({} as { type?: string; name?: string })
-        ).name === '_captures';
+        isCapturesRead((p as never as { init?: AstNode }).init);
       if (isCaptureUnpack) {
         captureUnpackNames.add(name);
         const unpackDecl = tracker.getDeclaration(name) as { start?: number; end?: number } | null;

@@ -6,7 +6,7 @@ import { Slot } from '../jsx/slot.public';
 import { Fragment } from '../jsx/jsx-runtime';
 
 /** Used to represent an undefined value that must be serialized */
-export const explicitUndefined = Symbol('undefined');
+export const explicitUndefined = Symbol.for('qwik.undefined');
 export const EMPTY_OBJECT_PAYLOAD = 0;
 
 export const enum Constants {

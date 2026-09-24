@@ -7,7 +7,7 @@ import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { Slot } from '../shared/jsx/slot.public';
 import { isServerPlatform } from '../shared/platform/platform';
 import { inlinedQrl } from '../shared/qrl/qrl';
-import { _captures } from '../shared/qrl/qrl-class';
+import { _capturesObj } from '../shared/qrl/qrl-class';
 import { noSerialize, type NoSerialize } from '../shared/serdes/verify';
 import { canRevealRegistration, type RevealOrder } from '../shared/utils/reveal';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
@@ -59,7 +59,7 @@ const createRevealContext = (props: RevealProps): RevealContext => {
 
 /** @internal */
 export const revealCanReveal = () => {
-  const registration = _captures![0] as RevealRegistration | null;
+  const registration = _capturesObj._![0] as RevealRegistration | null;
   // `version` is monotonic; the branch keeps the subscription read from being dropped by minifiers.
   if (registration !== null && registration.reveal.version.value < 0) {
     return false;
@@ -75,7 +75,7 @@ export const revealCanReveal = () => {
 
 /** @internal */
 export const revealCleanupTask = ({ cleanup }: TaskCtx) => {
-  const registration = _captures![0] as RevealRegistration;
+  const registration = _capturesObj._![0] as RevealRegistration;
   cleanup(() => {
     // Keep the SSR registry intact so `reveal.items` serializes for resume.
     if (qTest ? isServerPlatform() : !isBrowser) {
@@ -163,19 +163,17 @@ type SSRRevealSlotProps = {
   coordinator: OutOfOrderRevealCoordinator;
 };
 
-const SSRRevealSlot = __EXPERIMENTAL__.suspense
-  ? /*#__PURE__*/ createInternalServerComponent<SSRRevealSlotProps>(
-      (ssr, jsx, _options, enqueue) => {
-        const coordinator = jsx.varProps.coordinator as OutOfOrderRevealCoordinator;
-        enqueue(() => {
-          const script = coordinator.script();
-          if (!script) {
-            return;
-          }
-          ssr.emitOutOfOrderExecutorIfNeeded();
-          ssr.emitInlineScript(script);
-        });
-        enqueue(/*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, 'u7_0'));
+const SSRRevealSlot = /*#__PURE__*/ createInternalServerComponent<SSRRevealSlotProps>(
+  (ssr, jsx, _options, enqueue) => {
+    const coordinator = jsx.varProps.coordinator as OutOfOrderRevealCoordinator;
+    enqueue(() => {
+      const script = coordinator.script();
+      if (!script) {
+        return;
       }
-    )
-  : null!;
+      ssr.emitOutOfOrderExecutorIfNeeded();
+      ssr.emitInlineScript(script);
+    });
+    enqueue(/*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, 'u7_0'));
+  }
+);

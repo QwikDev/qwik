@@ -5,6 +5,7 @@ import type { SubscriptionPatch } from '../shared/serdes/subscription-patch';
 import { QStatePatchAttrSelector, QSuspenseResolved } from '../shared/utils/markers';
 import { qDev } from '../shared/utils/qdev';
 import type { DomContainer } from './dom-container';
+import { registerSingleton } from '../shared/singletons';
 
 type SegmentStateContainer = {
   element: Element;
@@ -16,7 +17,10 @@ type SegmentStateContainer = {
   $getObjectById$: (id: number | string) => unknown;
 };
 
-const processedStatePatchScripts = new WeakMap<DomContainer, WeakSet<Element>>();
+const processedStatePatchScripts = registerSingleton(
+  'processedStatePatchScripts',
+  () => new WeakMap<DomContainer, WeakSet<Element>>()
+);
 
 export function* processSegmentStateScriptsIterator(
   container: DomContainer,

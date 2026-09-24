@@ -358,10 +358,11 @@ function collectExtractedCalleeNames(ctx: RewriteContext): void {
   for (const ext of ctx.extractions) {
     ctx.extractedCalleeNames.add(ext.calleeName);
     if (ext.isInlinedQrl) {
-      // `_captures` is a runtime helper used inside inlinedQrl bodies, not a
+      // `_capturesObj` is a runtime helper used inside inlinedQrl bodies, not a
       // marker callee. Stripping its import is only safe when bodies extract to
       // segment files; under inline/hoist they stay in the parent and still need it.
       if (!ctx.isInline) {
+        ctx.extractedCalleeNames.add('_capturesObj');
         ctx.extractedCalleeNames.add('_captures');
       }
       ctx.extractedCalleeNames.add('_inlinedQrl');

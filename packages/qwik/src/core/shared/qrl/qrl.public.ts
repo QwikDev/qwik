@@ -2,6 +2,7 @@ import { qDev, qRuntimeQrl } from '../utils/qdev';
 import type { QRLDev } from './qrl';
 import { createQRL } from './qrl-class';
 import { SYNC_QRL } from './qrl-utils';
+import { registerSingleton } from '../singletons';
 
 // We use `unknown` instead of `never` when it's not a function so we allow assigning QRL<function> to QRL<any>
 export type QrlArgs<T> = T extends (...args: infer ARGS) => any ? ARGS : unknown[];
@@ -160,7 +161,7 @@ type BivariantQrlFn<ARGS extends any[], RETURN> = {
   bivarianceHack(...args: ARGS): Promise<RETURN>;
 }['bivarianceHack'];
 
-let runtimeSymbolId = 0;
+const runtimeSymbolIds = registerSingleton('runtimeSymbolIds', () => ({ next: 0 }));
 
 /**
  * Alias for `QRL<T>`. Of historic relevance only.
@@ -254,7 +255,7 @@ export const $ = <T>(expression: T): QRL<T> => {
     );
   }
 
-  return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null);
+  return createQRL<T>(null, 's' + runtimeSymbolIds.next++, expression, null, null);
 };
 /** @private Use To avoid optimizer replacement */
 export const dollar = $;

@@ -2,6 +2,7 @@ import type { VNodeFlags } from '../../client/types';
 import type { Props } from '../jsx/jsx-runtime';
 import { VirtualVNode } from './virtual-vnode';
 import { VNode } from './vnode';
+import { Brand, brandClass } from '../utils/brand';
 
 /** @internal */
 export class ElementVNode extends VirtualVNode {
@@ -20,3 +21,4 @@ export class ElementVNode extends VirtualVNode {
     super(key, flags, parent, previousSibling, nextSibling, props, firstChild, lastChild);
   }
 }
+brandClass(ElementVNode, Brand.ElementVNode);

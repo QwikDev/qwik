@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5645
+assertion_line: 5831
 expression: output
 ---
 ==INPUT==
@@ -48,10 +48,10 @@ export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CAyBZ\"}")
 ============================= test.tsx_test_component_div_div_div_button_q_e_click_7fyCCEiYKFo.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const test_component_div_div_div_button_q_e_click_7fyCCEiYKFo = ()=>{
-    const planeId = _captures[0];
+    let planeId = _capturesObj._[0];
     return console.log(planeId);
 };
 

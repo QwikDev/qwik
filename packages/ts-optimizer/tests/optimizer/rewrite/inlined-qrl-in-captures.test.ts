@@ -17,12 +17,12 @@ function transform(source: string, entryType: 'smart' | 'segment' | 'hoist' = 's
 
 const NESTED_CAPTURE_QRL = `import { componentQrl, inlinedQrl, useComputedQrl, _jsxSorted } from "@qwik.dev/core";
 const C = /* @__PURE__ */ componentQrl(/* @__PURE__ */ inlinedQrl((props) => {
-  const context = _captures[0], itemValue = _captures[1];
+  const context = _capturesObj._[0], itemValue = _capturesObj._[1];
   const isInactive = useComputedQrl(/* @__PURE__ */ inlinedQrl(() => {
-    const context = _captures[0], isActive = _captures[1];
+    const context = _capturesObj._[0], isActive = _capturesObj._[1];
     return !context.isScroller.value && !isActive.value;
   }, "C_component_isInactive_useComputed_FiPjs4VxdJg", [context, useComputedQrl(/* @__PURE__ */ inlinedQrl(() => {
-    const context = _captures[0], itemValue = _captures[1];
+    const context = _capturesObj._[0], itemValue = _capturesObj._[1];
     return context.currentValue.value === itemValue;
   }, "C_component_isActive_useComputed_kbFhYQZkoVA", [context, itemValue]))]));
   return /* @__PURE__ */ _jsxSorted("div", null, { "data-x": isInactive }, null, 3, null);

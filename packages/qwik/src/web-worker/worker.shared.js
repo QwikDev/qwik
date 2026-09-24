@@ -1,5 +1,5 @@
 import { setPlatform } from '@qwik.dev/core';
-import { _deserialize } from '@qwik.dev/core/internal';
+import { _deserialize, _getSingleton } from '@qwik.dev/core/internal';
 
 const getSymbolHash = (symbolName) => {
   const index = symbolName.lastIndexOf('_');
@@ -11,7 +11,7 @@ const createWorkerPlatform = (qrlBaseUrl) => {
     isServer: true,
     async importSymbol(_containerEl, url, symbolName) {
       const hash = getSymbolHash(symbolName);
-      const regSym = globalThis.__qwik_reg_symbols?.get(hash);
+      const regSym = _getSingleton('regSymbols')?.get(hash);
       if (regSym) {
         return regSym;
       }
@@ -21,7 +21,7 @@ const createWorkerPlatform = (qrlBaseUrl) => {
       }
 
       const module = await import(/* @vite-ignore */ new URL(url, qrlBaseUrl).href);
-      const symbol = module[symbolName] ?? globalThis.__qwik_reg_symbols?.get(hash);
+      const symbol = module[symbolName] ?? _getSingleton('regSymbols')?.get(hash);
       if (symbol === undefined) {
         throw new Error(`Dynamic import ${symbolName} not found`);
       }

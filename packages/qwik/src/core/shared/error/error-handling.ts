@@ -173,7 +173,7 @@ export const markErrorFromDeferredSegment = (store: ErrorBoundaryStore): void =>
 export const isErrorFromDeferredSegment = (store: ErrorBoundaryStore): boolean =>
   boundariesWithDeferredError.has(store);
 
-const ERROR_PHASE = /*#__PURE__*/ Symbol('qErrorPhase');
+const ERROR_PHASE = /*#__PURE__*/ Symbol.for('qwik.qErrorPhase');
 
 export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryPhase): void => {
   try {

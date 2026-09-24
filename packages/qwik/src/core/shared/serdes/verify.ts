@@ -163,7 +163,7 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
  *
  * @public
  */
-export const NoSerializeSymbol = Symbol('noSerialize');
+export const NoSerializeSymbol = Symbol.for('qwik.noSerialize');
 /**
  * If an object has this property as a function, it will be called with the object and should return
  * a serializable value.
@@ -180,4 +180,4 @@ export const NoSerializeSymbol = Symbol('noSerialize');
  *
  * @public
  */
-export const SerializerSymbol = Symbol('serialize');
+export const SerializerSymbol = Symbol.for('qwik.serialize');

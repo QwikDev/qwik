@@ -741,9 +741,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 }
 
 /**
- * This plugin checks for external dependencies that should be included in the server bundle,
- * because they use Qwik. If they are not included, the optimizer won't process them, and there will
- * be two instances of Qwik Core loaded.
+ * Qwik libraries ship pre-built `.qwik.mjs` code, so the server bundle can leave them external:
+ * core shares its runtime state with the copy such a library loads. Two things still keep a library
+ * in the server bundle: it uses Qwik Router, whose virtual modules only exist inside the bundle, or
+ * the user lists it in `ssr.noExternal`. On the client every Qwik library is excluded from dep
+ * optimization, so the optimizer can split its QRLs into segments.
  */
 async function checkExternals() {
   let fs: typeof import('fs').promises;
@@ -765,10 +767,19 @@ async function checkExternals() {
   }
 
   const seen: Set<string> = new Set();
-  const qwikDeps: string[] = [];
+  /**
+   * Qwik libraries that use Qwik Router or v1 package names, so they must stay in the server
+   * bundle.
+   */
+  const bundledDeps: string[] = [];
   let rootDir: string;
-  const core2 = '@qwik.dev/core';
-  const core1 = '@builder.io/qwik';
+  const coreNames = ['@qwik.dev/core', '@builder.io/qwik'];
+  // Router users need the router's virtual modules; v1 package names need the bundler's aliases
+  const bundledNames = ['@qwik.dev/router', '@builder.io/qwik', '@builder.io/qwik-city'];
+  const bundledImport = /["'](?:@qwik\.dev\/router|@builder\.io\/qwik(?:-city)?)(?:\/[^"']*)?["']/;
+  const scannableFile = /\.(?:m?js|cjs)$/;
+  const maxScannedFiles = 500;
+
   async function getInstalledDependencies(root: string): Promise<string[]> {
     // Walk up from `root` and union deps from every package.json we find, so
     // monorepo setups where Vite's root points at a sub-project still pick up
@@ -803,36 +814,81 @@ async function checkExternals() {
     return [...deps];
   }
 
-  async function isQwikDep(dep: string, dir: string) {
+  /** Finds the installed package.json of `dep`, looking in the node_modules above `dir`. */
+  async function readDepPackageJson(dep: string, dir: string) {
     while (dir) {
-      const pkg = path.join(dir, 'node_modules', dep, 'package.json');
+      const pkgDir = path.join(dir, 'node_modules', dep);
       try {
-        await fs.access(pkg);
-        const data = await fs.readFile(pkg, {
-          encoding: 'utf-8',
-        });
-        // any mention of lowercase qwik in the package.json is enough
-        const json = JSON.parse(data);
-        if (
-          json.qwik ||
-          json.dependencies?.[core2] ||
-          json.peerDependencies?.[core2] ||
-          json.devDependencies?.[core2] ||
-          json.dependencies?.[core1] ||
-          json.peerDependencies?.[core1] ||
-          json.devDependencies?.[core1]
-        ) {
-          return true;
-        }
-        return false;
+        const data = await fs.readFile(path.join(pkgDir, 'package.json'), { encoding: 'utf-8' });
+        return { pkgDir, json: JSON.parse(data) };
       } catch {
-        //empty
+        // not installed at this level
       }
       const nextRoot = path.dirname(dir);
       if (nextRoot === dir) {
         break;
       }
       dir = nextRoot;
+    }
+    return null;
+  }
+
+  const declaresDependency = (json: any, names: string[], sections: string[]) =>
+    sections.some((section) => names.some((name) => json[section]?.[name]));
+
+  async function isQwikDep(dep: string, dir: string) {
+    const pkg = await readDepPackageJson(dep, dir);
+    return (
+      !!pkg &&
+      !!(
+        pkg.json.qwik ||
+        declaresDependency(pkg.json, coreNames, [
+          'dependencies',
+          'peerDependencies',
+          'devDependencies',
+        ])
+      )
+    );
+  }
+
+  /**
+   * Whether the installed package imports Qwik Router or a v1 package name. A runtime dependency
+   * declares it; a devDependency (the library starter lists the router there) only counts when the
+   * published files import it. A package too large to scan is bundled, which is always safe.
+   */
+  async function needsServerBundle(dep: string, dir: string) {
+    const pkg = await readDepPackageJson(dep, dir);
+    if (!pkg) {
+      return false;
+    }
+    if (declaresDependency(pkg.json, bundledNames, ['dependencies', 'peerDependencies'])) {
+      return true;
+    }
+    const pending = [pkg.pkgDir];
+    let scanned = 0;
+    while (pending.length) {
+      const dir = pending.pop()!;
+      let entries: import('fs').Dirent[];
+      try {
+        entries = await fs.readdir(dir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const entry of entries) {
+        const entryPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name !== 'node_modules') {
+            pending.push(entryPath);
+          }
+        } else if (scannableFile.test(entry.name)) {
+          if (scanned++ >= maxScannedFiles) {
+            return true;
+          }
+          if (bundledImport.test(await fs.readFile(entryPath, { encoding: 'utf-8' }))) {
+            return true;
+          }
+        }
+      }
     }
     return false;
   }
@@ -858,22 +914,26 @@ async function checkExternals() {
          * so the Qwik plugin can transform their $() calls.
          */
         const candidates = await getInstalledDependencies(root);
-        qwikDeps.length = 0;
+        const qwikDeps: string[] = [];
+        bundledDeps.length = 0;
         for (const dep of candidates) {
           if (await isQwikDep(dep, root)) {
             qwikDeps.push(dep);
+            if (await needsServerBundle(dep, root)) {
+              bundledDeps.push(dep);
+            }
           }
         }
         const toExclude = qwikDeps.filter((dep) => !optimizeDepsExclude.includes(dep));
         return {
           optimizeDeps: { exclude: toExclude },
-          ssr: { noExternal: toExclude },
+          ssr: { noExternal: [...bundledDeps] },
         };
       },
     },
-    // qwik deps need to be marked as noExternal per-environment
+    // bundled qwik deps need to be marked as noExternal per-environment
     configEnvironment(_name: string, options: Record<string, any>) {
-      if (qwikDeps.length === 0) {
+      if (bundledDeps.length === 0) {
         return;
       }
       const existing = options.resolve?.noExternal;
@@ -889,10 +949,10 @@ async function checkExternals() {
         currentList = [];
       }
       return {
-        resolve: { noExternal: [...currentList, ...qwikDeps] },
+        resolve: { noExternal: [...currentList, ...bundledDeps] },
       };
     },
-    // We check all SSR build lookups for external Qwik deps
+    // A Qwik dep that needs bundling but ends up external would break at runtime
     resolveId: {
       order: 'pre',
       async handler(source, importer, options) {
@@ -920,12 +980,12 @@ async function checkExternals() {
           return;
         }
         if (result?.external) {
-          // Qwik deps should not be external
-          if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
+          const dir = importer ? path.dirname(importer) : rootDir;
+          if ((await isQwikDep(packageName, dir)) && (await needsServerBundle(packageName, dir))) {
             // TODO link to docs
             throw new Error(
               `\n==============\n` +
-                `${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik and it needs to be processed by the optimizer.\n` +
+                `${packageName} is being treated as an external dependency, but it uses Qwik Router, whose virtual modules only exist inside the server bundle.\n` +
                 `Please add the package to "ssr.noExternal[]" as well as "optimizeDeps.exclude[]" in the Vite config. \n` +
                 `==============\n`
             );

@@ -8,8 +8,17 @@ import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { Render, RenderToStreamOptions } from '@qwik.dev/core/server';
 import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
-import { existsSync, readdirSync, readFileSync, rmSync, statSync, unlinkSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  unlinkSync,
+} from 'node:fs';
+import { basename, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build, type InlineConfig, type PluginOption } from 'vite';
 import type { PackageJSON } from '../../scripts/types.ts';
@@ -92,10 +101,11 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     const pkgPath = join(appDir, 'package.json');
     const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
+    const externalLibraries: string[] = pkgJson.__qwik__?.externalLibraries ?? [];
 
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
-      clientManifest = buildApp(appDir, appName, enableRouterServer);
+      clientManifest = buildApp(appDir, appName, enableRouterServer, externalLibraries);
       cache.set(appDir, clientManifest);
     }
 
@@ -122,8 +132,16 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function buildApp(appDir: string, appName: string, enableRouterServer: boolean) {
+async function buildApp(
+  appDir: string,
+  appName: string,
+  enableRouterServer: boolean,
+  externalLibraries: string[]
+) {
   const optimizer = await import('@qwik.dev/core/optimizer');
+  for (const libraryName of externalLibraries) {
+    await buildLibrary(join(appsDir, libraryName), optimizer);
+  }
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
@@ -271,6 +289,41 @@ export { router }
   return clientManifest!;
 }
 
+/**
+ * Builds a fixture library the way a published Qwik library is built (lib mode, core external) and
+ * installs it as a real package under this e2e package's node_modules, so Vite treats it as a
+ * dependency rather than as linked source and leaves it external on the server.
+ */
+async function buildLibrary(
+  libraryDir: string,
+  optimizer: typeof import('@qwik.dev/core/optimizer')
+) {
+  const outDir = join(libraryDir, 'lib');
+  removeDir(outDir);
+  await build({
+    root: libraryDir,
+    mode: 'lib',
+    configFile: false,
+    logLevel: 'warn',
+    resolve: { conditions: ['development'], mainFields: [] },
+    build: {
+      outDir,
+      minify: false,
+      lib: {
+        entry: join(libraryDir, 'src', 'index.tsx'),
+        formats: ['es'],
+        fileName: () => 'index.qwik.mjs',
+      },
+    },
+    plugins: [optimizer.qwikVite({ tsOptimizer: true })],
+  });
+  const installDir = join(e2eDir, 'node_modules', basename(libraryDir));
+  removeDir(installDir);
+  mkdirSync(installDir, { recursive: true });
+  cpSync(join(libraryDir, 'package.json'), join(installDir, 'package.json'));
+  cpSync(outDir, join(installDir, 'lib'), { recursive: true });
+}
+
 function csrApp(res: Response, appName: string) {
   res.set('Content-Type', 'text/html; charset=utf-8');
   res.send(`<!DOCTYPE html>
@@ -304,8 +357,7 @@ function removeDir(dir: string) {
 
 async function routerApp(req: Request, res: Response, next: NextFunction, appDir: string) {
   const ssrPath = join(appDir, 'server', `${qwikRouterVirtualEntry}.js`);
-  // it's ok in the devserver to import core multiple times
-  (globalThis as any).__qwik = null;
+  // it's ok in the devserver to import core multiple times (same version shares singletons)
   const mod = await import(file(ssrPath));
   const router: any = mod.router;
   router(req, res, next);
@@ -319,8 +371,7 @@ async function ssrApp(
   manifest: QwikManifest
 ) {
   const ssrPath = join(appDir, 'server', 'entry.ssr.js');
-  // it's ok in the devserver to import core multiple times
-  (globalThis as any).__qwik = null;
+  // it's ok in the devserver to import core multiple times (same version shares singletons)
   const mod = await import(file(ssrPath));
   const render: Render = mod.default ?? mod.render;
 

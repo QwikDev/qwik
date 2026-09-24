@@ -210,7 +210,7 @@ function f() {
 
   it('addProgramScopeConst classifies as const everywhere, overriding inner var bindings', () => {
     const source = `
-const state = _captures[0];
+let state = _capturesObj._[0];
 function inner() {
   use(state);
 }`;

@@ -1,6 +1,6 @@
 import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import {
-  _captures,
+  _capturesObj,
   deserializeCaptureDeltas,
   setCaptures,
   type QRLInternal,
@@ -19,7 +19,7 @@ import type { QRL } from '../shared/qrl/qrl.public';
  *
  * When called by the qwikloader or the test dispatch, `this` is the serialized captures string
  * which we deserialize to get the host VNode. When called through `_qDispatch` (client-rendered),
- * `_captures` is already set by `ensureQrlCaptures` in the QRL call chain.
+ * `_capturesObj._` is already set by `ensureQrlCaptures` in the QRL call chain.
  *
  * @internal
  */
@@ -34,12 +34,12 @@ export const _hmr = function (
     if (typeof this === 'string') {
       setCaptures(deserializeCaptureDeltas(container, this));
     }
-    const devPath = _captures?.[1] as string | undefined;
+    const devPath = _capturesObj._?.[1] as string | undefined;
     const hmrPath = devPath ?? element.getAttribute('data-qwik-inspector');
     if (!hmrPath || !event.detail.files.some((file) => hmrPath.startsWith(file))) {
       return;
     }
-    const host = _captures?.[0] as VNode | undefined;
+    const host = _capturesObj._?.[0] as VNode | undefined;
     if (!host || host.flags & VNodeFlags.Deleted) {
       return;
     }

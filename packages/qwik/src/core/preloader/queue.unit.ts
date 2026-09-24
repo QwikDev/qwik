@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createDocument } from '@qwik.dev/core/testing';
 
+const importAndResetState = async () => {
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  return { initPreloader, preload };
+};
+
 const originalWindow = globalThis.window;
 const originalDocument = globalThis.document;
 const originalHTMLElement = globalThis.HTMLElement;
@@ -72,8 +78,7 @@ test('appends preloads directly to head within a trigger slice', async () => {
   await installTestPlatform();
 
   const headAppend = vi.spyOn(document.head, 'appendChild');
-  const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
+  const { initPreloader, preload } = await importAndResetState();
 
   initPreloader(['entry-a.js', 'entry-b.js']);
   preload(['entry-a.js', 'entry-b.js'], 1);
@@ -103,8 +108,7 @@ test('yields after the frame budget and resumes later', async () => {
 
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-  const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
+  const { initPreloader, preload } = await importAndResetState();
 
   initPreloader(['entry-a.js', 'entry-b.js', 'entry-c.js']);
   preload(['entry-a.js', 'entry-b.js', 'entry-c.js'], 1);
@@ -155,8 +159,7 @@ test('yields during dependency propagation and resumes later', async () => {
 
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-  const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
+  const { initPreloader, preload } = await importAndResetState();
 
   initPreloader(createLinearGraph(4));
   preload('entry-a.js', 1);
@@ -196,8 +199,7 @@ test('can yield more than once while propagating dependencies', async () => {
 
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-  const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
+  const { initPreloader, preload } = await importAndResetState();
 
   initPreloader(createLinearGraph(7));
   preload('entry-a.js', 1);

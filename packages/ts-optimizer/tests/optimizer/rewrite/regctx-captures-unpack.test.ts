@@ -32,7 +32,7 @@ export default component$(() => {
     .join('\n');
   const i = out.indexOf('_regSymbol(');
   const body = out.slice(i, out.indexOf('.s(', i));
-  expect(body).toContain('_captures[0]');
+  expect(body).toContain('_capturesObj._[0]');
 });
 
 it('does not emit a stripped segment for an inline registered context', () => {

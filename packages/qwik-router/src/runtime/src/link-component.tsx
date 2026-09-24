@@ -117,7 +117,7 @@ export const Link = component$<LinkProps>((props) => {
         handleClientSideNavigation,
       ]}
       onPointerEnter$={[
-        linkProps.onMouseOver$,
+        linkProps.onPointerEnter$,
         prefetchDataProp === 'intent' ? prefetchData : null,
       ]}
       onFocus$={[linkProps.onFocus$, prefetchDataProp === 'intent' ? prefetchData : null]}

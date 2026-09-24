@@ -21,6 +21,9 @@ vi.mock('./utils.ts', async (importOriginal) => {
   };
 });
 
+const onPointerEnterMock = vi.fn();
+const onMouseOverMock = vi.fn();
+
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
@@ -76,6 +79,8 @@ describe.each([
     getClientNavPathMock.mockClear();
     getClientNavPathMock.mockReturnValue('http://localhost/test');
     prefetchRouteMock.mockClear();
+    onPointerEnterMock.mockClear();
+    onMouseOverMock.mockClear();
   });
 
   it('prefetches bundles by default and prefetches route data on intent by default', async () => {
@@ -217,5 +222,30 @@ describe.each([
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/test', false, 1);
+  });
+
+  it('calls onPointerEnter$ on pointerenter, not onMouseOver$', async () => {
+    const HandlersRoot = component$(() => {
+      return (
+        <QwikRouterMockProvider>
+          <Link
+            href="/test"
+            onPointerEnter$={() => onPointerEnterMock()}
+            onMouseOver$={() => onMouseOverMock()}
+          >
+            Test Link
+          </Link>
+        </QwikRouterMockProvider>
+      );
+    });
+    const { document } = await render(<HandlersRoot />, {
+      debug,
+    });
+    const anchor = document.querySelector('a');
+
+    await trigger(document.body, anchor, 'pointerenter');
+
+    expect(onPointerEnterMock).toHaveBeenCalledTimes(1);
+    expect(onMouseOverMock).not.toHaveBeenCalled();
   });
 });

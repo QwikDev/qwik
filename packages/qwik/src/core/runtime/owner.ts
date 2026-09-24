@@ -18,6 +18,7 @@ export type OwnerItems = OwnerItem | OwnerItem[] | null;
 // subscriber should be owned so it can be disposed and removed from sources.
 export class Owner {
   parent: Owner | null = null;
+  renderParent?: Owner | null;
   items: OwnerItems = null;
   flags = OwnerFlags.None;
 }

@@ -72,6 +72,7 @@ import {
   findTextNode,
 } from '../../runtime/node-walker';
 import {
+  isSubscriberDisposed,
   SubscriberKind,
   type ComputedSubscriber,
   type DomSubscriber,
@@ -442,14 +443,20 @@ const inflateResolved = (
       break;
     }
     case TypeIds.Owner: {
-      restoreOwnerItems(container, data as SerializedOwnerItems, target as Owner);
+      const items = data as (Owner | Subscriber | null)[];
+      if (items[0] === null) {
+        (target as Owner).renderParent = items[1] as Owner | null;
+        restoreOwnerItems(items.slice(2) as SerializedOwnerItems, target as Owner);
+      } else {
+        restoreOwnerItems(items as SerializedOwnerItems, target as Owner);
+      }
       break;
     }
     case TypeIds.Projection: {
       const projection = target as Projection;
       const d = data as unknown[];
       projection.renderQrl = d[0];
-      projection.owner = null;
+      projection.owner = (d[3] as Owner | null) ?? null;
       projection.nodes = null;
       projection.slotScope = (d[1] as SlotScope | null) ?? null;
       projection.name = d[2] as Projection['name'];
@@ -607,7 +614,7 @@ async function restoreBranchSubscription(
   if (Array.isArray(ownedItems) && ownedItems.length > 0) {
     const owner = createOwner(subscription.owner);
     subscription.branch.currentOwner = owner;
-    restoreOwnerItems(container, ownedItems, owner);
+    restoreOwnerItems(ownedItems, owner);
   }
 }
 
@@ -705,23 +712,17 @@ async function restoreContentSubscription(
   if (Array.isArray(ownedItems) && ownedItems.length > 0) {
     const owner = createOwner(subscription.owner);
     subscription.block.currentOwner = owner;
-    restoreOwnerItems(container, ownedItems, owner);
+    restoreOwnerItems(ownedItems, owner);
   }
 }
 
-function restoreOwnerItems(
-  container: ContainerContext,
-  items: SerializedOwnerItems,
-  owner: Owner
-): void {
+function restoreOwnerItems(items: SerializedOwnerItems, owner: Owner): void {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     if (item instanceof Owner) {
       // the child arrived with its own identity; adopting it keeps the tree, not a copy
       registerOwnerToOwner(item, owner);
-    } else if (!container.state.retiredRoots.has(item as object)) {
-      // a retired root was never inflated; adopting it would defeat the owner === null
-      // guard that keeps an uninflated shell from being run or disposed
+    } else if (!isSubscriberDisposed(item)) {
       registerSubscriberToOwner(item, owner);
     }
   }

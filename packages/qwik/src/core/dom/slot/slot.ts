@@ -403,7 +403,13 @@ function renderSsrProjections(
   }
   if (projections.length === 1) {
     const projection = projections[0];
-    return renderSsrProjection(ctx, projection.renderQrl, projection.slotScope, context);
+    return renderSsrProjection(
+      ctx,
+      projection.renderQrl,
+      projection.slotScope,
+      context,
+      projection
+    );
   }
 
   const output: SsrOutput[] = [];
@@ -412,7 +418,8 @@ function renderSsrProjections(
       ctx,
       projections[i].renderQrl,
       projections[i].slotScope,
-      context
+      context,
+      projections[i]
     );
     if (isPromise(projected)) {
       return projected.then((resolved) => {
@@ -430,11 +437,13 @@ function project(
   container: ContainerContext,
   parentInvokeContext: RuntimeInvokeContext | null
 ): ValueOrPromise<readonly Node[]> {
+  const renderParent = getOrCreateContextOwner(parentInvokeContext);
   if (projection.owner !== null && projection.owner.flags & OwnerFlags.Disposed) {
     projection.owner = null;
     projection.nodes = null;
   }
   if (projection.nodes !== null) {
+    projection.owner!.renderParent = renderParent;
     return projection.nodes;
   }
   const render = getFunctionOrResolve(
@@ -445,7 +454,7 @@ function project(
     // The QRL may resolve asynchronously, so the caller's context is passed in rather than read
     // from the ambient one, which is already gone by the time this runs.
     const invokeContext = newChildInvokeContext(parentInvokeContext, {
-      ownerHost: projection.owner ?? getOrCreateContextOwner(parentInvokeContext),
+      ownerHost: projection.owner ?? renderParent,
       container,
       slotScope: projection.slotScope,
     });
@@ -456,6 +465,7 @@ function project(
         const nodes = toNodes(output);
         // The cache is dropped only when this owner is disposed, so it must never stay unmaterialized.
         projection.owner = getOrCreateContextOwner(invokeContext);
+        projection.owner!.renderParent = renderParent;
         projection.nodes = nodes;
         return nodes;
       },
@@ -474,21 +484,29 @@ function renderSsrProjection(
   ctx: SsrSlotContext,
   renderQrl: unknown,
   slotScope: SlotScope | null,
-  base: RuntimeInvokeContext
+  base: RuntimeInvokeContext,
+  projection?: Projection
 ): ValueOrPromise<SsrOutput> {
   const rangeId = ctx.nextId();
+  const renderParent = getOrCreateContextOwner(base);
   const render = getFunctionOrResolve(
     renderQrl as SsrSlotRenderFn | QRL<SsrSlotRenderFn>,
     ctx as any
   );
   return maybeThen(render, (render) => {
     const invokeContext = newChildInvokeContext(base, {
-      ownerHost: getOrCreateContextOwner(base),
+      ownerHost: renderParent,
       slotScope,
     });
     return safeCall(
       () => runWithCollector(null, invoke, invokeContext, render, ctx, rangeId),
-      (output) => output,
+      (output) => {
+        if (projection !== undefined && invokeContext.owner !== null) {
+          projection.owner = invokeContext.owner;
+          projection.owner.renderParent = renderParent;
+        }
+        return output;
+      },
       (error) => {
         if (invokeContext.owner !== null) {
           disposeOwner(invokeContext.owner);
@@ -532,7 +550,8 @@ function renderRemainingSsrProjections(
       ctx,
       projections[i].renderQrl,
       projections[i].slotScope,
-      invokeContext
+      invokeContext,
+      projections[i]
     );
     if (isPromise(projected)) {
       return projected.then((resolved) => {

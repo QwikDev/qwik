@@ -3,8 +3,30 @@ import { _deserialize, _serialize } from './standalone';
 import { PropSource } from '../../component/props';
 import { _noopQrl, _qrlWithChunk } from '../qrl/qrl';
 import { isQrl } from '../qrl/qrl-utils';
+import { createOwner, registerSubscriberToOwner } from '../../runtime/owner';
+import { Task, TaskSubscription } from '../../runtime/task';
+import { Phase } from '../../runtime/scheduler';
+import { createProjection, type Projection } from '../../dom/slot/slot';
 
 describe('standalone serialization', () => {
+  it('restores a projected owner and its render parent without changing ordinary owners', async () => {
+    const lifetimeParent = createOwner(null);
+    const renderParent = createOwner(null);
+    const owner = createOwner(lifetimeParent);
+    owner.renderParent = renderParent;
+    registerSubscriberToOwner(new TaskSubscription(new Task(undefined, Phase.BlockingTask)), owner);
+    const projection = createProjection();
+    projection.owner = owner;
+
+    const [restored, restoredLifetime, restoredRender, ordinary] = (await _deserialize(
+      await _serialize([projection, lifetimeParent, renderParent, createOwner(null)])
+    )) as [Projection, typeof lifetimeParent, typeof renderParent, typeof renderParent];
+
+    expect(restored.owner?.parent).toBe(restoredLifetime);
+    expect(restored.owner?.renderParent).toBe(restoredRender);
+    expect(ordinary.renderParent).toBeUndefined();
+  });
+
   it('round-trips a plain payload', async () => {
     const data = { d: { query: '123', hash: 'NONE' } };
 

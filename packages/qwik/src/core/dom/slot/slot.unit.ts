@@ -35,6 +35,23 @@ describe('slots', () => {
     expect(invoke(context, createSlot)).toBe(nodes);
   });
 
+  it('updates the render parent when a cached projection moves', () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const container = createCaptureContainer({}, scheduler);
+    const scope = createSlotScope();
+    const projection = registerProjection(scope, '', () => [createText('projected')]);
+    const firstHost = createOwner(null);
+    const secondHost = createOwner(null);
+    const first = newInvokeContext({ owner: firstHost, container, slotScope: scope });
+    const second = newInvokeContext({ owner: secondHost, container, slotScope: scope });
+
+    const nodes = invoke(first, createSlot);
+    expect(projection.owner?.parent).toBe(firstHost);
+    expect(invoke(second, createSlot)).toBe(nodes);
+    expect(projection.owner?.parent).toBe(firstHost);
+    expect(projection.owner?.renderParent).toBe(secondHost);
+  });
+
   it('returns one SSR projection without wrapping its output', () => {
     const scheduler = new Scheduler(noopSchedule);
     const container = createCaptureContainer({}, scheduler);

@@ -6,6 +6,7 @@ import { createContainerContext, getContextScopeForNode } from './container-cont
 import { isContextScope } from './context-scope';
 import { EffectKind } from '../dom/effect/effect-kind.enum';
 import { isLazySerialized } from '../reactive/lazy-serialized';
+import { SubscriberFlags } from '../reactive/flags';
 import type { Source } from '../reactive/source';
 import { createSerializationContext } from '../shared/serdes/serialization-context';
 import { useSignal } from '../reactive/public-api';
@@ -85,16 +86,18 @@ describe('ContainerContext', () => {
 
   it('keeps a disposed streamed root out of an owner tree', async () => {
     const container = createContainer(`
-      <script type="qwik/state" q:base="0" q:len="1" q:dispose="0">
-        [${TypeIds.EffectSubscription},[${TypeIds.Plain},${EffectKind.Content}]]
+      <script type="qwik/state" q:base="0" q:len="2" q:dispose="1">
+        [${TypeIds.Owner},[${TypeIds.RootRef},1],
+         ${TypeIds.EffectSubscription},[${TypeIds.Plain},${EffectKind.Content}]]
       </script>
     `);
     const context = createContainerContext(container);
 
-    const retired = (await context.getRoot(0)) as Subscriber;
-    // adopting it would defeat the owner === null guard and let a shell object be disposed
-    expect(context.state.retiredRoots.has(retired as object)).toBe(true);
-    expect(retired.owner).toBe(null);
+    const owner = (await context.getRoot(0)) as { items: unknown };
+    const disposed = (await context.getRoot(1)) as Subscriber;
+    expect(owner.items).toBeNull();
+    expect(disposed.flags & SubscriberFlags.Disposed).toBeTruthy();
+    expect(disposed.owner).toBeNull();
   });
 
   it('attaches streamed subscribers lazily when a source first resumes', async () => {

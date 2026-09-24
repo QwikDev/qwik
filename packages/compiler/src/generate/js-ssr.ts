@@ -80,6 +80,7 @@ import { generateForeignModule } from './foreign';
 import {
   createFailedModule,
   makeOutput,
+  moduleBasename,
   type GenerateOutput,
   type PresentationOptions,
 } from './output';
@@ -1314,6 +1315,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         }
         for (const name of emission.imports) {
           this.imports.add(name);
+        }
+        // Sibling-chunk lines stay out: the mirror prints those functions itself through `usedQrls`.
+        const ownChunk = `./${moduleBasename(this.module)}_`;
+        for (const line of emission.chunkImports) {
+          if (!line.includes(ownChunk) && !this.chunkImports.includes(line)) {
+            this.chunkImports.push(line);
+          }
         }
         // The mirror's uses land on the outer module — this very flush registers them next.
         for (const use of emission.uses) {

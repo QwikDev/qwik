@@ -53,6 +53,22 @@ async function compile(
 }
 
 describe('server-only stripping', () => {
+  test('the SSR task mirror imports its server function twin', async () => {
+    const code = `import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
+export default component$(() => {
+  const count = useSignal(0);
+  useTask$(() => {
+    server$(() => count.value)();
+  });
+  return <span>{count.value}</span>;
+});`;
+    const { main } = await compile(true, { regCtxName: REGISTER_CTX_NAMES }, code);
+
+    expect(main).toMatch(/import \{ serverQrl \} from ["']@qwik.dev\/router["'];/);
+    expect(main).toMatch(/serverQrl\(q_index_serverqrl_segment_/);
+  });
+
   test('the client keeps a stripped boundary as a noop QRL and ships no chunk', async () => {
     const { main, chunks } = await compile(false, { stripCtxName: SERVER_CTX_NAMES });
 

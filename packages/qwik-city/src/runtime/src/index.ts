@@ -42,6 +42,8 @@ export type {
   StaticGenerateHandler,
   ValidatorErrorKeyDotNotation,
   ValidatorErrorType,
+  StandardSchemaConstructor,
+  ValibotConstructor,
   ZodConstructor,
 } from './types';
 
@@ -64,6 +66,7 @@ export { globalAction$, globalActionQrl } from './server-functions';
 export { routeLoader$, routeLoaderQrl } from './server-functions';
 export { server$, serverQrl } from './server-functions';
 export { getRequestEvent } from './server-functions';
+export { standardSchema$, standardSchemaQrl } from './server-functions';
 export { valibot$, valibotQrl } from './server-functions';
 export { zod$, zodQrl } from './server-functions';
 export { validator$, validatorQrl } from './server-functions';

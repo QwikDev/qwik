@@ -6,7 +6,6 @@
 
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { Render, RenderToStreamOptions } from '@qwik.dev/core/server';
-import compression from 'compression';
 import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
 import { existsSync, readdirSync, readFileSync, rmSync, statSync, unlinkSync } from 'node:fs';
@@ -359,13 +358,7 @@ async function ssrApp(
   const ooosRequestId = `${process.pid}-${++ooosRequestCounter}`;
 
   const opts: RenderToStreamOptions = {
-    // compression buffers a held stream, so flush each chunk to keep out-of-order packets observable
-    stream: {
-      write(chunk) {
-        res.write(chunk);
-        (res as Response & { flush?: () => void }).flush?.();
-      },
-    },
+    stream: res,
     manifest,
     debug: true,
     base,
@@ -459,7 +452,6 @@ async function main() {
 
   // Normal server mode
   const app = express();
-  app.use(compression());
   const partytownPath = resolve(repoRoot, 'node_modules', '@qwik.dev', 'partytown', 'lib');
   app.use(`/~partytown`, express.static(partytownPath));
 

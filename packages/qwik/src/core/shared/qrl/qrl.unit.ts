@@ -298,6 +298,18 @@ describe('createQRL', () => {
     assert.deepEqual(resolved(), ['capture-0', 'capture-1']);
     assert.deepEqual(q.resolved!(), ['capture-0', 'capture-1']);
   });
+
+  test('getCaptured restores captures without loading the symbol', async () => {
+    const restoreCaptures = vi.fn(async () => ['capture']);
+    const loadSymbol = vi.fn(() => Promise.resolve({ symbol: () => null }));
+    const q = createQRL('chunk', 'symbol', null, loadSymbol, '0', {
+      restoreCaptures,
+    } as any);
+
+    assert.deepEqual(await q.getCaptured(), ['capture']);
+    assert.deepEqual(restoreCaptures.mock.calls, [['0']]);
+    assert.equal(loadSymbol.mock.calls.length, 0);
+  });
 });
 
 describe('inlinedQrl', () => {

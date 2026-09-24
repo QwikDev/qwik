@@ -76,7 +76,10 @@ export function qrlToString(
     }
   }
 
-  const captures = qrl.getCaptured();
+  const captures = qrl.$captures$;
+  if (typeof captures === 'string') {
+    throw new Error('QRL captures must be restored before serialization.');
+  }
 
   let captureDeltas: string | null = null;
   if (captures && captures.length > 0) {

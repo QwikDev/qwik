@@ -245,7 +245,7 @@ export type QRL<TYPE = unknown> = {
     __brand__QRL__?: TYPE;
     resolve(): Promise<TYPE>;
     resolved: undefined | TYPE;
-    getCaptured(): unknown[] | null;
+    getCaptured(): ValueOrPromise<Readonly<unknown[]> | null | undefined>;
     getSymbol(): string;
     getHash(): string;
     dev?: QRLDev | null;

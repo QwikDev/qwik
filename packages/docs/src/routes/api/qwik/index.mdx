@@ -1947,14 +1947,14 @@ export type QRL<TYPE = unknown> = {
   __brand__QRL__?: TYPE;
   resolve(): Promise<TYPE>;
   resolved: undefined | TYPE;
-  getCaptured(): unknown[] | null;
+  getCaptured(): ValueOrPromise<Readonly<unknown[]> | null | undefined>;
   getSymbol(): string;
   getHash(): string;
   dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
-**References:** [QRLDev](#qrldev)
+**References:** [ValueOrPromise](#valueorpromise), [QRLDev](#qrldev)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 

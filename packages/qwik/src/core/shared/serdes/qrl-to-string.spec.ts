@@ -83,6 +83,14 @@ describe('qrlToString', () => {
   });
 
   describe('capture references', () => {
+    it('rejects captures that have not been restored', () => {
+      const qrl = createQRL('myChunk', 'mySymbol', null, null, '0') as QRLInternal;
+
+      expect(() => qrlToString(mockContext, qrl)).toThrow(
+        'QRL captures must be restored before serialization.'
+      );
+    });
+
     it('should serialize QRL with single capture reference', () => {
       const captureRef = { value: 'captured' };
       const qrl = createQRL('myChunk', 'mySymbol', null, null, [captureRef]) as QRLInternal;

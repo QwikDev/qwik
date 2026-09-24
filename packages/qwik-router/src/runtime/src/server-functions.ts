@@ -358,7 +358,8 @@ export const serverQrl = <T extends ServerFunction>(
   options?: ServerConfig
 ): ServerQRL<T> => {
   if (isServer) {
-    const captured = qrl.getCaptured();
+    const captured = (qrl as QRL<T> & { $captures$?: string | Readonly<unknown[]> | null })
+      .$captures$;
     if (captured && captured.length > 0 && !getActiveInvokeContextOrNull()?.ownerHost) {
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
     }
@@ -410,7 +411,7 @@ export const serverQrl = <T extends ServerFunction>(
       // Serialize the arguments in an array so they don't deduplicate
       // If there is captured scope, include it in the serialization
       // This is deserialized by runServerFunction()
-      const captured = qrl.getCaptured();
+      const captured = await qrl.getCaptured();
       let toSend: [] | [typeof filteredArgs] | [typeof filteredArgs, ...unknown[]] = [filteredArgs];
       if (captured?.length) {
         toSend = [filteredArgs, ...captured];

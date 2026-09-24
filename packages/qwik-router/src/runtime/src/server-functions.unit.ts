@@ -11,11 +11,20 @@ vi.mock('../../middleware/request-handler/async-request-store', () => ({
 }));
 
 import * as z from 'zod';
+import { createQRL } from '@qwik.dev/core';
 import { routeLoader$ } from './route-loaders';
-import { getRequestEvent, routeAction$, server$ } from './server-functions';
+import { getRequestEvent, routeAction$, server$, serverQrl } from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';
 
 describe('types', () => {
+  test('rejects serialized server captures outside an owner', () => {
+    const qrl = createQRL<() => void>('chunk', 'symbol', null, null, '0');
+
+    expect(() => serverQrl(qrl)).toThrow(
+      'For security reasons, we cannot serialize QRLs that capture lexical scope.'
+    );
+  });
+
   test('getRequestEvent returns undefined when no async request store exists', () => {
     mocks.asyncRequestStore = undefined;
 

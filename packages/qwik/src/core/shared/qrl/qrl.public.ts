@@ -2,6 +2,7 @@ import { qDev, qRuntimeQrl } from '../utils/qdev';
 import type { QRLDev } from './qrl';
 import { createQRL } from './qrl-class';
 import { SYNC_QRL } from './qrl-utils';
+import type { ValueOrPromise } from '../utils/types';
 
 // We use `unknown` instead of `never` when it's not a function so we allow assigning QRL<function> to QRL<any>
 export type QrlArgs<T> = T extends (...args: infer ARGS) => any ? ARGS : unknown[];
@@ -143,7 +144,7 @@ export type QRL<TYPE = unknown> = {
   /** The resolved value, once `resolve()` returns. */
   resolved: undefined | TYPE;
 
-  getCaptured(): unknown[] | null;
+  getCaptured(): ValueOrPromise<Readonly<unknown[]> | null | undefined>;
   getSymbol(): string;
   getHash(): string;
   dev?: QRLDev | null;

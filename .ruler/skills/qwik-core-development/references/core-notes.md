@@ -98,12 +98,11 @@ inside `retryOnPromise`, which retries a synchronous throw and a rejected return
 Never resolve QRLs generically at deserialization: handler QRLs arrive as props `statics`, so
 resolving them would import handler chunks that may never run.
 
-A resolved QRL also has its captures restored, which matters because `getCaptured()` discards the
-promise from `restoreQrlCaptures` and returns the raw delta string when captures are still pending.
+A resolved QRL also has its captures restored. Await `getCaptured()` in async consumers; synchronous
+consumers must defer a pending result before using captures.
 
-This class of bug cannot fail a spec: the Vitest harness has every chunk loaded, so
-`getFunctionOrResolve` returns synchronously. Only a resumed browser run against a cold chunk
-exercises it, so verify in e2e.
+Test serialized capture IDs directly in a unit test, then verify the resumed browser path in e2e.
+The Vitest harness has every chunk loaded, so `getFunctionOrResolve` alone does not prove cold resume.
 
 ### Promise Values Cross The Pipeline Boxed
 

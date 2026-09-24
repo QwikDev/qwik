@@ -23,6 +23,9 @@ export function readExpression<T>(
   if (isPromise(fn)) {
     throw fn;
   }
-  const captures = (qrl as QRLInternal<(...captures: unknown[]) => T>).getCaptured() ?? [];
-  return fn(...captures);
+  const captures = (qrl as QRLInternal<(...captures: unknown[]) => T>).getCaptured();
+  if (isPromise(captures)) {
+    throw captures;
+  }
+  return fn(...(captures ?? []));
 }

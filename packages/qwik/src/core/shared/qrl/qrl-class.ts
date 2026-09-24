@@ -51,7 +51,7 @@ export type QRLInternalMethods<TYPE> = {
 
   getSymbol(): string;
   getHash(): string;
-  getCaptured(): unknown[] | null;
+  getCaptured(): ValueOrPromise<Readonly<unknown[]> | null | undefined>;
   getFn(
     currentCtx?: RuntimeInvokeContext,
     /** If this returns false, the function execution will be skipped */
@@ -343,11 +343,11 @@ const qrlGetHash = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>): st
   return getInstance<TYPE>(this).$lazy$.$hash$;
 };
 
-const qrlGetCaptured = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>): unknown[] | null {
+const qrlGetCaptured = function <TYPE>(
+  this: QRLClass<TYPE> | QRLCallable<TYPE>
+): ValueOrPromise<Readonly<unknown[]> | null | undefined> {
   const qrl = getInstance<TYPE>(this);
-  // TODO: handle promise
-  restoreQrlCaptures(qrl);
-  return qrl.$captures$ as unknown[] | null;
+  return restoreQrlCaptures(qrl);
 };
 
 const qrlGetFn = function <TYPE>(

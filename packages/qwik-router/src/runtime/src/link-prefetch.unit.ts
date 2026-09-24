@@ -6,17 +6,12 @@ import {
   resetLinkPrefetchState,
 } from './link-prefetch';
 
-const { prefetchRouteMock, preloadRouteBundlesMock } = vi.hoisted(() => ({
+const { prefetchRouteMock } = vi.hoisted(() => ({
   prefetchRouteMock: vi.fn(),
-  preloadRouteBundlesMock: vi.fn(),
 }));
 
 vi.mock('./prefetch-route', () => ({
   prefetchRoute: prefetchRouteMock,
-}));
-
-vi.mock('./client-navigate', () => ({
-  preloadRouteBundles: preloadRouteBundlesMock,
 }));
 
 class MockIntersectionObserver {
@@ -83,7 +78,6 @@ describe('link prefetch observer', () => {
     MockIntersectionObserver.instances = [];
     resetLinkPrefetchState();
     prefetchRouteMock.mockClear();
-    preloadRouteBundlesMock.mockClear();
   });
 
   afterEach(() => {
@@ -109,10 +103,19 @@ describe('link prefetch observer', () => {
     const observer = MockIntersectionObserver.instances[0];
     observer.trigger(anchor);
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next/');
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false);
+    expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, true);
+    cleanup();
+  });
+
+  it('prefetches dynamic route bundles by route name, not pathname', () => {
+    const anchor = createAnchor('http://localhost/products/123/', 'b');
+
+    const cleanup = createObserver();
+    MockIntersectionObserver.instances[0].trigger(anchor);
+
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
+    expectPrefetchRouteCall(0, '/products/123/', false, 0.8, manifestHash, true);
     cleanup();
   });
 
@@ -124,7 +127,7 @@ describe('link prefetch observer', () => {
     observer.trigger(anchor);
     observer.trigger(anchor);
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expect(observer.unobserve).toHaveBeenCalledWith(anchor);
     cleanup();
   });
@@ -140,7 +143,7 @@ describe('link prefetch observer', () => {
     const cleanupAfterReset = createObserver();
     MockIntersectionObserver.instances[1].trigger(anchor);
 
-    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(2);
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
     cleanupAfterReset();
   });
 
@@ -168,7 +171,6 @@ describe('link prefetch observer', () => {
     const cleanupSaveData = createObserver();
     MockIntersectionObserver.instances[1].trigger(saveData);
 
-    expect(preloadRouteBundlesMock).not.toHaveBeenCalled();
     expect(prefetchRouteMock).not.toHaveBeenCalled();
     cleanup();
     cleanupSaveData();

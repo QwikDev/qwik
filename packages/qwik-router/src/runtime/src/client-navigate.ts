@@ -1,7 +1,3 @@
-import { isBrowser } from '@qwik.dev/core';
-// @ts-expect-error we don't have types for the preloader yet
-import { p as preload } from '@qwik.dev/core/preloader';
-import { ensureSlash } from '../../utils/pathname';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';
 
@@ -40,12 +36,4 @@ export const newScrollState = (): ScrollState => {
     w: 0,
     h: 0,
   };
-};
-
-export const preloadRouteBundles = (path: string, probability: number = 0.8) => {
-  if (isBrowser) {
-    path = ensureSlash(path);
-    path = path.length > 1 && path.startsWith('/') ? path.slice(1) : path;
-    preload(path, probability);
-  }
 };

@@ -1,5 +1,4 @@
 import { event$ } from '@qwik.dev/core';
-import { preloadRouteBundles } from './client-navigate';
 import { prefetchRoute } from './prefetch-route';
 import { isSameOrigin, shouldPreload, toPath } from './utils';
 
@@ -50,12 +49,9 @@ export const createLinkPrefetchObserver = (manifestHash?: string): (() => void) 
     }
 
     const mode = anchor.getAttribute('data-q-prefetch') || '';
-    if (mode.includes('b')) {
-      preloadRouteBundles(url.pathname);
-    }
-    if (mode.includes('d')) {
-      prefetchRoute(url, true, 0.8, manifestHash, false);
-    }
+    const shouldPrefetchBundles = mode.includes('b');
+    const shouldPrefetchData = mode.includes('d');
+    prefetchRoute(url, shouldPrefetchData, 0.8, manifestHash, shouldPrefetchBundles);
   };
 
   if (typeof IntersectionObserver === 'undefined') {

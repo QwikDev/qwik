@@ -160,6 +160,40 @@ export const ping = server$(async () => 'pong');`,
   );
 
   test.each(['ssr', 'csr'] as const)(
+    '%s golden: a stripped body keeps the dynamic import that reaches a server$',
+    async (mode) => {
+      const output = await testInputs(
+        mode,
+        'strip-keeps-body-dynamic-imports',
+        [
+          {
+            path: 'src/routes/index.tsx',
+            code: `import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+export default component$(() => {
+  const result = useSignal('pending');
+  useVisibleTask$(async () => {
+    const { ping } = await import('../shared/server-fn');
+    result.value = await ping();
+  });
+  return <div>{result.value}</div>;
+});`,
+          },
+          {
+            path: 'src/shared/server-fn.ts',
+            code: `import { server$ } from '@qwik.dev/router';
+export const ping = server$(async () => 'pong');`,
+          },
+        ],
+        mode === 'ssr' ? { stripCtxName: CLIENT_CTX_NAMES } : { stripCtxName: SERVER_CTX_NAMES }
+      );
+      expect(output.diagnostics).toEqual([]);
+      const route = output.modules.find((module) => module.path === 'src/routes/index.tsx')!;
+      // the server-fn walk follows this so the module's boundary registers before any request
+      expect(route.imports).toEqual(mode === 'ssr' ? ['../shared/server-fn'] : []);
+    }
+  );
+
+  test.each(['ssr', 'csr'] as const)(
     '%s golden: a captured server$ inside a component',
     async (mode) => {
       const output = await testInput(

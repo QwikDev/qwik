@@ -1,0 +1,129 @@
+==INPUT==
+
+// src/routes/index.tsx
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+export default component$(() => {
+  const result = useSignal('pending');
+  useVisibleTask$(async () => {
+    const { ping } = await import('../shared/server-fn');
+    result.value = await ping();
+  });
+  return <div>{result.value}</div>;
+});
+// src/shared/server-fn.ts
+import { server$ } from '@qwik.dev/router';
+export const ping = server$(async () => 'pong');
+== CSR OUTPUT ==
+
+============================= src/routes/index.tsx ==
+
+import {
+  useSignal,
+  useVisibleTask,
+  _withCaptures,
+  _first,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { index_useVisibleTaskqrl_segment_0_xu37ccow27t1 } from './index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1';
+
+const q_linked_content_0_1mzevuukkeaia = /*#__PURE__*/ _qrlWithChunk(
+  './index.tsx_linked_content_0_1mzevuukkeaia',
+  () => import('./index.tsx_linked_content_0_1mzevuukkeaia'),
+  'linked_content_0_1mzevuukkeaia'
+);
+const default_tmpl0 = _createElementTemplate('<div><!><!></div>');
+export const default_component_tv8h7w8tm3v2 = (props, ctx) => {
+  const result = useSignal('pending');
+  useVisibleTask(_withCaptures(index_useVisibleTaskqrl_segment_0_xu37ccow27t1, [result]));
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_linked_content_0_1mzevuukkeaia.w([result]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return el0;
+};
+export default default_component_tv8h7w8tm3v2;
+============================= src/routes/index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.js (ENTRY POINT)==
+
+import { _captures, _await } from '@qwik.dev/core';
+
+export const index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = async () => {
+  const [result] = _captures;
+  const { ping } = (await _await(import('../shared/server-fn')))();
+  result.value = (await _await(ping()))();
+};
+/*
+{
+  "origin": "index.tsx",
+  "name": "index_useVisibleTaskqrl_segment_0_xu37ccow27t1",
+  "entry": null,
+  "displayName": "index_useVisibleTaskqrl_segment_0",
+  "hash": "xu37ccow27t1",
+  "canonicalFilename": "index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useVisibleTask$",
+  "captures": true,
+  "loc": [
+    148,
+    273
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "result"
+  ]
+}
+*/
+============================= src/routes/index.tsx_linked_content_0_1mzevuukkeaia.js (ENTRY POINT)==
+
+import { _captures, createDynamicContent } from '@qwik.dev/core';
+
+export const linked_content_0_1mzevuukkeaia = (ctx0) => {
+  const [result] = _captures;
+  return createDynamicContent(result.value, ctx0);
+};
+/*
+{
+  "origin": "index.tsx",
+  "name": "linked_content_0_1mzevuukkeaia",
+  "entry": null,
+  "displayName": "linked_content_0",
+  "hash": "1mzevuukkeaia",
+  "canonicalFilename": "index.tsx_linked_content_0_1mzevuukkeaia",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    290,
+    302
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "result"
+  ]
+}
+*/
+============================= src/shared/server-fn.ts ==
+
+import { _noopQrl } from '@qwik.dev/core';
+import { serverQrl } from '@qwik.dev/router';
+
+import { server$ } from '@qwik.dev/router';
+export const ping = serverQrl(_noopQrl('server_fn_serverqrl_segment_0_1ni2pdgfbji7l'));
+== CSR DIAGNOSTICS ==
+
+[]

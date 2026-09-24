@@ -8,6 +8,7 @@ import {
   type QrlDeclaration,
   StripValueForm,
 } from '../schema';
+import { EsmEdgeKind } from '../schema';
 import { QWIK_CORE_IMPORT, QwikWord } from '../words';
 import { assembleModule, type AssembledModule } from './source-assembly';
 import type { SourceMap } from 'oxc-transform';
@@ -92,6 +93,17 @@ function strippedBodyImports(module: LinkedModule): string[] {
         edges.add(source.edge);
       }
     }
+    // An `import()` inside the stripped body vanishes with it, yet the server-fn walk needs it.
+    const [start, end] = qrl.origin.bodyRange;
+    module.edges.forEach((edge, index) => {
+      if (
+        edge.kind === EsmEdgeKind.DynamicLiteral &&
+        edge.ownerRange[0] >= start &&
+        edge.ownerRange[1] <= end
+      ) {
+        edges.add(index);
+      }
+    });
   }
   return [...edges].map((edge) => module.edges[edge].specifier);
 }

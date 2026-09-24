@@ -1,0 +1,141 @@
+==INPUT==
+
+// src/routes/index.tsx
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+export default component$(() => {
+  const result = useSignal('pending');
+  useVisibleTask$(async () => {
+    const { ping } = await import('../shared/server-fn');
+    result.value = await ping();
+  });
+  return <div>{result.value}</div>;
+});
+// src/shared/server-fn.ts
+import { server$ } from '@qwik.dev/router';
+export const ping = server$(async () => 'pong');
+== SSR OUTPUT ==
+
+============================= src/routes/index.tsx ==
+
+import {
+  useSignal,
+  useVisibleTaskQrl,
+  _captures,
+  createSsrOpenTag,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  _noopQrl,
+  renderSsrDynamicContent,
+  _markComponent,
+} from '@qwik.dev/core';
+const q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = /*#__PURE__*/ _noopQrl(
+  'index_useVisibleTaskqrl_segment_0_xu37ccow27t1'
+);
+const linked_content_0_1mzevuukkeaia = (ctx0) => {
+  const [result] = _captures;
+  return renderSsrDynamicContent(result.value, ctx0);
+};
+const q_linked_content_0_1mzevuukkeaia = /*#__PURE__*/ _noopQrl('linked_content_0_1mzevuukkeaia');
+q_linked_content_0_1mzevuukkeaia.s(linked_content_0_1mzevuukkeaia);
+export const default_component_tv8h7w8tm3v2 = _markComponent(
+  (props, ctx) => {
+    const result = useSignal('pending');
+    useVisibleTaskQrl(q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.w([result]));
+    const id0 = ctx.nextId();
+    ctx.addRoot(result);
+    const content0 = renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_linked_content_0_1mzevuukkeaia.w([result]),
+      false,
+      true
+    );
+    return maybeThen(content0, (content0) => [
+      createSsrOpenTag('<div', '>'),
+      '<!d=',
+      createSsrNodeId(id0),
+      '>',
+      content0,
+      '<!/d></div>',
+    ]);
+  },
+  'default_component_tv8h7w8tm3v2',
+  './index.tsx'
+);
+export default default_component_tv8h7w8tm3v2;
+/* stripped-body imports: ["../shared/server-fn"] */
+============================= src/routes/index.tsx_linked_content_0_1mzevuukkeaia.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const linked_content_0_1mzevuukkeaia = (ctx0) => {
+  const [result] = _captures;
+  return renderSsrDynamicContent(result.value, ctx0);
+};
+/*
+{
+  "origin": "index.tsx",
+  "name": "linked_content_0_1mzevuukkeaia",
+  "entry": null,
+  "displayName": "linked_content_0",
+  "hash": "1mzevuukkeaia",
+  "canonicalFilename": "index.tsx_linked_content_0_1mzevuukkeaia",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    290,
+    302
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "result"
+  ]
+}
+*/
+============================= src/shared/server-fn.ts ==
+
+import { _noopQrl } from '@qwik.dev/core';
+import { serverQrl } from '@qwik.dev/router';
+
+const server_fn_serverqrl_segment_0_1ni2pdgfbji7l = async () => {
+  return 'pong';
+};
+const q_server_fn_serverqrl_segment_0_1ni2pdgfbji7l = /*#__PURE__*/ _noopQrl(
+  'server_fn_serverqrl_segment_0_1ni2pdgfbji7l'
+);
+q_server_fn_serverqrl_segment_0_1ni2pdgfbji7l.s(server_fn_serverqrl_segment_0_1ni2pdgfbji7l);
+import { server$ } from '@qwik.dev/router';
+export const ping = serverQrl(q_server_fn_serverqrl_segment_0_1ni2pdgfbji7l);
+============================= src/shared/server-fn.ts_server_fn_serverqrl_segment_0_1ni2pdgfbji7l.js (ENTRY POINT)==
+
+export const server_fn_serverqrl_segment_0_1ni2pdgfbji7l = async () => {
+  return 'pong';
+};
+/*
+{
+  "origin": "server-fn.ts",
+  "name": "server_fn_serverqrl_segment_0_1ni2pdgfbji7l",
+  "entry": null,
+  "displayName": "server_fn_serverqrl_segment_0",
+  "hash": "1ni2pdgfbji7l",
+  "canonicalFilename": "server-fn.ts_server_fn_serverqrl_segment_0_1ni2pdgfbji7l",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "server$",
+  "captures": false,
+  "loc": [
+    64,
+    91
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

@@ -35,6 +35,11 @@ test('Integrations Drizzle page loads', async ({ page }) => {
   await expect(page).toHaveTitle('Drizzle | Integrations 📚 Qwik Documentation');
 });
 
+test('Integrations Gel page loads', async ({ page }) => {
+  await page.goto('/docs/integrations/gel/');
+  await expect(page).toHaveTitle('Gel | Integrations 📚 Qwik Documentation');
+});
+
 test('Integrations Internationalization page loads', async ({ page }) => {
   await page.goto('/docs/integrations/i18n/');
   await expect(page).toHaveTitle('Internationalization | Integrations 📚 Qwik Documentation');

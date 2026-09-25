@@ -1,0 +1,17 @@
+module default {
+  abstract type Timestamped {
+    last_updated: datetime {
+      rewrite insert, update using (datetime_of_statement());
+    };
+  }
+
+  type User extending Timestamped {
+    required name: str;
+    email: str {
+      constraint exclusive;
+    };
+    has_profile: bool;
+
+    index on (.email);
+  }
+}

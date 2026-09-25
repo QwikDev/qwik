@@ -76,6 +76,7 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { refreshLinkPrefetchObserver } from './link-prefetch';
+import { getRouterConfig } from './router-config';
 import { loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
@@ -571,10 +572,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         } else if (!globalThis.__NO_TRAILING_SLASH__) {
           trackUrl.pathname = ensureSlash(trackUrl.pathname);
         }
-        // Dynamic import on purpose: a static config import runs the app's
-        // route/serverPlugin modules during this package's own evaluation
-        // (they import this package back), which TDZs in bundled output.
-        const loadRoutePromise = import('@qwik-router-config').then((config) => {
+        const loadRoutePromise = getRouterConfig().then((config) => {
           if (internalState.navCount !== navCountBefore) {
             return;
           }

@@ -91,7 +91,14 @@ export {
   getRequestEvent,
 } from './server-functions';
 export { routeLoader$, routeLoaderQrl } from './route-loaders';
-export { ServiceWorkerRegister } from './sw-component';
+export {
+  _setRouterConfig,
+  getBasePathname,
+  getRouterConfig,
+  getRoutes,
+  getTrailingSlash,
+} from './router-config';
+export { _getServiceWorkerScript, ServiceWorkerRegister } from './sw-component';
 export {
   useContent,
   useDocumentHead,

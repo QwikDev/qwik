@@ -1,5 +1,6 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../runtime/src/route-loaders';
+import { _setRouterConfig } from '../../runtime/src/router-config';
 import { getLoaderName } from './request-path';
 import { getRequestHandlerPathname, requestHandler } from './request-handler';
 import { getStaticPathRedirect, isStaticPath, staticPaths } from './static-paths';
@@ -32,6 +33,8 @@ function createMockServerRequestEvent(url = 'http://localhost/.well-known', init
     }),
   } as unknown as ServerRequestEvent;
 }
+
+_setRouterConfig({ routes: {}, basePathname: '/', cacheModules: false });
 
 afterEach(() => {
   staticPaths.delete('/playground/');

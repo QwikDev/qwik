@@ -1,5 +1,6 @@
 import { isDev } from '@qwik.dev/core';
 import type { Render } from '@qwik.dev/core/server';
+import { getRouterConfig } from '../../runtime/src/router-config';
 import { loadRoute } from '../../runtime/src/routing';
 import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../runtime/src/route-loaders';
 import type { QwikRouterConfig } from '../../runtime/src/types';
@@ -17,27 +18,6 @@ import { getStaticPathRedirect } from './static-paths';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { runQwikRouter, type QwikRouterRun } from './user-response';
 
-let qwikRouterConfig: QwikRouterConfig;
-
-async function getConfig(): Promise<QwikRouterConfig> {
-  if (isDev) {
-    const config = (await import('@qwik-router-config')) as any as QwikRouterConfig;
-    // Dev re-imports the config each request for freshness, but server$
-    // registration side effects must still run before serving.
-    await config.importEagerModules?.();
-    return config;
-  }
-  if (!qwikRouterConfig) {
-    // The production server build prunes this plan (drops prerendered server-free routes); full
-    // when nothing is excluded. See the router config `load`.
-    const config = (await import('@qwik-router-config')) as any as QwikRouterConfig;
-    // Run the server$ modules' registration side effects before serving.
-    await config.importEagerModules?.();
-    qwikRouterConfig = config;
-  }
-  return qwikRouterConfig;
-}
-
 /**
  * The request handler for QwikRouter. Called by every adapter.
  *
@@ -48,7 +28,9 @@ export async function requestHandler<T = unknown>(
   opts: ServerRenderOptions
 ): Promise<QwikRouterRun<T> | null> {
   const { render, checkOrigin } = opts;
-  const config = await getConfig();
+  // The server entry registers the generated config; the production build prunes it to the
+  // routes the server still serves (see the router config `load`).
+  const config = await getRouterConfig();
 
   const pathname = getRequestHandlerPathname(serverRequestEv);
   // Ignore requests for .well-known so static servers or other middleware can handle them

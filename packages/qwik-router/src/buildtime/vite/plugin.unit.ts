@@ -6,7 +6,9 @@ import {
   addRouteLoaderHash,
   clearRouteLoaderHashes,
   findRouteLoaderSourceFiles,
+  getServerEntryIds,
   invalidateRouterConfigModules,
+  isServerEntryId,
   isRouterSourceFilePath,
   qwikRouter,
   replaceLoaderPlaceholders,
@@ -227,5 +229,25 @@ describe('qwikRouter plugin', () => {
       expect(clientGraph.invalidated).toEqual([clientGraph.mod]);
       expect(ssrGraph.invalidated).toEqual([ssrGraph.mod]);
     });
+  });
+});
+
+describe('server entries that register the router config', () => {
+  it('collects the ssr entry, the build.ssr input and the rolldown inputs', () => {
+    const ids = getServerEntryIds('/app', '/app/src', 'src/entry.express.tsx', {
+      main: '/app/src/entry.node.ts',
+    });
+
+    expect(ids).toEqual(['/app/src/entry.ssr', '/app/src/entry.express', '/app/src/entry.node']);
+    expect(isServerEntryId('/app/src/entry.ssr.tsx', ids)).toBe(true);
+    expect(isServerEntryId('/app/src/entry.express.tsx?v=1', ids)).toBe(true);
+    expect(isServerEntryId('/app/src/root.tsx', ids)).toBe(false);
+  });
+
+  it('keeps virtual entry ids as they are', () => {
+    const ids = getServerEntryIds('/app', undefined, '@router-ssr-entry', undefined);
+
+    expect(ids).toEqual(['@router-ssr-entry']);
+    expect(isServerEntryId('@router-ssr-entry', ids)).toBe(true);
   });
 });

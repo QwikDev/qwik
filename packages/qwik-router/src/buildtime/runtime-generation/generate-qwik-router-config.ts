@@ -3,6 +3,7 @@ import type { RoutingContext } from '../types';
 import { createEntries } from './generate-entries';
 import { createRoutes, type RouteLoaderSourceFiles } from './generate-routes';
 import { createServerPlugins } from './generate-server-plugins';
+import { resolveServiceWorkerUrl } from './generate-service-worker';
 
 /** Generates the Qwik Router Config runtime code */
 export function generateQwikRouterConfig(
@@ -20,12 +21,12 @@ export function generateQwikRouterConfig(
   c.push(`\nimport { isDev } from '@qwik.dev/core/build';`);
 
   if (isSSR) {
-    // The request handler awaits this before serving so the `server$` modules'
-    // _regSymbol side effects run ahead of any RPC request — async on purpose,
-    // so the config module evaluates without importing the runtime eagerly.
+    // The runtime registers the `server$` modules before serving — async on purpose, so the
+    // config module evaluates without importing them eagerly.
     esmImports.push(
       `import { importEagerModules } from 'virtual:qwik-router-server-fns';`,
-      `export { importEagerModules } from 'virtual:qwik-router-server-fns';`
+      `export { importEagerModules } from 'virtual:qwik-router-server-fns';`,
+      `import { _setRouterConfig } from '@qwik.dev/router';`
     );
   }
 
@@ -50,12 +51,24 @@ export function generateQwikRouterConfig(
 
   c.push(`export const cacheModules = !isDev;`);
 
+  c.push(`export const serviceWorkerUrl = ${JSON.stringify(resolveServiceWorkerUrl(ctx))};`);
+
+  const fields = [
+    'routes',
+    'serverPlugins',
+    'trailingSlash',
+    'basePathname',
+    'cacheModules',
+    'serviceWorkerUrl',
+  ];
   if (isSSR) {
-    c.push(
-      `export default { routes, serverPlugins, trailingSlash, basePathname, cacheModules, importEagerModules };`
-    );
-  } else {
-    c.push(`export default { routes, serverPlugins, trailingSlash, basePathname, cacheModules };`);
+    fields.push('importEagerModules');
+  }
+  c.push(`const config = { ${fields.join(', ')} };`);
+  c.push(`export default config;`);
+  if (isSSR) {
+    // The server entry imports this module, so the runtime finds the config through its getters.
+    c.push(`_setRouterConfig(config);`);
   }
   return esmImports.join('\n') + c.join('\n');
 }

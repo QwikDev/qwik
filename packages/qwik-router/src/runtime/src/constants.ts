@@ -12,9 +12,8 @@ export const QDATA_KEY = 'qdata';
 /** @public */
 export const Q_ROUTE = 'q:route';
 
-// Hoisted function, not a const: read during the `@qwik-router-config` import
-// cycle before this module's consts initialize (route modules call
-// `routeLoaderQrl` at their own eval).
+// Hoisted function, not a const: a bundle may evaluate the app's route modules
+// (which call `routeLoaderQrl` at their own eval) before this module's consts.
 export function DEFAULT_LOADERS_SERIALIZATION_STRATEGY(): SerializationStrategy {
   return globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__ || 'never';
 }

@@ -320,18 +320,22 @@ The `routeAction$()` function is used to declare a new Server Action in the give
 
 Please refer to the [Server Actions](/docs/(qwikrouter)/action/index.mdx) section for more information.
 
-## List all routes with qwikRouterConfig.routes
+## `getRouterConfig()`
 
-The `qwikRouterConfig.routes` property is used to retrieve the route list of your application.
+Qwik Router generates the route config of your application at build time. Read it through these functions, which every copy of the router in the process shares:
+
+- `getRouterConfig()` resolves the whole config, with the route trie and the server plugins.
+- `getRoutes()` resolves the route trie.
+- `getBasePathname()` returns the base pathname the app is served under, such as `/`.
+- `getTrailingSlash()` returns whether the app's URLs end with a slash.
 
 ```tsx
-import qwikRouterConfig from '@qwik-router-config';
+import { getRoutes } from '@qwik.dev/router';
 
-const routes = qwikRouterConfig.routes;
-for (const route of routes) {
-	// your logic here
-}
+const routes = await getRoutes();
 ```
+
+The `@qwik-router-config` virtual module still exports the same values for existing code, but it only resolves inside the app build.
 
 ## `useQwikRouter()`
 

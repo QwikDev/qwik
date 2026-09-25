@@ -95,7 +95,7 @@ export async function validateBuild(config: BuildConfig) {
     await validateModuleTreeshake(
       config,
       join(config.packagesDir, 'qwik-router', 'lib', 'index.qwik.mjs'),
-      ['@qwik-router-config', '@qwik-router-sw-register', 'zod', '@qwik.dev/core/jsx-runtime']
+      ['@qwik-router-config', 'zod', '@qwik.dev/core/jsx-runtime']
     );
   }
 

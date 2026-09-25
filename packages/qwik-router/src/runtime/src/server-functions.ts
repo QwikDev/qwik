@@ -47,9 +47,9 @@ import { _asyncRequestStore } from '../../middleware/request-handler';
 export { getRequestEvent } from './route-loaders';
 
 /**
- * Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`: generated route
- * modules call these factories back during their own evaluation via the `@qwik-router-config`
- * cycle, where a `const` binding would throw a TDZ ReferenceError.
+ * Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`: the app's route
+ * modules call these factories during their own evaluation, which a bundle may run before this
+ * module, where a `const` binding would throw a TDZ ReferenceError.
  *
  * @public
  */

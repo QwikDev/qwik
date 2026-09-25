@@ -1,16 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { prefetchLoaderData } from './prefetch-route';
+import { _setRouterConfig } from './router-config';
 import type { LoadedRoute, LoaderInternal } from './types';
 
 const { fetchRouteLoaderDataMock } = vi.hoisted(() => ({
   fetchRouteLoaderDataMock: vi.fn(async () => ({ raw: 'data' })),
 }));
 
-vi.mock('@qwik-router-config', () => ({
-  routes: [],
-  cacheModules: false,
-  basePathname: '/',
-}));
+_setRouterConfig({ routes: {}, cacheModules: false, basePathname: '/' });
 
 vi.mock('@qwik.dev/core/preloader', () => ({ p: vi.fn() }));
 

@@ -363,6 +363,8 @@ export interface QwikRouterConfig {
    * evaluates without touching the runtime (see the import-cycle notes in `route-loaders.ts`).
    */
   readonly importEagerModules?: () => Promise<unknown>;
+  /** URL of the app's service worker, when the routes define one. */
+  readonly serviceWorkerUrl?: string;
 }
 
 /** @public */

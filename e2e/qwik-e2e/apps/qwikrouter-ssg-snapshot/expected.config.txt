@@ -23,4 +23,6 @@ export const routes = {
 export const trailingSlash = true;
 export const basePathname = "/";
 export const cacheModules = !isDev;
-export default { routes, serverPlugins, trailingSlash, basePathname, cacheModules };
+export const serviceWorkerUrl = undefined;
+const config = { routes, serverPlugins, trailingSlash, basePathname, cacheModules, serviceWorkerUrl };
+export default config;

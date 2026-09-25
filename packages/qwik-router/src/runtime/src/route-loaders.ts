@@ -36,8 +36,8 @@ import {
 } from '../../middleware/request-handler/server-error';
 import { ensureSlash } from '../../utils/pathname';
 import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
-import { basePathname } from './qwik-router-config';
 import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
+import { getBasePathname } from './router-config';
 import type {
   DataValidator,
   LoaderConstructor,
@@ -400,7 +400,7 @@ const createRouteLoaderSignal = (
       }
       const pageUrl = new URL(request.pageUrl);
       const mHash = untrack(() => routeLoaderCtx.manifestHash) || 'dev';
-      const basePath = basePathname;
+      const basePath = getBasePathname();
       const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
       const fetchRoutePath = request.routePath;
 
@@ -1070,9 +1070,9 @@ export const getRouteLoaderResponse = async (
 };
 
 /**
- * A hoisted function declaration on purpose: this module imports `@qwik-router-config`, whose route
- * modules call `routeLoaderQrl` back at their own eval — in a bundle that cycle executes the routes
- * first, and a `const` binding would throw a TDZ ReferenceError.
+ * A hoisted function declaration on purpose: the app's route modules call `routeLoaderQrl` at their
+ * own eval, and a bundle may execute them before this module, where a `const` binding would throw a
+ * TDZ ReferenceError.
  *
  * @internal
  */

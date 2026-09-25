@@ -1,4 +1,3 @@
-import swRegister from '../runtime-generation/sw-register-build?compiled-string';
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -312,6 +311,8 @@ function qwikRouterPlugin(
   let reExportedRouteLoaderSources: RouteLoaderSourceFiles | undefined;
   /** SSG include/exclude from the adapter (see `_setSsgRoutes`); drives the server-route prune. */
   let ssgRoutePatterns: { include?: string[]; exclude?: string[] } | undefined;
+  /** Extensionless ids of the server entries that must import the generated config. */
+  let serverEntryIds: string[] = [];
 
   const api: QwikRouterPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -458,6 +459,12 @@ function qwikRouterPlugin(
         return getRouteImports(ctx!.routes, manifest);
       });
       outDir = config.build?.outDir;
+      serverEntryIds = getServerEntryIds(
+        rootDir!,
+        qwikPlugin.api.getOptions().srcDir ?? undefined,
+        config.build?.ssr,
+        config.build?.rolldownOptions?.input
+      );
     },
 
     async configureServer(server) {
@@ -523,11 +530,8 @@ function qwikRouterPlugin(
 
     buildStart() {
       resetBuildContext(ctx);
-      // The runtime reaches the config only via dynamic import (static imports
-      // would evaluate app route/serverPlugin modules during the runtime's own
-      // import phase — see route-loaders.ts). The client build still needs the
-      // config in its module graph for route discovery and symbol extraction,
-      // so emit it as an explicit entry chunk here.
+      // The client build still needs the config in its module graph for route discovery and
+      // symbol extraction, so emit it as an explicit entry chunk here.
       if (this.environment.mode === 'build' && this.environment.config.consumer === 'client') {
         this.emitFile({ type: 'chunk', id: QWIK_ROUTER_CONFIG_ID });
       }
@@ -600,7 +604,7 @@ function qwikRouterPlugin(
 
           if (isSwRegister) {
             // @qwik-router-sw-register
-            return generateServiceWorkerRegister(ctx, swRegister);
+            return generateServiceWorkerRegister(ctx);
           }
         }
       }
@@ -609,6 +613,11 @@ function qwikRouterPlugin(
     },
 
     async transform(code, id) {
+      // The runtime reads the config through getters, so the server entry must evaluate the
+      // generated module; the client loads it lazily as its own chunk instead.
+      if (this.environment.config.consumer === 'server' && isServerEntryId(id, serverEntryIds)) {
+        return { code: `import '${QWIK_ROUTER_CONFIG_ID}';\n${code}`, map: null };
+      }
       const isVirtualId = id.startsWith('\0');
       if (isVirtualId) {
         return;
@@ -806,4 +815,47 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
       },
     },
   };
+}
+
+/**
+ * The server entries: `src/entry.ssr` (what the dev server renders through) plus the configured SSR
+ * build inputs, which may be virtual ids.
+ */
+export function getServerEntryIds(
+  rootDir: string,
+  srcDir: string | undefined,
+  buildSsr: string | boolean | undefined,
+  input: string | string[] | Record<string, string> | undefined
+): string[] {
+  const candidates: string[] = [];
+  if (srcDir) {
+    candidates.push(resolve(srcDir, 'entry.ssr'));
+  }
+  if (typeof buildSsr === 'string') {
+    candidates.push(buildSsr);
+  }
+  if (typeof input === 'string') {
+    candidates.push(input);
+  } else if (Array.isArray(input)) {
+    candidates.push(...input);
+  } else if (input) {
+    candidates.push(...Object.values(input));
+  }
+  return candidates.map((candidate) => normalizeEntryId(candidate, rootDir));
+}
+
+export function isServerEntryId(id: string, serverEntryIds: string[]): boolean {
+  const entryId = normalizeEntryId(id.split('?', 1)[0], '');
+  return serverEntryIds.includes(entryId);
+}
+
+const isVirtualEntryId = (id: string) => id.startsWith('@') || id.startsWith('\0');
+
+/** Absolute path without its script extension, or the id itself for a virtual entry. */
+function normalizeEntryId(id: string, rootDir: string) {
+  if (isVirtualEntryId(id)) {
+    return id;
+  }
+  const absolute = rootDir ? resolve(rootDir, id) : id;
+  return normalizePath(absolute).replace(/\.[cm]?[jt]sx?$/, '');
 }

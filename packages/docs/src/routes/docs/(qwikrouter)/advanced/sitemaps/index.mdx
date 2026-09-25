@@ -92,11 +92,11 @@ Next, set up a route that will use the sitemap function to generate the sitemap 
 ```tsx
 // src/routes/dynamic-sitemap.xml/index.tsx
 
-import type { RequestHandler } from "@qwik.dev/router";
-import { routes } from "@qwik-router-config";
+import { getRoutes, type RequestHandler } from "@qwik.dev/router";
 import { createSitemap } from "./create-sitemap";
 
-export const onGet: RequestHandler = (ev) => {
+export const onGet: RequestHandler = async (ev) => {
+  const routes = await getRoutes();
   const siteRoutes = routes
     .map(([route]) => route as string)
     .filter(route => route !== "/");  // Exclude the '/' route

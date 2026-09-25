@@ -15,7 +15,7 @@ export async function runV2Migration(app: AppCommand) {
       `This includes the following: \n` +
       `  - "@builder.io/qwik", "@builder.io/qwik-city" and "@builder.io/qwik-react" packages will be rescoped to "@qwik.dev/core", "@qwik.dev/router" and "@qwik.dev/react" respectively \n` +
       `  - related dependencies will be updated \n\n` +
-      `${bold(bgRed('Warning: migration tool is experimental and will migrate your application to the "alpha" release of Qwik V2'))}`
+      `${bold(bgRed('Warning: migration tool is experimental and will migrate your application to the "RC" release of Qwik V2'))}`
   );
   const proceed = await confirm({
     message: 'Do you want to proceed?',

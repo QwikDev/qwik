@@ -1,30 +1,27 @@
 import { describe, expect, it, vi } from 'vitest';
+import { _setRouterConfig } from '../../runtime/src/router-config';
 import { clearSsrCache } from './etag';
 import { requestHandler } from './request-handler';
 import { ServerError } from './server-error';
 import type { ServerRequestEvent } from './types';
 
-const { routeState } = vi.hoisted(() => ({
-  routeState: {
-    module: {} as Record<string, unknown>,
-    rewriteModule: {} as Record<string, unknown>,
-  },
-}));
+const routeState = {
+  module: {} as Record<string, unknown>,
+  rewriteModule: {} as Record<string, unknown>,
+};
 
-vi.mock('@qwik-router-config', () => ({
+_setRouterConfig({
   routes: {
     _I: async () => routeState.module,
     first: { _I: async () => routeState.rewriteModule },
     second: { _I: async () => routeState.rewriteModule },
     'etag-error': { _I: async () => routeState.module },
     'etag-late': { _I: async () => routeState.module },
-  },
-  serverPlugins: undefined,
+  } as any,
   cacheModules: false,
-  importEagerModules: undefined,
   basePathname: '/',
   fallthrough: false,
-}));
+});
 
 function createServerRequestEvent(url = 'http://localhost/') {
   const captured: { status?: number; headers?: Headers; chunks: Uint8Array[] } = { chunks: [] };

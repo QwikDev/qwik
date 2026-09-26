@@ -74,7 +74,9 @@ stored in `sharedMap['@routeLoaderValues']`.
 On the client, each loader becomes an **AsyncSignal** — a reactive primitive that
 lazily computes its value. The compute function for a loader signal:
 
-1. Reactively tracks `routeLoaderCtx.loaderPaths[id]` and `routeLoaderCtx.pageUrl`.
+1. Reads its request (route path and page URL) for the current navigation, untracked,
+   from client-only state that `prepareRouteLoaders` sets. Navigation re-runs it with
+   `invalidate()`.
 2. If a pre-loaded value was injected (via `setLoaderSignalValue`), returns it.
 3. If `routePath` is undefined (loader not on current route), returns the previous
    value (stale-by-default contract).
@@ -87,16 +89,17 @@ lazily computes its value. The compute function for a loader signal:
 ```ts
 {
   loaderPaths: Record<string, string | undefined>,  // loader ID → route path
-  pageUrl: URL,
-  manifestHash: string,
-  basePath: string,
-  goto?: RouteNavigate,  // for loader-initiated redirects
+  goto?: RouteNavigate,  // for loader-initiated redirects (client-only)
+  manifestHash?: string,  // for q-loader fetch URLs
 }
 ```
 
-On SPA navigation, `updateRouteLoaderPaths()` **adds/updates** entries for loaders on
-the new route but **does not clear** old entries. Stale loader signals keep their
-previous value until their route is visited again.
+On SPA navigation, `prepareRouteLoaders()` records the new route's loader paths,
+invalidates the loaders it refetches, and aborts the ones the new route does not use.
+Once the new page has rendered, `commitRouteLoaders()` disposes those unused loader
+signals and drops them from `loaderState` and `loaderPaths`, so a later visit starts
+with a fresh signal. If the navigation fails, `restoreRouteLoaders()` returns to the
+last committed state.
 
 ### `ensureRouteLoaderSignals`
 
@@ -105,8 +108,8 @@ Scans route modules for loader exports, creates AsyncSignals for any not yet in
 
 ### `setLoaderSignalValue`
 
-Injects a pre-computed value into an AsyncSignal without triggering re-computation.
-Used during SSR hydration and when actions return updated loader data.
+Injects a pre-computed value into an AsyncSignal without fetching. `useQwikRouter`
+uses it during SSR to seed loader signals with the values the middleware computed.
 
 ## 3. SSR — Server-Side Rendering
 
@@ -125,7 +128,7 @@ Called once at the root component during SSR. Sets up all reactive state:
 
 ### Task Structure
 
-`useQwikRouter` registers two `useTask$` hooks:
+`useQwikRouter` registers three `useTask$` hooks:
 
 #### Nav Task — Route Loading & State Setup
 
@@ -139,57 +142,67 @@ Tracks `routeInternal` (destination signal) and `actionState`.
 
 - Uses `env.loadedRoute` and `env.response` directly (no fetch needed).
 - Populates `routeLocation`, `contentInternal`, `httpStatus`.
-- Resolves head inline via `resolveHead(...)` and writes to `documentHead`.
+- Leaves head resolution to the head task, which runs after this one on the server.
 
 **Client path:**
 
 - Calls `loadRoute(...)` to load route modules for the new URL.
 - If an action is pending, calls `submitAction(...)` and processes the result.
-- Calls `updateRouteLoaderPaths` + `ensureRouteLoaderSignals`.
+- Calls `prepareRouteLoaders`, which runs `ensureRouteLoaderSignals`, invalidates the
+  loaders to refetch, and aborts the ones the new route does not use.
 - **Triggers** loader signals without awaiting: `loaderState[id].untrackedPending`.
   This starts the fetch but doesn't block navigation.
 - Updates `routeLocation`, `contentInternal.untrackedValue`, `actionDataSignal`.
 - Sets `navContext.value` — a `noSerialize`'d object with navigation metadata:
-  `{ routeName, navigation, navType, replaceState, shouldForce* }`.
+  `{ routeName, navType, prevUrl, replaceState, shouldForce*, navCount }`.
 
-> **Why `contentInternal.untrackedValue`?** Subscribers (RouterOutlet, head+commit
+> **Why `contentInternal.untrackedValue`?** Subscribers (RouterOutlet, head
 > task) must be fired later by `contentInternal.trigger()` inside the view
 > transition's update callback. Using `.value` would fire subscribers before
 > `startViewTransition` captures the old DOM, breaking view transitions.
 
-#### Head + Commit Task — Head Resolution & Navigation Commit
+#### Head Task — Head Resolution
+
+```ts
+useTask$(({ track }) => { ... }, { deferUpdates: isServer })
+```
+
+Tracks `contentInternal`, `actionDataSignal`, and whatever `resolveHead` reads, such
+as loader signals. Runs on the server and the client.
+
+1. **Head resolution** via `track(() => resolveHead(...))`. A loader signal with no
+   value yet throws a promise, and the task re-runs once it resolves. On the client,
+   other errors are logged and the current head stays.
+2. Writes resolved head to `documentHead` store.
+
+#### Navigation Task — Navigation Commit
 
 ```ts
 useTask$(({ track }) => { ... }, { deferUpdates: false })
 ```
 
-Tracks `contentInternal`, `navContext`, and `actionDataSignal`. Client-only
-(returns early on server since head is resolved inline in the nav task).
+Tracks `navContext`. Client-only.
 
-1. **Head resolution** via `track(() => resolveHead(...))`. The `track()` wrapper
-   intercepts thrown promises from async loader signals (whose values haven't
-   arrived yet) and automatically retries when they resolve.
-2. Writes resolved head to `documentHead` store.
-3. **Guard:** if `navContext` hasn't changed since the last commit (same object
-   reference), this is a head-only update triggered by a loader resolving — skip
-   the navigation commit below.
-4. **Scroll setup:** finds scroller element, sets up `__q_scroll_restore__` callback.
-5. **SPA init:** calls `initializeSPA(goto, scrollEl)` (one-time setup).
-6. **View transition (opt-in):** when `viewTransition` is enabled, calls
+1. **Scroll setup:** finds scroller element, sets up `__q_scroll_restore__` callback.
+2. **SPA init:** calls `initializeSPA(goto, scrollEl)` (one-time setup).
+3. **View transition (opt-in):** when `viewTransition` is enabled, calls
    `startViewTransition({ update: navigate, types })`; otherwise `navigate()` runs
-   directly. Inside the update callback: `clientNavigate(...)` pushes/replaces history,
-   `contentInternal.trigger()` fires subscribers (rendering new content),
-   `_waitUntilRendered(container)` waits for the render cycle.
-7. **Post-transition:** sets `q:route` attribute, saves scroll state, enables
-   scroll tracking, forces any deferred store effects, resolves `navResolver`.
+   directly. Inside the update callback: `clientNavigate(...)` pushes/replaces history
+   unless `goto` already did, `contentInternal.trigger()` fires subscribers (rendering
+   new content and re-running the head task), `_waitUntilRendered(container)` waits
+   for the render cycle, then `commitRouteLoaders` drops the loaders the new route
+   does not use.
+4. **Post-transition:** sets `q:route` attribute, saves scroll state, enables
+   scroll tracking, forces any deferred store effects, sets `isNavigating = false`,
+   resolves `navResolver`.
 
 ### Head Resolution — `resolveHead`
 
 Iterates content modules (layouts → page), collecting `routeConfig` / `head` exports.
 Object configs are merged immediately; function configs are collected and called in
 inner-before-outer order. Each function receives a `ResolveSyncValue` that reads
-loader signals and action data. On the client, reading an unresolved AsyncSignal
-throws a promise, which `track()` in the commit task handles automatically.
+loader signals and action data. Reading an AsyncSignal with no value yet throws a
+promise, and the head task re-runs once it resolves.
 
 ### Server Data Assembly
 
@@ -250,9 +263,10 @@ exported from a route module. Useful for shared actions across routes.
 
 ## 5. SPA Navigation
 
-### Pre-Framework Boot — `spa-init.ts`
+### Early SPA Setup — `spa-init.ts`
 
-A QRL event handler that runs before the framework hydrates. Sets up:
+A QRL event handler that qwikloader runs on page load (`qcinit`), before any router
+task runs on the client. Sets up:
 
 - `popstate` listener → resolves `RouteNavigateContext` from the DOM container and
   calls `nav(location.href, { type: 'popstate' })`.
@@ -261,7 +275,7 @@ A QRL event handler that runs before the framework hydrates. Sets up:
 - Scroll debounce → saves scroll position to history state every 200ms.
 - Visibility change → commits scroll state on tab hide (for BFCache).
 
-Once `window._qRouterSPA` is set (by `initializeSPA` in the commit task), these
+Once `window._qRouterSPA` is set (by `initializeSPA` in the navigation task), these
 early handlers are removed and replaced by the full router handlers.
 
 ### `goto` — The Navigate Function
@@ -297,40 +311,48 @@ goto(url)
   └─ Return promise                    │
                                        ├─ loadRoute(url)
                                        ├─ submitAction (if action pending)
-                                       ├─ updateRouteLoaderPaths
-                                       ├─ ensureRouteLoaderSignals
+                                       ├─ prepareRouteLoaders
+                                       │    ├─ ensureRouteLoaderSignals
+                                       │    ├─ invalidate() loaders to refetch
+                                       │    └─ abort() loaders not on the new route
                                        ├─ Trigger loader signals (no await!)
                                        ├─ Update routeLocation, content, httpStatus
-                                       └─ Set navContext.value ──────► Head+Commit Task
+                                       └─ Set navContext.value ──────► Navigation Task
                                                                           │
                                          ┌────────────────────────────────┘
                                          │
-                                         ├─ track(() => resolveHead(...))
-                                         │    └─ If loader throws promise → retry when resolved
-                                         ├─ Update documentHead
-                                         ├─ (if navContext unchanged → stop, head-only update)
                                          ├─ Setup scroll restore
                                          ├─ initializeSPA (one-time)
                                          ├─ startViewTransition
                                          │    └─ update callback:
-                                         │         ├─ clientNavigate (history)
-                                         │         ├─ contentInternal.trigger()
-                                         │         └─ _waitUntilRendered()
+                                         │         ├─ clientNavigate (unless goto already did)
+                                         │         ├─ contentInternal.trigger() ──────► Head Task
+                                         │         ├─ _waitUntilRendered()
+                                         │         └─ commitRouteLoaders
                                          └─ finally:
                                               ├─ Set q:route attribute
                                               ├─ Save scroll, enable scroll tracking
                                               ├─ Force deferred store effects
                                               ├─ routeLocation.isNavigating = false
                                               └─ Resolve goto() promise
+
+Head Task (also re-runs when action data or a loader signal it reads changes)
+  ├─ track(() => resolveHead(...))
+  │    └─ If loader throws promise → retry when resolved
+  └─ Update documentHead
 ```
 
 ### Stale-by-Default Contract
 
-Loader signals are **not awaited** before navigation commits. Components see previous
-loader values until new data arrives. If a developer wants navigation to wait for a
-loader, they set `allowStale: false` on the loader, which causes the AsyncSignal to
-throw a promise when read before data is available, blocking the
-subtree render until the data arrives.
+The router starts loader fetches during navigation but does **not await** them.
+`prepareRouteLoaders` refetches a loader by calling `invalidate()` on its signal, which
+keeps the previous value, so components see previous loader values until new data
+arrives. A loader with no value yet, such as one the previous route did not use, throws
+its computation promise when read: the component that reads it waits for the data, and
+the navigation waits in `_waitUntilRendered()` until that render finishes. The router
+never calls `ComputedSignal.clear()`, and the public `LoaderSignal` type does not expose
+it, so there is no public way to show a loading state instead of a loader's stale value
+during navigation.
 
 ## 6. Context IDs
 

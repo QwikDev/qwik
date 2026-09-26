@@ -3,7 +3,11 @@ import { IndexMode } from '../../dom/for/for';
 import { NEEDS_COMPUTATION } from '../../reactive/constants';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
 import { SSRBranchSubscription as SsrBranchSubscription } from '../../dom/branch/branch';
-import { SSRContentSubscription as SsrContentSubscription } from '../../dom/content/content';
+import {
+  SSRContentSubscription as SsrContentSubscription,
+  SSRSuspenseContentSubscription as SsrSuspenseContentSubscription,
+} from '../../dom/content/content';
+import { findSuspenseBoundary } from '../../dom/content/suspense-boundary';
 import { SSRForBlockSubscription as SsrForBlockSubscription } from '../../dom/effect/ssr-effect';
 import {
   EffectTargetKind,
@@ -556,7 +560,12 @@ export class Serializer {
       value instanceof SsrForBlockSubscription ||
       value instanceof SsrContentSubscription
     ) {
-      this.output(TypeIds.EffectSubscription, serializeEffectSubscription(value));
+      this.output(
+        value instanceof SsrSuspenseContentSubscription
+          ? TypeIds.SuspenseSubscription
+          : TypeIds.EffectSubscription,
+        serializeEffectSubscription(value, this.$serializationContext$)
+      );
     } else if (value instanceof TaskSubscription || value instanceof VisibleTaskSubscription) {
       this.output(TypeIds.Task, serializeTaskSubscription(value));
     } else if (isContextScope(value)) {
@@ -1050,16 +1059,17 @@ function serializeEffectSubscription(
     | SsrDomSubscription
     | SsrBranchSubscription
     | SsrForBlockSubscription
-    | SsrContentSubscription
+    | SsrContentSubscription,
+  context: SerializationContext
 ): unknown[] {
   if (subscription instanceof SsrBranchSubscription) {
-    return serializeBranchSubscription(subscription);
+    return serializeBranchSubscription(subscription, context);
   }
   if (subscription instanceof SsrForBlockSubscription) {
-    return serializeForBlockSubscription(subscription);
+    return serializeForBlockSubscription(subscription, context);
   }
   if (subscription instanceof SsrContentSubscription) {
-    return serializeContentSubscription(subscription);
+    return serializeContentSubscription(subscription, context);
   }
 
   return serializeDomSubscription(subscription);
@@ -1073,8 +1083,17 @@ function serializeTaskSubscription(
   return [phase, subscription.task.qrl, serializeDeps(subscription.deps)];
 }
 
-function serializeBranchSubscription(subscription: SsrBranchSubscription): unknown[] {
+function getSuspenseRootId(owner: Owner | null, context: SerializationContext): number | undefined {
+  const boundary = findSuspenseBoundary(owner);
+  return boundary === undefined ? undefined : context.$addRoot$(boundary);
+}
+
+function serializeBranchSubscription(
+  subscription: SsrBranchSubscription,
+  context: SerializationContext
+): unknown[] {
   const effect = subscription.effect;
+  const suspenseRoot = getSuspenseRootId(subscription.owner, context);
 
   return [
     EffectKind.Branch,
@@ -1087,6 +1106,7 @@ function serializeBranchSubscription(subscription: SsrBranchSubscription): unkno
     getSsrOwnerItems(subscription.effect.currentOwner),
     effect.invokeContext?.slotScope ?? null,
     effect.useOnRoot ? serializeUseOnScopes(effect.invokeContext) : null,
+    ...(suspenseRoot === undefined ? [] : [suspenseRoot]),
   ];
 }
 
@@ -1109,23 +1129,37 @@ function getSsrOwnerItems(owner: Owner | null): SerializedOwnerItems {
   return out;
 }
 
-function serializeContentSubscription(subscription: SsrContentSubscription): unknown[] {
+function serializeContentSubscription(
+  subscription: SsrContentSubscription,
+  context: SerializationContext
+): unknown[] {
   const content = subscription.content;
+  const suspense =
+    subscription instanceof SsrSuspenseContentSubscription
+      ? [subscription.fallbackQrl, subscription.delay]
+      : undefined;
+  const suspenseRoot = getSuspenseRootId(subscription.owner, context);
   return [
     EffectKind.Content,
     content.rangeId,
     serializeDeps(subscription.deps),
     content.args,
     content.qrl,
-    getSsrOwnerItems(content.currentOwner),
+    suspense === undefined ? getSsrOwnerItems(content.currentOwner) : content.currentOwner,
     content.invokeContext?.slotScope ?? null,
     content.useOnRoot ? serializeUseOnScopes(content.invokeContext) : null,
     content.contextArg,
+    ...(suspense === undefined && suspenseRoot === undefined ? [] : [suspense ?? null]),
+    ...(suspenseRoot === undefined ? [] : [suspenseRoot]),
   ];
 }
 
-function serializeForBlockSubscription(subscription: SsrForBlockSubscription): unknown[] {
+function serializeForBlockSubscription(
+  subscription: SsrForBlockSubscription,
+  context: SerializationContext
+): unknown[] {
   const effect = subscription.effect;
+  const suspenseRoot = getSuspenseRootId(subscription.owner, context);
 
   return [
     EffectKind.ForBlock,
@@ -1139,6 +1173,7 @@ function serializeForBlockSubscription(subscription: SsrForBlockSubscription): u
     // Effects-mode indices re-derive from row position at resume — only escaped ones serialize.
     effect.indexMode === IndexMode.Escapes ? effect.indexSignals : null,
     effect.rowShape,
+    ...(suspenseRoot === undefined ? [] : [suspenseRoot]),
   ];
 }
 

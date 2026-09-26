@@ -72,6 +72,20 @@ test.describe('suspense', () => {
 
   tests();
 
+  test('shows fallback for a slot inside a resumed suspense boundary', async ({ page }) => {
+    const response = await page.request.get('/e2e/suspense');
+    expect(await response.text()).toContain('resumed-slot-ready');
+    await expect(page.locator('#resumed-slot-ready')).toHaveText('Ready');
+
+    await page.locator('#resumed-slot-button').click();
+    await expect(page.locator('#resumed-slot-fallback')).toBeVisible();
+    await expect(page.locator('#resumed-slot-resolve')).toBeVisible();
+
+    await resolveSuspense(page, 'resumed-slot', '__resolveResumedSlotSuspense');
+    await expect(page.locator('#resumed-slot-value')).toHaveText('Async slot content');
+    await expect(page.locator('#resumed-slot-fallback')).toBeHidden();
+  });
+
   test.describe('csr rendering', () => {
     test.beforeEach(async ({ page }) => {
       const toggleRender = page.locator('#force-rerender');

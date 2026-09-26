@@ -2,6 +2,7 @@ import {
   component$,
   isServer,
   Reveal,
+  Slot,
   Suspense,
   untrack,
   useServerData,
@@ -38,6 +39,7 @@ export const SuspenseChildren = component$(() => {
       <SingleBoundary />
       <NestedBoundaries />
       <MountedAsyncBoundary />
+      <ResumedSlotBoundary />
     </>
   );
 });
@@ -103,6 +105,45 @@ export const MountedAsyncChild = component$((props: { resolveName: string }) => 
     (globalThis as any)[props.resolveName] = () => {
       delete (globalThis as any)[props.resolveName];
       resolve(<p id="mounted-async-value">Async content</p>);
+    };
+  });
+  return <>{content}</>;
+});
+
+export const ResumedSlotBoundary = component$(() => {
+  const resolveName = '__resolveResumedSlotSuspense';
+  return (
+    <div id="resumed-slot-boundary">
+      <Suspense fallback$={() => <span id="resumed-slot-fallback">Loading slot</span>} delay={10}>
+        <ResumedSlotHost>
+          <ResumedSlotChild resolveName={resolveName} />
+        </ResumedSlotHost>
+      </Suspense>
+      <ResolveUpdate id="resumed-slot" resolveName={resolveName} />
+    </div>
+  );
+});
+
+export const ResumedSlotHost = component$(() => <Slot />);
+
+export const ResumedSlotChild = component$((props: { resolveName: string }) => {
+  const show = useSignal(false);
+  return (
+    <>
+      <button id="resumed-slot-button" onClick$={() => (show.value = true)}>
+        Show async slot
+      </button>
+      <span id="resumed-slot-ready">Ready</span>
+      {show.value && <ResumedSlotAsyncChild resolveName={props.resolveName} />}
+    </>
+  );
+});
+
+export const ResumedSlotAsyncChild = component$((props: { resolveName: string }) => {
+  const content = new Promise<JSXOutput>((resolve) => {
+    (globalThis as any)[props.resolveName] = () => {
+      delete (globalThis as any)[props.resolveName];
+      resolve(<span id="resumed-slot-value">Async slot content</span>);
     };
   });
   return <>{content}</>;

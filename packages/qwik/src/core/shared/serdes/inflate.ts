@@ -2,7 +2,13 @@ import { isDev } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive/constants';
 import type { AsyncSignalOptions } from '../../reactive/public-types';
 import { Branch, BranchRange, BranchSubscription } from '../../dom/branch/branch';
-import { ContentBlock, ContentSubscription, type ContentOutput } from '../../dom/content/content';
+import {
+  attachSuspense,
+  ContentBlock,
+  ContentSubscription,
+  SuspenseContentSubscription,
+  type ContentOutput,
+} from '../../dom/content/content';
 import { ForBlock, ForRange, type IndexMode } from '../../dom/for/for';
 import {
   AttrEffect,
@@ -47,6 +53,7 @@ import type { ContextScope } from '../../runtime/context-scope';
 import { newInvokeContext, type RuntimeInvokeContext } from '../../runtime/invoke-context';
 import type { UseOnMap } from '../../runtime/use-on';
 import type { Projection, SlotScope } from '../../dom/slot/slot';
+import { EMPTY_NODES } from '../../utils/consts';
 import {
   Owner,
   createOwner,
@@ -485,35 +492,30 @@ const inflateResolved = (
         bytes[i++] = s.charCodeAt(0);
       }
       break;
-    case TypeIds.EffectSubscription: {
+    case TypeIds.EffectSubscription:
+    case TypeIds.SuspenseSubscription: {
       const subscription = target as Subscriber;
       const parts = data as unknown[];
       const kind = parts[0] as EffectKind;
+      // A structural effect inside a suspense boundary needs that boundary live before its owner.
+      const restoreUnderBoundary = (restore: () => Promise<void>) =>
+        maybeThen(typeof parts[10] === 'number' ? container.getRoot(parts[10]) : undefined, () => {
+          ensureDeserializedOwner(subscription);
+          return restore();
+        });
       switch (kind) {
-        case EffectKind.Branch: {
-          ensureDeserializedOwner(subscription);
-          return restoreBranchSubscription(
-            container,
-            target as Writeable<BranchSubscription>,
-            parts
+        case EffectKind.Branch:
+          return restoreUnderBoundary(() =>
+            restoreBranchSubscription(container, target as Writeable<BranchSubscription>, parts)
           );
-        }
-        case EffectKind.ForBlock: {
-          ensureDeserializedOwner(subscription);
-          return restoreForBlockSubscription(
-            container,
-            target as Writeable<ForBlockSubscription>,
-            parts
+        case EffectKind.ForBlock:
+          return restoreUnderBoundary(() =>
+            restoreForBlockSubscription(container, target as Writeable<ForBlockSubscription>, parts)
           );
-        }
-        case EffectKind.Content: {
-          ensureDeserializedOwner(subscription);
-          return restoreContentSubscription(
-            container,
-            target as Writeable<ContentSubscription>,
-            parts
+        case EffectKind.Content:
+          return restoreUnderBoundary(() =>
+            restoreContentSubscription(container, target as Writeable<ContentSubscription>, parts)
           );
-        }
         case EffectKind.TextNode:
         case EffectKind.TextExpression:
         case EffectKind.Attr:
@@ -682,10 +684,14 @@ async function restoreContentSubscription(
   const deps = parts[2] as Source[];
   const args = parts[3] as unknown[];
   const renderQrl = parts[4] as QRLInternal<(...args: unknown[]) => ValueOrPromise<ContentOutput>>;
-  const ownedItems = parts[5] as SerializedOwnerItems | undefined;
+  const ownedItems = parts[5] as SerializedOwnerItems | Owner | null | undefined;
   const slotScope = (parts[6] as SlotScope | null | undefined) ?? null;
   const useOnScopes = parts[7] as UseOnMap[] | null | undefined;
   const contextArg = parts[8] === true;
+  const suspense = parts[9] as
+    | [Parameters<typeof attachSuspense>[4] | null, number]
+    | null
+    | undefined;
   const markerRange = findContentRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing content range ${rangeId}.`);
   if (markerRange === null) {
@@ -709,10 +715,30 @@ async function restoreContentSubscription(
   );
   restoreDependencies(subscription, deps);
 
-  if (Array.isArray(ownedItems) && ownedItems.length > 0) {
+  if (ownedItems instanceof Owner) {
+    registerOwnerToOwner(ownedItems, subscription.owner);
+    subscription.block.currentOwner = ownedItems;
+  } else if ((Array.isArray(ownedItems) && ownedItems.length > 0) || suspense != null) {
     const owner = createOwner(subscription.owner);
     subscription.block.currentOwner = owner;
-    restoreOwnerItems(ownedItems, owner);
+    if (Array.isArray(ownedItems)) {
+      restoreOwnerItems(ownedItems, owner);
+    }
+  }
+  if (suspense != null) {
+    if (!(subscription instanceof SuspenseContentSubscription)) {
+      throw new Error('Suspense data requires a suspense subscription.');
+    }
+    attachSuspense(
+      container,
+      new BranchRange(container.document, markerRange[0], markerRange[1]),
+      subscription,
+      EMPTY_NODES,
+      suspense[0] ?? undefined,
+      suspense[1]
+    );
+  } else if (subscription instanceof SuspenseContentSubscription) {
+    throw new Error('Suspense subscription requires suspense data.');
   }
 }
 

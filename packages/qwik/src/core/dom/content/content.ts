@@ -265,6 +265,12 @@ export class ContentSubscription<TArgs extends unknown[] = unknown[]> implements
   }
 }
 
+export class SuspenseContentSubscription<
+  TArgs extends unknown[] = unknown[],
+> extends ContentSubscription<TArgs> {
+  suspend!: (pending: Promise<unknown>) => void;
+}
+
 export function createContentBlock<TArgs extends unknown[]>(
   ctx: ContainerContext,
   start: Comment,
@@ -296,17 +302,35 @@ export function createSuspense(
   delay = 0,
   group?: RevealGroup,
   index = 0
-): ContentSubscription<[]> {
-  const subscription = createContentBlock(
-    ctx,
+): SuspenseContentSubscription<[]> {
+  const block = new ContentBlock(
+    ctx.document,
     range.start,
     range.end,
     [],
     contentQrl as QRL<ContentFn<[]>>,
+    getActiveInvokeContextOrNull(),
+    ctx,
     false,
     true
   );
-  const content = subscription.run();
+  const subscription = registerSubscriberToOwner(
+    new SuspenseContentSubscription(block, ctx.scheduler)
+  );
+  attachSuspense(ctx, range, subscription, subscription.run(), fallbackQrl, delay, group, index);
+  return subscription;
+}
+
+export function attachSuspense(
+  ctx: ContainerContext,
+  range: BranchRange,
+  subscription: SuspenseContentSubscription,
+  content: ValueOrPromise<readonly Node[]>,
+  fallbackQrl?: QRL<SuspenseContentFn>,
+  delay = 0,
+  group?: RevealGroup,
+  index = 0
+): void {
   // committed content may still have to wait for its reveal group
   const holdForReveal = (nodes: readonly Node[]) => {
     if (group === undefined) {
@@ -323,14 +347,13 @@ export function createSuspense(
       }
     });
   };
-  if (!isPromise(content)) {
-    holdForReveal(content);
-    if (subscription.block.currentOwner !== null) {
-      registerSuspenseBoundary(subscription.block.currentOwner, subscription);
-    }
-    return subscription;
+  const committedNodes = isPromise(content) ? null : content;
+  if (committedNodes !== null) {
+    holdForReveal(committedNodes);
   }
-  let isPending = true;
+  let isPending = isPromise(content);
+  let nestedPending = 0;
+  let preservedContent: DocumentFragment | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let fallbackContext: RuntimeInvokeContext | null = null;
   const disposeFallback = () => {
@@ -372,11 +395,20 @@ export function createSuspense(
           }
           const output = invoke(invokeContext, fallback, ctx);
           // The fallback may still be rendering, so materialize the owner instead of reading it.
-          subscription.block.currentOwner = getOrCreateContextOwner(invokeContext);
+          if (committedNodes === null) {
+            subscription.block.currentOwner = getOrCreateContextOwner(invokeContext);
+          }
           return maybeThen(output, (output) => {
             if (!isPending || isSubscriberDisposed(subscription)) {
               finish();
               return;
+            }
+            if (committedNodes !== null) {
+              const fragment = ctx.document.createDocumentFragment();
+              while (range.start.nextSibling !== range.end) {
+                fragment.appendChild(range.start.nextSibling!);
+              }
+              preservedContent = fragment;
             }
             range.replace(toNodes(output));
           });
@@ -389,6 +421,41 @@ export function createSuspense(
     );
     ctx.scheduler.waitFor(work);
   };
+
+  subscription.suspend = (pending) => {
+    if (nestedPending++ === 0 && !isPending) {
+      isPending = true;
+      if (fallbackQrl !== undefined && delay > 0) {
+        timer = setTimeout(showFallback, delay);
+      } else if (fallbackQrl !== undefined) {
+        showFallback();
+      }
+    }
+    pending.then(
+      () => {
+        if (--nestedPending === 0) {
+          finish();
+          if (preservedContent !== null && !isSubscriberDisposed(subscription)) {
+            range.replace([preservedContent]);
+            preservedContent = null;
+          }
+        }
+      },
+      (error) => {
+        finish();
+        group?.resolve(index);
+        subscription.block.dispose();
+        ctx.scheduler.waitFor(Promise.reject(error));
+      }
+    );
+  };
+
+  if (!isPromise(content)) {
+    if (subscription.block.currentOwner !== null) {
+      registerSuspenseBoundary(subscription.block.currentOwner, subscription);
+    }
+    return;
+  }
 
   if (fallbackQrl !== undefined && delay > 0) {
     timer = setTimeout(showFallback, delay);
@@ -411,7 +478,6 @@ export function createSuspense(
       ctx.scheduler.waitFor(Promise.reject(error));
     }
   );
-  return subscription;
 }
 
 export class SSRContent<TArgs extends unknown[] = unknown[]> {
@@ -429,9 +495,12 @@ export class SSRContent<TArgs extends unknown[] = unknown[]> {
   ) {}
 
   run(
-    onSubscription?: (subscription: SSRContentSubscription<TArgs>) => void
+    onSubscription?: (subscription: SSRContentSubscription<TArgs>) => void,
+    suppliedSubscription?: SSRContentSubscription<TArgs>
   ): ValueOrPromise<SsrOutput> {
-    const subscription = registerSubscriberToOwner(new SSRContentSubscription<TArgs>(this));
+    const subscription = registerSubscriberToOwner(
+      suppliedSubscription ?? new SSRContentSubscription<TArgs>(this)
+    );
     onSubscription?.(subscription);
     return maybeThen(getFunctionOrResolve(this.qrl, this.container), (fn) => {
       const invokeContext = newChildInvokeContext(this.invokeContext, {
@@ -492,6 +561,16 @@ export class SSRContentSubscription<
     if (owner !== null) {
       disposeOwner(owner);
     }
+  }
+}
+
+export class SSRSuspenseContentSubscription extends SSRContentSubscription<[]> {
+  constructor(
+    content: SSRContent<[]>,
+    readonly fallbackQrl: unknown,
+    readonly delay: number
+  ) {
+    super(content);
   }
 }
 

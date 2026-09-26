@@ -1,4 +1,6 @@
 import { cleanupDeps } from '../reactive/cleanup';
+import { SuspenseContentSubscription } from '../dom/content/content';
+import { findSuspenseBoundary } from '../dom/content/suspense-boundary';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
 import { logError } from '../shared/utils/log';
 import { isPromise, maybeThen } from '../shared/utils/promises';
@@ -310,6 +312,11 @@ export class Scheduler {
         cleanupDeps(subscriber);
         const result = subscriber.run();
         if (isPromise(result)) {
+          const boundary = findSuspenseBoundary(subscriber.owner);
+          if (boundary instanceof SuspenseContentSubscription) {
+            boundary.suspend(result);
+            continue;
+          }
           const next = i + 1;
           return result.then(() => this.runStructuralDomFrom(items, end, next));
         }

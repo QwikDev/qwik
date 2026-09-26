@@ -16,6 +16,7 @@ import {
   createContentBlock,
   createDynamicContent,
   createSuspense,
+  SuspenseContentSubscription,
   type ContentOutput,
 } from './content';
 
@@ -214,8 +215,54 @@ describe('ContentBlock', () => {
 });
 
 describe('createSuspense', () => {
+  it.each([false, true])(
+    'shows fallback for nested content with slot=%s while flushing siblings',
+    async (viaSlot) => {
+      const pending = deferred<Node>();
+      const projectionOwner = createOwner(null);
+      const { content, ctx, document, host, scheduler } = setupSuspense(
+        renderQrl((ctx) => {
+          const start = ctx!.document.createComment('child-start');
+          const end = ctx!.document.createComment('child-end');
+          const renderChild = () => createContentBlock(ctx!, start, end, [], () => pending.promise);
+          const child = viaSlot
+            ? invoke(newInvokeContext({ owner: projectionOwner, container: ctx }), renderChild)
+            : renderChild();
+          ctx!.scheduler.notify(child);
+          return [start, end];
+        }),
+        renderQrl((ctx) => ctx!.document.createTextNode('loading'))
+      );
+      if (viaSlot) {
+        projectionOwner.renderParent = content.block.currentOwner;
+      }
+      const siblingStart = document.createComment('sibling-start');
+      const siblingEnd = document.createComment('sibling-end');
+      host.appendChild(siblingStart);
+      host.appendChild(siblingEnd);
+      const sibling = invoke(newInvokeContext({ owner: createOwner(null), container: ctx }), () =>
+        createContentBlock(ctx, siblingStart, siblingEnd, [], () =>
+          document.createTextNode('sibling')
+        )
+      );
+      scheduler.notify(sibling);
+
+      const flush = scheduler.flushInteraction();
+      await settle();
+      expect(host.textContent).toContain('loading');
+      expect(host.textContent).toContain('sibling');
+
+      pending.resolve(document.createTextNode('ready'));
+      await flush;
+      await settle();
+      expect(host.textContent).toContain('ready');
+      expect(host.textContent).not.toContain('loading');
+    }
+  );
+
   it('finds a boundary through a projection render parent', () => {
     const { content } = setupSuspense(renderQrl((ctx) => ctx!.document.createTextNode('ready')));
+    expect(content).toBeInstanceOf(SuspenseContentSubscription);
     const boundaryOwner = content.block.currentOwner!;
     const lifetimeOwner = createOwner(null);
     const projectionOwner = createOwner(lifetimeOwner);

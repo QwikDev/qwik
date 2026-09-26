@@ -3,7 +3,8 @@ import { isPromise, maybeThen } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { getActiveInvokeContextOrNull, invoke } from '../../runtime/invoke-context';
 import type { SsrDeferredRange, SsrOutput } from '../../ssr/output';
-import { renderSsrContent } from './content';
+import { renderSsrContent, SSRContent, SSRSuspenseContentSubscription } from './content';
+import { registerSuspenseBoundary } from './suspense-boundary';
 import type { RevealGroup } from './reveal';
 
 /**
@@ -46,18 +47,30 @@ export function createSsrSuspense(
   index = 0
 ): ValueOrPromise<SsrOutput> {
   const scope = host.createRangeScope(rangeId);
-  let contentRoot: unknown;
-  const rendered = renderSsrContent(
-    scope as never,
+  const suspenseContent = new SSRContent<[]>(
     rangeId,
     [],
     contentQrl as never,
+    getActiveInvokeContextOrNull(),
+    scope as never,
     false,
-    true,
-    (subscription) => (contentRoot = subscription)
+    true
   );
+  const contentRoot = new SSRSuspenseContentSubscription(
+    suspenseContent,
+    fallbackQrl ?? null,
+    delay
+  );
+  const rendered = suspenseContent.run(undefined, contentRoot);
   const initialTasks = scope.flush();
-  const drain = (output: SsrOutput) => maybeThen(scope.flush(), () => output);
+  const drain = (output: SsrOutput) =>
+    maybeThen(scope.flush(), () => {
+      const owner = contentRoot.content.currentOwner;
+      if (owner !== null) {
+        registerSuspenseBoundary(owner, contentRoot);
+      }
+      return output;
+    });
   const content =
     isPromise(rendered) && isPromise(initialTasks)
       ? Promise.all([rendered, initialTasks]).then(([output]) => drain(output))

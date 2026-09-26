@@ -50,4 +50,5 @@ export const enum TypeIds {
   StoreProp,
   Owner,
   PropSource,
+  SuspenseSubscription,
 }

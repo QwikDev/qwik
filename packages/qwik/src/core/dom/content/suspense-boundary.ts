@@ -1,13 +1,16 @@
 import type { Owner } from '../../runtime/owner';
-import type { ContentSubscription } from './content';
+import type { SuspenseContentSubscription, SSRSuspenseContentSubscription } from './content';
 
-const suspenseBoundaries = new WeakMap<Owner, ContentSubscription>();
+export type SuspenseBoundary = SuspenseContentSubscription | SSRSuspenseContentSubscription;
 
-export function registerSuspenseBoundary(owner: Owner, boundary: ContentSubscription): void {
+const suspenseBoundaries = new WeakMap<Owner, SuspenseBoundary>();
+
+export function registerSuspenseBoundary(owner: Owner, boundary: SuspenseBoundary): void {
   suspenseBoundaries.set(owner, boundary);
 }
 
-export function findSuspenseBoundary(owner: Owner | null): ContentSubscription | undefined {
+/** The nearest boundary above `owner`, following projections back to where they render. */
+export function findSuspenseBoundary(owner: Owner | null): SuspenseBoundary | undefined {
   while (owner !== null) {
     const boundary = suspenseBoundaries.get(owner);
     if (boundary !== undefined) {

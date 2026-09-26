@@ -39,7 +39,11 @@ export function setETagHeader(requestEv: RequestEventInternal, normalizedETag: s
  * The eTag argument must already be normalized. Returns true if a 304 was sent (caller should stop
  * processing).
  */
-export function performETagMatch(requestEv: RequestEventInternal, normalizedETag: string): boolean {
+export function performETagMatch(
+  requestEv: RequestEventInternal,
+  normalizedETag: string,
+  beforeNotModified?: () => void
+): boolean {
   setETagHeader(requestEv, normalizedETag);
 
   const ifNoneMatch = requestEv.request.headers.get('If-None-Match');
@@ -57,6 +61,7 @@ export function performETagMatch(requestEv: RequestEventInternal, normalizedETag
     }
 
     if (found) {
+      beforeNotModified?.();
       requestEv.status(304);
       requestEv.send(304 as any, '' as any);
       return true;

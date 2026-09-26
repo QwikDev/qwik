@@ -16,7 +16,7 @@ import {
   SSRStreamBlock,
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
-import { ErrorBoundaryPhase } from '../shared/error/error-handling';
+import { CatchPhase } from '../shared/error/error-handling';
 import { VNodeDataFlag } from '../../server/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
@@ -104,20 +104,20 @@ export async function _walkJSX(
   };
   const drain = async (): Promise<void> => {
     while (stack.length) {
-      let phase = ErrorBoundaryPhase.Render;
+      let phase = CatchPhase.Render;
       try {
         const value = stack.pop();
         // Reference equality first (no prototype walk), then typeof
         if (value === MaybeAsyncSignal) {
           const trackFn = stack.pop() as () => StackValue;
-          if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+          if (__EXPERIMENTAL__.catchBoundary && isInsideFailedBoundaryContent(ssr)) {
             continue;
           }
-          phase = ErrorBoundaryPhase.Hook;
+          phase = CatchPhase.Hook;
           await retryOnPromise(() => stack.push(trackFn()));
           continue;
         }
-        if (__EXPERIMENTAL__.errorBoundary && value === InvokeJSXFunction) {
+        if (__EXPERIMENTAL__.catchBoundary && value === InvokeJSXFunction) {
           const fnChild = stack.pop() as StackFn;
           if (isInsideFailedBoundaryContent(ssr)) {
             continue;
@@ -131,7 +131,7 @@ export async function _walkJSX(
         if (typeof value === 'function') {
           if (value === Promise) {
             const pending = stack.pop() as Promise<JSXOutput>;
-            if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+            if (__EXPERIMENTAL__.catchBoundary && isInsideFailedBoundaryContent(ssr)) {
               continue;
             }
             stack.push(await pending);
@@ -143,7 +143,7 @@ export async function _walkJSX(
           }
           continue;
         }
-        if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+        if (__EXPERIMENTAL__.catchBoundary && isInsideFailedBoundaryContent(ssr)) {
           if (isPromise(value)) {
             value.catch(() => {});
           }
@@ -165,7 +165,7 @@ export async function _walkJSX(
 
 function enqueueJSX(enqueue: (v: StackValue) => void, value: JSXOutput) {
   enqueue(value);
-  if (__EXPERIMENTAL__.errorBoundary && typeof value === 'function') {
+  if (__EXPERIMENTAL__.catchBoundary && typeof value === 'function') {
     enqueue(InvokeJSXFunction);
   }
 }
@@ -207,7 +207,7 @@ function processJSXNode(
       enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
-        if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+        if (__EXPERIMENTAL__.catchBoundary && isInsideFailedBoundaryContent(ssr)) {
           return;
         }
         const freshWalkOptions = () => ({
@@ -220,7 +220,7 @@ function processJSXNode(
             await ssr.streamHandler.flush();
           }
         } catch (err) {
-          ssr.handleError(err, ssr.getOrCreateLastNode(), ErrorBoundaryPhase.Render);
+          ssr.handleError(err, ssr.getOrCreateLastNode(), CatchPhase.Render);
           await _walkJSX(ssr, null, freshWalkOptions());
         }
       });
@@ -250,7 +250,7 @@ function processJSXNode(
           ssr.htmlNode(innerHTML);
         }
 
-        if (__EXPERIMENTAL__.errorBoundary && directGetPropsProxyProp(jsx, QErrorContentHost)) {
+        if (__EXPERIMENTAL__.catchBoundary && directGetPropsProxyProp(jsx, QErrorContentHost)) {
           enqueue(openBoundaryContentScope(ssr, ssr.getOrCreateLastNode()));
         }
         enqueue(ssr.closeElement);
@@ -274,7 +274,7 @@ function processJSXNode(
         children != null && enqueueJSX(enqueue, children);
       } else if (isFunction(type)) {
         if (
-          (__EXPERIMENTAL__.suspense || __EXPERIMENTAL__.errorBoundary) &&
+          (__EXPERIMENTAL__.pendingBoundary || __EXPERIMENTAL__.catchBoundary) &&
           isInternalServerComponent(type)
         ) {
           enqueue(() => getInternalServerComponentHandler(type)(ssr, jsx, options, enqueue));

@@ -1,5 +1,5 @@
 import { isBrowser, isDev } from '@qwik.dev/core/build';
-import { useErrorBoundaryStore } from '../../use/use-error-boundary-store';
+import { useCatchStore } from '../../use/use-catch-store';
 import { componentQrl, type Component } from '../component.public';
 import { _jsxSorted } from '../jsx/jsx-internal';
 import { Fragment } from '../jsx/jsx-runtime';
@@ -14,8 +14,8 @@ import {
   QErrorContentHost,
   QErrorFallbackHost,
   QSlot,
-  QSuspenseResolved,
-  QSuspenseResultParent,
+  QPendingResolved,
+  QPendingResultParent,
 } from '../utils/markers';
 import { qTest } from '../utils/qdev';
 import { isOutOfOrderSegmentContainer } from '../utils/container';
@@ -35,14 +35,14 @@ import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
 import {
   ERROR_CONTEXT,
-  ERROR_BOUNDARY_QRL_SYMBOL,
-  getOwnErrorBoundaryStore,
+  CATCH_QRL_SYMBOL,
+  getOwnCatchStore,
   isErrorFromDeferredSegment,
   markBoundaryErrored,
   redactBoundaryErrorForDisplay,
-  type ErrorBoundaryInfo,
-  type ErrorBoundaryStore,
-  ErrorBoundaryPhase,
+  type CatchInfo,
+  type CatchStore,
+  CatchPhase,
 } from './error-handling';
 import { _captures } from '../qrl/qrl-class';
 import type { DomContainer } from '../../client/dom-container';
@@ -50,7 +50,7 @@ import type { VirtualVNode } from '../vnode/virtual-vnode';
 import type { VNode } from '../vnode/vnode';
 
 /** @public @experimental */
-export interface ErrorBoundaryProps {
+export interface CatchProps {
   /**
    * Rendered when a descendant throws. The error is always an `Error`, so `{error.message}` is
    * safe: a non-Error throw is wrapped, and production redacts server-origin errors to a generic
@@ -68,29 +68,29 @@ export interface ErrorBoundaryProps {
    * An error caught during SSR fires again when the client re-derives it, so dedupe in your
    * reporter.
    */
-  onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
+  onError$?: QRL<(error: Error, info: CatchInfo) => void>;
 }
 
 /** @internal */
-export const errorBoundaryReset = (): void => {
+export const catchReset = (): void => {
   const [host] = _captures as [VNode];
   // this is executed only on client
   const container = tryGetInvokeContext()?.$container$ as DomContainer | undefined;
   const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
   if (isBrowserEnv && host && container) {
-    resetErrorBoundary(container, host);
+    resetCatch(container, host);
   }
 };
 
 const RESET_KEY_SUFFIX = '\0';
 
 /** @internal */
-export function resetErrorBoundary(container: DomContainer, host: VNode): void {
+export function resetCatch(container: DomContainer, host: VNode): void {
   const boundaryHost = container.resolveContextHost(host, ERROR_CONTEXT);
   if (!boundaryHost) {
     return;
   }
-  const store = getOwnErrorBoundaryStore(container, boundaryHost);
+  const store = getOwnCatchStore(container, boundaryHost);
   if (!store) {
     return;
   }
@@ -117,7 +117,7 @@ function scheduleBoundaryContentReset(
         crossedProjection = true;
       } else if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
         if (!crossedProjection) {
-          const ownerBoundary = getOwnErrorBoundaryStore(container, vNode);
+          const ownerBoundary = getOwnCatchStore(container, vNode);
           if (!ownerBoundary || ownerBoundary.error !== undefined) {
             if (contentOwner) {
               resetHost = contentOwner;
@@ -147,7 +147,7 @@ function scheduleBoundaryContentReset(
 }
 
 const renderFallbackOrLastResort = (
-  fallbackQrl: ErrorBoundaryProps['fallback$'],
+  fallbackQrl: CatchProps['fallback$'],
   error: Error,
   reset: QRL<() => void>
 ): JSXOutput | Promise<JSXOutput> => {
@@ -166,10 +166,7 @@ const renderFallbackOrLastResort = (
   });
 };
 
-const buildSSRErrorBoundaryHosts = (
-  store: ErrorBoundaryStore,
-  container: SSRContainer | undefined
-): JSXOutput => {
+const buildSSRCatchHosts = (store: CatchStore, container: SSRContainer | undefined): JSXOutput => {
   const boundaryId = container?.nextOutOfOrderId(false) ?? 0;
   return [
     /*#__PURE__*/ _jsxSorted(
@@ -198,13 +195,13 @@ const buildSSRErrorBoundaryHosts = (
 };
 
 /** @internal */
-export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
-  if (!__EXPERIMENTAL__.errorBoundary) {
+export const catchCmp = (props: CatchProps): JSXOutput => {
+  if (!__EXPERIMENTAL__.catchBoundary) {
     throw new Error(
-      '<ErrorBoundary> requires the `errorBoundary` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["errorBoundary"] }).'
+      '<Catch> requires the `catchBoundary` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["catchBoundary"] }).'
     );
   }
-  const store = useErrorBoundaryStore();
+  const store = useCatchStore();
   const invokeCtx = tryGetInvokeContext();
   const container = invokeCtx?.$container$;
   if (container && (getStoreTarget(store) ?? store).boundaryId === undefined) {
@@ -215,17 +212,17 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
     return /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 0, null);
   }
 
-  const reset = /*#__PURE__*/ inlinedQrl(errorBoundaryReset, '_ebR', [invokeCtx?.$hostElement$]);
+  const reset = /*#__PURE__*/ inlinedQrl(catchReset, '_caR', [invokeCtx?.$hostElement$]);
   if (isServerEnv) {
     const fallbackQrl = props.fallback$;
     store.$fallback$ = noSerialize((error: unknown) => fallbackQrl(error as Error, reset));
     const onErrorQrl = props.onError$;
     if (onErrorQrl) {
-      store.$onError$ = noSerialize((error: unknown, info: ErrorBoundaryInfo) =>
+      store.$onError$ = noSerialize((error: unknown, info: CatchInfo) =>
         onErrorQrl(error as Error, info)
       );
     }
-    return buildSSRErrorBoundaryHosts(store, container as SSRContainer);
+    return buildSSRCatchHosts(store, container as SSRContainer);
   }
 
   const displayError = redactBoundaryErrorForDisplay(store.error, true);
@@ -240,28 +237,27 @@ export const errorBoundaryCmp = (props: ErrorBoundaryProps): JSXOutput => {
 };
 
 /** Renders `fallback$` instead of its children when a descendant throws. @public @experimental */
-export const ErrorBoundary: Component<ErrorBoundaryProps> =
-  /*#__PURE__*/ componentQrl<ErrorBoundaryProps>(
-    /*#__PURE__*/ inlinedQrl(errorBoundaryCmp, ERROR_BOUNDARY_QRL_SYMBOL)
-  );
+export const Catch: Component<CatchProps> = /*#__PURE__*/ componentQrl<CatchProps>(
+  /*#__PURE__*/ inlinedQrl(catchCmp, CATCH_QRL_SYMBOL)
+);
 
 type SSRErrorFallbackProps = {
   boundaryId: number;
-  store: ErrorBoundaryStore;
+  store: CatchStore;
 };
 
-const consumeSSRErrorFallback = (ssr: SSRContainer, store: ErrorBoundaryStore): JSXOutput => {
+const consumeSSRErrorFallback = (ssr: SSRContainer, store: CatchStore): JSXOutput => {
   const fallback = store.$fallback$!;
   delete store.$fallback$;
   const projected = redactBoundaryErrorForDisplay(store.error, isDev, ssr.$transformError$);
   return fallback(projected) as JSXOutput;
 };
 
-const SSRErrorFallbackRenderer = __EXPERIMENTAL__.errorBoundary
+const SSRErrorFallbackRenderer = __EXPERIMENTAL__.catchBoundary
   ? /*#__PURE__*/ createInternalServerComponent<SSRErrorFallbackProps & { deliverLate: boolean }>(
       (ssr, jsx, options, enqueue) => {
         const boundaryId = jsx.varProps.boundaryId as number;
-        const store = jsx.varProps.store as ErrorBoundaryStore;
+        const store = jsx.varProps.store as CatchStore;
         if (jsx.varProps.deliverLate) {
           const streamFallback = async (error: unknown): Promise<void> => {
             if (!store.$fallback$) {
@@ -269,7 +265,7 @@ const SSRErrorFallbackRenderer = __EXPERIMENTAL__.errorBoundary
             }
             // The catch site already recorded it; marking again refires onError$.
             if (store.error !== error) {
-              markBoundaryErrored(store, error, ErrorBoundaryPhase.Render);
+              markBoundaryErrored(store, error, CatchPhase.Render);
             }
             const segment = await ssr.segment(
               `${boundaryId}`,
@@ -283,7 +279,7 @@ const SSRErrorFallbackRenderer = __EXPERIMENTAL__.errorBoundary
             );
           };
           store.$emitFallback$ = noSerialize(streamFallback);
-          ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
+          ssr.write(`<template ${QPendingResolved}="${boundaryId}"></template>`);
           if (store.error !== undefined) {
             return streamFallback(store.error);
           }
@@ -306,13 +302,13 @@ const SSRErrorFallbackRenderer = __EXPERIMENTAL__.errorBoundary
     )
   : null!;
 
-export const SSRErrorFallbackHost = __EXPERIMENTAL__.errorBoundary
+export const SSRErrorFallbackHost = __EXPERIMENTAL__.catchBoundary
   ? /*#__PURE__*/ createInternalServerComponent<SSRErrorFallbackProps>(
       (ssr, jsx, _options, enqueue) => {
         const boundaryId = jsx.varProps.boundaryId as number;
-        const store = jsx.varProps.store as ErrorBoundaryStore;
+        const store = jsx.varProps.store as CatchStore;
         const deliverLate =
-          __EXPERIMENTAL__.suspense &&
+          __EXPERIMENTAL__.pendingBoundary &&
           ssr.outOfOrderStreaming &&
           !isOutOfOrderSegmentContainer(ssr) &&
           (store.error === undefined || isErrorFromDeferredSegment(store));
@@ -320,7 +316,7 @@ export const SSRErrorFallbackHost = __EXPERIMENTAL__.errorBoundary
           /*#__PURE__*/ _jsxSorted(
             'div',
             {
-              [deliverLate ? QSuspenseResultParent : QErrorFallbackHost]: String(boundaryId),
+              [deliverLate ? QPendingResultParent : QErrorFallbackHost]: String(boundaryId),
               style: 'display:none',
             },
             null,

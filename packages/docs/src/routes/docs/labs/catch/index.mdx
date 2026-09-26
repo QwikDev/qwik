@@ -1,25 +1,25 @@
 ---
-title: 'ErrorBoundary | Experimental'
+title: 'Catch | Experimental'
 keywords: 'error boundary, error handling, fallback, reset, onError, digest'
 ---
 
 import { Note } from '~/components/note/note';
 
-# `ErrorBoundary`
+# `Catch`
 
 **Stage:** `implementation`
 
 <Note>
-  `ErrorBoundary` is experimental and currently a technical preview. Its API and behavior may still
+  `Catch` is experimental and currently a technical preview. Its API and behavior may still
   change as we gather feedback from real-world usage.
 </Note>
 
-`ErrorBoundary` renders `fallback$` instead of its children when a descendant throws.
+`Catch` renders `fallback$` instead of its children when a descendant throws.
 
 It catches during SSR, during out-of-order streaming and on the client, and it composes with
-`Suspense` in either order.
+`Pending` in either order.
 
-To use it, add `experimental: ['errorBoundary']` to your `qwikVite` plugin options:
+To use it, add `experimental: ['catchBoundary']` to your `qwikVite` plugin options:
 
 ```ts
 // vite.config.ts
@@ -30,19 +30,19 @@ export default defineConfig(() => {
   return {
     plugins: [
       qwikVite({
-        experimental: ['errorBoundary'],
+        experimental: ['catchBoundary'],
       }),
     ],
   };
 });
 ```
 
-```tsx /ErrorBoundary/ /fallback$/
-import { $, ErrorBoundary, component$ } from '@qwik.dev/core';
+```tsx /Catch/ /fallback$/
+import { $, Catch, component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   return (
-    <ErrorBoundary
+    <Catch
       fallback$={$((error, reset) => (
         <div role="alert">
           <p>{error.message}</p>
@@ -51,7 +51,7 @@ export default component$(() => {
       ))}
     >
       <Profile />
-    </ErrorBoundary>
+    </Catch>
   );
 });
 ```
@@ -78,10 +78,10 @@ a streamed fallback.
 Optional. A side effect for reporting; it never affects what renders.
 
 ```tsx
-onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
+onError$?: QRL<(error: Error, info: CatchInfo) => void>;
 ```
 
-It receives the original error and an `ErrorBoundaryInfo`:
+It receives the original error and a `CatchInfo`:
 
 - `phase` — where the error came from: `'render'`, `'event'`, or `'hook'` (task throws report
   `'hook'`).
@@ -163,5 +163,5 @@ it cannot be `async`.
 
 ## Related
 
-- For loading states, see [Suspense](/docs/labs/suspense/)
-- For the generated API entries, see [API Reference](/api/qwik/#errorboundary)
+- For loading states, see [Pending](/docs/labs/pending/)
+- For the generated API entries, see [API Reference](/api/qwik/#catch)

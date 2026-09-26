@@ -73,6 +73,8 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/bundle-graph.ts)
 
+<h2 id="experimentalfeatures-catchboundary">catchBoundary</h2>
+
 <h2 id="componententrystrategy">ComponentEntryStrategy</h2>
 
 ```typescript
@@ -345,8 +347,6 @@ export type EntryStrategy =
 
 **References:** [InlineEntryStrategy](#inlineentrystrategy), [HoistEntryStrategy](#hoistentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [HookEntryStrategy](#hookentrystrategy), [SegmentEntryStrategy](#segmententrystrategy), [ComponentEntryStrategy](#componententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
 
-<h2 id="experimentalfeatures-errorboundary">errorBoundary</h2>
-
 <h2 id="experimentalfeatures">ExperimentalFeatures</h2>
 
 Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.
@@ -385,6 +385,19 @@ Enable the `blockSSR: false` route loader option
 </td></tr>
 <tr><td>
 
+catchBoundary
+
+</td><td>
+
+`"catchBoundary"`
+
+</td><td>
+
+Enable the Catch primitive
+
+</td></tr>
+<tr><td>
+
 each
 
 </td><td>
@@ -394,19 +407,6 @@ each
 </td><td>
 
 Enable the Each keyed-list primitive
-
-</td></tr>
-<tr><td>
-
-errorBoundary
-
-</td><td>
-
-`"errorBoundary"`
-
-</td><td>
-
-Enable the ErrorBoundary primitive
 
 </td></tr>
 <tr><td>
@@ -437,6 +437,19 @@ Disable SPA navigation handler in Qwik Router
 </td></tr>
 <tr><td>
 
+pendingBoundary
+
+</td><td>
+
+`"pendingBoundary"`
+
+</td><td>
+
+Enable the Pending fallback primitive
+
+</td></tr>
+<tr><td>
+
 show
 
 </td><td>
@@ -446,19 +459,6 @@ show
 </td><td>
 
 Enable the Show conditional primitive
-
-</td></tr>
-<tr><td>
-
-suspense
-
-</td><td>
-
-`"suspense"`
-
-</td><td>
-
-Enable the Suspense fallback primitive
 
 </td></tr>
 <tr><td>
@@ -1377,6 +1377,8 @@ Description
 
 </td></tr>
 </tbody></table>
+
+<h2 id="experimentalfeatures-pendingboundary">pendingBoundary</h2>
 
 <h2 id="qwikasset">QwikAsset</h2>
 
@@ -3213,8 +3215,6 @@ number
 
 </td></tr>
 </tbody></table>
-
-<h2 id="experimentalfeatures-suspense">suspense</h2>
 
 <h2 id="symbolmapper">SymbolMapper</h2>
 

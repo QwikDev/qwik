@@ -23,7 +23,7 @@ Qwik v2 is a ground-up rewrite of the framework. This guide covers what's new, h
 - **Smaller serialized state** — Up to 30% smaller HTML
 - **HMR** — Instant browser updates without losing state
 - **Async `useComputed$`** — Replaces `useResource$` with auto-tracking, polling, concurrency control, and abort
-- **`<Suspense>`** — Shows fallback UI while part of the page waits
+- **`<Pending>`** — Shows fallback UI while part of the page waits
 
 ## Quick Start
 
@@ -180,7 +180,7 @@ const data = useComputed$(async ({ abortSignal }) => {
 ```
 
 <Note title="READING COMPUTEDSIGNAL.VALUE">
-`.value` throws while unresolved, and re-throws the error if the computation failed. Read it inside [`<Suspense>`](/docs/labs/suspense/index.mdx) and [`<ErrorBoundary>`](/docs/labs/error-boundary/index.mdx), or provide an `initial` value.
+`.value` throws while unresolved, and re-throws the error if the computation failed. Read it inside [`<Pending>`](/docs/labs/pending/index.mdx) and [`<Catch>`](/docs/labs/catch/index.mdx), or provide an `initial` value.
 </Note>
 
 ```tsx
@@ -190,11 +190,11 @@ const DataView = component$((props: { data: Signal<unknown> }) => {
 
 // In the component that owns `data`:
 return (
-  <ErrorBoundary fallback$={$((error) => <p>Error: {error.message}</p>)}>
-    <Suspense fallback={<p>Loading...</p>}>
+  <Catch fallback$={$((error) => <p>Error: {error.message}</p>)}>
+    <Pending fallback={<p>Loading...</p>}>
       <DataView data={data} />
-    </Suspense>
-  </ErrorBoundary>
+    </Pending>
+  </Catch>
 );
 ```
 
@@ -338,7 +338,7 @@ Still compile in v2, removed in v3.
 | Previous value | - | `ctx.previous` |
 | Polling | - | `usePoll(signal, ms)` from `@qwik.dev/utils` |
 | Initial value | - | `options.initial` |
-| Rendering | `<Resource onResolved={} />` | read `.value` inside `<Suspense>` / `<ErrorBoundary>` |
+| Rendering | `<Resource onResolved={} />` | read `.value` inside `<Pending>` / `<Catch>` |
 
 <LongNote title="Full before/after example">
 
@@ -377,7 +377,7 @@ const Cmp = component$(() => {
 v2:
 
 ```tsx
-import { $, ErrorBoundary, Suspense, useComputed$, type Signal } from '@qwik.dev/core';
+import { $, Catch, Pending, useComputed$, type Signal } from '@qwik.dev/core';
 
 const Temperature = component$((props: { weather: Signal<{ temp: number }> }) => {
   return <div>Temperature: {props.weather.value.temp}</div>;
@@ -397,11 +397,11 @@ const Cmp = component$(() => {
   return (
     <div>
       <input name="city" bind:value={city} />
-      <ErrorBoundary fallback$={$((error) => <div>Error: {error.message}</div>)}>
-        <Suspense fallback={<div>Loading...</div>}>
+      <Catch fallback$={$((error) => <div>Error: {error.message}</div>)}>
+        <Pending fallback={<div>Loading...</div>}>
           <Temperature weather={weather} />
-        </Suspense>
-      </ErrorBoundary>
+        </Pending>
+      </Catch>
     </div>
   );
 });
@@ -409,13 +409,13 @@ const Cmp = component$(() => {
 
 </LongNote>
 
-`useComputed$()` owns the work that creates the value. [`<Suspense>`](/docs/labs/suspense/index.mdx) owns the fallback UI if you want to read `.value` directly while the value may still be pending.
+`useComputed$()` owns the work that creates the value. [`<Pending>`](/docs/labs/pending/index.mdx) owns the fallback UI if you want to read `.value` directly while the value may still be pending.
 
 What changed:
 
 - `track(() => signal.value)` → read `signal.value` directly before the first `await` (auto-tracked); after an `await`, keep using the provided `track()`
 - Manual `AbortController` + `cleanup()` → `ctx.abortSignal`
-- `<Resource onPending onRejected onResolved />` → `<Suspense>` and `<ErrorBoundary>`
+- `<Resource onPending onRejected onResolved />` → `<Pending>` and `<Catch>`
 - `.value` is `T` directly, not `Promise<T>`
 - `.error` is `Error | undefined`
 - For unlimited parallel fetches, pass `{ concurrency: 0 }`

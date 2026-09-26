@@ -1,25 +1,25 @@
 ---
-title: "\U0001F9EA Suspense | Experimental"
-keywords: 'suspense, reveal, fallback, async rendering, loading, out-of-order streaming'
+title: "\U0001F9EA Pending | Experimental"
+keywords: 'pending, reveal, fallback, async rendering, loading, out-of-order streaming'
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 import { Note } from '~/components/note/note';
 
-# Suspense
+# Pending
 
 **Stage:** `implementation`
 
 <Note>
-  `Suspense` and out-of-order streaming are experimental. Their API and rendering behavior may still
+  `Pending` and out-of-order streaming are experimental. Their API and rendering behavior may still
   change as the feature develops.
 </Note>
 
-`<Suspense>` shows a fallback while its content is loading.
+`<Pending>` shows a fallback while its content is loading.
 
 When the content is ready, Qwik hides the fallback and shows the real content.
 
-Suspense does not fetch data or create async values. It only decides what to show while rendering is paused.
+Pending does not fetch data or create async values. It only decides what to show while rendering is paused.
 
 The high-level model is:
 
@@ -27,18 +27,18 @@ The high-level model is:
 useSignal()     // state you set directly
 useComputed$()  // state calculated synchronously or from async work
 
-<Suspense>      // fallback UI while content loads
+<Pending>      // fallback UI while content loads
 ```
 
-The loading work happens elsewhere. Suspense only shows the fallback.
+The loading work happens elsewhere. Pending only shows the fallback.
 
 ## Basic Usage
 
-Wrap loading content with `<Suspense>` and pass a `fallback`:
+Wrap loading content with `<Pending>` and pass a `fallback`:
 
-<CodeSandbox src="/src/routes/demo/component/suspense/index.tsx" style={{ height: '14em' }}>
-```tsx /Suspense/ /fallback/ /delay/
-import { component$, Suspense, useSignal, type JSXOutput } from '@qwik.dev/core';
+<CodeSandbox src="/src/routes/demo/component/pending/index.tsx" style={{ height: '14em' }}>
+```tsx /Pending/ /fallback/ /delay/
+import { component$, Pending, useSignal, type JSXOutput } from '@qwik.dev/core';
 
 const AsyncMessage = component$(() => {
   const content = new Promise<JSXOutput>((resolve) => {
@@ -58,9 +58,9 @@ export default component$(() => {
       </button>
 
       {show.value && (
-        <Suspense fallback={<p>Loading content...</p>} delay={150}>
+        <Pending fallback={<p>Loading content...</p>} delay={150}>
           <AsyncMessage />
-        </Suspense>
+        </Pending>
       )}
     </section>
   );
@@ -72,11 +72,11 @@ While `AsyncMessage` is loading, Qwik shows the fallback. Once it resolves, Qwik
 
 ## With `useComputed$()`
 
-The computed signal loads the data. Suspense shows the fallback while `user.value` is not ready.
+The computed signal loads the data. Pending shows the fallback while `user.value` is not ready.
 
-<CodeSandbox src="/src/routes/demo/component/suspense-async/index.tsx" style={{ height: '16em' }}>
-```tsx /useComputed$/ /Suspense/ /user.value/
-import { component$, Suspense, useComputed$, useSignal } from '@qwik.dev/core';
+<CodeSandbox src="/src/routes/demo/component/pending-async/index.tsx" style={{ height: '16em' }}>
+```tsx /useComputed$/ /Pending/ /user.value/
+import { component$, Pending, useComputed$, useSignal } from '@qwik.dev/core';
 
 type User = {
   name: {
@@ -115,9 +115,9 @@ export default component$(() => {
       </button>
 
       {show.value && (
-        <Suspense fallback={<p>Loading user...</p>}>
+        <Pending fallback={<p>Loading user...</p>}>
           <UserCard />
-        </Suspense>
+        </Pending>
       )}
     </section>
   );
@@ -125,24 +125,24 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-When `UserCard` reads `user.value` before the request finishes, Qwik shows the nearest `<Suspense>` fallback.
+When `UserCard` reads `user.value` before the request finishes, Qwik shows the nearest `<Pending>` fallback.
 
-If the computation fails, reading `user.value` re-throws the error. Wrap the section in [`<ErrorBoundary>`](/docs/labs/error-boundary/index.mdx) to render a fallback instead.
+If the computation fails, reading `user.value` re-throws the error. Wrap the section in [`<Catch>`](/docs/labs/catch/index.mdx) to render a fallback instead.
 
-## What Can Trigger Suspense
+## What Can Trigger Pending
 
-Suspense can show its fallback when content inside it is still loading, including:
+Pending can show its fallback when content inside it is still loading, including:
 
 - reading an async `useComputed$()` value before it is ready
 - returning a `Promise` from JSX
 - rendering a child component that is still loading
 - running descendant work that blocks rendering
 
-Suspense does not do the loading work. It only controls the fallback while that work finishes.
+Pending does not do the loading work. It only controls the fallback while that work finishes.
 
 ## Out-of-order Streaming
 
-Out-of-order streaming is an optional server rendering mode for `<Suspense>`.
+Out-of-order streaming is an optional server rendering mode for `<Pending>`.
 
 Server rendering means Qwik creates HTML on the server and sends it to the browser. Streaming means
 the browser can receive that HTML in chunks, within the same HTTP connection, instead of waiting for
@@ -150,15 +150,15 @@ one complete HTML string.
 
 Out-of-order streaming helps when one section of the page is slow, but the rest of the page is ready.
 
-Without out-of-order streaming, the server renders the page in order. If a Suspense child is still
+Without out-of-order streaming, the server renders the page in order. If a Pending child is still
 waiting, the server waits at that point before it can continue sending the next HTML.
 
 With out-of-order streaming, Qwik can:
 
 1. Send the HTML that is ready.
-2. Send the Suspense fallback for that section.
+2. Send the Pending fallback for that section.
 3. Continue sending the rest of the page, such as the footer or nearby buttons.
-4. Send the real Suspense content later, when it finishes.
+4. Send the real Pending content later, when it finishes.
 5. Hide the fallback and show the real content in the browser.
 
 During SSR, Qwik includes the fallback in the stream when the boundary has a fallback. Qwik hides
@@ -172,16 +172,16 @@ From the user's point of view, the page appears sooner. They can see the shell o
 one slower section is still loading.
 
 <Note>
-Out-of-order streaming only applies to promises inside `<Suspense>`. A promise outside Suspense still
+Out-of-order streaming only applies to promises inside `<Pending>`. A promise outside Pending still
 follows the normal SSR rendering behavior.
 </Note>
 
 You do not need to write the streaming markers or reveal scripts yourself. Keep writing
-`<Suspense>` and fallbacks normally; Qwik handles the streamed HTML and browser-side reveal.
+`<Pending>` and fallbacks normally; Qwik handles the streamed HTML and browser-side reveal.
 
-### Enable Suspense
+### Enable Pending
 
-Suspense is experimental, so first enable it in `vite.config.ts`:
+Pending is experimental, so first enable it in `vite.config.ts`:
 
 ```ts title="vite.config.ts" /experimental/
 import { qwikVite } from '@qwik.dev/core/optimizer';
@@ -193,7 +193,7 @@ export default defineConfig(() => ({
   plugins: [
     qwikRouter(),
     qwikVite({
-      experimental: ['suspense'],
+      experimental: ['pendingBoundary'],
     }),
     tsconfigPaths(),
   ],
@@ -202,7 +202,7 @@ export default defineConfig(() => ({
 
 ### Configure Out-of-order Streaming
 
-After Suspense is enabled, out-of-order streaming is enabled by default. You can also set it
+After Pending is enabled, out-of-order streaming is enabled by default. You can also set it
 explicitly in your server entry point.
 
 Most Qwik apps have a `src/entry.ssr.tsx` file. That file receives render options from the adapter
@@ -262,8 +262,8 @@ export default function (opts: RenderToStreamOptions) {
 
 In this example, the page shell and fallback can stream before `ProfileDetails` finishes:
 
-```tsx /Suspense/ /fallback/ /profile.value/
-import { component$, Suspense, useComputed$ } from '@qwik.dev/core';
+```tsx /Pending/ /fallback/ /profile.value/
+import { component$, Pending, useComputed$ } from '@qwik.dev/core';
 
 const ProfileDetails = component$(() => {
   const profile = useComputed$(async ({ abortSignal }) => {
@@ -290,9 +290,9 @@ export default component$(() => {
     <main>
       <h1>Account</h1>
 
-      <Suspense fallback={<p>Loading profile...</p>}>
+      <Pending fallback={<p>Loading profile...</p>}>
         <ProfileDetails />
-      </Suspense>
+      </Pending>
 
       <footer>Need help? Contact support.</footer>
     </main>
@@ -307,7 +307,7 @@ If `/api/profile` is slow, Qwik can send:
 - the footer
 
 Then, when the profile request resolves, Qwik sends the finished profile HTML and shows it in the
-Suspense boundary.
+Pending boundary.
 
 If the profile request finishes quickly, Qwik still sends the fallback during SSR, but the finished
 profile can be shown before the user notices it.
@@ -317,9 +317,9 @@ profile can be shown before the user notices it.
 The fallback is real UI. Choose markup that is useful while the user waits:
 
 ```tsx
-<Suspense fallback={<p>Loading recommendations...</p>}>
+<Pending fallback={<p>Loading recommendations...</p>}>
   <Recommendations />
-</Suspense>
+</Pending>
 ```
 
 If you do not provide a fallback, the boundary has no visible loading UI. The rest of the page can
@@ -341,7 +341,7 @@ For best results:
 
 Qwik keeps the streamed HTML resumable.
 
-That means the shell of the page can become interactive even while a Suspense section is still
+That means the shell of the page can become interactive even while a Pending section is still
 waiting. If your fallback has buttons or other event handlers, they can also resume while the
 fallback is visible, after the root page state has loaded in the browser.
 
@@ -378,13 +378,13 @@ complete HTML files even if the server entry point sets `streaming.outOfOrder` t
 
 ### Troubleshooting
 
-If you see an error that says Suspense must be enabled, add `experimental: ['suspense']` to
+If you see an error that says Pending must be enabled, add `experimental: ['pendingBoundary']` to
 `qwikVite()`.
 
 If the fallback is not visible, check these common causes:
 
 - the resolved content is shown before the browser paints the fallback
-- the slow promise is outside `<Suspense>`
+- the slow promise is outside `<Pending>`
 - there is no `fallback` prop
 - the hosting platform or proxy buffers the whole response instead of streaming it
 
@@ -396,11 +396,11 @@ streaming.
 
 The `delay` prop waits before showing the fallback:
 
-<CodeSandbox src="/src/routes/demo/component/suspense-delay/index.tsx" style={{ height: '17em' }}>
+<CodeSandbox src="/src/routes/demo/component/pending-delay/index.tsx" style={{ height: '17em' }}>
 ```tsx /delay/
 import {
   component$,
-  Suspense,
+  Pending,
   useSignal,
   type JSXOutput,
 } from '@qwik.dev/core';
@@ -442,12 +442,12 @@ export default component$(() => {
       </button>
 
       {run.value > 0 && (
-        <Suspense
+        <Pending
           fallback={<p>Fallback shown after {FALLBACK_DELAY_MS}ms.</p>}
           delay={FALLBACK_DELAY_MS}
         >
           <SlowContent key={run.value} />
-        </Suspense>
+        </Pending>
       )}
 
       <p>Elapsed: {elapsed.value}ms</p>
@@ -471,21 +471,21 @@ show the fallback again. A newly rendered boundary can show its fallback during 
 
 ## Coordinating Boundaries with `Reveal`
 
-Use `<Reveal>` when a group of sibling `<Suspense>` boundaries should reveal in a specific order.
+Use `<Reveal>` when a group of sibling `<Pending>` boundaries should reveal in a specific order.
 
 ```tsx /Reveal/ /order/ /collapsed/
-import { component$, Reveal, Suspense } from '@qwik.dev/core';
+import { component$, Reveal, Pending } from '@qwik.dev/core';
 
 export default component$(() => {
   return (
     <Reveal order="sequential" collapsed>
-      <Suspense fallback={<p>Loading profile...</p>}>
+      <Pending fallback={<p>Loading profile...</p>}>
         <Profile />
-      </Suspense>
+      </Pending>
 
-      <Suspense fallback={<p>Loading activity...</p>}>
+      <Pending fallback={<p>Loading activity...</p>}>
         <Activity />
-      </Suspense>
+      </Pending>
     </Reveal>
   );
 });
@@ -505,7 +505,7 @@ By default, a pending boundary that is blocked by `Reveal` can still show its fa
 ## API
 
 ```tsx
-type SuspenseProps = {
+type PendingProps = {
   fallback?: JSXOutput;
   delay?: number;
 };
@@ -522,22 +522,22 @@ Props:
 
 - `fallback`: JSX rendered while the boundary is waiting
 - `delay`: milliseconds to wait before showing the fallback, defaults to `0`
-- `order`: reveal order for child Suspense boundaries, defaults to `parallel`
+- `order`: reveal order for child Pending boundaries, defaults to `parallel`
 - `collapsed`: hide pending blocked boundaries instead of showing their fallbacks
 
-## Suspense Is Not an Error Boundary
+## Pending Is Not an Error Boundary
 
-`<Suspense>` only handles content that is still loading. It does not catch errors thrown by child components.
+`<Pending>` only handles content that is still loading. It does not catch errors thrown by child components.
 
-For errors thrown by descendants, reach for [`<ErrorBoundary>`](/api/qwik/#errorboundary).
+For errors thrown by descendants, reach for [`<Catch>`](/api/qwik/#catch).
 
 ## Choosing the Right Primitive
 
 | API | Best for |
 | --- | --- |
 | `useComputed$()` | Derived values, including async data or other async work that should produce a signal |
-| `<Suspense>` | Showing one fallback while a section is loading |
+| `<Pending>` | Showing one fallback while a section is loading |
 | `useTask$()` | Running setup or update code that writes to existing state or performs a side effect |
 | `routeLoader$()` | Loading route data before the route renders |
 
-For async work inside a component, `useComputed$()` with an async function is usually the starting point. Add `<Suspense>` when one fallback can cover the loading state for a section. Add `<ErrorBoundary>` to render a fallback when the async work fails.
+For async work inside a component, `useComputed$()` with an async function is usually the starting point. Add `<Pending>` when one fallback can cover the loading state for a section. Add `<Catch>` to render a fallback when the async work fails.

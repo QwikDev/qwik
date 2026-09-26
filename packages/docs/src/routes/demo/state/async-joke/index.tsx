@@ -1,8 +1,8 @@
 import {
   $,
   component$,
-  ErrorBoundary,
-  Suspense,
+  Catch,
+  Pending,
   useComputed$,
   useSignal,
   type Signal,
@@ -57,7 +57,7 @@ export default component$(() => {
       <label>
         Query: <input bind:value={query} />
       </label>
-      <ErrorBoundary
+      <Catch
         fallback$={$((error, reset) => (
           <div>
             Error: {error.message}{' '}
@@ -65,10 +65,10 @@ export default component$(() => {
           </div>
         ))}
       >
-        <Suspense fallback={<p>Loading...</p>}>
+        <Pending fallback={<p>Loading...</p>}>
           <JokeList jokes={jokes} />
-        </Suspense>
-      </ErrorBoundary>
+        </Pending>
+      </Catch>
     </>
   );
 });

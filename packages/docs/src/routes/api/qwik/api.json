@@ -297,6 +297,62 @@
       "mdFile": "core.resourcectx.cache.md"
     },
     {
+      "name": "Catch",
+      "id": "catch",
+      "hierarchy": [
+        {
+          "name": "Catch",
+          "id": "catch"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Renders `fallback$` instead of its children when a descendant throws.\n\n\n```typescript\nCatch: Component<CatchProps>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/catch.ts",
+      "mdFile": "core.catch.md"
+    },
+    {
+      "name": "CatchInfo",
+      "id": "catchinfo",
+      "hierarchy": [
+        {
+          "name": "CatchInfo",
+          "id": "catchinfo"
+        }
+      ],
+      "kind": "Interface",
+      "content": "Structured metadata about a caught error, passed to `onError$`<!-- -->.\n\n\n```typescript\nexport interface CatchInfo \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nboundaryId\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nIdentifies the boundary within the page. Allocated in render order and kept across a resume, so every report from one boundary shares it — but it shifts when render order changes.\n\n\n</td></tr>\n<tr><td>\n\ndigest\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe code a production fallback shows for a server-origin error, so a user's bug report matches your logs. An error caught during SSR reports a second, different digest if the client re-derives it — the stacks differ.\n\n\n</td></tr>\n<tr><td>\n\nphase\n\n\n</td><td>\n\n\n</td><td>\n\n[CatchPhase](#catchphase)\n\n\n</td><td>\n\nWhere the caught error originated.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-handling.ts",
+      "mdFile": "core.catchinfo.md"
+    },
+    {
+      "name": "CatchPhase",
+      "id": "catchphase",
+      "hierarchy": [
+        {
+          "name": "CatchPhase",
+          "id": "catchphase"
+        }
+      ],
+      "kind": "Enum",
+      "content": "Identifies where an error caught by an error boundary originated.\n\n\n```typescript\nexport declare const enum CatchPhase \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nEvent\n\n\n</td><td>\n\n`\"event\"`\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nHook\n\n\n</td><td>\n\n`\"hook\"`\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nRender\n\n\n</td><td>\n\n`\"render\"`\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/catch-phase.ts",
+      "mdFile": "core.catchphase.md"
+    },
+    {
+      "name": "CatchProps",
+      "id": "catchprops",
+      "hierarchy": [
+        {
+          "name": "CatchProps",
+          "id": "catchprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface CatchProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: Error &amp; { digest?: string; }, reset: [QRL](#qrl-type-alias)<!-- -->&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\nRendered when a descendant throws. The error is always an `Error`<!-- -->, so `{error.message}` is safe: a non-Error throw is wrapped, and production redacts server-origin errors to a generic message plus `digest`<!-- -->. Client-origin errors render as thrown — their messages already live in the browser bundle.\n\nWrap `reset` in a handler — `onClick$={() => reset()}`<!-- -->, not `onClick$={reset}` — so it stays wired in a streamed fallback.\n\n\n</td></tr>\n<tr><td>\n\nonError$?\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: Error, info: [CatchInfo](#catchinfo)<!-- -->) =&gt; void&gt;\n\n\n</td><td>\n\n_(Optional)_ Side effect only; never affects rendering. Receives the original `Error` — a non-Error throw arrives wrapped, with `cause` set to the raw value.\n\nAn error caught during SSR fires again when the client re-derives it, so dedupe in your reporter.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/catch.ts",
+      "mdFile": "core.catchprops.md"
+    },
+    {
       "name": "ClassList",
       "id": "classlist",
       "hierarchy": [
@@ -648,77 +704,21 @@
       "mdFile": "core.qwikjsx.elementtype.md"
     },
     {
-      "name": "ErrorBoundary",
-      "id": "errorboundary",
-      "hierarchy": [
-        {
-          "name": "ErrorBoundary",
-          "id": "errorboundary"
-        }
-      ],
-      "kind": "Variable",
-      "content": "Renders `fallback$` instead of its children when a descendant throws.\n\n\n```typescript\nErrorBoundary: Component<ErrorBoundaryProps>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts",
-      "mdFile": "core.errorboundary.md"
-    },
-    {
-      "name": "ErrorBoundaryInfo",
-      "id": "errorboundaryinfo",
-      "hierarchy": [
-        {
-          "name": "ErrorBoundaryInfo",
-          "id": "errorboundaryinfo"
-        }
-      ],
-      "kind": "Interface",
-      "content": "Structured metadata about a caught error, passed to `onError$`<!-- -->.\n\n\n```typescript\nexport interface ErrorBoundaryInfo \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nboundaryId\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nIdentifies the boundary within the page. Allocated in render order and kept across a resume, so every report from one boundary shares it — but it shifts when render order changes.\n\n\n</td></tr>\n<tr><td>\n\ndigest\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe code a production fallback shows for a server-origin error, so a user's bug report matches your logs. An error caught during SSR reports a second, different digest if the client re-derives it — the stacks differ.\n\n\n</td></tr>\n<tr><td>\n\nphase\n\n\n</td><td>\n\n\n</td><td>\n\n[ErrorBoundaryPhase](#errorboundaryphase)\n\n\n</td><td>\n\nWhere the caught error originated.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-handling.ts",
-      "mdFile": "core.errorboundaryinfo.md"
-    },
-    {
-      "name": "ErrorBoundaryPhase",
-      "id": "errorboundaryphase",
-      "hierarchy": [
-        {
-          "name": "ErrorBoundaryPhase",
-          "id": "errorboundaryphase"
-        }
-      ],
-      "kind": "Enum",
-      "content": "Identifies where an error caught by an error boundary originated.\n\n\n```typescript\nexport declare const enum ErrorBoundaryPhase \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nEvent\n\n\n</td><td>\n\n`\"event\"`\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nHook\n\n\n</td><td>\n\n`\"hook\"`\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nRender\n\n\n</td><td>\n\n`\"render\"`\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary-phase.ts",
-      "mdFile": "core.errorboundaryphase.md"
-    },
-    {
-      "name": "ErrorBoundaryProps",
-      "id": "errorboundaryprops",
-      "hierarchy": [
-        {
-          "name": "ErrorBoundaryProps",
-          "id": "errorboundaryprops"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface ErrorBoundaryProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: Error &amp; { digest?: string; }, reset: [QRL](#qrl-type-alias)<!-- -->&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\nRendered when a descendant throws. The error is always an `Error`<!-- -->, so `{error.message}` is safe: a non-Error throw is wrapped, and production redacts server-origin errors to a generic message plus `digest`<!-- -->. Client-origin errors render as thrown — their messages already live in the browser bundle.\n\nWrap `reset` in a handler — `onClick$={() => reset()}`<!-- -->, not `onClick$={reset}` — so it stays wired in a streamed fallback.\n\n\n</td></tr>\n<tr><td>\n\nonError$?\n\n\n</td><td>\n\n\n</td><td>\n\n[QRL](#qrl-type-alias)<!-- -->&lt;(error: Error, info: [ErrorBoundaryInfo](#errorboundaryinfo)<!-- -->) =&gt; void&gt;\n\n\n</td><td>\n\n_(Optional)_ Side effect only; never affects rendering. Receives the original `Error` — a non-Error throw arrives wrapped, with `cause` set to the raw value.\n\nAn error caught during SSR fires again when the client re-derives it, so dedupe in your reporter.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts",
-      "mdFile": "core.errorboundaryprops.md"
-    },
-    {
       "name": "Event",
-      "id": "errorboundaryphase-event",
+      "id": "catchphase-event",
       "hierarchy": [
         {
-          "name": "ErrorBoundaryPhase",
-          "id": "errorboundaryphase-event"
+          "name": "CatchPhase",
+          "id": "catchphase-event"
         },
         {
           "name": "Event",
-          "id": "errorboundaryphase-event"
+          "id": "catchphase-event"
         }
       ],
       "kind": "EnumMember",
       "content": "",
-      "mdFile": "core.errorboundaryphase.event.md"
+      "mdFile": "core.catchphase.event.md"
     },
     {
       "name": "event$",
@@ -879,20 +879,20 @@
     },
     {
       "name": "Hook",
-      "id": "errorboundaryphase-hook",
+      "id": "catchphase-hook",
       "hierarchy": [
         {
-          "name": "ErrorBoundaryPhase",
-          "id": "errorboundaryphase-hook"
+          "name": "CatchPhase",
+          "id": "catchphase-hook"
         },
         {
           "name": "Hook",
-          "id": "errorboundaryphase-hook"
+          "id": "catchphase-hook"
         }
       ],
       "kind": "EnumMember",
       "content": "",
-      "mdFile": "core.errorboundaryphase.hook.md"
+      "mdFile": "core.catchphase.hook.md"
     },
     {
       "name": "HTMLElementAttrs",
@@ -1350,6 +1350,34 @@
       "content": "```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[VisibleTaskStrategy](#visibletaskstrategy)\n\n\n</td><td>\n\n_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.\n\n- `intersection-observer`<!-- -->: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - `document-ready`<!-- -->: the task will first execute when the document is ready, under the hood it uses the document `load` event. - `document-idle`<!-- -->: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts",
       "mdFile": "core.onvisibletaskoptions.md"
+    },
+    {
+      "name": "Pending",
+      "id": "pending",
+      "hierarchy": [
+        {
+          "name": "Pending",
+          "id": "pending"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nPending: typeof pendingCmp\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/pending.tsx",
+      "mdFile": "core.pending.md"
+    },
+    {
+      "name": "PendingProps",
+      "id": "pendingprops",
+      "hierarchy": [
+        {
+          "name": "PendingProps",
+          "id": "pendingprops"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type PendingProps = {\n    fallback?: JSXOutput;\n    delay?: number;\n};\n```\n**References:** [JSXOutput](#jsxoutput)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/pending.tsx",
+      "mdFile": "core.pendingprops.md"
     },
     {
       "name": "PrefetchGraph",
@@ -1888,20 +1916,20 @@
     },
     {
       "name": "Render",
-      "id": "errorboundaryphase-render",
+      "id": "catchphase-render",
       "hierarchy": [
         {
-          "name": "ErrorBoundaryPhase",
-          "id": "errorboundaryphase-render"
+          "name": "CatchPhase",
+          "id": "catchphase-render"
         },
         {
           "name": "Render",
-          "id": "errorboundaryphase-render"
+          "id": "catchphase-render"
         }
       ],
       "kind": "EnumMember",
       "content": "",
-      "mdFile": "core.errorboundaryphase.render.md"
+      "mdFile": "core.catchphase.render.md"
     },
     {
       "name": "RenderOnce",
@@ -2434,34 +2462,6 @@
       "content": "```typescript\nexport interface SSRStreamWriter \n```\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[write(chunk)](#ssrstreamwriter-write)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
       "mdFile": "core.ssrstreamwriter.md"
-    },
-    {
-      "name": "Suspense",
-      "id": "suspense",
-      "hierarchy": [
-        {
-          "name": "Suspense",
-          "id": "suspense"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nSuspense: typeof suspenseCmp\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/suspense.tsx",
-      "mdFile": "core.suspense.md"
-    },
-    {
-      "name": "SuspenseProps",
-      "id": "suspenseprops",
-      "hierarchy": [
-        {
-          "name": "SuspenseProps",
-          "id": "suspenseprops"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type SuspenseProps = {\n    fallback?: JSXOutput;\n    delay?: number;\n};\n```\n**References:** [JSXOutput](#jsxoutput)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/suspense.tsx",
-      "mdFile": "core.suspenseprops.md"
     },
     {
       "name": "SVGAttributes",

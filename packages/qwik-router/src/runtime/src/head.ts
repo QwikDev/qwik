@@ -147,7 +147,7 @@ export const resolveHead = (
 ): ResolvedDocumentHead => {
   const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
     const id = loaderOrAction.__id;
-    // Reading `.value` throws a pending promise (suspense-style) when the loader
+    // Reading `.value` throws a pending promise when the loader
     // is still loading, on both server and client. Callers wrap resolveHead in
     // retryOnPromise so head resolution re-runs once the loader settles.
     const signal = loaderState?.[id];

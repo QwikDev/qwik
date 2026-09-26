@@ -1,10 +1,10 @@
-import { component$, ErrorBoundary, isServer, Suspense, type JSXOutput } from '@qwik.dev/core';
-import { EbReErrorAsync, resetFallback } from '../../components/error-boundary/error-boundary';
+import { component$, Catch, isServer, Pending, type JSXOutput } from '@qwik.dev/core';
+import { CatchReErrorAsync, resetFallback } from '../../components/catch/catch';
 
 export default component$(() => (
-  <Suspense fallback={<span id="eb-skel">loading</span>}>
-    <ErrorBoundary fallback$={resetFallback}>
-      <EbReErrorAsync />
-    </ErrorBoundary>
-  </Suspense>
+  <Pending fallback={<span id="catch-skel">loading</span>}>
+    <Catch fallback$={resetFallback}>
+      <CatchReErrorAsync />
+    </Catch>
+  </Pending>
 ));

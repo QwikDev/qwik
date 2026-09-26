@@ -1,16 +1,12 @@
-import { component$, ErrorBoundary, Suspense } from '@qwik.dev/core';
-import {
-  EbWrapAsync,
-  EbWrapper,
-  resetFallback,
-} from '../../components/error-boundary/error-boundary';
+import { component$, Catch, Pending } from '@qwik.dev/core';
+import { CatchWrapAsync, CatchWrapper, resetFallback } from '../../components/catch/catch';
 
 export default component$(() => (
-  <Suspense fallback={<span id="eb-skel">loading</span>}>
-    <EbWrapper>
-      <ErrorBoundary fallback$={resetFallback}>
-        <EbWrapAsync />
-      </ErrorBoundary>
-    </EbWrapper>
-  </Suspense>
+  <Pending fallback={<span id="catch-skel">loading</span>}>
+    <CatchWrapper>
+      <Catch fallback$={resetFallback}>
+        <CatchWrapAsync />
+      </Catch>
+    </CatchWrapper>
+  </Pending>
 ));

@@ -11,7 +11,7 @@ export default function (opts: RenderToStreamOptions) {
   const url = new URL(opts.serverData!.url);
   const outOfOrderParam = url.searchParams.get('outOfOrder');
   const outOfOrderStreaming =
-    outOfOrderParam === 'false' ? false : url.pathname === '/e2e/suspense-ooos' ? true : undefined;
+    outOfOrderParam === 'false' ? false : url.pathname === '/e2e/pending-ooos' ? true : undefined;
   const renderOpts: RenderToStreamOptions = {
     debug: true,
     ...opts,

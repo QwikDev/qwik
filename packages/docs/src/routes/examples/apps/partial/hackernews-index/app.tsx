@@ -1,6 +1,6 @@
 import {
   component$,
-  Suspense,
+  Pending,
   useComputed$,
   useSignal,
   useStyles$,
@@ -23,9 +23,9 @@ export const HackerNews = component$(() => {
   return (
     <div class="hacker-news">
       <Nav />
-      <Suspense fallback={<Loading />}>
+      <Pending fallback={<Loading />}>
         <Stories stories={data} bind:page={page} />
-      </Suspense>
+      </Pending>
     </div>
   );
 });

@@ -14,11 +14,11 @@ import { _captures } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
   QDefaultSlot,
-  QSuspenseResolved,
-  QSuspenseResultParent,
+  QPendingResolved,
+  QPendingResultParent,
 } from '../shared/utils/markers';
 import { resolveSlotName } from '../shared/utils/prop';
-import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
+import { ERROR_CONTEXT, type CatchStore } from '../shared/error/error-handling';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
@@ -30,12 +30,12 @@ import { useTaskQrl, type TaskCtx } from '../use/use-task';
 import { revealCanReveal, useRevealBoundary, type RevealRegistration } from './reveal';
 import {
   isOutOfOrderStreaming,
-  nextOutOfOrderSuspenseId,
-  SUSPENSE_QRL_SYMBOL,
+  nextOutOfOrderPendingId,
+  PENDING_QRL_SYMBOL,
   type OutOfOrderRevealBoundary,
-} from './suspense-utils';
+} from './pending-utils';
 
-type SuspenseState = 'content' | 'fallback';
+type PendingState = 'content' | 'fallback';
 
 type SSROutOfOrderBoundaryState = {
   contentResolved: boolean;
@@ -44,14 +44,14 @@ type SSROutOfOrderBoundaryState = {
 };
 
 /** @public @experimental */
-export type SuspenseProps = {
+export type PendingProps = {
   fallback?: JSXOutput;
   delay?: number;
 };
 
 const _hf0 = (
-  p0: SuspenseProps,
-  p1: Signal<SuspenseState>,
+  p0: PendingProps,
+  p1: Signal<PendingState>,
   p2: Signal<boolean>,
   p3: RevealRegistration | null
 ) => ({
@@ -65,16 +65,16 @@ const _hf0 = (
 });
 const _hf0_str =
   '{display:p1.value==="fallback"&&p0.fallback!=null&&p0.fallback!==false&&(p2.value||!p3.reveal.collapsed)?"contents":"none"}';
-const _hf1 = (p0: Signal<SuspenseState>, p1: Signal<boolean>) => ({
+const _hf1 = (p0: Signal<PendingState>, p1: Signal<boolean>) => ({
   display: p0.value === 'content' && p1.value ? 'contents' : 'none',
 });
 const _hf1_str = '{display:p0.value==="content"&&p1.value?"contents":"none"}';
 
 /** @internal */
-export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
+export const pendingTask = ({ track, cleanup }: TaskCtx) => {
   const cursorBoundary = _captures![0] as CursorBoundary,
     props = _captures![1] as { delay?: number },
-    state = _captures![2] as Signal<SuspenseState>,
+    state = _captures![2] as Signal<PendingState>,
     revealRegistration = _captures![3] as RevealRegistration | null;
   const pendingCount = track(cursorBoundary);
   const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
@@ -94,14 +94,14 @@ export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
 };
 
 /** @internal */
-export const suspenseCmp = (props: SuspenseProps): JSXNodeInternal<string>[] => {
-  if (!__EXPERIMENTAL__.suspense) {
+export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     throw new Error(
-      'Suspense is experimental and must be enabled with `experimental: ["suspense"]` in the `qwikVite` plugin.'
+      'Pending is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
     );
   }
 
-  const state = useSignal<SuspenseState>('content');
+  const state = useSignal<PendingState>('content');
   const cursorBoundary = useCursorBoundary();
   const revealRegistration = useRevealBoundary(cursorBoundary);
   const canReveal = useComputedQrl(
@@ -109,7 +109,7 @@ export const suspenseCmp = (props: SuspenseProps): JSXNodeInternal<string>[] => 
   );
 
   useTaskQrl(
-    /*#__PURE__*/ inlinedQrl(suspenseTask, '_suT', [
+    /*#__PURE__*/ inlinedQrl(pendingTask, '_peT', [
       cursorBoundary,
       props,
       state,
@@ -119,7 +119,7 @@ export const suspenseCmp = (props: SuspenseProps): JSXNodeInternal<string>[] => 
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
   const isServerOutOfOrder = isServerEnv && isOutOfOrderStreaming();
-  const outOfOrderBoundaryId = isServerOutOfOrder ? nextOutOfOrderSuspenseId() : 0;
+  const outOfOrderBoundaryId = isServerOutOfOrder ? nextOutOfOrderPendingId() : 0;
   const outOfOrderRevealBoundary = isServerOutOfOrder
     ? (revealRegistration?.reveal.ooos?.register(revealRegistration) ?? null)
     : null;
@@ -167,7 +167,7 @@ export const suspenseCmp = (props: SuspenseProps): JSXNodeInternal<string>[] => 
       null,
       isServerOutOfOrder
         ? {
-            [QSuspenseResultParent]: String(outOfOrderBoundaryId),
+            [QPendingResultParent]: String(outOfOrderBoundaryId),
             style: contentStyle,
           }
         : {
@@ -198,23 +198,23 @@ export const suspenseCmp = (props: SuspenseProps): JSXNodeInternal<string>[] => 
 };
 
 /** @public @experimental */
-export const Suspense = /*#__PURE__*/ componentQrl<SuspenseProps>(
-  /*#__PURE__*/ inlinedQrl(suspenseCmp, SUSPENSE_QRL_SYMBOL)
-) as typeof suspenseCmp;
+export const Pending = /*#__PURE__*/ componentQrl<PendingProps>(
+  /*#__PURE__*/ inlinedQrl(pendingCmp, PENDING_QRL_SYMBOL)
+) as typeof pendingCmp;
 
 type SSRFallbackProps = {
   boundary: SSROutOfOrderBoundaryState | null;
   fallbackStyle: Signal<{ display: string }>;
   showFallback: boolean;
-  state: Signal<SuspenseState>;
+  state: Signal<PendingState>;
 };
 
-const SSRFallback = __EXPERIMENTAL__.suspense
+const SSRFallback = __EXPERIMENTAL__.pendingBoundary
   ? /*#__PURE__*/ createInternalServerComponent<SSRFallbackProps>((ssr, jsx, _options, enqueue) => {
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const fallbackStyle = jsx.varProps.fallbackStyle as Signal<{ display: string }>;
       const showFallback = jsx.varProps.showFallback === true;
-      const state = jsx.varProps.state as Signal<SuspenseState>;
+      const state = jsx.varProps.state as Signal<PendingState>;
       if (showFallback) {
         if (boundaryState) {
           enqueue(() => scheduleOutOfOrderFallbackDelay(ssr, boundaryState, state));
@@ -244,17 +244,17 @@ type SSRDeferredSlotProps = {
   reveal: OutOfOrderRevealBoundary | null;
 };
 
-const SSRDeferredSlot = __EXPERIMENTAL__.suspense
+const SSRDeferredSlot = __EXPERIMENTAL__.pendingBoundary
   ? /*#__PURE__*/ createInternalServerComponent<SSRDeferredSlotProps>(async (ssr, jsx, options) => {
       const boundaryId = jsx.varProps.boundaryId as number;
       const contentSegment = `${boundaryId}`;
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
-      const errorBoundaryStore =
-        __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
+      const catchStore =
+        __EXPERIMENTAL__.catchBoundary && options.parentComponentFrame
           ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
-              | ErrorBoundaryStore
+              | CatchStore
               | undefined)
           : undefined;
       const content = ssr.segment(
@@ -263,7 +263,7 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
         options
       );
 
-      ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
+      ssr.write(`<template ${QPendingResolved}="${boundaryId}"></template>`);
       ssr.emitOutOfOrderExecutorIfNeeded();
       ssr.queueOutOfOrderSegment(
         content
@@ -278,10 +278,10 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
             )
           )
           .catch((error) => {
-            if (errorBoundaryStore?.$emitFallback$) {
-              return errorBoundaryStore.$emitFallback$(error);
+            if (catchStore?.$emitFallback$) {
+              return catchStore.$emitFallback$(error);
             }
-            if (errorBoundaryStore?.error !== undefined) {
+            if (catchStore?.error !== undefined) {
               return;
             }
             throw error;
@@ -350,7 +350,7 @@ async function emitRenderedOutOfOrderSegment(
 function scheduleOutOfOrderFallbackDelay(
   ssr: SSRContainer,
   boundaryState: SSROutOfOrderBoundaryState,
-  state: Signal<SuspenseState>
+  state: Signal<PendingState>
 ): void {
   boundaryState.delayTimer = setTimeout(() => {
     boundaryState.delayTimer = null;

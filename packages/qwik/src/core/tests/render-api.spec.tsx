@@ -1,6 +1,6 @@
 import {
   $,
-  ErrorBoundary,
+  Catch,
   Fragment as Component,
   Fragment as Signal,
   component$,
@@ -876,12 +876,12 @@ describe('render api', () => {
       });
 
       it('reports an SSR-caught boundary error before the first chunk is written', async () => {
-        const calls: Array<{ errorBoundaryCaught: boolean; chunksAtCall: number }> = [];
+        const calls: Array<{ hasCaughtError: boolean; chunksAtCall: number }> = [];
         const chunks: string[] = [];
         await renderToStreamAndSetPlatform(
-          <ErrorBoundary fallback$={$(() => 'fb')}>
+          <Catch fallback$={$(() => 'fb')}>
             <FlushThrower />
-          </ErrorBoundary>,
+          </Catch>,
           {
             containerTagName: 'div',
             stream: createTestStream((chunk) => {
@@ -889,12 +889,12 @@ describe('render api', () => {
             }),
             onBeforeFirstFlush: (info) =>
               calls.push({
-                errorBoundaryCaught: info.errorBoundaryCaught,
+                hasCaughtError: info.hasCaughtError,
                 chunksAtCall: chunks.length,
               }),
           }
         );
-        expect(calls).toEqual([{ errorBoundaryCaught: true, chunksAtCall: 0 }]);
+        expect(calls).toEqual([{ hasCaughtError: true, chunksAtCall: 0 }]);
       });
 
       it('reports no boundary error on a healthy render', async () => {
@@ -902,10 +902,10 @@ describe('render api', () => {
         const result = await renderToStreamAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           stream: createTestStream(vi.fn()),
-          onBeforeFirstFlush: (info) => calls.push(info.errorBoundaryCaught),
+          onBeforeFirstFlush: (info) => calls.push(info.hasCaughtError),
         });
         expect(calls).toEqual([false]);
-        expect(result.errorBoundaryCaught).toBe(false);
+        expect(result.hasCaughtError).toBe(false);
       });
 
       it('a catch after the first flush is reported on the result, not the callback', async () => {
@@ -913,18 +913,18 @@ describe('render api', () => {
         const result = await renderToStreamAndSetPlatform(
           <>
             {'x'.repeat(25000)}
-            <ErrorBoundary fallback$={$(() => 'fb')}>
+            <Catch fallback$={$(() => 'fb')}>
               <FlushThrower />
-            </ErrorBoundary>
+            </Catch>
           </>,
           {
             containerTagName: 'div',
             stream: createTestStream(vi.fn()),
-            onBeforeFirstFlush: (info) => calls.push(info.errorBoundaryCaught),
+            onBeforeFirstFlush: (info) => calls.push(info.hasCaughtError),
           }
         );
         expect(calls).toEqual([false]);
-        expect(result.errorBoundaryCaught).toBe(true);
+        expect(result.hasCaughtError).toBe(true);
       });
     });
 

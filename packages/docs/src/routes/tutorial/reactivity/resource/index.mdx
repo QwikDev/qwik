@@ -44,16 +44,16 @@ The [useComputed$()](/docs/(qwik)/core/state/index.mdx) function returns a `Comp
   
 ## Rendering data
 
-Read `.value` in a child component, and wrap it in `<Suspense>` for the `pending` state and `<ErrorBoundary>` for the `rejected` state.
+Read `.value` in a child component, and wrap it in `<Pending>` for the `pending` state and `<Catch>` for the `rejected` state.
 
 During SSR, the rendering will pause until the `ComputedSignal` has loaded so it will always render as either `resolved` or `rejected`.
 
 ```jsx
-<ErrorBoundary fallback$={$((error, reset) => <div>Error: {error.message} <button onClick$={() => reset()}>Retry</button></div>)}>
-  <Suspense fallback={<div>Loading...</div>}>
+<Catch fallback$={$((error, reset) => <div>Error: {error.message} <button onClick$={() => reset()}>Retry</button></div>)}>
+  <Pending fallback={<div>Loading...</div>}>
     <Repos org={githubOrg} repos={reposResource} />
-  </Suspense>
-</ErrorBoundary>
+  </Pending>
+</Catch>
 ```
 
 ## SSR vs Client

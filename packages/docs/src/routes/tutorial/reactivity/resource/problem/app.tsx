@@ -39,13 +39,13 @@ export default component$(() => {
         </label>
       </p>
       <section>
-        {/* Import $, ErrorBoundary and Suspense, then read the data inside them. */}
+        {/* Import $, Catch and Pending, then read the data inside them. */}
         {/* To help, here's the markup to display the data: */}
-        {/* <ErrorBoundary fallback$={$((error) => <div>Error: {error.message}</div>)}>
-              <Suspense fallback={<div>Loading...</div>}>
+        {/* <Catch fallback$={$((error) => <div>Error: {error.message}</div>)}>
+              <Pending fallback={<div>Loading...</div>}>
                 <Repos org={githubOrg} repos={reposResource} />
-              </Suspense>
-            </ErrorBoundary> */}
+              </Pending>
+            </Catch> */}
       </section>
     </main>
   );

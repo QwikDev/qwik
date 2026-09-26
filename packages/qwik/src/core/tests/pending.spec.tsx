@@ -11,13 +11,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   Fragment as Component,
   Reveal,
-  Suspense,
+  Pending,
   Fragment,
   Fragment as Projection,
   Fragment as Awaited,
   component$,
   createContextId,
-  ErrorBoundary,
+  Catch,
   $,
   getDomContainer,
   type JSXOutput,
@@ -34,7 +34,7 @@ import {
   type Signal as SignalType,
 } from '@qwik.dev/core';
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
-import { useErrorBoundaryStore } from '../use/use-error-boundary-store';
+import { useCatchStore } from '../use/use-catch-store';
 import { isServerPlatform } from '../shared/platform/platform';
 import { delay } from '../shared/utils/promises';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
@@ -53,7 +53,7 @@ const collectStream = (chunks: string[]): StreamWriter => ({
   },
 });
 
-type SsrRenderSuspenseStreamOptions = {
+type SsrRenderPendingStreamOptions = {
   outOfOrder?: boolean;
   streaming?: StreamingOptions;
   debug?: boolean;
@@ -61,10 +61,10 @@ type SsrRenderSuspenseStreamOptions = {
   resume?: boolean;
 };
 
-const ssrRenderSuspenseStream = (
+const ssrRenderPendingStream = (
   jsx: JSXOutput,
   streamOrChunks: StreamWriter | string[],
-  opts: SsrRenderSuspenseStreamOptions = {}
+  opts: SsrRenderPendingStreamOptions = {}
 ) => {
   const stream = Array.isArray(streamOrChunks) ? collectStream(streamOrChunks) : streamOrChunks;
   const streaming = opts.streaming ?? {
@@ -96,9 +96,9 @@ describe.each([
 
   it('should render sync children', async () => {
     const { vNode } = await render(
-      <Suspense fallback={<span>Loading...</span>}>
+      <Pending fallback={<span>Loading...</span>}>
         <p>Sync content</p>
-      </Suspense>,
+      </Pending>,
       { debug }
     );
 
@@ -120,9 +120,9 @@ describe.each([
     const Child = component$(() => <p>Child content</p>);
 
     const { vNode } = await render(
-      <Suspense fallback={<span>Loading...</span>}>
+      <Pending fallback={<span>Loading...</span>}>
         <Child />
-      </Suspense>,
+      </Pending>,
       { debug }
     );
 
@@ -151,9 +151,9 @@ describe.each([
     });
 
     const { vNode } = await render(
-      <Suspense fallback={<span>Loading...</span>}>
+      <Pending fallback={<span>Loading...</span>}>
         <AsyncChild />
-      </Suspense>,
+      </Pending>,
       { debug }
     );
 
@@ -179,9 +179,9 @@ describe.each([
 
   it('should render without a fallback', async () => {
     const { vNode } = await render(
-      <Suspense>
+      <Pending>
         <p>No fallback</p>
-      </Suspense>,
+      </Pending>,
       { debug }
     );
 
@@ -197,15 +197,15 @@ describe.each([
     );
   });
 
-  it('should render multiple Suspense boundaries independently', async () => {
+  it('should render multiple Pending boundaries independently', async () => {
     const { vNode } = await render(
       <div>
-        <Suspense fallback={<span>Loading 1...</span>}>
+        <Pending fallback={<span>Loading 1...</span>}>
           <p>Content 1</p>
-        </Suspense>
-        <Suspense fallback={<span>Loading 2...</span>}>
+        </Pending>
+        <Pending fallback={<span>Loading 2...</span>}>
           <p>Content 2</p>
-        </Suspense>
+        </Pending>
       </div>,
       { debug }
     );
@@ -237,10 +237,10 @@ describe.each([
     );
   });
 
-  it('should handle empty Suspense', async () => {
+  it('should handle empty Pending', async () => {
     const { vNode } = await render(
       <div>
-        <Suspense fallback={<span>Loading...</span>} />
+        <Pending fallback={<span>Loading...</span>} />
       </div>,
       { debug }
     );
@@ -263,7 +263,7 @@ describe.each([
 
     const { vNode } = await render(
       <div>
-        <Suspense fallback={<span>Loading...</span>}>{content}</Suspense>
+        <Pending fallback={<span>Loading...</span>}>{content}</Pending>
       </div>,
       { debug }
     );
@@ -287,8 +287,8 @@ describe.each([
   });
 
   it('should bubble descendant throws to the nearest regular error boundary on the client', async () => {
-    const ErrorBoundary = component$(() => {
-      const boundary = useErrorBoundaryStore();
+    const Catch = component$(() => {
+      const boundary = useCatchStore();
       return boundary.error ? <p>Error: {(boundary.error as Error).message}</p> : <Slot />;
     });
     const BadChild = component$(() => {
@@ -299,13 +299,13 @@ describe.each([
       let caught: unknown;
       try {
         await render(
-          <ErrorBoundary>
+          <Catch>
             <div>
-              <Suspense fallback={<span>Loading...</span>}>
+              <Pending fallback={<span>Loading...</span>}>
                 <BadChild />
-              </Suspense>
+              </Pending>
             </div>
-          </ErrorBoundary>,
+          </Catch>,
           { debug }
         );
       } catch (e) {
@@ -314,13 +314,13 @@ describe.each([
       expect(caught).toBeInstanceOf(Error);
     } else {
       const { document } = await render(
-        <ErrorBoundary>
+        <Catch>
           <div>
-            <Suspense fallback={<span>Loading...</span>}>
+            <Pending fallback={<span>Loading...</span>}>
               <BadChild />
-            </Suspense>
+            </Pending>
           </div>
-        </ErrorBoundary>,
+        </Catch>,
         { debug }
       );
       const html = document.body.innerHTML;
@@ -336,9 +336,9 @@ describe.each([
 
     const { vNode } = await render(
       <div>
-        <Suspense fallback={<span>Loading...</span>} delay={100}>
+        <Pending fallback={<span>Loading...</span>} delay={100}>
           {fastContent as any}
-        </Suspense>
+        </Pending>
       </div>,
       { debug }
     );
@@ -371,9 +371,9 @@ describe.each([
       try {
         await render(
           <div>
-            <Suspense fallback={<span>Loading...</span>}>
+            <Pending fallback={<span>Loading...</span>}>
               <BadChild />
-            </Suspense>
+            </Pending>
           </div>,
           { debug }
         );
@@ -386,9 +386,9 @@ describe.each([
       const { document } = await render(
         <ErrorProvider>
           <div>
-            <Suspense fallback={<span>Loading...</span>}>
+            <Pending fallback={<span>Loading...</span>}>
               <BadChild />
-            </Suspense>
+            </Pending>
           </div>
         </ErrorProvider>,
         { debug }
@@ -400,19 +400,19 @@ describe.each([
   });
 });
 
-describe('ssrRenderToDom: Reveal suspense coordination', () => {
+describe('ssrRenderToDom: Reveal and Pending coordination', () => {
   it('should not schedule reveal updates during SSR registration', async () => {
     const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => {});
 
     try {
       await ssrRenderToDom(
         <Reveal order="sequential" collapsed>
-          <Suspense fallback={<span>Loading first</span>}>
+          <Pending fallback={<span>Loading first</span>}>
             <p>First</p>
-          </Suspense>
-          <Suspense fallback={<span>Loading second</span>}>
+          </Pending>
+          <Pending fallback={<span>Loading second</span>}>
             <p>Second</p>
-          </Suspense>
+          </Pending>
         </Reveal>,
         { debug }
       );
@@ -427,7 +427,7 @@ describe('ssrRenderToDom: Reveal suspense coordination', () => {
   });
 });
 
-describe('domRender: Suspense client-side pause delay', () => {
+describe('domRender: Pending client-side pause delay', () => {
   afterEach(() => {
     delete (globalThis as any).__slowContent;
     delete (globalThis as any).__slowResolve;
@@ -447,9 +447,9 @@ describe('domRender: Suspense client-side pause delay', () => {
 
     const renderPromise = domRender(
       <div>
-        <Suspense fallback={<span>Loading...</span>} delay={10}>
+        <Pending fallback={<span>Loading...</span>} delay={10}>
           <SlowChild />
-        </Suspense>
+        </Pending>
       </div>,
       { debug }
     );
@@ -503,11 +503,11 @@ describe('domRender: Suspense client-side pause delay', () => {
     const renderPromise = render(
       document.body,
       <div>
-        <Suspense fallback={<span>Loading...</span>} delay={10}>
+        <Pending fallback={<span>Loading...</span>} delay={10}>
           <StatefulWrapper>
             <SlowChild />
           </StatefulWrapper>
-        </Suspense>
+        </Pending>
       </div>
     );
 
@@ -522,7 +522,7 @@ describe('domRender: Suspense client-side pause delay', () => {
     expect(html).not.toContain(loading);
   });
 
-  it('should show the fallback when the deferred child is wrapped in an ErrorBoundary', async () => {
+  it('should show the fallback when the deferred child is wrapped in a Catch', async () => {
     (globalThis as any).__wrapperSlowContent = new Promise<JSXOutput>((resolve) => {
       (globalThis as any).__wrapperSlowResolve = resolve;
     });
@@ -535,11 +535,11 @@ describe('domRender: Suspense client-side pause delay', () => {
     const renderPromise = render(
       document.body,
       <div>
-        <Suspense fallback={<span>Loading...</span>} delay={10}>
-          <ErrorBoundary fallback$={$(() => 'error')}>
+        <Pending fallback={<span>Loading...</span>} delay={10}>
+          <Catch fallback$={$(() => 'error')}>
             <SlowChild />
-          </ErrorBoundary>
-        </Suspense>
+          </Catch>
+        </Pending>
       </div>
     );
 
@@ -575,9 +575,9 @@ describe('domRender: Suspense client-side pause delay', () => {
 
     const { document, vNode } = await domRender(
       <div>
-        <Suspense fallback={<span>Loading...</span>} delay={10}>
+        <Pending fallback={<span>Loading...</span>} delay={10}>
           <Child />
-        </Suspense>
+        </Pending>
       </div>,
       { debug }
     );
@@ -642,11 +642,11 @@ describe('domRender: Suspense client-side pause delay', () => {
     );
   });
 
-  it('should keep projected button interactive when Slot is wrapped in Suspense', async () => {
+  it('should keep projected button interactive when Slot is wrapped in Pending', async () => {
     const Child = component$(() => (
-      <Suspense>
+      <Pending>
         <Slot />
-      </Suspense>
+      </Pending>
     ));
 
     const Parent = component$(() => {
@@ -684,7 +684,7 @@ describe('domRender: Suspense client-side pause delay', () => {
   });
 });
 
-describe('ssrRenderToDom: out-of-order Suspense', () => {
+describe('ssrRenderToDom: out-of-order Pending', () => {
   const runOutOfOrderScripts = (html: string) => {
     const document = createDocument({ html });
     executeOutOfOrderScripts(document);
@@ -742,11 +742,11 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
-        <Suspense fallback={<button>Waiting</button>}>
+        <Pending fallback={<button>Waiting</button>}>
           <Slow />
-        </Suspense>
+        </Pending>
       </main>,
       chunks,
       { outOfOrder: false }
@@ -762,7 +762,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     expect(html).not.toContain('qO(');
   });
 
-  it('should use out-of-order streaming by default when Suspense is enabled', async () => {
+  it('should use out-of-order streaming by default when Pending is enabled', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
       resolveSlow = resolve;
@@ -770,11 +770,11 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
-        <Suspense fallback={<button>Waiting default</button>}>
+        <Pending fallback={<button>Waiting default</button>}>
           <Slow />
-        </Suspense>
+        </Pending>
       </main>,
       chunks
     );
@@ -805,14 +805,14 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Second = component$(() => <>{second}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
-        <Suspense fallback={<p>First waiting</p>}>
+        <Pending fallback={<p>First waiting</p>}>
           <First />
-        </Suspense>
-        <Suspense fallback={<p>Second waiting</p>}>
+        </Pending>
+        <Pending fallback={<p>Second waiting</p>}>
           <Second />
-        </Suspense>
+        </Pending>
       </main>,
       chunks
     );
@@ -838,12 +838,12 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
         <h1>Title</h1>
-        <Suspense fallback={<button>Waiting</button>}>
+        <Pending fallback={<button>Waiting</button>}>
           <Slow />
-        </Suspense>
+        </Pending>
         <footer>Footer</footer>
       </main>,
       chunks
@@ -879,11 +879,11 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
-        <Suspense fallback={<button id="ooos-delay-fallback">Delayed waiting</button>} delay={10}>
+        <Pending fallback={<button id="ooos-delay-fallback">Delayed waiting</button>} delay={10}>
           <Slow />
-        </Suspense>
+        </Pending>
         <footer>Footer</footer>
       </main>,
       chunks
@@ -920,14 +920,14 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
-        <Suspense
+        <Pending
           fallback={<button id="ooos-fast-delay-fallback">Fast waiting</button>}
           delay={10_000}
         >
           <Slow />
-        </Suspense>
+        </Pending>
       </main>,
       chunks
     );
@@ -947,7 +947,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     expect(contentHost.style.display).toBe('contents');
   });
 
-  it('should not emit delayed fallback backpatch when delayed Suspense has no fallback', async () => {
+  it('should not emit delayed fallback backpatch when delayed Pending has no fallback', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
       resolveSlow = resolve;
@@ -955,11 +955,11 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
-        <Suspense delay={10}>
+        <Pending delay={10}>
           <Slow />
-        </Suspense>
+        </Pending>
         <footer>Footer</footer>
       </main>,
       chunks
@@ -987,11 +987,11 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
-        <Suspense fallback={0} delay={0}>
+        <Pending fallback={0} delay={0}>
           <Slow />
-        </Suspense>
+        </Pending>
       </main>,
       chunks
     );
@@ -1017,7 +1017,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
       return (
         <main>
           <button onClick$={() => count.value++}>{count.value}</button>
-          <Suspense
+          <Pending
             fallback={
               <button
                 onClick$={() => {
@@ -1030,14 +1030,14 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
             }
           >
             <Slow />
-          </Suspense>
+          </Pending>
           <footer>Footer</footer>
         </main>
       );
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <App />,
       {
         write(chunk) {
@@ -1102,11 +1102,11 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     ));
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
-        <Suspense fallback={<p>Waiting early segment</p>}>
+        <Pending fallback={<p>Waiting early segment</p>}>
           <Slow />
-        </Suspense>
+        </Pending>
         {root}
       </main>,
       chunks
@@ -1175,14 +1175,14 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
           >
             Read slow forward ref
           </button>
-          <Suspense fallback={<p>Waiting forward refs</p>}>
+          <Pending fallback={<p>Waiting forward refs</p>}>
             <Slow />
-          </Suspense>
+          </Pending>
         </main>
       );
     });
     const chunks: string[] = [];
-    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting forward refs'));
@@ -1282,14 +1282,14 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
-        <Suspense fallback={<p>First waiting</p>}>
+        <Pending fallback={<p>First waiting</p>}>
           <First />
-        </Suspense>
-        <Suspense fallback={<p>Second waiting</p>}>
+        </Pending>
+        <Pending fallback={<p>Second waiting</p>}>
           <Second />
-        </Suspense>
+        </Pending>
       </main>,
       chunks
     );
@@ -1326,9 +1326,9 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Slow = component$(() => <>{slow}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
-        <Suspense
+        <Pending
           fallback={
             <button
               onClick$={() => {
@@ -1341,7 +1341,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
           }
         >
           <Slow />
-        </Suspense>
+        </Pending>
       </main>,
       chunks
     );
@@ -1354,7 +1354,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     expect(html).toContain('type="qwik/vnode" q:r="1"');
     expect(html).not.toContain('type="qwik/vnode" q:r="1" q:o=');
     expect(html).not.toContain('q:segment');
-    expect(html).not.toContain('q:suspense');
+    expect(html).not.toContain('q:pending');
   });
 
   it('should replay projected Slot children when resolved content is rendered later', async () => {
@@ -1364,13 +1364,13 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     });
     const Slow = component$(() => <>{slow}</>);
     const Boundary = component$(() => (
-      <Suspense fallback={<p>Waiting slot</p>}>
+      <Pending fallback={<p>Waiting slot</p>}>
         <Slot />
-      </Suspense>
+      </Pending>
     ));
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
         <Boundary>
           <Slow />
@@ -1397,13 +1397,13 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     });
     const Slow = component$(() => <>{slow}</>);
     const Boundary = component$(() => (
-      <Suspense fallback={<p id="ooos-slot-fallback">Waiting slot swap</p>}>
+      <Pending fallback={<p id="ooos-slot-fallback">Waiting slot swap</p>}>
         <Slot />
-      </Suspense>
+      </Pending>
     ));
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
         <Boundary>
           <Slow />
@@ -1444,13 +1444,13 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     });
     const Slow = component$(() => <>{slow}</>);
     const Boundary = component$(() => (
-      <Suspense fallback={<p id="ooos-scoped-fallback">Waiting scoped slot</p>}>
+      <Pending fallback={<p id="ooos-scoped-fallback">Waiting scoped slot</p>}>
         <Slot />
-      </Suspense>
+      </Pending>
     ));
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
         <Boundary>
           <Slow />
@@ -1485,9 +1485,9 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     (globalThis as any).__ooosUnitProjectedSlotValue = 0;
 
     const Boundary = component$(() => (
-      <Suspense fallback={<p>Waiting projected QRL</p>}>
+      <Pending fallback={<p>Waiting projected QRL</p>}>
         <Slot />
-      </Suspense>
+      </Pending>
     ));
     const App = component$(() => {
       const count = useSignal(0);
@@ -1511,7 +1511,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting projected QRL'));
@@ -1538,9 +1538,9 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     (globalThis as any).__ooosUnitResumeAfterQOValue = 0;
 
     const Boundary = component$(() => (
-      <Suspense fallback={<p>Waiting resume after qO</p>}>
+      <Pending fallback={<p>Waiting resume after qO</p>}>
         <Slot />
-      </Suspense>
+      </Pending>
     ));
     const App = component$(() => {
       const count = useSignal(0);
@@ -1564,7 +1564,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(<App />, chunks, { resume: false });
+    const renderPromise = ssrRenderPendingStream(<App />, chunks, { resume: false });
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting resume after qO'));
@@ -1650,15 +1650,15 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
       return (
         <main>
           <span id="ooos-unit-loop-page">{page.value}</span>
-          <Suspense fallback={<p>Waiting loop params</p>}>
+          <Pending fallback={<p>Waiting loop params</p>}>
             <Stories stories={stories.value} bind:page={page} />
-          </Suspense>
+          </Pending>
         </main>
       );
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(<App />, chunks, { debug });
+    const renderPromise = ssrRenderPendingStream(<App />, chunks, { debug });
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting loop params'));
@@ -1736,15 +1736,15 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
             Touch shell shared
           </button>
           <span id="ooos-unit-shared-count">{count.value}</span>
-          <Suspense fallback={<p>Waiting shared</p>}>
+          <Pending fallback={<p>Waiting shared</p>}>
             <Slow count={count} />
-          </Suspense>
+          </Pending>
         </main>
       );
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting shared'));
@@ -1803,15 +1803,15 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
             Touch shell store
           </button>
           <span id="ooos-unit-store-shell-count">{state.nested.count}</span>
-          <Suspense fallback={<p>Waiting store</p>}>
+          <Pending fallback={<p>Waiting store</p>}>
             <Slow state={state} />
-          </Suspense>
+          </Pending>
         </main>
       );
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting store'));
@@ -1881,18 +1881,18 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
             Touch shell shared store
           </button>
           <span id="ooos-unit-shared-store-shell-count">{shared.count}</span>
-          <Suspense fallback={<p>Waiting first shared store</p>}>
+          <Pending fallback={<p>Waiting first shared store</p>}>
             <First shared={shared} />
-          </Suspense>
-          <Suspense fallback={<p>Waiting second shared store</p>}>
+          </Pending>
+          <Pending fallback={<p>Waiting second shared store</p>}>
             <Second shared={shared} />
-          </Suspense>
+          </Pending>
         </main>
       );
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting first shared store'));
@@ -1961,18 +1961,18 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
       return (
         <main>
           <h1>Shell does not read the cross store</h1>
-          <Suspense fallback={<p>Waiting first cross store</p>}>
+          <Pending fallback={<p>Waiting first cross store</p>}>
             <First shared={shared} />
-          </Suspense>
-          <Suspense fallback={<p>Waiting second cross store</p>}>
+          </Pending>
+          <Pending fallback={<p>Waiting second cross store</p>}>
             <Second shared={shared} />
-          </Suspense>
+          </Pending>
         </main>
       );
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting first cross store'));
@@ -2039,18 +2039,18 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
       return (
         <main>
           <h1>Shell does not read the cross signal</h1>
-          <Suspense fallback={<p>Waiting first cross signal</p>}>
+          <Pending fallback={<p>Waiting first cross signal</p>}>
             <First count={count} />
-          </Suspense>
-          <Suspense fallback={<p>Waiting second cross signal</p>}>
+          </Pending>
+          <Pending fallback={<p>Waiting second cross signal</p>}>
             <Second count={count} />
-          </Suspense>
+          </Pending>
         </main>
       );
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting first cross signal'));
@@ -2094,15 +2094,15 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Second = component$(() => <>{second}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
         <Reveal order="reverse">
-          <Suspense fallback={<p>First reverse fallback</p>}>
+          <Pending fallback={<p>First reverse fallback</p>}>
             <First />
-          </Suspense>
-          <Suspense fallback={<p>Second reverse fallback</p>}>
+          </Pending>
+          <Pending fallback={<p>Second reverse fallback</p>}>
             <Second />
-          </Suspense>
+          </Pending>
         </Reveal>
       </main>,
       chunks
@@ -2141,15 +2141,15 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Second = component$(() => <>{second}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
         <Reveal order="together">
-          <Suspense fallback={<p>First together fallback</p>}>
+          <Pending fallback={<p>First together fallback</p>}>
             <First />
-          </Suspense>
-          <Suspense fallback={<p>Second together fallback</p>}>
+          </Pending>
+          <Pending fallback={<p>Second together fallback</p>}>
             <Second />
-          </Suspense>
+          </Pending>
         </Reveal>
       </main>,
       chunks
@@ -2188,15 +2188,15 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     const Second = component$(() => <>{second}</>);
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(
+    const renderPromise = ssrRenderPendingStream(
       <main>
         <Reveal order="sequential" collapsed>
-          <Suspense fallback={<p>First fallback</p>}>
+          <Pending fallback={<p>First fallback</p>}>
             <First />
-          </Suspense>
-          <Suspense fallback={<p>Second fallback</p>}>
+          </Pending>
+          <Pending fallback={<p>Second fallback</p>}>
             <Second />
-          </Suspense>
+          </Pending>
         </Reveal>
         <footer>Footer</footer>
       </main>,
@@ -2270,9 +2270,9 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
       const count = useSignal(0);
       return (
         <main>
-          <Suspense fallback={<Fallback />}>
+          <Pending fallback={<Fallback />}>
             <Slow />
-          </Suspense>
+          </Pending>
           <button
             id="ooos-unit-shell-button"
             onClick$={() => {
@@ -2290,7 +2290,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     });
     const chunks: string[] = [];
 
-    const renderPromise = ssrRenderSuspenseStream(<App />, chunks);
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('ooos-unit-fallback-button'));
@@ -2321,7 +2321,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
   });
 });
 
-describe('ssrRenderToDom: author re-render across a deferred Suspense', () => {
+describe('ssrRenderToDom: author re-render across a deferred Pending', () => {
   const OOOS_OPT_IN = {
     streaming: { inOrder: { strategy: 'disabled' as const }, outOfOrder: true },
   };
@@ -2347,9 +2347,9 @@ describe('ssrRenderToDom: author re-render across a deferred Suspense', () => {
   const DeferOnlyApp = component$(() => {
     const attempt = useSignal(0);
     return (
-      <Suspense fallback={<span id="skel">loading</span>}>
+      <Pending fallback={<span id="skel">loading</span>}>
         <DeferredRetry key={attempt.value} attempt={attempt} />
-      </Suspense>
+      </Pending>
     );
   });
 
@@ -2358,9 +2358,9 @@ describe('ssrRenderToDom: author re-render across a deferred Suspense', () => {
     return (
       <div>
         <h2 id="shell">shell</h2>
-        <Suspense fallback={<span id="skel">loading</span>}>
+        <Pending fallback={<span id="skel">loading</span>}>
           <DeferredRetry key={attempt.value} attempt={attempt} />
-        </Suspense>
+        </Pending>
       </div>
     );
   });
@@ -2376,16 +2376,16 @@ describe('ssrRenderToDom: author re-render across a deferred Suspense', () => {
     expect(el.querySelector('#retry')?.textContent).toContain('mount 1');
   };
 
-  it('should re-render an author whose only root is the Suspense (in-order)', async () => {
+  it('should re-render an author whose only root is the Pending (in-order)', async () => {
     await expectRemount(<DeferOnlyApp />, IN_ORDER);
   });
 
   // https://github.com/QwikDev/qwik/issues/8876
-  it.skip('should re-render an author whose only root is the Suspense (out-of-order)', async () => {
+  it.skip('should re-render an author whose only root is the Pending (out-of-order)', async () => {
     await expectRemount(<DeferOnlyApp />, OOOS_OPT_IN);
   });
 
-  it('should re-render an author with in-order shell content above the Suspense (out-of-order)', async () => {
+  it('should re-render an author with in-order shell content above the Pending (out-of-order)', async () => {
     await expectRemount(<ShellThenDeferApp />, OOOS_OPT_IN);
   });
 });

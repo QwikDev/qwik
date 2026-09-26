@@ -66,9 +66,11 @@ export function propSource<T>(props: object, key: string): Source<T> | T {
   if (registered !== undefined && !isQrl(registered)) {
     return registered as Source<T>;
   }
-  return registered !== undefined || propsProxyStates.has(props)
-    ? new PropSource<T>(props, key)
-    : (props as Record<string, T>)[key];
+  if (registered !== undefined || propsProxyStates.has(props)) {
+    return new PropSource<T>(props, key);
+  }
+  const value = (props as Record<string, T>)[key];
+  return isSource(value) ? new PropSource<T>(props, key) : value;
 }
 
 /**

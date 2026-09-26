@@ -204,6 +204,32 @@ describe(`${name}: component`, () => {
     cleanup();
   });
 
+  it('should preserve a signal forwarded through component props', async () => {
+    const Leaf = component$((props: { shared: Signal<number> }) => (
+      <span>shared={props.shared.value}</span>
+    ));
+    const Middle = component$((props: { shared: Signal<number> }) => (
+      <Leaf shared={props.shared} />
+    ));
+    const Root = component$(() => {
+      const shared = useSignal(7);
+      return (
+        <button onClick$={() => shared.value++}>
+          <Middle shared={shared} />
+        </button>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(Root, { debug });
+    const button = container.querySelector('button')!;
+
+    expect(button.textContent).toBe('shared=7');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('shared=8');
+
+    cleanup();
+  });
+
   it('should read nested and computed destructured props reactively', async () => {
     const KEY = 'dyn';
     const Child = component$(

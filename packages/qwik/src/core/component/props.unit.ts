@@ -13,6 +13,7 @@ import {
 } from './props';
 import { getStoreSource, useStore } from '../reactive/store';
 import { createQRL } from '../shared/qrl/qrl-class';
+import { readTrackedValue } from '../dom/effect/text-effect';
 
 describe('component props', () => {
   it('views remaining own props without copying values or reading excluded keys', () => {
@@ -163,5 +164,13 @@ describe('component props', () => {
       record.value = { label: 'b' };
       expect(proxied.v).toBe('b');
     });
+  });
+
+  it('preserves a signal stored in a plain prop', () => {
+    const shared = useSignal(7);
+    const source = propSource({ shared }, 'shared');
+
+    expect(source).toBeInstanceOf(PropSource);
+    expect(readTrackedValue(source)).toBe(shared);
   });
 });

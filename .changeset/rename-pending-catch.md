@@ -1,5 +1,5 @@
 ---
-'@qwik.dev/core': major
+'@qwik.dev/core': minor
 '@qwik.dev/router': patch
 ---
 

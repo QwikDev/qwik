@@ -48,6 +48,7 @@ test('resolveLayout', () => {
       mdx: {},
       platform: {},
       rewriteRoutes: [],
+      ignoreRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
       strictLoaders: true,
     };

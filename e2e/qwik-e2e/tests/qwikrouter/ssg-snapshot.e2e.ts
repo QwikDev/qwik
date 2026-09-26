@@ -3,7 +3,7 @@ import { qwikVite } from '@qwik.dev/core/optimizer';
 import { ssgAdapter } from '@qwik.dev/router/adapters/ssg/vite';
 import { qwikRouter } from '@qwik.dev/router/vite';
 import compress from 'brotli/compress.js';
-import { readFile, rm, writeFile } from 'node:fs/promises';
+import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build, createBuilder, type InlineConfig, type PluginOption } from 'vite';
@@ -15,6 +15,11 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
 const CORE_BROTLI_BUDGET = 33700;
 const QWIKLOADER_BROTLI_BUDGET = 2100;
+
+// `src/routes/dev/` exists on disk but must never reach the build. Its route config, html and
+// state snapshots are unchanged by it - that invariance is half the regression proof.
+const IGNORE_ROUTES = ['dev/**'];
+const IGNORED_MARKER = 'IGNORED_DEV_PAGE_MARKER';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '../../../../');
@@ -117,6 +122,27 @@ test.describe('router ssg snapshot', () => {
     expect(html, '404 page content should render').toContain('Sub Not Found');
   });
 
+  test('an ignored route ships no chunk, no manifest entry and no page', async () => {
+    const buildDir = resolve(distDir, 'build');
+    const chunks = await readdir(buildDir);
+    for (const chunk of chunks) {
+      const content = await readFile(resolve(buildDir, chunk), 'utf-8');
+      expect(content, `${chunk} must not contain code from an ignored route`).not.toContain(
+        IGNORED_MARKER
+      );
+    }
+
+    const manifestText = await readFile(resolve(distDir, 'q-manifest.json'), 'utf-8');
+    expect(manifestText, 'q-manifest.json must not reference the ignored route').not.toContain(
+      'routes/dev/'
+    );
+
+    await expect(
+      readFile(resolve(distDir, 'dev', 'index.html'), 'utf-8'),
+      'SSG must not prerender an ignored route'
+    ).rejects.toThrow();
+  });
+
   test('preloader chunk brotli size stays within budget', async () => {
     const manifest = JSON.parse(await readFile(resolve(distDir, 'q-manifest.json'), 'utf-8'));
     const preloaderFile = manifest.preloader as string | undefined;
@@ -184,10 +210,16 @@ async function buildFixtureApp() {
   await rm(serverDir, { recursive: true, force: true });
   capturedRouterConfig = null;
 
-  const plugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
+  const plugins: PluginOption[] = [
+    qwikRouter({ ignoreRoutes: IGNORE_ROUTES }),
+    tsconfigPaths({ root: '.' }),
+  ];
   // Fresh instance so the server build's loadersByFile starts empty, mirroring apps that run
   // build.client/build.server as separate processes (exercises the manifest recovery path).
-  const serverPlugins: PluginOption[] = [qwikRouter(), tsconfigPaths({ root: '.' })];
+  const serverPlugins: PluginOption[] = [
+    qwikRouter({ ignoreRoutes: IGNORE_ROUTES }),
+    tsconfigPaths({ root: '.' }),
+  ];
 
   const getConfig = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,

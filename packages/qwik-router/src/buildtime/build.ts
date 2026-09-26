@@ -5,7 +5,9 @@ import { createRouteTester } from '../ssg/routes';
 import { resolveMenu } from './markdown/menu';
 import { resolveLayout, resolveRoute } from './routing/resolve-source-file';
 import { routeSortCompare } from './routing/sort-routes';
-import { walkRoutes } from './routing/walk-routes-dir';
+import { createIgnoreMatcher } from './routing/ignore-routes';
+import { collectSourceFiles, walkRoutes } from './routing/walk-routes-dir';
+import { validateIgnoredRoutes } from './routing/validate-ignored-routes';
 import { walkServerPlugins } from './routing/walk-server-plugins';
 import { parseRoutePathname } from './routing/parse-pathname';
 import type {
@@ -35,6 +37,19 @@ export async function parseRoutesDir(ctx: RoutingContext) {
       console.warn(d.message);
     }
   }
+
+  logIgnoredRoutes(ctx);
+}
+
+/** Confirms the exclusion happened - the signal that was missing when the leak went unnoticed. */
+function logIgnoredRoutes(ctx: RoutingContext) {
+  if (ctx.hasLoggedIgnoredRoutes || ctx.ignoredRoutePaths.length === 0) {
+    return;
+  }
+  ctx.hasLoggedIgnoredRoutes = true;
+  console.warn(
+    `qwik-router: ignoreRoutes skipped ${ctx.ignoredRoutePaths.length} paths: ${ctx.ignoredRoutePaths.join(', ')}`
+  );
 }
 
 export function updateRoutingContext(ctx: RoutingContext) {
@@ -45,8 +60,14 @@ export function updateRoutingContext(ctx: RoutingContext) {
 }
 
 async function _updateRoutingContext(ctx: RoutingContext) {
+  // Diagnostics describe this scan only, so a fixed problem stops being reported.
+  ctx.diagnostics.length = 0;
   const serverPlugins = await walkServerPlugins(ctx.opts);
-  const routeTrie = await walkRoutes(ctx.opts.routesDir);
+  const ignoreMatcher = createIgnoreMatcher(ctx.opts.ignoreRoutes);
+  const walked = await walkRoutes(ctx.opts.routesDir, ignoreMatcher);
+  const routeTrie = walked.root;
+  ctx.ignoredRoutePaths = walked.ignoredPaths;
+  ctx.ignoredRouteFiles = walked.ignoredFiles;
 
   // Populate _G nodes in the trie for rewrite routes
   if (ctx.opts.rewriteRoutes) {
@@ -63,6 +84,14 @@ async function _updateRoutingContext(ctx: RoutingContext) {
   ctx.entries = derived.entries;
   ctx.serviceWorkers = derived.serviceWorkers;
   ctx.menus = derived.menus;
+
+  if (ignoreMatcher) {
+    validateIgnoredRoutes(
+      ctx,
+      ignoreMatcher,
+      collectSourceFiles(routeTrie).filter((file) => file.type === 'route')
+    );
+  }
 }
 
 /**
@@ -76,15 +105,7 @@ function deriveFromTrie(opts: NormalizedPluginOptions, root: BuildTrieNode) {
   const serviceWorkers: BuiltEntry[] = [];
   const menus: BuiltMenu[] = [];
 
-  // Collect all source files from the trie
-  const allFiles: RouteSourceFile[] = [];
-  function collectAllFiles(node: BuildTrieNode) {
-    allFiles.push(...node._files);
-    for (const child of node.children.values()) {
-      collectAllFiles(child);
-    }
-  }
-  collectAllFiles(root);
+  const allFiles = collectSourceFiles(root);
 
   // Pass 1: resolve all layouts first (resolveRoute needs the full layouts array)
   for (const file of allFiles) {

@@ -183,7 +183,6 @@ export const runTask = (
     return pendingTask;
   }
 
-  task.$flags$ = (task.$flags$ & ~TaskFlags.DIRTY) | TaskFlags.EXECUTED;
   const handleError = (reason: unknown) => {
     tagErrorPhase(reason, ErrorBoundaryPhase.Hook);
     container.handleError(reason, host, ErrorBoundaryPhase.Hook);
@@ -191,6 +190,9 @@ export const runTask = (
 
   let taskPromise: Promise<void> | null = null;
   const result = maybeThen(cleanupAsyncDestroyable(task, handleError), () => {
+    // Clear DIRTY here, not before awaiting cleanup, so only invalidations
+    // raised by this very run trigger a reschedule.
+    task.$flags$ = (task.$flags$ & ~TaskFlags.DIRTY) | TaskFlags.EXECUTED;
     const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
     iCtx.$container$ = container;
     const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
@@ -222,6 +224,10 @@ export const runTask = (
     taskPromise = result.finally(() => {
       if (task.$taskPromise$ === taskPromise) {
         task.$taskPromise$ = null;
+        if (task.$flags$ & TaskFlags.DIRTY) {
+          // The task invalidated itself while it was still running, reschedule it.
+          markVNodeDirty(container, host, ChoreBits.TASKS);
+        }
       }
     });
     task.$taskPromise$ = taskPromise;

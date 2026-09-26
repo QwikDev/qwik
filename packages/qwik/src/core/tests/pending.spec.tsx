@@ -96,7 +96,7 @@ describe.each([
 
   it('should render sync children', async () => {
     const { vNode } = await render(
-      <Pending fallback={<span>Loading...</span>}>
+      <Pending fallback$={() => <span>Loading...</span>}>
         <p>Sync content</p>
       </Pending>,
       { debug }
@@ -120,7 +120,7 @@ describe.each([
     const Child = component$(() => <p>Child content</p>);
 
     const { vNode } = await render(
-      <Pending fallback={<span>Loading...</span>}>
+      <Pending fallback$={() => <span>Loading...</span>}>
         <Child />
       </Pending>,
       { debug }
@@ -151,7 +151,7 @@ describe.each([
     });
 
     const { vNode } = await render(
-      <Pending fallback={<span>Loading...</span>}>
+      <Pending fallback$={() => <span>Loading...</span>}>
         <AsyncChild />
       </Pending>,
       { debug }
@@ -197,13 +197,35 @@ describe.each([
     );
   });
 
+  it('should update the fallback when a signal read by fallback$ changes', async () => {
+    const Cmp = component$(() => {
+      const label = useSignal('first');
+      return (
+        <>
+          <button onClick$={() => (label.value = 'second')} />
+          <Pending fallback$={() => <span>Loading {label.value}</span>}>
+            <p>Content</p>
+          </Pending>
+        </>
+      );
+    });
+
+    const { container, document } = await render(<Cmp />, { debug });
+    expect(document.querySelector('span')?.textContent).toBe('Loading first');
+
+    await trigger(document.body, 'button', 'click');
+    await waitForDrain(container);
+
+    expect(document.querySelector('span')?.textContent).toBe('Loading second');
+  });
+
   it('should render multiple Pending boundaries independently', async () => {
     const { vNode } = await render(
       <div>
-        <Pending fallback={<span>Loading 1...</span>}>
+        <Pending fallback$={() => <span>Loading 1...</span>}>
           <p>Content 1</p>
         </Pending>
-        <Pending fallback={<span>Loading 2...</span>}>
+        <Pending fallback$={() => <span>Loading 2...</span>}>
           <p>Content 2</p>
         </Pending>
       </div>,
@@ -240,7 +262,7 @@ describe.each([
   it('should handle empty Pending', async () => {
     const { vNode } = await render(
       <div>
-        <Pending fallback={<span>Loading...</span>} />
+        <Pending fallback$={() => <span>Loading...</span>} />
       </div>,
       { debug }
     );
@@ -263,7 +285,7 @@ describe.each([
 
     const { vNode } = await render(
       <div>
-        <Pending fallback={<span>Loading...</span>}>{content}</Pending>
+        <Pending fallback$={() => <span>Loading...</span>}>{content}</Pending>
       </div>,
       { debug }
     );
@@ -301,7 +323,7 @@ describe.each([
         await render(
           <Catch>
             <div>
-              <Pending fallback={<span>Loading...</span>}>
+              <Pending fallback$={() => <span>Loading...</span>}>
                 <BadChild />
               </Pending>
             </div>
@@ -316,7 +338,7 @@ describe.each([
       const { document } = await render(
         <Catch>
           <div>
-            <Pending fallback={<span>Loading...</span>}>
+            <Pending fallback$={() => <span>Loading...</span>}>
               <BadChild />
             </Pending>
           </div>
@@ -336,7 +358,7 @@ describe.each([
 
     const { vNode } = await render(
       <div>
-        <Pending fallback={<span>Loading...</span>} delay={100}>
+        <Pending fallback$={() => <span>Loading...</span>} delay={100}>
           {fastContent as any}
         </Pending>
       </div>,
@@ -371,7 +393,7 @@ describe.each([
       try {
         await render(
           <div>
-            <Pending fallback={<span>Loading...</span>}>
+            <Pending fallback$={() => <span>Loading...</span>}>
               <BadChild />
             </Pending>
           </div>,
@@ -386,7 +408,7 @@ describe.each([
       const { document } = await render(
         <ErrorProvider>
           <div>
-            <Pending fallback={<span>Loading...</span>}>
+            <Pending fallback$={() => <span>Loading...</span>}>
               <BadChild />
             </Pending>
           </div>
@@ -407,10 +429,10 @@ describe('ssrRenderToDom: Reveal and Pending coordination', () => {
     try {
       await ssrRenderToDom(
         <Reveal order="sequential" collapsed>
-          <Pending fallback={<span>Loading first</span>}>
+          <Pending fallback$={() => <span>Loading first</span>}>
             <p>First</p>
           </Pending>
-          <Pending fallback={<span>Loading second</span>}>
+          <Pending fallback$={() => <span>Loading second</span>}>
             <p>Second</p>
           </Pending>
         </Reveal>,
@@ -447,7 +469,7 @@ describe('domRender: Pending client-side pause delay', () => {
 
     const renderPromise = domRender(
       <div>
-        <Pending fallback={<span>Loading...</span>} delay={10}>
+        <Pending fallback$={() => <span>Loading...</span>} delay={10}>
           <SlowChild />
         </Pending>
       </div>,
@@ -503,7 +525,7 @@ describe('domRender: Pending client-side pause delay', () => {
     const renderPromise = render(
       document.body,
       <div>
-        <Pending fallback={<span>Loading...</span>} delay={10}>
+        <Pending fallback$={() => <span>Loading...</span>} delay={10}>
           <StatefulWrapper>
             <SlowChild />
           </StatefulWrapper>
@@ -535,7 +557,7 @@ describe('domRender: Pending client-side pause delay', () => {
     const renderPromise = render(
       document.body,
       <div>
-        <Pending fallback={<span>Loading...</span>} delay={10}>
+        <Pending fallback$={() => <span>Loading...</span>} delay={10}>
           <Catch fallback$={$(() => 'error')}>
             <SlowChild />
           </Catch>
@@ -575,7 +597,7 @@ describe('domRender: Pending client-side pause delay', () => {
 
     const { document, vNode } = await domRender(
       <div>
-        <Pending fallback={<span>Loading...</span>} delay={10}>
+        <Pending fallback$={() => <span>Loading...</span>} delay={10}>
           <Child />
         </Pending>
       </div>,
@@ -744,7 +766,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
 
     const renderPromise = ssrRenderPendingStream(
       <main>
-        <Pending fallback={<button>Waiting</button>}>
+        <Pending fallback$={() => <button>Waiting</button>}>
           <Slow />
         </Pending>
       </main>,
@@ -772,7 +794,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
 
     const renderPromise = ssrRenderPendingStream(
       <main>
-        <Pending fallback={<button>Waiting default</button>}>
+        <Pending fallback$={() => <button>Waiting default</button>}>
           <Slow />
         </Pending>
       </main>,
@@ -807,10 +829,10 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
 
     const renderPromise = ssrRenderPendingStream(
       <main>
-        <Pending fallback={<p>First waiting</p>}>
+        <Pending fallback$={() => <p>First waiting</p>}>
           <First />
         </Pending>
-        <Pending fallback={<p>Second waiting</p>}>
+        <Pending fallback$={() => <p>Second waiting</p>}>
           <Second />
         </Pending>
       </main>,
@@ -841,7 +863,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     const renderPromise = ssrRenderPendingStream(
       <main>
         <h1>Title</h1>
-        <Pending fallback={<button>Waiting</button>}>
+        <Pending fallback$={() => <button>Waiting</button>}>
           <Slow />
         </Pending>
         <footer>Footer</footer>
@@ -881,7 +903,10 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
 
     const renderPromise = ssrRenderPendingStream(
       <main>
-        <Pending fallback={<button id="ooos-delay-fallback">Delayed waiting</button>} delay={10}>
+        <Pending
+          fallback$={() => <button id="ooos-delay-fallback">Delayed waiting</button>}
+          delay={10}
+        >
           <Slow />
         </Pending>
         <footer>Footer</footer>
@@ -923,7 +948,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     const renderPromise = ssrRenderPendingStream(
       <main>
         <Pending
-          fallback={<button id="ooos-fast-delay-fallback">Fast waiting</button>}
+          fallback$={() => <button id="ooos-fast-delay-fallback">Fast waiting</button>}
           delay={10_000}
         >
           <Slow />
@@ -989,7 +1014,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
 
     const renderPromise = ssrRenderPendingStream(
       <main>
-        <Pending fallback={0} delay={0}>
+        <Pending fallback$={() => 0} delay={0}>
           <Slow />
         </Pending>
       </main>,
@@ -1018,7 +1043,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
         <main>
           <button onClick$={() => count.value++}>{count.value}</button>
           <Pending
-            fallback={
+            fallback$={() => (
               <button
                 onClick$={() => {
                   // do nothing, workaround for the optimizer bug
@@ -1027,7 +1052,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
               >
                 Waiting
               </button>
-            }
+            )}
           >
             <Slow />
           </Pending>
@@ -1104,7 +1129,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
 
     const renderPromise = ssrRenderPendingStream(
       <main>
-        <Pending fallback={<p>Waiting early segment</p>}>
+        <Pending fallback$={() => <p>Waiting early segment</p>}>
           <Slow />
         </Pending>
         {root}
@@ -1175,7 +1200,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
           >
             Read slow forward ref
           </button>
-          <Pending fallback={<p>Waiting forward refs</p>}>
+          <Pending fallback$={() => <p>Waiting forward refs</p>}>
             <Slow />
           </Pending>
         </main>
@@ -1284,10 +1309,10 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
 
     const renderPromise = ssrRenderPendingStream(
       <main>
-        <Pending fallback={<p>First waiting</p>}>
+        <Pending fallback$={() => <p>First waiting</p>}>
           <First />
         </Pending>
-        <Pending fallback={<p>Second waiting</p>}>
+        <Pending fallback$={() => <p>Second waiting</p>}>
           <Second />
         </Pending>
       </main>,
@@ -1329,7 +1354,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     const renderPromise = ssrRenderPendingStream(
       <main>
         <Pending
-          fallback={
+          fallback$={() => (
             <button
               onClick$={() => {
                 // do nothing, workaround for the optimizer bug
@@ -1338,7 +1363,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
             >
               Fallback
             </button>
-          }
+          )}
         >
           <Slow />
         </Pending>
@@ -1364,7 +1389,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     const Slow = component$(() => <>{slow}</>);
     const Boundary = component$(() => (
-      <Pending fallback={<p>Waiting slot</p>}>
+      <Pending fallback$={() => <p>Waiting slot</p>}>
         <Slot />
       </Pending>
     ));
@@ -1397,7 +1422,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     const Slow = component$(() => <>{slow}</>);
     const Boundary = component$(() => (
-      <Pending fallback={<p id="ooos-slot-fallback">Waiting slot swap</p>}>
+      <Pending fallback$={() => <p id="ooos-slot-fallback">Waiting slot swap</p>}>
         <Slot />
       </Pending>
     ));
@@ -1444,7 +1469,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     const Slow = component$(() => <>{slow}</>);
     const Boundary = component$(() => (
-      <Pending fallback={<p id="ooos-scoped-fallback">Waiting scoped slot</p>}>
+      <Pending fallback$={() => <p id="ooos-scoped-fallback">Waiting scoped slot</p>}>
         <Slot />
       </Pending>
     ));
@@ -1485,7 +1510,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     (globalThis as any).__ooosUnitProjectedSlotValue = 0;
 
     const Boundary = component$(() => (
-      <Pending fallback={<p>Waiting projected QRL</p>}>
+      <Pending fallback$={() => <p>Waiting projected QRL</p>}>
         <Slot />
       </Pending>
     ));
@@ -1538,7 +1563,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     (globalThis as any).__ooosUnitResumeAfterQOValue = 0;
 
     const Boundary = component$(() => (
-      <Pending fallback={<p>Waiting resume after qO</p>}>
+      <Pending fallback$={() => <p>Waiting resume after qO</p>}>
         <Slot />
       </Pending>
     ));
@@ -1650,7 +1675,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       return (
         <main>
           <span id="ooos-unit-loop-page">{page.value}</span>
-          <Pending fallback={<p>Waiting loop params</p>}>
+          <Pending fallback$={() => <p>Waiting loop params</p>}>
             <Stories stories={stories.value} bind:page={page} />
           </Pending>
         </main>
@@ -1736,7 +1761,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
             Touch shell shared
           </button>
           <span id="ooos-unit-shared-count">{count.value}</span>
-          <Pending fallback={<p>Waiting shared</p>}>
+          <Pending fallback$={() => <p>Waiting shared</p>}>
             <Slow count={count} />
           </Pending>
         </main>
@@ -1803,7 +1828,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
             Touch shell store
           </button>
           <span id="ooos-unit-store-shell-count">{state.nested.count}</span>
-          <Pending fallback={<p>Waiting store</p>}>
+          <Pending fallback$={() => <p>Waiting store</p>}>
             <Slow state={state} />
           </Pending>
         </main>
@@ -1881,10 +1906,10 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
             Touch shell shared store
           </button>
           <span id="ooos-unit-shared-store-shell-count">{shared.count}</span>
-          <Pending fallback={<p>Waiting first shared store</p>}>
+          <Pending fallback$={() => <p>Waiting first shared store</p>}>
             <First shared={shared} />
           </Pending>
-          <Pending fallback={<p>Waiting second shared store</p>}>
+          <Pending fallback$={() => <p>Waiting second shared store</p>}>
             <Second shared={shared} />
           </Pending>
         </main>
@@ -1961,10 +1986,10 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       return (
         <main>
           <h1>Shell does not read the cross store</h1>
-          <Pending fallback={<p>Waiting first cross store</p>}>
+          <Pending fallback$={() => <p>Waiting first cross store</p>}>
             <First shared={shared} />
           </Pending>
-          <Pending fallback={<p>Waiting second cross store</p>}>
+          <Pending fallback$={() => <p>Waiting second cross store</p>}>
             <Second shared={shared} />
           </Pending>
         </main>
@@ -2039,10 +2064,10 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       return (
         <main>
           <h1>Shell does not read the cross signal</h1>
-          <Pending fallback={<p>Waiting first cross signal</p>}>
+          <Pending fallback$={() => <p>Waiting first cross signal</p>}>
             <First count={count} />
           </Pending>
-          <Pending fallback={<p>Waiting second cross signal</p>}>
+          <Pending fallback$={() => <p>Waiting second cross signal</p>}>
             <Second count={count} />
           </Pending>
         </main>
@@ -2097,10 +2122,10 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     const renderPromise = ssrRenderPendingStream(
       <main>
         <Reveal order="reverse">
-          <Pending fallback={<p>First reverse fallback</p>}>
+          <Pending fallback$={() => <p>First reverse fallback</p>}>
             <First />
           </Pending>
-          <Pending fallback={<p>Second reverse fallback</p>}>
+          <Pending fallback$={() => <p>Second reverse fallback</p>}>
             <Second />
           </Pending>
         </Reveal>
@@ -2144,10 +2169,10 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     const renderPromise = ssrRenderPendingStream(
       <main>
         <Reveal order="together">
-          <Pending fallback={<p>First together fallback</p>}>
+          <Pending fallback$={() => <p>First together fallback</p>}>
             <First />
           </Pending>
-          <Pending fallback={<p>Second together fallback</p>}>
+          <Pending fallback$={() => <p>Second together fallback</p>}>
             <Second />
           </Pending>
         </Reveal>
@@ -2191,10 +2216,10 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     const renderPromise = ssrRenderPendingStream(
       <main>
         <Reveal order="sequential" collapsed>
-          <Pending fallback={<p>First fallback</p>}>
+          <Pending fallback$={() => <p>First fallback</p>}>
             <First />
           </Pending>
-          <Pending fallback={<p>Second fallback</p>}>
+          <Pending fallback$={() => <p>Second fallback</p>}>
             <Second />
           </Pending>
         </Reveal>
@@ -2270,7 +2295,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       const count = useSignal(0);
       return (
         <main>
-          <Pending fallback={<Fallback />}>
+          <Pending fallback$={() => <Fallback />}>
             <Slow />
           </Pending>
           <button
@@ -2347,7 +2372,7 @@ describe('ssrRenderToDom: author re-render across a deferred Pending', () => {
   const DeferOnlyApp = component$(() => {
     const attempt = useSignal(0);
     return (
-      <Pending fallback={<span id="skel">loading</span>}>
+      <Pending fallback$={() => <span id="skel">loading</span>}>
         <DeferredRetry key={attempt.value} attempt={attempt} />
       </Pending>
     );
@@ -2358,7 +2383,7 @@ describe('ssrRenderToDom: author re-render across a deferred Pending', () => {
     return (
       <div>
         <h2 id="shell">shell</h2>
-        <Pending fallback={<span id="skel">loading</span>}>
+        <Pending fallback$={() => <span id="skel">loading</span>}>
           <DeferredRetry key={attempt.value} attempt={attempt} />
         </Pending>
       </div>

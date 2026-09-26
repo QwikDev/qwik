@@ -209,7 +209,7 @@ const modes = [
     'SSR in a deferred segment',
     (jsx: () => JSXOutput, opts: Record<string, unknown> = {}) =>
       ssrRenderToDom(
-        <Pending fallback={<span id="segment-skel">deferring</span>}>{jsx()}</Pending>,
+        <Pending fallback$={() => <span id="segment-skel">deferring</span>}>{jsx()}</Pending>,
         { debug, ...opts }
       ),
   ],
@@ -845,7 +845,7 @@ describe('Catch + fallback$', () => {
                 <div id="before">before</div>
                 <Thrower />
               </Catch>
-              <Pending fallback={<span id="skel">loading</span>}>
+              <Pending fallback$={() => <span id="skel">loading</span>}>
                 <SlowResolver />
               </Pending>
             </main>,
@@ -960,7 +960,7 @@ describe('Catch + fallback$', () => {
         });
         const tree = () => (
           <main>
-            <Pending fallback={<span id="skel">loading</span>}>
+            <Pending fallback$={() => <span id="skel">loading</span>}>
               <DeferredOk />
             </Pending>
           </main>
@@ -974,7 +974,7 @@ describe('Catch + fallback$', () => {
       it('two adjacent boundaries that both throw each swap in their own fallback', async () => {
         const { document } = await streamAndResume(
           <main>
-            <Pending fallback={<span id="skel">loading</span>}>
+            <Pending fallback$={() => <span id="skel">loading</span>}>
               <Catch
                 fallback$={$(() => (
                   <p id="fb-a">A</p>
@@ -983,7 +983,7 @@ describe('Catch + fallback$', () => {
                 <Thrower message="boomA" />
               </Catch>
             </Pending>
-            <Pending fallback={<span id="skel">loading</span>}>
+            <Pending fallback$={() => <span id="skel">loading</span>}>
               <Catch
                 fallback$={$(() => (
                   <p id="fb-b">B</p>
@@ -1002,7 +1002,7 @@ describe('Catch + fallback$', () => {
       it('two boundaries inside one Pending each show their own fallback', async () => {
         const { document } = await streamAndResume(
           <main>
-            <Pending fallback={<span id="skel">loading</span>}>
+            <Pending fallback$={() => <span id="skel">loading</span>}>
               <Catch
                 fallback$={$(() => (
                   <p id="fb-a">A</p>
@@ -1030,7 +1030,7 @@ describe('Catch + fallback$', () => {
           <main>
             <Catch fallback$={fb()}>
               <div id="sibling">sibling</div>
-              <Pending fallback={<span id="skel">loading</span>}>
+              <Pending fallback$={() => <span id="skel">loading</span>}>
                 <AsyncThrower />
               </Pending>
             </Catch>
@@ -1058,7 +1058,7 @@ describe('Catch + fallback$', () => {
                   fires.push(e.message);
                 })}
               >
-                <Pending fallback={<span id="skel">loading</span>}>
+                <Pending fallback$={() => <span id="skel">loading</span>}>
                   <Thrower />
                 </Pending>
               </Catch>
@@ -1073,7 +1073,7 @@ describe('Catch + fallback$', () => {
       it('a sync throw inside a <Pending> boundary swaps within the segment', async () => {
         const { document } = await streamAndResume(
           <main>
-            <Pending fallback={<span id="loading">loading</span>}>
+            <Pending fallback$={() => <span id="loading">loading</span>}>
               <Catch fallback$={fb()}>
                 <div id="before">before</div>
                 <Thrower />
@@ -1092,7 +1092,7 @@ describe('Catch + fallback$', () => {
       it('boundary inside a <Pending>: an async throw swaps out the WHOLE content', async () => {
         const { document } = await streamAndResume(
           <main>
-            <Pending fallback={<span id="loading">loading</span>}>
+            <Pending fallback$={() => <span id="loading">loading</span>}>
               <Catch fallback$={fb()}>
                 <div id="before">before</div>
                 <AsyncThrower />
@@ -1117,7 +1117,7 @@ describe('Catch + fallback$', () => {
               ))}
             >
               <div id="outer-ok">outer-ok</div>
-              <Pending fallback={<span id="skel">loading</span>}>
+              <Pending fallback$={() => <span id="skel">loading</span>}>
                 <Catch fallback$={fb('fb-inner')}>
                   <Thrower />
                 </Catch>
@@ -1140,10 +1140,10 @@ describe('Catch + fallback$', () => {
               ))}
             >
               <div id="outer-ok">outer-ok</div>
-              <Pending fallback={<span id="skel-a">a</span>}>
+              <Pending fallback$={() => <span id="skel-a">a</span>}>
                 <Catch fallback$={fb('fb-mid')}>
                   <div id="mid-ok">mid-ok</div>
-                  <Pending fallback={<span id="skel-b">b</span>}>
+                  <Pending fallback$={() => <span id="skel-b">b</span>}>
                     <Thrower />
                   </Pending>
                 </Catch>
@@ -1162,10 +1162,10 @@ describe('Catch + fallback$', () => {
           <main>
             <Catch fallback$={fb()}>
               <div id="sibling">sibling</div>
-              <Pending fallback={<span id="skel-a">loading a</span>}>
+              <Pending fallback$={() => <span id="skel-a">loading a</span>}>
                 <AsyncThrower />
               </Pending>
-              <Pending fallback={<span id="skel-b">loading b</span>}>
+              <Pending fallback$={() => <span id="skel-b">loading b</span>}>
                 <AsyncThrower />
               </Pending>
             </Catch>
@@ -1189,7 +1189,7 @@ describe('Catch + fallback$', () => {
           <main>
             <Catch fallback$={fb()}>
               <Thrower />
-              <Pending fallback={<span id="skel">loading</span>}>
+              <Pending fallback$={() => <span id="skel">loading</span>}>
                 <SlowRejector />
               </Pending>
             </Catch>
@@ -1235,7 +1235,7 @@ describe('Catch + fallback$', () => {
         const { container } = await ssrRenderToDom(
           <main>
             <Catch fallback$={fb()}>
-              <Pending fallback={<span id="skel">loading</span>}>
+              <Pending fallback$={() => <span id="skel">loading</span>}>
                 <LateRejector />
               </Pending>
             </Catch>
@@ -1261,7 +1261,7 @@ describe('Catch + fallback$', () => {
               </button>
               <Catch fallback$={fb()}>
                 <Bound src={src} />
-                <Pending fallback={<span id="skel">loading</span>}>
+                <Pending fallback$={() => <span id="skel">loading</span>}>
                   <LateRejector />
                 </Pending>
               </Catch>
@@ -1295,7 +1295,7 @@ describe('Catch + fallback$', () => {
           <main>
             <Catch fallback$={fb()}>
               <DeadTask />
-              <Pending fallback={<span id="skel">loading</span>}>
+              <Pending fallback$={() => <span id="skel">loading</span>}>
                 <LateRejector />
               </Pending>
             </Catch>
@@ -1321,7 +1321,7 @@ describe('Catch + fallback$', () => {
         const { html, document } = await streamAndResume(
           <main>
             <Catch fallback$={fb()}>
-              <Pending fallback={<span id="skel">loading</span>}>
+              <Pending fallback$={() => <span id="skel">loading</span>}>
                 <SecretLateRejector />
               </Pending>
             </Catch>
@@ -1836,7 +1836,7 @@ describe('Catch + fallback$', () => {
       it('SSR OOOS: a sync function-child throw inside a Pending segment renders the fallback', async () => {
         const { document } = await streamAndResume(
           <main>
-            <Pending fallback={<span id="skel">loading</span>}>
+            <Pending fallback$={() => <span id="skel">loading</span>}>
               <Catch fallback$={fb()}>{throwingFnChild()}</Catch>
             </Pending>
           </main>,
@@ -3021,7 +3021,7 @@ describe('Catch reset', () => {
       </div>
     ));
     const WrappedResetApp = component$(() => (
-      <Pending fallback={<span id="skel">loading</span>}>
+      <Pending fallback$={() => <span id="skel">loading</span>}>
         <WrapperProjector>
           <Catch fallback$={wrappedResetFb}>
             <WrappedSsrFlake />

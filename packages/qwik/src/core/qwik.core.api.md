@@ -803,14 +803,12 @@ export interface OnVisibleTaskOptions {
 // @internal (undocumented)
 export const _peC: (props: PendingProps) => JSXNodeInternal<string>[];
 
-// Warning: (ae-incompatible-release-tags) The symbol "Pending" is marked as @public, but its signature references "_peC" which is marked as @internal
-//
 // @public (undocumented)
-export const Pending: typeof _peC;
+export const Pending: Component<PendingProps>;
 
 // @public (undocumented)
 export type PendingProps = {
-    fallback?: JSXOutput;
+    fallback$?: QRL<() => JSXOutput>;
     delay?: number;
 };
 

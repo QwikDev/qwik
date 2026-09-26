@@ -9,7 +9,7 @@ export default component$(() => {
         Show
       </button>
       {spaShow.value ? (
-        <Pending fallback={<span id="catch-skel">loading</span>}>
+        <Pending fallback$={() => <span id="catch-skel">loading</span>}>
           <Catch fallback$={resetFallback}>
             <CatchReErrorAsync />
           </Catch>

@@ -55,7 +55,7 @@ On the server, rendering pauses until the resource is resolved and will always r
 
 ```jsx
 <Catch fallback$={$((error, reset) => <div>Error: {error.message} <button onClick$={() => reset()}>Retry</button></div>)}>
-  <Pending fallback={<div>Loading...</div>}>
+  <Pending fallback$={() => <div>Loading...</div>}>
     <Repos org={githubOrg} repos={reposResource} />
   </Pending>
 </Catch>

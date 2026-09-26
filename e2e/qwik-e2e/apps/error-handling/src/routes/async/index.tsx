@@ -32,7 +32,7 @@ export default component$(() => {
     <>
       <Catch fallback$={defaultFallback}>
         <div id="catch-sibling">sibling</div>
-        <Pending fallback={<span id="catch-skel">loading</span>}>
+        <Pending fallback$={() => <span id="catch-skel">loading</span>}>
           <CatchAsyncThrower requestId={requestId} releaseId={releaseId} />
         </Pending>
       </Catch>

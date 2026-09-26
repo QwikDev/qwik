@@ -4,7 +4,7 @@ import { CatchWrapAsync, CatchWrapper, errMsg } from '../../components/catch/cat
 export default component$(() => {
   const attempt = useSignal(0);
   return (
-    <Pending fallback={<span id="catch-skel">loading</span>}>
+    <Pending fallback$={() => <span id="catch-skel">loading</span>}>
       <CatchWrapper>
         <Catch
           key={attempt.value}

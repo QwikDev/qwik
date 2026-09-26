@@ -63,7 +63,7 @@ export const OutOfOrderPendingRoot = component$(() => {
         ) : scenario === 'rerender' ? (
           <OutOfOrderPendingRerender />
         ) : (
-          <Pending key={render.value} fallback={<FallbackOutOfOrderContent />}>
+          <Pending key={render.value} fallback$={() => <FallbackOutOfOrderContent />}>
             <SlowOutOfOrderContent />
           </Pending>
         )}
@@ -141,7 +141,7 @@ export const OutOfOrderPendingContainerFragment = component$(() => {
 
   return (
     <section id={`ooos-${id}-root`}>
-      <Pending fallback={<OutOfOrderFallbackPanel id={id} label={label} />}>
+      <Pending fallback$={() => <OutOfOrderFallbackPanel id={id} label={label} />}>
         <ControlledOutOfOrderContent id={id} label={label} releaseParam="release" />
       </Pending>
       <ManualOutOfOrderReleaseButton
@@ -205,10 +205,10 @@ export const ResolvedOutOfOrderContent = component$(() => {
 export const MultipleOutOfOrderPending = component$(() => {
   return (
     <section id="ooos-multiple">
-      <Pending fallback={<OutOfOrderFallbackPanel id="multi-first" label="First" />}>
+      <Pending fallback$={() => <OutOfOrderFallbackPanel id="multi-first" label="First" />}>
         <ControlledOutOfOrderContent id="multi-first" label="First" releaseParam="multiFirst" />
       </Pending>
-      <Pending fallback={<OutOfOrderFallbackPanel id="multi-second" label="Second" />}>
+      <Pending fallback$={() => <OutOfOrderFallbackPanel id="multi-second" label="Second" />}>
         <ControlledOutOfOrderContent id="multi-second" label="Second" releaseParam="multiSecond" />
       </Pending>
       <ManualOutOfOrderReleaseButton
@@ -229,14 +229,18 @@ export const RevealOutOfOrderPending = component$(() => {
   return (
     <section id="ooos-reveal">
       <Reveal order="sequential" collapsed>
-        <Pending fallback={<OutOfOrderFallbackPanel id="reveal-first" label="Reveal first" />}>
+        <Pending
+          fallback$={() => <OutOfOrderFallbackPanel id="reveal-first" label="Reveal first" />}
+        >
           <ControlledOutOfOrderContent
             id="reveal-first"
             label="Reveal first"
             releaseParam="revealFirst"
           />
         </Pending>
-        <Pending fallback={<OutOfOrderFallbackPanel id="reveal-second" label="Reveal second" />}>
+        <Pending
+          fallback$={() => <OutOfOrderFallbackPanel id="reveal-second" label="Reveal second" />}
+        >
           <ControlledOutOfOrderContent
             id="reveal-second"
             label="Reveal second"
@@ -267,7 +271,7 @@ export const CrossStateOutOfOrderPending = component$(() => {
         Touch cross shell
       </button>
       <p id="ooos-cross-shell-count">shared={shared.value}</p>
-      <Pending fallback={<CrossStateFallback shared={shared} />}>
+      <Pending fallback$={() => <CrossStateFallback shared={shared} />}>
         <CrossStateContent shared={shared} />
       </Pending>
       <ManualOutOfOrderReleaseButton
@@ -286,7 +290,7 @@ export const DelayedFallbackOutOfOrderPending = component$(() => {
   return (
     <section id="ooos-delay-root">
       <Pending
-        fallback={<OutOfOrderFallbackPanel id="delay" label="Delay" />}
+        fallback$={() => <OutOfOrderFallbackPanel id="delay" label="Delay" />}
         delay={fallbackDelay}
       >
         <ControlledOutOfOrderContent id="delay" label="Delay" releaseParam="delayRelease" />
@@ -322,7 +326,7 @@ export const OutOfOrderPendingRerender = component$(() => {
 export const KeyedOutOfOrderPending = component$((props: { value: number }) => {
   return (
     <section id="ooos-rerender-keyed" data-value={props.value}>
-      <Pending fallback={<OutOfOrderFallbackPanel id="rerender" label="Rerender" />}>
+      <Pending fallback$={() => <OutOfOrderFallbackPanel id="rerender" label="Rerender" />}>
         <RerenderOutOfOrderContent value={props.value} />
       </Pending>
     </section>

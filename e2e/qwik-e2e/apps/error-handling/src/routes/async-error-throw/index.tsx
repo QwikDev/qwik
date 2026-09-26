@@ -10,7 +10,7 @@ const AsyncValueThrows = component$(() => {
 
 export default component$(() => (
   <Catch fallback$={defaultFallback}>
-    <Pending fallback={<span id="async-loading">loading</span>}>
+    <Pending fallback$={() => <span id="async-loading">loading</span>}>
       <AsyncValueThrows />
     </Pending>
   </Catch>

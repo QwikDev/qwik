@@ -49,7 +49,7 @@ export default component$(() => {
             </>
           ))}
         >
-          <Pending fallback={<>Loading...</>}>
+          <Pending fallback$={() => <>Loading...</>}>
             <Repos org={githubOrg} repos={reposResource} />
           </Pending>
         </Catch>

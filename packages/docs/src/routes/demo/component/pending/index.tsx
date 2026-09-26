@@ -23,7 +23,7 @@ export default component$(() => {
       </button>
 
       {show.value && (
-        <Pending fallback={<p>Loading content...</p>} delay={150}>
+        <Pending fallback$={() => <p>Loading content...</p>} delay={150}>
           <AsyncMessage />
         </Pending>
       )}

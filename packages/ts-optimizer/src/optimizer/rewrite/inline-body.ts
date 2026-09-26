@@ -8,7 +8,7 @@ import type { AstFunction } from '../../ast-types.js';
 import type { ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 import { eventHandlerPropName } from '../jsx/event-handlers.js';
-import { transformAllJsx, JsxKeyCounter } from '../jsx/jsx.js';
+import { collectScopeAwareBindings, transformAllJsx, JsxKeyCounter } from '../jsx/jsx.js';
 import {
   transformJsxCalls,
   collectJsxFunctionNamesFromIterable,
@@ -412,7 +412,26 @@ export function transformInlineSegmentBody(
     }
   }
 
-  body = propagateConstLiteralsInBody(body);
+  const qpProtectedNames = new Set<string>();
+  for (const child of nested) {
+    if (child.ctxKind !== 'eventHandler') {
+      continue;
+    }
+    const unified = elementQpParamsMap?.get(child.symbolName);
+    for (const name of unified ?? eventHandlerQpParams(child.paramNames)) {
+      qpProtectedNames.add(name);
+    }
+    if (
+      child.captures &&
+      child.captureNames.length > 0 &&
+      isStrippedExtraction(child, stripCtxName, stripEventHandlers)
+    ) {
+      for (const name of unified ?? child.captureNames) {
+        qpProtectedNames.add(name);
+      }
+    }
+  }
+  body = propagateConstLiteralsInBody(body, qpProtectedNames);
 
   let finalKeyCounterValue: number | undefined;
 
@@ -609,6 +628,10 @@ export function transformInlineSegmentBody(
           relPath: jsxBodyOptions.relPath,
           sharedSignalHoister,
           paramNames: ext.paramNames ? new Set(ext.paramNames) : undefined,
+          precomputedScopeBindings: collectScopeAwareBindings(
+            parseResult.program,
+            new Set(qrlVarNames.values())
+          ),
         }
       );
 

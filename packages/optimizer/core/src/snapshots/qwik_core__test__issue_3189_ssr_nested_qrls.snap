@@ -1,0 +1,64 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
+
+export default component$(() => {
+	const name = 'world';
+	const capitalize = $((v: string) => v[0].toUpperCase() + v.substring(1));
+	return (
+		<div>
+			<button
+				onClick$={async () => {
+					server$(async () => {
+						console.log(`Hello ${await capitalize(name)}!`);
+					})();
+				}}
+			>
+				Click
+			</button>
+		</div>
+	);
+});
+
+============================= src/routes/index.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
+import { _regSymbol } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+const q_qrl_4294901765 = /*#__PURE__*/ _noopQrl("routes_component_div_button_q_e_click_vRp183j5UWQ").m();
+const q_routes_component_capitalize_QZiVHYK0F5c = /*#__PURE__*/ _noopQrl("routes_component_capitalize_QZiVHYK0F5c");
+const q_routes_component_div_button_q_e_click_server_FYoUGLhfwRw = /*#__PURE__*/ _noopQrl("routes_component_div_button_q_e_click_server_FYoUGLhfwRw");
+const q_routes_component_pCYUo1eiS0w = /*#__PURE__*/ _noopQrl("routes_component_pCYUo1eiS0w");
+//
+const routes_component_capitalize_QZiVHYK0F5c = (v)=>v[0].toUpperCase() + v.substring(1);
+q_routes_component_capitalize_QZiVHYK0F5c.s(routes_component_capitalize_QZiVHYK0F5c);
+const routes_component_div_button_q_e_click_server_FYoUGLhfwRw = /*#__PURE__*/ _regSymbol(async ()=>{
+    const capitalize = _captures[0];
+    console.log(`Hello ${await capitalize('world')}!`);
+}, "FYoUGLhfwRw");
+q_routes_component_div_button_q_e_click_server_FYoUGLhfwRw.s(routes_component_div_button_q_e_click_server_FYoUGLhfwRw);
+const routes_component_pCYUo1eiS0w = ()=>{
+    const capitalize = q_routes_component_capitalize_QZiVHYK0F5c;
+    return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted("button", {
+        "q:p": capitalize
+    }, {
+        "q-e:click": q_qrl_4294901765
+    }, "Click", 7, null), 1, "dC_0");
+};
+q_routes_component_pCYUo1eiS0w.s(routes_component_pCYUo1eiS0w);
+export default /*#__PURE__*/ componentQrl(q_routes_component_pCYUo1eiS0w);
+
+
+Some("{\"version\":3,\"sources\":[\"/project/src/src/routes/index.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;gDAMsB,CAAC,IAAc,CAAC,CAAC,EAAE,CAAC,WAAW,KAAK,EAAE,SAAS,CAAC;;0FAKzD;;IACP,QAAQ,GAAG,CAAC,CAAC,MAAM,EAAE,MAAM,WAPnB,SAOoC,CAAC,CAAC;;;qCAR1B;IAEzB,MAAM;IACN,qBACC,WAAC,iCACA,WAAC;;;QACA,WAAQ;OAKR;AAKJ;;AAhBA,6BAAe,6CAgBZ\"}")
+== DIAGNOSTICS ==
+
+[]

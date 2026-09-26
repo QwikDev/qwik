@@ -282,7 +282,10 @@ function bodyHasAwaitBetween(body: string, from: number, to: number): boolean {
   return /\b(await|yield)\b/.test(body.slice(from, to));
 }
 
-export function propagateConstLiteralsInBody(body: string): string {
+export function propagateConstLiteralsInBody(
+  body: string,
+  externallyProtectedNames: ReadonlySet<string> = new Set()
+): string {
   const session = createTransformSession(body);
   if (!session) {
     return body;
@@ -296,7 +299,7 @@ export function propagateConstLiteralsInBody(body: string): string {
   const mutatedObjects = new Set<string>();
   // Identifiers inside `q_X.w([...])` capture arrays — serialization
   // contracts aligned with `_captures[N]` reads; never inline or remove.
-  const protectedNames = new Set<string>();
+  const protectedNames = new Set(externallyProtectedNames);
 
   let currentDeclName: string | null = null;
 

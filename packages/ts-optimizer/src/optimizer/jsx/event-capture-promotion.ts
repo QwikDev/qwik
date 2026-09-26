@@ -563,7 +563,8 @@ export function promoteEventHandlerCaptures(
     }
 
     const allCaptures = undeclaredIds.filter(
-      (name) => allScopeIds.has(name) && !importedNames.has(name)
+      (name) =>
+        allScopeIds.has(name) && !importedNames.has(name) && !extraction.constLiterals?.has(name)
     );
     const uniqueCaptures = [...new Set(allCaptures)].sort(
       (a, b) => (declPositions.get(a) ?? 0) - (declPositions.get(b) ?? 0)

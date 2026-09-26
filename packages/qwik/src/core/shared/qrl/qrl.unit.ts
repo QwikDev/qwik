@@ -300,6 +300,36 @@ describe('inlinedQrl', () => {
     await otherQrl.resolve();
     assert.equal(otherQrl.resolved, symbol);
   });
+
+  test('should register a symbol attached on the server', async () => {
+    const previousPlatform = getPlatform();
+    const previousRegistry = (globalThis as any).__qwik_reg_symbols;
+    delete (globalThis as any).__qwik_reg_symbols;
+    setPlatform({
+      ...previousPlatform,
+      isServer: true,
+      importSymbol(_container, _url, symbolName) {
+        const hash = symbolName.slice(symbolName.lastIndexOf('_') + 1);
+        return (globalThis as any).__qwik_reg_symbols?.get(hash);
+      },
+    });
+
+    try {
+      const symbol = () => 'hello';
+      createQRL(null, 'mySymbol_456').s(symbol);
+
+      const otherQrl = createQRL<() => string>(null, 'mySymbol_456');
+      await otherQrl.resolve();
+      assert.equal(otherQrl.resolved, symbol);
+    } finally {
+      setPlatform(previousPlatform);
+      if (previousRegistry === undefined) {
+        delete (globalThis as any).__qwik_reg_symbols;
+      } else {
+        (globalThis as any).__qwik_reg_symbols = previousRegistry;
+      }
+    }
+  });
 });
 
 describe('w (with captures)', () => {

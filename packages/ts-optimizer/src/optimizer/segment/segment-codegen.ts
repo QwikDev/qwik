@@ -432,7 +432,10 @@ function transformSegmentJsx(
     const qrlsNonConst = buildQrlsNonConstSet(nestedCallSites);
     const qpOverrides = buildQpOverrides(nestedCallSites, session.program);
 
-    const segScopeBindings = collectScopeAwareBindings(session.program);
+    const segScopeBindings = collectScopeAwareBindings(
+      session.program,
+      new Set(nestedCallSites?.map((site) => site.qrlVarName))
+    );
     if (captureInfo?.captureNames) {
       // Capture names are injected by `_captures[i]` unpacking at segment
       // body entry; they're runtime-const but have no AST declaration in

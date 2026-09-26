@@ -788,27 +788,32 @@ function analyzeModuleCaptures(
     }
   }
 
-  // Resolve const literals for event handlers before capture-to-param promotion
+  // Resolve nested const literals before captures propagate through parent QRLs.
   for (const extraction of extractions) {
-    if (extraction.ctxKind !== 'eventHandler') {
+    if (
+      !enclosingExtMap.has(extraction.symbolName) ||
+      extraction.isInlinedQrl ||
+      extraction.captureNames.length === 0
+    ) {
       continue;
     }
-    if (extraction.isInlinedQrl || extraction.captureNames.length === 0) {
-      continue;
+    const constValues = new Map<string, string>();
+    let unresolved = extraction.captureNames;
+    let enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
+    while (enclosingExt && unresolved.length > 0) {
+      const enclosingClosure = closureNodes.get(enclosingExt.symbolName);
+      if (enclosingClosure) {
+        for (const [name, value] of resolveConstLiteralsInClosure(
+          enclosingClosure,
+          repairedCode,
+          unresolved
+        )) {
+          constValues.set(name, value);
+        }
+        unresolved = unresolved.filter((name) => !constValues.has(name));
+      }
+      enclosingExt = enclosingExtMap.get(enclosingExt.symbolName) ?? null;
     }
-    const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
-    if (!enclosingExt) {
-      continue;
-    }
-    const enclosingClosure = closureNodes.get(enclosingExt.symbolName);
-    if (!enclosingClosure) {
-      continue;
-    }
-    const constValues = resolveConstLiteralsInClosure(
-      enclosingClosure,
-      repairedCode,
-      extraction.captureNames
-    );
     if (constValues.size > 0) {
       extraction.constLiterals = constValues;
       extraction.captureNames = extraction.captureNames.filter((n) => !constValues.has(n));

@@ -194,8 +194,18 @@ export type Op =
       delay: Value | null;
       blocking: boolean;
       lifetime: LifetimeId;
-      reveal?: { group: number; order: string; collapsed: boolean; index: number; count: number };
+      /** Membership in the enclosing `<Reveal>` of the same program: lexical index and size. */
+      reveal?: RevealMembership;
     };
+
+export interface RevealMembership {
+  group: number;
+  /** Plain expressions over setup values, read once at render; null = default. */
+  order: Value | null;
+  collapsed: Value | null;
+  index: number;
+  count: number;
+}
 
 export const enum PropKind {
   Static = 'static',

@@ -46,7 +46,13 @@ import {
   emptyFunctionEmission,
   type FunctionEmission,
 } from './emit-function';
-import { extractPayloadJs, bindHandlerJs, inlineValueJs, functionText } from './print-js';
+import {
+  extractPayloadJs,
+  bindHandlerJs,
+  inlineValueJs,
+  functionText,
+  revealArgsJs,
+} from './print-js';
 import {
   chunkCanonicalFilename,
   createQrlResolver,
@@ -157,6 +163,8 @@ interface RenderPass {
   /** Names already rooted in this pass — repeat effects skip the addRoot call. */
   rooted: Set<string>;
   propSources: Map<string, string>;
+  /** `<Reveal>` groups declared in this pass, by group ordinal. */
+  revealGroups: Map<number, string>;
 }
 
 /** Per-kind needs the emission wrappers state explicitly — the core never inspects the QRL. */
@@ -283,6 +291,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       usedCtx: false,
       rooted: new Set(),
       propSources: new Map(),
+      revealGroups: new Map(),
     };
     const emitQrl = withMarkerEmitter(
       this.module,
@@ -928,6 +937,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const content = this.useQrl(pass, op.content, true);
     const fallback = op.fallback === null ? null : this.useQrl(pass, op.fallback, true);
     const delay = op.delay === null ? '0' : inlineValueJs(this.module, op.delay);
+    const reveal = revealArgsJs(this.module, op.reveal, pass, this.imports);
     const step = pass.next(QwikGenWord.Content);
     this.imports.add(QwikWord.CreateSsrSuspense);
     this.pushStep(
@@ -937,7 +947,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         ...rootArgs(content.qrl, content.args),
         ...(fallback === null ? [] : rootArgs(fallback.qrl, fallback.args)),
       ],
-      `${QwikWord.CreateSsrSuspense}(${pass.names.ctx}, ${id}, ${content.ref}, ${fallback === null ? 'undefined' : fallback.ref}, ${delay})`
+      `${QwikWord.CreateSsrSuspense}(${pass.names.ctx}, ${id}, ${content.ref}, ${fallback === null ? 'undefined' : fallback.ref}, ${delay}${reveal})`
     );
     parts.push(step);
   }

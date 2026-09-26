@@ -272,6 +272,57 @@ export default component$(() => {
     });
   });
 
+  test('should group sibling Suspense boundaries under a Reveal', async () => {
+    const output = await testInput(mode, 'reveal-group', {
+      code: `import { component$, Reveal, Suspense } from '@qwik.dev/core';
+import { Slow } from './slow';
+export default component$(() => (
+  <section>
+    <Reveal order="sequential" collapsed>
+      <Suspense fallback$={() => <p>first</p>}>
+        <Slow id="one" />
+      </Suspense>
+      <div>
+        <Suspense fallback$={() => <p>second</p>} delay={10}>
+          <Slow id="two" />
+        </Suspense>
+      </div>
+    </Reveal>
+    <Reveal>
+      <Suspense fallback$={() => <p>third</p>}>
+        <Slow id="three" />
+      </Suspense>
+    </Reveal>
+  </section>
+));`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toContain(`createRevealGroup("sequential", true, 2)`);
+    expect(code).toContain(`createRevealGroup(undefined, undefined, 1)`);
+    // the Reveal element itself prints nothing
+    expect(code).not.toMatch(/Reveal[,)]/);
+  });
+
+  test('should keep a boundary inside another boundary out of the Reveal group', async () => {
+    const output = await testInput(mode, 'reveal-nested-program', {
+      code: `import { component$, Reveal, Suspense } from '@qwik.dev/core';
+import { Slow } from './slow';
+export default component$(() => (
+  <Reveal order="together">
+    <Suspense fallback$={() => <p>outer</p>}>
+      <Suspense fallback$={() => <p>inner</p>}>
+        <Slow id="inner" />
+      </Suspense>
+    </Suspense>
+  </Reveal>
+));`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toContain(`createRevealGroup("together", undefined, 1)`);
+  });
+
   test('should compile an expression-body arrow component', async () => {
     await testInput(mode, 'expression-body-arrow', {
       code: `export default () => <p>Hello Qwik</p>;

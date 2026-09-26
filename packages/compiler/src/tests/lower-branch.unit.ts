@@ -42,7 +42,7 @@ function lower(
     [1, COUNT_LOCAL],
   ]);
   shape(ctx);
-  return { op: lowerJsx(element, ctx), ctx };
+  return { op: lowerJsx(element, ctx)[0], ctx };
 }
 
 describe('lowerBranch / arm captures', () => {

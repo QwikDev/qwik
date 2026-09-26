@@ -1,0 +1,310 @@
+==INPUT==
+
+import { component$, Reveal, Suspense } from '@qwik.dev/core';
+import { Slow } from './slow';
+export default component$(() => (
+  <section>
+    <Reveal order="sequential" collapsed>
+      <Suspense fallback$={() => <p>first</p>}>
+        <Slow id="one" />
+      </Suspense>
+      <div>
+        <Suspense fallback$={() => <p>second</p>} delay={10}>
+          <Slow id="two" />
+        </Suspense>
+      </div>
+    </Reveal>
+    <Reveal>
+      <Suspense fallback$={() => <p>third</p>}>
+        <Slow id="three" />
+      </Suspense>
+    </Reveal>
+  </section>
+));
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createRevealGroup,
+  createSsrSuspense,
+  maybeThen,
+  createComponent,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Slow } from './slow';
+const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
+  const component0 = createComponent(Slow, { id: 'one' }, ctx);
+  return component0;
+};
+const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_1_oznzhxo2l2hq'
+);
+q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
+  component_suspense_content_segment_1_oznzhxo2l2hq
+);
+const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
+  return '<p>first</p>';
+};
+const q_component_suspense_fallback_segment_0_1i2rr5w5knxuo = /*#__PURE__*/ _noopQrl(
+  'component_suspense_fallback_segment_0_1i2rr5w5knxuo'
+);
+q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.s(
+  component_suspense_fallback_segment_0_1i2rr5w5knxuo
+);
+const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
+  const component0 = createComponent(Slow, { id: 'two' }, ctx);
+  return component0;
+};
+const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_3_oznypvg8wygo'
+);
+q_component_suspense_content_segment_3_oznypvg8wygo.s(
+  component_suspense_content_segment_3_oznypvg8wygo
+);
+const component_suspense_fallback_segment_2_1i2rrxydec1vq = (ctx) => {
+  return '<p>second</p>';
+};
+const q_component_suspense_fallback_segment_2_1i2rrxydec1vq = /*#__PURE__*/ _noopQrl(
+  'component_suspense_fallback_segment_2_1i2rrxydec1vq'
+);
+q_component_suspense_fallback_segment_2_1i2rrxydec1vq.s(
+  component_suspense_fallback_segment_2_1i2rrxydec1vq
+);
+const component_suspense_content_segment_5_ozo1223pxaju = (ctx) => {
+  const component0 = createComponent(Slow, { id: 'three' }, ctx);
+  return component0;
+};
+const q_component_suspense_content_segment_5_ozo1223pxaju = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_5_ozo1223pxaju'
+);
+q_component_suspense_content_segment_5_ozo1223pxaju.s(
+  component_suspense_content_segment_5_ozo1223pxaju
+);
+const component_suspense_fallback_segment_4_1i2rsq0l805ws = (ctx) => {
+  return '<p>third</p>';
+};
+const q_component_suspense_fallback_segment_4_1i2rsq0l805ws = /*#__PURE__*/ _noopQrl(
+  'component_suspense_fallback_segment_4_1i2rsq0l805ws'
+);
+q_component_suspense_fallback_segment_4_1i2rsq0l805ws.s(
+  component_suspense_fallback_segment_4_1i2rsq0l805ws
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const reveal0 = createRevealGroup('sequential', true, 2);
+    const content0 = createSsrSuspense(
+      ctx,
+      id0,
+      q_component_suspense_content_segment_1_oznzhxo2l2hq,
+      q_component_suspense_fallback_segment_0_1i2rr5w5knxuo,
+      0,
+      reveal0,
+      0
+    );
+    const id1 = ctx.nextId();
+    const content1 = createSsrSuspense(
+      ctx,
+      id1,
+      q_component_suspense_content_segment_3_oznypvg8wygo,
+      q_component_suspense_fallback_segment_2_1i2rrxydec1vq,
+      10,
+      reveal0,
+      1
+    );
+    const id2 = ctx.nextId();
+    const reveal1 = createRevealGroup(undefined, undefined, 1);
+    const content2 = createSsrSuspense(
+      ctx,
+      id2,
+      q_component_suspense_content_segment_5_ozo1223pxaju,
+      q_component_suspense_fallback_segment_4_1i2rsq0l805ws,
+      0,
+      reveal1,
+      0
+    );
+    return maybeThen(content0, (content0) =>
+      maybeThen(content1, (content1) =>
+        maybeThen(content2, (content2) => [
+          '<section>',
+          content0,
+          '<div>',
+          content1,
+          '</div>',
+          content2,
+          '</section>',
+        ])
+      )
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo.js (ENTRY POINT)==
+
+export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
+  return '<p>first</p>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_fallback_segment_0_1i2rr5w5knxuo",
+  "entry": null,
+  "displayName": "component_suspense_fallback_segment_0",
+  "hash": "1i2rr5w5knxuo",
+  "canonicalFilename": "component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:fallback",
+  "captures": false,
+  "loc": [
+    198,
+    227
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { Slow } from './slow';
+
+export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
+  const component0 = createComponent(Slow, { id: 'one' }, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_content_segment_1_oznzhxo2l2hq",
+  "entry": null,
+  "displayName": "component_suspense_content_segment_1",
+  "hash": "oznzhxo2l2hq",
+  "canonicalFilename": "component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:content",
+  "captures": false,
+  "loc": [
+    188,
+    273
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_suspense_fallback_segment_2_1i2rrxydec1vq.js (ENTRY POINT)==
+
+export const component_suspense_fallback_segment_2_1i2rrxydec1vq = (ctx) => {
+  return '<p>second</p>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_fallback_segment_2_1i2rrxydec1vq",
+  "entry": null,
+  "displayName": "component_suspense_fallback_segment_2",
+  "hash": "1i2rrxydec1vq",
+  "canonicalFilename": "component.tsx_component_suspense_fallback_segment_2_1i2rrxydec1vq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:fallback",
+  "captures": false,
+  "loc": [
+    304,
+    334
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_suspense_content_segment_3_oznypvg8wygo.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { Slow } from './slow';
+
+export const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
+  const component0 = createComponent(Slow, { id: 'two' }, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_content_segment_3_oznypvg8wygo",
+  "entry": null,
+  "displayName": "component_suspense_content_segment_3",
+  "hash": "oznypvg8wygo",
+  "canonicalFilename": "component.tsx_component_suspense_content_segment_3_oznypvg8wygo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:content",
+  "captures": false,
+  "loc": [
+    294,
+    395
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_suspense_fallback_segment_4_1i2rsq0l805ws.js (ENTRY POINT)==
+
+export const component_suspense_fallback_segment_4_1i2rsq0l805ws = (ctx) => {
+  return '<p>third</p>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_fallback_segment_4_1i2rsq0l805ws",
+  "entry": null,
+  "displayName": "component_suspense_fallback_segment_4",
+  "hash": "1i2rsq0l805ws",
+  "canonicalFilename": "component.tsx_component_suspense_fallback_segment_4_1i2rsq0l805ws",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:fallback",
+  "captures": false,
+  "loc": [
+    452,
+    481
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_suspense_content_segment_5_ozo1223pxaju.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { Slow } from './slow';
+
+export const component_suspense_content_segment_5_ozo1223pxaju = (ctx) => {
+  const component0 = createComponent(Slow, { id: 'three' }, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_content_segment_5_ozo1223pxaju",
+  "entry": null,
+  "displayName": "component_suspense_content_segment_5",
+  "hash": "ozo1223pxaju",
+  "canonicalFilename": "component.tsx_component_suspense_content_segment_5_ozo1223pxaju",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:content",
+  "captures": false,
+  "loc": [
+    442,
+    529
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

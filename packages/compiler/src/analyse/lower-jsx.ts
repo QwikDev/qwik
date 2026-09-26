@@ -19,7 +19,7 @@ import { passiveEventNames } from './events';
 import { checkDomNesting } from './dom-nesting';
 import { isFunctionLike, jsxAttributeName, readReturnedBody, unwrapExpression } from './ast/utils';
 import { lowerInlineExpressionValue } from './lower-expr';
-import type { LowerContext } from './lower-context';
+import type { LowerContext, RevealScope } from './lower-context';
 import { collectCaptures } from './ast/capture-analysis';
 import { QwikDirective, SegmentContext } from '../words';
 import { lowerContentChildren, lowerJsxChildren, lowerRenderExpression } from './lower-children';
@@ -48,7 +48,8 @@ import { lowerRangeProgram } from './lower-render-qrl';
  * with its own escaping (SSR streams raw, CSR templates escape). Dynamic arms land per example.
  */
 
-export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
+/** A JSX element lowers to ops: one for elements and components, its children's for `<Reveal>`. */
+export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
   const opening = element.openingElement;
   const nameNode = opening.name;
   if (nameNode.type !== 'JSXIdentifier' && nameNode.type !== 'JSXMemberExpression') {
@@ -57,27 +58,31 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   const attributes = opening.attributes.filter((attribute) => !isKeyAttribute(attribute));
   if (nameNode.type === 'JSXMemberExpression') {
     const root = requireComponentBinding(jsxMemberRoot(nameNode), ctx);
-    return lowerDynamicTag(element, attributes, jsxMemberIr(nameNode, ctx), root, ctx);
+    return [lowerDynamicTag(element, attributes, jsxMemberIr(nameNode, ctx), root, ctx)];
   }
   const alias = aliasTagTarget(nameNode, ctx);
   if (alias !== null) {
-    return lowerDynamicTag(element, attributes, alias.value, alias.root, ctx);
+    return [lowerDynamicTag(element, attributes, alias.value, alias.root, ctx)];
   }
   // JSX: only a lowercase-initial tag is an element; anything else names a component.
   if (!/^[a-z]/.test(nameNode.name)) {
     const binding = requireComponentBinding(nameNode, ctx);
-    const core = ctx.coreBindings.get(binding);
-    if (core === 'Suspense') {
-      return lowerSuspense(element, attributes, ctx);
+    switch (ctx.coreBindings.get(binding)) {
+      case 'Suspense':
+        return [lowerSuspense(element, attributes, ctx)];
+      case 'Reveal':
+        return lowerReveal(element, attributes, ctx);
+      case 'Slot':
+        return [lowerSlotMarker(element, ctx)];
     }
-    return core === 'Slot'
-      ? lowerSlotMarker(element, ctx)
-      : lowerComponentOp(
-          element,
-          attributes,
-          { t: ComponentTargetKind.Raw, binding, ...tagNamespace(ctx.namespace) },
-          ctx
-        );
+    return [
+      lowerComponentOp(
+        element,
+        attributes,
+        { t: ComponentTargetKind.Raw, binding, ...tagNamespace(ctx.namespace) },
+        ctx
+      ),
+    ];
   }
   const tag = nameNode.name;
   const expanded = attributes.flatMap(expandLiteralSpread);
@@ -149,17 +154,87 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
       [element.start, element.end]
     );
   }
-  return {
-    op: OpKind.Element,
-    tag,
-    void: VOID_ELEMENTS.has(tag),
-    ...tagNamespace(elementNamespace),
-    styleScopedId,
-    runtimeScope: false,
-    props,
-    propsEffect,
-    children,
+  return [
+    {
+      op: OpKind.Element,
+      tag,
+      void: VOID_ELEMENTS.has(tag),
+      ...tagNamespace(elementNamespace),
+      styleScopedId,
+      runtimeScope: false,
+      props,
+      propsEffect,
+      children,
+    },
+  ];
+}
+
+/** `order` and `collapsed` follow the Suspense `delay` rule: plain expressions over setup values. */
+function lowerRevealAttribute(name: string, attribute: JSXAttributeItem, ctx: LowerContext): Value {
+  const expression =
+    attribute.type === 'JSXAttribute' && attribute.value !== null
+      ? attribute.value.type === 'JSXExpressionContainer'
+        ? attribute.value.expression.type === 'JSXEmptyExpression'
+          ? null
+          : unwrapExpression(attribute.value.expression)
+        : attribute.value
+      : null;
+  const value =
+    expression === null
+      ? null
+      : lowerInlineExpressionValue(expression, ctx, collectCaptures(expression, ctx, new Set()));
+  if (value === null || value.resume.r !== ResumeKind.Inline) {
+    throw new InvalidModuleError(
+      'reveal-attribute',
+      `A Reveal ${name} is a plain expression over setup values.`,
+      [attribute.start, attribute.end]
+    );
+  }
+  return value;
+}
+
+/**
+ * `<Reveal order collapsed>…</Reveal>`: the marker is erased; the Suspense boundaries lowered under
+ * it in this program share one runtime group, indexed in lexical order.
+ */
+function lowerReveal(
+  element: JSXElement,
+  attributes: readonly JSXAttributeItem[],
+  ctx: LowerContext
+): Op[] {
+  const scope: RevealScope = {
+    group: ctx.revealCounter.next++,
+    order: null,
+    collapsed: null,
+    boundaries: [],
   };
+  for (const attribute of attributes) {
+    const name = jsxAttributeName(attribute);
+    if (name === 'order' || name === 'collapsed') {
+      // a bare `collapsed` is the literal `true`
+      scope[name] =
+        attribute.type === 'JSXAttribute' && attribute.value === null
+          ? { v: ValueKind.Static, value: true }
+          : lowerRevealAttribute(name, attribute, ctx);
+      continue;
+    }
+    throw new InvalidModuleError(
+      'reveal-attribute',
+      `Reveal takes only order and collapsed; "${name ?? 'spread'}" is not supported.`,
+      [attribute.start, attribute.end]
+    );
+  }
+  const outer = ctx.reveal;
+  ctx.reveal = scope;
+  try {
+    const ops = lowerJsxChildren(element.children, ctx);
+    for (const boundary of scope.boundaries) {
+      boundary.reveal!.count = scope.boundaries.length;
+    }
+    return ops;
+  } finally {
+    ctx.reveal = outer;
+  }
 }
 
 /**
@@ -234,7 +309,7 @@ function lowerSuspense(
     LifetimeOwner.Suspense,
     () => lowerJsxChildren(children, ctx)
   );
-  return {
+  const op: Extract<Op, { op: OpKind.Suspense }> = {
     op: OpKind.Suspense,
     content: use,
     contentId: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
@@ -244,4 +319,16 @@ function lowerSuspense(
     blocking: false,
     lifetime,
   };
+  const reveal = ctx.reveal;
+  if (reveal !== null) {
+    op.reveal = {
+      group: reveal.group,
+      order: reveal.order,
+      collapsed: reveal.collapsed,
+      index: reveal.boundaries.length,
+      count: 0,
+    };
+    reveal.boundaries.push(op);
+  }
+  return op;
 }

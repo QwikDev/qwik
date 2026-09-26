@@ -16,9 +16,10 @@ import {
   type ExpressionIR,
   type Range,
   type LocalId,
+  type RevealMembership,
 } from '../schema';
 import { ValueIrKind } from '../schema/value-ir';
-import { QwikWord } from '../words';
+import { QwikGenWord, QwikWord } from '../words';
 import { UnsupportedError } from '../errors';
 import type { FunctionEmission } from './emit-function';
 type MarkerTarget = Extract<CallTarget, { kind: CallTargetKind.Marker }>;
@@ -217,4 +218,36 @@ export function functionText(emission: FunctionEmission): string {
       ? `${params} =>`
       : `function${emission.generator ? '*' : ''}${emission.functionName === null ? '' : ` ${emission.functionName}`}${params}`;
   return `${emission.async ? 'async ' : ''}${head} {\n${body}\n}`;
+}
+
+/** The trailing `group, index` of a boundary inside a `<Reveal>`; the group declares once per pass. */
+export function revealArgsJs(
+  module: LinkedModule,
+  reveal: RevealMembership | undefined,
+  pass: {
+    statements: string[];
+    next: (prefix: string) => string;
+    revealGroups: Map<number, string>;
+  },
+  imports: Set<string>
+): string {
+  if (reveal === undefined) {
+    return '';
+  }
+  let group = pass.revealGroups.get(reveal.group);
+  if (group === undefined) {
+    group = pass.next(QwikGenWord.Reveal);
+    imports.add(QwikWord.CreateRevealGroup);
+    const setting = (value: Value | null) =>
+      value === null
+        ? 'undefined'
+        : value.v === ValueKind.Static
+          ? JSON.stringify(value.value)
+          : inlineValueJs(module, value);
+    pass.statements.push(
+      `const ${group} = ${QwikWord.CreateRevealGroup}(${setting(reveal.order)}, ${setting(reveal.collapsed)}, ${reveal.count});`
+    );
+    pass.revealGroups.set(reveal.group, group);
+  }
+  return `, ${group}, ${reveal.index}`;
 }

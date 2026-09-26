@@ -149,7 +149,7 @@ export function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
       return text === '' ? [] : [{ op: OpKind.Static, html: text }];
     }
     case 'JSXElement':
-      return [lowerJsx(child, ctx)];
+      return lowerJsx(child, ctx);
     case 'JSXExpressionContainer': {
       if (child.expression.type === 'JSXEmptyExpression') {
         return [];
@@ -233,7 +233,7 @@ export function lowerRenderExpression(expression: Expression, ctx: LowerContext)
       }
       break;
     case JsxValueKind.Element:
-      return [lowerJsx(value.node, ctx)];
+      return lowerJsx(value.node, ctx);
     case JsxValueKind.Fragment:
       return lowerJsxChildren(value.node.children, ctx);
     case JsxValueKind.Collection:

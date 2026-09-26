@@ -139,6 +139,13 @@ export function lowerRangeProgram(
     },
     captures.args
   );
-  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerOps(captures) };
+  // A nested program is its own function: a Reveal cannot reach across it.
+  const outerReveal = ctx.reveal;
+  ctx.reveal = null;
+  try {
+    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerOps(captures) };
+  } finally {
+    ctx.reveal = outerReveal;
+  }
   return { use, program, lifetime };
 }

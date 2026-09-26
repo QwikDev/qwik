@@ -40,7 +40,13 @@ import {
   rowShapeCode,
   type FunctionEmission,
 } from './emit-function';
-import { extractPayloadJs, bindHandlerJs, inlineValueJs, functionText } from './print-js';
+import {
+  extractPayloadJs,
+  bindHandlerJs,
+  inlineValueJs,
+  functionText,
+  revealArgsJs,
+} from './print-js';
 import {
   chunkCanonicalFilename,
   createQrlResolver,
@@ -128,6 +134,8 @@ interface RenderPass {
   names: GeneratedNames;
   next: (prefix: string) => string;
   propSources: Map<string, string>;
+  /** `<Reveal>` groups declared in this pass, by group ordinal. */
+  revealGroups: Map<number, string>;
 }
 
 class CsrModuleEmitter implements QwikModuleEmitter {
@@ -219,6 +227,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       names,
       next: createNameAllocator(this.module),
       propSources: new Map(),
+      revealGroups: new Map(),
     };
     const staticQrl = (use: QrlUse) => this.capturedChunkReference(use, names.props);
     const emitQrl = withMarkerEmitter(
@@ -684,8 +693,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         ? 'undefined'
         : this.capturedChunkReference(op.fallback, pass.names.props);
     const delay = op.delay === null ? '0' : inlineValueJs(this.module, op.delay);
+    const reveal = revealArgsJs(this.module, op.reveal, { ...pass, statements }, this.imports);
     statements.push(
-      `${QwikWord.CreateSuspense}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${content}, ${fallback}, ${delay});`
+      `${QwikWord.CreateSuspense}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${content}, ${fallback}, ${delay}${reveal});`
     );
   }
 
@@ -921,6 +931,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       },
       next: createNameAllocator(this.module),
       propSources: new Map(),
+      revealGroups: new Map(),
     };
     const emission = emptyFunctionEmission();
     const statements: string[] = [];

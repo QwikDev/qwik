@@ -34,7 +34,7 @@ function fold(jsx: string): string {
     throw new Error('expected a JSX element');
   }
   const { ctx } = createTestLowerContext(parsed.program, source);
-  return foldStaticOp(lowerJsx(element, ctx));
+  return foldStaticOp(lowerJsx(element, ctx)[0]);
 }
 
 describe('JSX lowering + static folding', () => {

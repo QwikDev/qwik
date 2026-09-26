@@ -44,7 +44,7 @@ function lower(jsx: string) {
   ctx.locals = new Map([
     [items, { kind: LocalKind.Signal, access: CaptureAccess.Direct, slot: 0, binding: items }],
   ]);
-  return { op: lowerJsx(element, ctx), ctx, element };
+  return { op: lowerJsx(element, ctx)[0], ctx, element };
 }
 
 const ROW = '<ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>';

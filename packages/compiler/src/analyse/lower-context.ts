@@ -1,4 +1,5 @@
-import type { LocalId, ModulePlan, Payload, Qrl, QrlUse, Range } from '../schema';
+import type { LocalId, ModulePlan, Op, Payload, Qrl, QrlUse, Range, Value } from '../schema';
+import type { OpKind } from '../schema';
 import type { BindingGraph } from './ast/bindings';
 import { createJsxAnalysis, type JsxAnalysis } from './ast/jsx-analysis';
 import type { SetupLocal } from './locals';
@@ -7,6 +8,14 @@ import {
   createSegmentSymbolName,
   sanitizeSegmentName,
 } from '../segment-identity';
+
+/** A `<Reveal>` while its children lower: the boundaries it collects, in lexical order. */
+export interface RevealScope {
+  group: number;
+  order: Value | null;
+  collapsed: Value | null;
+  boundaries: Extract<Op, { op: OpKind.Suspense }>[];
+}
 
 /** Module-wide lowering state: segment ordinals are authored-order across all components. */
 export interface LowerContext {
@@ -23,6 +32,9 @@ export interface LowerContext {
   contentCounter: { next: number };
   projectionCounter: { next: number };
   slotCounter: { next: number };
+  revealCounter: { next: number };
+  /** The open `<Reveal>` of the program being lowered; null outside one. */
+  reveal: RevealScope | null;
   forCounter: { next: number };
   styleCounter: { next: number };
   /** `⚡️<id>` per scoped style of the component being lowered. */
@@ -70,6 +82,8 @@ export function createLowerContext(
     contentCounter: { next: 0 },
     projectionCounter: { next: 0 },
     slotCounter: { next: 0 },
+    revealCounter: { next: 0 },
+    reveal: null,
     forCounter: { next: 0 },
     styleCounter: { next: 0 },
     styleScopes: [],

@@ -403,13 +403,7 @@ function renderSsrProjections(
   }
   if (projections.length === 1) {
     const projection = projections[0];
-    return renderSsrProjection(
-      ctx,
-      projection.renderQrl,
-      projection.slotScope,
-      context,
-      projection
-    );
+    return renderSsrProjection(ctx, projection.renderQrl, projection.slotScope, context);
   }
 
   const output: SsrOutput[] = [];
@@ -418,8 +412,7 @@ function renderSsrProjections(
       ctx,
       projections[i].renderQrl,
       projections[i].slotScope,
-      context,
-      projections[i]
+      context
     );
     if (isPromise(projected)) {
       return projected.then((resolved) => {
@@ -484,8 +477,7 @@ function renderSsrProjection(
   ctx: SsrSlotContext,
   renderQrl: unknown,
   slotScope: SlotScope | null,
-  base: RuntimeInvokeContext,
-  projection?: Projection
+  base: RuntimeInvokeContext
 ): ValueOrPromise<SsrOutput> {
   const rangeId = ctx.nextId();
   const renderParent = getOrCreateContextOwner(base);
@@ -500,13 +492,7 @@ function renderSsrProjection(
     });
     return safeCall(
       () => runWithCollector(null, invoke, invokeContext, render, ctx, rangeId),
-      (output) => {
-        if (projection !== undefined && invokeContext.owner !== null) {
-          projection.owner = invokeContext.owner;
-          projection.owner.renderParent = renderParent;
-        }
-        return output;
-      },
+      (output) => output,
       (error) => {
         if (invokeContext.owner !== null) {
           disposeOwner(invokeContext.owner);

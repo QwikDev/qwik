@@ -14,7 +14,7 @@ export default component$(() => {
         <CatchContent />
         <CatchSyncThrower />
       </Catch>
-      <Pending fallback={<span id="catch-skel">loading</span>}>
+      <Pending fallback$={() => <span id="catch-skel">loading</span>}>
         <CatchGatedOk requestId={requestId} releaseId={releaseId} />
       </Pending>
       <ReleaseButton requestId={requestId} releaseId={releaseId} label="Release deferred ok" />

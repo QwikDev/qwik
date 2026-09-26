@@ -2842,7 +2842,7 @@ _(Optional)_ The strategy to use to determine when the "VisibleTask" should firs
 <h2 id="pending">Pending</h2>
 
 ```typescript
-Pending: typeof pendingCmp;
+Pending: Component<PendingProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/pending.tsx)
@@ -2851,12 +2851,12 @@ Pending: typeof pendingCmp;
 
 ```typescript
 export type PendingProps = {
-  fallback?: JSXOutput;
+  fallback$?: QRL<() => JSXOutput>;
   delay?: number;
 };
 ```
 
-**References:** [JSXOutput](#jsxoutput)
+**References:** [QRL](#qrl-type-alias), [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/pending.tsx)
 

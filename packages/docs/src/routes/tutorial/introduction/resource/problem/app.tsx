@@ -45,7 +45,7 @@ export default component$(() => {
         {/* Import $, Catch and Pending, then read the data inside them. */}
         {/* To help, here's the markup to display the data: */}
         {/* <Catch fallback$={$((error) => <div>Error: {error.message}</div>)}>
-              <Pending fallback={<div>Loading...</div>}>
+              <Pending fallback$={() => <div>Loading...</div>}>
                 <Repos org={githubOrg} repos={repos} />
               </Pending>
             </Catch> */}

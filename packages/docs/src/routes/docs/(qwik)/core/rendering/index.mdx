@@ -239,7 +239,7 @@ import { component$, Pending } from '@qwik.dev/core';
 
 export default component$(() => {
   return (
-    <Pending fallback={<p>Loading...</p>}>
+    <Pending fallback$={() => <p>Loading...</p>}>
       <UserCard />
     </Pending>
   );

@@ -37,7 +37,7 @@ export const SingleBoundary = component$(() => {
 
   return (
     <div id="single-boundary">
-      <Pending fallback={<span id="single-fallback">Loading single</span>} delay={10}>
+      <Pending fallback$={() => <span id="single-fallback">Loading single</span>} delay={10}>
         <BlockingUpdate id="single" resolveName={resolveName} pendingName={pendingName} />
       </Pending>
       <ResolveUpdate id="single" resolveName={resolveName} />
@@ -51,9 +51,9 @@ export const NestedBoundaries = component$(() => {
 
   return (
     <div id="nested-boundary">
-      <Pending fallback={<span id="outer-fallback">Loading outer</span>} delay={10}>
+      <Pending fallback$={() => <span id="outer-fallback">Loading outer</span>} delay={10}>
         <section id="outer-content">
-          <Pending fallback={<span id="inner-fallback">Loading inner</span>} delay={10}>
+          <Pending fallback$={() => <span id="inner-fallback">Loading inner</span>} delay={10}>
             <BlockingUpdate id="inner" resolveName={resolveName} pendingName={pendingName} />
           </Pending>
         </section>
@@ -75,7 +75,7 @@ export const MountedAsyncBoundary = component$(() => {
       {show.value && (
         <>
           <Pending
-            fallback={<span id="mounted-async-fallback">Loading mounted async</span>}
+            fallback$={() => <span id="mounted-async-fallback">Loading mounted async</span>}
             delay={10}
           >
             <MountedAsyncChild resolveName={resolveName} />

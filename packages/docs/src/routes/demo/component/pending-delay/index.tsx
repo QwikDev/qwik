@@ -45,7 +45,7 @@ export default component$(() => {
 
       {run.value > 0 && (
         <Pending
-          fallback={<p>Fallback shown after {FALLBACK_DELAY_MS}ms.</p>}
+          fallback$={() => <p>Fallback shown after {FALLBACK_DELAY_MS}ms.</p>}
           delay={FALLBACK_DELAY_MS}
         >
           <SlowContent key={run.value} />

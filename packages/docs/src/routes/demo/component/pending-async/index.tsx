@@ -37,7 +37,7 @@ export default component$(() => {
       </button>
 
       {show.value && (
-        <Pending fallback={<p>Loading user...</p>}>
+        <Pending fallback$={() => <p>Loading user...</p>}>
           <UserCard />
         </Pending>
       )}

@@ -191,7 +191,7 @@ const DataView = component$((props: { data: Signal<unknown> }) => {
 // In the component that owns `data`:
 return (
   <Catch fallback$={$((error) => <p>Error: {error.message}</p>)}>
-    <Pending fallback={<p>Loading...</p>}>
+    <Pending fallback$={() => <p>Loading...</p>}>
       <DataView data={data} />
     </Pending>
   </Catch>
@@ -398,7 +398,7 @@ const Cmp = component$(() => {
     <div>
       <input name="city" bind:value={city} />
       <Catch fallback$={$((error) => <div>Error: {error.message}</div>)}>
-        <Pending fallback={<div>Loading...</div>}>
+        <Pending fallback$={() => <div>Loading...</div>}>
           <Temperature weather={weather} />
         </Pending>
       </Catch>

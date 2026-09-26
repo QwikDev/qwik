@@ -23,7 +23,7 @@ export const HackerNews = component$(() => {
   return (
     <div class="hacker-news">
       <Nav />
-      <Pending fallback={<Loading />}>
+      <Pending fallback$={() => <Loading />}>
         <Stories stories={data} bind:page={page} />
       </Pending>
     </div>

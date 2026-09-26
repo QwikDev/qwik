@@ -1,8 +1,7 @@
 import { isBrowser } from '@qwik.dev/core/build';
 import { qTest } from '../shared/utils/qdev';
-import { _wrapProp } from '../reactive-primitives/internal-api';
 import type { Signal } from '../reactive-primitives/signal.public';
-import { componentQrl } from '../shared/component.public';
+import { componentQrl, type Component } from '../shared/component.public';
 import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
@@ -10,7 +9,8 @@ import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
 import { _fnSignal } from '../shared/qrl/inlined-fn';
 import { inlinedQrl } from '../shared/qrl/qrl';
-import { _captures } from '../shared/qrl/qrl-class';
+import type { QRL } from '../shared/qrl/qrl.public';
+import { _captures, type QRLInternal } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
   QDefaultSlot,
@@ -23,7 +23,7 @@ import { createInternalServerComponent } from '../ssr/internal-server-component'
 import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
 import { useComputedQrl } from '../use/use-computed';
-import { untrack } from '../use/use-core';
+import { tryGetInvokeContext, untrack } from '../use/use-core';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { useSignal } from '../use/use-signal';
 import { useTaskQrl, type TaskCtx } from '../use/use-task';
@@ -45,7 +45,7 @@ type SSROutOfOrderBoundaryState = {
 
 /** @public @experimental */
 export type PendingProps = {
-  fallback?: JSXOutput;
+  fallback$?: QRL<() => JSXOutput>;
   delay?: number;
 };
 
@@ -56,15 +56,12 @@ const _hf0 = (
   p3: RevealRegistration | null
 ) => ({
   display:
-    p1.value === 'fallback' &&
-    p0.fallback != null &&
-    p0.fallback !== false &&
-    (p2.value || !p3!.reveal.collapsed)
+    p1.value === 'fallback' && p0.fallback$ != null && (p2.value || !p3!.reveal.collapsed)
       ? 'contents'
       : 'none',
 });
 const _hf0_str =
-  '{display:p1.value==="fallback"&&p0.fallback!=null&&p0.fallback!==false&&(p2.value||!p3.reveal.collapsed)?"contents":"none"}';
+  '{display:p1.value==="fallback"&&p0.fallback$!=null&&(p2.value||!p3.reveal.collapsed)?"contents":"none"}';
 const _hf1 = (p0: Signal<PendingState>, p1: Signal<boolean>) => ({
   display: p0.value === 'content' && p1.value ? 'contents' : 'none',
 });
@@ -125,13 +122,16 @@ export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
     : null;
   const showOutOfOrderFallback =
     isServerOutOfOrder &&
-    untrack(() => props.fallback != null && props.fallback !== false) &&
+    untrack(() => props.fallback$ != null) &&
     (outOfOrderRevealBoundary === null || outOfOrderRevealBoundary.showFallback);
   const outOfOrderBoundaryState =
     showOutOfOrderFallback && isPositiveDelay(props.delay)
       ? { contentResolved: false, delay: props.delay, delayTimer: null }
       : null;
   const contentStyle = /*#__PURE__*/ _fnSignal(_hf1, [state, canReveal], _hf1_str);
+  const fallback = props.fallback$
+    ? (props.fallback$ as QRLInternal<() => JSXOutput>).getFn(tryGetInvokeContext())()
+    : null;
 
   const fallbackHost = (
     isServerOutOfOrder
@@ -144,7 +144,7 @@ export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
             state,
           },
           null,
-          _wrapProp(props, 'fallback'),
+          fallback,
           1,
           null
         )
@@ -154,7 +154,7 @@ export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
             style: _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
           },
           null,
-          _wrapProp(props, 'fallback'),
+          fallback,
           1,
           null
         )
@@ -198,9 +198,9 @@ export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
 };
 
 /** @public @experimental */
-export const Pending = /*#__PURE__*/ componentQrl<PendingProps>(
+export const Pending: Component<PendingProps> = /*#__PURE__*/ componentQrl<PendingProps>(
   /*#__PURE__*/ inlinedQrl(pendingCmp, PENDING_QRL_SYMBOL)
-) as typeof pendingCmp;
+);
 
 type SSRFallbackProps = {
   boundary: SSROutOfOrderBoundaryState | null;

@@ -65,7 +65,7 @@ export default component$(() => {
           </div>
         ))}
       >
-        <Pending fallback={<p>Loading...</p>}>
+        <Pending fallback$={() => <p>Loading...</p>}>
           <JokeList jokes={jokes} />
         </Pending>
       </Catch>

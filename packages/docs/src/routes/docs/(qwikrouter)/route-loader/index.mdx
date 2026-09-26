@@ -86,7 +86,7 @@ const ProductDetails = component$(() => {
 
 export default component$(() => (
   <Catch fallback$={$((error) => <div>Error: {error.message}</div>)}>
-    <Pending fallback={<div>Loading…</div>}>
+    <Pending fallback$={() => <div>Loading…</div>}>
       <ProductDetails />
     </Pending>
   </Catch>

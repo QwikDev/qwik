@@ -11,7 +11,7 @@ const CatchDeferredOk = component$(() => {
 });
 
 export default component$(() => (
-  <Pending fallback={<span id="catch-skel">loading</span>}>
+  <Pending fallback$={() => <span id="catch-skel">loading</span>}>
     <CatchDeferredOk />
     <Catch fallback$={defaultFallback}>
       <CatchContent />

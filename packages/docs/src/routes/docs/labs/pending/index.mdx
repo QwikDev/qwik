@@ -34,10 +34,10 @@ The loading work happens elsewhere. Pending only shows the fallback.
 
 ## Basic Usage
 
-Wrap loading content with `<Pending>` and pass a `fallback`:
+Wrap loading content with `<Pending>` and pass a `fallback$`:
 
 <CodeSandbox src="/src/routes/demo/component/pending/index.tsx" style={{ height: '14em' }}>
-```tsx /Pending/ /fallback/ /delay/
+```tsx /Pending/ /fallback$/ /delay/
 import { component$, Pending, useSignal, type JSXOutput } from '@qwik.dev/core';
 
 const AsyncMessage = component$(() => {
@@ -58,7 +58,7 @@ export default component$(() => {
       </button>
 
       {show.value && (
-        <Pending fallback={<p>Loading content...</p>} delay={150}>
+        <Pending fallback$={() => <p>Loading content...</p>} delay={150}>
           <AsyncMessage />
         </Pending>
       )}
@@ -115,7 +115,7 @@ export default component$(() => {
       </button>
 
       {show.value && (
-        <Pending fallback={<p>Loading user...</p>}>
+        <Pending fallback$={() => <p>Loading user...</p>}>
           <UserCard />
         </Pending>
       )}
@@ -262,7 +262,7 @@ export default function (opts: RenderToStreamOptions) {
 
 In this example, the page shell and fallback can stream before `ProfileDetails` finishes:
 
-```tsx /Pending/ /fallback/ /profile.value/
+```tsx /Pending/ /fallback$/ /profile.value/
 import { component$, Pending, useComputed$ } from '@qwik.dev/core';
 
 const ProfileDetails = component$(() => {
@@ -290,7 +290,7 @@ export default component$(() => {
     <main>
       <h1>Account</h1>
 
-      <Pending fallback={<p>Loading profile...</p>}>
+      <Pending fallback$={() => <p>Loading profile...</p>}>
         <ProfileDetails />
       </Pending>
 
@@ -317,7 +317,7 @@ profile can be shown before the user notices it.
 The fallback is real UI. Choose markup that is useful while the user waits:
 
 ```tsx
-<Pending fallback={<p>Loading recommendations...</p>}>
+<Pending fallback$={() => <p>Loading recommendations...</p>}>
   <Recommendations />
 </Pending>
 ```
@@ -385,7 +385,7 @@ If the fallback is not visible, check these common causes:
 
 - the resolved content is shown before the browser paints the fallback
 - the slow promise is outside `<Pending>`
-- there is no `fallback` prop
+- there is no `fallback$` prop
 - the hosting platform or proxy buffers the whole response instead of streaming it
 
 If your site uses a Content Security Policy with script nonces, keep passing the nonce through your
@@ -443,7 +443,7 @@ export default component$(() => {
 
       {run.value > 0 && (
         <Pending
-          fallback={<p>Fallback shown after {FALLBACK_DELAY_MS}ms.</p>}
+          fallback$={() => <p>Fallback shown after {FALLBACK_DELAY_MS}ms.</p>}
           delay={FALLBACK_DELAY_MS}
         >
           <SlowContent key={run.value} />
@@ -479,11 +479,11 @@ import { component$, Reveal, Pending } from '@qwik.dev/core';
 export default component$(() => {
   return (
     <Reveal order="sequential" collapsed>
-      <Pending fallback={<p>Loading profile...</p>}>
+      <Pending fallback$={() => <p>Loading profile...</p>}>
         <Profile />
       </Pending>
 
-      <Pending fallback={<p>Loading activity...</p>}>
+      <Pending fallback$={() => <p>Loading activity...</p>}>
         <Activity />
       </Pending>
     </Reveal>
@@ -506,7 +506,7 @@ By default, a pending boundary that is blocked by `Reveal` can still show its fa
 
 ```tsx
 type PendingProps = {
-  fallback?: JSXOutput;
+  fallback$?: QRL<() => JSXOutput>;
   delay?: number;
 };
 
@@ -520,7 +520,7 @@ type RevealProps = {
 
 Props:
 
-- `fallback`: JSX rendered while the boundary is waiting
+- `fallback$`: returns the JSX rendered while the boundary is waiting
 - `delay`: milliseconds to wait before showing the fallback, defaults to `0`
 - `order`: reveal order for child Pending boundaries, defaults to `parallel`
 - `collapsed`: hide pending blocked boundaries instead of showing their fallbacks

@@ -2,7 +2,7 @@ import { component$, Catch, isServer, Pending, type JSXOutput } from '@qwik.dev/
 import { CatchReErrorAsync, resetFallback } from '../../components/catch/catch';
 
 export default component$(() => (
-  <Pending fallback={<span id="catch-skel">loading</span>}>
+  <Pending fallback$={() => <span id="catch-skel">loading</span>}>
     <Catch fallback$={resetFallback}>
       <CatchReErrorAsync />
     </Catch>

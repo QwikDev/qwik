@@ -23,7 +23,7 @@ export default component$(() => {
         <CatchSyncThrower />
       </Catch>
       <ReleaseButton requestId={requestId} releaseId={releaseId} label="Release gated ok" />
-      <Pending fallback={<span id="catch-skel">loading</span>}>
+      <Pending fallback$={() => <span id="catch-skel">loading</span>}>
         <CatchGatedOk requestId={requestId} releaseId={releaseId} />
       </Pending>
     </>

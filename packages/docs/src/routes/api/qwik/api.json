@@ -1361,7 +1361,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nPending: typeof pendingCmp\n```",
+      "content": "```typescript\nPending: Component<PendingProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/pending.tsx",
       "mdFile": "core.pending.md"
     },
@@ -1375,7 +1375,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type PendingProps = {\n    fallback?: JSXOutput;\n    delay?: number;\n};\n```\n**References:** [JSXOutput](#jsxoutput)",
+      "content": "```typescript\nexport type PendingProps = {\n    fallback$?: QRL<() => JSXOutput>;\n    delay?: number;\n};\n```\n**References:** [QRL](#qrl-type-alias)<!-- -->, [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/pending.tsx",
       "mdFile": "core.pendingprops.md"
     },

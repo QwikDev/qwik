@@ -50,7 +50,7 @@ During SSR, the rendering will pause until the `ComputedSignal` has loaded so it
 
 ```jsx
 <Catch fallback$={$((error, reset) => <div>Error: {error.message} <button onClick$={() => reset()}>Retry</button></div>)}>
-  <Pending fallback={<div>Loading...</div>}>
+  <Pending fallback$={() => <div>Loading...</div>}>
     <Repos org={githubOrg} repos={reposResource} />
   </Pending>
 </Catch>

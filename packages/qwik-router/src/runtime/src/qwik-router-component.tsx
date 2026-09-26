@@ -259,7 +259,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   const contentInternal = useSignal<ContentStateInternal>();
 
   /**
-   * Non-serializable navigation context passed from the nav task to the head+commit task. Only the
+   * Non-serializable navigation context passed from the nav task to the navigation task. Only the
    * data that can't be derived from existing stores/signals.
    */
   const navContext = useSignal<

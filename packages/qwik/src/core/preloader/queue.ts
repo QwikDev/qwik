@@ -9,6 +9,7 @@ import {
 } from './types';
 import type { QwikSymbolEvent } from '../shared/jsx/types/jsx-qwik-events';
 import { createMacroTask } from '../shared/platform/next-tick';
+import { setPreloader } from './bridge';
 
 export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
@@ -284,6 +285,8 @@ export const preload = (item: string | string[], probability?: number) => {
 };
 
 if (isBrowser) {
+  setPreloader(preload);
+
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;

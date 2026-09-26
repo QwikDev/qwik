@@ -576,11 +576,7 @@ export class Serializer {
       }
       this.output(TypeIds.ContextScope, out);
     } else if (value instanceof Owner) {
-      const items = getSsrOwnerItems(value);
-      this.output(
-        TypeIds.Owner,
-        value.renderParent === undefined ? items : [null, value.renderParent, ...items]
-      );
+      this.output(TypeIds.Owner, getSsrOwnerItems(value));
     } else if (isSlotScope(value)) {
       this.output(TypeIds.SlotScope, serializeSlotScope(value));
     } else if (isProjection(value)) {
@@ -1193,11 +1189,7 @@ function serializeSlotScope(scope: SlotScope): unknown[] {
 }
 
 function serializeProjection(projection: Projection): unknown[] {
-  const data = [projection.renderQrl, projection.slotScope, projection.name];
-  if (projection.owner?.items != null) {
-    data.push(projection.owner);
-  }
-  return data;
+  return [projection.renderQrl, projection.slotScope, projection.name];
 }
 
 function serializeDomSubscription(subscription: SsrDomEffectBase | SsrDomSubscription): unknown[] {

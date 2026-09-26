@@ -18,7 +18,6 @@ import {
   SuspenseContentSubscription,
 } from '../dom/content/content';
 import { findSuspenseBoundary, registerSuspenseBoundary } from '../dom/content/suspense-boundary';
-import { createProjection } from '../dom/slot/slot';
 import { useSignal } from '../reactive/public-api';
 import { createOwner, registerSubscriberToOwner, runWithOwner } from './owner';
 import { renderSsrTextNode } from '../dom/effect/ssr-effect';
@@ -28,67 +27,50 @@ import type { Signal } from '../reactive/signal';
 import { toArray } from '../test-utils';
 
 describe('ContainerContext', () => {
-  it.each([false, true])(
-    'restores a suspense boundary before its lazy child root with slot=%s',
-    async (withSlot) => {
-      const qrl = createQRL('chunk', 'render', () => '');
-      const hostOwner = createOwner(null);
-      const boundaryContent = new SSRContent(0, [], qrl, null);
-      const boundary = registerSubscriberToOwner(
-        new SSRSuspenseContentSubscription(boundaryContent, null, 0),
-        hostOwner
-      );
-      const contentOwner = createOwner(hostOwner);
-      boundaryContent.currentOwner = contentOwner;
-      registerSuspenseBoundary(contentOwner, boundary);
-      const projectionOwner = withSlot ? createOwner(hostOwner) : null;
-      if (projectionOwner !== null) {
-        projectionOwner.renderParent = contentOwner;
-      }
-      const child = registerSubscriberToOwner(
-        new SSRContentSubscription(new SSRContent(1, [], qrl, null)),
-        projectionOwner ?? contentOwner
-      );
-      const projection = createProjection();
-      projection.owner = projectionOwner;
-      const serialization = createSerializationContext(
-        null,
-        () => '',
-        () => {},
-        new WeakMap()
-      );
-      const childId = serialization.$addRoot$(child);
-      const boundaryId = serialization.$addRoot$(boundary);
-      const projectionId = withSlot ? serialization.$addRoot$(projection) : -1;
-      await serialization.$serialize$();
-      const state = serialization.$writer$.toString();
-      const encoded = JSON.parse(state) as unknown[];
-      expect(encoded[childId * 2]).toBe(TypeIds.EffectSubscription);
-      expect(encoded[boundaryId * 2]).toBe(TypeIds.SuspenseSubscription);
-      const container = createContainer(`
+  it('restores a suspense boundary before its lazy child root', async () => {
+    const qrl = createQRL('chunk', 'render', () => '');
+    const hostOwner = createOwner(null);
+    const boundaryContent = new SSRContent(0, [], qrl, null);
+    const boundary = registerSubscriberToOwner(
+      new SSRSuspenseContentSubscription(boundaryContent, null, 0),
+      hostOwner
+    );
+    const contentOwner = createOwner(hostOwner);
+    boundaryContent.currentOwner = contentOwner;
+    registerSuspenseBoundary(contentOwner, boundary);
+    const child = registerSubscriberToOwner(
+      new SSRContentSubscription(new SSRContent(1, [], qrl, null)),
+      contentOwner
+    );
+    const serialization = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    const childId = serialization.$addRoot$(child);
+    const boundaryId = serialization.$addRoot$(boundary);
+    await serialization.$serialize$();
+    const state = serialization.$writer$.toString();
+    const encoded = JSON.parse(state) as unknown[];
+    expect(encoded[childId * 2]).toBe(TypeIds.EffectSubscription);
+    expect(encoded[boundaryId * 2]).toBe(TypeIds.SuspenseSubscription);
+    const container = createContainer(`
       <!--d=0--><!--d=1--><!--/d--><!--/d-->
       <script type="qwik/state" q:base="0" q:len="${serialization.$roots$.length}">${state}</script>
     `);
-      const context = createContainerContext(container);
+    const context = createContainerContext(container);
 
-      const restoredProjection = withSlot
-        ? ((await context.getRoot(projectionId)) as typeof projection)
-        : null;
-      expect(childId).not.toBe(boundaryId);
-      expect(context.state.liveRoots.has(boundaryId)).toBe(withSlot);
-      const restoredChild = (await context.getRoot(childId)) as Subscriber;
-      expect(restoredChild).toBeInstanceOf(ContentSubscription);
-      expect(restoredChild).not.toBeInstanceOf(SuspenseContentSubscription);
-      if (restoredProjection !== null) {
-        expect(restoredProjection.owner?.renderParent).toBeDefined();
-        expect(restoredChild.owner).toBe(restoredProjection.owner);
-      }
-      expect(context.state.liveRoots.has(boundaryId)).toBe(true);
-      const restoredBoundary = context.state.liveRoots.get(boundaryId);
-      expect(restoredBoundary).toBeInstanceOf(SuspenseContentSubscription);
-      expect(findSuspenseBoundary(restoredChild.owner)).toBe(restoredBoundary);
-    }
-  );
+    expect(childId).not.toBe(boundaryId);
+    expect(context.state.liveRoots.has(boundaryId)).toBe(false);
+    const restoredChild = (await context.getRoot(childId)) as Subscriber;
+    expect(restoredChild).toBeInstanceOf(ContentSubscription);
+    expect(restoredChild).not.toBeInstanceOf(SuspenseContentSubscription);
+    expect(context.state.liveRoots.has(boundaryId)).toBe(true);
+    const restoredBoundary = context.state.liveRoots.get(boundaryId);
+    expect(restoredBoundary).toBeInstanceOf(SuspenseContentSubscription);
+    expect(findSuspenseBoundary(restoredChild.owner)).toBe(restoredBoundary);
+  });
 
   it('adds request data only when provided', () => {
     const withoutData = createContainerContext(createContainer(''));

@@ -450,20 +450,14 @@ const inflateResolved = (
       break;
     }
     case TypeIds.Owner: {
-      const items = data as (Owner | Subscriber | null)[];
-      if (items[0] === null) {
-        (target as Owner).renderParent = items[1] as Owner | null;
-        restoreOwnerItems(items.slice(2) as SerializedOwnerItems, target as Owner);
-      } else {
-        restoreOwnerItems(items as SerializedOwnerItems, target as Owner);
-      }
+      restoreOwnerItems(data as SerializedOwnerItems, target as Owner);
       break;
     }
     case TypeIds.Projection: {
       const projection = target as Projection;
       const d = data as unknown[];
       projection.renderQrl = d[0];
-      projection.owner = (d[3] as Owner | null) ?? null;
+      projection.owner = null;
       projection.nodes = null;
       projection.slotScope = (d[1] as SlotScope | null) ?? null;
       projection.name = d[2] as Projection['name'];

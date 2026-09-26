@@ -1,5 +1,21 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.46
+
+### Minor Changes
+
+- ✨ `<Pending>` takes its fallback as `fallback$`, like `<Catch>`. (by [@maiieul](https://github.com/maiieul) in [#9045](https://github.com/QwikDev/qwik/pull/9045))
+
+- ✨ expose experimental computed pending and error states (by [@Varixo](https://github.com/Varixo) in [#9037](https://github.com/QwikDev/qwik/pull/9037))
+
+- ✨ rename the experimental `<Suspense>` and `<ErrorBoundary>` to `<Pending>` and `<Catch>`, enabled with the `pendingBoundary` and `catchBoundary` flags. The render result's `errorBoundaryCaught` is now `hasCaughtError`. (by [@maiieul](https://github.com/maiieul) in [#9043](https://github.com/QwikDev/qwik/pull/9043))
+
+### Patch Changes
+
+- 🐞🩹 task that invalidates its own tracked signal now reruns (by [@Varixo](https://github.com/Varixo) in [#9026](https://github.com/QwikDev/qwik/pull/9026))
+
+- 🐞🩹 support :global selectors in nested scoped CSS rules (by [@Varixo](https://github.com/Varixo) in [#9030](https://github.com/QwikDev/qwik/pull/9030))
+
 ## 2.0.0-beta.45
 
 ## 2.0.0-beta.44

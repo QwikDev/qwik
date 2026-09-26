@@ -1,5 +1,12 @@
 # @qwik.dev/utils
 
+## 2.0.0-beta.46
+
+### Patch Changes
+
+- Updated dependencies [[`9568362`](https://github.com/QwikDev/qwik/commit/95683626fe55469ae504fcff45bd09bf3686441b), [`7e69829`](https://github.com/QwikDev/qwik/commit/7e69829dd8d388a4806a8fa8b9d2d311eb316475), [`f7ed58c`](https://github.com/QwikDev/qwik/commit/f7ed58cfcf3710960e99fd058c0bb1103018aee5), [`ec6c309`](https://github.com/QwikDev/qwik/commit/ec6c309bf4e8e08f98d9bb4b955f450e302bdd25), [`ac34465`](https://github.com/QwikDev/qwik/commit/ac344657de0cb4787a2d59a1254f91fed8ab8e94)]:
+  - @qwik.dev/core@2.0.0-beta.46
+
 ## 2.0.0-beta.45
 
 ### Patch Changes

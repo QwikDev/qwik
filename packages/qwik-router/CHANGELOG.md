@@ -1,5 +1,22 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.46
+
+### Patch Changes
+
+- 🐞🩹 scope ancestor route loader params to the params matched at their own path (by [@ixcans](https://github.com/ixcans) in [#8945](https://github.com/QwikDev/qwik/pull/8945))
+
+- 🐞🩹 preserve simultaneous route action submissions (by [@Varixo](https://github.com/Varixo) in [#9028](https://github.com/QwikDev/qwik/pull/9028))
+
+- 🐞🩹 keep default loader responses out of shared caches (by [@Varixo](https://github.com/Varixo) in [#9033](https://github.com/QwikDev/qwik/pull/9033))
+
+- 🐞🩹 keep rewritten pages cached under their original paths (by [@Varixo](https://github.com/Varixo) in [#9031](https://github.com/QwikDev/qwik/pull/9031))
+
+- ✨ rename the experimental `<Suspense>` and `<ErrorBoundary>` to `<Pending>` and `<Catch>`, enabled with the `pendingBoundary` and `catchBoundary` flags. The render result's `errorBoundaryCaught` is now `hasCaughtError`. (by [@maiieul](https://github.com/maiieul) in [#9043](https://github.com/QwikDev/qwik/pull/9043))
+
+- Updated dependencies [[`9568362`](https://github.com/QwikDev/qwik/commit/95683626fe55469ae504fcff45bd09bf3686441b), [`7e69829`](https://github.com/QwikDev/qwik/commit/7e69829dd8d388a4806a8fa8b9d2d311eb316475), [`f7ed58c`](https://github.com/QwikDev/qwik/commit/f7ed58cfcf3710960e99fd058c0bb1103018aee5), [`ec6c309`](https://github.com/QwikDev/qwik/commit/ec6c309bf4e8e08f98d9bb4b955f450e302bdd25), [`ac34465`](https://github.com/QwikDev/qwik/commit/ac344657de0cb4787a2d59a1254f91fed8ab8e94)]:
+  - @qwik.dev/core@2.0.0-beta.46
+
 ## 2.0.0-beta.45
 
 ### Patch Changes

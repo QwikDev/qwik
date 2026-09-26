@@ -27,7 +27,7 @@ import { ensureSlash } from '../../utils/pathname';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
 import {
   getRequestMode,
-  RequestEvErrorBoundaryCaught,
+  RequestEvCaughtError,
   RequestEvETagCacheKey,
   RequestEvHttpStatusMessage,
   RequestEvShareServerTiming,
@@ -808,8 +808,8 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
             ['q:render']: isStatic ? 'static' : '',
             ...serverData.containerAttributes,
           },
-          onBeforeFirstFlush: (info: { errorBoundaryCaught: boolean }) => {
-            if (info.errorBoundaryCaught) {
+          onBeforeFirstFlush: (info: { hasCaughtError: boolean }) => {
+            if (info.hasCaughtError) {
               boundaryErrored = true;
               noStoreSent = true;
               overrodeCacheControl = responseHeaders.has('Cache-Control');
@@ -820,9 +820,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
         }
-        boundaryErrored ||= (result as RenderToStreamResult).errorBoundaryCaught === true;
+        boundaryErrored ||= (result as RenderToStreamResult).hasCaughtError === true;
         if (boundaryErrored) {
-          requestEv.sharedMap.set(RequestEvErrorBoundaryCaught, true);
+          requestEv.sharedMap.set(RequestEvCaughtError, true);
         }
       } finally {
         try {
@@ -840,7 +840,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       // Only worth a log when the developer configured caching and the error disabled it.
       if (boundaryErrored && (noStoreSent ? cachePlan || overrodeCacheControl : !!cachePlan)) {
         console.warn(
-          `An <ErrorBoundary> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
+          `A <Catch> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
             (noStoreSent
               ? 'the response was sent with Cache-Control: no-store.'
               : 'the SSR cache was skipped (response headers were already sent).')

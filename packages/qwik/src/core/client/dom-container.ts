@@ -6,14 +6,14 @@ import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import {
   ERROR_CONTEXT,
-  ErrorBoundaryPhase,
+  CatchPhase,
   fireOnError,
-  getOwnErrorBoundaryStore,
+  getOwnCatchStore,
   handleDevError,
   installQErrorListener,
   toBoundaryError,
 } from '../shared/error/error-handling';
-import type { ErrorBoundaryInfo } from '../shared/error/error-handling';
+import type { CatchInfo } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
@@ -157,14 +157,14 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
     this.$rawStateData$ = [];
     this.$stateData$ = [];
-    if (__EXPERIMENTAL__.suspense && document.querySelector('template[q\\:r]')) {
+    if (__EXPERIMENTAL__.pendingBoundary && document.querySelector('template[q\\:r]')) {
       document.qProcessOOOS ||= getOutOfOrderStreamingScript;
     }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
     this.$setServerData$();
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
-    if (__EXPERIMENTAL__.errorBoundary) {
+    if (__EXPERIMENTAL__.catchBoundary) {
       installQErrorListener(this.document);
     }
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
@@ -200,7 +200,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
       }
     }
-    if (__EXPERIMENTAL__.suspense) {
+    if (__EXPERIMENTAL__.pendingBoundary) {
       yield* processSegmentStateScriptsIterator(this);
     }
     this.$hoistStyles$();
@@ -220,7 +220,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     el.qContainer = undefined;
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
-    if (__EXPERIMENTAL__.suspense) {
+    if (__EXPERIMENTAL__.pendingBoundary) {
       el.qSegmentVnodeData = undefined;
     }
     el.removeAttribute(QContainerAttr);
@@ -237,7 +237,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       document.qVNodeDataProcessed = undefined;
       document.qProcessVNodeDataPatch = undefined;
     }
-    if (__EXPERIMENTAL__.suspense) {
+    if (__EXPERIMENTAL__.pendingBoundary) {
       if (!hasContainers) {
         document.qProcessOOOS = undefined;
       }
@@ -274,15 +274,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return parseQRL(qrlStr, this) as QRLInternal<T>;
   }
 
-  handleError(
-    err: any,
-    host: VNode | null,
-    phase: ErrorBoundaryPhase = ErrorBoundaryPhase.Render
-  ): void {
+  handleError(err: any, host: VNode | null, phase: CatchPhase = CatchPhase.Render): void {
     if (qDev && host) {
       handleDevError(this, err, host);
     }
-    if (!__EXPERIMENTAL__.errorBoundary) {
+    if (!__EXPERIMENTAL__.catchBoundary) {
       const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
       if (!errorStore) {
         logErrorAndThrowAsync(err);
@@ -299,11 +295,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       if (!boundaryHost) {
         break;
       }
-      const store = getOwnErrorBoundaryStore(this, boundaryHost);
+      const store = getOwnCatchStore(this, boundaryHost);
       if (store && store.error === undefined) {
         store.error = storedError;
         const boundaryProps = this.getHostProp<{
-          onError$?: (error: unknown, info: ErrorBoundaryInfo) => unknown;
+          onError$?: (error: unknown, info: CatchInfo) => unknown;
         }>(boundaryHost, ELEMENT_PROPS);
         fireOnError(boundaryProps?.onError$, err, phase, store.boundaryId ?? '');
         markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);

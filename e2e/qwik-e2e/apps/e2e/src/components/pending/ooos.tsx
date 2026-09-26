@@ -2,7 +2,7 @@ import {
   component$,
   isServer,
   Reveal,
-  Suspense,
+  Pending,
   useServerData,
   useSignal,
   type JSXOutput,
@@ -28,7 +28,7 @@ const escapeHtml = (value: string): string =>
 const escapeAttr = (value: string): string =>
   escapeHtml(value).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-export const OutOfOrderSuspenseRoot = component$(() => {
+export const OutOfOrderPendingRoot = component$(() => {
   const shellCount = useSignal(0);
   const render = useSignal(0);
   const url = useServerData<string>('url');
@@ -43,33 +43,33 @@ export const OutOfOrderSuspenseRoot = component$(() => {
         </div>
       ) : null}
       <main>
-        <h1 id="ooos-title">OOOS Suspense</h1>
+        <h1 id="ooos-title">OOOS Pending</h1>
         <button id="ooos-force-rerender" data-v={render.value} onClick$={() => render.value++}>
           Rerender
         </button>
         <span id="ooos-render-count">{render.value}</span>
         {scenario === 'multiple' ? (
-          <MultipleOutOfOrderSuspense />
+          <MultipleOutOfOrderPending />
         ) : scenario === 'cross-state' ? (
-          <CrossStateOutOfOrderSuspense />
+          <CrossStateOutOfOrderPending />
         ) : scenario === 'delay' ? (
-          <DelayedFallbackOutOfOrderSuspense />
+          <DelayedFallbackOutOfOrderPending />
         ) : scenario === 'reveal' ? (
-          <RevealOutOfOrderSuspense />
+          <RevealOutOfOrderPending />
         ) : scenario === 'containers' ? (
-          <OutOfOrderSuspenseContainers />
+          <OutOfOrderPendingContainers />
         ) : scenario === 'container' ? (
-          <OutOfOrderSuspenseContainerFragment />
+          <OutOfOrderPendingContainerFragment />
         ) : scenario === 'rerender' ? (
-          <OutOfOrderSuspenseRerender />
+          <OutOfOrderPendingRerender />
         ) : (
-          <Suspense key={render.value} fallback={<FallbackOutOfOrderContent />}>
+          <Pending key={render.value} fallback={<FallbackOutOfOrderContent />}>
             <SlowOutOfOrderContent />
-          </Suspense>
+          </Pending>
         )}
         <ManualOutOfOrderReleaseButton
           id="ooos-default-release"
-          label="Resolve default suspense"
+          label="Resolve default boundary"
           releaseParam="release"
         />
         <button id="ooos-shell-button" onClick$={() => shellCount.value++}>
@@ -116,12 +116,12 @@ const SSRStreamOutOfOrderContainer = component$<{
 
   return (
     <section id={`ooos-${id}-stream`}>
-      <SSRStream>{getSSRStreamFunction(`/e2e/suspense-ooos?${params}`)}</SSRStream>
+      <SSRStream>{getSSRStreamFunction(`/e2e/pending-ooos?${params}`)}</SSRStream>
     </section>
   );
 });
 
-export const OutOfOrderSuspenseContainers = component$(() => {
+export const OutOfOrderPendingContainers = component$(() => {
   const url = useServerData<string>('url');
   const firstReleaseId = getSearchParam(url, 'first');
   const secondReleaseId = getSearchParam(url, 'second');
@@ -134,16 +134,16 @@ export const OutOfOrderSuspenseContainers = component$(() => {
   );
 });
 
-export const OutOfOrderSuspenseContainerFragment = component$(() => {
+export const OutOfOrderPendingContainerFragment = component$(() => {
   const url = useServerData<string>('url');
   const id = getSearchParam(url, 'id') || 'container';
   const label = id.replace(/-/g, ' ');
 
   return (
     <section id={`ooos-${id}-root`}>
-      <Suspense fallback={<OutOfOrderFallbackPanel id={id} label={label} />}>
+      <Pending fallback={<OutOfOrderFallbackPanel id={id} label={label} />}>
         <ControlledOutOfOrderContent id={id} label={label} releaseParam="release" />
-      </Suspense>
+      </Pending>
       <ManualOutOfOrderReleaseButton
         id={`ooos-${id}-release`}
         label={`Resolve ${label}`}
@@ -202,63 +202,63 @@ export const ResolvedOutOfOrderContent = component$(() => {
   );
 });
 
-export const MultipleOutOfOrderSuspense = component$(() => {
+export const MultipleOutOfOrderPending = component$(() => {
   return (
     <section id="ooos-multiple">
-      <Suspense fallback={<OutOfOrderFallbackPanel id="multi-first" label="First" />}>
+      <Pending fallback={<OutOfOrderFallbackPanel id="multi-first" label="First" />}>
         <ControlledOutOfOrderContent id="multi-first" label="First" releaseParam="multiFirst" />
-      </Suspense>
-      <Suspense fallback={<OutOfOrderFallbackPanel id="multi-second" label="Second" />}>
+      </Pending>
+      <Pending fallback={<OutOfOrderFallbackPanel id="multi-second" label="Second" />}>
         <ControlledOutOfOrderContent id="multi-second" label="Second" releaseParam="multiSecond" />
-      </Suspense>
+      </Pending>
       <ManualOutOfOrderReleaseButton
         id="ooos-multi-first-release"
-        label="Resolve first suspense"
+        label="Resolve first boundary"
         releaseParam="multiFirst"
       />
       <ManualOutOfOrderReleaseButton
         id="ooos-multi-second-release"
-        label="Resolve second suspense"
+        label="Resolve second boundary"
         releaseParam="multiSecond"
       />
     </section>
   );
 });
 
-export const RevealOutOfOrderSuspense = component$(() => {
+export const RevealOutOfOrderPending = component$(() => {
   return (
     <section id="ooos-reveal">
       <Reveal order="sequential" collapsed>
-        <Suspense fallback={<OutOfOrderFallbackPanel id="reveal-first" label="Reveal first" />}>
+        <Pending fallback={<OutOfOrderFallbackPanel id="reveal-first" label="Reveal first" />}>
           <ControlledOutOfOrderContent
             id="reveal-first"
             label="Reveal first"
             releaseParam="revealFirst"
           />
-        </Suspense>
-        <Suspense fallback={<OutOfOrderFallbackPanel id="reveal-second" label="Reveal second" />}>
+        </Pending>
+        <Pending fallback={<OutOfOrderFallbackPanel id="reveal-second" label="Reveal second" />}>
           <ControlledOutOfOrderContent
             id="reveal-second"
             label="Reveal second"
             releaseParam="revealSecond"
           />
-        </Suspense>
+        </Pending>
       </Reveal>
       <ManualOutOfOrderReleaseButton
         id="ooos-reveal-first-release"
-        label="Resolve first reveal suspense"
+        label="Resolve first reveal boundary"
         releaseParam="revealFirst"
       />
       <ManualOutOfOrderReleaseButton
         id="ooos-reveal-second-release"
-        label="Resolve second reveal suspense"
+        label="Resolve second reveal boundary"
         releaseParam="revealSecond"
       />
     </section>
   );
 });
 
-export const CrossStateOutOfOrderSuspense = component$(() => {
+export const CrossStateOutOfOrderPending = component$(() => {
   const shared = useSignal(0);
 
   return (
@@ -267,64 +267,64 @@ export const CrossStateOutOfOrderSuspense = component$(() => {
         Touch cross shell
       </button>
       <p id="ooos-cross-shell-count">shared={shared.value}</p>
-      <Suspense fallback={<CrossStateFallback shared={shared} />}>
+      <Pending fallback={<CrossStateFallback shared={shared} />}>
         <CrossStateContent shared={shared} />
-      </Suspense>
+      </Pending>
       <ManualOutOfOrderReleaseButton
         id="ooos-cross-release"
-        label="Resolve cross-state suspense"
+        label="Resolve cross-state boundary"
         releaseParam="cross"
       />
     </section>
   );
 });
 
-export const DelayedFallbackOutOfOrderSuspense = component$(() => {
+export const DelayedFallbackOutOfOrderPending = component$(() => {
   const url = useServerData<string>('url');
   const fallbackDelay = Number(getSearchParam(url, 'fallbackDelay') || 1000);
 
   return (
     <section id="ooos-delay-root">
-      <Suspense
+      <Pending
         fallback={<OutOfOrderFallbackPanel id="delay" label="Delay" />}
         delay={fallbackDelay}
       >
         <ControlledOutOfOrderContent id="delay" label="Delay" releaseParam="delayRelease" />
-      </Suspense>
+      </Pending>
       <ManualOutOfOrderReleaseButton
         id="ooos-delay-release"
-        label="Resolve delay suspense"
+        label="Resolve delay boundary"
         releaseParam="delayRelease"
       />
     </section>
   );
 });
 
-export const OutOfOrderSuspenseRerender = component$(() => {
+export const OutOfOrderPendingRerender = component$(() => {
   const render = useSignal(0);
 
   return (
     <section id="ooos-rerender-root">
       <button id="ooos-rerender-button" onClick$={() => render.value++}>
-        Rerender keyed suspense
+        Rerender keyed boundary
       </button>
       <span id="ooos-rerender-count">{render.value}</span>
-      <KeyedOutOfOrderSuspense key={render.value} value={render.value} />
+      <KeyedOutOfOrderPending key={render.value} value={render.value} />
       <ManualOutOfOrderReleaseButton
         id="ooos-rerender-release"
-        label="Resolve rerender suspense"
+        label="Resolve rerender boundary"
         releaseParam="rerender"
       />
     </section>
   );
 });
 
-export const KeyedOutOfOrderSuspense = component$((props: { value: number }) => {
+export const KeyedOutOfOrderPending = component$((props: { value: number }) => {
   return (
     <section id="ooos-rerender-keyed" data-value={props.value}>
-      <Suspense fallback={<OutOfOrderFallbackPanel id="rerender" label="Rerender" />}>
+      <Pending fallback={<OutOfOrderFallbackPanel id="rerender" label="Rerender" />}>
         <RerenderOutOfOrderContent value={props.value} />
-      </Suspense>
+      </Pending>
     </section>
   );
 });

@@ -3,16 +3,16 @@ import { assertNoBrowserErrors, releaseDeferred } from './e2e-helpers';
 
 const QWIK_EV_CONTAINER_READY = 0;
 
-const getOutOfOrderSuspenseUrl = (browserName: string, searchParams?: URLSearchParams): string => {
+const getOutOfOrderPendingUrl = (browserName: string, searchParams?: URLSearchParams): string => {
   const params = new URLSearchParams(searchParams);
   if (browserName === 'webkit') {
     params.set('webkitFlush', '1');
   }
   const search = params.toString();
-  return search ? `/e2e/suspense-ooos?${search}` : '/e2e/suspense-ooos';
+  return search ? `/e2e/pending-ooos?${search}` : '/e2e/pending-ooos';
 };
 
-test.describe('out-of-order suspense streaming', () => {
+test.describe('out-of-order streaming with <Pending>', () => {
   test.beforeEach(async ({ page }) => {
     assertNoBrowserErrors(page);
   });
@@ -21,9 +21,9 @@ test.describe('out-of-order suspense streaming', () => {
     page,
     browserName,
   }) => {
-    await page.goto(getOutOfOrderSuspenseUrl(browserName), { waitUntil: 'commit' });
+    await page.goto(getOutOfOrderPendingUrl(browserName), { waitUntil: 'commit' });
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-footer')).toHaveText('Footer shell', { timeout: 10000 });
     await expect(page.locator('#ooos-resolved')).toHaveCount(0);
@@ -48,7 +48,7 @@ test.describe('out-of-order suspense streaming', () => {
     browserName,
   }) => {
     await page.goto(
-      getOutOfOrderSuspenseUrl(
+      getOutOfOrderPendingUrl(
         browserName,
         new URLSearchParams({
           delay: '10',
@@ -57,7 +57,7 @@ test.describe('out-of-order suspense streaming', () => {
       )
     );
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-resolved')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-fallback')).toBeHidden();
 
@@ -69,10 +69,10 @@ test.describe('out-of-order suspense streaming', () => {
     expect(await page.content()).not.toContain('qO(');
   });
 
-  test('renders streamed suspense after a csr rerender', async ({ page, browserName }) => {
-    await page.goto(getOutOfOrderSuspenseUrl(browserName), { waitUntil: 'commit' });
+  test('renders a streamed <Pending> after a csr rerender', async ({ page, browserName }) => {
+    await page.goto(getOutOfOrderPendingUrl(browserName), { waitUntil: 'commit' });
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-resolved')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('#ooos-fallback')).toBeHidden();
@@ -91,16 +91,16 @@ test.describe('out-of-order suspense streaming', () => {
     await page.waitForLoadState('load');
   });
 
-  test('renders the suspense fixture with a pure csr mount', async ({ page, browserName }) => {
+  test('renders the <Pending> fixture with a pure csr mount', async ({ page, browserName }) => {
     const response = await page.goto(
-      getOutOfOrderSuspenseUrl(browserName, new URLSearchParams({ csr: '1' }))
+      getOutOfOrderPendingUrl(browserName, new URLSearchParams({ csr: '1' }))
     );
     expect(response).not.toBeNull();
     const html = await response!.text();
     expect(html).toContain('/e2e/build/entry.dev.js');
     expect(html).not.toContain('ooos-title');
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-resolved')).toBeVisible();
     await expect(page.locator('#ooos-fallback')).toBeHidden();
 
@@ -108,17 +108,17 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-resolved-count')).toHaveText('1');
   });
 
-  test('keeps the streamed shell interactive while suspense content is pending', async ({
+  test('keeps the streamed shell interactive while <Pending> content is loading', async ({
     page,
     browserName,
   }, testInfo) => {
     const releaseId = `pending-shell-${testInfo.workerIndex}-${Date.now()}`;
     await page.goto(
-      getOutOfOrderSuspenseUrl(browserName, new URLSearchParams({ release: releaseId })),
+      getOutOfOrderPendingUrl(browserName, new URLSearchParams({ release: releaseId })),
       { waitUntil: 'commit' }
     );
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-shell-button')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-footer')).toHaveText('Footer shell', { timeout: 10000 });
@@ -139,7 +139,7 @@ test.describe('out-of-order suspense streaming', () => {
     await page.waitForLoadState('load');
   });
 
-  test('streams and resolves multiple suspense boundaries independently', async ({
+  test('streams and resolves multiple <Pending> boundaries independently', async ({
     page,
     browserName,
   }, testInfo) => {
@@ -150,11 +150,11 @@ test.describe('out-of-order suspense streaming', () => {
       multiFirst: firstReleaseId,
       multiSecond: secondReleaseId,
     });
-    await page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+    await page.goto(getOutOfOrderPendingUrl(browserName, params), {
       waitUntil: 'commit',
     });
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-multi-first-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-multi-second-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-multi-first-resolved')).toHaveCount(0);
@@ -182,7 +182,7 @@ test.describe('out-of-order suspense streaming', () => {
     await page.waitForLoadState('load');
 
     await page.reload({ waitUntil: 'commit' });
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-multi-first-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-multi-second-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-multi-first-resolved')).toHaveCount(0);
@@ -194,7 +194,7 @@ test.describe('out-of-order suspense streaming', () => {
     await expect(page.locator('#ooos-multi-second-resolved')).toBeVisible({ timeout: 10000 });
   });
 
-  test('shares root state between fallback and resolved suspense content', async ({
+  test('shares root state between fallback and resolved <Pending> content', async ({
     page,
     browserName,
   }, testInfo) => {
@@ -203,11 +203,11 @@ test.describe('out-of-order suspense streaming', () => {
       scenario: 'cross-state',
       cross: releaseId,
     });
-    await page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+    await page.goto(getOutOfOrderPendingUrl(browserName, params), {
       waitUntil: 'commit',
     });
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-cross-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-cross-shell-count')).toHaveText('shared=0');
     await expect(page.locator('#ooos-cross-fallback-count')).toHaveText('shared=0');
@@ -244,11 +244,11 @@ test.describe('out-of-order suspense streaming', () => {
       delayRelease: releaseId,
       fallbackDelay: '1000',
     });
-    await page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+    await page.goto(getOutOfOrderPendingUrl(browserName, params), {
       waitUntil: 'commit',
     });
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-delay-fallback')).toHaveCount(1);
     await expect(page.locator('#ooos-delay-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-delay-resolved')).toHaveCount(0);
@@ -293,11 +293,11 @@ test.describe('out-of-order suspense streaming', () => {
       scenario: 'delay',
       fallbackDelay: '2000',
     });
-    await page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+    await page.goto(getOutOfOrderPendingUrl(browserName, params), {
       waitUntil: 'commit',
     });
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-delay-fallback')).toHaveCount(1);
     await expect(page.locator('#ooos-delay-resolved')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-delay-fallback')).toBeHidden();
@@ -309,7 +309,7 @@ test.describe('out-of-order suspense streaming', () => {
     await page.waitForLoadState('load');
   });
 
-  test('coordinates out-of-order suspense boundaries inside collapsed reveal', async ({
+  test('coordinates out-of-order <Pending> boundaries inside collapsed reveal', async ({
     page,
     browserName,
   }, testInfo) => {
@@ -320,11 +320,11 @@ test.describe('out-of-order suspense streaming', () => {
       revealFirst: firstReleaseId,
       revealSecond: secondReleaseId,
     });
-    await page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+    await page.goto(getOutOfOrderPendingUrl(browserName, params), {
       waitUntil: 'commit',
     });
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-reveal-first-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-reveal-second-fallback')).toBeHidden({ timeout: 10000 });
     await expect(page.locator('#ooos-reveal-first-resolved')).toHaveCount(0);
@@ -350,7 +350,7 @@ test.describe('out-of-order suspense streaming', () => {
     await page.waitForLoadState('load');
   });
 
-  test('keeps vnode structure stable when resolved suspense content is keyed rerendered', async ({
+  test('keeps vnode structure stable when resolved <Pending> content is keyed rerendered', async ({
     page,
     browserName,
   }, testInfo) => {
@@ -359,11 +359,11 @@ test.describe('out-of-order suspense streaming', () => {
       scenario: 'rerender',
       rerender: releaseId,
     });
-    await page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+    await page.goto(getOutOfOrderPendingUrl(browserName, params), {
       waitUntil: 'commit',
     });
 
-    await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
+    await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-rerender-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-rerender-resolved')).toHaveCount(0);
     await expect(page.locator('#ooos-rerender-keyed')).toHaveAttribute('data-value', '0');
@@ -399,7 +399,7 @@ test.describe('out-of-order suspense streaming', () => {
       first: firstReleaseId,
       second: secondReleaseId,
     });
-    await page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+    await page.goto(getOutOfOrderPendingUrl(browserName, params), {
       waitUntil: 'commit',
     });
 
@@ -436,7 +436,7 @@ test.describe('out-of-order suspense streaming', () => {
       first: firstReleaseId,
       second: secondReleaseId,
     });
-    await page.goto(getOutOfOrderSuspenseUrl(browserName, params), {
+    await page.goto(getOutOfOrderPendingUrl(browserName, params), {
       waitUntil: 'commit',
     });
 

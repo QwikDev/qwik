@@ -1,5 +1,5 @@
-import { component$, ErrorBoundary, Resource, useResource$, useSignal } from '@qwik.dev/core';
-import { EbFallback, errMsg } from '../../components/error-boundary/error-boundary';
+import { component$, Catch, Resource, useResource$, useSignal } from '@qwik.dev/core';
+import { CatchFallback, errMsg } from '../../components/catch/catch';
 
 const EmbeddedFragment = component$(() => {
   const fragmentHtml = useResource$<string>(async () => {
@@ -10,7 +10,7 @@ const EmbeddedFragment = component$(() => {
   return (
     <Resource
       value={fragmentHtml}
-      onResolved={(html) => <div id="eb-embed" dangerouslySetInnerHTML={html} />}
+      onResolved={(html) => <div id="catch-embed" dangerouslySetInnerHTML={html} />}
     />
   );
 });
@@ -19,15 +19,15 @@ export default component$(() => {
   const touched = useSignal(0);
   return (
     <>
-      <ErrorBoundary fallback$={(e) => <EbFallback id="eb-host-fb" msg={errMsg(e)} />}>
-        <section id="eb-host-content">
+      <Catch fallback$={(e) => <CatchFallback id="catch-host-fb" msg={errMsg(e)} />}>
+        <section id="catch-host-content">
           <p>host content</p>
-          <button id="eb-host-button" onClick$={() => touched.value++}>
+          <button id="catch-host-button" onClick$={() => touched.value++}>
             Touch host
           </button>
-          <span id="eb-host-count">{touched.value}</span>
+          <span id="catch-host-count">{touched.value}</span>
         </section>
-      </ErrorBoundary>
+      </Catch>
       <EmbeddedFragment />
     </>
   );

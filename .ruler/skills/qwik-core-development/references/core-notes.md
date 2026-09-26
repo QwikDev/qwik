@@ -174,7 +174,7 @@ streaming, navigation, or integration with fixture apps. For Qwik e2e, load
 
 Never use `pnpm test.unit` for agent verification in this repo.
 
-## ErrorBoundary (experimental `errorBoundary`)
+## Catch (experimental `catchBoundary`)
 
 Keep error state non-enumerable and out of serialized state. Store the raw throw and project it only
 at display sites; redaction is origin-based — the server display redacts in production unless the

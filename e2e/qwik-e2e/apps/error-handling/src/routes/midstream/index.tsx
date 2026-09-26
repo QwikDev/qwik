@@ -1,10 +1,6 @@
-import { component$, ErrorBoundary, Suspense, useServerData, useSignal } from '@qwik.dev/core';
-import {
-  EbContent,
-  EbSyncThrower,
-  resetFallback,
-} from '../../components/error-boundary/error-boundary';
-import { EbGatedOk, ReleaseButton } from '../../components/release/release';
+import { component$, Catch, Pending, useServerData, useSignal } from '@qwik.dev/core';
+import { CatchContent, CatchSyncThrower, resetFallback } from '../../components/catch/catch';
+import { CatchGatedOk, ReleaseButton } from '../../components/release/release';
 import { WEBKIT_STREAMING_FLUSH } from '../../../../../utils/webkit-flush';
 
 export default component$(() => {
@@ -22,14 +18,14 @@ export default component$(() => {
           {WEBKIT_STREAMING_FLUSH}
         </div>
       ) : null}
-      <ErrorBoundary fallback$={resetFallback}>
-        <EbContent />
-        <EbSyncThrower />
-      </ErrorBoundary>
+      <Catch fallback$={resetFallback}>
+        <CatchContent />
+        <CatchSyncThrower />
+      </Catch>
       <ReleaseButton requestId={requestId} releaseId={releaseId} label="Release gated ok" />
-      <Suspense fallback={<span id="eb-skel">loading</span>}>
-        <EbGatedOk requestId={requestId} releaseId={releaseId} />
-      </Suspense>
+      <Pending fallback={<span id="catch-skel">loading</span>}>
+        <CatchGatedOk requestId={requestId} releaseId={releaseId} />
+      </Pending>
     </>
   );
 });

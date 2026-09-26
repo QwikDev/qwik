@@ -1,24 +1,24 @@
 import {
   component$,
-  ErrorBoundary,
+  Catch,
   isServer,
-  Suspense,
+  Pending,
   useServerData,
   useSignal,
   type JSXOutput,
 } from '@qwik.dev/core';
 import { releaseGated } from '../../../../../utils/release-gate';
-import { defaultFallback } from '../../components/error-boundary/error-boundary';
+import { defaultFallback } from '../../components/catch/catch';
 import { ReleaseButton } from '../../components/release/release';
 
-const EbAsyncThrower = component$<{ requestId: string; releaseId: string | null }>(
+const CatchAsyncThrower = component$<{ requestId: string; releaseId: string | null }>(
   ({ requestId, releaseId }) => {
     if (isServer) {
       return releaseGated(requestId, releaseId, (): JSXOutput => {
-        throw new Error('eb async boom');
+        throw new Error('catch async boom');
       }) as unknown as JSXOutput;
     }
-    return <span id="eb-async-client" />;
+    return <span id="catch-async-client" />;
   }
 );
 
@@ -30,12 +30,12 @@ export default component$(() => {
   ).value;
   return (
     <>
-      <ErrorBoundary fallback$={defaultFallback}>
-        <div id="eb-sibling">sibling</div>
-        <Suspense fallback={<span id="eb-skel">loading</span>}>
-          <EbAsyncThrower requestId={requestId} releaseId={releaseId} />
-        </Suspense>
-      </ErrorBoundary>
+      <Catch fallback$={defaultFallback}>
+        <div id="catch-sibling">sibling</div>
+        <Pending fallback={<span id="catch-skel">loading</span>}>
+          <CatchAsyncThrower requestId={requestId} releaseId={releaseId} />
+        </Pending>
+      </Catch>
       <ReleaseButton requestId={requestId} releaseId={releaseId} label="Release deferred throw" />
     </>
   );

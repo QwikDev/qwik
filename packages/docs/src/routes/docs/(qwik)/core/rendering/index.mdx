@@ -232,21 +232,21 @@ The end goal is to enable performance and consistent rendering, even in the cont
 
 Sometimes part of the UI needs to wait before it can show content, such as showing a fallback while a profile card, search result, or other section is still being prepared.
 
-Wrap that part of the UI in [`<Suspense>`](/docs/labs/suspense/) when you want a fallback boundary:
+Wrap that part of the UI in [`<Pending>`](/docs/labs/pending/) when you want a fallback boundary:
 
-```tsx /Suspense/
-import { component$, Suspense } from '@qwik.dev/core';
+```tsx /Pending/
+import { component$, Pending } from '@qwik.dev/core';
 
 export default component$(() => {
   return (
-    <Suspense fallback={<p>Loading...</p>}>
+    <Pending fallback={<p>Loading...</p>}>
       <UserCard />
-    </Suspense>
+    </Pending>
   );
 });
 ```
 
-`<Suspense>` does not define the work. It only controls what renders while that part of the UI waits.
+`<Pending>` does not define the work. It only controls what renders while that part of the UI waits.
 
 ## Fine-grained Reactivity
 

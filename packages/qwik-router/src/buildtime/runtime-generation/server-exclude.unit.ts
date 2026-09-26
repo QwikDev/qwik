@@ -73,7 +73,7 @@ describe('server-exclude: getServerExcludedRoutes', () => {
     gatedLayout: 'gated/layout.tsx',
     gatedPage: 'gated/index.tsx',
     notFound: '404.tsx',
-    errorBoundary: 'error.tsx',
+    error: 'error.tsx',
   };
 
   beforeAll(async () => {
@@ -96,7 +96,7 @@ describe('server-exclude: getServerExcludedRoutes', () => {
     // Server-free 404/error: must NOT prune — they're the SSR not-found/error boundaries (_4/_E) with
     // no static fallback for a direct request.
     await writeFile(join(dir, routeNames.notFound), `export default () => null;`);
-    await writeFile(join(dir, routeNames.errorBoundary), `export default () => null;`);
+    await writeFile(join(dir, routeNames.error), `export default () => null;`);
   });
 
   function ctxWith(routes: Partial<BuiltRoute>[]): RoutingContext {
@@ -171,11 +171,11 @@ describe('server-exclude: getServerExcludedRoutes', () => {
 
   test('keeps a prerendered, server-free error.tsx (runtime error boundary, no static fallback)', async () => {
     const ctx = ctxWith([
-      { filePath: join(dir, routeNames.errorBoundary), ext: '.tsx', pathname: '/error.html' },
+      { filePath: join(dir, routeNames.error), ext: '.tsx', pathname: '/error.html' },
     ]);
     const excluded = await getServerExcludedRoutes(ctx, { include: ['/*'] });
     assert.isFalse(
-      excluded.has(join(dir, routeNames.errorBoundary)),
+      excluded.has(join(dir, routeNames.error)),
       'error.tsx must stay: _E is the only server-side source for runtime 403/500 errors'
     );
   });

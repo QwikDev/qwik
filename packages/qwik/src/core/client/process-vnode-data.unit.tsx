@@ -622,7 +622,7 @@ describe('processVnodeData', () => {
       </html>
     );
   });
-  it('should add suspense content segment elements to the root vnode table', async () => {
+  it('should add Pending content segment elements to the root vnode table', async () => {
     const [container] = await process(`
       <html q:container="paused" :>
         <head :></head>
@@ -671,7 +671,7 @@ describe('processVnodeData', () => {
       <button>OK</button>
     );
   });
-  it('should materialize suspense content host from DOM when segment data starts at child', async () => {
+  it('should materialize Pending content host from DOM when segment data starts at child', async () => {
     const [container] = await process(`
       <html q:container="paused" :>
         <head :></head>
@@ -689,7 +689,7 @@ describe('processVnodeData', () => {
       </section>
     );
   });
-  it('should keep suspense result parent available as a root vnode ref', async () => {
+  it('should keep Pending result parent available as a root vnode ref', async () => {
     const [container] = await process(`
       <html q:container="paused" :>
           <head :></head>
@@ -732,7 +732,7 @@ describe('processVnodeData', () => {
     }
     expect(foundRootHost).toBe(true);
   });
-  it('should not cache empty children for a suspense placeholder-only result parent', async () => {
+  it('should not cache empty children for a Pending placeholder-only result parent', async () => {
     const [container] = await process(`
       <html q:container="paused" :>
         <head :></head>
@@ -753,7 +753,7 @@ describe('processVnodeData', () => {
       </section>
     );
   });
-  it('should merge suspense content segment refs into the root vnode table by segment id', async () => {
+  it('should merge Pending content segment refs into the root vnode table by segment id', async () => {
     const [container] = await process(`
       <html q:container="paused" :>
         <head :></head>
@@ -775,7 +775,7 @@ describe('processVnodeData', () => {
       <button>OK</button>
     );
   });
-  it('should process suspense content segment vnode data on the content host', async () => {
+  it('should process Pending content segment vnode data on the content host', async () => {
     const [container] = await process(`
       <html q:container="paused" :>
         <head :></head>
@@ -805,7 +805,7 @@ describe('processVnodeData', () => {
       </html>
     );
   });
-  it('should process suspense content segment vnode data for nested text', async () => {
+  it('should process Pending content segment vnode data for nested text', async () => {
     const [container] = await process(`
       <html q:container="paused" :>
         <head :></head>
@@ -839,7 +839,7 @@ describe('processVnodeData', () => {
       </html>
     );
   });
-  it('should process only requested suspense content segment vnode data', async () => {
+  it('should process only requested Pending content segment vnode data', async () => {
     const document = createDocument({
       html: `
         <html q:container="paused" :>
@@ -878,7 +878,7 @@ describe('processVnodeData', () => {
     expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('2', 1))).toBe(true);
     expect(container.element.qVNodeRefs?.has(getSegmentVNodeRefId('2', 2))).toBe(true);
   });
-  it('should process requested suspense segment only within the provided container scope', async () => {
+  it('should process requested Pending segment only within the provided container scope', async () => {
     const document = createDocument({
       html: `
         <main>

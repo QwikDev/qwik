@@ -25,7 +25,7 @@ export const routeUrl = (
   return `/${app}/${route}${query ? `?${query}` : ''}`;
 };
 
-test.describe('ErrorBoundary + fallback$', () => {
+test.describe('Catch + fallback$', () => {
   test('happy path: content interactive after resume, no fallback or swap script, then catches a client throw', async ({
     page,
   }) => {
@@ -34,17 +34,17 @@ test.describe('ErrorBoundary + fallback$', () => {
     const html = await response!.text();
     expect(html).not.toMatch(/qErr\(|qInstallErrorSwap|qO\(|qInstallOOOS/);
 
-    await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    await expect(page.locator('#catch-content')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback')).toHaveCount(0);
 
-    await page.locator('#eb-content-button').click();
-    await expect(page.locator('#eb-content-count')).toHaveText('1');
+    await page.locator('#catch-content-button').click();
+    await expect(page.locator('#catch-content-count')).toHaveText('1');
 
-    await page.locator('#eb-content-throw').click();
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-content')).toBeHidden();
-    await page.locator('#eb-fallback-button').click();
-    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+    await page.locator('#catch-content-throw').click();
+    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-content')).toBeHidden();
+    await page.locator('#catch-fallback-button').click();
+    await expect(page.locator('#catch-fallback-count')).toHaveText('1');
   });
 
   for (const { mode, outOfOrder } of streamingModes) {
@@ -54,15 +54,17 @@ test.describe('ErrorBoundary + fallback$', () => {
       assertNoBrowserErrors(page);
       await page.goto(routeUrl('basic', { outOfOrder }), { waitUntil: 'commit' });
 
-      await expect(page.locator('#eb-title')).toHaveText('Error handling e2e', { timeout: 10000 });
-      await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
+      await expect(page.locator('#catch-title')).toHaveText('Error handling e2e', {
+        timeout: 10000,
+      });
+      await expect(page.locator('#catch-footer')).toHaveText('Footer shell', { timeout: 10000 });
 
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
-      await expect(page.locator('#eb-content')).toBeHidden();
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
+      await expect(page.locator('#catch-content')).toBeHidden();
 
-      await page.locator('#eb-fallback-button').click();
-      await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+      await page.locator('#catch-fallback-button').click();
+      await expect(page.locator('#catch-fallback-count')).toHaveText('1');
     });
   }
 
@@ -73,14 +75,14 @@ test.describe('ErrorBoundary + fallback$', () => {
       assertNoBrowserErrors(page);
       await page.goto(routeUrl('csr-event', { outOfOrder }), { waitUntil: 'commit' });
 
-      await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
-      await expect(page.locator('#eb-fallback')).toHaveCount(0);
+      await expect(page.locator('#catch-content')).toHaveText('content ok', { timeout: 10000 });
+      await expect(page.locator('#catch-fallback')).toHaveCount(0);
 
-      await page.locator('#eb-client-throw').click();
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+      await page.locator('#catch-client-throw').click();
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
 
-      await page.locator('#eb-fallback-button').click();
-      await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+      await page.locator('#catch-fallback-button').click();
+      await expect(page.locator('#catch-fallback-count')).toHaveText('1');
     });
   }
 
@@ -90,19 +92,19 @@ test.describe('ErrorBoundary + fallback$', () => {
     assertNoBrowserErrors(page);
     await page.goto(routeUrl('nested-client'), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
-    await expect(page.locator('#eb-outer-ok')).toBeVisible();
-    await expect(page.locator('#eb-inner')).toHaveCount(0);
+    await expect(page.locator('#catch-content')).toHaveText('content ok', { timeout: 10000 });
+    await expect(page.locator('#catch-outer-ok')).toBeVisible();
+    await expect(page.locator('#catch-inner')).toHaveCount(0);
 
-    await page.locator('#eb-inner-throw').click();
+    await page.locator('#catch-inner-throw').click();
 
-    await expect(page.locator('#eb-inner')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-outer')).toHaveCount(0);
-    await expect(page.locator('#eb-outer-ok')).toBeVisible();
-    await expect(page.locator('#eb-inner-msg')).toHaveText('caught: inner client boom');
+    await expect(page.locator('#catch-inner')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-outer')).toHaveCount(0);
+    await expect(page.locator('#catch-outer-ok')).toBeVisible();
+    await expect(page.locator('#catch-inner-msg')).toHaveText('caught: inner client boom');
 
-    await page.locator('#eb-inner-button').click();
-    await expect(page.locator('#eb-inner-count')).toHaveText('1');
+    await page.locator('#catch-inner-button').click();
+    await expect(page.locator('#catch-inner-count')).toHaveText('1');
   });
 
   test('SSR nested: the outer supersedes an already-swapped inner fallback when both error server-side', async ({
@@ -111,12 +113,12 @@ test.describe('ErrorBoundary + fallback$', () => {
     assertNoBrowserErrors(page);
     await page.goto(routeUrl('nested-ssr'), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-outer-msg')).toHaveText(caughtError);
-    await expect(page.locator('#eb-inner')).toBeHidden();
+    await expect(page.locator('#catch-outer')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-outer-msg')).toHaveText(caughtError);
+    await expect(page.locator('#catch-inner')).toBeHidden();
 
-    await page.locator('#eb-outer-button').click();
-    await expect(page.locator('#eb-outer-count')).toHaveText('1');
+    await page.locator('#catch-outer-button').click();
+    await expect(page.locator('#catch-outer-count')).toHaveText('1');
   });
 
   for (const { mode, outOfOrder } of streamingModes) {
@@ -126,13 +128,15 @@ test.describe('ErrorBoundary + fallback$', () => {
       assertNoBrowserErrors(page);
       await page.goto(routeUrl('fallback-throws', { outOfOrder }), { waitUntil: 'commit' });
 
-      await expect(page.locator('#eb-title')).toHaveText('Error handling e2e', { timeout: 10000 });
-      await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-outer-msg')).toHaveText(caughtError);
-      await expect(page.locator('#eb-content')).toBeHidden();
+      await expect(page.locator('#catch-title')).toHaveText('Error handling e2e', {
+        timeout: 10000,
+      });
+      await expect(page.locator('#catch-outer')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-outer-msg')).toHaveText(caughtError);
+      await expect(page.locator('#catch-content')).toBeHidden();
 
-      await page.locator('#eb-outer-button').click();
-      await expect(page.locator('#eb-outer-count')).toHaveText('1');
+      await page.locator('#catch-outer-button').click();
+      await expect(page.locator('#catch-outer-count')).toHaveText('1');
     });
   }
 
@@ -148,38 +152,40 @@ test.describe('ErrorBoundary + fallback$', () => {
 
       await page.goto(routeUrl('last-resort'), { waitUntil: 'commit' });
 
-      await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
+      await expect(page.locator('#catch-content')).toHaveText('content ok', { timeout: 10000 });
       await expect(page.locator('[role="alert"]')).toHaveCount(0);
 
-      await page.locator('#eb-last-resort-throw').click();
+      await page.locator('#catch-last-resort-throw').click();
 
       const lastResort = page.locator('[role="alert"]');
       await expect(lastResort).toBeVisible({ timeout: 10000 });
       await expect(lastResort).toHaveText('Something went wrong.');
-      await expect(page.locator('#eb-fallback')).toHaveCount(0);
+      await expect(page.locator('#catch-fallback')).toHaveCount(0);
       expect(blockedFallbackChunks.length).toBeGreaterThan(0);
 
-      await expect(page.locator('#eb-title')).toHaveText('Error handling e2e');
+      await expect(page.locator('#catch-title')).toHaveText('Error handling e2e');
     });
   });
 
   test.describe('SSR delivery & teardown', () => {
-    test('boundary inside a deferred <Suspense>: hoisted qErr swap, fallback interactive', async ({
+    test('boundary inside a deferred <Pending>: hoisted qErr swap, fallback interactive', async ({
       page,
     }) => {
       assertNoBrowserErrors(page);
-      await page.goto(routeUrl('suspense-deferred'), { waitUntil: 'commit' });
+      await page.goto(routeUrl('pending-deferred'), { waitUntil: 'commit' });
 
-      await expect(page.locator('#eb-title')).toHaveText('Error handling e2e', { timeout: 10000 });
-      await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
+      await expect(page.locator('#catch-title')).toHaveText('Error handling e2e', {
+        timeout: 10000,
+      });
+      await expect(page.locator('#catch-footer')).toHaveText('Footer shell', { timeout: 10000 });
 
-      await expect(page.locator('#eb-deferred-ok')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
-      await expect(page.locator('#eb-content')).toBeHidden();
+      await expect(page.locator('#catch-deferred-ok')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
+      await expect(page.locator('#catch-content')).toBeHidden();
 
-      await page.locator('#eb-fallback-button').click();
-      await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+      await page.locator('#catch-fallback-button').click();
+      await expect(page.locator('#catch-fallback-count')).toHaveText('1');
     });
 
     // https://github.com/QwikDev/qwik/issues/8877
@@ -187,57 +193,59 @@ test.describe('ErrorBoundary + fallback$', () => {
       page,
     }) => {
       assertNoBrowserErrors(page);
-      await page.goto(routeUrl('async', { params: { release: 'eb' } }), {
+      await page.goto(routeUrl('async', { params: { release: 'catch' } }), {
         waitUntil: 'commit',
       });
 
-      await expect(page.locator('#eb-title')).toHaveText('Error handling e2e', { timeout: 10000 });
-      await expect(page.locator('#eb-sibling')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-skel')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-footer')).toHaveText('Footer shell', { timeout: 10000 });
-      await expect(page.locator('#eb-fallback')).toHaveCount(0);
+      await expect(page.locator('#catch-title')).toHaveText('Error handling e2e', {
+        timeout: 10000,
+      });
+      await expect(page.locator('#catch-sibling')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-skel')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-footer')).toHaveText('Footer shell', { timeout: 10000 });
+      await expect(page.locator('#catch-fallback')).toHaveCount(0);
 
-      await releaseDeferred(page, '#eb-release');
+      await releaseDeferred(page, '#catch-release');
 
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
-      await expect(page.locator('#eb-sibling')).toBeHidden();
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
+      await expect(page.locator('#catch-sibling')).toBeHidden();
 
-      await page.locator('#eb-fallback-button').click();
-      await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+      await page.locator('#catch-fallback-button').click();
+      await expect(page.locator('#catch-fallback-count')).toHaveText('1');
     });
 
-    test('qErr swap as a main-flow sibling of a live deferred <Suspense> segment stays interactive', async ({
+    test('qErr swap as a main-flow sibling of a live deferred <Pending> segment stays interactive', async ({
       page,
     }) => {
       assertNoBrowserErrors(page);
       const response = await page.goto(
-        routeUrl('sibling-suspense', { params: { release: 'eb' } }),
+        routeUrl('sibling-pending', { params: { release: 'catch' } }),
         {
           waitUntil: 'commit',
         }
       );
 
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
-      await expect(page.locator('#eb-content')).toBeHidden();
-      await expect(page.locator('#eb-skel')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-deferred-ok')).toHaveCount(0);
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
+      await expect(page.locator('#catch-content')).toBeHidden();
+      await expect(page.locator('#catch-skel')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-deferred-ok')).toHaveCount(0);
 
-      await releaseDeferred(page, '#eb-release');
+      await releaseDeferred(page, '#catch-release');
 
-      await expect(page.locator('#eb-deferred-ok')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback')).toBeVisible();
-      await expect(page.locator('#eb-content')).toBeHidden();
+      await expect(page.locator('#catch-deferred-ok')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback')).toBeVisible();
+      await expect(page.locator('#catch-content')).toBeHidden();
 
-      await page.locator('#eb-fallback-button').click();
-      await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+      await page.locator('#catch-fallback-button').click();
+      await expect(page.locator('#catch-fallback-count')).toHaveText('1');
 
       const html = await response!.text();
       expect(html).toMatch(/qErr\(/);
       expect(html).toMatch(/qO\(/);
-      await expect(page.locator('[q\\:ebf] #eb-fallback')).toHaveCount(1);
-      await expect(page.locator('[q\\:rp] #eb-fallback')).toHaveCount(0);
+      await expect(page.locator('[q\\:cf] #catch-fallback')).toHaveCount(1);
+      await expect(page.locator('[q\\:rp] #catch-fallback')).toHaveCount(0);
     });
 
     test('in-order mid-stream click on a swapped fallback is queued and replayed after resume', async ({
@@ -256,14 +264,14 @@ test.describe('ErrorBoundary + fallback$', () => {
       await page.goto(
         routeUrl('midstream', {
           outOfOrder: false,
-          params: { release: 'eb', inOrderStrategy: 'direct', ...webkitFlush },
+          params: { release: 'catch', inOrderStrategy: 'direct', ...webkitFlush },
         }),
         { waitUntil: 'commit' }
       );
 
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
-      await expect(page.locator('#eb-deferred-ok')).toHaveCount(0);
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
+      await expect(page.locator('#catch-deferred-ok')).toHaveCount(0);
 
       // WebKit can starve rAF-based waitForFunction while the stream is held.
       await expect
@@ -271,18 +279,18 @@ test.describe('ErrorBoundary + fallback$', () => {
         .toBe(true);
       await expect(page.locator('html')).toHaveAttribute('q:container', 'paused');
 
-      await page.locator('#eb-reset').click();
-      await expect(page.locator('#eb-content')).toBeHidden();
-      await expect(page.locator('#eb-fallback')).toBeVisible();
+      await page.locator('#catch-reset').click();
+      await expect(page.locator('#catch-content')).toBeHidden();
+      await expect(page.locator('#catch-fallback')).toBeVisible();
       await expect(page.locator('html')).toHaveAttribute('q:container', 'paused');
 
-      await releaseDeferred(page, '#eb-release');
+      await releaseDeferred(page, '#catch-release');
       await page.waitForLoadState('load');
 
-      await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-thrower-client')).toBeAttached();
-      await expect(page.locator('#eb-fallback')).toHaveCount(0);
-      await expect(page.locator('#eb-deferred-ok')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-content')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-thrower-client')).toBeAttached();
+      await expect(page.locator('#catch-fallback')).toHaveCount(0);
+      await expect(page.locator('#catch-deferred-ok')).toBeVisible({ timeout: 10000 });
       await expect(page.locator('html')).toHaveAttribute('q:container', 'resumed');
     });
 
@@ -292,25 +300,25 @@ test.describe('ErrorBoundary + fallback$', () => {
       assertNoBrowserErrors(page);
       await page.goto(routeUrl('multi-container'), { waitUntil: 'commit' });
 
-      await expect(page.locator('#eb-embed #eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-embed #eb-fallback-msg')).toHaveText(caughtError);
-      await expect(page.locator('#eb-embed #eb-content')).toBeHidden();
+      await expect(page.locator('#catch-embed #catch-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-embed #catch-fallback-msg')).toHaveText(caughtError);
+      await expect(page.locator('#catch-embed #catch-content')).toBeHidden();
 
       const hostBoundaryId = await page
-        .locator('div[q\\:ebc]:has(#eb-host-content)')
-        .getAttribute('q:ebc');
-      const fragmentBoundaryId = await page.locator('#eb-embed [q\\:ebc]').getAttribute('q:ebc');
+        .locator('div[q\\:cc]:has(#catch-host-content)')
+        .getAttribute('q:cc');
+      const fragmentBoundaryId = await page.locator('#catch-embed [q\\:cc]').getAttribute('q:cc');
       expect(hostBoundaryId).not.toBeNull();
       expect(fragmentBoundaryId).toBe(hostBoundaryId);
 
-      await expect(page.locator('#eb-host-content')).toBeVisible();
-      await expect(page.locator('#eb-host-fb')).toHaveCount(0);
+      await expect(page.locator('#catch-host-content')).toBeVisible();
+      await expect(page.locator('#catch-host-fb')).toHaveCount(0);
 
-      await page.locator('#eb-host-button').click();
-      await expect(page.locator('#eb-host-count')).toHaveText('1');
+      await page.locator('#catch-host-button').click();
+      await expect(page.locator('#catch-host-count')).toHaveText('1');
 
-      await page.locator('#eb-embed #eb-fallback-button').click();
-      await expect(page.locator('#eb-embed #eb-fallback-count')).toHaveText('1');
+      await page.locator('#catch-embed #catch-fallback-button').click();
+      await expect(page.locator('#catch-embed #catch-fallback-count')).toHaveText('1');
     });
   });
 
@@ -321,16 +329,16 @@ test.describe('ErrorBoundary + fallback$', () => {
       assertNoBrowserErrors(page);
       await page.goto(routeUrl('nested'), { waitUntil: 'commit' });
 
-      await expect(page.locator('#eb-inner')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-inner-msg')).toHaveText(caughtError);
-      await expect(page.locator('#eb-outer')).toHaveCount(0);
+      await expect(page.locator('#catch-inner')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-inner-msg')).toHaveText(caughtError);
+      await expect(page.locator('#catch-outer')).toHaveCount(0);
 
-      await page.locator('#eb-outer-throw').click();
+      await page.locator('#catch-outer-throw').click();
 
-      await expect(page.locator('#eb-outer')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-inner')).toHaveCount(0);
-      await page.locator('#eb-outer-button').click();
-      await expect(page.locator('#eb-outer-count')).toHaveText('1');
+      await expect(page.locator('#catch-outer')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-inner')).toHaveCount(0);
+      await page.locator('#catch-outer-button').click();
+      await expect(page.locator('#catch-outer-count')).toHaveText('1');
     });
 
     test('inert: a swapped-out content task does not re-run when an outside signal changes', async ({
@@ -339,15 +347,15 @@ test.describe('ErrorBoundary + fallback$', () => {
       assertNoBrowserErrors(page);
       await page.goto(routeUrl('inert'), { waitUntil: 'commit' });
 
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-content')).toBeHidden();
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-content')).toBeHidden();
 
-      expect(await page.evaluate(() => (window as any).__ebDeadTaskClientRuns ?? 0)).toBe(0);
+      expect(await page.evaluate(() => (window as any).__catchDeadTaskClientRuns ?? 0)).toBe(0);
 
-      await page.locator('#eb-inert-trigger').click();
-      await expect(page.locator('#eb-inert-val')).toHaveText('1');
+      await page.locator('#catch-inert-trigger').click();
+      await expect(page.locator('#catch-inert-val')).toHaveText('1');
 
-      expect(await page.evaluate(() => (window as any).__ebDeadTaskClientRuns ?? 0)).toBe(0);
+      expect(await page.evaluate(() => (window as any).__catchDeadTaskClientRuns ?? 0)).toBe(0);
     });
   });
 
@@ -360,12 +368,12 @@ test.describe('ErrorBoundary + fallback$', () => {
 
         await page.goto(routeUrl('visible-task'), { waitUntil: 'commit' });
 
-        await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-        await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: visible boom');
-        await expect(page.locator('#eb-content')).toBeHidden();
+        await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: visible boom');
+        await expect(page.locator('#catch-content')).toBeHidden();
 
-        await page.locator('#eb-fallback-button').click();
-        await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+        await page.locator('#catch-fallback-button').click();
+        await expect(page.locator('#catch-fallback-count')).toHaveText('1');
 
         await page.waitForTimeout(200);
         expect(pageErrors.filter((message) => message.includes('visible boom'))).toEqual([]);
@@ -381,15 +389,13 @@ test.describe('ErrorBoundary + fallback$', () => {
         await expect(page.locator('#async-error')).toHaveText('handled: expected-async-error', {
           timeout: 10000,
         });
-        await expect(page.locator('#eb-fallback')).toHaveCount(0);
+        await expect(page.locator('#catch-fallback')).toHaveCount(0);
       });
 
-      test('async error read via `.value` propagates → caught by the ErrorBoundary', async ({
-        page,
-      }) => {
+      test('async error read via `.value` propagates → caught by the Catch', async ({ page }) => {
         await page.goto(routeUrl('async-error-throw'), { waitUntil: 'commit' });
 
-        await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError, {
+        await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError, {
           timeout: 10000,
         });
         await expect(page.locator('#async-value')).toHaveCount(0);
@@ -397,12 +403,12 @@ test.describe('ErrorBoundary + fallback$', () => {
     });
 
     test.describe('loaders', () => {
-      test('loader error(500) is NOT caught by an ErrorBoundary: the router returns a 500', async ({
+      test('loader error(500) is NOT caught by a Catch: the router returns a 500', async ({
         page,
       }) => {
         const response = await page.goto(routeUrl('loader-500'), { waitUntil: 'commit' });
         expect(response!.status()).toBe(500);
-        await expect(page.locator('#eb-fallback')).toHaveCount(0);
+        await expect(page.locator('#catch-fallback')).toHaveCount(0);
         await expect(page.locator('#loader-500-body')).toHaveCount(0);
       });
 
@@ -413,17 +419,17 @@ test.describe('ErrorBoundary + fallback$', () => {
         assertNoBrowserErrors(page);
         await page.goto(routeUrl('loader-data-throw'), { waitUntil: 'commit' });
 
-        await expect(page.locator('#eb-fallback-msg')).toHaveText(
+        await expect(page.locator('#catch-fallback-msg')).toHaveText(
           'caught: loader data boom: loader-data-secret',
           { timeout: 10000 }
         );
 
-        await page.locator('#eb-reset').click();
-        await expect(page.locator('#eb-fallback-msg')).toHaveText(
+        await page.locator('#catch-reset').click();
+        await expect(page.locator('#catch-fallback-msg')).toHaveText(
           'caught: loader data boom: loader-data-secret',
           { timeout: 10000 }
         );
-        await expect(page.locator('#eb-content')).toHaveCount(0);
+        await expect(page.locator('#catch-content')).toHaveCount(0);
       });
 
       // reset re-invokes the loader; this asserts the opposite
@@ -433,7 +439,7 @@ test.describe('ErrorBoundary + fallback$', () => {
         assertNoBrowserErrors(page);
         await page.goto(routeUrl('loader-reset-no-refetch'), { waitUntil: 'commit' });
 
-        await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
         await page.waitForLoadState('networkidle');
 
         const loaderRequestsAfterReset: string[] = [];
@@ -443,8 +449,8 @@ test.describe('ErrorBoundary + fallback$', () => {
           }
         });
 
-        await page.locator('#eb-reset').click();
-        await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
+        await page.locator('#catch-reset').click();
+        await expect(page.locator('#catch-content')).toBeVisible({ timeout: 10000 });
         await page.waitForTimeout(300);
 
         expect(loaderRequestsAfterReset).toEqual([]);
@@ -461,10 +467,12 @@ test.describe('qerror (client event channel)', () => {
       const pageErrors = collectPageErrors(page);
 
       await page.goto(routeUrl('no-boundary'), { waitUntil: 'commit' });
-      await expect(page.locator('#eb-title')).toHaveText('Error handling e2e', { timeout: 10000 });
+      await expect(page.locator('#catch-title')).toHaveText('Error handling e2e', {
+        timeout: 10000,
+      });
 
-      await page.locator('#eb-no-boundary-throw').click();
-      await expect(page.locator('#eb-no-boundary-touched')).toHaveText('1', { timeout: 10000 });
+      await page.locator('#catch-no-boundary-throw').click();
+      await expect(page.locator('#catch-no-boundary-touched')).toHaveText('1', { timeout: 10000 });
 
       await expect.poll(() => pageErrors, { timeout: 10000 }).toContain('no-boundary boom');
     });
@@ -476,39 +484,39 @@ test.describe('qerror (client event channel)', () => {
       const pageErrors = collectPageErrors(page);
 
       await page.addInitScript(() => {
-        (window as any).__ebQErrors = [];
+        (window as any).__catchQErrors = [];
         document.addEventListener('qerror', (e: any) => {
-          (window as any).__ebQErrors.push({ importError: e.detail?.importError ?? null });
+          (window as any).__catchQErrors.push({ importError: e.detail?.importError ?? null });
         });
       });
 
       const blockedRequests: string[] = [];
-      await page.route(/\/build\/.*EbThrowOnClick.*q_e_click.*\.js/, (route) => {
+      await page.route(/\/build\/.*CatchThrowOnClick.*q_e_click.*\.js/, (route) => {
         blockedRequests.push(route.request().url());
         return route.abort();
       });
 
       await page.goto(routeUrl('happy'), { waitUntil: 'commit' });
-      await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-content')).toBeVisible({ timeout: 10000 });
 
-      await page.locator('#eb-content-throw').click();
+      await page.locator('#catch-content-throw').click();
 
       // Rejections surface behind the loader's deferred queue; poll the qerror channel itself.
       await expect
-        .poll(() => page.evaluate(() => (window as any).__ebQErrors.length), { timeout: 10000 })
+        .poll(() => page.evaluate(() => (window as any).__catchQErrors.length), { timeout: 10000 })
         .toBeGreaterThanOrEqual(1);
       expect(blockedRequests.length).toBeGreaterThan(0);
 
       // Resume may add its own import rejection; single-report-per-dispatch is pinned in qwikloader.behavior.unit.ts.
-      const qErrors = await page.evaluate(() => (window as any).__ebQErrors);
+      const qErrors = await page.evaluate(() => (window as any).__catchQErrors);
       expect(
         qErrors.filter((q: { importError: string | null }) => q.importError !== 'async')
       ).toEqual([]);
 
-      await expect(page.locator('#eb-fallback')).toHaveCount(0);
+      await expect(page.locator('#catch-fallback')).toHaveCount(0);
       await expect(page.locator('[role="alert"]')).toHaveCount(0);
-      await expect(page.locator('#eb-content')).toBeVisible();
-      await expect(page.locator('#eb-content-touched')).toHaveText('0');
+      await expect(page.locator('#catch-content')).toBeVisible();
+      await expect(page.locator('#catch-content-touched')).toHaveText('0');
       expect(pageErrors).toEqual([]);
     });
   });
@@ -519,14 +527,14 @@ test.describe('onError$', () => {
     assertNoBrowserErrors(page);
     await page.goto(routeUrl('onerror'), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
-    await page.locator('#eb-onerror-throw').click();
+    await expect(page.locator('#catch-content')).toHaveText('content ok', { timeout: 10000 });
+    await page.locator('#catch-onerror-throw').click();
 
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await page.waitForFunction(() => (window as any).__ebOnErrorRuns >= 1);
+    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+    await page.waitForFunction(() => (window as any).__catchOnErrorRuns >= 1);
     await page.waitForTimeout(100);
-    expect(await page.evaluate(() => (window as any).__ebOnErrorRuns)).toBe(1);
-    expect(await page.evaluate(() => (window as any).__ebOnErrorMsg)).toBe('onerror boom');
+    expect(await page.evaluate(() => (window as any).__catchOnErrorRuns)).toBe(1);
+    expect(await page.evaluate(() => (window as any).__catchOnErrorMsg)).toBe('onerror boom');
   });
 
   test('onError$ receives info.phase "event" and a stable boundaryId for a real qwikloader throw', async ({
@@ -535,38 +543,38 @@ test.describe('onError$', () => {
     assertNoBrowserErrors(page);
     await page.goto(routeUrl('onerror'), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
-    await page.locator('#eb-onerror-throw').click();
+    await expect(page.locator('#catch-content')).toHaveText('content ok', { timeout: 10000 });
+    await page.locator('#catch-onerror-throw').click();
 
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await page.waitForFunction(() => (window as any).__ebOnErrorPhase !== undefined);
-    expect(await page.evaluate(() => (window as any).__ebOnErrorPhase)).toBe('event');
-    expect(await page.evaluate(() => (window as any).__ebOnErrorBoundaryId)).toBeTruthy();
+    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+    await page.waitForFunction(() => (window as any).__catchOnErrorPhase !== undefined);
+    expect(await page.evaluate(() => (window as any).__catchOnErrorPhase)).toBe('event');
+    expect(await page.evaluate(() => (window as any).__catchOnCatchId)).toBeTruthy();
   });
 });
 
-test.describe('ErrorBoundary reset', () => {
+test.describe('Catch reset', () => {
   for (const { mode, outOfOrder } of streamingModes) {
     test(`${mode}: reset on SSR resume re-executes the children and recovers`, async ({ page }) => {
       assertNoBrowserErrors(page);
       await page.goto(routeUrl('reset', { outOfOrder }), { waitUntil: 'commit' });
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-content')).toBeHidden();
-      await expect(page.locator('[q\\:ebc]')).toHaveCount(1);
-      await expect(page.locator('[q\\:ebf]')).toHaveCount(1);
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-content')).toBeHidden();
+      await expect(page.locator('[q\\:cc]')).toHaveCount(1);
+      await expect(page.locator('[q\\:cf]')).toHaveCount(1);
 
-      await page.locator('#eb-reset').click();
+      await page.locator('#catch-reset').click();
 
-      await expect(page.locator('#eb-content')).toHaveCount(1, { timeout: 10000 });
-      await expect(page.locator('#eb-content')).toBeVisible();
-      await expect(page.locator('#eb-thrower-client')).toBeAttached();
-      await expect(page.locator('#eb-fallback')).toHaveCount(0);
+      await expect(page.locator('#catch-content')).toHaveCount(1, { timeout: 10000 });
+      await expect(page.locator('#catch-content')).toBeVisible();
+      await expect(page.locator('#catch-thrower-client')).toBeAttached();
+      await expect(page.locator('#catch-fallback')).toHaveCount(0);
 
-      await page.locator('#eb-content-button').click();
-      await expect(page.locator('#eb-content-count')).toHaveText('1');
+      await page.locator('#catch-content-button').click();
+      await expect(page.locator('#catch-content-count')).toHaveText('1');
 
-      await expect(page.locator('[q\\:ebc]')).toHaveCount(0);
-      await expect(page.locator('[q\\:ebf]')).toHaveCount(0);
+      await expect(page.locator('[q\\:cc]')).toHaveCount(0);
+      await expect(page.locator('[q\\:cf]')).toHaveCount(0);
     });
   }
 
@@ -576,73 +584,73 @@ test.describe('ErrorBoundary reset', () => {
     assertNoBrowserErrors(page);
     await page.goto(routeUrl('rederive'), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
-    expect(await page.evaluate(() => (window as any).__ebRederiveRuns ?? 0)).toBe(0);
+    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
+    expect(await page.evaluate(() => (window as any).__catchRederiveRuns ?? 0)).toBe(0);
 
-    await page.locator('#eb-reset').click();
+    await page.locator('#catch-reset').click();
 
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb always boom', {
+    await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: catch always boom', {
       timeout: 10000,
     });
-    await expect.poll(() => page.evaluate(() => (window as any).__ebRederiveRuns ?? 0)).toBe(1);
+    await expect.poll(() => page.evaluate(() => (window as any).__catchRederiveRuns ?? 0)).toBe(1);
   });
 
   test('client error: reset re-supplies the content interactively', async ({ page }) => {
     assertNoBrowserErrors(page);
     await page.goto(routeUrl('reset-csr'), { waitUntil: 'commit' });
-    await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-content')).toBeVisible({ timeout: 10000 });
 
-    await page.locator('#eb-content-button').click();
-    await expect(page.locator('#eb-content-count')).toHaveText('1');
+    await page.locator('#catch-content-button').click();
+    await expect(page.locator('#catch-content-count')).toHaveText('1');
 
-    await page.locator('#eb-csr-throw').click();
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await page.locator('#catch-csr-throw').click();
+    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
 
-    await page.locator('#eb-reset').click();
+    await page.locator('#catch-reset').click();
 
-    await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    await expect(page.locator('#catch-content')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback')).toHaveCount(0);
 
-    await page.locator('#eb-content-button').click();
-    await expect(page.locator('#eb-content-count')).toHaveText('1');
+    await page.locator('#catch-content-button').click();
+    await expect(page.locator('#catch-content-count')).toHaveText('1');
   });
 
-  test('second reset re-executes children of an ErrorBoundary inside a Suspense (re-error then recover)', async ({
+  test('second reset re-executes children of a Catch inside a Pending (re-error then recover)', async ({
     page,
   }) => {
     assertNoBrowserErrors(page);
     // OOOS: #8876 route shape + #8884 segment reset
     await page.goto(routeUrl('reset-reerror', { outOfOrder: false }), { waitUntil: 'commit' });
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText(caughtError);
+    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
 
-    await page.locator('#eb-reset').click();
-    await expect(page.locator('#eb-fallback-msg')).toContainText('client boom 1', {
+    await page.locator('#catch-reset').click();
+    await expect(page.locator('#catch-fallback-msg')).toContainText('client boom 1', {
       timeout: 10000,
     });
 
-    await page.locator('#eb-reset').click();
-    await expect(page.locator('#eb-reerror-recovered')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    await page.locator('#catch-reset').click();
+    await expect(page.locator('#catch-reerror-recovered')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback')).toHaveCount(0);
   });
 
-  test('reset re-executes children of a client-first (SPA-nav) ErrorBoundary inside a Suspense', async ({
+  test('reset re-executes children of a client-first (SPA-nav) Catch inside a Pending', async ({
     page,
   }) => {
     assertNoBrowserErrors(page);
     await page.goto(routeUrl('reset-spa'), { waitUntil: 'commit' });
-    await expect(page.locator('#eb-spa-show')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    await expect(page.locator('#catch-spa-show')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback')).toHaveCount(0);
 
-    await page.locator('#eb-spa-show').click();
-    await expect(page.locator('#eb-fallback-msg')).toContainText('client boom 1', {
+    await page.locator('#catch-spa-show').click();
+    await expect(page.locator('#catch-fallback-msg')).toContainText('client boom 1', {
       timeout: 10000,
     });
 
-    await page.locator('#eb-reset').click();
-    await expect(page.locator('#eb-reerror-recovered')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    await page.locator('#catch-reset').click();
+    await expect(page.locator('#catch-reerror-recovered')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback')).toHaveCount(0);
   });
 
   test.describe('nested boundaries', () => {
@@ -652,18 +660,18 @@ test.describe('ErrorBoundary reset', () => {
       assertNoBrowserErrors(page);
       await page.goto(routeUrl('nested-reset', { outOfOrder: false }), { waitUntil: 'commit' });
 
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-outer-ok')).toBeVisible();
-      await expect(page.locator('#eb-thrower-client')).toHaveCount(0);
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-outer-ok')).toBeVisible();
+      await expect(page.locator('#catch-thrower-client')).toHaveCount(0);
 
-      await page.locator('#eb-reset').click();
+      await page.locator('#catch-reset').click();
 
-      await expect(page.locator('#eb-thrower-client')).toBeAttached({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback')).toHaveCount(0);
-      await expect(page.locator('#eb-outer-ok')).toBeVisible();
+      await expect(page.locator('#catch-thrower-client')).toBeAttached({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback')).toHaveCount(0);
+      await expect(page.locator('#catch-outer-ok')).toBeVisible();
 
-      await page.locator('#eb-outer-ok-button').click();
-      await expect(page.locator('#eb-outer-ok-count')).toHaveText('1');
+      await page.locator('#catch-outer-ok-button').click();
+      await expect(page.locator('#catch-outer-ok-count')).toHaveText('1');
     });
 
     test('SSR resume (real click): reset on a boundary nested inside a resumed SSR fallback re-derives the outer and recovers the inner', async ({
@@ -674,15 +682,15 @@ test.describe('ErrorBoundary reset', () => {
         waitUntil: 'commit',
       });
 
-      await expect(page.locator('#eb-outer-fb')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-inner-reset')).toBeVisible();
-      await expect(page.locator('#eb-thrower-client')).toHaveCount(0);
+      await expect(page.locator('#catch-outer-fb')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-inner-reset')).toBeVisible();
+      await expect(page.locator('#catch-thrower-client')).toHaveCount(0);
 
-      await page.locator('#eb-inner-reset').click();
+      await page.locator('#catch-inner-reset').click();
 
-      await expect(page.locator('#eb-thrower-client')).toBeAttached({ timeout: 10000 });
-      await expect(page.locator('#eb-outer-fb')).toBeVisible();
-      await expect(page.locator('#eb-inner-reset')).toHaveCount(0);
+      await expect(page.locator('#catch-thrower-client')).toBeAttached({ timeout: 10000 });
+      await expect(page.locator('#catch-outer-fb')).toBeVisible();
+      await expect(page.locator('#catch-inner-reset')).toHaveCount(0);
     });
   });
 
@@ -693,12 +701,12 @@ test.describe('ErrorBoundary reset', () => {
       assertNoBrowserErrors(page);
       // OOOS: #8876 route shape + #8884 segment reset
       await page.goto(routeUrl('reset-wrapped', { outOfOrder: false }), { waitUntil: 'commit' });
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
 
-      await page.locator('#eb-reset').click();
+      await page.locator('#catch-reset').click();
 
-      await expect(page.locator('#eb-wrap-recovered')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback')).toHaveCount(0);
+      await expect(page.locator('#catch-wrap-recovered')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback')).toHaveCount(0);
     });
 
     test('wrapper key-swap: key bump re-executes the async child through a Slot wrapper', async ({
@@ -709,15 +717,15 @@ test.describe('ErrorBoundary reset', () => {
       await page.goto(routeUrl('reset-wrapped-key', { outOfOrder: false }), {
         waitUntil: 'commit',
       });
-      await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-      await page.locator('#eb-reset').click();
-      await expect(page.locator('#eb-wrap-recovered')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#eb-fallback')).toHaveCount(0);
+      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+      await page.locator('#catch-reset').click();
+      await expect(page.locator('#catch-wrap-recovered')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('#catch-fallback')).toHaveCount(0);
     });
   });
 });
 
-test.describe('ErrorBoundary in a production build (qDev=false)', () => {
+test.describe('Catch in a production build (qDev=false)', () => {
   const prodUrl = (route: string) => routeUrl(route, { app: 'error-handling.prod' });
 
   test('an SSR-errored async signal serializes a redacted error, raw message nowhere in the page', async ({
@@ -741,38 +749,38 @@ test.describe('ErrorBoundary in a production build (qDev=false)', () => {
     assertNoBrowserErrors(page);
     await page.goto(prodUrl('basic'), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
-    await expect(page.locator('#eb-content')).toBeHidden();
+    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: An error occurred');
+    await expect(page.locator('#catch-content')).toBeHidden();
 
-    await page.locator('#eb-fallback-button').click();
-    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+    await page.locator('#catch-fallback-button').click();
+    await expect(page.locator('#catch-fallback-count')).toHaveText('1');
   });
 
   test('client throw after resume shows the thrown message unredacted', async ({ page }) => {
     assertNoBrowserErrors(page);
     await page.goto(prodUrl('csr-event'), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-content')).toHaveText('content ok', { timeout: 10000 });
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    await expect(page.locator('#catch-content')).toHaveText('content ok', { timeout: 10000 });
+    await expect(page.locator('#catch-fallback')).toHaveCount(0);
 
-    await page.locator('#eb-client-throw').click();
+    await page.locator('#catch-client-throw').click();
 
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: client click boom');
+    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: client click boom');
 
-    await page.locator('#eb-fallback-button').click();
-    await expect(page.locator('#eb-fallback-count')).toHaveText('1');
+    await page.locator('#catch-fallback-button').click();
+    await expect(page.locator('#catch-fallback-count')).toHaveText('1');
   });
 
   test('an app error carrying its own digest field still redacts', async ({ page }) => {
     assertNoBrowserErrors(page);
     await page.goto(prodUrl('digest-forgery'), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred', {
+    await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: An error occurred', {
       timeout: 10000,
     });
-    const digest = await page.locator('#eb-fallback-digest').innerText();
+    const digest = await page.locator('#catch-fallback-digest').innerText();
     expect(digest).not.toBe('forged-digest');
     expect(digest).not.toBe('none');
     expect(await page.locator('body').innerText()).not.toContain('digest secret boom');
@@ -784,15 +792,15 @@ test.describe('ErrorBoundary in a production build (qDev=false)', () => {
     assertNoBrowserErrors(page);
     await page.goto(prodUrl('rederive'), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: An error occurred');
+    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: An error occurred');
 
-    await page.locator('#eb-reset').click();
+    await page.locator('#catch-reset').click();
 
     await expect
-      .poll(() => page.evaluate(() => (window as any).__ebRederiveRuns ?? 0), { timeout: 10000 })
+      .poll(() => page.evaluate(() => (window as any).__catchRederiveRuns ?? 0), { timeout: 10000 })
       .toBe(1);
-    await expect(page.locator('#eb-fallback-msg')).toHaveText('caught: eb always boom');
+    await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: catch always boom');
   });
 
   test('reset round-trips through the prod serializer and re-executes the children', async ({
@@ -801,14 +809,14 @@ test.describe('ErrorBoundary in a production build (qDev=false)', () => {
     assertNoBrowserErrors(page);
     await page.goto(prodUrl('reset'), { waitUntil: 'commit' });
 
-    await expect(page.locator('#eb-fallback')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
 
-    await page.locator('#eb-reset').click();
+    await page.locator('#catch-reset').click();
 
-    await expect(page.locator('#eb-content')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#eb-fallback')).toHaveCount(0);
+    await expect(page.locator('#catch-content')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#catch-fallback')).toHaveCount(0);
 
-    await page.locator('#eb-content-button').click();
-    await expect(page.locator('#eb-content-count')).toHaveText('1');
+    await page.locator('#catch-content-button').click();
+    await expect(page.locator('#catch-content-count')).toHaveText('1');
   });
 });

@@ -15,7 +15,7 @@ import { tryGetInvokeContext } from '../use/use-core';
 import type { SSRContainer } from '../ssr/ssr-types';
 
 /** @internal */
-export const SUSPENSE_QRL_SYMBOL = '_suC';
+export const PENDING_QRL_SYMBOL = '_peC';
 
 /** @internal */
 export type OutOfOrderRevealBoundary = {
@@ -89,7 +89,7 @@ const getOutOfOrderRevealOrderCode = (order: RevealOrder): OutOfOrderRevealOrder
 
 /** @internal */
 export const isOutOfOrderStreaming = (): boolean => {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     return false;
   }
   const container = tryGetInvokeContext()?.$container$ as
@@ -99,7 +99,7 @@ export const isOutOfOrderStreaming = (): boolean => {
 };
 
 /** @internal */
-export const nextOutOfOrderSuspenseId = (): number =>
+export const nextOutOfOrderPendingId = (): number =>
   (tryGetInvokeContext()!.$container$! as SSRContainer).nextOutOfOrderId();
 
 /** @internal */
@@ -107,7 +107,7 @@ export const applySubscriptionPatches = (
   container: Container,
   patches: SubscriptionPatch[] | undefined
 ): void => {
-  if (!__EXPERIMENTAL__.suspense || !patches) {
+  if (!__EXPERIMENTAL__.pendingBoundary || !patches) {
     return;
   }
   for (let i = 0; i < patches.length; i++) {

@@ -233,7 +233,7 @@ export { router }
               clientManifest = manifest;
             },
           },
-          experimental: ['each', 'show', 'suspense', 'errorBoundary', 'blockSSR'],
+          experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'blockSSR'],
         }),
       ],
     })
@@ -254,7 +254,7 @@ export { router }
         ...plugins,
         optimizer.qwikVite({
           tsOptimizer: true,
-          experimental: ['each', 'show', 'suspense', 'errorBoundary', 'blockSSR'],
+          experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,
           },

@@ -589,7 +589,7 @@ transformError?
 
 </td><td>
 
-_(Optional)_ Server-only. Projects a thrown error into the `Error` an `<ErrorBoundary>` fallback displays during SSR; `onError$` still receives the original. It never runs on the client, where a re-derived fallback shows the error as thrown.
+_(Optional)_ Server-only. Projects a thrown error into the `Error` a `<Catch>` fallback displays during SSR; `onError$` still receives the original. It never runs on the client, where a re-derived fallback shows the error as thrown.
 
 Return an `Error` to project it, or `undefined`/`null` to decline; any other return, or a throw, redacts to the generic error.
 
@@ -727,11 +727,11 @@ onBeforeFirstFlush?
 
 </td><td>
 
-(info: \{ errorBoundaryCaught: boolean; }) =&gt; void
+(info: \{ hasCaughtError: boolean; }) =&gt; void
 
 </td><td>
 
-_(Optional)_ Called synchronously just before the first chunk is written — the last moment response headers can still change. `errorBoundaryCaught` is true when an `<ErrorBoundary>` already swapped in its fallback during SSR.
+_(Optional)_ Called synchronously just before the first chunk is written — the last moment response headers can still change. `hasCaughtError` is true when a `<Catch>` already swapped in its fallback during SSR.
 
 </td></tr>
 <tr><td>
@@ -793,21 +793,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-errorBoundaryCaught?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ True when an `<ErrorBoundary>` caught during the render, no matter where in the stream.
-
-</td></tr>
-<tr><td>
-
 flushes
 
 </td><td>
@@ -817,6 +802,21 @@ flushes
 number
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+hasCaughtError?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ True when a `<Catch>` caught during the render, no matter where in the stream.
 
 </td></tr>
 <tr><td>

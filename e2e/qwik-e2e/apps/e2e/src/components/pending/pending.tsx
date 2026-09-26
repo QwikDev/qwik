@@ -1,4 +1,4 @@
-import { component$, Suspense, useSignal, useTask$, type JSXOutput } from '@qwik.dev/core';
+import { component$, Pending, useSignal, useTask$, type JSXOutput } from '@qwik.dev/core';
 
 interface BlockingUpdateProps {
   id: string;
@@ -6,22 +6,22 @@ interface BlockingUpdateProps {
   pendingName: string;
 }
 
-export const SuspenseRoot = component$(() => {
+export const PendingRoot = component$(() => {
   const render = useSignal(0);
 
   return (
     <>
-      <h1>Suspense</h1>
+      <h1>Pending</h1>
       <button id="force-rerender" data-v={render.value} onClick$={() => render.value++}>
         Rerender
       </button>
       <span id="render-count">{render.value}</span>
-      <SuspenseChildren key={render.value} />
+      <PendingChildren key={render.value} />
     </>
   );
 });
 
-export const SuspenseChildren = component$(() => {
+export const PendingChildren = component$(() => {
   return (
     <>
       <SingleBoundary />
@@ -32,32 +32,32 @@ export const SuspenseChildren = component$(() => {
 });
 
 export const SingleBoundary = component$(() => {
-  const resolveName = '__resolveSingleSuspense';
-  const pendingName = '__pendingSingleSuspense';
+  const resolveName = '__resolveSingleBoundary';
+  const pendingName = '__pendingSingleBoundary';
 
   return (
     <div id="single-boundary">
-      <Suspense fallback={<span id="single-fallback">Loading single</span>} delay={10}>
+      <Pending fallback={<span id="single-fallback">Loading single</span>} delay={10}>
         <BlockingUpdate id="single" resolveName={resolveName} pendingName={pendingName} />
-      </Suspense>
+      </Pending>
       <ResolveUpdate id="single" resolveName={resolveName} />
     </div>
   );
 });
 
 export const NestedBoundaries = component$(() => {
-  const resolveName = '__resolveInnerSuspense';
-  const pendingName = '__pendingInnerSuspense';
+  const resolveName = '__resolveInnerBoundary';
+  const pendingName = '__pendingInnerBoundary';
 
   return (
     <div id="nested-boundary">
-      <Suspense fallback={<span id="outer-fallback">Loading outer</span>} delay={10}>
+      <Pending fallback={<span id="outer-fallback">Loading outer</span>} delay={10}>
         <section id="outer-content">
-          <Suspense fallback={<span id="inner-fallback">Loading inner</span>} delay={10}>
+          <Pending fallback={<span id="inner-fallback">Loading inner</span>} delay={10}>
             <BlockingUpdate id="inner" resolveName={resolveName} pendingName={pendingName} />
-          </Suspense>
+          </Pending>
         </section>
-      </Suspense>
+      </Pending>
       <ResolveUpdate id="inner" resolveName={resolveName} />
     </div>
   );
@@ -65,21 +65,21 @@ export const NestedBoundaries = component$(() => {
 
 export const MountedAsyncBoundary = component$(() => {
   const show = useSignal(false);
-  const resolveName = '__resolveMountedAsyncSuspense';
+  const resolveName = '__resolveMountedAsyncBoundary';
 
   return (
     <div id="mounted-async-boundary">
       <button id="mounted-async-button" onClick$={() => (show.value = true)}>
-        Mount async suspense
+        Mount async boundary
       </button>
       {show.value && (
         <>
-          <Suspense
+          <Pending
             fallback={<span id="mounted-async-fallback">Loading mounted async</span>}
             delay={10}
           >
             <MountedAsyncChild resolveName={resolveName} />
-          </Suspense>
+          </Pending>
           <ResolveUpdate id="mounted-async" resolveName={resolveName} />
         </>
       )}

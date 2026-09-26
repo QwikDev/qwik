@@ -28,7 +28,7 @@ import {
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   EMPTY_ATTR,
-  ErrorBoundaryPhase,
+  CatchPhase,
   GT,
   ITERATION_ITEM_MULTI,
   ITERATION_ITEM_SINGLE,
@@ -52,7 +52,7 @@ import {
   QStatePrewarmAttr,
   QStatePatchAttr,
   QStyle,
-  QSuspenseResolved,
+  QPendingResolved,
   QTemplate,
   QUOTE,
   QVersionAttr,
@@ -354,10 +354,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$transformError$ = opts.renderOptions.transformError;
     const outOfOrderStreaming =
       (this.renderOptions as RenderToStreamOptions).streaming?.outOfOrder === true;
-    if (!__EXPERIMENTAL__.suspense) {
+    if (!__EXPERIMENTAL__.pendingBoundary) {
       if (outOfOrderStreaming) {
         throw new Error(
-          'Out-of-order Suspense streaming requires `experimental: ["suspense"]` in the `qwikVite` plugin.'
+          'Out-of-order streaming requires `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
         );
       }
       this.outOfOrderStreaming = false;
@@ -391,11 +391,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(
-    err: any,
-    host: HostElement | null,
-    phase: ErrorBoundaryPhase = ErrorBoundaryPhase.Render
-  ): void {
+  handleError(err: any, host: HostElement | null, phase: CatchPhase = CatchPhase.Render): void {
     _handleSSRError(this, err, host as ISsrNode | null, phase);
   }
 
@@ -434,7 +430,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Queue OOOS serialization/write work that must not overlap with root state serialization. */
   $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
+    if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming) {
       return render();
     }
     if (this.$containerState$ === SSRContainerState.NotReady) {
@@ -449,7 +445,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private $waitForRootContainerReady$(): ValueOrPromise<void> {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || this.$isReadyForOOOS$()) {
+    if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming || this.$isReadyForOOOS$()) {
       return;
     }
     return (this.rootContainerReadyPromise ||= new Promise<void>((resolve) => {
@@ -458,7 +454,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private $markRootContainerReady$(): void {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || this.$isReadyForOOOS$()) {
+    if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming || this.$isReadyForOOOS$()) {
       return;
     }
     this.rootContainerSerializedRootCount = this.serializationCtx.$roots$.length;
@@ -469,8 +465,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   nextOutOfOrderId(markUsed = true): number {
-    const ooosActive = __EXPERIMENTAL__.suspense && this.outOfOrderStreaming;
-    if (!ooosActive && !__EXPERIMENTAL__.errorBoundary) {
+    const ooosActive = __EXPERIMENTAL__.pendingBoundary && this.outOfOrderStreaming;
+    if (!ooosActive && !__EXPERIMENTAL__.catchBoundary) {
       return 0;
     }
     if (markUsed && ooosActive) {
@@ -480,7 +476,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitOutOfOrderSegmentScripts(scripts: string): void {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || !scripts) {
+    if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming || !scripts) {
       return;
     }
     this.write(scripts);
@@ -491,15 +487,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     jsx: JSXOutput,
     options: SSRRenderJSXOptions
   ): Promise<SSROutOfOrderSegment> {
-    if (!__EXPERIMENTAL__.suspense) {
+    if (!__EXPERIMENTAL__.pendingBoundary) {
       throw new Error(
-        'Out-of-order Suspense streaming requires `experimental: ["suspense"]` in the `qwikVite` plugin.'
+        'Out-of-order streaming requires `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
       );
     }
     if (!this.outOfOrderStreaming) {
-      throw new Error(
-        'Out-of-order Suspense streaming requires `streaming.outOfOrder` to be `true`.'
-      );
+      throw new Error('Out-of-order streaming requires `streaming.outOfOrder` to be `true`.');
     }
     this.outOfOrderUsed = true;
     this.markVNodeRefForSerialization(options.parentComponentFrame?.componentNode);
@@ -541,7 +535,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       parent: null,
       elementName: '#segment',
       depthFirstElementIdx: -1,
-      // OOOS inserts this synthetic root under the Suspense content host on the client.
+      // OOOS inserts this synthetic root under the Pending content host on the client.
       vNodeData: [VNodeDataFlag.SERIALIZE],
       currentFile: null,
       refBase: contentHostNode.id,
@@ -582,7 +576,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   queueOutOfOrderSegment(segment: Promise<void>): void {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
+    if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming) {
       return;
     }
     this.outOfOrderPendingSegments.push(segment);
@@ -1055,7 +1049,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       (this.renderOptions as RenderToStreamOptions).streaming?.inOrder?.strategy === 'disabled';
     const shouldFlushShell =
       !isStreamingDisabled ||
-      (__EXPERIMENTAL__.suspense && this.outOfOrderStreaming && this.outOfOrderUsed);
+      (__EXPERIMENTAL__.pendingBoundary && this.outOfOrderStreaming && this.outOfOrderUsed);
     // TODO first emit state, then only emit slots where the parent is serialized (so they could rerender)
     return maybeThen(
       maybeThen(shouldFlushShell ? this.streamHandler.flush() : undefined, () =>
@@ -1084,7 +1078,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private emitDelayedOutOfOrderSegmentVNodeData(): void {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || !this.outOfOrderUsed) {
+    if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming || !this.outOfOrderUsed) {
       return;
     }
     for (let i = 0; i < this.outOfOrderSegments.length; i++) {
@@ -1097,7 +1091,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private emitOutOfOrderSegmentsAndData(): ValueOrPromise<void> {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming || !this.outOfOrderUsed) {
+    if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming || !this.outOfOrderUsed) {
       return;
     }
     this.emitOutOfOrderExecutorIfNeeded();
@@ -1142,8 +1136,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     patch = false
   ) {
     const attrs: Props = { type: 'qwik/vnode' };
-    if (__EXPERIMENTAL__.suspense && this.outOfOrderStreaming && segmentId) {
-      attrs[QSuspenseResolved] = segmentId;
+    if (__EXPERIMENTAL__.pendingBoundary && this.outOfOrderStreaming && segmentId) {
+      attrs[QPendingResolved] = segmentId;
     }
     if (patch) {
       attrs[QStatePatchAttr] = true;
@@ -1242,7 +1236,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private markVNodeDataOwnerEmitted(segmentId?: string): void {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
+    if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming) {
       return;
     }
     (this.emittedVNodeDataOwners ||= new Set()).add(segmentId);
@@ -1458,7 +1452,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   emitOutOfOrderExecutorIfNeeded(): void {
     if (
-      !__EXPERIMENTAL__.suspense ||
+      !__EXPERIMENTAL__.pendingBoundary ||
       !this.outOfOrderStreaming ||
       !this.outOfOrderUsed ||
       this.isOutOfOrderExecutorEmitted
@@ -1473,7 +1467,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitErrorSwapExecutorIfNeeded(): void {
-    if (!__EXPERIMENTAL__.errorBoundary || this.isErrorSwapExecutorEmitted) {
+    if (!__EXPERIMENTAL__.catchBoundary || this.isErrorSwapExecutorEmitted) {
       return;
     }
     this.isErrorSwapExecutorEmitted = true;
@@ -1517,7 +1511,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   isStatic(): boolean {
     return (
-      !(__EXPERIMENTAL__.suspense && this.outOfOrderStreaming && this.outOfOrderUsed) &&
+      !(__EXPERIMENTAL__.pendingBoundary && this.outOfOrderStreaming && this.outOfOrderUsed) &&
       this.serializationCtx.$eventQrls$.size === 0
     );
   }
@@ -2209,7 +2203,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     const attrs = this.stateScriptAttrs();
     attrs[QStatePatchAttr] = true;
     if (segmentId) {
-      attrs[QSuspenseResolved] = segmentId;
+      attrs[QPendingResolved] = segmentId;
     }
     return attrs;
   }

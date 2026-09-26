@@ -1,6 +1,6 @@
 import {
   component$,
-  Suspense,
+  Pending,
   useSignal,
   type JSXOutput,
 } from '@qwik.dev/core';
@@ -44,12 +44,12 @@ export default component$(() => {
       </button>
 
       {run.value > 0 && (
-        <Suspense
+        <Pending
           fallback={<p>Fallback shown after {FALLBACK_DELAY_MS}ms.</p>}
           delay={FALLBACK_DELAY_MS}
         >
           <SlowContent key={run.value} />
-        </Suspense>
+        </Pending>
       )}
 
       <p>Elapsed: {elapsed.value}ms</p>

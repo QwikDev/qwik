@@ -1,26 +1,19 @@
-import {
-  component$,
-  ErrorBoundary,
-  isServer,
-  Suspense,
-  useSignal,
-  type JSXOutput,
-} from '@qwik.dev/core';
-import { EbReErrorAsync, resetFallback } from '../../components/error-boundary/error-boundary';
+import { component$, Catch, isServer, Pending, useSignal, type JSXOutput } from '@qwik.dev/core';
+import { CatchReErrorAsync, resetFallback } from '../../components/catch/catch';
 
 export default component$(() => {
   const spaShow = useSignal(false);
   return (
     <>
-      <button id="eb-spa-show" onClick$={() => (spaShow.value = true)}>
+      <button id="catch-spa-show" onClick$={() => (spaShow.value = true)}>
         Show
       </button>
       {spaShow.value ? (
-        <Suspense fallback={<span id="eb-skel">loading</span>}>
-          <ErrorBoundary fallback$={resetFallback}>
-            <EbReErrorAsync />
-          </ErrorBoundary>
-        </Suspense>
+        <Pending fallback={<span id="catch-skel">loading</span>}>
+          <Catch fallback$={resetFallback}>
+            <CatchReErrorAsync />
+          </Catch>
+        </Pending>
       ) : null}
     </>
   );

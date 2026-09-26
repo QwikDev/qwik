@@ -158,14 +158,10 @@ export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
 export type { AsyncFn } from './use/use-computed';
 export { useComputed$ } from './use/use-computed';
-export {
-  ErrorBoundary,
-  errorBoundaryCmp as _ebC,
-  errorBoundaryReset as _ebR,
-} from './shared/error/error-boundary';
-export type { ErrorBoundaryProps } from './shared/error/error-boundary';
-export { ErrorBoundaryPhase } from './shared/error/error-boundary-phase';
-export type { ErrorBoundaryInfo } from './shared/error/error-handling';
+export { Catch, catchCmp as _caC, catchReset as _caR } from './shared/error/catch';
+export type { CatchProps } from './shared/error/catch';
+export { CatchPhase } from './shared/error/catch-phase';
+export type { CatchInfo } from './shared/error/error-handling';
 export {
   type ReadonlySignal,
   type AsyncSignal,
@@ -198,9 +194,9 @@ export {
 } from './control-flow/reveal';
 export { Reveal } from './control-flow/reveal';
 export type { RevealOrder, RevealProps } from './control-flow/reveal';
-export { suspenseTask as _suT, suspenseCmp as _suC } from './control-flow/suspense';
-export { Suspense } from './control-flow/suspense';
-export type { SuspenseProps } from './control-flow/suspense';
+export { pendingTask as _peT, pendingCmp as _peC } from './control-flow/pending';
+export { Pending } from './control-flow/pending';
+export type { PendingProps } from './control-flow/pending';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

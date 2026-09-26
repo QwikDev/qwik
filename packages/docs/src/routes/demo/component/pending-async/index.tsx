@@ -1,4 +1,4 @@
-import { component$, Suspense, useComputed$, useSignal } from '@qwik.dev/core';
+import { component$, Pending, useComputed$, useSignal } from '@qwik.dev/core';
 
 type User = {
   name: {
@@ -37,9 +37,9 @@ export default component$(() => {
       </button>
 
       {show.value && (
-        <Suspense fallback={<p>Loading user...</p>}>
+        <Pending fallback={<p>Loading user...</p>}>
           <UserCard />
-        </Suspense>
+        </Pending>
       )}
     </section>
   );

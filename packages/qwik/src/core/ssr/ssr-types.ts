@@ -115,10 +115,10 @@ export interface SSRContainer extends Container {
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   $noScriptHere$: number;
-  /** Innermost open ErrorBoundary content host, so the walker can skip an errored subtree. */
+  /** Innermost open Catch content host, so the walker can skip an errored subtree. */
   $errorContentHost$: ISsrNode | null;
 
-  /** Set when an ErrorBoundary caught during this container's render. */
+  /** Set when a Catch caught during this container's render. */
   $hasBoundaryError$?: boolean;
 
   /**

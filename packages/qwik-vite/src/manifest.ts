@@ -18,16 +18,16 @@ const extraSymbols = new Set([
   // Show
   '_shC',
   '_shT',
-  // Suspense
-  '_suC',
-  '_suT',
+  // Pending
+  '_peC',
+  '_peT',
   // Reveal
   '_reR',
   '_reC',
   '_reT',
-  // ErrorBoundary
-  '_ebC',
-  '_ebR',
+  // Catch
+  '_caC',
+  '_caR',
 ]);
 
 // This is just the initial prioritization of the symbols and entries

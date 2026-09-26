@@ -1,6 +1,6 @@
-import { component$, ErrorBoundary } from '@qwik.dev/core';
+import { component$, Catch } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
-import { resetFallback } from '../../components/error-boundary/error-boundary';
+import { resetFallback } from '../../components/catch/catch';
 
 export const useThrowingLoaderData = routeLoader$(() => ({
   shouldThrow: true,
@@ -12,11 +12,11 @@ const LoaderDataThrower = component$(() => {
   if (data.value.shouldThrow) {
     throw new Error('loader data boom: ' + data.value.secret);
   }
-  return <div id="eb-content">content ok</div>;
+  return <div id="catch-content">content ok</div>;
 });
 
 export default component$(() => (
-  <ErrorBoundary fallback$={resetFallback}>
+  <Catch fallback$={resetFallback}>
     <LoaderDataThrower />
-  </ErrorBoundary>
+  </Catch>
 ));

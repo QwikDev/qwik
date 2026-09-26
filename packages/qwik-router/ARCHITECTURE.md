@@ -329,7 +329,7 @@ goto(url)
 Loader signals are **not awaited** before navigation commits. Components see previous
 loader values until new data arrives. If a developer wants navigation to wait for a
 loader, they set `allowStale: false` on the loader, which causes the AsyncSignal to
-throw a promise (suspense-style) when read before data is available, blocking the
+throw a promise when read before data is available, blocking the
 subtree render until the data arrives.
 
 ## 6. Context IDs

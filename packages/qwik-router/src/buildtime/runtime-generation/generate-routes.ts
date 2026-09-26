@@ -1,7 +1,7 @@
 import type { QwikManifest, QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import {
   createFileId,
-  errorBoundaryName,
+  caughtErrorName,
   isModuleExt,
   isPageExt,
   normalizePathKey,
@@ -238,7 +238,7 @@ function serializeBuildTrie(
     const expr = buildLoaderChainExpr(file.extlessName, loaderExpr, route?.layouts ?? []);
 
     // error.tsx / 404.tsx (+ optional layout modifier) are boundaries, not navigable pages.
-    const boundary = errorBoundaryName(file.extlessName);
+    const boundary = caughtErrorName(file.extlessName);
     if (boundary === '404') {
       notFoundExpr = expr;
     } else if (boundary === 'error') {

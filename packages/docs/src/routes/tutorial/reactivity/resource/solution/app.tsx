@@ -2,8 +2,8 @@
 import {
   $,
   component$,
-  ErrorBoundary,
-  Suspense,
+  Catch,
+  Pending,
   useSignal,
   useComputed$,
   type Signal,
@@ -42,17 +42,17 @@ export default component$(() => {
         </label>
       </p>
       <section>
-        <ErrorBoundary
+        <Catch
           fallback$={$((error, reset) => (
             <>
               Error: {error.message} <button onClick$={() => reset()}>Retry</button>
             </>
           ))}
         >
-          <Suspense fallback={<>Loading...</>}>
+          <Pending fallback={<>Loading...</>}>
             <Repos org={githubOrg} repos={reposResource} />
-          </Suspense>
-        </ErrorBoundary>
+          </Pending>
+        </Catch>
       </section>
     </main>
   );

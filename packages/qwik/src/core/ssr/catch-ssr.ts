@@ -2,11 +2,11 @@ import { mapArray_get } from '../client/util-mapArray';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import {
   ERROR_CONTEXT,
-  ErrorBoundaryPhase,
+  CatchPhase,
   isRecoverable,
   markBoundaryErrored,
   markErrorFromDeferredSegment,
-  type ErrorBoundaryStore,
+  type CatchStore,
 } from '../shared/error/error-handling';
 import {
   ELEMENT_SEQ,
@@ -28,13 +28,13 @@ export function handleSSRError(
   container: SSRContainer,
   err: any,
   host: ISsrNode | null,
-  phase: ErrorBoundaryPhase
+  phase: CatchPhase
 ): void {
-  if (!__EXPERIMENTAL__.errorBoundary || (qDev && !isRecoverable(err))) {
+  if (!__EXPERIMENTAL__.catchBoundary || (qDev && !isRecoverable(err))) {
     throw err;
   }
   for (let boundaryNode = host; boundaryNode; boundaryNode = boundaryNode.parentComponent) {
-    const errorStore = getOwnSSRErrorBoundaryStore(boundaryNode);
+    const errorStore = getOwnSSRCatchStore(boundaryNode);
     if (!errorStore || !errorStore.$fallback$) {
       continue;
     }
@@ -46,16 +46,16 @@ export function handleSSRError(
     if (container.$isOutOfOrderSegment$) {
       markErrorFromDeferredSegment(errorStore);
     }
-    markErrorBoundaryContentInert(container, boundaryNode, errorStore);
+    markCatchContentInert(container, boundaryNode, errorStore);
     return;
   }
   throw err;
 }
 
-function markErrorBoundaryContentInert(
+function markCatchContentInert(
   container: SSRContainer,
   boundaryNode: ISsrNode,
-  errorStore: ErrorBoundaryStore
+  errorStore: CatchStore
 ): void {
   const ancestorOwners = new Map<string, { node: ISsrNode; depth: number }>();
   let boundaryContentOwner: ISsrNode | null = null;
@@ -65,7 +65,7 @@ function markErrorBoundaryContentInert(
       ancestorOwners.set(node.id, { node, depth: depth++ });
     }
     if (node !== boundaryNode && !boundaryContentOwner) {
-      const store = getOwnSSRErrorBoundaryStore(node);
+      const store = getOwnSSRCatchStore(node);
       if (store?.error !== undefined || !hasSlotProps(node.getProp(ELEMENT_PROPS))) {
         boundaryContentOwner = node;
       }
@@ -89,9 +89,9 @@ function markErrorBoundaryContentInert(
   }
 }
 
-function getOwnSSRErrorBoundaryStore(node: ISsrNode): ErrorBoundaryStore | null {
+function getOwnSSRCatchStore(node: ISsrNode): CatchStore | null {
   const ctx = node.getProp(QCtxAttr) as Array<string | unknown> | null;
-  return ctx ? (mapArray_get(ctx, ERROR_CONTEXT.id, 0) as ErrorBoundaryStore | null) : null;
+  return ctx ? (mapArray_get(ctx, ERROR_CONTEXT.id, 0) as CatchStore | null) : null;
 }
 
 function markErrorSubtreeInert(

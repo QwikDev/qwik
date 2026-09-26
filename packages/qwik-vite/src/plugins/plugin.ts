@@ -83,10 +83,10 @@ export enum ExperimentalFeatures {
   each = 'each',
   /** Enable the Show conditional primitive */
   show = 'show',
-  /** Enable the Suspense fallback primitive */
-  suspense = 'suspense',
-  /** Enable the ErrorBoundary primitive */
-  errorBoundary = 'errorBoundary',
+  /** Enable the Pending fallback primitive */
+  pendingBoundary = 'pendingBoundary',
+  /** Enable the Catch primitive */
+  catchBoundary = 'catchBoundary',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */

@@ -144,7 +144,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
       // Move to next node
-      __EXPERIMENTAL__.suspense && clearNearestCursorBoundary(currentVNode);
+      __EXPERIMENTAL__.pendingBoundary && clearNearestCursorBoundary(currentVNode);
       setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor, container));
       continue;
     }
@@ -364,7 +364,7 @@ export function getNextVNode(vNode: VNode, cursor: Cursor, container?: Container
   parent!.dirty &= ~ChoreBits.CHILDREN;
   parent!.dirtyChildren = null;
   parent!.nextDirtyChildIndex = 0;
-  __EXPERIMENTAL__.suspense && clearNearestCursorBoundary(parent!);
+  __EXPERIMENTAL__.pendingBoundary && clearNearestCursorBoundary(parent!);
   return getNextVNode(parent!, cursor, container);
 }
 

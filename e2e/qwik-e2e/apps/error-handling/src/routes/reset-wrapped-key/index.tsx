@@ -1,25 +1,25 @@
-import { component$, ErrorBoundary, Suspense, useSignal } from '@qwik.dev/core';
-import { EbWrapAsync, EbWrapper, errMsg } from '../../components/error-boundary/error-boundary';
+import { component$, Catch, Pending, useSignal } from '@qwik.dev/core';
+import { CatchWrapAsync, CatchWrapper, errMsg } from '../../components/catch/catch';
 
 export default component$(() => {
   const attempt = useSignal(0);
   return (
-    <Suspense fallback={<span id="eb-skel">loading</span>}>
-      <EbWrapper>
-        <ErrorBoundary
+    <Pending fallback={<span id="catch-skel">loading</span>}>
+      <CatchWrapper>
+        <Catch
           key={attempt.value}
           fallback$={(e) => (
-            <section id="eb-fallback">
-              <p id="eb-fallback-msg">caught: {errMsg(e)}</p>
-              <button id="eb-reset" onClick$={() => attempt.value++}>
+            <section id="catch-fallback">
+              <p id="catch-fallback-msg">caught: {errMsg(e)}</p>
+              <button id="catch-reset" onClick$={() => attempt.value++}>
                 Retry
               </button>
             </section>
           )}
         >
-          <EbWrapAsync />
-        </ErrorBoundary>
-      </EbWrapper>
-    </Suspense>
+          <CatchWrapAsync />
+        </Catch>
+      </CatchWrapper>
+    </Pending>
   );
 });

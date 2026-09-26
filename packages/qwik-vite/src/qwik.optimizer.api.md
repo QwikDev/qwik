@@ -53,12 +53,12 @@ export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEnt
 // @public
 export enum ExperimentalFeatures {
     blockSSR = "blockSSR",
+    catchBoundary = "catchBoundary",
     each = "each",
-    errorBoundary = "errorBoundary",
     insights = "insights",
     noSPA = "noSPA",
+    pendingBoundary = "pendingBoundary",
     show = "show",
-    suspense = "suspense",
     valibot = "valibot"
 }
 

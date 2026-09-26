@@ -194,7 +194,7 @@ export const glossary = {
     display: 'Out-of-order streaming segment',
     aliases: ['segment', 'streaming segment'],
     short:
-      'A chunk of HTML sent independently during out-of-order streaming when a Suspense boundary resolves asynchronously, allowing faster sections to reach the browser immediately without waiting for slower async content.',
+      'A chunk of HTML sent independently during out-of-order streaming when a Pending boundary resolves asynchronously, allowing faster sections to reach the browser immediately without waiting for slower async content.',
   },
   'serialization-boundary': {
     display: 'Serialization boundary',

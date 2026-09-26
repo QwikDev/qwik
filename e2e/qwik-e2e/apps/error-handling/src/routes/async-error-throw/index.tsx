@@ -1,5 +1,5 @@
-import { component$, ErrorBoundary, Suspense, useComputed$ } from '@qwik.dev/core';
-import { defaultFallback } from '../../components/error-boundary/error-boundary';
+import { component$, Catch, Pending, useComputed$ } from '@qwik.dev/core';
+import { defaultFallback } from '../../components/catch/catch';
 
 const AsyncValueThrows = component$(() => {
   const data = useComputed$(async () => {
@@ -9,9 +9,9 @@ const AsyncValueThrows = component$(() => {
 });
 
 export default component$(() => (
-  <ErrorBoundary fallback$={defaultFallback}>
-    <Suspense fallback={<span id="async-loading">loading</span>}>
+  <Catch fallback$={defaultFallback}>
+    <Pending fallback={<span id="async-loading">loading</span>}>
       <AsyncValueThrows />
-    </Suspense>
-  </ErrorBoundary>
+    </Pending>
+  </Catch>
 ));

@@ -282,7 +282,7 @@ export function addStoreEffect(
   // changes we know who to notify.
   const isOnServer = qTest ? isServerPlatform() : isServer;
   const shouldRecordExternalRootEffect =
-    __EXPERIMENTAL__.suspense && store instanceof StoreHandler && isOnServer;
+    __EXPERIMENTAL__.pendingBoundary && store instanceof StoreHandler && isOnServer;
   ensureContainsSubscription(effects, effectSubscription);
   // But when effect is scheduled in needs to be able to know which signals
   // to unsubscribe from. So we need to store the reference from the effect back

@@ -1,24 +1,20 @@
-import { component$, ErrorBoundary, useSignal } from '@qwik.dev/core';
-import {
-  EbSyncThrower,
-  outerFallback,
-  resetFallback,
-} from '../../components/error-boundary/error-boundary';
+import { component$, Catch, useSignal } from '@qwik.dev/core';
+import { CatchSyncThrower, outerFallback, resetFallback } from '../../components/catch/catch';
 
 export default component$(() => {
   const touched = useSignal(0);
   return (
-    <ErrorBoundary fallback$={outerFallback}>
-      <section id="eb-outer-ok">
+    <Catch fallback$={outerFallback}>
+      <section id="catch-outer-ok">
         <p>outer ok</p>
-        <button id="eb-outer-ok-button" onClick$={() => touched.value++}>
+        <button id="catch-outer-ok-button" onClick$={() => touched.value++}>
           Touch outer
         </button>
-        <span id="eb-outer-ok-count">{touched.value}</span>
+        <span id="catch-outer-ok-count">{touched.value}</span>
       </section>
-      <ErrorBoundary fallback$={resetFallback}>
-        <EbSyncThrower />
-      </ErrorBoundary>
-    </ErrorBoundary>
+      <Catch fallback$={resetFallback}>
+        <CatchSyncThrower />
+      </Catch>
+    </Catch>
   );
 });

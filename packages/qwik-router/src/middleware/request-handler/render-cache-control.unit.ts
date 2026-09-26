@@ -52,9 +52,9 @@ function createServerRequestEvent(url = 'http://localhost/') {
   return { ev, captured };
 }
 
-const createRender = (errorBoundaryCaught: boolean) =>
+const createRender = (hasCaughtError: boolean) =>
   vi.fn(async (opts: any) => {
-    opts.onBeforeFirstFlush?.({ errorBoundaryCaught });
+    opts.onBeforeFirstFlush?.({ hasCaughtError });
     await opts.stream.write('<!DOCTYPE html><html q:container="paused"></html>');
     return { flushes: 1, size: 10, isStatic: false, timing: {} };
   });
@@ -73,7 +73,7 @@ describe('render cache control', () => {
       },
     };
     const render = vi.fn(async (opts: any) => {
-      opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+      opts.onBeforeFirstFlush?.({ hasCaughtError: false });
       await opts.stream.write(opts.serverData.url);
       return { flushes: 1, size: 10, isStatic: false, timing: {} };
     });
@@ -133,7 +133,7 @@ describe('render cache control', () => {
         throw new ServerError(500, 'render boom');
       })
       .mockImplementation(async (opts: any) => {
-        opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+        opts.onBeforeFirstFlush?.({ hasCaughtError: false });
         await opts.stream.write('ERROR DOC');
         return { flushes: 1, size: 9, isStatic: false, timing: {} };
       });
@@ -153,9 +153,9 @@ describe('render cache control', () => {
   it('a boundary caught after the first flush skips the SSR etag cache', async () => {
     routeState.module = { default: () => null, routeConfig: { eTag: 'v1', cacheKey: true } };
     const lateCatchRender = vi.fn(async (opts: any) => {
-      opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+      opts.onBeforeFirstFlush?.({ hasCaughtError: false });
       await opts.stream.write('<html>late fallback</html>');
-      return { flushes: 2, size: 10, isStatic: false, timing: {}, errorBoundaryCaught: true };
+      return { flushes: 2, size: 10, isStatic: false, timing: {}, hasCaughtError: true };
     });
     const first = createServerRequestEvent('http://localhost/etag-late/');
     const run1 = await requestHandler(first.ev, { render: lateCatchRender as any });
@@ -211,9 +211,9 @@ describe('render cache control', () => {
     try {
       routeState.module = { default: () => null, routeConfig: { eTag: 'v1', cacheKey: true } };
       const lateCatchRender = vi.fn(async (opts: any) => {
-        opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+        opts.onBeforeFirstFlush?.({ hasCaughtError: false });
         await opts.stream.write('<html>late fallback</html>');
-        return { flushes: 2, size: 10, isStatic: false, timing: {}, errorBoundaryCaught: true };
+        return { flushes: 2, size: 10, isStatic: false, timing: {}, hasCaughtError: true };
       });
       const { ev } = createServerRequestEvent('http://localhost/etag-late/');
       const run = await requestHandler(ev, { render: lateCatchRender as any });

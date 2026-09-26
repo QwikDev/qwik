@@ -1,6 +1,9 @@
 export {
   $,
   AsyncSignal,
+  Catch,
+  CatchInfo,
+  CatchProps,
   ClassList,
   Component,
   component$,
@@ -12,9 +15,6 @@ export {
   createSignal,
   CSSProperties,
   Each,
-  ErrorBoundary,
-  ErrorBoundaryInfo,
-  ErrorBoundaryProps,
   // TODO remove this
   event$,
   EventHandler,
@@ -39,6 +39,8 @@ export {
   NoSerializeSymbol,
   SerializerSymbol,
   OnVisibleTaskOptions,
+  Pending,
+  PendingProps,
   PrefetchGraph,
   PrefetchServiceWorker,
   PropsOf,
@@ -66,8 +68,6 @@ export {
   Signal,
   SkipRender,
   Slot,
-  Suspense,
-  SuspenseProps,
   sync$,
   TaskCtx,
   // TODO do we really want to export this?

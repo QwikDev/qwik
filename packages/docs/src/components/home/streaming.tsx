@@ -11,7 +11,7 @@ export const Streaming = component$(() => {
   ];
 
   return (
-    <section class="relative overflow-x-clip grid gap-10 md:grid-cols-[auto_auto] md:justify-center md:gap-16 2xl:gap-[80px] w-full max-w-[1280px] mx-auto 2xl:pt-40 md:pt-24 pt-16 pb-20 2xl:px-20 px-4">
+    <section class="relative overflow-x-clip grid gap-10 md:grid-cols-[auto_max-content] md:justify-center md:gap-16 2xl:gap-[80px] w-full max-w-[1280px] mx-auto 2xl:pt-40 md:pt-24 pt-16 pb-20 2xl:px-20 px-4">
       <div class="flex flex-col 2xl:gap-10 gap-10 max-w-fit">
         <div class="relative">
           <h2 class="relative z-2 font-heading 2xl:text-h3 text-[28px] box-decoration-clone">
@@ -37,8 +37,8 @@ export const Streaming = component$(() => {
         <div class="absolute -z-2 -inset-x-1/3 -inset-y-1/2 bg-hero-gradient-purple opacity-50" />
         <TimeToInteractive
           alt="Time to interactive grows with app size in frameworks that hydrate, and stays flat with Qwik's JavaScript streaming."
-          class="w-full md:w-[360px] lg:w-[400px] 2xl:w-[460px] h-auto md:my-auto"
-          sizes="(min-width: 90rem) 460px, 440px"
+          class="w-full md:w-[380px] lg:w-[430px] 2xl:w-[500px] h-auto md:my-auto"
+          sizes="(min-width: 90rem) 500px, 440px"
         />
         <Button class="w-fit 2xl:text-base text-sm" variant="primary">
           <span>Discover more</span>

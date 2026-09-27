@@ -292,6 +292,11 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       result = maybeThen(this.runStoredCleanups(), () => {
         cleanupDeps(this);
         const run = this.computeFn ?? getFunctionOrResolve(this.computeQrl!, this.container);
+        if (isPromise(run) && !isServerEnv()) {
+          // Importing the compute chunk is framework work: the flush must outlast it, or the
+          // subscribers this computed then notifies land after the interaction has settled.
+          this.container?.scheduler.waitFor(run);
+        }
         return maybeThen(run, (run) => this.evaluate(job, run));
       });
     } catch (error) {

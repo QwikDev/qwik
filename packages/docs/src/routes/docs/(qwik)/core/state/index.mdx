@@ -102,6 +102,29 @@ return <Child isClosed={isClosed} />;
 This passes the signal object, so the child can read and update `isClosed.value`.
 </LongNote>
 
+## `useConstant()`
+
+`useConstant()` stores a value for the lifetime of the component. Subsequent calls always return the first value.
+
+If you pass a function, Qwik invokes it **once** to compute the value (you can also pass extra arguments to that function). The result is not reactive — use `useSignal()` or `useStore()` when the UI should update.
+
+```tsx
+import { component$, useConstant } from '@qwik.dev/core';
+
+export default component$(() => {
+  // function form: invoked once
+  const id = useConstant(() => Math.random());
+  // value form: retained as-is
+  const config = useConstant({ theme: 'dark' });
+
+  return (
+    <p>
+      id={id}, theme={config.theme}
+    </p>
+  );
+});
+```
+
 ## `useStore()`
 
 A store is similar to a signal, but for an entire object instead of a single `.value` property.

@@ -127,7 +127,7 @@ import {
 import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 const component_Filter_segment_2_2k94mv8ai8l03_tmpl0 = _createElementTemplate('<li> </li>');
 
-export const component_Filter_segment_2_2k94mv8ai8l03 = (ctx) => {
+export const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
   const [n] = _captures;
   const el0 = component_Filter_segment_2_2k94mv8ai8l03_tmpl0(ctx.document);
   setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [n]);

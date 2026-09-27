@@ -1,0 +1,189 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export const Footer = component$((props: { on: boolean }) => {
+  function Mark() {
+    return <i class={{ on: props.on }} />;
+  }
+  return <p>{props.on ? <Mark /> : null}</p>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _withCaptures,
+  _first,
+  _next,
+  BranchRange,
+  createBranch,
+  _qrlWithChunk,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_Mark_segment_2_t9oujovgd45s } from './component.tsx_component_Mark_segment_2_t9oujovgd45s';
+import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
+
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_3_24n7atwir5934',
+  () => import('./component.tsx_component_branch_then_segment_3_24n7atwir5934'),
+  'component_branch_then_segment_3_24n7atwir5934'
+);
+const Footer_tmpl0 = _createElementTemplate('<p><!><!></p>');
+export const Footer = (props, ctx) => {
+  function Mark() {
+    return _withCaptures(component_Mark_segment_2_t9oujovgd45s, [props]).apply(this, arguments);
+  }
+  const el0 = Footer_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const branch0 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    _withCaptures(component_branch_condition_segment_0_2fzrieu6vlhf9, [props]),
+    q_component_branch_then_segment_3_24n7atwir5934.w([props]),
+    undefined
+  );
+  ctx.scheduler.notify(branch0);
+  return el0;
+};
+
+export { Footer as Footer_component_d3m2s4mpch0k };
+============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
+  const [props] = _captures;
+  return props.on;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_0_2fzrieu6vlhf9",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_0",
+  "hash": "2fzrieu6vlhf9",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    188,
+    196
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_class_segment_1_3htuy2t94mso0.js (ENTRY POINT)==
+
+export const component_class_segment_1_3htuy2t94mso0 = (props) => {
+  return { on: props.on };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_class_segment_1_3htuy2t94mso0",
+  "entry": null,
+  "displayName": "component_class_segment_1",
+  "hash": "3htuy2t94mso0",
+  "canonicalFilename": "component.tsx_component_class_segment_1_3htuy2t94mso0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    149,
+    165
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_Mark_segment_2_t9oujovgd45s.js (ENTRY POINT)==
+
+import { _captures, createAttrExpressionEffect, _createElementTemplate } from '@qwik.dev/core';
+import { component_class_segment_1_3htuy2t94mso0 } from './component.tsx_component_class_segment_1_3htuy2t94mso0';
+const component_Mark_segment_2_t9oujovgd45s_tmpl0 = _createElementTemplate('<i></i>');
+
+export const component_Mark_segment_2_t9oujovgd45s = (props0, ctx) => {
+  const [props] = _captures;
+  const el0 = component_Mark_segment_2_t9oujovgd45s_tmpl0(ctx.document);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'class',
+    [props],
+    component_class_segment_1_3htuy2t94mso0,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Mark_segment_2_t9oujovgd45s",
+  "entry": null,
+  "displayName": "component_Mark_segment_2",
+  "hash": "t9oujovgd45s",
+  "canonicalFilename": "component.tsx_component_Mark_segment_2_t9oujovgd45s",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "Mark",
+  "captures": true,
+  "loc": [
+    110,
+    132
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_3_24n7atwir5934.js (ENTRY POINT)==
+
+import { _captures, createDynamicTag, createComponent, _withCaptures } from '@qwik.dev/core';
+import { component_Mark_segment_2_t9oujovgd45s } from './component.tsx_component_Mark_segment_2_t9oujovgd45s';
+
+export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
+  const [props] = _captures;
+  const Mark = _withCaptures(component_Mark_segment_2_t9oujovgd45s, [props]);
+  const component0 = createComponent((props0) => createDynamicTag(Mark, props0, ctx), null, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_3_24n7atwir5934",
+  "entry": null,
+  "displayName": "component_branch_then_segment_3",
+  "hash": "24n7atwir5934",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_3_24n7atwir5934",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": true,
+  "loc": [
+    199,
+    207
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

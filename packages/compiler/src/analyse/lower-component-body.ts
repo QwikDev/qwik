@@ -159,6 +159,8 @@ export function pushComponentQrl(
       body: { b: QrlBodyKind.Program, program },
       captures: delivery.captures,
       ...(delivery.functions === undefined ? {} : { functions: delivery.functions }),
+      // The chunk is called with this parameter, so the QRL keeps it even without a declaration.
+      ...(parameter === null ? {} : { parameter }),
       ...(delivery.declaration === undefined
         ? {}
         : { declaration: delivery.declaration(parameter) }),

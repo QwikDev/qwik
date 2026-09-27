@@ -36,7 +36,7 @@ const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_1_24n7blyqktd46'
 );
 q_component_branch_then_segment_1_24n7blyqktd46.s(component_branch_then_segment_1_24n7blyqktd46);
-const component_branch_else_segment_2_19dvu7nugnvkl = () => {
+const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
   return '<i>off</i>';
 };
 const q_component_branch_else_segment_2_19dvu7nugnvkl = /*#__PURE__*/ _noopQrl(
@@ -125,7 +125,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = () => {
 */
 ============================= src/component.tsx_component_branch_else_segment_2_19dvu7nugnvkl.js (ENTRY POINT)==
 
-export const component_branch_else_segment_2_19dvu7nugnvkl = () => {
+export const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
   return '<i>off</i>';
 };
 /*

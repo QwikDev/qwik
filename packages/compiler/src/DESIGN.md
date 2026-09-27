@@ -379,6 +379,7 @@ interface Qrl {
     access: 'direct' | 'loop-value' | 'component-prop';
   }[];
   params: { authored: number; used: LocalId[]; sources: PayloadId[] }; // invocation ABI
+  parameter?: ComponentParameter; // a component's own props parameter, declaration or not
   origin: {
     range: Range;
     functionRange: Range;
@@ -664,6 +665,15 @@ type LinkResult =
   | { kind: 'linked'; plan: LinkedPlan }
   | { kind: 'failed'; diagnostics: { module: string; code: string; message: string }[] };
 ```
+
+### Emitted parameter lists
+
+An emitted function declares the whole prefix its caller passes, used or not: a component chunk is
+`(props, ctx)`, a branch arm `(ctx)`, a row `(ctx, __rangeId, __rowId, ...loop)`. Dropping a leading
+parameter because the body never reads it shifts every later argument, and a body that reads a
+parameter under a name the head never declares is a silent ReferenceError no diagnostic catches.
+Trailing truncation is the only safe kind (`usedParamPrefix`). A parameter the body ignores still
+needs a name no capture can shadow — `capturePrelude` declares the captured names in the same scope.
 
 ### API
 

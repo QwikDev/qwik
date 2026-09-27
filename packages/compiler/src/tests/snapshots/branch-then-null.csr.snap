@@ -82,7 +82,7 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
-export const component_branch_then_segment_1_24n7blyqktd46 = () => {
+export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   return [];
 };
 /*

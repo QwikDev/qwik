@@ -461,7 +461,7 @@ export const component_branch_condition_segment_8_2fzrlj3269xjh = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_9_24n7eq7lvht8e.js (ENTRY POINT)==
 
-export const component_branch_then_segment_9_24n7eq7lvht8e = () => {
+export const component_branch_then_segment_9_24n7eq7lvht8e = (ctx) => {
   return [];
 };
 /*

@@ -30,6 +30,7 @@ import {
   functionPrelude,
   usedParamPrefix,
   qrlPropsName,
+  componentParamName,
 } from './captures';
 import {
   dynamicSlotEmission,
@@ -899,7 +900,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           ]),
           chunkImports: emitter.chunkImports,
           hoists: emitter.hoists,
-          params: statements.length === 0 ? [] : [names.ctx],
+          // Declare what the caller passes, used or not: a missing parameter shifts every later one.
+          params:
+            programKind(qrl) === ProgramKind.Component
+              ? [componentParamName(this.module, qrl), names.ctx]
+              : [names.ctx],
           statements,
           value: emission.value,
           async: false,

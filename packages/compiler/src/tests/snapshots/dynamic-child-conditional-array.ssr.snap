@@ -28,14 +28,14 @@ const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
-const component_branch_then_segment_1_24n7blyqktd46 = () => {
+const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   return 'text';
 };
 const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_1_24n7blyqktd46'
 );
 q_component_branch_then_segment_1_24n7blyqktd46.s(component_branch_then_segment_1_24n7blyqktd46);
-const component_branch_else_segment_2_19dvu7nugnvkl = () => {
+const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
   return '<b>a</b><i>b</i>';
 };
 const q_component_branch_else_segment_2_19dvu7nugnvkl = /*#__PURE__*/ _noopQrl(
@@ -99,7 +99,7 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
-export const component_branch_then_segment_1_24n7blyqktd46 = () => {
+export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   return 'text';
 };
 /*
@@ -124,7 +124,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = () => {
 */
 ============================= src/component.tsx_component_branch_else_segment_2_19dvu7nugnvkl.js (ENTRY POINT)==
 
-export const component_branch_else_segment_2_19dvu7nugnvkl = () => {
+export const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
   return '<b>a</b><i>b</i>';
 };
 /*

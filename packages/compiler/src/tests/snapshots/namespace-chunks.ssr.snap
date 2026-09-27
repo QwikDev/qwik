@@ -41,7 +41,7 @@ const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
-const component_branch_then_segment_1_24n7blyqktd46 = () => {
+const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   return '<circle r="1"></circle>';
 };
 const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
@@ -86,7 +86,7 @@ const q_component_branch_condition_segment_5_2fzrggonbf7cm = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_5_2fzrggonbf7cm.s(
   component_branch_condition_segment_5_2fzrggonbf7cm
 );
-const component_branch_then_segment_6_24n7cs22bbj5r = () => {
+const component_branch_then_segment_6_24n7cs22bbj5r = (ctx) => {
   return '<div>html</div>';
 };
 const q_component_branch_then_segment_6_24n7cs22bbj5r = /*#__PURE__*/ _noopQrl(
@@ -103,7 +103,7 @@ const q_component_branch_condition_segment_7_2fzrfomfhr3bk = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_7_2fzrfomfhr3bk.s(
   component_branch_condition_segment_7_2fzrfomfhr3bk
 );
-const component_branch_then_segment_8_24n7f48psbv8x = () => {
+const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
   return '<mi>x</mi>';
 };
 const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _noopQrl(
@@ -221,7 +221,7 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
-export const component_branch_then_segment_1_24n7blyqktd46 = () => {
+export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   return '<circle r="1"></circle>';
 };
 /*
@@ -386,7 +386,7 @@ export const component_branch_condition_segment_5_2fzrggonbf7cm = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_6_24n7cs22bbj5r.js (ENTRY POINT)==
 
-export const component_branch_then_segment_6_24n7cs22bbj5r = () => {
+export const component_branch_then_segment_6_24n7cs22bbj5r = (ctx) => {
   return '<div>html</div>';
 };
 /*
@@ -442,7 +442,7 @@ export const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_8_24n7f48psbv8x.js (ENTRY POINT)==
 
-export const component_branch_then_segment_8_24n7f48psbv8x = () => {
+export const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
   return '<mi>x</mi>';
 };
 /*

@@ -118,7 +118,7 @@ const q_component_branch_condition_segment_9_2fzrl51y9fviy = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_9_2fzrl51y9fviy.s(
   component_branch_condition_segment_9_2fzrl51y9fviy
 );
-const component_branch_then_segment_10_1yfeetw8az0ma = () => {
+const component_branch_then_segment_10_1yfeetw8az0ma = (ctx) => {
   return '<rect></rect><circle></circle>';
 };
 const q_component_branch_then_segment_10_1yfeetw8az0ma = /*#__PURE__*/ _noopQrl(
@@ -135,7 +135,7 @@ const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_1_2fzri0t2yrfeq.s(
   component_branch_condition_segment_1_2fzri0t2yrfeq
 );
-const component_branch_then_segment_2_24n7b7xmnzb3n = () => {
+const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   return '<path d="a"></path>';
 };
 const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
@@ -152,7 +152,7 @@ const q_component_branch_condition_segment_4_2fzrgupr899d5 = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_4_2fzrgupr899d5.s(
   component_branch_condition_segment_4_2fzrgupr899d5
 );
-const component_branch_then_segment_5_24n7d63685l6a = () => {
+const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
   return '<circle r="1"></circle><mi>x</mi>';
 };
 const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
@@ -169,7 +169,7 @@ const q_component_branch_condition_segment_7_2fzrfomfhr3bk = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_7_2fzrfomfhr3bk.s(
   component_branch_condition_segment_7_2fzrfomfhr3bk
 );
-const component_branch_then_segment_8_24n7f48psbv8x = () => {
+const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
   return '<title>t</title>';
 };
 const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _noopQrl(
@@ -312,7 +312,7 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n.js (ENTRY POINT)==
 
-export const component_branch_then_segment_2_24n7b7xmnzb3n = () => {
+export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   return '<path d="a"></path>';
 };
 /*
@@ -428,7 +428,7 @@ export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_5_24n7d63685l6a.js (ENTRY POINT)==
 
-export const component_branch_then_segment_5_24n7d63685l6a = () => {
+export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
   return '<circle r="1"></circle><mi>x</mi>';
 };
 /*
@@ -544,7 +544,7 @@ export const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_8_24n7f48psbv8x.js (ENTRY POINT)==
 
-export const component_branch_then_segment_8_24n7f48psbv8x = () => {
+export const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
   return '<title>t</title>';
 };
 /*
@@ -600,7 +600,7 @@ export const component_branch_condition_segment_9_2fzrl51y9fviy = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_10_1yfeetw8az0ma.js (ENTRY POINT)==
 
-export const component_branch_then_segment_10_1yfeetw8az0ma = () => {
+export const component_branch_then_segment_10_1yfeetw8az0ma = (ctx) => {
   return '<rect></rect><circle></circle>';
 };
 /*

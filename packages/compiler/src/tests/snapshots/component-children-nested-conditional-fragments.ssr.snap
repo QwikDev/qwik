@@ -131,7 +131,7 @@ const q_component_branch_condition_segment_6_2fzrg2njel5c3 = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_6_2fzrg2njel5c3.s(
   component_branch_condition_segment_6_2fzrg2njel5c3
 );
-const component_branch_then_segment_7_24n7ce0yehh58 = () => {
+const component_branch_then_segment_7_24n7ce0yehh58 = (ctx) => {
   return '<p>Details</p><p>More</p>';
 };
 const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ _noopQrl(
@@ -472,7 +472,7 @@ export const component_branch_condition_segment_6_2fzrg2njel5c3 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_7_24n7ce0yehh58.js (ENTRY POINT)==
 
-export const component_branch_then_segment_7_24n7ce0yehh58 = () => {
+export const component_branch_then_segment_7_24n7ce0yehh58 = (ctx) => {
   return '<p>Details</p><p>More</p>';
 };
 /*

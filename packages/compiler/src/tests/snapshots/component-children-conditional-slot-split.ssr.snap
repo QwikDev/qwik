@@ -84,7 +84,7 @@ const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_1_2fzri0t2yrfeq.s(
   component_branch_condition_segment_1_2fzri0t2yrfeq
 );
-const component_branch_then_segment_2_24n7b7xmnzb3n = () => {
+const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   return '<a>alpha</a>';
 };
 const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
@@ -108,7 +108,7 @@ const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_5_24n7d63685l6a'
 );
 q_component_branch_then_segment_5_24n7d63685l6a.s(component_branch_then_segment_5_24n7d63685l6a);
-const component_branch_else_segment_6_19dvsnjetbnih = () => {
+const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
   return '<b>bravo</b>';
 };
 const q_component_branch_else_segment_6_19dvsnjetbnih = /*#__PURE__*/ _noopQrl(
@@ -235,7 +235,7 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n.js (ENTRY POINT)==
 
-export const component_branch_then_segment_2_24n7b7xmnzb3n = () => {
+export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   return '<a>alpha</a>';
 };
 /*
@@ -381,7 +381,7 @@ export const component_branch_then_segment_5_24n7d63685l6a = () => {
 */
 ============================= src/component.tsx_component_branch_else_segment_6_19dvsnjetbnih.js (ENTRY POINT)==
 
-export const component_branch_else_segment_6_19dvsnjetbnih = () => {
+export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
   return '<b>bravo</b>';
 };
 /*

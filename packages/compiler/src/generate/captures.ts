@@ -7,8 +7,8 @@ import {
   type LinkedQrl,
   type QrlUse,
 } from '../schema';
-import { QwikWord } from '../words';
-import { createNameAllocator } from '../names';
+import { QwikGenWord, QwikWord } from '../words';
+import { allocateGeneratedName, createNameAllocator } from '../names';
 import type { FunctionEmission } from './emit-function';
 import { chunkCanonicalFilename, type QrlResolver } from './qrl-chunks';
 /** Capture names double as the chunk fn's parameters for value-payload QRLs. */
@@ -18,6 +18,22 @@ export function captureNames(module: LinkedModule, qrl: LinkedQrl): string[] {
     const name = module.bindings[capture.binding].name;
     return capture.access === CaptureAccess.Arguments ? allocate(`${name}Values`) : name;
   });
+}
+
+/**
+ * The props object a component chunk is CALLED with. A lite component declared inside another one
+ * also captures the outer props, and `capturePrelude` already declares THAT name — so the head must
+ * print the component's own parameter, or the two collide on one name.
+ */
+export function componentParamName(module: LinkedModule, qrl: LinkedQrl): string {
+  const binding = qrl.parameter?.surface.binding;
+  // No parameter of its own: the slot still prints, under a name no capture can shadow.
+  return binding == null
+    ? allocateGeneratedName(
+        QwikGenWord.ComponentProps,
+        module.bindings.map((entry) => entry.name)
+      )
+    : module.bindings[binding].name;
 }
 
 export function qrlPropsName(module: LinkedModule, qrl: LinkedQrl, fallback: string): string {

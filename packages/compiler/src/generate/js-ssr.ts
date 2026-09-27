@@ -36,6 +36,7 @@ import {
   rootArgs,
   usedParamPrefix,
   qrlPropsName,
+  componentParamName,
 } from './captures';
 import {
   dynamicSlotEmission,
@@ -450,12 +451,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       return emission;
     }
     const { emission, core, names } = this.renderEmission(qrl, { rootRange: true });
-    emission.params =
-      core.rangeIdParam === null
-        ? emission.statements.length === 0
-          ? []
-          : [names.ctx]
-        : [names.ctx, core.rangeIdParam];
+    // Declare what the caller passes, used or not: a missing parameter shifts every later one.
+    emission.params = core.rangeIdParam === null ? [names.ctx] : [names.ctx, core.rangeIdParam];
     return emission;
   }
 
@@ -487,7 +484,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** A body component lifted to its own chunk keeps the ordinary `(props, ctx)` render ABI. */
   private componentEmission(qrl: LinkedQrl): FunctionEmission {
     const { emission, core, names } = this.renderEmission(qrl, {});
-    emission.params = [names.props, names.ctx, ...(core.params ?? [])];
+    emission.params = [componentParamName(this.module, qrl), names.ctx, ...(core.params ?? [])];
     emission.async = core.async === true;
     return emission;
   }

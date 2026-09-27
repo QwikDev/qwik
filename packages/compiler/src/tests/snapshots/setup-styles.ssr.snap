@@ -66,7 +66,7 @@ const q_component_branch_condition_segment_3_2fzrh8qv53bdo = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_3_2fzrh8qv53bdo.s(
   component_branch_condition_segment_3_2fzrh8qv53bdo
 );
-const component_branch_then_segment_4_24n7dk4a4zn6t = () => {
+const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   return '<b class="⚡️f5nxrrrtaczd-2 on">on</b>';
 };
 const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _noopQrl(
@@ -271,7 +271,7 @@ export const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t.js (ENTRY POINT)==
 
-export const component_branch_then_segment_4_24n7dk4a4zn6t = () => {
+export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   return '<b class="⚡️f5nxrrrtaczd-2 on">on</b>';
 };
 /*

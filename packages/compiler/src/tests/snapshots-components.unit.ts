@@ -685,3 +685,61 @@ export default () => <main><span>before</span><Child /><span>after</span></main>
 `,
   });
 });
+
+test.each(['ssr', 'csr'] as const)(
+  '%s gives a lifted lite component its own props parameter beside the captured outer props',
+  async (mode) => {
+    const output = await testInput(mode, 'lite-component-captured-props', {
+      code: `import { component$ } from '@qwik.dev/core';
+export const Footer = component$((props: { todos: { filter: string; items: string[] } }) => {
+  function Filter({ filter }: { filter: string }) {
+    return (
+      <li>
+        <a class={{ selected: props.todos.filter == filter }} onClick$={() => (props.todos.filter = filter)}>
+          {filter}
+        </a>
+      </li>
+    );
+  }
+  return (
+    <footer>
+      {props.todos.items.length > 0 ? <ul>{['all', 'active'].map((f) => <Filter filter={f} key={f} />)}</ul> : null}
+    </footer>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    const head =
+      /component_Filter_segment_\d+_\w+ = \((props\d+), ctx\) => \{\n  const \[props\] = _captures;/.exec(
+        code
+      );
+    // Its own props is the argument; the outer props it closes over arrives through `_captures`.
+    expect(head, 'the lifted component declares both props names').not.toBeNull();
+    expect(code).toContain(`propSource(${head![1]}, "filter")`);
+  }
+);
+
+test.each(['ssr', 'csr'] as const)(
+  '%s keeps a lifted component that takes no props from reusing the captured name',
+  async (mode) => {
+    const output = await testInput(mode, 'lite-component-no-props', {
+      code: `import { component$ } from '@qwik.dev/core';
+export const Footer = component$((props: { on: boolean }) => {
+  function Mark() {
+    return <i class={{ on: props.on }} />;
+  }
+  return <p>{props.on ? <Mark /> : null}</p>;
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    const head =
+      /_Mark_segment_\d+_\w+ = \((\w+), ctx\) => \{\n  const \[props\] = _captures;/.exec(code);
+    // The unused props slot still has to be declared, under a name the capture cannot collide with.
+    expect(head, 'the lifted component declares its unused props slot').not.toBeNull();
+    expect(head![1]).not.toBe('props');
+  }
+);

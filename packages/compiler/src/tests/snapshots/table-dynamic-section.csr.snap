@@ -255,7 +255,7 @@ export const component_text_segment_4_1fh11zg0n0shg = (row) => {
 */
 ============================= src/component.tsx_component_branch_else_segment_5_19dvrhg32thgw.js (ENTRY POINT)==
 
-export const component_branch_else_segment_5_19dvrhg32thgw = () => {
+export const component_branch_else_segment_5_19dvrhg32thgw = (ctx) => {
   return [];
 };
 /*

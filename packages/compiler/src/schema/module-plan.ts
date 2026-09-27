@@ -124,6 +124,11 @@ export interface Qrl {
     | { kind: PropsPartKind.Spread; value: PayloadId }
     | { kind: PropsPartKind.Event; name: string; use: QrlUse }
   )[];
+  /**
+   * A component's own props parameter — the argument it is CALLED with, never a captured outer
+   * props. A declared component carries the same object on `declaration.parameter`.
+   */
+  parameter?: ComponentParameter;
   /** Present when the QRL has an authored declaration site (components) — its text splices there. */
   declaration?: QrlDeclaration;
   guard?: Predicate;

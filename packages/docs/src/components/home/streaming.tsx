@@ -22,7 +22,7 @@ export const Streaming = component$(() => {
               JavaScript Streaming
             </span>
           </h2>
-          <pixel.videomoviesplayer class="absolute -top-[55%] right-[40%] 2xl:-top-[18%] 2xl:right-[4%] z-1 size-20 rotate-14 text-border-base drop-shadow-[6px_6px_0_var(--color-shadow-emphasis)]" />
+          <pixel.videomoviesplayer class="absolute -top-[55%] right-[40%] md:right-6 md:-top-[42%] z-1 size-20 -rotate-14 text-border-base drop-shadow-[6px_6px_0_var(--color-shadow-emphasis)]" />
         </div>
 
         <div class="flex flex-col gap-6">

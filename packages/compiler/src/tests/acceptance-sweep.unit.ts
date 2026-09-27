@@ -12,8 +12,6 @@ const appsRoot = resolve(__dirname, '../../../../e2e/qwik-e2e/apps');
  */
 const KNOWN_REJECTS: Record<string, string | { reason: string; isServer: boolean }> = {
   'e2e/src/components/streaming/demo.tsx': 'children-function',
-  'e2e/src/components/streaming/streaming.tsx': 'children-function',
-  'todo-old-test/src/entry.dev.tsx': 'unsupported-runtime-jsx',
   'vdomless-counter/src/build-data/build-data.ts': 'expression-hook',
 };
 const skipDirs = new Set(['node_modules', 'dist', '.native', 'server']);

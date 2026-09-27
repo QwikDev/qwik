@@ -1,7 +1,9 @@
 /** Pure module linking over plans and host-provided resolver/plugin snapshots. */
 import {
+  DiagnosticCategory,
   EntryKind,
   LINKED_PLAN_VERSION,
+  ModuleKind,
   LinkResultKind,
   PlanFormat,
   type LinkedPlan,
@@ -81,7 +83,7 @@ export function linkPlans(
 
   const resolution = resolveModules(plans, resolver, diagnostics);
   if (diagnostics.length > 0) {
-    return failed(diagnostics);
+    return failed(diagnostics, plans);
   }
   const { qrlIndexes, importsByBinding, resolveLocalBinding } = resolution;
   const linkedModules = materializeModules(plans, resolution);
@@ -100,7 +102,7 @@ export function linkPlans(
   );
   linkedModules.forEach((module) => linkHookTwins(module, diagnostics));
   if (complete && diagnostics.length > 0) {
-    return failed(diagnostics);
+    return failed(diagnostics, plans);
   }
   const plan: LinkedPlan = {
     format: PlanFormat.LinkedPlan,
@@ -119,9 +121,20 @@ export function linkPlans(
   return { kind: LinkResultKind.Linked, plan };
 }
 
-function failed(diagnostics: LinkDiagnostic[]): LinkResult {
+/**
+ * A module that failed analysis has no exports to link, so the edge errors its importers report are
+ * consequences. Its own diagnostic rides along, or the failure names every module but the cause.
+ */
+function failed(diagnostics: LinkDiagnostic[], plans: readonly ModulePlan[] = []): LinkResult {
+  const causes = plans.flatMap((plan): LinkDiagnostic[] =>
+    plan.kind === ModuleKind.Failed
+      ? plan.diagnostics
+          .filter((diagnostic) => diagnostic.category === DiagnosticCategory.Error)
+          .map(({ code, message }) => ({ module: plan.path, code, message }))
+      : []
+  );
   const unique = new Map<string, LinkDiagnostic>();
-  for (const diagnostic of diagnostics) {
+  for (const diagnostic of [...causes, ...diagnostics]) {
     unique.set(`${diagnostic.module}\0${diagnostic.code}\0${diagnostic.message}`, diagnostic);
   }
   return {

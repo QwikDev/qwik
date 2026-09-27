@@ -257,6 +257,41 @@ export default () => <Child />;`
     });
   });
 
+  test('names the module whose analysis failed, not just the importer that cannot link it', async () => {
+    const [app] = await crossModulePlans();
+    const child = await analyse(
+      'src/child.tsx',
+      `import { $, useSignal } from '@qwik.dev/core';
+export const Child = $(() => useSignal(0));
+`
+    );
+    expect(child.diagnostics.map((entry) => entry.code)).toEqual(['expression-hook']);
+
+    const result = linkPlans(
+      [app, child],
+      [{ kind: EntryKind.Module, module: 'src/app.tsx', exposeExports: true }],
+      serverSpecialization(),
+      { edges: { 'src/app.tsx': { '0': resolved('src/child.tsx') } } },
+      true
+    );
+
+    // The importer's edge error is a consequence; the cause has to ride along with it.
+    expect(result.kind).toBe(LinkResultKind.Failed);
+    expect(result.kind === LinkResultKind.Failed && result.diagnostics).toEqual([
+      {
+        module: 'src/app.tsx',
+        code: 'non-portable-export',
+        message: 'Unable to link "./child": non-portable-export.',
+      },
+      {
+        module: 'src/child.tsx',
+        code: 'expression-hook',
+        message:
+          'useSignal() cannot run inside a QRL callback; hooks belong to the component body.',
+      },
+    ]);
+  });
+
   test('rejects duplicate module paths deterministically', async () => {
     const [app] = await crossModulePlans();
     const result = linkPlans([app, app], [], serverSpecialization(), { edges: {} }, true);

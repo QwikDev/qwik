@@ -112,6 +112,21 @@ export function resolveLazySubscribers(source: Source, notify: () => void): bool
   return true;
 }
 
+export function resolveLazySourceSubscriber(
+  source: Source,
+  lazy: LazySerialized<Subscriber>
+): ValueOrPromise<Subscriber> {
+  return maybeThen(lazy.resolve(), (subscriber) => {
+    const subs = source.subs;
+    if (subs === lazy) {
+      source.subs = subscriber;
+    } else if (Array.isArray(subs)) {
+      replaceLazySubscriber(source, subs, lazy, subscriber);
+    }
+    return subscriber;
+  });
+}
+
 function replaceLazySubscriber(
   source: Source,
   subs: SourceSub[],

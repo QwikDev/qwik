@@ -2,12 +2,15 @@ import { QContainerSelector, QLocaleAttr } from '../shared/utils/markers';
 import { TypeIds } from '../shared/serdes/type-id';
 import { disposeSubscriber } from '../reactive/cleanup';
 import { SubscriberFlags } from '../reactive/flags';
+import { LazySerialized, resolveLazySourceSubscriber } from '../reactive/lazy-serialized';
+import { notifySubscriber } from '../reactive/notify';
+import { appendSourceSubscriber, type Source } from '../reactive/source';
 import { isContextScope } from './context-scope';
 import { defaultScheduler, type Scheduler } from './scheduler';
 import { fastGetAttribute } from './fast-getters';
 import { findContextScopeId } from './node-walker';
 import type { ServerDataContext } from './use-server-data';
-import type { PhaseSubscriber, Subscriber } from './subscriber';
+import type { Subscriber } from './subscriber';
 import { deserializeCaptures } from '../shared/serdes/captures';
 import { isPromise } from '../shared/utils/promises';
 import { qTest } from '../shared/utils/qdev';
@@ -30,6 +33,7 @@ export interface ContainerState {
   disposedRoots: Set<number>;
   registeredScripts?: WeakSet<HTMLScriptElement>;
   subscriberRoots?: Map<number, number[]>;
+  packetSubscribers?: Array<[Source, LazySerialized<Subscriber>]>;
   /** In-flight root inflations, so dependent restores can order after them. */
   inflatingRoots?: WeakMap<object, Promise<unknown>>;
   /** The client `useId` counter, distinct from the server's by prefix. */
@@ -125,12 +129,19 @@ function createContainerContextRecord(
       disposeSubscriber(root);
     },
     async prepareRoot(id) {
-      const root = (await getStateRoot(context, Number(id))) as PhaseSubscriber;
-      context.scheduler.notify(root);
-      await context.scheduler.flushInteraction();
+      await getStateRoot(context, Number(id));
+      const subscribers = state.packetSubscribers;
+      state.packetSubscribers = undefined;
+      if (subscribers !== undefined) {
+        for (let i = 0; i < subscribers.length; i++) {
+          const [source, lazy] = subscribers[i];
+          notifySubscriber(await resolveLazySourceSubscriber(source, lazy));
+        }
+        await context.scheduler.flushInteraction();
+      }
     },
     registerStateScripts(scripts) {
-      registerStateScripts(context, scripts, true);
+      registerStateScripts(context, scripts);
     },
     restoreCaptures(ids) {
       return deserializeCaptures(context, ids);
@@ -202,15 +213,10 @@ function registerStateScript(context: ContainerContext, script: HTMLScriptElemen
 
 function registerStateScripts(
   context: ContainerContext,
-  scripts: readonly HTMLScriptElement[],
-  skipSubscriptions = false
+  scripts: readonly HTMLScriptElement[]
 ): void {
   for (let i = 0; i < scripts.length; i++) {
-    const script = scripts[i];
-    if (skipSubscriptions && fastGetAttribute(script, 'q:sub') !== null) {
-      continue;
-    }
-    registerStateScript(context, script);
+    registerStateScript(context, scripts[i]);
   }
 }
 
@@ -255,8 +261,7 @@ async function loadStateRoot(context: ContainerContext, id: number): Promise<unk
   const type = parsed[offset] as TypeIds;
   const value = parsed[offset + 1];
 
-  const { allocate, inflate, needsInflation, restoreStreamedSubscribers } =
-    await import('../shared/serdes/inflate');
+  const { allocate, inflate, needsInflation } = await import('../shared/serdes/inflate');
   const root = await allocate(context, type, value);
   if (isContextScope(root)) {
     root.id = String(id);
@@ -311,6 +316,13 @@ function registerSubscriberRoots(context: ContainerContext, subscriptions: numbe
   for (let i = 0; i < subscriptions.length; i += 2) {
     const sourceId = subscriptions[i];
     const subscriberId = subscriptions[i + 1];
+    const source = context.state.liveRoots.get(sourceId);
+    if (source !== undefined) {
+      const liveSource = source as Source;
+      const lazy = appendStreamedSubscriber(context, liveSource, subscriberId);
+      (context.state.packetSubscribers ??= []).push([liveSource, lazy]);
+      continue;
+    }
     roots ??= context.state.subscriberRoots = new Map();
     const subscribers = roots.get(sourceId);
     if (subscribers === undefined) {
@@ -319,6 +331,29 @@ function registerSubscriberRoots(context: ContainerContext, subscriptions: numbe
       subscribers.push(subscriberId);
     }
   }
+}
+
+export function restoreStreamedSubscribers(
+  context: ContainerContext,
+  source: unknown,
+  subscriberIds: readonly number[]
+): void {
+  for (let i = 0; i < subscriberIds.length; i++) {
+    appendStreamedSubscriber(context, source as Source, subscriberIds[i]);
+  }
+}
+
+function appendStreamedSubscriber(
+  context: ContainerContext,
+  source: Source,
+  subscriberId: number
+): LazySerialized<Subscriber> {
+  const lazy = new LazySerialized(
+    () => context.getRoot(subscriberId) as Promise<Subscriber>,
+    context.scheduler
+  );
+  appendSourceSubscriber(source, lazy);
+  return lazy;
 }
 
 /**

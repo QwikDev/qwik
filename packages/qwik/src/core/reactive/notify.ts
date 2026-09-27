@@ -25,7 +25,7 @@ export function notifySourceSubscribers(source: Source): void {
   }
 }
 
-function notifySubscriber(subscriber: Subscriber): void {
+export function notifySubscriber(subscriber: Subscriber): void {
   switch (subscriber.kind) {
     case SubscriberKind.Computed:
       markComputedDirty(subscriber);

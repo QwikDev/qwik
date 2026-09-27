@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createDocument } from '../../testing/document';
 import { Constants, TypeIds } from '../shared/serdes/constants';
 import { QContainerAttr } from '../shared/utils/markers';
@@ -7,7 +7,7 @@ import { isContextScope } from './context-scope';
 import { EffectKind } from '../dom/effect/effect-kind.enum';
 import { isLazySerialized } from '../reactive/lazy-serialized';
 import { SubscriberFlags } from '../reactive/flags';
-import type { Source } from '../reactive/source';
+import { appendSourceSubscriber, type Source } from '../reactive/source';
 import { createSerializationContext } from '../shared/serdes/serialization-context';
 import { createQRL } from '../shared/qrl/qrl-class';
 import {
@@ -21,7 +21,7 @@ import { findSuspenseBoundary, registerSuspenseBoundary } from '../dom/content/s
 import { useSignal } from '../reactive/public-api';
 import { createOwner, registerSubscriberToOwner, runWithOwner } from './owner';
 import { renderSsrTextNode } from '../dom/effect/ssr-effect';
-import type { Subscriber } from './subscriber';
+import { SubscriberKind, type Subscriber } from './subscriber';
 import { Scheduler } from './scheduler';
 import type { Signal } from '../reactive/signal';
 import { toArray } from '../test-utils';
@@ -170,7 +170,7 @@ describe('ContainerContext', () => {
     expect(context.state.subscriberRoots).toBeUndefined();
   });
 
-  it('runs a streamed subscriber on the first source update after resume', async () => {
+  it('catches up a streamed subscriber when its source changed before the packet', async () => {
     const serialization = createSerializationContext(
       null,
       () => '',
@@ -193,22 +193,39 @@ describe('ContainerContext', () => {
     const container = createContainer(`
       <script type="qwik/state" q:base="0" q:len="1">${shellState}</script>
       <span q:id="4">0</span>
-      <script type="qwik/state" q:base="${packetState!.base}" q:len="${packetState!.len}">${packetState!.state}</script>
-      <script type="qwik/state" q:base="${packetState!.base + packetState!.len}" q:len="0" q:sub>[0,${subscriberId}]</script>
     `);
     const scheduler = new Scheduler(() => {});
     const context = createContainerContext(container, scheduler);
     const count = (await context.getRoot(0)) as Signal<number>;
-
     count.value = 3;
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await scheduler.flushInteraction();
+    const shellNotify = vi.fn();
+    appendSourceSubscriber(count, {
+      kind: SubscriberKind.Dom,
+      scheduler: { notify: shellNotify },
+    } as unknown as Subscriber);
+    const packet = appendStateScript(
+      container,
+      packetState!.base,
+      JSON.parse(packetState!.state) as unknown[],
+      packetState!.len
+    );
+    const metadata = appendSubscriptionScript(container, packetState!.base + packetState!.len, [
+      0,
+      subscriberId,
+    ]);
+    context.registerStateScripts!([packet, metadata]);
+    await context.prepareRoot(subscriberId);
 
     expect(container.querySelector('span')?.textContent).toBe('3');
-    expect(toArray(count.subs)).toHaveLength(1);
+    expect(toArray(count.subs)).toHaveLength(2);
+    expect(shellNotify).not.toHaveBeenCalled();
+
+    count.value = 4;
+    await scheduler.flushInteraction();
+    expect(container.querySelector('span')?.textContent).toBe('4');
   });
 
-  it('leaves active packet subscriptions to root preparation', async () => {
+  it('attaches active packet subscriptions without registering them twice', async () => {
     const container = createContainer(`
       <script type="qwik/state" q:base="0" q:len="1">
         [${TypeIds.Signal},[${TypeIds.Plain},3]]
@@ -217,11 +234,13 @@ describe('ContainerContext', () => {
     const context = createContainerContext(container);
     const metadata = appendSubscriptionScript(container, 1, [0, 1]);
 
-    context.registerStateScripts!([metadata]);
     const source = (await context.getRoot(0)) as Source<number>;
+    context.registerStateScripts!([metadata]);
+    context.registerStateScripts!([metadata]);
 
     expect(source.v).toBe(3);
-    expect(source.subs).toBeNull();
+    expect(toArray(source.subs)).toHaveLength(1);
+    expect(isLazySerialized(toArray(source.subs)[0])).toBe(true);
     expect(context.state.subscriberRoots).toBeUndefined();
   });
 

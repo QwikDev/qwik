@@ -117,20 +117,6 @@ function lazySubscriber(
   return new LazySerialized<Subscriber>(load, container.scheduler);
 }
 
-export function restoreStreamedSubscribers(
-  container: ContainerContext,
-  source: unknown,
-  subscriberIds: readonly number[]
-): void {
-  for (let i = 0; i < subscriberIds.length; i++) {
-    const subscriberId = subscriberIds[i];
-    appendSourceSubscriber(
-      source as Source,
-      lazySubscriber(container, () => container.getRoot(subscriberId) as Promise<Subscriber>)
-    );
-  }
-}
-
 const dangerousObjectKeys = new Set([
   'constructor',
   'prototype',

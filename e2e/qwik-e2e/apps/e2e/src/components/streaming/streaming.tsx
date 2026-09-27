@@ -1,5 +1,4 @@
 import { component$, useComputed$, useStore, useStyles$ } from '@qwik.dev/core';
-import { SSRStream, SSRStreamBlock } from '@qwik.dev/core/internal';
 import { delay } from '../delay';
 
 export const StreamingRoot = component$(() => {
@@ -27,39 +26,34 @@ export const Streaming = component$(() => {
       </button>
 
       <ul>
-        <SSRStream>
-          {async function* () {
-            for (let i = 0; i < 5; i++) {
-              yield <li>yield: {i}</li>;
-              await delay(100);
-            }
-          }}
-        </SSRStream>
+        {[0, 1, 2, 3, 4].map((index) => (
+          <AsyncListItem key={index} index={index} kind="yield" />
+        ))}
       </ul>
 
       <ol>
-        <SSRStream>
-          {async function (stream: any) {
-            for (let i = 0; i < 10; i++) {
-              stream.write(<li>raw: {i}</li>);
-              await delay(100);
-            }
-          }}
-        </SSRStream>
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => (
+          <AsyncListItem key={index} index={index} kind="raw" />
+        ))}
       </ol>
 
-      <SSRStreamBlock>
-        <Cmp text="this_1" delay={200}></Cmp>
-        <Cmp text="this_2" delay={300}></Cmp>
-      </SSRStreamBlock>
+      <Cmp text="this_1" delay={200}></Cmp>
+      <Cmp text="this_2" delay={300}></Cmp>
 
       <Cmp text="this_3" delay={400}></Cmp>
 
-      <SSRStreamBlock>
-        <Cmp text="this_4" delay={500}></Cmp>
-        <Cmp text="this_5" delay={600}></Cmp>
-      </SSRStreamBlock>
+      <Cmp text="this_4" delay={500}></Cmp>
+      <Cmp text="this_5" delay={600}></Cmp>
     </div>
+  );
+});
+
+export const AsyncListItem = component$(async (props: { index: number; kind: string }) => {
+  await delay((props.index + 1) * 100);
+  return (
+    <li>
+      {props.kind}: {props.index}
+    </li>
   );
 });
 

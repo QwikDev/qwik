@@ -23,7 +23,7 @@ import { SubscriberFlags } from '../../reactive/flags';
 import { cleanupDeps } from '../../reactive/cleanup';
 import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
-import { EMPTY_ARRAY } from '../../utils/consts';
+import { DangerousInnerHTMLAttr, EMPTY_ARRAY } from '../../utils/consts';
 
 export type TextExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
   (...args: TArgs) => ValueOrPromise<TextExpressionValue>
@@ -498,7 +498,7 @@ function serializeOrScheduleAttr(
   styleScopedId?: string
 ): ValueOrPromise<string | null> {
   if (isPromise(value)) {
-    if (subscriber instanceof SsrDomSubscription) {
+    if (subscriber instanceof SsrDomSubscription || name === DangerousInnerHTMLAttr) {
       return maybeThen(value, (resolved) =>
         serializeAttrExpressionValue(name, resolved, styleScopedId)
       );

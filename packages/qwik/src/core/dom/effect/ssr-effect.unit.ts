@@ -175,6 +175,24 @@ describe('SSR DOM effect helpers', () => {
     ).toThrow('Promise values are not supported for JSX DOM props.');
   });
 
+  it('waits for asynchronous inner HTML in the initial SSR output', async () => {
+    const html = useSignal<unknown>(Promise.resolve('<b>remote</b>'));
+    const attrQrl = createQRL<AttrExpressionFn<[]>>(
+      './async.html.js',
+      'asyncHtml',
+      async () => '<i>fragment</i>',
+      null,
+      null
+    );
+
+    await expect(
+      createOwned(() => renderSsrAttr(1, 'dangerouslySetInnerHTML', html))
+    ).resolves.toBe('<b>remote</b>');
+    await expect(
+      createOwned(() => renderSsrAttrExpression(2, 'dangerouslySetInnerHTML', [], attrQrl))
+    ).resolves.toBe('<i>fragment</i>');
+  });
+
   it('batches SSR DOM effects under one subscriber', () => {
     const count = useSignal(1);
     const active = useSignal(false);

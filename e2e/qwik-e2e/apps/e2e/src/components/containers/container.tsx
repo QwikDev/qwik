@@ -1,5 +1,4 @@
 import { component$, useComputed$, useSignal, useStyles$ } from '@qwik.dev/core';
-// import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
 
 interface ContainerProps {
   url: string;
@@ -15,41 +14,31 @@ export const Containers = component$(() => {
   );
 });
 
-/* TODO(v3): restore SSRStream coverage when the API returns.
-const SSRStreamRemoteContainer = component$<{
-  url: string;
-  containerId?: string;
-}>(({ url, containerId }) => {
-  const decoder = new TextDecoder();
-  const getSSRStreamFunction = (remoteUrl: string) => async (stream: SSRStreamWriter) => {
-    const _remoteUrl = new URL(`http://localhost:${(globalThis as any).PORT}${remoteUrl}`);
-    const response = await fetch(_remoteUrl, {
-      headers: {
-        accept: 'text/html',
-      },
-    });
-    if (response.ok) {
-      const reader = response.body!.getReader();
-      let fragmentChunk = await reader.read();
-      while (!fragmentChunk.done) {
-        const rawHtml = decoder.decode(fragmentChunk.value);
-        stream.write((<SSRRaw data={rawHtml} />) as string);
-        fragmentChunk = await reader.read();
-      }
-    } else {
-      console.error('Failed to connect with status:', response.status, response.statusText);
+const StreamRemoteContainer = component$<{ url: string }>(({ url }) => {
+  const html = useComputed$(async () => {
+    const response = await fetch(`http://localhost:${(globalThis as any).PORT}${url}`);
+    if (!response.ok || !response.body) {
+      throw new Error(`Remote container request failed: ${response.status}`);
     }
-  };
-
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let result = '';
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) {
+        return result + decoder.decode();
+      }
+      result += decoder.decode(chunk.value, { stream: true });
+    }
+  });
   return (
-    <div id={containerId} q:shadowRoot>
+    <div id="shadow-dom-stream" q:shadowRoot>
       <template shadowRootMode="open">
-        <SSRStream>{getSSRStreamFunction(url)}</SSRStream>
+        <div class="frame" dangerouslySetInnerHTML={html.value} />
       </template>
     </div>
   );
 });
-*/
 
 export const Container = component$((props: ContainerProps) => {
   useStyles$(`
@@ -96,10 +85,7 @@ export const Container = component$((props: ContainerProps) => {
             <div class="frame" dangerouslySetInnerHTML={resource.value.html} />
           </template>
         </div>
-        {/* <SSRStreamRemoteContainer
-          url="/e2e/two-listeners?fragment&loader=false"
-          containerId="shadow-dom-stream"
-        /> */}
+        <StreamRemoteContainer url="/e2e/two-listeners?fragment&loader=false" />
       </div>
     </div>
   );

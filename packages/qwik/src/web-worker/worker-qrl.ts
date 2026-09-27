@@ -12,6 +12,10 @@ export interface WorkerConstructorQRL {
   <T extends WorkerFunction>(fnQrl: QRL<T>): QRL<T>;
 }
 
+/** @internal */
+export const worker = <T extends WorkerFunction>(fn: T): T =>
+  ((...args: Parameters<T>) => fn(...sanitizeWorkerArgs(args))) as T;
+
 /** @public */
 export const workerQrl: WorkerConstructorQRL = (qrl) => {
   return $(async (...args: any[]) => {

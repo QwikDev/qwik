@@ -2,7 +2,6 @@ import {
   $,
   component$,
   createContextId,
-  // jsx,
   Slot,
   useContext,
   useContextProvider,
@@ -10,7 +9,6 @@ import {
   useStore,
   useVisibleTask$,
   type FunctionComponent,
-  // type JSXNode,
   type Signal,
 } from '@qwik.dev/core';
 
@@ -62,12 +60,11 @@ export const SlotParent = component$(() => {
           />
 
           <AsyncSignalUpdateSlotContentIssue3607 />
-          {/* <RouteActionResultNavigationIssue3727 /> */}
+          <RouteActionResultNavigationIssue3727 />
           <SvgIconSlotConditionalRenderIssue4215 />
-          {/* Emitted projection references the component symbol without defining it. */}
-          {/* <ContentDuplicationDelayedVisibleTaskIssue4283>
+          <ContentDuplicationDelayedVisibleTaskIssue4283>
             <p>index page</p>
-          </ContentDuplicationDelayedVisibleTaskIssue4283> */}
+          </ContentDuplicationDelayedVisibleTaskIssue4283>
           <ConditionalRootNodeLayoutBreaksIssue4658 />
           <ContextHiddenSlotBreaksSsrIssue5270 />
           <SlotProjectedContentNotUpdatingDomIssue5506 />
@@ -314,23 +311,20 @@ export const AsyncSignalUpdateSlotContentIssue3607Button = component$(({ onClick
   );
 });
 
-/* const CTX = createContextId<Signal<any[]>>('content-RouteActionResultNavigationIssue3727');
+const CTX = createContextId<Signal<boolean>>('content-RouteActionResultNavigationIssue3727');
 
 export const RouteActionResultNavigationIssue3727 = component$(() => {
-  const content = useSignal<any[]>([
-    RouteActionResultNavigationIssue3727ParentA,
-    RouteActionResultNavigationIssue3727ChildA,
-  ]);
-  useContextProvider(CTX, content);
-
-  const contentsLen = content.value.length;
-  let cmp: JSXNode | null = null;
-  for (let i = contentsLen - 1; i >= 0; i--) {
-    cmp = jsx(content.value[i], {
-      children: cmp,
-    });
-  }
-  return cmp;
+  const isSecond = useSignal(false);
+  useContextProvider(CTX, isSecond);
+  return isSecond.value ? (
+    <RouteActionResultNavigationIssue3727ParentB>
+      <RouteActionResultNavigationIssue3727ChildB />
+    </RouteActionResultNavigationIssue3727ParentB>
+  ) : (
+    <RouteActionResultNavigationIssue3727ParentA>
+      <RouteActionResultNavigationIssue3727ChildA />
+    </RouteActionResultNavigationIssue3727ParentA>
+  );
 });
 
 export const RouteActionResultNavigationIssue3727ParentA = component$(() => {
@@ -350,7 +344,7 @@ export const RouteActionResultNavigationIssue3727ParentB = component$(() => {
 });
 
 export const RouteActionResultNavigationIssue3727ChildA = component$(() => {
-  const content = useContext(CTX);
+  const isSecond = useContext(CTX);
 
   return (
     <article>
@@ -358,10 +352,7 @@ export const RouteActionResultNavigationIssue3727ChildA = component$(() => {
       <button
         id="issue-3727-navigate"
         onClick$={() => {
-          content.value = [
-            RouteActionResultNavigationIssue3727ParentB,
-            RouteActionResultNavigationIssue3727ChildB,
-          ];
+          isSecond.value = true;
         }}
       >
         Navigate
@@ -372,17 +363,12 @@ export const RouteActionResultNavigationIssue3727ChildA = component$(() => {
 
 export const RouteActionResultNavigationIssue3727ChildB = component$(() => {
   const copyList = useSignal<string[]>([]);
-  const content = useContext(CTX);
   return (
     <article>
       <h1>Second</h1>
       <button
         id="issue-3727-add"
-        onClick$={async () => {
-          content.value = [
-            RouteActionResultNavigationIssue3727ParentB,
-            RouteActionResultNavigationIssue3727ChildB,
-          ];
+        onClick$={() => {
           copyList.value = [...copyList.value, `item ${copyList.value.length}`];
         }}
       >
@@ -395,7 +381,7 @@ export const RouteActionResultNavigationIssue3727ChildB = component$(() => {
       </ul>
     </article>
   );
-}); */
+});
 
 export const QwikSvgWithSlot = component$(() => {
   return (
@@ -437,7 +423,7 @@ export const SvgIconSlotConditionalRenderIssue4215 = component$(() => {
   );
 });
 
-/* export const HideUntilVisible = component$(() => {
+export const HideUntilVisible = component$(() => {
   const isNotVisible = useSignal(true);
 
   useVisibleTask$(
@@ -451,13 +437,9 @@ export const SvgIconSlotConditionalRenderIssue4215 = component$(() => {
     }
   );
 
-  // NOTE: if you comment the line below,
-  // there will only be one "Content"
-  if (isNotVisible.value) {
-    return <div></div>;
-  }
-
-  return (
+  return isNotVisible.value ? (
+    <div />
+  ) : (
     <div id="issue-4283-result">
       <p>Hide until visible</p>
       <Slot />
@@ -472,7 +454,7 @@ export const ContentDuplicationDelayedVisibleTaskIssue4283 = component$(() => {
       <Slot />
     </HideUntilVisible>
   );
-}); */
+});
 
 export const ConditionalRootNodeLayoutBreaksIssue4658Context =
   createContextId<Signal<boolean>>('issue-4658-context');

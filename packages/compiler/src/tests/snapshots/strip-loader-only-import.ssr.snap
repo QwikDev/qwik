@@ -1,0 +1,151 @@
+==INPUT==
+
+// src/routes/index.tsx
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+import { loadSecret } from '../db.server';
+import { loadFolderSecret } from '../server/folder-secret';
+export const useSecret = routeLoader$(() => `${loadSecret()} ${loadFolderSecret()}`);
+export default component$(() => {
+  const secret = useSecret();
+  return <main>{secret.value}</main>;
+});
+// src/db.server.ts
+export const loadSecret = () => 'SERVER_ONLY_SECRET';
+// src/server/folder-secret.ts
+export const loadFolderSecret = () => 'SERVER_FOLDER_SECRET';
+== SSR OUTPUT ==
+
+============================= src/routes/index.tsx ==
+
+const index_routeLoaderqrl_segment_0_1ikesr9pxvi1b = () => {
+  return `${loadSecret()} ${loadFolderSecret()}`;
+};
+const q_index_routeLoaderqrl_segment_0_1ikesr9pxvi1b = /*#__PURE__*/ _noopQrl(
+  'index_routeLoaderqrl_segment_0_1ikesr9pxvi1b'
+);
+q_index_routeLoaderqrl_segment_0_1ikesr9pxvi1b.s(index_routeLoaderqrl_segment_0_1ikesr9pxvi1b);
+const index_text_segment_1_1ipiow57gf7g4 = (ctx0) => {
+  const [secret] = _captures;
+  return renderSsrDynamicContent(secret.value, ctx0);
+};
+const q_index_text_segment_1_1ipiow57gf7g4 = /*#__PURE__*/ _noopQrl(
+  'index_text_segment_1_1ipiow57gf7g4'
+);
+q_index_text_segment_1_1ipiow57gf7g4.s(index_text_segment_1_1ipiow57gf7g4);
+import {
+  _noopQrl,
+  createSsrOpenTag,
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
+  renderSsrDynamicContent,
+  _markComponent,
+} from '@qwik.dev/core';
+import { routeLoaderQrl } from '@qwik.dev/router';
+import { routeLoader$ } from '@qwik.dev/router';
+import { loadSecret } from '../db.server';
+import { loadFolderSecret } from '../server/folder-secret';
+export const useSecret = routeLoaderQrl(q_index_routeLoaderqrl_segment_0_1ikesr9pxvi1b);
+export const default_component_tv8h7w8tm3v2 = _markComponent(
+  (props, ctx) => {
+    const invokeCtx0 = getActiveInvokeContextOrNull();
+    const secret = useSecret();
+    return maybeThen(ctx.scheduler.flush(), () =>
+      invoke(invokeCtx0, () => {
+        const id0 = ctx.nextId();
+        ctx.addRoot(secret);
+        const content0 = renderSsrContent(
+          ctx,
+          id0,
+          [],
+          q_index_text_segment_1_1ipiow57gf7g4.w([secret]),
+          false,
+          true
+        );
+        return maybeThen(content0, (content0) => [
+          createSsrOpenTag('<main', '>'),
+          '<!d=',
+          createSsrNodeId(id0),
+          '>',
+          content0,
+          '<!/d></main>',
+        ]);
+      })
+    );
+  },
+  'default_component_tv8h7w8tm3v2',
+  './index.tsx'
+);
+export default default_component_tv8h7w8tm3v2;
+============================= src/routes/index.tsx_index_routeLoaderqrl_segment_0_1ikesr9pxvi1b.js (ENTRY POINT)==
+
+import { loadSecret } from '../db.server';
+import { loadFolderSecret } from '../server/folder-secret';
+
+export const index_routeLoaderqrl_segment_0_1ikesr9pxvi1b = () => {
+  return `${loadSecret()} ${loadFolderSecret()}`;
+};
+/*
+{
+  "origin": "index.tsx",
+  "name": "index_routeLoaderqrl_segment_0_1ikesr9pxvi1b",
+  "entry": null,
+  "displayName": "index_routeLoaderqrl_segment_0",
+  "hash": "1ikesr9pxvi1b",
+  "canonicalFilename": "index.tsx_index_routeLoaderqrl_segment_0_1ikesr9pxvi1b",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "routeLoader$",
+  "captures": false,
+  "loc": [
+    222,
+    281
+  ],
+  "paramNames": []
+}
+*/
+============================= src/routes/index.tsx_index_text_segment_1_1ipiow57gf7g4.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const index_text_segment_1_1ipiow57gf7g4 = (ctx0) => {
+  const [secret] = _captures;
+  return renderSsrDynamicContent(secret.value, ctx0);
+};
+/*
+{
+  "origin": "index.tsx",
+  "name": "index_text_segment_1_1ipiow57gf7g4",
+  "entry": null,
+  "displayName": "index_text_segment_1",
+  "hash": "1ipiow57gf7g4",
+  "canonicalFilename": "index.tsx_index_text_segment_1_1ipiow57gf7g4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    363,
+    375
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "secret"
+  ]
+}
+*/
+============================= src/db.server.ts ==
+
+export const loadSecret = () => 'SERVER_ONLY_SECRET';
+============================= src/server/folder-secret.ts ==
+
+export const loadFolderSecret = () => 'SERVER_FOLDER_SECRET';
+== SSR DIAGNOSTICS ==
+
+[]

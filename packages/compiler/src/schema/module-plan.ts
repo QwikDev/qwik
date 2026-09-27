@@ -264,6 +264,8 @@ export interface ModulePlan {
     importedRange: Range;
     authoredSpecifierRange: Range;
     authoredImportedRange: Range;
+    /** Where the module reads this binding, so a strip can tell a now-dead import from a live one. */
+    referenceRanges: Range[];
   }[];
   exports: (
     | {

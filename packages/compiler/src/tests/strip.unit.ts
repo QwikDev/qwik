@@ -243,6 +243,48 @@ export default component$(() => {
     expect(main).toContain('count.value = 2');
   });
 
+  test.each(['ssr', 'csr'] as const)(
+    '%s golden: a module-scope loader is the only user of its server-only imports',
+    async (mode) => {
+      const output = await testInputs(
+        mode,
+        'strip-loader-only-import',
+        [
+          {
+            path: 'src/routes/index.tsx',
+            code: `import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+import { loadSecret } from '../db.server';
+import { loadFolderSecret } from '../server/folder-secret';
+export const useSecret = routeLoader$(() => \`\${loadSecret()} \${loadFolderSecret()}\`);
+export default component$(() => {
+  const secret = useSecret();
+  return <main>{secret.value}</main>;
+});`,
+          },
+          {
+            path: 'src/db.server.ts',
+            code: `export const loadSecret = () => 'SERVER_ONLY_SECRET';`,
+          },
+          {
+            path: 'src/server/folder-secret.ts',
+            code: `export const loadFolderSecret = () => 'SERVER_FOLDER_SECRET';`,
+          },
+        ],
+        mode === 'csr' ? { stripCtxName: SERVER_CTX_NAMES } : {}
+      );
+      expect(output.diagnostics).toEqual([]);
+      const route = output.modules.find((module) => module.path === 'src/routes/index.tsx')!;
+      if (mode === 'csr') {
+        // the client build resolves what it imports, so a server-only module must not be named
+        expect(route.code).not.toContain('../db.server');
+        expect(route.code).not.toContain('../server/folder-secret');
+      } else {
+        expect(route.code).toContain('../db.server');
+      }
+    }
+  );
+
   test('without strip options every boundary ships as usual', async () => {
     const { main, chunks } = await compile(false, {});
 

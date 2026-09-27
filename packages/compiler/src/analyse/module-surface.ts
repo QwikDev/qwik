@@ -237,6 +237,11 @@ function scanImport(
         specifier.type === 'ImportSpecifier'
           ? [specifier.imported.start, specifier.imported.end]
           : [specifier.local.start, specifier.local.end],
+      // The declaration itself is not a read, so the import statement's own span is excluded.
+      referenceRanges: bindings
+        .referencesOf(binding)
+        .map(({ node }): Range => [node.start, node.end])
+        .filter(([start, end]) => start < ownerRange[0] || end > ownerRange[1]),
     });
   }
 }

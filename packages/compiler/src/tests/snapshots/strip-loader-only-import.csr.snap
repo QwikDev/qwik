@@ -1,0 +1,105 @@
+==INPUT==
+
+// src/routes/index.tsx
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+import { loadSecret } from '../db.server';
+import { loadFolderSecret } from '../server/folder-secret';
+export const useSecret = routeLoader$(() => `${loadSecret()} ${loadFolderSecret()}`);
+export default component$(() => {
+  const secret = useSecret();
+  return <main>{secret.value}</main>;
+});
+// src/db.server.ts
+export const loadSecret = () => 'SERVER_ONLY_SECRET';
+// src/server/folder-secret.ts
+export const loadFolderSecret = () => 'SERVER_FOLDER_SECRET';
+== CSR OUTPUT ==
+
+============================= src/routes/index.tsx ==
+
+const q_index_text_segment_1_1ipiow57gf7g4 = /*#__PURE__*/ _qrlWithChunk(
+  './index.tsx_index_text_segment_1_1ipiow57gf7g4',
+  () => import('./index.tsx_index_text_segment_1_1ipiow57gf7g4'),
+  'index_text_segment_1_1ipiow57gf7g4'
+);
+const default_tmpl0 = _createElementTemplate('<main><!><!></main>');
+import {
+  _noopQrl,
+  _first,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { routeLoaderQrl } from '@qwik.dev/router';
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useSecret = routeLoaderQrl(_noopQrl('index_routeLoaderqrl_segment_0_1ikesr9pxvi1b'));
+export const default_component_tv8h7w8tm3v2 = (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const secret = useSecret();
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      const start0 = _first(el0);
+      const end0 = _next(start0);
+      const content0 = createContentBlock(
+        ctx,
+        start0,
+        end0,
+        [],
+        q_index_text_segment_1_1ipiow57gf7g4.w([secret]),
+        false,
+        true
+      );
+      ctx.scheduler.notify(content0);
+      return el0;
+    })
+  );
+};
+export default default_component_tv8h7w8tm3v2;
+/* stripped-body imports: ["../db.server","../server/folder-secret"] */
+============================= src/routes/index.tsx_index_text_segment_1_1ipiow57gf7g4.js (ENTRY POINT)==
+
+import { _captures, createDynamicContent } from '@qwik.dev/core';
+
+export const index_text_segment_1_1ipiow57gf7g4 = (ctx0) => {
+  const [secret] = _captures;
+  return createDynamicContent(secret.value, ctx0);
+};
+/*
+{
+  "origin": "index.tsx",
+  "name": "index_text_segment_1_1ipiow57gf7g4",
+  "entry": null,
+  "displayName": "index_text_segment_1",
+  "hash": "1ipiow57gf7g4",
+  "canonicalFilename": "index.tsx_index_text_segment_1_1ipiow57gf7g4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    363,
+    375
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "secret"
+  ]
+}
+*/
+============================= src/db.server.ts ==
+
+export const loadSecret = () => 'SERVER_ONLY_SECRET';
+============================= src/server/folder-secret.ts ==
+
+export const loadFolderSecret = () => 'SERVER_FOLDER_SECRET';
+== CSR DIAGNOSTICS ==
+
+[]

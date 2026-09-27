@@ -18,5 +18,6 @@ export {
 export { generateJsCsr } from './generate/js-csr';
 export { generateJsSsr } from './generate/js-ssr';
 export { type GenerateOutput, type PresentationOptions } from './generate/output';
+export { deadStrippedEdges } from './link/strip';
 export { transformModules } from './transform-modules';
 export { extractRenderRoots, type ExtractedRenderRoot } from './render-roots';

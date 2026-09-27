@@ -16,6 +16,7 @@ import {
   SideEffects,
   analyseModule,
   createLibraryPlan,
+  deadStrippedEdges,
   generateJsCsr,
   generateJsSsr,
   linkPlans,
@@ -23,6 +24,7 @@ import {
 } from '@qwik.dev/compiler';
 
 const prefix = '\0qwik-linked:';
+const EMPTY_EDGES: ReadonlySet<number> = new Set();
 export const isLinkedBuildId = (id: string) => id.startsWith(prefix);
 const normalize = (path: string) => path.replaceAll('\\', '/');
 // Markdown arrives as authored JSX from the router's transform, so it compiles like a script.
@@ -122,7 +124,14 @@ export function createLinkedBuild() {
         return;
       }
       const edges = (resolver.edges[id] ??= {});
+      // The client build errors on a server-only module it so much as resolves, so an edge the
+      // strip kills stays out of the graph instead of being followed and pruned after the fact.
+      const dead = config.server ? EMPTY_EDGES : deadStrippedEdges(plan, config.stripCtxName ?? []);
       for (const edge of plan.edges) {
+        if (dead.has(edge.id)) {
+          edges[edge.id] = { r: ResolutionKind.External };
+          continue;
+        }
         const inherited = edges[edge.id];
         if (inherited?.r === ResolutionKind.Resolved) {
           await collect(inherited.path, isRuntime && !edge.typeOnly);
@@ -301,10 +310,11 @@ export function createLinkedBuild() {
     if (file === undefined) {
       throw new Error(`Missing linked output: ${id}`);
     }
-    // resolved here: the router's server$ walk resolves ids without an importer
-    const qwikdeps = await Promise.all(
-      (file.imports ?? []).map((specifier) => resolveId(ctx, specifier, id))
-    );
+    // Resolved here: the router's server$ walk resolves ids without an importer. That walk is an
+    // SSR-build step, and a stripped body's import is server-only, so the client never resolves it.
+    const qwikdeps = options!.server
+      ? await Promise.all((file.imports ?? []).map((specifier) => resolveId(ctx, specifier, id)))
+      : [];
     return {
       code: file.code,
       map: file.map,

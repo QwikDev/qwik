@@ -22,8 +22,8 @@ import {
   renderSsrCollection,
   createSsrNodeId,
   maybeThen,
-  renderSsrAttrExpression,
   escapeHTML,
+  renderSsrAttrExpression,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -37,7 +37,9 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, it
     q_component_title_segment_2_2f0r05go51flv
   );
   return maybeThen(attr0, (attr0) => [
-    '<li q:row><button q:id="',
+    '<li q:row="',
+    escapeHTML(__rowId),
+    '"><button q:id="',
     createSsrNodeId(id0),
     '"',
     attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
@@ -111,9 +113,9 @@ export default default_component_3rg6kq1so9aio;
 
 import {
   _noopQrl,
+  escapeHTML,
   createSsrNodeId,
   renderSsrAttrExpression,
-  escapeHTML,
   maybeThen,
 } from '@qwik.dev/core';
 import { component_title_segment_2_2f0r05go51flv } from './component.tsx_component_title_segment_2_2f0r05go51flv';
@@ -144,7 +146,9 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
     q_component_title_segment_2_2f0r05go51flv
   );
   return maybeThen(attr0, (attr0) => [
-    '<li q:row><button q:id="',
+    '<li q:row="',
+    escapeHTML(__rowId),
+    '"><button q:id="',
     createSsrNodeId(id0),
     '"',
     attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),

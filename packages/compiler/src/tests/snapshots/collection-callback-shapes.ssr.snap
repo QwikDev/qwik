@@ -72,7 +72,9 @@ const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, __rangeId, __rowId, ro
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
-    '" q:row>',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
     escapeHTML(text0),
     '</li>',
   ]);
@@ -95,7 +97,9 @@ const component_for_render_segment_5_asyra4dfhsag = (ctx, __rangeId, __rowId, ro
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
-    '" q:row>',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
     escapeHTML(text0),
     '</li>',
   ]);
@@ -123,7 +127,9 @@ const component_for_render_segment_8_asyq411ozm8v = (ctx, __rangeId, __rowId, ro
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
-    '" q:row>',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
     escapeHTML(text0),
     '</li>',
   ]);
@@ -345,7 +351,9 @@ export const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, __rangeId, __ro
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
-    '" q:row>',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
     escapeHTML(text0),
     '</li>',
   ]);
@@ -449,7 +457,9 @@ export const component_for_render_segment_5_asyra4dfhsag = (ctx, __rangeId, __ro
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
-    '" q:row>',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
     escapeHTML(text0),
     '</li>',
   ]);
@@ -558,7 +568,9 @@ export const component_for_render_segment_8_asyq411ozm8v = (ctx, __rangeId, __ro
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
-    '" q:row>',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
     escapeHTML(text0),
     '</li>',
   ]);

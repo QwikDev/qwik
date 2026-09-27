@@ -15,7 +15,7 @@ import type { AttrExpressionFn, EventExpressionFn } from './dom/effect/effect';
 import { createTextNodeEffect, type TextExpressionFn } from './dom/effect/text-effect';
 import { BranchSubscription, renderSsrBranch } from './dom/branch/branch';
 import { ContentSubscription, renderSsrContent } from './dom/content/content';
-import { IndexMode, renderSsrForBlock } from './dom/for/for';
+import { IndexMode, RowOutputShape, renderSsrForBlock } from './dom/for/for';
 import { ForBlockSubscription } from './dom/effect/effect';
 import {
   createSsrDomBatchEffect,
@@ -848,12 +848,17 @@ describe('serdes emit-only', () => {
       null
     );
     const renderQrl = createQRL<
-      (ctx: ContainerContext, rangeId: number, rowId: number, item: Row) => ValueOrPromise<string>
+      (
+        ctx: ContainerContext,
+        rangeId: number,
+        rowMarker: number | string,
+        item: Row
+      ) => ValueOrPromise<string>
     >(
       './for.render.js',
       'render',
-      (_ctx, _rangeId, rowId, row) => {
-        return `<span q:id="${rowId}" q:row>${renderSsrTextNode(rowId, null, row.label)}</span>`;
+      (_ctx, _rangeId, rowMarker, row) => {
+        return `<span q:row="${rowMarker}">${renderSsrTextNode(0, null, row.label)}</span>`;
       },
       null,
       null
@@ -861,13 +866,22 @@ describe('serdes emit-only', () => {
     const container = createCaptureContainer({});
 
     const html = await createOwned(() =>
-      renderSsrForBlock(container, 9, items, keyQrl, renderQrl, IndexMode.None)
+      renderSsrForBlock(
+        container,
+        9,
+        items,
+        keyQrl,
+        renderQrl,
+        IndexMode.None,
+        false,
+        RowOutputShape.Element
+      )
     );
     const state = await serialize(items, label);
     const signalPayload = state[1] as unknown[];
     const forPayload = signalPayload[3] as unknown[];
 
-    expect(html).toBe('<span q:id="0" q:row>alpha</span>');
+    expect(html).toBe('<span q:row="alpha">alpha</span>');
     expect(signalPayload[2]).toBe(TypeIds.EffectSubscription);
     expect(forPayload[1]).toBe(EffectKind.ForBlock);
     expect(forPayload[3]).toBe(9);
@@ -879,7 +893,7 @@ describe('serdes emit-only', () => {
   it('reuses serialized for index signals after inflation', async () => {
     type Row = { id: string };
     const win = createWindow({
-      html: '<div q:container><!--f=9--><span q:row>a</span><span q:row>b</span><!--/f--></div>',
+      html: '<div q:container><!--f=9--><span q:row="a">a</span><span q:row="b">b</span><!--/f--></div>',
     });
     const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
     const rows = [{ id: 'a' }, { id: 'b' }];

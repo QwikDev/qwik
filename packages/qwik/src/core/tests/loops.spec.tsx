@@ -1,4 +1,4 @@
-import { component$, useSignal, type Signal } from '@qwik.dev/core';
+import { component$, untrack, useSignal, useStore, useTask$, type Signal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -238,6 +238,78 @@ describe(`${name}: loops`, () => {
     await qwikLoader?.dispatch(container.querySelector('#tick')!, 'click');
     expect(rowA.textContent).toBe('1');
 
+    cleanup();
+  });
+
+  /**
+   * `Array#sort` mutates through the store proxy, so anything that re-derives the rendered keys
+   * from the live array after resume mislabels the rows SSR produced.
+   */
+  it('reorders keyed rows after an in-place sort of a store array', async () => {
+    const MyComp = () => {
+      const sort = useSignal<'size' | 'age'>('size');
+      const table = useStore({
+        value: [
+          { id: 1, size: 4, age: 1 },
+          { id: 2, size: 3, age: 3 },
+          { id: 3, size: 2, age: 27 },
+        ],
+      });
+      useTask$(() => {
+        const key = sort.value;
+        table.value = untrack(() => table.value.sort((a, b) => a[key] - b[key]).slice());
+      });
+      return (
+        <section>
+          <button id="by-age" onClick$={() => (sort.value = 'age')}>
+            age
+          </button>
+          <ul>
+            {table.value.map((row) => (
+              <li key={row.id}>{row.id}</li>
+            ))}
+          </ul>
+        </section>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(MyComp, { debug });
+    const ids = () => Array.from(container.querySelectorAll('li')).map((node) => node.textContent);
+
+    expect(ids(), 'sorted by size').toEqual(['3', '2', '1']);
+    await qwikLoader?.dispatch(container.querySelector('#by-age')!, 'click');
+    expect(ids(), 're-sorted by age').toEqual(['1', '2', '3']);
+    cleanup();
+  });
+
+  it('reorders keyed rows after an in-place sort from a handler', async () => {
+    const MyComp = () => {
+      const table = useStore({ value: [{ id: 1 }, { id: 2 }, { id: 3 }] });
+      return (
+        <section>
+          <button
+            id="rev"
+            onClick$={() => {
+              table.value = table.value.sort((a, b) => b.id - a.id).slice();
+            }}
+          >
+            rev
+          </button>
+          <ul>
+            {table.value.map((row) => (
+              <li key={row.id}>{row.id}</li>
+            ))}
+          </ul>
+        </section>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(MyComp, { debug });
+    const ids = () => Array.from(container.querySelectorAll('li')).map((node) => node.textContent);
+
+    expect(ids()).toEqual(['1', '2', '3']);
+    await qwikLoader?.dispatch(container.querySelector('#rev')!, 'click');
+    expect(ids(), 'reversed in place').toEqual(['3', '2', '1']);
     cleanup();
   });
 });

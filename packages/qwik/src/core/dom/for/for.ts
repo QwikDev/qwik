@@ -19,7 +19,7 @@ import {
   registerSubscriberToOwner,
   type Owner,
 } from '../../runtime/owner';
-import { findForRowRanges } from '../../runtime/node-walker';
+import { findForRows } from '../../runtime/node-walker';
 import type { ForBlockSubscriber } from '../../runtime/subscriber';
 import { toNodes } from '../../utils/nodes';
 import type { MaybeNodeOutput } from '../../utils/nodes';
@@ -30,7 +30,9 @@ import { getRangeParent, replaceRange } from '../range/range';
 import { EMPTY_ARRAY, EMPTY_NODES, NodeType } from '../../utils/consts';
 import type { SsrOutput } from '../../ssr/output';
 
-export type ForKey = string | number;
+/** A key identifies a row across renders; resume reads it from HTML, so identity is the string. */
+export type ForKey = string;
+export type AuthoredForKey = string | number;
 
 /**
  * How a collection's rows consume their index. `IndexMode.Effects` keeps index signals in memory
@@ -50,14 +52,15 @@ export const enum RowOutputShape {
   Many = 2,
   Unknown = 3,
 }
-type ForKeyFn<T> = (item: T, index: number) => ForKey;
+type ForKeyFn<T> = (item: T, index: number) => AuthoredForKey;
 type ForRenderIndex = number | Signal<number> | undefined;
 type SsrForContext = ContainerContext & { nextId(): number };
 type ForRenderFn<T> = (ctx: ContainerContext, item: T, index: ForRenderIndex) => MaybeNodeOutput;
 type SsrForRenderFn<T> = (
   ctx: SsrForContext,
   rangeId: number,
-  rowId: number,
+  /** The row's marker: its id, or the key it stamps when the collection is keyed. */
+  rowMarker: number | string,
   item: T,
   index: ForRenderIndex
 ) => ValueOrPromise<SsrOutput>;
@@ -88,7 +91,7 @@ export class ForRange {
 }
 
 // Keyless rows fall back to index identity; the block rebuilds instead of reconciling.
-const indexKeyFn = (_item: unknown, index: number): ForKey => index;
+const indexKeyFn = (_item: unknown, index: number): AuthoredForKey => index;
 
 export class ForBlock<T = unknown> {
   keys: ForKey[] = [];
@@ -96,7 +99,8 @@ export class ForBlock<T = unknown> {
   owners: Array<Owner | null> = [];
   indexSignals: Array<Signal<number> | null> | null;
   resumeIndexSignals: Array<Signal<number> | null> | null = null;
-  resumeItems: readonly T[] | null = null;
+  /** False only for a block inflated from SSR, whose rendered rows are still to be adopted. */
+  resumed = true;
   resumeOwners: Array<Owner | null> | null = null;
   readonly rowInvokeContext: RuntimeInvokeContext;
 
@@ -150,21 +154,22 @@ export class ForBlock<T = unknown> {
     const seenKeys = isDev && keyed ? new Set<ForKey>() : null;
 
     for (let i = 0; i < nextLength; i++) {
-      const key = resolveKey(items[i], i);
+      const authored = resolveKey(items[i], i);
+      const key = typeof authored === 'string' ? authored : String(authored);
       if (seenKeys !== null) {
-        if (typeof key !== 'string' && typeof key !== 'number') {
+        if (typeof authored !== 'string' && typeof authored !== 'number') {
           throw new Error('ForBlock key must be a synchronous string or number.');
         }
         if (seenKeys.has(key)) {
-          throw new Error(`Duplicate ForBlock key "${String(key)}".`);
+          throw new Error(`Duplicate ForBlock key "${key}".`);
         }
         seenKeys.add(key);
       }
       nextKeys[i] = key;
     }
 
-    if (this.resumeItems !== null) {
-      this.resumeRows(resolveKey);
+    if (!this.resumed) {
+      this.resumeRows();
     }
     if (!keyed) {
       // Index keys cannot tell one row from another, so any update rebuilds the whole collection.
@@ -473,11 +478,13 @@ export class ForBlock<T = unknown> {
     this.commitRows(nextKeys, nextRows, nextOwners, nextIndexSignals);
   }
 
-  private resumeRows(keyFn: ForKeyFn<T>): void {
-    const items =
-      this.resumeItems ?? ((readSourceValue(this.source) ?? EMPTY_ARRAY) as readonly T[]);
-    const rowRanges = findForRowRanges(this.range.start, this.range.end);
-    const length = Math.min(items.length, rowRanges.length);
+  /**
+   * Adopts the rows SSR rendered. Their keys come from their own markers: re-deriving them from the
+   * source would mislabel every row whenever the client mutated the array in place first.
+   */
+  private resumeRows(): void {
+    const ssrRows = findForRows(this.range.start, this.range.end);
+    const length = ssrRows.length;
     const keys = new Array<ForKey>(length);
     const rows = new Array<RowDom>(length);
     const owners = new Array<Owner | null>(length);
@@ -485,15 +492,9 @@ export class ForBlock<T = unknown> {
       this.indexMode !== IndexMode.None ? new Array<Signal<number> | null>(length) : null;
 
     for (let i = 0; i < length; i++) {
-      const key = keyFn(items[i], i);
-      if (typeof key !== 'string' && typeof key !== 'number') {
-        throw new Error('ForBlock key must be a synchronous string or number.');
-      }
-      keys[i] = key;
-      const rowRange = rowRanges[i];
-      rows[i] = Array.isArray(rowRange)
-        ? createRangeRow(rowRange[0], rowRange[1])
-        : (rowRange as Element);
+      const { dom, key } = ssrRows[i];
+      keys[i] = key ?? String(i);
+      rows[i] = Array.isArray(dom) ? createRangeRow(dom[0], dom[1]) : (dom as Element);
       owners[i] = this.resumeOwners?.[i] ?? null;
       if (indexSignals !== null) {
         indexSignals[i] = this.resumeIndexSignals?.[i] ?? new Signal(i);
@@ -501,7 +502,7 @@ export class ForBlock<T = unknown> {
     }
 
     this.commitRows(keys, rows, owners, indexSignals);
-    this.resumeItems = null;
+    this.resumed = true;
     this.resumeOwners = null;
     this.resumeIndexSignals = null;
   }
@@ -896,20 +897,30 @@ export class SSRForBlock<T = unknown> {
     const renderNext = (startIndex: number): ValueOrPromise<SsrOutput> => {
       for (let i = startIndex; i < items.length; i++) {
         const item = items[i];
-        const key = keyFn(item, i);
+        const authored = keyFn(item, i);
+        const key = typeof authored === 'string' ? authored : String(authored);
         if (isDev) {
-          if (typeof key !== 'string' && typeof key !== 'number') {
+          if (typeof authored !== 'string' && typeof authored !== 'number') {
             throw new Error('ForBlock key must be a synchronous string or number.');
           }
           if (seenKeys !== null) {
             if (seenKeys.has(key)) {
-              throw new Error(`Duplicate ForBlock key "${String(key)}".`);
+              throw new Error(`Duplicate ForBlock key "${key}".`);
             }
             seenKeys.add(key);
           }
         }
 
+        // A keyed row carries its key into its own marker: an element root stamps it as `q:row`,
+        // any other shape appends it to the `r=<id>` payload. Resume reads it back from there
+        // instead of re-deriving it from a source the client may have mutated meanwhile.
         const rowId = this.usesRowId ? this.container.nextId() : 0;
+        const rowMarker =
+          this.keyQrl == null
+            ? rowId
+            : this.rowShape === RowOutputShape.Element
+              ? key
+              : `${rowId},${key}`;
         const indexSignal = this.indexMode !== IndexMode.None ? new Signal(i) : null;
         if (indexSignal !== null) {
           this.indexSignals!.push(indexSignal);
@@ -924,7 +935,7 @@ export class SSRForBlock<T = unknown> {
             renderFn,
             this.container,
             this.rangeId,
-            rowId,
+            rowMarker,
             item,
             indexSignal ?? i
           );

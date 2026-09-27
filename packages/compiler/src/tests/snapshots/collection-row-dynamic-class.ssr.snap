@@ -15,8 +15,8 @@ import {
   renderSsrCollection,
   createSsrNodeId,
   maybeThen,
-  renderSsrAttrExpression,
   escapeHTML,
+  renderSsrAttrExpression,
   renderSsrTextExpression,
   _noopQrl,
   _markComponent,
@@ -40,7 +40,9 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, it
     maybeThen(text0, (text0) => [
       '<li q:id="',
       createSsrNodeId(id0),
-      '" q:row',
+      '" q:row="',
+      escapeHTML(__rowId),
+      '"',
       attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
       '>',
       escapeHTML(text0),
@@ -111,8 +113,8 @@ export default default_component_3rg6kq1so9aio;
 import {
   _noopQrl,
   createSsrNodeId,
-  renderSsrAttrExpression,
   escapeHTML,
+  renderSsrAttrExpression,
   renderSsrTextExpression,
   maybeThen,
 } from '@qwik.dev/core';
@@ -146,7 +148,9 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
     maybeThen(text0, (text0) => [
       '<li q:id="',
       createSsrNodeId(id0),
-      '" q:row',
+      '" q:row="',
+      escapeHTML(__rowId),
+      '"',
       attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
       '>',
       escapeHTML(text0),

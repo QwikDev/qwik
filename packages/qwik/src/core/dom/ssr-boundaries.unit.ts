@@ -120,7 +120,12 @@ describe('structured SSR boundaries', () => {
     const starts: string[] = [];
     const keyQrl = createQRL<(item: string) => string>('chunk', 'key', (item) => item);
     const renderQrl = createQRL<
-      (ctx: SsrContext, rangeId: number, rowId: number, item: string) => ValueOrPromise<SsrOutput>
+      (
+        ctx: SsrContext,
+        rangeId: number,
+        rowMarker: number | string,
+        item: string
+      ) => ValueOrPromise<SsrOutput>
     >('chunk', 'render', (_ctx, _rangeId, _rowId, item) => {
       starts.push(item);
       return item === 'first' ? first.promise : 'second';
@@ -144,7 +149,7 @@ describe('structured SSR boundaries', () => {
       (
         ctx: SsrContext,
         rangeId: number,
-        rowId: number,
+        rowMarker: number | string,
         item: string,
         index: number | Signal<number> | undefined
       ) => ValueOrPromise<SsrOutput>
@@ -175,7 +180,7 @@ describe('structured SSR boundaries', () => {
     const items = useSignal(['first', 'second'] as const);
     const keyQrl = createQRL<(item: string) => string>('chunk', 'key', (item) => item);
     const renderQrl = createQRL<
-      (ctx: SsrContext, rangeId: number, rowId: number, item: string) => SsrOutput
+      (ctx: SsrContext, rangeId: number, rowMarker: number | string, item: string) => SsrOutput
     >('chunk', 'render', (_ctx, _rangeId, _rowId, item) => item);
 
     const direct = invokeWithScope(ctx, null, () =>
@@ -224,7 +229,7 @@ describe('structured SSR boundaries', () => {
       },
     } as SsrContext;
     const renderQrl = createQRL<
-      (ctx: SsrContext, rangeId: number, rowId: number, item: string) => SsrOutput
+      (ctx: SsrContext, rangeId: number, rowMarker: number | string, item: string) => SsrOutput
     >('chunk', 'render', (_ctx, _rangeId, rowId, item) => `${rowId}:${item}`);
 
     const output = invokeWithScope(ctx, null, () =>
@@ -240,7 +245,7 @@ describe('structured SSR boundaries', () => {
     const items = useSignal(['item']);
     let renders = 0;
     const renderQrl = createQRL<
-      (ctx: SsrContext, rangeId: number, rowId: number, item: string) => SsrOutput
+      (ctx: SsrContext, rangeId: number, rowMarker: number | string, item: string) => SsrOutput
     >('chunk', 'render', () => {
       renders++;
       return 'row';
@@ -292,7 +297,7 @@ describe('structured SSR boundaries', () => {
       );
       let renders = 0;
       const renderQrl = createQRL<
-        (ctx: SsrContext, rangeId: number, rowId: number, item: string) => SsrOutput
+        (ctx: SsrContext, rangeId: number, rowMarker: number | string, item: string) => SsrOutput
       >('chunk', 'render', () => {
         renders++;
         return 'row';

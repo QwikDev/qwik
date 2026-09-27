@@ -1,6 +1,11 @@
 import { ELEMENT_ID } from '../shared/utils/markers';
 import { NodeType } from '../utils/consts';
-import { fastFirstChild, fastNextSibling, fastPreviousSibling } from './fast-getters';
+import {
+  fastFirstChild,
+  fastGetAttribute,
+  fastNextSibling,
+  fastPreviousSibling,
+} from './fast-getters';
 
 const ELEMENT_ID_SELECTOR = ELEMENT_ID.replace(':', '\\:');
 const CONTEXT_OPEN = 'c=';
@@ -15,6 +20,7 @@ const CONTENT_CLOSE = '/d';
 const SLOT_OPEN = 's=';
 const SLOT_CLOSE = '/s';
 const ROW_OPEN = 'r';
+const ROW_OPEN_PREFIX = 'r=';
 const ROW_CLOSE = '/r';
 const ROW_ATTR = 'q:row';
 
@@ -22,6 +28,8 @@ export type BranchMarkerRange = readonly [Comment, Comment];
 export type ForMarkerRange = readonly [Comment, Comment];
 export type ContentMarkerRange = readonly [Comment, Comment];
 export type RowMarkerRange = readonly [Comment, Comment];
+/** A row's DOM plus the key its marker carries; null when the collection is unkeyed. */
+export type ForRow = { readonly dom: Element | RowMarkerRange; readonly key: string | null };
 export type ForRowRange = Element | RowMarkerRange;
 
 export function findQwikElement(element: Element, elementId: string | number): Element | null {
@@ -30,7 +38,7 @@ export function findQwikElement(element: Element, elementId: string | number): E
     return null;
   }
   const stringId = String(elementId);
-  if (element.getAttribute(ELEMENT_ID) === stringId) {
+  if (fastGetAttribute(element, ELEMENT_ID) === stringId) {
     return element;
   }
   return element.querySelector(`[${ELEMENT_ID_SELECTOR}="${stringId}"]`) ?? null;
@@ -119,8 +127,8 @@ function findMarkerRange(
   return end === null ? null : [start, end];
 }
 
-export function findForRowRanges(start: Comment, end: Comment): ForRowRange[] {
-  const rows: ForRowRange[] = [];
+export function findForRows(start: Comment, end: Comment): ForRow[] {
+  const rows: ForRow[] = [];
   let rowStart: Comment | null = null;
   let forDepth = 0;
   let sibling = fastNextSibling(start);
@@ -141,23 +149,37 @@ export function findForRowRanges(start: Comment, end: Comment): ForRowRange[] {
       } else if (rowStart === null && isRowOpenMarker(data)) {
         rowStart = comment;
       } else if (rowStart !== null && data === ROW_CLOSE) {
-        rows.push([rowStart, comment]);
+        rows.push({ dom: [rowStart, comment], key: rowMarkerKey(rowStart.data) });
         rowStart = null;
       }
-    } else if (
-      rowStart === null &&
-      sibling.nodeType === NodeType.Element &&
-      (sibling as Element).hasAttribute(ROW_ATTR)
-    ) {
-      rows.push(sibling as Element);
+    } else if (rowStart === null && sibling.nodeType === NodeType.Element) {
+      const key = fastGetAttribute(sibling as Element, ROW_ATTR);
+      if (key !== null) {
+        rows.push({ dom: sibling as Element, key: key === '' ? null : key });
+      }
     }
     sibling = fastNextSibling(sibling);
   }
   return rows;
 }
 
+/** `r=<id>,<key>` keeps the id addressable while the key rides along for resume. */
+function rowMarkerKey(data: string): string | null {
+  const comma = data.indexOf(',');
+  return comma === -1 ? null : data.slice(comma + 1);
+}
+
 function isRowOpenMarker(data: string): boolean {
-  return data === ROW_OPEN || data.startsWith(ROW_OPEN + '=');
+  return data === ROW_OPEN || data.startsWith(ROW_OPEN_PREFIX);
+}
+
+/** Matches `<prefix><id>`, plus the `,<key>` tail a keyed row's marker carries. */
+function isMarkerFor(data: string, prefix: string, id: string): boolean {
+  if (!data.startsWith(prefix) || !data.startsWith(id, prefix.length)) {
+    return false;
+  }
+  const end = prefix.length + id.length;
+  return end === data.length || data[end] === ',';
 }
 
 // 128 = NodeFilter.SHOW_COMMENT
@@ -185,20 +207,17 @@ export function findBranchTextRange(
   rangeId: string | number
 ): readonly [Comment, Comment] | null {
   const id = String(rangeId);
-  const branchMarker = BRANCH_OPEN + id;
-  const rowMarker = ROW_OPEN + '=' + id;
-  const slotMarker = SLOT_OPEN + id;
   const walker = createCommentWalker(element);
   let comment: Node | null;
   while ((comment = walker.nextNode()) !== null) {
     const data = (comment as Comment).data;
-    if (data === branchMarker) {
+    if (isMarkerFor(data, BRANCH_OPEN, id)) {
       return toRange(comment as Comment, BRANCH_OPEN, BRANCH_CLOSE);
     }
-    if (data === rowMarker) {
+    if (isMarkerFor(data, ROW_OPEN_PREFIX, id)) {
       return toRange(comment as Comment, ROW_OPEN, ROW_CLOSE);
     }
-    if (data === slotMarker) {
+    if (isMarkerFor(data, SLOT_OPEN, id)) {
       return toRange(comment as Comment, SLOT_OPEN, SLOT_CLOSE);
     }
   }

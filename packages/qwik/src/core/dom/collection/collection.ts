@@ -20,11 +20,11 @@ import {
   ForRange,
   renderSsrForBlock,
   IndexMode,
-  type ForKey,
+  type AuthoredForKey,
   RowOutputShape,
 } from '../for/for';
 
-type CollectionKeyFn<T> = (item: T, index: number) => ForKey;
+type CollectionKeyFn<T> = (item: T, index: number) => AuthoredForKey;
 type CollectionIndex = number | Signal<number> | undefined;
 type CollectionRenderFn<T> = (
   ctx: ContainerContext,
@@ -35,7 +35,8 @@ type SsrCollectionContext = ContainerContext & { nextId(): number };
 type SsrCollectionRenderFn<T> = (
   ctx: SsrCollectionContext,
   rangeId: number,
-  rowId: number,
+  /** The row's marker: its id, or the key it stamps when the collection is keyed. */
+  rowMarker: number | string,
   item: T,
   index: CollectionIndex
 ) => ValueOrPromise<SsrOutput>;

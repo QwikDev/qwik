@@ -35,7 +35,9 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, it
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
-    '" q:row',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '"',
     ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([item])),
     '>',
     escapeHTML(text0),
@@ -127,7 +129,9 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
-    '" q:row',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '"',
     ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([item])),
     '>',
     escapeHTML(text0),

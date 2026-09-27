@@ -148,6 +148,12 @@ type SsrTextTarget =
   | { kind: 'element'; id: string }
   | { kind: 'range'; id: string; markerIndex: number };
 
+/** A marker stamped into a root element's open tag; `value` is a runtime expression. */
+interface RootMarker {
+  name: string;
+  value?: string;
+}
+
 interface SsrRootRange {
   idParam: string | null;
   markerIndex: number;
@@ -175,7 +181,7 @@ const RowIdParam = '__rowId';
 
 interface SsrRenderOptions {
   /** Stamped into the root element's open tag (a row's `q:row`). */
-  rootMarker?: string;
+  rootMarker?: RootMarker;
   /** Root holes render into a caller-supplied range id parameter (branch arms). */
   rootRange?: boolean;
   /**
@@ -191,6 +197,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];
   private readonly usedQrls = new Map<string, QrlUsage>();
+  /** Row QRLs whose collection is keyed: their marker carries the key resume adopts. */
+  private readonly keyedRowQrls = new Set<string>();
 
   private readonly resolveQrlUse: QrlResolver;
 
@@ -460,12 +468,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   private rowEmission(qrl: LinkedQrl): FunctionEmission {
     const ops = this.programOps(qrl);
     const elementRoot = ops.length === 1 && ops[0].op === OpKind.Element;
+    const keyed = this.keyedRowQrls.has(qrl.id);
     const { emission, core, names } = this.renderEmission(
       qrl,
-      elementRoot ? { rootMarker: QwikAttr.Row } : { fence: 'r' }
+      elementRoot
+        ? { rootMarker: { name: QwikAttr.Row, ...(keyed ? { value: RowIdParam } : {}) } }
+        : { fence: 'r' }
     );
     const loopParams = usedParamPrefix(this.module, qrl);
-    if (!elementRoot || loopParams.length > 0) {
+    if (!elementRoot || keyed || loopParams.length > 0) {
       // Positional ABI: trailing unused params drop, earlier ones stay under their names.
       emission.params = [names.ctx, RangeIdParam, RowIdParam, ...loopParams];
     } else if (core.needsContext) {
@@ -567,7 +578,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     op: LinkedOp,
     parts: string[],
     rootRange: SsrRootRange | null,
-    rootMarker: string | null = null,
+    rootMarker: RootMarker | null = null,
     hookEvents = false
   ): void {
     switch (op.op) {
@@ -645,7 +656,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     op: Extract<LinkedOp, { op: OpKind.Element }>,
     parts: string[],
     /** Stamped into this element's open tag — a row root's `q:row`. */
-    rootMarker: string | null = null,
+    rootMarker: RootMarker | null = null,
     /** The open tag ships as a record so the runtime can splice `useOn*` events into it. */
     hookEvents = false
   ): void {
@@ -676,7 +687,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pushMergedStatic(openTag, `"`);
     }
     if (rootMarker !== null) {
-      pushMergedStatic(openTag, ` ${rootMarker}`);
+      if (rootMarker.value === undefined) {
+        pushMergedStatic(openTag, ` ${rootMarker.name}`);
+      } else {
+        // A keyed row stamps its key here, so resume reads identity off the row itself.
+        this.imports.add(QwikWord.EscapeHTML);
+        pushMergedStatic(openTag, ` ${rootMarker.name}="`);
+        openTag.push(`${QwikWord.EscapeHTML}(${rootMarker.value})`);
+        pushMergedStatic(openTag, '"');
+      }
     }
     for (const prop of op.props) {
       if (prop !== innerHtml) {
@@ -970,6 +989,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         // Registration order fixes the mirror order: render first, key second.
         const render = this.useQrl(pass, op.row.use, true);
         const key = op.key === null ? null : this.useQrl(pass, this.qrlValueUse(op.key), true);
+        if (key !== null) {
+          this.keyedRowQrls.add(this.resolveQrlUse(op.row.use, pass.names.props).qrl.id);
+        }
         this.imports.add(QwikWord.RenderSsrCollection);
         const step = pass.next(QwikGenWord.Collection);
         // Element-shaped rows wear the q:row marker, so the runtime needs no per-row id.

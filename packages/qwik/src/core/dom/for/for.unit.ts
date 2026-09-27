@@ -56,7 +56,7 @@ describe('ForBlock reorder', () => {
       { document: startNode.ownerDocument! } as ContainerContext
     );
 
-    block.keys = [1, 2, 3, 4, 5];
+    block.keys = ['1', '2', '3', '4', '5'];
     block.rows = [a, b, c, d, e] as unknown as Element[];
     block.owners = block.rows.map(() => createOwner(listOwner));
 
@@ -85,7 +85,7 @@ describe('ForBlock reorder', () => {
       { document: startNode.ownerDocument! } as ContainerContext
     );
 
-    block.keys = oldIds;
+    block.keys = oldIds.map(String);
     block.rows = oldRows as unknown as Element[];
     block.owners = block.rows.map(() => createOwner(listOwner));
 
@@ -199,7 +199,7 @@ describe('ForBlock reorder', () => {
       null,
       { document } as ContainerContext
     );
-    block.keys = [1, 2];
+    block.keys = ['1', '2'];
     block.rows = oldRows;
     const oldOwners = oldRows.map(() => createOwner(listOwner));
     block.owners = oldOwners;
@@ -251,7 +251,7 @@ describe('ForBlock reorder', () => {
       { document } as ContainerContext
     );
     const oldOwners = oldRows.map(() => createOwner(listOwner));
-    block.keys = [1, 2];
+    block.keys = ['1', '2'];
     block.rows = oldRows;
     block.owners = oldOwners;
     const replaceChildren = vi.spyOn(list, 'replaceChildren').mockImplementation(() => {
@@ -305,7 +305,7 @@ describe('ForBlock reorder', () => {
       null,
       { document } as ContainerContext
     );
-    block.keys = [1];
+    block.keys = ['1'];
     block.rows = [oldRow];
     block.owners = [createOwner(listOwner)];
     let createdOwner = null as ReturnType<typeof createOwner> | null;
@@ -373,7 +373,7 @@ describe('ForBlock reorder', () => {
         document,
       } as ContainerContext
     );
-    block.keys = [1];
+    block.keys = ['1'];
     block.rows = [oldRow];
     block.owners = [createOwner(listOwner)];
     // One Range is created per range operation, so counting them counts the operations.
@@ -830,7 +830,7 @@ describe('ForBlock reorder', () => {
         (_ctx, item) => [createElementNode(String(item))]
       );
 
-      expect(block.keys).toEqual([1, 2]);
+      expect(block.keys).toEqual(['1', '2']);
     } finally {
       vi.doUnmock('@qwik.dev/core/build');
       vi.resetModules();

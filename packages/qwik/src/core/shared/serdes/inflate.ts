@@ -41,12 +41,7 @@ import {
   StorePropSource,
   unwrapStore,
 } from '../../reactive/store';
-import {
-  appendSourceSubscriber,
-  readSourceValue,
-  type Source,
-  type SourceSub,
-} from '../../reactive/source';
+import { appendSourceSubscriber, type Source, type SourceSub } from '../../reactive/source';
 import { addDependency } from '../../reactive/tracking';
 import { getContextScopeForNode, type ContainerContext } from '../../runtime/container-context';
 import type { ContextScope } from '../../runtime/context-scope';
@@ -80,7 +75,6 @@ import {
 } from '../../runtime/node-walker';
 import {
   isSubscriberDisposed,
-  SubscriberKind,
   type ComputedSubscriber,
   type DomSubscriber,
   type Subscriber,
@@ -647,7 +641,8 @@ async function restoreForBlockSubscription(
     container,
     rowShape
   );
-  block.resumeItems = readSourceValue(deps[0] as Source<readonly unknown[]>) ?? [];
+  // The rows SSR rendered are still in the DOM; their markers carry the keys resume adopts.
+  block.resumed = false;
   block.resumeOwners = rowOwners;
   block.resumeIndexSignals = indexSignals;
 
@@ -781,7 +776,6 @@ function createLazySourceSubscribers(
   data: unknown[],
   start: number
 ): SourceSub[] {
-  const resumeItems = Array.isArray(source.v) ? source.v : null;
   return createLazySourceSubs((data.length - start) / 2, (index) => {
     const i = start + index * 2;
     const typeId = data[i] as TypeIds;
@@ -791,13 +785,6 @@ function createLazySourceSubscribers(
     }
     return lazySubscriber(container, async () => {
       const subscriber = (await deserializeData(container, typeId, value)) as Subscriber;
-      if (
-        resumeItems !== null &&
-        subscriber.kind === SubscriberKind.ForBlock &&
-        'block' in subscriber
-      ) {
-        subscriber.block.resumeItems = resumeItems;
-      }
       data[i] = TypeIds.Plain;
       data[i + 1] = subscriber;
       return subscriber;

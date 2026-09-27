@@ -23,12 +23,15 @@ import {
   renderSsrCollection,
   createSsrNodeId,
   maybeThen,
+  escapeHTML,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
 const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item) => {
   return [
-    '<li q:row><button',
+    '<li q:row="',
+    escapeHTML(__rowId),
+    '"><button',
     ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([item])),
     '>x</button></li>',
   ];
@@ -76,14 +79,16 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
-import { _noopQrl } from '@qwik.dev/core';
+import { _noopQrl, escapeHTML } from '@qwik.dev/core';
 const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item) => {
   return [
-    '<li q:row><button',
+    '<li q:row="',
+    escapeHTML(__rowId),
+    '"><button',
     ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([item])),
     '>x</button></li>',
   ];

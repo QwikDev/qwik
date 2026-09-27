@@ -27,8 +27,8 @@ import {
   renderSsrCollection,
   maybeThen,
   _noopQrl,
-  renderSsrAttrExpression,
   escapeHTML,
+  renderSsrAttrExpression,
   _markComponent,
 } from '@qwik.dev/core';
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
@@ -60,7 +60,9 @@ const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, __rangeId, __rowId, po
   return maybeThen(attr0, (attr0) => [
     '<rect q:id="',
     createSsrNodeId(id0),
-    '" q:row',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '"',
     attr0 === null ? '' : ' width' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
     '></rect>',
   ]);
@@ -249,8 +251,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
 import {
   _noopQrl,
   createSsrNodeId,
-  renderSsrAttrExpression,
   escapeHTML,
+  renderSsrAttrExpression,
   maybeThen,
 } from '@qwik.dev/core';
 import { component_width_segment_4_zbb7nnmt5i2b } from './component.tsx_component_width_segment_4_zbb7nnmt5i2b';
@@ -271,7 +273,9 @@ export const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, __rangeId, __ro
   return maybeThen(attr0, (attr0) => [
     '<rect q:id="',
     createSsrNodeId(id0),
-    '" q:row',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '"',
     attr0 === null ? '' : ' width' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
     '></rect>',
   ]);

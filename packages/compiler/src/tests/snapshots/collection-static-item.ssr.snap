@@ -15,11 +15,12 @@ import {
   renderSsrCollection,
   createSsrNodeId,
   maybeThen,
+  escapeHTML,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
-const component_for_render_segment_0_asyt89wzo2d3 = () => {
-  return '<li q:row>Item</li>';
+const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId) => {
+  return ['<li q:row="', escapeHTML(__rowId), '">Item</li>'];
 };
 const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_0_asyt89wzo2d3'
@@ -61,8 +62,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
-export const component_for_render_segment_0_asyt89wzo2d3 = () => {
-  return '<li q:row>Item</li>';
+import { escapeHTML } from '@qwik.dev/core';
+
+export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId) => {
+  return ['<li q:row="', escapeHTML(__rowId), '">Item</li>'];
 };
 /*
 {

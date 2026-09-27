@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createWindow } from '../../testing/document';
-import { findBranchTextRange, findForRange, findForRowRanges } from './node-walker';
+import { findBranchTextRange, findForRange, findForRows } from './node-walker';
 
 describe('node walker', () => {
   it('keeps nested for rows inside their parent row', () => {
@@ -11,8 +11,8 @@ describe('node walker', () => {
     const outer = findForRange(root, 1)!;
     const nested = findForRange(root, 2)!;
 
-    expect(findForRowRanges(outer[0], outer[1]).length).toBe(2);
-    expect(findForRowRanges(nested[0], nested[1]).length).toBe(1);
+    expect(findForRows(outer[0], outer[1]).length).toBe(2);
+    expect(findForRows(nested[0], nested[1]).length).toBe(1);
   });
 
   describe('findBranchTextRange', () => {

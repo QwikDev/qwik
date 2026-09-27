@@ -33,7 +33,9 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, it
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
-    '" q:row>',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
     escapeHTML(text0),
     '</li>',
   ]);
@@ -117,7 +119,9 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
-    '" q:row>',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
     escapeHTML(text0),
     '</li>',
   ]);

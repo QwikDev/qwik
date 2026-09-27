@@ -1,5 +1,5 @@
 export type SsrReferenceChunk =
-  | { readonly type: 'node-id'; readonly localId: number }
+  | { readonly type: 'node-id'; readonly localId: number | string }
   | { readonly type: 'root-ref'; readonly localId: number }
   | { readonly type: 'root-ref-path'; readonly localPath: readonly number[] };
 
@@ -64,7 +64,8 @@ export function createSsrEventAttr(
   return { type: 'event-attr', name, valueParts };
 }
 
-export function createSsrNodeId(localId: number): SsrReferenceChunk {
+/** A row marker may carry its key beside the id (`r=<id>,<key>`), so the id is text there. */
+export function createSsrNodeId(localId: number | string): SsrReferenceChunk {
   return { type: 'node-id', localId };
 }
 

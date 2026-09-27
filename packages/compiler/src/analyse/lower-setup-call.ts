@@ -97,7 +97,12 @@ export function resolveSetupCall(
   }
   const imported = ctx.plan.imports.find((entry) => entry.binding === binding);
   const coreApi = ctx.coreBindings.get(binding);
-  if (coreApi === QwikMarker.Dollar || coreApi === QwikMarker.Component) {
+  // `native$` is stripped at assembly, so its `$` must not read as a QRL boundary.
+  if (
+    coreApi === QwikMarker.Dollar ||
+    coreApi === QwikMarker.Component ||
+    coreApi === QwikMarker.Native
+  ) {
     return null;
   }
   const name =

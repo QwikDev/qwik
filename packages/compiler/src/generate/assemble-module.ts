@@ -145,6 +145,15 @@ export function assembleQwikModule(
           requestBindingImport(module, intent.binding, parts.imports);
         }
         break;
+      case AssemblyKind.NativeMarker: {
+        // Build-time only: the call goes, its JS implementation stays the module's value.
+        const native = module.natives[intent.native];
+        edits.push({
+          range: native.markerRange,
+          text: parts.emitPayload(native.jsImplementation, names),
+        });
+        break;
+      }
       case AssemblyKind.StripRange:
         edits.push({ range: intent.range, text: '' });
         break;

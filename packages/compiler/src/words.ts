@@ -9,6 +9,10 @@ export const enum QwikMarker {
   Dollar = '$',
   Sync = 'sync$',
   Component = 'component$',
+  /** Build-time only: the marker is stripped and the JS implementation stays the export. */
+  Native = 'native$',
+  NativeFrom = 'nativeFrom',
+  NativeCode = 'nativeCode',
 }
 
 /** Runtime names imported from `@qwik.dev/core`. */

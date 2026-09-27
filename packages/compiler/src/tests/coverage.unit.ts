@@ -28,7 +28,6 @@ const UNCOVERED: Record<string, readonly string[]> = {
     'qrl-boundary',
     'declaration-strip',
     'module-reference-export',
-    'native-marker',
     'stripped-export',
     'marker-retarget',
     'runtime-imports',

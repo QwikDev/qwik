@@ -15,6 +15,7 @@ import { createBindingGraph } from './ast/bindings';
 import { createJsxAnalysis } from './ast/jsx-analysis';
 import { findComponentCandidates, findHookCandidates, findRuntimeJsxCall } from './ast/returns-jsx';
 import { lowerCoreHookAliases, lowerHooks } from './lower-hook';
+import { lowerNativeMarkers, type NativeMarkerSite } from './lower-native';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
@@ -117,11 +118,27 @@ export async function analyseModule(
     recordModuleError(plan, error);
     return finish();
   }
+  let nativeSites: NativeMarkerSite[];
+  try {
+    nativeSites = lowerNativeMarkers(authoredStatements, lowerContext);
+  } catch (error) {
+    recordModuleError(plan, error);
+    return finish();
+  }
+  const inNativeMarker = (node: Node) =>
+    nativeSites.some(({ native }) => {
+      const [start, end] = plan.natives[native].markerRange;
+      return node.start >= start && node.end <= end;
+    });
   const jsxRoots = jsx.scopedRoots(authoredStatements).filter((root) => !loweredHooks.has(root));
   const helperRoots = [
     ...jsxRoots,
     ...explicitQrlRoots(authoredStatements, lowerContext).filter(
-      (root) => !(jsxRoots as readonly Node[]).includes(root) && !loweredHooks.has(root)
+      (root) =>
+        !(jsxRoots as readonly Node[]).includes(root) &&
+        !loweredHooks.has(root) &&
+        // A marker's implementation is emitted from its own payload, not a second helper root.
+        !inNativeMarker(root)
     ),
   ];
   const leftoverJsx = jsxRoots.find((root) => !isFunctionLike(root));
@@ -139,7 +156,12 @@ export async function analyseModule(
     }
     throw new UnsupportedError('JSX outside the discovered components');
   }
-  if (candidates.length === 0 && helperRoots.length === 0 && plan.hooks.length === 0) {
+  if (
+    candidates.length === 0 &&
+    helperRoots.length === 0 &&
+    plan.hooks.length === 0 &&
+    plan.natives.length === 0
+  ) {
     // Non-Qwik module: authored source kept, transpiled at generate.
     if (authoredProgram !== null) {
       const foreignPlan = emptyPlan(input.path, input.code);
@@ -185,6 +207,9 @@ export async function analyseModule(
       }
       plan.assembly.push({ a: AssemblyKind.Payload, payload });
     }
+    for (const { native } of nativeSites) {
+      plan.assembly.push({ a: AssemblyKind.NativeMarker, native });
+    }
   } catch (error) {
     recordModuleError(plan, error);
     return finish();
@@ -198,6 +223,7 @@ export async function analyseModule(
     ...plan.payloads.flatMap((payload) =>
       payload.qrls.map((entry) => entry.marker?.calleeRange ?? entry.range)
     ),
+    ...nativeSites.flatMap((site) => site.replacedRanges),
   ];
   const retainedBindings = new Set(
     bindings

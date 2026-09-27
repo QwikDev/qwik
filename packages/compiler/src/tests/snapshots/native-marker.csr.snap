@@ -1,0 +1,34 @@
+==INPUT==
+
+import { native$, nativeCode, nativeFrom, useSignal } from '@qwik.dev/core';
+let nextId = 1;
+export const buildRows = native$(
+  (count: number) => {
+    const rows = new Array(count);
+    for (let i = 0; i < count; i++) {
+      rows[i] = { id: nextId++, label: useSignal('row') };
+    }
+    return rows;
+  },
+  { rust: nativeFrom('./native'), go: nativeCode`func BuildRows() {}` }
+);
+
+== CSR OUTPUT ==
+
+============================= src/build-rows.ts ==
+
+import { useSignal } from '@qwik.dev/core';
+let nextId = 1;
+export const buildRows = (count) => {
+  const rows = new Array(count);
+  for (let i = 0; i < count; i++) {
+    rows[i] = {
+      id: nextId++,
+      label: useSignal('row'),
+    };
+  }
+  return rows;
+};
+== CSR DIAGNOSTICS ==
+
+[]

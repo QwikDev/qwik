@@ -99,11 +99,13 @@ export function registerExecutedChildProcess(process: ChildProcess) {
 export function runCommandUntil(
   command: string,
   tmpDir: string,
-  criteria: (output: string) => boolean
+  criteria: (output: string) => boolean,
+  env?: Record<string, string>
 ): Promise<ChildProcess> {
   const p = exec(command, {
     cwd: tmpDir,
     encoding: 'utf-8',
+    env: env && { ...process.env, ...env },
   });
   registerExecutedChildProcess(p);
   return new Promise<ChildProcess>((res, rej) => {

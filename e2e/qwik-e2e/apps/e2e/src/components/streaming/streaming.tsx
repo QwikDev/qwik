@@ -1,4 +1,4 @@
-import { component$, useComputed$, useStore, useStyles$ } from '@qwik.dev/core';
+import { component$, isServer, useComputed$, useStore, useStyles$ } from '@qwik.dev/core';
 import { delay } from '../delay';
 
 export const StreamingRoot = component$(() => {
@@ -10,7 +10,7 @@ export const StreamingRoot = component$(() => {
       <button id="client-render" onClick$={() => store.count++}>
         Client rerender: {store.count}
       </button>
-      <Streaming key={store.count} />
+      {store.count % 2 === 0 ? <Streaming /> : <Streaming />}
     </>
   );
 });
@@ -49,6 +49,9 @@ export const Streaming = component$(() => {
 });
 
 export const AsyncListItem = component$(async (props: { index: number; kind: string }) => {
+  if (!isServer) {
+    return null;
+  }
   await delay((props.index + 1) * 100);
   return (
     <li>

@@ -9,6 +9,11 @@ import { QRL } from '@qwik.dev/core';
 // @public (undocumented)
 export const worker$: <T extends WorkerFunction>(qrl: T) => QRL<T>;
 
+// Warning: (ae-internal-missing-underscore) The name "worker" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const worker: <T extends WorkerFunction>(fn: T) => T;
+
 // @public (undocumented)
 export interface WorkerConstructorQRL {
     // (undocumented)

@@ -4,7 +4,7 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 // Keep last
 import { Slot } from '../../dom/slot/slot';
 import { Fragment } from '../jsx/compiler-runtime';
-export { TypeIds } from './type-id';
+export { TypeIds, _typeIdNames } from './type-id';
 import { TypeIds } from './type-id';
 
 /** Used to represent an undefined value that must be serialized */
@@ -63,7 +63,31 @@ export const _constants = [
   'ref',
 ] as const;
 
-// Used for dumpState, make sure they are in sync with Constants
+/** Debug names for `_dumpState`; the length check in `dump-state.unit.ts` keeps them in sync. */
+export const _constantNames = [
+  'undefined',
+  'null',
+  'true',
+  'false',
+  "''",
+  'EMPTY_ARRAY',
+  'EMPTY_OBJ',
+  'NEEDS_COMPUTATION',
+  'STORE_ALL_PROPS',
+  '_UNINITIALIZED',
+  'Slot',
+  'Fragment',
+  'NaN',
+  'Infinity',
+  '-Infinity',
+  'MAX_SAFE_INTEGER',
+  'MAX_SAFE_INTEGER-1',
+  'MIN_SAFE_INTEGER',
+  "':'",
+  "'.'",
+  "'id'",
+  "'ref'",
+] as const;
 
 /** Arrays/Objects are special-cased so their identifiers is a single digit. */
 export const needsInflation = (typeId: TypeIds) =>

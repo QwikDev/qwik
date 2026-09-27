@@ -4,6 +4,7 @@ import { getActiveInvokeContextOrNull } from './runtime/invoke-context';
 export { isDev, isServer } from '@qwik.dev/core/build';
 export { getPlatform, setPlatform } from './shared/platform/platform';
 export { getAsyncLocalStorage as _getAsyncLocalStorage } from './shared/platform/async-local-storage';
+export { _dumpState } from './shared/serdes/dump-state';
 export { _deserialize, _serialize } from './shared/serdes/standalone';
 export {
   SerializerSymbol,

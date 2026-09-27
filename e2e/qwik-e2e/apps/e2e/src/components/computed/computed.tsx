@@ -4,21 +4,28 @@ export const ComputedRoot = component$(() => {
   const rerender = useSignal(0);
 
   return (
-    <div key={rerender.value}>
+    <div>
       <button id="rerender" onClick$={() => rerender.value++}>
         Rerender
       </button>
       <span id="render-count">Renders: {rerender.value}</span>
-      <ComputedBasic />
-      <SpreadComputedValueUpdateIssue3482 />
-      <UseComputedNavigationLossIssue3488 />
-      <ComputedSignalSerializationRefsIssue5738 />
-      <ShouldHandleMultipleComputeds />
-      <ShouldResolveComputedQrlEarly />
-      <ShouldRetryWhenThereIsNoQRL />
+      {/* v3 ignores a component key; alternating branches remount the cases. */}
+      {rerender.value % 2 === 0 ? <ComputedCases /> : <ComputedCases />}
     </div>
   );
 });
+
+const ComputedCases = component$(() => (
+  <>
+    <ComputedBasic />
+    <SpreadComputedValueUpdateIssue3482 />
+    <UseComputedNavigationLossIssue3488 />
+    <ComputedSignalSerializationRefsIssue5738 />
+    <ShouldHandleMultipleComputeds />
+    <ShouldResolveComputedQrlEarly />
+    <ShouldRetryWhenThereIsNoQRL />
+  </>
+));
 
 export const ComputedBasic = component$(() => {
   const count = useSignal(0);

@@ -4,16 +4,23 @@ export const AsyncRoot = component$(() => {
   const rerender = useSignal(0);
 
   return (
-    <div key={rerender.value}>
+    <div>
       <button id="rerender" onClick$={() => rerender.value++}>
         Rerender
       </button>
       <span id="render-count">Renders: {rerender.value}</span>
-      <AsyncBasic />
-      <PendingComponent />
+      {/* v3 ignores a component key; alternating branches remount the cases. */}
+      {rerender.value % 2 === 0 ? <AsyncCases /> : <AsyncCases />}
     </div>
   );
 });
+
+const AsyncCases = component$(() => (
+  <>
+    <AsyncBasic />
+    <PendingComponent />
+  </>
+));
 
 export const AsyncBasic = component$(() => {
   const count = useSignal(0);

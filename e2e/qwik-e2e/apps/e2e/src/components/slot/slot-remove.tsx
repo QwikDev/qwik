@@ -13,7 +13,8 @@ export const SlotCleanup = component$(() => {
 
   return (
     <section>
-      <SlotCleanupChildren key={rerender.value} />
+      {/* v3 ignores a component key; alternating branches remount the children. */}
+      {rerender.value % 2 === 0 ? <SlotCleanupChildren /> : <SlotCleanupChildren />}
     </section>
   );
 });

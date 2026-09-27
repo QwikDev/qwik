@@ -47,7 +47,8 @@ export default component$(() => {
   const pageLoaded = useLayoutLoaderCatchallPageData();
   useContextProvider(PageDataContext, pageLoaded);
 
-  return <PageGenerator key={pageLoaded.value.pageId} />;
+  // v3 ignores a component key; alternating branches remount PageGenerator per page.
+  return pageLoaded.value.pageId === 'mock-home' ? <PageGenerator /> : <PageGenerator />;
 });
 
 export const head: DocumentHead = ({ resolveValue }) => {

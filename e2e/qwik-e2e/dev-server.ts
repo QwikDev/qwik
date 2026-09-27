@@ -156,6 +156,7 @@ import render from '${escapeChars(resolve(appSrcDir, 'entry.ssr'))}';
 const { router } = createQwikRouter({
   render,
   base: '${basePath}build/',
+  trustForwardedHeaders: true,
 });
 export { router }
 `;

@@ -119,6 +119,7 @@ export {
 } from './shared/serdes/verify';
 export { _deserialize, _serialize } from './shared/serdes/standalone';
 export {
+  _createQRL,
   _dumpState,
   _getAsyncLocalStorage,
   _getContextContainer,

@@ -1,5 +1,5 @@
-import { disposeOwner, isDev, useComputed$ } from '@qwik.dev/core';
-import { createOwner, runWithOwner } from '@qwik.dev/core/internal';
+import { isDev, useComputed$ } from '@qwik.dev/core';
+import { createOwner, disposeOwner, runWithOwner } from '@qwik.dev/core/internal';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
 import {
@@ -221,7 +221,8 @@ function createLoader(
   } as any;
 }
 
-function createQrl(id: string, fn: (thisArg: unknown, ev: any) => unknown = async () => undefined) {
+// A QRL is invoked as `call(thisArg, ev)`, and a loader gets its context as both.
+function createQrl(id: string, fn: (...args: any[]) => unknown = async () => undefined) {
   return {
     call: vi.fn(fn),
     getHash: () => id,

@@ -11,7 +11,7 @@ vi.mock('../../middleware/request-handler/async-request-store', () => ({
 }));
 
 import * as z from 'zod';
-import { createQRL } from '@qwik.dev/core';
+import { _createQRL as createQRL } from '@qwik.dev/core/internal';
 import { routeLoader$ } from './route-loaders';
 import { getRequestEvent, routeAction$, server$, serverQrl } from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';

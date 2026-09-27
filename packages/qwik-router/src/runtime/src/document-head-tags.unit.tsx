@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { DocumentHeadContext } from './contexts';
 import { DocumentHeadTags } from './document-head-tags-component';
 import { createDocumentHead } from './head';
+import type { Editable, ResolvedDocumentHead } from './types';
 
 const debug = false;
 const renderCleanups: Array<() => void> = [];
@@ -16,7 +17,8 @@ afterEach(() => {
 
 /** The router's head store plus a button that changes it the way a navigation does. */
 const Root = component$(() => {
-  const head = useStore(
+  // The router's own head store is editable in place; a navigation writes its fields.
+  const head = useStore<Editable<ResolvedDocumentHead>>(
     createDocumentHead({ title: 'First', meta: [{ name: 'hello', content: 'one' }] }),
     { deep: false }
   );
@@ -36,7 +38,7 @@ const Root = component$(() => {
   );
 });
 
-const renderRoot = async (root: RenderRoot<undefined>) => {
+const renderRoot = async <Props,>(root: RenderRoot<Props>) => {
   const harness = await createDOM();
   renderCleanups.push(harness.cleanup);
   return harness.render(root, { debug });

@@ -22,7 +22,8 @@ export type { ComputedOptions, ComputedSignal, ComputeCtx } from './reactive/pub
 export { AsyncSignal as _AsyncSignal } from './reactive/async-signal';
 export { useContext as _resolveContext } from './runtime/context';
 export { getActiveInvokeContextOrNull } from './runtime/invoke-context';
-export { createOwner, runWithOwner } from './runtime/owner';
+export { createOwner, disposeOwner, runWithOwner } from './runtime/owner';
+export { createQRL as _createQRL } from './shared/qrl/qrl-class';
 export {
   forceStoreEffects,
   hasStoreEffects as _hasStoreEffects,

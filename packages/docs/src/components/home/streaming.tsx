@@ -1,23 +1,9 @@
 import { component$, Slot, type PropsOf } from '@qwik.dev/core';
 import { Button } from '~/components/action/action';
 import { lucide, streamlinepixel as pixel } from '@qds.dev/ui';
+import TimeToInteractive from '~/media/home/time-to-interactive.png?jsx';
 
 export const Streaming = component$(() => {
-  const streamingCards = [
-    {
-      title: 'Zero induced delays',
-      body: 'Your app stays quick, no matter how large it gets.',
-    },
-    {
-      title: (
-        <>
-          <span class="text-standalone-accent">~20s</span> quicker or more on 3G 🤯
-        </>
-      ),
-      body: 'Time to Interactive measured on chrome 3G throttling on a few mid-size sample apps.',
-    },
-  ];
-
   const streamingHighlights = [
     'Qwik is like video streaming, but with JavaScript.',
     "There's no waiting for the entire code to be downloaded. Clicks respond instantly.",
@@ -25,8 +11,8 @@ export const Streaming = component$(() => {
   ];
 
   return (
-    <section class="relative grid gap-10 md:grid-cols-2 2xl:gap-[80px] w-full 2xl:pt-32 pt-10 pb-20 2xl:px-20 px-4">
-      <div class="flex flex-col order-1 2xl:gap-10 gap-10 max-w-fit">
+    <section class="relative overflow-x-clip grid gap-10 md:grid-cols-[auto_auto] md:justify-center md:gap-16 2xl:gap-[80px] w-full max-w-[1280px] mx-auto 2xl:pt-40 md:pt-24 pt-16 pb-20 2xl:px-20 px-4">
+      <div class="flex flex-col 2xl:gap-10 gap-10 max-w-fit">
         <div class="relative">
           <h2 class="relative z-2 font-heading 2xl:text-h3 text-[28px] box-decoration-clone">
             <span class="bg-secondary-background-base mb-2 block w-fit shadow-primary-accent">
@@ -36,7 +22,7 @@ export const Streaming = component$(() => {
               JavaScript Streaming
             </span>
           </h2>
-          <pixel.videomoviesplayer class="absolute -top-[55%] right-[40%] 2xl:-top-[20%] 2xl:right-[25%] z-1 size-20 rotate-14 text-border-base drop-shadow-[6px_6px_0_var(--color-shadow-emphasis)]" />
+          <pixel.videomoviesplayer class="absolute -top-[55%] right-[40%] 2xl:-top-[18%] 2xl:right-[4%] z-1 size-20 rotate-14 text-border-base drop-shadow-[6px_6px_0_var(--color-shadow-emphasis)]" />
         </div>
 
         <div class="flex flex-col gap-6">
@@ -46,28 +32,18 @@ export const Streaming = component$(() => {
             </p>
           ))}
         </div>
-
+      </div>
+      <div class="relative flex flex-col items-center 2xl:gap-10 gap-8 w-full max-w-[440px] md:w-auto md:max-w-none">
+        <div class="absolute -z-2 -inset-x-1/3 -inset-y-1/2 bg-hero-gradient-purple opacity-50" />
+        <TimeToInteractive
+          alt="Time to interactive grows with app size in frameworks that hydrate, and stays flat with Qwik's JavaScript streaming."
+          class="w-full md:w-[360px] lg:w-[400px] 2xl:w-[460px] h-auto md:my-auto"
+          sizes="(min-width: 90rem) 460px, 440px"
+        />
         <Button class="w-fit 2xl:text-base text-sm" variant="primary">
           <span>Discover more</span>
           <lucide.arrowright />
         </Button>
-      </div>
-      <div class="flex flex-col order-0">
-        {streamingCards.map((card, index) => (
-          <Card
-            key={card.body}
-            class={
-              index === 0
-                ? 'self-end z-1 2xl:shadow-emphasis shadow-sm-emphasis 2xl:mr-[128px] mr-20'
-                : 'self-end transform -translate-y-10 2xl:-translate-y-16 2xl:ml-32 z-0 2xl:shadow-emphasis shadow-sm-emphasis'
-            }
-          >
-            <div class="2xl:p-10 p-6 flex flex-col gap-2 2xl:max-w-[48ch] max-w-[260px] text-center">
-              <h3 class="font-heading 2xl:text-h5 text-label-xs">{card.title}</h3>
-              <p class="2xl:text-body text-body-xs">{card.body}</p>
-            </div>
-          </Card>
-        ))}
       </div>
     </section>
   );

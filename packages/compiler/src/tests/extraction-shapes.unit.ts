@@ -46,6 +46,35 @@ export const Tree = component$(() => {
     expect(output.diagnostics.map((diagnostic) => diagnostic.code)).toEqual(['runtime-jsx-call']);
   });
 
+  test('a mangled local exported under another name is not a custom marker', async () => {
+    // Terser mangles locals to names like `e$`/`s$`; a dependency bundle is not authored source,
+    // and reading its mangled names as `$` markers demands twins that cannot exist.
+    const output = await transformModules(
+      options(
+        `const e$ = (fn) => fn;
+function s$(fn) { return e$(fn); }
+export { e$ as component$, s$ as sync$ };
+export const x = () => s$(() => 1);
+`,
+        'dist/core.min.mjs'
+      )
+    );
+    expect(output.diagnostics).toEqual([]);
+    expect(emitted(output)).toContain('s$(() => 1)');
+    expect(emitted(output)).not.toMatch(/_qrl|Qrl\(/);
+  });
+
+  test('an exported $ local still needs its twins under its own name', async () => {
+    // Authored source keeps the loud failure: a `$` boundary must never survive silently.
+    await expect(
+      transformModules(
+        options(`export const useThing$ = (fn) => fn;
+export const run = () => useThing$(() => 1);
+`)
+      )
+    ).rejects.toThrow(/useThing\$ without its qrl twin/);
+  });
+
   test('event$ calls its Qrl twin with the extracted QRL', async () => {
     const output = await transformModules(
       options(`import { component$, event$, useStore } from '@qwik.dev/core';

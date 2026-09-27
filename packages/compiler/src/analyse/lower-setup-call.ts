@@ -121,9 +121,12 @@ export function resolveSetupCall(
       ? !coreSetupCalls.has(coreApi)
       : imported !== undefined
         ? imported.imported === name
-        : ctx.plan.exports.some(
+        : // Under its OWN name, as the convention reads: a minified bundle exports mangled
+          // locals (`e$` as `component$`) whose twins cannot exist.
+          ctx.plan.exports.some(
             (entry) =>
               entry.e === ExportKind.Local &&
+              entry.exported === name &&
               entry.target.t === ExportTargetKind.Binding &&
               entry.target.binding === binding
           ));

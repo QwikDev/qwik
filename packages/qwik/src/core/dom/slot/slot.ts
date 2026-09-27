@@ -536,8 +536,7 @@ function renderRemainingSsrProjections(
       ctx,
       projections[i].renderQrl,
       projections[i].slotScope,
-      invokeContext,
-      projections[i]
+      invokeContext
     );
     if (isPromise(projected)) {
       return projected.then((resolved) => {

@@ -57,6 +57,16 @@ export interface ServerRenderOptions extends RenderOptions {
    * Defaults to `true`.
    */
   checkOrigin?: boolean | 'lax-proto';
+  /**
+   * Use the `X-Forwarded-Host` and `X-Forwarded-Proto` request headers to compute the URL exposed
+   * by `useLocation()` during SSR.
+   *
+   * Only enable this when the server is behind a proxy that overwrites these headers, otherwise
+   * clients can spoof the URL.
+   *
+   * Defaults to `false`.
+   */
+  trustForwardedHeaders?: boolean;
 }
 
 /** @public */

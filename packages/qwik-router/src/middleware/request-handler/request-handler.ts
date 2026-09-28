@@ -1,5 +1,4 @@
 import { isDev } from '@qwik.dev/core';
-import type { Render } from '@qwik.dev/core/server';
 import { loadRoute } from '../../runtime/src/routing';
 import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../runtime/src/route-loaders';
 import type { QwikRouterConfig } from '../../runtime/src/types';
@@ -47,7 +46,6 @@ export async function requestHandler<T = unknown>(
   serverRequestEv: ServerRequestEvent<T>,
   opts: ServerRenderOptions
 ): Promise<QwikRouterRun<T> | null> {
-  const { render, checkOrigin } = opts;
   const config = await getConfig();
 
   const pathname = getRequestHandlerPathname(serverRequestEv);
@@ -66,8 +64,7 @@ export async function requestHandler<T = unknown>(
       config,
       cleanPathname,
       serverRequestEv.request.method,
-      checkOrigin ?? true,
-      render,
+      opts,
       serverRequestEv
     );
   };
@@ -90,8 +87,7 @@ export async function requestHandler<T = unknown>(
     config,
     pathname,
     serverRequestEv.request.method,
-    checkOrigin ?? true,
-    render,
+    opts,
     serverRequestEv
   );
 
@@ -134,8 +130,7 @@ async function loadRequestHandlers(
   qwikRouterConfig: QwikRouterConfig,
   pathname: string,
   method: string,
-  checkOrigin: boolean | 'lax-proto',
-  renderFn: Render,
+  opts: ServerRenderOptions,
   serverRequestEv: ServerRequestEvent
 ) {
   const { routes, serverPlugins, cacheModules } = qwikRouterConfig;
@@ -151,8 +146,8 @@ async function loadRequestHandlers(
     serverPlugins,
     loadedRoute,
     method,
-    checkOrigin,
-    renderQwikMiddleware(renderFn)
+    opts.checkOrigin ?? true,
+    renderQwikMiddleware(opts.render, opts.trustForwardedHeaders)
   );
   return { loadedRoute, requestHandlers };
 }

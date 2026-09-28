@@ -189,6 +189,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   /** Clear the value so readers see the loading state, then recompute. */
   clear(): void {
     this.$untrackedValue$ = NEEDS_COMPUTATION;
+    this.$flags$ &= ~AsyncSignalFlags.VALUE_LEFT_ON_SERVER;
     this.invalidate();
   }
 
@@ -369,7 +370,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   get error(): Error | undefined {
     const error = this.untrackedError;
     this.$trackErrorReader$();
-    if (error || this.$untrackedValue$ === NEEDS_COMPUTATION) {
+    if (error || !this.$isOnScreen$()) {
       return error;
     }
     return findUpstreamFailure(this);
@@ -405,8 +406,15 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if ((qTest ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
       throw this.$current$?.$promise$;
     }
-    // A failure with no value to stand beside reaches `<Catch>` through `.value` only
-    return this.$untrackedValue$ === NEEDS_COMPUTATION ? undefined : this.$untrackedError$;
+    // A failure with nothing on screen to stand beside reaches `<Catch>` through `.value` only
+    return this.$isOnScreen$() ? this.$untrackedError$ : undefined;
+  }
+
+  $isOnScreen$(): boolean {
+    return (
+      this.$untrackedValue$ !== NEEDS_COMPUTATION ||
+      !!(this.$flags$ & AsyncSignalFlags.VALUE_LEFT_ON_SERVER)
+    );
   }
 
   $setInvalid$(allowRecalc: boolean): void {

@@ -679,6 +679,37 @@ describe.each([
         </>
       );
     });
+
+    it('should settle a failed first client refresh of an unserialized signal into .error', async () => {
+      const Cmp = component$(() => {
+        const count = useSignal(1);
+        const data = useComputed$(
+          async ({ track }) => {
+            const countValue = track(count);
+            if (countValue > 1) {
+              throw new Error('refresh failed');
+            }
+            return countValue * 2;
+          },
+          { serializationStrategy: 'never' }
+        ) as ComputedSignalInternal<number>;
+        return (
+          <>
+            <button onClick$={() => count.value++} />
+            <b id="value">{data.value}</b>
+            <i id="error">{data.error?.message ?? 'none'}</i>
+          </>
+        );
+      });
+      const { container } = await render(<Cmp />, { debug });
+
+      await trigger(container.element, 'button', 'click');
+      await waitForDrain(container);
+      await waitForDrain(container);
+
+      expect(container.element.querySelector('#value')?.textContent).toBe('2');
+      expect(container.element.querySelector('#error')?.textContent).toBe('refresh failed');
+    });
   });
 
   describe('promise', () => {

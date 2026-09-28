@@ -656,11 +656,6 @@ export class Serializer {
         const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
         const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
 
-        // Send the flags but remove the serialization bits and default to 0 when undefined
-        const asyncFlags =
-          (isAsync && value.$flags$ & ~SerializationSignalFlags.SERIALIZATION_ALL_STRATEGIES) ||
-          undefined;
-
         if (isInvalid || isSkippable || isErrored) {
           v = NEEDS_COMPUTATION;
         } else if (shouldAlwaysSerialize) {
@@ -668,6 +663,15 @@ export class Serializer {
         } else if (shouldNeverSerialize) {
           v = NEEDS_COMPUTATION;
         }
+
+        const isValueLeftOnServer =
+          v === NEEDS_COMPUTATION && value.$untrackedValue$ !== NEEDS_COMPUTATION;
+        // Send the flags but remove the serialization bits and default to 0 when undefined
+        const asyncFlags =
+          (isAsync &&
+            (value.$flags$ & ~SerializationSignalFlags.SERIALIZATION_ALL_STRATEGIES) |
+              (isValueLeftOnServer ? AsyncSignalFlags.VALUE_LEFT_ON_SERVER : 0)) ||
+          undefined;
 
         const out: unknown[] = [value.$computeQrl$, value.$effects$];
         if (isAsync) {

@@ -1,13 +1,13 @@
 import { type RequestHandler } from '@qwik.dev/router';
-import { ServerError } from '@qwik.dev/router/middleware/request-handler';
+import { HttpError } from '@qwik.dev/router/middleware/request-handler';
 import { isErrorReason } from './(common)/server-func/server-error';
 
 export const onRequest: RequestHandler = async ({ next }) => {
   try {
     return await next();
   } catch (err) {
-    // Intercept and update ServerErrors to test middleware
-    if (err instanceof ServerError) {
+    // Intercept and update HttpErrors to test middleware
+    if (err instanceof HttpError) {
       // Update for (common)/server-func/server-error
       if (isErrorReason(err.data)) {
         err.data.middleware = 'server-error-caught';

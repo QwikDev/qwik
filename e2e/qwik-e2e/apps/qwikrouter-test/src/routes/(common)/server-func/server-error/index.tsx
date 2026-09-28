@@ -1,5 +1,5 @@
 import { server$ } from '@qwik.dev/router';
-import { ServerError } from '@qwik.dev/router/middleware/request-handler';
+import { HttpError } from '@qwik.dev/router/middleware/request-handler';
 import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 import { delay } from '../../actions/login';
 
@@ -9,7 +9,7 @@ type ErrorReason = {
 };
 
 const serverFunctionA = server$(async function a(): Promise<string> {
-  throw new ServerError<ErrorReason>(401, {
+  throw new HttpError<ErrorReason>(401, {
     reason: 'my error',
     middleware: 'server-error-uncaught',
   });

@@ -55,7 +55,7 @@ A few properties of route loaders:
 - **Keyed by route, not by call site.** Two visits to the same URL share one logical "result" per "route + url params + search params" set, not one per `useProductDetails()` call.
 - **Result is a `ComputedSignal`.** Components read `.value`. While the data is loading, reading `.value` suspends; if the loader threw, it re-throws the error.
 - **Each loader has its own JSON endpoint.** The client fetches `q-loader-{id}.{hash}.json` for navigation, polling, and post-action invalidation. The browser HTTP cache, ETags, and the `cacheControl` option all apply.
-- **Blocks SSR by default.** The server awaits the loader before rendering the page, so a `throw redirect()` or `throw error()` controls the response. Opt out with `blockSSR: false` to run it in the background — see [Background loaders](#background-loaders-blockssr).
+- **Blocks SSR by default.** The server awaits the loader before rendering the page, so a `throw redirect()` or `throw httpError()` controls the response. Opt out with `blockSSR: false` to run it in the background — see [Background loaders](#background-loaders-blockssr).
 
 This means a `routeLoader$()` should be a **pure function of the URL**: same `params` and `search` → same response. Mixing in any other input (action state, request bodies, one-shot tokens) makes the cached responses inconsistent — see [Loaders cannot read action state](#loaders-cannot-read-action-state).
 
@@ -99,7 +99,7 @@ export default component$(() => (
 
 Loaders signal failure two ways:
 
-- **`throw requestEvent.error(status, data)`** — throw a `ServerError` directly. Reading `signal.value` re-throws the `ServerError {status, data}`, so wrap the reader in a `<Catch>`. This is the recommended way to signal failure from a loader.
+- **`throw requestEvent.httpError(status, data)`** — throw an `HttpError` directly. Reading `signal.value` re-throws the `HttpError {status, data}`, so wrap the reader in a `<Catch>`. This is the recommended way to signal failure from a loader.
 - **`return requestEvent.fail(status, data)`** — returns an inline failure. `signal.value.failed` is `true` and `signal.value` contains the rest of the data.
 
 In both cases the result is not cacheable. For a blocking loader (the default) the HTTP response status is also set to `status`; a `blockSSR: false` loader is isolated from the page response — see [Background loaders](#background-loaders-blockssr).
@@ -274,7 +274,7 @@ When using lazy-loaded data, wrap the reader in `<Pending>` to show a placeholde
 
 ## Background loaders (`blockSSR`)
 
-By default a loader **blocks SSR**: the server awaits it before rendering, so a `throw redirect()` or `throw error()` short-circuits the HTTP response. When several loaders block, the first one to error, in route order, decides the error, however the last one to set the status, in chronological order, decides the status.
+By default a loader **blocks SSR**: the server awaits it before rendering, so a `throw redirect()` or `throw httpError()` short-circuits the HTTP response. When several loaders block, the first one to error, in route order, decides the error, however the last one to set the status, in chronological order, decides the status.
 
 Set `blockSSR: false` to run a loader in the background instead. The server starts it but does not wait: rendering begins immediately, and reading `.value` suspends only that read until the loader resolves. This starts SSR sooner, and is the recommended setting, unless you need to control the request from the loader.
 
@@ -287,7 +287,7 @@ export const useRecommendations = routeLoader$(
 );
 ```
 
-A background loader is treated as a **separate request**: it cannot redirect or error the page response. If it calls `redirect()` or `error()`, that control flow is captured on its own signal (surfacing when `.value` is read) and never changes the page's status or headers. Keep route guards that must redirect or set a status in a [request handler](/docs/middleware) such as `onRequest`, or in a blocking loader.
+A background loader is treated as a **separate request**: it cannot redirect or error the page response. If it calls `redirect()` or `httpError()`, that control flow is captured on its own signal (surfacing when `.value` is read) and never changes the page's status or headers. Keep route guards that must redirect or set a status in a [request handler](/docs/middleware) such as `onRequest`, or in a blocking loader.
 
 Note: when the client fetches a background loader for SPA navigation, there is no difference between a blocking and non-blocking loader — the SPA fetch is always async, and the page is already rendered. Errors are not surfaced directly, but redirects are followed automatically.
 

@@ -643,6 +643,81 @@ describe.each([
       expect(container.element.querySelector('#value')?.textContent).toBe('4');
     });
 
+    it('should show a derived computed as pending while its source refreshes', async () => {
+      (globalThis as any).delay = () =>
+        new Promise<void>((res) => ((globalThis as any).delay.resolve = res));
+      const Cmp = component$(() => {
+        const count = useSignal(1);
+        const source = useComputed$(async ({ track }) => {
+          const countValue = track(count);
+          if (countValue > 1) {
+            await (globalThis as any).delay();
+          }
+          return countValue;
+        });
+        const doubled = useComputed$(() => source.value * 2) as ComputedSignalInternal<number>;
+        return (
+          <>
+            <button onClick$={() => count.value++} />
+            <b id="value">{doubled.value}</b>
+            <i id="pending">{doubled.pending ? 'pending' : 'idle'}</i>
+          </>
+        );
+      });
+      const { container } = await render(<Cmp />, { debug });
+      expect(container.element.querySelector('#pending')?.textContent).toBe('idle');
+
+      await trigger(container.element, 'button', 'click');
+      expect(container.element.querySelector('#pending')?.textContent).toBe('pending');
+
+      (globalThis as any).delay.resolve();
+      await waitForDrain(container);
+      await waitForDrain(container);
+      expect(container.element.querySelector('#pending')?.textContent).toBe('idle');
+      expect(container.element.querySelector('#value')?.textContent).toBe('4');
+    });
+
+    it('should show a computed derived from a prop as pending while the parent signal refreshes', async () => {
+      (globalThis as any).delay = () =>
+        new Promise<void>((res) => ((globalThis as any).delay.resolve = res));
+      const Child = component$((props: { count: number }) => {
+        const doubled = useComputed$(() => props.count * 2) as ComputedSignalInternal<number>;
+        return (
+          <>
+            <b id="value">{doubled.value}</b>
+            <i id="pending">{doubled.pending ? 'pending' : 'idle'}</i>
+          </>
+        );
+      });
+      const Parent = component$(() => {
+        const count = useSignal(1);
+        const source = useComputed$(async ({ track }) => {
+          const countValue = track(count);
+          if (countValue > 1) {
+            await (globalThis as any).delay();
+          }
+          return countValue;
+        });
+        return (
+          <>
+            <button onClick$={() => count.value++} />
+            <Child count={source.value} />
+          </>
+        );
+      });
+      const { container } = await render(<Parent />, { debug });
+      expect(container.element.querySelector('#pending')?.textContent).toBe('idle');
+
+      await trigger(container.element, 'button', 'click');
+      expect(container.element.querySelector('#pending')?.textContent).toBe('pending');
+
+      (globalThis as any).delay.resolve();
+      await waitForDrain(container);
+      await waitForDrain(container);
+      expect(container.element.querySelector('#pending')?.textContent).toBe('idle');
+      expect(container.element.querySelector('#value')?.textContent).toBe('4');
+    });
+
     it('should not show initial value after SSR', async () => {
       const Cmp = component$(() => {
         const asyncValue = useComputed$(async () => 42, { initial: 10 });

@@ -51,9 +51,9 @@ export interface Signal<T = any> {
  */
 export interface ComputedSignal<T> extends Signal<T> {
   /**
-   * Whether a promise is in flight on the signal while its value is on screen. It stays `false` on
-   * first load, while a `<Pending>` fallback shows instead. Reading it starts a lazy computation if
-   * needed.
+   * Whether a promise is in flight on the signal, or on a signal it reads, while its value is on
+   * screen. It stays `false` on first load, while a `<Pending>` fallback shows instead. Reading it
+   * starts a lazy computation if needed.
    *
    * @experimental
    */

@@ -5,6 +5,7 @@ import { QError, qError } from '../../shared/error/error';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
+import { isSameContainer } from '../../shared/utils/container';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
 import type { ValueOrPromise } from '../../shared/utils/types';
@@ -251,7 +252,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     this.$flags$ &= ~ComputedSignalFlags.INVALID;
     this.untrackedError = undefined;
     if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
-      this.untrackedPending = false;
       this.$info$ = undefined;
       // Prevent pending computations from overwriting this value
       if (this.$jobs$) {
@@ -262,6 +262,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         this.$current$.$canWrite$ = false;
       }
       super.value = value;
+      this.untrackedPending = false;
       return;
     }
     super.value = value;
@@ -301,8 +302,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   /**
-   * Pending is true while a promise is in flight on this signal and its value is on screen. It
-   * stays false on first load, while a `<Pending>` fallback shows instead.
+   * Pending is true while a promise is in flight on this signal, or on a signal it reads, and its
+   * value is on screen. It stays false on first load, while a `<Pending>` fallback shows instead.
    *
    * Accessing `.pending` will trigger computation if needed.
    */
@@ -311,7 +312,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     let isPending = false;
     try {
       if (canBePending) {
-        isPending = this.untrackedPending;
+        isPending = this.$isComputing$();
       } else {
         this.$computeIfNeeded$();
       }
@@ -322,7 +323,17 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       isPending = canBePending;
     }
     this.$trackPendingReader$();
-    return isPending;
+    return isPending || (canBePending && readsComputingSignal(this));
+  }
+
+  $isComputing$(): boolean {
+    return (
+      this.untrackedPending ||
+      (!!(this.$flags$ & ComputedSignalFlags.INVALID) &&
+        !!(this.$flags$ & AsyncSignalFlags.ASYNC_MODE) &&
+        this.$untrackedValue$ !== NEEDS_COMPUTATION &&
+        !this.$disposed$)
+    );
   }
 
   $trackPendingReader$(): void {
@@ -330,7 +341,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
           'Do not use signals across containers'
         );
       const effectSubscriber = ctx.$effectSubscriber$;
@@ -550,7 +561,9 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   $snapshotWalkedSources$(): Set<SignalImpl> | undefined {
-    return this.$errorEffects$?.size ? getWalkableSources(this) : undefined;
+    return this.$loadingEffects$?.size || this.$errorEffects$?.size
+      ? getWalkableSources(this)
+      : undefined;
   }
 
   $wakeReadersIfSourcesChanged$(sourcesBefore: Set<SignalImpl> | undefined): void {
@@ -562,6 +575,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       sourcesAfter.size !== sourcesBefore.size ||
       Array.from(sourcesBefore).some((source) => !sourcesAfter.has(source))
     ) {
+      scheduleEffects(this.$container$, this, this.$loadingEffects$);
       scheduleEffects(this.$container$, this, this.$errorEffects$);
     }
   }
@@ -918,3 +932,19 @@ const findUpstreamFailure = (signal: ComputedSignalImpl<unknown, any>): Error | 
   });
   return failure;
 };
+
+const isSourceComputing = (source: ComputedSignalImpl<unknown>): boolean => {
+  if (source.$disposed$ || !(source.$flags$ & AsyncSignalFlags.ASYNC_MODE)) {
+    return false;
+  }
+  return source.$untrackedValue$ === NEEDS_COMPUTATION
+    ? !!source.$untrackedPending$
+    : source.$isComputing$();
+};
+
+const readsComputingSignal = (signal: ComputedSignalImpl<unknown, any>): boolean =>
+  someUpstreamComputed(signal, new Set([signal]), (source) => {
+    const isComputing = isSourceComputing(source);
+    source.$trackPendingReader$();
+    return isComputing;
+  });

@@ -495,7 +495,7 @@ interface ComputedSignal<T> {
 ```
 
 - `value`: the resolved value, or `initial` if provided.
-- `pending`: whether the async function is refreshing a value already on screen. It stays `false` on the first load, while a `<Pending>` boundary shows its fallback.
+- `pending`: whether the value on screen is being refreshed, by the async function or by a signal it reads. It stays `false` on the first load, while a `<Pending>` boundary shows its fallback.
 - `error`: the error if the async function failed.
 - `promise()`: starts the async function if needed and waits for it to finish.
 - `abort()`: aborts the current async function.

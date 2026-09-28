@@ -630,7 +630,7 @@ bundles when the link becomes visible and turns route data prefetching off by de
 `prefetch={true}` prefetches route bundles and route data when the link becomes visible, and
 `prefetch={false}` disables prefetching.
 
-<Note title="Warning">If you use `visible` route data prefetching for many visible links, the browser may start many `q-data.json` requests at once.</Note>
+<Note title="Warning">Route data prefetching fetches one `q-loader-*.json` file per `routeLoader$` on the target route. If you use `visible` route data prefetching for many visible links, the browser may start many of these requests at once.</Note>
 
 ```tsx
 import { component$ } from '@qwik.dev/core';

@@ -660,6 +660,37 @@ describe('async computed', () => {
     });
   });
 
+  it('should not recompute a sync computed read again while it recomputes', async () => {
+    await withContainer(async () => {
+      const ref = { orders: 1, groupedRuns: 0 };
+      const orders = createComputed$(async () => {
+        await delay(1);
+        return ref.orders;
+      }) as unknown as ComputedSignalImpl<number>;
+      const pastOrders = createComputed$(async () => {
+        const count = orders.value;
+        await delay(1);
+        return count * 10;
+      }) as unknown as ComputedSignalImpl<number>;
+      const grouped = createComputed$(() => {
+        ref.groupedRuns++;
+        return orders.value + pastOrders.value;
+      }) as ComputedSignalImpl<number>;
+      const busy = createComputed$(() => [
+        pastOrders.pending,
+        grouped.value,
+      ]) as ComputedSignalImpl<unknown>;
+      await retryOnPromise(() => busy.value);
+      const runsBefore = ref.groupedRuns;
+
+      ref.orders = 2;
+      orders.invalidate();
+      await orders.promise();
+
+      expect(ref.groupedRuns - runsBefore).toBe(1);
+    });
+  });
+
   it('should accept AsyncSignal options like initial and timeout', async () => {
     await withContainer(async () => {
       const signal = createComputed$(

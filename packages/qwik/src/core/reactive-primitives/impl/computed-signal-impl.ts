@@ -497,6 +497,9 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     }
     const running = new Job<T>(this, this.$info$, this.$infoVersion$);
     this.$current$ = running;
+    if (this.$untrackedValue$ !== NEEDS_COMPUTATION) {
+      this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    }
     const sourcesBefore = this.$snapshotWalkedSources$();
 
     let result: T | Promise<T>;
@@ -505,6 +508,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     } catch (err) {
       // A thrown promise is a retry request, not a failure
       if (isPromise(err)) {
+        this.$flags$ |= ComputedSignalFlags.INVALID;
         throw err;
       }
       if (running.$infoVersion$ === this.$infoVersion$) {

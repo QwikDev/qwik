@@ -163,7 +163,6 @@ export interface ComputedSignal<T> extends Signal<T> {
 
 // @internal
 export interface _ComputedSignalInternal<T> extends ComputedSignal<T> {
-    // @deprecated (undocumented)
     loading: boolean;
     untrackedError: Error | undefined;
     // @deprecated (undocumented)

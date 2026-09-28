@@ -556,7 +556,7 @@ describe.each([
   });
 
   describe('pending', () => {
-    it('should show pending state', async () => {
+    it('should not show pending on first load, only on a refresh', async () => {
       (globalThis as any).delay = () =>
         new Promise<void>((res) => ((globalThis as any).delay.resolve = res));
       const Counter = component$(() => {
@@ -577,31 +577,15 @@ describe.each([
         );
       });
       const { vNode, container } = await render(<Counter />, { debug });
-      if (render === ssrRenderToDom) {
-        expect(vNode).toMatchVDOM(
-          <>
-            <button>
-              <Signal ssr-required>{'2'}</Signal>
-            </button>
-          </>
-        );
-      } else {
-        expect(vNode).toMatchVDOM(
-          <>
-            <button>
-              <Signal ssr-required>{'loading'}</Signal>
-            </button>
-          </>
-        );
-        await delay(20);
-        expect(vNode).toMatchVDOM(
-          <>
-            <button>
-              <Signal ssr-required>{'2'}</Signal>
-            </button>
-          </>
-        );
-      }
+      expect(container.element.querySelector('button')?.textContent).not.toBe('loading');
+      await delay(20);
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>
+            <Signal ssr-required>{'2'}</Signal>
+          </button>
+        </>
+      );
 
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
@@ -623,6 +607,42 @@ describe.each([
         </>
       );
     });
+    it('should report pending on the first client refresh of an unserialized signal', async () => {
+      (globalThis as any).delay = () =>
+        new Promise<void>((res) => ((globalThis as any).delay.resolve = res));
+      const Cmp = component$(() => {
+        const count = useSignal(1);
+        const data = useComputed$(
+          async ({ track }) => {
+            const countValue = track(count);
+            if (countValue > 1) {
+              await (globalThis as any).delay();
+            }
+            return countValue * 2;
+          },
+          { serializationStrategy: 'never' }
+        ) as ComputedSignalInternal<number>;
+        return (
+          <>
+            <button onClick$={() => count.value++} />
+            <b id="value">{data.value}</b>
+            <i id="pending">{data.pending ? 'pending' : 'idle'}</i>
+          </>
+        );
+      });
+      const { container } = await render(<Cmp />, { debug });
+      expect(container.element.querySelector('#pending')?.textContent).toBe('idle');
+
+      await trigger(container.element, 'button', 'click');
+      expect(container.element.querySelector('#pending')?.textContent).toBe('pending');
+
+      (globalThis as any).delay.resolve();
+      await waitForDrain(container);
+      await waitForDrain(container);
+      expect(container.element.querySelector('#pending')?.textContent).toBe('idle');
+      expect(container.element.querySelector('#value')?.textContent).toBe('4');
+    });
+
     it('should not show initial value after SSR', async () => {
       const Cmp = component$(() => {
         const asyncValue = useComputed$(async () => 42, { initial: 10 });

@@ -51,7 +51,9 @@ export interface Signal<T = any> {
  */
 export interface ComputedSignal<T> extends Signal<T> {
   /**
-   * Whether the signal is currently loading. Reading it starts a lazy computation if needed.
+   * Whether a promise is in flight on the signal while its value is on screen. It stays `false` on
+   * first load, while a `<Pending>` fallback shows instead. Reading it starts a lazy computation if
+   * needed.
    *
    * @experimental
    */
@@ -91,13 +93,13 @@ export interface ComputedSignal<T> extends Signal<T> {
  */
 export interface ComputedSignalInternal<T> extends ComputedSignal<T> {
   /**
-   * Lets you read the pending state without subscribing to `.pending` updates. It also triggers
-   * lazy computation of the signal.
+   * Whether the signal's own job is in flight, first load included, without subscribing. It also
+   * triggers lazy computation of the signal.
    *
    * Setting it will trigger listeners for `.pending`.
    */
   untrackedPending: boolean;
-  /** @deprecated Use `pending` instead */
+  /** Whether the signal's own job is in flight, first load included, unlike `pending`. */
   loading: boolean;
   /** @deprecated Use `untrackedPending` instead */
   untrackedLoading: boolean;

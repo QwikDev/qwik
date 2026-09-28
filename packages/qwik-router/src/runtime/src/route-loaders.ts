@@ -30,7 +30,12 @@ import type {
 import { _asyncRequestStore } from '../../middleware/request-handler/async-request-store';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
-import { HttpError, throwIfControlFlowSignal } from '../../middleware/request-handler/http-error';
+import {
+  getPublicCrashMessage,
+  HttpError,
+  isCrash,
+  throwIfControlFlowSignal,
+} from '../../middleware/request-handler/http-error';
 import { ensureSlash } from '../../utils/pathname';
 import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
 import { basePathname } from './qwik-router-config';
@@ -76,12 +81,12 @@ export const ROUTE_PATH_HEADER = 'X-Qwik-route-path';
  *
  * - `d` — data: the loader's return value (including a `fail()` result, which is plain data)
  * - `r` — redirect: URL to navigate to (from `throw redirect()`)
- * - `e` — error: an HttpError (from a thrown `HttpError` / `error()`)
+ * - `e` — error: the loader's failure, a crash redacted outside dev
  */
 export type LoaderResponse = {
   d?: unknown;
   r?: string;
-  e?: InstanceType<typeof HttpError>;
+  e?: Error;
 };
 
 /**
@@ -214,6 +219,10 @@ class ServerRouteLoaderCapture {
     if (!requestEv) {
       throw new Error('Unable to determine the current RequestEvent.');
     }
+    const failures = getRouteLoaderFailures(requestEv);
+    if (this.hash in failures) {
+      throw failures[this.hash];
+    }
     // Use pre-computed value from loadersMiddleware if available,
     // to avoid re-running the loader after the response stream is open.
     const values = getRouteLoaderValues(requestEv);
@@ -222,7 +231,9 @@ class ServerRouteLoaderCapture {
     }
     // A background (blockSSR:false) loader must not touch the page response.
     const ev = this.blockSSR ? requestEv : detachResponseFromEvent(requestEv);
-    return loadRouteLoaderByQrl(this.hash, this.qrl, this.validators, ev);
+    return loadRouteLoaderByQrl(this.hash, this.qrl, this.validators, ev).catch((err: unknown) => {
+      throw isCrash(err) ? toLoaderCrash(err) : err;
+    });
   }
 
   [SerializerSymbol]() {
@@ -570,6 +581,7 @@ export const getRequestEvent = (thisArg?: unknown): RequestEvent | undefined => 
 };
 
 const REQUEST_ROUTE_LOADER_VALUES = '@routeLoaderValues';
+const REQUEST_ROUTE_LOADER_FAILURES = '@routeLoaderFailures';
 
 export function getRouteLoaderState(requestEv: RequestEventBase): RouteLoaderState {
   let state = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_STATE) as RouteLoaderState | undefined;
@@ -590,6 +602,41 @@ export function getRouteLoaderValues(requestEv: RequestEventBase): Record<string
     requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_VALUES, values);
   }
   return values;
+}
+
+function getRouteLoaderFailures(requestEv: RequestEventBase): Record<string, Error> {
+  let failures = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_FAILURES) as
+    | Record<string, Error>
+    | undefined;
+  if (!failures) {
+    failures = {};
+    requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_FAILURES, failures);
+  }
+  return failures;
+}
+
+/**
+ * A crash in a blocking loader fails it and every loader after it, in route order, so no data past
+ * a failed guard reaches the page.
+ */
+export function failRouteLoadersFrom(
+  requestEv: RequestEventBase,
+  routeLoaders: readonly LoaderInternal[],
+  crashedIndex: number,
+  crash: Error
+) {
+  const failures = getRouteLoaderFailures(requestEv);
+  const values = getRouteLoaderValues(requestEv);
+  for (let i = crashedIndex; i < routeLoaders.length; i++) {
+    const id = routeLoaders[i].__id;
+    failures[id] = crash;
+    delete values[id];
+  }
+}
+
+/** Whether a blocking loader crashed on this request, failing the loaders from it on. */
+export function hasRouteLoaderFailures(requestEv: RequestEventBase): boolean {
+  return Object.keys(getRouteLoaderFailures(requestEv)).length > 0;
 }
 
 function getRouteLoaderPromises(requestEv: RequestEventBase): Record<string, Promise<unknown>> {
@@ -908,6 +955,10 @@ export const loadRouteLoaderByQrl = (
   validators: DataValidator[] | undefined,
   requestEv: RequestEvent
 ) => {
+  const failures = getRouteLoaderFailures(requestEv);
+  if (loaderId in failures) {
+    return Promise.reject(failures[loaderId]);
+  }
   const values = getRouteLoaderValues(requestEv);
   if (loaderId in values) {
     return Promise.resolve(values[loaderId]);
@@ -918,6 +969,9 @@ export const loadRouteLoaderByQrl = (
   if (!promise) {
     promise = getRouteLoaderData(loaderQrl, validators, requestEv).then(
       (value) => {
+        if (loaderId in failures) {
+          throw failures[loaderId];
+        }
         values[loaderId] = value;
         return value;
       },
@@ -1080,8 +1134,17 @@ export const getRouteLoaderResponse = async (
     if (err instanceof HttpError) {
       return { e: err };
     }
+    if (isCrash(err)) {
+      return { e: toLoaderCrash(err) };
+    }
     throw err;
   }
+};
+
+/** Log a loader crash and return what the client may see of it. */
+export const toLoaderCrash = (err: Error): Error => {
+  console.error('Loader error:', err);
+  return new Error(getPublicCrashMessage(err));
 };
 
 /**

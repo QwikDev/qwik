@@ -15,7 +15,7 @@ import { checkCSRF } from './resolve-request-handlers-core';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { HttpError } from '@qwik.dev/router/middleware/request-handler';
 import { IsQLoader, QLoaderId } from './request-path';
-import { getRouteLoaderValues } from '../../runtime/src/route-loaders';
+import { getRouteLoaderValues, loadRouteLoader } from '../../runtime/src/route-loaders';
 
 const { prerenderedPaths } = vi.hoisted(() => ({ prerenderedPaths: new Set<string>() }));
 vi.mock('./static-paths', () => ({
@@ -727,6 +727,89 @@ describe('resolve-request-handler', () => {
 
       expect(requestEv.status()).toBe(401);
       expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('first-error');
+    });
+
+    it('renders the page when a blockSSR loader crashes, and a read rethrows without running it again', async () => {
+      const crash = new Error('db down');
+      const crashing = vi.fn(() => {
+        throw crash;
+      });
+      const loader = makeLoader('crashing', crashing);
+      const renderHandler = exitRender();
+      const requestEv = runPage(pageRouteWithLoaders(loader), renderHandler);
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      try {
+        await requestEv.next();
+      } finally {
+        consoleError.mockRestore();
+      }
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      expect(requestEv.status()).toBe(200);
+      const failure = await loadRouteLoader(loader, requestEv).catch((err: Error) => err);
+      expect(failure).toBeInstanceOf(Error);
+      expect((failure as Error).message).toContain(crash.message);
+      expect(crashing).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails the loaders after a crashed blockSSR loader with the same error', async () => {
+      const crash = new Error('session check failed');
+      const before = makeLoader('before', () => 'layout data');
+      const guard = makeLoader('guard', () => {
+        throw crash;
+      });
+      const after = makeLoader('after', () => ({ secret: 'invoices' }));
+      const streamedAfter = makeLoader('streamed-after', () => 'streamed', { blockSSR: false });
+      const requestEv = runPage(
+        pageRouteWithLoaders(before, guard, after, streamedAfter),
+        exitRender()
+      );
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      try {
+        await requestEv.next();
+      } finally {
+        consoleError.mockRestore();
+      }
+
+      await expect(loadRouteLoader(before, requestEv)).resolves.toBe('layout data');
+      const guardFailure = await loadRouteLoader(guard, requestEv).catch((err: Error) => err);
+      expect((guardFailure as Error).message).toContain(crash.message);
+      await expect(loadRouteLoader(after, requestEv)).rejects.toBe(guardFailure);
+      await expect(loadRouteLoader(streamedAfter, requestEv)).rejects.toBe(guardFailure);
+    });
+
+    it('renders a page whose eTag reads a loader after a crashed blockSSR loader at 200, without an ETag', async () => {
+      const guard = makeLoader('guard', () => {
+        throw new Error('session check failed');
+      });
+      const invoices = makeLoader('invoices', () => 'invoices');
+      const route: LoadedRoute = {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [
+          { useGuard: guard, useInvoices: invoices },
+          {
+            default: () => null,
+            eTag: ({ resolveValue }: any) => `invoices-${resolveValue(invoices)}`,
+          },
+        ] as any,
+        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
+      };
+      const renderHandler = exitRender();
+      const requestEv = runPage(route, renderHandler);
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      try {
+        await requestEv.next();
+      } finally {
+        consoleError.mockRestore();
+      }
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      expect(requestEv.status()).toBe(200);
+      expect(requestEv.headers.has('ETag')).toBe(false);
     });
 
     it('a failing blockSSR:false loader does not affect the response when unread', async () => {

@@ -16,12 +16,15 @@ import type {
 } from '../../runtime/src/types';
 import {
   clearRouteLoaderData,
+  failRouteLoadersFrom,
   getRouteLoaderCtx,
   getRouteLoaderParams,
   getRouteLoaderValues,
+  hasRouteLoaderFailures,
   loadRouteLoader,
   matchesRouteLoaderId,
   setRouteLoaders,
+  toLoaderCrash,
 } from '../../runtime/src/route-loaders';
 import { ensureSlash } from '../../utils/pathname';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
@@ -332,22 +335,39 @@ function createResolveRequestHandlers() {
       // a redirect/error short-circuits the response; the first one in route order wins. Loaders
       // with `blockSSR: false` resolve in the background and only surface when their `.value` is
       // read.
-      let allBlockSSRLoaders: Promise<void> | undefined;
-      for (let i = 0; i < routeLoaders.length; i++) {
-        const loader = routeLoaders[i];
+      const promises = routeLoaders.map((loader) => {
         const promise = loadRouteLoader(loader, requestEv);
         // Handle every rejection so a background loader can't crash the request.
         promise.catch(() => {});
-        if (loader.__blockSSR) {
-          // Chain the promises so a thrown error is handled in route order
-          // Note: status changes are last-writer wins, but that's fine
-          allBlockSSRLoaders = (
-            allBlockSSRLoaders ? allBlockSSRLoaders.then(() => promise) : promise
-          ) as Promise<void>;
-        }
-      }
-      return allBlockSSRLoaders;
+        return promise;
+      });
+      return awaitBlockingLoaders(routeLoaders, promises, requestEv);
     };
+  }
+
+  /**
+   * The first blocking loader to fail, in route order, decides: a redirect or an `HttpError`
+   * answers for the page, and a crash fails that loader and the ones after it.
+   */
+  async function awaitBlockingLoaders(
+    routeLoaders: LoaderInternal[],
+    promises: Promise<unknown>[],
+    requestEv: RequestEventInternal
+  ): Promise<void> {
+    for (let i = 0; i < routeLoaders.length; i++) {
+      if (!routeLoaders[i].__blockSSR) {
+        continue;
+      }
+      try {
+        await promises[i];
+      } catch (err) {
+        if (!isCrash(err)) {
+          throw err;
+        }
+        failRouteLoadersFrom(requestEv, routeLoaders, i, toLoaderCrash(err));
+        return;
+      }
+    }
   }
 
   function setLoaderData(
@@ -396,7 +416,7 @@ function createResolveRequestHandlers() {
         const page = m as PageModule;
         return page.eTag !== undefined || page.cacheKey !== undefined;
       });
-      if (!hasCachingConfig) {
+      if (!hasCachingConfig || hasRouteLoaderFailures(requestEv)) {
         return;
       }
 

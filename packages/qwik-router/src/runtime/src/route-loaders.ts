@@ -376,8 +376,7 @@ const createRouteLoaderSignal = (
     async (ctx) => {
       const { info, previous, abortSignal } = ctx;
       const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
-      // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
-      // an action response).
+      // Pre-loaded value injection (from middleware via setLoaderSignalValue).
       if (hasInjectedValue) {
         const value = (info as { __v: unknown }).__v;
         if (!isServer && resumeValueKey in stateValues) {

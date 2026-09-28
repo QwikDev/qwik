@@ -8,7 +8,7 @@ import {
   useTask$,
 } from '@qwik.dev/core';
 import { getBasePathname, getRequestEvent, getRoutes, Link, server$ } from '@qwik.dev/router';
-import { ServerError } from '@qwik.dev/router/middleware/request-handler';
+import { HttpError } from '@qwik.dev/router/middleware/request-handler';
 
 export interface Greeting {
   greeting: string;
@@ -55,7 +55,7 @@ const readRequestPath = server$(function () {
 });
 
 const rejectRequest = server$(() => {
-  throw new ServerError(403, 'rejected by the library');
+  throw new HttpError(403, 'rejected by the library');
 });
 
 /** Reads the request and the route config through the library's own copy of the router. */

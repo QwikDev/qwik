@@ -194,13 +194,12 @@ describe('resolve-request-handler', () => {
             'Content-Type': 'application/qwik-json',
           },
         }),
-        error: vi.fn((status: number, message: string) => ({ status, message })),
         exit: vi.fn(),
         parseBody: vi.fn(async () => [[]]),
         headers: new Headers(),
       } as any;
 
-      await expect(handlers[2](ev)).rejects.toEqual({ status: 500, message: 'Invalid request' });
+      await expect(handlers[2](ev)).rejects.toEqual(new HttpError(500, 'Invalid request'));
 
       expect(ev.exit).toHaveBeenCalledTimes(1);
       expect(routeOnRequest).not.toHaveBeenCalled();
@@ -243,7 +242,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
@@ -259,7 +257,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
@@ -274,7 +271,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
@@ -290,7 +286,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       // Should not throw
@@ -307,7 +302,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       // Should not throw
@@ -324,7 +318,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       // Should not throw
@@ -341,7 +334,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);

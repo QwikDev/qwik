@@ -104,7 +104,8 @@ export function loaderHandler(
     const responseData = await getRouteLoaderResponse(
       loader.__qrl,
       loader.__validators,
-      loaderRequestEv
+      loaderRequestEv,
+      loader.__blockSSR
     );
     const data = await _serialize(responseData);
 

@@ -77,7 +77,7 @@ export const loadRoute = async (
 };
 
 /** Built-in fallback error component loader */
-const httpErrorLoader = (() => import('./http-error')) as ContentModuleLoader;
+export const httpErrorLoader = (() => import('./http-error')) as ContentModuleLoader;
 
 /** Collect the rewrite target's layouts, loader endpoint paths, and params at those paths. */
 function walkTrieKeys(

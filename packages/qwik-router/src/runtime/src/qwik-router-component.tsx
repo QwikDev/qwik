@@ -76,7 +76,7 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { refreshLinkPrefetchObserver } from './link-prefetch';
-import { loadRoute } from './routing';
+import { httpErrorLoader, loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
   currentScrollState,
@@ -655,6 +655,32 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const contentModules = $mods$ as ContentModule[];
       if (!isServer) {
         routeLoaderCtx.goto = noSerialize(goto);
+        routeLoaderCtx.showErrorPage = noSerialize(async (error: Error) => {
+          if (internalState.navCount !== navCountBefore) {
+            return;
+          }
+          const errorLoader = loadedRoute.$errorLoader$;
+          let errorModules: ContentModule[];
+          try {
+            errorModules = (await Promise.all(
+              (errorLoader ?? [httpErrorLoader]).map((load) => load())
+            )) as ContentModule[];
+          } catch (e) {
+            console.error(`Could not load the error page for ${trackUrl.pathname}, reloading:`, e);
+            window.location.href = trackUrl.href;
+            return;
+          }
+          if (internalState.navCount !== navCountBefore) {
+            return;
+          }
+          const { status, data } = error as Error & { status?: number; data?: unknown };
+          httpStatus.value = {
+            status: status ?? 500,
+            message: typeof data === 'string' ? data : 'Server Error',
+          };
+          content.headings = (errorModules[errorModules.length - 1] as PageModule).headings;
+          contentInternal.value = noSerialize(errorModules);
+        });
       }
       let routeLoaders;
       if (isServer) {

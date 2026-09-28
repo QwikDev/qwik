@@ -1,5 +1,5 @@
 import { component$, Slot, type PropsOf } from '@qwik.dev/core';
-import { Button } from '~/components/action/action';
+import { Link } from '~/components/action/action';
 import { lucide, streamlinepixel as pixel } from '@qds.dev/ui';
 import TimeToInteractive from '~/media/home/time-to-interactive.png?jsx';
 
@@ -40,10 +40,14 @@ export const Streaming = component$(() => {
           class="w-full md:w-[380px] lg:w-[430px] 2xl:w-[500px] h-auto md:my-auto"
           sizes="(min-width: 90rem) 500px, 440px"
         />
-        <Button class="w-fit 2xl:text-base text-sm" variant="primary">
+        <Link
+          href="/docs/concepts/think-qwik/"
+          class="w-fit 2xl:text-base text-sm"
+          variant="primary"
+        >
           <span>Discover more</span>
           <lucide.arrowright />
-        </Button>
+        </Link>
       </div>
     </section>
   );

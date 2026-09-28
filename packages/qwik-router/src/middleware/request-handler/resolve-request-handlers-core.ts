@@ -24,6 +24,8 @@ import {
   matchesRouteLoaderId,
   toLoaderCrash,
 } from '../../runtime/src/route-loaders';
+import { errorPageLoaders, leafSegment, moduleSegment } from '../../runtime/src/routing';
+import { isPromise } from '../../runtime/src/utils';
 import { ensureSlash } from '../../utils/pathname';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
 import {
@@ -56,6 +58,7 @@ import {
 import { HttpStatus } from './http-status-codes';
 import { getQwikRouterServerData } from './response-page';
 import { encoder, isContentType } from './request-utils';
+import { getFailureSegment, PLUGIN_SEGMENT, placeFailure, toRouteSegment } from './failure-segment';
 import { getPublicCrashMessage, HttpError, isCrash, throwIfControlFlowSignal } from './http-error';
 
 const loadHttpError = () => import('../../runtime/src/http-error');
@@ -69,6 +72,7 @@ function createResolveRequestHandlers() {
     renderHandler: RequestHandler
   ) => {
     const routeLoaders: LoaderInternal[] = [];
+    const routeLoaderSegments: number[] = [];
     const routeActions: ActionInternal[] = [];
 
     const requestHandlers: RequestHandler[] = [];
@@ -80,16 +84,20 @@ function createResolveRequestHandlers() {
        * JSON request wrapper must be before all middleware so it can rewrite the URL and catch
        * redirects/errors from plugin/route middleware via try/catch on next()
        */
-      requestHandlers.push(jsonRequestWrapper());
-      requestHandlers.push(serverErrorMiddleware(route, renderHandler));
+      requestHandlers.push(jsonRequestWrapper(leafSegment(route)));
+      requestHandlers.push(
+        serverErrorMiddleware(route, renderHandler, routeLoaders, routeLoaderSegments)
+      );
     }
 
     if (serverPlugins) {
       _resolveRequestHandlers(
         routeLoaders,
+        routeLoaderSegments,
         routeActions,
         requestHandlers,
         serverPlugins,
+        () => PLUGIN_SEGMENT,
         isPageRoute,
         method
       );
@@ -102,9 +110,11 @@ function createResolveRequestHandlers() {
     const routeModules = route.$mods$;
     _resolveRequestHandlers(
       routeLoaders,
+      routeLoaderSegments,
       routeActions,
       requestHandlers,
       routeModules,
+      (moduleIndex) => moduleSegment(route, moduleIndex),
       isPageRoute,
       method,
       isPageRoute
@@ -123,7 +133,7 @@ function createResolveRequestHandlers() {
 
     if (isPageRoute) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
-      requestHandlers.push(loaderHandler(routeLoaders, route));
+      requestHandlers.push(loaderHandler(routeLoaders, routeLoaderSegments, route));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
       requestHandlers.push(route.$notFound$ ? fixStaticTrailingSlash : fixTrailingSlash);
@@ -134,7 +144,7 @@ function createResolveRequestHandlers() {
         ev.sharedMap.set(RequestRouteName, routeName);
       });
       requestHandlers.push(actionsMiddleware(routeActions));
-      requestHandlers.push(loadersMiddleware(routeLoaders, route));
+      requestHandlers.push(loadersMiddleware(routeLoaders, routeLoaderSegments, route));
       requestHandlers.push(eTagMiddleware(route));
       requestHandlers.push(renderHandler);
     }
@@ -144,22 +154,28 @@ function createResolveRequestHandlers() {
 
   function _resolveRequestHandlers(
     routeLoaders: LoaderInternal[],
+    routeLoaderSegments: number[],
     routeActions: ActionInternal[],
     requestHandlers: RequestHandler[],
     routeModules: RouteModule[],
+    getModuleSegment: (moduleIndex: number) => number,
     collectActions: boolean,
     method: string,
     guardPageHandlersForLoader = false
   ) {
     for (let i = 0; i < routeModules.length; i++) {
       const routeModule = routeModules[i];
+      const segment = getModuleSegment(i);
       const moduleHandlers = getModuleRequestHandlers(routeModule, method);
       // In a page route, the last route module is the exact page/index module.
       const shouldGuardPageHandlers = guardPageHandlersForLoader && i === routeModules.length - 1;
+      const handlers = shouldGuardPageHandlers
+        ? moduleHandlers.map((handler) => guardPageHandlerForLoader(routeModule, handler))
+        : moduleHandlers;
       requestHandlers.push(
-        ...(shouldGuardPageHandlers
-          ? moduleHandlers.map((handler) => guardPageHandlerForLoader(routeModule, handler))
-          : moduleHandlers)
+        ...(collectActions
+          ? handlers.map((handler) => placeModuleFailures(handler, segment))
+          : handlers)
       );
 
       if (collectActions) {
@@ -167,6 +183,7 @@ function createResolveRequestHandlers() {
           if (typeof module === 'function') {
             if (module.__brand === 'server_loader') {
               routeLoaders.push(module as LoaderInternal);
+              routeLoaderSegments.push(segment);
             } else if (module.__brand === 'server_action') {
               routeActions.push(module as ActionInternal);
             }
@@ -226,6 +243,32 @@ function createResolveRequestHandlers() {
     } else if (Array.isArray(handler)) {
       handlers.push(...handler);
     }
+  }
+
+  function placeModuleFailures(handler: RequestHandler, segment: number): RequestHandler {
+    return (requestEv) => {
+      let result: ReturnType<RequestHandler>;
+      try {
+        result = handler(requestEv);
+      } catch (err) {
+        placeFailure(requestEv, err, segment);
+        throw err;
+      }
+      if (isPromise(result)) {
+        return result.then(
+          (value) => {
+            placeFailure(requestEv, value, segment);
+            return value;
+          },
+          (err) => {
+            placeFailure(requestEv, err, segment);
+            throw err;
+          }
+        );
+      }
+      placeFailure(requestEv, result, segment);
+      return result;
+    };
   }
 
   function guardPageHandlerForLoader(
@@ -317,7 +360,11 @@ function createResolveRequestHandlers() {
     };
   }
 
-  function loadersMiddleware(routeLoaders: LoaderInternal[], route: LoadedRoute): RequestHandler {
+  function loadersMiddleware(
+    routeLoaders: LoaderInternal[],
+    routeLoaderSegments: number[],
+    route: LoadedRoute
+  ): RequestHandler {
     return (requestEvent: RequestEvent) => {
       const requestEv = requestEvent as RequestEventInternal;
       if (requestEv.headersSent) {
@@ -339,7 +386,7 @@ function createResolveRequestHandlers() {
         promise.catch(() => {});
         return promise;
       });
-      return awaitBlockingLoaders(routeLoaders, promises, requestEv);
+      return awaitBlockingLoaders(routeLoaders, routeLoaderSegments, promises, requestEv);
     };
   }
 
@@ -349,6 +396,7 @@ function createResolveRequestHandlers() {
    */
   async function awaitBlockingLoaders(
     routeLoaders: LoaderInternal[],
+    routeLoaderSegments: number[],
     promises: Promise<unknown>[],
     requestEv: RequestEventInternal
   ): Promise<void> {
@@ -360,6 +408,7 @@ function createResolveRequestHandlers() {
         await promises[i];
       } catch (err) {
         if (!isCrash(err)) {
+          placeFailure(requestEv, err, routeLoaderSegments[i]);
           throw err;
         }
         failRouteLoadersFrom(requestEv, routeLoaders, i, toLoaderCrash(err));
@@ -472,7 +521,9 @@ function createResolveRequestHandlers() {
 
   function serverErrorMiddleware(
     route: LoadedRoute,
-    renderHandler: RequestHandler
+    renderHandler: RequestHandler,
+    routeLoaders: LoaderInternal[],
+    routeLoaderSegments: number[]
   ): RequestHandler {
     return async (requestEv: RequestEvent) => {
       try {
@@ -487,16 +538,15 @@ function createResolveRequestHandlers() {
           throw thrown;
         }
 
+        const failingSegment = getFailureSegment(requestEv, thrown) ?? leafSegment(route);
         const e = isCrash(thrown) ? toPageCrash(thrown) : (thrown as HttpError);
         const status = e.status as number;
         requestEv.status(status);
         requestEv.headers.set('Cache-Control', 'no-store');
 
-        // $errorLoader$ is the error boundary's chain, rendered as-is — a bare error.tsx in its
-        // layouts, `error!.tsx` standalone. Undefined → built-in fallback.
-        const errorLoader = route.$errorLoader$;
-        route.$mods$ = errorLoader
-          ? ((await Promise.all(errorLoader.map((load) => load()))) as RouteModule[])
+        const errorLoaders = errorPageLoaders(route, failingSegment);
+        route.$mods$ = errorLoaders
+          ? ((await Promise.all(errorLoaders.map((load) => load()))) as RouteModule[])
           : [(await loadHttpError()) as RouteModule];
 
         requestEv.sharedMap.set(
@@ -504,6 +554,12 @@ function createResolveRequestHandlers() {
           typeof e.data === 'string' ? e.data : 'Server Error'
         );
         clearErrorResponseData(requestEv);
+        const firstFailedLoader = routeLoaderSegments.findIndex(
+          (segment) => toRouteSegment(requestEv, segment) >= failingSegment
+        );
+        if (firstFailedLoader !== -1) {
+          failRouteLoadersFrom(requestEv, routeLoaders, firstFailedLoader, e);
+        }
         getRouteLoaderCtx(requestEv).isErrorPage = true;
 
         await renderHandler(requestEv);

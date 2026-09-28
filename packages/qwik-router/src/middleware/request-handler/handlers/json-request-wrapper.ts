@@ -3,6 +3,7 @@ import { RedirectMessage } from '../redirect-handler';
 import type { RequestEventInternal } from '../request-event-core';
 import { resolveValidInternalFullPathname } from '../request-path';
 import { getPublicCrashMessage, HttpError } from '../http-error';
+import { getFailureSegment } from '../failure-segment';
 import type { RequestHandler, RequestEvent } from '../types';
 import { addVaryHeader, sendJsonResponse, sendActionResponse } from './loader-handler';
 
@@ -17,7 +18,7 @@ import { addVaryHeader, sendJsonResponse, sendActionResponse } from './loader-ha
  * intact on the client.
  */
 
-export function jsonRequestWrapper(): RequestHandler {
+export function jsonRequestWrapper(pageSegment: number): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
 
@@ -46,6 +47,7 @@ export function jsonRequestWrapper(): RequestHandler {
       if (requestEv.headersSent) {
         return;
       }
+      const failingSegment = getFailureSegment(requestEv, err) ?? pageSegment;
       if (err instanceof RedirectMessage) {
         const location = requestEv.headers.get('Location') || '/';
         requestEv.headers.delete('Location');
@@ -59,7 +61,7 @@ export function jsonRequestWrapper(): RequestHandler {
       } else if (err instanceof HttpError) {
         requestEv.headers.set('Cache-Control', 'no-store');
         if (isLoader) {
-          await sendJsonResponse(requestEv, { e: err, p: 1 });
+          await sendJsonResponse(requestEv, { e: err, p: failingSegment });
         } else {
           await sendActionResponse(requestEv, { e: err, s: err.status });
         }
@@ -68,7 +70,7 @@ export function jsonRequestWrapper(): RequestHandler {
         requestEv.headers.set('Cache-Control', 'no-store');
         const se = new HttpError(500, getPublicCrashMessage(err));
         if (isLoader) {
-          await sendJsonResponse(requestEv, { e: se, p: 1 });
+          await sendJsonResponse(requestEv, { e: se, p: failingSegment });
         } else {
           await sendActionResponse(requestEv, { e: se, s: 500 });
         }

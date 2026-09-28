@@ -11,7 +11,10 @@
   "__qwik__": {
     "priority": 30,
     "displayName": "Adapter: AWS Lambda",
-    "docs": ["https://qwik.dev/docs/deployments/aws-lambda/", "https://aws.amazon.com/lambda/"]
+    "docs": [
+      "https://qwik.dev/docs/deployments/aws-lambda/",
+      "https://aws.amazon.com/lambda/"
+    ]
   },
   "type": "module"
 }

@@ -7,6 +7,8 @@ export DEPLOYMENT_BUCKET="qwik-deployment-bucket"
 make setup-deployment # once, to hold the packaged template
 
 export STACK_NAME="qwik-stack"
-export STATIC_BUCKET="qwik-static"
 make deploy
 ```
+
+CloudFormation names the static bucket for you (S3 bucket names are global, so a fixed
+default would clash across users) and prints the site URL once the stack is up.

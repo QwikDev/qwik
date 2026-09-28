@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Qwik App
+
+Globals:
+  Function:
+    Runtime: nodejs24.x
+    Timeout: 10
+    MemorySize: 256
+
+Resources:
+  SSR:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Server Side Render
+      # `make package` stages `dist` next to `server` for the framework's
+      # static-file fallback (anything CDN doesn't route to S3).
+      CodeUri: lambda
+      Handler: server/entry_aws-lambda.handler
+      FunctionUrlConfig:
+        AuthType: NONE
+      Environment:
+        Variables:
+          # ViewerHostHeader (below) forwards the real host here — avoids a
+          # circular CDN<->SSR reference.
+          HOST_HEADER: x-forwarded-host
+      # TODO: RESPONSE_STREAM needs entry_aws-lambda.tsx to stream via
+      # Lambda's streamifyResponse — serverless-http buffers the response.
+
+  # AllViewerExceptHostHeader (below) drops the viewer's Host header before
+  # the origin request, so forward it under another header instead.
+  ViewerHostHeader:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub "${AWS::StackName}-viewer-host-header"
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Forwards the viewer Host header so SSR can compute the request origin
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          request.headers['x-forwarded-host'] = request.headers.host;
+          return request;
+        }
+
+  Public:
+    Type: AWS::S3::Bucket
+
+  PublicPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Public
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Resource: !Join ["", ["arn:aws:s3:::", !Ref Public, /*]]
+            Condition:
+              StringEquals:
+                "AWS:SourceArn": !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CDN}"
+
+  # SigningBehavior/SigningProtocol are required for OAC — omitted, S3
+  # 403s every request. https://stackoverflow.com/a/77436317
+  PublicAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-public-bucket-access"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  CDN:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: Content Delivery Network
+        Enabled: true
+        Origins:
+          - DomainName: !GetAtt Public.RegionalDomainName
+            Id: S3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+            OriginAccessControlId: !GetAtt PublicAccessControl.Id
+          - DomainName: !Select [2, !Split ["/", !GetAtt SSRUrl.FunctionUrl]]
+            Id: SSROrigin
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+        CacheBehaviors:
+          - &S3OriginBehavior
+            TargetOriginId: S3Origin
+            PathPattern: build/*
+            Compress: true
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: none
+            AllowedMethods:
+              - HEAD
+              - GET
+              - OPTIONS
+            ViewerProtocolPolicy: redirect-to-https
+          - <<: *S3OriginBehavior
+            PathPattern: assets/*
+          - <<: *S3OriginBehavior
+            PathPattern: "*manifest.json"
+          - <<: *S3OriginBehavior
+            PathPattern: service-worker.js
+          - <<: *S3OriginBehavior
+            PathPattern: favicon.svg
+        DefaultCacheBehavior:
+          TargetOriginId: SSROrigin
+          Compress: true
+          # All 7 methods: routeAction$/<Form>/server$ need POST.
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          CachedMethods:
+            - GET
+            - HEAD
+          # SSR responses set their own Cache-Control; let the origin decide.
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
+          # AWS-recommended for Function URL origins: forwards everything
+          # except Host, which would otherwise break the SSR origin.
+          OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # AllViewerExceptHostHeader
+          ViewerProtocolPolicy: redirect-to-https
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt ViewerHostHeader.FunctionMetadata.FunctionARN
+
+Outputs:
+  URL:
+    Description: CloudFront URL
+    Value: !Sub "https://${CDN.DomainName}"
+  StaticBucketName:
+    Description: S3 bucket for static assets — sync `dist` here after each deploy
+    Value: !Ref Public

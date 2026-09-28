@@ -49,7 +49,7 @@ The adapter will add a new `vite.config.ts` within the `adapters/` directory, an
     └── aws-lambda
         └── vite.config.ts
 └── cloudformation/
-    └── serverless.yml
+    └── template.yaml
 └── src/
     └── entry_aws-lambda.tsx
 └── Makefile
@@ -86,7 +86,7 @@ bun run build
 
 ## Deploy to AWS
 
-The adapter deploys behind a single [CloudFront](https://aws.amazon.com/cloudfront/) distribution: static assets served from an S3 origin, server-side rendering from a [Lambda Function URL](https://docs.aws.amazon.com/lambda/latest/dg/urls-configuration.html) origin. There's no API Gateway and no third-party deploy framework — the stack is plain CloudFormation ([`cloudformation/serverless.yml`](https://github.com/QwikDev/qwik/blob/main/starters/adapters/aws-lambda/cloudformation/serverless.yml)), deployed with the AWS CLI via the included `Makefile`.
+The adapter deploys behind a single [CloudFront](https://aws.amazon.com/cloudfront/) distribution: static assets served from an S3 origin, server-side rendering from a [Lambda Function URL](https://docs.aws.amazon.com/lambda/latest/dg/urls-configuration.html) origin. There's no API Gateway and no third-party deploy framework — the stack is plain CloudFormation ([`cloudformation/template.yaml`](https://github.com/QwikDev/qwik/blob/main/starters/adapters/aws-lambda/cloudformation/template.yaml)), deployed with the AWS CLI via the included `Makefile`.
 
 You'll need AWS credentials with permission to create the resources above, either as environment variables or a profile in `~/.aws/credentials`.
 
@@ -102,10 +102,12 @@ Then build and deploy — this builds the app, packages and deploys the CloudFor
 ```shell
 export DEPLOYMENT_BUCKET="qwik-deployment-bucket"
 export STACK_NAME="qwik-stack"
-export STATIC_BUCKET="qwik-static"
 make deploy
 ```
 
+CloudFormation names the static bucket for you — S3 bucket names are global, so a fixed
+default would clash across users — and prints the site's CloudFront URL once the stack is up.
+
 Done!
 
-<Note>The `ORIGIN` environment variable the SSR Lambda needs for [CSRF protection](/docs/deployments/node/index.mdx) is set automatically by the CloudFormation template, from the CloudFront distribution's own domain name. You only need to touch it yourself if you later put a custom domain in front of CloudFront.</Note>
+<Note>The SSR Lambda needs the request's real host to compute its [CSRF-protection origin](/docs/deployments/node/index.mdx). Since the Function URL origin would otherwise only see CloudFront's own domain, a CloudFront Function copies the viewer's `Host` header into `x-forwarded-host` on the way in, and the `HOST_HEADER` environment variable tells the SSR handler to read it from there. This works unchanged if you later put a custom domain in front of CloudFront.</Note>

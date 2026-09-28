@@ -85,6 +85,9 @@ When changing AsyncSignal behavior, inspect:
 - A failure recomputes nothing. A derived signal's `.error` walks the `.value` sources upstream for
   the first failed one and subscribes its reader to every computed it visits; a recompute that
   changes those sources must wake the `.error` readers, or they keep a stale answer.
+- A settled failure reports through `container.$reportSignalError$` to the `<Catch>` above its
+  readers and the readers of signals derived from it, once per boundary per error instance, and
+  never shows a fallback.
 - Reading `.pending` or `.error` triggers computation when needed; serialization must read the
   private `$untrackedPending$`/`$untrackedError$` fields to avoid starting computes.
 - `clientOnly` resume rides on the state script's `q-d:qidle` `_res` QRL built from

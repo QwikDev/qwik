@@ -85,6 +85,7 @@ export abstract class _SharedContainer implements Container {
 
   abstract ensureProjectionResolved(host: HostElement): void;
   abstract handleError(err: any, $host$: HostElement | null, phase?: CatchPhase): void;
+  abstract $reportSignalError$(err: unknown, readerHosts: HostElement[]): void;
   abstract getParentHost(host: HostElement): HostElement | null;
   abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
   abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;

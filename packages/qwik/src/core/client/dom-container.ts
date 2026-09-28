@@ -7,13 +7,17 @@ import { QError, qError } from '../shared/error/error';
 import {
   ERROR_CONTEXT,
   CatchPhase,
+  claimSignalFailureLog,
+  claimSignalFailureReport,
   fireOnError,
   getOwnCatchStore,
+  getTaggedErrorPhase,
   handleDevError,
   installQErrorListener,
+  tagErrorPhase,
   toBoundaryError,
 } from '../shared/error/error-handling';
-import type { CatchInfo } from '../shared/error/error-handling';
+import type { CatchInfo, CatchStore } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
@@ -298,10 +302,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       const store = getOwnCatchStore(this, boundaryHost);
       if (store && store.error === undefined) {
         store.error = storedError;
-        const boundaryProps = this.getHostProp<{
-          onError$?: (error: unknown, info: CatchInfo) => unknown;
-        }>(boundaryHost, ELEMENT_PROPS);
-        fireOnError(boundaryProps?.onError$, err, phase, store.boundaryId ?? '');
+        if (claimSignalFailureReport(err, store)) {
+          this.$fireBoundaryOnError$(boundaryHost, store, err, getTaggedErrorPhase(err) ?? phase);
+        }
         markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
         return;
       }
@@ -317,6 +320,46 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       current = this.getParentHost(boundaryHost);
     }
     logErrorAndThrowAsync(err);
+  }
+
+  $reportSignalError$(err: unknown, readerHosts: HostElement[]): void {
+    tagErrorPhase(err, CatchPhase.Signal);
+    if (readerHosts.length === 0) {
+      return;
+    }
+    const boundaryHosts = new Set<VNode>();
+    if (__EXPERIMENTAL__.catchBoundary) {
+      for (let i = 0; i < readerHosts.length; i++) {
+        const boundaryHost = this.resolveContextHost(readerHosts[i] as VNode, ERROR_CONTEXT);
+        if (boundaryHost) {
+          boundaryHosts.add(boundaryHost);
+        }
+      }
+    }
+    if (boundaryHosts.size === 0) {
+      if (claimSignalFailureLog(err)) {
+        logError(err);
+      }
+      return;
+    }
+    for (const boundaryHost of boundaryHosts) {
+      const store = getOwnCatchStore(this, boundaryHost);
+      if (store && claimSignalFailureReport(err, store)) {
+        this.$fireBoundaryOnError$(boundaryHost, store, err, CatchPhase.Signal);
+      }
+    }
+  }
+
+  private $fireBoundaryOnError$(
+    boundaryHost: VNode,
+    store: CatchStore,
+    err: unknown,
+    phase: CatchPhase
+  ): void {
+    const boundaryProps = this.getHostProp<{
+      onError$?: (error: unknown, info: CatchInfo) => unknown;
+    }>(boundaryHost, ELEMENT_PROPS);
+    fireOnError(boundaryProps?.onError$, err, phase, store.boundaryId ?? '');
   }
 
   setContext<T>(host: VNode, context: ContextId<T>, value: T): void {

@@ -9,6 +9,7 @@ import {
   _setEvent,
   _walkJSX,
   _handleSSRError,
+  _reportSSRSignalError,
   _createQRL as createQRL,
   isSignal,
   type Signal,
@@ -393,6 +394,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   handleError(err: any, host: HostElement | null, phase: CatchPhase = CatchPhase.Render): void {
     _handleSSRError(this, err, host as ISsrNode | null, phase);
+  }
+
+  $reportSignalError$(err: unknown, readerHosts: HostElement[]): void {
+    _reportSSRSignalError(err, readerHosts as ISsrNode[]);
   }
 
   addBackpatchEntry(

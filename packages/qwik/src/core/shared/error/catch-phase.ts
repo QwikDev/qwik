@@ -3,4 +3,5 @@ export const enum CatchPhase {
   Render = 'render',
   Event = 'event',
   Hook = 'hook',
+  Signal = 'signal',
 }

@@ -61,7 +61,9 @@ export const enum CatchPhase {
     // (undocumented)
     Hook = "hook",
     // (undocumented)
-    Render = "render"
+    Render = "render",
+    // (undocumented)
+    Signal = "signal"
 }
 
 // @public (undocumented)
@@ -196,6 +198,7 @@ export interface _Container {
     $pendingCount$: number;
     // (undocumented)
     $renderPromise$: Promise<void> | null;
+    $reportSignalError$(err: unknown, readerHosts: _HostElement[]): void;
     // (undocumented)
     $resolveRenderPromise$: (() => void) | null;
     // (undocumented)
@@ -378,6 +381,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $processContainerData$(): Generator<void, void, void>;
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
+    // (undocumented)
+    $reportSignalError$(err: unknown, readerHosts: _HostElement[]): void;
     // (undocumented)
     $setRawState$(id: number, vParent: _VNode): void;
     // (undocumented)
@@ -1099,6 +1104,9 @@ export interface RenderSSROptions {
 }
 
 // @internal (undocumented)
+export function _reportSSRSignalError(err: unknown, readerHosts: ISsrNode[]): void;
+
+// @internal (undocumented)
 export const _reR: () => boolean;
 
 // @internal
@@ -1224,6 +1232,8 @@ export abstract class _SharedContainer implements _Container {
     $pendingCount$: number;
     // (undocumented)
     $renderPromise$: Promise<void> | null;
+    // (undocumented)
+    abstract $reportSignalError$(err: unknown, readerHosts: _HostElement[]): void;
     // (undocumented)
     $resolveRenderPromise$: (() => void) | null;
     // (undocumented)

@@ -10,60 +10,79 @@ import { Note } from '~/components/note/note';
 
 # Error handling
 
-When an error is thrown in a loader or `server$` function, a 500 error is returned to the client along with the error. This is useful during development but isn't always desirable for production systems. Qwik provides the tools necessary to customise how errors are handled.
+A route can fail in two ways: the page itself has no answer, such as a missing product, or one piece of its data fails while the rest of the page works. Qwik Router keeps them apart.
 
-Throwing a `HttpError` instance allows you to return custom errors to the browser with a different status code and serialised data.
+## `HttpError`: the page's answer
 
-<Note>Loaders also provide a helper function on the event object to easily create new HttpErrors.</Note>
+Throw an `HttpError` from [middleware](/docs/middleware/) or from a blocking [`routeLoader$`](/docs/route-loader/), the default, when the page has no answer. The router renders the nearest `error.tsx` at that status on the first page load.
 
-```tsx
-// Throw HttpErrors from a routerLoader$
-const useProduct = routeLoader$(async (ev) => {
-  const product = await fetch('api/product/1')
+```tsx title="src/routes/product/[id]/index.tsx"
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+import { HttpError } from '@qwik.dev/router/middleware/request-handler';
 
+export const useProduct = routeLoader$(async ({ params }) => {
+  const product = await db.products.findById(params.id);
   if (!product) {
-    // Throw a 404 with a custom payload
-    throw new HttpError(404, 'Product not found')
-
-    // Or use the existing helper function
-    throw ev.httpError(404, 'Product not found')
+    throw new HttpError(404, 'Product not found');
   }
-
-  return product
-})
-
-// Throw HttpErrors from a server$
-const getPrices = server$(() => {
-  if (!isAuthenticated()) {
-    throw new HttpError(401, { code: 401 })
-  }
-
-  return fetch('api/product/1/prices')
-})
+  return product;
+});
 
 export default component$(() => {
-  const product = useProduct()
+  const product = useProduct();
+  return <h1>{product.value.name}</h1>;
+});
+```
 
-  useVisibleTask(() => {
-    getPrices()
-      .then()
-      .catch(err => {
-        // The payload from a HttpError is deserialised as the error caught in the client
-        if (err.code === 401) {
-          // Navigate to login page
-        }
+A missing product answers with a 404, and the nearest `error.tsx` reads the status and message with `useHttpStatus()`. `throw ev.httpError(404, 'Product not found')` does the same without the import.
 
-        // Show generic error
-      })
-  })
+<Note>Thrown anywhere else, such as a `blockSSR: false` loader, a computed or an event handler, an `HttpError` is an ordinary error, handled like the ones below.</Note>
 
-  return <div>Product page</div>
-})
+## Other errors
+
+Any other error is a failure of the code that threw it:
+
+- In a loader or a computed with no value yet, reading `.value` throws it to the nearest [`<Catch>`](/docs/labs/catch/). After a refresh, it goes into `.error` and the last value stays beside it.
+- In middleware, the router renders `error.tsx` at 500.
+- Anywhere else, the nearest `<Catch>` shows its fallback.
+
+Outside development, the message of an error thrown on the server reads "Internal Server Error": the router logs the original and the browser never sees it.
+
+A crash in a blocking loader also fails every loader after it, so the page's data never shows past a failed check. Keep access checks in middleware, where any error renders the error page.
+
+## `server$` errors
+
+A `server$` function answers with the status of the `HttpError` it throws, and the caller receives its data:
+
+```tsx
+const getPrices = server$(() => {
+  if (!isAuthenticated()) {
+    throw new HttpError(401, { code: 401 });
+  }
+
+  return fetch('api/product/1/prices');
+});
+
+export default component$(() => {
+  useVisibleTask$(() => {
+    getPrices().catch((err) => {
+      // The data of the HttpError is the error caught in the client
+      if (err.code === 401) {
+        // Navigate to login page
+      }
+    });
+  });
+
+  return <div>Product page</div>;
+});
 ```
 
 ## Error interceptor
 
-Intercepting errors with middleware has a few usecases: you might want to hide error details in production systems, add structured error logging, or map the error status codes from RPC API calls to HTTP status codes. This is all achieveable with middleware in a `plugin` file.
+Intercepting errors with middleware has a few usecases: you might want to add structured error logging, or map the error status codes from RPC API calls to HTTP status codes. This is all achieveable with middleware in a `plugin` file.
+
+<Note>A crash in a loader never passes through `next()`: the router logs it and settles it into the loader's signal.</Note>
 
 ```tsx
 // src/routes/plugin@errors.ts

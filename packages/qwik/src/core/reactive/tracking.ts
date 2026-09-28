@@ -95,9 +95,11 @@ export function track(source: Source): void {
     return;
   }
 
-  let deps = collector.deps;
+  const deps = collector.deps;
   if (deps === null) {
-    collector.deps = deps = [];
+    collector.deps = [source];
+    appendSourceSubscriber(source, collector);
+    return;
   }
 
   for (let i = 0; i < deps.length; i++) {
@@ -110,6 +112,13 @@ export function track(source: Source): void {
 }
 
 export function addDependency(collector: CollectorSubscriber, source: Source): void {
-  collector.deps!.push(source);
+  const deps = collector.deps!;
+  if (deps.length === 0) {
+    collector.deps = [source];
+  } else if (deps.length === 1) {
+    collector.deps = [deps[0], source];
+  } else {
+    deps.push(source);
+  }
   appendSourceSubscriber(source, collector);
 }

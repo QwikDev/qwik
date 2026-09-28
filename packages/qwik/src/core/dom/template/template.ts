@@ -25,6 +25,13 @@ export function createTemplate(html: string): TemplateFactory {
 
 /** @internal */
 export function createElementTemplate(html: string): ElementTemplateFactory {
-  return (document) =>
-    getTemplate(document, html).content.firstElementChild!.cloneNode(true) as Element;
+  const elements = new WeakMap<Document, Element>();
+  return (document) => {
+    let element = elements.get(document);
+    if (element === undefined) {
+      element = getTemplate(document, html).content.firstElementChild!;
+      elements.set(document, element);
+    }
+    return element.cloneNode(true) as Element;
+  };
 }

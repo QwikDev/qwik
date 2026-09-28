@@ -140,6 +140,26 @@ describe('reactive primitives', () => {
     expect(source).not.toHaveProperty('version');
   });
 
+  it.each([1, 2, 3, 8])('tracks and disposes %i distinct dependencies', (count) => {
+    const sources = Array.from({ length: count }, () => useSignal(0));
+    let runs = 0;
+    const total = createOwned(() =>
+      useComputed(() => {
+        runs++;
+        return sources.reduce((sum, source) => sum + source.value + source.value, 0);
+      })
+    );
+
+    expect(total.value).toBe(0);
+    sources[count - 1].value = 1;
+    expect(total.value).toBe(2);
+    expect(runs).toBe(2);
+    disposeSubscriber(total);
+    for (let index = 0; index < sources.length; index++) {
+      expect(sources[index].subs).toBeNull();
+    }
+  });
+
   it('keeps computed values lazy and cached until a dependency changes', () => {
     const count = useSignal(1);
     let runs = 0;

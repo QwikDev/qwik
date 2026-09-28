@@ -24,6 +24,7 @@ import { finalizeAndSwapOutOfOrderSegment } from '../../ssr/out-of-order-segment
 import type { SSRContainer } from '../../ssr/ssr-types';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { getNextUniqueIndex } from '../utils/unique-index-generator';
+import { getStillFailingOrigin } from '../../reactive-primitives/error-origin';
 import { getStoreTarget } from '../../reactive-primitives/impl/store';
 import { hasSlotProps } from '../utils/prop';
 import {
@@ -94,6 +95,7 @@ export function resetCatch(container: DomContainer, host: VNode): void {
   if (!store) {
     return;
   }
+  getStillFailingOrigin((getStoreTarget(store) ?? store).error)?.invalidate();
   scheduleBoundaryContentReset(
     container,
     boundaryHost as VirtualVNode,

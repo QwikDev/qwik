@@ -499,7 +499,7 @@ interface ComputedSignal<T> {
 - `error`: the error if the async function failed.
 - `promise()`: starts the async function if needed and waits for it to finish.
 - `abort()`: aborts the current async function.
-- `invalidate()`: marks the signal to run again; readers keep seeing the previous value while it recomputes.
+- `invalidate()`: marks the signal to run again; readers keep seeing the previous value while it recomputes. If its `.error` came from another signal, that signal runs again too.
 - `clear()`: like `invalidate()`, but drops the value so readers suspend until the new value is ready.
 
 To re-run the signal on an interval, use `usePoll(signal, ms)` from `@qwik.dev/utils`: it starts polling once the document is idle and resets the timer whenever a new result lands.

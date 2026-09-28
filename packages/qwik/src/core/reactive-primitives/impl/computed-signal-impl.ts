@@ -9,7 +9,7 @@ import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promise
 import { qTest } from '../../shared/utils/qdev';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { SSRContainer } from '../../ssr/ssr-types';
-import { invokeApply, newInvokeContext, tryGetInvokeContext } from '../../use/use-core';
+import { invokeApply, newInvokeContext, tryGetInvokeContext, untrack } from '../../use/use-core';
 import type { Tracker } from '../../use/use-task';
 import { trackFn } from '../../use/utils/tracker';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
@@ -33,6 +33,7 @@ import {
   scheduleEffects,
   throwIfQRLNotResolved,
 } from '../utils';
+import { getErrorOrigin, setErrorOrigin } from '../error-origin';
 import { SignalImpl } from './signal-impl';
 
 const DEBUG = false;
@@ -199,6 +200,23 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (arguments.length > 0) {
       this.$info$ = info;
       this.$infoVersion$ = this.$infoVersion$ === undefined ? 1 : this.$infoVersion$ + 1;
+    }
+    const origin = getErrorOrigin(
+      this.$untrackedError$ ?? untrack(() => findUpstreamFailure(this))
+    );
+    if (origin === this) {
+      if (this.$untrackedValue$ === NEEDS_COMPUTATION) {
+        invalidateInheritors(this);
+      }
+    } else if (origin && !origin.$current$?.$promise$) {
+      origin.invalidate();
+    }
+    this.$invalidateOnInputChange$();
+  }
+
+  $invalidateOnInputChange$(): void {
+    if (this.$disposed$) {
+      return;
     }
     if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
       this.$setInvalid$(true);
@@ -728,6 +746,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       // AbortError from AbortSignal is a cancellation, not an actual error
       return;
     }
+    // On the server, a module-level error would retain this container.
+    if (!(qTest ? isServerPlatform() : isServer) && !getErrorOrigin(error)) {
+      setErrorOrigin(error, this);
+    }
     this.untrackedError = error;
   }
 
@@ -896,4 +918,24 @@ const findUpstreamFailure = (signal: ComputedSignalImpl<unknown, any>): Error | 
     return !!failure;
   });
   return failure;
+};
+
+const invalidateInheritors = (origin: ComputedSignalImpl<unknown, any>) => {
+  const visit = (effects: Set<EffectSubscription> | undefined) => {
+    if (!effects) {
+      return;
+    }
+    for (const { consumer } of effects) {
+      if (
+        consumer instanceof ComputedSignalImpl &&
+        getErrorOrigin(consumer.$untrackedError$) === origin
+      ) {
+        consumer.$setInvalid$(false);
+        visit(consumer.$effects$);
+        visit(consumer.$errorEffects$);
+      }
+    }
+  };
+  visit(origin.$effects$);
+  visit(origin.$errorEffects$);
 };

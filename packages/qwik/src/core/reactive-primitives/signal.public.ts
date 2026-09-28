@@ -66,7 +66,10 @@ export interface ComputedSignal<T> extends Signal<T> {
   error: Error | undefined;
   /** @deprecated Use `trigger()` instead */
   force(): void;
-  /** Use this to force recalculation. */
+  /**
+   * Use this to force recalculation. When `.error` came from another signal, that signal is retried
+   * too.
+   */
   invalidate(): void;
   /**
    * Clear the value and recompute. Unlike `invalidate()`, readers see the loading state (reads
@@ -79,7 +82,7 @@ export interface ComputedSignal<T> extends Signal<T> {
   abort(reason?: any): void;
   /**
    * Use this to force recalculation. If you pass `info`, it will be provided to the calculation
-   * function.
+   * function. When `.error` came from another signal, that signal is retried too, without `info`.
    */
   invalidate(info?: unknown): void;
 }

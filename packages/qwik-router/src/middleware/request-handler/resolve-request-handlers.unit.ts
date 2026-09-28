@@ -166,6 +166,37 @@ describe('resolve-request-handler', () => {
       expect(pageOnRequest).not.toHaveBeenCalled();
     });
 
+    it('skips the middleware of layouts below the requested loader', async () => {
+      const sectionOnRequest = vi.fn();
+      const route = withErrorPage({
+        $routeName$: '/section/',
+        $params$: {},
+        $mods$: [
+          { useRootData: makeLoader('root-data', () => 'root data') },
+          {
+            onRequest: sectionOnRequest,
+            useSectionData: makeLoader('section-data', () => 'section data'),
+          },
+          { default: vi.fn() },
+        ] as any,
+      });
+      route.$loaderSegs$ = { 'root-data': 0, 'section-data': 1 };
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', false, vi.fn());
+      const loaderRequest = (loaderId: string) =>
+        ({
+          sharedMap: new Map([
+            [IsQLoader, true],
+            [QLoaderId, loaderId],
+          ] as any),
+        }) as any;
+
+      await handlers[3](loaderRequest('root-data'));
+      expect(sectionOnRequest).not.toHaveBeenCalled();
+
+      await handlers[3](loaderRequest('section-data'));
+      expect(sectionOnRequest).toHaveBeenCalledTimes(1);
+    });
+
     it('runs page middleware for a synthetic preloaded loader export on that page module', async () => {
       const pageLoader = vi.fn() as any;
       pageLoader.__brand = 'server_loader';

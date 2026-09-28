@@ -54,5 +54,25 @@ test.describe('segment errors', () => {
       await expect(page).toHaveURL(`${base}layout-guard/`);
       expect(await isSameDocument(page)).toBe(true);
     });
+
+    test("a layout middleware's 403 renders the error.tsx beside that layout, and no loader response carries a secret", async ({
+      page,
+    }) => {
+      const loaderBodies: Promise<string>[] = [];
+      page.on('response', (response) => {
+        if (response.url().includes('q-loader-')) {
+          loaderBodies.push(response.text());
+        }
+      });
+
+      await page.click('#to-layout-middleware');
+
+      await expect(page.locator('#members-error')).toHaveText('403 Members only');
+      await expect(page.locator('#section-data')).toHaveText('section data');
+      await expect(page.locator('#members-layout')).toHaveCount(0);
+      await expect(page).toHaveURL(`${base}layout-middleware/`);
+      expect(await isSameDocument(page)).toBe(true);
+      expect((await Promise.all(loaderBodies)).join('\n')).not.toContain('secret');
+    });
   });
 });

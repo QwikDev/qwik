@@ -95,7 +95,9 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
       return {
         kind: Ir.Array,
         items: node.elements.map((element) =>
-          element?.type === 'SpreadElement' ? unknown : expressionResult(element, ctx)
+          element?.type === 'SpreadElement'
+            ? { kind: ResultKind.ArraySpread, source: expressionResult(element.argument, ctx) }
+            : expressionResult(element, ctx)
         ),
       };
     case 'ObjectExpression':
@@ -136,7 +138,7 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
           ? ({ kind: ResultKind.SpreadArgument } as Result)
           : expressionResult(arg, ctx)
       );
-      if (core === '$') {
+      if (core === '$' || core === 'native$') {
         return args[0] ?? unknown;
       }
       if (core === 'useSignal' || core === 'createSignal') {
@@ -188,6 +190,14 @@ export function expressionResult(input: Node | null, ctx: LowerContext): Result 
       }
       return {
         kind: ResultKind.Function,
+        ...(ctx.bindings
+          .freeReferences(node.body ?? node)
+          .some(
+            (reference) =>
+              ctx.bindings.implicitKind(reference.binding) === ImplicitBindingKind.Arguments
+          )
+          ? { usesArguments: true as const }
+          : {}),
         params: node.params.map((param) =>
           param.type === 'Identifier' ? ctx.bindings.declaration(param) : null
         ),
@@ -249,9 +259,10 @@ export function recordBindingResults(ctx: LowerContext): void {
             : null
           : identifierName(parent.property);
         if (name === null) {
-          break;
+          path.push('*');
+        } else {
+          path.push(name);
         }
-        path.push(name);
         node = parent;
         parent = ctx.bindings.parentOf(node);
       }
@@ -270,9 +281,30 @@ export function recordBindingResults(ctx: LowerContext): void {
         }
       } else if (parent?.type === 'CallExpression' && parent.callee === node && path.length > 0) {
         if (ctx.jsx.read(parent).kind !== JsxValueKind.Collection) {
-          facts.escapes.push(path.slice(0, -1));
+          (facts.calls ??= []).push({
+            path: path.slice(0, -1),
+            method: path.at(-1)!,
+            args: parent.arguments.map((argument) =>
+              argument.type === 'SpreadElement' ? unknown : expressionResult(argument, ctx)
+            ),
+          });
         }
       } else if (reference.node.type !== 'JSXIdentifier' && parent?.type !== 'ExportSpecifier') {
+        if (
+          parent?.type === 'AssignmentExpression' &&
+          parent.operator === '=' &&
+          parent.right === node
+        ) {
+          const target = expressionResult(parent.left, ctx);
+          let receiver = target;
+          while (receiver.kind === Ir.Member || receiver.kind === Ir.Index) {
+            receiver = receiver.obj;
+          }
+          if (receiver.kind === Ir.BindingRead) {
+            (facts.aliases ??= []).push({ path, target });
+            continue;
+          }
+        }
         if (parent?.type === 'CallExpression' && parent.callee !== node) {
           const argument = parent.arguments.indexOf(node as (typeof parent.arguments)[number]);
           if (
@@ -345,6 +377,12 @@ export function recordBindingResults(ctx: LowerContext): void {
         ...facts.writes.map((write) => ({ path: [...path, ...write.path], value: write.value }))
       );
       target.escapes.push(...facts.escapes.map((escape) => [...path, ...escape]));
+      (target.calls ??= []).push(
+        ...(facts.calls ?? []).map((call) => ({ ...call, path: [...path, ...call.path] }))
+      );
+      (target.aliases ??= []).push(
+        ...(facts.aliases ?? []).map((alias) => ({ ...alias, path: [...path, ...alias.path] }))
+      );
       (target.consumers ??= []).push(
         ...(facts.consumers ?? []).map((consumer) => ({
           ...consumer,

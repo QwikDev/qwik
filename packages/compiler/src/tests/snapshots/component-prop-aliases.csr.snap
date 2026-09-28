@@ -14,8 +14,10 @@ import {
   _next,
   _last,
   propSource,
-  createTextNodeEffect,
+  readTrackedValue,
+  patchTextValue,
   setEvent,
+  createDomBatchEffect,
   maybeThen,
   createSlot,
   _createElementTemplate,
@@ -36,14 +38,14 @@ export const Card = (props, ctx) => {
   const el0 = Card_tmpl0(ctx.document);
   const text0 = _first(_first(el0));
   const prop0 = propSource(props, 'title');
-  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
   const el1 = _next(_first(el0));
   setEvent(el1, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [props]);
   const text1 = _first(el1);
   const prop1 = propSource(props, 'data-label');
-  const effect1 = createTextNodeEffect(text1, prop1, ctx.scheduler);
-  ctx.scheduler.notify(effect1);
+  createDomBatchEffect(() => {
+    patchTextValue(text0, readTrackedValue(prop0));
+    patchTextValue(text1, readTrackedValue(prop1));
+  }, ctx.scheduler);
   const marker0 = _last(el0);
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;

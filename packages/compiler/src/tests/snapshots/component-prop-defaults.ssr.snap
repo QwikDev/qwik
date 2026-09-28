@@ -12,6 +12,7 @@ export default ({ title: heading = createTitle(), suffix = '!', onSave$: save = 
 import { createTitle, createHandler } from './defaults';
 import {
   createSsrNodeId,
+  createSsrDomBatchEffect,
   renderSsrAttrExpression,
   escapeHTML,
   renderSsrTextExpression,
@@ -49,19 +50,22 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     defaultValue0 = untrack(() => props.onSave$ === void 0) ? createHandler() : void 0
   ) => {
     const id0 = ctx.nextId();
+    const effect0 = createSsrDomBatchEffect();
     ctx.addRoot(props);
     ctx.addRoot(defaultValue);
     const attr0 = renderSsrAttrExpression(
       id0,
       'title',
       [props, defaultValue],
-      q_component_title_segment_0_2f0r0xivypjmx
+      q_component_title_segment_0_2f0r0xivypjmx,
+      effect0
     );
     const text0 = renderSsrTextExpression(
       id0,
       null,
       [props, defaultValue],
-      q_component_text_segment_2_1fh117dstcoge
+      q_component_text_segment_2_1fh117dstcoge,
+      effect0
     );
     return maybeThen(attr0, (attr0) =>
       maybeThen(text0, (text0) => [

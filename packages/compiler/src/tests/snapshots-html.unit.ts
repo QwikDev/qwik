@@ -207,7 +207,7 @@ export default component$(() => {
     expect(main).not.toMatch(/<input required/);
     // The dynamic twins bind under the same attribute names.
     for (const name of ['required', 'aria-hidden', 'draggable', 'spellcheck']) {
-      expect(main).toContain(`"${name}", on`);
+      expect(main).toContain(`"${name}", ${mode === 'csr' ? 'readTrackedValue(on)' : 'on'}`);
     }
   });
 
@@ -230,8 +230,13 @@ export default component$(() => {
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
     // Arrays and objects serialize in the runtime helpers; the scoped style id rides along.
-    expect(code).toMatch(/"class", \[active\], [^,]+, [^,]+, "⚡️/);
-    expect(code).toContain('"style", [active]');
+    if (mode === 'csr') {
+      expect(code).toMatch(/patchAttrValue\(el0, "class", [^(]+\(active\), "⚡️/);
+      expect(code).toMatch(/patchAttrValue\(el0, "style", [^(]+\(active\)\)/);
+    } else {
+      expect(code).toMatch(/"class", \[active\], [^,]+, [^,]+, "⚡️/);
+      expect(code).toContain('"style", [active]');
+    }
   });
 
   test('should bind refs to their elements', async () => {

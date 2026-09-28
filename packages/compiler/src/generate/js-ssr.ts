@@ -161,6 +161,7 @@ interface SsrRootRange {
 
 /** Everything one render pass accumulates — created in renderProgram, threaded explicitly. */
 interface RenderPass {
+  batches: Map<number, string>;
   names: GeneratedNames;
   statements: string[];
   asyncSteps: string[];
@@ -293,6 +294,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       throw new Error('pipeline.generateJsSsr: js-bodied programs not implemented yet');
     }
     const pass: RenderPass = {
+      batches: new Map(),
       names,
       statements: [],
       asyncSteps: [],
@@ -840,7 +842,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     styleScope: string | null
   ): string {
     const name = prop.k === PropKind.Dynamic ? prop.name : QwikDirective.InnerHtml;
-    const scope = styleScope === null ? '' : `, undefined, ${JSON.stringify(styleScope)}`;
+    const batch =
+      prop.k === PropKind.Dynamic ? this.batchReference(pass, prop.effect) : 'undefined';
+    const scope =
+      batch === 'undefined' && styleScope === null
+        ? ''
+        : `, ${batch}${styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`}`;
     const step = pass.next(QwikGenWord.Attribute);
     switch (prop.value.v) {
       case ValueKind.Read: {
@@ -1117,6 +1124,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     keepsNewline = false
   ): void {
     const targetArgs = `${target.id}, ${target.kind === 'range' ? target.markerIndex : 'null'}`;
+    const batch = this.batchReference(pass, op.effect);
+    const batchArg = batch === 'undefined' ? '' : `, ${batch}`;
     this.imports.add(QwikWord.EscapeHTML);
     const step = pass.next(QwikGenWord.Text);
 
@@ -1140,7 +1149,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pass,
           step,
           [signal],
-          `${QwikWord.RenderSsrTextNode}(${targetArgs}, ${signal}${op.stringify ? ', undefined, true' : ''})`
+          `${QwikWord.RenderSsrTextNode}(${targetArgs}, ${signal}${op.stringify ? `, ${batch}, true` : batchArg})`
         );
         parts.push(this.escapedText(step, keepsNewline));
         break;
@@ -1155,7 +1164,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pass,
           step,
           rootArgs(qrl, args),
-          `${QwikWord.RenderSsrTextExpression}(${targetArgs}, [${args.join(', ')}], ${ref})`
+          `${QwikWord.RenderSsrTextExpression}(${targetArgs}, [${args.join(', ')}], ${ref}${batchArg})`
         );
         parts.push(this.escapedText(step, keepsNewline));
         break;
@@ -1168,6 +1177,21 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (target.kind === 'range') {
       pushMergedStatic(parts, '<!/t>');
     }
+  }
+
+  private batchReference(pass: RenderPass, id: number | null): string {
+    if (id === null) {
+      return 'undefined';
+    }
+    const existing = pass.batches.get(id);
+    if (existing !== undefined) {
+      return existing;
+    }
+    this.imports.add(QwikWord.CreateSsrDomBatchEffect);
+    const batch = pass.next(QwikGenWord.Effect);
+    pass.statements.push(`const ${batch} = ${QwikWord.CreateSsrDomBatchEffect}();`);
+    pass.batches.set(id, batch);
+    return batch;
   }
 
   /** Every step evaluates eagerly before the first await (see the divergence ledger). */

@@ -12,6 +12,7 @@ export default (props: { page: string; line: string; count: number }) => (
 
 import {
   createSsrNodeId,
+  createSsrDomBatchEffect,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -36,19 +37,22 @@ q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimf
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();
+    const effect0 = createSsrDomBatchEffect();
     ctx.addRoot(props);
     const text0 = renderSsrTextExpression(
       id0,
       null,
       [props],
-      q_component_text_segment_0_1fh10fbkzokfc
+      q_component_text_segment_0_1fh10fbkzokfc,
+      effect0
     );
     const id1 = ctx.nextId();
     const text1 = renderSsrTextExpression(
       id1,
       null,
       [props],
-      q_component_text_segment_1_1fh10tcowimfv
+      q_component_text_segment_1_1fh10tcowimfv,
+      effect0
     );
     return maybeThen(text0, (text0) =>
       maybeThen(text1, (text1) => [

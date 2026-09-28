@@ -1,0 +1,1101 @@
+==INPUT==
+
+// src/root.tsx
+import type { QRL } from '@qwik.dev/core';
+import { useSignal, Slot } from '@qwik.dev/core';
+import { buildData } from './build-data/build-data';
+
+const Button = ({ id, onClick$ }: { id: string; onClick$: QRL<() => any> }) => {
+  return (
+    <button
+      id={id}
+      class="btn btn-primary btn-block"
+      type="button"
+      stoppropagation:click
+      onClick$={onClick$}
+    >
+      <Slot />
+    </button>
+  );
+};
+
+export function Root() {
+  const data = useSignal(buildData(1_000));
+  const selectedItem = useSignal(null);
+
+  return (
+    <div class="container">
+      <div class="jumbotron">
+        <div class="row">
+          <div class="col-md-6">
+            <h1>Qwik V3 Implementation</h1>
+          </div>
+          <div class="col-md-6">
+            <div class="row">
+              <div class="col-sm-6 smallpad">
+                <Button id="run" onClick$={() => (data.value = buildData(1_000))}>
+                  Create 1,000 rows
+                </Button>
+              </div>
+              <div class="col-sm-6 smallpad">
+                <Button id="runlots" onClick$={() => (data.value = buildData(10_000))}>
+                  Create 10,000 rows
+                </Button>
+              </div>
+              <div class="col-sm-6 smallpad">
+                <Button
+                  id="add"
+                  onClick$={() => (data.value = [...data.value, ...buildData(1_000)])}
+                >
+                  Append 1,000 rows
+                </Button>
+              </div>
+              <div class="col-sm-6 smallpad">
+                <Button
+                  id="update"
+                  onClick$={() => {
+                    const dataValue = data.value;
+                    for (let i = 0, d = dataValue, len = d.length; i < len; i += 10) {
+                      d[i].label.value += ' !!!';
+                    }
+                  }}
+                >
+                  Update every 10th row
+                </Button>
+              </div>
+              <div class="col-sm-6 smallpad">
+                <Button id="clear" onClick$={() => (data.value = [])}>
+                  Clear
+                </Button>
+              </div>
+              <div class="col-sm-6 smallpad">
+                <Button
+                  id="swaprows"
+                  onClick$={() => {
+                    const list = data.value;
+                    if (list.length > 998) {
+                      const next = list.slice();
+                      const item = next[1];
+                      next[1] = next[998];
+                      next[998] = item;
+                      data.value = next;
+                    }
+                  }}
+                >
+                  Swap Rows
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <table class="table table-hover table-striped test-data">
+        <tbody>
+          {data.value.map((row) => {
+            return (
+              <tr key={row.id} class={row.selected.value ? 'danger' : ''}>
+                <td class="col-md-1">{row.id}</td>
+                <td class="col-md-4">
+                  <a
+                    onClick$={() => {
+                      if (selectedItem.value) {
+                        selectedItem.value.selected.value = false;
+                      }
+                      selectedItem.value = row;
+                      row.selected.value = true;
+                    }}
+                  >
+                    {row.label.value}
+                  </a>
+                </td>
+                <td class="col-md-1">
+                  <a
+                    onClick$={() => {
+                      const dataValue = data.value;
+                      data.value = dataValue.toSpliced(
+                        dataValue.findIndex((d) => d.id === row.id),
+                        1
+                      );
+                    }}
+                  >
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true">
+                      x
+                    </span>
+                  </a>
+                </td>
+                <td class="col-md-6" />
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      <span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true" />
+    </div>
+  );
+}
+
+// src/build-data/build-data.ts
+import { native$, nativeFrom, useSignal } from '@qwik.dev/core';
+
+const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
+const colors = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]; // prettier-ignore
+const nouns = ["table", "chair", "house", "bbq", "desk", "car", "pony", "cookie", "sandwich", "burger", "pizza", "mouse", "keyboard"]; // prettier-ignore
+
+const random = (max: number) => Math.round(Math.random() * 1000) % max;
+
+let nextId = 1;
+
+type Signal<T> = { value: T };
+
+export type Row = {
+  id: number;
+  label: Signal<string>;
+  selected: Signal<boolean>;
+};
+
+export const buildData = native$(
+  (count: number): Row[] => {
+    const data = new Array(count);
+    for (let i = 0; i < count; i++) {
+      const label = useSignal(
+        `${adjectives[random(adjectives.length)]} ${colors[random(colors.length)]} ${nouns[random(nouns.length)]}`
+      );
+      data[i] = {
+        id: nextId++,
+        label,
+        selected: useSignal(false),
+      };
+    }
+    return data;
+  },
+  { rust: nativeFrom('./native') }
+);
+
+== CSR OUTPUT ==
+
+============================= src/root.tsx ==
+
+import {
+  propSource,
+  createAttrEffect,
+  createEventEffect,
+  _first,
+  maybeThen,
+  createSlot,
+  _createElementTemplate,
+  useSignal,
+  _next,
+  _last,
+  _prev,
+  _qrlWithChunk,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  _toNodes,
+  createCollection,
+  _withCaptures,
+} from '@qwik.dev/core';
+import { root_onClickqrl_segment_0_37h438c21ydkt } from './root.tsx_root_onClickqrl_segment_0_37h438c21ydkt';
+import { root_for_render_segment_13_xl6e5erok1z7 } from './root.tsx_root_for_render_segment_13_xl6e5erok1z7';
+import { root_for_key_segment_14_21k5c1c27m8kr } from './root.tsx_root_for_key_segment_14_21k5c1c27m8kr';
+const Button_tmpl0 = _createElementTemplate(
+  '<button class="btn btn-primary btn-block" type="button" stoppropagation:click><!></button>'
+);
+const q_root_q_e_click_segment_1_2xenbm08l4dzi = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_q_e_click_segment_1_2xenbm08l4dzi',
+  () => import('./root.tsx_root_q_e_click_segment_1_2xenbm08l4dzi'),
+  'root_q_e_click_segment_1_2xenbm08l4dzi'
+);
+const q_root_slot_render_segment_2_3fnd507dh0o2u = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_slot_render_segment_2_3fnd507dh0o2u',
+  () => import('./root.tsx_root_slot_render_segment_2_3fnd507dh0o2u'),
+  'root_slot_render_segment_2_3fnd507dh0o2u'
+);
+const q_root_q_e_click_segment_3_2xenaty0rg9yg = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_q_e_click_segment_3_2xenaty0rg9yg',
+  () => import('./root.tsx_root_q_e_click_segment_3_2xenaty0rg9yg'),
+  'root_q_e_click_segment_3_2xenaty0rg9yg'
+);
+const q_root_slot_render_segment_4_3fnd5s9laos3w = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_slot_render_segment_4_3fnd5s9laos3w',
+  () => import('./root.tsx_root_slot_render_segment_4_3fnd5s9laos3w'),
+  'root_slot_render_segment_4_3fnd5s9laos3w'
+);
+const q_root_q_e_click_segment_5_2xend64o8gm1m = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_q_e_click_segment_5_2xend64o8gm1m',
+  () => import('./root.tsx_root_q_e_click_segment_5_2xend64o8gm1m'),
+  'root_q_e_click_segment_5_2xend64o8gm1m'
+);
+const q_root_slot_render_segment_6_3fnd6kbt4cw4y = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_slot_render_segment_6_3fnd6kbt4cw4y',
+  () => import('./root.tsx_root_slot_render_segment_6_3fnd6kbt4cw4y'),
+  'root_slot_render_segment_6_3fnd6kbt4cw4y'
+);
+const q_root_q_e_click_segment_7_2xence2gesi0k = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_q_e_click_segment_7_2xence2gesi0k',
+  () => import('./root.tsx_root_q_e_click_segment_7_2xence2gesi0k'),
+  'root_q_e_click_segment_7_2xence2gesi0k'
+);
+const q_root_slot_render_segment_8_3fnd7ce0y1060 = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_slot_render_segment_8_3fnd7ce0y1060',
+  () => import('./root.tsx_root_slot_render_segment_8_3fnd7ce0y1060'),
+  'root_slot_render_segment_8_3fnd7ce0y1060'
+);
+const q_root_q_e_click_segment_9_2xen8hrdafxva = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_q_e_click_segment_9_2xen8hrdafxva',
+  () => import('./root.tsx_root_q_e_click_segment_9_2xen8hrdafxva'),
+  'root_q_e_click_segment_9_2xen8hrdafxva'
+);
+const q_root_slot_render_segment_10_3b8ytyi4ty595 = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_slot_render_segment_10_3b8ytyi4ty595',
+  () => import('./root.tsx_root_slot_render_segment_10_3b8ytyi4ty595'),
+  'root_slot_render_segment_10_3b8ytyi4ty595'
+);
+const q_root_q_e_click_segment_11_1exocx67wfjnx = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_q_e_click_segment_11_1exocx67wfjnx',
+  () => import('./root.tsx_root_q_e_click_segment_11_1exocx67wfjnx'),
+  'root_q_e_click_segment_11_1exocx67wfjnx'
+);
+const q_root_slot_render_segment_12_3b8yt6fx0a183 = /*#__PURE__*/ _qrlWithChunk(
+  './root.tsx_root_slot_render_segment_12_3b8yt6fx0a183',
+  () => import('./root.tsx_root_slot_render_segment_12_3b8yt6fx0a183'),
+  'root_slot_render_segment_12_3b8yt6fx0a183'
+);
+const Root_tmpl0 = _createElementTemplate(
+  '<div class="container"><div class="jumbotron"><div class="row"><div class="col-md-6"><h1>Qwik V3 Implementation</h1></div><div class="col-md-6"><div class="row"><div class="col-sm-6 smallpad"><!></div><div class="col-sm-6 smallpad"><!></div><div class="col-sm-6 smallpad"><!></div><div class="col-sm-6 smallpad"><!></div><div class="col-sm-6 smallpad"><!></div><div class="col-sm-6 smallpad"><!></div></div></div></div></div><table class="table table-hover table-striped test-data"><tbody><!><!></tbody></table><span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true"></span></div>'
+);
+
+import { buildData } from './build-data/build-data';
+const Button = (props, ctx) => {
+  const el0 = Button_tmpl0(ctx.document);
+  const prop0 = propSource(props, 'id');
+  const effect0 = createAttrEffect(el0, 'id', prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  const effect1 = createEventEffect(
+    el0,
+    'q-e:click',
+    [props],
+    root_onClickqrl_segment_0_37h438c21ydkt,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect1.run());
+  const marker0 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  return el0;
+};
+export function Root(props0, ctx) {
+  const data = useSignal(buildData(1e3));
+  const selectedItem = useSignal(null);
+  const el0 = Root_tmpl0(ctx.document);
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_root_slot_render_segment_2_3fnd507dh0o2u);
+  const component0 = createComponent(
+    Button,
+    { id: 'run', onClick$: q_root_q_e_click_segment_1_2xenbm08l4dzi.w([data]) },
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  const marker0 = _first(_first(_first(_last(_first(_first(el0))))));
+  maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+  const slotScope1 = createSlotScope();
+  registerProjection(slotScope1, '', q_root_slot_render_segment_4_3fnd5s9laos3w);
+  const component2 = createComponent(
+    Button,
+    { id: 'runlots', onClick$: q_root_q_e_click_segment_3_2xenaty0rg9yg.w([data]) },
+    ctx,
+    { slotScope: slotScope1 }
+  );
+  const marker1 = _first(_next(_first(_first(_last(_first(_first(el0)))))));
+  maybeThen(component2, (component3) => marker1.replaceWith(..._toNodes(component3)));
+  const slotScope2 = createSlotScope();
+  registerProjection(slotScope2, '', q_root_slot_render_segment_6_3fnd6kbt4cw4y);
+  const component4 = createComponent(
+    Button,
+    { id: 'add', onClick$: q_root_q_e_click_segment_5_2xend64o8gm1m.w([data]) },
+    ctx,
+    { slotScope: slotScope2 }
+  );
+  const marker2 = _first(_next(_next(_first(_first(_last(_first(_first(el0))))))));
+  maybeThen(component4, (component5) => marker2.replaceWith(..._toNodes(component5)));
+  const slotScope3 = createSlotScope();
+  registerProjection(slotScope3, '', q_root_slot_render_segment_8_3fnd7ce0y1060);
+  const component6 = createComponent(
+    Button,
+    { id: 'update', onClick$: q_root_q_e_click_segment_7_2xence2gesi0k.w([data]) },
+    ctx,
+    { slotScope: slotScope3 }
+  );
+  const marker3 = _first(_prev(_prev(_last(_first(_last(_first(_first(el0))))))));
+  maybeThen(component6, (component7) => marker3.replaceWith(..._toNodes(component7)));
+  const slotScope4 = createSlotScope();
+  registerProjection(slotScope4, '', q_root_slot_render_segment_10_3b8ytyi4ty595);
+  const component8 = createComponent(
+    Button,
+    { id: 'clear', onClick$: q_root_q_e_click_segment_9_2xen8hrdafxva.w([data]) },
+    ctx,
+    { slotScope: slotScope4 }
+  );
+  const marker4 = _first(_prev(_last(_first(_last(_first(_first(el0)))))));
+  maybeThen(component8, (component9) => marker4.replaceWith(..._toNodes(component9)));
+  const slotScope5 = createSlotScope();
+  registerProjection(slotScope5, '', q_root_slot_render_segment_12_3b8yt6fx0a183);
+  const component10 = createComponent(
+    Button,
+    { id: 'swaprows', onClick$: q_root_q_e_click_segment_11_1exocx67wfjnx.w([data]) },
+    ctx,
+    { slotScope: slotScope5 }
+  );
+  const marker5 = _first(_last(_first(_last(_first(_first(el0))))));
+  maybeThen(component10, (component11) => marker5.replaceWith(..._toNodes(component11)));
+  const start0 = _first(_first(_next(_first(el0))));
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      data,
+      root_for_key_segment_14_21k5c1c27m8kr,
+      _withCaptures(root_for_render_segment_13_xl6e5erok1z7, [selectedItem, data]),
+      0,
+      0
+    )
+  );
+  return el0;
+}
+
+export { Button as __qwik_Button };
+
+export { Button as Button_component_2vzb2c6bchg3a, Root as Root_component_1wwbdvvn6s0lu };
+============================= src/root.tsx_root_onClickqrl_segment_0_37h438c21ydkt.js (ENTRY POINT)==
+
+export const root_onClickqrl_segment_0_37h438c21ydkt = (props) => {
+  return props.onClick$;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_onClickqrl_segment_0_37h438c21ydkt",
+  "entry": null,
+  "displayName": "root_onClickqrl_segment_0",
+  "hash": "37h438c21ydkt",
+  "canonicalFilename": "root.tsx_root_onClickqrl_segment_0_37h438c21ydkt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    369,
+    377
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/root.tsx_root_q_e_click_segment_1_2xenbm08l4dzi.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+import { buildData } from './build-data/build-data';
+
+export const root_q_e_click_segment_1_2xenbm08l4dzi = () => {
+  const [data] = _captures;
+  return (data.value = buildData(1e3));
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_q_e_click_segment_1_2xenbm08l4dzi",
+  "entry": null,
+  "displayName": "root_q_e_click_segment_1",
+  "hash": "2xenbm08l4dzi",
+  "canonicalFilename": "root.tsx_root_q_e_click_segment_1_2xenbm08l4dzi",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    864,
+    911
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "data"
+  ]
+}
+*/
+============================= src/root.tsx_root_slot_render_segment_2_3fnd507dh0o2u.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const root_slot_render_segment_2_3fnd507dh0o2u_tmpl0 = createTemplate('Create 1,000 rows');
+
+export const root_slot_render_segment_2_3fnd507dh0o2u = (ctx) => {
+  const fragment0 = root_slot_render_segment_2_3fnd507dh0o2u_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_slot_render_segment_2_3fnd507dh0o2u",
+  "entry": null,
+  "displayName": "root_slot_render_segment_2",
+  "hash": "3fnd507dh0o2u",
+  "canonicalFilename": "root.tsx_root_slot_render_segment_2_3fnd507dh0o2u",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    913,
+    966
+  ],
+  "paramNames": []
+}
+*/
+============================= src/root.tsx_root_q_e_click_segment_3_2xenaty0rg9yg.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+import { buildData } from './build-data/build-data';
+
+export const root_q_e_click_segment_3_2xenaty0rg9yg = () => {
+  const [data] = _captures;
+  return (data.value = buildData(1e4));
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_q_e_click_segment_3_2xenaty0rg9yg",
+  "entry": null,
+  "displayName": "root_q_e_click_segment_3",
+  "hash": "2xenaty0rg9yg",
+  "canonicalFilename": "root.tsx_root_q_e_click_segment_3_2xenaty0rg9yg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    1080,
+    1128
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "data"
+  ]
+}
+*/
+============================= src/root.tsx_root_slot_render_segment_4_3fnd5s9laos3w.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const root_slot_render_segment_4_3fnd5s9laos3w_tmpl0 = createTemplate('Create 10,000 rows');
+
+export const root_slot_render_segment_4_3fnd5s9laos3w = (ctx) => {
+  const fragment0 = root_slot_render_segment_4_3fnd5s9laos3w_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_slot_render_segment_4_3fnd5s9laos3w",
+  "entry": null,
+  "displayName": "root_slot_render_segment_4",
+  "hash": "3fnd5s9laos3w",
+  "canonicalFilename": "root.tsx_root_slot_render_segment_4_3fnd5s9laos3w",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    1130,
+    1184
+  ],
+  "paramNames": []
+}
+*/
+============================= src/root.tsx_root_q_e_click_segment_5_2xend64o8gm1m.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+import { buildData } from './build-data/build-data';
+
+export const root_q_e_click_segment_5_2xend64o8gm1m = () => {
+  const [data] = _captures;
+  return (data.value = [...data.value, ...buildData(1e3)]);
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_q_e_click_segment_5_2xend64o8gm1m",
+  "entry": null,
+  "displayName": "root_q_e_click_segment_5",
+  "hash": "2xend64o8gm1m",
+  "canonicalFilename": "root.tsx_root_q_e_click_segment_5_2xend64o8gm1m",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    1330,
+    1397
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "data"
+  ]
+}
+*/
+============================= src/root.tsx_root_slot_render_segment_6_3fnd6kbt4cw4y.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const root_slot_render_segment_6_3fnd6kbt4cw4y_tmpl0 = createTemplate('Append 1,000 rows');
+
+export const root_slot_render_segment_6_3fnd6kbt4cw4y = (ctx) => {
+  const fragment0 = root_slot_render_segment_6_3fnd6kbt4cw4y_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_slot_render_segment_6_3fnd6kbt4cw4y",
+  "entry": null,
+  "displayName": "root_slot_render_segment_6",
+  "hash": "3fnd6kbt4cw4y",
+  "canonicalFilename": "root.tsx_root_slot_render_segment_6_3fnd6kbt4cw4y",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    1416,
+    1469
+  ],
+  "paramNames": []
+}
+*/
+============================= src/root.tsx_root_q_e_click_segment_7_2xence2gesi0k.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const root_q_e_click_segment_7_2xence2gesi0k = () => {
+  const [data] = _captures;
+  const dataValue = data.value;
+  for (let i = 0, d = dataValue, len = d.length; i < len; i += 10) {
+    d[i].label.value += ' !!!';
+  }
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_q_e_click_segment_7_2xence2gesi0k",
+  "entry": null,
+  "displayName": "root_q_e_click_segment_7",
+  "hash": "2xence2gesi0k",
+  "canonicalFilename": "root.tsx_root_q_e_click_segment_7_2xence2gesi0k",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    1618,
+    1795
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "data"
+  ]
+}
+*/
+============================= src/root.tsx_root_slot_render_segment_8_3fnd7ce0y1060.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const root_slot_render_segment_8_3fnd7ce0y1060_tmpl0 = createTemplate('Update every 10th row');
+
+export const root_slot_render_segment_8_3fnd7ce0y1060 = (ctx) => {
+  const fragment0 = root_slot_render_segment_8_3fnd7ce0y1060_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_slot_render_segment_8_3fnd7ce0y1060",
+  "entry": null,
+  "displayName": "root_slot_render_segment_8",
+  "hash": "3fnd7ce0y1060",
+  "canonicalFilename": "root.tsx_root_slot_render_segment_8_3fnd7ce0y1060",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    1883,
+    1940
+  ],
+  "paramNames": []
+}
+*/
+============================= src/root.tsx_root_q_e_click_segment_9_2xen8hrdafxva.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const root_q_e_click_segment_9_2xen8hrdafxva = () => {
+  const [data] = _captures;
+  return (data.value = []);
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_q_e_click_segment_9_2xen8hrdafxva",
+  "entry": null,
+  "displayName": "root_q_e_click_segment_9",
+  "hash": "2xen8hrdafxva",
+  "canonicalFilename": "root.tsx_root_q_e_click_segment_9_2xen8hrdafxva",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    2052,
+    2085
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "data"
+  ]
+}
+*/
+============================= src/root.tsx_root_slot_render_segment_10_3b8ytyi4ty595.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const root_slot_render_segment_10_3b8ytyi4ty595_tmpl0 = createTemplate('Clear');
+
+export const root_slot_render_segment_10_3b8ytyi4ty595 = (ctx) => {
+  const fragment0 = root_slot_render_segment_10_3b8ytyi4ty595_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_slot_render_segment_10_3b8ytyi4ty595",
+  "entry": null,
+  "displayName": "root_slot_render_segment_10",
+  "hash": "3b8ytyi4ty595",
+  "canonicalFilename": "root.tsx_root_slot_render_segment_10_3b8ytyi4ty595",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    2087,
+    2128
+  ],
+  "paramNames": []
+}
+*/
+============================= src/root.tsx_root_q_e_click_segment_11_1exocx67wfjnx.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const root_q_e_click_segment_11_1exocx67wfjnx = () => {
+  const [data] = _captures;
+  const list = data.value;
+  if (list.length > 998) {
+    const next = list.slice();
+    const item = next[1];
+    next[1] = next[998];
+    next[998] = item;
+    data.value = next;
+  }
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_q_e_click_segment_11_1exocx67wfjnx",
+  "entry": null,
+  "displayName": "root_q_e_click_segment_11",
+  "hash": "1exocx67wfjnx",
+  "canonicalFilename": "root.tsx_root_q_e_click_segment_11_1exocx67wfjnx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    2279,
+    2585
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "data"
+  ]
+}
+*/
+============================= src/root.tsx_root_slot_render_segment_12_3b8yt6fx0a183.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const root_slot_render_segment_12_3b8yt6fx0a183_tmpl0 = createTemplate('Swap Rows');
+
+export const root_slot_render_segment_12_3b8yt6fx0a183 = (ctx) => {
+  const fragment0 = root_slot_render_segment_12_3b8yt6fx0a183_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_slot_render_segment_12_3b8yt6fx0a183",
+  "entry": null,
+  "displayName": "root_slot_render_segment_12",
+  "hash": "3b8yt6fx0a183",
+  "canonicalFilename": "root.tsx_root_slot_render_segment_12_3b8yt6fx0a183",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    2664,
+    2709
+  ],
+  "paramNames": []
+}
+*/
+============================= src/root.tsx_root_for_render_segment_13_xl6e5erok1z7.js (ENTRY POINT)==
+
+import {
+  patchAttrValue,
+  _first,
+  _next,
+  _last,
+  _prev,
+  patchTextValue,
+  setEvent,
+  createDomBatchEffect,
+  _createElementTemplate,
+  _captures,
+} from '@qwik.dev/core';
+import { root_class_segment_15_2xl0i26jedthh } from './root.tsx_root_class_segment_15_2xl0i26jedthh';
+import { root_text_segment_16_3hdfyiexi24e1 } from './root.tsx_root_text_segment_16_3hdfyiexi24e1';
+import { root_q_e_click_segment_17_1exoakzkff7kr } from './root.tsx_root_q_e_click_segment_17_1exoakzkff7kr';
+import { root_text_segment_18_3hdg2eq0meojb } from './root.tsx_root_text_segment_18_3hdg2eq0meojb';
+import { root_q_e_click_segment_19_1exo9sxclr3jp } from './root.tsx_root_q_e_click_segment_19_1exo9sxclr3jp';
+const root_for_render_segment_13_xl6e5erok1z7_tmpl0 = _createElementTemplate(
+  '<tr><td class="col-md-1"> </td><td class="col-md-4"><a> </a></td><td class="col-md-1"><a><span class="glyphicon glyphicon-remove" aria-hidden="true">x</span></a></td><td class="col-md-6"></td></tr>'
+);
+
+export const root_for_render_segment_13_xl6e5erok1z7 = (ctx, row) => {
+  const [selectedItem, data] = _captures;
+  const el0 = root_for_render_segment_13_xl6e5erok1z7_tmpl0(ctx.document);
+  const text0 = _first(_first(el0));
+  const el1 = _first(_next(_first(el0)));
+  setEvent(el1, 'q-e:click', root_q_e_click_segment_17_1exoakzkff7kr, [selectedItem, row]);
+  const text1 = _first(el1);
+  createDomBatchEffect(() => {
+    patchAttrValue(el0, 'class', root_class_segment_15_2xl0i26jedthh(row));
+    patchTextValue(text0, root_text_segment_16_3hdfyiexi24e1(row));
+    patchTextValue(text1, root_text_segment_18_3hdg2eq0meojb(row));
+  }, ctx.scheduler);
+  const el2 = _first(_prev(_last(el0)));
+  setEvent(el2, 'q-e:click', root_q_e_click_segment_19_1exo9sxclr3jp, [data, row]);
+  return el0;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_for_render_segment_13_xl6e5erok1z7",
+  "entry": null,
+  "displayName": "root_for_render_segment_13",
+  "hash": "xl6e5erok1z7",
+  "canonicalFilename": "root.tsx_root_for_render_segment_13_xl6e5erok1z7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:render",
+  "captures": true,
+  "loc": [
+    2956,
+    4132
+  ],
+  "paramNames": [
+    "row"
+  ],
+  "captureNames": [
+    "selectedItem",
+    "data"
+  ]
+}
+*/
+============================= src/root.tsx_root_for_key_segment_14_21k5c1c27m8kr.js (ENTRY POINT)==
+
+export const root_for_key_segment_14_21k5c1c27m8kr = (row) => {
+  return row.id;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_for_key_segment_14_21k5c1c27m8kr",
+  "entry": null,
+  "displayName": "root_for_key_segment_14",
+  "hash": "21k5c1c27m8kr",
+  "canonicalFilename": "root.tsx_root_for_key_segment_14_21k5c1c27m8kr",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:key",
+  "captures": false,
+  "loc": [
+    2965,
+    2971
+  ],
+  "paramNames": [
+    "row"
+  ]
+}
+*/
+============================= src/root.tsx_root_class_segment_15_2xl0i26jedthh.js (ENTRY POINT)==
+
+export const root_class_segment_15_2xl0i26jedthh = (row) => {
+  return row.selected.value ? 'danger' : '';
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_class_segment_15_2xl0i26jedthh",
+  "entry": null,
+  "displayName": "root_class_segment_15",
+  "hash": "2xl0i26jedthh",
+  "canonicalFilename": "root.tsx_root_class_segment_15_2xl0i26jedthh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    2980,
+    3014
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+============================= src/root.tsx_root_text_segment_16_3hdfyiexi24e1.js (ENTRY POINT)==
+
+export const root_text_segment_16_3hdfyiexi24e1 = (row) => {
+  return row.id;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_text_segment_16_3hdfyiexi24e1",
+  "entry": null,
+  "displayName": "root_text_segment_16",
+  "hash": "3hdfyiexi24e1",
+  "canonicalFilename": "root.tsx_root_text_segment_16_3hdfyiexi24e1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    3055,
+    3061
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+============================= src/root.tsx_root_q_e_click_segment_17_1exoakzkff7kr.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const root_q_e_click_segment_17_1exoakzkff7kr = () => {
+  const [selectedItem, row] = _captures;
+  if (selectedItem.value) {
+    selectedItem.value.selected.value = false;
+  }
+  selectedItem.value = row;
+  row.selected.value = true;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_q_e_click_segment_17_1exoakzkff7kr",
+  "entry": null,
+  "displayName": "root_q_e_click_segment_17",
+  "hash": "1exoakzkff7kr",
+  "canonicalFilename": "root.tsx_root_q_e_click_segment_17_1exoakzkff7kr",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    3147,
+    3375
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "selectedItem",
+    "row"
+  ]
+}
+*/
+============================= src/root.tsx_root_text_segment_18_3hdg2eq0meojb.js (ENTRY POINT)==
+
+export const root_text_segment_18_3hdg2eq0meojb = (row) => {
+  return row.label.value;
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_text_segment_18_3hdg2eq0meojb",
+  "entry": null,
+  "displayName": "root_text_segment_18",
+  "hash": "3hdg2eq0meojb",
+  "canonicalFilename": "root.tsx_root_text_segment_18_3hdg2eq0meojb",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    3465,
+    3480
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "row"
+  ]
+}
+*/
+============================= src/root.tsx_root_q_e_click_segment_19_1exo9sxclr3jp.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const root_q_e_click_segment_19_1exo9sxclr3jp = () => {
+  const [data, row] = _captures;
+  const dataValue = data.value;
+  data.value = dataValue.toSpliced(
+    dataValue.findIndex((d) => d.id === row.id),
+    1
+  );
+};
+/*
+{
+  "origin": "root.tsx",
+  "name": "root_q_e_click_segment_19_1exo9sxclr3jp",
+  "entry": null,
+  "displayName": "root_q_e_click_segment_19",
+  "hash": "1exo9sxclr3jp",
+  "canonicalFilename": "root.tsx_root_q_e_click_segment_19_1exo9sxclr3jp",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    3606,
+    3771
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "data",
+    "row"
+  ]
+}
+*/
+============================= src/build-data/build-data.ts ==
+
+import { useSignal } from '@qwik.dev/core';
+const adjectives = [
+  'pretty',
+  'large',
+  'big',
+  'small',
+  'tall',
+  'short',
+  'long',
+  'handsome',
+  'plain',
+  'quaint',
+  'clean',
+  'elegant',
+  'easy',
+  'angry',
+  'crazy',
+  'helpful',
+  'mushy',
+  'odd',
+  'unsightly',
+  'adorable',
+  'important',
+  'inexpensive',
+  'cheap',
+  'expensive',
+  'fancy',
+];
+const colors = [
+  'red',
+  'yellow',
+  'blue',
+  'green',
+  'pink',
+  'brown',
+  'purple',
+  'brown',
+  'white',
+  'black',
+  'orange',
+];
+const nouns = [
+  'table',
+  'chair',
+  'house',
+  'bbq',
+  'desk',
+  'car',
+  'pony',
+  'cookie',
+  'sandwich',
+  'burger',
+  'pizza',
+  'mouse',
+  'keyboard',
+];
+const random = (max) => Math.round(Math.random() * 1e3) % max;
+let nextId = 1;
+export const buildData = (count) => {
+  const data = new Array(count);
+  for (let i = 0; i < count; i++) {
+    const label = useSignal(
+      `${adjectives[random(adjectives.length)]} ${colors[random(colors.length)]} ${nouns[random(nouns.length)]}`
+    );
+    data[i] = {
+      id: nextId++,
+      label,
+      selected: useSignal(false),
+    };
+  }
+  return data;
+};
+== CSR DIAGNOSTICS ==
+
+[]

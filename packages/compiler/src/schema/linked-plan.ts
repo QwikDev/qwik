@@ -83,6 +83,7 @@ export interface LinkedModule {
   contexts: { id: string; name: string; kind: Maybe<ContextKind> }[];
   natives: {
     name: string;
+    binding: LocalId | null;
     markerRange: Range;
     jsImplementation: PayloadId;
     /** (native, language) → index into `LinkedPlan.implementations`. */

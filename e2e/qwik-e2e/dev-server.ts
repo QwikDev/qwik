@@ -91,6 +91,7 @@ const ensureQwikLoaderGlobals = () => {
     join(repoRoot, 'packages', 'qwik', 'dist', 'qwikloader.debug.js'),
     'utf-8'
   );
+  return global;
 };
 
 Error.stackTraceLimit = 1000;
@@ -298,13 +299,14 @@ export { router }
 }
 
 function csrApp(res: Response, appName: string) {
+  const loader = ensureQwikLoaderGlobals();
   res.set('Content-Type', 'text/html; charset=utf-8');
   res.send(`<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
     <title>Qwik CSR E2E</title>
-    <script type="module" src="/${appName}/build/qwikloader.js"></script>
+    <script>${loader.QWIK_LOADER_DEFAULT_MINIFIED}</script>
     <script type="module" src="/${appName}/build/entry.dev.js"></script>
   </head>
   <body></body>

@@ -65,7 +65,154 @@ function holes(plan: Awaited<ReturnType<typeof link>>) {
   );
 }
 
+function batches(plan: Awaited<ReturnType<typeof link>>) {
+  return plan.modules.flatMap((module) =>
+    module.programs.flatMap((program) => {
+      if (program.body.kind !== ProgramBodyKind.Ops) {
+        return [];
+      }
+      const counts = new Map<number, number>();
+      const count = (effect: number | null) => {
+        if (effect !== null) {
+          counts.set(effect, (counts.get(effect) ?? 0) + 1);
+        }
+      };
+      const visit = (ops: typeof program.body.ops) => {
+        for (const op of ops) {
+          if (op.op === OpKind.Element) {
+            for (const prop of op.props) {
+              if (prop.k === 'dynamic') {
+                count(prop.effect);
+              }
+            }
+            visit(op.children);
+          } else if (op.op === OpKind.Hole) {
+            count(op.effect);
+          }
+        }
+      };
+      visit(program.body.ops);
+      return [...counts.values()];
+    })
+  );
+}
+
 describe('linked render results', () => {
+  test('groups shared scalar captures despite their argument order', async () => {
+    expect(
+      batches(
+        await link(`import { useSignal } from '@qwik.dev/core';
+      export default () => { const first = useSignal(1); const second = useSignal(2);
+        return <p>{first.value + second.value}{second.value + first.value}</p>;
+      };`)
+      )
+    ).toEqual([2]);
+  });
+
+  test.each([
+    '<Other />',
+    '{external()}',
+    '{visible.value ? <b /> : <i />}',
+    '{rows.value.map(row => <li>{row.id}{row.id}</li>)}',
+  ])('keeps effect groups inside structural boundaries: %s', async (boundary) => {
+    const plan = await link(`import { useSignal } from '@qwik.dev/core';
+      const Other = () => <b />;
+      export default () => { const count = useSignal(1); const visible = useSignal(true);
+        const rows = useSignal([{ id: 1 }]);
+        return <>{count.value}${boundary}{count.value}</>;
+      };`);
+    expect(batches(plan)).toEqual(boundary.includes('.map') ? [2] : []);
+  });
+  test.each(['native$', 'native$ as implementation$'])(
+    'preserves native callback contracts through imports: %s',
+    async (marker) => {
+      const name = marker.includes(' as ') ? 'implementation$' : 'native$';
+      const plan = await link(
+        `import { buildRows } from './lib';
+        export default () => <tbody>{buildRows(10).map(row => <tr><td>{row.id}</td><td>{row.label.value}</td></tr>)}</tbody>;`,
+        `import { ${marker}, useSignal } from '@qwik.dev/core';
+        type Row = { id: number; label: { value: string } };
+        export const buildRows = ${name}((count: number): Row[] => {
+          const rows = new Array(count);
+          for (let index = 0; index < count; index++) rows[index] = { id: index, label: useSignal('row') };
+          return rows;
+        }, {});`
+      );
+      expect(holes(plan)).toEqual([Shape.Text, Shape.Text]);
+    }
+  );
+
+  test.each([
+    ['[...rows]', Shape.Text],
+    ['rows.slice()', Shape.Text],
+    ['rows.toSpliced(0, 1)', Shape.Text],
+    ["rows.toSpliced(0, 1, { id: 'new' })", Shape.Text],
+    ['rows.toSpliced(0, 1, { id: <b /> })', Shape.Unknown],
+    ['rows.toSpliced(0, 1, external())', Shape.Unknown],
+    ['[...rows, { id: <b /> }]', Shape.Unknown],
+    ['rows.unknown()', Shape.Unknown],
+  ])('classifies copied array elements: %s', async (copy, shape) => {
+    expect(
+      holes(
+        await link(`export default () => {
+      const rows = [{ id: 1 }];
+      const copied = ${copy};
+      return <ul>{copied.map(row => <li>{row.id}</li>)}</ul>;
+    };`)
+      )
+    ).toEqual([shape]);
+  });
+
+  test('retains unknown mutations of array elements', async () => {
+    expect(
+      holes(
+        await link(`export default () => {
+      const rows = [{ id: 1 }];
+      rows.reverse();
+      return <ul>{rows.slice().map(row => <li>{row.id}</li>)}</ul>;
+    };`)
+      )
+    ).toEqual([Shape.Unknown]);
+  });
+
+  test.each(['rows', 'getRows()'])(
+    'does not assume an overwritten array method is intrinsic: %s',
+    async (receiver) => {
+      expect(
+        holes(
+          await link(`export default () => {
+      const rows = [{ id: 1 }];
+      rows.slice = () => [{ id: <b /> }];
+      const getRows = () => rows;
+      return <ul>{${receiver}.slice().map(row => <li>{row.id}</li>)}</ul>;
+    };`)
+        )
+      ).toEqual([Shape.Unknown]);
+    }
+  );
+
+  test.each([
+    ['rows[index].label += "!";', Shape.Text],
+    ['rows[index].label = <b />;', Shape.Unknown],
+    ['external(rows[index]);', Shape.Unknown],
+    ['const state = {}; state.selected = rows[0]; state.selected.label = <b />;', Shape.Unknown],
+    ['const state = {}; state.selected = rows[0]; state.selected.label = "next";', Shape.Text],
+    ['const state = external(); state.selected = rows[0];', Shape.Unknown],
+    ['rows.findIndex(row => row.label === "row");', Shape.Text],
+    ['rows.findIndex(row => { row.label = <b />; return true; });', Shape.Unknown],
+    ['rows.findIndex(function () { arguments[0].label = <b />; return true; });', Shape.Unknown],
+  ])('tracks indexed reads and alias mutations: %s', async (operation, expected) => {
+    expect(
+      holes(
+        await link(`export default () => {
+      const rows = [{ label: 'row' }]; const index = external();
+      ${operation}
+      return <ul>{rows.map(row => <li>{row.label}</li>)}</ul>;
+    };`)
+      )
+    ).toEqual([expected]);
+  });
+
   test.each([
     ['export default (props: { title: string }) => <p>{props.title}</p>;', [Shape.Text]],
     ['export default ({ title }: { title: string }) => <p>{title}</p>;', [Shape.Text]],

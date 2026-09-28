@@ -52,6 +52,24 @@ export function recordTypeContracts(
     const start = mapRange(binding.declarationRange)[0];
     if (contracts.has(`${start}:${binding.name}`)) {
       bindings.push({ binding: binding.id, start });
+      continue;
+    }
+    if (!plan.natives.some((native) => native.binding === binding.id)) {
+      continue;
+    }
+    const authoredBinding = authored.bindings.find(
+      (candidate) => candidate.declarationRange?.[0] === start && candidate.name === binding.name
+    );
+    for (const declaration of authored.declarationsOf(authoredBinding?.id ?? -1)) {
+      const call = declaration.type === 'VariableDeclarator' ? declaration.init : null;
+      const implementation = call?.type === 'CallExpression' ? call.arguments[0] : null;
+      if (
+        (implementation?.type === 'ArrowFunctionExpression' ||
+          implementation?.type === 'FunctionExpression') &&
+        implementation.returnType != null
+      ) {
+        bindings.push({ binding: binding.id, start: implementation.start });
+      }
     }
   }
   plan.source.types = { code: authoredCode, bindings };

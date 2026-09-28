@@ -10,7 +10,13 @@ export default (props: { page: string; line: string; count: number }) => (
 
 ============================= src/component.tsx ==
 
-import { _first, _last, createTextExpressionEffect, _createElementTemplate } from '@qwik.dev/core';
+import {
+  _first,
+  _last,
+  patchTextValue,
+  createDomBatchEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
 import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
 
@@ -18,21 +24,11 @@ const default_tmpl0 = _createElementTemplate('<div><title> </title><textarea> </
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const text0 = _first(_first(el0));
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
   const text1 = _first(_last(el0));
-  const effect1 = createTextExpressionEffect(
-    text1,
-    [props],
-    component_text_segment_1_1fh10tcowimfv,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect1);
+  createDomBatchEffect(() => {
+    patchTextValue(text0, component_text_segment_0_1fh10fbkzokfc(props), true);
+    patchTextValue(text1, component_text_segment_1_1fh10tcowimfv(props), true);
+  }, ctx.scheduler);
   return el0;
 };
 export default default_component_3rg6kq1so9aio;

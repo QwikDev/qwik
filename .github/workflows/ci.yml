@@ -1027,6 +1027,43 @@ jobs:
           key: ${{ needs.changes.outputs.hash-bench }}
           path: bench-tests-completed.txt
 
+  test-performance:
+    name: Performance Budget
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build.core.dev
+      - run: pnpm build.compiler
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Measure scheduler completion
+        shell: bash
+        run: |
+          node --require ./scripts/runBefore.ts --conditions=development e2e/qwik-e2e/dev-server.ts 3300 > test-results-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for attempt in {1..120}; do
+            if curl --fail --silent http://localhost:3300/ > /dev/null; then break; fi
+            sleep 1
+          done
+          pnpm bench.perf --budget=.github/performance/perf.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: performance
+          path: |
+            test-results/performance.json
+            test-results/performance.cpuprofile
+            test-results-server.log
+
   ############ E2E TEST ############
   test-e2e:
     # Sometimes the tests just hang
@@ -1642,6 +1679,7 @@ jobs:
     needs:
       - test-unit
       - test-bench
+      - test-performance
       - test-e2e
       - test-e2e-docs
       - test-cli-e2e
@@ -1655,6 +1693,7 @@ jobs:
           !(
             (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
             (needs.test-bench.result == 'success' || needs.test-bench.result == 'skipped') &&
+            needs.test-performance.result == 'success' &&
             (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
             (needs.test-e2e-docs.result == 'success' || needs.test-e2e-docs.result == 'skipped') &&
             (needs.test-cli-e2e.result == 'success' || needs.test-cli-e2e.result == 'skipped') &&

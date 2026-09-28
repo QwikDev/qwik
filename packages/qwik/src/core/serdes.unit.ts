@@ -11,7 +11,7 @@ import { QRL_RUNTIME_CHUNK } from './shared/serdes/qrl-to-string';
 import { SerializerSymbol } from './shared/serdes/verify';
 import { SERIALIZABLE_STATE } from './shared/component.public';
 import { EffectKind } from './dom/effect/effect-kind.enum';
-import type { AttrExpressionFn, EventExpressionFn } from './dom/effect/effect';
+import type { AttrExpressionFn, EventExpressionFn, DomBatchEffect } from './dom/effect/effect';
 import { createTextNodeEffect, type TextExpressionFn } from './dom/effect/text-effect';
 import { BranchSubscription, renderSsrBranch } from './dom/branch/branch';
 import { ContentSubscription, renderSsrContent } from './dom/content/content';
@@ -792,6 +792,38 @@ describe('serdes emit-only', () => {
     expect(textOpPayload[1]).toBe(EffectKind.TextNode);
     expect(classOpPayload[1]).toBe(EffectKind.Attr);
     expect(classOpPayload[9]).toBe('class');
+  });
+
+  it('round-trips DOM batch dependencies and asynchronous scalar patches', async () => {
+    const count = useSignal(1);
+    const title = useSignal('initial');
+    createOwned(() => {
+      const batch = createSsrDomBatchEffect();
+      renderSsrTextNode(4, null, count, batch);
+      renderSsrAttr(5, 'title', title, batch);
+    });
+    const state = await serialize(count, title);
+    const effectPayload = (state[1] as unknown[])[3];
+    const win = createWindow({
+      html: '<div q:container><p q:id="4">1</p><b q:id="5" title="initial"></b></div>',
+    });
+    const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
+    const restoredCount = useSignal<ValueOrPromise<number>>(1);
+    const restoredTitle = useSignal<ValueOrPromise<string>>('initial');
+    container.state.liveRoots.set(0, restoredCount);
+    container.state.liveRoots.set(1, restoredTitle);
+    const restored = (await deserializeData(
+      container,
+      TypeIds.EffectSubscription,
+      effectPayload
+    )) as DomBatchEffect;
+    expect(restored.deps).toEqual([restoredCount, restoredTitle]);
+
+    restoredCount.value = Promise.resolve(2);
+    restoredTitle.value = Promise.resolve('updated');
+    await container.scheduler.flushInteraction();
+    expect(container.element.querySelector('p')?.textContent).toBe('2');
+    expect(container.element.querySelector('b')?.getAttribute('title')).toBe('updated');
   });
 
   it('serializes branch subscriptions as effect subscriptions with owned subscribers', async () => {

@@ -86,7 +86,7 @@ function createReader(modules: readonly LinkedModule[]) {
     );
     const bindings = new Map<number, ts.Node>();
     const visit = (node: ts.Node): void => {
-      if (ts.isIdentifier(node)) {
+      if (ts.isIdentifier(node) || ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
         const binding = starts.get(node.getStart(file));
         if (binding !== undefined) {
           bindings.set(binding, node);

@@ -20,7 +20,8 @@ export default component$(() => {
 import {
   useStylesScoped,
   useSignal,
-  createAttrExpressionEffect,
+  patchAttrValue,
+  createDomBatchEffect,
   setEvent,
   _createElementTemplate,
 } from '@qwik.dev/core';
@@ -33,23 +34,15 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
   const active = useSignal(true);
   const el0 = default_tmpl0(ctx.document);
-  const effect0 = createAttrExpressionEffect(
-    el0,
-    'class',
-    [active],
-    component_class_segment_0_3htuygud1guoj,
-    ctx.scheduler,
-    '⚡️f5nwzpjzm8yb-0'
-  );
-  ctx.scheduler.notify(effect0);
-  const effect1 = createAttrExpressionEffect(
-    el0,
-    'style',
-    [active],
-    component_style_segment_1_cgm3c4qw0vql,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect1);
+  createDomBatchEffect(() => {
+    patchAttrValue(
+      el0,
+      'class',
+      component_class_segment_0_3htuygud1guoj(active),
+      '⚡️f5nwzpjzm8yb-0'
+    );
+    patchAttrValue(el0, 'style', component_style_segment_1_cgm3c4qw0vql(active));
+  }, ctx.scheduler);
   setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [active]);
   return el0;
 };

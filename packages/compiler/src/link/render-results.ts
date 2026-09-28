@@ -45,7 +45,9 @@ const enum Kind {
 }
 const isNumericKey = (name: string) => name !== '' && String(Number(name)) === name;
 const matchesPath = (name: string, part: string | symbol | undefined) =>
-  name === part || ((part === numericPath || part === elementPath) && isNumericKey(name));
+  (name === '*' && part !== undefined && part !== returnPath) ||
+  name === part ||
+  ((part === numericPath || part === elementPath) && isNumericKey(name));
 const scalar = Kind.Text | Kind.String | Kind.Number | Kind.Undefined | Kind.Empty | Kind.Missing;
 const stringMethods = new Set([
   'toUpperCase',
@@ -342,7 +344,10 @@ export function linkRenderResults(
   ): number => {
     const key = bindingKey(module, binding);
     const facts = modules[module].bindings[binding]?.result;
-    if (seen.has(key) || facts === undefined) {
+    if (seen.has(key)) {
+      return 0;
+    }
+    if (facts === undefined) {
       return Kind.Unknown;
     }
     if (
@@ -356,6 +361,29 @@ export function linkRenderResults(
     }
     const next = new Set(seen).add(key);
     let kinds = 0;
+    for (const alias of facts.aliases ?? []) {
+      if (
+        alias.path.length < path.length &&
+        alias.path.every((part, index) => matchesPath(part, path[index]))
+      ) {
+        kinds |= aliasMutationKinds(module, alias.target, path.slice(alias.path.length), next);
+      }
+    }
+    for (const call of facts.calls ?? []) {
+      if (
+        call.path.length < path.length &&
+        call.path.every((part, index) => matchesPath(part, path[index])) &&
+        arrayCallMutationKinds(
+          module,
+          call,
+          readBinding(module, binding, call.path),
+          path.slice(call.path.length),
+          next
+        ) !== 0
+      ) {
+        kinds |= Kind.Unknown;
+      }
+    }
     for (const write of facts.writes) {
       if (write.path.every((part, index) => matchesPath(part, path[index]))) {
         kinds |= evaluate(module, write.value, path.slice(write.path.length));
@@ -378,6 +406,12 @@ export function linkRenderResults(
     seen: Set<string>
   ): number => {
     if (consumer.target.kind === ResultKind.Function && consumer.property === undefined) {
+      if (consumer.target.usesArguments) {
+        return Kind.Unknown;
+      }
+      if (consumer.argument >= consumer.target.params.length) {
+        return 0;
+      }
       const parameter = consumer.target.params[consumer.argument];
       return parameter == null ? Kind.Unknown : mutationKinds(module, parameter, path, seen);
     }
@@ -408,6 +442,13 @@ export function linkRenderResults(
     }
     let kinds = 0;
     for (const fn of declarations) {
+      if (fn.usesArguments) {
+        kinds |= Kind.Unknown;
+        continue;
+      }
+      if (consumer.argument >= fn.params.length) {
+        continue;
+      }
       const parameter = fn.params[consumer.argument];
       kinds |=
         parameter == null ? Kind.Unknown : mutationKinds(target.module, parameter, path, seen);
@@ -470,6 +511,40 @@ export function linkRenderResults(
       }
     }
     if (facts !== undefined) {
+      for (const alias of facts.aliases ?? []) {
+        if (
+          alias.path.length < path.length &&
+          alias.path.every((part, index) => matchesPath(part, path[index]))
+        ) {
+          result |= aliasMutationKinds(
+            moduleIndex,
+            alias.target,
+            path.slice(alias.path.length),
+            new Set([inputKey])
+          );
+        }
+      }
+      for (const call of facts.calls ?? []) {
+        if (
+          call.path.length >= path.length ||
+          !call.path.every((part, index) => matchesPath(part, path[index]))
+        ) {
+          continue;
+        }
+        const receiver = readBinding(moduleIndex, binding, call.path);
+        if (receiver !== 0 && (receiver & ~scalar) === 0) {
+          continue;
+        }
+        if (receiver !== 0 || finalize) {
+          result |= arrayCallMutationKinds(
+            moduleIndex,
+            call,
+            receiver,
+            path.slice(call.path.length),
+            new Set()
+          );
+        }
+      }
       for (const write of facts.writes) {
         if (write.path.every((part, index) => matchesPath(part, path[index]))) {
           result |= evaluate(moduleIndex, write.value, path.slice(write.path.length));
@@ -567,6 +642,7 @@ export function linkRenderResults(
           : kinds;
       }
       case ResultKind.Element:
+      case ResultKind.ArraySpread:
         return evaluate(module, result.source, [elementPath, ...path]);
       case ResultKind.ArrayRest: {
         if (path.length === 0) {
@@ -646,7 +722,7 @@ export function linkRenderResults(
         if (path.length === 0) {
           return Kind.Array;
         }
-        if (path[0] === elementPath || path[0] === numericPath) {
+        if (path[0] === elementPath || path[0] === numericPath || path[0] === '*') {
           return result.items.reduce(
             (kinds, item) => kinds | evaluate(module, item, path.slice(1)),
             Kind.Missing
@@ -654,6 +730,12 @@ export function linkRenderResults(
         }
         if (path[0] === 'length') {
           return Kind.Text;
+        }
+        if (result.items.some((item) => item.kind === ResultKind.ArraySpread)) {
+          return result.items.reduce(
+            (kinds, item) => kinds | evaluate(module, item, path.slice(1)),
+            Kind.Missing
+          );
         }
         const value = typeof path[0] === 'string' ? result.items[Number(path[0])] : undefined;
         return value === undefined ? Kind.Missing : evaluate(module, value, path.slice(1));
@@ -670,6 +752,13 @@ export function linkRenderResults(
       case ResultKind.Spread: {
         if (path.length === 0) {
           return Kind.Object;
+        }
+        if (path[0] === '*') {
+          return result.parts.reduce(
+            (kinds, part) =>
+              kinds | evaluate(module, part.value, part.name === null ? path : path.slice(1)),
+            Kind.Missing
+          );
         }
         if (path[0] === numericPath) {
           return result.parts.reduce(
@@ -707,6 +796,56 @@ export function linkRenderResults(
       case ResultKind.Invoke:
         if (
           result.callee.kind === Ir.Member &&
+          ['slice', 'toSpliced', 'findIndex'].includes(result.callee.name) &&
+          evaluate(module, result.callee.obj) === 0 &&
+          !finalize
+        ) {
+          return 0;
+        }
+        if (
+          result.callee.kind === Ir.Member &&
+          result.callee.name === 'findIndex' &&
+          isArrayReceiver(evaluate(module, result.callee.obj)) &&
+          !hasMethodWrite(module, result.callee.obj, result.callee.name)
+        ) {
+          return path.length === 0 ? Kind.Number : Kind.Unknown;
+        }
+        if (
+          result.callee.kind === Ir.Member &&
+          (result.callee.name === 'slice' || result.callee.name === 'toSpliced') &&
+          isArrayCopy(
+            module,
+            result.callee.name,
+            result.args,
+            evaluate(module, result.callee.obj)
+          ) &&
+          !hasMethodWrite(module, result.callee.obj, result.callee.name)
+        ) {
+          if (path.length === 0) {
+            return Kind.Array;
+          }
+          if (path[0] === 'length') {
+            return Kind.Number;
+          }
+          if (
+            path[0] !== elementPath &&
+            path[0] !== numericPath &&
+            !(typeof path[0] === 'string' && /^(0|[1-9]\d*)$/.test(path[0]))
+          ) {
+            return Kind.Unknown;
+          }
+          const elements = evaluate(module, result.callee.obj, [elementPath, ...path.slice(1)]);
+          return result.callee.name === 'slice'
+            ? elements
+            : result.args
+                .slice(2)
+                .reduce(
+                  (kinds, argument) => kinds | evaluate(module, argument, path.slice(1)),
+                  elements
+                );
+        }
+        if (
+          result.callee.kind === Ir.Member &&
           stringMethods.has(result.callee.name) &&
           evaluate(module, result.callee.obj) === Kind.String
         ) {
@@ -721,6 +860,100 @@ export function linkRenderResults(
         return Kind.Unknown;
     }
   };
+
+  function isArrayCopy(module: number, method: string, args: Result[], receiver: number): boolean {
+    return (
+      isArrayReceiver(receiver) &&
+      (method === 'slice' || method === 'toSpliced') &&
+      args.slice(0, 2).every((argument) => {
+        const kinds = evaluate(module, argument);
+        return kinds !== 0 && (kinds & ~scalar) === 0;
+      })
+    );
+  }
+
+  function isArrayReceiver(kinds: number): boolean {
+    return (
+      (kinds & Kind.Array) !== 0 &&
+      (kinds & ~(Kind.Array | Kind.Undefined | Kind.Empty | Kind.Missing)) === 0
+    );
+  }
+
+  function hasMethodWrite(module: number, receiver: Result, method: string): boolean {
+    const source = receiver;
+    const path = [method];
+    while (receiver.kind === Ir.Member) {
+      path.unshift(receiver.name);
+      receiver = receiver.obj;
+    }
+    if (receiver.kind !== Ir.BindingRead) {
+      return (
+        receiver.kind === ResultKind.Invoke &&
+        (evaluate(module, source, [method]) & Kind.Render) !== 0
+      );
+    }
+    const facts = modules[module].bindings[receiver.binding]?.result;
+    const written =
+      facts?.writes.some(
+        (write) =>
+          write.path.length >= path.length &&
+          path.every((part, index) => matchesPath(write.path[index], part))
+      ) ?? false;
+    if (written) {
+      return true;
+    }
+    return (
+      facts?.value.kind === ResultKind.Invoke &&
+      (evaluate(module, source, [method]) & Kind.Render) !== 0
+    );
+  }
+
+  function arrayCallMutationKinds(
+    module: number,
+    call: NonNullable<BindingResult['calls']>[number],
+    receiver: number,
+    path: ResultPath,
+    seen: Set<string>
+  ): number {
+    if (isArrayCopy(module, call.method, call.args, receiver)) {
+      return 0;
+    }
+    if (isArrayReceiver(receiver) && call.method === 'findIndex' && call.args[0] !== undefined) {
+      return (
+        consumerMutationKinds(
+          module,
+          { path: [], target: call.args[0], argument: 0 },
+          path.slice(1),
+          seen
+        ) |
+        consumerMutationKinds(module, { path: [], target: call.args[0], argument: 2 }, path, seen)
+      );
+    }
+    return Kind.Unknown;
+  }
+
+  function aliasMutationKinds(
+    module: number,
+    target: Result,
+    path: ResultPath,
+    seen: Set<string>
+  ): number {
+    if (target.kind === Ir.Member) {
+      return aliasMutationKinds(module, target.obj, [target.name, ...path], seen);
+    }
+    if (target.kind === Ir.Index) {
+      return aliasMutationKinds(module, target.obj, [numericPath, ...path], seen);
+    }
+    if (
+      target.kind === Ir.BindingRead &&
+      (readBinding(module, target.binding, []) & Kind.Unknown) !== 0
+    ) {
+      return Kind.Unknown;
+    }
+    return target.kind === Ir.BindingRead
+      ? mutationKinds(module, target.binding, path, seen)
+      : Kind.Unknown;
+  }
 
   const classify = (module: number, op: LinkedOp): LinkedOp => {
     if (op.op === OpKind.Element) {

@@ -13,6 +13,7 @@ export default (props: { code: string }) => (
 
 import {
   createSsrNodeId,
+  createSsrDomBatchEffect,
   escapeHTML,
   propSource,
   isSource,
@@ -26,11 +27,12 @@ import {
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();
+    const effect0 = createSsrDomBatchEffect();
     const prop0 = propSource(props, 'code');
     isSource(prop0) && ctx.addRoot(prop0);
-    const text0 = renderSsrTextNode(id0, null, prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0, effect0);
     const id1 = ctx.nextId();
-    const attr0 = renderSsrAttr(id1, 'value', prop0);
+    const attr0 = renderSsrAttr(id1, 'value', prop0, effect0);
     return maybeThen(text0, (text0) =>
       maybeThen(attr0, (attr0) => [
         '<div><pre q:id="',

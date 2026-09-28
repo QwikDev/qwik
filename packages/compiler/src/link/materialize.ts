@@ -133,8 +133,9 @@ function materializeModule(
     values: plan.values,
     contexts: [],
     // No native generator links implementations yet; the plan's target sources stay the record.
-    natives: plan.natives.map(({ name, markerRange, jsImplementation }) => ({
+    natives: plan.natives.map(({ name, binding, markerRange, jsImplementation }) => ({
       name,
+      binding,
       markerRange,
       jsImplementation,
       implementations: {},

@@ -20,6 +20,7 @@ import {
   useComputedQrl,
   _captures,
   createSsrNodeId,
+  createSsrDomBatchEffect,
   renderSsrAttr,
   escapeHTML,
   renderSsrTextNode,
@@ -53,9 +54,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const doubled = useComputedQrl(q_component_doubled_segment_0_2yvob8vshk72o.w([count]));
     const label = useComputedQrl(q_component_label_segment_1_871sx3hwa26q.w([doubled, props]));
     const id0 = ctx.nextId();
+    const effect0 = createSsrDomBatchEffect();
     ctx.addRoot(label);
-    const attr0 = renderSsrAttr(id0, 'title', label);
-    const text0 = renderSsrTextNode(id0, null, label);
+    const attr0 = renderSsrAttr(id0, 'title', label, effect0);
+    const text0 = renderSsrTextNode(id0, null, label, effect0);
     return maybeThen(attr0, (attr0) =>
       maybeThen(text0, (text0) => [
         '<button q:id="',

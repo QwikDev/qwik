@@ -16,7 +16,9 @@ import {
   _first,
   _last,
   propSource,
-  createTextNodeEffect,
+  readTrackedValue,
+  patchTextValue,
+  createDomBatchEffect,
   _createElementTemplate,
   useSignal,
   _qrlWithChunk,
@@ -36,14 +38,14 @@ export const Child = (props, ctx) => {
   const text0 = ctx.document.createTextNode('');
   marker0.replaceWith(text0);
   const prop0 = propSource(props, 'title');
-  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
   const marker1 = _last(el0);
   const text1 = ctx.document.createTextNode('');
   marker1.replaceWith(text1);
   const prop1 = propSource(props, 'count');
-  const effect1 = createTextNodeEffect(text1, prop1, ctx.scheduler);
-  ctx.scheduler.notify(effect1);
+  createDomBatchEffect(() => {
+    patchTextValue(text0, readTrackedValue(prop0));
+    patchTextValue(text1, readTrackedValue(prop1));
+  }, ctx.scheduler);
   return el0;
 };
 export const default_component_3rg6kq1so9aio = (props0, ctx) => {

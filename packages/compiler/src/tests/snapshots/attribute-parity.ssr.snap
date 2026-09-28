@@ -18,6 +18,7 @@ export default component$(() => {
 import {
   useSignal,
   createSsrNodeId,
+  createSsrDomBatchEffect,
   renderSsrAttr,
   escapeHTML,
   maybeThen,
@@ -27,11 +28,12 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const on = useSignal(false);
     const id0 = ctx.nextId();
+    const effect0 = createSsrDomBatchEffect();
     ctx.addRoot(on);
-    const attr0 = renderSsrAttr(id0, 'required', on);
-    const attr1 = renderSsrAttr(id0, 'aria-hidden', on);
-    const attr2 = renderSsrAttr(id0, 'draggable', on);
-    const attr3 = renderSsrAttr(id0, 'spellcheck', on);
+    const attr0 = renderSsrAttr(id0, 'required', on, effect0);
+    const attr1 = renderSsrAttr(id0, 'aria-hidden', on, effect0);
+    const attr2 = renderSsrAttr(id0, 'draggable', on, effect0);
+    const attr3 = renderSsrAttr(id0, 'spellcheck', on, effect0);
     return maybeThen(attr0, (attr0) =>
       maybeThen(attr1, (attr1) =>
         maybeThen(attr2, (attr2) =>

@@ -13,6 +13,7 @@ import {
 } from '../schema';
 import { linkRenderResults } from './render-results';
 import { linkContent } from './link-content';
+import { linkEffects } from './link-effects';
 import { linkHookTwins } from './link-hooks';
 import { resolveModules } from './resolve';
 import { materializeModules } from './materialize';
@@ -118,6 +119,7 @@ export function linkPlans(
   };
   linkRenderResults(plan, visited, qrlIndexes, importsByBinding, resolveLocalBinding);
   plan.modules.forEach(linkContent);
+  plan.modules.forEach(linkEffects);
   return { kind: LinkResultKind.Linked, plan };
 }
 

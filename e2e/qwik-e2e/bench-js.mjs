@@ -1,6 +1,6 @@
 // In-process JS render timing for a built e2e app (build it first with `vite build` for client
 // and server).
-//   node e2e/qwik-e2e/bench-js.mjs vdomless-counter 200
+//   node e2e/qwik-e2e/bench-js.mjs perf 200
 /* eslint-disable no-console */
 
 import { readFileSync } from 'node:fs';
@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '..', '..');
-const appName = process.argv[2] ?? 'vdomless-counter';
+const appName = process.argv[2] ?? 'perf';
 const iterations = Number(process.argv[3] ?? 100);
 const appDir = join(__dirname, 'apps', appName);
 

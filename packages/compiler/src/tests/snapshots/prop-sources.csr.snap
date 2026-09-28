@@ -23,12 +23,13 @@ export default component$(() => {
 
 import {
   propSource,
-  createAttrEffect,
+  readTrackedValue,
+  patchAttrValue,
   _first,
   _next,
   _last,
-  createTextNodeEffect,
-  readTrackedValue,
+  patchTextValue,
+  createDomBatchEffect,
   _props,
   createComponent,
   _toNodes,
@@ -53,12 +54,12 @@ import { Badge } from './badge';
 export const Card = (props, ctx) => {
   const el0 = Card_tmpl0(ctx.document);
   const prop0 = propSource(props, 'title');
-  const effect0 = createAttrEffect(el0, 'class', prop0, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
   const el1 = _last(el0);
   const text0 = _first(_first(el0));
-  const effect1 = createTextNodeEffect(text0, prop0, ctx.scheduler);
-  ctx.scheduler.notify(effect1);
+  createDomBatchEffect(() => {
+    patchAttrValue(el0, 'class', readTrackedValue(prop0));
+    patchTextValue(text0, readTrackedValue(prop0));
+  }, ctx.scheduler);
   const component0 = createComponent(
     Badge,
     _props(
@@ -74,13 +75,13 @@ export const Card = (props, ctx) => {
   const marker0 = _next(_first(el0));
   maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
   const text1 = _first(el1);
-  const effect2 = createTextExpressionEffect(
+  const effect0 = createTextExpressionEffect(
     text1,
     [props],
     component_text_segment_0_1fh10fbkzokfc,
     ctx.scheduler
   );
-  ctx.scheduler.notify(effect2);
+  ctx.scheduler.notify(effect0);
   return el0;
 };
 export const Defaulted = (props0, ctx) => {

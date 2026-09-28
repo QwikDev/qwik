@@ -1,5 +1,5 @@
 [package]
-name = "vdomless-counter-native"
+name = "perf-native"
 version = "0.0.0"
 edition = "2021"
 publish = false

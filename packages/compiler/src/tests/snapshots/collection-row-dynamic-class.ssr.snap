@@ -16,6 +16,7 @@ import {
   createSsrNodeId,
   maybeThen,
   escapeHTML,
+  createSsrDomBatchEffect,
   renderSsrAttrExpression,
   renderSsrTextExpression,
   _noopQrl,
@@ -23,18 +24,21 @@ import {
 } from '@qwik.dev/core';
 const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item) => {
   const id0 = ctx.nextId();
+  const effect0 = createSsrDomBatchEffect();
   ctx.addRoot(item);
   const attr0 = renderSsrAttrExpression(
     id0,
     'class',
     [item],
-    q_component_class_segment_2_3htuz8wkv4ypl
+    q_component_class_segment_2_3htuz8wkv4ypl,
+    effect0
   );
   const text0 = renderSsrTextExpression(
     id0,
     null,
     [item],
-    q_component_text_segment_3_1fh11lewq6qgx
+    q_component_text_segment_3_1fh11lewq6qgx,
+    effect0
   );
   return maybeThen(attr0, (attr0) =>
     maybeThen(text0, (text0) => [
@@ -114,6 +118,7 @@ import {
   _noopQrl,
   createSsrNodeId,
   escapeHTML,
+  createSsrDomBatchEffect,
   renderSsrAttrExpression,
   renderSsrTextExpression,
   maybeThen,
@@ -131,18 +136,21 @@ q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qg
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item) => {
   const id0 = ctx.nextId();
+  const effect0 = createSsrDomBatchEffect();
   ctx.addRoot(item);
   const attr0 = renderSsrAttrExpression(
     id0,
     'class',
     [item],
-    q_component_class_segment_2_3htuz8wkv4ypl
+    q_component_class_segment_2_3htuz8wkv4ypl,
+    effect0
   );
   const text0 = renderSsrTextExpression(
     id0,
     null,
     [item],
-    q_component_text_segment_3_1fh11lewq6qgx
+    q_component_text_segment_3_1fh11lewq6qgx,
+    effect0
   );
   return maybeThen(attr0, (attr0) =>
     maybeThen(text0, (text0) => [

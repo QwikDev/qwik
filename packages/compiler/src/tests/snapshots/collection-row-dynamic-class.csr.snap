@@ -44,9 +44,10 @@ export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {
-  createAttrExpressionEffect,
+  patchAttrValue,
   _first,
-  createTextExpressionEffect,
+  patchTextValue,
+  createDomBatchEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_class_segment_2_3htuz8wkv4ypl } from './component.tsx_component_class_segment_2_3htuz8wkv4ypl';
@@ -55,22 +56,11 @@ const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
   const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
-  const effect0 = createAttrExpressionEffect(
-    el0,
-    'class',
-    [item],
-    component_class_segment_2_3htuz8wkv4ypl,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
   const text0 = _first(el0);
-  const effect1 = createTextExpressionEffect(
-    text0,
-    [item],
-    component_text_segment_3_1fh11lewq6qgx,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect1);
+  createDomBatchEffect(() => {
+    patchAttrValue(el0, 'class', component_class_segment_2_3htuz8wkv4ypl(item));
+    patchTextValue(text0, component_text_segment_3_1fh11lewq6qgx(item));
+  }, ctx.scheduler);
   return el0;
 };
 /*

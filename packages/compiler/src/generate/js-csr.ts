@@ -67,6 +67,7 @@ import {
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { emitCollectionSource } from './emit-collection';
 import { foldStaticOp } from './fold-static';
+import { effectCounts } from '../link/link-effects';
 import { inlineStringValue, isFullyStaticSubtree } from '../static-subtree';
 import {
   allocateGeneratedNames,
@@ -132,6 +133,7 @@ async function generateModule(
 
 /** Everything one render pass carries — created in renderProgram, threaded explicitly. */
 interface RenderPass {
+  batches: Map<number, { remaining: number; patches: string[] }>;
   names: GeneratedNames;
   next: (prefix: string) => string;
   propSources: Map<string, string>;
@@ -225,6 +227,12 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       throw new Error('pipeline.generateJsCsr: js-bodied programs not implemented yet');
     }
     const pass: RenderPass = {
+      batches: new Map(
+        [...effectCounts(program.body.ops)].map(([id, remaining]) => [
+          id,
+          { remaining, patches: [] },
+        ])
+      ),
       names,
       next: createNameAllocator(this.module),
       propSources: new Map(),
@@ -930,6 +938,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     // A fresh emitter keeps the row's imports/chunk references out of the main module.
     const emitter = new CsrModuleEmitter(this.module);
     const pass: RenderPass = {
+      batches: new Map(
+        [...effectCounts(body.ops)].map(([id, remaining]) => [id, { remaining, patches: [] }])
+      ),
       names: {
         props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
         ctx: allocateGeneratedNames(this.module).ctx,
@@ -1022,6 +1033,17 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     pass: RenderPass,
     styleScope: string | null
   ): void {
+    if (prop.effect !== null) {
+      const value = this.batchValue(prop.value, statements, pass);
+      this.imports.add(QwikWord.PatchAttrValue);
+      this.batchPatch(
+        prop.effect,
+        `${QwikWord.PatchAttrValue}(${el}, ${JSON.stringify(prop.name)}, ${value}${styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`});`,
+        statements,
+        pass
+      );
+      return;
+    }
     const effect = pass.next(QwikGenWord.Effect);
     const scope = styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`;
     switch (prop.value.v) {
@@ -1109,6 +1131,17 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
+    if (op.effect !== null) {
+      const value = this.batchValue(op.value, statements, pass);
+      this.imports.add(QwikWord.PatchTextValue);
+      this.batchPatch(
+        op.effect,
+        `${QwikWord.PatchTextValue}(${target}, ${value}${op.stringify ? ', true' : ''});`,
+        statements,
+        pass
+      );
+      return;
+    }
     switch (op.value.v) {
       case ValueKind.Read: {
         // Signal and prop reads bind the placeholder text node directly — no chunk involved.
@@ -1140,6 +1173,35 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       default:
         throw new UnsupportedError('a non-computed text hole');
     }
+  }
+
+  private batchValue(
+    value: import('../schema').Value,
+    statements: string[],
+    pass: RenderPass
+  ): string {
+    if (value.v === ValueKind.Read) {
+      const source = readSource(this.module, value.expr, pass, statements, this.imports, null);
+      this.imports.add(QwikWord.ReadTrackedValue);
+      return `${QwikWord.ReadTrackedValue}(${source})`;
+    }
+    if (value.v === ValueKind.Computed && value.resume.r === ResumeKind.Qrl) {
+      const resolved = this.resolveQrlUse(value.resume.qrl, pass.names.props);
+      return `${this.chunkSymbol(resolved.qrl)}(${resolved.args.join(', ')})`;
+    }
+    throw new UnsupportedError('a non-reactive batch value');
+  }
+
+  private batchPatch(id: number, patch: string, statements: string[], pass: RenderPass): void {
+    const batch = pass.batches.get(id)!;
+    batch.patches.push(patch);
+    if (--batch.remaining !== 0) {
+      return;
+    }
+    this.imports.add(QwikWord.CreateDomBatchEffect);
+    statements.push(
+      `${QwikWord.CreateDomBatchEffect}(() => {\n${batch.patches.join('\n')}\n}, ${pass.names.ctx}.scheduler);`
+    );
   }
 
   private mountElementTemplate(

@@ -1,0 +1,85 @@
+name: Calibrate performance
+
+on:
+  pull_request:
+    paths:
+      - .github/performance/perf.json
+      - .github/workflows/perf-calibration.yml
+  workflow_dispatch:
+    inputs:
+      regression_ref:
+        description: Compiler revision known to contain the regression
+        type: string
+        required: true
+        default: a1f9910ce
+
+permissions:
+  contents: read
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI_NODE_VERSION: 24.15.0
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build.core.dev
+      - run: pnpm build.compiler
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Five fixed compiler runs
+        shell: bash
+        run: |
+          node --require ./scripts/runBefore.ts --conditions=development e2e/qwik-e2e/dev-server.ts 3300 > test-results-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for attempt in {1..120}; do
+            if curl --fail --silent http://localhost:3300/ > /dev/null; then break; fi
+            sleep 1
+          done
+          for sample in {1..5}; do
+            pnpm bench.perf --output="test-results/calibration-$sample.json"
+          done
+      - name: Checkout regressed compiler
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: ${{ inputs.regression_ref || 'a1f9910ce0ff92da8c882f2ea842d93d288d17a0' }}
+          path: regressed
+          persist-credentials: false
+      - name: Build regressed compiler against the same runtime
+        run: |
+          mv packages/compiler/src /tmp/qwik-fixed-compiler-src
+          cp -R regressed/packages/compiler/src packages/compiler/src
+          pnpm build.compiler
+      - name: Regressed run and budget validation
+        shell: bash
+        run: |
+          node --require ./scripts/runBefore.ts --conditions=development e2e/qwik-e2e/dev-server.ts 3300 > test-results-server-regressed.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for attempt in {1..120}; do
+            if curl --fail --silent http://localhost:3300/ > /dev/null; then break; fi
+            sleep 1
+          done
+          budget=$(node -e 'const fs=require("node:fs"); const values=[1,2,3,4,5].map(i=>JSON.parse(fs.readFileSync(`test-results/calibration-${i}.json`)).median); console.log(Math.max(...values)*1.5)')
+          if pnpm bench.perf --p50="$budget" --output=test-results/regression.json; then
+            echo 'The regression unexpectedly passed the budget.'
+            exit 1
+          fi
+          node scripts/benchmark-perf-budget.mjs test-results/perf.json test-results/regression.json test-results/calibration-{1..5}.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: performance-calibration
+          path: |
+            test-results/*.json
+            test-results/*.cpuprofile
+            test-results-server*.log

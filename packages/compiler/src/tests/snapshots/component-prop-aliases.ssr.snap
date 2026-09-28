@@ -11,6 +11,7 @@ export default () => <Card title="Title" data-label="Label"><p>Projected</p></Ca
 
 import {
   createSsrNodeId,
+  createSsrDomBatchEffect,
   escapeHTML,
   propSource,
   isSource,
@@ -36,13 +37,14 @@ q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_
 export const Card = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();
+    const effect0 = createSsrDomBatchEffect();
     const prop0 = propSource(props, 'title');
     isSource(prop0) && ctx.addRoot(prop0);
-    const text0 = renderSsrTextNode(id0, null, prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0, effect0);
     const id1 = ctx.nextId();
     const prop1 = propSource(props, 'data-label');
     isSource(prop1) && ctx.addRoot(prop1);
-    const text1 = renderSsrTextNode(id1, null, prop1);
+    const text1 = renderSsrTextNode(id1, null, prop1, effect0);
     const slot0 = renderSsrSlot(ctx);
     return maybeThen(text0, (text0) =>
       maybeThen(text1, (text1) =>

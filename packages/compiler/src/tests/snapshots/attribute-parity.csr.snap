@@ -15,7 +15,14 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, _last, createAttrEffect, _createElementTemplate } from '@qwik.dev/core';
+import {
+  useSignal,
+  _last,
+  readTrackedValue,
+  patchAttrValue,
+  createDomBatchEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
 const default_tmpl0 = _createElementTemplate(
   '<section><input aria-hidden="false" draggable="false" spellcheck="false" tabIndex="-1" data-n="2" hidden><input tabIndex="-1" data-n="2"></section>'
 );
@@ -23,14 +30,12 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const on = useSignal(false);
   const el0 = default_tmpl0(ctx.document);
   const el1 = _last(el0);
-  const effect0 = createAttrEffect(el1, 'required', on, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  const effect1 = createAttrEffect(el1, 'aria-hidden', on, ctx.scheduler);
-  ctx.scheduler.notify(effect1);
-  const effect2 = createAttrEffect(el1, 'draggable', on, ctx.scheduler);
-  ctx.scheduler.notify(effect2);
-  const effect3 = createAttrEffect(el1, 'spellcheck', on, ctx.scheduler);
-  ctx.scheduler.notify(effect3);
+  createDomBatchEffect(() => {
+    patchAttrValue(el1, 'required', readTrackedValue(on));
+    patchAttrValue(el1, 'aria-hidden', readTrackedValue(on));
+    patchAttrValue(el1, 'draggable', readTrackedValue(on));
+    patchAttrValue(el1, 'spellcheck', readTrackedValue(on));
+  }, ctx.scheduler);
   return el0;
 };
 export default default_component_3rg6kq1so9aio;

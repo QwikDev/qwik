@@ -12,6 +12,7 @@ export const enum ResultKind {
   Initializer = 'initializer-result',
   Element = 'element-result',
   ArrayRest = 'array-rest-result',
+  ArraySpread = 'array-spread-result',
   Default = 'default-result',
   Union = 'union-result',
   Function = 'function-result',
@@ -31,9 +32,10 @@ export type Result = ValueIR<
   | { kind: ResultKind.Initializer; value: Result }
   | { kind: ResultKind.Element; source: Result }
   | { kind: ResultKind.ArrayRest; source: Result; start: number }
+  | { kind: ResultKind.ArraySpread; source: Result }
   | { kind: ResultKind.Default; value: Result; fallback: Result }
   | { kind: ResultKind.Union; values: Result[] }
-  | { kind: ResultKind.Function; params: (LocalId | null)[]; result: Result }
+  | { kind: ResultKind.Function; params: (LocalId | null)[]; result: Result; usesArguments?: true }
   | { kind: ResultKind.Invoke; callee: Result; args: Result[] }
   | {
       kind: ResultKind.Spread;
@@ -54,4 +56,6 @@ export interface BindingResult {
   writes: { path: string[]; value: Result }[];
   escapes: string[][];
   consumers?: BindingConsumer[];
+  calls?: { path: string[]; method: string; args: Result[] }[];
+  aliases?: { path: string[]; target: Result }[];
 }

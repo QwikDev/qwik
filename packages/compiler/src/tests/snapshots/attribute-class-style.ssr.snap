@@ -21,6 +21,7 @@ import {
   useStylesScoped,
   useSignal,
   createSsrNodeId,
+  createSsrDomBatchEffect,
   renderSsrAttrExpression,
   escapeHTML,
   maybeThen,
@@ -55,20 +56,22 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
     const active = useSignal(true);
     const id0 = ctx.nextId();
+    const effect0 = createSsrDomBatchEffect();
     ctx.addRoot(active);
     const attr0 = renderSsrAttrExpression(
       id0,
       'class',
       [active],
       q_component_class_segment_0_3htuygud1guoj,
-      undefined,
+      effect0,
       '⚡️f5nwzpjzm8yb-0'
     );
     const attr1 = renderSsrAttrExpression(
       id0,
       'style',
       [active],
-      q_component_style_segment_1_cgm3c4qw0vql
+      q_component_style_segment_1_cgm3c4qw0vql,
+      effect0
     );
     return maybeThen(attr0, (attr0) =>
       maybeThen(attr1, (attr1) => [

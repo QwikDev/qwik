@@ -58,6 +58,7 @@ export function jsonRequestWrapper(): RequestHandler {
           await sendActionResponse(requestEv, { redirect: location });
         }
       } else if (err instanceof ServerError) {
+        requestEv.headers.set('Cache-Control', 'no-store');
         if (isLoader) {
           await sendJsonResponse(requestEv, { e: err });
         } else {
@@ -65,6 +66,7 @@ export function jsonRequestWrapper(): RequestHandler {
         }
       } else if (err instanceof Error) {
         console.error('JSON request error:', err);
+        requestEv.headers.set('Cache-Control', 'no-store');
         const message = isDev
           ? `${err.message}\n(this is only visible in dev mode)`
           : 'Internal Server Error';

@@ -130,6 +130,9 @@ export function loaderHandler(
       return;
     }
 
+    if (responseData.e || failed) {
+      requestEv.headers.set('Cache-Control', 'no-store');
+    }
     await sendLoaderResponse(requestEv, data, cacheControl);
   };
 }

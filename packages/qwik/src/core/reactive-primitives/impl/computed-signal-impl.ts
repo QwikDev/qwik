@@ -517,9 +517,17 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$info$ = undefined;
     }
     this.$flags$ &= ~ComputedSignalFlags.INVALID;
-    this.untrackedError = undefined;
-    super.value = result;
+    this.$publishValue$(result);
     this.$wakeReadersIfSourcesChanged$(sourcesBefore);
+  }
+
+  $publishValue$(value: T): void {
+    const hasChanged = value !== this.$untrackedValue$;
+    this.$untrackedValue$ = value;
+    this.untrackedError = undefined;
+    if (hasChanged) {
+      scheduleEffects(this.$container$, this, this.$effects$);
+    }
   }
 
   $snapshotWalkedSources$(): Set<SignalImpl> | undefined {
@@ -678,13 +686,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         DEBUG && log('Promise resolved', value);
         // we leave error as-is until result
 
-        // Note that these assignments run setters
-        this.untrackedError = undefined;
         /**
-         * Use SignalImpl.value instead of this.value to persist invalid state, so that invalidation
-         * during computation recomputes
+         * Bypass this.value to persist invalid state, so that invalidation during computation
+         * recomputes
          */
-        super.value = value;
+        this.$publishValue$(value);
       }
     } catch (err) {
       running.$promise$ = null;

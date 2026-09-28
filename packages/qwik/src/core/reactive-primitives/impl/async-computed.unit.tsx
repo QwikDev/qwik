@@ -476,6 +476,36 @@ describe('async computed', () => {
     });
   });
 
+  it('should never give a sync dependent an unset value when its source recovers from a first-load failure', async () => {
+    await withContainer(async () => {
+      const ref = { fail: true };
+      const source = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('source failed');
+        }
+        return 2;
+      }) as unknown as ComputedSignalImpl<number>;
+      const reads: unknown[] = [];
+      const derived = createComputed$(() => {
+        if (source.error) {
+          return 0;
+        }
+        const value = source.value;
+        reads.push(value);
+        return value * 10;
+      }) as ComputedSignalImpl<number>;
+      await expect(retryOnPromise(() => derived.value)).rejects.toThrow('source failed');
+
+      ref.fail = false;
+      source.invalidate();
+      await source.promise();
+
+      expect(reads).not.toContainEqual(expect.any(Symbol));
+      expect(derived.value).toBe(20);
+    });
+  });
+
   it('should provide the ComputeCtx argument to sync computeds', async () => {
     await withContainer(async () => {
       const dep = createSignal(1);

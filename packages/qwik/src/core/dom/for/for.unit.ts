@@ -5,7 +5,7 @@ import { createTextNodeEffect } from '../effect/text-effect';
 import { useSignal } from '../../reactive/public-api';
 import { OwnerFlags } from '../../reactive/flags';
 import type { ContainerContext } from '../../runtime/container-context';
-import { createOwner, ownerItemsLength } from '../../runtime/owner';
+import { createOwner, ownerItemsLength, type Owner } from '../../runtime/owner';
 import {
   createTestDomNode,
   createTestParentNode,
@@ -135,6 +135,53 @@ describe('ForBlock reorder', () => {
 
     expect(clearCount).toBe(1);
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'end']);
+  });
+
+  it.each([false, true])('clears rows while preserving siblings: %s', (hasSiblings) => {
+    const document = createDocument({
+      html: `<ul>${hasSiblings ? '<li>before</li>' : ''}<!--start--><li>row</li><!--end-->${hasSiblings ? '<li>after</li>' : ''}</ul>`,
+    });
+    const list = document.querySelector('ul')!;
+    const start = list.childNodes[hasSiblings ? 1 : 0] as Comment;
+    const end = list.childNodes[hasSiblings ? 3 : 2] as Comment;
+    const replaceChildren = vi.spyOn(list, 'replaceChildren').mockImplementation(() => {
+      while (list.firstChild !== null) {
+        list.removeChild(list.firstChild);
+      }
+    });
+
+    new ForRange(document, start, end).clear();
+
+    expect(start.parentNode).toBe(list);
+    expect(end.parentNode).toBe(list);
+    expect(list.textContent).toBe(hasSiblings ? 'beforeafter' : '');
+    expect(replaceChildren).toHaveBeenCalledTimes(hasSiblings ? 0 : 1);
+  });
+
+  it('ignores detached collection markers when clearing', () => {
+    const document = createDocument({ html: '<ul></ul>' });
+    const start = document.createComment('start');
+    const end = document.createComment('end');
+
+    expect(() => new ForRange(document, start, end).clear()).not.toThrow();
+  });
+
+  it('disposes all row owners without scanning their siblings', () => {
+    const { block } = createMeasuredBlock([]);
+    const oldOwners = block.owners.slice();
+    const ownerItems = block.listOwner.items as Owner[];
+    const indexOf = vi.spyOn(ownerItems, 'indexOf');
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      () => []
+    );
+
+    expect(indexOf).not.toHaveBeenCalled();
+    expect(block.listOwner.items).toBeNull();
+    expect(block.listOwner.flags & OwnerFlags.Disposed).toBe(0);
+    expect(oldOwners.every((owner) => owner!.flags & OwnerFlags.Disposed)).toBe(true);
   });
 
   it('does not clear an already empty range', () => {
@@ -424,6 +471,23 @@ describe('ForBlock reorder', () => {
 
     expect(rangeOps).toHaveBeenCalledOnce();
     expect(parent.nodes.slice(1, -1).map(getNodeLabel)).toEqual(nextIds.map(String));
+  });
+
+  it('removes one element row without allocating a DOM range', () => {
+    const { block, parent } = createKeyedBlock([1, 2, 3], [1, 3]);
+    const removedOwner = block.owners[1]!;
+    const createRange = vi.spyOn(block.range.document, 'createRange').mockClear();
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      () => []
+    );
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', '1', '3', 'end']);
+    expect(createRange).not.toHaveBeenCalled();
+    expect(removedOwner.flags & OwnerFlags.Disposed).toBeTruthy();
+    createRange.mockRestore();
   });
 
   it('trims removed keyed rows from the head and tail', () => {

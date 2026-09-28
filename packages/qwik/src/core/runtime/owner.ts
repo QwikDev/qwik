@@ -151,7 +151,10 @@ export function disposeOwner(owner: Owner): void {
 
   owner.flags = (owner.flags | OwnerFlags.Disposed) & ~OwnerFlags.Queued & ~OwnerFlags.DirtyMask;
   detachOwnerFromParent(owner);
+  disposeOwnerItems(owner);
+}
 
+export function disposeOwnerItems(owner: Owner): void {
   const items = owner.items;
   owner.items = null;
   if (items === null) {

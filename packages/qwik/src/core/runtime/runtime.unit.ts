@@ -18,6 +18,7 @@ import { createTextNodeEffect, type TextExpressionEffect } from '../dom/effect/t
 import {
   createOwner,
   disposeOwner,
+  disposeOwnerItems,
   getActiveOwner,
   ownerItemsLength,
   registerSubscriberToOwner,
@@ -571,6 +572,35 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(child.parent).toBeNull();
     expect(outerSource.subs).toBeNull();
     expect(innerSource.subs).toBeNull();
+  });
+
+  it('releases owner contents and allows new child subscriptions', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const parent = createOwner(null);
+    const child = createOwner(parent);
+    const source = useSignal('value');
+    const effect = runWithOwner(child, () => createTextNodeEffect(createText(), source, scheduler));
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(toArray(source.subs)).toContain(effect);
+
+    disposeOwnerItems(parent);
+
+    expect(parent.items).toBeNull();
+    expect(parent.flags & OwnerFlags.Disposed).toBe(0);
+    expect(child.flags & OwnerFlags.Disposed).not.toBe(0);
+    expect(child.parent).toBeNull();
+    expect(source.subs).toBeNull();
+
+    const nextChild = createOwner(parent);
+    const nextEffect = runWithOwner(nextChild, () =>
+      createTextNodeEffect(createText(), source, scheduler)
+    );
+    expect(nextChild.parent).toBe(parent);
+    expect(parent.items).toBe(nextChild);
+    scheduler.notify(nextEffect);
+    await scheduler.flushInteraction();
+    expect(toArray(source.subs)).toContain(nextEffect);
   });
 
   it('creates disposed child owners under disposed owners', () => {

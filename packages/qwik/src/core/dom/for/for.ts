@@ -16,6 +16,7 @@ import {
 import {
   createOwner,
   disposeOwner,
+  disposeOwnerItems,
   registerSubscriberToOwner,
   type Owner,
 } from '../../runtime/owner';
@@ -86,6 +87,9 @@ export class ForRange {
   ) {}
 
   clear(): void {
+    if (this.start.parentNode === null || replaceForRangeParent(this) !== null) {
+      return;
+    }
     replaceRange(this.document, this.start, this.end, EMPTY_NODES);
   }
 }
@@ -293,10 +297,14 @@ export class ForBlock<T = unknown> {
     if (newLast < firstChanged) {
       const oldRows = this.rows;
       const oldOwners = this.owners;
-      const range = this.range.document.createRange();
-      range.setStartBefore(firstRowNode(oldRows[firstChanged]));
-      range.setEndAfter(lastRowNode(oldRows[oldLast]));
-      range.deleteContents();
+      if (firstChanged === oldLast && !isRangeRow(oldRows[firstChanged])) {
+        removeRow(oldRows[firstChanged]);
+      } else {
+        const range = this.range.document.createRange();
+        range.setStartBefore(firstRowNode(oldRows[firstChanged]));
+        range.setEndAfter(lastRowNode(oldRows[oldLast]));
+        range.deleteContents();
+      }
       for (let i = firstChanged; i <= oldLast; i++) {
         const owner = oldOwners[i];
         if (owner !== null) {
@@ -441,7 +449,7 @@ export class ForBlock<T = unknown> {
         EMPTY_ARRAY,
         this.indexMode !== IndexMode.None ? EMPTY_ARRAY : null
       );
-      disposeOwners(oldOwners, oldOwners.length);
+      disposeOwnerItems(this.listOwner);
     }
 
     let createdCount = 0;
@@ -512,12 +520,7 @@ export class ForBlock<T = unknown> {
       return;
     }
     this.range.clear();
-    for (let i = 0; i < this.owners.length; i++) {
-      const owner = this.owners[i];
-      if (owner !== null) {
-        disposeOwner(owner);
-      }
-    }
+    disposeOwnerItems(this.listOwner);
     this.commitRows(
       EMPTY_ARRAY,
       EMPTY_ARRAY,

@@ -99,7 +99,7 @@ export default component$(() => (
 
 Loaders signal failure three ways:
 
-- **`throw new HttpError(status, message)`** or **`throw requestEvent.httpError(status, message)`** — from a blocking loader, the default, renders the nearest `error.tsx` at `status` on the first page load. From a `blockSSR: false` loader, it fails like any other error.
+- **`throw new HttpError(status, message)`** or **`throw requestEvent.httpError(status, message)`** — from a blocking loader, the default, renders the nearest `error.tsx` at `status`, on the first page load, on client navigation, and when the loader refreshes. From a `blockSSR: false` loader, it fails like any other error.
 - **`throw new Error(message)`** — with no value yet, reading `.value` throws it to the nearest `<Catch>`. After a refresh, it goes into the loader's `.error` and the last value stays beside it. Outside development, the browser only sees "Internal Server Error". A crash in a blocking loader also fails the loaders after it, so their data never shows past a failed check.
 - **`return requestEvent.fail(status, data)`** — returns an inline failure. `signal.value.failed` is `true` and `signal.value` contains the rest of the data.
 
@@ -290,7 +290,7 @@ export const useRecommendations = routeLoader$(
 
 A background loader is treated as a **separate request**: it cannot redirect or error the page response. If it throws `redirect()` or an `HttpError`, that control flow is captured on its own signal (surfacing when `.value` is read) and never changes the page's status or headers. Keep route guards that must redirect or set a status in a [request handler](/docs/middleware) such as `onRequest`, or in a blocking loader.
 
-Note: on client navigation the page renders right away, whatever the mode, and redirects are followed automatically. A failure lands on the loader's signal.
+Note: on client navigation the page renders right away, whatever the mode, and redirects are followed automatically. An `HttpError` from a blocking loader, or an error in the middleware that runs for a loader's fetch, renders the route's `error.tsx` in place; any other failure lands on the loader's signal.
 
 ## Accessing `RequestEvent`
 

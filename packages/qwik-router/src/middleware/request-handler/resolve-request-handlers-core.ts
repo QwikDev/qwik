@@ -17,6 +17,7 @@ import type {
 import {
   clearRouteLoaderData,
   failRouteLoadersFrom,
+  getRouteLoaderCtx,
   getRouteLoaderValues,
   hasRouteLoaderFailures,
   loadRouteLoader,
@@ -503,6 +504,7 @@ function createResolveRequestHandlers() {
           typeof e.data === 'string' ? e.data : 'Server Error'
         );
         clearErrorResponseData(requestEv);
+        getRouteLoaderCtx(requestEv).isErrorPage = true;
 
         await renderHandler(requestEv);
       }

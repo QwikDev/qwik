@@ -55,7 +55,7 @@ import {
 import { HttpStatus } from './http-status-codes';
 import { getQwikRouterServerData } from './response-page';
 import { encoder, isContentType } from './request-utils';
-import { HttpError, throwIfControlFlowSignal } from './http-error';
+import { getPublicCrashMessage, HttpError, isCrash, throwIfControlFlowSignal } from './http-error';
 
 const loadHttpError = () => import('../../runtime/src/http-error');
 
@@ -481,16 +481,17 @@ function createResolveRequestHandlers() {
     return async (requestEv: RequestEvent) => {
       try {
         await requestEv.next();
-      } catch (e) {
-        if (!(e instanceof HttpError) || requestEv.headersSent) {
-          throw e;
+      } catch (thrown) {
+        if (!(thrown instanceof Error) || requestEv.headersSent) {
+          throw thrown;
         }
 
         const accept = requestEv.request.headers.get('Accept');
         if (accept && !accept.includes('text/html')) {
-          throw e;
+          throw thrown;
         }
 
+        const e = isCrash(thrown) ? toPageCrash(thrown) : (thrown as HttpError);
         const status = e.status as number;
         requestEv.status(status);
         requestEv.headers.set('Cache-Control', 'no-store');
@@ -511,6 +512,11 @@ function createResolveRequestHandlers() {
         await renderHandler(requestEv);
       }
     };
+  }
+
+  function toPageCrash(err: Error): HttpError {
+    console.error('Request error:', err);
+    return new HttpError(500, getPublicCrashMessage(err));
   }
 
   function clearErrorResponseData(requestEv: RequestEvent) {

@@ -380,14 +380,16 @@ test.describe('Catch + fallback$', () => {
     });
 
     test.describe('async signals', () => {
-      test('async error read via `.error` is handled inline — the boundary never sees it', async ({
+      test('a refresh error read via `.error` is handled inline — the boundary never sees it', async ({
         page,
       }) => {
         await page.goto(routeUrl('async-error-inline'), { waitUntil: 'commit' });
+        await expect(page.locator('#async-value')).toHaveText('first', { timeout: 10000 });
 
-        await expect(page.locator('#async-error')).toHaveText('handled: expected-async-error', {
-          timeout: 10000,
-        });
+        await page.locator('#async-refresh').click();
+
+        await expect(page.locator('#async-error')).toHaveText('handled: expected-async-error');
+        await expect(page.locator('#async-value')).toHaveText('first');
         await expect(page.locator('#catch-fallback')).toHaveCount(0);
       });
 
@@ -732,8 +734,6 @@ test.describe('Catch in a production build (qDev=false)', () => {
     const html = await response!.text();
     expect(html).not.toContain('captured-async-boom');
 
-    await page.locator('#async-probe').click();
-    await expect(page.locator('#async-digest')).not.toHaveText('unread');
     await expect(page.locator('#async-digest')).not.toHaveText('no-digest');
   });
 

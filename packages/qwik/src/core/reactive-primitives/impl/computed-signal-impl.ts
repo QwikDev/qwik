@@ -232,7 +232,18 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * If you want to abort pending computations when setting, you have to call `abort()` manually.
    */
   override get value(): T {
-    return super.value;
+    try {
+      return super.value;
+    } catch (err) {
+      // A derived signal that failed here must still recompute when this one recovers.
+      if (
+        !isPromise(err) &&
+        tryGetInvokeContext()?.$effectSubscriber$?.consumer instanceof ComputedSignalImpl
+      ) {
+        this.$subscribeReader$();
+      }
+      throw err;
+    }
   }
 
   override set value(value: T) {
@@ -266,7 +277,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         log('Returning stale value', this.$untrackedValue$, 'while computing', this.$current$);
       return this.$untrackedValue$;
     }
-    if (this.$untrackedError$) {
+    if (this.$untrackedError$ && this.$untrackedValue$ === NEEDS_COMPUTATION) {
       DEBUG && log('Throwing error while reading value', this);
       throw this.$untrackedError$;
     }
@@ -351,16 +362,20 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   /**
-   * The error the compute function threw or rejected with.
+   * The error of a failed refresh beside the last value, or else the failure of a signal it reads.
    *
-   * Accessing .error will trigger computation if needed, since it's often used like
-   *
-   * ```ts
-   * signal.error ? <Failed /> : signal.value
-   * ```
+   * Accessing .error will trigger computation if needed.
    */
   get error(): Error | undefined {
-    const val = this.untrackedError;
+    const error = this.untrackedError;
+    this.$trackErrorReader$();
+    if (error || this.$untrackedValue$ === NEEDS_COMPUTATION) {
+      return error;
+    }
+    return findUpstreamFailure(this);
+  }
+
+  $trackErrorReader$(): void {
     const ctx = tryGetInvokeContext();
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
@@ -375,7 +390,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         addQrlToSerializationCtx(effectSubscriber, this.$container$);
       }
     }
-    return val;
   }
 
   set untrackedError(value: Error | undefined) {
@@ -391,7 +405,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if ((qTest ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
       throw this.$current$?.$promise$;
     }
-    return this.$untrackedError$;
+    // A failure with no value to stand beside reaches `<Catch>` through `.value` only
+    return this.$untrackedValue$ === NEEDS_COMPUTATION ? undefined : this.$untrackedError$;
   }
 
   $setInvalid$(allowRecalc: boolean): void {
@@ -459,6 +474,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     }
     const running = new Job<T>(this, this.$info$, this.$infoVersion$);
     this.$current$ = running;
+    const sourcesBefore = this.$snapshotWalkedSources$();
 
     let result: T | Promise<T>;
     try {
@@ -473,6 +489,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       }
       this.$flags$ &= ~ComputedSignalFlags.INVALID;
       this.$setError$(running, err as Error);
+      this.$wakeReadersIfSourcesChanged$(sourcesBefore);
       return;
     }
     if (isPromise(result)) {
@@ -487,7 +504,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         first = undefined;
         return r;
       };
-      running.$promise$ = this.$settleComputation$(running, () => retryOnPromise(compute));
+      running.$promise$ = this.$settleComputation$(
+        running,
+        () => retryOnPromise(compute),
+        sourcesBefore
+      );
       return;
     }
     DEBUG && log('Signal.$compute$', result);
@@ -498,6 +519,24 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     this.$flags$ &= ~ComputedSignalFlags.INVALID;
     this.untrackedError = undefined;
     super.value = result;
+    this.$wakeReadersIfSourcesChanged$(sourcesBefore);
+  }
+
+  $snapshotWalkedSources$(): Set<SignalImpl> | undefined {
+    return this.$errorEffects$?.size ? getWalkableSources(this) : undefined;
+  }
+
+  $wakeReadersIfSourcesChanged$(sourcesBefore: Set<SignalImpl> | undefined): void {
+    if (!sourcesBefore) {
+      return;
+    }
+    const sourcesAfter = getWalkableSources(this);
+    if (
+      sourcesAfter.size !== sourcesBefore.size ||
+      Array.from(sourcesBefore).some((source) => !sourcesAfter.has(source))
+    ) {
+      scheduleEffects(this.$container$, this, this.$errorEffects$);
+    }
   }
 
   /**
@@ -591,13 +630,19 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       }, this.$timeoutMs$);
     }
 
-    return this.$settleComputation$(running, () =>
-      retryOnPromise(() => this.$invokeComputeFn$(fn as Function, running))
+    return this.$settleComputation$(
+      running,
+      () => retryOnPromise(() => this.$invokeComputeFn$(fn as Function, running)),
+      this.$snapshotWalkedSources$()
     );
   }
 
   /** Await the computation and publish its result, error, and loading transitions. */
-  async $settleComputation$(running: Job<T>, compute: () => ValueOrPromise<T>): Promise<void> {
+  async $settleComputation$(
+    running: Job<T>,
+    compute: () => ValueOrPromise<T>,
+    sourcesBefore: Set<SignalImpl> | undefined
+  ): Promise<void> {
     const isCurrent = () => running === this.$current$;
 
     try {
@@ -653,6 +698,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         this.$info$ = undefined;
       }
 
+      this.$wakeReadersIfSourcesChanged$(sourcesBefore);
       if (this.$flags$ & ComputedSignalFlags.INVALID) {
         DEBUG && log('Computation finished but signal is invalid, re-running');
         // we became invalid again while running, so we need to re-run the computation to get the new promise
@@ -677,8 +723,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       return;
     }
     this.untrackedError = error;
-    // Job failures should be rare and require retrying
-    this.untrackedValue = NEEDS_COMPUTATION;
   }
 
   /** Permanently stop computations; keep this cross-package name stable. */
@@ -783,3 +827,67 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     }
   }
 }
+
+const someValueSource = (
+  consumer: BackRef,
+  predicate: (source: SignalImpl) => boolean
+): boolean => {
+  const subscriptions = consumer[_EFFECT_BACK_REF];
+  if (!subscriptions) {
+    return false;
+  }
+  for (const subscription of subscriptions.values()) {
+    if (!subscription.backRef) {
+      continue;
+    }
+    const sources = Array.from(subscription.backRef);
+    for (let i = 0; i < sources.length; i++) {
+      const source = sources[i];
+      if (
+        source instanceof SignalImpl &&
+        source.$effects$?.has(subscription) &&
+        predicate(source)
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+const getWalkableSources = (consumer: BackRef): Set<SignalImpl> => {
+  const sources = new Set<SignalImpl>();
+  someValueSource(consumer, (source) => {
+    if (source instanceof ComputedSignalImpl || (source as unknown as BackRef)[_EFFECT_BACK_REF]) {
+      sources.add(source);
+    }
+    return false;
+  });
+  return sources;
+};
+
+const someUpstreamComputed = (
+  consumer: BackRef,
+  visited: Set<SignalImpl>,
+  visit: (source: ComputedSignalImpl<unknown>) => boolean
+): boolean =>
+  someValueSource(consumer, (source) => {
+    if (visited.has(source)) {
+      return false;
+    }
+    visited.add(source);
+    return (
+      (source instanceof ComputedSignalImpl && visit(source)) ||
+      someUpstreamComputed(source as unknown as BackRef, visited, visit)
+    );
+  });
+
+const findUpstreamFailure = (signal: ComputedSignalImpl<unknown, any>): Error | undefined => {
+  let failure: Error | undefined;
+  someUpstreamComputed(signal, new Set([signal]), (source) => {
+    source.$trackErrorReader$();
+    failure = source.$untrackedError$;
+    return !!failure;
+  });
+  return failure;
+};

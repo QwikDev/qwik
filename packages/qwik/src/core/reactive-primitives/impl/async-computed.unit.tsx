@@ -149,7 +149,7 @@ describe('async computed', () => {
     });
   });
 
-  it('should capture errors and rethrow them on read', async () => {
+  it('should rethrow a first failure from .value, leaving .error unset', async () => {
     await withContainer(async () => {
       const signal = createComputed$(async () => {
         await delay(1);
@@ -159,13 +159,12 @@ describe('async computed', () => {
       await retryOnPromise(() => signal.pending);
       await signal.promise();
 
-      expect(signal.error).toBeInstanceOf(Error);
-      expect(signal.error?.message).toBe('compute failed');
+      expect(signal.error).toBeUndefined();
       expect(() => signal.untrackedValue).toThrow('compute failed');
     });
   });
 
-  it('should capture sync throws in .error and rethrow them on read', async () => {
+  it('should rethrow a first sync throw from .value, leaving .error unset', async () => {
     await withContainer(async () => {
       const dep = createSignal(0);
       const signal = createComputed$(() => {
@@ -175,10 +174,8 @@ describe('async computed', () => {
         return dep.value;
       }) as ComputedSignalImpl<number>;
 
-      // reading .error triggers the computation
-      const error = await retryOnPromise(() => signal.error);
-      expect(error?.message).toBe('sync oops');
       expect(() => signal.untrackedValue).toThrow('sync oops');
+      expect(signal.error).toBeUndefined();
       expect(signal.pending).toBe(false);
       expect(signal.$flags$ & AsyncSignalFlags.ASYNC_MODE).toBe(0);
 
@@ -189,14 +186,12 @@ describe('async computed', () => {
     });
   });
 
-  it('should capture non-Error sync throws', async () => {
+  it('should rethrow a first non-Error sync throw as is', async () => {
     await withContainer(async () => {
       const signal = createComputed$(() => {
         throw 'oops';
       }) as ComputedSignalImpl<never>;
 
-      const error = await retryOnPromise(() => signal.error);
-      expect(error).toBe('oops');
       let thrown: unknown;
       try {
         signal.untrackedValue;
@@ -204,6 +199,280 @@ describe('async computed', () => {
         thrown = e;
       }
       expect(thrown).toBe('oops');
+      expect(signal.error).toBeUndefined();
+    });
+  });
+
+  it('should keep the last value beside .error when a refresh rejects', async () => {
+    await withContainer(async () => {
+      const ref = { fail: false };
+      const signal = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('refresh failed');
+        }
+        return 1;
+      }) as unknown as ComputedSignalImpl<number>;
+      await signal.promise();
+
+      ref.fail = true;
+      signal.invalidate();
+      await signal.promise();
+
+      expect(signal.value).toBe(1);
+      expect(signal.error?.message).toBe('refresh failed');
+      expect(signal.pending).toBe(false);
+    });
+  });
+
+  it('should keep the last value beside .error when a sync recompute throws', async () => {
+    await withContainer(async () => {
+      const dep = createSignal(1);
+      const signal = createComputed$(() => {
+        if (dep.value === 0) {
+          throw new Error('sync oops');
+        }
+        return dep.value;
+      }) as ComputedSignalImpl<number>;
+      expect(signal.value).toBe(1);
+
+      dep.value = 0;
+      expect(signal.value).toBe(1);
+      expect(signal.error?.message).toBe('sync oops');
+
+      dep.value = 2;
+      expect(signal.value).toBe(2);
+      expect(signal.error).toBeUndefined();
+    });
+  });
+
+  it('should throw the error from .value after clear() when the recompute fails', async () => {
+    await withContainer(async () => {
+      const ref = { fail: false };
+      const signal = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('clear failed');
+        }
+        return 1;
+      }) as unknown as ComputedSignalImpl<number>;
+      await signal.promise();
+
+      ref.fail = true;
+      signal.clear();
+      await signal.promise();
+
+      expect(signal.error).toBeUndefined();
+      expect(() => signal.untrackedValue).toThrow('clear failed');
+    });
+  });
+
+  it('should serve initial beside .error when the first compute fails', async () => {
+    await withContainer(async () => {
+      const signal = createComputed$(
+        async () => {
+          await delay(1);
+          throw new Error('first failed');
+        },
+        { initial: 5 }
+      ) as unknown as ComputedSignalImpl<number>;
+      await signal.promise();
+
+      expect(signal.value).toBe(5);
+      expect(signal.error?.message).toBe('first failed');
+    });
+  });
+
+  it('should recompute a computed that reads a failed source on its last value, with the failure in .error', async () => {
+    await withContainer(async () => {
+      const ref = { fail: false };
+      const factor = createSignal(10);
+      const source = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('source failed');
+        }
+        return 2;
+      }) as unknown as ComputedSignalImpl<number>;
+      const derived = createComputed$(
+        () => source.value * factor.value
+      ) as ComputedSignalImpl<number>;
+      await retryOnPromise(() => derived.value);
+
+      ref.fail = true;
+      source.invalidate();
+      await source.promise();
+
+      expect(derived.value).toBe(20);
+      expect(derived.error).toBe(source.error);
+
+      factor.value = 100;
+      expect(derived.value).toBe(200);
+      expect(derived.error).toBe(source.error);
+    });
+  });
+
+  it('should not recompute a computed when a signal it reads fails', async () => {
+    await withContainer(async () => {
+      const ref = { fail: false, runs: 0 };
+      const source = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('source failed');
+        }
+        return 2;
+      }) as unknown as ComputedSignalImpl<number>;
+      const derived = createComputed$(() => {
+        ref.runs++;
+        return source.value * 10;
+      }) as ComputedSignalImpl<number>;
+      await retryOnPromise(() => derived.value);
+      const runsBefore = ref.runs;
+
+      ref.fail = true;
+      source.invalidate();
+      await source.promise();
+
+      expect(derived.error?.message).toBe('source failed');
+      expect(ref.runs).toBe(runsBefore);
+    });
+  });
+
+  it('should report a failure through several levels of computeds', async () => {
+    await withContainer(async () => {
+      const ref = { fail: false };
+      const source = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('source failed');
+        }
+        return 2;
+      }) as unknown as ComputedSignalImpl<number>;
+      const mid = createComputed$(() => source.value + 1) as ComputedSignalImpl<number>;
+      const leaf = createComputed$(() => mid.value * 2) as ComputedSignalImpl<number>;
+      await retryOnPromise(() => leaf.value);
+
+      ref.fail = true;
+      source.invalidate();
+      await source.promise();
+
+      expect(mid.error).toBe(source.error);
+      expect(leaf.error).toBe(source.error);
+      expect(leaf.value).toBe(6);
+    });
+  });
+
+  it('should clear an inherited error when the source recovers with an unchanged value', async () => {
+    await withContainer(async () => {
+      const ref = { fail: false };
+      const source = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('source failed');
+        }
+        return 2;
+      }) as unknown as ComputedSignalImpl<number>;
+      const derived = createComputed$(() => source.value * 10) as ComputedSignalImpl<number>;
+      await retryOnPromise(() => derived.value);
+
+      ref.fail = true;
+      source.invalidate();
+      await source.promise();
+      expect(derived.error?.message).toBe('source failed');
+
+      ref.fail = false;
+      source.invalidate();
+      await source.promise();
+
+      expect(derived.error).toBeUndefined();
+      expect(derived.value).toBe(20);
+    });
+  });
+
+  it('should wake .error readers when a recompute switches onto a failed signal and off it', async () => {
+    await withContainer(async () => {
+      const ref = { fail: false };
+      const failing = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('failing');
+        }
+        return 1;
+      }) as unknown as ComputedSignalImpl<number>;
+      const idle = createSignal(5);
+      const cond = createSignal(false);
+      const derived = createComputed$(() =>
+        cond.value ? failing.value : idle.value
+      ) as ComputedSignalImpl<number>;
+      await retryOnPromise(() => failing.value);
+      ref.fail = true;
+      failing.invalidate();
+      await failing.promise();
+      expect(derived.value).toBe(5);
+      const observer = createComputed$(() => log.push(derived.error?.message ?? 'none'));
+      observer.value;
+
+      cond.value = true;
+      expect(derived.value).toBe(1);
+      cond.value = false;
+      expect(derived.value).toBe(5);
+
+      expect(log).toEqual(['none', 'failing', 'none']);
+    });
+  });
+
+  it('should wake .error readers when an async recompute switches onto a failed signal', async () => {
+    await withContainer(async () => {
+      const ref = { fail: false };
+      const failing = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('failing');
+        }
+        return 1;
+      }) as unknown as ComputedSignalImpl<number>;
+      const idle = createSignal(5);
+      const cond = createSignal(false);
+      const derived = createComputed$(async () => {
+        const value = cond.value ? failing.value : idle.value;
+        await delay(1);
+        return value;
+      }) as unknown as ComputedSignalImpl<number>;
+      await retryOnPromise(() => failing.value);
+      ref.fail = true;
+      failing.invalidate();
+      await failing.promise();
+      await retryOnPromise(() => derived.value);
+      const observer = createComputed$(() => log.push(derived.error?.message ?? 'none'));
+      observer.value;
+
+      cond.value = true;
+      await delay(5);
+      await derived.promise();
+
+      expect(derived.value).toBe(1);
+      expect(log).toEqual(['none', 'failing']);
+    });
+  });
+
+  it("should recompute a computed that failed on its source's first load once the source recovers", async () => {
+    await withContainer(async () => {
+      const ref = { fail: true };
+      const source = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('first failed');
+        }
+        return 2;
+      }) as unknown as ComputedSignalImpl<number>;
+      const derived = createComputed$(() => source.value * 10) as ComputedSignalImpl<number>;
+      await expect(retryOnPromise(() => derived.value)).rejects.toThrow('first failed');
+
+      ref.fail = false;
+      source.invalidate();
+      await source.promise();
+
+      expect(derived.value).toBe(20);
     });
   });
 

@@ -57,8 +57,9 @@ export interface ComputedSignal<T> extends Signal<T> {
    */
   pending: boolean;
   /**
-   * The computation error, if any. Reading it starts a lazy computation if needed. While set,
-   * reading `.value` throws the error.
+   * The error of a failed refresh beside the last value, or else the failure of a signal it reads.
+   * Reading it starts a lazy computation if needed. A failure with no value yet stays off `.error`:
+   * reading `.value` throws it.
    *
    * @experimental
    */

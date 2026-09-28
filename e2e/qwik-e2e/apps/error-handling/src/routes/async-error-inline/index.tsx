@@ -1,15 +1,23 @@
-import { component$, Catch, useComputed$ } from '@qwik.dev/core';
-import type { _ComputedSignalInternal } from '@qwik.dev/core/internal';
+import { component$, Catch, useComputed$, useSignal } from '@qwik.dev/core';
 import { defaultFallback } from '../../components/catch/catch';
 
 const AsyncErrorInline = component$(() => {
+  const fail = useSignal(false);
   const data = useComputed$(async () => {
-    throw new Error('expected-async-error');
-  }) as _ComputedSignalInternal<never>;
-  if (data.pending) {
-    return <span id="async-loading">loading</span>;
-  }
-  return <div id="async-error">handled: {(data.error as Error)?.message ?? 'none'}</div>;
+    if (fail.value) {
+      throw new Error('expected-async-error');
+    }
+    return 'first';
+  });
+  return (
+    <div>
+      <button id="async-refresh" onClick$={() => (fail.value = true)}>
+        refresh
+      </button>
+      <div id="async-value">{data.value}</div>
+      <div id="async-error">handled: {data.error?.message ?? 'none'}</div>
+    </div>
+  );
 });
 
 export default component$(() => (

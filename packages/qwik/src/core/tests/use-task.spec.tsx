@@ -1,4 +1,6 @@
 import {
+  $,
+  Catch,
   Fragment as Component,
   Fragment,
   Fragment as Signal,
@@ -6,6 +8,7 @@ import {
   Slot,
   component$,
   isServer,
+  useComputed$,
   useSignal,
   useStore,
   useTask$,
@@ -26,6 +29,8 @@ import { whenContainerDataReady } from '../client/dom-container';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+const failedSourceRef = { fail: false, taskRuns: 0 };
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -884,6 +889,82 @@ describe.each([
       await expect(document.body.firstChild).toMatchDOM(<button>val3</button>);
 
       vi.useRealTimers();
+    });
+  });
+
+  describe('failed source', () => {
+    it('should run on the last value when it re-runs while its source is failed', async () => {
+      failedSourceRef.fail = false;
+      const Cmp = component$(() => {
+        const data = useComputed$(async () => {
+          await delay(1);
+          if (failedSourceRef.fail) {
+            throw new Error('source failed');
+          }
+          return 'ok';
+        });
+        const bump = useSignal(0);
+        const seen = useSignal('');
+        useTask$(({ track }) => {
+          const count = track(bump);
+          seen.value = `${data.value} ${count}`;
+        });
+        return (
+          <>
+            <button id="refresh" onClick$={() => data.invalidate()} />
+            <button id="bump" onClick$={() => bump.value++} />
+            <b>{data.value}</b>
+            <span id="seen">{seen.value}</span>
+          </>
+        );
+      });
+      const { container } = await render(
+        <Catch
+          fallback$={$((e: any) => (
+            <p id="fb">caught: {e.message}</p>
+          ))}
+        >
+          <Cmp />
+        </Catch>,
+        { debug }
+      );
+
+      failedSourceRef.fail = true;
+      await trigger(container.element, '#refresh', 'click');
+      await delay(10);
+      await trigger(container.element, '#bump', 'click');
+      await waitForDrain(container);
+
+      expect(container.element.querySelector('#fb')).toBeFalsy();
+      expect(container.element.querySelector('#seen')?.textContent).toBe('ok 1');
+    });
+
+    it('should not re-run a task when its source fails', async () => {
+      failedSourceRef.fail = false;
+      failedSourceRef.taskRuns = 0;
+      const Cmp = component$(() => {
+        const data = useComputed$(async () => {
+          await delay(1);
+          if (failedSourceRef.fail) {
+            throw new Error('source failed');
+          }
+          return 'ok';
+        });
+        useTask$(({ track }) => {
+          track(() => data.value);
+          failedSourceRef.taskRuns++;
+        });
+        return <button id="refresh" onClick$={() => data.invalidate()} />;
+      });
+      const { container } = await render(<Cmp />, { debug });
+      const runsBeforeFailure = failedSourceRef.taskRuns;
+
+      failedSourceRef.fail = true;
+      await trigger(container.element, '#refresh', 'click');
+      await delay(10);
+      await waitForDrain(container);
+
+      expect(failedSourceRef.taskRuns).toBe(runsBeforeFailure);
     });
   });
 

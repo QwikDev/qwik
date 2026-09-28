@@ -734,7 +734,7 @@ describe('async signal', () => {
       });
     });
 
-    it('should throw the retried promise instead of returning a stale value after an error', async () => {
+    it('should serve the kept value, not the promise, while retrying after a failure', async () => {
       await withContainer(async () => {
         const ref = {
           started: 0,
@@ -777,16 +777,9 @@ describe('async signal', () => {
           return ref.started;
         });
 
-        let thrown: unknown;
-        try {
-          signal.value;
-        } catch (err) {
-          thrown = err;
-        }
-
-        expect(thrown).toBeInstanceOf(Promise);
+        expect(signal.value).toBe(0);
         expect(signal.error).toBe(failure);
-        expect(signal.$untrackedValue$).toBe(NEEDS_COMPUTATION);
+        expect(signal.pending).toBe(true);
 
         ref.resolveSecond!(2);
         await signal.promise();

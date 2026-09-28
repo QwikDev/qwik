@@ -97,7 +97,7 @@ function createResolveRequestHandlers() {
         routeActions,
         requestHandlers,
         serverPlugins,
-        () => PLUGIN_SEGMENT,
+        undefined,
         isPageRoute,
         method
       );
@@ -114,7 +114,7 @@ function createResolveRequestHandlers() {
       routeActions,
       requestHandlers,
       routeModules,
-      (moduleIndex) => moduleSegment(route, moduleIndex),
+      route,
       isPageRoute,
       method,
       isPageRoute
@@ -158,20 +158,24 @@ function createResolveRequestHandlers() {
     routeActions: ActionInternal[],
     requestHandlers: RequestHandler[],
     routeModules: RouteModule[],
-    getModuleSegment: (moduleIndex: number) => number,
+    route: LoadedRoute | undefined,
     collectActions: boolean,
     method: string,
     guardPageHandlersForLoader = false
   ) {
     for (let i = 0; i < routeModules.length; i++) {
       const routeModule = routeModules[i];
-      const segment = getModuleSegment(i);
+      const segment = route ? moduleSegment(route, i) : PLUGIN_SEGMENT;
       const moduleHandlers = getModuleRequestHandlers(routeModule, method);
       // In a page route, the last route module is the exact page/index module.
       const shouldGuardPageHandlers = guardPageHandlersForLoader && i === routeModules.length - 1;
       const handlers = shouldGuardPageHandlers
         ? moduleHandlers.map((handler) => guardPageHandlerForLoader(routeModule, handler))
-        : moduleHandlers;
+        : guardPageHandlersForLoader
+          ? moduleHandlers.map((handler) =>
+              guardLayoutHandlerForLoader(handler, segment, route?.$loaderSegs$)
+            )
+          : moduleHandlers;
       requestHandlers.push(
         ...(collectActions
           ? handlers.map((handler) => placeModuleFailures(handler, segment))
@@ -268,6 +272,22 @@ function createResolveRequestHandlers() {
       }
       placeFailure(requestEv, result, segment);
       return result;
+    };
+  }
+
+  function guardLayoutHandlerForLoader(
+    handler: RequestHandler,
+    segment: number,
+    loaderSegments: Record<string, number> | undefined
+  ): RequestHandler {
+    return (requestEv) => {
+      if (requestEv.sharedMap.has(IsQLoader)) {
+        const loaderSegment = loaderSegments?.[requestEv.sharedMap.get(QLoaderId)];
+        if (loaderSegment !== undefined && segment > loaderSegment) {
+          return;
+        }
+      }
+      return handler(requestEv);
     };
   }
 

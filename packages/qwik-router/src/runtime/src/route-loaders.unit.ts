@@ -12,6 +12,7 @@ import {
   isImmutableLoader,
   loadRouteLoader,
   routeLoaderQrl,
+  createErrorPageGate,
   showPageFailure,
   type RouteLoaderState,
   type RouteLoaderCtx,
@@ -335,6 +336,18 @@ describe('getRouteLoaderResponse envelope', () => {
   });
 });
 
+describe('createErrorPageGate', () => {
+  it('lets a later, deeper failure not replace an error page already shown', () => {
+    const gate = createErrorPageGate();
+    expect(gate.enter(2)).toBe(true);
+    expect(gate.enter(3)).toBe(false);
+    expect(gate.enter(2)).toBe(false);
+    expect(gate.isShown(2)).toBe(true);
+    expect(gate.enter(1)).toBe(true);
+    expect(gate.isShown(2)).toBe(false);
+  });
+});
+
 describe('showPageFailure', () => {
   it('renders the error page again when the router can swap it in, even on an error page', async () => {
     const reload = vi.fn();
@@ -344,13 +357,15 @@ describe('showPageFailure', () => {
     try {
       await showPageFailure(
         { loaderPaths: {}, isErrorPage: true, showErrorPage: noSerialize(showErrorPage) },
-        failure
+        failure,
+        0,
+        'session'
       );
     } finally {
       vi.unstubAllGlobals();
     }
 
-    expect(showErrorPage).toHaveBeenCalledWith(failure);
+    expect(showErrorPage).toHaveBeenCalledWith(failure, 0, 'session');
     expect(reload).not.toHaveBeenCalled();
   });
 
@@ -360,7 +375,9 @@ describe('showPageFailure', () => {
     try {
       await showPageFailure(
         { loaderPaths: {}, isErrorPage: true },
-        new HttpError(401, 'Signed out')
+        new HttpError(401, 'Signed out'),
+        0,
+        'session'
       );
     } finally {
       vi.unstubAllGlobals();

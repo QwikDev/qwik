@@ -15,6 +15,7 @@ import { performETagMatch, hash, normalizeETag, setETagHeader } from '../etag-ha
 import type { RequestEventInternal } from '../request-event-core';
 import { IsQLoader, QLoaderId } from '../request-path';
 import { isCrash } from '../http-error';
+import { placeFailure, toRouteSegment } from '../failure-segment';
 import { createLoaderRequestEventFactory } from './loader-request-event';
 
 /**
@@ -25,6 +26,7 @@ import { createLoaderRequestEventFactory } from './loader-request-event';
  */
 export function loaderHandler(
   routeLoaders: LoaderInternal[],
+  routeLoaderSegments: number[],
   loaderPaths?: Record<string, string>
 ): RequestHandler {
   return async (requestEvent: RequestEvent) => {
@@ -47,7 +49,12 @@ export function loaderHandler(
     }
 
     setLoaderData(requestEv, routeLoaders, loaderPaths);
-    const guardCrash = await runBlockingLoadersBeforeTarget(routeLoaders, loader, requestEv);
+    const guardCrash = await runBlockingLoadersBeforeTarget(
+      routeLoaders,
+      routeLoaderSegments,
+      loader,
+      requestEv
+    );
     if (guardCrash) {
       requestEv.headers.set('Cache-Control', 'no-store');
       await sendJsonResponse(requestEv, { e: guardCrash });
@@ -106,6 +113,8 @@ export function loaderHandler(
       loader.__validators,
       loaderRequestEv,
       loader.__blockSSR
+        ? toRouteSegment(requestEv, routeLoaderSegments[routeLoaders.indexOf(loader)])
+        : undefined
     );
     const data = await _serialize(responseData);
 
@@ -157,10 +166,12 @@ function resolveLoaderCacheControl(
  */
 async function runBlockingLoadersBeforeTarget(
   routeLoaders: LoaderInternal[],
+  routeLoaderSegments: number[],
   targetLoader: LoaderInternal,
   requestEv: RequestEventInternal
 ): Promise<Error | undefined> {
-  for (const loader of routeLoaders) {
+  for (let i = 0; i < routeLoaders.length; i++) {
+    const loader = routeLoaders[i];
     if (loader === targetLoader) {
       return;
     }
@@ -171,6 +182,7 @@ async function runBlockingLoadersBeforeTarget(
       await loadRouteLoader(loader, requestEv);
     } catch (err) {
       if (!isCrash(err)) {
+        placeFailure(requestEv, err, routeLoaderSegments[i]);
         throw err;
       }
       return toLoaderCrash(err);

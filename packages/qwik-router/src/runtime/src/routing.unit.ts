@@ -1,5 +1,5 @@
 import { assert, describe, test } from 'vitest';
-import { loadRoute } from './routing';
+import { clientFailingSegment, errorPageLoaders, loadRoute } from './routing';
 import type { MenuModuleLoader, ModuleLoader, RouteData } from './types';
 
 // A minimal sync module loader for testing.
@@ -331,8 +331,7 @@ test('loadRoute — miss renders _4; _E remains the thrown-error loader', async 
   const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result.$notFound$);
   assert.deepEqual(result.$mods$, [notFoundSentinel]);
-  // $errorLoader$ is the thrown-error chain; here _E has no layouts, so just the boundary.
-  assert.deepEqual(result.$errorLoader$, [errorLoader]);
+  assert.deepEqual(errorPageLoaders(result), [errorLoader]);
 });
 
 test('loadRoute — deeper _4 wins and renders in its own layouts', async () => {
@@ -409,7 +408,7 @@ test('loadRoute — miss falls back to _E when there is no _4', async () => {
   const result = await loadRoute(routes, false, '/does-not-exist');
   assert.isTrue(result.$notFound$);
   assert.deepEqual(result.$mods$, [errorSentinel]);
-  assert.deepEqual(result.$errorLoader$, [errorLoader]);
+  assert.deepEqual(errorPageLoaders(result), [errorLoader]);
 });
 
 test('loadRoute — an override-chain _4 (404@layout / 404!) is used as-is, ignoring gathered _L', async () => {
@@ -480,11 +479,10 @@ test('loadRoute — ErrorLoader passed through on matched routes', async () => {
   };
   const result = await loadRoute(routes, false, '/blog');
   assert.isFalse(result.$notFound$);
-  assert.deepEqual(result.$errorLoader$, [errorLoader]);
+  assert.deepEqual(errorPageLoaders(result), [errorLoader]);
 });
 
-test('loadRoute — a bare _E renders in its gathered layouts on a throw', async () => {
-  // No strip: $errorLoader$ is the boundary in its ancestor layouts, so the error renders in them.
+test('loadRoute — a bare _E renders in the layouts above the failing page on a throw', async () => {
   const rootLayout = { default: () => 'root-layout' };
   const errorMod = { default: () => 'error' };
   const rootLayoutLoader: ModuleLoader = () => rootLayout as any;
@@ -496,7 +494,7 @@ test('loadRoute — a bare _E renders in its gathered layouts on a throw', async
   };
   const result = await loadRoute(routes, false, '/blog');
   assert.isFalse(result.$notFound$);
-  assert.deepEqual(result.$errorLoader$, [rootLayoutLoader, errorLoader]);
+  assert.deepEqual(errorPageLoaders(result), [rootLayoutLoader, errorLoader]);
 });
 
 test('loadRoute — an override _E (error!/error@x) is used as-is on a throw, ignoring gathered _L', async () => {
@@ -511,7 +509,7 @@ test('loadRoute — an override _E (error!/error@x) is used as-is on a throw, ig
   };
   const result = await loadRoute(routes, false, '/blog');
   assert.isFalse(result.$notFound$);
-  assert.deepEqual(result.$errorLoader$, [errorLoader]);
+  assert.deepEqual(errorPageLoaders(result), [errorLoader]);
 });
 
 test("loadRoute — a [...rest] node's own _E is captured on an empty-rest match", async () => {
@@ -527,7 +525,7 @@ test("loadRoute — a [...rest] node's own _E is captured on an empty-rest match
   const result = await loadRoute(routes, false, '/');
   assert.isFalse(result.$notFound$);
   assert.deepEqual(result.$params$, { rest: '' });
-  assert.deepEqual(result.$errorLoader$, [restLayoutLoader, errorLoader]);
+  assert.deepEqual(errorPageLoaders(result), [errorLoader]);
 });
 
 test('loadRoute — routeName is constructed from matched path parts', async () => {
@@ -970,4 +968,187 @@ test('loadRoute — chained rewrites keep target layout paths and dynamic params
     page: { id: '42' },
   });
   assert.deepEqual(result.$params$, { id: '42' });
+});
+
+describe('errorPageLoaders — the error page renders in place of the failing segment', () => {
+  const loaders = () => ({
+    root: makeLoader(),
+    a: makeLoader(),
+    b: makeLoader(),
+    page: makeLoader(),
+    rootError: makeLoader(),
+    aError: makeLoader(),
+  });
+
+  test('a page failure renders the boundary under every layout above the page folder', async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      _L: l.root,
+      _E: l.rootError,
+      a: { _L: l.a, b: { _L: l.b, _I: l.page } },
+    };
+    const route = await loadRoute(routes, false, '/a/b/');
+    assert.deepEqual(errorPageLoaders(route), [l.root, l.a, l.rootError]);
+  });
+
+  test('a failure in the folder of error.tsx leaves out that folder layout', async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      _L: l.root,
+      a: { _L: l.a, _E: l.aError, b: { _I: l.page } },
+    };
+    const route = await loadRoute(routes, false, '/a/b/');
+    assert.deepEqual(errorPageLoaders(route, route.$modSegs$![1]), [l.root, l.aError]);
+  });
+
+  test('a failure below error.tsx renders it under the layouts between them', async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      _L: l.root,
+      _E: l.rootError,
+      a: { _L: l.a, b: { _L: l.b, c: { _I: l.page } } },
+    };
+    const route = await loadRoute(routes, false, '/a/b/c/');
+    assert.deepEqual(errorPageLoaders(route, route.$modSegs$![2]), [l.root, l.a, l.rootError]);
+  });
+
+  test('a root failure renders the root error.tsx with no layouts', async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      _L: l.root,
+      _E: l.rootError,
+      a: { _L: l.a, _I: l.page },
+    };
+    const route = await loadRoute(routes, false, '/a/');
+    assert.deepEqual(errorPageLoaders(route, 0), [l.rootError]);
+  });
+
+  test('a deeper error.tsx does not cover a failure above it', async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      _L: l.root,
+      _E: l.rootError,
+      a: { _L: l.a, _E: l.aError, b: { _I: l.page } },
+    };
+    const route = await loadRoute(routes, false, '/a/b/');
+    assert.deepEqual(errorPageLoaders(route, 0), [l.rootError]);
+    assert.deepEqual(errorPageLoaders(route), [l.root, l.a, l.aError]);
+  });
+
+  test('a group folder is its own segment', async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      _L: l.root,
+      _M: [{ _L: l.a, _E: l.aError, b: { _I: l.page } }],
+    };
+    const route = await loadRoute(routes, false, '/b/');
+    assert.deepEqual(route.$modSegs$, [0, 1, 2]);
+    assert.deepEqual(errorPageLoaders(route, 1), [l.root, l.aError]);
+    assert.deepEqual(errorPageLoaders(route), [l.root, l.a, l.aError]);
+  });
+
+  test('error! and error@name render as authored', async () => {
+    const l = loaders();
+    const standalone: RouteData = {
+      _L: l.root,
+      _E: [l.rootError],
+      a: { _I: l.page },
+    };
+    const named: RouteData = {
+      _L: l.root,
+      _E: [l.b, l.rootError],
+      a: { _I: l.page },
+    };
+    assert.deepEqual(errorPageLoaders(await loadRoute(standalone, false, '/a/')), [l.rootError]);
+    assert.deepEqual(errorPageLoaders(await loadRoute(named, false, '/a/')), [l.b, l.rootError]);
+  });
+
+  test('with no error.tsx at or above the failure, the built-in page renders', async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      _L: l.root,
+      a: { _L: l.a, _E: l.aError, _I: l.page },
+    };
+    const route = await loadRoute(routes, false, '/a/');
+    assert.isUndefined(errorPageLoaders(route, 0));
+  });
+
+  test("an override page's error page renders under its own layouts above the failure", async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      _L: l.root,
+      _E: l.rootError,
+      a: { _L: l.a, b: { _I: [l.root, l.page] } },
+    };
+    const route = await loadRoute(routes, false, '/a/b/');
+    assert.deepEqual(errorPageLoaders(route), [l.root, l.rootError]);
+  });
+
+  test('a rewrite numbers segments by its target', async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      _L: l.root,
+      _E: l.rootError,
+      en: { _L: l.a, _E: l.aError, about: { _I: l.page } },
+      de: { ueber: { _G: '/en/about/' } },
+    };
+    const route = await loadRoute(routes, false, '/de/ueber/');
+    assert.deepEqual(errorPageLoaders(route, route.$modSegs$![1]), [l.root, l.aError]);
+  });
+
+  test('a 404 route places failures on the path its 404 page renders on', async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      _L: l.root,
+      _E: l.rootError,
+      admin: { _L: l.a, _E: l.aError, _4: l.b, users: { _I: l.page } },
+    };
+    const route = await loadRoute(routes, false, '/admin/missing/');
+    assert.isTrue(route.$notFound$);
+    assert.deepEqual(errorPageLoaders(route, route.$modSegs$![1]), [l.root, l.aError]);
+  });
+
+  test('base-path wrappers count as segments above the routes root', async () => {
+    const l = loaders();
+    const routes: RouteData = {
+      base: { _L: l.root, _E: l.rootError, a: { _I: l.page } },
+    };
+    const route = await loadRoute(routes, false, '/base/a/');
+    assert.deepEqual(route.$modSegs$, [1, 2]);
+    assert.deepEqual(errorPageLoaders(route, 1), [l.rootError]);
+  });
+
+  test('$loaderSegs$ maps layout, group, plugin and page loaders to their segments', async () => {
+    const routes: RouteData = {
+      _L: makeLoader(),
+      _R: ['plugin', 'root-layout'],
+      _M: [
+        {
+          _L: makeLoader(),
+          _R: ['group-layout'],
+          a: { _L: makeLoader(), _R: ['a-layout'], _I: makeLoader(), _D: ['page'] },
+        },
+      ],
+    };
+    const route = await loadRoute(routes, false, '/a/');
+    assert.deepEqual(route.$loaderSegs$, {
+      plugin: 0,
+      'root-layout': 0,
+      'group-layout': 1,
+      'a-layout': 2,
+      page: 2,
+    });
+  });
+
+  test("on the client, a failure below the failed loader's own module is placed at that module", async () => {
+    const routes: RouteData = {
+      _L: makeLoader(),
+      _R: ['root-data'],
+      a: { _L: makeLoader(), _R: ['a-data'], b: { _I: makeLoader(), _D: ['page-data'] } },
+    };
+    const route = await loadRoute(routes, false, '/a/b/');
+    assert.equal(clientFailingSegment(route, 1, 'root-data'), 0);
+    assert.equal(clientFailingSegment(route, 1, 'page-data'), 1);
+    assert.equal(clientFailingSegment(route, 2, 'unknown'), 2);
+  });
 });

@@ -59,6 +59,30 @@ function createMockServerRequestEvent(
 
 const justHiModule = { default: () => 'hi' };
 const mockRoute: LoadedRoute = { $routeName$: '/', $params$: {}, $mods$: [justHiModule] };
+
+const errorPageModule = { default: () => 'error page' };
+function withErrorPage(route: LoadedRoute, errorSegment = 0): LoadedRoute {
+  route.$modSegs$ = route.$mods$.map((_, i) => i);
+  route.$modLoaders$ = route.$mods$.map((mod) => () => mod as any);
+  route.$errorBoundaries$ = [{ segment: errorSegment, loader: () => errorPageModule }];
+  return route;
+}
+function makeLoader(
+  id: string,
+  impl: (...args: any[]) => unknown,
+  { blockSSR = true }: { blockSSR?: boolean } = {}
+) {
+  const loader: any = () => {};
+  loader.__brand = 'server_loader';
+  loader.__id = id;
+  loader.__qrl = { call: (_thisArg: unknown, ev: unknown) => impl(ev), getHash: () => id };
+  loader.__validators = undefined;
+  loader.__serializationStrategy = 'never';
+  loader.__search = undefined;
+  loader.__blockSSR = blockSSR;
+  return loader;
+}
+
 function createMockRequestEvent(
   url = 'http://localhost:3000/test',
   trailingSlash = true,
@@ -226,7 +250,9 @@ describe('resolve-request-handler', () => {
         vi.fn()
       );
 
-      expect(handlers[2]).toBe(serverPluginOnRequest);
+      handlers[2]({ sharedMap: new Map() } as any);
+      expect(serverPluginOnRequest).toHaveBeenCalledTimes(1);
+      expect(routeOnRequest).not.toHaveBeenCalled();
       expect(handlers[3]).not.toBe(routeOnRequest);
       expect(handlers[4]).not.toBe(routeOnRequest);
       handlers[4]({ sharedMap: new Map() } as any);
@@ -518,8 +544,8 @@ describe('resolve-request-handler', () => {
           } as RouteModule,
           justHiModule as RouteModule,
         ],
-        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
       };
+      withErrorPage(route);
       const renderHandler = vi.fn(async (requestEv: { exit: () => void }) => {
         requestEv.exit();
       });
@@ -551,8 +577,8 @@ describe('resolve-request-handler', () => {
           } as RouteModule,
           justHiModule as RouteModule,
         ],
-        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
       };
+      withErrorPage(route);
       const renderHandler = vi.fn(async (requestEv: { exit: () => void }) => {
         requestEv.exit();
       });
@@ -587,8 +613,8 @@ describe('resolve-request-handler', () => {
           } as RouteModule,
           justHiModule as RouteModule,
         ],
-        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
       };
+      withErrorPage(route);
       const renderHandler = vi.fn(async (requestEv: { exit: () => void }) => {
         requestEv.exit();
       });
@@ -607,32 +633,188 @@ describe('resolve-request-handler', () => {
     });
   });
 
-  describe('blockSSR loaders middleware', () => {
-    function makeLoader(
-      id: string,
-      impl: (...args: any[]) => unknown,
-      { blockSSR = true }: { blockSSR?: boolean } = {}
-    ) {
-      const loader: any = () => {};
-      loader.__brand = 'server_loader';
-      loader.__id = id;
-      loader.__qrl = { call: (_thisArg: unknown, ev: unknown) => impl(ev), getHash: () => id };
-      loader.__validators = undefined;
-      loader.__serializationStrategy = 'never';
-      loader.__search = undefined;
-      loader.__blockSSR = blockSSR;
-      return loader;
+  describe('error page placement', () => {
+    const rootLayout = { default: () => 'root layout' } as RouteModule;
+    const page = { default: () => 'page' } as RouteModule;
+
+    function sectionRoute(section: RouteModule, sectionPage: RouteModule = page): LoadedRoute {
+      return withErrorPage({
+        $routeName$: '/section/',
+        $params$: {},
+        $mods$: [rootLayout, section, sectionPage],
+      });
     }
 
+    async function render(
+      route: LoadedRoute,
+      {
+        plugins,
+        basePathname = '/',
+        renderHandler = vi.fn(async (requestEv: RequestEvent) => requestEv.exit()),
+      }: { plugins?: RouteModule[]; basePathname?: string; renderHandler?: any } = {}
+    ) {
+      const handlers = resolveRequestHandlers(plugins, route, 'GET', true, renderHandler);
+      const requestEv = createRequestEvent(
+        createMockServerRequestEvent(`http://localhost:3000${basePathname}section/`),
+        route,
+        handlers,
+        basePathname,
+        vi.fn()
+      );
+      await requestEv.next();
+      return requestEv;
+    }
+
+    it('a layout middleware HttpError renders the error page under the layouts above it', async () => {
+      const route = sectionRoute({
+        onRequest() {
+          throw new HttpError(403, 'Members only');
+        },
+      });
+      const requestEv = await render(route);
+      expect(requestEv.status()).toBe(403);
+      expect(route.$mods$).toEqual([rootLayout, errorPageModule]);
+    });
+
+    it("a layout blocking loader's HttpError renders the error page under the layouts above it", async () => {
+      const route = sectionRoute({
+        useSession: makeLoader('session', () => {
+          throw new HttpError(401, 'Sign in');
+        }),
+      } as RouteModule);
+      const requestEv = await render(route);
+      expect(requestEv.status()).toBe(401);
+      expect(route.$mods$).toEqual([rootLayout, errorPageModule]);
+    });
+
+    it.each([
+      ['/', 0],
+      ['/base/', 1],
+    ])(
+      'a plugin failure renders the root error.tsx without layouts under %s',
+      async (basePathname, rootSegment) => {
+        const route = withErrorPage(
+          { $routeName$: '/section/', $params$: {}, $mods$: [rootLayout, page] },
+          rootSegment
+        );
+        route.$modSegs$ = [rootSegment, rootSegment + 1];
+        const plugin = {
+          onRequest() {
+            throw new HttpError(401, 'Signed out');
+          },
+        } as RouteModule;
+        const requestEv = await render(route, { plugins: [plugin], basePathname });
+        expect(requestEv.status()).toBe(401);
+        expect(route.$mods$).toEqual([errorPageModule]);
+      }
+    );
+
+    it('a plugin rethrowing a downstream error keeps the downstream segment', async () => {
+      const intercepted: unknown[] = [];
+      const plugin = {
+        async onRequest({ next }) {
+          try {
+            await next();
+          } catch (e) {
+            intercepted.push(e);
+            throw e;
+          }
+        },
+      } as RouteModule;
+      const route = sectionRoute({
+        onRequest() {
+          throw new HttpError(403, 'Members only');
+        },
+      });
+      await render(route, { plugins: [plugin] });
+      expect(intercepted).toHaveLength(1);
+      expect(route.$mods$).toEqual([rootLayout, errorPageModule]);
+    });
+
+    it('a middleware that throws a new error places it at itself', async () => {
+      const route = sectionRoute(
+        {
+          async onRequest({ next }) {
+            try {
+              await next();
+            } catch {
+              throw new HttpError(502, 'Upstream down');
+            }
+          },
+        },
+        {
+          default: () => 'page',
+          onRequest() {
+            throw new HttpError(404, 'Missing');
+          },
+        } as RouteModule
+      );
+      const requestEv = await render(route);
+      expect(requestEv.status()).toBe(502);
+      expect(route.$mods$).toEqual([rootLayout, errorPageModule]);
+    });
+
+    it('a returned HttpError is placed at its module', async () => {
+      const route = sectionRoute({
+        onRequest: (() => new HttpError(403, 'Members only')) as any,
+      });
+      const requestEv = await render(route);
+      expect(requestEv.status()).toBe(403);
+      expect(route.$mods$).toEqual([rootLayout, errorPageModule]);
+    });
+
+    it("a failure no module threw, like an action's, renders the error page of the page's segment", async () => {
+      const section = {} as RouteModule;
+      const route = sectionRoute(section);
+      const renderHandler = vi
+        .fn()
+        .mockImplementationOnce(() => {
+          throw new HttpError(400, 'Invalid form');
+        })
+        .mockImplementation(async (requestEv: RequestEvent) => requestEv.exit());
+      const requestEv = await render(route, { renderHandler });
+      expect(requestEv.status()).toBe(400);
+      expect(route.$mods$).toEqual([rootLayout, section, errorPageModule]);
+    });
+
+    it('on the error page, loaders at or below the failure stay failed', async () => {
+      const rootData = vi.fn(() => 'root data');
+      const sectionData = vi.fn(() => 'section secret');
+      const rootLoader = makeLoader('root-data', rootData);
+      const sectionLoader = makeLoader('section-data', sectionData);
+      const route = withErrorPage({
+        $routeName$: '/section/',
+        $params$: {},
+        $mods$: [
+          { useRootData: rootLoader },
+          {
+            onRequest() {
+              throw new HttpError(403, 'Members only');
+            },
+            useSectionData: sectionLoader,
+          },
+          page,
+        ] as RouteModule[],
+      });
+      const requestEv = await render(route);
+
+      await expect(loadRouteLoader(sectionLoader, requestEv as any)).rejects.toThrow(
+        'Members only'
+      );
+      await expect(loadRouteLoader(rootLoader, requestEv as any)).resolves.toBe('root data');
+      expect(sectionData).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('blockSSR loaders middleware', () => {
     function pageRouteWithLoaders(...loaders: unknown[]): LoadedRoute {
       const loaderModule: Record<string, unknown> = {};
       loaders.forEach((loader, i) => (loaderModule[`useData${i}`] = loader));
-      return {
+      return withErrorPage({
         $routeName$: '/',
         $params$: {},
         $mods$: [loaderModule, { default: () => null }] as any,
-        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
-      };
+      });
     }
 
     function runPage(route: LoadedRoute, renderHandler: any) {
@@ -830,8 +1012,8 @@ describe('resolve-request-handler', () => {
             eTag: ({ resolveValue }: any) => `invoices-${resolveValue(invoices)}`,
           },
         ] as any,
-        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
       };
+      withErrorPage(route);
       const renderHandler = exitRender();
       const requestEv = runPage(route, renderHandler);
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});

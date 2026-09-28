@@ -7,12 +7,15 @@ import { HttpError } from '../http-error';
 import { IsQLoader } from '../request-path';
 import type { CacheControl } from '../types';
 import { jsonRequestWrapper } from './json-request-wrapper';
+import { placeFailure } from '../failure-segment';
+
+const PAGE_SEGMENT = 3;
 
 describe('jsonRequestWrapper', () => {
   it('rewrites loader requests only when X-Qwik-fullpath is below the loader path', async () => {
     const requestEv = createLoaderRequestEvent('/products/123/', '/products/123/view/');
 
-    await jsonRequestWrapper()(requestEv as any);
+    await jsonRequestWrapper(PAGE_SEGMENT)(requestEv as any);
 
     expect(requestEv.url.pathname).toBe('/products/123/view/');
     expect(requestEv.next).toHaveBeenCalledOnce();
@@ -21,7 +24,7 @@ describe('jsonRequestWrapper', () => {
   it('ignores X-Qwik-fullpath when it does not have the loader path as a prefix', async () => {
     const requestEv = createLoaderRequestEvent('/products/123/', '/admin/');
 
-    await jsonRequestWrapper()(requestEv as any);
+    await jsonRequestWrapper(PAGE_SEGMENT)(requestEv as any);
 
     expect(requestEv.url.pathname).toBe('/products/123/');
     expect(requestEv.next).toHaveBeenCalledOnce();
@@ -31,7 +34,7 @@ describe('jsonRequestWrapper', () => {
     const requestEv = createLoaderRequestEvent('/products/123/', '/products/123/view/');
     requestEv.headers.set('Vary', 'Accept-Encoding');
 
-    await jsonRequestWrapper()(requestEv as any);
+    await jsonRequestWrapper(PAGE_SEGMENT)(requestEv as any);
 
     expect(requestEv.headers.get('Vary')).toBe(`Accept-Encoding, ${FULLPATH_HEADER}`);
   });
@@ -43,7 +46,7 @@ describe('jsonRequestWrapper', () => {
       throw new RedirectMessage();
     });
 
-    await jsonRequestWrapper()(requestEv as any);
+    await jsonRequestWrapper(PAGE_SEGMENT)(requestEv as any);
 
     const [, body] = requestEv.send.mock.calls[0];
     expect(requestEv.headers.get('Location')).toBeNull();
@@ -62,16 +65,34 @@ describe('jsonRequestWrapper', () => {
     });
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
-      await jsonRequestWrapper()(requestEv as any);
+      await jsonRequestWrapper(PAGE_SEGMENT)(requestEv as any);
     } finally {
       consoleError.mockRestore();
     }
 
     const [, body] = requestEv.send.mock.calls[0];
     const result = (await _deserialize(body)) as any;
-    expect(result.p).toBe(1);
+    expect(result.p).toBe(PAGE_SEGMENT);
     expect(result.e.status).toBe(status);
   });
+
+  it.each([1, 0])(
+    "carries the segment of the middleware that failed, %i included, as the page failure's segment",
+    async (segment) => {
+      const requestEv = createLoaderRequestEvent('/products/123/', '/products/123/view/');
+      requestEv.next = vi.fn(async () => {
+        const failure = new HttpError(403, 'Members only');
+        placeFailure(requestEv as any, failure, segment);
+        throw failure;
+      });
+
+      await jsonRequestWrapper(PAGE_SEGMENT)(requestEv as any);
+
+      const [, body] = requestEv.send.mock.calls[0];
+      const result = (await _deserialize(body)) as any;
+      expect(result.p).toBe(segment);
+    }
+  );
 
   it.each([
     ['loader', 'an HttpError', new HttpError(403, 'Members only')],
@@ -89,7 +110,7 @@ describe('jsonRequestWrapper', () => {
       });
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
-        await jsonRequestWrapper()(requestEv as any);
+        await jsonRequestWrapper(PAGE_SEGMENT)(requestEv as any);
       } finally {
         consoleError.mockRestore();
       }

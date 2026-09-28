@@ -7,6 +7,10 @@ import { RedirectMessage } from '../redirect-handler';
 import { HttpError } from '../http-error';
 import type { CacheControl } from '../types';
 import { loaderHandler } from './loader-handler';
+import { getFailureSegment } from '../failure-segment';
+
+const handlerFor = (loaders: any[], segments = loaders.map((_, i) => i)) =>
+  loaderHandler(loaders, segments);
 
 describe('loaderHandler', () => {
   function createRequestEv() {
@@ -48,7 +52,7 @@ describe('loaderHandler', () => {
       __search: undefined,
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     expect(requestEv.headers.get('Cache-Control')).toBe('no-cache, private');
     expect(requestEv.headers.get('Vary')).toBe(FULLPATH_HEADER);
@@ -69,7 +73,7 @@ describe('loaderHandler', () => {
       __search: undefined,
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     expect(requestEv.cacheControl).toHaveBeenCalledWith('immutable');
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
@@ -83,7 +87,7 @@ describe('loaderHandler', () => {
       __cacheControl: 60,
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     expect(requestEv.headers.get('Cache-Control')).toBe('max-age=60, s-maxage=60');
   });
@@ -99,7 +103,7 @@ describe('loaderHandler', () => {
       __eTag: 'v1',
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     expect(requestEv.headers.get('Cache-Control')).toBe('no-cache, private');
     expect(requestEv.send).toHaveBeenCalledWith(304, '');
@@ -121,7 +125,7 @@ describe('loaderHandler', () => {
       __search: undefined,
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     expect(cacheControl).toHaveBeenCalledTimes(1);
     expect(requestEv.cacheControl).toHaveBeenCalledWith({ maxAge: 60 });
@@ -142,7 +146,7 @@ describe('loaderHandler', () => {
       __search: undefined,
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     expect(requestEv.cacheControl).not.toHaveBeenCalled();
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
@@ -165,7 +169,7 @@ describe('loaderHandler', () => {
       __search: undefined,
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     expect(requestEv.cacheControl).not.toHaveBeenCalled();
     expect(requestEv.headers.get('Cache-Control')).toBe('max-age=123');
@@ -186,7 +190,7 @@ describe('loaderHandler', () => {
       __search: undefined,
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     const cacheKeyEv = cacheKey.mock.calls[0][0];
     expect(cacheKeyEv.url.href).toBe(requestEv.url.href);
@@ -209,7 +213,7 @@ describe('loaderHandler', () => {
       __search: ['page', 'q'],
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     const cacheKeyEv = cacheKey.mock.calls[0][0];
     expect(cacheKeyEv).not.toBe(requestEv);
@@ -239,7 +243,7 @@ describe('loaderHandler', () => {
       __search: ['q'],
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     const loaderEv = loader.__qrl.call.mock.calls[0][1];
     expect(loaderEv.url.search).toBe('?q=shoes');
@@ -279,7 +283,7 @@ describe('loaderHandler', () => {
     };
 
     await expect(
-      loaderHandler([guardLoader as any, secretLoader as any])(requestEv as any)
+      handlerFor([guardLoader as any, secretLoader as any])(requestEv as any)
     ).rejects.toBeInstanceOf(RedirectMessage);
 
     expect(guardLoader.__qrl.call).toHaveBeenCalledTimes(1);
@@ -295,7 +299,7 @@ describe('loaderHandler', () => {
     });
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
-      await loaderHandler([loader as any])(requestEv as any);
+      await handlerFor([loader as any])(requestEv as any);
     } finally {
       consoleError.mockRestore();
     }
@@ -306,10 +310,10 @@ describe('loaderHandler', () => {
   });
 
   it.each([
-    [true, 1],
+    [true, 2],
     [false, undefined],
   ])(
-    'marks an HttpError from a loader with blockSSR: %s as a page failure (%s)',
+    'marks an HttpError from a loader with blockSSR: %s as a failure of its segment (%s)',
     async (blockSSR, pageFailure) => {
       const requestEv = createRequestEv();
       const loader = createLoader(
@@ -320,13 +324,28 @@ describe('loaderHandler', () => {
         blockSSR
       );
 
-      await loaderHandler([loader as any])(requestEv as any);
+      await handlerFor([loader as any], [2])(requestEv as any);
 
       const response = await sentLoaderResponse(requestEv);
       expect(response.e).toMatchObject({ status: 404, data: 'No such product' });
       expect(response.p).toBe(pageFailure);
     }
   );
+
+  it("places an earlier blocking loader's HttpError at that loader's segment", async () => {
+    const requestEv = createRequestEv();
+    const guardLoader = createLoader('guard-loader', async () => {
+      throw new HttpError(401, 'Sign in');
+    });
+    const secretLoader = createLoader('loader-id', async () => 'secret');
+
+    const handler = handlerFor([guardLoader as any, secretLoader as any], [1, 2]);
+    const failure = await Promise.resolve(handler(requestEv as any)).catch((err: unknown) => err);
+
+    expect(failure).toMatchObject({ status: 401 });
+    expect(getFailureSegment(requestEv as any, failure)).toBe(1);
+    expect(secretLoader.__qrl.call).not.toHaveBeenCalled();
+  });
 
   it('stops the requested loader when an earlier blocking loader crashes, sending it that error', async () => {
     const requestEv = createRequestEv();
@@ -336,7 +355,7 @@ describe('loaderHandler', () => {
     const secretLoader = createLoader('loader-id', async () => 'secret');
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
-      await loaderHandler([guardLoader as any, secretLoader as any])(requestEv as any);
+      await handlerFor([guardLoader as any, secretLoader as any])(requestEv as any);
     } finally {
       consoleError.mockRestore();
     }
@@ -368,7 +387,7 @@ describe('loaderHandler', () => {
       };
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
-        await loaderHandler([loader as any])(requestEv as any);
+        await handlerFor([loader as any])(requestEv as any);
       } finally {
         consoleError.mockRestore();
       }
@@ -403,7 +422,7 @@ describe('loaderHandler', () => {
       requestEv.headers.set('Cache-Control', 'public, max-age=60');
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
-        await loaderHandler(createLoaders() as any)(requestEv as any);
+        await handlerFor(createLoaders() as any)(requestEv as any);
       } finally {
         consoleError.mockRestore();
       }
@@ -416,7 +435,7 @@ describe('loaderHandler', () => {
   it('returns 404 when the requested loader is not available on the matched route', async () => {
     const requestEv = createRequestEv();
 
-    await loaderHandler([])(requestEv as any);
+    await handlerFor([])(requestEv as any);
 
     expect(requestEv.json).toHaveBeenCalledWith(404, { error: 'Loader not found' });
     expect(requestEv.send).not.toHaveBeenCalled();
@@ -436,7 +455,7 @@ describe('loaderHandler', () => {
       __search: undefined,
     };
 
-    await loaderHandler([loader as any])(requestEv as any);
+    await handlerFor([loader as any])(requestEv as any);
 
     expect(cacheKey).toHaveBeenCalledWith(expect.any(Object), '');
     expect(requestEv.headers.has('ETag')).toBe(false);

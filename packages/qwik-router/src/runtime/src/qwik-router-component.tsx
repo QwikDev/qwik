@@ -76,7 +76,7 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { refreshLinkPrefetchObserver } from './link-prefetch';
-import { httpErrorLoader, loadRoute } from './routing';
+import { clientFailingSegment, errorPageLoaders, httpErrorLoader, loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
   currentScrollState,
@@ -88,6 +88,7 @@ import spaInit from './spa-init';
 import {
   clearNavFetchCache,
   abortRouteLoaderNavigation,
+  createErrorPageGate,
   prepareRouteLoaders,
   commitRouteLoaders,
   restoreRouteLoaders,
@@ -655,22 +656,26 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const contentModules = $mods$ as ContentModule[];
       if (!isServer) {
         routeLoaderCtx.goto = noSerialize(goto);
-        routeLoaderCtx.showErrorPage = noSerialize(async (error: Error) => {
+        const errorPageGate = createErrorPageGate();
+        routeLoaderCtx.showErrorPage = noSerialize(async (error, failingSegment, loaderId) => {
           if (internalState.navCount !== navCountBefore) {
             return;
           }
-          const errorLoader = loadedRoute.$errorLoader$;
+          const segment = clientFailingSegment(loadedRoute, failingSegment, loaderId);
+          if (!errorPageGate.enter(segment)) {
+            return;
+          }
           let errorModules: ContentModule[];
           try {
             errorModules = (await Promise.all(
-              (errorLoader ?? [httpErrorLoader]).map((load) => load())
+              (errorPageLoaders(loadedRoute, segment) ?? [httpErrorLoader]).map((load) => load())
             )) as ContentModule[];
           } catch (e) {
             console.error(`Could not load the error page for ${trackUrl.pathname}, reloading:`, e);
             window.location.href = trackUrl.href;
             return;
           }
-          if (internalState.navCount !== navCountBefore) {
+          if (internalState.navCount !== navCountBefore || !errorPageGate.isShown(segment)) {
             return;
           }
           const { status, data } = error as Error & { status?: number; data?: unknown };

@@ -437,6 +437,12 @@ export interface RouteConfigValue {
  */
 export type RouteConfig = RouteConfigValue | ((props: DocumentHeadProps) => RouteConfigValue);
 
+export interface ErrorBoundary {
+  segment: number;
+  /** A bare `error.tsx`, or an override chain (`error!`, `error@name`) rendered as authored */
+  loader: ContentModuleLoader | ModuleLoader[];
+}
+
 /** The route to render */
 export interface LoadedRoute {
   /** The canonical path of the route, e.g. `/products/[id]` */
@@ -451,8 +457,14 @@ export interface LoadedRoute {
   $routeBundleNames$?: string[] | undefined;
   /** Whether this route is a not-found (404) route */
   $notFound$?: boolean;
-  /** The nearest _E (error.tsx) boundary's chain to render on a thrown HttpError (in its layouts). */
-  $errorLoader$?: ModuleLoader[];
+  /** The segment of each `$mods$` entry: its node's index on the matched path, groups included */
+  $modSegs$?: number[];
+  /** The loaders of `$mods$` */
+  $modLoaders$?: ModuleLoader[];
+  /** The `error.tsx` boundaries on the matched path, outermost first */
+  $errorBoundaries$?: ErrorBoundary[];
+  /** Runtime-only mapping of routeLoader$ hashes to their segment */
+  $loaderSegs$?: Record<string, number>;
   /** Merged array of routeLoader$ hashes from all matched nodes (layouts + page) */
   $loaders$?: string[];
   /** Runtime-only mapping of routeLoader$ hashes to the matched pathname used for q-loader fetches */

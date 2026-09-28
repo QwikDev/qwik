@@ -3,7 +3,7 @@ import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { createCacheControl } from '../cache-control';
 import { getLoaderName, IsQLoader, QLoaderId } from '../request-path';
 import { RedirectMessage } from '../redirect-handler';
-import { ServerError } from '../server-error';
+import { HttpError } from '../http-error';
 import type { CacheControl } from '../types';
 import { loaderHandler } from './loader-handler';
 
@@ -287,13 +287,13 @@ describe('loaderHandler', () => {
     expect(requestEv.send).not.toHaveBeenCalled();
   });
 
-  it('sends a ServerError from the loader with Cache-Control: no-store over the loader option', async () => {
+  it('sends an HttpError from the loader with Cache-Control: no-store over the loader option', async () => {
     const requestEv = createRequestEv();
     const loader = {
       __id: 'loader-id',
       __qrl: {
         call: vi.fn(async () => {
-          throw new ServerError(404, 'No such product');
+          throw new HttpError(404, 'No such product');
         }),
       },
       __cacheControl: 60,
@@ -305,14 +305,14 @@ describe('loaderHandler', () => {
     expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
   });
 
-  it('sends a ServerError from the loader with Cache-Control: no-store over a header set by middleware', async () => {
+  it('sends an HttpError from the loader with Cache-Control: no-store over a header set by middleware', async () => {
     const requestEv = createRequestEv();
     requestEv.headers.set('Cache-Control', 'public, max-age=60');
     const loader = {
       __id: 'loader-id',
       __qrl: {
         call: vi.fn(async () => {
-          throw new ServerError(404, 'No such product');
+          throw new HttpError(404, 'No such product');
         }),
       },
     };

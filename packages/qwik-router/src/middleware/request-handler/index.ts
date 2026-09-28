@@ -6,7 +6,7 @@ export { isStaticPath } from './static-paths';
 
 export { mergeHeadersCookies } from './cookie';
 
-export { ServerError } from './server-error';
+export { HttpError, ServerError } from './http-error';
 export { AbortMessage, RedirectMessage } from './redirect-handler';
 export { RewriteMessage } from './rewrite-handler';
 

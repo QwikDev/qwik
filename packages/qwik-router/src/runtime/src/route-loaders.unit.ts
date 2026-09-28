@@ -15,7 +15,7 @@ import {
   type RouteLoaderCtx,
 } from './route-loaders';
 import { loadRoute } from './routing';
-import { ServerError } from '../../middleware/request-handler/server-error';
+import { HttpError } from '../../middleware/request-handler/http-error';
 import type { LoaderInternal, RouteModule } from './types';
 
 describe('route loader execution', () => {
@@ -320,15 +320,15 @@ describe('getRouteLoaderResponse envelope', () => {
     expect(response.e).toBeUndefined();
   });
 
-  it('routes a thrown ServerError to the error channel', async () => {
+  it('routes a thrown HttpError to the error channel', async () => {
     const qrl = createQrl('error-loader', async () => {
-      throw new ServerError(500, 'boom');
+      throw new HttpError(500, 'boom');
     });
 
     const response = await getRouteLoaderResponse(qrl, undefined, requestEv);
 
     expect(response.d).toBeUndefined();
-    expect(response.e).toBeInstanceOf(ServerError);
+    expect(response.e).toBeInstanceOf(HttpError);
     expect(response.e?.status).toBe(500);
   });
 });

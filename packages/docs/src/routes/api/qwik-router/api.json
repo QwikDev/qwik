@@ -306,7 +306,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Drops control-flow signals (`ev.redirect()`<!-- -->, `ev.error()`<!-- -->, etc.) from a loader/action return type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.\n\n\n```typescript\nexport type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;\n```",
+      "content": "Drops control-flow signals (`ev.redirect()`<!-- -->, `ev.error()`<!-- -->, etc.) from a loader/action return type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.\n\n\n```typescript\nexport type ExcludeControlFlow<T> = Exclude<T, AbortMessage | HttpError>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.excludecontrolflow.md"
     },

@@ -432,6 +432,20 @@ const label: ReadonlySignal<string> = useComputed$(() => name.value);
 const label: Readonly<Signal<string>> = useComputed$(() => name.value);
 ```
 
+### `ServerError` → `HttpError`, `error()` → `httpError()`
+
+`ServerError` is now `HttpError`, and the request event's `error()` is now `httpError()`. The old names still work, but are deprecated:
+
+```typescript
+// v1
+throw new ServerError(401, 'Sign in');
+throw requestEvent.error(404, 'Not found');
+
+// v2
+throw new HttpError(401, 'Sign in');
+throw requestEvent.httpError(404, 'Not found');
+```
+
 ### qwik-labs
 
 `@builder.io/qwik-labs` is removed in v2:

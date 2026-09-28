@@ -18,7 +18,7 @@ import type {
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
-  ServerError,
+  HttpError,
 } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
@@ -451,7 +451,7 @@ export interface LoadedRoute {
   $routeBundleNames$?: string[] | undefined;
   /** Whether this route is a not-found (404) route */
   $notFound$?: boolean;
-  /** The nearest _E (error.tsx) boundary's chain to render on a thrown ServerError (in its layouts). */
+  /** The nearest _E (error.tsx) boundary's chain to render on a thrown HttpError (in its layouts). */
   $errorLoader$?: ModuleLoader[];
   /** Merged array of routeLoader$ hashes from all matched nodes (layouts + page) */
   $loaders$?: string[];
@@ -1012,7 +1012,7 @@ export type FailReturn<T> = T & Failed;
  *
  * @public
  */
-export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | HttpError>;
 
 /** @public */
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>

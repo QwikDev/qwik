@@ -414,7 +414,7 @@ test.describe('loaders', () => {
       await expect(page.locator('#prop-unwrapped')).toHaveText('test');
     });
 
-    test('should modify ServerError in middleware', async ({ page }) => {
+    test('should modify HttpError in middleware', async ({ page }) => {
       const response = await page.goto('/qwikrouter-test/loaders/loader-error');
       const contentType = await response?.headerValue('Content-Type');
       const status = response?.status();
@@ -425,7 +425,7 @@ test.describe('loaders', () => {
       await expect(body).toContainText('loader-error-caught');
     });
 
-    test('should return html with uncaught ServerErrors thrown in loaders', async ({ page }) => {
+    test('should return html with uncaught HttpErrors thrown in loaders', async ({ page }) => {
       const response = await page.goto('/qwikrouter-test/loaders/loader-error/uncaught-server');
       const contentType = await response?.headerValue('Content-Type');
       const status = response?.status();

@@ -10,7 +10,7 @@ import type {
 import { RedirectMessage } from '../redirect-handler';
 import { RequestEvSharedActionId, type RequestEventInternal } from '../request-event-core';
 import { IsQAction, QActionId } from '../request-path';
-import { throwIfControlFlowSignal } from '../server-error';
+import { throwIfControlFlowSignal } from '../http-error';
 import type { QRL } from '@qwik.dev/core';
 import type { RequestEventBase } from '../types';
 

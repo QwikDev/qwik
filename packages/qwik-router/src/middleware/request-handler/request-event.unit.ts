@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createRequestEvent } from './request-event-core';
 import type { ServerRequestEvent } from './types';
 import type { LoadedRoute } from '../../runtime/src/types';
-import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';
+import { RedirectMessage, HttpError } from '@qwik.dev/router/middleware/request-handler';
 
 function createMockServerRequestEvent(
   url = 'http://localhost:3000/test',
@@ -226,12 +226,22 @@ describe('request-event redirect', () => {
     }).toThrow('Response already sent');
   });
 
-  it('should create public ServerError instances from requestEv.error()', () => {
+  it('should create public HttpError instances from requestEv.error()', () => {
     const requestEv = createMockRequestEvent();
 
     const error = requestEv.error(418, 'teapot');
 
-    expect(error).toBeInstanceOf(ServerError);
+    expect(error).toBeInstanceOf(HttpError);
+    expect(error.status).toBe(418);
+    expect(error.data).toBe('teapot');
+  });
+
+  it('should return an HttpError with its status and message from requestEv.httpError()', () => {
+    const requestEv = createMockRequestEvent();
+
+    const error = requestEv.httpError(418, 'teapot');
+
+    expect(error).toBeInstanceOf(HttpError);
     expect(error.status).toBe(418);
     expect(error.data).toBe('teapot');
   });

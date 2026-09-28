@@ -55,7 +55,7 @@ import {
 import { HttpStatus } from './http-status-codes';
 import { getQwikRouterServerData } from './response-page';
 import { encoder, isContentType } from './request-utils';
-import { ServerError, throwIfControlFlowSignal } from './server-error';
+import { HttpError, throwIfControlFlowSignal } from './http-error';
 
 const loadHttpError = () => import('../../runtime/src/http-error');
 
@@ -482,7 +482,7 @@ function createResolveRequestHandlers() {
       try {
         await requestEv.next();
       } catch (e) {
-        if (!(e instanceof ServerError) || requestEv.headersSent) {
+        if (!(e instanceof HttpError) || requestEv.headersSent) {
           throw e;
         }
 
@@ -579,7 +579,7 @@ function createResolveRequestHandlers() {
           result = await (qrl as Function).apply(ev, data[0]);
         }
       } catch (err) {
-        if (err instanceof ServerError) {
+        if (err instanceof HttpError) {
           throw ev.error(err.status as ErrorCodes, err.data);
         }
         console.error(`Server function ${serverFnHash} failed:`, err);

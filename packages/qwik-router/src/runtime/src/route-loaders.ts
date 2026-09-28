@@ -30,10 +30,7 @@ import type {
 import { _asyncRequestStore } from '../../middleware/request-handler/async-request-store';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
-import {
-  ServerError,
-  throwIfControlFlowSignal,
-} from '../../middleware/request-handler/server-error';
+import { HttpError, throwIfControlFlowSignal } from '../../middleware/request-handler/http-error';
 import { ensureSlash } from '../../utils/pathname';
 import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
 import { basePathname } from './qwik-router-config';
@@ -79,12 +76,12 @@ export const ROUTE_PATH_HEADER = 'X-Qwik-route-path';
  *
  * - `d` — data: the loader's return value (including a `fail()` result, which is plain data)
  * - `r` — redirect: URL to navigate to (from `throw redirect()`)
- * - `e` — error: a ServerError (from a thrown `ServerError` / `error()`)
+ * - `e` — error: an HttpError (from a thrown `HttpError` / `error()`)
  */
 export type LoaderResponse = {
   d?: unknown;
   r?: string;
-  e?: InstanceType<typeof ServerError>;
+  e?: InstanceType<typeof HttpError>;
 };
 
 /**
@@ -1014,6 +1011,10 @@ export const getLoaderRequestEvent = (
 const detachResponseFromEvent = (requestEv: RequestEvent): RequestEvent => {
   let status = 200;
   const headers = new Headers();
+  const httpError = (statusCode: number, message: unknown) => {
+    status = statusCode;
+    return new HttpError(statusCode, message);
+  };
   return Object.create(requestEv, {
     headers: { value: headers, enumerable: true },
     status: {
@@ -1025,13 +1026,8 @@ const detachResponseFromEvent = (requestEv: RequestEvent): RequestEvent => {
       },
       enumerable: true,
     },
-    error: {
-      value: (statusCode: number, message: unknown) => {
-        status = statusCode;
-        return new ServerError(statusCode, message);
-      },
-      enumerable: true,
-    },
+    httpError: { value: httpError, enumerable: true },
+    error: { value: httpError, enumerable: true },
     redirect: {
       value: (statusCode: number, url: string) => {
         status = statusCode;
@@ -1081,7 +1077,7 @@ export const getRouteLoaderResponse = async (
       requestEv.headers.delete('Location');
       return { r: location };
     }
-    if (err instanceof ServerError) {
+    if (err instanceof HttpError) {
       return { e: err };
     }
     throw err;

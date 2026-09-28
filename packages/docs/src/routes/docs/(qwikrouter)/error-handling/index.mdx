@@ -12,30 +12,30 @@ import { Note } from '~/components/note/note';
 
 When an error is thrown in a loader or `server$` function, a 500 error is returned to the client along with the error. This is useful during development but isn't always desirable for production systems. Qwik provides the tools necessary to customise how errors are handled.
 
-Throwing a `ServerError` instance allows you to return custom errors to the browser with a different status code and serialised data.
+Throwing a `HttpError` instance allows you to return custom errors to the browser with a different status code and serialised data.
 
-<Note>Loaders also provide a helper function on the event object to easily create new ServerErrors.</Note>
+<Note>Loaders also provide a helper function on the event object to easily create new HttpErrors.</Note>
 
 ```tsx
-// Throw ServerErrors from a routerLoader$
+// Throw HttpErrors from a routerLoader$
 const useProduct = routeLoader$(async (ev) => {
   const product = await fetch('api/product/1')
 
   if (!product) {
     // Throw a 404 with a custom payload
-    throw new ServerError(404, 'Product not found')
+    throw new HttpError(404, 'Product not found')
 
     // Or use the existing helper function
-    throw ev.error(404, 'Product not found')
+    throw ev.httpError(404, 'Product not found')
   }
 
   return product
 })
 
-// Throw ServerErrors from a server$
+// Throw HttpErrors from a server$
 const getPrices = server$(() => {
   if (!isAuthenticated()) {
-    throw new ServerError(401, { code: 401 })
+    throw new HttpError(401, { code: 401 })
   }
 
   return fetch('api/product/1/prices')
@@ -48,7 +48,7 @@ export default component$(() => {
     getPrices()
       .then()
       .catch(err => {
-        // The payload from a ServerError is deserialised as the error caught in the client
+        // The payload from a HttpError is deserialised as the error caught in the client
         if (err.code === 401) {
           // Navigate to login page
         }
@@ -68,7 +68,7 @@ Intercepting errors with middleware has a few usecases: you might want to hide e
 ```tsx
 // src/routes/plugin@errors.ts
 import { type RequestHandler } from '@qwik.dev/router'
-import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler'
+import { RedirectMessage, HttpError } from '@qwik.dev/router/middleware/request-handler'
 import { isDev } from '@qwik.dev/core/build'
 
 export const onRequest: RequestHandler = async ({ next }) => {
@@ -80,8 +80,8 @@ export const onRequest: RequestHandler = async ({ next }) => {
       throw err
     }
 
-    // Pass through ServerErrors
-    if (err instanceof ServerError) {
+    // Pass through HttpErrors
+    if (err instanceof HttpError) {
       throw err
     }
 
@@ -91,7 +91,7 @@ export const onRequest: RequestHandler = async ({ next }) => {
     if (isDev) {
       throw err
     } else {
-      throw new ServerError(500, 'Internal server error');
+      throw new HttpError(500, 'Internal server error');
     }
   }
 };

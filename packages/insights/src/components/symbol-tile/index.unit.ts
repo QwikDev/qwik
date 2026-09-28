@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from 'vitest';
-import type { RequestEvent } from '@qwik.dev/router';
 import { InsightsUser } from '~/db/sql-user';
 
 vi.mock('@qwik.dev/router', () => ({
@@ -13,34 +12,25 @@ describe('symbol source tenant authorization', () => {
   test('rejects a request without an authenticated Insights user', async () => {
     (globalThis as any).__EXPERIMENTAL__ = {};
     const { getAuthorizedPublicApiKey } = await import('./index');
-    const forbidden = new Error('Forbidden');
-    const error = vi.fn(() => forbidden);
-
     await expect(
       getAuthorizedPublicApiKey({
         params: { publicApiKey: 'app-a' },
         sharedMap: new Map(),
-        error: error as unknown as RequestEvent['error'],
       })
-    ).rejects.toBe(forbidden);
+    ).rejects.toMatchObject({ status: 403, message: 'Forbidden' });
   });
 
   test('rejects a tenant that the current user cannot access', async () => {
     (globalThis as any).__EXPERIMENTAL__ = {};
     const { getAuthorizedPublicApiKey } = await import('./index');
-    const forbidden = new Error('Forbidden');
-    const error = vi.fn(() => forbidden);
-
     await expect(
       getAuthorizedPublicApiKey({
         params: { publicApiKey: 'app-b' },
         sharedMap: new Map([
           ['insightUser', new InsightsUser(1, 'john@example.com', false, ['app-a'])],
         ]),
-        error: error as unknown as RequestEvent['error'],
       })
-    ).rejects.toBe(forbidden);
-    expect(error).toHaveBeenCalledWith(403, 'Forbidden');
+    ).rejects.toMatchObject({ status: 403, message: 'Forbidden' });
   });
 
   test('uses the route tenant when the current user can access it', async () => {
@@ -53,7 +43,6 @@ describe('symbol source tenant authorization', () => {
         sharedMap: new Map([
           ['insightUser', new InsightsUser(1, 'john@example.com', false, ['app-a'])],
         ]),
-        error: vi.fn() as RequestEvent['error'],
       })
     ).resolves.toBe('app-a');
   });
@@ -69,7 +58,6 @@ describe('symbol source tenant authorization', () => {
           sharedMap: new Map([
             ['insightUser', new InsightsUser(1, 'john@example.com', false, ['app-a'])],
           ]),
-          error: vi.fn() as RequestEvent['error'],
         },
         'app-a'
       )
@@ -88,7 +76,6 @@ describe('symbol source tenant authorization', () => {
         {
           params: {},
           sharedMap: new Map([['session', { user: { email: 'john@example.com' } }]]),
-          error: vi.fn() as RequestEvent['error'],
         },
         'app-a',
         loadUser

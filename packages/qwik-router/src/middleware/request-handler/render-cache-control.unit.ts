@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { clearSsrCache } from './etag';
 import { requestHandler } from './request-handler';
-import { ServerError } from './server-error';
+import { HttpError } from './http-error';
 import type { ServerRequestEvent } from './types';
 
 const { routeState } = vi.hoisted(() => ({
@@ -130,7 +130,7 @@ describe('render cache control', () => {
     const throwingThenErrorDocRender = vi
       .fn()
       .mockImplementationOnce(async () => {
-        throw new ServerError(500, 'render boom');
+        throw new HttpError(500, 'render boom');
       })
       .mockImplementation(async (opts: any) => {
         opts.onBeforeFirstFlush?.({ hasCaughtError: false });
@@ -230,7 +230,7 @@ describe('render cache control', () => {
     routeState.module = {
       default: () => null,
       onGet: () => {
-        throw new ServerError(500, 'boom');
+        throw new HttpError(500, 'boom');
       },
     };
     const { ev, captured } = createServerRequestEvent();

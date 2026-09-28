@@ -25,6 +25,7 @@ import {
   EffectProperty,
   EffectSubscription,
   ComputedSignalFlags,
+  NEEDS_COMPUTATION,
   StoreFlags,
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
@@ -1712,6 +1713,32 @@ describe('shared-serialization', () => {
       const restoredEffect = [...restored.$effects$!][0];
       expect(restoredEffect.backRef).toBeDefined();
       expect(restoredEffect.backRef!.has(restored)).toBe(true);
+    });
+
+    it('ComputedSignalImpl: pending and error readers survive deserialize, with the signal in backRef', async () => {
+      const computed = createComputed$(() => 1, { serializationStrategy: 'always' });
+      const unread = createComputed$(() => 2, { serializationStrategy: 'always' });
+      const impls = [computed, unread] as unknown as ComputedSignalImpl<number>[];
+      for (let i = 0; i < impls.length; i++) {
+        impls[i].$loadingEffects$ = new Set([makeEffect()]);
+        impls[i].$errorEffects$ = new Set([makeEffect()]);
+      }
+      expect(computed.value).toBe(1);
+
+      const restored = deserialize(await serialize(...impls)).slice(
+        0,
+        2
+      ) as ComputedSignalImpl<number>[];
+
+      expect(restored[0].$untrackedValue$).toBe(1);
+      expect(restored[1].$untrackedValue$).toBe(NEEDS_COMPUTATION);
+      for (let i = 0; i < restored.length; i++) {
+        const effectSets = [restored[i].$loadingEffects$, restored[i].$errorEffects$];
+        for (let j = 0; j < effectSets.length; j++) {
+          expect(effectSets[j]?.size).toBe(1);
+          expect([...effectSets[j]!][0].backRef!.has(restored[i])).toBe(true);
+        }
+      }
     });
 
     it('AsyncSignalImpl: all effects (value/loading/error) have signal in backRef after deserialize', async () => {

@@ -685,7 +685,14 @@ export class Serializer {
           out.push(asyncFlags || undefined);
         }
 
-        if (v !== NEEDS_COMPUTATION || concurrency !== undefined || timeout !== undefined) {
+        const hasStateReaders =
+          !isAsync && !!(value.$loadingEffects$?.size || value.$errorEffects$?.size);
+        if (
+          v !== NEEDS_COMPUTATION ||
+          concurrency !== undefined ||
+          timeout !== undefined ||
+          hasStateReaders
+        ) {
           /**
            * If value is undefined, we need to keep it in the output. If we don't do that, later
            * during resuming, the value will be set to symbol(invalid) with flag invalid, and thats
@@ -696,6 +703,8 @@ export class Serializer {
         if (isAsync) {
           out.push(concurrency);
           out.push(timeout);
+        } else if (hasStateReaders) {
+          out.push(value.$loadingEffects$, value.$errorEffects$);
         }
         this.output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out);
       } else {

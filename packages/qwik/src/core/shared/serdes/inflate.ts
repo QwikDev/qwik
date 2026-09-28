@@ -327,7 +327,13 @@ function* inflateIterator(
     case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
       const computed = target as ComputedSignalImpl<unknown>;
-      const d = data as [QRLInternal<() => {}>, EffectSubscription[] | undefined, unknown?];
+      const d = data as [
+        QRLInternal<() => {}>,
+        EffectSubscription[] | undefined,
+        unknown?,
+        EffectSubscription[]?,
+        EffectSubscription[]?,
+      ];
       computed.$computeQrl$ = d[0];
       /**
        * If we try to compute value and the qrl is not resolved, then system throws an error with
@@ -345,12 +351,20 @@ function* inflateIterator(
       if (hasValue) {
         computed.$untrackedValue$ = d[2];
       }
+      if (d[3]) {
+        computed.$loadingEffects$ = new Set(d[3]);
+      }
+      if (d[4]) {
+        computed.$errorEffects$ = new Set(d[4]);
+      }
       if (typeId !== TypeIds.SerializerSignal && computed.$untrackedValue$ !== NEEDS_COMPUTATION) {
         // If we have a value after SSR, it will always be mean the signal was not invalid
         // The serialized signal is always left invalid so it can recreate the custom object
         computed.$flags$ &= ~ComputedSignalFlags.INVALID;
       }
       restoreEffectBackRefForEffects(computed.$effects$, computed);
+      restoreEffectBackRefForEffects(computed.$loadingEffects$, computed);
+      restoreEffectBackRefForEffects(computed.$errorEffects$, computed);
       break;
     }
     case TypeIds.FormData: {

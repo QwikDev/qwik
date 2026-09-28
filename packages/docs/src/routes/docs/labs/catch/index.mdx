@@ -56,6 +56,23 @@ export default component$(() => {
 });
 ```
 
+## What `Catch` catches
+
+`Catch` catches what renders inside it. That includes a signal read written directly in its children, even by the component that renders the `Catch`:
+
+```tsx
+export default component$(() => {
+  const profile = useComputed$(() => fetchProfile());
+  return (
+    <Catch fallback$={$((error) => <p>{error.message}</p>)}>
+      <h1>{profile.value.name}</h1>
+    </Catch>
+  );
+});
+```
+
+A read inside an expression that calls a function, like `{profile.value.tags.join(', ')}`, runs in that component's own render, before `Catch` renders, so its error goes to the boundary above the component. Move such a read into a child component, which renders inside `Catch`.
+
 ## Props
 
 ### `fallback$`

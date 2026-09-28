@@ -2,6 +2,7 @@
 
 import { isDev } from '@qwik.dev/core/build';
 import type { QRLInternal } from '../../server/qwik-types';
+import type { ParkedError } from '../shared/cursor/cursor-props';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import {
@@ -27,6 +28,7 @@ import {
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  PARKED_ERRORS,
   QBackRefs,
   QBaseAttr,
   QContainerAttr,
@@ -287,36 +289,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       errorStore.error = err;
       return;
     }
-    // `null` would collide with the capture-only sentinel, so wrap every nullish throw.
-    const storedError = err == null ? toBoundaryError(err) : err;
-    let current: VNode | null = host;
-    while (current) {
-      const boundaryHost = this.resolveContextHost(current, ERROR_CONTEXT);
-      if (!boundaryHost) {
-        break;
-      }
-      const store = getOwnCatchStore(this, boundaryHost);
-      if (store && store.error === undefined) {
-        store.error = storedError;
-        const boundaryProps = this.getHostProp<{
-          onError$?: (error: unknown, info: CatchInfo) => unknown;
-        }>(boundaryHost, ELEMENT_PROPS);
-        fireOnError(boundaryProps?.onError$, err, phase, store.boundaryId ?? '');
-        markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
-        return;
-      }
-      // Capture-only sentinel for the ErrorProvider test spy; folds away in prod builds.
-      if (qTest && store && store.error === null) {
-        store.error = storedError;
-        return;
-      }
-      if (boundaryHost.dirty & ChoreBits.COMPONENT) {
-        logError(err);
-        return;
-      }
-      current = this.getParentHost(boundaryHost);
-    }
-    logErrorAndThrowAsync(err);
+    routeErrorToBoundary(this, err, host, phase);
   }
 
   setContext<T>(host: VNode, context: ContextId<T>, value: T): void {
@@ -465,5 +438,89 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
     }
     this.$serverData$ = { containerAttributes };
+  }
+}
+
+function routeErrorToBoundary(
+  container: DomContainer,
+  err: unknown,
+  host: VNode | null,
+  phase: CatchPhase
+): void {
+  // `null` would collide with the capture-only sentinel, so wrap every nullish throw.
+  const storedError = err == null ? toBoundaryError(err) : err;
+  const crossedProjections: VNode[] = [];
+  let current: VNode | null = host;
+  while (current) {
+    const store = getOwnCatchStore(container, current);
+    if (store) {
+      if (store.error === undefined) {
+        store.error = storedError;
+        const boundaryProps = container.getHostProp<{
+          onError$?: (error: unknown, info: CatchInfo) => unknown;
+        }>(current, ELEMENT_PROPS);
+        fireOnError(boundaryProps?.onError$, err, phase, store.boundaryId ?? '');
+        markVNodeDirty(container, current, ChoreBits.COMPONENT);
+        return;
+      }
+      // Capture-only sentinel for the ErrorProvider test spy; folds away in prod builds.
+      if (qTest && store.error === null) {
+        store.error = storedError;
+        return;
+      }
+      const isFromOwnContent = crossedProjections.some(
+        (projection) => projection.slotParent === current
+      );
+      if (isFromOwnContent && store.error === storedError) {
+        return;
+      }
+      if (isFromOwnContent || current.dirty & ChoreBits.COMPONENT) {
+        logError(err);
+        return;
+      }
+    }
+    let parent: VNode | null = current.parent;
+    let unplacedProjection: VNode | null = null;
+    while (parent && !isComponentHost(parent)) {
+      if (parent.slotParent) {
+        crossedProjections.push(parent);
+        if (!parent.parent) {
+          unplacedProjection = parent;
+        }
+      }
+      parent = parent.parent || parent.slotParent;
+    }
+    if (
+      unplacedProjection &&
+      parent &&
+      parent.dirty & ChoreBits.COMPONENT &&
+      !getOwnCatchStore(container, parent)
+    ) {
+      parkError(container, parent, err, host!, phase);
+      return;
+    }
+    current = parent;
+  }
+  logErrorAndThrowAsync(err);
+}
+
+const isComponentHost = (vNode: VNode): boolean =>
+  vnode_isVirtualVNode(vNode) && vnode_getProp(vNode, OnRenderProp, null) !== null;
+
+function parkError(
+  container: DomContainer,
+  host: VNode,
+  error: unknown,
+  origin: VNode,
+  phase: CatchPhase
+): void {
+  const parkedErrors = vnode_getProp<ParkedError[]>(host, PARKED_ERRORS, null) || [];
+  if (!parkedErrors.some((parked) => parked.error === error && parked.origin === origin)) {
+    parkedErrors.push({
+      error,
+      origin,
+      route: () => routeErrorToBoundary(container, error, origin, phase),
+    });
+    vnode_setProp(host, PARKED_ERRORS, parkedErrors);
   }
 }

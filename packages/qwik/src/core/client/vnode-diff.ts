@@ -441,7 +441,7 @@ function diff(
               const vHost = (diffContext.$vNewNode$ || diffContext.$vCurrent$)!;
               descend(
                 diffContext,
-                resolveSignalAndDescend(diffContext, () =>
+                resolveSignalAndDescend(diffContext, vHost, () =>
                   trackSignalAndAssignHost(
                     unwrappedSignal,
                     vHost,
@@ -477,6 +477,7 @@ function diff(
 
 function resolveSignalAndDescend(
   diffContext: DiffContext,
+  vHost: VNode,
   fn: () => ValueOrPromise<any>
 ): ValueOrPromise<any> {
   try {
@@ -486,11 +487,19 @@ function resolveSignalAndDescend(
     if (isPromise(e)) {
       // The thrown promise will resolve when the signal is ready, then retry fn() with retry logic
       const retryPromise = e.then(() => retryOnPromise(fn));
-      diffContext.$asyncQueue$.push(retryPromise, diffContext.$vNewNode$ || diffContext.$vCurrent$);
+      diffContext.$asyncQueue$.push(retryPromise, vHost);
       return null;
+    }
+    if (__EXPERIMENTAL__.catchBoundary) {
+      return routeReadError(diffContext.$container$, vHost, e);
     }
     throw e;
   }
+}
+
+function routeReadError(container: ClientContainer, vHost: VNode, error: unknown): null {
+  container.handleError(error, vHost);
+  return null;
 }
 
 function advance(diffContext: DiffContext) {
@@ -931,10 +940,12 @@ function resolveSignalValue(
   vHost: ElementVNode,
   key: string,
   signal: Signal<unknown>,
-  subscriptionData: SubscriptionData
+  subscriptionData: SubscriptionData,
+  onReadError?: (error: unknown) => null
 ): unknown {
-  return retryOnPromise(() =>
-    trackSignalAndAssignHost(signal, vHost, key, container, subscriptionData)
+  return retryOnPromise(
+    () => trackSignalAndAssignHost(signal, vHost, key, container, subscriptionData),
+    onReadError
   );
 }
 
@@ -988,6 +999,7 @@ function createNewElement(
   const element = createElementWithNamespace(diffContext, elementName) as QElement;
   const vHost = diffContext.$vNewNode$ as ElementVNode;
   const isSvg = (vHost.flags & VNodeFlags.NS_svg) !== 0;
+  let unlinkedReadErrors = null as unknown[] | null;
   const { constProps } = jsx;
   if (constProps) {
     // Const props are, well, constant, they will never change!
@@ -1011,7 +1023,16 @@ function createNewElement(
           diffContext.$vNewNode$ as ElementVNode,
           key,
           value as Signal<unknown>,
-          diffContext.$subscriptionData$.$const$
+          diffContext.$subscriptionData$.$const$,
+          __EXPERIMENTAL__.catchBoundary
+            ? (error) => {
+                if (vHost.parent) {
+                  return routeReadError(diffContext.$container$, vHost, error);
+                }
+                (unlinkedReadErrors ||= []).push(error);
+                return null;
+              }
+            : undefined
         );
       }
 
@@ -1062,6 +1083,11 @@ function createNewElement(
     diffContext.$vNewNode$ as ElementVNode,
     getCurrentInsertBefore(diffContext)
   );
+  if (unlinkedReadErrors) {
+    for (let i = 0; i < unlinkedReadErrors.length; i++) {
+      routeReadError(diffContext.$container$, vHost, unlinkedReadErrors[i]);
+    }
+  }
 }
 
 function registerEventHandlers(
@@ -1269,7 +1295,10 @@ const patchProperty = (
       vHost,
       key,
       unwrappedSignal,
-      diffContext.$subscriptionData$.$var$
+      diffContext.$subscriptionData$.$var$,
+      __EXPERIMENTAL__.catchBoundary
+        ? (error) => routeReadError(diffContext.$container$, vHost, error)
+        : undefined
     );
   } else {
     if (currentEffect) {

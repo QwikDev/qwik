@@ -15,6 +15,12 @@ export const ERROR_DATA_KEY = ':errorData';
 export const HOST_SIGNAL = ':signal';
 export const INLINE_COMPONENT_DATA_KEY = ':inlineComponentData';
 
+export interface ParkedError {
+  error: unknown;
+  origin: VNode;
+  route: () => void;
+}
+
 /** Qwik loader events to (re)register once the cursor's journal is flushed to the DOM. */
 const pendingQwikLoaderEvents = new WeakMap<CursorData, string[]>();
 

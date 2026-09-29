@@ -589,7 +589,8 @@ function* processVNodeDataImpl(
             ) {
               vNodeDataMap.set(node as Element, existing + data);
             }
-          } else {
+          } else if (nodeType !== NodeType.ELEMENT_CONTAINER) {
+            // A nested container's root data comes from its own container only.
             vNodeDataMap.set(node as Element, data);
           }
         }

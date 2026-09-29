@@ -563,6 +563,28 @@ describe('processVnodeData', () => {
         </div>
       );
     });
+    it('should keep outer vnode data off a nested container root', async () => {
+      const [, container2] = await process(`
+        <html q:container="paused">
+          <head :></head>
+          <body :>
+            <div q:container="paused" :>
+              Foo<b :>Bar!</b>
+              ${encodeVNode({ 1: 'DB' })}
+            </div>
+            ${encodeVNode({ 3: '{B}' })}
+          </body>
+        </html>`);
+      expect(container2.rootVNode).toMatchVDOM(
+        <div {...qContainerPaused}>
+          {'Foo'}
+          <b>
+            {'Bar'}
+            {'!'}
+          </b>
+        </div>
+      );
+    });
     it('should ignore comments and comment blocks', async () => {
       const [container1] = await process(`
         <html q:container="paused" :>

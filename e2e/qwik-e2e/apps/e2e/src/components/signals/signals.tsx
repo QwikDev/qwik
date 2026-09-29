@@ -754,13 +754,13 @@ export const delayZero = () => {
 
 export const FineGrainedTextSub = component$(() => {
   const count = useSignal(0);
-  const computed = count.value + 2;
+  const computed = useComputed$(() => count.value + 2);
 
   return (
     <div>
       <h2>Fine Grained</h2>
-      <div id="fine-grained-mutable" data-value={computed}>
-        {computed}
+      <div id="fine-grained-mutable" data-value={computed.value}>
+        {computed.value}
       </div>
       <div>
         <button id="fine-grained-signal" data-value={count.value} onClick$={() => count.value++}>
@@ -861,7 +861,7 @@ export const StoreCustomKeysSerializationIssue3663 = component$(() => {
   const store = useStore({
     'Custom Counter': 0,
   });
-  const a = store['Custom Counter'] + 0;
+  const a = useComputed$(() => store['Custom Counter'] + 0);
   return (
     <div>
       <button id="issue-3663-button" onClick$={() => store['Custom Counter']++}>
@@ -871,8 +871,8 @@ export const StoreCustomKeysSerializationIssue3663 = component$(() => {
         {store['Custom Counter']}
       </div>
       <StoreCustomKeysSerializationIssue3663Cmp prop={store['Custom Counter']} />
-      <div class="issue-3663-result" data-value={a}>
-        {a}
+      <div class="issue-3663-result" data-value={a.value}>
+        {a.value}
       </div>
     </div>
   );

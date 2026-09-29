@@ -8,6 +8,7 @@ import {
   untrack,
   useContext,
   useContextProvider,
+  useComputed$,
   useSignal,
   useStore,
   useStylesScoped$,
@@ -503,9 +504,9 @@ export type TitleProps = {
 };
 
 export const Title = component$((props: TitleProps) => {
-  const Tag = props.tag ?? 'h1';
+  const Tag = useComputed$(() => props.tag ?? 'h1');
 
-  return <Tag id="issue-3398-tag">Hello {Tag}</Tag>;
+  return <Tag.value id="issue-3398-tag">Hello {Tag.value}</Tag.value>;
 });
 
 export const DynamicElementTagSetPropertyIssue3398 = component$(() => {
@@ -553,17 +554,17 @@ export const SpreadReplacesExistingPropsIssue3481 = component$(() => {
     class: 'from-attr',
   };
   const count = useSignal(0);
-  const countStr = String(count.value) + '';
+  const countStr = useComputed$(() => String(count.value));
   return (
     <>
       <button id="issue-3481-button" onClick$={() => count.value++}>
         Rerender
       </button>
       <div id="issue-3481-result1" class="from-static" {...attr}>
-        Hello {countStr}
+        Hello {countStr.value}
       </div>
       <div id="issue-3481-result2" {...attr} class="from-static">
-        Hello {countStr}
+        Hello {countStr.value}
       </div>
     </>
   );

@@ -192,18 +192,39 @@ interface SsrRenderOptions {
   fence?: 'r' | 's';
 }
 
+/** Derive keyed rows before emitting branches or standalone chunks. */
+function keyedCollectionRows(module: LinkedModule): ReadonlySet<string> {
+  const rows = new Set<string>();
+  const visit = (ops: readonly LinkedOp[]): void => {
+    for (const op of ops) {
+      if (op.op === OpKind.Element) {
+        visit(op.children);
+      } else if (op.op === OpKind.Each && op.key !== null && op.row.r === RowKind.Chunk) {
+        rows.add(op.row.use.qrl);
+      }
+    }
+  };
+  for (const program of module.programs) {
+    if (program.body.kind === ProgramBodyKind.Ops) {
+      visit(program.body.ops);
+    }
+  }
+  return rows;
+}
+
 class SsrModuleEmitter implements QwikModuleEmitter {
   readonly isServer = true;
   readonly imports = new Set<string>();
   readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];
   private readonly usedQrls = new Map<string, QrlUsage>();
-  /** Row QRLs whose collection is keyed: their marker carries the key resume adopts. */
-  private readonly keyedRowQrls = new Set<string>();
 
   private readonly resolveQrlUse: QrlResolver;
 
-  constructor(private readonly module: LinkedModule) {
+  constructor(
+    private readonly module: LinkedModule,
+    private readonly keyedRowQrls = keyedCollectionRows(module)
+  ) {
     this.resolveQrlUse = createQrlResolver(module);
   }
 
@@ -514,7 +535,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     qrl: LinkedQrl,
     options: SsrRenderOptions
   ): { emission: FunctionEmission; core: SsrProgramEmission; names: GeneratedNames } {
-    const emitter = new SsrModuleEmitter(this.module);
+    const emitter = new SsrModuleEmitter(this.module, this.keyedRowQrls);
     const names = {
       props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
       ctx: allocateGeneratedNames(this.module).ctx,
@@ -996,9 +1017,6 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         // Registration order fixes the mirror order: render first, key second.
         const render = this.useQrl(pass, op.row.use, true);
         const key = op.key === null ? null : this.useQrl(pass, this.qrlValueUse(op.key), true);
-        if (key !== null) {
-          this.keyedRowQrls.add(this.resolveQrlUse(op.row.use, pass.names.props).qrl.id);
-        }
         this.imports.add(QwikWord.RenderSsrCollection);
         const step = pass.next(QwikGenWord.Collection);
         // Element-shaped rows wear the q:row marker, so the runtime needs no per-row id.

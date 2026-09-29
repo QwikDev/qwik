@@ -86,3 +86,37 @@ export default () => {
     }
   }
 );
+
+test.each(['direct', 'conditional', 'nested conditional'])(
+  'SSR preserves collection row keys in a %s render',
+  async (placement) => {
+    const list = '<ul>{items.value.map((item) => <li key={item.id}>{item.id}</li>)}</ul>';
+    const child =
+      placement === 'direct'
+        ? list
+        : placement === 'conditional'
+          ? `{show.value ? ${list} : null}`
+          : `{show.value ? <section>{show.value ? ${list} : null}</section> : null}`;
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer: true,
+      transpileTs: true,
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ id: 'a' }]);
+  const show = useSignal(true);
+  return <main>${child}</main>;
+};`,
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    const row = output.modules.find((module) => module.segment?.ctxName === 'for:render');
+    expect(row).toBeDefined();
+    expect(row!.code).toContain('escapeHTML(__rowId)');
+    expect(output.modules[0].code).toContain('escapeHTML(__rowId)');
+  }
+);

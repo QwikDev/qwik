@@ -47,6 +47,24 @@ export default () => {
     });
   });
 
+  test('should preserve keyed collection rows inside a conditional', async () => {
+    await testInput(mode, 'collection-keyed-conditional', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ id: 'a', label: 'Alpha' }]);
+  const show = useSignal(true);
+  return (
+    <main>
+      {show.value ? (
+        <ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>
+      ) : null}
+    </main>
+  );
+};
+`,
+    });
+  });
+
   test('should render a reactive text hole inside a collection row', async () => {
     await testInput(mode, 'collection-reactive-row', {
       code: `import { useSignal } from '@qwik.dev/core';

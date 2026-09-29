@@ -24,6 +24,7 @@ const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   return maybeThen(domProps0, (domProps0) => [
     (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
     createSsrOpenTag('<form q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+    domProps0.innerHTML ?? [],
     '</form>',
   ]);
 };
@@ -45,6 +46,7 @@ const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
   return maybeThen(domProps0, (domProps0) => [
     (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
     createSsrOpenTag('<form q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+    domProps0.innerHTML ?? [],
     '</form>',
   ]);
 };
@@ -119,6 +121,7 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   return maybeThen(domProps0, (domProps0) => [
     (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
     createSsrOpenTag('<form q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+    domProps0.innerHTML ?? [],
     '</form>',
   ]);
 };
@@ -248,6 +251,7 @@ export const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
   return maybeThen(domProps0, (domProps0) => [
     (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
     createSsrOpenTag('<form q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+    domProps0.innerHTML ?? [],
     '</form>',
   ]);
 };

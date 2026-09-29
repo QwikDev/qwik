@@ -1,0 +1,184 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { dangerouslySetInnerHTML: string }) => (
+  <section>
+    <div {...props} />
+    <style {...props} />
+    <script {...props} dangerouslySetInnerHTML={'window.hello = "world";'} />
+    <input {...props} />
+  </section>
+));
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  _last,
+  _prev,
+  createPropsEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
+import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
+import { component_props_segment_2_208o0eee4yc6n } from './component.tsx_component_props_segment_2_208o0eee4yc6n';
+import { component_props_segment_3_208o00da84a64 } from './component.tsx_component_props_segment_3_208o00da84a64';
+
+const default_tmpl0 = _createElementTemplate(
+  '<section><div></div><style></style><script></script><input></section>'
+);
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  const effect0 = createPropsEffect(
+    el1,
+    [props],
+    component_props_segment_0_208o16glymg7p,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect0.run());
+  const el2 = _next(_first(el0));
+  const effect1 = createPropsEffect(
+    el2,
+    [props],
+    component_props_segment_1_208o0sfi1se76,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect1.run());
+  const el3 = _prev(_last(el0));
+  const effect2 = createPropsEffect(
+    el3,
+    [props],
+    component_props_segment_2_208o0eee4yc6n,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect2.run());
+  const el4 = _last(el0);
+  const effect3 = createPropsEffect(
+    el4,
+    [props],
+    component_props_segment_3_208o00da84a64,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect3.run());
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
+
+export const component_props_segment_0_208o16glymg7p = (props) => {
+  return { ...props };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0_208o16glymg7p",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    138,
+    152
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+export const component_props_segment_1_208o0sfi1se76 = (props) => {
+  return { ...props };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    161,
+    177
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
+
+export const component_props_segment_2_208o0eee4yc6n = (props) => {
+  return { ...props, dangerouslySetInnerHTML: 'window.hello = "world";' };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2_208o0eee4yc6n",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "208o0eee4yc6n",
+  "canonicalFilename": "component.tsx_component_props_segment_2_208o0eee4yc6n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    186,
+    257
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_3_208o00da84a64.js (ENTRY POINT)==
+
+export const component_props_segment_3_208o00da84a64 = (props) => {
+  return { ...props };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_3_208o00da84a64",
+  "entry": null,
+  "displayName": "component_props_segment_3",
+  "hash": "208o00da84a64",
+  "canonicalFilename": "component.tsx_component_props_segment_3_208o00da84a64",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    264,
+    280
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

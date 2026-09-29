@@ -1,0 +1,227 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { dangerouslySetInnerHTML: string }) => (
+  <section>
+    <div {...props} />
+    <style {...props} />
+    <script {...props} dangerouslySetInnerHTML={'window.hello = "world";'} />
+    <input {...props} />
+  </section>
+));
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  renderSsrProps,
+  createSsrNodeId,
+  createSsrOpenTag,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
+const component_props_segment_0_208o16glymg7p = (props) => {
+  return { ...props };
+};
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_0_208o16glymg7p'
+);
+q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
+const component_props_segment_1_208o0sfi1se76 = (props) => {
+  return { ...props };
+};
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_1_208o0sfi1se76'
+);
+q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
+const component_props_segment_2_208o0eee4yc6n = (props) => {
+  return { ...props, dangerouslySetInnerHTML: 'window.hello = "world";' };
+};
+const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_2_208o0eee4yc6n'
+);
+q_component_props_segment_2_208o0eee4yc6n.s(component_props_segment_2_208o0eee4yc6n);
+const component_props_segment_3_208o00da84a64 = (props) => {
+  return { ...props };
+};
+const q_component_props_segment_3_208o00da84a64 = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_3_208o00da84a64'
+);
+q_component_props_segment_3_208o00da84a64.s(component_props_segment_3_208o00da84a64);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    ctx.addRoot(props);
+    const domProps0 = renderSsrProps(
+      id0,
+      [props],
+      q_component_props_segment_0_208o16glymg7p,
+      ctx.eventAttr
+    );
+    const id1 = ctx.nextId();
+    const domProps1 = renderSsrProps(
+      id1,
+      [props],
+      q_component_props_segment_1_208o0sfi1se76,
+      ctx.eventAttr
+    );
+    const id2 = ctx.nextId();
+    const domProps2 = renderSsrProps(
+      id2,
+      [props],
+      q_component_props_segment_2_208o0eee4yc6n,
+      ctx.eventAttr
+    );
+    const id3 = ctx.nextId();
+    const domProps3 = renderSsrProps(
+      id3,
+      [props],
+      q_component_props_segment_3_208o00da84a64,
+      ctx.eventAttr
+    );
+    return maybeThen(domProps0, (domProps0) =>
+      maybeThen(domProps1, (domProps1) =>
+        maybeThen(domProps2, (domProps2) =>
+          maybeThen(domProps3, (domProps3) => [
+            '<section>',
+            (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
+            createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+            domProps0.innerHTML ?? [],
+            '</div>',
+            (domProps1.ref === undefined || ctx.setRef(domProps1.ref, id1), ''),
+            createSsrOpenTag('<style q:id="', createSsrNodeId(id1), '"', ...domProps1.attrs, '>'),
+            domProps1.innerHTML ?? [],
+            '</style>',
+            (domProps2.ref === undefined || ctx.setRef(domProps2.ref, id2), ''),
+            createSsrOpenTag('<script q:id="', createSsrNodeId(id2), '"', ...domProps2.attrs, '>'),
+            domProps2.innerHTML ?? [],
+            '</script>',
+            (domProps3.ref === undefined || ctx.setRef(domProps3.ref, id3), ''),
+            createSsrOpenTag('<input q:id="', createSsrNodeId(id3), '"', ...domProps3.attrs, '>'),
+            '</section>',
+          ])
+        )
+      )
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
+
+export const component_props_segment_0_208o16glymg7p = (props) => {
+  return { ...props };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_0_208o16glymg7p",
+  "entry": null,
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    138,
+    152
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+export const component_props_segment_1_208o0sfi1se76 = (props) => {
+  return { ...props };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    161,
+    177
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
+
+export const component_props_segment_2_208o0eee4yc6n = (props) => {
+  return { ...props, dangerouslySetInnerHTML: 'window.hello = "world";' };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2_208o0eee4yc6n",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "208o0eee4yc6n",
+  "canonicalFilename": "component.tsx_component_props_segment_2_208o0eee4yc6n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    186,
+    257
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_3_208o00da84a64.js (ENTRY POINT)==
+
+export const component_props_segment_3_208o00da84a64 = (props) => {
+  return { ...props };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_3_208o00da84a64",
+  "entry": null,
+  "displayName": "component_props_segment_3",
+  "hash": "208o00da84a64",
+  "canonicalFilename": "component.tsx_component_props_segment_3_208o00da84a64",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    264,
+    280
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

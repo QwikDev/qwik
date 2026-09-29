@@ -158,6 +158,29 @@ export default component$((props: { title: string }) => {
     }
   });
 
+  test('should emit spread innerHTML without authored children', async () => {
+    const output = await testInput(mode, 'element-spread-inner-html', {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { dangerouslySetInnerHTML: string }) => (
+  <section>
+    <div {...props} />
+    <style {...props} />
+    <script {...props} dangerouslySetInnerHTML={'window.hello = "world";'} />
+    <input {...props} />
+  </section>
+));
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    if (mode === 'ssr') {
+      // Non-void elements emit the props content even with no authored children.
+      expect(main.match(/\.innerHTML \?\? \[\]/g)).toHaveLength(3);
+    } else {
+      expect(main.match(/createPropsEffect\(/g)).toHaveLength(4);
+    }
+  });
+
   test('should emit dangerouslySetInnerHTML as element content', async () => {
     const output = await testInput(mode, 'element-inner-html', {
       code: `import { component$, useSignal } from '@qwik.dev/core';

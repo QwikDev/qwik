@@ -827,7 +827,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         }
       }
     }
-    if (propsStep !== null && children.length > 0) {
+    if (propsStep !== null && !op.void) {
       parts.push(`${propsStep}.innerHTML ?? [${children.join(', ')}]`);
     }
     if (!op.void) {

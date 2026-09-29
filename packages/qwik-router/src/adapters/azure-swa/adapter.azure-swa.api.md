@@ -5,7 +5,7 @@
 ```ts
 
 import { ServerAdapterOptions } from '../../shared/vite';
-import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
+import type { SsgRenderOptions } from '../../../ssg';
 
 // @public (undocumented)
 export function azureSwaAdapter(opts?: AzureSwaAdapterOptions): any;

@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -747,6 +747,64 @@ test('links the imports of a module reached only through a virtual entry', async
       .map((file) => file.code)
       .join('\n');
     expect(code).toContain('virtual-reached-marker');
+  } finally {
+    await bundle.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 20000);
+
+test('leaves the Qwik runtime to the bundler even outside node_modules', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const runtimeDir = join(directory, 'runtime');
+  const application = join(directory, 'application.tsx');
+  await mkdir(runtimeDir);
+  await writeFile(join(runtimeDir, 'core.js'), `export const runtimeMarker = 'runtime-marker';`);
+  await writeFile(
+    application,
+    `import { runtimeMarker } from './runtime/core.js'; export default () => <b>{runtimeMarker}</b>;`
+  );
+  const linked: string[] = [];
+  const compiler = createLinkedBuild();
+  const bundle = await rolldown({
+    input: [application],
+    external: (id) => id.startsWith('@qwik.dev/core'),
+    plugins: [
+      {
+        name: 'linked-build-test',
+        buildStart() {
+          return compiler.buildStart(this, {
+            entries: [application],
+            rootDir: directory,
+            runtimeDir,
+            server: true,
+            library: false,
+            development: false,
+            sourceMaps: false,
+            onOutput(output) {
+              linked.push(...output.modules.map((module) => module.path));
+            },
+          });
+        },
+        resolveId(id, importer) {
+          return compiler.resolveId(this, id, importer);
+        },
+        load(id) {
+          return compiler.load(this, id);
+        },
+        transform(code, id) {
+          return compiler.transform(code, id);
+        },
+      },
+    ],
+  });
+  try {
+    const output = await bundle.write({ dir: join(directory, 'app'), format: 'es' });
+    const code = output.output
+      .filter((file) => file.type === 'chunk')
+      .map((file) => file.code)
+      .join('\n');
+    expect(code).toContain('runtime-marker');
+    expect(linked.some((path) => path.includes('/runtime/'))).toBe(false);
   } finally {
     await bundle.close();
     await rm(directory, { recursive: true, force: true });

@@ -469,9 +469,11 @@ export function createQwikPlugin(
     serverTransformedOutputs.clear();
     testResume?.clear();
     if (usesLinkedBuild()) {
+      const runtimePackage = await _ctx.resolve(`${QWIK_CORE_ID}/package.json`);
       await linkedBuild.buildStart(_ctx, {
         entries: Array.isArray(opts.input) ? opts.input : Object.values(opts.input ?? {}),
         rootDir: opts.rootDir,
+        runtimeDir: runtimePackage?.id.replace(/[\\/]package\.json$/, ''),
         scope: opts.scope || undefined,
         server: getIsServer(_ctx),
         library: opts.target === 'lib',

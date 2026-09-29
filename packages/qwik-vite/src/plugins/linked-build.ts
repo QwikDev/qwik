@@ -47,6 +47,8 @@ function planPath(id: string): string {
 export interface LinkedBuildOptions {
   entries: string[];
   rootDir: string;
+  /** The Qwik runtime's package directory; like node_modules, it is never compiled as app code. */
+  runtimeDir?: string;
   scope?: string;
   server: boolean;
   library: boolean;
@@ -111,6 +113,14 @@ export function createLinkedBuild() {
       await analyseModule({ path, code }, { rootDir: options!.rootDir, scope: options!.scope })
     );
     return path;
+  }
+
+  function isPackaged(id: string): boolean {
+    const runtimeDir = options?.runtimeDir;
+    return (
+      id.includes('/node_modules/') ||
+      (runtimeDir !== undefined && id.startsWith(normalize(runtimeDir).replace(/\/?$/, '/')))
+    );
   }
 
   function unvisitedPlans(visited: ReadonlyMap<string, boolean>): string[] {
@@ -199,7 +209,7 @@ export function createLinkedBuild() {
           await collect(relocate(libraryEntry.module), isRuntime && !edge.typeOnly);
         } else if (
           target.external ||
-          targetId.includes('/node_modules/') ||
+          isPackaged(targetId) ||
           // a \0 module belongs to its plugin, which may itself load linked modules to build it
           targetId.startsWith('\0')
         ) {
@@ -300,7 +310,7 @@ export function createLinkedBuild() {
     if (
       options === undefined ||
       id.startsWith('\0') ||
-      id.includes('/node_modules/') ||
+      isPackaged(id) ||
       // a configured entry is a script whatever a plugin named it
       (!SCRIPT_ID.test(id) && !options.entries.includes(id))
     ) {

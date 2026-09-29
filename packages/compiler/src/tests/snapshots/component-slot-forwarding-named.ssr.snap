@@ -11,7 +11,6 @@ export default () => <Wrapper><h1 q:slot="heading">Hello</h1></Wrapper>;
 
 import {
   renderSsrSlot,
-  maybeThen,
   _markComponent,
   createSlotScope,
   forwardSlot,
@@ -29,8 +28,8 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
 export const Inner = _markComponent(
   (props, ctx) => {
-    const slot0 = renderSsrSlot(ctx, 'title');
-    return maybeThen(slot0, (slot0) => ['<article>', slot0, '</article>']);
+    const slot0 = ctx.observeError(renderSsrSlot(ctx, 'title'));
+    return ['<article>', slot0, '</article>'];
   },
   'Inner_component_4pzhs2ajjr75',
   './component.tsx'
@@ -40,7 +39,9 @@ export const Wrapper = _markComponent(
     const slotScope0 = createSlotScope();
     forwardSlot(slotScope0, 'title', 'heading');
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(Inner, null, ctx, { slotScope: slotScope0 });
+    const component0 = ctx.observeError(
+      createComponent(Inner, null, ctx, { slotScope: slotScope0 })
+    );
     return component0;
   },
   'Wrapper_component_1yrb0pezcavja',
@@ -51,7 +52,9 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const slotScope0 = createSlotScope();
     registerProjection(slotScope0, 'heading', q_component_slot_render_segment_0_3b0tagwys7lui);
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(Wrapper, null, ctx, { slotScope: slotScope0 });
+    const component0 = ctx.observeError(
+      createComponent(Wrapper, null, ctx, { slotScope: slotScope0 })
+    );
     return component0;
   },
   'default_component_3rg6kq1so9aio',

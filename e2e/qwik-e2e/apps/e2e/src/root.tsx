@@ -73,6 +73,8 @@ export const Root = component$<{ pathname: string }>(({ pathname }) => {
       {pathname === '/e2e/treeshaking' && <TreeshakingApp />}
       {pathname === '/e2e/streaming' && <StreamingRoot />}
       {pathname === '/e2e/streaming-flush' && <StreamingFlush />}
+      {pathname === '/e2e/streaming-flush-branch' && <StreamingFlush mode="branch" />}
+      {pathname === '/e2e/streaming-flush-slot' && <StreamingFlush mode="slot" />}
       {pathname === '/e2e/mount' && <MountRoot />}
       {pathname === '/e2e/ref' && <RefRoot />}
       {pathname === '/e2e/signals' && <Signals />}

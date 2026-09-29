@@ -12,7 +12,6 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   renderSsrSlot,
   _noopQrl,
   _markComponent,
@@ -27,7 +26,7 @@ import {
 const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   const [props] = _captures;
   const slotName0 = props.name;
-  const slot0 = renderSsrSlot(ctx, slotName0);
+  const slot0 = ctx.observeError(renderSsrSlot(ctx, slotName0));
   return slot0;
 };
 const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ _noopQrl(
@@ -52,21 +51,17 @@ export const Switch = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();
     ctx.addRoot(props);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.w([props]),
-      false,
-      true
+    const content0 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id0,
+        [],
+        q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.w([props]),
+        false,
+        true
+      )
     );
-    return maybeThen(content0, (content0) => [
-      '<!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d>',
-    ]);
+    return ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>'];
   },
   'Switch_component_1uyn3u3j9umgv',
   './component.tsx'
@@ -79,18 +74,20 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     registerProjection(slotScope0, 'a', q_component_slot_render_segment_1_3b0tauy2p1nv1);
     registerProjection(slotScope0, 'b', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(
-      Switch,
-      _props(
-        {
-          get name() {
-            return readTrackedValue(prop0);
+    const component0 = ctx.observeError(
+      createComponent(
+        Switch,
+        _props(
+          {
+            get name() {
+              return readTrackedValue(prop0);
+            },
           },
-        },
-        { name: prop0 }
-      ),
-      ctx,
-      { slotScope: slotScope0 }
+          { name: prop0 }
+        ),
+        ctx,
+        { slotScope: slotScope0 }
+      )
     );
     return component0;
   },
@@ -107,7 +104,7 @@ import { _captures, renderSsrSlot } from '@qwik.dev/core';
 export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   const [props] = _captures;
   const slotName0 = props.name;
-  const slot0 = renderSsrSlot(ctx, slotName0);
+  const slot0 = ctx.observeError(renderSsrSlot(ctx, slotName0));
   return slot0;
 };
 /*

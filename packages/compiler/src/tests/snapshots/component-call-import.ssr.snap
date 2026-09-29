@@ -12,12 +12,12 @@ export const Child = () => <strong>child</strong>;
 ============================= src/app.tsx ==
 
 import { Child as RenamedChild } from './child';
-import { createComponent, maybeThen, _markComponent } from '@qwik.dev/core';
+import { createComponent, _markComponent } from '@qwik.dev/core';
 
 export const default_component_31wgqjs4jy6fg = _markComponent(
   (props, ctx) => {
-    const component0 = createComponent(RenamedChild, null, ctx);
-    return maybeThen(component0, (component0) => ['<main>', component0, '</main>']);
+    const component0 = ctx.observeError(createComponent(RenamedChild, null, ctx));
+    return ['<main>', component0, '</main>'];
   },
   'default_component_31wgqjs4jy6fg',
   './app.tsx'

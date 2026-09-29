@@ -6,22 +6,35 @@ import {
   isSsrRecordChunk,
   isSsrEventAttrChunk,
   type SsrOutput,
+  type SsrResolvedOutput,
   type SsrRecordChunk,
   type SsrReferenceChunk,
 } from './output';
 
 /** Writes structured SSR output to one sink in document order. */
 export class SsrOutputWriter {
-  constructor(private readonly sink: Pick<StreamWriter, 'write'>) {}
+  constructor(
+    private readonly sink: Pick<StreamWriter, 'write'>,
+    private readonly writeResolved?: (output: SsrResolvedOutput) => ValueOrPromise<void>
+  ) {}
 
   finish(output: SsrOutput): ValueOrPromise<void> {
-    return writeOutput(this.sink, output);
+    return writeOutput(this.sink, output, this.writeResolved);
   }
 }
 
-function writeOutput(sink: Pick<StreamWriter, 'write'>, output: SsrOutput): ValueOrPromise<void> {
+function writeOutput(
+  sink: Pick<StreamWriter, 'write'>,
+  output: SsrOutput,
+  writeResolved?: (output: SsrResolvedOutput) => ValueOrPromise<void>
+): ValueOrPromise<void> {
+  if (isPromise(output)) {
+    return output.then((resolved) =>
+      writeResolved ? writeResolved(resolved) : writeOutput(sink, resolved)
+    );
+  }
   if (Array.isArray(output)) {
-    return writeArray(sink, output, 0);
+    return writeArray(sink, output, 0, writeResolved);
   }
   const html =
     typeof output === 'string'
@@ -35,12 +48,13 @@ function writeOutput(sink: Pick<StreamWriter, 'write'>, output: SsrOutput): Valu
 function writeArray(
   sink: Pick<StreamWriter, 'write'>,
   output: readonly SsrOutput[],
-  start: number
+  start: number,
+  writeResolved?: (output: SsrResolvedOutput) => ValueOrPromise<void>
 ): ValueOrPromise<void> {
   for (let i = start; i < output.length; i++) {
-    const result = writeOutput(sink, output[i]);
+    const result = writeOutput(sink, output[i], writeResolved);
     if (isPromise(result)) {
-      return Promise.resolve(result).then(() => writeArray(sink, output, i + 1));
+      return Promise.resolve(result).then(() => writeArray(sink, output, i + 1, writeResolved));
     }
   }
 }

@@ -16,7 +16,6 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   renderSsrDynamicContent,
   _noopQrl,
   _markComponent,
@@ -36,33 +35,25 @@ export const AsyncCmp = _markComponent(
     const value = (await _await(load(props.id)))();
     const id0 = ctx.nextId();
     ctx.addRoot(value);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_text_segment_0_1fh10fbkzokfc.w([value]),
-      false,
-      true
+    const content0 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id0,
+        [],
+        q_component_text_segment_0_1fh10fbkzokfc.w([value]),
+        false,
+        true
+      )
     );
-    return maybeThen(content0, (content0) => [
-      '<span id="async-result"><!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d></span>',
-    ]);
+    return ['<span id="async-result"><!d=', createSsrNodeId(id0), '>', content0, '<!/d></span>'];
   },
   'AsyncCmp_component_gw3thccjtr8j',
   './component.tsx'
 );
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
-    const component0 = createComponent(AsyncCmp, { id: 'a' }, ctx);
-    return maybeThen(component0, (component0) => [
-      '<div><h1 id="prefix">Prefix</h1>',
-      component0,
-      '</div>',
-    ]);
+    const component0 = ctx.observeError(createComponent(AsyncCmp, { id: 'a' }, ctx));
+    return ['<div><h1 id="prefix">Prefix</h1>', component0, '</div>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

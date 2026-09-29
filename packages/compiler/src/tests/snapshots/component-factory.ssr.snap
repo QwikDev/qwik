@@ -26,7 +26,6 @@ import {
   readTrackedValue,
   renderSsrDynamicTag,
   createComponent,
-  maybeThen,
   _captures,
   _noopQrl,
   _markComponent,
@@ -35,12 +34,14 @@ export function factory(Component) {
   return (props0, ctx) => {
     const prop0 = computedProp(q_component_props_segment_0_208o16glymg7p.w([props0]));
     ctx.addRoot(prop0);
-    const component0 = createComponent(
-      (props0) => renderSsrDynamicTag(Component, props0, ctx),
-      readTrackedValue(prop0),
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        (props0) => renderSsrDynamicTag(Component, props0, ctx),
+        readTrackedValue(prop0),
+        ctx
+      )
     );
-    return maybeThen(component0, (component0) => ['<div class="wrapped">', component0, '</div>']);
+    return ['<div class="wrapped">', component0, '</div>'];
   };
 }
 export const Plain = _markComponent(
@@ -53,12 +54,10 @@ export const Plain = _markComponent(
 export const Wrapped = factory(Plain);
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
-    const component0 = createComponent(
-      (props0) => renderSsrDynamicTag(Wrapped, props0, ctx),
-      { label: 'x' },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent((props0) => renderSsrDynamicTag(Wrapped, props0, ctx), { label: 'x' }, ctx)
     );
-    return maybeThen(component0, (component0) => ['<main>', component0, '</main>']);
+    return ['<main>', component0, '</main>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

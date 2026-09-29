@@ -6,7 +6,7 @@ export default (props) => { return <><Child /><b>tail</b></>; };
 
 ============================= src/component.tsx ==
 
-import { _markComponent, createComponent, maybeThen } from '@qwik.dev/core';
+import { _markComponent, createComponent } from '@qwik.dev/core';
 
 const Child = _markComponent(
   (props0, ctx) => {
@@ -17,8 +17,8 @@ const Child = _markComponent(
 );
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
-    const component0 = createComponent(Child, null, ctx);
-    return maybeThen(component0, (component0) => [component0, '<b>tail</b>']);
+    const component0 = ctx.observeError(createComponent(Child, null, ctx));
+    return [component0, '<b>tail</b>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

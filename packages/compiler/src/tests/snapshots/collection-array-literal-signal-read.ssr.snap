@@ -16,10 +16,10 @@ import {
   _wrapArray,
   renderSsrCollection,
   createSsrNodeId,
-  maybeThen,
   _noopQrl,
   escapeHTML,
   renderSsrTextExpression,
+  maybeThen,
   _markComponent,
 } from '@qwik.dev/core';
 const component_collection_source_segment_0_21yfn4vi2lwwj = () => {
@@ -68,23 +68,19 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     );
     const collectionId0 = ctx.nextId();
     ctx.addRoot(collectionSource0);
-    const collection0 = renderSsrCollection(
-      ctx,
-      collectionId0,
-      collectionSource0,
-      undefined,
-      q_component_for_render_segment_1_asysu8t2u0ck,
-      0,
-      false,
-      0
+    const collection0 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        collectionId0,
+        collectionSource0,
+        undefined,
+        q_component_for_render_segment_1_asysu8t2u0ck,
+        0,
+        false,
+        0
+      )
     );
-    return maybeThen(collection0, (collection0) => [
-      '<ul><!f=',
-      createSsrNodeId(collectionId0),
-      '>',
-      collection0,
-      '<!/f></ul>',
-    ]);
+    return ['<ul><!f=', createSsrNodeId(collectionId0), '>', collection0, '<!/f></ul>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

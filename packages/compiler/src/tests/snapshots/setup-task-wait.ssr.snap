@@ -56,18 +56,16 @@ export const default_component_3rg6kq1so9aio = _markComponent(
         const id0 = ctx.nextId();
         ctx.addRoot(ready);
         const text0 = renderSsrTextNode(id0, null, ready);
-        const component0 = createComponent(Child, null, ctx);
-        return maybeThen(text0, (text0) =>
-          maybeThen(component0, (component0) => [
-            '<section><span q:id="',
-            createSsrNodeId(id0),
-            '">',
-            escapeHTML(text0),
-            '</span>',
-            component0,
-            '</section>',
-          ])
-        );
+        const component0 = ctx.observeError(createComponent(Child, null, ctx));
+        return maybeThen(text0, (text0) => [
+          '<section><span q:id="',
+          createSsrNodeId(id0),
+          '">',
+          escapeHTML(text0),
+          '</span>',
+          component0,
+          '</section>',
+        ]);
       })
     );
   },

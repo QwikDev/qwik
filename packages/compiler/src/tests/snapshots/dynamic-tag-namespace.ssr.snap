@@ -13,7 +13,6 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   renderSsrDynamicTag,
   createComponent,
   _noopQrl,
@@ -23,10 +22,8 @@ import {
 const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   const [props] = _captures;
   const tag0 = props.shape;
-  const component0 = createComponent(
-    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
-    { r: '1' },
-    ctx
+  const component0 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), { r: '1' }, ctx)
   );
   return component0;
 };
@@ -38,21 +35,17 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();
     ctx.addRoot(props);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_tag_dynamic_segment_0_331xea01t87eh.w([props]),
-      false,
-      true
+    const content0 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id0,
+        [],
+        q_component_tag_dynamic_segment_0_331xea01t87eh.w([props]),
+        false,
+        true
+      )
     );
-    return maybeThen(content0, (content0) => [
-      '<svg viewBox="0 0 10 10"><!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d></svg>',
-    ]);
+    return ['<svg viewBox="0 0 10 10"><!d=', createSsrNodeId(id0), '>', content0, '<!/d></svg>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'
@@ -65,10 +58,8 @@ import { _captures, renderSsrDynamicTag, createComponent } from '@qwik.dev/core'
 export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   const [props] = _captures;
   const tag0 = props.shape;
-  const component0 = createComponent(
-    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
-    { r: '1' },
-    ctx
+  const component0 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), { r: '1' }, ctx)
   );
   return component0;
 };

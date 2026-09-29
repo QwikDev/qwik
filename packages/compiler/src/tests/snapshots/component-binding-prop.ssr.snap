@@ -45,7 +45,7 @@ q_component_branch_condition_segment_1_2fzri0t2yrfeq.s(
 );
 const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   const [count, label] = _captures;
-  const component0 = createComponent(Child, { count: count, label: label }, ctx);
+  const component0 = ctx.observeError(createComponent(Child, { count: count, label: label }, ctx));
   return component0;
 };
 const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
@@ -83,20 +83,16 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     ctx.addRoot(show);
     ctx.addRoot(count);
     ctx.addRoot(label);
-    const branch0 = renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_1_2fzri0t2yrfeq.w([show]),
-      q_component_branch_then_segment_2_24n7b7xmnzb3n.w([count, label]),
-      undefined
+    const branch0 = ctx.observeError(
+      renderSsrBranch(
+        ctx,
+        branchId0,
+        q_component_branch_condition_segment_1_2fzri0t2yrfeq.w([show]),
+        q_component_branch_then_segment_2_24n7b7xmnzb3n.w([count, label]),
+        undefined
+      )
     );
-    return maybeThen(branch0, (branch0) => [
-      '<div><!b=',
-      createSsrNodeId(branchId0),
-      '>',
-      branch0,
-      '<!/b></div>',
-    ]);
+    return ['<div><!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b></div>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'
@@ -170,7 +166,7 @@ import { Child } from './component.tsx';
 
 export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
   const [count, label] = _captures;
-  const component0 = createComponent(Child, { count: count, label: label }, ctx);
+  const component0 = ctx.observeError(createComponent(Child, { count: count, label: label }, ctx));
   return component0;
 };
 /*

@@ -1,4 +1,6 @@
+import { isPromise, maybeThen } from '../shared/utils/promises';
 import { isDev } from '@qwik.dev/core/build';
+import type { ValueOrPromise } from '../shared/utils/types';
 import type { UseOnEvent, UseOnMap } from '../runtime/use-on';
 import { EventNameHtmlScope, getEventDataFromHtmlAttribute } from '../shared/utils/event-names';
 import {
@@ -15,11 +17,17 @@ export function applyUseOnToSsrOutput(
   useOnEvents: UseOnMap,
   eventAttr: (name: string, value: unknown) => SsrEventAttrChunk
 ): SsrOutput {
-  const applied = applyToFirstElement(output, useOnEvents, eventAttr);
-  if (applied.found) {
-    return applied.output;
-  }
+  const result = maybeThen(applyToFirstElement(output, useOnEvents, eventAttr), (applied) =>
+    applied.found ? applied.output : appendCarrier(output, useOnEvents, eventAttr)
+  );
+  return isPromise(result) ? Promise.resolve(result) : result;
+}
 
+function appendCarrier(
+  output: SsrOutput,
+  useOnEvents: UseOnMap,
+  eventAttr: (name: string, value: unknown) => SsrEventAttrChunk
+): SsrOutput {
   const parts: SsrRecordPart[] = ['<script hidden', '>'];
   let hasCarrier = false;
   for (const key in useOnEvents) {
@@ -52,17 +60,29 @@ function applyToFirstElement(
   output: SsrOutput,
   useOnEvents: UseOnMap,
   eventAttr: (name: string, value: unknown) => SsrEventAttrChunk
-): { output: SsrOutput; found: boolean } {
+): ValueOrPromise<{ output: SsrOutput; found: boolean }> {
+  if (isPromise(output)) {
+    return output.then((resolved) => applyToFirstElement(resolved, useOnEvents, eventAttr));
+  }
   if (Array.isArray(output)) {
-    for (let i = 0; i < output.length; i++) {
-      const child = applyToFirstElement(output[i], useOnEvents, eventAttr);
-      if (child.found) {
-        const children = output.slice();
-        children[i] = child.output;
-        return { output: children, found: true };
+    const replace = (i: number, child: { output: SsrOutput; found: boolean }) => {
+      const children = output.slice();
+      children[i] = child.output;
+      return { output: children, found: true };
+    };
+    const scan = (start: number): ValueOrPromise<{ output: SsrOutput; found: boolean }> => {
+      for (let i = start; i < output.length; i++) {
+        const child = applyToFirstElement(output[i], useOnEvents, eventAttr);
+        if (isPromise(child)) {
+          return child.then((child) => (child.found ? replace(i, child) : scan(i + 1)));
+        }
+        if (child.found) {
+          return replace(i, child);
+        }
       }
-    }
-    return { output, found: false };
+      return { output, found: false };
+    };
+    return scan(0);
   }
   if (!isSsrRecordChunk(output) || !output.openTag) {
     return { output, found: false };

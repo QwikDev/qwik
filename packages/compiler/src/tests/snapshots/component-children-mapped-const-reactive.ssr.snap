@@ -18,7 +18,6 @@ export default () => {
 
 import {
   renderSsrSlot,
-  maybeThen,
   _markComponent,
   useSignal,
   createSlotScope,
@@ -32,23 +31,26 @@ import {
   renderSsrAttrExpression,
   escapeHTML,
   renderSsrTextExpression,
+  maybeThen,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   const [items, suffix] = _captures;
   const collectionId0 = ctx.nextId();
   ctx.addRoot(items);
   ctx.addRoot(suffix);
-  const collection0 = renderSsrCollection(
-    ctx,
-    collectionId0,
-    items,
-    undefined,
-    q_component_for_render_segment_1_asysu8t2u0ck.w([suffix]),
-    1,
-    true,
-    3
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      collectionId0,
+      items,
+      undefined,
+      q_component_for_render_segment_1_asysu8t2u0ck.w([suffix]),
+      1,
+      true,
+      3
+    )
   );
-  return maybeThen(collection0, (collection0) => [
+  return [
     '<!s=',
     createSsrNodeId(__rangeId),
     '><!f=',
@@ -56,7 +58,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     '>',
     collection0,
     '<!/f><!/s>',
-  ]);
+  ];
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -71,14 +73,16 @@ const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, it
   ctx.addRoot(visible);
   ctx.addRoot(numbered);
   ctx.addRoot(label);
-  const branch0 = renderSsrBranch(
-    ctx,
-    branchId0,
-    q_component_branch_condition_segment_2_2fzrhmrz1xde7.w([visible]),
-    q_component_branch_then_segment_3_24n7atwir5934.w([numbered, label]),
-    undefined
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_2_2fzrhmrz1xde7.w([visible]),
+      q_component_branch_then_segment_3_24n7atwir5934.w([numbered, label]),
+      undefined
+    )
   );
-  return maybeThen(branch0, (branch0) => [
+  return [
     '<!r=',
     createSsrNodeId(__rowId),
     '><!b=',
@@ -86,7 +90,7 @@ const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, it
     '>',
     branch0,
     '<!/b><!/r>',
-  ]);
+  ];
 };
 const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_1_asysu8t2u0ck'
@@ -167,8 +171,8 @@ const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_7_1fh135jcdiyj1.s(component_text_segment_7_1fh135jcdiyj1);
 export const Panel = _markComponent(
   (props, ctx) => {
-    const slot0 = renderSsrSlot(ctx, 'header');
-    return maybeThen(slot0, (slot0) => ['<main>', slot0, '</main>']);
+    const slot0 = ctx.observeError(renderSsrSlot(ctx, 'header'));
+    return ['<main>', slot0, '</main>'];
   },
   'Panel_component_5q1hs6sb6j5z',
   './component.tsx'
@@ -184,7 +188,9 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       q_component_slot_render_segment_0_3b0tagwys7lui.w([items, suffix])
     );
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
+    const component0 = ctx.observeError(
+      createComponent(Panel, null, ctx, { slotScope: slotScope0 })
+    );
     return component0;
   },
   'default_component_3rg6kq1so9aio',
@@ -195,13 +201,7 @@ export default default_component_3rg6kq1so9aio;
 export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import {
-  _noopQrl,
-  _captures,
-  createSsrNodeId,
-  renderSsrCollection,
-  maybeThen,
-} from '@qwik.dev/core';
+import { _noopQrl, _captures, createSsrNodeId, renderSsrCollection } from '@qwik.dev/core';
 import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
 const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_1_asysu8t2u0ck'
@@ -213,17 +213,19 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   const collectionId0 = ctx.nextId();
   ctx.addRoot(items);
   ctx.addRoot(suffix);
-  const collection0 = renderSsrCollection(
-    ctx,
-    collectionId0,
-    items,
-    undefined,
-    q_component_for_render_segment_1_asysu8t2u0ck.w([suffix]),
-    1,
-    true,
-    3
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      collectionId0,
+      items,
+      undefined,
+      q_component_for_render_segment_1_asysu8t2u0ck.w([suffix]),
+      1,
+      true,
+      3
+    )
   );
-  return maybeThen(collection0, (collection0) => [
+  return [
     '<!s=',
     createSsrNodeId(__rangeId),
     '><!f=',
@@ -231,7 +233,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     '>',
     collection0,
     '<!/f><!/s>',
-  ]);
+  ];
 };
 /*
 {
@@ -259,7 +261,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_for_render_segment_1_asysu8t2u0ck.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch, maybeThen } from '@qwik.dev/core';
+import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch } from '@qwik.dev/core';
 import { component_branch_condition_segment_2_2fzrhmrz1xde7 } from './component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7';
 import { component_branch_then_segment_3_24n7atwir5934 } from './component.tsx_component_branch_then_segment_3_24n7atwir5934';
 const q_component_branch_condition_segment_2_2fzrhmrz1xde7 = /*#__PURE__*/ _noopQrl(
@@ -288,14 +290,16 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
   ctx.addRoot(visible);
   ctx.addRoot(numbered);
   ctx.addRoot(label);
-  const branch0 = renderSsrBranch(
-    ctx,
-    branchId0,
-    q_component_branch_condition_segment_2_2fzrhmrz1xde7.w([visible]),
-    q_component_branch_then_segment_3_24n7atwir5934.w([numbered, label]),
-    undefined
+  const branch0 = ctx.observeError(
+    renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_2_2fzrhmrz1xde7.w([visible]),
+      q_component_branch_then_segment_3_24n7atwir5934.w([numbered, label]),
+      undefined
+    )
   );
-  return maybeThen(branch0, (branch0) => [
+  return [
     '<!r=',
     createSsrNodeId(__rowId),
     '><!b=',
@@ -303,7 +307,7 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
     '>',
     branch0,
     '<!/b><!/r>',
-  ]);
+  ];
 };
 /*
 {

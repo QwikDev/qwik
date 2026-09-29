@@ -12,7 +12,7 @@ export default function (opts) {
 import { createComponent, _noopQrl } from '@qwik.dev/core';
 
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const component0 = createComponent(Root, null, ctx);
+  const component0 = ctx.observeError(createComponent(Root, null, ctx));
   return component0;
 };
 const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
@@ -30,7 +30,7 @@ import { createComponent } from '@qwik.dev/core';
 import Root from './root';
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const component0 = createComponent(Root, null, ctx);
+  const component0 = ctx.observeError(createComponent(Root, null, ctx));
   return component0;
 };
 /*

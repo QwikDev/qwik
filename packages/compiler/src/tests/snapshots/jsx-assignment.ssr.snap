@@ -15,7 +15,6 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   _noopQrl,
   renderSsrDynamicContent,
   _markComponent,
@@ -51,37 +50,39 @@ export default function App(props, ctx) {
   const alias = content;
   const id0 = ctx.nextId();
   ctx.addRoot(content);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_content_segment_1_185248kf949cp.w([content]),
-    false,
-    true
+  const content0 = ctx.observeError(
+    renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_content_segment_1_185248kf949cp.w([content]),
+      false,
+      true
+    )
   );
   const id1 = ctx.nextId();
   ctx.addRoot(alias);
-  const content1 = renderSsrContent(
-    ctx,
-    id1,
-    [],
-    q_component_content_segment_2_185232h3im3b4.w([alias]),
-    false,
-    true
+  const content1 = ctx.observeError(
+    renderSsrContent(
+      ctx,
+      id1,
+      [],
+      q_component_content_segment_2_185232h3im3b4.w([alias]),
+      false,
+      true
+    )
   );
-  return maybeThen(content0, (content0) =>
-    maybeThen(content1, (content1) => [
-      '<main><!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d><!d=',
-      createSsrNodeId(id1),
-      '>',
-      content1,
-      '<!/d></main>',
-    ])
-  );
+  return [
+    '<main><!d=',
+    createSsrNodeId(id0),
+    '>',
+    content0,
+    '<!/d><!d=',
+    createSsrNodeId(id1),
+    '>',
+    content1,
+    '<!/d></main>',
+  ];
 }
 _markComponent(App, 'default_component_3rg6kq1so9aio', './component.tsx');
 

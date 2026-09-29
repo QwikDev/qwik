@@ -109,12 +109,12 @@ import {
   createComponent,
   createPropsProxy,
   useComputedQrl,
-  maybeThen,
   _captures,
   _noopQrl,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
+  maybeThen,
   _markComponent,
 } from '@qwik.dev/core';
 import { Display } from './display';
@@ -122,20 +122,18 @@ export default function App(props, ctx) {
   const count = useSignal(0);
   const options = useSignal({ title: 'title' });
   ctx.addRoot(count);
-  const component0 = createComponent(
-    Display,
-    { render: q_component_render_segment_3_1kxav1tcxzeqy.w([count]) },
-    ctx
+  const component0 = ctx.observeError(
+    createComponent(Display, { render: q_component_render_segment_3_1kxav1tcxzeqy.w([count]) }, ctx)
   );
   ctx.addRoot(options);
-  const component1 = createComponent(
-    Display,
-    createPropsProxy(useComputedQrl(q_component_props_segment_7_208nyg8uks240.w([options]))),
-    ctx
+  const component1 = ctx.observeError(
+    createComponent(
+      Display,
+      createPropsProxy(useComputedQrl(q_component_props_segment_7_208nyg8uks240.w([options]))),
+      ctx
+    )
   );
-  return maybeThen(component0, (component0) =>
-    maybeThen(component1, (component1) => ['<main>', component0, component1, '</main>'])
-  );
+  return ['<main>', component0, component1, '</main>'];
 }
 _markComponent(App, 'default_component_3rg6kq1so9aio', './component.tsx');
 

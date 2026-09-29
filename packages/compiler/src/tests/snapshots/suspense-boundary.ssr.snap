@@ -20,17 +20,17 @@ import {
   useSignal,
   _captures,
   createSsrSuspense,
-  maybeThen,
   createComponent,
   _noopQrl,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
+  maybeThen,
   _markComponent,
 } from '@qwik.dev/core';
 import { Slow } from './slow';
 const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
-  const component0 = createComponent(Slow, { id: 'one' }, ctx);
+  const component0 = ctx.observeError(createComponent(Slow, { id: 'one' }, ctx));
   return component0;
 };
 const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
@@ -63,14 +63,16 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const label = useSignal('Loading');
     const id0 = ctx.nextId();
     ctx.addRoot(label);
-    const content0 = createSsrSuspense(
-      ctx,
-      id0,
-      q_component_suspense_content_segment_1_oznzhxo2l2hq,
-      q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.w([label]),
-      50
+    const content0 = ctx.observeError(
+      createSsrSuspense(
+        ctx,
+        id0,
+        q_component_suspense_content_segment_1_oznzhxo2l2hq,
+        q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.w([label]),
+        50
+      )
     );
-    return maybeThen(content0, (content0) => ['<section>', content0, '</section>']);
+    return ['<section>', content0, '</section>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'
@@ -128,7 +130,7 @@ import { createComponent } from '@qwik.dev/core';
 import { Slow } from './slow';
 
 export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
-  const component0 = createComponent(Slow, { id: 'one' }, ctx);
+  const component0 = ctx.observeError(createComponent(Slow, { id: 'one' }, ctx));
   return component0;
 };
 /*

@@ -23,15 +23,17 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const count = useSignal(0);
     ctx.addRoot(count);
-    const component0 = createComponent(
-      Button,
-      {
-        onClick$: [
-          q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count]),
-          q_component_q_e_click_segment_1_2xwyfnber1kpg,
-        ],
-      },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        Button,
+        {
+          onClick$: [
+            q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count]),
+            q_component_q_e_click_segment_1_2xwyfnber1kpg,
+          ],
+        },
+        ctx
+      )
     );
     return component0;
   },

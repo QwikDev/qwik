@@ -15,7 +15,6 @@ export default () => {
 
 import {
   renderSsrSlot,
-  maybeThen,
   _markComponent,
   useSignal,
   createSlotScope,
@@ -28,6 +27,7 @@ import {
   renderSsrContent,
   escapeHTML,
   renderSsrTextExpression,
+  maybeThen,
   renderSsrDynamicContent,
 } from '@qwik.dev/core';
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
@@ -48,15 +48,17 @@ const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
   const [stored] = _captures;
   const id0 = ctx.nextId();
   ctx.addRoot(stored);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_content_segment_3_18523gi7fg5bn.w([stored]),
-    false,
-    true
+  const content0 = ctx.observeError(
+    renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_content_segment_3_18523gi7fg5bn.w([stored]),
+      false,
+      true
+    )
   );
-  return maybeThen(content0, (content0) => [
+  return [
     '<!s=',
     createSsrNodeId(__rangeId),
     '><!d=',
@@ -64,7 +66,7 @@ const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
     '>',
     content0,
     '<!/d><!/s>',
-  ]);
+  ];
 };
 const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
@@ -112,11 +114,9 @@ const q_component_text_segment_6_1fh12ri8gowii = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_6_1fh12ri8gowii.s(component_text_segment_6_1fh12ri8gowii);
 const Frame = _markComponent(
   (props, ctx) => {
-    const slot0 = renderSsrSlot(ctx, 'title');
-    const slot1 = renderSsrSlot(ctx);
-    return maybeThen(slot0, (slot0) =>
-      maybeThen(slot1, (slot1) => ['<article>', slot0, slot1, '</article>'])
-    );
+    const slot0 = ctx.observeError(renderSsrSlot(ctx, 'title'));
+    const slot1 = ctx.observeError(renderSsrSlot(ctx));
+    return ['<article>', slot0, slot1, '</article>'];
   },
   'Frame_component_3fvtje3o9mga4',
   './component.tsx'
@@ -129,29 +129,31 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     registerProjection(slotScope0, 'title', q_component_slot_render_segment_1_3b0tauy2p1nv1);
     registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([stored]));
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(Frame, null, ctx, { slotScope: slotScope0 });
+    const component0 = ctx.observeError(
+      createComponent(Frame, null, ctx, { slotScope: slotScope0 })
+    );
     const collectionId0 = ctx.nextId();
     ctx.addRoot(rows);
-    const collection0 = renderSsrCollection(
-      ctx,
-      collectionId0,
-      rows,
-      q_component_for_key_segment_5_24urtuokkbxzj,
-      q_component_for_render_segment_4_asyro5hcbuaz,
-      0,
-      true,
-      2
+    const collection0 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        collectionId0,
+        rows,
+        q_component_for_key_segment_5_24urtuokkbxzj,
+        q_component_for_render_segment_4_asyro5hcbuaz,
+        0,
+        true,
+        2
+      )
     );
-    return maybeThen(component0, (component0) =>
-      maybeThen(collection0, (collection0) => [
-        component0,
-        '<section><!f=',
-        createSsrNodeId(collectionId0),
-        '>',
-        collection0,
-        '<!/f></section>',
-      ])
-    );
+    return [
+      component0,
+      '<section><!f=',
+      createSsrNodeId(collectionId0),
+      '>',
+      collection0,
+      '<!/f></section>',
+    ];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'
@@ -215,7 +217,7 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, createSsrNodeId, renderSsrContent, maybeThen } from '@qwik.dev/core';
+import { _noopQrl, _captures, createSsrNodeId, renderSsrContent } from '@qwik.dev/core';
 import { component_content_segment_3_18523gi7fg5bn } from './component.tsx_component_content_segment_3_18523gi7fg5bn';
 const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ _noopQrl(
   'component_content_segment_3_18523gi7fg5bn'
@@ -226,15 +228,17 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
   const [stored] = _captures;
   const id0 = ctx.nextId();
   ctx.addRoot(stored);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_content_segment_3_18523gi7fg5bn.w([stored]),
-    false,
-    true
+  const content0 = ctx.observeError(
+    renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_content_segment_3_18523gi7fg5bn.w([stored]),
+      false,
+      true
+    )
   );
-  return maybeThen(content0, (content0) => [
+  return [
     '<!s=',
     createSsrNodeId(__rangeId),
     '><!d=',
@@ -242,7 +246,7 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
     '>',
     content0,
     '<!/d><!/s>',
-  ]);
+  ];
 };
 /*
 {

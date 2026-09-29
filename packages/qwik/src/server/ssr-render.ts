@@ -83,6 +83,7 @@ export interface SsrRenderContext extends ServerDataContext {
   ): (string | SsrReferenceChunk)[];
   /** Registers a compiler-emitted sync handler; returns its table script the first time. */
   syncFn(key: string, source: string): string;
+  observeError(output: ValueOrPromise<SsrOutput>): SsrOutput;
   wrapRange(rangeId: number, content: SsrOutput): SsrOutput;
   createRangeScope(rangeId: number): SsrRenderContext;
   flush(): ValueOrPromise<void>;
@@ -234,6 +235,15 @@ export const renderToStreamCompiled = async <Props = undefined>(
     };
     const ctx: SsrRenderContext = {
       serializationCtx,
+      observeError(output) {
+        // Observe eager children immediately; the writer still propagates their error in order.
+        if (!isPromise(output)) {
+          return output;
+        }
+        const pending = Promise.resolve(output);
+        pending.catch(() => {});
+        return pending;
+      },
       scheduler: rootLane,
       styleIds,
       serverData: opts.serverData,
@@ -298,32 +308,38 @@ export const renderToStreamCompiled = async <Props = undefined>(
     } satisfies SsrRenderContext;
     rootInvokeContext.container = ctx as any;
 
-    let output = await (locale
+    let output: SsrOutput = await (locale
       ? withLocale(locale, () => invoke(rootInvokeContext, root, opts.props as Props, ctx))
       : invoke(rootInvokeContext, root, opts.props as Props, ctx));
     if (rootInvokeContext.useOnEvents !== undefined) {
-      output = applyUseOnToSsrOutput(output, rootInvokeContext.useOnEvents, ctx.eventAttr);
+      output = await applyUseOnToSsrOutput(output, rootInvokeContext.useOnEvents, ctx.eventAttr);
     }
     if (containerTagName === 'html') {
+      if (!hasDocumentSections(output)) {
+        output = await resolveDocumentStart(output);
+      }
       output = relocateHeadlessCarriers(output);
     }
     const styledOutput = injectStyles(output, styleIds);
-    const emittedStyles = deferred === undefined ? undefined : new Set(styleIds.keys());
+    const emittedStyles = new Set(styleIds.keys());
     const [containerOpen, containerClose] = createContainerTags(
       containerTagName,
       containerAttributes,
       styledOutput
     );
-    const hasDeferred = deferred !== undefined;
+    let hasDeferred = deferred !== undefined;
     let size = 0;
-    const writer = new SsrOutputWriter({
-      write(chunk) {
-        throwDeferredError(hasDeferredError, deferredError);
-        scheduler.throwIfFailed();
-        size += chunk.length;
-        return opts.stream.write(chunk);
+    const writer = new SsrOutputWriter(
+      {
+        write(chunk) {
+          throwDeferredError(hasDeferredError, deferredError);
+          scheduler.throwIfFailed();
+          size += chunk.length;
+          return opts.stream.write(chunk);
+        },
       },
-    });
+      (resolved) => flush([emitNewStyles(styleIds, emittedStyles), resolved])
+    );
     const findBlockedLane = (lane: SsrLane): number | null => {
       const blocked = blockedLanes;
       if (blocked === undefined) {
@@ -413,6 +429,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
     // the container opens first so any table entry lands inside it, before the element
     await writer.finish(containerOpen);
     await flush(styledOutput);
+    hasDeferred = deferred !== undefined;
     throwIfFailed();
 
     if (hasDeferred) {
@@ -683,6 +700,39 @@ function createContainerAttributes(
   return containerAttributes;
 }
 
+/** Resolve only the leading markup needed to distinguish a document from a body fragment. */
+async function resolveDocumentStart(output: SsrOutput): Promise<SsrOutput> {
+  const resolved = await output;
+  if (!Array.isArray(resolved) || isHeadlessCarrierOutput(resolved)) {
+    return resolved;
+  }
+  let children: SsrOutput[] | null = null;
+  for (let i = 0; i < resolved.length; i++) {
+    const child = await resolveDocumentStart(resolved[i]);
+    if (child !== resolved[i]) {
+      children ??= resolved.slice();
+      children[i] = child;
+    }
+    if (hasInitialMarkup(child)) {
+      break;
+    }
+  }
+  return children ?? resolved;
+}
+
+function hasInitialMarkup(output: SsrOutput): boolean {
+  if (isHeadlessCarrierOutput(output)) {
+    return false;
+  }
+  if (typeof output === 'string') {
+    return output.replace(/<![^>]*>/g, '').trim() !== '';
+  }
+  if (Array.isArray(output)) {
+    return output.some(hasInitialMarkup);
+  }
+  return isSsrRecordChunk(output) && (output.openTag || hasOutputPattern(output, /<[a-z]/i));
+}
+
 function createContainerTags(
   tagName: string,
   attrs: Record<string, string>,
@@ -716,7 +766,7 @@ function relocateHeadlessCarriers(output: SsrOutput): SsrOutput {
     : ['<head>', carriers, '</head><body>', withoutCarriers, '</body>'];
 }
 
-function isHeadlessCarrierOutput(output: SsrOutput): output is readonly SsrOutput[] {
+function isHeadlessCarrierOutput(output: SsrOutput): boolean {
   return (
     Array.isArray(output) &&
     output.length === 2 &&

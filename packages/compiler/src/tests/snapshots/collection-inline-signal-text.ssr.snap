@@ -48,17 +48,19 @@ export const default_component_3rg6kq1so9aio = _markComponent(
         '</li>',
       ]);
     }
-    const collection0 = renderSsrCollection(
-      ctx,
-      undefined,
-      ['a', 'b'],
-      undefined,
-      semantic_collectionRender_109_164_1vj5zgtfkxhpd,
-      0,
-      false,
-      0
+    const collection0 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        undefined,
+        ['a', 'b'],
+        undefined,
+        semantic_collectionRender_109_164_1vj5zgtfkxhpd,
+        0,
+        false,
+        0
+      )
     );
-    return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
+    return ['<ul>', collection0, '</ul>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

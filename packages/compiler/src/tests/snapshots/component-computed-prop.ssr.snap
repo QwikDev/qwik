@@ -57,17 +57,19 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const count = useSignal(2);
     const prop0 = computedProp(q_component_total_segment_0_33cbacdkct5tt.w([count]));
     ctx.addRoot(prop0);
-    const component0 = createComponent(
-      Child,
-      _props(
-        {
-          get total() {
-            return readTrackedValue(prop0);
+    const component0 = ctx.observeError(
+      createComponent(
+        Child,
+        _props(
+          {
+            get total() {
+              return readTrackedValue(prop0);
+            },
           },
-        },
-        { total: prop0 }
-      ),
-      ctx
+          { total: prop0 }
+        ),
+        ctx
+      )
     );
     return component0;
   },

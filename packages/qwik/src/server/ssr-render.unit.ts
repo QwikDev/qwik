@@ -55,6 +55,159 @@ describe('SSR context markers', () => {
     );
   });
 
+  test('streams the prefix before async children and keeps their document order', async () => {
+    let resolveFirst!: (output: string) => void;
+    let resolveSecond!: (output: string) => void;
+    let prefixWritten!: () => void;
+    const first = new Promise<string>((resolve) => (resolveFirst = resolve));
+    const second = new Promise<string>((resolve) => (resolveSecond = resolve));
+    const prefix = new Promise<void>((resolve) => (prefixWritten = resolve));
+    const chunks: string[] = [];
+    const rendering = renderToStream(
+      (_props, ctx) => [
+        '<head></head><body><p>prefix</p>',
+        ctx.observeError(
+          first.then((html) => {
+            ctx.styleIds.set('late-style', '.late { color: red; }');
+            return html;
+          })
+        ),
+        ctx.observeError(second),
+        '<p>tail</p></body>',
+      ],
+      {
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (chunk.includes('<p>prefix</p>')) {
+              prefixWritten();
+            }
+          },
+        },
+      }
+    );
+
+    await prefix;
+    expect(chunks.join('')).toContain('<p>prefix</p>');
+    expect(chunks.join('')).not.toContain('<p>tail</p>');
+    resolveSecond('<p>second</p>');
+    await Promise.resolve();
+    expect(chunks.join('')).not.toContain('<p>second</p>');
+    resolveFirst('<p class="late">first</p>');
+    await rendering;
+    const html = chunks.join('');
+    expect(html).toContain('<style q:style="late-style">.late { color: red; }</style>');
+    expect(html.indexOf('q:style="late-style"')).toBeLessThan(html.indexOf('<p class="late">'));
+    expect(html).toContain('<p class="late">first</p><p>second</p><p>tail</p>');
+  });
+
+  test('attaches useOn to the prefix without awaiting its async children', async () => {
+    let resolveChild!: (output: string) => void;
+    const child = new Promise<string>((resolve) => (resolveChild = resolve));
+    let prefixWritten!: () => void;
+    const prefix = new Promise<void>((resolve) => (prefixWritten = resolve));
+    const chunks: string[] = [];
+    const rendering = renderToStream(
+      (_props, ctx) => {
+        useOnDocument(
+          'qinit',
+          createQRL('listener.js', 'handler', () => {}, null, null)
+        );
+        return [createSsrOpenTag('<p', '>'), 'prefix</p>', ctx.observeError(child)];
+      },
+      {
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (chunk.includes('prefix</p>')) {
+              prefixWritten();
+            }
+          },
+        },
+      }
+    );
+    await prefix;
+    expect(chunks.join('')).toContain('q-d:qinit="listener.js#handler"');
+    resolveChild('<p>async</p>');
+    await rendering;
+    expect(chunks.join('')).toContain('<p>async</p>');
+  });
+
+  test('propagates an eager child rejection after writing the preceding child', async () => {
+    let resolveFirst!: (output: string) => void;
+    let rejectSecond!: (error: Error) => void;
+    const first = new Promise<string>((resolve) => (resolveFirst = resolve));
+    const second = new Promise<string>((_resolve, reject) => (rejectSecond = reject));
+    const error = new Error('async child failed');
+    const rendering = renderToStream(
+      (_props, ctx) => [ctx.observeError(first), ctx.observeError(second)],
+      {
+        containerTagName: 'div',
+        stream: { write() {} },
+      }
+    );
+    const rejected = expect(rendering).rejects.toBe(error);
+    rejectSecond(error);
+    await Promise.resolve();
+    resolveFirst('first');
+    await rejected;
+  });
+
+  test('defines a late sync handler before streaming its element', async () => {
+    let release!: () => void;
+    let prefixWritten!: () => void;
+    const pending = new Promise<void>((resolve) => (release = resolve));
+    const prefix = new Promise<void>((resolve) => (prefixWritten = resolve));
+    const chunks: string[] = [];
+    const rendering = renderToStream(
+      (_props, ctx) => [
+        '<head></head><body>prefix',
+        ctx.observeError(
+          pending.then(() =>
+            createSsrOpenTag(
+              '<button',
+              ctx.eventAttr(
+                'q-e:click',
+                _qrlSync((event: Event) => event.preventDefault(), 'late_key')
+              ),
+              '>'
+            )
+          )
+        ),
+        'async</button></body>',
+      ],
+      {
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+            if (chunk.includes('prefix')) {
+              prefixWritten();
+            }
+          },
+        },
+      }
+    );
+    await prefix;
+    release();
+    await rendering;
+    const html = chunks.join('');
+    const definition = html.indexOf('<script q:func="qwik/json"');
+    expect(definition).toBeGreaterThan(html.indexOf('prefix'));
+    expect(definition).toBeLessThan(html.indexOf('<button'));
+    expect(html).toContain('q-e:click="#late_key"');
+  });
+
+  test('recognizes authored document sections behind a pending child', async () => {
+    const result = await renderToString((_props, ctx) => [
+      createSsrMarkup('<!b=', createSsrNodeId(ctx.nextId()), '>'),
+      ctx.observeError(Promise.resolve('<head><title>async head</title></head>')),
+      ctx.observeError(Promise.resolve('<body><p>content</p></body>')),
+    ]);
+    expect(result.html.match(/<head>/g)).toHaveLength(1);
+    expect(result.html.match(/<body>/g)).toHaveLength(1);
+    expect(result.html).toContain('<head><title>async head</title></head><body><p>content</p>');
+  });
+
   test('passes root props without a JSX wrapper', async () => {
     const result = await renderToString((props: { label: string }) => `<p>${props.label}</p>`, {
       props: { label: 'root-props' },
@@ -85,7 +238,8 @@ describe('SSR context markers', () => {
   test('only references a context scope when a provider ran', async () => {
     const context = { id: 'conditional-context' } as ContextId<string>;
 
-    for (const shouldProvide of [false, true]) {
+    for (let i = 0; i < 2; i++) {
+      const shouldProvide = i === 1;
       const result = await renderToString((_props, ctx) => {
         if (shouldProvide) {
           useContextProvider(context, 'value');

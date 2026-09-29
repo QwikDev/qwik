@@ -1,3 +1,6 @@
+import { isPromise } from '../shared/utils/promises';
+import type { ValueOrPromise } from '../shared/utils/types';
+
 export type SsrReferenceChunk =
   | { readonly type: 'node-id'; readonly localId: number | string }
   | { readonly type: 'root-ref'; readonly localId: number }
@@ -21,7 +24,20 @@ export interface SsrRecordChunk {
 
 export type SsrChunk = string | SsrReferenceChunk | SsrRecordChunk;
 
-export type SsrOutput = SsrChunk | readonly SsrOutput[];
+export type SsrResolvedOutput = SsrChunk | readonly SsrOutput[];
+export type SsrOutput = SsrResolvedOutput | Promise<SsrResolvedOutput>;
+
+/** Suspense needs the whole subtree settled before it can reveal its content. */
+export function resolveSsrOutput(output: SsrOutput): ValueOrPromise<SsrResolvedOutput> {
+  if (isPromise(output)) {
+    return output.then(resolveSsrOutput);
+  }
+  if (!Array.isArray(output)) {
+    return output as SsrChunk;
+  }
+  const children = output.map(resolveSsrOutput);
+  return children.some(isPromise) ? Promise.all(children) : output;
+}
 
 /**
  * A range whose content is not ready when the shell streams. The engine emits its swap packet once

@@ -87,15 +87,17 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const rows = useSignal([1]);
     const collectionId0 = ctx.nextId();
     ctx.addRoot(rows);
-    const collection0 = renderSsrCollection(
-      ctx,
-      collectionId0,
-      rows,
-      q_component_for_key_segment_1_24ursak4wzpxf,
-      q_component_for_render_segment_0_asyt89wzo2d3,
-      0,
-      false,
-      0
+    const collection0 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        collectionId0,
+        rows,
+        q_component_for_key_segment_1_24ursak4wzpxf,
+        q_component_for_render_segment_0_asyt89wzo2d3,
+        0,
+        false,
+        0
+      )
     );
     function semantic_collectionRender_361_452_1ilm85gvuesnv(ctx, __rangeId, __rowId, n) {
       let doubled = n * 2;
@@ -116,27 +118,27 @@ export const default_component_3rg6kq1so9aio = _markComponent(
         '</li>',
       ]);
     }
-    const collection1 = renderSsrCollection(
-      ctx,
-      undefined,
-      [1, 2],
-      undefined,
-      semantic_collectionRender_361_452_1ilm85gvuesnv,
-      0,
-      false,
-      0
+    const collection1 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        undefined,
+        [1, 2],
+        undefined,
+        semantic_collectionRender_361_452_1ilm85gvuesnv,
+        0,
+        false,
+        0
+      )
     );
-    return maybeThen(collection0, (collection0) =>
-      maybeThen(collection1, (collection1) => [
-        '<ul><!f=',
-        createSsrNodeId(collectionId0),
-        '>',
-        collection0,
-        '<!/f>',
-        collection1,
-        '</ul>',
-      ])
-    );
+    return [
+      '<ul><!f=',
+      createSsrNodeId(collectionId0),
+      '>',
+      collection0,
+      '<!/f>',
+      collection1,
+      '</ul>',
+    ];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

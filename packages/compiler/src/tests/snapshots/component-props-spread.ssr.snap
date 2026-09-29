@@ -64,16 +64,18 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const prop1 = computedProp(q_component_props_segment_1_208o0sfi1se76.w([props]));
     ctx.addRoot(prop0);
     ctx.addRoot(prop1);
-    const component0 = createComponent(
-      Child,
-      mergeProps(
-        { label: 'before' },
-        readTrackedValue(prop0),
-        { middle: 'middle' },
-        readTrackedValue(prop1),
-        { label: 'after' }
-      ),
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        Child,
+        mergeProps(
+          { label: 'before' },
+          readTrackedValue(prop0),
+          { middle: 'middle' },
+          readTrackedValue(prop1),
+          { label: 'after' }
+        ),
+        ctx
+      )
     );
     return component0;
   },

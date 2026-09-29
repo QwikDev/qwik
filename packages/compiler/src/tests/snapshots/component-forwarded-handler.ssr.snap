@@ -48,21 +48,23 @@ export const Button = _markComponent(
     isSource(prop1) && ctx.addRoot(prop1);
     forwardSlot(slotScope0);
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(
-      (props0) => renderSsrDynamicTag(Tag, props0, ctx),
-      _props(
-        {
-          get href() {
-            return readTrackedValue(prop0);
+    const component0 = ctx.observeError(
+      createComponent(
+        (props0) => renderSsrDynamicTag(Tag, props0, ctx),
+        _props(
+          {
+            get href() {
+              return readTrackedValue(prop0);
+            },
+            get onClick$() {
+              return readTrackedValue(prop1);
+            },
           },
-          get onClick$() {
-            return readTrackedValue(prop1);
-          },
-        },
-        { href: prop0, onClick$: prop1 }
-      ),
-      ctx,
-      { slotScope: slotScope0 }
+          { href: prop0, onClick$: prop1 }
+        ),
+        ctx,
+        { slotScope: slotScope0 }
+      )
     );
     return component0;
   },
@@ -74,11 +76,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const slotScope0 = createSlotScope();
     registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(
-      Button,
-      { onClick$: q_component_q_e_click_segment_0_2xwyg1cinvmpz },
-      ctx,
-      { slotScope: slotScope0 }
+    const component0 = ctx.observeError(
+      createComponent(Button, { onClick$: q_component_q_e_click_segment_0_2xwyg1cinvmpz }, ctx, {
+        slotScope: slotScope0,
+      })
     );
     return component0;
   },

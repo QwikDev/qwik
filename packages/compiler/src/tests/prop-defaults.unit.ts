@@ -146,6 +146,7 @@ test('non-literal defaults retain the same object across reads and captures', as
     {},
     {
       nextId: () => 0,
+      observeError: (output: unknown) => output,
       addRoot() {},
       eventAttrParts(_name: string, qrl: { getCaptured(): unknown[] }) {
         captures = qrl.getCaptured();
@@ -206,6 +207,7 @@ export default ({ title: heading = createTitle() }) => <button onClick$={() => (
       core.runWithOwner(owner, () =>
         renderComponent(props, {
           nextId: () => 0,
+          observeError: (output: unknown) => output,
           addRoot() {},
           eventAttrParts(_name: string, qrl: { getCaptured(): unknown[] }) {
             eventCaptures.push(qrl.getCaptured());

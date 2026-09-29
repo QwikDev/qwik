@@ -39,8 +39,8 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   getActiveInvokeContextOrNull,
+  maybeThen,
   invoke,
   renderSsrDynamicContent,
   _markComponent,
@@ -58,22 +58,24 @@ export const default_component_tv8h7w8tm3v2 = _markComponent(
       invoke(invokeCtx0, () => {
         const id0 = ctx.nextId();
         ctx.addRoot(secret);
-        const content0 = renderSsrContent(
-          ctx,
-          id0,
-          [],
-          q_index_text_segment_1_1ipiow57gf7g4.w([secret]),
-          false,
-          true
+        const content0 = ctx.observeError(
+          renderSsrContent(
+            ctx,
+            id0,
+            [],
+            q_index_text_segment_1_1ipiow57gf7g4.w([secret]),
+            false,
+            true
+          )
         );
-        return maybeThen(content0, (content0) => [
+        return [
           createSsrOpenTag('<main', '>'),
           '<!d=',
           createSsrNodeId(id0),
           '>',
           content0,
           '<!/d></main>',
-        ]);
+        ];
       })
     );
   },

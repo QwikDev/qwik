@@ -44,7 +44,7 @@ export const Counter = _markComponent(
 );
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
-    const component0 = createComponent(Counter, { initial: 1 }, ctx);
+    const component0 = ctx.observeError(createComponent(Counter, { initial: 1 }, ctx));
     return component0;
   },
   'default_component_3rg6kq1so9aio',

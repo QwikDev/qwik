@@ -13,7 +13,6 @@ import {
   useSignal,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   renderSsrDynamicContent,
   _noopQrl,
   _markComponent,
@@ -36,21 +35,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const count = useSignal(1);
     const id0 = ctx.nextId();
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_content_segment_1_185248kf949cp,
-      false,
-      true
+    const content0 = ctx.observeError(
+      renderSsrContent(ctx, id0, [], q_component_content_segment_1_185248kf949cp, false, true)
     );
-    return maybeThen(content0, (content0) => [
-      '<div><!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d></div>',
-    ]);
+    return ['<div><!d=', createSsrNodeId(id0), '>', content0, '<!/d></div>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

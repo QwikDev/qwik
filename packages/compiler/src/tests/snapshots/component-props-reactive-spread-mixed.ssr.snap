@@ -67,12 +67,14 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const attributes = useSignal({ title: 'spread' });
     ctx.addRoot(attributes);
     ctx.addRoot(count);
-    const component0 = createComponent(
-      Child,
-      createPropsProxy(
-        useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes, count]))
-      ),
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        Child,
+        createPropsProxy(
+          useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes, count]))
+        ),
+        ctx
+      )
     );
     return component0;
   },

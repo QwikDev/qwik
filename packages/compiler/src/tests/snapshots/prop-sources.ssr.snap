@@ -72,17 +72,19 @@ export const Card = _markComponent(
     const attr0 = renderSsrAttr(id0, 'class', prop0, effect0);
     const id1 = ctx.nextId();
     const text0 = renderSsrTextNode(id1, null, prop0, effect0);
-    const component0 = createComponent(
-      Badge,
-      _props(
-        {
-          get label() {
-            return readTrackedValue(prop0);
+    const component0 = ctx.observeError(
+      createComponent(
+        Badge,
+        _props(
+          {
+            get label() {
+              return readTrackedValue(prop0);
+            },
           },
-        },
-        { label: prop0 }
-      ),
-      ctx
+          { label: prop0 }
+        ),
+        ctx
+      )
     );
     const id2 = ctx.nextId();
     ctx.addRoot(props);
@@ -94,25 +96,23 @@ export const Card = _markComponent(
     );
     return maybeThen(attr0, (attr0) =>
       maybeThen(text0, (text0) =>
-        maybeThen(component0, (component0) =>
-          maybeThen(text1, (text1) => [
-            '<section q:id="',
-            createSsrNodeId(id0),
-            '"',
-            attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-            '><h2 q:id="',
-            createSsrNodeId(id1),
-            '">',
-            escapeHTML(text0),
-            '</h2>',
-            component0,
-            '<b q:id="',
-            createSsrNodeId(id2),
-            '">',
-            escapeHTML(text1),
-            '</b></section>',
-          ])
-        )
+        maybeThen(text1, (text1) => [
+          '<section q:id="',
+          createSsrNodeId(id0),
+          '"',
+          attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+          '><h2 q:id="',
+          createSsrNodeId(id1),
+          '">',
+          escapeHTML(text0),
+          '</h2>',
+          component0,
+          '<b q:id="',
+          createSsrNodeId(id2),
+          '">',
+          escapeHTML(text1),
+          '</b></section>',
+        ])
       )
     );
   },
@@ -146,20 +146,22 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const prop0 = computedProp(q_component_title_segment_2_2f0r05go51flv.w([count]));
     ctx.addRoot(prop0);
     ctx.addRoot(count);
-    const component0 = createComponent(
-      Card,
-      _props(
-        {
-          get title() {
-            return readTrackedValue(prop0);
+    const component0 = ctx.observeError(
+      createComponent(
+        Card,
+        _props(
+          {
+            get title() {
+              return readTrackedValue(prop0);
+            },
+            get count() {
+              return readTrackedValue(count);
+            },
           },
-          get count() {
-            return readTrackedValue(count);
-          },
-        },
-        { title: prop0, count: count }
-      ),
-      ctx
+          { title: prop0, count: count }
+        ),
+        ctx
+      )
     );
     return component0;
   },

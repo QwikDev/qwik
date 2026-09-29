@@ -31,8 +31,8 @@ import {
   _noopQrl,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   getActiveInvokeContextOrNull,
+  maybeThen,
   invoke,
   renderSsrDynamicContent,
   _markComponent,
@@ -80,15 +80,17 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       invoke(invokeCtx0, () => {
         const id0 = ctx.nextId();
         ctx.addRoot(c);
-        const content0 = renderSsrContent(
-          ctx,
-          id0,
-          [],
-          q_component_text_segment_4_1fh11zg0n0shg.w([c]),
-          false,
-          true
+        const content0 = ctx.observeError(
+          renderSsrContent(
+            ctx,
+            id0,
+            [],
+            q_component_text_segment_4_1fh11zg0n0shg.w([c]),
+            false,
+            true
+          )
         );
-        return maybeThen(content0, (content0) => [
+        return [
           '<button',
           ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([c])),
           '><!d=',
@@ -96,7 +98,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
           '>',
           content0,
           '<!/d></button>',
-        ]);
+        ];
       })
     );
   },

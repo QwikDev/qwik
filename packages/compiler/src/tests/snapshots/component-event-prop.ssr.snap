@@ -60,13 +60,15 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
     const count = useSignal(0);
     ctx.addRoot(count);
-    const component0 = createComponent(
-      Child,
-      {
-        onSave$: q_component_q_e_save_segment_1_3krcbiqvmvgft.w([count]),
-        'on-save$': q_component_q_e_save_segment_2_3krcacnjwdae8.w([count]),
-      },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        Child,
+        {
+          onSave$: q_component_q_e_save_segment_1_3krcbiqvmvgft.w([count]),
+          'on-save$': q_component_q_e_save_segment_2_3krcacnjwdae8.w([count]),
+        },
+        ctx
+      )
     );
     return component0;
   },

@@ -54,18 +54,20 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
     const count = useSignal(1);
     ctx.addRoot(count);
-    const component0 = createComponent(
-      Child,
-      _props(
-        {
-          className: 'total',
-          get count() {
-            return readTrackedValue(count);
+    const component0 = ctx.observeError(
+      createComponent(
+        Child,
+        _props(
+          {
+            className: 'total',
+            get count() {
+              return readTrackedValue(count);
+            },
           },
-        },
-        { count: count }
-      ),
-      ctx
+          { count: count }
+        ),
+        ctx
+      )
     );
     return component0;
   },

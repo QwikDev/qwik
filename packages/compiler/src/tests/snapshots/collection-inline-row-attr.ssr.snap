@@ -12,7 +12,6 @@ import {
   serializeAttrExpressionValue,
   escapeHTML,
   renderSsrCollection,
-  maybeThen,
   _markComponent,
 } from '@qwik.dev/core';
 
@@ -28,17 +27,19 @@ export const default_component_3rg6kq1so9aio = _markComponent(
         '>x</li>',
       ];
     }
-    const collection0 = renderSsrCollection(
-      ctx,
-      undefined,
-      ['a', 'b'],
-      undefined,
-      semantic_collectionRender_36_104_jq7n7qm8g6oc,
-      0,
-      false,
-      0
+    const collection0 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        undefined,
+        ['a', 'b'],
+        undefined,
+        semantic_collectionRender_36_104_jq7n7qm8g6oc,
+        0,
+        false,
+        0
+      )
     );
-    return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
+    return ['<ul>', collection0, '</ul>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

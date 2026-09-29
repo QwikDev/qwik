@@ -18,7 +18,7 @@ export const Child = _markComponent(
 );
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
-    const component0 = createComponent(Child, null, ctx);
+    const component0 = ctx.observeError(createComponent(Child, null, ctx));
     return component0;
   },
   'default_component_3rg6kq1so9aio',

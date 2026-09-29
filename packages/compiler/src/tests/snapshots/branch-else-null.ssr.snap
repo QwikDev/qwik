@@ -15,7 +15,6 @@ import {
   _captures,
   renderSsrBranch,
   createSsrNodeId,
-  maybeThen,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -41,20 +40,16 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const show = useSignal(false);
     const branchId0 = ctx.nextId();
     ctx.addRoot(show);
-    const branch0 = renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([show]),
-      q_component_branch_then_segment_1_24n7blyqktd46,
-      undefined
+    const branch0 = ctx.observeError(
+      renderSsrBranch(
+        ctx,
+        branchId0,
+        q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([show]),
+        q_component_branch_then_segment_1_24n7blyqktd46,
+        undefined
+      )
     );
-    return maybeThen(branch0, (branch0) => [
-      '<div><!b=',
-      createSsrNodeId(branchId0),
-      '>',
-      branch0,
-      '<!/b></div>',
-    ]);
+    return ['<div><!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b></div>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

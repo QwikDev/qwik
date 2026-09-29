@@ -68,23 +68,25 @@ test.describe('streaming', () => {
 });
 
 test.describe('streaming flush', () => {
-  test('should flush prefix before awaiting slow async component', async ({ page }) => {
-    await page.goto('/e2e/streaming-flush', {
-      waitUntil: 'commit',
-    });
+  for (const mode of ['', '-branch', '-slot']) {
+    test(`should flush prefix before awaiting slow async component${mode}`, async ({ page }) => {
+      await page.goto(`/e2e/streaming-flush${mode}`, {
+        waitUntil: 'commit',
+      });
 
-    // Prefix content must be visible quickly — the flush sends it
-    // before blocking on the 5s async component.
-    await expect(page.locator('#prefix')).toHaveText('Prefix content', {
-      timeout: 3000,
-    });
+      // Prefix content must be visible quickly — the flush sends it
+      // before blocking on the 5s async component.
+      await expect(page.locator('#prefix')).toHaveText('Prefix content', {
+        timeout: 3000,
+      });
 
-    // Async content must NOT exist yet (still blocked on the delay).
-    await expect(page.locator('#async-result')).toHaveCount(0);
+      // Async content must NOT exist yet (still blocked on the delay).
+      await expect(page.locator('#async-result')).toHaveCount(0);
 
-    // After the async component resolves, the content appears.
-    await expect(page.locator('#async-result')).toHaveText('Async done', {
-      timeout: 8000,
+      // After the async component resolves, the content appears.
+      await expect(page.locator('#async-result')).toHaveText('Async done', {
+        timeout: 8000,
+      });
     });
-  });
+  }
 });

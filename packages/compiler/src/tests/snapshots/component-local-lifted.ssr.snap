@@ -19,11 +19,11 @@ import {
   _captures,
   renderSsrBranch,
   createSsrNodeId,
-  maybeThen,
   escapeHTML,
   propSource,
   isSource,
   renderSsrTextNode,
+  maybeThen,
   _noopQrl,
   renderSsrDynamicTag,
   createComponent,
@@ -62,10 +62,8 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
 const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [n] = _captures;
   const Filter = _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]);
-  const component0 = createComponent(
-    (props0) => renderSsrDynamicTag(Filter, props0, ctx),
-    { filter: 'a' },
-    ctx
+  const component0 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(Filter, props0, ctx), { filter: 'a' }, ctx)
   );
   return component0;
 };
@@ -84,20 +82,16 @@ export const Footer = _markComponent(
     }
     const branchId0 = ctx.nextId();
     ctx.addRoot(n);
-    const branch0 = renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([n]),
-      q_component_branch_then_segment_3_24n7atwir5934.w([n]),
-      undefined
+    const branch0 = ctx.observeError(
+      renderSsrBranch(
+        ctx,
+        branchId0,
+        q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([n]),
+        q_component_branch_then_segment_3_24n7atwir5934.w([n]),
+        undefined
+      )
     );
-    return maybeThen(branch0, (branch0) => [
-      '<ul><!b=',
-      createSsrNodeId(branchId0),
-      '>',
-      branch0,
-      '<!/b></ul>',
-    ]);
+    return ['<ul><!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b></ul>'];
   },
   'Footer_component_d3m2s4mpch0k',
   './component.tsx'
@@ -241,10 +235,8 @@ q_component_Filter_segment_2_2k94mv8ai8l03.s(component_Filter_segment_2_2k94mv8a
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [n] = _captures;
   const Filter = _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]);
-  const component0 = createComponent(
-    (props0) => renderSsrDynamicTag(Filter, props0, ctx),
-    { filter: 'a' },
-    ctx
+  const component0 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(Filter, props0, ctx), { filter: 'a' }, ctx)
   );
   return component0;
 };

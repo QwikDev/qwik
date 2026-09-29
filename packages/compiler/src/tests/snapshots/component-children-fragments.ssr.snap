@@ -13,7 +13,6 @@ export default () => {
 
 import {
   renderSsrSlot,
-  maybeThen,
   _markComponent,
   useSignal,
   createSlotScope,
@@ -24,6 +23,7 @@ import {
   _captures,
   escapeHTML,
   renderSsrTextNode,
+  maybeThen,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   return ['<!s=', createSsrNodeId(__rangeId), '><h1>Title</h1><!/s>'];
@@ -53,11 +53,9 @@ const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
 q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
 export const Card = _markComponent(
   (props, ctx) => {
-    const slot0 = renderSsrSlot(ctx, 'header');
-    const slot1 = renderSsrSlot(ctx);
-    return maybeThen(slot0, (slot0) =>
-      maybeThen(slot1, (slot1) => ['<article><header>', slot0, '</header>', slot1, '</article>'])
-    );
+    const slot0 = ctx.observeError(renderSsrSlot(ctx, 'header'));
+    const slot1 = ctx.observeError(renderSsrSlot(ctx));
+    return ['<article><header>', slot0, '</header>', slot1, '</article>'];
   },
   'Card_component_1j4wd08arm0n5',
   './component.tsx'
@@ -69,7 +67,9 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     registerProjection(slotScope0, 'header', q_component_slot_render_segment_0_3b0tagwys7lui);
     registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([count]));
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(Card, null, ctx, { slotScope: slotScope0 });
+    const component0 = ctx.observeError(
+      createComponent(Card, null, ctx, { slotScope: slotScope0 })
+    );
     return component0;
   },
   'default_component_3rg6kq1so9aio',

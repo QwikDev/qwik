@@ -375,21 +375,19 @@ const Button = _markComponent(
       q_root_onClickqrl_segment_0_37h438c21ydkt,
       ctx.eventAttr
     );
-    const slot0 = renderSsrSlot(ctx);
+    const slot0 = ctx.observeError(renderSsrSlot(ctx));
     return maybeThen(attr0, (attr0) =>
-      maybeThen(effect0, (effect0) =>
-        maybeThen(slot0, (slot0) => [
-          '<button q:id="',
-          createSsrNodeId(id0),
-          '"',
-          attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-          ' class="btn btn-primary btn-block" type="button" stoppropagation:click',
-          createSsrMarkup(effect0),
-          '>',
-          slot0,
-          '</button>',
-        ])
-      )
+      maybeThen(effect0, (effect0) => [
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        ' class="btn btn-primary btn-block" type="button" stoppropagation:click',
+        createSsrMarkup(effect0),
+        '>',
+        slot0,
+        '</button>',
+      ])
     );
   },
   'Button_component_2vzb2c6bchg3a',
@@ -402,100 +400,102 @@ export function Root(props0, ctx) {
   registerProjection(slotScope0, '', q_root_slot_render_segment_2_3fnd507dh0o2u);
   ctx.addRoot(data);
   ctx.addRoot(slotScope0);
-  const component0 = createComponent(
-    Button,
-    { id: 'run', onClick$: q_root_q_e_click_segment_1_2xenbm08l4dzi.w([data]) },
-    ctx,
-    { slotScope: slotScope0 }
+  const component0 = ctx.observeError(
+    createComponent(
+      Button,
+      { id: 'run', onClick$: q_root_q_e_click_segment_1_2xenbm08l4dzi.w([data]) },
+      ctx,
+      { slotScope: slotScope0 }
+    )
   );
   const slotScope1 = createSlotScope();
   registerProjection(slotScope1, '', q_root_slot_render_segment_4_3fnd5s9laos3w);
   ctx.addRoot(slotScope1);
-  const component1 = createComponent(
-    Button,
-    { id: 'runlots', onClick$: q_root_q_e_click_segment_3_2xenaty0rg9yg.w([data]) },
-    ctx,
-    { slotScope: slotScope1 }
+  const component1 = ctx.observeError(
+    createComponent(
+      Button,
+      { id: 'runlots', onClick$: q_root_q_e_click_segment_3_2xenaty0rg9yg.w([data]) },
+      ctx,
+      { slotScope: slotScope1 }
+    )
   );
   const slotScope2 = createSlotScope();
   registerProjection(slotScope2, '', q_root_slot_render_segment_6_3fnd6kbt4cw4y);
   ctx.addRoot(slotScope2);
-  const component2 = createComponent(
-    Button,
-    { id: 'add', onClick$: q_root_q_e_click_segment_5_2xend64o8gm1m.w([data]) },
-    ctx,
-    { slotScope: slotScope2 }
+  const component2 = ctx.observeError(
+    createComponent(
+      Button,
+      { id: 'add', onClick$: q_root_q_e_click_segment_5_2xend64o8gm1m.w([data]) },
+      ctx,
+      { slotScope: slotScope2 }
+    )
   );
   const slotScope3 = createSlotScope();
   registerProjection(slotScope3, '', q_root_slot_render_segment_8_3fnd7ce0y1060);
   ctx.addRoot(slotScope3);
-  const component3 = createComponent(
-    Button,
-    { id: 'update', onClick$: q_root_q_e_click_segment_7_2xence2gesi0k.w([data]) },
-    ctx,
-    { slotScope: slotScope3 }
+  const component3 = ctx.observeError(
+    createComponent(
+      Button,
+      { id: 'update', onClick$: q_root_q_e_click_segment_7_2xence2gesi0k.w([data]) },
+      ctx,
+      { slotScope: slotScope3 }
+    )
   );
   const slotScope4 = createSlotScope();
   registerProjection(slotScope4, '', q_root_slot_render_segment_10_3b8ytyi4ty595);
   ctx.addRoot(slotScope4);
-  const component4 = createComponent(
-    Button,
-    { id: 'clear', onClick$: q_root_q_e_click_segment_9_2xen8hrdafxva.w([data]) },
-    ctx,
-    { slotScope: slotScope4 }
+  const component4 = ctx.observeError(
+    createComponent(
+      Button,
+      { id: 'clear', onClick$: q_root_q_e_click_segment_9_2xen8hrdafxva.w([data]) },
+      ctx,
+      { slotScope: slotScope4 }
+    )
   );
   const slotScope5 = createSlotScope();
   registerProjection(slotScope5, '', q_root_slot_render_segment_12_3b8yt6fx0a183);
   ctx.addRoot(slotScope5);
-  const component5 = createComponent(
-    Button,
-    { id: 'swaprows', onClick$: q_root_q_e_click_segment_11_1exocx67wfjnx.w([data]) },
-    ctx,
-    { slotScope: slotScope5 }
+  const component5 = ctx.observeError(
+    createComponent(
+      Button,
+      { id: 'swaprows', onClick$: q_root_q_e_click_segment_11_1exocx67wfjnx.w([data]) },
+      ctx,
+      { slotScope: slotScope5 }
+    )
   );
   const collectionId0 = ctx.nextId();
   ctx.addRoot(selectedItem);
-  const collection0 = renderSsrCollection(
-    ctx,
-    collectionId0,
-    data,
-    q_root_for_key_segment_14_21k5c1c27m8kr,
-    q_root_for_render_segment_13_xl6e5erok1z7.w([selectedItem, data]),
-    0,
-    false,
-    0
-  );
-  return maybeThen(component0, (component0) =>
-    maybeThen(component1, (component1) =>
-      maybeThen(component2, (component2) =>
-        maybeThen(component3, (component3) =>
-          maybeThen(component4, (component4) =>
-            maybeThen(component5, (component5) =>
-              maybeThen(collection0, (collection0) => [
-                '<div class="container"><div class="jumbotron"><div class="row"><div class="col-md-6"><h1>Qwik V3 Implementation</h1></div><div class="col-md-6"><div class="row"><div class="col-sm-6 smallpad">',
-                component0,
-                '</div><div class="col-sm-6 smallpad">',
-                component1,
-                '</div><div class="col-sm-6 smallpad">',
-                component2,
-                '</div><div class="col-sm-6 smallpad">',
-                component3,
-                '</div><div class="col-sm-6 smallpad">',
-                component4,
-                '</div><div class="col-sm-6 smallpad">',
-                component5,
-                '</div></div></div></div></div><table class="table table-hover table-striped test-data"><tbody><!f=',
-                createSsrNodeId(collectionId0),
-                '>',
-                collection0,
-                '<!/f></tbody></table><span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true"></span></div>',
-              ])
-            )
-          )
-        )
-      )
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      collectionId0,
+      data,
+      q_root_for_key_segment_14_21k5c1c27m8kr,
+      q_root_for_render_segment_13_xl6e5erok1z7.w([selectedItem, data]),
+      0,
+      false,
+      0
     )
   );
+  return [
+    '<div class="container"><div class="jumbotron"><div class="row"><div class="col-md-6"><h1>Qwik V3 Implementation</h1></div><div class="col-md-6"><div class="row"><div class="col-sm-6 smallpad">',
+    component0,
+    '</div><div class="col-sm-6 smallpad">',
+    component1,
+    '</div><div class="col-sm-6 smallpad">',
+    component2,
+    '</div><div class="col-sm-6 smallpad">',
+    component3,
+    '</div><div class="col-sm-6 smallpad">',
+    component4,
+    '</div><div class="col-sm-6 smallpad">',
+    component5,
+    '</div></div></div></div></div><table class="table table-hover table-striped test-data"><tbody><!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f></tbody></table><span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true"></span></div>',
+  ];
 }
 _markComponent(Root, 'Root_component_1wwbdvvn6s0lu', './root.tsx');
 

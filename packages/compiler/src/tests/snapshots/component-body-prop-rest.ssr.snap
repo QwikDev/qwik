@@ -41,18 +41,16 @@ export const Child = _markComponent(
     const prop0 = propSource(props0, 'label');
     isSource(prop0) && ctx.addRoot(prop0);
     const attr0 = renderSsrAttr(id0, 'title', prop0);
-    const slot0 = renderSsrSlot(ctx);
-    return maybeThen(attr0, (attr0) =>
-      maybeThen(slot0, (slot0) => [
-        '<section q:id="',
-        createSsrNodeId(id0),
-        '"',
-        attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-        '>',
-        slot0,
-        '</section>',
-      ])
-    );
+    const slot0 = ctx.observeError(renderSsrSlot(ctx));
+    return maybeThen(attr0, (attr0) => [
+      '<section q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      '>',
+      slot0,
+      '</section>',
+    ]);
   },
   'Child_component_syc3erfxihm7',
   './component.tsx'
@@ -65,11 +63,15 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     ctx.addRoot(rest);
     ctx.addRoot(props);
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(
-      Child,
-      createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([rest, props]))),
-      ctx,
-      { slotScope: slotScope0 }
+    const component0 = ctx.observeError(
+      createComponent(
+        Child,
+        createPropsProxy(
+          useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([rest, props]))
+        ),
+        ctx,
+        { slotScope: slotScope0 }
+      )
     );
     return component0;
   },

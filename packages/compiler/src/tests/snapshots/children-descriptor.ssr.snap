@@ -28,7 +28,6 @@ import {
   renderSsrContent,
   createSsrNodeId,
   renderSsrSlot,
-  maybeThen,
   renderSsrDynamicContent,
   _noopQrl,
   _markComponent,
@@ -39,6 +38,7 @@ import {
   createComponent,
   escapeHTML,
   renderSsrTextNode,
+  maybeThen,
 } from '@qwik.dev/core';
 import { Card } from './card';
 const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
@@ -64,14 +64,8 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
 const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
-  const component0 = createComponent(Card, null, ctx);
-  return maybeThen(component0, (component0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '>',
-    component0,
-    '<!/s>',
-  ]);
+  const component0 = ctx.observeError(createComponent(Card, null, ctx));
+  return ['<!s=', createSsrNodeId(__rangeId), '>', component0, '<!/s>'];
 };
 const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
@@ -115,34 +109,26 @@ export const Counter = _markComponent(
     const children = useChildrenInfo();
     const id0 = ctx.nextId();
     ctx.addRoot(children);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_text_segment_0_1fh10fbkzokfc.w([children]),
-      false,
-      true
+    const content0 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id0,
+        [],
+        q_component_text_segment_0_1fh10fbkzokfc.w([children]),
+        false,
+        true
+      )
     );
-    const slot0 = renderSsrSlot(ctx);
-    return maybeThen(content0, (content0) =>
-      maybeThen(slot0, (slot0) => [
-        '<p><!d=',
-        createSsrNodeId(id0),
-        '>',
-        content0,
-        '<!/d>',
-        slot0,
-        '</p>',
-      ])
-    );
+    const slot0 = ctx.observeError(renderSsrSlot(ctx));
+    return ['<p><!d=', createSsrNodeId(id0), '>', content0, '<!/d>', slot0, '</p>'];
   },
   'Counter_component_3h2q15ekklxzt',
   './component.tsx'
 );
 export const Plain = _markComponent(
   (props, ctx) => {
-    const slot0 = renderSsrSlot(ctx);
-    return maybeThen(slot0, (slot0) => ['<p>', slot0, '</p>']);
+    const slot0 = ctx.observeError(renderSsrSlot(ctx));
+    return ['<p>', slot0, '</p>'];
   },
   'Plain_component_25y3k1m6p49gx',
   './component.tsx'
@@ -161,20 +147,22 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
     registerProjection(slotScope0, '', q_component_slot_render_segment_4_3b0t8wsj4vdse.w([count]));
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(Counter, null, ctx, { slotScope: slotScope0 });
+    const component0 = ctx.observeError(
+      createComponent(Counter, null, ctx, { slotScope: slotScope0 })
+    );
     const slotScope1 = createSlotScope();
     registerProjection(slotScope1, '', q_component_slot_render_segment_5_3b0t9atn1pfsx);
     ctx.addRoot(slotScope1);
-    const component1 = createComponent(Plain, null, ctx, { slotScope: slotScope1 });
+    const component1 = ctx.observeError(
+      createComponent(Plain, null, ctx, { slotScope: slotScope1 })
+    );
     const slotScope2 = createSlotScope(null, [_EMPTY_OBJ]);
     registerProjection(slotScope2, '', q_component_slot_render_segment_6_3b0t84qbb79rc);
     ctx.addRoot(slotScope2);
-    const component2 = createComponent(Card, null, ctx, { slotScope: slotScope2 });
-    return maybeThen(component0, (component0) =>
-      maybeThen(component1, (component1) =>
-        maybeThen(component2, (component2) => [component0, component1, component2])
-      )
+    const component2 = ctx.observeError(
+      createComponent(Card, null, ctx, { slotScope: slotScope2 })
     );
+    return [component0, component1, component2];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'
@@ -269,18 +257,12 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
 
-import { createSsrNodeId, createComponent, maybeThen } from '@qwik.dev/core';
+import { createSsrNodeId, createComponent } from '@qwik.dev/core';
 import { Card } from './card';
 
 export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
-  const component0 = createComponent(Card, null, ctx);
-  return maybeThen(component0, (component0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '>',
-    component0,
-    '<!/s>',
-  ]);
+  const component0 = ctx.observeError(createComponent(Card, null, ctx));
+  return ['<!s=', createSsrNodeId(__rangeId), '>', component0, '<!/s>'];
 };
 /*
 {

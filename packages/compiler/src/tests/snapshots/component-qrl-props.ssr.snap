@@ -102,15 +102,17 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const count = useSignal(1);
     const pick = component_pick_segment_0_3dnf2wesexw1y;
     ctx.addRoot(count);
-    const component0 = createComponent(
-      Child,
-      {
-        then$: q_component_pick_segment_0_3dnf2wesexw1y,
-        fallback$: q_component_fallbackqrl_segment_1_3grqawftcqexb,
-        render$: q_component_renderqrl_segment_4_5bp3q9cb45d6.w([count]),
-        data$: q_component_dataqrl_segment_5_2mjc43lmu203l.w([count]),
-      },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        Child,
+        {
+          then$: q_component_pick_segment_0_3dnf2wesexw1y,
+          fallback$: q_component_fallbackqrl_segment_1_3grqawftcqexb,
+          render$: q_component_renderqrl_segment_4_5bp3q9cb45d6.w([count]),
+          data$: q_component_dataqrl_segment_5_2mjc43lmu203l.w([count]),
+        },
+        ctx
+      )
     );
     return component0;
   },

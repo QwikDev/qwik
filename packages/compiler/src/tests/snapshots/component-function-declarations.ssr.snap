@@ -26,12 +26,12 @@ import {
   _noopQrl,
 } from '@qwik.dev/core';
 export function Wrapper(props, ctx) {
-  const component0 = createComponent(App, null, ctx);
+  const component0 = ctx.observeError(createComponent(App, null, ctx));
   return component0;
 }
 _markComponent(Wrapper, 'Wrapper_component_1yrb0pezcavja', './component.tsx');
 export default function App(props, ctx) {
-  const component0 = createComponent(Child, null, ctx);
+  const component0 = ctx.observeError(createComponent(Child, null, ctx));
   return component0;
 }
 _markComponent(App, 'default_component_3rg6kq1so9aio', './component.tsx');

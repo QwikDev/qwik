@@ -55,10 +55,12 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
     const attributes = useSignal({ title: 'save' });
     ctx.addRoot(attributes);
-    const component0 = createComponent(
-      Child,
-      createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes]))),
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        Child,
+        createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes]))),
+        ctx
+      )
     );
     return component0;
   },

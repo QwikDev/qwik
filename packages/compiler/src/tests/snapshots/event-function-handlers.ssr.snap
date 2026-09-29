@@ -61,12 +61,14 @@ export const Button = _markComponent(
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     ctx.addRoot(props);
-    const component0 = createComponent(
-      Button,
-      { onSave$: q_component_q_e_save_segment_2_3krcacnjwdae8.w([props]) },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        Button,
+        { onSave$: q_component_q_e_save_segment_2_3krcacnjwdae8.w([props]) },
+        ctx
+      )
     );
-    return maybeThen(component0, (component0) => [
+    return [
       '<main><button',
       ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg),
       '>plain</button>',
@@ -74,7 +76,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       '<button',
       ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([props])),
       '>async</button></main>',
-    ]);
+    ];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

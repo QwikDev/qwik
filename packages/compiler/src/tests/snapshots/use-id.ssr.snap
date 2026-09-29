@@ -88,29 +88,29 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const prop0 = propSource(props, 'items');
     isSource(prop0) && ctx.addRoot(prop0);
     const collectionId0 = ctx.nextId();
-    const collection0 = renderSsrCollection(
-      ctx,
-      collectionId0,
-      prop0,
-      undefined,
-      q_component_for_render_segment_1_asysu8t2u0ck,
-      0,
-      false,
-      0
+    const collection0 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        collectionId0,
+        prop0,
+        undefined,
+        q_component_for_render_segment_1_asysu8t2u0ck,
+        0,
+        false,
+        0
+      )
     );
-    return maybeThen(attr0, (attr0) =>
-      maybeThen(collection0, (collection0) => [
-        '<ul q:id="',
-        createSsrNodeId(id0),
-        '"',
-        attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-        '><!f=',
-        createSsrNodeId(collectionId0),
-        '>',
-        collection0,
-        '<!/f></ul>',
-      ])
-    );
+    return maybeThen(attr0, (attr0) => [
+      '<ul q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      '><!f=',
+      createSsrNodeId(collectionId0),
+      '>',
+      collection0,
+      '<!/f></ul>',
+    ]);
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

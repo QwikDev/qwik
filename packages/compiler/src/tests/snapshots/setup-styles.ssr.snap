@@ -107,40 +107,35 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       '⚡️f5nxrrrtaczd-2'
     );
     const branchId0 = ctx.nextId();
-    const branch0 = renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([active]),
-      q_component_branch_then_segment_4_24n7dk4a4zn6t,
-      undefined
-    );
-    const component0 = createComponent(Child, null, ctx);
-    return maybeThen(attr0, (attr0) =>
-      maybeThen(attr1, (attr1) =>
-        maybeThen(branch0, (branch0) =>
-          maybeThen(component0, (component0) => [
-            '<section q:id="',
-            createSsrNodeId(id0),
-            '"',
-            attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-            '><span class="⚡️f5nxrrrtaczd-2">plain</span><button q:id="',
-            createSsrNodeId(id1),
-            '"',
-            attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-            ctx.eventAttrParts(
-              'q-e:click',
-              q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])
-            ),
-            '>go</button><!b=',
-            createSsrNodeId(branchId0),
-            '>',
-            branch0,
-            '<!/b>',
-            component0,
-            '</section>',
-          ])
-        )
+    const branch0 = ctx.observeError(
+      renderSsrBranch(
+        ctx,
+        branchId0,
+        q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([active]),
+        q_component_branch_then_segment_4_24n7dk4a4zn6t,
+        undefined
       )
+    );
+    const component0 = ctx.observeError(createComponent(Child, null, ctx));
+    return maybeThen(attr0, (attr0) =>
+      maybeThen(attr1, (attr1) => [
+        '<section q:id="',
+        createSsrNodeId(id0),
+        '"',
+        attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        '><span class="⚡️f5nxrrrtaczd-2">plain</span><button q:id="',
+        createSsrNodeId(id1),
+        '"',
+        attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+        ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])),
+        '>go</button><!b=',
+        createSsrNodeId(branchId0),
+        '>',
+        branch0,
+        '<!/b>',
+        component0,
+        '</section>',
+      ])
     );
   },
   'default_component_3rg6kq1so9aio',

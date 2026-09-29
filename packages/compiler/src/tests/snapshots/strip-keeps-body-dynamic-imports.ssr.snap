@@ -24,7 +24,6 @@ import {
   createSsrOpenTag,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   _noopQrl,
   renderSsrDynamicContent,
   _markComponent,
@@ -44,22 +43,17 @@ export const default_component_tv8h7w8tm3v2 = _markComponent(
     useVisibleTaskQrl(q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.w([result]));
     const id0 = ctx.nextId();
     ctx.addRoot(result);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_linked_content_0_1mzevuukkeaia.w([result]),
-      false,
-      true
+    const content0 = ctx.observeError(
+      renderSsrContent(ctx, id0, [], q_linked_content_0_1mzevuukkeaia.w([result]), false, true)
     );
-    return maybeThen(content0, (content0) => [
+    return [
       createSsrOpenTag('<div', '>'),
       '<!d=',
       createSsrNodeId(id0),
       '>',
       content0,
       '<!/d></div>',
-    ]);
+    ];
   },
   'default_component_tv8h7w8tm3v2',
   './index.tsx'

@@ -20,8 +20,8 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   getActiveInvokeContextOrNull,
+  maybeThen,
   invoke,
   _noopQrl,
   renderSsrDynamicContent,
@@ -55,44 +55,46 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       invoke(invokeCtx0, () => {
         const id0 = ctx.nextId();
         ctx.addRoot(_location);
-        const content0 = renderSsrContent(
-          ctx,
-          id0,
-          [],
-          q_component_text_segment_1_1fh10tcowimfv.w([_location]),
-          false,
-          true
+        const content0 = ctx.observeError(
+          renderSsrContent(
+            ctx,
+            id0,
+            [],
+            q_component_text_segment_1_1fh10tcowimfv.w([_location]),
+            false,
+            true
+          )
         );
         const id1 = ctx.nextId();
-        const content1 = renderSsrContent(
-          ctx,
-          id1,
-          [],
-          q_component_text_segment_2_1fh117dstcoge.w([_location]),
-          false,
-          true
+        const content1 = ctx.observeError(
+          renderSsrContent(
+            ctx,
+            id1,
+            [],
+            q_component_text_segment_2_1fh117dstcoge.w([_location]),
+            false,
+            true
+          )
         );
-        return maybeThen(content0, (content0) =>
-          maybeThen(content1, (content1) => [
-            createSsrOpenTag(
-              '<h1',
-              ctx.eventAttr(
-                'q-e:click',
-                q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([_location])
-              ),
-              '>'
+        return [
+          createSsrOpenTag(
+            '<h1',
+            ctx.eventAttr(
+              'q-e:click',
+              q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([_location])
             ),
-            '<!d=',
-            createSsrNodeId(id0),
-            '>',
-            content0,
-            '<!/d> at <!d=',
-            createSsrNodeId(id1),
-            '>',
-            content1,
-            '<!/d></h1>',
-          ])
-        );
+            '>'
+          ),
+          '<!d=',
+          createSsrNodeId(id0),
+          '>',
+          content0,
+          '<!/d> at <!d=',
+          createSsrNodeId(id1),
+          '>',
+          content1,
+          '<!/d></h1>',
+        ];
       })
     );
   },

@@ -101,32 +101,28 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     try {
       if (props.failed) throw new Error('failed');
       return (() => {
-        const component0 = createComponent(Header, null, ctx);
-        const component1 = createComponent(Child, null, ctx);
+        const component0 = ctx.observeError(createComponent(Header, null, ctx));
+        const component1 = ctx.observeError(createComponent(Child, null, ctx));
         const id0 = ctx.nextId();
         ctx.addRoot(label);
         const text0 = renderSsrTextNode(id0, null, label);
-        return maybeThen(component0, (component0) =>
-          maybeThen(component1, (component1) =>
-            maybeThen(text0, (text0) => [
-              '<section>',
-              component0,
-              component1,
-              '<button',
-              ctx.eventAttrParts('q-e:click', increment),
-              '>increment</button><button q:id="',
-              createSsrNodeId(id0),
-              '"',
-              ctx.eventAttrParts(
-                'q-e:click',
-                q_component_q_e_click_segment_1_2xwyfnber1kpg.w([label, count, suffix])
-              ),
-              '>',
-              escapeHTML(text0),
-              '</button></section>',
-            ])
-          )
-        );
+        return maybeThen(text0, (text0) => [
+          '<section>',
+          component0,
+          component1,
+          '<button',
+          ctx.eventAttrParts('q-e:click', increment),
+          '>increment</button><button q:id="',
+          createSsrNodeId(id0),
+          '"',
+          ctx.eventAttrParts(
+            'q-e:click',
+            q_component_q_e_click_segment_1_2xwyfnber1kpg.w([label, count, suffix])
+          ),
+          '>',
+          escapeHTML(text0),
+          '</button></section>',
+        ]);
       })();
     } catch (error) {
       observe(error);

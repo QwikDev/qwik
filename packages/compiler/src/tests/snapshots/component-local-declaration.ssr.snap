@@ -41,8 +41,8 @@ const Child = _markComponent(
 );
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
-    const component0 = createComponent(Child, { label: 'child' }, ctx);
-    return maybeThen(component0, (component0) => ['<main>', component0, '</main>']);
+    const component0 = ctx.observeError(createComponent(Child, { label: 'child' }, ctx));
+    return ['<main>', component0, '</main>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

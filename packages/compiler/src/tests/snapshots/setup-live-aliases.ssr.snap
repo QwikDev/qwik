@@ -29,7 +29,6 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
@@ -40,6 +39,7 @@ import {
   propSource,
   isSource,
   renderSsrTextNode,
+  maybeThen,
   renderSsrTextExpression,
   renderSsrDynamicContent,
   _markComponent,
@@ -66,11 +66,13 @@ const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   ctx.addRoot(count);
   ctx.addRoot(props);
   ctx.addRoot(slotScope0);
-  const component0 = createComponent(
-    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
-    { onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([store, count, props]) },
-    ctx,
-    { slotScope: slotScope0 }
+  const component0 = ctx.observeError(
+    createComponent(
+      (props0) => renderSsrDynamicTag(tag0, props0, ctx),
+      { onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([store, count, props]) },
+      ctx,
+      { slotScope: slotScope0 }
+    )
   );
   return component0;
 };
@@ -149,15 +151,10 @@ const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) => {
   const [store] = _captures;
   const id0 = ctx.nextId();
   ctx.addRoot(store);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_text_segment_7_1fh135jcdiyj1.w([store]),
-    false,
-    true
+  const content0 = ctx.observeError(
+    renderSsrContent(ctx, id0, [], q_component_text_segment_7_1fh135jcdiyj1.w([store]), false, true)
   );
-  return maybeThen(content0, (content0) => [
+  return [
     '<!s=',
     createSsrNodeId(__rangeId),
     '><!d=',
@@ -165,7 +162,7 @@ const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) => {
     '>',
     content0,
     '<!/d><!/s>',
-  ]);
+  ];
 };
 const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_6_3b0t84qbb79rc'
@@ -197,14 +194,8 @@ const q_component_slot_render_segment_8_3b0t7co3hj5qa = /*#__PURE__*/ _noopQrl(
 q_component_slot_render_segment_8_3b0t7co3hj5qa.s(component_slot_render_segment_8_3b0t7co3hj5qa);
 const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId) => {
   const [store] = _captures;
-  const component0 = createComponent(Child, { state: store }, ctx);
-  return maybeThen(component0, (component0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '>',
-    component0,
-    '<!/s>',
-  ]);
+  const component0 = ctx.observeError(createComponent(Child, { state: store }, ctx));
+  return ['<!s=', createSsrNodeId(__rangeId), '>', component0, '<!/s>'];
 };
 const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_10_3m3ztgqtay7c7'
@@ -243,21 +234,17 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     ctx.addRoot(props);
     ctx.addRoot(store);
     ctx.addRoot(count);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_tag_dynamic_segment_0_331xea01t87eh.w([props, store, count]),
-      false,
-      true
+    const content0 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id0,
+        [],
+        q_component_tag_dynamic_segment_0_331xea01t87eh.w([props, store, count]),
+        false,
+        true
+      )
     );
-    return maybeThen(content0, (content0) => [
-      '<!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d>',
-    ]);
+    return ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'
@@ -329,11 +316,13 @@ export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   ctx.addRoot(count);
   ctx.addRoot(props);
   ctx.addRoot(slotScope0);
-  const component0 = createComponent(
-    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
-    { onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([store, count, props]) },
-    ctx,
-    { slotScope: slotScope0 }
+  const component0 = ctx.observeError(
+    createComponent(
+      (props0) => renderSsrDynamicTag(tag0, props0, ctx),
+      { onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([store, count, props]) },
+      ctx,
+      { slotScope: slotScope0 }
+    )
   );
   return component0;
 };
@@ -586,7 +575,7 @@ export const component_text_segment_5_1fh12dh4juuhz = (count) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_6_3b0t84qbb79rc.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, createSsrNodeId, renderSsrContent, maybeThen } from '@qwik.dev/core';
+import { _noopQrl, _captures, createSsrNodeId, renderSsrContent } from '@qwik.dev/core';
 import { component_text_segment_7_1fh135jcdiyj1 } from './component.tsx_component_text_segment_7_1fh135jcdiyj1';
 const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
   'component_text_segment_7_1fh135jcdiyj1'
@@ -597,15 +586,10 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) =>
   const [store] = _captures;
   const id0 = ctx.nextId();
   ctx.addRoot(store);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_text_segment_7_1fh135jcdiyj1.w([store]),
-    false,
-    true
+  const content0 = ctx.observeError(
+    renderSsrContent(ctx, id0, [], q_component_text_segment_7_1fh135jcdiyj1.w([store]), false, true)
   );
-  return maybeThen(content0, (content0) => [
+  return [
     '<!s=',
     createSsrNodeId(__rangeId),
     '><!d=',
@@ -613,7 +597,7 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) =>
     '>',
     content0,
     '<!/d><!/s>',
-  ]);
+  ];
 };
 /*
 {
@@ -758,19 +742,13 @@ export const component_text_segment_9_1fh0xp3tlu6bn = (store) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_10_3m3ztgqtay7c7.js (ENTRY POINT)==
 
-import { _captures, createSsrNodeId, createComponent, maybeThen } from '@qwik.dev/core';
+import { _captures, createSsrNodeId, createComponent } from '@qwik.dev/core';
 import { Child } from './child';
 
 export const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId) => {
   const [store] = _captures;
-  const component0 = createComponent(Child, { state: store }, ctx);
-  return maybeThen(component0, (component0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '>',
-    component0,
-    '<!/s>',
-  ]);
+  const component0 = ctx.observeError(createComponent(Child, { state: store }, ctx));
+  return ['<!s=', createSsrNodeId(__rangeId), '>', component0, '<!/s>'];
 };
 /*
 {

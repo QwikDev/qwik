@@ -16,13 +16,13 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   renderSsrDynamicContent,
   _noopQrl,
   _markComponent,
   createComponent,
   escapeHTML,
   renderSsrTextExpression,
+  maybeThen,
 } from '@qwik.dev/core';
 const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
   const [props] = _captures;
@@ -72,31 +72,29 @@ export const ProductRelations = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();
     ctx.addRoot(props);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_text_segment_0_1fh10fbkzokfc.w([props]),
-      false,
-      true
+    const content0 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id0,
+        [],
+        q_component_text_segment_0_1fh10fbkzokfc.w([props]),
+        false,
+        true
+      )
     );
-    return maybeThen(content0, (content0) => [
-      '<div><!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d></div>',
-    ]);
+    return ['<div><!d=', createSsrNodeId(id0), '>', content0, '<!/d></div>'];
   },
   'ProductRelations_component_1ip78ju5ryj73',
   './component.tsx'
 );
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
-    const component0 = createComponent(
-      ProductRelations,
-      { render$: q_component_renderqrl_segment_3_5bp1s3sqxvaj },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        ProductRelations,
+        { render$: q_component_renderqrl_segment_3_5bp1s3sqxvaj },
+        ctx
+      )
     );
     return component0;
   },

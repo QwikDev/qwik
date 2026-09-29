@@ -25,12 +25,14 @@ import {
 import { Slow } from './slow';
 const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   const id0 = ctx.nextId();
-  const content0 = createSsrSuspense(
-    ctx,
-    id0,
-    q_component_suspense_content_segment_3_oznypvg8wygo,
-    q_component_suspense_fallback_segment_2_1i2rrxydec1vq,
-    0
+  const content0 = ctx.observeError(
+    createSsrSuspense(
+      ctx,
+      id0,
+      q_component_suspense_content_segment_3_oznypvg8wygo,
+      q_component_suspense_fallback_segment_2_1i2rrxydec1vq,
+      0
+    )
   );
   return content0;
 };
@@ -50,7 +52,7 @@ q_component_suspense_fallback_segment_0_1i2rr5w5knxuo.s(
   component_suspense_fallback_segment_0_1i2rr5w5knxuo
 );
 const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
-  const component0 = createComponent(Slow, { id: 'inner' }, ctx);
+  const component0 = ctx.observeError(createComponent(Slow, { id: 'inner' }, ctx));
   return component0;
 };
 const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _noopQrl(
@@ -72,14 +74,16 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();
     const reveal0 = createRevealGroup('together', undefined, 1);
-    const content0 = createSsrSuspense(
-      ctx,
-      id0,
-      q_component_suspense_content_segment_1_oznzhxo2l2hq,
-      q_component_suspense_fallback_segment_0_1i2rr5w5knxuo,
-      0,
-      reveal0,
-      0
+    const content0 = ctx.observeError(
+      createSsrSuspense(
+        ctx,
+        id0,
+        q_component_suspense_content_segment_1_oznzhxo2l2hq,
+        q_component_suspense_fallback_segment_0_1i2rr5w5knxuo,
+        0,
+        reveal0,
+        0
+      )
     );
     return content0;
   },
@@ -132,12 +136,14 @@ q_component_suspense_fallback_segment_2_1i2rrxydec1vq.s(
 
 export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   const id0 = ctx.nextId();
-  const content0 = createSsrSuspense(
-    ctx,
-    id0,
-    q_component_suspense_content_segment_3_oznypvg8wygo,
-    q_component_suspense_fallback_segment_2_1i2rrxydec1vq,
-    0
+  const content0 = ctx.observeError(
+    createSsrSuspense(
+      ctx,
+      id0,
+      q_component_suspense_content_segment_3_oznypvg8wygo,
+      q_component_suspense_fallback_segment_2_1i2rrxydec1vq,
+      0
+    )
   );
   return content0;
 };
@@ -192,7 +198,7 @@ import { createComponent } from '@qwik.dev/core';
 import { Slow } from './slow';
 
 export const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
-  const component0 = createComponent(Slow, { id: 'inner' }, ctx);
+  const component0 = ctx.observeError(createComponent(Slow, { id: 'inner' }, ctx));
   return component0;
 };
 /*

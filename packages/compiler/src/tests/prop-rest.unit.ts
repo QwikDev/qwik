@@ -60,6 +60,7 @@ export default ({ title: heading, ...rest }) => <Child {...rest} title={heading}
           document: createDocument(),
           scheduler: new Scheduler(() => {}),
           addRoot() {},
+          observeError: (output: unknown) => output,
         })
       );
       expect(forwarded!.label).toBe('first');

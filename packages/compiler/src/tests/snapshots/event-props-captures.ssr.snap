@@ -61,12 +61,14 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (input, ctx) => {
     const suffix = '!';
     ctx.addRoot(input);
-    const component0 = createComponent(
-      Button,
-      { onSave$: q_component_q_e_save_segment_2_3krcacnjwdae8.w([input]) },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        Button,
+        { onSave$: q_component_q_e_save_segment_2_3krcacnjwdae8.w([input]) },
+        ctx
+      )
     );
-    return maybeThen(component0, (component0) => [
+    return [
       '<main><button',
       ctx.eventAttrParts(
         'q-e:click',
@@ -75,7 +77,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       '>save</button>',
       component0,
       '</main>',
-    ]);
+    ];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

@@ -193,57 +193,59 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const renderLocal = (row) => q_component_jsx_segment_11_2wo80qpf8geko.w([row]);
     const collectionId0 = ctx.nextId();
     ctx.addRoot(rows);
-    const collection0 = renderSsrCollection(
-      ctx,
-      collectionId0,
-      rows,
-      q_component_for_key_segment_3_24urt2mcqntyh,
-      q_component_for_render_segment_2_asyu0c4tc6e5,
-      0,
-      false,
-      0
-    );
-    const collectionId1 = ctx.nextId();
-    const collection1 = renderSsrCollection(
-      ctx,
-      collectionId1,
-      rows,
-      q_component_for_key_segment_6_24uru8poh6002,
-      q_component_for_render_segment_5_asyra4dfhsag,
-      0,
-      false,
-      0
-    );
-    const collectionId2 = ctx.nextId();
-    const collection2 = renderSsrCollection(
-      ctx,
-      collectionId2,
-      rows,
-      q_component_for_key_segment_9_24urvet07o61n,
-      q_component_for_render_segment_8_asyq411ozm8v,
-      0,
-      false,
-      0
-    );
-    return maybeThen(collection0, (collection0) =>
-      maybeThen(collection1, (collection1) =>
-        maybeThen(collection2, (collection2) => [
-          '<div><ul><!f=',
-          createSsrNodeId(collectionId0),
-          '>',
-          collection0,
-          '<!/f></ul><ul><!f=',
-          createSsrNodeId(collectionId1),
-          '>',
-          collection1,
-          '<!/f></ul><ul><!f=',
-          createSsrNodeId(collectionId2),
-          '>',
-          collection2,
-          '<!/f></ul></div>',
-        ])
+    const collection0 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        collectionId0,
+        rows,
+        q_component_for_key_segment_3_24urt2mcqntyh,
+        q_component_for_render_segment_2_asyu0c4tc6e5,
+        0,
+        false,
+        0
       )
     );
+    const collectionId1 = ctx.nextId();
+    const collection1 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        collectionId1,
+        rows,
+        q_component_for_key_segment_6_24uru8poh6002,
+        q_component_for_render_segment_5_asyra4dfhsag,
+        0,
+        false,
+        0
+      )
+    );
+    const collectionId2 = ctx.nextId();
+    const collection2 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        collectionId2,
+        rows,
+        q_component_for_key_segment_9_24urvet07o61n,
+        q_component_for_render_segment_8_asyq411ozm8v,
+        0,
+        false,
+        0
+      )
+    );
+    return [
+      '<div><ul><!f=',
+      createSsrNodeId(collectionId0),
+      '>',
+      collection0,
+      '<!/f></ul><ul><!f=',
+      createSsrNodeId(collectionId1),
+      '>',
+      collection1,
+      '<!/f></ul><ul><!f=',
+      createSsrNodeId(collectionId2),
+      '>',
+      collection2,
+      '<!/f></ul></div>',
+    ];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

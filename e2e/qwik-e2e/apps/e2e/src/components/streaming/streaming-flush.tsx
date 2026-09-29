@@ -1,4 +1,4 @@
-import { component$ } from '@qwik.dev/core';
+import { component$, Slot, useSignal } from '@qwik.dev/core';
 import { delay } from '../delay';
 
 export const AsyncCmp = component$(async () => {
@@ -6,11 +6,26 @@ export const AsyncCmp = component$(async () => {
   return <span id="async-result">Async done</span>;
 });
 
-export const StreamingFlush = component$(() => {
+const SlotWrapper = component$(() => (
+  <section>
+    <Slot />
+  </section>
+));
+
+export const StreamingFlush = component$<{ mode?: 'branch' | 'slot' }>((props) => {
+  const show = useSignal(true);
   return (
     <div>
       <h1 id="prefix">Prefix content</h1>
-      <AsyncCmp />
+      {props.mode === 'slot' ? (
+        <SlotWrapper>
+          <AsyncCmp />
+        </SlotWrapper>
+      ) : props.mode === 'branch' ? (
+        show.value && <AsyncCmp />
+      ) : (
+        <AsyncCmp />
+      )}
     </div>
   );
 });

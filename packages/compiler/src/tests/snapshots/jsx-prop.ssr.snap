@@ -62,7 +62,6 @@ import {
   createPropsProxy,
   useComputedQrl,
   _captures,
-  maybeThen,
   renderSsrCollection,
   escapeHTML,
   _textValue,
@@ -71,17 +70,19 @@ import { Display } from './display';
 export function Direct(props, ctx) {
   const prop0 = computedProp(q_component_fallback_segment_1_5cu25viqhgwy);
   ctx.addRoot(prop0);
-  const component0 = createComponent(
-    Display,
-    _props(
-      {
-        get fallback() {
-          return readTrackedValue(prop0);
+  const component0 = ctx.observeError(
+    createComponent(
+      Display,
+      _props(
+        {
+          get fallback() {
+            return readTrackedValue(prop0);
+          },
         },
-      },
-      { fallback: prop0 }
-    ),
-    ctx
+        { fallback: prop0 }
+      ),
+      ctx
+    )
   );
   return component0;
 }
@@ -89,10 +90,12 @@ _markComponent(Direct, 'Direct_component_2ps3ihhdyldo6', './component.tsx');
 export function Spread(props, ctx) {
   const options = useSignal({ title: 'title' });
   ctx.addRoot(options);
-  const component0 = createComponent(
-    Display,
-    createPropsProxy(useComputedQrl(q_component_props_segment_3_208o00da84a64.w([options]))),
-    ctx
+  const component0 = ctx.observeError(
+    createComponent(
+      Display,
+      createPropsProxy(useComputedQrl(q_component_props_segment_3_208o00da84a64.w([options]))),
+      ctx
+    )
   );
   return component0;
 }
@@ -100,24 +103,24 @@ _markComponent(Spread, 'Spread_component_2bstbt3vj7y3s', './component.tsx');
 export function Rows(props, ctx) {
   function semantic_collectionRender_334_399_1rvvd24vhg1k1(ctx, __rangeId, __rowId, row) {
     ctx.addRoot(row);
-    const component0 = createComponent(
-      Display,
-      { fallback: q_component_jsx_segment_4_38vnl4ypf6sea.w([row]) },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(Display, { fallback: q_component_jsx_segment_4_38vnl4ypf6sea.w([row]) }, ctx)
     );
-    return maybeThen(component0, (component0) => ['<li>', component0, '</li>']);
+    return ['<li>', component0, '</li>'];
   }
-  const collection0 = renderSsrCollection(
-    ctx,
-    undefined,
-    [1, 2],
-    undefined,
-    semantic_collectionRender_334_399_1rvvd24vhg1k1,
-    0,
-    false,
-    0
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      [1, 2],
+      undefined,
+      semantic_collectionRender_334_399_1rvvd24vhg1k1,
+      0,
+      false,
+      0
+    )
   );
-  return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
+  return ['<ul>', collection0, '</ul>'];
 }
 _markComponent(Rows, 'Rows_component_1vadfxnxfhuga', './component.tsx');
 

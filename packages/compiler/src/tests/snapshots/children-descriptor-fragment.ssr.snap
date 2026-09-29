@@ -22,7 +22,6 @@ import {
   renderSsrContent,
   createSsrNodeId,
   renderSsrSlot,
-  maybeThen,
   renderSsrDynamicContent,
   _noopQrl,
   _markComponent,
@@ -57,26 +56,18 @@ export const List = _markComponent(
     const children = useChildrenInfo();
     const id0 = ctx.nextId();
     ctx.addRoot(children);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_text_segment_0_1fh10fbkzokfc.w([children]),
-      false,
-      true
+    const content0 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id0,
+        [],
+        q_component_text_segment_0_1fh10fbkzokfc.w([children]),
+        false,
+        true
+      )
     );
-    const slot0 = renderSsrSlot(ctx);
-    return maybeThen(content0, (content0) =>
-      maybeThen(slot0, (slot0) => [
-        '<ul><!d=',
-        createSsrNodeId(id0),
-        '>',
-        content0,
-        '<!/d>',
-        slot0,
-        '</ul>',
-      ])
-    );
+    const slot0 = ctx.observeError(renderSsrSlot(ctx));
+    return ['<ul><!d=', createSsrNodeId(id0), '>', content0, '<!/d>', slot0, '</ul>'];
   },
   'List_component_3heyy58kmhk1z',
   './component.tsx'
@@ -87,7 +78,9 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
     registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(List, null, ctx, { slotScope: slotScope0 });
+    const component0 = ctx.observeError(
+      createComponent(List, null, ctx, { slotScope: slotScope0 })
+    );
     return component0;
   },
   'default_component_3rg6kq1so9aio',

@@ -83,7 +83,7 @@ export const Picker = _markComponent(
 );
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
-    const component0 = createComponent(Picker, null, ctx);
+    const component0 = ctx.observeError(createComponent(Picker, null, ctx));
     return component0;
   },
   'default_component_3rg6kq1so9aio',

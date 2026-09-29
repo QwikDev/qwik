@@ -66,61 +66,58 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       q_component_title_segment_0_2f0r0xivypjmx
     );
     const id1 = ctx.nextId();
-    const content0 = renderSsrContent(
-      ctx,
-      id1,
-      [],
-      q_component_text_segment_2_1fh117dstcoge.w([props]),
-      false,
-      true
-    );
-    const id2 = ctx.nextId();
-    const content1 = renderSsrContent(
-      ctx,
-      id2,
-      [],
-      q_component_text_segment_3_1fh11lewq6qgx.w([props]),
-      false,
-      true
-    );
-    const id3 = ctx.nextId();
-    const content2 = renderSsrContent(
-      ctx,
-      id3,
-      [],
-      q_component_text_segment_4_1fh11zg0n0shg.w([props]),
-      false,
-      true
-    );
-    return maybeThen(attr0, (attr0) =>
-      maybeThen(content0, (content0) =>
-        maybeThen(content1, (content1) =>
-          maybeThen(content2, (content2) => [
-            '<p q:id="',
-            createSsrNodeId(id0),
-            '"',
-            attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-            ctx.eventAttrParts(
-              'q-e:click',
-              q_component_q_e_click_segment_1_2xwyfnber1kpg.w([props])
-            ),
-            '><!d=',
-            createSsrNodeId(id1),
-            '>',
-            content0,
-            '<!/d><!d=',
-            createSsrNodeId(id2),
-            '>',
-            content1,
-            '<!/d><!d=',
-            createSsrNodeId(id3),
-            '>',
-            content2,
-            '<!/d></p>',
-          ])
-        )
+    const content0 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id1,
+        [],
+        q_component_text_segment_2_1fh117dstcoge.w([props]),
+        false,
+        true
       )
     );
+    const id2 = ctx.nextId();
+    const content1 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id2,
+        [],
+        q_component_text_segment_3_1fh11lewq6qgx.w([props]),
+        false,
+        true
+      )
+    );
+    const id3 = ctx.nextId();
+    const content2 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id3,
+        [],
+        q_component_text_segment_4_1fh11zg0n0shg.w([props]),
+        false,
+        true
+      )
+    );
+    return maybeThen(attr0, (attr0) => [
+      '<p q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([props])),
+      '><!d=',
+      createSsrNodeId(id1),
+      '>',
+      content0,
+      '<!/d><!d=',
+      createSsrNodeId(id2),
+      '>',
+      content1,
+      '<!/d><!d=',
+      createSsrNodeId(id3),
+      '>',
+      content2,
+      '<!/d></p>',
+    ]);
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

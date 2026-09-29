@@ -670,7 +670,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       QwikWord.RenderSsrDynamicTag
     );
     pass.statements.push(...call.rootDeclarations);
-    this.pushStep(pass, component, call.roots, call.expression, call.statements);
+    this.pushStep(pass, component, call.roots, call.expression, call.statements, true);
     parts.push(component);
   }
 
@@ -942,7 +942,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       op.fallback === null
         ? `${QwikWord.RenderSsrSlot}(${pass.names.ctx}${name === '' ? '' : `, ${name}`})`
         : `${QwikWord.RenderSsrSlot}(${pass.names.ctx}, ${name === '' ? "''" : name}, ${fallback})`;
-    this.pushStep(pass, slot, roots, call);
+    this.pushStep(pass, slot, roots, call, [], true);
     parts.push(slot);
   }
 
@@ -960,7 +960,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pass,
       content,
       rootArgs(render.qrl, render.args),
-      `${QwikWord.RenderSsrContent}(${pass.names.ctx}, ${id}, [], ${render.ref}, false, true)`
+      `${QwikWord.RenderSsrContent}(${pass.names.ctx}, ${id}, [], ${render.ref}, false, true)`,
+      [],
+      true
     );
     this.imports.add(QwikWord.CreateSsrNodeId);
     pushMergedStatic(parts, '<!d=');
@@ -991,7 +993,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         ...rootArgs(content.qrl, content.args),
         ...(fallback === null ? [] : rootArgs(fallback.qrl, fallback.args)),
       ],
-      `${QwikWord.CreateSsrSuspense}(${pass.names.ctx}, ${id}, ${content.ref}, ${fallback === null ? 'undefined' : fallback.ref}, ${delay}${reveal})`
+      `${QwikWord.CreateSsrSuspense}(${pass.names.ctx}, ${id}, ${content.ref}, ${fallback === null ? 'undefined' : fallback.ref}, ${delay}${reveal})`,
+      [],
+      true
     );
     parts.push(step);
   }
@@ -1025,7 +1029,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pass,
           step,
           [source, ...render.args, ...(key?.args ?? [])],
-          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.index}, ${usesRowId}, ${rowShapeCode(op.shape)})`
+          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.index}, ${usesRowId}, ${rowShapeCode(op.shape)})`,
+          [],
+          true
         );
         pushMergedStatic(parts, '<!f=');
         this.imports.add(QwikWord.CreateSsrNodeId);
@@ -1047,7 +1053,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pass,
           step,
           [],
-          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, undefined, ${source}, undefined, ${rowFn}, ${op.index}, false, ${rowShapeCode(op.shape)})`
+          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, undefined, ${source}, undefined, ${rowFn}, ${op.index}, false, ${rowShapeCode(op.shape)})`,
+          [],
+          true
         );
         parts.push(step);
         break;
@@ -1102,7 +1110,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pass,
       step,
       [...args, ...thenArm.args, ...(elseArm?.args ?? [])],
-      `${QwikWord.RenderSsrBranch}(${pass.names.ctx}, ${idVariable}, ${condition}, ${thenArm.ref}, ${elseArm?.ref ?? 'undefined'})`
+      `${QwikWord.RenderSsrBranch}(${pass.names.ctx}, ${idVariable}, ${condition}, ${thenArm.ref}, ${elseArm?.ref ?? 'undefined'})`,
+      [],
+      true
     );
     pushMergedStatic(parts, '<!b=');
     this.imports.add(QwikWord.CreateSsrNodeId);
@@ -1218,7 +1228,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     step: string,
     roots: readonly string[],
     callExpr: string,
-    statements: readonly string[] = []
+    statements: readonly string[] = [],
+    stream = false
   ): void {
     // A root may be declared by the step's own statements, so those come first.
     pass.statements.push(...statements);
@@ -1229,8 +1240,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         pass.statements.push(`${pass.names.ctx}.addRoot(${root});`);
       }
     }
-    pass.statements.push(`const ${step} = ${callExpr};`);
-    pass.asyncSteps.push(step);
+    const value = stream ? `${pass.names.ctx}.observeError(${callExpr})` : callExpr;
+    pass.statements.push(`const ${step} = ${value};`);
+    if (!stream) {
+      pass.asyncSteps.push(step);
+    }
   }
 
   /**

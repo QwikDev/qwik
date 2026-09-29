@@ -2,7 +2,7 @@ import type { QRL } from '../../shared/qrl/qrl.public';
 import { isPromise, maybeThen } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { getActiveInvokeContextOrNull, invoke } from '../../runtime/invoke-context';
-import type { SsrDeferredRange, SsrOutput } from '../../ssr/output';
+import { resolveSsrOutput, type SsrDeferredRange, type SsrOutput } from '../../ssr/output';
 import { renderSsrContent, SSRContent, SSRSuspenseContentSubscription } from './content';
 import { registerSuspenseBoundary } from './suspense-boundary';
 import type { RevealGroup } from './reveal';
@@ -61,7 +61,7 @@ export function createSsrSuspense(
     fallbackQrl ?? null,
     delay
   );
-  const rendered = suspenseContent.run(undefined, contentRoot);
+  const rendered = maybeThen(suspenseContent.run(undefined, contentRoot), resolveSsrOutput);
   const initialTasks = scope.flush();
   const drain = (output: SsrOutput) =>
     maybeThen(scope.flush(), () => {

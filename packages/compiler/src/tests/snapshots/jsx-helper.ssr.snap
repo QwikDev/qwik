@@ -323,7 +323,7 @@ const sibling = (label) => q_app_jsx_segment_0_3qpc3dhc6i5ki.w([label]),
     function local(label) {
       return q_app_jsx_segment_2_3qpc2lf4cu1jg.w([label]);
     }
-    const component0 = createComponent(Display, { values: values }, ctx);
+    const component0 = ctx.observeError(createComponent(Display, { values: values }, ctx));
     return component0;
   };
 export default App;

@@ -54,6 +54,19 @@ describe('SsrOutputWriter', () => {
     expect(chunks).toEqual(['before', '<!r=3 7>', '4 2', 'after']);
   });
 
+  it('writes the prefix while a nested output promise is pending', async () => {
+    let resolve!: (output: string) => void;
+    const pending = new Promise<string>((done) => (resolve = done));
+    const chunks: string[] = [];
+    const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
+
+    const writing = writer.finish(['prefix', [pending], 'tail']);
+    expect(chunks).toEqual(['prefix']);
+    resolve('async');
+    await writing;
+    expect(chunks).toEqual(['prefix', 'async', 'tail']);
+  });
+
   it('waits for each sink write before starting the next one', async () => {
     const chunks: string[] = [];
     let writesInFlight = 0;

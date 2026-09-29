@@ -61,13 +61,15 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
     const fallback = 'click';
     ctx.addRoot(fallback);
-    const component0 = createComponent(
-      Button,
-      {
-        onSave$: q_component_q_e_save_segment_1_3krcbiqvmvgft.w([fallback]),
-        onReset$: q_component_q_e_reset_segment_2_3clnjugf9bxli,
-      },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        Button,
+        {
+          onSave$: q_component_q_e_save_segment_1_3krcbiqvmvgft.w([fallback]),
+          onReset$: q_component_q_e_reset_segment_2_3clnjugf9bxli,
+        },
+        ctx
+      )
     );
     return component0;
   },

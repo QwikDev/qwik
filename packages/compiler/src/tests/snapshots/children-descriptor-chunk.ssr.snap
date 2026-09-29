@@ -23,7 +23,6 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
@@ -38,11 +37,10 @@ const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([tag]));
   registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
   ctx.addRoot(slotScope0);
-  const component0 = createComponent(
-    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
-    null,
-    ctx,
-    { slotScope: slotScope0 }
+  const component0 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), null, ctx, {
+      slotScope: slotScope0,
+    })
   );
   return component0;
 };
@@ -65,14 +63,8 @@ const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
 const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
-  const component0 = createComponent(Child, null, ctx);
-  return maybeThen(component0, (component0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '>',
-    component0,
-    '<!/s>',
-  ]);
+  const component0 = ctx.observeError(createComponent(Child, null, ctx));
+  return ['<!s=', createSsrNodeId(__rangeId), '>', component0, '<!/s>'];
 };
 const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
@@ -93,21 +85,17 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const tag = useSignal('section');
     const id0 = ctx.nextId();
     ctx.addRoot(tag);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_tag_dynamic_segment_0_331xea01t87eh.w([tag]),
-      false,
-      true
+    const content0 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id0,
+        [],
+        q_component_tag_dynamic_segment_0_331xea01t87eh.w([tag]),
+        false,
+        true
+      )
     );
-    return maybeThen(content0, (content0) => [
-      '<!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d>',
-    ]);
+    return ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'
@@ -144,11 +132,10 @@ export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([tag]));
   registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
   ctx.addRoot(slotScope0);
-  const component0 = createComponent(
-    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
-    null,
-    ctx,
-    { slotScope: slotScope0 }
+  const component0 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), null, ctx, {
+      slotScope: slotScope0,
+    })
   );
   return component0;
 };
@@ -248,18 +235,12 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
 */
 ============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
 
-import { createSsrNodeId, createComponent, maybeThen } from '@qwik.dev/core';
+import { createSsrNodeId, createComponent } from '@qwik.dev/core';
 import { Child } from './component.tsx';
 
 export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
-  const component0 = createComponent(Child, null, ctx);
-  return maybeThen(component0, (component0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '>',
-    component0,
-    '<!/s>',
-  ]);
+  const component0 = ctx.observeError(createComponent(Child, null, ctx));
+  return ['<!s=', createSsrNodeId(__rangeId), '>', component0, '<!/s>'];
 };
 /*
 {

@@ -168,27 +168,27 @@ export const Counter = _markComponent(
           ctx.eventAttr
         );
         const id1 = ctx.nextId();
-        const content0 = renderSsrContent(
-          ctx,
-          id1,
-          [],
-          q_component_text_segment_2_1fh117dstcoge.w([_counter]),
-          false,
-          true
+        const content0 = ctx.observeError(
+          renderSsrContent(
+            ctx,
+            id1,
+            [],
+            q_component_text_segment_2_1fh117dstcoge.w([_counter]),
+            false,
+            true
+          )
         );
-        return maybeThen(effect0, (effect0) =>
-          maybeThen(content0, (content0) => [
-            '<button q:id="',
-            createSsrNodeId(id0),
-            '"',
-            createSsrMarkup(effect0),
-            '><!d=',
-            createSsrNodeId(id1),
-            '>',
-            content0,
-            '<!/d></button>',
-          ])
-        );
+        return maybeThen(effect0, (effect0) => [
+          '<button q:id="',
+          createSsrNodeId(id0),
+          '"',
+          createSsrMarkup(effect0),
+          '><!d=',
+          createSsrNodeId(id1),
+          '>',
+          content0,
+          '<!/d></button>',
+        ]);
       })
     );
   },

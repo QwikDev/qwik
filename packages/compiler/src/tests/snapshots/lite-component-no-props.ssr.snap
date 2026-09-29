@@ -17,9 +17,9 @@ import {
   _captures,
   renderSsrBranch,
   createSsrNodeId,
-  maybeThen,
   renderSsrAttrExpression,
   escapeHTML,
+  maybeThen,
   _noopQrl,
   renderSsrDynamicTag,
   createComponent,
@@ -60,7 +60,9 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
 const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [props] = _captures;
   const Mark = _withCaptures(component_Mark_segment_2_t9oujovgd45s, [props]);
-  const component0 = createComponent((props0) => renderSsrDynamicTag(Mark, props0, ctx), null, ctx);
+  const component0 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(Mark, props0, ctx), null, ctx)
+  );
   return component0;
 };
 const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
@@ -81,20 +83,16 @@ export const Footer = _markComponent(
     }
     const branchId0 = ctx.nextId();
     ctx.addRoot(props);
-    const branch0 = renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([props]),
-      q_component_branch_then_segment_3_24n7atwir5934.w([props]),
-      undefined
+    const branch0 = ctx.observeError(
+      renderSsrBranch(
+        ctx,
+        branchId0,
+        q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([props]),
+        q_component_branch_then_segment_3_24n7atwir5934.w([props]),
+        undefined
+      )
     );
-    return maybeThen(branch0, (branch0) => [
-      '<p><!b=',
-      createSsrNodeId(branchId0),
-      '>',
-      branch0,
-      '<!/b></p>',
-    ]);
+    return ['<p><!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b></p>'];
   },
   'Footer_component_d3m2s4mpch0k',
   './component.tsx'
@@ -235,7 +233,9 @@ q_component_Mark_segment_2_t9oujovgd45s.s(component_Mark_segment_2_t9oujovgd45s)
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [props] = _captures;
   const Mark = _withCaptures(component_Mark_segment_2_t9oujovgd45s, [props]);
-  const component0 = createComponent((props0) => renderSsrDynamicTag(Mark, props0, ctx), null, ctx);
+  const component0 = ctx.observeError(
+    createComponent((props0) => renderSsrDynamicTag(Mark, props0, ctx), null, ctx)
+  );
   return component0;
 };
 /*

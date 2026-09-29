@@ -13,7 +13,6 @@ export default () => {
 
 import {
   renderSsrSlot,
-  maybeThen,
   _markComponent,
   useSignal,
   createSlotScope,
@@ -29,28 +28,24 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
     return ['<h2>', escapeHTML(_textValue(item.title)), '</h2><b>!</b>'];
   }
-  const collection0 = renderSsrCollection(
-    ctx,
-    undefined,
-    [
-      {
-        title: 'Title',
-        description: 'Body',
-      },
-    ],
-    undefined,
-    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
-    0,
-    false,
-    2
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      [
+        {
+          title: 'Title',
+          description: 'Body',
+        },
+      ],
+      undefined,
+      semantic_collectionRender_235_393_3n6jd0m4ieo7n,
+      0,
+      false,
+      2
+    )
   );
-  return maybeThen(collection0, (collection0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '>',
-    collection0,
-    '<!/s>',
-  ]);
+  return ['<!s=', createSsrNodeId(__rangeId), '>', collection0, '<!/s>'];
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -60,28 +55,24 @@ const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
   function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
     return ['<p>', escapeHTML(_textValue(item.description)), '</p>'];
   }
-  const collection0 = renderSsrCollection(
-    ctx,
-    undefined,
-    [
-      {
-        title: 'Title',
-        description: 'Body',
-      },
-    ],
-    undefined,
-    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
-    0,
-    false,
-    0
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      [
+        {
+          title: 'Title',
+          description: 'Body',
+        },
+      ],
+      undefined,
+      semantic_collectionRender_235_393_3n6jd0m4ieo7n,
+      0,
+      false,
+      0
+    )
   );
-  return maybeThen(collection0, (collection0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '>',
-    collection0,
-    '<!/s>',
-  ]);
+  return ['<!s=', createSsrNodeId(__rangeId), '>', collection0, '<!/s>'];
 };
 const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_1_3b0tauy2p1nv1'
@@ -89,11 +80,9 @@ const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
 q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
 export const Panel = _markComponent(
   (props, ctx) => {
-    const slot0 = renderSsrSlot(ctx, 'header');
-    const slot1 = renderSsrSlot(ctx);
-    return maybeThen(slot0, (slot0) =>
-      maybeThen(slot1, (slot1) => ['<main>', slot0, slot1, '</main>'])
-    );
+    const slot0 = ctx.observeError(renderSsrSlot(ctx, 'header'));
+    const slot1 = ctx.observeError(renderSsrSlot(ctx));
+    return ['<main>', slot0, slot1, '</main>'];
   },
   'Panel_component_5q1hs6sb6j5z',
   './component.tsx'
@@ -110,7 +99,9 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     registerProjection(slotScope0, 'header', q_component_slot_render_segment_0_3b0tagwys7lui);
     registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
     ctx.addRoot(slotScope0);
-    const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
+    const component0 = ctx.observeError(
+      createComponent(Panel, null, ctx, { slotScope: slotScope0 })
+    );
     return component0;
   },
   'default_component_3rg6kq1so9aio',
@@ -121,40 +112,30 @@ export default default_component_3rg6kq1so9aio;
 export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import {
-  createSsrNodeId,
-  escapeHTML,
-  _textValue,
-  renderSsrCollection,
-  maybeThen,
-} from '@qwik.dev/core';
+import { createSsrNodeId, escapeHTML, _textValue, renderSsrCollection } from '@qwik.dev/core';
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
     return ['<h2>', escapeHTML(_textValue(item.title)), '</h2><b>!</b>'];
   }
-  const collection0 = renderSsrCollection(
-    ctx,
-    undefined,
-    [
-      {
-        title: 'Title',
-        description: 'Body',
-      },
-    ],
-    undefined,
-    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
-    0,
-    false,
-    2
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      [
+        {
+          title: 'Title',
+          description: 'Body',
+        },
+      ],
+      undefined,
+      semantic_collectionRender_235_393_3n6jd0m4ieo7n,
+      0,
+      false,
+      2
+    )
   );
-  return maybeThen(collection0, (collection0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '>',
-    collection0,
-    '<!/s>',
-  ]);
+  return ['<!s=', createSsrNodeId(__rangeId), '>', collection0, '<!/s>'];
 };
 /*
 {
@@ -178,40 +159,30 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
-import {
-  createSsrNodeId,
-  escapeHTML,
-  _textValue,
-  renderSsrCollection,
-  maybeThen,
-} from '@qwik.dev/core';
+import { createSsrNodeId, escapeHTML, _textValue, renderSsrCollection } from '@qwik.dev/core';
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
   function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
     return ['<p>', escapeHTML(_textValue(item.description)), '</p>'];
   }
-  const collection0 = renderSsrCollection(
-    ctx,
-    undefined,
-    [
-      {
-        title: 'Title',
-        description: 'Body',
-      },
-    ],
-    undefined,
-    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
-    0,
-    false,
-    0
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      [
+        {
+          title: 'Title',
+          description: 'Body',
+        },
+      ],
+      undefined,
+      semantic_collectionRender_235_393_3n6jd0m4ieo7n,
+      0,
+      false,
+      0
+    )
   );
-  return maybeThen(collection0, (collection0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '>',
-    collection0,
-    '<!/s>',
-  ]);
+  return ['<!s=', createSsrNodeId(__rangeId), '>', collection0, '<!/s>'];
 };
 /*
 {

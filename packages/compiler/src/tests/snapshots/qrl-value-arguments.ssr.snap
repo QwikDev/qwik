@@ -60,8 +60,8 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   getActiveInvokeContextOrNull,
+  maybeThen,
   invoke,
   renderSsrDynamicContent,
   _markComponent,
@@ -83,15 +83,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       invoke(invokeCtx0, () => {
         const id0 = ctx.nextId();
         ctx.addRoot(count);
-        const content0 = renderSsrContent(
-          ctx,
-          id0,
-          [],
-          q_linked_content_0_3641q2pvcvlmq.w([count]),
-          false,
-          true
+        const content0 = ctx.observeError(
+          renderSsrContent(ctx, id0, [], q_linked_content_0_3641q2pvcvlmq.w([count]), false, true)
         );
-        return maybeThen(content0, (content0) => [
+        return [
           '<button',
           ctx.eventAttrParts('q-e:click', later),
           '><!d=',
@@ -99,7 +94,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
           '>',
           content0,
           '<!/d></button>',
-        ]);
+        ];
       })
     );
   },

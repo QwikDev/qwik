@@ -82,12 +82,14 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const attributes = useSignal({ title: 'save' });
     ctx.addRoot(attributes);
     ctx.addRoot(count);
-    const component0 = createComponent(
-      Child,
-      createPropsProxy(
-        useComputedQrl(q_component_props_segment_2_208o0eee4yc6n.w([attributes, count]))
-      ),
-      ctx
+    const component0 = ctx.observeError(
+      createComponent(
+        Child,
+        createPropsProxy(
+          useComputedQrl(q_component_props_segment_2_208o0eee4yc6n.w([attributes, count]))
+        ),
+        ctx
+      )
     );
     return component0;
   },

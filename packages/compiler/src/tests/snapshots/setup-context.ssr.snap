@@ -74,12 +74,12 @@ export const Nested = _markComponent(
     const count = useSignal(10);
     provide(Counter, count);
     const contextScope0 = ctx.optionalContextScopeRef();
-    const component0 = createComponent(Child, null, ctx);
-    return maybeThen(component0, (component0) => [
+    const component0 = ctx.observeError(createComponent(Child, null, ctx));
+    return [
       ...(contextScope0 ? ['<!c=', contextScope0, '>'] : []),
       component0,
       ...(contextScope0 ? ['<!/c>'] : []),
-    ]);
+    ];
   },
   'Nested_component_2kgczrffrnn78',
   './component.tsx'
@@ -89,22 +89,18 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const count = useSignal(1);
     provide(Counter, count);
     const contextScope0 = ctx.optionalContextScopeRef();
-    const component0 = createComponent(Child, null, ctx);
-    const component1 = createComponent(Nested, null, ctx);
-    const component2 = createComponent(Child, null, ctx);
-    return maybeThen(component0, (component0) =>
-      maybeThen(component1, (component1) =>
-        maybeThen(component2, (component2) => [
-          ...(contextScope0 ? ['<!c=', contextScope0, '>'] : []),
-          '<main>',
-          component0,
-          component1,
-          component2,
-          '</main>',
-          ...(contextScope0 ? ['<!/c>'] : []),
-        ])
-      )
-    );
+    const component0 = ctx.observeError(createComponent(Child, null, ctx));
+    const component1 = ctx.observeError(createComponent(Nested, null, ctx));
+    const component2 = ctx.observeError(createComponent(Child, null, ctx));
+    return [
+      ...(contextScope0 ? ['<!c=', contextScope0, '>'] : []),
+      '<main>',
+      component0,
+      component1,
+      component2,
+      '</main>',
+      ...(contextScope0 ? ['<!/c>'] : []),
+    ];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

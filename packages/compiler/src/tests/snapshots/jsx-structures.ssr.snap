@@ -16,9 +16,9 @@ import {
   _captures,
   renderSsrContent,
   createSsrNodeId,
-  maybeThen,
   escapeHTML,
   renderSsrTextExpression,
+  maybeThen,
   _noopQrl,
   renderSsrTextNode,
   renderSsrDynamicContent,
@@ -119,51 +119,53 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     };
     const id0 = ctx.nextId();
     ctx.addRoot(content);
-    const content0 = renderSsrContent(
-      ctx,
-      id0,
-      [],
-      q_component_content_segment_5_18525souwghet.w([content]),
-      false,
-      true
-    );
-    const id1 = ctx.nextId();
-    const content1 = renderSsrContent(
-      ctx,
-      id1,
-      [],
-      q_component_content_segment_6_18524mlj5ybd8.w([content]),
-      false,
-      true
-    );
-    const id2 = ctx.nextId();
-    const content2 = renderSsrContent(
-      ctx,
-      id2,
-      [],
-      q_component_content_segment_7_185250mn2sddr.w([content]),
-      false,
-      true
-    );
-    return maybeThen(content0, (content0) =>
-      maybeThen(content1, (content1) =>
-        maybeThen(content2, (content2) => [
-          '<main><!d=',
-          createSsrNodeId(id0),
-          '>',
-          content0,
-          '<!/d><!d=',
-          createSsrNodeId(id1),
-          '>',
-          content1,
-          '<!/d><!d=',
-          createSsrNodeId(id2),
-          '>',
-          content2,
-          '<!/d></main>',
-        ])
+    const content0 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id0,
+        [],
+        q_component_content_segment_5_18525souwghet.w([content]),
+        false,
+        true
       )
     );
+    const id1 = ctx.nextId();
+    const content1 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id1,
+        [],
+        q_component_content_segment_6_18524mlj5ybd8.w([content]),
+        false,
+        true
+      )
+    );
+    const id2 = ctx.nextId();
+    const content2 = ctx.observeError(
+      renderSsrContent(
+        ctx,
+        id2,
+        [],
+        q_component_content_segment_7_185250mn2sddr.w([content]),
+        false,
+        true
+      )
+    );
+    return [
+      '<main><!d=',
+      createSsrNodeId(id0),
+      '>',
+      content0,
+      '<!/d><!d=',
+      createSsrNodeId(id1),
+      '>',
+      content1,
+      '<!/d><!d=',
+      createSsrNodeId(id2),
+      '>',
+      content2,
+      '<!/d></main>',
+    ];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

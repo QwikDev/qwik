@@ -27,12 +27,12 @@ import {
   _captures,
   renderSsrBranch,
   createSsrNodeId,
-  maybeThen,
   renderSsrAttrExpression,
   escapeHTML,
   propSource,
   isSource,
   renderSsrTextNode,
+  maybeThen,
   _noopQrl,
   renderSsrDynamicTag,
   createComponent,
@@ -87,24 +87,24 @@ const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   const [props] = _captures;
   const Filter = _withCaptures(component_Filter_segment_3_2k94mh76leizk, [props]);
   function semantic_collectionRender_352_411_d9i2g10ik0y4(ctx, __rangeId, __rowId, f) {
-    const component0 = createComponent(
-      (props1) => renderSsrDynamicTag(Filter, props1, ctx),
-      { filter: f },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent((props1) => renderSsrDynamicTag(Filter, props1, ctx), { filter: f }, ctx)
     );
     return component0;
   }
-  const collection0 = renderSsrCollection(
-    ctx,
-    undefined,
-    ['all', 'active'],
-    undefined,
-    semantic_collectionRender_352_411_d9i2g10ik0y4,
-    0,
-    false,
-    3
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      ['all', 'active'],
+      undefined,
+      semantic_collectionRender_352_411_d9i2g10ik0y4,
+      0,
+      false,
+      3
+    )
   );
-  return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
+  return ['<ul>', collection0, '</ul>'];
 };
 const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_4_24n7dk4a4zn6t'
@@ -130,20 +130,16 @@ export const Footer = _markComponent(
     }
     const branchId0 = ctx.nextId();
     ctx.addRoot(props);
-    const branch0 = renderSsrBranch(
-      ctx,
-      branchId0,
-      q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([props]),
-      q_component_branch_then_segment_4_24n7dk4a4zn6t.w([props]),
-      undefined
+    const branch0 = ctx.observeError(
+      renderSsrBranch(
+        ctx,
+        branchId0,
+        q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([props]),
+        q_component_branch_then_segment_4_24n7dk4a4zn6t.w([props]),
+        undefined
+      )
     );
-    return maybeThen(branch0, (branch0) => [
-      '<footer><!b=',
-      createSsrNodeId(branchId0),
-      '>',
-      branch0,
-      '<!/b></footer>',
-    ]);
+    return ['<footer><!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b></footer>'];
   },
   'Footer_component_d3m2s4mpch0k',
   './component.tsx'
@@ -327,7 +323,6 @@ import {
   renderSsrDynamicTag,
   createComponent,
   renderSsrCollection,
-  maybeThen,
   _withCaptures,
 } from '@qwik.dev/core';
 import { component_Filter_segment_3_2k94mh76leizk } from './component.tsx_component_Filter_segment_3_2k94mh76leizk';
@@ -340,24 +335,24 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   const [props] = _captures;
   const Filter = _withCaptures(component_Filter_segment_3_2k94mh76leizk, [props]);
   function semantic_collectionRender_352_411_d9i2g10ik0y4(ctx, __rangeId, __rowId, f) {
-    const component0 = createComponent(
-      (props1) => renderSsrDynamicTag(Filter, props1, ctx),
-      { filter: f },
-      ctx
+    const component0 = ctx.observeError(
+      createComponent((props1) => renderSsrDynamicTag(Filter, props1, ctx), { filter: f }, ctx)
     );
     return component0;
   }
-  const collection0 = renderSsrCollection(
-    ctx,
-    undefined,
-    ['all', 'active'],
-    undefined,
-    semantic_collectionRender_352_411_d9i2g10ik0y4,
-    0,
-    false,
-    3
+  const collection0 = ctx.observeError(
+    renderSsrCollection(
+      ctx,
+      undefined,
+      ['all', 'active'],
+      undefined,
+      semantic_collectionRender_352_411_d9i2g10ik0y4,
+      0,
+      false,
+      3
+    )
   );
-  return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
+  return ['<ul>', collection0, '</ul>'];
 };
 /*
 {

@@ -45,17 +45,19 @@ export const default_component_3rg6kq1so9aio = _markComponent(
         '</li>',
       ]);
     }
-    const collection0 = renderSsrCollection(
-      ctx,
-      undefined,
-      ['a', 'b'],
-      undefined,
-      semantic_collectionRender_41_96_30m4qejpwt1c8,
-      0,
-      false,
-      0
+    const collection0 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        undefined,
+        ['a', 'b'],
+        undefined,
+        semantic_collectionRender_41_96_30m4qejpwt1c8,
+        0,
+        false,
+        0
+      )
     );
-    return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
+    return ['<ul>', collection0, '</ul>'];
   },
   'default_component_3rg6kq1so9aio',
   './component.tsx'

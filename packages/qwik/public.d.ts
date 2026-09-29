@@ -95,4 +95,4 @@ export {
   SVGAttributes,
   HTMLElementAttrs,
   SVGProps,
-} from './dist/core-internal';
+} from './dist/core-internal.js';

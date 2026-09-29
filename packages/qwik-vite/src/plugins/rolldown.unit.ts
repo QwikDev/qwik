@@ -230,6 +230,7 @@ test('the qwik-core group takes the whole runtime, including its per-module prod
   assert.isTrue(core.test('/app/node_modules/@qwik.dev/core/dist/core.prod.mjs'));
   assert.isTrue(core.test('/app/node_modules/@qwik.dev/core/dist/core/prod/runtime/owner.mjs'));
   assert.isTrue(core.test('/repo/packages/qwik/dist/core/prod/shared/qrl/qrl.mjs'));
+  assert.isTrue(core.test('/repo/packages/qwik/dist/core-chunk-QSSRPNEK.mjs'));
   assert.isFalse(core.test('/app/src/core/dist/components/core.tsx'));
   assert.isFalse(core.test('/app/node_modules/@qwik.dev/core/dist/preloader.mjs'));
 });

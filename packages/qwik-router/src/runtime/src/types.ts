@@ -290,9 +290,10 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
  * - For infix params like `pre[slug]post`, use `_W` with `_0` (prefix) and `_9` (suffix).
  * - Use `_M` for an array of group (pathless layout) nodes, sorted by group name.
  *
- * When matching, exact segments are tried first (case-insensitive), then `_W` (with optional
- * prefix/suffix), then `_A`. When no route matches, the closest `_E` (error.tsx) or `_4` (404.tsx)
- * loader in the ancestor chain is used to render the error page.
+ * Exact segments match case-insensitively. When several routes match, the most specific wins,
+ * compared segment by segment: an exact segment beats `_W` (with optional prefix/suffix), which
+ * beats `_A`. When no route matches, the closest `_E` (error.tsx) or `_4` (404.tsx) loader in the
+ * ancestor chain is used to render the error page.
  *
  * @public
  */

@@ -23,13 +23,11 @@ import { createOwner } from '../../runtime/owner';
 import { Task, TaskSubscription, VisibleTask, VisibleTaskSubscription } from '../../runtime/task';
 import { Phase } from '../../runtime/scheduler';
 import { qError, QError } from '../error/error';
-import type { QRLInternal } from '../qrl/qrl-class';
 import { parseSerializedQrlRootIds } from '../qrl/qrl-capture-deltas';
 import { _UNINITIALIZED } from '../utils/constants';
 import { maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import { _constants, TypeIds, type Constants } from './constants';
-import { SYNC_QRL } from '../qrl/qrl-utils';
 import { createQRLWithBackChannel } from './qrl-to-string';
 import { findQwikElement } from '../../runtime/node-walker';
 import { allocatePropsProxy, PropSource } from '../../component/props';
@@ -103,9 +101,7 @@ export const allocate = (
       }
       // Sync qrl: the payload is its table key
       const syncKey = typeof value === 'string' ? value.slice(1) : String(value);
-      const syncQrl = createQRLWithBackChannel('', SYNC_QRL, null, context) as QRLInternal;
-      (syncQrl as { $syncKey$?: string }).$syncKey$ = syncKey;
-      return syncQrl;
+      return createQRLWithBackChannel('', syncKey, null, context);
     }
     case TypeIds.URL:
       return new URL(value as string);

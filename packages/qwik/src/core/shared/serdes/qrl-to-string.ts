@@ -3,7 +3,7 @@ import { type SerializationContext } from './serialization-context';
 import { qError, QError } from '../error/error';
 import { getPlatform } from '../platform/platform';
 import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
-import { isSyncQrl } from '../qrl/qrl-utils';
+import { isSyncQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
 import type { SsrWriteChunk } from './writer';
 import type { ContainerContext } from '../../runtime/container-context';
@@ -27,8 +27,9 @@ export function qrlToString(
   let symbol = qrl.$symbol$;
   let chunk = qrl.$chunk$;
 
+  const isSync = isSyncQrl(qrl);
   const qrlMapper = serializationContext.$qrlMapper$ ?? getPlatform()?.chunkForSymbol;
-  if (qrlMapper) {
+  if (!isSync && qrlMapper) {
     const result = isDev ? qrlMapper(symbol, chunk, qrl.dev?.file) : qrlMapper(symbol, chunk);
     if (result) {
       chunk = result[1];
@@ -36,7 +37,6 @@ export function qrlToString(
     }
   }
 
-  const isSync = isSyncQrl(qrl);
   if (!isSync) {
     // If we have a symbol we need to resolve the chunk.
     if (!chunk) {
@@ -62,17 +62,15 @@ export function qrlToString(
   } else {
     chunk = '';
     // the compiler emits the function into the container's table under this key
-    const syncKey = (qrl as { $syncKey$?: string }).$syncKey$;
     const fn = qrl.resolved as Function;
-    if (syncKey === undefined) {
+    if (symbol === SYNC_QRL) {
       symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
     } else {
       // the container defines it when the compiler could not reach the use site
       serializationContext.$requireSyncFn$(
-        syncKey,
+        symbol,
         ((fn as { serialized?: string }).serialized ?? fn.toString()) as string
       );
-      symbol = syncKey;
     }
   }
 

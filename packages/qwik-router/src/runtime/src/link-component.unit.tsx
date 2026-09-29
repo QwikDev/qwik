@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { $, Slot, component$, useContextProvider, useStore, type RenderRoot } from '@qwik.dev/core';
+import {
+  $,
+  Slot,
+  component$,
+  useContextProvider,
+  useSignal,
+  useStore,
+  type RenderRoot,
+} from '@qwik.dev/core';
 import { createDOM, trigger } from '@qwik.dev/core/testing';
 import { DocumentHeadContext, RouteLocationContext, RouteNavigateContext } from './contexts';
 import { createDocumentHead } from './head';
@@ -92,6 +100,24 @@ const ClickRoot = component$(() => {
   );
 });
 
+const ReactiveRoot = component$(() => {
+  const active = useSignal(false);
+  return (
+    <RouterProvider>
+      <button id="toggle-active" onClick$={() => (active.value = !active.value)}>
+        Toggle
+      </button>
+      <Link
+        href="/test"
+        class={{ active: active.value }}
+        title={active.value ? 'active' : 'inactive'}
+      >
+        Test Link
+      </Link>
+    </RouterProvider>
+  );
+});
+
 const renderRoot = async <Props,>(root: RenderRoot<Props>, props?: Props) => {
   const harness = await createDOM();
   renderCleanups.push(harness.cleanup);
@@ -122,6 +148,24 @@ describe('link component', () => {
     getClientNavPathMock.mockClear();
     getClientNavPathMock.mockReturnValue('http://localhost/test');
     prefetchRouteMock.mockClear();
+  });
+
+  it('updates forwarded class and title without remounting the link', async () => {
+    const { document } = await renderRoot(ReactiveRoot);
+    const anchor = document.querySelector('a')!;
+    const toggle = document.querySelector('#toggle-active')!;
+    expect(anchor.className).toBe('');
+    expect(anchor.getAttribute('title')).toBe('inactive');
+    expect(anchor.getAttribute('href')).toBe('http://localhost/test');
+
+    await trigger(document.body, toggle, 'click');
+    expect(document.querySelector('a')).toBe(anchor);
+    expect(anchor.className).toBe('active');
+    expect(anchor.getAttribute('title')).toBe('active');
+
+    await trigger(document.body, toggle, 'click');
+    expect(anchor.className).toBe('');
+    expect(anchor.getAttribute('title')).toBe('inactive');
   });
 
   it('prefetches bundles by default and prefetches route data on intent by default', async () => {

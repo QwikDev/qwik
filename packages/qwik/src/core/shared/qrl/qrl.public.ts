@@ -304,7 +304,7 @@ export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
  * NOTE: Synchronous QRLs functions can't close over any variables, including exports.
  *
  * @param fn - Extracted function
- * @param serializedFn - Serialized function in string form.
+ * @param syncKey - Compiler-assigned key into the container's function table.
  * @returns
  * @internal
  */
@@ -313,8 +313,5 @@ export const _qrlSync = function <TYPE extends Function>(
   syncKey?: string
 ): SyncQRL<TYPE> {
   (fn as any).serialized = fn.toString();
-  const qrl = createQRL<TYPE>('', SYNC_QRL, fn, null, null) as any;
-  // the compiler emits the function into the container's table under this key
-  qrl.$syncKey$ = syncKey;
-  return qrl;
+  return createQRL<TYPE>('', syncKey ?? SYNC_QRL, fn, null, null) as any;
 };

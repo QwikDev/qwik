@@ -1,4 +1,12 @@
-import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  Slot,
+  sync$,
+  untrack,
+  useComputed$,
+  type QwikIntrinsicElements,
+} from '@qwik.dev/core';
 import { prefetchRoute } from './prefetch-route';
 import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
@@ -17,10 +25,21 @@ export const Link = component$<LinkProps>((props) => {
     scroll,
     prefetchBundles: prefetchBundlesProp = 'visible',
     prefetchData: prefetchDataProp = prefetchProp === 'js' ? 'off' : 'intent',
-    ...linkProps
   } = props;
-  const clientNavPath = untrack(getClientNavPath, { ...linkProps, reload }, loc);
-  linkProps.href = clientNavPath || originalHref;
+  const linkProps = useComputed$(() => {
+    const {
+      onClick$,
+      prefetch,
+      reload,
+      replaceState,
+      scroll,
+      prefetchBundles,
+      prefetchData,
+      ...rest
+    } = props;
+    return rest;
+  });
+  const clientNavPath = untrack(getClientNavPath, { ...linkProps.value, reload }, loc);
 
   const isDepratedPrefetchDisabled = prefetchProp === false;
 
@@ -100,7 +119,8 @@ export const Link = component$<LinkProps>((props) => {
     <a
       // Attr 'q:link' is used as a selector for bootstrapping into spa after context loss
       {...{ 'q:link': !!clientNavPath }}
-      {...linkProps}
+      {...linkProps.value}
+      href={clientNavPath || originalHref}
       data-q-prefetch={
         shouldVisiblePrefetchBundles && shouldVisiblePrefetchData
           ? 'bd'
@@ -117,15 +137,18 @@ export const Link = component$<LinkProps>((props) => {
         handleClientSideNavigation,
       ]}
       onPointerEnter$={[
-        linkProps.onMouseOver$,
+        linkProps.value.onMouseOver$,
         prefetchDataProp === 'intent' ? prefetchData : null,
       ]}
-      onFocus$={[linkProps.onFocus$, prefetchDataProp === 'intent' ? prefetchData : null]}
+      onFocus$={[linkProps.value.onFocus$, prefetchDataProp === 'intent' ? prefetchData : null]}
       onPointerDown$={[
-        linkProps.onPointerDown$,
+        linkProps.value.onPointerDown$,
         prefetchDataProp === 'commit' ? prefetchData : null,
       ]}
-      onKeyDown$={[linkProps.onKeyDown$, prefetchDataProp === 'commit' ? onEnterKeyDown : null]}
+      onKeyDown$={[
+        linkProps.value.onKeyDown$,
+        prefetchDataProp === 'commit' ? onEnterKeyDown : null,
+      ]}
     >
       <Slot />
     </a>

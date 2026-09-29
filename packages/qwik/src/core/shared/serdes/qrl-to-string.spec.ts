@@ -1,8 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { qrlToString } from './qrl-to-string';
+import { parseQRL, qrlToString } from './qrl-to-string';
 import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
 import type { SerializationContext } from './serialization-context';
-import { SYNC_QRL } from '../qrl/qrl-utils';
+import { isSyncQrl, SYNC_QRL } from '../qrl/qrl-utils';
+import { _qrlSync } from '../qrl/qrl.public';
 
 describe('qrlToString', () => {
   let mockContext: SerializationContext;
@@ -69,6 +70,22 @@ describe('qrlToString', () => {
 
       expect(mockContext.$addSyncFn$).toHaveBeenCalledWith(null, 0, testFn);
       expect(result).toBe('#5');
+    });
+
+    it('preserves a compiler table key when serializing and parsing a sync QRL', () => {
+      const handler = () => 'handled';
+      const qrl = _qrlSync(handler, 'text-key') as unknown as QRLInternal;
+      mockContext.$requireSyncFn$ = vi.fn();
+      mockContext.$qrlMapper$ = vi.fn(() => ['wrong-symbol', 'wrong-chunk'] as const);
+
+      const serialized = qrlToString(mockContext, qrl);
+      expect(serialized).toBe('#text-key');
+      expect(mockContext.$requireSyncFn$).toHaveBeenCalledWith('text-key', handler.toString());
+      expect(mockContext.$addSyncFn$).not.toHaveBeenCalled();
+      expect(mockContext.$qrlMapper$).not.toHaveBeenCalled();
+      const restored = parseQRL(serialized);
+      expect(isSyncQrl(restored)).toBe(true);
+      expect(restored.$symbol$).toBe('text-key');
     });
 
     it('should not include chunk for sync QRL', () => {

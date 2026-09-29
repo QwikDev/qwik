@@ -5,6 +5,9 @@ import { createSerializationContext, parseQRL, qrlToString } from '../serdes/ind
 import { _regSymbol, inlinedQrl, qrl } from './qrl';
 import { _captures, createQRL, withCaptures } from './qrl-class';
 import { type QRL } from './qrl.public';
+import { isSyncQrl } from './qrl-utils';
+import { allocate } from '../serdes/allocate';
+import { TypeIds } from '../serdes/constants';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
@@ -48,6 +51,23 @@ describe('types', () => {
 });
 
 describe('serialization', () => {
+  test.each(['#handler-key', 17])('resolves a resumed sync QRL with key %s', async (payload) => {
+    const key = typeof payload === 'string' ? payload.slice(1) : String(payload);
+    const handler = vi.fn(() => 'handled');
+    const container = {
+      element: {
+        getAttribute: () => 'sync-test',
+        ownerDocument: { 'qFuncs_sync-test': { [key]: handler } },
+      },
+    } as any;
+    const qrl = await allocate(container, TypeIds.QRL, payload);
+    assert.equal(qrl.$symbol$, key);
+    assert.isTrue(isSyncQrl(qrl));
+
+    assert.equal(await qrl(), 'handled');
+    assert.equal(handler.mock.calls.length, 1);
+  });
+
   test('should parse', () => {
     matchProps(parseQRL('./chunk#default'), {
       $chunk$: './chunk',

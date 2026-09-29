@@ -17,19 +17,13 @@ import { isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
 import { withCaptures } from './qrl-captures';
 import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
-import { getSymbolHash, rememberQrlOfBody, SYNC_QRL } from './qrl-utils';
+import { getSymbolHash, rememberQrlOfBody } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
 import type { ContainerContext } from '../../runtime/container-context';
 
-interface SyncQRLSymbol {
-  $symbol$: typeof SYNC_QRL;
-  /** Compiler-assigned key into the container's sync-function table. */
-  $syncKey$?: string;
-}
-
-export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
+export type SyncQRLInternal = QRLInternal & { $chunk$: '' };
 
 export type QrlCaptures = Readonly<unknown[]> | string | null;
 
@@ -189,7 +183,7 @@ export class LazyRef<TYPE = unknown> {
       const hash = element.getAttribute(QInstanceAttr)!;
       const doc = element.ownerDocument || document;
       const qFuncs = getQFuncs(doc, hash);
-      return (this.$ref$ = qFuncs[(this as { $syncKey$?: string }).$syncKey$!] as TYPE);
+      return (this.$ref$ = qFuncs[this.$symbol$] as TYPE);
     }
 
     if (isBrowser && this.$chunk$) {

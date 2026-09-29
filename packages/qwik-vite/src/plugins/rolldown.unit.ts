@@ -223,6 +223,17 @@ test('codeSplitting starts with the qwik groups and disables dependency recursio
   );
 });
 
+test('the qwik-core group takes the whole runtime, including its per-module production build', async () => {
+  const codeSplitting = await clientCodeSplitting({});
+  const core = codeSplitting.groups![0].test as RegExp;
+
+  assert.isTrue(core.test('/app/node_modules/@qwik.dev/core/dist/core.prod.mjs'));
+  assert.isTrue(core.test('/app/node_modules/@qwik.dev/core/dist/core/prod/runtime/owner.mjs'));
+  assert.isTrue(core.test('/repo/packages/qwik/dist/core/prod/shared/qrl/qrl.mjs'));
+  assert.isFalse(core.test('/app/src/core/dist/components/core.tsx'));
+  assert.isFalse(core.test('/app/node_modules/@qwik.dev/core/dist/preloader.mjs'));
+});
+
 test('codeSplitting appends the user groups after the qwik groups', async () => {
   const vendor = { name: 'vendor', test: /node_modules/ };
   const codeSplitting = await clientCodeSplitting({ codeSplitting: { groups: [vendor] } });

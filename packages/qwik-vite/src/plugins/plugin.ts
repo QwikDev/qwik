@@ -1566,7 +1566,8 @@ export const isDev = ${JSON.stringify(isDev)};
       // The handlers facade stays its own emitted entry: a group chunk mangles its export names.
       {
         name: 'qwik-core',
-        test: /[/\\](core|qwik)[/\\]dist[/\\]core(\.prod|\.min)?\.[cm]js$/,
+        // the production runtime ships as one module per file under dist/core/
+        test: /[/\\](core|qwik)[/\\]dist[/\\]core((\.prod|\.min)?\.[cm]js$|[/\\])/,
         includeDependenciesRecursively: false,
       },
       {

@@ -1,5 +1,5 @@
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
-import type { StaticGenerateOptions, SsgRenderOptions } from 'packages/qwik-router/src/ssg';
+import type { StaticGenerateOptions, SsgRenderOptions } from '../../../ssg';
 import type { QwikRouterPlugin } from '@qwik.dev/router/vite';
 import { spawn } from 'node:child_process';
 import { readFile, rm, unlink } from 'node:fs/promises';

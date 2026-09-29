@@ -6,8 +6,14 @@ import { getFunctionOrResolve } from '../utils/qrl';
 import { isPromise, maybeThen, retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { Task, TaskCleanupFn, VisibleTask } from './task';
-import { takeDirty, type TaskSubscriber, type VisibleTaskSubscriber } from './subscriber';
+import {
+  SubscriberKind,
+  takeDirty,
+  type TaskSubscriber,
+  type VisibleTaskSubscriber,
+} from './subscriber';
 import { isSubscriberDisposed } from './subscriber';
+import { Owner, ownerItemAt, ownerItemsLength } from './owner';
 
 export function runTaskSubscriber(
   subscriber: TaskSubscriber | VisibleTaskSubscriber
@@ -99,6 +105,35 @@ export function runTaskCleanups(task: Task | VisibleTask): ValueOrPromise<void> 
   return cleanupPromise.finally(() => {
     task.cleanupPromise = null;
   });
+}
+
+/** Runs the task cleanups under `root`, leaving the `skip` subtrees (still rendering) alone. */
+export function runOwnerTaskCleanups(
+  root: Owner,
+  skip: ReadonlySet<Owner> = new Set()
+): ValueOrPromise<void> {
+  let pending: Promise<void>[] | null = null;
+  const owners = [root];
+  for (let i = 0; i < owners.length; i++) {
+    const items = owners[i].items;
+    if (items === null) {
+      continue;
+    }
+    for (let j = 0; j < ownerItemsLength(items); j++) {
+      const item = ownerItemAt(items, j)!;
+      if (item instanceof Owner) {
+        if (!skip.has(item)) {
+          owners.push(item);
+        }
+      } else if (item.kind === SubscriberKind.Task) {
+        const result = runTaskCleanups((item as TaskSubscriber).task);
+        if (isPromise(result)) {
+          (pending ??= []).push(result);
+        }
+      }
+    }
+  }
+  return pending === null ? undefined : Promise.all(pending).then(() => {});
 }
 
 function finishTaskRun(subscriber: TaskSubscriber | VisibleTaskSubscriber): void {

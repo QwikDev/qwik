@@ -247,6 +247,7 @@ export {
   registerSubscriberToOwner,
   runWithOwner,
 } from './runtime/owner';
+export { runOwnerTaskCleanups } from './runtime/run-task';
 export {
   getActiveInvokeContext,
   getActiveInvokeContextOrNull,

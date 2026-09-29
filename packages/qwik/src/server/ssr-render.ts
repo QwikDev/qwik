@@ -30,6 +30,7 @@ import {
   withLocale,
   isQwikComponent,
   renderSsrDynamicContent,
+  runOwnerTaskCleanups,
   type JSXOutput,
 } from '@qwik.dev/core';
 import {
@@ -439,6 +440,10 @@ export const renderToStreamCompiled = async <Props = undefined>(
     }
     await writePatches(null);
     throwIfFailed();
+    if (rootInvokeContext.owner !== null) {
+      // Cleanups may write state, so they run before it is serialized
+      await runOwnerTaskCleanups(rootInvokeContext.owner, getPendingContentOwners(deferred));
+    }
     const stateAttrParts = createStateScriptEventAttrs(serializationCtx);
     const shellTail: SsrOutput[] = [];
     if (serializationCtx.$roots$.length > 0) {
@@ -499,6 +504,12 @@ export const renderToStreamCompiled = async <Props = undefined>(
           record.contentRoot,
           serializationCtx.$rootStateRootCount$
         );
+        const contentOwner = getContentOwner(record.contentRoot);
+        if (contentOwner !== null) {
+          const stillRendering = getPendingContentOwners(deferred, emitted);
+          stillRendering.delete(contentOwner);
+          await runOwnerTaskCleanups(contentOwner, stillRendering);
+        }
         const state = await serializationCtx.$serializeNext$();
         throwDeferredError(hasDeferredError, deferredError);
         const packet: SsrOutput[] = [];
@@ -594,14 +605,34 @@ export const renderToString = ((root: unknown, opts?: RenderToStringOptions) =>
 export const renderToStream = ((root: unknown, opts: RenderToStreamOptions) =>
   renderToStreamCompiled(renderRoot(root), opts)) as RenderToStream;
 
+function getContentOwner(contentRoot: unknown): Owner | null {
+  return (contentRoot as { content: { currentOwner: Owner | null } }).content.currentOwner;
+}
+
+/** Owners of deferred content not streamed yet, whose tasks may still be running. */
+function getPendingContentOwners(
+  deferred: readonly SsrDeferredRange[] | undefined,
+  emitted?: ReadonlySet<number>
+): Set<Owner> {
+  const owners = new Set<Owner>();
+  for (const range of deferred ?? []) {
+    const owner =
+      range.cancelled || emitted?.has(range.id) ? null : getContentOwner(range.contentRoot);
+    if (owner !== null) {
+      owners.add(owner);
+    }
+  }
+  return owners;
+}
+
 function collectDeferredSubscriptions(
   serializationCtx: SerializationContext,
   contentRoot: unknown,
   serializedRootCount: number
 ): number[] {
-  const root = contentRoot as Subscriber & { content: { currentOwner: Owner | null } };
-  const subscribers = new Set<Subscriber>([root]);
-  const owners = root.content.currentOwner === null ? [] : [root.content.currentOwner];
+  const subscribers = new Set<Subscriber>([contentRoot as Subscriber]);
+  const contentOwner = getContentOwner(contentRoot);
+  const owners = contentOwner === null ? [] : [contentOwner];
 
   for (let i = 0; i < owners.length; i++) {
     const items = owners[i].items;

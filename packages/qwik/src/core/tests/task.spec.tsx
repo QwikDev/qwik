@@ -242,6 +242,35 @@ describe(`${name}: task`, () => {
     delete (globalThis as any).__taskCleanup;
   });
 
+  it('server task cleanups run before the state is serialized', async () => {
+    const Child = component$((props: { log: { value: string } }) => {
+      useTask$(({ cleanup }) => {
+        cleanup(() => {
+          props.log.value += 'cleanup';
+        });
+      });
+      return <span>Child</span>;
+    });
+
+    const App = component$(() => {
+      const log = useSignal('');
+      const shown = useSignal('');
+      return (
+        <button onClick$={() => (shown.value = log.value)}>
+          <Child log={log} />
+          <b>{shown.value}</b>
+        </button>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect(container.querySelector('b')?.textContent).toBe(name === 'ssrRender' ? 'cleanup' : '');
+
+    cleanup();
+  });
+
   it('task runs cleanup on unmount after client activation', async () => {
     const Child = component$((props: { cleanupCount: { value: number } }) => {
       useTask$(({ cleanup }) => {
@@ -272,7 +301,8 @@ describe(`${name}: task`, () => {
     await qwikLoader?.dispatch(button, 'click');
     await qwikLoader?.dispatch(button, 'click');
 
-    expect(container.querySelector('b')?.textContent).toBe(name === 'csrRender' ? '2' : '1');
+    // resume adds the server cleanup, which ran before the state was serialized
+    expect(container.querySelector('b')?.textContent).toBe('2');
 
     cleanup();
   });

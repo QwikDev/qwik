@@ -71,6 +71,8 @@ export class Serializer {
   private $parent$: SeenRef | undefined;
   private $qrlMap$ = new Map<string, QRLInternal>();
   private $streamedRootLimit$ = 0;
+  /** Virtual nodes share their element's vnode data, so scan it once per pass. */
+  private $discoveredVNodeData$ = new WeakSet<VNodeData>();
   private $writer$: SSRInternalStreamWriter;
   /** We need to determine this at runtime because polyfills may not be loaded a module load time */
   private $hasTemporal$ = typeof Temporal !== 'undefined';
@@ -82,6 +84,7 @@ export class Serializer {
   async serialize(): Promise<void> {
     const previousStreamedRootLimit = this.$streamedRootLimit$;
     this.$streamedRootLimit$ = 0;
+    this.$discoveredVNodeData$ = new WeakSet();
     try {
       await this.outputRoots();
     } finally {
@@ -97,6 +100,7 @@ export class Serializer {
   ): Promise<void> {
     const previousStreamedRootLimit = this.$streamedRootLimit$;
     this.$streamedRootLimit$ = streamedRootLimit;
+    this.$discoveredVNodeData$ = new WeakSet();
     this.$writer$.write(BRACKET_OPEN);
     this.$serializationContext$.$serializedForwardRefCount$ = 0;
     try {
@@ -730,7 +734,10 @@ export class Serializer {
       this.output(TypeIds.VNode, value.id);
       const vNodeData = value.vnodeData;
       if (vNodeData) {
-        discoverValuesForVNodeData(vNodeData, this.$serializationContext$);
+        if (!this.$discoveredVNodeData$.has(vNodeData)) {
+          this.$discoveredVNodeData$.add(vNodeData);
+          discoverValuesForVNodeData(vNodeData, this.$serializationContext$);
+        }
         this.$serializationContext$.$markSsrNodeForSerialization$(value, VNodeDataFlag.SERIALIZE);
       }
       if (value.children) {

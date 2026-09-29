@@ -808,6 +808,8 @@ string[]
 
 <h2 id="httperror">HttpError</h2>
 
+Thrown from middleware or a `blockSSR: true` loader, renders the nearest `error.tsx` at `status`. Thrown anywhere else, it is an ordinary failure: `.error` in a loader or a computed, the nearest `<Catch>` otherwise.
+
 ```typescript
 export declare class HttpError<T = any> extends Error
 ```

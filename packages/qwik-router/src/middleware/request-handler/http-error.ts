@@ -1,7 +1,13 @@
 import { isDev } from '@qwik.dev/core';
 import { AbortMessage } from './redirect-handler';
 
-/** @public */
+/**
+ * Thrown from middleware or a `blockSSR: true` loader, renders the nearest `error.tsx` at `status`.
+ * Thrown anywhere else, it is an ordinary failure: `.error` in a loader or a computed, the nearest
+ * `<Catch>` otherwise.
+ *
+ * @public
+ */
 export class HttpError<T = any> extends Error {
   constructor(
     public status: number,

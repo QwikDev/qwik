@@ -91,7 +91,7 @@ export interface EnvGetter {
 // @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;
 
-// @public (undocumented)
+// @public
 export class HttpError<T = any> extends Error {
     constructor(status: number, data: T);
     // (undocumented)

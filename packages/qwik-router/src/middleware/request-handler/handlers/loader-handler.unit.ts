@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { _deserialize } from '@qwik.dev/core/internal';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { createCacheControl } from '../cache-control';
 import { getLoaderName, IsQLoader, QLoaderId } from '../request-path';
@@ -287,41 +288,105 @@ describe('loaderHandler', () => {
     expect(requestEv.send).not.toHaveBeenCalled();
   });
 
-  it('sends an HttpError from the loader with Cache-Control: no-store over the loader option', async () => {
+  it('sends a plain Error thrown by the loader as its failure', async () => {
     const requestEv = createRequestEv();
-    const loader = {
-      __id: 'loader-id',
-      __qrl: {
-        call: vi.fn(async () => {
-          throw new HttpError(404, 'No such product');
-        }),
-      },
-      __cacheControl: 60,
-    };
+    const loader = createLoader('loader-id', async () => {
+      throw new Error('db down');
+    });
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await loaderHandler([loader as any])(requestEv as any);
+    } finally {
+      consoleError.mockRestore();
+    }
 
-    await loaderHandler([loader as any])(requestEv as any);
-
-    expect(requestEv.send).toHaveBeenCalledOnce();
-    expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+    const response = await sentLoaderResponse(requestEv);
+    expect(response.e.message).toContain('db down');
   });
 
-  it('sends an HttpError from the loader with Cache-Control: no-store over a header set by middleware', async () => {
+  it('stops the requested loader when an earlier blocking loader crashes, sending it that error', async () => {
     const requestEv = createRequestEv();
-    requestEv.headers.set('Cache-Control', 'public, max-age=60');
-    const loader = {
-      __id: 'loader-id',
-      __qrl: {
-        call: vi.fn(async () => {
-          throw new HttpError(404, 'No such product');
-        }),
-      },
-    };
+    const guardLoader = createLoader('guard-loader', async () => {
+      throw new Error('session check failed');
+    });
+    const secretLoader = createLoader('loader-id', async () => 'secret');
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await loaderHandler([guardLoader as any, secretLoader as any])(requestEv as any);
+    } finally {
+      consoleError.mockRestore();
+    }
 
-    await loaderHandler([loader as any])(requestEv as any);
-
-    expect(requestEv.send).toHaveBeenCalledOnce();
-    expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+    expect(secretLoader.__qrl.call).not.toHaveBeenCalled();
+    const response = await sentLoaderResponse(requestEv);
+    expect(response.d).toBeUndefined();
+    expect(response.e.message).toContain('session check failed');
   });
+
+  it.each([
+    ['an HttpError from a blocking loader', new HttpError(401, 'Sign in'), true],
+    ['an HttpError from a streamed loader', new HttpError(404, 'No such product'), false],
+    ['a plain Error', new Error('db down'), true],
+  ])(
+    'sends %s with Cache-Control: no-store over the loader option',
+    async (_label, failure, blockSSR) => {
+      const requestEv = createRequestEv();
+      const loader = {
+        ...createLoader(
+          'loader-id',
+          async () => {
+            throw failure;
+          },
+          blockSSR
+        ),
+        __cacheControl: 60,
+      };
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        await loaderHandler([loader as any])(requestEv as any);
+      } finally {
+        consoleError.mockRestore();
+      }
+
+      expect(requestEv.send).toHaveBeenCalledOnce();
+      expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+    }
+  );
+
+  it.each([
+    [
+      'its own failure',
+      () => [
+        createLoader('loader-id', async () => {
+          throw new Error('db down');
+        }),
+      ],
+    ],
+    [
+      "an earlier blocking loader's crash",
+      () => [
+        createLoader('guard-loader', async () => {
+          throw new Error('session check failed');
+        }),
+        createLoader('loader-id', async () => 'secret'),
+      ],
+    ],
+  ])(
+    'sends %s with Cache-Control: no-store over a header set by middleware',
+    async (_label, createLoaders) => {
+      const requestEv = createRequestEv();
+      requestEv.headers.set('Cache-Control', 'public, max-age=60');
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        await loaderHandler(createLoaders() as any)(requestEv as any);
+      } finally {
+        consoleError.mockRestore();
+      }
+
+      expect(requestEv.send).toHaveBeenCalledOnce();
+      expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+    }
+  );
 
   it('returns 404 when the requested loader is not available on the matched route', async () => {
     const requestEv = createRequestEv();
@@ -352,4 +417,21 @@ describe('loaderHandler', () => {
     expect(requestEv.headers.has('ETag')).toBe(false);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
+
+  function createLoader(id: string, call: () => Promise<unknown>, blockSSR = true) {
+    return {
+      __id: id,
+      __qrl: { call: vi.fn(call), getHash: vi.fn(() => id) },
+      __validators: undefined,
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: undefined,
+      __blockSSR: blockSSR,
+    };
+  }
+
+  async function sentLoaderResponse(requestEv: ReturnType<typeof createRequestEv>) {
+    const [, body] = requestEv.send.mock.calls[0];
+    return (await _deserialize(body)) as any;
+  }
 });

@@ -6,6 +6,7 @@ import {
   loadRouteLoader,
   resolveRouteLoaderByHash,
   setRouteLoaders,
+  toLoaderCrash,
 } from '../../../runtime/src/route-loaders';
 import type { LoaderInternal, RequestEvent, RequestHandler } from '../../../runtime/src/types';
 import type { CacheControl } from '../types';
@@ -13,6 +14,7 @@ import { defaultLoaderCacheKey, getCachedLoader, resolveCacheKey, setCachedLoade
 import { performETagMatch, hash, normalizeETag, setETagHeader } from '../etag-hash';
 import type { RequestEventInternal } from '../request-event-core';
 import { IsQLoader, QLoaderId } from '../request-path';
+import { isCrash } from '../http-error';
 import { createLoaderRequestEventFactory } from './loader-request-event';
 
 /**
@@ -45,7 +47,12 @@ export function loaderHandler(
     }
 
     setLoaderData(requestEv, routeLoaders, loaderPaths);
-    await runBlockingLoadersBeforeTarget(routeLoaders, loader, requestEv);
+    const guardCrash = await runBlockingLoadersBeforeTarget(routeLoaders, loader, requestEv);
+    if (guardCrash) {
+      requestEv.headers.set('Cache-Control', 'no-store');
+      await sendJsonResponse(requestEv, { e: guardCrash });
+      return;
+    }
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
     const cacheControl = resolveLoaderCacheControl(loader.__cacheControl, loaderRequestEv);
@@ -143,17 +150,29 @@ function resolveLoaderCacheControl(
   return value === undefined ? 'private' : value;
 }
 
+/**
+ * Run the blocking loaders before the target, which guard it. An `HttpError` or a redirect answers
+ * for the page; a crash stops the target, which fails with it.
+ */
 async function runBlockingLoadersBeforeTarget(
   routeLoaders: LoaderInternal[],
   targetLoader: LoaderInternal,
   requestEv: RequestEventInternal
-) {
+): Promise<Error | undefined> {
   for (const loader of routeLoaders) {
     if (loader === targetLoader) {
       return;
     }
-    if (loader.__blockSSR) {
+    if (!loader.__blockSSR) {
+      continue;
+    }
+    try {
       await loadRouteLoader(loader, requestEv);
+    } catch (err) {
+      if (!isCrash(err)) {
+        throw err;
+      }
+      return toLoaderCrash(err);
     }
   }
 }

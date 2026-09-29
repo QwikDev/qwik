@@ -329,7 +329,7 @@ describe('getRouteLoaderResponse envelope', () => {
 
     expect(response.d).toBeUndefined();
     expect(response.e).toBeInstanceOf(HttpError);
-    expect(response.e?.status).toBe(500);
+    expect(response.e).toMatchObject({ status: 500 });
   });
 });
 

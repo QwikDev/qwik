@@ -1018,7 +1018,7 @@ export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | HttpError>;
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
-  Pick<ComputedSignal<any>, 'promise'>;
+  Pick<ComputedSignal<any>, 'promise' | 'pending' | 'error' | 'invalidate'>;
 
 /** @public */
 export type Loader<RETURN> = {

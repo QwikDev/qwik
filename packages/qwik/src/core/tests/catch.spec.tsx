@@ -1638,6 +1638,273 @@ describe('Catch + fallback$', () => {
       });
     });
 
+    describe('reads written by the owner', () => {
+      const Card = component$(() => (
+        <div class="card">
+          <Slot />
+        </div>
+      ));
+
+      const SyncRead = component$<{ onError$?: any }>((props) => {
+        const data = useComputed$((): string => {
+          throw new Error('owner read boom');
+        });
+        return (
+          <main>
+            <Catch fallback$={fb()} onError$={props.onError$}>
+              <p id="content">{data.value}</p>
+            </Catch>
+            <p id="after">after</p>
+          </main>
+        );
+      });
+
+      const AsyncRead = component$(() => {
+        const data = useComputed$(async (): Promise<string> => {
+          throw new Error('owner async read boom');
+        });
+        return (
+          <Catch fallback$={fb()}>
+            <p id="content">{data.value}</p>
+          </Catch>
+        );
+      });
+
+      describe.each(modes)('%s', (_mode, renderMode) => {
+        it('a failing async read the owner writes inside its <Catch> renders the fallback', async () => {
+          const { container } = await renderMode(() => <AsyncRead />);
+          await settleOnErrorDelivery(container);
+          expect(container.element.querySelector('#fb')?.textContent).toContain(
+            'caught: owner async read boom'
+          );
+        });
+
+        it('a failing sync read the owner writes inside its <Catch> renders the fallback', async () => {
+          const { container } = await renderMode(() => <SyncRead />);
+          await settleOnErrorDelivery(container);
+          expect(container.element.querySelector('#fb')?.textContent).toContain(
+            'caught: owner read boom'
+          );
+        });
+
+        it('the owner still renders its content around the <Catch> when that read fails', async () => {
+          const { container } = await renderMode(() => <SyncRead />);
+          await settleOnErrorDelivery(container);
+          expect(container.element.querySelector('#after')?.textContent).toBe('after');
+        });
+
+        it("onError$ fires once with the read's error", async () => {
+          const received: string[] = [];
+          const { container } = await renderMode(() => (
+            <SyncRead onError$={$((e: Error) => received.push(e.message))} />
+          ));
+          await settleOnErrorDelivery(container);
+          expect(received).toEqual(['owner read boom']);
+        });
+
+        it('two failing reads under one <Catch> render one fallback and report once', async () => {
+          const received: string[] = [];
+          const TwoReads = component$(() => {
+            const first = useComputed$((): string => {
+              throw new Error('first read boom');
+            });
+            const second = useComputed$((): string => {
+              throw new Error('second read boom');
+            });
+            return (
+              <Catch fallback$={fb()} onError$={$((e: Error) => received.push(e.message))}>
+                <p>{first.value}</p>
+                <p>{second.value}</p>
+              </Catch>
+            );
+          });
+          const { container } = await renderMode(() => <TwoReads />);
+          await settleOnErrorDelivery(container);
+          expect(fbCount(container.element)).toBe(1);
+          expect(received).toEqual(['first read boom']);
+        });
+
+        it('a read projected through <Catch><Card>…</Card></Catch> renders the fallback', async () => {
+          const ReadInCard = component$(() => {
+            const data = useComputed$((): string => {
+              throw new Error('card read boom');
+            });
+            return (
+              <Catch fallback$={fb()}>
+                <Card>
+                  <p id="content">{data.value}</p>
+                </Card>
+              </Catch>
+            );
+          });
+          const { container } = await renderMode(() => <ReadInCard />);
+          await settleOnErrorDelivery(container);
+          expect(container.element.querySelector('#fb')?.textContent).toContain(
+            'caught: card read boom'
+          );
+        });
+
+        it('a read projected into <Boxed>, whose template holds the <Catch>, renders the fallback', async () => {
+          const ReadInBoxed = component$(() => {
+            const data = useComputed$((): string => {
+              throw new Error('boxed read boom');
+            });
+            return (
+              <Boxed>
+                <p id="content">{data.value}</p>
+              </Boxed>
+            );
+          });
+          const { container } = await renderMode(() => <ReadInBoxed />);
+          await settleOnErrorDelivery(container);
+          expect(container.element.querySelector('#fb')?.textContent).toContain(
+            'caught: boxed read boom'
+          );
+        });
+
+        it('a throwing sibling in the same <Catch> does not escalate to an outer boundary', async () => {
+          const ReadBesideThrower = component$(() => {
+            const data = useComputed$((): string => {
+              throw new Error('owner read boom');
+            });
+            return (
+              <Catch fallback$={fb()}>
+                <p id="content">{data.value}</p>
+                <Thrower message="sibling boom" />
+              </Catch>
+            );
+          });
+          const { container } = await renderMode(() => (
+            <Catch fallback$={fb('fb-outer')}>
+              <ReadBesideThrower />
+            </Catch>
+          ));
+          await settleOnErrorDelivery(container);
+          const el = container.element;
+          expect(el.querySelector('#fb')?.textContent).toContain('caught: owner read boom');
+          expect(el.querySelector('#fb-outer')).toBeFalsy();
+        });
+      });
+
+      describe.each([modes[0], modes[1]])('%s', (_mode, renderMode) => {
+        it('an owner re-render keeps the fallback and does not log the error again', async () => {
+          const { container } = await renderMode(() => <SyncRead />);
+          await settleOnErrorDelivery(container);
+          const logSpy = vi.spyOn(logUtils, 'logError');
+          const throwAsyncSpy = vi
+            .spyOn(logUtils, 'logErrorAndThrowAsync')
+            .mockImplementation((message?: any) => message as Error);
+          try {
+            const el = container.element;
+            await rerenderComponent(el.querySelector('#after') as HTMLElement);
+            await settleOnErrorDelivery(container);
+            expect(el.querySelector('#fb')?.textContent).toContain('caught: owner read boom');
+            expect(logSpy).not.toHaveBeenCalled();
+            expect(throwAsyncSpy).not.toHaveBeenCalled();
+          } finally {
+            logSpy.mockRestore();
+            throwAsyncSpy.mockRestore();
+          }
+        });
+      });
+
+      describe('CSR only', () => {
+        it('a failing sync attribute read the owner writes inside its <Catch> renders the fallback', async () => {
+          const SyncAttributeRead = component$(() => {
+            const data = useComputed$((): string => {
+              throw new Error('attribute read boom');
+            });
+            return (
+              <Catch fallback$={fb()}>
+                <p id="content" title={data.value}>
+                  content
+                </p>
+              </Catch>
+            );
+          });
+          const { container } = await domRender(<SyncAttributeRead />, { debug });
+          await settleOnErrorDelivery(container);
+          expect(container.element.querySelector('#fb')?.textContent).toContain(
+            'caught: attribute read boom'
+          );
+        });
+
+        it('a failing async attribute read the owner writes inside its <Catch> renders the fallback', async () => {
+          const AsyncAttributeRead = component$(() => {
+            const data = useComputed$(async (): Promise<string> => {
+              throw new Error('async attribute read boom');
+            });
+            return (
+              <Catch fallback$={fb()}>
+                <p id="content" title={data.value}>
+                  content
+                </p>
+              </Catch>
+            );
+          });
+          const { container } = await domRender(<AsyncAttributeRead />, { debug });
+          await settleOnErrorDelivery(container);
+          expect(container.element.querySelector('#fb')?.textContent).toContain(
+            'caught: async attribute read boom'
+          );
+        });
+
+        it('with no boundary, a failing read is logged once and the owner keeps rendering', async () => {
+          const failure = new Error('unbounded read boom');
+          const UnboundedRead = component$(() => {
+            const data = useComputed$((): string => {
+              throw failure;
+            });
+            return (
+              <main>
+                <p id="content">{data.value}</p>
+                <p id="after">after</p>
+              </main>
+            );
+          });
+          const throwAsyncSpy = vi
+            .spyOn(logUtils, 'logErrorAndThrowAsync')
+            .mockImplementation((message?: any) => message as Error);
+          try {
+            const { container } = await domRender(<UnboundedRead />, { debug });
+            await settleOnErrorDelivery(container);
+            expect(throwAsyncSpy).toHaveBeenCalledTimes(1);
+            expect(throwAsyncSpy).toHaveBeenCalledWith(failure);
+            expect(container.element.querySelector('#after')?.textContent).toBe('after');
+          } finally {
+            throwAsyncSpy.mockRestore();
+          }
+        });
+
+        it('with no boundary, a read projected into a component that is not a boundary is logged once, after that component renders', async () => {
+          const failure = new Error('card read boom');
+          const UnboundedReadInCard = component$(() => {
+            const data = useComputed$((): string => {
+              throw failure;
+            });
+            return (
+              <main>
+                <Card>
+                  <p id="content">{data.value}</p>
+                </Card>
+              </main>
+            );
+          });
+          const throwAsyncSpy = vi
+            .spyOn(logUtils, 'logErrorAndThrowAsync')
+            .mockImplementation((message?: any) => message as Error);
+          try {
+            const { container } = await domRender(<UnboundedReadInCard />, { debug });
+            await settleOnErrorDelivery(container);
+            expect(throwAsyncSpy).toHaveBeenCalledTimes(1);
+            expect(throwAsyncSpy).toHaveBeenCalledWith(failure);
+          } finally {
+            throwAsyncSpy.mockRestore();
+          }
+        });
+      });
+    });
+
     describe('tasks', () => {
       describe.each(modes)('%s', (_mode, renderMode) => {
         it('a useTask$ throw is caught by the nearest parent <Catch>', async () => {

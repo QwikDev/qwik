@@ -114,6 +114,7 @@ export const USE_ON_LOCAL_SEQ_IDX = NON_SERIALIZABLE_MARKER_PREFIX + 'onIdx';
 export const USE_ON_LOCAL_FLAGS = NON_SERIALIZABLE_MARKER_PREFIX + 'onFlags';
 export const QCursorBoundary = NON_SERIALIZABLE_MARKER_PREFIX + 'cursorBoundary';
 export const NEAREST_CURSOR_BOUNDARY = NON_SERIALIZABLE_MARKER_PREFIX + 'nearestCursorBoundary';
+export const PARKED_ERRORS = NON_SERIALIZABLE_MARKER_PREFIX + 'parkedErrors';
 
 export const Q_PROPS_SEPARATOR = ':';
 

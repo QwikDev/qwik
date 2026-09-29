@@ -11,7 +11,13 @@ import type { OnRenderFn } from '../component.public';
 import type { Props } from '../jsx/jsx-runtime';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
-import { ELEMENT_SEQ, ELEMENT_PROPS, OnRenderProp, QScopedStyle } from '../utils/markers';
+import {
+  ELEMENT_SEQ,
+  ELEMENT_PROPS,
+  OnRenderProp,
+  PARKED_ERRORS,
+  QScopedStyle,
+} from '../utils/markers';
 import { addComponentStylePrefix } from '../utils/scoped-styles';
 import { isPromise, maybeThen, retryOnPromise, safeCall } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
@@ -31,6 +37,7 @@ import {
   NODE_DIFF_DATA_KEY,
   NODE_PROPS_DATA_KEY,
   type CursorData,
+  type ParkedError,
   INLINE_COMPONENT_DATA_KEY,
 } from './cursor-props';
 import { invoke, newInvokeContext, untrack } from '../../use/use-core';
@@ -253,7 +260,33 @@ export function executeComponentChore(
 
   const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
 
-  return executeComponentFunction(container, host, host, componentQRL, props, journal, cursor);
+  const result = executeComponentFunction(
+    container,
+    host,
+    host,
+    componentQRL,
+    props,
+    journal,
+    cursor
+  );
+  if (__EXPERIMENTAL__.catchBoundary) {
+    return maybeThen(result, () => flushParkedErrors(vNode));
+  }
+  return result;
+}
+
+function flushParkedErrors(host: VNode) {
+  const parkedErrors = host.props?.[PARKED_ERRORS] as ParkedError[] | undefined;
+  if (!parkedErrors) {
+    return;
+  }
+  delete host.props![PARKED_ERRORS];
+  for (let i = 0; i < parkedErrors.length; i++) {
+    const { origin, route } = parkedErrors[i];
+    if (!(origin.flags & VNodeFlags.Deleted)) {
+      route();
+    }
+  }
 }
 
 export function executeInlineComponentChore(

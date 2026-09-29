@@ -786,6 +786,34 @@ test('loadRoute — exact child dead end does not fall back to sibling _M catcha
   assert.notDeepEqual(result.$params$, { catchall: 'loader-redirect/notexist' });
 });
 
+test('loadRoute — underscore-prefixed static segments use escaped trie keys', async () => {
+  const routes: RouteData = {
+    _4: makeLoader(),
+    __drafts: { _I: makeLoader() },
+    _W: { _P: 'slug', _I: makeLoader() },
+  };
+
+  const drafts = await loadRoute(routes, false, '/_drafts');
+  assert.isFalse(drafts.$notFound$);
+  assert.equal(drafts.$routeName$, '/_drafts');
+
+  // `_4` is the 404 boundary, not a static route.
+  const metadataName = await loadRoute(routes, false, '/_4');
+  assert.isFalse(metadataName.$notFound$);
+  assert.deepEqual(metadataName.$params$, { slug: '_4' });
+});
+
+test('loadRoute — rewrite targets through escaped keys resolve the unescaped path', async () => {
+  const routes: RouteData = {
+    __drafts: { _I: makeLoader(), _R: ['draftsLoader'] },
+    entwuerfe: { _G: '/__drafts' },
+  };
+
+  const result = await loadRoute(routes, false, '/entwuerfe');
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$loaderPaths$, { draftsLoader: '/_drafts/' });
+});
+
 // ─── Menu (_N) trie tests ───────────────────────────────────────────────────────
 
 test('loadRoute — _N menu from ancestor is used for child route', async () => {

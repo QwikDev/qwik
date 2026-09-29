@@ -196,7 +196,7 @@ export const SignalTextNodeReplacementAndWhitespaceIssue1681 = component$(() => 
         Click
       </button>{' '}
       <span id="issue-1681-return">
-        <C who={'A'} count={signal.value} /> <C who={'B'} count={signal} />
+        <C who={'A'} count={signal.value} /> <C who={'B'} count={signal.value} />
       </span>
     </div>
   );

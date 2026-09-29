@@ -653,7 +653,11 @@ export const ForLoopItemsAccumulateIssue3643 = component$(() => {
 });
 
 function Hola(props: any) {
-  return <div {...props}></div>;
+  return (
+    <div {...props}>
+      <Slot />
+    </div>
+  );
 }
 
 export const IssueChildrenSpread = component$(() => {
@@ -680,7 +684,7 @@ export const IssueChildrenSpread = component$(() => {
         <div>2</div>
       </Hola>
       <div id="issue-children-spread-result">
-        <Type {...(signal.value as any)}></Type>
+        <Type>{signal.value.children}</Type>
       </div>
     </div>
   );

@@ -1599,3 +1599,98 @@ function renderPendingAttribute(pending: Promise<string>) {
     setFinal: () => (descriptionId.value = 'final-id'),
   };
 }
+
+describe('preloader', () => {
+  const manifest = {
+    manifestHash: 'test',
+    mapping: { _handler: 'q-handler.js' },
+    symbols: {},
+    bundles: {},
+    preloader: 'q-preloader.js',
+    core: 'q-core.js',
+    bundleGraphAsset: 'assets/bundle-graph.json',
+  };
+  const renderPage = (preloader?: false) =>
+    renderToString(
+      (_props, ctx) => [
+        '<head><title>page</title></head><body>',
+        createSsrOpenTag(
+          '<button',
+          ctx.eventAttr(
+            'q-e:click',
+            createQRL('./listener.js', '_handler', () => {}, null, null)
+          ),
+          '>'
+        ),
+        'go</button></body>',
+      ],
+      { manifest: manifest as never, ...(preloader === false ? { preloader } : {}) }
+    );
+
+  test('starts the preloader in the head and preloads the page bundles at the end', async () => {
+    const { html } = await renderPage();
+    const head = html.slice(html.indexOf('<head>'), html.indexOf('</head>'));
+
+    expect(head).toContain('<link rel="modulepreload" href="/build/q-preloader.js">');
+    expect(head).toContain(
+      '<link rel="preload" href="/assets/bundle-graph.json" as="fetch" crossorigin="anonymous">'
+    );
+    expect(head).toContain('import("/build/q-preloader.js").then(({l})=>l("/build/",b))');
+    expect(head).toContain('<link rel="modulepreload" href="/build/q-core.js">');
+    const tail = html.slice(html.indexOf('</head>'));
+    expect(tail).toMatch(/<script[^>]*q:type="preload"[^>]*>.*"q-handler\.js".*<\/script>/);
+  });
+
+  test('emits no preloader assets when it is disabled', async () => {
+    const { html } = await renderPage(false);
+
+    expect(html).not.toContain('q-preloader.js');
+    expect(html).not.toContain('q-core.js');
+    expect(html).not.toContain('bundle-graph.json');
+    expect(html).not.toContain('q:type="preload"');
+  });
+});
+
+describe('qwikloader', () => {
+  const renderPage = (qwikLoader?: 'inline') =>
+    renderToString(
+      (_props, ctx) => [
+        '<head><title>page</title></head><body>',
+        createSsrOpenTag(
+          '<button',
+          ctx.eventAttr(
+            'q-e:click',
+            createQRL('./listener.js', '_handler', () => {}, null, null)
+          ),
+          '>'
+        ),
+        'go</button></body>',
+      ],
+      {
+        manifest: {
+          manifestHash: 'test',
+          mapping: { _handler: 'q-handler.js' },
+          qwikLoader: 'q-loader.js',
+        } as never,
+        ...(qwikLoader ? { qwikLoader } : {}),
+      }
+    );
+
+  test('loads the manifest qwikloader as a module script at the top of the head', async () => {
+    const { html } = await renderPage();
+    const head = html.slice(html.indexOf('<head>') + '<head>'.length, html.indexOf('</head>'));
+
+    expect(head).toMatch(
+      /^<link rel="modulepreload" href="\/build\/q-loader\.js"><script async type="module" src="\/build\/q-loader\.js"><\/script>/
+    );
+    expect(html).not.toContain('id="qwikloader"');
+    expect(html).toContain('window._qwikEv');
+  });
+
+  test('inlines the qwikloader at the end when asked to', async () => {
+    const { html } = await renderPage('inline');
+
+    expect(html).not.toContain('src="/build/q-loader.js"');
+    expect(html.indexOf('id="qwikloader"')).toBeGreaterThan(html.indexOf('</head>'));
+  });
+});

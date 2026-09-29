@@ -27,6 +27,12 @@ export function getQwikLoaderScript(opts?: {
 }): string;
 
 // @public (undocumented)
+export interface PreloaderOptions {
+    maxIdlePreloads?: number;
+    ssrPreloads?: number;
+}
+
+// @public (undocumented)
 export type QwikLoaderOptions = 'module' | 'inline' | 'never' | {
     include?: 'always' | 'never' | 'auto';
 };
@@ -45,6 +51,7 @@ export interface RenderOptions<Props = undefined> extends SerializeDocumentOptio
     instanceHash?: string;
     // (undocumented)
     locale?: string | ((options: RenderOptions<Props>) => string);
+    preloader?: PreloaderOptions | false;
     // (undocumented)
     props?: Props;
     // (undocumented)

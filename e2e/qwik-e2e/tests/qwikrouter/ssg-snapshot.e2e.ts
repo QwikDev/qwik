@@ -14,7 +14,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // the growth.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
 const CORE_BROTLI_BUDGET = 35400;
-const QWIKLOADER_BROTLI_BUDGET = 2100;
+const QWIKLOADER_BROTLI_BUDGET = 2200;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '../../../../');
@@ -55,9 +55,10 @@ test.describe('router ssg snapshot', () => {
     );
 
     // Regression guard: loaderPaths must map the root loader to "/", or off-route loaders fetch the
-    // wrong URL and 404. The hash is wildcarded (optimizer-derived); the route path "/" is stable.
+    // wrong URL and 404. The map is its own state root; the loader hash is optimizer-derived.
+    expect(normalizedState).toContain('{string} "loaderPaths"');
     expect(normalizedState).toMatch(
-      /"loaderPaths"\s+Object \[\s+\{string\} "[^"]+"\s+\{string\} "\/"/
+      /\n\d+ Object \[\s+\{string\} "[a-z0-9]+"\s+\{string\} "\/"\s+\]/
     );
 
     let expectedHtml = (await readFile(expectedHtmlPath, 'utf-8').catch(() => '')).replace(

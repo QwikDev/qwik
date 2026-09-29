@@ -129,6 +129,21 @@ export class SsrScriptEmitter {
       : this.writeScript(attrs, body, eventAttrParts);
   }
 
+  /** Module mode loads the manifest's loader chunk from the head; without that chunk it inlines. */
+  isQwikLoaderModule(bundle: string | undefined): boolean {
+    return (
+      !this.shouldSkipQwikLoader() && this.opts.qwikLoader !== 'inline' && bundle !== undefined
+    );
+  }
+
+  emitQwikLoaderModule(src: string): string {
+    const nonce = this.getNonce();
+    return (
+      `<link${serializeScriptAttrs({ rel: 'modulepreload', href: src, nonce })}>` +
+      this.writeScript({ async: true, type: 'module', src, nonce })
+    );
+  }
+
   emitQwikLoader(): string {
     if (this.shouldSkipQwikLoader()) {
       return '';

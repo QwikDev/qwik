@@ -66,6 +66,7 @@ import type {
 import { getBuildBase } from './utils';
 import { createPlatform, getSymbolHash } from './platform';
 import { resolveManifest } from './manifest';
+import { createPreloaderHead, createPreloaderTail } from './preloader';
 
 export interface SsrRenderContext extends ServerDataContext {
   serializationCtx: SerializationContext;
@@ -321,6 +322,20 @@ export const renderToStreamCompiled = async <Props = undefined>(
       }
       output = relocateHeadlessCarriers(output);
     }
+    const qwikLoaderBundle = resolvedManifest?.manifest.qwikLoader;
+    const isQwikLoaderModule = scripts.isQwikLoaderModule(qwikLoaderBundle);
+    const headScripts =
+      (isQwikLoaderModule ? scripts.emitQwikLoaderModule(buildBase + qwikLoaderBundle) : '') +
+      createPreloaderHead(
+        resolvedManifest?.manifest,
+        buildBase,
+        opts.preloader,
+        opts.serverData?.nonce
+      );
+    if (headScripts !== '') {
+      output =
+        containerTagName === 'html' ? insertIntoHead(output, headScripts) : [headScripts, output];
+    }
     const styledOutput = injectStyles(output, styleIds);
     const emittedStyles = new Set(styleIds.keys());
     const [containerOpen, containerClose] = createContainerTags(
@@ -459,8 +474,19 @@ export const renderToStreamCompiled = async <Props = undefined>(
         )
       );
     }
+    shellTail.push(
+      createPreloaderTail(
+        serializationCtx,
+        resolvedManifest?.manifest,
+        buildBase,
+        opts.preloader,
+        opts.serverData?.nonce
+      )
+    );
     if (serializationCtx.$eventQrls$.size > 0 || hasDeferred) {
-      shellTail.push(scripts.emitQwikLoader());
+      if (!isQwikLoaderModule) {
+        shellTail.push(scripts.emitQwikLoader());
+      }
       shellTail.push(scripts.emitQwikEvents(serializationCtx.$eventNames$));
     }
     const emittedEvents = hasDeferred ? new Set(serializationCtx.$eventNames$) : undefined;
@@ -825,6 +851,17 @@ function removeHeadlessCarriers(output: SsrOutput, carriers: SsrOutput[]): SsrOu
     }
   }
   return children ?? output;
+}
+
+/** Right after `<head>` opens, so its preloads start before the rest of the head parses. */
+function insertIntoHead(output: SsrOutput, html: string): SsrOutput {
+  return (
+    insertAfterElement(output, 'head', [html]) ??
+    replaceFirstOutputString(output, /<head(\s[^>]*)?>/i, `$&${html.replaceAll('$', '$$$$')}`) ?? [
+      html,
+      output,
+    ]
+  );
 }
 
 function insertAfterElement(

@@ -17,6 +17,7 @@ export type {
   SerializeDocumentOptions,
   RenderToStreamResult,
   QwikLoaderOptions,
+  PreloaderOptions,
 } from './types';
 export { resolveManifest } from './manifest';
 export { renderToString, renderToStream } from './ssr-render';

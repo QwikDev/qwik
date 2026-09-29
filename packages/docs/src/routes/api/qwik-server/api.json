@@ -17,6 +17,20 @@
       "mdFile": "core.getqwikloaderscript.md"
     },
     {
+      "name": "PreloaderOptions",
+      "id": "preloaderoptions",
+      "hierarchy": [
+        {
+          "name": "PreloaderOptions",
+          "id": "preloaderoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PreloaderOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nmaxIdlePreloads?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of simultaneous preload links that the preloader will maintain. If you set this higher, the browser will have all JS files in memory sooner, but it will contend with other resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait longer to be preloaded.\n\nBundles that reach 100% probability (static imports of other bundles) will always be preloaded immediately, no limit.\n\nDefaults to `25`\n\n\n</td></tr>\n<tr><td>\n\nssrPreloads?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of preload links to add during SSR. These instruct the browser to preload likely bundles before the preloader script is active. This most likely includes the core and the preloader script itself. Setting this to 0 will disable all preload links.\n\nPreload links can delay LCP, which is a Core Web Vital, but it can increase TTI, which is not a Core Web Vital but more noticeable to the user.\n\nDefaults to `7`\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
+      "mdFile": "core.preloaderoptions.md"
+    },
+    {
       "name": "QwikLoaderOptions",
       "id": "qwikloaderoptions",
       "hierarchy": [
@@ -54,7 +68,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderOptions<Props = undefined> extends SerializeDocumentOptions \n```\n**Extends:** [SerializeDocumentOptions](#serializedocumentoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbase?\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| ((options: [RenderOptions](#renderoptions)<!-- -->&lt;Props&gt;) =&gt; string)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ncontainerAttributes?\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ncontainerTagName?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninstanceHash?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Testing-only: fixes the container `q:instance` hash so output is byte-reproducible. The hash namespaces per-render globals, so it must stay unique per container in a real document.\n\n\n</td></tr>\n<tr><td>\n\nlocale?\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| ((options: [RenderOptions](#renderoptions)<!-- -->&lt;Props&gt;) =&gt; string)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nprops?\n\n\n</td><td>\n\n\n</td><td>\n\nProps\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nqwikLoader?\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikLoaderOptions](#qwikloaderoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nserverData?\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, any&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RenderOptions<Props = undefined> extends SerializeDocumentOptions \n```\n**Extends:** [SerializeDocumentOptions](#serializedocumentoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbase?\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| ((options: [RenderOptions](#renderoptions)<!-- -->&lt;Props&gt;) =&gt; string)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ncontainerAttributes?\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ncontainerTagName?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninstanceHash?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Testing-only: fixes the container `q:instance` hash so output is byte-reproducible. The hash namespaces per-render globals, so it must stay unique per container in a real document.\n\n\n</td></tr>\n<tr><td>\n\nlocale?\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| ((options: [RenderOptions](#renderoptions)<!-- -->&lt;Props&gt;) =&gt; string)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\npreloader?\n\n\n</td><td>\n\n\n</td><td>\n\n[PreloaderOptions](#preloaderoptions) \\| false\n\n\n</td><td>\n\n_(Optional)_ Specifies how preloading is handled. This ensures that code is instantly available when needed.\n\n\n</td></tr>\n<tr><td>\n\nprops?\n\n\n</td><td>\n\n\n</td><td>\n\nProps\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nqwikLoader?\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikLoaderOptions](#qwikloaderoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nserverData?\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, any&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "core.renderoptions.md"
     },

@@ -24,11 +24,40 @@ export type QwikLoaderOptions =
     };
 
 /** @public */
+export interface PreloaderOptions {
+  /**
+   * Maximum number of preload links to add during SSR. These instruct the browser to preload likely
+   * bundles before the preloader script is active. This most likely includes the core and the
+   * preloader script itself. Setting this to 0 will disable all preload links.
+   *
+   * Preload links can delay LCP, which is a Core Web Vital, but it can increase TTI, which is not a
+   * Core Web Vital but more noticeable to the user.
+   *
+   * Defaults to `7`
+   */
+  ssrPreloads?: number;
+  /**
+   * Maximum number of simultaneous preload links that the preloader will maintain. If you set this
+   * higher, the browser will have all JS files in memory sooner, but it will contend with other
+   * resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait
+   * longer to be preloaded.
+   *
+   * Bundles that reach 100% probability (static imports of other bundles) will always be preloaded
+   * immediately, no limit.
+   *
+   * Defaults to `25`
+   */
+  maxIdlePreloads?: number;
+}
+
+/** @public */
 export interface RenderOptions<Props = undefined> extends SerializeDocumentOptions {
   props?: Props;
   base?: string | ((options: RenderOptions<Props>) => string);
   locale?: string | ((options: RenderOptions<Props>) => string);
   qwikLoader?: QwikLoaderOptions;
+  /** Specifies how preloading is handled. This ensures that code is instantly available when needed. */
+  preloader?: PreloaderOptions | false;
   containerTagName?: string;
   containerAttributes?: Record<string, string>;
   serverData?: Record<string, any>;

@@ -6,8 +6,24 @@
 const FNV_OFFSET = 0xcbf29ce484222325n;
 const FNV_PRIME = 0x100000001b3n;
 
-export function createSegmentSourceIdentity(path: string, scope?: string): string {
-  const normalized = path.replaceAll('\\', '/');
+const ABSOLUTE_PATH = /^(\/|[A-Za-z]:\/)/;
+
+/** An absolute path hashes relative to `rootDir` so every checkout emits the same symbols. */
+export function createSegmentSourceIdentity(
+  path: string,
+  scope?: string,
+  rootDir?: string
+): string {
+  let normalized = path.replaceAll('\\', '/');
+  if (rootDir !== undefined && ABSOLUTE_PATH.test(normalized)) {
+    const parts = normalized.split('/').filter(Boolean);
+    const rootParts = rootDir.replaceAll('\\', '/').split('/').filter(Boolean);
+    let common = 0;
+    while (common < rootParts.length && parts[common] === rootParts[common]) {
+      common++;
+    }
+    normalized = [...rootParts.slice(common).map(() => '..'), ...parts.slice(common)].join('/');
+  }
   const isAbsolute = normalized.startsWith('/');
   const parts: string[] = [];
   for (const part of normalized.split('/')) {

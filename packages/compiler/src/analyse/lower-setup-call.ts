@@ -204,11 +204,11 @@ function lowerStyleCall(
   } else if (!scoped && imported !== undefined) {
     const specifier = ctx.plan.edges[imported.edge].specifier;
     if (specifier.startsWith('.')) {
-      const path = ctx.plan.source.originalPath.replaceAll('\\', '/');
-      const scope = ctx.sourceIdentity.slice(0, ctx.sourceIdentity.indexOf('\0'));
+      const separator = ctx.sourceIdentity.indexOf('\0');
+      const sourcePath = ctx.sourceIdentity.slice(separator + 1);
       const identity = createSegmentSourceIdentity(
-        path.slice(0, path.lastIndexOf('/') + 1) + specifier,
-        scope
+        sourcePath.slice(0, sourcePath.lastIndexOf('/') + 1) + specifier,
+        ctx.sourceIdentity.slice(0, separator)
       );
       styleId = createStyleId(`${identity}\0${imported.imported}`, 0);
     }

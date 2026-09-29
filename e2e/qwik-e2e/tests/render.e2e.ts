@@ -17,31 +17,31 @@ test.describe('render', () => {
 
       const attributes = page.locator('#attributes');
 
-      await expect(attributes).toHaveClass('⚡️1rn5j5qowjk7o-0 even stable0');
+      await expect(attributes).toHaveClass('⚡️yblddw498996-0 even stable0');
       await expect(attributes).toHaveAttribute('aria-hidden', 'true');
       await expect(attributes).toHaveAttribute('preventdefault:click', '');
 
       await increment.click();
 
-      await expect(attributes).toHaveClass('⚡️1rn5j5qowjk7o-0 odd stable0');
+      await expect(attributes).toHaveClass('⚡️yblddw498996-0 odd stable0');
       await expect(attributes).toHaveAttribute('aria-hidden', 'true');
       await expect(attributes).toHaveAttribute('preventdefault:click', '');
 
       await toggle.click();
 
-      await expect(attributes).toHaveClass('⚡️1rn5j5qowjk7o-0');
+      await expect(attributes).toHaveClass('⚡️yblddw498996-0');
       await expect(attributes).not.toHaveAttribute('aria-hidden');
       await expect(attributes).not.toHaveAttribute('preventdefault:click');
 
       await increment.click();
 
-      await expect(attributes).toHaveClass('⚡️1rn5j5qowjk7o-0');
+      await expect(attributes).toHaveClass('⚡️yblddw498996-0');
       await expect(attributes).not.toHaveAttribute('aria-hidden');
       await expect(attributes).not.toHaveAttribute('preventdefault:click');
 
       await toggle.click();
 
-      await expect(attributes).toHaveClass('⚡️1rn5j5qowjk7o-0 even stable0');
+      await expect(attributes).toHaveClass('⚡️yblddw498996-0 even stable0');
       await expect(attributes).toHaveAttribute('aria-hidden', 'true');
       await expect(attributes).toHaveAttribute('preventdefault:click', '');
     });

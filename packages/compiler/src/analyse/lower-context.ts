@@ -3,6 +3,7 @@ import type { OpKind } from '../schema';
 import type { BindingGraph } from './ast/bindings';
 import { createJsxAnalysis, type JsxAnalysis } from './ast/jsx-analysis';
 import type { SetupLocal } from './locals';
+import type { AnalyseOptions } from './analyse-module';
 import {
   createSegmentSourceIdentity,
   createSegmentSymbolName,
@@ -62,14 +63,14 @@ export interface LowerContext {
 export function createLowerContext(
   plan: ModulePlan,
   path: string,
-  scope: string | undefined,
+  options: AnalyseOptions,
   bindings: BindingGraph,
   coreBindings: ReadonlyMap<LocalId, string> = new Map(),
   jsx: JsxAnalysis = createJsxAnalysis(bindings, coreBindings)
 ): LowerContext {
   const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
   const basename = slash === -1 ? path : path.slice(slash + 1);
-  const sourceIdentity = createSegmentSourceIdentity(path, scope);
+  const sourceIdentity = createSegmentSourceIdentity(path, options.scope, options.rootDir);
   plan.source.symbolNamespace = createSegmentSymbolName(sourceIdentity, 'module', 'synthetic');
   return {
     plan,

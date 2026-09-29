@@ -89,14 +89,7 @@ export async function analyseModule(
         )
       : [];
   });
-  const lowerContext = createLowerContext(
-    plan,
-    input.path,
-    options.scope,
-    bindings,
-    coreBindings,
-    jsx
-  );
+  const lowerContext = createLowerContext(plan, input.path, options, bindings, coreBindings, jsx);
   let loweredHooks: Set<Node>;
   try {
     const runtimeJsxCall = findRuntimeJsxCall(parsed.program, bindings, coreBindings);
@@ -170,7 +163,7 @@ export async function analyseModule(
       const foreignCore = scanModuleSurface(authoredProgram, null, foreignPlan, surfaceBindings);
       recordTypeContracts(foreignPlan, authoredProgram, input.code, surfaceBindings);
       recordBindingResults(
-        createLowerContext(foreignPlan, input.path, options.scope, surfaceBindings, foreignCore)
+        createLowerContext(foreignPlan, input.path, options, surfaceBindings, foreignCore)
       );
       foreignPlan.kind = ModuleKind.Foreign;
       return foreignPlan;
@@ -179,7 +172,7 @@ export async function analyseModule(
     plan.source.normalizationMap = null;
     recordTypeContracts(plan, parsed.program, input.code, bindings);
     recordBindingResults(
-      createLowerContext(plan, input.path, options.scope, bindings, coreBindings, jsx)
+      createLowerContext(plan, input.path, options, bindings, coreBindings, jsx)
     );
     return plan;
   }

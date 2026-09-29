@@ -84,7 +84,7 @@ export function createTestLowerContext(program: Program, source: string, path = 
   const plan = emptyPlan(path, source);
   const bindings = createBindingGraph(program);
   plan.bindings = bindings.bindings;
-  return { bindings, ctx: createLowerContext(plan, path, undefined, bindings) };
+  return { bindings, ctx: createLowerContext(plan, path, {}, bindings) };
 }
 
 export function serverSpecialization(): Specialization {

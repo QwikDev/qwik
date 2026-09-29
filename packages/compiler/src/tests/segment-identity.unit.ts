@@ -32,4 +32,17 @@ describe('segment identity', () => {
     expect(createSegmentSourceIdentity('src\\a\\..\\component.tsx')).toBe('\0src/component.tsx');
     expect(createSegmentSourceIdentity('/abs/x.tsx', 'lib')).toBe('lib\0/abs/x.tsx');
   });
+
+  test('source identity drops the machine-specific rootDir from absolute paths', () => {
+    expect(createSegmentSourceIdentity('/repo/app/src/x.tsx', undefined, '/repo/app')).toBe(
+      '\0src/x.tsx'
+    );
+    expect(
+      createSegmentSourceIdentity('C:\\repo\\app\\src\\x.tsx', undefined, 'C:\\repo\\app')
+    ).toBe('\0src/x.tsx');
+    expect(createSegmentSourceIdentity('/repo/lib/x.tsx', 'lib', '/repo/app/')).toBe(
+      'lib\0../lib/x.tsx'
+    );
+    expect(createSegmentSourceIdentity('src/x.tsx', undefined, '/repo/app')).toBe('\0src/x.tsx');
+  });
 });

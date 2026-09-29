@@ -248,6 +248,33 @@ export default () => {
   expect(parent[1]).not.toBe(child[1]);
 });
 
+test('absolute module paths hash relative to rootDir so checkouts agree', async () => {
+  const identify = async (rootDir: string) => {
+    const plan = await analyseModule(
+      {
+        path: `${rootDir}/src/parent.tsx`,
+        code: `import { useStyles$, useStylesScoped$ } from '@qwik.dev/core';
+import css from './shared.css?inline';
+export default () => {
+  useStyles$(css);
+  useStylesScoped$('.a {}');
+  return <div />;
+};`,
+      },
+      { rootDir }
+    );
+    expect(plan.diagnostics).toEqual([]);
+    const styleIds = plan.programs.flatMap((program) =>
+      program.setup.flatMap((entry) => (entry.s === SetupKind.Style ? [entry.styleId] : []))
+    );
+    return { styleIds, namespace: plan.source.symbolNamespace };
+  };
+
+  const home = await identify('/home/a/qwik/app');
+  expect(home.styleIds).toHaveLength(2);
+  expect(await identify('/tmp/worktree/app')).toEqual(home);
+});
+
 test('static global CSS shares IDs across literals and const bindings', async () => {
   const plan = await analyseModule(
     {

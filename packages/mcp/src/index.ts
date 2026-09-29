@@ -10,7 +10,6 @@ import { createVNodeRuntime } from '../../devtools/plugin/src/runtime/create-vno
 import { VIRTUAL_QWIK_DEVTOOLS_KEY } from '../../devtools/kit/src/protocol/hooks';
 import { inspectInput, type ToolName } from './protocol';
 import { isLoopback } from './access';
-import { injectPageBridge } from './stream';
 
 const bridgeId = 'virtual:qwik-mcp';
 const endpoint = '/__qwik_mcp';
@@ -32,7 +31,6 @@ export function qwikMcp(): Plugin {
   let devUrl = '';
   let endpointUrl = '';
   const trackedClients = new WeakSet<WebSocketClient>();
-  const script = () => `<script type="module" src="${server.config.base}@id/${bridgeId}"></script>`;
   const version = (name: string) => {
     const require = createRequire(join(server.config.root, 'package.json'));
     try {
@@ -143,6 +141,15 @@ export function qwikMcp(): Plugin {
         return { code: transformComponentFile(code, id), map: null };
       }
     },
+    transformIndexHtml() {
+      return [
+        {
+          tag: 'script',
+          attrs: { type: 'module', src: `${server.config.base}@id/${bridgeId}` },
+          injectTo: 'head',
+        },
+      ];
+    },
     configureServer(vite) {
       server = vite;
       if (!server.httpServer || server.config.server.https || server.config.server.hmr === false) {
@@ -235,9 +242,6 @@ export function qwikMcp(): Plugin {
       );
       server.middlewares.use(async (req, res, next) => {
         if (req.url?.split('?')[0] !== endpoint) {
-          if (req.headers.accept?.includes('text/html')) {
-            injectPageBridge(res, script());
-          }
           next();
           return;
         }

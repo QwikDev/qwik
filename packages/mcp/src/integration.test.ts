@@ -172,6 +172,7 @@ for (const mode of ['csr', 'ssr']) {
       });
       const url = server.resolvedUrls!.local[0];
       await page.goto(url);
+      expect(await page.locator('script[src*="virtual:qwik-mcp"]').count()).toBe(1);
       await page.locator('#counter').waitFor();
       expect(pageErrors).toEqual([]);
       await expect
@@ -388,26 +389,12 @@ test('production build excludes MCP bridge and instrumentation', async () => {
   expect(JSON.stringify(result)).not.toContain('useCollectHooks');
 });
 
-test('HTML injection preserves HTTP streaming and IPv6 loopback discovery', async () => {
+test('IPv6 loopback discovery works', async () => {
   const root = fileURLToPath(new URL('../tests/fixtures/csr', import.meta.url));
-  let finish: () => void = () => {};
   const server = await createServer({
     configFile: false,
     root,
-    plugins: [
-      qwikMcp(),
-      {
-        name: 'stream-fixture',
-        configureServer(vite) {
-          vite.middlewares.use('/stream', (_req, res) => {
-            res.setHeader('content-type', 'text/html');
-            res.write('<!doctype html><he');
-            res.write('ad><title>stream</title></head><body>first');
-            finish = () => res.end('last</body></html>');
-          });
-        },
-      },
-    ],
+    plugins: [qwikMcp()],
     server: { host: '::1', port: 0 },
     logLevel: 'error',
   });
@@ -425,20 +412,7 @@ test('HTML injection preserves HTTP streaming and IPv6 loopback discovery', asyn
           (await client.callTool({ name: 'get_project_info', arguments: {} })).structuredContent
       )
       .toMatchObject({ devUrl: expect.stringContaining('[::1]') });
-    const url = server.resolvedUrls!.local[0];
-    const response = await fetch(url + 'stream', {
-      headers: { accept: 'text/html' },
-      signal: AbortSignal.timeout(5000),
-    });
-    const reader = response.body!.getReader();
-    const first = new TextDecoder().decode((await reader.read()).value);
-    expect(first).toContain('<head><script type="module"');
-    expect(first).toContain('first');
-    expect(first).not.toContain('last');
-    finish();
-    expect(new TextDecoder().decode((await reader.read()).value)).toContain('last');
   } finally {
-    finish();
     await client.close();
     await server.close();
   }

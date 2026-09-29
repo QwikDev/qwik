@@ -560,7 +560,7 @@ A module-level `let` mutated inside a `$`-extracted closure. The exact wording d
 
 ### Move qwik packages [...] to devDependencies
 
-Move all `@qwik.dev/*` to `devDependencies` in `package.json`.
+Older starters check this in `vite.config.ts`. Remove the check: a production server that loads Qwik libraries from `node_modules` needs `@qwik.dev/core` in `dependencies`. See [ssr.noExternal](#ssrnoexternal).
 
 ---
 
@@ -571,7 +571,7 @@ Every item should pass before your migration is done.
 <Checklist>
   <ChecklistItem label='tsconfig.json has moduleResolution: Bundler and jsxImportSource: @qwik.dev/core' />
   <ChecklistItem label='package.json has "type": "module"' />
-  <ChecklistItem label='All @qwik.dev/* packages are in devDependencies' />
+  <ChecklistItem label='@qwik.dev/* packages are in dependencies if a production server loads Qwik libraries from node_modules' />
   <ChecklistItem label='Dev server starts without Code(Q30) in the console' />
   <ChecklistItem label='npx tsc --noEmit passes' />
 </Checklist>

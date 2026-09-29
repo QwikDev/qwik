@@ -738,7 +738,11 @@ export class Serializer {
           this.$discoveredVNodeData$.add(vNodeData);
           discoverValuesForVNodeData(vNodeData, this.$serializationContext$);
         }
-        this.$serializationContext$.$markSsrNodeForSerialization$(value, VNodeDataFlag.SERIALIZE);
+        this.$serializationContext$.$markSsrNodeForSerialization$(
+          value,
+          VNodeDataFlag.SERIALIZE,
+          true
+        );
       }
       if (value.children) {
         // Mark child vnode data for serialization (structure only, no value discovery needed)

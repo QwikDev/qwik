@@ -2406,7 +2406,7 @@ describe('ssrRenderToDom: author re-render across a deferred Pending', () => {
   });
 
   // https://github.com/QwikDev/qwik/issues/8876
-  it.skip('should re-render an author whose only root is the Pending (out-of-order)', async () => {
+  it('should re-render an author whose only root is the Pending (out-of-order)', async () => {
     await expectRemount(<DeferOnlyApp />, OOOS_OPT_IN);
   });
 

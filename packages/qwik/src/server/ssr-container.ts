@@ -2001,13 +2001,15 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
 
   private markVNodeDataForSerialization(
     node: VNodeDataSerializableNode,
-    flags = VNodeDataFlag.SERIALIZE
+    flags = VNodeDataFlag.SERIALIZE,
+    isStateRoot = false
   ): void {
     const previousFlags = node.vnodeData[0];
     const nextFlags = previousFlags | flags;
-    if (nextFlags !== previousFlags) {
-      node.vnodeData[0] = nextFlags;
-      this.queueLateVNodeDataPatch(node, nextFlags & ~previousFlags);
+    node.vnodeData[0] = nextFlags;
+    // Already-emitted vnode data wrote this node's attrs before they became roots.
+    if (isStateRoot || nextFlags !== previousFlags) {
+      this.queueLateVNodeDataPatch(node, isStateRoot ? nextFlags : nextFlags & ~previousFlags);
     }
   }
 

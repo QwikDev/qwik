@@ -2643,6 +2643,49 @@ const withResetBoundary = (child: JSXOutput) =>
     </main>
   ));
 
+const signalResetRef = { fail: true };
+const retryFallback = $((e: any, reset: any) => (
+  <button id="retry" onClick$={() => reset()}>
+    caught: {e.message}
+  </button>
+));
+const SignalReader = component$<{ data: Signal<string> }>((props) => (
+  <p id="loaded">{props.data.value}</p>
+));
+const OwnedFailingSignal = component$(() => {
+  const data = useComputed$(async () => {
+    await delay(1);
+    if (signalResetRef.fail) {
+      throw new Error('signal boom');
+    }
+    return 'loaded';
+  });
+  return (
+    <main>
+      <Catch fallback$={retryFallback}>
+        <SignalReader data={data} />
+      </Catch>
+    </main>
+  );
+});
+const OwnedDerivedFailure = component$(() => {
+  const source = useComputed$(async () => {
+    await delay(1);
+    if (signalResetRef.fail) {
+      throw new Error('source boom');
+    }
+    return 'loaded';
+  });
+  const derived = useComputed$(() => source.value.toUpperCase());
+  return (
+    <main>
+      <Catch fallback$={retryFallback}>
+        <SignalReader data={derived} />
+      </Catch>
+    </main>
+  );
+});
+
 const withRerenderOwner = (
   child: JSXOutput,
   boundaryProps: { fallback$?: any; onError$?: any } = {}
@@ -2727,6 +2770,36 @@ describe('Catch reset', () => {
       await driveReset(container);
 
       expect(el.querySelector('#alive')).toBeTruthy();
+    });
+
+    it('reset retries a failed signal the owner passes to a child through props', async () => {
+      signalResetRef.fail = true;
+      const { container } = await renderReset(<OwnedFailingSignal />);
+      const el = container.element;
+      await settleOnErrorDelivery(container);
+      expect(el.querySelector('#retry')?.textContent).toContain('signal boom');
+
+      signalResetRef.fail = false;
+      await driveReset(container);
+      await delay(10);
+      await waitForDrain(container);
+
+      expect(el.querySelector('#loaded')?.textContent).toBe('loaded');
+    });
+
+    it('reset retries the failed source of a computed the content reads', async () => {
+      signalResetRef.fail = true;
+      const { container } = await renderReset(<OwnedDerivedFailure />);
+      const el = container.element;
+      await settleOnErrorDelivery(container);
+      expect(el.querySelector('#retry')?.textContent).toContain('source boom');
+
+      signalResetRef.fail = false;
+      await driveReset(container);
+      await delay(10);
+      await waitForDrain(container);
+
+      expect(el.querySelector('#loaded')?.textContent).toBe('LOADED');
     });
   });
 

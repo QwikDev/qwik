@@ -114,8 +114,10 @@ export const scheduleEffects = (
       if (isTask(consumer)) {
         consumer.$flags$ |= TaskFlags.DIRTY;
         markVNodeDirty(container!, consumer.$el$, ChoreBits.TASKS);
+      } else if (consumer instanceof ComputedSignalImpl) {
+        consumer.$invalidateOnInputChange$();
       } else if (consumer instanceof SignalImpl) {
-        (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate();
+        (consumer as WrappedSignalImpl<unknown>).invalidate();
       } else if (property === EffectProperty.COMPONENT) {
         markVNodeDirty(container!, consumer, ChoreBits.COMPONENT);
       } else if (property === EffectProperty.VNODE) {

@@ -920,7 +920,7 @@ Clear the value and recompute. Unlike `invalidate()`, readers see the loading st
 
 </td><td>
 
-Use this to force recalculation.
+Use this to force recalculation. When `.error` came from another signal, that signal is retried too.
 
 </td></tr>
 <tr><td>
@@ -929,7 +929,7 @@ invalidate(info)
 
 </td><td>
 
-Use this to force recalculation. If you pass `info`, it will be provided to the calculation function.
+Use this to force recalculation. If you pass `info`, it will be provided to the calculation function. When `.error` came from another signal, that signal is retried too, without `info`.
 
 </td></tr>
 <tr><td>
@@ -2107,7 +2107,7 @@ interface IntrinsicElements extends LenientQwikElements
 
 <h2 id="computedsignal-invalidate">invalidate</h2>
 
-Use this to force recalculation.
+Use this to force recalculation. When `.error` came from another signal, that signal is retried too.
 
 ```typescript
 invalidate(): void;

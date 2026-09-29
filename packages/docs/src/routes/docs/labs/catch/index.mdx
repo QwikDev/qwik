@@ -94,8 +94,9 @@ reporter.
 
 ## Reset
 
-`reset` clears the error and re-renders the children. If the condition that caused the throw is
-gone, the content comes back; if it still throws, the fallback renders again.
+`reset` clears the error and re-renders the children. When the error came from a signal, such as a
+failed `useComputed$` or route loader, `reset` runs that signal again first. If the condition that
+caused the throw is gone, the content comes back; if it still throws, the fallback renders again.
 
 ```tsx
 fallback$={$((error, reset) => (

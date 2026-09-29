@@ -476,6 +476,236 @@ describe('async computed', () => {
     });
   });
 
+  it('should never give a sync dependent an unset value when its source recovers from a first-load failure', async () => {
+    await withContainer(async () => {
+      const ref = { fail: true };
+      const source = createComputed$(async () => {
+        await delay(1);
+        if (ref.fail) {
+          throw new Error('source failed');
+        }
+        return 2;
+      }) as unknown as ComputedSignalImpl<number>;
+      const reads: unknown[] = [];
+      const derived = createComputed$(() => {
+        if (source.error) {
+          return 0;
+        }
+        const value = source.value;
+        reads.push(value);
+        return value * 10;
+      }) as ComputedSignalImpl<number>;
+      await expect(retryOnPromise(() => derived.value)).rejects.toThrow('source failed');
+
+      ref.fail = false;
+      source.invalidate();
+      await source.promise();
+
+      expect(reads).not.toContainEqual(expect.any(Symbol));
+      expect(derived.value).toBe(20);
+    });
+  });
+
+  describe('retrying an inherited failure', () => {
+    it('should re-run the failed source once when invalidating a computed that inherited its failure', async () => {
+      await withContainer(async () => {
+        const ref = { fail: false, runs: 0 };
+        const source = createComputed$(async () => {
+          ref.runs++;
+          await delay(1);
+          if (ref.fail) {
+            throw new Error('source failed');
+          }
+          return 2;
+        }) as unknown as ComputedSignalImpl<number>;
+        const derived = createComputed$(() => source.value * 10) as ComputedSignalImpl<number>;
+        await retryOnPromise(() => derived.value);
+        ref.fail = true;
+        source.invalidate();
+        await source.promise();
+        const runsBeforeRetry = ref.runs;
+
+        derived.invalidate();
+        await source.promise();
+        await delay(5);
+
+        expect(ref.runs).toBe(runsBeforeRetry + 1);
+      });
+    });
+
+    it('should recover the computed when the retried source succeeds', async () => {
+      await withContainer(async () => {
+        const ref = { fail: false, result: 2 };
+        const source = createComputed$(async () => {
+          await delay(1);
+          if (ref.fail) {
+            throw new Error('source failed');
+          }
+          return ref.result;
+        }) as unknown as ComputedSignalImpl<number>;
+        const derived = createComputed$(() => source.value * 10) as ComputedSignalImpl<number>;
+        await retryOnPromise(() => derived.value);
+        ref.fail = true;
+        source.invalidate();
+        await source.promise();
+        expect(derived.error?.message).toBe('source failed');
+
+        ref.fail = false;
+        ref.result = 3;
+        derived.invalidate();
+        await source.promise();
+
+        expect(derived.error).toBeUndefined();
+        expect(derived.value).toBe(30);
+      });
+    });
+
+    it('should re-run the source when invalidating a computed that translated its failure with a cause', async () => {
+      await withContainer(async () => {
+        const ref = { fail: false, runs: 0 };
+        const source = createComputed$(async () => {
+          ref.runs++;
+          await delay(1);
+          if (ref.fail) {
+            throw new Error('source failed');
+          }
+          return 2;
+        }) as unknown as ComputedSignalImpl<number>;
+        const translated = createComputed$(() => {
+          if (source.error) {
+            throw new Error('prices are out of date', { cause: source.error });
+          }
+          return source.value * 10;
+        }) as ComputedSignalImpl<number>;
+        await retryOnPromise(() => translated.value);
+        ref.fail = true;
+        source.invalidate();
+        await source.promise();
+        expect(translated.error?.message).toBe('prices are out of date');
+        const runsBeforeRetry = ref.runs;
+
+        translated.invalidate();
+        await source.promise();
+        await delay(5);
+
+        expect(ref.runs).toBe(runsBeforeRetry + 1);
+      });
+    });
+
+    it('should make a dependent with no value read through to the retry of its failed source', async () => {
+      await withContainer(async () => {
+        const ref = { fail: true };
+        const source = createComputed$(async () => {
+          await delay(1);
+          if (ref.fail) {
+            throw new Error('source failed');
+          }
+          return 2;
+        }) as unknown as ComputedSignalImpl<number>;
+        const derived = createComputed$(() => source.value * 10) as ComputedSignalImpl<number>;
+        await expect(retryOnPromise(() => derived.value)).rejects.toThrow('source failed');
+
+        ref.fail = false;
+        source.invalidate();
+
+        let thrown: unknown;
+        try {
+          derived.value;
+        } catch (e) {
+          thrown = e;
+        }
+        expect(thrown).toBeInstanceOf(Promise);
+        expect(await retryOnPromise(() => derived.value)).toBe(20);
+      });
+    });
+
+    it('should not re-run the failed source when another input of the dependent changes', async () => {
+      await withContainer(async () => {
+        const ref = { fail: false, runs: 0 };
+        const factor = createSignal(10);
+        const source = createComputed$(async () => {
+          ref.runs++;
+          await delay(1);
+          if (ref.fail) {
+            throw new Error('source failed');
+          }
+          return 2;
+        }) as unknown as ComputedSignalImpl<number>;
+        const derived = createComputed$(
+          () => source.value * factor.value
+        ) as ComputedSignalImpl<number>;
+        await retryOnPromise(() => derived.value);
+        ref.fail = true;
+        source.invalidate();
+        await source.promise();
+        const runsBeforeChange = ref.runs;
+
+        factor.value = 100;
+        await delay(5);
+
+        expect(ref.runs).toBe(runsBeforeChange);
+        expect(derived.error?.message).toBe('source failed');
+      });
+    });
+
+    it('should keep the info on the dependent and retry the source without it', async () => {
+      await withContainer(async () => {
+        const ref = { fail: false };
+        const sourceInfos: unknown[] = [];
+        const derivedInfos: unknown[] = [];
+        const source = createComputed$(async (ctx) => {
+          sourceInfos.push(ctx.info);
+          await delay(1);
+          if (ref.fail) {
+            throw new Error('source failed');
+          }
+          return 2;
+        }) as unknown as ComputedSignalImpl<number>;
+        const derived = createComputed$((ctx) => {
+          derivedInfos.push(ctx.info);
+          return source.value * 10;
+        }) as ComputedSignalImpl<number>;
+        await retryOnPromise(() => derived.value);
+        ref.fail = true;
+        source.invalidate();
+        await source.promise();
+
+        derived.invalidate('retry');
+        await source.promise();
+
+        expect(sourceInfos).toEqual([undefined, undefined, undefined]);
+        expect(derivedInfos).toContain('retry');
+      });
+    });
+
+    it('should leave a source that is already recomputing alone', async () => {
+      await withContainer(async () => {
+        const ref = { fail: false, runs: 0 };
+        const source = createComputed$(async () => {
+          ref.runs++;
+          await delay(5);
+          if (ref.fail) {
+            throw new Error('source failed');
+          }
+          return 2;
+        }) as unknown as ComputedSignalImpl<number>;
+        const derived = createComputed$(() => source.value * 10) as ComputedSignalImpl<number>;
+        await retryOnPromise(() => derived.value);
+        ref.fail = true;
+        source.invalidate();
+        await source.promise();
+        source.invalidate();
+        await Promise.resolve();
+        const runsWhileRecomputing = ref.runs;
+
+        derived.invalidate();
+        await source.promise();
+
+        expect(ref.runs).toBe(runsWhileRecomputing);
+      });
+    });
+  });
+
   it('should provide the ComputeCtx argument to sync computeds', async () => {
     await withContainer(async () => {
       const dep = createSignal(1);

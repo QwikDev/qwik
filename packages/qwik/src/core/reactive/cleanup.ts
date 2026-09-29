@@ -1,4 +1,4 @@
-import { swapRemove } from '../utils/array';
+import { removeInOrder } from '../utils/array';
 import { getActiveCollector } from './tracking';
 import { ComputedFlags, SubscriberFlags } from './flags';
 import type { Source } from './source';
@@ -22,7 +22,7 @@ export function cleanupDeps(collector: Collector): void {
 /** A collector never depends on a source it writes: a read-modify-write is not a read. */
 export function dropWriterDependency(source: Source): void {
   const writer = getActiveCollector();
-  if (writer !== null && writer.deps !== null && swapRemove(writer.deps, source)) {
+  if (writer !== null && writer.deps !== null && removeInOrder(writer.deps, source)) {
     removeSubscriber(source, writer as Subscriber);
   }
 }
@@ -40,7 +40,8 @@ function removeSubscriber(source: Source, subscriber: Subscriber): void {
     return;
   }
 
-  if (!swapRemove(subs, subscriber)) {
+  // Keeps notification order equal to subscription order
+  if (!removeInOrder(subs, subscriber)) {
     return;
   }
   if (subs.length === 0) {

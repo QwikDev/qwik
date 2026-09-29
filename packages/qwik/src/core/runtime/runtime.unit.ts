@@ -574,6 +574,27 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(innerSource.subs).toBeNull();
   });
 
+  it('keeps subscriber and owner item order when one is removed', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const parent = createOwner(null);
+    const source = useSignal('value');
+    const rows = [0, 1, 2, 3].map(() => createOwner(parent));
+    const effects = rows.map((row) =>
+      runWithOwner(row, () => createTextNodeEffect(createText(), source, scheduler))
+    );
+    effects.forEach((effect) => scheduler.notify(effect));
+    await scheduler.flushInteraction();
+
+    disposeOwner(rows[0]);
+    disposeOwner(rows[2]);
+
+    // identity, not deep equality: the rows are structurally identical
+    const subs = toArray(source.subs);
+    const items = toArray(parent.items);
+    expect(subs.map((effect) => effects.indexOf(effect as never))).toEqual([1, 3]);
+    expect(items.map((row) => rows.indexOf(row as Owner))).toEqual([1, 3]);
+  });
+
   it('releases owner contents and allows new child subscriptions', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const parent = createOwner(null);

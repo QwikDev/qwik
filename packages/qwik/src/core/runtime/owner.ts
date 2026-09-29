@@ -1,4 +1,4 @@
-import { swapRemove } from '../utils/array';
+import { removeInOrder } from '../utils/array';
 import { disposeSubscriber, runSubscriberCleanups } from '../reactive/cleanup';
 import { OwnerFlags } from '../reactive/flags';
 import {
@@ -123,7 +123,7 @@ function removeOwnerItem(owner: Owner, item: OwnerItem): void {
     }
     return;
   }
-  if (!swapRemove(items, item)) {
+  if (!removeInOrder(items, item)) {
     return;
   }
   if (items.length === 0) {

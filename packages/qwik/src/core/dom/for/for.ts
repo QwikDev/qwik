@@ -310,7 +310,8 @@ export class ForBlock<T = unknown> {
         range.setEndAfter(lastRowNode(oldRows[oldLast]));
         range.deleteContents();
       }
-      for (let i = firstChanged; i <= oldLast; i++) {
+      // Last to first, so every removal pops the owner and subscriber lists
+      for (let i = oldLast; i >= firstChanged; i--) {
         const owner = oldOwners[i];
         if (owner !== null) {
           disposeOwner(owner);
@@ -751,7 +752,8 @@ function appendNewRow(parent: Node, row: RowDom): void {
 }
 
 function disposeOwners(owners: Array<Owner | null>, length: number): void {
-  for (let i = 0; i < length; i++) {
+  // Last to first, so every removal pops the owner and subscriber lists
+  for (let i = length - 1; i >= 0; i--) {
     const owner = owners[i];
     if (owner != null) {
       disposeOwner(owner);

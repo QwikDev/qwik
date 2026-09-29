@@ -313,6 +313,10 @@ h6 a:hover .icon {
 
 /* ─── Body text ─── */
 
+.docs article {
+  @apply wrap-break-word;
+}
+
 .docs article p {
   @apply text-body-sm text-foreground-base leading-[1.8];
 }

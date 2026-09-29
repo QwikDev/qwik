@@ -180,7 +180,7 @@ const data = useComputed$(async ({ abortSignal }) => {
 ```
 
 <Note title="READING COMPUTEDSIGNAL.VALUE">
-`.value` throws while unresolved, and re-throws the error if the computation failed. Read it inside [`<Pending>`](/docs/labs/pending/index.mdx) and [`<Catch>`](/docs/labs/catch/index.mdx), or provide an `initial` value.
+`.value` throws while unresolved, and throws the error if the first computation failed; a failed refresh keeps the last value beside `.error`. Read it inside [`<Pending>`](/docs/labs/pending/index.mdx) and [`<Catch>`](/docs/labs/catch/index.mdx), or provide an `initial` value.
 </Note>
 
 ```tsx

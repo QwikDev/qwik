@@ -47,8 +47,11 @@ Current API and implementation facts:
 - A computed whose fn returns a promise lazily switches on `ASYNC_MODE` (loading state stays
   `declare`d until then) and then has the full AsyncSignal API. The `clientOnly` option sets
   `ASYNC_MODE` at construction, since SSR can never resolve such a signal synchronously. Sync compute throws stay in sync
-  mode but still land in `.error`; reading `.value` rethrows until a recompute or explicit value
-  set clears it. Thrown promises must keep propagating for retry, never be captured as errors.
+  mode and fail like async ones. A failure keeps the last value and sets `.error` beside it; with
+  no value yet (first compute, or after `clear()`), `.error` stays unset and `.value` throws the
+  failure for `<Catch>`. `.value` reads the same for every caller: a computed or a task reading a
+  failed signal gets its last value. Thrown promises must keep propagating for retry, never be
+  captured as errors.
 - Serialization keys off `ASYNC_MODE`, not `instanceof`: async-mode computeds round-trip as
   `TypeIds.AsyncSignal` and resume as `AsyncSignalImpl` instances whose serialized flags (no
   `CTX_ARG`) preserve auto-track semantics. Runtime checks must use flags, not class identity.
@@ -79,6 +82,9 @@ When changing AsyncSignal behavior, inspect:
   account for all three.
 - `invalidate(info)` records the latest info and increments the info version.
 - AbortError is cancellation, not a user-visible `.error`.
+- A failure recomputes nothing. A derived signal's `.error` walks the `.value` sources upstream for
+  the first failed one and subscribes its reader to every computed it visits; a recompute that
+  changes those sources must wake the `.error` readers, or they keep a stale answer.
 - Reading `.pending` or `.error` triggers computation when needed; serialization must read the
   private `$untrackedPending$`/`$untrackedError$` fields to avoid starting computes.
 - `clientOnly` resume rides on the state script's `q-d:qidle` `_res` QRL built from

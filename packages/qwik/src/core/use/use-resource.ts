@@ -7,6 +7,7 @@ import {
   type ComputedSignalInternal,
   type Signal,
 } from '../reactive-primitives/signal.public';
+import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import type { ComputeCtx } from '../reactive-primitives/types';
 import { StoreFlags } from '../reactive-primitives/types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
@@ -179,8 +180,13 @@ export const Resource = <T>({
   if (onPending && signal.loading) {
     return onPending() as unknown as JSXOutput;
   }
-  if (onRejected && signal.error) {
-    return onRejected(signal.error) as unknown as JSXOutput;
+  if (onRejected) {
+    // A first-load failure stays off `.error`, so read the settled failure itself.
+    const failure =
+      signal.error ?? (signal as unknown as ComputedSignalImpl<unknown>).$untrackedError$;
+    if (failure) {
+      return onRejected(failure) as unknown as JSXOutput;
+    }
   }
   const val = isRes ? (signal.value as { r: T } | undefined)?.r : (signal.value as T);
   return (isPromise<T>(val!)

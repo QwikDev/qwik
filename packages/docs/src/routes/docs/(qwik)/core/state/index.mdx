@@ -319,7 +319,7 @@ const user = useComputed$(async ({ track }) => {
 });
 ```
 
-While the async work is running, reading `.value` makes that part of the UI wait, and a [`<Pending>`](/docs/labs/pending/index.mdx) boundary can show fallback UI. If the work fails, reading `.value` re-throws the error, and a [`<Catch>`](/docs/labs/catch/index.mdx) can render a fallback for it.
+While the async work is running, reading `.value` makes that part of the UI wait, and a [`<Pending>`](/docs/labs/pending/index.mdx) boundary can show fallback UI. If the first run fails, reading `.value` throws the error, and a [`<Catch>`](/docs/labs/catch/index.mdx) can render a fallback for it. If a later run fails, `.value` keeps the last result and `.error` holds the failure. A computed that reads it keeps computing on that last result, and its own `.error` reports the failure too.
 
 The async work can run during SSR and in the browser. For values that need to stay up to date, poll the signal with `usePoll` from `@qwik.dev/utils`.
 

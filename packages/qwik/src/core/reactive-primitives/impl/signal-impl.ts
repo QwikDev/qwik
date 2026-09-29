@@ -60,10 +60,15 @@ export class SignalImpl<T = any> implements Signal<T> {
   get value() {
     // Important: first read, then subscribe. Otherwise, initial compute invalidation will cause the reading subscriber to be marked invalid.
     const val = this.untrackedValue;
+    this.$subscribeReader$();
+    return val;
+  }
+
+  $subscribeReader$(): void {
     const ctx = tryGetInvokeContext();
     if (!ctx) {
       DEBUG && log('read->no-ctx', pad('\n' + this.toString(), '  '));
-      return val;
+      return;
     }
     if (this.$container$ === null) {
       // Grab the container now we have access to it
@@ -108,7 +113,6 @@ export class SignalImpl<T = any> implements Signal<T> {
     } else {
       DEBUG && log('read no sub', pad('\n' + this.toString(), '  '));
     }
-    return val;
   }
 
   set value(value) {

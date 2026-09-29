@@ -127,7 +127,7 @@ export default component$(() => {
 
 When `UserCard` reads `user.value` before the request finishes, Qwik shows the nearest `<Pending>` fallback.
 
-If the computation fails, reading `user.value` re-throws the error. Wrap the section in [`<Catch>`](/docs/labs/catch/index.mdx) to render a fallback instead.
+If the first computation fails, reading `user.value` throws the error. Wrap the section in [`<Catch>`](/docs/labs/catch/index.mdx) to render a fallback instead. A later refresh that fails keeps the last value and sets `user.error`.
 
 ## What Can Trigger Pending
 

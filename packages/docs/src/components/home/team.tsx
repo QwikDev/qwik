@@ -77,10 +77,7 @@ const AvatarStack = ({ logins, size }: AvatarStackProps) => {
               alt=""
               loading="lazy"
               decoding="async"
-              class={[
-                'rounded-full border-background-base bg-background-accent grayscale group-hover:grayscale-0 group-focus-visible:grayscale-0 motion-safe:transition-[filter]',
-                image,
-              ]}
+              class={['rounded-full border-background-base bg-background-accent', image]}
             />
             <span
               aria-hidden="true"

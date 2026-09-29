@@ -276,6 +276,18 @@ interface ChildMatch {
 }
 
 /**
+ * The static child for a segment. Metadata keys (`_4`, `_0`, …) and inherited object properties
+ * (`constructor`, …) are not routes.
+ */
+function getStaticChild(node: RouteData, partLower: string): RouteData | undefined {
+  const isMetadataKey = partLower.length === 2 && partLower[0] === '_';
+  if (isMetadataKey || !Object.prototype.hasOwnProperty.call(node, partLower)) {
+    return undefined;
+  }
+  return node[partLower] as RouteData;
+}
+
+/**
  * Try to find a child matching `partLower` in `node`, including inside group children (_M). Returns
  * the matched child node, the groups entered to reach it, what to push to routeParts, and which
  * kind of edge matched. Returns undefined if no match.
@@ -291,7 +303,7 @@ function findChild(
   partIndex: number
 ): ChildMatch | undefined {
   // 1. Try exact match on this node's direct children
-  const exact = node[partLower] as RouteData | undefined;
+  const exact = getStaticChild(node, partLower);
   if (exact) {
     return {
       next: exact,
@@ -421,7 +433,7 @@ function findChildAll(
 ): ChildMatch[] {
   const candidates: ChildMatch[] = [];
 
-  const exact = node[partLower] as RouteData | undefined;
+  const exact = getStaticChild(node, partLower);
   if (exact) {
     candidates.push({
       next: exact,

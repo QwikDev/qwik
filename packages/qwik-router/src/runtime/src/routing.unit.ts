@@ -729,6 +729,20 @@ test('loadRoute — exact child dead end does not fall back to sibling _M catcha
   assert.notDeepEqual(result.$params$, { catchall: 'loader-redirect/notexist' });
 });
 
+test('loadRoute — object prototype and metadata names are not static segments', async () => {
+  const catchallLoader = makeLoader();
+  const routes: RouteData = {
+    _4: makeLoader(),
+    _A: { _P: 'catchall', _I: catchallLoader },
+  };
+
+  for (const segment of ['constructor', '__proto__', 'toString', '_4']) {
+    const result = await loadRoute(routes, false, `/${segment}`);
+    assert.isFalse(result.$notFound$, segment);
+    assert.deepEqual(result.$params$, { catchall: segment });
+  }
+});
+
 // ─── Backtracking and specificity tests ──────────────────────────────────────────
 
 test('loadRoute — a static prefix that dead-ends backtracks to a dynamic route in another group', async () => {

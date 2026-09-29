@@ -3,6 +3,7 @@ export {
   _noopQrlDEV,
   _qrlWithChunk,
   _qrlWithChunkDEV,
+  _regInlinedQrl,
   _regSymbol,
 } from './shared/qrl/qrl';
 export type { QRLInternal as _QRLInternal } from './shared/qrl/qrl-class';
@@ -91,7 +92,11 @@ export {
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { isTask as _isTask, scheduleTask as _task, Task as _Task } from './use/use-task';
 export { _captures, _capturesObj } from './shared/qrl/qrl-class';
-export { getSingleton as _getSingleton } from './shared/singletons';
+export {
+  getSingleton as _getSingleton,
+  qwikSymbol as _qwikSymbol,
+  registerSingleton as _registerSingleton,
+} from './shared/singletons';
 export { _rsc } from './use/use-resource';
 export type { AsyncSignalImpl as _AsyncSignalImpl } from './reactive-primitives/impl/async-signal-impl';
 export type { ComputedSignalInternal as _ComputedSignalInternal } from './reactive-primitives/signal.public';

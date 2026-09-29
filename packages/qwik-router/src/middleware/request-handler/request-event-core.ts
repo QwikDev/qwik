@@ -5,10 +5,12 @@ import type {
   JSONValue,
   LoadedRoute,
   LoaderInternal,
+  QwikRouterConfig,
 } from '../../runtime/src/types';
 import { getRouteLoaderValues, loadRouteLoader } from '../../runtime/src/route-loaders';
 import { QACTION_KEY, QDATA_KEY } from '../../runtime/src/constants';
 import { isPromise } from '../../runtime/src/utils';
+import { RequestEvRouterConfig } from './async-request-store';
 import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
 import {
@@ -51,7 +53,8 @@ export function createRequestEvent(
   loadedRoute: LoadedRoute,
   requestHandlers: RequestHandler<any>[],
   basePathname: string,
-  resolved: (response: any) => void
+  resolved: (response: any) => void,
+  routerConfig?: QwikRouterConfig
 ) {
   const { request, platform, env } = serverRequestEv;
 
@@ -161,6 +164,7 @@ export function createRequestEvent(
 
   const requestEv: RequestEventInternal = {
     [RequestEvMode]: serverRequestEv.mode,
+    [RequestEvRouterConfig]: routerConfig,
     get [RequestEvRoute]() {
       return loadedRoute;
     },
@@ -358,6 +362,7 @@ export function createRequestEvent(
 export interface RequestEventInternal extends Readonly<RequestEvent>, Readonly<RequestEventLoader> {
   readonly [RequestEvMode]: ServerRequestMode;
   readonly [RequestEvRoute]: LoadedRoute;
+  readonly [RequestEvRouterConfig]: QwikRouterConfig | undefined;
 
   /**
    * Check if this request is already written to.

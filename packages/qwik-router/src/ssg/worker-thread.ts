@@ -439,6 +439,7 @@ async function requestHandlerForSsg<T>(
     loadedRoute,
     requestHandlers,
     rebuildRouteInfo,
-    qwikRouterConfig.basePathname
+    qwikRouterConfig.basePathname,
+    qwikRouterConfig
   );
 }

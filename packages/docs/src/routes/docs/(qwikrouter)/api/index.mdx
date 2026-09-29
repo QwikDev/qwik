@@ -322,7 +322,7 @@ Please refer to the [Server Actions](/docs/(qwikrouter)/action/index.mdx) sectio
 
 ## `getRouterConfig()`
 
-Qwik Router generates the route config of your application at build time. Read it through these functions, which every copy of the router in the process shares:
+Qwik Router generates the route config of your application at build time. Read it through these functions. On the server, a Qwik library kept external reads the config of the app serving the current request:
 
 - `getRouterConfig()` resolves the whole config, with the route trie and the server plugins.
 - `getRoutes()` resolves the route trie.

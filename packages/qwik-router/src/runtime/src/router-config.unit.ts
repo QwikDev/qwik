@@ -7,6 +7,10 @@ import {
   getTrailingSlash,
 } from './router-config';
 import type { QwikRouterConfig } from './types';
+import {
+  _asyncRequestStore,
+  RequestEvRouterConfig,
+} from '../../middleware/request-handler/async-request-store';
 
 describe('router config getters', () => {
   beforeEach(() => {
@@ -64,5 +68,17 @@ describe('router config getters', () => {
       vi.doUnmock('@qwik-router-config');
     }
     expect(await getRouterConfig()).toHaveProperty('routes');
+  });
+
+  it('reads the config of the app serving the request when it holds none', async () => {
+    const routes = { _I: async () => ({}) } as any;
+    const servingConfig = { routes, basePathname: '/app/', trailingSlash: false };
+    const requestEv = { [RequestEvRouterConfig]: servingConfig } as any;
+
+    await _asyncRequestStore!.run(requestEv, async () => {
+      expect(await getRoutes()).toBe(routes);
+      expect(getBasePathname()).toBe('/app/');
+      expect(getTrailingSlash()).toBe(false);
+    });
   });
 });

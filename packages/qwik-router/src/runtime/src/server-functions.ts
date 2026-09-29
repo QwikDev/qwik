@@ -9,7 +9,12 @@ import {
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
-import { _deserialize, _getContextHostElement, _serialize } from '@qwik.dev/core/internal';
+import {
+  _deserialize,
+  _getContextHostElement,
+  _regInlinedQrl,
+  _serialize,
+} from '@qwik.dev/core/internal';
 import * as v from 'valibot';
 import * as z from 'zod';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
@@ -387,6 +392,8 @@ export function serverQrl<T extends ServerFunction>(
   options?: ServerConfig
 ): ServerQRL<T> {
   if (isServer) {
+    // A library kept external on the server inlines its QRLs, so no segment registers this one.
+    _regInlinedQrl(qrl);
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextHostElement()) {
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');

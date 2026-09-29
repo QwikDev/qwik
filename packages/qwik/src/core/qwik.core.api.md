@@ -1019,6 +1019,9 @@ export type QwikSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;
 };
 
+// @internal
+export const _qwikSymbol: <S extends symbol = symbol>(name: string) => S;
+
 // @public
 export type QwikSymbolEvent = CustomEvent<{
     symbol: string;
@@ -1060,6 +1063,12 @@ export const _reC: (props: RevealProps) => JSXNodeInternal<FunctionComponent<   
 name?: string;
 children?: JSXChildren;
 }>> | JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>>;
+
+// @internal
+export const _regInlinedQrl: (qrl: QRL) => void;
+
+// @internal
+export const _registerSingleton: <T>(key: string, factory: () => T) => T;
 
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;

@@ -1,4 +1,5 @@
 import { isBrowser } from '@qwik.dev/core';
+import { getServingRouterConfig } from '../../middleware/request-handler/async-request-store';
 import type { QwikRouterConfig, RouteData } from './types';
 
 type RouterConfigHolder = {
@@ -9,6 +10,10 @@ type RouterConfigHolder = {
 
 // Per bundle, like the platform: one process may serve several apps, each with its own config.
 const holder: RouterConfigHolder = {};
+
+/** The config this router copy holds, else the one of the app serving the current request. */
+const findRouterConfig = (): QwikRouterConfig | undefined =>
+  holder.config ?? getServingRouterConfig();
 
 /**
  * Registers the app's route config with the router copy bundled into the app. The generated
@@ -25,11 +30,17 @@ export const _setRouterConfig = (config: QwikRouterConfig): void => {
 /**
  * The app's route config: the route trie, server plugins and build options that the Qwik Router
  * Vite plugin generated. Resolves once the config is loaded and its `server$` modules are
- * registered. Only the router copy bundled into the app holds it on the server.
+ * registered. On the server, the router copy of a Qwik library kept external reads the config of
+ * the app serving the current request.
  *
  * @public
  */
 export const getRouterConfig = (): Promise<QwikRouterConfig> => {
+  const servingConfig = !holder.config && getServingRouterConfig();
+  if (servingConfig) {
+    // The app's router copy already registered its `server$` modules.
+    return Promise.resolve(servingConfig);
+  }
   if (!holder.ready) {
     holder.ready = loadRouterConfig().catch((error) => {
       // Let the next call try again, e.g. after a failed chunk load.
@@ -71,7 +82,7 @@ export const getRoutes = async (): Promise<RouteData> => (await getRouterConfig(
  * @public
  */
 export const getBasePathname = (): string =>
-  holder.config?.basePathname ?? globalThis.__QWIK_ROUTER_BASE_PATHNAME__ ?? '/';
+  findRouterConfig()?.basePathname ?? globalThis.__QWIK_ROUTER_BASE_PATHNAME__ ?? '/';
 
 /**
  * Whether the app's URLs end with a trailing slash.
@@ -79,7 +90,7 @@ export const getBasePathname = (): string =>
  * @public
  */
 export const getTrailingSlash = (): boolean =>
-  holder.config?.trailingSlash ?? !globalThis.__NO_TRAILING_SLASH__;
+  findRouterConfig()?.trailingSlash ?? !globalThis.__NO_TRAILING_SLASH__;
 
 /** @internal */
-export const _getServiceWorkerUrl = (): string | undefined => holder.config?.serviceWorkerUrl;
+export const _getServiceWorkerUrl = (): string | undefined => findRouterConfig()?.serviceWorkerUrl;

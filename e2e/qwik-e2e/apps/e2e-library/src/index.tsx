@@ -7,7 +7,8 @@ import {
   useSignal,
   useTask$,
 } from '@qwik.dev/core';
-import { Link } from '@qwik.dev/router';
+import { getBasePathname, getRequestEvent, getRoutes, Link, server$ } from '@qwik.dev/router';
+import { ServerError } from '@qwik.dev/router/middleware/request-handler';
 
 export interface Greeting {
   greeting: string;
@@ -46,5 +47,51 @@ export const LibLink = component$((props: { href: string }) => {
     <Link id="lib-link" href={props.href}>
       <Slot />
     </Link>
+  );
+});
+
+const readRequestPath = server$(function () {
+  return this.url.pathname;
+});
+
+const rejectRequest = server$(() => {
+  throw new ServerError(403, 'rejected by the library');
+});
+
+/** Reads the request and the route config through the library's own copy of the router. */
+export const LibRequest = component$(() => {
+  const requestPath = useSignal('');
+  const hasRequestEvent = useSignal(false);
+  const basePathname = useSignal('');
+  const hasRoutes = useSignal(false);
+  const rejection = useSignal('');
+
+  useTask$(async () => {
+    requestPath.value = await readRequestPath();
+    hasRequestEvent.value = !!getRequestEvent();
+    basePathname.value = getBasePathname();
+    hasRoutes.value = !!(await getRoutes());
+  });
+
+  return (
+    <div id="lib-request">
+      <p id="lib-request-path">{requestPath.value}</p>
+      <p id="lib-request-event">{String(hasRequestEvent.value)}</p>
+      <p id="lib-base-pathname">{basePathname.value}</p>
+      <p id="lib-routes">{String(hasRoutes.value)}</p>
+      <button
+        id="lib-reject"
+        onClick$={async () => {
+          try {
+            await rejectRequest();
+          } catch (error) {
+            rejection.value = String(error);
+          }
+        }}
+      >
+        reject
+      </button>
+      <p id="lib-rejection">{rejection.value}</p>
+    </div>
   );
 });

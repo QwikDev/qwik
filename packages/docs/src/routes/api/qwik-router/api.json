@@ -418,7 +418,7 @@
         }
       ],
       "kind": "Function",
-      "content": "The app's route config: the route trie, server plugins and build options that the Qwik Router Vite plugin generated. Resolves once the config is loaded and its `server$` modules are registered. Only the router copy bundled into the app holds it on the server.\n\n\n```typescript\ngetRouterConfig: () => Promise<QwikRouterConfig>\n```\n**Returns:**\n\nPromise&lt;[QwikRouterConfig](#qwikrouterconfig)<!-- -->&gt;",
+      "content": "The app's route config: the route trie, server plugins and build options that the Qwik Router Vite plugin generated. Resolves once the config is loaded and its `server$` modules are registered. On the server, the router copy of a Qwik library kept external reads the config of the app serving the current request.\n\n\n```typescript\ngetRouterConfig: () => Promise<QwikRouterConfig>\n```\n**Returns:**\n\nPromise&lt;[QwikRouterConfig](#qwikrouterconfig)<!-- -->&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/router-config.ts",
       "mdFile": "router.getrouterconfig.md"
     },

@@ -1101,7 +1101,7 @@ RequestEvent \| undefined
 
 <h2 id="getrouterconfig">getRouterConfig</h2>
 
-The app's route config: the route trie, server plugins and build options that the Qwik Router Vite plugin generated. Resolves once the config is loaded and its `server$` modules are registered. Only the router copy bundled into the app holds it on the server.
+The app's route config: the route trie, server plugins and build options that the Qwik Router Vite plugin generated. Resolves once the config is loaded and its `server$` modules are registered. On the server, the router copy of a Qwik library kept external reads the config of the app serving the current request.
 
 ```typescript
 getRouterConfig: () => Promise<QwikRouterConfig>;

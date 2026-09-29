@@ -61,7 +61,8 @@ export async function requestHandler<T = unknown>(
         },
       ],
       rebuildRouteInfo,
-      config.basePathname
+      config.basePathname,
+      config
     );
   }
   // TODO cache pages
@@ -83,7 +84,8 @@ export async function requestHandler<T = unknown>(
     loadedRoute,
     requestHandlers,
     rebuildRouteInfo,
-    config.basePathname
+    config.basePathname,
+    config
   );
 }
 

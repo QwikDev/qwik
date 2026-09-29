@@ -1,5 +1,6 @@
 import { QError, qError } from '../error/error';
 import { registerSingleton } from '../singletons';
+import { isPromise } from '../utils/promises';
 import { qDev } from '../utils/qdev';
 import { isFunction, isString } from '../utils/types';
 import { createQRL, type QRLInternal } from './qrl-class';
@@ -47,6 +48,9 @@ export const qrl = <T = any>(
   // Unwrap subscribers
   return createQRL<T>(chunk, symbol, null, symbolFn, lexicalScopeCapture);
 };
+
+// See also ../platform/platform.ts, which reads this registry on the server
+const getSymbolRegistry = () => registerSingleton('regSymbols', () => new Map<string, any>());
 
 /**
  * Create an inlined QRL. This is mostly useful on the server side for serialization.
@@ -132,8 +136,6 @@ export const inlinedQrlDEV = <T = any>(
   return qrl;
 };
 
-// See also ../platform/platform.ts, which reads this registry on the server
-const getSymbolRegistry = () => registerSingleton('regSymbols', () => new Map<string, any>());
 /**
  * Register a QRL symbol globally for lookup by its hash. This is used by the optimizer to register
  * the names passed in `reg_ctx_name`.
@@ -143,4 +145,18 @@ const getSymbolRegistry = () => registerSingleton('regSymbols', () => new Map<st
 export const _regSymbol = (symbol: any, hash: string) => {
   getSymbolRegistry().set(hash, symbol);
   return symbol;
+};
+
+/**
+ * Registers the function of an inlined QRL by its hash, so the server can call it by hash. The
+ * router uses it for the `server$` functions of a library kept external on the server, whose build
+ * inlines its QRLs instead of emitting segments.
+ *
+ * @internal
+ */
+export const _regInlinedQrl = (qrl: QRL): void => {
+  const ref = (qrl as QRLInternal).$lazy$.$ref$;
+  if (ref != null && !isPromise(ref)) {
+    _regSymbol(ref, qrl.getHash());
+  }
 };

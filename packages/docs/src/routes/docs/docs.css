@@ -432,9 +432,13 @@ h6 a:hover .icon {
 
 /* ─── Tables ─── */
 
+.docs article .table-wrapper {
+  @apply overflow-x-auto;
+  box-shadow: 6px 6px 0px 0px var(--color-shadow-base, #b2e4ff);
+}
+
 .docs article table {
   @apply w-full border-collapse;
-  box-shadow: 6px 6px 0px 0px var(--color-shadow-base, #b2e4ff);
 }
 
 .docs article th {

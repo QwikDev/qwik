@@ -276,12 +276,15 @@ interface ChildMatch {
   paramValue?: string;
 }
 
+/** Metadata keys a lowercased segment can hit; the rest are uppercase. */
+const SEGMENT_METADATA_KEYS = new Set(['_0', '_4', '_9']);
+
 /**
- * The static child for a segment. Metadata keys (`_4`, `_0`, …) and inherited object properties
- * (`constructor`, …) are not routes.
+ * The static child for a segment. Metadata keys and inherited object properties (`constructor`, …)
+ * are not routes.
  */
 function getStaticChild(node: RouteData, partLower: string): RouteData | undefined {
-  const isMetadataKey = partLower.length === 2 && partLower[0] === '_';
+  const isMetadataKey = SEGMENT_METADATA_KEYS.has(partLower);
   if (isMetadataKey || !Object.prototype.hasOwnProperty.call(node, partLower)) {
     return undefined;
   }

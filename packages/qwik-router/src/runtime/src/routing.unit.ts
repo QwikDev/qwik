@@ -800,6 +800,15 @@ test('loadRoute — object prototype and metadata names are not static segments'
   }
 });
 
+test('loadRoute — static segments starting with an underscore still match', async () => {
+  const routes: RouteData = { _a: { _I: makeLoader() }, _foo: { _I: makeLoader() } };
+  for (const segment of ['_a', '_foo']) {
+    const result = await loadRoute(routes, false, `/${segment}`);
+    assert.isFalse(result.$notFound$, segment);
+    assert.equal(result.$routeName$, `/${segment}`);
+  }
+});
+
 // ─── Backtracking and specificity tests ──────────────────────────────────────────
 
 test('loadRoute — a static prefix that dead-ends backtracks to a dynamic route in another group', async () => {

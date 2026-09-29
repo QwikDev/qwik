@@ -82,11 +82,14 @@ export const ROUTE_PATH_HEADER = 'X-Qwik-route-path';
  * - `d` — data: the loader's return value (including a `fail()` result, which is plain data)
  * - `r` — redirect: URL to navigate to (from `throw redirect()`)
  * - `e` — error: the loader's failure, a crash redacted outside dev
+ * - `p` — set with `e` when the failure is the page's: from middleware, or an `HttpError` from a
+ *   blocking loader
  */
 export type LoaderResponse = {
   d?: unknown;
   r?: string;
   e?: Error;
+  p?: 1;
 };
 
 /**
@@ -128,6 +131,13 @@ export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
   /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
   goto?: NoSerialize<RouteNavigate>;
+  /**
+   * Swaps in the route's error page. Client-only, set by each navigation; before the first one, a
+   * reload lets SSR render it.
+   */
+  showErrorPage?: NoSerialize<(error: Error) => Promise<void>>;
+  /** SSR rendered the error page, so a reload would only bring it back. */
+  isErrorPage?: boolean;
   /** Client manifest hash for q-loader fetch URLs. */
   manifestHash?: string;
 };
@@ -357,6 +367,15 @@ export const fetchRouteLoaderData = async (
   return promise;
 };
 
+/** A failure that belongs to the page shows its error page, as SSR does. */
+export const showPageFailure = async (ctx: RouteLoaderCtx, error: Error) => {
+  if (ctx.showErrorPage) {
+    await ctx.showErrorPage(error);
+  } else if (!ctx.isErrorPage) {
+    location.reload();
+  }
+};
+
 const createRouteLoaderSignal = (
   loader: LoaderInternal,
   routeLoaderCtx: RouteLoaderCtx,
@@ -467,7 +486,10 @@ const createRouteLoaderSignal = (
         return previous;
       }
       if (response.e) {
-        // Error — throw so signal enters error state
+        // The page's own failure shows its error page; the signal settles after the swap.
+        if (response.p) {
+          await showPageFailure(routeLoaderCtx, response.e);
+        }
         throw response.e;
       }
       lastFetch.raw = result.raw;
@@ -1118,7 +1140,8 @@ export const loadRouteLoader = (loader: LoaderInternal, requestEv: RequestEvent)
 export const getRouteLoaderResponse = async (
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   validators: DataValidator[] | undefined,
-  requestEv: RequestEvent
+  requestEv: RequestEvent,
+  isBlocking = false
 ): Promise<LoaderResponse> => {
   try {
     // A fail() result is plain data ({ failed: true, ... }); only thrown errors use `e`.
@@ -1131,7 +1154,7 @@ export const getRouteLoaderResponse = async (
       return { r: location };
     }
     if (err instanceof HttpError) {
-      return { e: err };
+      return isBlocking ? { e: err, p: 1 } : { e: err };
     }
     if (isCrash(err)) {
       return { e: toLoaderCrash(err) };

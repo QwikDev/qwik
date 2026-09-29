@@ -59,7 +59,7 @@ export function jsonRequestWrapper(): RequestHandler {
       } else if (err instanceof HttpError) {
         requestEv.headers.set('Cache-Control', 'no-store');
         if (isLoader) {
-          await sendJsonResponse(requestEv, { e: err });
+          await sendJsonResponse(requestEv, { e: err, p: 1 });
         } else {
           await sendActionResponse(requestEv, { e: err, s: err.status });
         }
@@ -68,7 +68,7 @@ export function jsonRequestWrapper(): RequestHandler {
         requestEv.headers.set('Cache-Control', 'no-store');
         const se = new HttpError(500, getPublicCrashMessage(err));
         if (isLoader) {
-          await sendJsonResponse(requestEv, { e: se });
+          await sendJsonResponse(requestEv, { e: se, p: 1 });
         } else {
           await sendActionResponse(requestEv, { e: se, s: 500 });
         }

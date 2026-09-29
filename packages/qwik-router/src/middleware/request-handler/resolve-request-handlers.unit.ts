@@ -15,7 +15,11 @@ import { checkCSRF } from './resolve-request-handlers-core';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { HttpError } from '@qwik.dev/router/middleware/request-handler';
 import { IsQLoader, QLoaderId } from './request-path';
-import { getRouteLoaderValues, loadRouteLoader } from '../../runtime/src/route-loaders';
+import {
+  getRouteLoaderCtx,
+  getRouteLoaderValues,
+  loadRouteLoader,
+} from '../../runtime/src/route-loaders';
 
 const { prerenderedPaths } = vi.hoisted(() => ({ prerenderedPaths: new Set<string>() }));
 vi.mock('./static-paths', () => ({
@@ -569,6 +573,37 @@ describe('resolve-request-handler', () => {
 
       expect(renderHandler).toHaveBeenCalledOnce();
       expect(requestEv.status()).toBe(500);
+    });
+
+    it('marks the page as its error page when it renders error.tsx', async () => {
+      const route: LoadedRoute = {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [
+          {
+            onRequest() {
+              throw new HttpError(401, 'Signed out');
+            },
+          } as RouteModule,
+          justHiModule as RouteModule,
+        ],
+        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
+      };
+      const renderHandler = vi.fn(async (requestEv: { exit: () => void }) => {
+        requestEv.exit();
+      });
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler);
+      const requestEv = createRequestEvent(
+        createMockServerRequestEvent(),
+        route,
+        handlers,
+        '/',
+        vi.fn()
+      );
+
+      await requestEv.next();
+
+      expect(getRouteLoaderCtx(requestEv).isErrorPage).toBe(true);
     });
   });
 

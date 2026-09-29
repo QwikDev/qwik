@@ -288,7 +288,7 @@ describe('loaderHandler', () => {
     expect(requestEv.send).not.toHaveBeenCalled();
   });
 
-  it('sends a plain Error thrown by the loader as its failure', async () => {
+  it('sends a plain Error thrown by the loader as its failure, not a page failure', async () => {
     const requestEv = createRequestEv();
     const loader = createLoader('loader-id', async () => {
       throw new Error('db down');
@@ -302,7 +302,31 @@ describe('loaderHandler', () => {
 
     const response = await sentLoaderResponse(requestEv);
     expect(response.e.message).toContain('db down');
+    expect(response.p).toBeUndefined();
   });
+
+  it.each([
+    [true, 1],
+    [false, undefined],
+  ])(
+    'marks an HttpError from a loader with blockSSR: %s as a page failure (%s)',
+    async (blockSSR, pageFailure) => {
+      const requestEv = createRequestEv();
+      const loader = createLoader(
+        'loader-id',
+        async () => {
+          throw new HttpError(404, 'No such product');
+        },
+        blockSSR
+      );
+
+      await loaderHandler([loader as any])(requestEv as any);
+
+      const response = await sentLoaderResponse(requestEv);
+      expect(response.e).toMatchObject({ status: 404, data: 'No such product' });
+      expect(response.p).toBe(pageFailure);
+    }
+  );
 
   it('stops the requested loader when an earlier blocking loader crashes, sending it that error', async () => {
     const requestEv = createRequestEv();
@@ -321,6 +345,7 @@ describe('loaderHandler', () => {
     const response = await sentLoaderResponse(requestEv);
     expect(response.d).toBeUndefined();
     expect(response.e.message).toContain('session check failed');
+    expect(response.p).toBeUndefined();
   });
 
   it.each([

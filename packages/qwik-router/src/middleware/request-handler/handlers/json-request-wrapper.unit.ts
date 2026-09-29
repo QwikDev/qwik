@@ -51,6 +51,28 @@ describe('jsonRequestWrapper', () => {
     const result = await _deserialize(body);
     expect(result).toEqual({ r: '/login/' });
   });
+
+  it.each([
+    ['an HttpError', new HttpError(403, 'Members only'), 403],
+    ['a plain Error', new Error('middleware boom'), 500],
+  ])('marks %s from loader middleware as a page failure', async (_label, failure, status) => {
+    const requestEv = createLoaderRequestEvent('/products/123/', '/products/123/view/');
+    requestEv.next = vi.fn(async () => {
+      throw failure;
+    });
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await jsonRequestWrapper()(requestEv as any);
+    } finally {
+      consoleError.mockRestore();
+    }
+
+    const [, body] = requestEv.send.mock.calls[0];
+    const result = (await _deserialize(body)) as any;
+    expect(result.p).toBe(1);
+    expect(result.e.status).toBe(status);
+  });
+
   it.each([
     ['loader', 'an HttpError', new HttpError(403, 'Members only')],
     ['loader', 'a plain Error', new Error('middleware boom')],

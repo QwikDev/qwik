@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { noSerialize } from '@qwik.dev/core';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
 import {
   abortRouteLoaderNavigation,
@@ -11,6 +12,7 @@ import {
   isImmutableLoader,
   loadRouteLoader,
   routeLoaderQrl,
+  showPageFailure,
   type RouteLoaderState,
   type RouteLoaderCtx,
 } from './route-loaders';
@@ -330,6 +332,41 @@ describe('getRouteLoaderResponse envelope', () => {
     expect(response.d).toBeUndefined();
     expect(response.e).toBeInstanceOf(HttpError);
     expect(response.e).toMatchObject({ status: 500 });
+  });
+});
+
+describe('showPageFailure', () => {
+  it('renders the error page again when the router can swap it in, even on an error page', async () => {
+    const reload = vi.fn();
+    const showErrorPage = vi.fn(async () => {});
+    const failure = new HttpError(401, 'Signed out');
+    vi.stubGlobal('location', { reload });
+    try {
+      await showPageFailure(
+        { loaderPaths: {}, isErrorPage: true, showErrorPage: noSerialize(showErrorPage) },
+        failure
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+
+    expect(showErrorPage).toHaveBeenCalledWith(failure);
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('leaves an SSR error page as it is instead of reloading it', async () => {
+    const reload = vi.fn();
+    vi.stubGlobal('location', { reload });
+    try {
+      await showPageFailure(
+        { loaderPaths: {}, isErrorPage: true },
+        new HttpError(401, 'Signed out')
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+
+    expect(reload).not.toHaveBeenCalled();
   });
 });
 

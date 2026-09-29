@@ -110,6 +110,15 @@ export class SsrNode implements ISsrNode {
     }
   }
 
+  hasSlotProps(): boolean {
+    for (const name in this.attrs) {
+      if (!name.startsWith('q:')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   removeProp(name: string): void {
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       if (this.localProps) {

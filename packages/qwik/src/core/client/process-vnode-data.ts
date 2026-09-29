@@ -402,6 +402,15 @@ function* processVNodeDataImpl(
     return node;
   };
 
+  // Scoped walks must stop after the subtree, even when it ends its parent.
+  const nextNodeAfterSubtree = (node: Node | null) => {
+    let next: Node | null = null;
+    while (node && !(next = nextSibling(node))) {
+      node = node.parentNode;
+    }
+    return next;
+  };
+
   /**
    * Process the container
    *
@@ -460,10 +469,7 @@ function* processVNodeDataImpl(
       if (nodeType === NodeType.ELEMENT_CONTAINER) {
         // If we are in a container, we need to skip the children.
         const container = node as ContainerElement;
-        let cursor: Node | null = node;
-        while (cursor && !(nextNode = nextSibling(cursor))) {
-          cursor = cursor!.parentNode;
-        }
+        nextNode = nextNodeAfterSubtree(node);
         yield* walkContainer(
           walker,
           container,
@@ -620,7 +626,7 @@ function* processVNodeDataImpl(
       scopeWalker,
       contentNode,
       contentNode,
-      nextSibling(contentNode),
+      nextNodeAfterSubtree(contentNode),
       vData,
       qContainerElement.qVNodeRefs!,
       qContainerElement,

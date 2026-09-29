@@ -1037,6 +1037,29 @@ describe('processVnodeData', () => {
     expect(refElement).toBeTruthy();
     expect(container.element.qVNodeRefs?.get(refId)).toBe(refElement);
   });
+  it('should stop a root vnode data patch at the end of its container', async () => {
+    const document = createDocument({
+      html: `
+        <main>
+          <section>
+            <div id="first" q:container="paused" :>
+              <div :><span :>One</span></div>
+              ${encodeVNode()}
+            </div>
+          </section>
+          <div id="second" q:container="paused" :>
+            <p :>Two</p>
+            ${encodeVNode()}
+          </div>
+        </main>`,
+    });
+    processVNodeData(document);
+    await whenVNodeDataReady(document, () => undefined);
+    const first = getDomContainer(document.querySelector('#first')!);
+    await appendVNodePatch(first.element, encodeVNode({ 3: '~' }, undefined, 0, true));
+
+    expect(first.element.qVNodeRefs?.has(3)).toBe(false);
+  });
   it('should scope vnode data patches to their script container', async () => {
     const document = createDocument({
       html: `

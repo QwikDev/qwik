@@ -58,7 +58,8 @@ so it is the only suite that exercises a real starter's Vite dev server and prod
 shared Qwik dev server above passes its own resolve conditions. Run it locally with `CI=1` so the
 scaffolds land inside the workspace, where pnpm's `allowBuilds` lets `sharp` build (a `/tmp`
 scaffold fails with `ERR_PNPM_IGNORED_BUILDS`), and after `pnpm build.platform.copy` if
-`packages/optimizer/bindings` is missing:
+`packages/optimizer/bindings` is missing. It scaffolds from `packages/create-qwik/dist`, so run
+`pnpm build.cli` after editing `starters/`, or the suite silently tests the previous starters:
 
 ```bash
 CI=1 pnpm --filter qwik-cli-e2e exec vitest run --config=vite.config.ts tests/external-library.spec.ts

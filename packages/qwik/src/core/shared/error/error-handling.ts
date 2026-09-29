@@ -183,8 +183,42 @@ export const tagErrorPhase = (err: unknown, phase: CatchPhase): void => {
   }
 };
 
-const getTaggedErrorPhase = (err: unknown): CatchPhase | undefined =>
+export const getTaggedErrorPhase = (err: unknown): CatchPhase | undefined =>
   safeRead(() => (err as { [ERROR_PHASE]?: CatchPhase })?.[ERROR_PHASE], undefined);
+
+const reportedSignalFailures = /*#__PURE__*/ new WeakMap<object, WeakSet<CatchStore>>();
+
+/**
+ * A failure a signal holds reaches a boundary both when it settles and when a read rethrows it;
+ * `onError$` fires for whichever comes first.
+ */
+export const claimSignalFailureReport = (error: unknown, store: CatchStore): boolean => {
+  if (getTaggedErrorPhase(error) !== CatchPhase.Signal) {
+    return true;
+  }
+  let stores = reportedSignalFailures.get(error as object);
+  if (!stores) {
+    reportedSignalFailures.set(error as object, (stores = new WeakSet()));
+  }
+  if (stores.has(store)) {
+    return false;
+  }
+  stores.add(store);
+  return true;
+};
+
+const loggedSignalFailures = /*#__PURE__*/ new WeakSet<object>();
+
+export const claimSignalFailureLog = (error: unknown): boolean => {
+  if (getTaggedErrorPhase(error) !== CatchPhase.Signal) {
+    return true;
+  }
+  if (loggedSignalFailures.has(error as object)) {
+    return false;
+  }
+  loggedSignalFailures.add(error as object);
+  return true;
+};
 
 export const markBoundaryErrored = (
   store: CatchStore,
@@ -194,7 +228,7 @@ export const markBoundaryErrored = (
   // `null` would collide with the capture-only sentinel, so wrap every nullish throw.
   store.error = error == null ? toBoundaryError(error) : error;
   const onError = store.$onError$;
-  if (onError) {
+  if (onError && claimSignalFailureReport(error, store)) {
     fireOnError(onError, error, getTaggedErrorPhase(error) ?? phase, store.boundaryId ?? '');
   }
 };

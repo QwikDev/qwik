@@ -4,7 +4,7 @@ import { assertFalse, assertTrue } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
-import type { Container } from '../../shared/types';
+import type { Container, HostElement } from '../../shared/types';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
 import type { ValueOrPromise } from '../../shared/utils/types';
@@ -28,6 +28,7 @@ import {
 } from '../types';
 import {
   addQrlToSerializationCtx,
+  collectReaderHosts,
   ensureContainsBackRef,
   ensureContainsSubscription,
   scheduleEffects,
@@ -723,6 +724,17 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       return;
     }
     this.untrackedError = error;
+    this.$reportError$(error);
+  }
+
+  /** Report a failure to the boundaries above the components and tasks that read this signal. */
+  $reportError$(error: unknown): void {
+    const readerHosts: HostElement[] = [];
+    const visited = new Set<SignalImpl>();
+    collectReaderHosts(this.$effects$, readerHosts, visited);
+    collectReaderHosts(this.$errorEffects$, readerHosts, visited);
+    collectReaderHosts(this.$loadingEffects$, readerHosts, visited);
+    this.$container$?.$reportSignalError$(error, readerHosts);
   }
 
   /** Permanently stop computations; keep this cross-package name stable. */

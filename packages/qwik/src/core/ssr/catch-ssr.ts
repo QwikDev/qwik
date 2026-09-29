@@ -3,12 +3,17 @@ import { clearAllEffects } from '../reactive-primitives/cleanup';
 import {
   ERROR_CONTEXT,
   CatchPhase,
+  claimSignalFailureLog,
+  claimSignalFailureReport,
+  fireOnError,
   isRecoverable,
   markBoundaryErrored,
   markErrorFromDeferredSegment,
+  tagErrorPhase,
   type CatchStore,
 } from '../shared/error/error-handling';
 import { ELEMENT_SEQ, QCtxAttr, QDefaultSlot, QSlot, QSlotParent } from '../shared/utils/markers';
+import { logError } from '../shared/utils/log';
 import { qDev } from '../shared/utils/qdev';
 import { getRootContainer } from '../shared/utils/container';
 import { isTask } from '../use/use-task';
@@ -80,6 +85,44 @@ function markCatchContentInert(
       errorStore.projectedContentOwner = immediateContentOwner;
     }
   }
+}
+
+/** @internal */
+export function reportSSRSignalError(err: unknown, readerHosts: ISsrNode[]): void {
+  tagErrorPhase(err, CatchPhase.Signal);
+  if (readerHosts.length === 0) {
+    return;
+  }
+  const stores = new Set<CatchStore>();
+  if (__EXPERIMENTAL__.catchBoundary) {
+    for (let i = 0; i < readerHosts.length; i++) {
+      const store = findSSRCatchStore(readerHosts[i]);
+      if (store) {
+        stores.add(store);
+      }
+    }
+  }
+  if (stores.size === 0) {
+    if (claimSignalFailureLog(err)) {
+      logError(err);
+    }
+    return;
+  }
+  for (const store of stores) {
+    if (claimSignalFailureReport(err, store)) {
+      fireOnError(store.$onError$, err, CatchPhase.Signal, store.boundaryId ?? '');
+    }
+  }
+}
+
+function findSSRCatchStore(host: ISsrNode): CatchStore | null {
+  for (let node: ISsrNode | null = host; node; node = node.parentComponent) {
+    const store = getOwnSSRCatchStore(node);
+    if (store?.$fallback$) {
+      return store;
+    }
+  }
+  return null;
 }
 
 function getOwnSSRCatchStore(node: ISsrNode): CatchStore | null {

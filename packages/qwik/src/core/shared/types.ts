@@ -36,6 +36,11 @@ export interface Container {
   $checkPendingCount$(): void;
 
   handleError(err: any, $host$: HostElement | null, phase?: CatchPhase): void;
+  /**
+   * Report a failure a signal settled into `.error` to its readers' boundaries, fallbacks
+   * untouched.
+   */
+  $reportSignalError$(err: unknown, readerHosts: HostElement[]): void;
   getParentHost(host: HostElement): HostElement | null;
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;

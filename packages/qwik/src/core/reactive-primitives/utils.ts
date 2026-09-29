@@ -3,7 +3,7 @@ import { qTest } from '../shared/utils/qdev';
 import { assertDefined } from '../shared/error/assert';
 import { isServerPlatform } from '../shared/platform/platform';
 import type { QRL } from '../shared/qrl/qrl.public';
-import type { Container, SerializationStrategy } from '../shared/types';
+import type { Container, HostElement, SerializationStrategy } from '../shared/types';
 import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
 import { OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/serdes/verify';
@@ -155,6 +155,39 @@ export const scheduleEffects = (
   }
 
   DEBUG && log('done scheduling');
+};
+
+/** Collect the hosts of the components and tasks reading a signal, or a signal derived from it. */
+export const collectReaderHosts = (
+  effects: Set<EffectSubscription> | undefined,
+  readerHosts: HostElement[],
+  visited: Set<SignalImpl> = new Set()
+): void => {
+  if (!effects) {
+    return;
+  }
+  for (const effect of effects) {
+    const consumer = effect.consumer;
+    if (isTask(consumer)) {
+      readerHosts.push(consumer.$el$);
+    } else if (consumer instanceof ComputedSignalImpl) {
+      if (!visited.has(consumer)) {
+        visited.add(consumer);
+        collectReaderHosts(consumer.$effects$, readerHosts, visited);
+        collectReaderHosts(consumer.$errorEffects$, readerHosts, visited);
+        collectReaderHosts(consumer.$loadingEffects$, readerHosts, visited);
+      }
+    } else if (consumer instanceof SignalImpl) {
+      const binding = consumer as WrappedSignalImpl<unknown>;
+      if (binding.$hostElement$) {
+        readerHosts.push(binding.$hostElement$);
+      } else {
+        collectReaderHosts(binding.$effects$, readerHosts, visited);
+      }
+    } else {
+      readerHosts.push(consumer);
+    }
+  }
 };
 
 /** @internal */

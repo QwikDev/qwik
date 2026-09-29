@@ -194,6 +194,97 @@ const NestedEscalation = component$<{ innerOnError?: any; outerOnError?: any }>(
 
 const onErrorLog: { errors: unknown[] } = { errors: [] };
 
+const signalFailure = {
+  fail: false,
+  reports: [] as Array<{ boundary: string; message: string; phase: string }>,
+};
+
+const reportSignalFailure = (boundary: string) =>
+  $((e: any, info: any) => {
+    signalFailure.reports.push({ boundary, message: e?.message, phase: info.phase });
+  });
+
+const useFlakySource = () =>
+  useComputed$(async () => {
+    await delay(1);
+    if (signalFailure.fail) {
+      throw new Error('refresh boom');
+    }
+    return 'fresh';
+  });
+
+const OneReader = component$(() => {
+  const data = useFlakySource();
+  return (
+    <Catch fallback$={fb()} onError$={reportSignalFailure('only')}>
+      <button id="refresh" onClick$={() => data.invalidate()} />
+      <p id="value">{data.value}</p>
+    </Catch>
+  );
+});
+
+const TwoReadersOneBoundary = component$(() => {
+  const data = useFlakySource();
+  return (
+    <Catch fallback$={fb()} onError$={reportSignalFailure('shared')}>
+      <button id="refresh" onClick$={() => data.invalidate()} />
+      <p id="a">{data.value}</p>
+      <p id="b">{data.value}</p>
+    </Catch>
+  );
+});
+
+const ReadersInTwoBoundaries = component$(() => {
+  const data = useFlakySource();
+  return (
+    <>
+      <button id="refresh" onClick$={() => data.invalidate()} />
+      <Catch fallback$={fb('fb-a')} onError$={reportSignalFailure('a')}>
+        <p id="a">{data.value}</p>
+      </Catch>
+      <Catch fallback$={fb('fb-b')} onError$={reportSignalFailure('b')}>
+        <p id="b">{data.value}</p>
+      </Catch>
+    </>
+  );
+});
+
+const DerivedReader = component$(() => {
+  const data = useFlakySource();
+  const derived = useComputed$(() => `derived ${data.value}`);
+  return (
+    <>
+      <button id="refresh" onClick$={() => data.invalidate()} />
+      <Catch fallback$={fb()} onError$={reportSignalFailure('derived')}>
+        <p id="derived">{derived.value}</p>
+      </Catch>
+    </>
+  );
+});
+
+const UnguardedReader = component$(() => {
+  const data = useFlakySource();
+  return (
+    <>
+      <button id="refresh" onClick$={() => data.invalidate()} />
+      <p id="value">{data.value}</p>
+    </>
+  );
+});
+
+const UnguardedDerivedReader = component$(() => {
+  const data = useFlakySource();
+  const bump = useSignal(0);
+  const derived = useComputed$(() => `derived ${data.value} ${bump.value}`);
+  return (
+    <>
+      <button id="clear" onClick$={() => data.clear()} />
+      <button id="bump" onClick$={() => bump.value++} />
+      <p id="derived">{derived.value}</p>
+    </>
+  );
+});
+
 const modes = [
   [
     'SSR',
@@ -2582,7 +2673,7 @@ describe('onError$', () => {
         expect(infos[0].boundaryId.length).toBeGreaterThan(0);
       });
 
-      it('onError$ receives info.phase "hook" for a rejecting async signal', async () => {
+      it('onError$ receives info.phase "signal" for a rejecting async signal', async () => {
         (globalThis as any).__catchAsyncSignalInfo = [];
         await streamAndResume(
           <main>
@@ -2605,10 +2696,121 @@ describe('onError$', () => {
           boundaryId: string;
         }>;
         expect(infos).toHaveLength(1);
-        expect(infos[0].phase).toBe('hook');
+        expect(infos[0].phase).toBe('signal');
         expect(infos[0].boundaryId.length).toBeGreaterThan(0);
         delete (globalThis as any).__catchAsyncSignalInfo;
       });
+    });
+  });
+});
+
+describe('signal failures', () => {
+  const settleRefresh = async (container: Parameters<typeof waitForDrain>[0]) => {
+    await delay(10);
+    await settleOnErrorDelivery(container);
+  };
+
+  describe.each([
+    ['SSR', ssrRenderToDom],
+    ['CSR', domRender],
+  ] as const)('%s', (_mode, render) => {
+    it('a refresh failure keeps the content and reports once with phase "signal"', async () => {
+      signalFailure.fail = false;
+      signalFailure.reports = [];
+      const { container } = await render(<OneReader />, { debug });
+
+      signalFailure.fail = true;
+      await trigger(container.element, '#refresh', 'click');
+      await settleRefresh(container);
+
+      expect(container.element.querySelector('#value')?.textContent).toBe('fresh');
+      expect(container.element.querySelector('#fb')).toBeFalsy();
+      expect(signalFailure.reports).toEqual([
+        { boundary: 'only', message: 'refresh boom', phase: 'signal' },
+      ]);
+    });
+
+    it('two readers under one boundary report a failure once', async () => {
+      signalFailure.fail = false;
+      signalFailure.reports = [];
+      const { container } = await render(<TwoReadersOneBoundary />, { debug });
+
+      signalFailure.fail = true;
+      await trigger(container.element, '#refresh', 'click');
+      await settleRefresh(container);
+
+      expect(signalFailure.reports).toEqual([
+        { boundary: 'shared', message: 'refresh boom', phase: 'signal' },
+      ]);
+    });
+
+    it('readers under two boundaries report the failure once each', async () => {
+      signalFailure.fail = false;
+      signalFailure.reports = [];
+      const { container } = await render(<ReadersInTwoBoundaries />, { debug });
+
+      signalFailure.fail = true;
+      await trigger(container.element, '#refresh', 'click');
+      await settleRefresh(container);
+
+      expect(signalFailure.reports.map((report) => report.boundary).sort()).toEqual(['a', 'b']);
+      expect(container.element.querySelector('#a')?.textContent).toBe('fresh');
+      expect(container.element.querySelector('#b')?.textContent).toBe('fresh');
+    });
+
+    it('a refresh failure reports to the boundary above the readers of a signal derived from it', async () => {
+      signalFailure.fail = false;
+      signalFailure.reports = [];
+      const { container } = await render(<DerivedReader />, { debug });
+
+      signalFailure.fail = true;
+      await trigger(container.element, '#refresh', 'click');
+      await settleRefresh(container);
+
+      expect(container.element.querySelector('#derived')?.textContent).toBe('derived fresh');
+      expect(signalFailure.reports).toEqual([
+        { boundary: 'derived', message: 'refresh boom', phase: 'signal' },
+      ]);
+    });
+
+    it('a failure a derived computed takes from a source with no value is logged once', async () => {
+      signalFailure.fail = false;
+      const logSpy = vi
+        .spyOn(logUtils, 'logError')
+        .mockImplementation((message?: any) => message as Error);
+      try {
+        const { container } = await render(<UnguardedDerivedReader />, { debug });
+
+        signalFailure.fail = true;
+        await trigger(container.element, '#clear', 'click');
+        await settleRefresh(container);
+        await trigger(container.element, '#bump', 'click');
+        await settleRefresh(container);
+
+        const reports = logSpy.mock.calls.filter(([error]) => error?.message === 'refresh boom');
+        expect(reports).toHaveLength(1);
+      } finally {
+        logSpy.mockRestore();
+      }
+    });
+
+    it('a refresh failure with no boundary above its readers is logged, not thrown', async () => {
+      signalFailure.fail = false;
+      const logSpy = vi
+        .spyOn(logUtils, 'logError')
+        .mockImplementation((message?: any) => message as Error);
+      try {
+        const { container } = await render(<UnguardedReader />, { debug });
+
+        signalFailure.fail = true;
+        await trigger(container.element, '#refresh', 'click');
+        await settleRefresh(container);
+
+        expect(container.element.querySelector('#value')?.textContent).toBe('fresh');
+        expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({ message: 'refresh boom' }));
+      } finally {
+        logSpy.mockRestore();
+      }
     });
   });
 });

@@ -1,5 +1,6 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { ensureSlash } from '../../utils/pathname';
+import { escapeStaticTrieKey, unescapeStaticTrieKey } from '../../utils/route-trie-key';
 import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
@@ -117,7 +118,9 @@ function walkTrieKeys(
       collect(group);
     }
     node = match.value;
-    const segment = node._P ? `${node._0 ?? ''}${params[node._P] ?? ''}${node._9 ?? ''}` : key;
+    const segment = node._P
+      ? `${node._0 ?? ''}${params[node._P] ?? ''}${node._9 ?? ''}`
+      : unescapeStaticTrieKey(key);
     const segments = key === '_A' ? segment.split('/') : [segment];
     pathname = ensureSlash(pathname + segments.map(encodeURIComponent).join('/'));
     if (node._P) {
@@ -292,7 +295,7 @@ function findChild(
   partIndex: number
 ): ChildMatch | undefined {
   // 1. Try exact match on this node's direct children
-  const exact = node[partLower] as RouteData | undefined;
+  const exact = node[escapeStaticTrieKey(partLower)] as RouteData | undefined;
   if (exact) {
     return {
       next: exact,

@@ -152,6 +152,33 @@ describe('generate-routes: empty node pruning', () => {
   });
 });
 
+describe('generate-routes: underscore-prefixed static segments', () => {
+  test('are escaped so they cannot collide with metadata keys', () => {
+    const root = makeNode();
+    const routeFile = makeRouteFile('/test/_4');
+    root.children.set('_4', makeNode({ _files: [routeFile] }));
+    const param = makeNode({ _P: 'slug', _files: [makeRouteFile('/test/[slug]')] });
+    root.children.set('_W', param);
+
+    const expr = getRoutesExpr(root, [
+      makeBuiltRoute(routeFile.filePath),
+      makeBuiltRoute('/test/[slug]/index.tsx'),
+    ]);
+    assert.include(expr, '"__4": {');
+    assert.include(expr, '"_W": {');
+    assert.notInclude(expr, '"_4": {');
+  });
+
+  test('are escaped in base pathname segments and rewrite targets', () => {
+    const root = makeNode();
+    root.children.set('alias', makeNode({ _G: '_drafts/_W' }));
+
+    const expr = getRoutesExpr(root, [], undefined, { basePathname: '/_app/' });
+    assert.include(expr, '{ "__app": ');
+    assert.include(expr, '_G: "/__app/__drafts/_W"');
+  });
+});
+
 describe('generate-routes: loadersByFile propagation', () => {
   test('separates layout and page loader hashes at the same node', () => {
     const root = makeNode();

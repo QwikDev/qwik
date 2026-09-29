@@ -128,6 +128,13 @@ Key ideas:
 Start with the getting started guide, the core concepts pages, and the router guides to understand how applications are structured in practice.`,
     },
     docEntry(
+      'Tools',
+      'MCP server',
+      '/docs/labs/mcp/',
+      'Connect an MCP client to a running Qwik app for local read-only inspection.',
+      toSourcePath('docs', 'labs', 'mcp', 'index.mdx')
+    ),
+    docEntry(
       'Start Here',
       'Getting Started',
       '/docs/getting-started/',

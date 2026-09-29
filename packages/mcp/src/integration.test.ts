@@ -1,0 +1,291 @@
+import { expect, test } from 'vitest';
+import { createServer, build } from 'vite';
+import { chromium } from '@playwright/test';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikRouter } from '@qwik.dev/router/vite';
+import { Client } from '@modelcontextprotocol/client';
+import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
+import { readFile, readdir, stat, writeFile, unlink } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import { request } from 'node:http';
+import { qwikMcp } from '../dist/index.js';
+
+for (const mode of ['csr', 'ssr']) {
+  test(`${mode}: packaged stdio tools inspect live Qwik, errors and routes`, async () => {
+    const root = fileURLToPath(new URL(`../tests/fixtures/${mode}`, import.meta.url));
+    const plugins = [
+      qwikMcp(),
+      ...(mode === 'ssr' ? [qwikRouter()] : []),
+      qwikVite({ tsOptimizer: true, ...(mode === 'csr' ? { csr: true } : {}) }),
+    ];
+    const server = await createServer({
+      configFile: false,
+      root,
+      base: mode === 'csr' ? '/app/' : '/',
+      plugins,
+      server: { host: '127.0.0.1', port: 0 },
+      logLevel: 'error',
+    });
+    await server.listen();
+    const browser = await chromium.launch({ headless: true });
+    const client = new Client({ name: 'test', version: '1' });
+    const transport = new StdioClientTransport({
+      command: process.execPath,
+      args: [fileURLToPath(new URL('../dist/cli.js', import.meta.url)), root],
+      stderr: 'pipe',
+    });
+    const call = async (name: string, args = {}) =>
+      (await client.callTool({ name, arguments: args })) as {
+        isError?: boolean;
+        structuredContent?: Record<string, any>;
+      };
+    try {
+      await client.connect(transport);
+      expect(await call('inspect_page')).toMatchObject({ isError: true });
+      const page = await browser.newPage();
+      const pageErrors: string[] = [];
+      page.on('pageerror', (error) => pageErrors.push(error.message));
+      page.on('requestfailed', (request) =>
+        pageErrors.push(request.url() + ': ' + request.failure()?.errorText)
+      );
+      page.on('console', (message) => {
+        if (message.type() === 'error') {
+          pageErrors.push(message.text());
+        }
+      });
+      const url = server.resolvedUrls!.local[0];
+      await page.goto(url);
+      await page.locator('#counter').waitFor();
+      expect(pageErrors).toEqual([]);
+      await expect
+        .poll(async () => (await call('inspect_page')).structuredContent?.tree)
+        .toEqual(expect.arrayContaining([expect.objectContaining({ id: expect.any(String) })]));
+      await page.locator('#counter').click();
+      await expect
+        .poll(
+          async () =>
+            (await call('inspect_page', { includeHtml: true, selector: '#counter' }))
+              .structuredContent?.html,
+          { timeout: 10000 }
+        )
+        .toMatchObject({ content: expect.stringContaining('Count: 1') });
+      const snapshot = await call('inspect_page', {
+        includeHtml: true,
+        selector: '#counter',
+        includeSignalValues: true,
+      });
+      expect(snapshot.isError, JSON.stringify(snapshot) + JSON.stringify(pageErrors)).not.toBe(
+        true
+      );
+      expect((snapshot.structuredContent?.html as any).content).toContain('Count: 1');
+      await expect
+        .poll(
+          async () =>
+            (await call('inspect_page', { includeSignalValues: true })).structuredContent
+              ?.components,
+          { timeout: 10000 }
+        )
+        .toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              signals: expect.arrayContaining([
+                expect.objectContaining({ name: 'count', value: 1 }),
+              ]),
+            }),
+          ])
+        );
+      expect(await call('get_project_info')).toMatchObject({
+        structuredContent: { root, qwikVersion: expect.any(String) },
+      });
+      const routes = (await call('list_routes')).structuredContent!;
+      expect(routes.routerInstalled).toBe(mode === 'ssr');
+      if (mode === 'ssr') {
+        expect(routes.routes).toContainEqual({
+          pathname: '/[slug]/',
+          file: 'src/routes/[slug]/index.tsx',
+          params: ['slug'],
+          layouts: ['src/routes/layout.tsx'],
+        });
+        await page.goto(url + 'some-fancy-route/');
+        await page.getByText('Hi, fancy route here').waitFor();
+        const flatten = (nodes: any[]): any[] =>
+          nodes.flatMap((node) => [node, ...flatten(node.children ?? [])]);
+        await expect
+          .poll(async () => {
+            const result = (await call('inspect_page')).structuredContent;
+            return result
+              ? flatten(result.tree).filter((node) =>
+                  node.source?.file.endsWith('/some-fancy-route/index.tsx')
+                )
+              : [];
+          })
+          .toEqual([
+            expect.objectContaining({ name: 'default' }),
+            expect.objectContaining({ name: 'SomeInternalCmp' }),
+          ]);
+        await page.goto(url);
+        await page.locator('#counter').waitFor();
+      } else {
+        expect(routes.routes).toEqual([]);
+      }
+      expect(await call('inspect_page', { selector: '#missing' })).toMatchObject({ isError: true });
+      expect(await call('inspect_page', { selector: '[' })).toMatchObject({ isError: true });
+      server.ws.send({
+        type: 'error',
+        err: {
+          message: 'MCP fixture error',
+          stack: '',
+          loc: { file: 'fixture.tsx', line: 2, column: 3 },
+        },
+      });
+      await expect
+        .poll(async () => (await call('get_dev_errors')).structuredContent)
+        .toMatchObject({
+          errors: [{ message: 'MCP fixture error', file: 'fixture.tsx', line: 2, column: 3 }],
+        });
+      server.ws.send({ type: 'update', updates: [] });
+      await expect
+        .poll(async () => (await call('get_dev_errors')).structuredContent)
+        .toMatchObject({ errors: [] });
+      const second = await browser.newPage();
+      await second.goto(url + '?second');
+      await expect.poll(async () => (await call('inspect_page')).isError).toBe(true);
+      expect(await call('inspect_page', { url: page.url() })).not.toHaveProperty('isError', true);
+      const directory = join(root, 'node_modules/.cache/qwik-mcp');
+      const [file] = await readdir(directory);
+      const discovery = JSON.parse(await readFile(join(directory, file), 'utf8'));
+      if (process.platform !== 'win32') {
+        expect((await stat(join(directory, file))).mode & 0o777).toBe(0o600);
+      }
+      await writeFile(
+        join(directory, 'stale-test.json'),
+        JSON.stringify({ url: 'http://127.0.0.1:1/__qwik_mcp', token: 'stale' })
+      );
+      expect(await call('get_project_info')).not.toHaveProperty('isError', true);
+
+      expect((await fetch(discovery.url, { method: 'POST' })).status).toBe(403);
+      expect(
+        (
+          await fetch(discovery.url, {
+            method: 'POST',
+            headers: { authorization: `Bearer ${discovery.token}`, origin: url },
+          })
+        ).status
+      ).toBe(403);
+      const authorized = {
+        authorization: `Bearer ${discovery.token}`,
+        'content-type': 'application/json',
+      };
+      const rejectedHost = await new Promise((resolve, reject) => {
+        const req = request(
+          discovery.url,
+          { method: 'POST', headers: { ...authorized, host: 'attacker.example' } },
+          (res) => {
+            res.resume();
+            resolve(res.statusCode);
+          }
+        );
+        req.on('error', reject);
+        req.end('{}');
+      });
+      expect(rejectedHost).toBe(403);
+      expect((await fetch(discovery.url, { method: 'GET', headers: authorized })).status).toBe(405);
+      expect(
+        await (
+          await fetch(discovery.url, {
+            method: 'POST',
+            headers: authorized,
+            body: 'x'.repeat(8193),
+          })
+        ).json()
+      ).toMatchObject({ error: 'MCP request is too large.' });
+      expect(
+        await (
+          await fetch(discovery.url, {
+            method: 'POST',
+            headers: authorized,
+            body: JSON.stringify({ name: 'write_file' }),
+          })
+        ).json()
+      ).toMatchObject({ error: 'Unknown MCP tool.' });
+      await browser.close();
+      await expect.poll(async () => (await call('inspect_page')).isError).toBe(true);
+    } finally {
+      await browser.close();
+      await server.close();
+      await unlink(join(root, 'node_modules/.cache/qwik-mcp/stale-test.json')).catch(() => {});
+      expect(await call('get_project_info')).toMatchObject({ isError: true });
+      await client.close();
+    }
+  }, 60000);
+}
+
+test('production build excludes MCP bridge and instrumentation', async () => {
+  const root = fileURLToPath(new URL('../tests/fixtures/csr', import.meta.url));
+  const result = await build({
+    configFile: false,
+    root,
+    plugins: [qwikMcp(), qwikVite({ csr: true, tsOptimizer: true })],
+    build: { write: false },
+    logLevel: 'error',
+  });
+  expect(JSON.stringify(result)).not.toContain('qwik:mcp:');
+  expect(JSON.stringify(result)).not.toContain('useCollectHooks');
+});
+
+test('HTML injection preserves HTTP streaming and IPv6 loopback discovery', async () => {
+  const root = fileURLToPath(new URL('../tests/fixtures/csr', import.meta.url));
+  let finish: () => void = () => {};
+  const server = await createServer({
+    configFile: false,
+    root,
+    plugins: [
+      qwikMcp(),
+      {
+        name: 'stream-fixture',
+        configureServer(vite) {
+          vite.middlewares.use('/stream', (_req, res) => {
+            res.setHeader('content-type', 'text/html');
+            res.write('<!doctype html><he');
+            res.write('ad><title>stream</title></head><body>first');
+            finish = () => res.end('last</body></html>');
+          });
+        },
+      },
+    ],
+    server: { host: '::1', port: 0 },
+    logLevel: 'error',
+  });
+  await server.listen();
+  const client = new Client({ name: 'stream-test', version: '1' });
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [fileURLToPath(new URL('../dist/cli.js', import.meta.url)), root],
+  });
+  try {
+    await client.connect(transport);
+    await expect
+      .poll(
+        async () =>
+          (await client.callTool({ name: 'get_project_info', arguments: {} })).structuredContent
+      )
+      .toMatchObject({ devUrl: expect.stringContaining('[::1]') });
+    const url = server.resolvedUrls!.local[0];
+    const response = await fetch(url + 'stream', {
+      headers: { accept: 'text/html' },
+      signal: AbortSignal.timeout(5000),
+    });
+    const reader = response.body!.getReader();
+    const first = new TextDecoder().decode((await reader.read()).value);
+    expect(first).toContain('<head><script type="module"');
+    expect(first).toContain('first');
+    expect(first).not.toContain('last');
+    finish();
+    expect(new TextDecoder().decode((await reader.read()).value)).toContain('last');
+  } finally {
+    finish();
+    await client.close();
+    await server.close();
+  }
+});

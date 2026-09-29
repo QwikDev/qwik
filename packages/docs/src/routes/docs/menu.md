@@ -172,3 +172,5 @@
 - [Insights](/docs/labs/insights/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)
 - [Devtools](/docs/labs/devtools/index.mdx)
+
+- [MCP server](/docs/labs/mcp/index.mdx)

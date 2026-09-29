@@ -1,0 +1,66 @@
+---
+title: MCP server
+created_at: '2026-09-28T00:00:00Z'
+updated_at: '2026-09-28T00:00:00Z'
+---
+
+# MCP server
+
+`@qwik.dev/mcp` connects an MCP client to a running Qwik development server. It supports browser rendering and Router SSR and works independently of the DevTools panel.
+
+## Setup
+
+```sh
+pnpm add -D @qwik.dev/mcp
+```
+
+Add `qwikMcp()` before `qwikVite()` in `vite.config.ts`:
+
+```ts
+import { defineConfig } from 'vite';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikRouter } from '@qwik.dev/router/vite';
+import { qwikMcp } from '@qwik.dev/mcp';
+
+export default defineConfig({
+  plugins: [qwikMcp(), qwikRouter(), qwikVite()],
+});
+```
+
+For a browser-only Qwik app, omit `qwikRouter()` and keep your existing `qwikVite({ csr: true })` configuration. Start Vite and open the app in a local browser.
+
+Configure your MCP client to launch the locally installed binary through stdio:
+
+```json
+{
+  "mcpServers": {
+    "qwik": {
+      "command": "npx",
+      "args": ["--no-install", "qwik-mcp", "/absolute/path/to/project"]
+    }
+  }
+}
+```
+
+Set the client's working directory to your project so `npx --no-install` resolves its local dependency. The optional positional path selects the Vite project root; it defaults to the process's working directory. No package download occurs when launching this configuration.
+
+## Tools
+
+| Tool | Inputs | Result |
+| --- | --- | --- |
+| `get_project_info` | `{}` | Project root, Qwik version, optional Router version, development URL |
+| `list_routes` | `{}` | `routerInstalled` and Router's routes, source files, parameters, layouts |
+| `get_dev_errors` | `{ url? }` | Vite errors observed by the selected page, with source locations |
+| `inspect_page` | `{ url?, selector?, includeHtml?, includeSignalValues? }` | Component tree, component hook metadata, optional signal values and HTML |
+
+`includeHtml` and `includeSignalValues` default to `false`. `selector` scopes the HTML fragment; component metadata still describes the page. HTML is current DOM, marked `source: "live-dom"`, limited to 64 KiB of UTF-8, with `truncated` indicating an incomplete fragment. It is not the original SSR response.
+
+Hook metadata is collected by the shared DevTools instrumentation as components execute and their document-ready tasks run. Components that have not executed in the browser may appear in the tree without hook metadata. Snapshot entries are grouped by component source, so repeated instances share that metadata.
+
+With several pages connected, provide the exact page URL. Duplicate tabs with the same URL must be closed until one remains. Missing pages, invalid selectors, missing runtime and disconnected servers return tool errors. Vite errors clear after successful HMR; this is not a project-wide typecheck or build report.
+
+## Local access
+
+The plugin runs only during development. Its internal endpoint accepts loopback connections with a random session token and rejects browser origins. Discovery files live in `node_modules/.cache/qwik-mcp`, have owner-only permissions on Unix, and are removed when the server closes. Stale files from terminated processes are ignored.
+
+Use a standalone HTTP Vite server with HMR enabled. HTTPS and middleware mode are currently unsupported. The CLI sends only MCP protocol messages to stdout. Tools inspect the running app and do not edit files, install packages or start builds. Returned HTML, hook metadata and signal values are application content and may contain private information.

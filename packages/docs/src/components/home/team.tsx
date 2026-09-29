@@ -3,21 +3,17 @@ import { lucide, streamlinepixel as pixel } from '@qds.dev/ui';
 import { Link } from '~/components/action/action';
 
 const coreTeam = [
-  { login: 'mhevery', name: 'Miško Hevery' },
-  { login: 'shairez', name: 'Shai Reznik' },
-  { login: 'wmertens', name: 'Wout Mertens' },
-  { login: 'Varixo', name: 'Michał Popek' },
-  { login: 'maiieul', name: 'Maïeul Chevalier' },
-  { login: 'thejackshelton', name: 'Jack Shelton' },
-  { login: 'gioboa', name: 'Giorgio Boa' },
-  { login: 'PatrickJS', name: 'PatrickJS' },
+  'mhevery',
+  'shairez',
+  'wmertens',
+  'Varixo',
+  'maiieul',
+  'thejackshelton',
+  'gioboa',
+  'PatrickJS',
 ];
 
-const specialMentions = [
-  { login: 'manucorporat', name: 'Manu Mtz.-Almeida' },
-  { login: 'adamdbradley', name: 'Adam Bradley' },
-  { login: 'steve8708', name: 'Steve Sewell' },
-];
+const specialMentions = ['manucorporat', 'adamdbradley', 'steve8708'];
 
 const contributors = [
   'dmitry-stepanenko',
@@ -44,6 +40,60 @@ const contributors = [
 
 const githubAvatarUrl = (login: string, size: number) =>
   `https://avatars.githubusercontent.com/${login}?s=${size}`;
+
+const avatarStackSizes = {
+  md: { pixels: 40, list: 'pl-3', item: '-ml-3', image: 'size-10 border-2' },
+  lg: {
+    pixels: 96,
+    list: 'pl-6 2xl:pl-7',
+    item: '-ml-6 2xl:-ml-7',
+    image: 'size-20 2xl:size-24 border-[3px]',
+  },
+};
+
+type AvatarStackProps = {
+  logins: string[];
+  size: keyof typeof avatarStackSizes;
+};
+
+const AvatarStack = ({ logins, size }: AvatarStackProps) => {
+  const { pixels, list, item, image } = avatarStackSizes[size];
+
+  return (
+    <ul class={['isolate flex flex-wrap', list]}>
+      {logins.map((login) => (
+        <li key={login} class={item}>
+          <a
+            href={`https://github.com/${login}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={login}
+            class="group relative block rounded-full hover:z-10 focus-visible:z-10"
+          >
+            <img
+              src={githubAvatarUrl(login, pixels * 2)}
+              width={pixels}
+              height={pixels}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              class={[
+                'rounded-full border-background-base bg-background-accent grayscale group-hover:grayscale-0 group-focus-visible:grayscale-0 motion-safe:transition-[filter]',
+                image,
+              ]}
+            />
+            <span
+              aria-hidden="true"
+              class="pointer-events-none absolute bottom-full left-0 mb-2 whitespace-nowrap rounded-[4px] border-[1.6px] border-base bg-background-base px-2 py-1 text-body-xs opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+            >
+              {login}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+};
 
 export const Team = component$(() => {
   return (
@@ -73,14 +123,14 @@ export const Team = component$(() => {
       <div class="relative flex flex-col gap-4">
         <div class="absolute -z-2 -inset-x-1/4 -inset-y-1/2 bg-hero-gradient-blue opacity-50" />
         <h3 class="text-foreground-soft text-sm">Core team</h3>
-        <ul class="grid grid-cols-2 sm:grid-cols-4 gap-6">
-          {coreTeam.map(({ login, name }) => (
+        <ul class="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {coreTeam.map((login) => (
             <li key={login}>
               <a
                 href={`https://github.com/${login}`}
                 target="_blank"
                 rel="noreferrer"
-                class="flex flex-col items-center gap-3 h-full rounded-2xl border-[1.6px] border-base bg-background-base shadow-base p-4 2xl:p-6 text-center motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-[2px]"
+                class="flex flex-col items-center gap-3 h-full rounded-2xl border-[1.6px] border-base bg-background-base shadow-base p-3 lg:p-4 2xl:p-6 text-center motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-[2px]"
               >
                 <img
                   src={githubAvatarUrl(login, 192)}
@@ -91,37 +141,8 @@ export const Team = component$(() => {
                   decoding="async"
                   class="size-20 2xl:size-24 rounded-full border-[1.6px] border-emphasis bg-background-accent"
                 />
-                <span class="font-heading 2xl:text-body-md text-body-sm">{name}</span>
-                <span class="text-body-xs text-foreground-soft">@{login}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div class="flex flex-col gap-4">
-        <h3 class="text-foreground-soft text-sm">Special mentions</h3>
-        <ul class="grid lg:grid-cols-3 gap-6">
-          {specialMentions.map(({ login, name }) => (
-            <li key={login}>
-              <a
-                href={`https://github.com/${login}`}
-                target="_blank"
-                rel="noreferrer"
-                class="flex items-center gap-4 h-full rounded-2xl border-[1.6px] border-base bg-background-base shadow-sm-base p-3 motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-[2px]"
-              >
-                <img
-                  src={githubAvatarUrl(login, 112)}
-                  width={56}
-                  height={56}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  class="size-14 rounded-full border-[1.6px] border-emphasis bg-background-accent"
-                />
-                <span class="flex flex-col gap-1">
-                  <span class="font-heading text-body-sm">{name}</span>
-                  <span class="text-body-xs text-foreground-soft">@{login}</span>
+                <span class="font-heading text-body-xs lg:text-body-sm 2xl:text-body-md wrap-anywhere">
+                  @{login}
                 </span>
               </a>
             </li>
@@ -129,38 +150,15 @@ export const Team = component$(() => {
         </ul>
       </div>
 
+      <div class="flex flex-col items-center gap-4">
+        <h3 class="text-foreground-soft text-sm">Special mentions</h3>
+        <AvatarStack logins={specialMentions} size="lg" />
+      </div>
+
       <div class="flex flex-col gap-4">
         <h3 class="text-foreground-soft text-sm">Contributors</h3>
         <div class="flex flex-wrap items-center gap-6">
-          <ul class="isolate flex flex-wrap pl-3">
-            {contributors.map((login) => (
-              <li key={login} class="-ml-3">
-                <a
-                  href={`https://github.com/${login}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={login}
-                  class="group relative block rounded-full hover:z-10 focus-visible:z-10"
-                >
-                  <img
-                    src={githubAvatarUrl(login, 80)}
-                    width={40}
-                    height={40}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    class="size-10 rounded-full border-2 border-background-base bg-background-accent grayscale group-hover:grayscale-0 group-focus-visible:grayscale-0 motion-safe:transition-[filter]"
-                  />
-                  <span
-                    aria-hidden="true"
-                    class="pointer-events-none absolute bottom-full left-0 mb-2 whitespace-nowrap rounded-[4px] border-[1.6px] border-base bg-background-base px-2 py-1 text-body-xs opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-                  >
-                    {login}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
+          <AvatarStack logins={contributors} size="md" />
           <Link
             href="https://github.com/QwikDev/qwik/graphs/contributors"
             target="_blank"

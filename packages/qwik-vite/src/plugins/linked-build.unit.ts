@@ -622,6 +622,137 @@ test('links a module two library bundles both carry only once', async () => {
   }
 }, 20000);
 
+test('links library modules again when one compiler builds twice', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const shared = join(directory, 'shared.tsx');
+  const application = join(directory, 'application.tsx');
+  await writeFile(shared, `export const Shared = () => <b>rebuild-marker</b>;`);
+  await writeFile(
+    application,
+    `import { Shared } from './lib/shared.js'; export default () => <Shared />;`
+  );
+  const plugin = (
+    compiler: ReturnType<typeof createLinkedBuild>,
+    entries: string[],
+    isLibrary: boolean
+  ) => ({
+    name: 'linked-build-test',
+    buildStart(this: Rolldown.PluginContext) {
+      return compiler.buildStart(this, {
+        entries,
+        rootDir: directory,
+        server: true,
+        library: isLibrary,
+        development: false,
+        sourceMaps: false,
+        onOutput() {},
+      });
+    },
+    resolveId(this: Rolldown.PluginContext, id: string, importer: string | undefined) {
+      return compiler.resolveId(this, id, importer);
+    },
+    load(this: Rolldown.PluginContext, id: string) {
+      return compiler.load(this, id);
+    },
+    transform(code: string, id: string) {
+      return compiler.transform(code, id);
+    },
+    generateBundle(this: Rolldown.PluginContext, _: unknown, output: Rolldown.OutputBundle) {
+      compiler.generateBundle(this, output);
+    },
+  });
+  async function build(
+    compiler: ReturnType<typeof createLinkedBuild>,
+    entries: string[],
+    isLibrary: boolean,
+    dir: string
+  ) {
+    const bundle = await rolldown({
+      input: entries,
+      external: (id) => id.startsWith('@qwik.dev/core'),
+      plugins: [plugin(compiler, entries, isLibrary) as never],
+    });
+    try {
+      return await bundle.write({ dir: join(directory, dir), format: 'es' });
+    } finally {
+      await bundle.close();
+    }
+  }
+  try {
+    const lib = await build(createLinkedBuild(), [shared], true, 'lib');
+    // the ssr and ssg environments share one plugin instance, so one compiler builds twice
+    const compiler = createLinkedBuild();
+    await build(compiler, [application], false, 'first');
+    const second = await build(compiler, [application], false, 'second');
+    const code = second.output
+      .filter((file) => file.type === 'chunk')
+      .map((file) => file.code)
+      .join('\n');
+    expect(code).toContain('rebuild-marker');
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 20000);
+
+test('links the imports of a module reached only through a virtual entry', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const application = join(directory, 'application.tsx');
+  const tool = join(directory, 'tool.js');
+  const helper = join(directory, 'helper.js');
+  await writeFile(application, `export default () => <b>app</b>;`);
+  await writeFile(tool, `import { mark } from './helper.js'; export const run = () => mark;`);
+  await writeFile(helper, `export const mark = 'virtual-reached-marker';`);
+  // like the ssg environment: its entry is a plugin-owned \0 module, not a configured input
+  const virtualEntry = {
+    name: 'virtual-entry',
+    resolveId: (id: string) => (id === 'virtual:run' ? '\0virtual:run' : null),
+    load: (id: string) =>
+      id === '\0virtual:run' ? `export { run } from ${JSON.stringify(tool)};` : null,
+  };
+  const compiler = createLinkedBuild();
+  const bundle = await rolldown({
+    input: ['virtual:run', application],
+    external: (id) => id.startsWith('@qwik.dev/core'),
+    plugins: [
+      {
+        name: 'linked-build-test',
+        buildStart() {
+          return compiler.buildStart(this, {
+            entries: [application],
+            rootDir: directory,
+            server: true,
+            library: false,
+            development: false,
+            sourceMaps: false,
+            onOutput() {},
+          });
+        },
+        resolveId(id, importer) {
+          return compiler.resolveId(this, id, importer);
+        },
+        load(id) {
+          return compiler.load(this, id);
+        },
+        transform(code, id) {
+          return compiler.transform(code, id);
+        },
+      },
+      virtualEntry,
+    ],
+  });
+  try {
+    const output = await bundle.write({ dir: join(directory, 'app'), format: 'es' });
+    const code = output.output
+      .filter((file) => file.type === 'chunk')
+      .map((file) => file.code)
+      .join('\n');
+    expect(code).toContain('virtual-reached-marker');
+  } finally {
+    await bundle.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 20000);
+
 test('links a generated JSX module whose id carries a query, as image ?jsx imports do', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
   const application = join(directory, 'application.tsx');

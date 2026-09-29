@@ -10,6 +10,7 @@ import {
   LibraryPlan,
   LinkEntry,
   LinkResultKind,
+  ModuleKind,
   ModulePlan,
   ResolutionKind,
   ResolverSnapshot,
@@ -66,6 +67,8 @@ export function createLinkedBuild() {
   // A source module several library bundles carry links once, under the path that came first.
   const identities = new Map<string, string>();
   const resolver: ResolverSnapshot = { edges: {} };
+  // Set once the link snapshots its modules; later transforms can no longer join it
+  let isLinkSealed = false;
   let options: LinkedBuildOptions | undefined;
   let entries: LinkEntry[] = [];
   let pending: Promise<void> | undefined;
@@ -78,6 +81,8 @@ export function createLinkedBuild() {
     plans.clear();
     files.clear();
     owners.clear();
+    identities.clear();
+    isLinkSealed = false;
     resolver.edges = {};
     entries = [];
     library = undefined;
@@ -106,6 +111,10 @@ export function createLinkedBuild() {
       await analyseModule({ path, code }, { rootDir: options!.rootDir, scope: options!.scope })
     );
     return path;
+  }
+
+  function unvisitedPlans(visited: ReadonlyMap<string, boolean>): string[] {
+    return [...plans.keys()].filter((id) => !visited.has(id));
   }
 
   async function finishBuild(ctx: Rolldown.PluginContext) {
@@ -220,15 +229,24 @@ export function createLinkedBuild() {
         }
       }
     };
-    for (const entry of config.entries.length > 0 ? config.entries : [...plans.keys()]) {
+    const roots: string[] = [];
+    for (const entry of config.entries) {
       const target = await ctx.resolve(entry, undefined, { skipSelf: false });
       if (target === null || target.external) {
         throw new Error(`Cannot resolve application entry ${entry}`);
       }
-      const id = normalize(target.id);
-      await collect(id);
-      entries.push({ kind: EntryKind.Module, module: id, exposeExports: true });
+      roots.push(normalize(target.id));
     }
+    // Every stub re-exports from the link, including modules the bundler reached on its own
+    let batch = [...new Set([...roots, ...unvisitedPlans(visited)])];
+    while (batch.length > 0) {
+      for (const id of batch) {
+        await collect(id);
+        entries.push({ kind: EntryKind.Module, module: id, exposeExports: true });
+      }
+      batch = unvisitedPlans(visited);
+    }
+    isLinkSealed = true;
     const modules = [...plans.values()];
     if (config.library) {
       library = createLibraryPlan(modules, entries, resolver) ?? undefined;
@@ -293,6 +311,13 @@ export function createLinkedBuild() {
       { path, code },
       { transpileTs: true, rootDir: options.rootDir, scope: options.scope }
     );
+    if (isLinkSealed) {
+      // Reached only after the link sealed, as through a plugin's virtual entry
+      if (plan.kind === ModuleKind.Qwik) {
+        throw new Error(`${path} is only reachable outside the linked entries`);
+      }
+      return null;
+    }
     plans.set(path, plan);
     const hasDefault = plan.exports.some(
       (entry) => entry.e !== ExportKind.Star && entry.exported === 'default'

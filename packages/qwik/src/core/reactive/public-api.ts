@@ -18,6 +18,7 @@ import {
   type SerializerSignalQrl,
 } from './serializer-signal';
 import type { Source } from './source';
+import { isStore } from './store';
 import type {
   AsyncCtx,
   AsyncSignalOptions,
@@ -62,7 +63,7 @@ export function _wrapArray<T>(
     disposeSubscriber(computed);
     throw error;
   }
-  if (!keepSource && (computed.deps === null || computed.deps.length === 0)) {
+  if (!keepSource && !isStore(value) && (computed.deps === null || computed.deps.length === 0)) {
     disposeSubscriber(computed);
     return value;
   }

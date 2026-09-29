@@ -105,6 +105,87 @@ describe(`${name}: loops`, () => {
     cleanup();
   });
 
+  it('updates in-place mutations of store collections', async () => {
+    const MyComp = () => {
+      const items = useStore([{ id: 'a' }, { id: 'b' }]);
+      const state = useStore({ items: [{ id: 'a' }, { id: 'b' }] });
+      return (
+        <section>
+          <button
+            id="remove"
+            onClick$={() => {
+              items.pop();
+              state.items.pop();
+            }}
+          >
+            remove
+          </button>
+          <button
+            id="add"
+            onClick$={() => {
+              items.push({ id: 'c' });
+              state.items.push({ id: 'c' });
+            }}
+          >
+            add
+          </button>
+          <button
+            id="reverse"
+            onClick$={() => {
+              items.reverse();
+              state.items.reverse();
+            }}
+          >
+            reverse
+          </button>
+          <button
+            id="replace"
+            onClick$={() => {
+              items[0] = { id: 'd' };
+              state.items[0] = { id: 'd' };
+            }}
+          >
+            replace
+          </button>
+          <div id="direct">
+            Direct store
+            {items.map((item) => (
+              <p key={item.id}>{item.id}</p>
+            ))}
+          </div>
+          <div id="property">
+            Store property
+            {state.items.map((item) => (
+              <p key={item.id}>{item.id}</p>
+            ))}
+          </div>
+        </section>
+      );
+    };
+    const { container, cleanup, qwikLoader } = await render(MyComp, { debug });
+    const expectRows = (expected: string[]) => {
+      for (const selector of ['#direct p', '#property p']) {
+        expect([...container.querySelectorAll(selector)].map((node) => node.textContent)).toEqual(
+          expected
+        );
+      }
+    };
+    expectRows(['a', 'b']);
+    for (const [button, expected] of [
+      ['remove', ['a']],
+      ['add', ['a', 'c']],
+      ['reverse', ['c', 'a']],
+      ['replace', ['d', 'a']],
+      ['remove', ['d']],
+      ['remove', []],
+      ['add', ['c']],
+    ] as const) {
+      await qwikLoader?.dispatch(container.querySelector(`#${button}`)!, 'click');
+      expectRows([...expected]);
+    }
+    cleanup();
+  });
+
   it('rebuilds a keyless reactive collection', async () => {
     const MyComp = () => {
       const items = useSignal(['a', 'b']);

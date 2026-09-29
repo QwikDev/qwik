@@ -4,6 +4,7 @@ import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promise
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { Signal } from '../../reactive/signal';
 import { readSourceValue, type Source } from '../../reactive/source';
+import { isStore } from '../../reactive/store';
 import { runWithCollector, track } from '../../reactive/tracking';
 import type { ContainerContext } from '../../runtime/container-context';
 import { fastNextSibling } from '../../runtime/fast-getters';
@@ -30,6 +31,13 @@ import { getFunctionOrResolve } from '../../utils/qrl';
 import { getRangeParent, replaceRange } from '../range/range';
 import { EMPTY_ARRAY, EMPTY_NODES, NodeType } from '../../utils/consts';
 import type { SsrOutput } from '../../ssr/output';
+
+function readCollectionItems<T>(source: Source<readonly T[]>): readonly T[] {
+  track(source);
+  const items = readSourceValue(source) ?? EMPTY_ARRAY;
+  // Store iteration must happen while the collection is tracking.
+  return isStore(items) ? items.slice() : items;
+}
 
 /** A key identifies a row across renders; resume reads it from HTML, so identity is the string. */
 export type ForKey = string;
@@ -147,10 +155,7 @@ export class ForBlock<T = unknown> {
     keyFn: ForKeyFn<T> | null,
     renderFn: ForRenderFn<T>
   ): void {
-    const items = runWithCollector(subscription, () => {
-      track(this.source);
-      return readSourceValue(this.source) ?? EMPTY_ARRAY;
-    }) as readonly T[];
+    const items = runWithCollector(subscription, readCollectionItems, this.source);
     const nextLength = items.length;
     const nextKeys = new Array<ForKey>(nextLength);
     const keyed = keyFn != null;
@@ -890,10 +895,7 @@ export class SSRForBlock<T = unknown> {
     keyFn: ForKeyFn<T>,
     renderFn: SsrForRenderFn<T>
   ): ValueOrPromise<SsrOutput> {
-    const items = runWithCollector(subscription, () => {
-      track(this.source);
-      return readSourceValue(this.source) ?? EMPTY_ARRAY;
-    }) as readonly T[];
+    const items = runWithCollector(subscription, readCollectionItems, this.source);
     const seenKeys = isDev ? new Set<ForKey>() : null;
     const output: SsrOutput[] = [];
 

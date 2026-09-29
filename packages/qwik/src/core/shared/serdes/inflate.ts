@@ -819,10 +819,12 @@ function restoreStoreSources(
           (prop) => {
             let target = raw as Record<PropertyKey, unknown>;
             for (let j = 0; j < (path as unknown[]).length; j++) {
-              target = target[(path as unknown[])[j] as PropertyKey] as Record<
-                PropertyKey,
-                unknown
-              >;
+              const nested = target[(path as unknown[])[j] as PropertyKey];
+              // Removed rows can disappear before their lazy sources inflate.
+              if (nested === null || typeof nested !== 'object') {
+                return restoreNext();
+              }
+              target = nested as Record<PropertyKey, unknown>;
             }
             const source = getStoreSource(
               unwrapStore(target as object) as object,

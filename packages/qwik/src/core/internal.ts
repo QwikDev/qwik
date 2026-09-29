@@ -75,7 +75,7 @@ export { _SharedContainer } from './shared/shared-container';
 export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
 export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
 export { ELEMENT_SEQ as _ELEMENT_SEQ } from './shared/utils/markers';
-export { _restProps } from './shared/utils/prop';
+export { hasSlotProps as _hasSlotProps, _restProps } from './shared/utils/prop';
 export { _walkJSX } from './ssr/ssr-render-jsx';
 export { handleSSRError as _handleSSRError } from './ssr/catch-ssr';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';

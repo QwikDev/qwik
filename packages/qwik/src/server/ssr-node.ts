@@ -4,6 +4,7 @@ import {
   _EMPTY_ARRAY,
   _EMPTY_OBJ,
   _EFFECT_BACK_REF,
+  _hasSlotProps,
 } from '@qwik.dev/core/internal';
 import { isDev } from '@qwik.dev/core/build';
 import {
@@ -111,12 +112,7 @@ export class SsrNode implements ISsrNode {
   }
 
   hasSlotProps(): boolean {
-    for (const name in this.attrs) {
-      if (!name.startsWith('q:')) {
-        return true;
-      }
-    }
-    return false;
+    return _hasSlotProps(this.attrs);
   }
 
   removeProp(name: string): void {

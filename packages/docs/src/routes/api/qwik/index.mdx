@@ -388,6 +388,17 @@ Render
 </td><td>
 
 </td></tr>
+<tr><td>
+
+Signal
+
+</td><td>
+
+`"signal"`
+
+</td><td>
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/catch-phase.ts)
@@ -829,7 +840,7 @@ A computed signal is a signal which is calculated from other signals. When the s
 export interface ComputedSignal<T> extends Signal<T>
 ```
 
-**Extends:** [Signal](#signal)&lt;T&gt;
+**Extends:** [Signal](#signal-interface)&lt;T&gt;
 
 <table><thead><tr><th>
 
@@ -1529,7 +1540,7 @@ class?
 
 </td><td>
 
-[ClassList](#classlist) \| [Signal](#signal)&lt;[ClassList](#classlist)&gt; \| undefined
+[ClassList](#classlist) \| [Signal](#signal-interface)&lt;[ClassList](#classlist)&gt; \| undefined
 
 </td><td>
 
@@ -2151,7 +2162,7 @@ any
 
 **Returns:**
 
-value is [Signal](#signal)&lt;unknown&gt;
+value is [Signal](#signal-interface)&lt;unknown&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/utils.ts)
 
@@ -2272,7 +2283,7 @@ export type JSXChildren =
   | JSXNode;
 ```
 
-**References:** [JSXChildren](#jsxchildren), [Signal](#signal), [JSXNode](#jsxnode)
+**References:** [JSXChildren](#jsxchildren), [Signal](#signal-interface), [JSXNode](#jsxnode)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
 
@@ -4292,7 +4303,7 @@ value
 
 </td><td>
 
-[ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt;
+[ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal-interface)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt;
 
 </td><td>
 
@@ -4534,7 +4545,9 @@ when$
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/show.ts)
 
-<h2 id="signal">Signal</h2>
+<h2 id="catchphase-signal-enum-member">Signal</h2>
+
+<h2 id="signal-interface">Signal</h2>
 
 A signal is a reactive value which can be read and written. When the signal is written, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
 
@@ -9261,7 +9274,7 @@ expr
 
 </td><td>
 
-((...args: A) =&gt; T) \| [Signal](#signal)&lt;T&gt; \| T
+((...args: A) =&gt; T) \| [Signal](#signal-interface)&lt;T&gt; \| T
 
 </td><td>
 

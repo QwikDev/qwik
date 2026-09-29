@@ -83,8 +83,9 @@ onError$?: QRL<(error: Error, info: CatchInfo) => void>;
 
 It receives the original error and a `CatchInfo`:
 
-- `phase` — where the error came from: `'render'`, `'event'`, or `'hook'` (task throws report
-  `'hook'`).
+- `phase` — where the error came from: `'render'`, `'event'`, `'hook'` (task throws report
+  `'hook'`), or `'signal'` (a computed or a loader failed). A signal's failure reports once to the
+  boundary above each component that reads it, even when a refresh keeps the content on screen.
 - `boundaryId` — identifies the boundary within the page.
 - `digest` — the code a production fallback shows for this error, so a user's bug report matches
   your logs.

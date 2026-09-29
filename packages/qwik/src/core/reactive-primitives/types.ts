@@ -111,6 +111,7 @@ export const enum SerializationSignalFlags {
 export const enum AsyncSignalFlags {
   EAGER_CLEANUP = 32,
   CLIENT_ONLY = 64,
+  VALUE_LEFT_ON_SERVER = 128,
   /** The compute fn is async: the async engine (jobs, loading, error) is active */
   ASYNC_MODE = 512,
   /** Invoke the compute fn AsyncSignal-style: pass the ComputeCtx argument, no auto-tracking */

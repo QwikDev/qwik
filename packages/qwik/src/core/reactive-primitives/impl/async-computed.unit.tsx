@@ -267,6 +267,24 @@ describe('async computed', () => {
     });
   });
 
+  it('should drop the value left on the server on clear(), so the next failure stays off .error', async () => {
+    await withContainer(async () => {
+      const signal = createComputed$(async () => {
+        await delay(1);
+        throw new Error('refresh failed');
+      }) as unknown as ComputedSignalImpl<number>;
+      signal.$flags$ |= AsyncSignalFlags.VALUE_LEFT_ON_SERVER;
+      await signal.promise();
+      expect(signal.error?.message).toBe('refresh failed');
+
+      signal.clear();
+      await signal.promise();
+
+      expect(signal.error).toBeUndefined();
+      expect(() => signal.untrackedValue).toThrow('refresh failed');
+    });
+  });
+
   it('should serve initial beside .error when the first compute fails', async () => {
     await withContainer(async () => {
       const signal = createComputed$(

@@ -21,6 +21,7 @@ import { createStore, getStoreHandler, unwrapStore } from '../../reactive-primit
 import { createAsyncSignal } from '../../reactive-primitives/signal-api';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  AsyncSignalFlags,
   EffectProperty,
   EffectSubscription,
   ComputedSignalFlags,
@@ -842,7 +843,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
-          {number} 1536
+          {number} 1664
         ]
         3 AsyncSignal [
           QRL "8#4#-5"
@@ -1450,6 +1451,30 @@ describe('shared-serialization', () => {
       expect((restored as AsyncSignalImpl<number>).$untrackedValue$).toBe(123);
       expect((restored as AsyncSignalImpl<number>).$concurrency$).toBe(3);
       expect((restored as AsyncSignalImpl<number>).$timeoutMs$).toBe(1000);
+    });
+    it(`${title(TypeIds.AsyncSignal)} flags a value left on the server, and only then`, async () => {
+      const never = createAsyncSignal(
+        $(async () => 123),
+        { serializationStrategy: 'never' }
+      );
+      const always = createAsyncSignal(
+        $(async () => 123),
+        { serializationStrategy: 'always' }
+      );
+      const unread = createAsyncSignal(
+        $(async () => 123),
+        { serializationStrategy: 'never' }
+      );
+      await never.promise();
+      await always.promise();
+
+      const [restoredNever, restoredAlways, restoredUnread] = deserialize(
+        await serialize(never, always, unread)
+      ) as AsyncSignalImpl<number>[];
+
+      expect(restoredNever.$flags$ & AsyncSignalFlags.VALUE_LEFT_ON_SERVER).toBeTruthy();
+      expect(restoredAlways.$flags$ & AsyncSignalFlags.VALUE_LEFT_ON_SERVER).toBeFalsy();
+      expect(restoredUnread.$flags$ & AsyncSignalFlags.VALUE_LEFT_ON_SERVER).toBeFalsy();
     });
     // this requires a domcontainer
     it(title(TypeIds.Store), async () => {

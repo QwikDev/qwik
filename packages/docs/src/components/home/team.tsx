@@ -3,14 +3,14 @@ import { lucide, streamlinepixel as pixel } from '@qds.dev/ui';
 import { Link } from '~/components/action/action';
 
 const coreTeam = [
-  'mhevery',
-  'shairez',
-  'wmertens',
-  'Varixo',
-  'maiieul',
-  'thejackshelton',
-  'gioboa',
-  'PatrickJS',
+  { login: 'mhevery', x: 'mhevery' },
+  { login: 'shairez', x: 'shai_reznik' },
+  { login: 'wmertens', x: 'wmertens' },
+  { login: 'Varixo', x: 'varixo_m' },
+  { login: 'maiieul', x: 'maiieul' },
+  { login: 'thejackshelton', x: 'jackshelton' },
+  { login: 'gioboa', x: 'giorgio_boa' },
+  { login: 'PatrickJS', x: 'PatrickJS' },
 ];
 
 const specialMentions = ['manucorporat', 'adamdbradley', 'steve8708'];
@@ -124,10 +124,10 @@ export const Team = component$(() => {
         <div class="absolute -z-2 -inset-x-1/4 -inset-y-1/2 bg-hero-gradient-blue opacity-50" />
         <h3 class="text-foreground-soft text-sm">Core team</h3>
         <ul class="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {coreTeam.map((login) => (
+          {coreTeam.map(({ login, x }) => (
             <li key={login}>
               <a
-                href={`https://github.com/${login}`}
+                href={`https://x.com/${x}`}
                 target="_blank"
                 rel="noreferrer"
                 class="flex flex-col items-center gap-3 h-full rounded-2xl border-[1.6px] border-base bg-background-base shadow-base p-3 lg:p-4 2xl:p-6 text-center motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-[2px]"

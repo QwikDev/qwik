@@ -60,6 +60,12 @@ describe('treeIdFingerprint', () => {
     expect(treeIdFingerprint(nodes)).toBe('a,b,c,d');
   });
 
+  it('updates when authored names arrive for existing node IDs', () => {
+    expect(treeIdFingerprint([{ id: 'q-1', name: 'Some' }])).not.toBe(
+      treeIdFingerprint([{ id: 'q-1', name: 'default' }])
+    );
+  });
+
   it('returns empty string for empty array', () => {
     expect(treeIdFingerprint([])).toBe('');
   });

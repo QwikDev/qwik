@@ -1,5 +1,5 @@
 import { ViteDevServer } from 'vite';
-import { ClientRpc, ParsedStructure, ServerRpc } from './types';
+import type { ParsedStructure } from './types';
 import type { QwikDevtoolsHook } from './hook-types';
 
 interface EventEmitter {
@@ -121,6 +121,7 @@ export interface DevtoolsRenderStats {
   perf?: QwikPerfStoreRemembered;
 }
 export interface ComponentDevtoolsState {
+  symbol?: string;
   hooks: ParsedStructure[];
   stats: DevtoolsRenderStats;
 }

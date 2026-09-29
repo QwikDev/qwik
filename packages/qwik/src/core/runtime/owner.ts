@@ -1,5 +1,5 @@
 import { swapRemove } from '../utils/array';
-import { disposeSubscriber } from '../reactive/cleanup';
+import { disposeSubscriber, runSubscriberCleanups } from '../reactive/cleanup';
 import { OwnerFlags } from '../reactive/flags';
 import {
   getActiveOwnerScope,
@@ -9,6 +9,8 @@ import {
   type RuntimeInvokeContext,
 } from './invoke-context';
 import type { Subscriber } from './subscriber';
+import { isPromise } from '../shared/utils/promises';
+import type { ValueOrPromise } from '../shared/utils/types';
 import { runWithCollector } from '../reactive/tracking';
 
 export type OwnerItem = Owner | Subscriber;
@@ -169,6 +171,35 @@ export function disposeOwnerItems(owner: Owner): void {
   for (let i = items.length - 1; i >= 0; i--) {
     disposeOwnerItem(items[i]);
   }
+}
+
+/** Runs the user cleanups under `root` ahead of disposal, leaving the `skip` subtrees alone. */
+export function runOwnerCleanups(
+  root: Owner,
+  skip: ReadonlySet<Owner> = new Set()
+): ValueOrPromise<void> {
+  let pending: Promise<void>[] | null = null;
+  const owners = [root];
+  for (let i = 0; i < owners.length; i++) {
+    const items = owners[i].items;
+    if (items === null) {
+      continue;
+    }
+    for (let j = 0; j < ownerItemsLength(items); j++) {
+      const item = ownerItemAt(items, j)!;
+      if (item instanceof Owner) {
+        if (!skip.has(item)) {
+          owners.push(item);
+        }
+        continue;
+      }
+      const result = runSubscriberCleanups(item);
+      if (isPromise(result)) {
+        (pending ??= []).push(result);
+      }
+    }
+  }
+  return pending === null ? undefined : Promise.all(pending).then(() => {});
 }
 
 function getOrCreateActiveOwnerOrNull(): Owner | null {

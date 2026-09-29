@@ -30,7 +30,7 @@ import {
   withLocale,
   isQwikComponent,
   renderSsrDynamicContent,
-  runOwnerTaskCleanups,
+  runOwnerCleanups,
   type JSXOutput,
 } from '@qwik.dev/core';
 import {
@@ -442,7 +442,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
     throwIfFailed();
     if (rootInvokeContext.owner !== null) {
       // Cleanups may write state, so they run before it is serialized
-      await runOwnerTaskCleanups(rootInvokeContext.owner, getPendingContentOwners(deferred));
+      await runOwnerCleanups(rootInvokeContext.owner, getPendingContentOwners(deferred));
     }
     const stateAttrParts = createStateScriptEventAttrs(serializationCtx);
     const shellTail: SsrOutput[] = [];
@@ -508,7 +508,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
         if (contentOwner !== null) {
           const stillRendering = getPendingContentOwners(deferred, emitted);
           stillRendering.delete(contentOwner);
-          await runOwnerTaskCleanups(contentOwner, stillRendering);
+          await runOwnerCleanups(contentOwner, stillRendering);
         }
         const state = await serializationCtx.$serializeNext$();
         throwDeferredError(hasDeferredError, deferredError);

@@ -2,6 +2,7 @@ import { swapRemove } from '../utils/array';
 import { getActiveCollector } from './tracking';
 import { ComputedFlags, SubscriberFlags } from './flags';
 import type { Source } from './source';
+import type { ValueOrPromise } from '../shared/utils/types';
 import { detachSubscriberFromOwner } from '../runtime/owner';
 import { SubscriberKind, type Collector, type Subscriber } from '../runtime/subscriber';
 
@@ -101,6 +102,19 @@ export function disposeSubscriber(subscriber: Subscriber): void {
       subscriber.flags = SubscriberFlags.Disposed;
       subscriber.job.dispose?.();
       return;
+  }
+}
+
+/** Runs the user cleanups a subscriber registered, without disposing it. */
+export function runSubscriberCleanups(subscriber: Subscriber): ValueOrPromise<void> {
+  switch (subscriber.kind) {
+    case SubscriberKind.Computed:
+      return (
+        subscriber as unknown as { runUserCleanups(): ValueOrPromise<void> }
+      ).runUserCleanups();
+    case SubscriberKind.Task:
+    case SubscriberKind.VisibleTask:
+      return subscriber.task.dispose();
   }
 }
 

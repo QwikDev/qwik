@@ -177,7 +177,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     this.notify();
   }
 
-  abort(reason?: unknown): void {
+  abort(reason?: unknown): ValueOrPromise<void> {
     const job = this.current;
     if (job === null) {
       return;
@@ -186,7 +186,12 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     job.abortController?.abort(reason);
     this.current = null;
     this.setLoading(false);
-    void this.runCleanups(job.cleanups);
+    return this.runCleanups(job.cleanups);
+  }
+
+  /** Runs the user cleanups ahead of disposal, keeping the subscriptions in place. */
+  runUserCleanups(): ValueOrPromise<void> {
+    return maybeThen(this.abort(), () => this.runStoredCleanups());
   }
 
   async promise(): Promise<void> {

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { BindingScope } from '../schema';
 import { createBindingGraph, ImplicitBindingKind } from '../analyse/ast/bindings';
 import { parseModule } from '../analyse/ast/parse';
@@ -57,6 +57,40 @@ test('lowercase JSX tags are intrinsic elements, never references to a same-name
 });
 
 describe('createBindingGraph', () => {
+  test('allocates implicit names without repeating collision scans', () => {
+    const { program } = parseModule(
+      'bindings.ts',
+      `const _this = 1, _this_ = 2, _arguments = 3;
+      ${Array.from(
+        { length: 100 },
+        (_, index) => `function read${index}() { return [this, arguments]; }`
+      ).join('\n')}`
+    );
+    const scans = vi.spyOn(Array.prototype, 'some');
+    const lookups = vi.spyOn(Set.prototype, 'has');
+    try {
+      const graph = createBindingGraph(program);
+      const checks =
+        scans.mock.contexts.filter((array) => array === graph.bindings).length +
+        lookups.mock.calls.filter(
+          ([name]) =>
+            typeof name === 'string' && (name.startsWith('_this') || name.startsWith('_arguments'))
+        ).length;
+      expect(checks).toBeLessThan(1_000);
+      expect(
+        graph.bindings
+          .filter((binding) => graph.implicitKind(binding.id) === ImplicitBindingKind.This)
+          .map((binding) => binding.name)
+      ).toEqual(Array.from({ length: 100 }, (_, index) => `_this${'_'.repeat(index + 2)}`));
+      expect(new Set(graph.bindings.map((binding) => binding.name)).size).toBe(
+        graph.bindings.length
+      );
+    } finally {
+      scans.mockRestore();
+      lookups.mockRestore();
+    }
+  });
+
   test('indexes assigned values without mixing shadowed bindings or member writes', () => {
     const source = `let content = 'initial'; content = 'assigned'; [content] = ['destructured'];
 content.field = 'member'; { let content = 'inner'; content = 'shadowed'; }`;

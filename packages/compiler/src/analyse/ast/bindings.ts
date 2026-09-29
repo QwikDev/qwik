@@ -374,9 +374,12 @@ export function createBindingGraph(program: Program): BindingGraph {
 
   collect(program, moduleScope);
 
+  const bindingNames = new Set(bindings.map((binding) => binding.name));
+  const implicitNames = new Map<ImplicitBindingKind, string>();
   const addSynthetic: BindingGraph['addSynthetic'] = (name, scope, declarationRange) => {
     const id = bindings.length;
     bindings.push({ id, name, scope, varKind: null, declarationRange: declarationRange ?? null });
+    bindingNames.add(name);
     return id;
   };
 
@@ -394,10 +397,11 @@ export function createBindingGraph(program: Program): BindingGraph {
     if (existing !== undefined) {
       return existing;
     }
-    let name = `_${kind}`;
-    while (bindings.some((binding) => binding.name === name)) {
+    let name = implicitNames.get(kind) ?? `_${kind}`;
+    while (bindingNames.has(name)) {
       name += '_';
     }
+    implicitNames.set(kind, `${name}_`);
     const id = addSynthetic(name, BindingScope.Local, [owner.start, owner.end]);
     implicitKinds.set(id, kind);
     ownerBindings.set(kind, id);

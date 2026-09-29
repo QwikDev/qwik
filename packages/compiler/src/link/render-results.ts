@@ -456,17 +456,106 @@ export function linkRenderResults(
     return kinds;
   };
 
-  const cache = new Map<string, number>();
-  const evaluating = new Set<string>();
+  const queryIds = new Map<string, number>();
+  const queryBindings: string[] = [];
+  const queryGroups: number[] = [];
+  const queryDependents: Set<number>[] = [];
+  const queryRevisions: number[] = [];
+  let activeQuery: number | undefined;
+  const cache = new Map<number, number>();
+  const completed = new Set<number>();
+  const contextualResults = new Map<number, Map<number, { revision: number; result: number }>>();
+  const queryContexts: Map<number, number>[] = [new Map()];
+  const activeContexts = new Map<number, number>();
+  let contextCycleRevision = 0;
+  let cycleRevision = 0;
+  const queryGroup = (query: number): number => {
+    let group = query;
+    while (queryGroups[group] !== group) {
+      group = queryGroups[group];
+    }
+    while (query !== group) {
+      const parent = queryGroups[query];
+      queryGroups[query] = group;
+      query = parent;
+    }
+    return group;
+  };
+  const enterContext = (context: number, query: number): number => {
+    const children = queryContexts[context];
+    let child = children.get(query);
+    if (child === undefined) {
+      child = queryContexts.length;
+      children.set(query, child);
+      queryContexts.push(new Map());
+    }
+    return child;
+  };
+  const cyclicQueries = new Set<number>();
+  const evaluating = new Set<number>();
   const activePaths = new Map<string, ResultPath[]>();
   let changed = false;
   let finalize = false;
+  let recursiveReads = 0;
+  let cacheRevision = 0;
+  const markCycle = (start: number): void => {
+    const group = queryGroup(start);
+    let isCycle = false;
+    for (const active of evaluating) {
+      isCycle ||= active === start;
+      if (isCycle) {
+        if (!cyclicQueries.has(active)) {
+          cyclicQueries.add(active);
+          cycleRevision++;
+        }
+        const activeGroup = queryGroup(active);
+        if (activeGroup !== group) {
+          queryGroups[activeGroup] = group;
+          cycleRevision++;
+        }
+      }
+    }
+  };
   const readBinding = (moduleIndex: number, binding: number, path: ResultPath): number => {
-    const key = `${moduleIndex}:${binding}:${JSON.stringify(path.map((part) => (typeof part === 'symbol' ? { result: part.description } : part)))}`;
+    const inputKey = bindingKey(moduleIndex, binding);
+    const queryKey = `${inputKey}:${JSON.stringify(path.map((part) => (typeof part === 'symbol' ? { result: part.description } : part)))}`;
+    let key = queryIds.get(queryKey);
+    if (key === undefined) {
+      key = queryIds.size;
+      queryIds.set(queryKey, key);
+      queryBindings[key] = inputKey;
+      queryGroups[key] = key;
+      queryDependents[key] = new Set();
+      queryRevisions[key] = 0;
+    }
+    if (activeQuery !== undefined) {
+      queryDependents[key].add(activeQuery);
+    }
+    if (completed.has(key)) {
+      return cache.get(key)!;
+    }
+    if (contextCycleRevision !== cycleRevision) {
+      activeContexts.clear();
+      for (const active of evaluating) {
+        if (cyclicQueries.has(active)) {
+          const group = queryGroup(active);
+          activeContexts.set(group, enterContext(activeContexts.get(group) ?? 0, active));
+        }
+      }
+      contextCycleRevision = cycleRevision;
+    }
+    const group = queryGroup(key);
+    const context = activeContexts.get(group) ?? 0;
+    const contextual = contextualResults.get(context)?.get(key);
+    if (contextual?.revision === queryRevisions[key]) {
+      recursiveReads++;
+      return contextual.result;
+    }
     if (evaluating.has(key)) {
+      recursiveReads++;
+      markCycle(key);
       return cache.get(key) ?? 0;
     }
-    const inputKey = bindingKey(moduleIndex, binding);
     const paths = activePaths.get(inputKey) ?? [];
     // A query that only grows an active path (`x.value = x.value.filter()` inserts `[filter, #return]`
     // in the middle on every level) is a fixpoint: its kinds are the active query's kinds.
@@ -474,11 +563,24 @@ export function linkRenderResults(
       path.length > MAX_QUERY_PATH ||
       paths.some((previous) => path.length > previous.length && growsPath(previous, path))
     ) {
+      recursiveReads++;
+      const start = [...evaluating].find((active) => queryBindings[active] === inputKey);
+      if (start !== undefined) {
+        markCycle(start);
+      }
       return Kind.Unknown;
     }
+    const previousRecursiveReads = recursiveReads;
+    const previousRevision = queryRevisions[key];
+    const previousQuery = activeQuery;
+    activeQuery = key;
+    const previousCycleRevision = cycleRevision;
     paths.push(path);
     activePaths.set(inputKey, paths);
     evaluating.add(key);
+    if (cyclicQueries.has(key)) {
+      activeContexts.set(group, enterContext(context, key));
+    }
     const module = modules[moduleIndex];
     const imported = importsByBinding[moduleIndex].get(binding);
     const incoming = inputs.get(inputKey);
@@ -599,6 +701,8 @@ export function linkRenderResults(
       }
     }
     evaluating.delete(key);
+    activeContexts.set(group, context);
+    contextCycleRevision = previousCycleRevision;
     paths.pop();
     if (paths.length === 0) {
       activePaths.delete(inputKey);
@@ -614,8 +718,32 @@ export function linkRenderResults(
     }
     if (cache.get(key) !== result) {
       cache.set(key, result);
+      cacheRevision++;
+      const affected = [key];
+      for (const query of affected) {
+        if (queryRevisions[query] === cacheRevision) {
+          continue;
+        }
+        queryRevisions[query] = cacheRevision;
+        affected.push(...queryDependents[query]);
+      }
       changed = true;
     }
+    // Recursive results require the same cycle context and unchanged facts.
+    if (recursiveReads === previousRecursiveReads) {
+      completed.add(key);
+    } else if (
+      queryRevisions[key] === previousRevision &&
+      cycleRevision === previousCycleRevision
+    ) {
+      let results = contextualResults.get(context);
+      if (results === undefined) {
+        results = new Map();
+        contextualResults.set(context, results);
+      }
+      results.set(key, { revision: queryRevisions[key], result });
+    }
+    activeQuery = previousQuery;
     return result;
   };
 
@@ -977,6 +1105,8 @@ export function linkRenderResults(
   };
   do {
     changed = false;
+    completed.clear();
+    contextualResults.clear();
     modules.forEach((module, index) =>
       module.programs.forEach((program) => {
         if (program.body.kind === ProgramBodyKind.Ops) {

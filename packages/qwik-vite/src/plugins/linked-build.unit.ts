@@ -1,13 +1,19 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { rolldown } from 'rolldown';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { createLinkedBuild } from './linked-build';
 import { qwikRolldown } from './rolldown';
 import type { Rolldown } from 'vite';
 import { Q_MANIFEST_FILENAME } from './plugin';
 import type { QwikManifest } from '../types';
+
+vi.mock('node:fs', async (importOriginal) => {
+  const original = await importOriginal<typeof import('node:fs')>();
+  return { ...original, readFileSync: vi.fn(original.readFileSync) };
+});
 
 test('links a library again using consuming application inputs', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
@@ -70,9 +76,20 @@ test('links a library again using consuming application inputs', async () => {
     expect(JSON.parse(artifact).format).toBe('qwik/library-plan');
     await writeFile(
       application,
-      `import { Label } from './lib/library.js'; export default () => <Label value="text" />;`
+      `import { Label } from './lib/library.js'; import { Other } from './other';
+      export default () => <><Label value="text" /><Other /></>;`
+    );
+    await writeFile(
+      join(directory, 'other.tsx'),
+      `import { Label } from './lib/library.js'; export const Other = () => <Label value="other" />;`
     );
     const textOutput = await build(application, false);
+    const companion = await realpath(join(directory, 'lib/library.js.qwik-plan.json'));
+    expect(
+      vi
+        .mocked(readFileSync)
+        .mock.calls.filter(([path]) => path === companion.replaceAll('\\', '/'))
+    ).toHaveLength(1);
     const textCode = textOutput.output
       .filter((file) => file.type === 'chunk')
       .map((file) => file.code)

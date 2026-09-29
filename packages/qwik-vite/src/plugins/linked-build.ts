@@ -110,6 +110,7 @@ export function createLinkedBuild() {
 
   async function finishBuild(ctx: Rolldown.PluginContext) {
     const config = options!;
+    const libraryPlans = new Map<string, LibraryPlan>();
     const visited = new Map<string, boolean>();
     const collect = async (id: string, isRuntime = true, loadId = id): Promise<void> => {
       if (visited.get(id) === true || (visited.has(id) && !isRuntime)) {
@@ -151,7 +152,11 @@ export function createLinkedBuild() {
         const companion = `${targetId}.qwik-plan.json`;
         if (!targetId.startsWith('\0') && existsSync(companion)) {
           ctx.addWatchFile(companion);
-          const artifact = readLibraryPlan(readFileSync(companion, 'utf8'));
+          let artifact = libraryPlans.get(companion);
+          if (artifact === undefined) {
+            artifact = readLibraryPlan(readFileSync(companion, 'utf8'));
+            libraryPlans.set(companion, artifact);
+          }
           // readLibraryPlan requires the namespace, which names the same source in every bundle
           const identity = (path: string) =>
             artifact.modules.find((module) => module.path === path)!.source.symbolNamespace!;

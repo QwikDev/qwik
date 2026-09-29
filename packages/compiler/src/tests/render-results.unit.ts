@@ -98,6 +98,61 @@ function batches(plan: Awaited<ReturnType<typeof link>>) {
 }
 
 describe('linked render results', () => {
+  test.each([
+    ['', false],
+    ['value0 = props.flag ? value0 : value0;', false],
+    ['value0 = props.flag ? value0 : value0;', true],
+  ] as const)(
+    'reuses shared binding results: %s, independent cycles: %s',
+    async (assignment, hasIndependentCycles) => {
+      const declarations = Array.from({ length: 16 }, (_, index) => {
+        const alternative = hasIndependentCycles ? Math.max(0, index - 1) : index;
+        const declaration = `let value${index + 1} = props.flag ? value${index} : value${alternative};`;
+        return hasIndependentCycles
+          ? `${declaration} value${index + 1} = props.flag ? value${index + 1} : value${index};`
+          : declaration;
+      }).join('\n');
+      const module = await analyseModule(
+        {
+          path: 'app.tsx',
+          code: `export default props => {
+          let value0 = props.value;
+          ${assignment}
+          ${declarations}
+          return <p>{value16}</p>;
+        };`,
+        },
+        { transpileTs: true }
+      );
+      let reads = 0;
+      for (const binding of module.bindings) {
+        const facts = binding.result;
+        if (facts === undefined) {
+          continue;
+        }
+        const value = facts.value;
+        Object.defineProperty(facts, 'value', {
+          get() {
+            reads++;
+            return value;
+          },
+        });
+      }
+      const result = linkPlans(
+        [module],
+        [{ kind: EntryKind.Export, module: 'app.tsx', export: 'default' }],
+        serverSpecialization(),
+        { edges: { 'app.tsx': {} } },
+        true
+      );
+      expect(result.kind).toBe(LinkResultKind.Linked);
+      expect(reads).toBeLessThan(500);
+      if (result.kind === LinkResultKind.Linked) {
+        expect(holes(result.plan)).toEqual([Shape.Unknown]);
+      }
+    }
+  );
+
   test('groups shared scalar captures despite their argument order', async () => {
     expect(
       batches(

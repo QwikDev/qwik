@@ -3,7 +3,7 @@ import MagicString from 'magic-string';
 import type { SegmentCaptureInfo } from './segment-codegen.js';
 import { runDcePipeline } from '../transform/module-cleanup.js';
 import { deriveIsDev } from '../rewrite/const-replacement.js';
-import type { EmitMode } from '../types/types.js';
+import type { DecoratorOptions, EmitMode } from '../types/types.js';
 import { isAnyComponentCtx } from '../rewrite/predicates.js';
 import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
 import { stripTypeScript, type StripOrigin } from '../edit/strip-types.js';
@@ -27,6 +27,7 @@ export interface SegmentPostProcessOptions {
   origin: StripOrigin;
   shouldTranspileTs: boolean;
   shouldTranspileJsx: boolean;
+  decorator?: DecoratorOptions;
   isServer?: boolean;
   emitMode: string;
   devFile?: string;
@@ -94,6 +95,7 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
   if (opts.shouldTranspileTs) {
     const tsStripOptions: TransformOptions = {
       typescript: { onlyRemoveTypeImports: (opts.preserveImportNames?.size ?? 0) > 0 },
+      decorator: opts.decorator,
     };
     if (!opts.shouldTranspileJsx) {
       tsStripOptions.jsx = 'preserve';

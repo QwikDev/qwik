@@ -189,6 +189,7 @@ function applyPassthroughConstFolding(
       code,
       {
         typescript: { onlyRemoveTypeImports: false },
+        decorator: options.decorator,
         ...(ext === '.tsx' ? {} : { jsx: 'preserve' as const }),
       },
       `source file "${relPath}"`,
@@ -1301,6 +1302,7 @@ function rewriteParent(
     options.isServer,
     options.explicitExtensions,
     options.transpileTs,
+    options.decorator,
     options.minify,
     emit.qrlOutputExt,
     program,

@@ -60,6 +60,16 @@ export interface TransformOptions {
   stripCtxName?: string[];
   stripEventHandlers?: boolean;
   isServer?: boolean;
+  /** Decorator lowering, mirroring tsconfig. Only the TypeScript optimizer applies it. */
+  decorator?: DecoratorOptions;
+}
+
+/** @public */
+export interface DecoratorOptions {
+  /** Tsconfig's `experimentalDecorators` */
+  legacy?: boolean;
+  /** Tsconfig's `emitDecoratorMetadata` */
+  emitDecoratorMetadata?: boolean;
 }
 
 /** @public */

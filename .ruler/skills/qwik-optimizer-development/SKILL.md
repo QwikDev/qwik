@@ -71,6 +71,14 @@ failing core test rather than a snapshot diff. To tell a TS-only bug from a pre-
 4. Rebuild the bundle with `pnpm build --optimizer --dev` before rerunning core tests; vitest loads
    `packages/qwik/dist/ts-optimizer.mjs`, not the optimizer source.
 
+## TypeScript-only syntax
+
+Every pass after `stripTypeScript` parses its input as `.js`, and oxc drops syntax that only parses
+as TypeScript (parameter decorators) from those ASTs, so what it references looks unused and gets
+DCE'd. Lower such syntax inside `stripTypeScript` itself, threading the option to every call site
+(see `decorator`); lowering later in the Vite plugin is too late. Segments are served as `.js`, so
+Vite's own `vite:oxc` pass never touches them.
+
 ## Worker pool changes
 
 The transform worker pool (`packages/ts-optimizer/src/worker-pool.ts`) never starts real workers

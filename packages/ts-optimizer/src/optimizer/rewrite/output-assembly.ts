@@ -1162,7 +1162,10 @@ export function assembleOutput(ctx: RewriteContext): string {
   if (transpileTs) {
     // Only strip explicit type imports: liveness decisions (unused value
     // imports, side-effect downgrades) belong to the pipeline's AST prune.
-    const tsStripOptions: TransformOptions = { typescript: { onlyRemoveTypeImports: true } };
+    const tsStripOptions: TransformOptions = {
+      typescript: { onlyRemoveTypeImports: true },
+      decorator: ctx.decorator,
+    };
     if (!jsxOptions?.enableJsx) {
       tsStripOptions.jsx = 'preserve';
     }

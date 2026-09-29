@@ -34,7 +34,7 @@ import {
   transformJsxCalls,
 } from '../jsx/jsx-call-transform.js';
 import { stripExportDeclarations } from './strip-exports.js';
-import type { EmitMode } from '../types/types.js';
+import type { DecoratorOptions, EmitMode } from '../types/types.js';
 import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import type {
@@ -173,6 +173,7 @@ export function rewriteParentModule(
   isServer?: boolean,
   explicitExtensions?: boolean,
   transpileTs?: boolean,
+  decorator?: DecoratorOptions,
   minify?: string,
   outputExtension?: string,
   existingProgram?: AstProgram,
@@ -204,6 +205,7 @@ export function rewriteParentModule(
     isServer,
     explicitExtensions,
     transpileTs,
+    decorator,
     minify,
     outputExtension,
     extractedCalleeNames: new Set<string>(),

@@ -166,6 +166,61 @@ _(Optional)_
 
 Promise&lt;[Optimizer](#optimizer)&gt;
 
+<h2 id="decoratoroptions">DecoratorOptions</h2>
+
+```typescript
+export interface DecoratorOptions
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+emitDecoratorMetadata?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Tsconfig's `emitDecoratorMetadata`
+
+</td></tr>
+<tr><td>
+
+legacy?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Tsconfig's `experimentalDecorators`
+
+</td></tr>
+</tbody></table>
+
 <h2 id="diagnostic">Diagnostic</h2>
 
 ```typescript
@@ -3539,6 +3594,21 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+decorator?
+
+</td><td>
+
+</td><td>
+
+[DecoratorOptions](#decoratoroptions)
+
+</td><td>
+
+_(Optional)_ Decorator lowering, mirroring tsconfig. Only the TypeScript optimizer applies it.
+
+</td></tr>
+<tr><td>
 
 entryStrategy?
 

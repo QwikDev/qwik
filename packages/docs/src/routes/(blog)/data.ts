@@ -1,3 +1,4 @@
+import type { Component } from '@qwik.dev/core';
 import fontlessImage from './blog/(articles)/fontless/fontless-hero.webp';
 import preloaderImage from './blog/(articles)/qwik-1-14-preloader/qwik-preloader-hero.webp';
 import hydrationSabotagesHero from './blog/(articles)/hydration-sabotages-lazy-loading/hero.webp';
@@ -48,6 +49,7 @@ export const authors: Record<string, { socialLink: string }> = {
 type BlogArticle = {
   title: string;
   image: string;
+  hero?: Component;
   path: string;
   tags: string[];
   featuredTitlePosition?: 'top' | 'bottom' | 'none';

@@ -92,6 +92,10 @@ When changing AsyncSignal behavior, inspect:
   (`clear()` drops it). A `clientOnly` signal keeps its own pending while it pretends to load.
   `.loading` and `untrackedPending` stay the own job, first load included: the router,
   `<Resource>` and `usePoll` rely on that.
+- `.pending` takes the same walk as `.error` (a subscription found in the source's `$effects$`,
+  through compiler wrappers such as a prop) and subscribes the reader to each computed it visits,
+  so `$loadingEffects$` holds transitive readers. A source without an in-memory
+  value is read raw, so the walk never fetches a resumed `'never'` loader.
 - `clientOnly` resume rides on the state script's `q-d:qidle` `_res` QRL built from
   `$eagerResume$`; SSR must emit the state script whenever `$eagerResume$` is non-empty, even if
   no roots were discovered yet (the QRL captures become roots during attribute serialization).

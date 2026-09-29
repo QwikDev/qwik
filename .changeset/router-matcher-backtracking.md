@@ -1,5 +1,5 @@
 ---
-'@qwik.dev/router': patch
+'@qwik.dev/router': major
 ---
 
-fix: the most specific route now wins regardless of group order, and a static prefix no longer hides dynamic or catch-all routes
+breaking: the most specific route now wins regardless of group order, and catch-alls also receive unmatched urls below static routes

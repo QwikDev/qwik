@@ -38,6 +38,36 @@ describe(`${name}: visible task`, () => {
     await flush();
   };
 
+  it('sees the text its child components rendered', async () => {
+    const Child = component$((props: { counters: { count: number } }) => {
+      return <i>{`count ${props.counters.count}`}</i>;
+    });
+    const App = component$(() => {
+      const counters = useStore({ count: 0 });
+      const seen = useSignal('');
+      const ref = useSignal<Element>();
+      useVisibleTask$(
+        () => {
+          seen.value = ref.value!.querySelector('i')!.textContent!;
+        },
+        { strategy: 'document-ready' }
+      );
+      return (
+        <div ref={ref}>
+          <Child counters={counters} />
+          <b>{seen.value}</b>
+        </div>
+      );
+    });
+    const { container, cleanup, flush, qwikLoader } = await render(App, { debug });
+    if (isResume) {
+      await qwikLoader?.dispatch(container.querySelector('script[hidden]') ?? container, 'qinit');
+    }
+    await flush();
+    expect(container.querySelector('b')!.textContent).toBe('count 0');
+    cleanup();
+  });
+
   it('runs when the element becomes visible', async () => {
     const App = component$(() => {
       const state = useSignal('SSR');

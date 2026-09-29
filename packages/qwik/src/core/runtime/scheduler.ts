@@ -186,22 +186,29 @@ export class Scheduler {
 
   private flushOwner(owner: Owner): ValueOrPromise<void> {
     const stack: OwnerFrame[] = [];
+    const rendered: Owner[] = [];
     pushOwnerFrame(stack, owner);
-    return this.drainOwnerStack(stack);
+    // Visible tasks see the whole subtree's DOM, not just their own owner's
+    return maybeThen(this.drainOwnerStack(stack, rendered), () => {
+      for (let i = 0; i < rendered.length; i++) {
+        this.flushVisibleTasks(rendered[i]);
+      }
+    });
   }
 
-  private drainOwnerStack(stack: OwnerFrame[]): ValueOrPromise<void> {
+  private drainOwnerStack(stack: OwnerFrame[], rendered: Owner[]): ValueOrPromise<void> {
     while (stack.length > 0) {
       const frame = stack[stack.length - 1];
 
       if (frame.items === null) {
+        rendered.push(frame.owner);
         const pending = this.flushOwnerPhases(frame.owner);
         if (isPromise(pending)) {
           // Snapshot items only once the phases have settled, exactly as the await did.
           return pending.then(() => {
             frame.items = frame.owner.items;
             frame.end = ownerItemsLength(frame.items);
-            return this.drainOwnerStack(stack);
+            return this.drainOwnerStack(stack, rendered);
           });
         }
         frame.items = frame.owner.items;
@@ -229,14 +236,11 @@ export class Scheduler {
     }
   }
 
-  // Phase order is blocking -> structural -> scalar -> visible -> deferred.
+  // Phase order is blocking -> structural -> scalar -> deferred; visible follows the subtree.
   private flushOwnerPhases(owner: Owner): ValueOrPromise<void> {
     return maybeThen(this.flushBlockingTasks(owner), () =>
       maybeThen(this.flushStructuralDom(owner), () =>
-        maybeThen(this.flushScalarDom(owner), () => {
-          this.flushVisibleTasks(owner);
-          this.flushDeferredTasks(owner);
-        })
+        maybeThen(this.flushScalarDom(owner), () => this.flushDeferredTasks(owner))
       )
     );
   }

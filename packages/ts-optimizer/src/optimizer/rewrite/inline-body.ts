@@ -412,7 +412,7 @@ export function transformInlineSegmentBody(
     }
   }
 
-  body = propagateConstLiteralsInBody(body);
+  body = propagateConstLiteralsInBody(body, collectElementCaptureNames(nested, elementQpParamsMap));
 
   let finalKeyCounterValue: number | undefined;
 
@@ -651,4 +651,23 @@ export function transformInlineSegmentBody(
     hoistedDeclarations,
     keyCounterValue: finalKeyCounterValue,
   };
+}
+
+/** Names a nested event handler receives through its element's `q:p`/`q:ps` prop. */
+function collectElementCaptureNames(
+  nested: readonly ExtractionResult[],
+  elementQpParamsMap: ReadonlyMap<string, string[]> | undefined
+): Set<string> {
+  const names = new Set<string>();
+  for (const child of nested) {
+    if (child.ctxKind !== 'eventHandler') {
+      continue;
+    }
+    const params =
+      elementQpParamsMap?.get(child.symbolName) ?? eventHandlerQpParams(child.paramNames);
+    for (const name of [...params, ...child.captureNames]) {
+      names.add(name);
+    }
+  }
+  return names;
 }

@@ -13,6 +13,7 @@ import {
 } from '../../runtime/invoke-context';
 import {
   disposeOwner,
+  runOwnerCleanups,
   getOrCreateContextOwner,
   registerSubscriberToOwner,
   type Owner,
@@ -146,39 +147,52 @@ export class BranchSubscription implements BranchSubscriber {
             return;
           }
 
-          const invokeContext = newChildInvokeContext(this.branch.invokeContext, {
-            ownerHost: this.owner,
-            container: this.branch.container,
-          });
-          return safeCall(
-            () =>
-              retryOnPromise(() =>
-                runWithCollector(null, () =>
-                  invoke(invokeContext, () => renderer(invokeContext.container!))
-                )
-              ),
-            (nodes) => {
-              if (isSubscriberDisposed(this)) {
-                if (invokeContext.owner !== null) {
-                  disposeOwner(invokeContext.owner);
-                  invokeContext.owner = null;
-                }
-                return;
-              }
-              this.branch.commit(invokeContext, nextBranch, nodes);
-            },
-            (error) => {
-              if (invokeContext.owner !== null) {
-                disposeOwner(invokeContext.owner);
-                invokeContext.owner = null;
-              }
-              throw error;
-            }
+          const previousOwner = this.branch.currentOwner;
+          // The outgoing arm cleans up before the incoming arm's tasks run
+          return maybeThen(
+            previousOwner === null ? undefined : runOwnerCleanups(previousOwner),
+            () => renderBranchArm(this, renderer, nextBranch)
           );
         });
       });
     });
   }
+}
+
+function renderBranchArm(
+  subscription: BranchSubscription,
+  renderer: BranchHandlerFn,
+  nextBranch: BranchState
+): ValueOrPromise<void> {
+  const invokeContext = newChildInvokeContext(subscription.branch.invokeContext, {
+    ownerHost: subscription.owner,
+    container: subscription.branch.container,
+  });
+  return safeCall(
+    () =>
+      retryOnPromise(() =>
+        runWithCollector(null, () =>
+          invoke(invokeContext, () => renderer(invokeContext.container!))
+        )
+      ),
+    (nodes) => {
+      if (isSubscriberDisposed(subscription)) {
+        if (invokeContext.owner !== null) {
+          disposeOwner(invokeContext.owner);
+          invokeContext.owner = null;
+        }
+        return;
+      }
+      subscription.branch.commit(invokeContext, nextBranch, nodes);
+    },
+    (error) => {
+      if (invokeContext.owner !== null) {
+        disposeOwner(invokeContext.owner);
+        invokeContext.owner = null;
+      }
+      throw error;
+    }
+  );
 }
 
 export function createBranch(

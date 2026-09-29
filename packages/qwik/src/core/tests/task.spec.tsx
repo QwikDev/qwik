@@ -301,6 +301,83 @@ describe(`${name}: task`, () => {
     cleanup();
   });
 
+  it('a branch swap runs the previous arm visible task and computed cleanups first', async () => {
+    const Arm = component$((props: { name: string; log: { value: string } }) => {
+      useVisibleTask$(({ cleanup }) => {
+        cleanup(() => {
+          props.log.value += `-v${props.name}`;
+        });
+      });
+      const label = useComputed$<string>(({ cleanup }) => {
+        cleanup(() => {
+          props.log.value += `-c${props.name}`;
+        });
+        return props.name;
+      });
+      useTask$(() => {
+        props.log.value += `+${props.name}`;
+      });
+      return <span>{label.value}</span>;
+    });
+
+    const App = component$(() => {
+      const showA = useSignal(false);
+      const log = useSignal('');
+      return (
+        <button onClick$={() => (showA.value = !showA.value)}>
+          {showA.value ? <Arm name="A" log={log} /> : <Arm name="B" log={log} />}
+          <b>{log.value}</b>
+        </button>
+      );
+    });
+
+    const { container, cleanup, qwikLoader, flush } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('span')!, 'qvisible');
+    await flush();
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    const log = container.querySelector('b')!.textContent!;
+    expect(log.indexOf('-vB')).toBeGreaterThan(-1);
+    expect(log.indexOf('-cB')).toBeGreaterThan(-1);
+    expect(log.indexOf('-vB')).toBeLessThan(log.indexOf('+A'));
+    expect(log.indexOf('-cB')).toBeLessThan(log.indexOf('+A'));
+
+    cleanup();
+  });
+
+  it('a branch swap runs the previous arm cleanups before the next arm tasks', async () => {
+    const Arm = component$((props: { name: string; log: { value: string } }) => {
+      useTask$(({ cleanup }) => {
+        props.log.value += `+${props.name}`;
+        cleanup(() => {
+          props.log.value += `-${props.name}`;
+        });
+      });
+      return <span>{props.name}</span>;
+    });
+
+    const App = component$(() => {
+      const showA = useSignal(true);
+      const log = useSignal('');
+      return (
+        <button onClick$={() => (showA.value = !showA.value)}>
+          {showA.value ? <Arm name="A" log={log} /> : <Arm name="B" log={log} />}
+          <b>{log.value}</b>
+        </button>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+    await qwikLoader?.dispatch(button, 'click');
+    await qwikLoader?.dispatch(button, 'click');
+
+    const log = container.querySelector('b')!.textContent!;
+    expect(log.slice(log.lastIndexOf('-B'))).toBe('-B+A');
+
+    cleanup();
+  });
+
   it('task runs cleanup on unmount after client activation', async () => {
     const Child = component$((props: { cleanupCount: { value: number } }) => {
       useTask$(({ cleanup }) => {

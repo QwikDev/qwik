@@ -63,7 +63,7 @@ export const Child = (props, ctx) => {
   return el0;
 };
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
-  useStyles('.global { color: blue; }', 'f5nwlog2s6xs-1');
+  useStyles('.global { color: blue; }', '1th7qqj6qe004-0');
   const scope = useStylesScoped('.local { color: green; }', 'f5nxrrrtaczd-2', true);
   const active = useSignal(false);
   const el0 = default_tmpl0(ctx.document);

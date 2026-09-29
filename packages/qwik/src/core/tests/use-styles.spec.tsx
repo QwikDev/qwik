@@ -49,6 +49,24 @@ describe(`${name}: useStyles$`, () => {
     cleanup();
   });
 
+  it('dedupes identical global CSS across different components', async () => {
+    const Parent = component$(() => {
+      useStyles$(STYLE_RED);
+      return <Child />;
+    });
+    const Child = component$(() => {
+      useStyles$(STYLE_RED);
+      return <span class="container">Child</span>;
+    });
+
+    const { document, container, cleanup } = await render(Parent, { debug });
+
+    expect(document.querySelectorAll(QStyleSelector)).toHaveLength(1);
+    expect(document.querySelector(QStyleSelector)!.textContent).toBe(STYLE_RED);
+    expect(container.querySelector('span')!.className).toBe('container');
+    cleanup();
+  });
+
   it('keeps the style after a signal update', async () => {
     const App = component$(() => {
       useStyles$(STYLE_RED);

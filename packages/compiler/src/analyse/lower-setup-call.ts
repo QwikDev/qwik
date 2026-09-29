@@ -4,6 +4,7 @@ import {
   ExportKind,
   ExportTargetKind,
   SetupKind,
+  VarKind,
   VisibleTaskEvent,
   BoundaryKind,
   CallTargetKind,
@@ -14,11 +15,11 @@ import {
   type QrlArg,
   type Setup,
 } from '../schema';
-import type { Argument, BindingPattern, CallExpression } from 'oxc-parser';
+import type { Argument, BindingPattern, CallExpression, Expression } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
 import { QRL_SUFFIX, QwikHook, QwikMarker } from '../words';
-import { createStyleId } from '../segment-identity';
+import { createSegmentSourceIdentity, createStyleId } from '../segment-identity';
 import { coreSetupCalls, type SetupCallContract } from './setup-api';
 import { LocalKind, type SetupLocals } from './locals';
 import { type LowerContext } from './lower-context';
@@ -194,7 +195,24 @@ function lowerStyleCall(
     throw new UnsupportedError('a style hook without exactly one css argument');
   }
   const ordinal = ctx.styleCounter.next++;
-  const styleId = createStyleId(ctx.sourceIdentity, ordinal);
+  let styleId = createStyleId(ctx.sourceIdentity, ordinal);
+  const staticCss = scoped ? null : getStaticStyle(expression, ctx);
+  const binding = ctx.bindings.reference(expression);
+  const imported = ctx.plan.imports.find((entry) => entry.binding === binding);
+  if (staticCss !== null) {
+    styleId = createStyleId(`global-css\0${staticCss}`, 0);
+  } else if (!scoped && imported !== undefined) {
+    const specifier = ctx.plan.edges[imported.edge].specifier;
+    if (specifier.startsWith('.')) {
+      const path = ctx.plan.source.originalPath.replaceAll('\\', '/');
+      const scope = ctx.sourceIdentity.slice(0, ctx.sourceIdentity.indexOf('\0'));
+      const identity = createSegmentSourceIdentity(
+        path.slice(0, path.lastIndexOf('/') + 1) + specifier,
+        scope
+      );
+      styleId = createStyleId(`${identity}\0${imported.imported}`, 0);
+    }
+  }
   if (scoped) {
     ctx.styleScopes.push(`⚡️${styleId}`);
   }
@@ -222,6 +240,39 @@ function lowerStyleCall(
     result:
       pattern === null ? null : lowerSetupBinding(pattern, ctx, locals, LocalKind.Const).result,
   };
+}
+
+function getStaticStyle(expression: Expression, ctx: LowerContext): string | null {
+  const visited = new Set<LocalId>();
+  while (expression.type === 'Identifier') {
+    const binding = ctx.bindings.reference(expression);
+    if (
+      binding === null ||
+      visited.has(binding) ||
+      ctx.plan.bindings[binding].varKind !== VarKind.Const
+    ) {
+      return null;
+    }
+    visited.add(binding);
+    const declaration = ctx.bindings.declarationsOf(binding)[0];
+    if (
+      declaration?.type !== 'VariableDeclarator' ||
+      declaration.id.type !== 'Identifier' ||
+      declaration.init === null
+    ) {
+      return null;
+    }
+    const initial = unwrapExpression(declaration.init);
+    if (initial === null) {
+      return null;
+    }
+    expression = initial;
+  }
+  return expression.type === 'Literal' && typeof expression.value === 'string'
+    ? expression.value
+    : expression.type === 'TemplateLiteral' && expression.expressions.length === 0
+      ? (expression.quasis[0].value.cooked ?? null)
+      : null;
 }
 
 function visibleTaskEvent(options: Argument | undefined): VisibleTaskEvent {

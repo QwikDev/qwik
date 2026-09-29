@@ -217,3 +217,66 @@ export default (props) => {
     target: { kind: CallTargetKind.Core, operation: CoreOperation.CreateSignal },
   });
 });
+
+test('global style imports share IDs across components and keep scoped IDs separate', async () => {
+  const styleIds = async (path: string, source: string) => {
+    const plan = await analyseModule(
+      {
+        path,
+        code: `import { useStyles$, useStylesScoped$ } from '@qwik.dev/core';
+import css from '${source}';
+export default () => {
+  useStyles$(css);
+  useStylesScoped$(css);
+  return <div />;
+};`,
+      },
+      {}
+    );
+    expect(plan.diagnostics).toEqual([]);
+    return plan.programs.flatMap((program) =>
+      program.setup.flatMap((entry) => (entry.s === SetupKind.Style ? [entry.styleId] : []))
+    );
+  };
+  const parent = await styleIds('src/parent.tsx', './shared.css?inline');
+  const child = await styleIds('src/nested/child.tsx', '../shared.css?inline');
+  const other = await styleIds('src/other.tsx', './other.css?inline');
+
+  expect(parent).toHaveLength(2);
+  expect(parent[0]).toBe(child[0]);
+  expect(parent[0]).not.toBe(other[0]);
+  expect(parent[1]).not.toBe(child[1]);
+});
+
+test('static global CSS shares IDs across literals and const bindings', async () => {
+  const plan = await analyseModule(
+    {
+      path: 'src/styles.tsx',
+      code: `import { useStyles$, useStylesScoped$ } from '@qwik.dev/core';
+const CSS = '.shared { color: red; }';
+const ALIAS = CSS;
+let mutable = CSS;
+export default () => {
+  const local = CSS;
+  useStyles$('.shared { color: red; }');
+  useStyles$(\`.shared { color: red; }\`);
+  useStyles$(CSS);
+  useStyles$(ALIAS);
+  useStyles$(local);
+  useStyles$('.other { color: blue; }');
+  useStyles$(mutable);
+  useStylesScoped$(CSS);
+  useStylesScoped$(CSS);
+  return <div />;
+};`,
+    },
+    {}
+  );
+  expect(plan.diagnostics).toEqual([]);
+  const ids = plan.programs.flatMap((program) =>
+    program.setup.flatMap((entry) => (entry.s === SetupKind.Style ? [entry.styleId] : []))
+  );
+  expect(ids).toHaveLength(9);
+  expect(new Set(ids.slice(0, 5)).size).toBe(1);
+  expect(new Set([ids[0], ...ids.slice(5)]).size).toBe(5);
+});

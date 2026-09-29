@@ -896,4 +896,20 @@ describe('matchRouteLoadersByName — pattern segments', () => {
     const loaders = matchRouteLoadersByName(routes, '/[...rest]');
     assert.deepEqual(loaders, [groupLayout, pageLoader]);
   });
+
+  test('segment inside nested group nodes is found with every group layout', () => {
+    const outerLayout = makeLoader();
+    const innerLayout = makeLoader();
+    const pageLoader = makeLoader();
+    const routes: RouteData = {
+      _M: [
+        {
+          _L: outerLayout as any,
+          _M: [{ _L: innerLayout as any, 'sign-in': { _I: pageLoader as any } }],
+        },
+      ],
+    };
+    const loaders = matchRouteLoadersByName(routes, '/sign-in');
+    assert.deepEqual(loaders, [outerLayout, innerLayout, pageLoader]);
+  });
 });

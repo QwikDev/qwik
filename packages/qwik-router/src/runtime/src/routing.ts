@@ -133,27 +133,17 @@ function walkTrieKeys(
     // Canonical route names keep the source pattern; translate to the trie key
     const rawKey = keys[i];
     const key = /^\[\.\.\.\w+\]$/.test(rawKey) ? '_A' : /\[\w+\]/.test(rawKey) ? '_W' : rawKey;
-    let next = node[key] as RouteData | undefined;
-
-    // If not a direct child, search inside _M group nodes
-    if (!next && node._M) {
-      for (let j = 0; j < node._M.length; j++) {
-        const group = node._M[j];
-        next = group[key] as RouteData | undefined;
-        if (next) {
-          // Collect the group's layout
-          if (group._L) {
-            layouts.push(group._L);
-          }
-          break;
-        }
-      }
-    }
-
-    if (!next) {
+    // A key may sit inside nested pathless `_M` groups, whose layouts wrap it
+    const found = descendGroups(node, (n) => n[key] as RouteData | undefined);
+    if (!found) {
       return undefined;
     }
-    node = next;
+    for (const group of found.groups) {
+      if (group._L) {
+        layouts.push(group._L);
+      }
+    }
+    node = found.value;
     if (node._L) {
       layouts.push(node._L);
     }

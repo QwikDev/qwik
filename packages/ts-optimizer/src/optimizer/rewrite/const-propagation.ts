@@ -282,7 +282,11 @@ function bodyHasAwaitBetween(body: string, from: number, to: number): boolean {
   return /\b(await|yield)\b/.test(body.slice(from, to));
 }
 
-export function propagateConstLiteralsInBody(body: string): string {
+/** `elementCaptureNames` feed a later-emitted `q:p` prop, so they must keep their decls. */
+export function propagateConstLiteralsInBody(
+  body: string,
+  elementCaptureNames: ReadonlySet<string> = new Set()
+): string {
   const session = createTransformSession(body);
   if (!session) {
     return body;
@@ -296,7 +300,7 @@ export function propagateConstLiteralsInBody(body: string): string {
   const mutatedObjects = new Set<string>();
   // Identifiers inside `q_X.w([...])` capture arrays — serialization
   // contracts aligned with `_captures[N]` reads; never inline or remove.
-  const protectedNames = new Set<string>();
+  const protectedNames = new Set<string>(elementCaptureNames);
 
   let currentDeclName: string | null = null;
 

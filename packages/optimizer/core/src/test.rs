@@ -3334,6 +3334,25 @@ export const Issue3742 = component$(({description = '', other}: any) => {
 	});
 }
 #[test]
+fn example_issue_6920_hoisted_alias_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useStore } from '@qwik.dev/core';
+
+export const App = component$(() => {
+	const store = useStore({ counter: { count: 1 }, largeData: { data: 'BIG' } });
+	const counter = store.counter;
+	return <button onClick$={() => counter.count++}>+1</button>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+}
+#[test]
 fn example_getter_generation() {
 	test_input!(TestInput {
 		code: r#"

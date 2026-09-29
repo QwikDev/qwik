@@ -469,58 +469,55 @@ function findChildAll(
 }
 
 /**
- * Order two complete matches by specificity, segment by segment: a static segment beats a
- * `[param]`, which beats a `[...rest]`. A chain that ran out of segments (because an earlier
- * `[...rest]` swallowed them) ranks last. Negative when `a` is the better match.
- */
-function compareChains(a: ChildMatch[], b: ChildMatch[]): number {
-  const len = Math.max(a.length, b.length);
-  for (let i = 0; i < len; i++) {
-    const kindA = i < a.length ? a[i].kind : -1;
-    const kindB = i < b.length ? b[i].kind : -1;
-    if (kindA !== kindB) {
-      return kindA - kindB;
-    }
-  }
-  return 0;
-}
-
-/**
  * Search for the most specific chain of child matches that consumes `parts` from `i` and lands on a
- * node that actually has a route (an index, or a rest wildcard soaking up the remainder).
+ * route. Chains rank segment by segment: a static segment beats a `[param]`, which beats a
+ * `[...rest]`; ties go to the first in `findChild` order.
  *
- * Unlike the greedy walk in `matchRouteTree`, this backtracks: a static prefix that dead-ends
- * deeper no longer hides a dynamic route in a sibling group. Returns undefined when nothing
- * matches, and the walk then proceeds exactly as before.
+ * Only chains strictly more specific than `toBeat` (the best tail found so far) are returned, so
+ * branches that can no longer win are pruned. Returns undefined when nothing matches.
  */
-function findMatchChain(node: RouteData, parts: string[], i: number): ChildMatch[] | undefined {
+function findMatchChain(
+  node: RouteData,
+  parts: string[],
+  i: number,
+  toBeat?: ChildMatch[]
+): ChildMatch[] | undefined {
   if (i === parts.length) {
-    return findIndexNode(node) || findRestNode(node) ? [] : undefined;
+    // Reaching the end with a bound means an equally specific chain already exists.
+    return !toBeat && (findIndexNode(node) || findRestNode(node)) ? [] : undefined;
   }
 
   const part = parts[i];
-  const partLower = part.toLowerCase();
-  const candidates = findChildAll(node, part, partLower, parts, i);
-  // An exact route subtree owns its unmatched descendants: it 404s rather than handing the URL to a
-  // rest wildcard beside it. Dynamic subtrees may still fall back to one.
-  const ownsSubtree = candidates.some((c) => c.kind === ChildMatchKind.Exact);
+  const candidates = findChildAll(node, part, part.toLowerCase(), parts, i).sort(
+    (a, b) => a.kind - b.kind
+  );
 
   let best: ChildMatch[] | undefined;
   for (let c = 0; c < candidates.length; c++) {
     const found = candidates[c];
-    if (ownsSubtree && found.kind === ChildMatchKind.Rest) {
-      continue;
+    const bound = best ?? toBeat;
+    if (bound && found.kind > bound[0].kind) {
+      break;
     }
-    const rest = found.done ? [] : findMatchChain(found.next, parts, i + 1);
-    if (!rest) {
-      continue;
-    }
-    const chain = [found, ...rest];
-    if (!best || compareChains(chain, best) < 0) {
-      best = chain;
+    const tailToBeat = bound && found.kind === bound[0].kind ? bound.slice(1) : undefined;
+    const tail = found.done
+      ? matchRestTail(found.next, tailToBeat)
+      : findMatchChain(found.next, parts, i + 1, tailToBeat);
+    if (tail) {
+      best = [found, ...tail];
     }
   }
   return best;
+}
+
+/** A `[...rest]` match ends the chain; it only counts when it has a page and beats the bound. */
+function matchRestTail(restNode: RouteData, toBeat?: ChildMatch[]): ChildMatch[] | undefined {
+  return !toBeat && isRouteNode(restNode) ? [] : undefined;
+}
+
+/** Whether a node renders something: a page (`_I`) or a rewrite (`_G`). */
+function isRouteNode(node: RouteData): boolean {
+  return !!node._I || node._G != null;
 }
 
 /**
@@ -555,7 +552,7 @@ function descendGroups<T>(
  * isn't double-counted).
  */
 function findIndexNode(node: RouteData): { target: RouteData; groups: RouteData[] } | undefined {
-  const r = descendGroups(node, (n) => (n._I || n._G != null ? n : undefined));
+  const r = descendGroups(node, (n) => (isRouteNode(n) ? n : undefined));
   return r ? { target: r.node, groups: r.groups.filter((g) => g !== r.node) } : undefined;
 }
 

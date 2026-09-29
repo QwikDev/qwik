@@ -708,7 +708,7 @@ test('loadRoute — _A fallback with multi-segment rest value', async () => {
   assert.deepEqual(result.$params$, { rest: 'blog/post/extra' });
 });
 
-test('loadRoute — exact child dead end does not fall back to sibling _M catchall', async () => {
+test('loadRoute — exact child dead end falls back to sibling _M catchall', async () => {
   const catchallLoader = makeLoader();
   const routes: RouteData = {
     _4: makeLoader(),
@@ -725,8 +725,8 @@ test('loadRoute — exact child dead end does not fall back to sibling _M catcha
   };
 
   const result = await loadRoute(routes, false, '/loader-redirect/notexist');
-  assert.isTrue(result.$notFound$);
-  assert.notDeepEqual(result.$params$, { catchall: 'loader-redirect/notexist' });
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$params$, { catchall: 'loader-redirect/notexist' });
 });
 
 test('loadRoute — object prototype and metadata names are not static segments', async () => {
@@ -778,6 +778,45 @@ test('loadRoute — a later segment being static outranks an all-dynamic match',
     assert.deepEqual(result.$params$, { x: 'foo' });
     assert.equal(result.$routeName$, '/[x]/static.xml');
   }
+});
+
+test('loadRoute — a static prefix that dead-ends falls back to a catchall at any depth', async () => {
+  // A catch-all takes the URL whether it sits at the root or behind a [param].
+  const pricing = { pricing: { _I: makeLoader() } };
+  const rootRest = { _A: { _P: 'rest', _I: makeLoader() } };
+  const paramRest = { _W: { _P: 'a', _A: { _P: 'rest', _I: makeLoader() } } };
+
+  const rootResult = await loadRoute({ _M: [pricing, rootRest] }, false, '/pricing/x');
+  assert.isFalse(rootResult.$notFound$);
+  assert.deepEqual(rootResult.$params$, { rest: 'pricing/x' });
+
+  const paramResult = await loadRoute({ _M: [pricing, paramRest] }, false, '/pricing/x');
+  assert.isFalse(paramResult.$notFound$);
+  assert.deepEqual(paramResult.$params$, { a: 'pricing', rest: 'x' });
+
+  // With both, the [param] outranks the catch-all at the first segment.
+  const bothResult = await loadRoute({ _M: [pricing, rootRest, paramRest] }, false, '/pricing/x');
+  assert.equal(bothResult.$routeName$, '/[a]/[...rest]');
+});
+
+test('loadRoute — a static segment in a later group outranks a [param] in an earlier one', async () => {
+  const routes: RouteData = {
+    _M: [{ _W: { _P: 'slug', _I: makeLoader() } }, { about: { _I: makeLoader() } }],
+  };
+  const result = await loadRoute(routes, false, '/about');
+  assert.deepEqual(result.$params$, {});
+  assert.equal(result.$routeName$, '/about');
+});
+
+test('loadRoute — a catchall without a page does not match', async () => {
+  // `x/[...rest]` would outrank `[a]/[b]`, but it only has a layout.
+  const routes: RouteData = {
+    x: { _A: { _P: 'rest', _L: makeLoader() } },
+    _W: { _P: 'a', _W: { _P: 'b', _I: makeLoader() } },
+  };
+  const result = await loadRoute(routes, false, '/x/y');
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$params$, { a: 'x', b: 'y' });
 });
 
 // ─── Menu (_N) trie tests ───────────────────────────────────────────────────────

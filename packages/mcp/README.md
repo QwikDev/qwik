@@ -40,15 +40,15 @@ Set the client's working directory to your project so `npx --no-install` resolve
 
 ## Tools
 
-| Tool                 | Inputs                                                    | Result                                                                   |
-| -------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `get_project_info`   | `{}`                                                      | Project root, Qwik version, optional Router version, development URL     |
-| `list_routes`        | `{}`                                                      | `routerInstalled` and Router's routes, source files, parameters, layouts |
-| `get_dev_errors`     | `{ url? }`                                                | Vite errors observed by the selected page, with source locations         |
-| `inspect_page`       | `{ url?, selector?, includeHtml?, includeSignalValues? }` | Component tree, component hook metadata, optional signal values and HTML |
-| `search_docs`        | `{ query, limit? }`                                       | Ranked documentation page IDs, titles, snippets and snapshot version     |
-| `get_doc`            | `{ id }`                                                  | Full Markdown page, source URL and snapshot version                      |
-| `get_best_practices` | `{}`                                                      | Short Qwik coding guide and its bundled version                          |
+| Tool                 | Inputs                                                    | Result                                                                     |
+| -------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `get_project_info`   | `{}`                                                      | Installed versions, script names, documentation match and optional dev URL |
+| `list_routes`        | `{}`                                                      | `routerInstalled` and Router's routes, source files, parameters, layouts   |
+| `get_dev_errors`     | `{ url? }`                                                | Vite errors observed by the selected page, with source locations           |
+| `inspect_page`       | `{ url?, selector?, includeHtml?, includeSignalValues? }` | Component tree, component hook metadata, optional signal values and HTML   |
+| `search_docs`        | `{ query, limit? }`                                       | Ranked documentation page IDs, titles, snippets and snapshot version       |
+| `get_doc`            | `{ id }`                                                  | Full Markdown page, source URL and snapshot version                        |
+| `get_best_practices` | `{}`                                                      | Short Qwik coding guide and its bundled version                            |
 
 `includeHtml` and `includeSignalValues` default to `false`. `selector` scopes the HTML fragment; component metadata still describes the page. HTML is current DOM, marked `source: "live-dom"`, limited to 64 KiB of UTF-8, with `truncated` indicating an incomplete fragment. It is not the original SSR response.
 
@@ -61,6 +61,8 @@ With several pages connected, provide the exact page URL. Duplicate tabs with th
 `get_best_practices`, `search_docs` and `get_doc` work without Vite, an open browser or network access. The short guide and documentation snapshot are bundled with the MCP package and carry its version. The snapshot is generated from all Qwik documentation and API pages during the MCP build. MCP uses the same complete manifest as `llms.txt`; new documentation pages are discovered automatically during the build. It describes that release, which may differ from the Qwik version installed in your application.
 
 The MCP server also sends workflow instructions during initialization: read the guide for Qwik code, search for specific topics, then fetch the full page. The instructions describe which live tools require Vite and a connected browser.
+
+`get_project_info` reads installed Qwik packages and project script names even when Vite is stopped. It returns `documentation.version` and `documentation.matchesProject`, which compares the bundled documentation version with the installed Qwik core version exactly. `devServerRunning` is `false` and `devUrl` is absent until Vite starts. `routerVersion` reports the installed Router package; use `list_routes` to see whether the Router plugin is active.
 
 Search first, then use a returned page ID to read the full document:
 

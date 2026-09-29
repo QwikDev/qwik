@@ -5,10 +5,11 @@ import { qwikVite } from '@qwik.dev/core/optimizer';
 import { qwikRouter } from '@qwik.dev/router/vite';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
-import { readFile, readdir, stat, writeFile, unlink } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile, unlink } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { request } from 'node:http';
+import { tmpdir } from 'node:os';
 import { qwikMcp } from '../dist/index.js';
 
 test('bundled documentation works over stdio without Vite or a project directory', async () => {
@@ -79,6 +80,50 @@ test('bundled documentation works over stdio without Vite or a project directory
     });
   } finally {
     await client.close();
+  }
+});
+
+test('project info reads installed versions and scripts without Vite', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'qwik-mcp-project-'));
+  await mkdir(join(root, 'node_modules/@qwik.dev/core'), { recursive: true });
+  await mkdir(join(root, 'node_modules/@qwik.dev/router'), { recursive: true });
+  await writeFile(
+    join(root, 'package.json'),
+    JSON.stringify({ scripts: { build: 'vite build', test: 'vitest run' } })
+  );
+  await writeFile(join(root, 'node_modules/@qwik.dev/core/package.json'), '{"version":"0.0.0"}');
+  await writeFile(join(root, 'node_modules/@qwik.dev/router/package.json'), '{"version":"0.0.0"}');
+  const client = new Client({ name: 'offline-project', version: '1' });
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [fileURLToPath(new URL('../dist/cli.js', import.meta.url)), root],
+    stderr: 'pipe',
+  });
+  try {
+    await client.connect(transport);
+    const first = (await client.callTool({ name: 'get_project_info', arguments: {} }))
+      .structuredContent as { documentation: { version: string; matchesProject: boolean } };
+    expect(first).toMatchObject({
+      root,
+      qwikVersion: '0.0.0',
+      routerVersion: '0.0.0',
+      devServerRunning: false,
+      scripts: ['build', 'test'],
+      documentation: { version: expect.any(String), matchesProject: false },
+    });
+    await writeFile(
+      join(root, 'node_modules/@qwik.dev/core/package.json'),
+      JSON.stringify({ version: first.documentation.version })
+    );
+    expect(
+      (await client.callTool({ name: 'get_project_info', arguments: {} })).structuredContent
+    ).toMatchObject({ documentation: { matchesProject: true } });
+    expect(await client.callTool({ name: 'list_routes', arguments: {} })).toMatchObject({
+      isError: true,
+    });
+  } finally {
+    await client.close();
+    await rm(root, { recursive: true, force: true });
   }
 });
 
@@ -166,9 +211,17 @@ for (const mode of ['csr', 'ssr']) {
             }),
           ])
         );
-      expect(await call('get_project_info')).toMatchObject({
-        structuredContent: { root, qwikVersion: expect.any(String) },
+      const projectInfo = (await call('get_project_info')).structuredContent!;
+      expect(projectInfo).toMatchObject({
+        root,
+        qwikVersion: expect.any(String),
+        devServerRunning: true,
+        devUrl: expect.any(String),
+        documentation: { version: expect.any(String), matchesProject: expect.any(Boolean) },
       });
+      expect(projectInfo.documentation.matchesProject).toBe(
+        projectInfo.documentation.version === projectInfo.qwikVersion
+      );
       const routes = (await call('list_routes')).structuredContent!;
       expect(routes.routerInstalled).toBe(mode === 'ssr');
       if (mode === 'ssr') {
@@ -286,7 +339,9 @@ for (const mode of ['csr', 'ssr']) {
       await browser.close();
       await server.close();
       await unlink(join(root, 'node_modules/.cache/qwik-mcp/stale-test.json')).catch(() => {});
-      expect(await call('get_project_info')).toMatchObject({ isError: true });
+      expect(await call('get_project_info')).toMatchObject({
+        structuredContent: { root, devServerRunning: false },
+      });
       await client.close();
     }
   }, 60000);

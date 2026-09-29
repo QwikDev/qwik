@@ -1,11 +1,55 @@
 #!/usr/bin/env node
 import { readdir, readFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
+import { createRequire } from 'node:module';
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import { createMcpServer } from './server';
 import type { ToolName } from './protocol';
+import { loadDocs } from './docs';
 
 const root = resolve(process.argv[2] ?? process.cwd());
+async function readProjectInfo() {
+  const require = createRequire(join(root, 'package.json'));
+  const version = async (name: string) =>
+    JSON.parse(await readFile(require.resolve(`${name}/package.json`), 'utf8')).version as string;
+  let qwikVersion: string;
+  try {
+    qwikVersion = await version('@qwik.dev/core');
+  } catch {
+    throw new Error(`Cannot resolve @qwik.dev/core in ${root}.`);
+  }
+  let routerVersion: string | undefined;
+  try {
+    routerVersion = await version('@qwik.dev/router');
+  } catch {
+    // Router is optional.
+  }
+  let scripts: string[] = [];
+  try {
+    const project = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
+    if (project.scripts && typeof project.scripts === 'object' && !Array.isArray(project.scripts)) {
+      scripts = Object.keys(project.scripts).filter(
+        (name) => typeof project.scripts[name] === 'string'
+      );
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+  }
+  const documentationVersion = (await loadDocs()).version;
+  return {
+    root,
+    qwikVersion,
+    ...(routerVersion ? { routerVersion } : {}),
+    scripts,
+    documentation: {
+      version: documentationVersion,
+      matchesProject: documentationVersion === qwikVersion,
+    },
+  };
+}
+
 async function callVite(
   session: { url: string; token: string },
   name: ToolName,
@@ -26,11 +70,18 @@ async function callVite(
 
 serveStdio(() =>
   createMcpServer(async (name, args) => {
+    const projectInfo = name === 'get_project_info' ? await readProjectInfo() : undefined;
     const directory = join(root, 'node_modules/.cache/qwik-mcp');
     let files: string[];
     try {
       files = (await readdir(directory)).filter((file) => file.endsWith('.json'));
-    } catch {
+    } catch (error) {
+      if (projectInfo && (error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return { ...projectInfo, devServerRunning: false };
+      }
+      if (projectInfo) {
+        throw error;
+      }
       throw new Error(
         `No Qwik MCP server in ${root}. Add qwikMcp() to Vite and start the development server.`
       );
@@ -61,6 +112,9 @@ serveStdio(() =>
     );
     const active = sessions.filter((session) => session !== null);
     if (!active.length) {
+      if (projectInfo) {
+        return { ...projectInfo, devServerRunning: false };
+      }
       throw new Error('No running Qwik MCP server. Start Vite with qwikMcp().');
     }
     if (active.length > 1) {
@@ -72,6 +126,9 @@ serveStdio(() =>
       name === 'get_project_info' ? active[0].reply : await callVite(active[0].session, name, args);
     if (reply.error) {
       throw new Error(reply.error);
+    }
+    if (projectInfo) {
+      return { ...projectInfo, ...reply.result, devServerRunning: true };
     }
     return reply.result!;
   })

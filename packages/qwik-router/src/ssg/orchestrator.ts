@@ -16,6 +16,8 @@ export async function mainThread(sys: System) {
 
   const qwikRouterConfig = opts.qwikRouterConfig;
   const renderTimeout = 30_000;
+  const maxRetries = Math.max(0, opts.retries ?? 0);
+  const failedAttempts = new Map<string, number>();
 
   const queue: SsgRoute[] = [];
   const active = new Set<string>();
@@ -117,6 +119,17 @@ export async function mainThread(sys: System) {
           log.debug(`render done: ${staticRoute.pathname}`);
 
           if (result.error) {
+            const attempt = (failedAttempts.get(staticRoute.pathname) ?? 0) + 1;
+            if (attempt <= maxRetries) {
+              failedAttempts.set(staticRoute.pathname, attempt);
+              log.info(
+                `Retrying ${magenta(staticRoute.pathname)} after a failed render (${attempt} of ${maxRetries})`
+              );
+              queue.push(staticRoute);
+              flushQueue();
+              return;
+            }
+
             const err = new Error(result.error.message);
             err.stack = result.error.stack;
             log.error(`\n${bold(red(`!!! ${result.pathname}: Error during SSG`))}`);

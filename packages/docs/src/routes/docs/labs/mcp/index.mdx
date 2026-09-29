@@ -54,6 +54,7 @@ Set the client's working directory to your project so `npx --no-install` resolve
 | `inspect_page` | `{ url?, selector?, includeHtml?, includeSignalValues? }` | Component tree, component hook metadata, optional signal values and HTML |
 | `search_docs` | `{ query, limit? }` | Ranked documentation page IDs, titles, snippets and snapshot version |
 | `get_doc` | `{ id }` | Full Markdown page, source URL and snapshot version |
+| `get_best_practices` | `{}` | Short Qwik coding guide and its bundled version |
 
 `includeHtml` and `includeSignalValues` default to `false`. `selector` scopes the HTML fragment; component metadata still describes the page. HTML is current DOM, marked `source: "live-dom"`, limited to 64 KiB of UTF-8, with `truncated` indicating an incomplete fragment. It is not the original SSR response.
 
@@ -63,7 +64,9 @@ With several pages connected, provide the exact page URL. Duplicate tabs with th
 
 ## Offline documentation
 
-`search_docs` and `get_doc` read the documentation bundled with the MCP package. They work without Vite, an open browser or network access. The snapshot is generated from all Qwik documentation and API pages during the MCP build and carries the MCP package version. MCP uses the same complete manifest as `llms.txt`; new documentation pages are discovered automatically during the build. It describes that release, which may differ from the Qwik version installed in your application.
+`get_best_practices`, `search_docs` and `get_doc` work without Vite, an open browser or network access. The short guide and documentation snapshot are bundled with the MCP package and carry its version. The snapshot is generated from all Qwik documentation and API pages during the MCP build. MCP uses the same complete manifest as `llms.txt`; new documentation pages are discovered automatically during the build. It describes that release, which may differ from the Qwik version installed in your application.
+
+The MCP server also sends workflow instructions during initialization: read the guide for Qwik code, search for specific topics, then fetch the full page. The instructions describe which live tools require Vite and a connected browser.
 
 Search first, then use a returned page ID to read the full document:
 

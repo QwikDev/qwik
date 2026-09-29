@@ -20,6 +20,16 @@ test('bundled documentation works over stdio without Vite or a project directory
   });
   try {
     await client.connect(transport);
+    const practices = await client.callTool({ name: 'get_best_practices', arguments: {} });
+    expect(practices.isError).not.toBe(true);
+    expect(practices.structuredContent).toMatchObject({
+      version: JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
+        .version,
+      content: expect.stringContaining('useVisibleTask$'),
+    });
+    expect(practices.structuredContent).toMatchObject({
+      content: expect.stringContaining('@qwik.dev/core'),
+    });
     const search = await client.callTool({
       name: 'search_docs',
       arguments: { query: 'useSignal', limit: 2 },

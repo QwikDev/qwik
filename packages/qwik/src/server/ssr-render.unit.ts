@@ -7,6 +7,7 @@ import {
   _val,
   createSsrNodeId,
   createSsrOpenTag,
+  createSsrSection,
   createSsrMarkup,
   useContextProvider,
   getActiveInvokeContext,
@@ -200,8 +201,20 @@ describe('SSR context markers', () => {
   test('recognizes authored document sections behind a pending child', async () => {
     const result = await renderToString((_props, ctx) => [
       createSsrMarkup('<!b=', createSsrNodeId(ctx.nextId()), '>'),
-      ctx.observeError(Promise.resolve('<head><title>async head</title></head>')),
-      ctx.observeError(Promise.resolve('<body><p>content</p></body>')),
+      ctx.observeError(
+        Promise.resolve([
+          createSsrSection('head', '<head', '>'),
+          '<title>async head</title>',
+          createSsrSection('/head', '</head>'),
+        ])
+      ),
+      ctx.observeError(
+        Promise.resolve([
+          createSsrSection('body', '<body', '>'),
+          '<p>content</p>',
+          createSsrSection('/body', '</body>'),
+        ])
+      ),
     ]);
     expect(result.html.match(/<head>/g)).toHaveLength(1);
     expect(result.html.match(/<body>/g)).toHaveLength(1);
@@ -327,10 +340,12 @@ describe('SSR context markers', () => {
     const result = await renderToString((_props, ctx) => {
       ctx.styleIds.set('sheet', 'p{color:red}');
       return [
-        createSsrOpenTag('<head data-node="', createSsrNodeId(ctx.nextId()), '">'),
-        '<title>x</title></head>',
-        createSsrOpenTag('<body data-node="', createSsrNodeId(ctx.nextId()), '">'),
-        '<p>x</p></body>',
+        createSsrSection('head', '<head data-node="', createSsrNodeId(ctx.nextId()), '">'),
+        '<title>x</title>',
+        createSsrSection('/head', '</head>'),
+        createSsrSection('body', '<body data-node="', createSsrNodeId(ctx.nextId()), '">'),
+        '<p>x</p>',
+        createSsrSection('/body', '</body>'),
       ];
     });
 
@@ -433,8 +448,13 @@ describe('SSR context markers', () => {
           '<!s=',
           createSsrNodeId(ctx.nextId()),
           '>',
-          createSsrOpenTag('<head', '>'),
-          '<meta charset="utf-8"></head><body><p>value</p></body><!/s>',
+          createSsrSection('head', '<head', '>'),
+          '<meta charset="utf-8">',
+          createSsrSection('/head', '</head>'),
+          createSsrSection('body', '<body', '>'),
+          '<p>value</p>',
+          createSsrSection('/body', '</body>'),
+          '<!/s>',
           carrier,
         ];
       },
@@ -448,20 +468,25 @@ describe('SSR context markers', () => {
     );
   });
 
-  test('does not insert carriers into head text inside a body comment', async () => {
+  test('leaves head text inside a body comment alone', async () => {
     const handler = createQRL('./listener.js', '_handler', () => {}, null, []);
     const result = await renderToString(
       () => {
         useOnDocument('qinit', handler);
-        return '<body><!-- <head> --><p>value</p></body>';
+        return [
+          createSsrSection('body', '<body', '>'),
+          '<!-- <head> --><p>value</p>',
+          createSsrSection('/body', '</body>'),
+        ];
       },
       { containerTagName: 'html' }
     );
 
+    // the anchored body is an element carrier, so the event needs no relocated script
+    expect(result.html).toContain('<head></head>');
     expect(result.html).toContain(
-      '<head><script hidden q-d:qinit="listener.js#_handler"></script></head>'
+      '<body q-d:qinit="listener.js#_handler"><!-- <head> --><p>value</p>'
     );
-    expect(result.html).toContain('<body><!-- <head> --><p>value</p></body>');
   });
 
   test('defines a cross-module sync handler inside the authored head', async () => {
@@ -470,8 +495,12 @@ describe('SSR context markers', () => {
       () => {
         useOnDocument('qinit', handler);
         return [
-          createSsrOpenTag('<head', '>'),
-          '<meta charset="utf-8"></head><body><p>value</p></body>',
+          createSsrSection('head', '<head', '>'),
+          '<meta charset="utf-8">',
+          createSsrSection('/head', '</head>'),
+          createSsrSection('body', '<body', '>'),
+          '<p>value</p>',
+          createSsrSection('/body', '</body>'),
         ];
       },
       { containerTagName: 'html' }
@@ -1613,7 +1642,10 @@ describe('preloader', () => {
   const renderPage = (preloader?: false) =>
     renderToString(
       (_props, ctx) => [
-        '<head><title>page</title></head><body>',
+        createSsrSection('head', '<head', '>'),
+        '<title>page</title>',
+        createSsrSection('/head', '</head>'),
+        createSsrSection('body', '<body', '>'),
         createSsrOpenTag(
           '<button',
           ctx.eventAttr(
@@ -1622,7 +1654,8 @@ describe('preloader', () => {
           ),
           '>'
         ),
-        'go</button></body>',
+        'go</button>',
+        createSsrSection('/body', '</body>'),
       ],
       { manifest: manifest as never, ...(preloader === false ? { preloader } : {}) }
     );
@@ -1655,7 +1688,10 @@ describe('qwikloader', () => {
   const renderPage = (qwikLoader?: 'inline') =>
     renderToString(
       (_props, ctx) => [
-        '<head><title>page</title></head><body>',
+        createSsrSection('head', '<head', '>'),
+        '<title>page</title>',
+        createSsrSection('/head', '</head>'),
+        createSsrSection('body', '<body', '>'),
         createSsrOpenTag(
           '<button',
           ctx.eventAttr(
@@ -1664,7 +1700,8 @@ describe('qwikloader', () => {
           ),
           '>'
         ),
-        'go</button></body>',
+        'go</button>',
+        createSsrSection('/body', '</body>'),
       ],
       {
         manifest: {
@@ -1692,5 +1729,38 @@ describe('qwikloader', () => {
 
     expect(html).not.toContain('src="/build/q-loader.js"');
     expect(html.indexOf('id="qwikloader"')).toBeGreaterThan(html.indexOf('</head>'));
+  });
+});
+
+describe('document tail', () => {
+  test('writes the state and loader scripts inside the authored body', async () => {
+    const { html } = await renderToString((_props, ctx) => [
+      createSsrSection('head', '<head', '>'),
+      '<title>page</title>',
+      createSsrSection('/head', '</head>'),
+      createSsrSection('body', '<body', '>'),
+      createSsrOpenTag(
+        '<button',
+        ctx.eventAttr(
+          'q-e:click',
+          createQRL('./listener.js', '_handler', () => {}, null, null)
+        ),
+        '>'
+      ),
+      'go</button>',
+      createSsrSection('/body', '</body>'),
+    ]);
+    const bodyEnd = html.lastIndexOf('</body>');
+
+    expect(html.indexOf('window._qwikEv')).toBeGreaterThan(-1);
+    expect(html.indexOf('window._qwikEv')).toBeLessThan(bodyEnd);
+    expect(html.slice(bodyEnd)).toBe('</body></html>');
+  });
+
+  test('gives a document without authored sections its own head and body', async () => {
+    const { html } = await renderToString(() => '<p>bare</p>', { containerTagName: 'html' });
+
+    expect(html).toMatch(/<html[^>]*><head><\/head><body><p>bare<\/p>/);
+    expect(html.endsWith('</body></html>')).toBe(true);
   });
 });

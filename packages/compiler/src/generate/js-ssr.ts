@@ -611,7 +611,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return;
       case OpKind.Element:
         // A marked root always renders through element() so the marker lands in its open tag.
-        if (rootMarker === null && !hookEvents && op.tag !== 'head' && isFullyStaticSubtree(op)) {
+        if (
+          rootMarker === null &&
+          !hookEvents &&
+          documentSection(op.tag) === null &&
+          isFullyStaticSubtree(op)
+        ) {
           pushMergedStatic(parts, foldStaticOp(op));
           return;
         }
@@ -700,7 +705,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
     // A runtime props object splices its attributes into the open-tag record, like hook events.
     const propsStep = op.propsEffect === null ? null : this.propsEffect(pass, op, idVariable!);
-    const record = hookEvents || propsStep !== null || op.tag === 'head';
+    const section = documentSection(op.tag);
+    const record = hookEvents || propsStep !== null || section !== null;
     const openTag: string[] = record ? [] : parts;
     pushMergedStatic(openTag, `<${op.tag}`);
     if (idVariable !== null) {
@@ -742,8 +748,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (record) {
       // The runtime splices hook events before the record's last part, so `>` stays separate.
       openTag.push(JSON.stringify('>'));
-      this.imports.add(QwikWord.CreateSsrOpenTag);
-      parts.push(`${QwikWord.CreateSsrOpenTag}(${openTag.join(', ')})`);
+      if (section === null) {
+        this.imports.add(QwikWord.CreateSsrOpenTag);
+        parts.push(`${QwikWord.CreateSsrOpenTag}(${openTag.join(', ')})`);
+      } else {
+        this.imports.add(QwikWord.CreateSsrSection);
+        parts.push(
+          `${QwikWord.CreateSsrSection}(${JSON.stringify(section)}, ${openTag.join(', ')})`
+        );
+      }
     } else {
       pushMergedStatic(openTag, '>');
     }
@@ -788,7 +801,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           break;
         }
         case OpKind.Element: {
-          if (child.tag !== 'head' && isFullyStaticSubtree(child)) {
+          if (documentSection(child.tag) === null && isFullyStaticSubtree(child)) {
             pushMergedStatic(children, foldStaticOp(child));
           } else {
             this.element(pass, child, children);
@@ -830,8 +843,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (propsStep !== null && !op.void) {
       parts.push(`${propsStep}.innerHTML ?? [${children.join(', ')}]`);
     }
-    if (!op.void) {
+    if (op.void) {
+      return;
+    }
+    if (section === null) {
       pushMergedStatic(parts, `</${op.tag}>`);
+    } else {
+      parts.push(
+        `${QwikWord.CreateSsrSection}(${JSON.stringify(`/${section}`)}, ${JSON.stringify(`</${op.tag}>`)})`
+      );
     }
   }
 
@@ -1473,4 +1493,9 @@ function isDynamicEvent(prop: Prop): boolean {
         !isInlineValue(handler.value)
     )
   );
+}
+
+/** The runtime inserts scripts and styles around these tags, so they render as anchors. */
+function documentSection(tag: string): 'head' | 'body' | null {
+  return tag === 'head' || tag === 'body' ? tag : null;
 }

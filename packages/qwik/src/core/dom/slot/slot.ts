@@ -27,6 +27,7 @@ import {
 } from '../content/content';
 import {
   createSsrOpenTag,
+  createSsrSection,
   createSsrNodeId,
   type SsrEventAttrChunk,
   type SsrOutput,
@@ -327,13 +328,18 @@ export function renderSsrDynamicTag(
     if (ref !== undefined) {
       ctx.setRef(ref, nodeId);
     }
-    const element = createSsrOpenTag(`<${tag} q:id="`, createSsrNodeId(nodeId), '"', ...attrs, '>');
+    const openParts = [`<${tag} q:id="`, createSsrNodeId(nodeId), '"', ...attrs, '>'] as const;
+    // like compiled output, the runtime inserts its scripts and styles around these tags
+    const section = tag === 'head' || tag === 'body' ? tag : null;
+    const element =
+      section === null ? createSsrOpenTag(...openParts) : createSsrSection(section, ...openParts);
     if (VOID_TAGS.has(tag)) {
       return element;
     }
     // children arrive as the default projection, the same carrier the component arm registers
     const children = innerHTML ?? renderSsrSlot(ctx, EMPTY_STRING, undefined, invokeContext);
-    return maybeThen(children, (children) => [element, children, `</${tag}>`]);
+    const close = section === null ? `</${tag}>` : createSsrSection(`/${section}`, `</${tag}>`);
+    return maybeThen(children, (children) => [element, children, close]);
   });
 }
 

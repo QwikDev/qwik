@@ -26,7 +26,9 @@ describe.runIf(testRenderer.render === ssrRender)('ssrRender: qwikloader', () =>
       return <button onClick$={sync$(() => console.log('sync'))}>Click</button>;
     });
 
-    const { container, html, cleanup } = await ssrRender(SyncHandler, { debug });
+    const { container, cleanup } = await ssrRender(SyncHandler, { debug });
+    // the table lives in the head, so read the whole document rather than the body
+    const html = container.ownerDocument.documentElement.outerHTML;
 
     // the table must be defined ahead of the element: a click cannot outrun the stream
     const table = html.indexOf('qFuncs_');

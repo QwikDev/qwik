@@ -14,11 +14,15 @@ export interface SsrEventAttrChunk {
 
 export type SsrRecordPart = string | SsrReferenceChunk | SsrEventAttrChunk;
 
+/** A document tag the runtime inserts around; marking it spares the runtime a text search. */
+export type SsrSection = 'head' | '/head' | 'body' | '/body';
+
 export interface SsrRecordChunk {
   readonly type: 'record';
   /** Open tags may still receive attributes after the render returns (`useOn$`). */
   readonly openTag: boolean;
   readonly headlessCarrier: boolean;
+  readonly section?: SsrSection;
   readonly parts: readonly SsrRecordPart[];
 }
 
@@ -71,6 +75,13 @@ export function createSsrMarkup(...parts: readonly (SsrRecordPart | null)[]): Ss
 
 export function createSsrOpenTag(...parts: readonly SsrRecordPart[]): SsrRecordChunk {
   return { type: 'record', openTag: true, headlessCarrier: false, parts };
+}
+
+export function createSsrSection(
+  section: SsrSection,
+  ...parts: readonly SsrRecordPart[]
+): SsrRecordChunk {
+  return { type: 'record', openTag: section[0] !== '/', headlessCarrier: false, section, parts };
 }
 
 export function createSsrEventAttr(

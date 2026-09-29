@@ -26,6 +26,25 @@ export default component$(() => {
     expect(code.match(/class=\\?"⚡️/g)).toHaveLength(1);
   });
 
+  test('should anchor the document sections for the runtime', async () => {
+    await testInput(mode, 'document-sections', {
+      code: `export default () => {
+  return (
+    <>
+      <head>
+        <meta charset="utf-8" />
+        <title>Document</title>
+      </head>
+      <body>
+        <main>content</main>
+      </body>
+    </>
+  );
+};
+`,
+    });
+  });
+
   test('should compile a static default-arrow component', async () => {
     await testInput(mode, 'static-default-arrow', {
       code: `export default () => {

@@ -5,6 +5,7 @@ import {
   createSerializationContext,
   createSsrNodeId,
   createSsrMarkup,
+  createSsrSection,
   createSsrRootRef,
   disposeOwner,
   disposeSubscriber,
@@ -26,6 +27,7 @@ import {
   type SsrDeferredRange,
   type SsrOutput,
   type SsrReferenceChunk,
+  type SsrSection,
   version,
   withLocale,
   isQwikComponent,
@@ -320,7 +322,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
       if (!hasDocumentSections(output)) {
         output = await resolveDocumentStart(output);
       }
-      output = relocateHeadlessCarriers(output);
+      output = relocateHeadlessCarriers(ensureDocument(output));
     }
     const qwikLoaderBundle = resolvedManifest?.manifest.qwikLoader;
     const isQwikLoaderModule = scripts.isQwikLoaderModule(qwikLoaderBundle);
@@ -334,15 +336,20 @@ export const renderToStreamCompiled = async <Props = undefined>(
       );
     if (headScripts !== '') {
       output =
-        containerTagName === 'html' ? insertIntoHead(output, headScripts) : [headScripts, output];
+        containerTagName === 'html'
+          ? insertAtSection(output, 'head', [headScripts], 'after')
+          : [headScripts, output];
     }
-    const styledOutput = injectStyles(output, styleIds);
+    const styledOutput = injectStyles(output, styleIds, containerTagName === 'html');
     const emittedStyles = new Set(styleIds.keys());
-    const [containerOpen, containerClose] = createContainerTags(
-      containerTagName,
-      containerAttributes,
-      styledOutput
-    );
+    const containerOpen = createContainerOpenTag(containerTagName, containerAttributes);
+    // The state and loader scripts belong inside the body, so its close waits for them
+    const bodyEnd = containerTagName === 'html' ? splitAtSection(styledOutput, '/body') : null;
+    const shellOutput = bodyEnd === null ? styledOutput : bodyEnd[0];
+    const containerClose: SsrOutput = [
+      bodyEnd === null ? '' : [bodyEnd[1], bodyEnd[2]],
+      `</${containerTagName}>`,
+    ];
     let hasDeferred = deferred !== undefined;
     let size = 0;
     const writer = new SsrOutputWriter(
@@ -411,8 +418,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
         return writer.finish(output);
       }
       // Scripts before <head> make browsers discard the authored tag.
-      const inHead = containerTagName === 'html' ? insertAfterElement(output, 'head', defs) : null;
-      return writer.finish(inHead ?? [defs, output]);
+      return writer.finish(insertAtSection(output, 'head', defs, 'after'));
     };
     const waitForWork = () => new Promise<void>((resolve) => (wake = resolve));
     const throwIfFailed = () => {
@@ -444,7 +450,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
     };
     // the container opens first so any table entry lands inside it, before the element
     await writer.finish(containerOpen);
-    await flush(styledOutput);
+    await flush(shellOutput);
     hasDeferred = deferred !== undefined;
     throwIfFailed();
 
@@ -787,40 +793,19 @@ function hasInitialMarkup(output: SsrOutput): boolean {
   if (Array.isArray(output)) {
     return output.some(hasInitialMarkup);
   }
-  return isSsrRecordChunk(output) && (output.openTag || hasOutputPattern(output, /<[a-z]/i));
-}
-
-function createContainerTags(
-  tagName: string,
-  attrs: Record<string, string>,
-  output: SsrOutput
-): [string, string] {
-  const openTag = createContainerOpenTag(tagName, attrs);
-  if (tagName !== 'html' || hasDocumentSections(output)) {
-    return [openTag, `</${tagName}>`];
-  }
-  return [openTag + '<head></head><body>', '</body></html>'];
+  return (
+    isSsrRecordChunk(output) &&
+    (output.openTag ||
+      output.parts.some((part) => typeof part === 'string' && /<[a-z]/i.test(part)))
+  );
 }
 
 function relocateHeadlessCarriers(output: SsrOutput): SsrOutput {
   const carriers: SsrOutput[] = [];
-  let withoutCarriers: SsrOutput;
-  if (isHeadlessCarrierOutput(output)) {
-    carriers.push(output);
-    withoutCarriers = [];
-  } else {
-    withoutCarriers = removeHeadlessCarriers(output, carriers);
-  }
-  if (carriers.length === 0) {
-    return output;
-  }
-  const withHead = insertAfterElement(withoutCarriers, 'head', carriers);
-  if (withHead !== null) {
-    return withHead;
-  }
-  return hasOutputPattern(withoutCarriers, /<body(\s|>|\/)/i)
-    ? ['<head>', carriers, '</head>', withoutCarriers]
-    : ['<head>', carriers, '</head><body>', withoutCarriers, '</body>'];
+  const withoutCarriers = removeHeadlessCarriers(output, carriers);
+  return carriers.length === 0
+    ? output
+    : insertAtSection(withoutCarriers, 'head', carriers, 'after');
 }
 
 function isHeadlessCarrierOutput(output: SsrOutput): boolean {
@@ -853,65 +838,18 @@ function removeHeadlessCarriers(output: SsrOutput, carriers: SsrOutput[]): SsrOu
   return children ?? output;
 }
 
-/** Right after `<head>` opens, so its preloads start before the rest of the head parses. */
-function insertIntoHead(output: SsrOutput, html: string): SsrOutput {
-  return (
-    insertAfterElement(output, 'head', [html]) ??
-    replaceFirstOutputString(output, /<head(\s[^>]*)?>/i, `$&${html.replaceAll('$', '$$$$')}`) ?? [
-      html,
-      output,
-    ]
-  );
-}
-
-function insertAfterElement(
+function injectStyles(
   output: SsrOutput,
-  tag: string,
-  inserted: readonly SsrOutput[]
-): SsrOutput | null {
-  if (!Array.isArray(output)) {
-    return null;
-  }
-  for (let i = 0; i < output.length; i++) {
-    const child = output[i];
-    if (isSsrRecordChunk(child) && recordOpensTag(child, tag)) {
-      return [...output.slice(0, i + 1), ...inserted, ...output.slice(i + 1)];
-    }
-    const nested = insertAfterElement(child, tag, inserted);
-    if (nested !== null) {
-      const children = output.slice();
-      children[i] = nested;
-      return children;
-    }
-  }
-  return null;
-}
-
-/** Cold path (document assembly only): identify the record by its open-tag markup. */
-function recordOpensTag(record: SsrRecordChunk, tag: string): boolean {
-  const first = record.parts[0];
-  if (!record.openTag || typeof first !== 'string' || !first.startsWith(`<${tag}`)) {
-    return false;
-  }
-  const boundary = first.charAt(tag.length + 1);
-  return boundary === '' || boundary === ' ' || boundary === '>' || boundary === '/';
-}
-
-function injectStyles(output: SsrOutput, styles: Map<string, string>): SsrOutput {
+  styles: Map<string, string>,
+  isDocument: boolean
+): SsrOutput {
   if (styles.size === 0) {
     return output;
   }
   const styleHtml = Array.from(styles, ([styleId, content]) => {
     return `<style q:style="${escapeHTML(styleId)}">${content}</style>`;
   }).join('');
-  const withHeadStyles = replaceFirstOutputString(output, /<\/head>/i, `${styleHtml}</head>`);
-  if (withHeadStyles !== undefined) {
-    return withHeadStyles;
-  }
-  if (hasOutputPattern(output, /<body(\s|>|\/)/i)) {
-    return [`<head>${styleHtml}</head>`, output];
-  }
-  return [`<head>${styleHtml}</head><body>`, output, '</body>'];
+  return isDocument ? insertAtSection(output, '/head', [styleHtml], 'before') : [styleHtml, output];
 }
 
 function emitNewStyles(styles: Map<string, string>, emitted: Set<string>): string {
@@ -950,62 +888,61 @@ function createContainerOpenTag(tagName: string, attrs: Record<string, string>):
 }
 
 function hasDocumentSections(output: SsrOutput): boolean {
-  return hasOutputPattern(output, /<(head|body)(\s|>|\/)/i);
+  return splitAtSection(output, 'head') !== null || splitAtSection(output, 'body') !== null;
 }
 
-function hasOutputPattern(output: SsrOutput, pattern: RegExp): boolean {
-  if (typeof output === 'string') {
-    return pattern.test(output);
+const createDocumentSection = (section: SsrSection) =>
+  section[0] === '/'
+    ? createSsrSection(section, `<${section}>`)
+    : createSsrSection(section, `<${section}`, '>');
+
+/** Gives every html container the head and body the runtime inserts its scripts around. */
+function ensureDocument(output: SsrOutput): SsrOutput {
+  if (splitAtSection(output, 'head') !== null) {
+    return output;
   }
-  if (Array.isArray(output)) {
-    for (let i = 0; i < output.length; i++) {
-      if (hasOutputPattern(output[i], pattern)) {
-        return true;
-      }
-    }
-    return false;
+  const head = [createDocumentSection('head'), createDocumentSection('/head')];
+  const body = splitAtSection(output, 'body');
+  if (body !== null) {
+    return [body[0], ...head, body[1], body[2]];
   }
-  if (isSsrRecordChunk(output)) {
-    for (let i = 0; i < output.parts.length; i++) {
-      const part = output.parts[i];
-      if (typeof part === 'string' && pattern.test(part)) {
-        return true;
-      }
-    }
-  }
-  return false;
+  return [...head, createDocumentSection('body'), output, createDocumentSection('/body')];
 }
 
-function replaceFirstOutputString(
+/** Finds a compiler-marked document anchor structurally; pending output is not searched. */
+function splitAtSection(
   output: SsrOutput,
-  pattern: RegExp,
-  replacement: string
-): SsrOutput | undefined {
-  if (typeof output === 'string') {
-    return pattern.test(output) ? output.replace(pattern, replacement) : undefined;
-  }
-  if (Array.isArray(output)) {
-    for (let i = 0; i < output.length; i++) {
-      const child = replaceFirstOutputString(output[i], pattern, replacement);
-      if (child !== undefined) {
-        const children = output.slice();
-        children[i] = child;
-        return children;
-      }
-    }
-    return undefined;
-  }
+  section: SsrSection
+): [SsrOutput, SsrRecordChunk, SsrOutput] | null {
   if (isSsrRecordChunk(output)) {
-    for (let i = 0; i < output.parts.length; i++) {
-      const part = output.parts[i];
-      if (typeof part === 'string' && pattern.test(part)) {
-        const parts = output.parts.slice();
-        parts[i] = part.replace(pattern, replacement);
-        return { ...output, parts };
-      }
+    return output.section === section ? ['', output, ''] : null;
+  }
+  if (!Array.isArray(output)) {
+    return null;
+  }
+  for (let i = 0; i < output.length; i++) {
+    const split = splitAtSection(output[i], section);
+    if (split !== null) {
+      return [[...output.slice(0, i), split[0]], split[1], [split[2], ...output.slice(i + 1)]];
     }
   }
-  return undefined;
+  return null;
+}
+
+function insertAtSection(
+  output: SsrOutput,
+  section: SsrSection,
+  inserted: readonly SsrOutput[],
+  placement: 'before' | 'after'
+): SsrOutput {
+  const split = splitAtSection(output, section);
+  if (split === null) {
+    return [...inserted, output];
+  }
+  const [before, anchor, after] = split;
+  return placement === 'after'
+    ? [before, anchor, ...inserted, after]
+    : [before, ...inserted, anchor, after];
 }
 
 function getLocale(opts: RenderToStringOptions<any>): string {

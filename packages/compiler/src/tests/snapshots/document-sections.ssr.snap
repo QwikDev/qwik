@@ -1,0 +1,40 @@
+==INPUT==
+
+export default () => {
+  return (
+    <>
+      <head>
+        <meta charset="utf-8" />
+        <title>Document</title>
+      </head>
+      <body>
+        <main>content</main>
+      </body>
+    </>
+  );
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createSsrSection, _markComponent } from '@qwik.dev/core';
+
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    return [
+      createSsrSection('head', '<head', '>'),
+      '<meta charset="utf-8"><title>Document</title>',
+      createSsrSection('/head', '</head>'),
+      createSsrSection('body', '<body', '>'),
+      '<main>content</main>',
+      createSsrSection('/body', '</body>'),
+    ];
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+== SSR DIAGNOSTICS ==
+
+[]

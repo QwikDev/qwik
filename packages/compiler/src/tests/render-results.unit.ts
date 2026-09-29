@@ -474,7 +474,7 @@ describe('linked render results', () => {
     );
   });
 
-  test('keeps the authored document head as an SSR open-tag record', async () => {
+  test('anchors the authored document head and body for the runtime', async () => {
     const output = await transformModules({
       srcDir: 'src',
       isServer: true,
@@ -487,7 +487,9 @@ describe('linked render results', () => {
     });
 
     expect(output.diagnostics).toEqual([]);
-    expect(output.modules[0].code).toContain('createSsrOpenTag("<head", ">")');
+    const code = output.modules[0].code;
+    expect(code).toContain('createSsrSection("head", "<head", ">")');
+    expect(code).toContain('createSsrSection("/body", "</body>")');
   });
 
   test.each([

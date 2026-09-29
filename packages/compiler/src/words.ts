@@ -72,6 +72,7 @@ export const enum QwikWord {
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrMarkup = 'createSsrMarkup',
   CreateSsrOpenTag = 'createSsrOpenTag',
+  CreateSsrSection = 'createSsrSection',
   RenderSsrAttr = 'renderSsrAttr',
   RenderSsrProps = 'renderSsrProps',
   RenderSsrAttrExpression = 'renderSsrAttrExpression',

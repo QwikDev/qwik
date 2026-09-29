@@ -204,6 +204,7 @@ export {
   createSsrEventAttr,
   createSsrNodeId,
   createSsrOpenTag,
+  createSsrSection,
   createSsrMarkup,
   createSsrRootRef,
   createSsrRootRefPath,
@@ -215,6 +216,7 @@ export {
   type SsrOutput,
   type SsrRecordPart,
   type SsrRecordChunk,
+  type SsrSection,
   type SsrReferenceChunk,
 } from './ssr/output';
 export { SsrOutputWriter } from './ssr/output-writer';

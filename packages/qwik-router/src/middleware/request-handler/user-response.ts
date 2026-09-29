@@ -102,6 +102,7 @@ async function runNext(
         return;
       } else if (e instanceof ServerError && !requestEv.headersSent) {
         const status = e.status as StatusCodes;
+        requestEv.headers.set('Cache-Control', 'no-store');
         const accept = requestEv.request.headers.get('Accept');
         if (accept && !accept.includes('text/html')) {
           requestEv.headers.set('Content-Type', 'application/qwik-json');

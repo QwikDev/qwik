@@ -178,6 +178,17 @@ for (const mode of ['csr', 'ssr']) {
       await expect
         .poll(async () => (await call('inspect_page')).structuredContent?.tree)
         .toEqual(expect.arrayContaining([expect.objectContaining({ id: expect.any(String) })]));
+      if (mode === 'csr') {
+        await expect
+          .poll(
+            async () =>
+              (
+                await call('inspect_page', { includeSignalValues: true })
+              ).structuredContent?.components?.flatMap((component: any) => component.signals),
+            { timeout: 10000 }
+          )
+          .toEqual(expect.arrayContaining([expect.objectContaining({ name: 'count', value: 0 })]));
+      }
       await page.locator('#counter').click();
       await expect
         .poll(

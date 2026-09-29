@@ -48,6 +48,10 @@ export const useCollectHooks = (src) => {
       return
     }
     hooksList.value.add(args)
+    if (typeof window !== 'undefined') {
+      getOrCreateState(src).hooks = [...hooksList.value]
+      window[${globalKey}]?.hook?.refreshVNodeTree?.()
+    }
   })
 }
 `;

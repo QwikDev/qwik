@@ -4,7 +4,7 @@ import { getPlatform, setPlatform } from '../platform/platform';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 import { _regSymbol, inlinedQrl, qrl } from './qrl';
 import { _captures, createQRL, withCaptures } from './qrl-class';
-import { type QRL } from './qrl.public';
+import { _qrlSync, type QRL } from './qrl.public';
 import { isSyncQrl } from './qrl-utils';
 import { allocate } from '../serdes/allocate';
 import { TypeIds } from '../serdes/constants';
@@ -116,6 +116,23 @@ describe('serialization', () => {
       ),
       '2'
     );
+  });
+
+  test('a keyed sync qrl serializes the compiler-provided source', () => {
+    const serializationContext = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap<any, any>()
+    );
+    const handler = _qrlSync(
+      (event: Event) => event.preventDefault(),
+      'key',
+      'e=>e.preventDefault()'
+    );
+
+    assert.equal(qrlToString(serializationContext, handler as never), '#key');
+    assert.equal(serializationContext.$pendingSyncFns$.get('key'), 'e=>e.preventDefault()');
   });
 
   test('serialize qrls', () => {

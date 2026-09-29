@@ -109,7 +109,13 @@ export default () => (
     const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
     // The function stays inline under its symbol; no chunk is produced for it. A client event
     // takes the plain function; only a value needs the QRL.
-    expect(main.match(/_qrlSync\(\w+, "\w+"\)/g)).toHaveLength(mode === 'ssr' ? 2 : 1);
+    expect(main.match(/_qrlSync\(\w+, "\w+"(?:, "(?:[^"\\]|\\.)*")?\)/g)).toHaveLength(
+      mode === 'ssr' ? 2 : 1
+    );
+    // the server writes the source into the HTML, so it arrives minified
+    if (mode === 'ssr') {
+      expect(main).toContain('"e=>e.preventDefault()"');
+    }
     expect(main).not.toContain('sync$(');
     expect(output.modules.filter((module) => module.path.includes('sync'))).toHaveLength(0);
   });

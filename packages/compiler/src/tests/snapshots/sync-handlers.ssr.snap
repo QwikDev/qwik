@@ -17,14 +17,16 @@ const component_sync_segment_0_ka0ivw29msk8 = (event) => {
 };
 const q_component_sync_segment_0_ka0ivw29msk8 = /*#__PURE__*/ _qrlSync(
   component_sync_segment_0_ka0ivw29msk8,
-  'component_sync_segment_0_ka0ivw29msk8'
+  'component_sync_segment_0_ka0ivw29msk8',
+  'e=>e.preventDefault()'
 );
 const component_sync_segment_1_ka0j9x66gukr = (_event, element) => {
   return element.setAttribute('data-sync', 'ran');
 };
 const q_component_sync_segment_1_ka0j9x66gukr = /*#__PURE__*/ _qrlSync(
   component_sync_segment_1_ka0j9x66gukr,
-  'component_sync_segment_1_ka0j9x66gukr'
+  'component_sync_segment_1_ka0j9x66gukr',
+  '(e,t)=>t.setAttribute(`data-sync`,`ran`)'
 );
 import { _qrlSync, _markComponent } from '@qwik.dev/core';
 export const stop = q_component_sync_segment_0_ka0ivw29msk8;

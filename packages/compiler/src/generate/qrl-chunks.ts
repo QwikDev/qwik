@@ -14,6 +14,7 @@ import { UnsupportedError } from '../errors';
 import { assembleGeneratedModule } from './source-assembly';
 import { createOriginalRangeMapper } from '../source-maps';
 import type { SourceMap } from 'oxc-transform';
+import { minifySync } from 'oxc-minify';
 import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 import { emitBindingImports } from './emit-import';
 import { functionText } from './print-js';
@@ -90,12 +91,25 @@ export function emitQrlChunks(
     });
 }
 
-/** A `sync$` handler ships inline under its symbol: the runtime keys the container table by it. */
-export function syncQrlHoists(qrl: LinkedQrl, functionSource: string): string[] {
+/**
+ * A `sync$` handler ships inline under its symbol: the runtime keys the container table by it. The
+ * server writes its source into the HTML, so SSR passes that source already minified.
+ */
+export function syncQrlHoists(qrl: LinkedQrl, functionSource: string, isServer = false): string[] {
+  const serialized = isServer ? `, ${JSON.stringify(minifyFunction(functionSource))}` : '';
   return [
     `const ${qrl.name} = ${functionSource};`,
-    `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.QrlSync}(${qrl.name}, ${JSON.stringify(qrl.name)});`,
+    `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.QrlSync}(${qrl.name}, ${JSON.stringify(qrl.name)}${serialized});`,
   ];
+}
+
+function minifyFunction(source: string): string {
+  // a default export keeps the function alive through compression
+  const { code, errors } = minifySync('sync.js', `export default ${source};`, { module: true });
+  if (errors.length > 0) {
+    throw new UnsupportedError(`a sync$ function that does not minify: ${errors[0].message}`);
+  }
+  return code.replace(/^export default /, '').replace(/;\s*$/, '');
 }
 
 export function chunkCanonicalFilename(module: LinkedModule, qrl: LinkedQrl): string {

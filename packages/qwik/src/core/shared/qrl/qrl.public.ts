@@ -305,13 +305,15 @@ export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
  *
  * @param fn - Extracted function
  * @param syncKey - Compiler-assigned key into the container's function table.
+ * @param serialized - Compiler-minified source the server writes into the HTML.
  * @returns
  * @internal
  */
 export const _qrlSync = function <TYPE extends Function>(
   fn: TYPE,
-  syncKey?: string
+  syncKey?: string,
+  serialized?: string
 ): SyncQRL<TYPE> {
-  (fn as any).serialized = fn.toString();
+  (fn as any).serialized = serialized ?? fn.toString();
   return createQRL<TYPE>('', syncKey ?? SYNC_QRL, fn, null, null) as any;
 };

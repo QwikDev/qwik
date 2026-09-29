@@ -6,6 +6,7 @@
   "dependencies": {
     "@qwik.dev/optimizer": "workspace:*",
     "magic-string": "0.30.21",
+    "oxc-minify": "0.115.0",
     "oxc-parser": "^0.120.0",
     "oxc-transform": "0.115.0",
     "typescript": "5.9.3"

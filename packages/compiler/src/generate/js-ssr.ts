@@ -1401,7 +1401,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       return false;
     }
     target.imports.add(QwikWord.QrlSync);
-    target.hoists.push(...syncQrlHoists(qrl, functionText(this.qrlFunction(qrl))));
+    target.hoists.push(...syncQrlHoists(qrl, functionText(this.qrlFunction(qrl)), true));
     return true;
   }
 

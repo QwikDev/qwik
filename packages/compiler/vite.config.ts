@@ -23,7 +23,14 @@ export default defineConfig(({ mode }) => ({
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['@qwik.dev/optimizer', 'node:module', 'oxc-parser', 'oxc-transform', 'typescript'],
+      external: [
+        '@qwik.dev/optimizer',
+        'node:module',
+        'oxc-minify',
+        'oxc-parser',
+        'oxc-transform',
+        'typescript',
+      ],
       output: { banner: getBanner('@qwik.dev/compiler', version) },
     },
   },

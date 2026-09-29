@@ -324,6 +324,9 @@ importers:
       magic-string:
         specifier: 0.30.21
         version: 0.30.21
+      oxc-minify:
+        specifier: 0.115.0
+        version: 0.115.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
       oxc-parser:
         specifier: ^0.120.0
         version: 0.120.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
@@ -14343,6 +14346,14 @@ snapshots:
       - '@emnapi/runtime'
     optional: true
 
+  '@oxc-minify/binding-wasm32-wasi@0.115.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)':
+    dependencies:
+      '@napi-rs/wasm-runtime': 1.2.3(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
+    optional: true
+
   '@oxc-minify/binding-win32-arm64-msvc@0.115.0':
     optional: true
 
@@ -20787,6 +20798,32 @@ snapshots:
       '@oxc-minify/binding-linux-x64-musl': 0.115.0
       '@oxc-minify/binding-openharmony-arm64': 0.115.0
       '@oxc-minify/binding-wasm32-wasi': 0.115.0(@emnapi/core@1.9.2)(@emnapi/runtime@2.0.0-alpha.3)
+      '@oxc-minify/binding-win32-arm64-msvc': 0.115.0
+      '@oxc-minify/binding-win32-ia32-msvc': 0.115.0
+      '@oxc-minify/binding-win32-x64-msvc': 0.115.0
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
+
+  oxc-minify@0.115.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3):
+    optionalDependencies:
+      '@oxc-minify/binding-android-arm-eabi': 0.115.0
+      '@oxc-minify/binding-android-arm64': 0.115.0
+      '@oxc-minify/binding-darwin-arm64': 0.115.0
+      '@oxc-minify/binding-darwin-x64': 0.115.0
+      '@oxc-minify/binding-freebsd-x64': 0.115.0
+      '@oxc-minify/binding-linux-arm-gnueabihf': 0.115.0
+      '@oxc-minify/binding-linux-arm-musleabihf': 0.115.0
+      '@oxc-minify/binding-linux-arm64-gnu': 0.115.0
+      '@oxc-minify/binding-linux-arm64-musl': 0.115.0
+      '@oxc-minify/binding-linux-ppc64-gnu': 0.115.0
+      '@oxc-minify/binding-linux-riscv64-gnu': 0.115.0
+      '@oxc-minify/binding-linux-riscv64-musl': 0.115.0
+      '@oxc-minify/binding-linux-s390x-gnu': 0.115.0
+      '@oxc-minify/binding-linux-x64-gnu': 0.115.0
+      '@oxc-minify/binding-linux-x64-musl': 0.115.0
+      '@oxc-minify/binding-openharmony-arm64': 0.115.0
+      '@oxc-minify/binding-wasm32-wasi': 0.115.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
       '@oxc-minify/binding-win32-arm64-msvc': 0.115.0
       '@oxc-minify/binding-win32-ia32-msvc': 0.115.0
       '@oxc-minify/binding-win32-x64-msvc': 0.115.0

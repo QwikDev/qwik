@@ -171,7 +171,7 @@ jobs:
             packages/devtools/dist
             packages/mcp/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/qwik-utils/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'packages/devtools/**/*', 'packages/mcp/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
+          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/qwik-utils/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'packages/devtools/**/*', 'packages/mcp/**/*', 'packages/docs/scripts/generate-llms.ts', 'packages/docs/src/routes/**/*', 'packages/docs/src/components/glossary/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs

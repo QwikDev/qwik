@@ -11,6 +11,67 @@ import { join } from 'node:path';
 import { request } from 'node:http';
 import { qwikMcp } from '../dist/index.js';
 
+test('bundled documentation works over stdio without Vite or a project directory', async () => {
+  const client = new Client({ name: 'offline-docs', version: '1' });
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [fileURLToPath(new URL('../dist/cli.js', import.meta.url)), '/no-qwik-project-required'],
+    stderr: 'pipe',
+  });
+  try {
+    await client.connect(transport);
+    const search = await client.callTool({
+      name: 'search_docs',
+      arguments: { query: 'useSignal', limit: 2 },
+    });
+    expect(search.isError).not.toBe(true);
+    const result = search.structuredContent as { version: string; results: { id: string }[] };
+    expect(result.results).toHaveLength(2);
+    expect(result.version).toBe(
+      JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version
+    );
+    const document = await client.callTool({
+      name: 'get_doc',
+      arguments: { id: result.results[0].id },
+    });
+    expect(document.structuredContent).toMatchObject({
+      version: result.version,
+      id: result.results[0].id,
+      content: expect.stringContaining('useSignal'),
+      url: expect.stringMatching(/^https:\/\/next.qwik.dev\//),
+    });
+    expect(
+      await client.callTool({ name: 'get_doc', arguments: { id: '../../package.json' } })
+    ).toMatchObject({ isError: true });
+    expect(
+      await client.callTool({ name: 'search_docs', arguments: { query: ' ', limit: 21 } })
+    ).toMatchObject({ isError: true });
+    const caching = await client.callTool({
+      name: 'search_docs',
+      arguments: { query: 'route loaders and caching' },
+    });
+    expect(caching.structuredContent).toMatchObject({
+      results: expect.arrayContaining([expect.objectContaining({ id: '/docs/caching/' })]),
+    });
+    expect(
+      (await client.callTool({ name: 'get_doc', arguments: { id: '/docs/caching/' } }))
+        .structuredContent
+    ).toMatchObject({ content: expect.stringContaining('cacheControl') });
+    expect(
+      (await client.callTool({ name: 'get_doc', arguments: { id: '/docs/glossary/' } }))
+        .structuredContent
+    ).toMatchObject({ content: expect.stringContaining('## Resumability') });
+    expect(
+      (await client.callTool({ name: 'get_doc', arguments: { id: '/api/' } })).structuredContent
+    ).toMatchObject({ content: expect.stringContaining('/api/qwik-router.md') });
+    expect(await client.callTool({ name: 'get_project_info', arguments: {} })).toMatchObject({
+      isError: true,
+    });
+  } finally {
+    await client.close();
+  }
+});
+
 for (const mode of ['csr', 'ssr']) {
   test(`${mode}: packaged stdio tools inspect live Qwik, errors and routes`, async () => {
     const root = fileURLToPath(new URL(`../tests/fixtures/${mode}`, import.meta.url));

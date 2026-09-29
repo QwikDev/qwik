@@ -3,7 +3,7 @@ import { createMcpServer } from './server';
 import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
 
-test('advertises four read-only tools, validates inputs and returns tool errors', async () => {
+test('advertises six read-only tools, validates inputs and returns tool errors', async () => {
   const server = createMcpServer(async (name, args) => {
     if (name === 'inspect_page') {
       throw new Error('Open a Qwik page in your browser.');
@@ -21,6 +21,8 @@ test('advertises four read-only tools, validates inputs and returns tool errors'
       'list_routes',
       'get_dev_errors',
       'inspect_page',
+      'search_docs',
+      'get_doc',
     ]);
     expect(tools.every((tool) => tool.annotations?.readOnlyHint && tool.outputSchema)).toBe(true);
     expect(

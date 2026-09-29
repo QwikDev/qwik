@@ -4,6 +4,7 @@ import { version } from '../package.json';
 import type { DevtoolsVNodeTreeNode } from '../../devtools/kit/src/protocol/vnode';
 
 import { inspectInput, pageInput, type ToolName } from './protocol';
+import { getDoc, loadDocs, searchDocs } from './docs';
 
 const node: z.ZodType<DevtoolsVNodeTreeNode> = z.lazy(() =>
   z.object({
@@ -39,7 +40,7 @@ export function createMcpServer(
 ) {
   const server = new McpServer({ name: 'qwik', version });
   const tools: Record<
-    ToolName,
+    ToolName | 'search_docs' | 'get_doc',
     { description: string; inputSchema: z.ZodObject; outputSchema: z.ZodObject }
   > = {
     get_project_info: {
@@ -90,6 +91,39 @@ export function createMcpServer(
       inputSchema: inspectInput,
       outputSchema: inspectOutput,
     },
+    search_docs: {
+      description:
+        'Search the bundled Qwik documentation offline. Returns ranked page IDs, snippets and the documentation version. No Vite server is required.',
+      inputSchema: z.object({
+        query: z.string().trim().min(1).max(200),
+        limit: z.number().int().min(1).max(20).default(5),
+      }),
+      outputSchema: z.object({
+        version: z.string(),
+        results: z.array(
+          z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            url: z.string(),
+            snippet: z.string(),
+          })
+        ),
+      }),
+    },
+    get_doc: {
+      description:
+        'Read a complete bundled Qwik documentation page in Markdown using an ID from search_docs. Includes the documentation version and original source URL. Works offline without Vite.',
+      inputSchema: z.object({ id: z.string().min(1).max(200) }),
+      outputSchema: z.object({
+        version: z.string(),
+        id: z.string(),
+        title: z.string(),
+        description: z.string(),
+        url: z.string(),
+        content: z.string(),
+      }),
+    },
   };
   for (const [name, config] of Object.entries(tools)) {
     server.registerTool(
@@ -100,7 +134,12 @@ export function createMcpServer(
       },
       async (args) => {
         try {
-          const structuredContent = await call(name as ToolName, args);
+          const structuredContent =
+            name === 'search_docs'
+              ? searchDocs(await loadDocs(), args.query as string, args.limit as number)
+              : name === 'get_doc'
+                ? getDoc(await loadDocs(), args.id as string)
+                : await call(name as ToolName, args);
           return {
             content: [{ type: 'text' as const, text: JSON.stringify(structuredContent) }],
             structuredContent,

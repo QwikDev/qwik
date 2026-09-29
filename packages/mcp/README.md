@@ -46,12 +46,30 @@ Set the client's working directory to your project so `npx --no-install` resolve
 | `list_routes`      | `{}`                                                      | `routerInstalled` and Router's routes, source files, parameters, layouts |
 | `get_dev_errors`   | `{ url? }`                                                | Vite errors observed by the selected page, with source locations         |
 | `inspect_page`     | `{ url?, selector?, includeHtml?, includeSignalValues? }` | Component tree, component hook metadata, optional signal values and HTML |
+| `search_docs`      | `{ query, limit? }`                                       | Ranked documentation page IDs, titles, snippets and snapshot version     |
+| `get_doc`          | `{ id }`                                                  | Full Markdown page, source URL and snapshot version                      |
 
 `includeHtml` and `includeSignalValues` default to `false`. `selector` scopes the HTML fragment; component metadata still describes the page. HTML is current DOM, marked `source: "live-dom"`, limited to 64 KiB of UTF-8, with `truncated` indicating an incomplete fragment. It is not the original SSR response.
 
 Hook metadata is collected by the shared DevTools instrumentation as components execute and their document-ready tasks run. Components that have not executed in the browser may appear in the tree without hook metadata. Snapshot entries are grouped by component source, so repeated instances share that metadata.
 
 With several pages connected, provide the exact page URL. Duplicate tabs with the same URL must be closed until one remains. Missing pages, invalid selectors, missing runtime and disconnected servers return tool errors. Vite errors clear after successful HMR; this is not a project-wide typecheck or build report.
+
+## Offline documentation
+
+`search_docs` and `get_doc` read the documentation bundled with the MCP package. They work without Vite, an open browser or network access. The snapshot is generated from all Qwik documentation and API pages during the MCP build and carries the MCP package version. MCP uses the same complete manifest as `llms.txt`; new documentation pages are discovered automatically during the build. It describes that release, which may differ from the Qwik version installed in your application.
+
+Search first, then use a returned page ID to read the full document:
+
+```json
+{ "query": "useSignal", "limit": 5 }
+```
+
+```json
+{ "id": "/docs/core/state/" }
+```
+
+Search matches words in page titles, descriptions and Markdown content, with title matches ranked first. `limit` defaults to 5 and accepts 1–20. An unknown page ID returns a tool error.
 
 ## Local access
 

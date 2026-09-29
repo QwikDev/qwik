@@ -197,3 +197,11 @@ describe('routeMatcher/#5126', () => {
     );
   });
 });
+
+describe('routeMatcher/#8918', () => {
+  test('terminates on paths with repeated slashes', () => {
+    assert.equal(matchRoute('/[...lang]/product/[slug]/', '/product//a-b.html'), null);
+    assert.equal(matchRoute('/[...rest]/b/', '/a//c'), null);
+    assert.equal(matchRoute('/[...rest]/q/', '/x/y//z/w'), null);
+  });
+});

@@ -18,19 +18,15 @@ test.describe('resource', () => {
     let logsContent = '';
     // first task starts, the second is blocked
     logsContent += '[WATCH] 1 before\n';
-    // resource starts
-    logsContent += '[RESOURCE] 1 before\n';
     // first task finishes
     logsContent += '[WATCH] 1 after\n';
-    // second task starts and modifies tracking resource value
+    // second task starts and updates the computed dependency
     logsContent += '[WATCH] 2 before\n';
     // second task finishes
     logsContent += '[WATCH] 2 after\n';
-    // resource starts again
+    // the lazy computed starts after both tasks finish
     logsContent += '[RESOURCE] 1 before\n';
-    // first resource trigger finishes
-    logsContent += '[RESOURCE] 1 after\n\n';
-    // second resource trigger finishes
+    // the computed finishes
     logsContent += '[RESOURCE] 1 after\n\n';
 
     await expect(resource1).toHaveText('resource 1 is 80');
@@ -60,19 +56,15 @@ test.describe('resource', () => {
     let logsContent = '';
     // first task starts, the second is blocked
     logsContent += '[WATCH] 1 before\n';
-    // resource starts
-    logsContent += '[RESOURCE] 1 before\n';
     // first task finishes
     logsContent += '[WATCH] 1 after\n';
-    // second task starts and modifies tracking resource value
+    // second task starts and updates the computed dependency
     logsContent += '[WATCH] 2 before\n';
     // second task finishes
     logsContent += '[WATCH] 2 after\n';
-    // resource starts again
+    // the lazy computed starts after both tasks finish
     logsContent += '[RESOURCE] 1 before\n';
-    // first resource trigger finishes
-    logsContent += '[RESOURCE] 1 after\n\n';
-    // second resource trigger finishes
+    // the computed finishes
     logsContent += '[RESOURCE] 1 after\n\n';
     await expect(resource1).toHaveText('resource 1 is 80');
     await expect(logs).toHaveText(logsContent);

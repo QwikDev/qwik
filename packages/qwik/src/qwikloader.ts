@@ -66,6 +66,9 @@ const querySelectorAll = (query: string) => {
   return elements;
 };
 
+const getUnclaimedProjection = (element: Element) =>
+  element.closest('q\\:template') as QElement | null;
+
 const addEventListener = (
   el: EventTarget,
   eventName: string,
@@ -472,7 +475,7 @@ const processPassiveWindowEvent = (ev: Event) => {
 
 /**
  * Called when the document is ready and whenever a container is added, so make this idempotent. For
- * qidle and qinit we remove the attributes immediately, and for qvisible we add an attribute
+ * qidle and qinit attributes are removed when processed, and qvisible adds an attribute.
  */
 const processReadyStateChange = () => {
   const readyState = doc.readyState;
@@ -489,6 +492,11 @@ const processReadyStateChange = () => {
       const tasks: Task[] = [];
       for (let i = 0; i < elements.length; i++) {
         const el = elements[i];
+        const projection = getUnclaimedProjection(el);
+        if (projection) {
+          projection._qInit = true;
+          continue;
+        }
         dispatch(el, ev, 'd:qinit', tasks);
         el.removeAttribute('q-d:qinit');
       }
@@ -504,6 +512,11 @@ const processReadyStateChange = () => {
         const tasks: Task[] = [];
         for (let i = 0; i < elements.length; i++) {
           const el = elements[i];
+          const projection = getUnclaimedProjection(el);
+          if (projection) {
+            projection._qIdle = true;
+            continue;
+          }
           dispatch(el, ev, 'd:qidle', tasks);
           el.removeAttribute('q-d:qidle');
         }

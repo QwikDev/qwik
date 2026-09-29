@@ -790,13 +790,22 @@ function expectSlot(diffContext: DiffContext) {
       getInsertBefore(diffContext)
     );
 
+    const isUnclaimedProjection =
+      oldParent && vnode_isElementVNode(oldParent) && vnode_getElementName(oldParent) === QTemplate;
+    if (isUnclaimedProjection) {
+      const template = oldParent.node as QElement;
+      if (template._qInit) {
+        template._qInit = false;
+        queueQwikLoaderEvent(getCursorData(diffContext.$cursor$)!, QwikLoaderScanEvent.qinit);
+      }
+      if (template._qIdle) {
+        template._qIdle = false;
+        queueQwikLoaderEvent(getCursorData(diffContext.$cursor$)!, QwikLoaderScanEvent.qidle);
+      }
+    }
+
     // If we moved from a q:template and it's now empty, remove it
-    if (
-      oldParent &&
-      vnode_isElementVNode(oldParent) &&
-      !oldParent.firstChild &&
-      vnode_getElementName(oldParent) === QTemplate
-    ) {
+    if (isUnclaimedProjection && !oldParent.firstChild) {
       vnode_remove(
         diffContext.$journal$,
         oldParent.parent as ElementVNode | VirtualVNode,

@@ -28,7 +28,7 @@ import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { vnode_getProp, vnode_locate } from '../client/vnode-utils';
 import { HTML_NS, QContainerAttr, QDefaultSlot, SVG_NS } from '../shared/utils/markers';
-import { QContainerValue } from '../shared/types';
+import { QContainerValue, type QElement } from '../shared/types';
 import { VNodeFlags } from '../client/types';
 import { VirtualVNode } from '../shared/vnode/virtual-vnode';
 
@@ -1745,6 +1745,77 @@ describe.each([
   });
 
   describe('q:template', () => {
+    it('should defer visible tasks until their projection is rendered', async () => {
+      (globalThis as any).projectionTaskRuns = [];
+
+      const Nested = component$(() => <div id="projected-content">Content</div>);
+      const Projected = component$(() => {
+        useVisibleTask$(() => {
+          (globalThis as any).projectionTaskRuns.push('visible');
+        });
+        useVisibleTask$(
+          () => {
+            (globalThis as any).projectionTaskRuns.push('ready');
+          },
+          { strategy: 'document-ready' }
+        );
+        useVisibleTask$(
+          () => {
+            (globalThis as any).projectionTaskRuns.push('idle');
+          },
+          { strategy: 'document-idle' }
+        );
+        return <Nested />;
+      });
+      const Parent = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button id="show-projection" onClick$={() => (show.value = true)}></button>
+            {show.value && <Slot />}
+          </>
+        );
+      });
+
+      const { document } = await render(
+        <Parent>
+          <Projected />
+        </Parent>,
+        { debug: DEBUG }
+      );
+      if (render == ssrRenderToDom) {
+        const template = document.querySelector('q\\:template') as QElement;
+        template._qInit = true;
+        template._qIdle = true;
+      } else {
+        expect(document.querySelector('q\\:template')).toBeUndefined();
+      }
+      (document.defaultView as any)._qwikEv = [];
+
+      const initialTaskRuns = render == ssrRenderToDom ? [] : ['ready', 'idle'];
+      expect((globalThis as any).projectionTaskRuns).toEqual(initialTaskRuns);
+      await trigger(document.body, '#show-projection', 'click');
+
+      expect((globalThis as any).projectionTaskRuns).toEqual(initialTaskRuns);
+      expect((document.defaultView as any)._qwikEv).toEqual(
+        render == ssrRenderToDom ? ['d:qinit', 'd:qidle'] : []
+      );
+      if (render == ssrRenderToDom) {
+        expect(document.querySelector('q\\:template')).toBeUndefined();
+      }
+
+      await trigger(document.body, '[q-d\\:qinit]', 'd:qinit');
+      expect((globalThis as any).projectionTaskRuns).toEqual(
+        render == ssrRenderToDom ? ['visible', 'ready'] : ['ready', 'idle', 'visible']
+      );
+
+      await trigger(document.body, '[q-d\\:qidle]', 'd:qidle');
+      expect((globalThis as any).projectionTaskRuns).toEqual(
+        render == ssrRenderToDom ? ['visible', 'ready', 'idle'] : ['ready', 'idle', 'visible']
+      );
+      (globalThis as any).projectionTaskRuns = undefined;
+    });
+
     it('should add and delete projection content inside q:template if slot is initially not visible', async () => {
       const Cmp = component$(() => {
         const show = useSignal(false);

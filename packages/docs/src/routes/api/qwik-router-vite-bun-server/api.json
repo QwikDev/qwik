@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-vite-bun-server",
-  "package": "@qwik.dev/qwik-router/vite/bun-server",
+  "package": "@qwik.dev/router/vite/bun-server",
   "members": [
     {
       "name": "bunServerAdapter",

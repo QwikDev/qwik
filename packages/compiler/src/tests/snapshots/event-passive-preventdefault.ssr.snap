@@ -1,0 +1,179 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export default component$(() => (
+  <div>
+    <button passive:click preventdefault:click stoppropagation:click capture:click onClick$={() => console.log('passive')} />
+    <button preventdefault:scroll preventdefault:click passive:scroll onClick$={() => console.log('regular')} onScroll$={() => console.log('scroll')} />
+    <button passive:click={false} preventdefault:click onClick$={() => console.log('disabled')} />
+    <button passive:dblClick preventdefault:dblclick onDblClick$={() => console.log('normalized')} />
+  </div>
+));
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
+const q_component_q_ep_click_segment_0_1d1haenu4olet = /*#__PURE__*/ _noopQrl(
+  'component_q_ep_click_segment_0_1d1haenu4olet'
+);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const q_component_q_ep_scroll_segment_2_nlfghcwaub86 = /*#__PURE__*/ _noopQrl(
+  'component_q_ep_scroll_segment_2_nlfghcwaub86'
+);
+const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_3_2xwygfdmkpoqi'
+);
+const q_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n = /*#__PURE__*/ _noopQrl(
+  'component_q_ep_dblclick_segment_4_3rnzp5juf9e0n'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    return [
+      '<div><button stoppropagation:click capture:click',
+      ctx.eventAttrParts('q-ep:click', q_component_q_ep_click_segment_0_1d1haenu4olet),
+      '></button><button preventdefault:click',
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg),
+      ctx.eventAttrParts('q-ep:scroll', q_component_q_ep_scroll_segment_2_nlfghcwaub86),
+      '></button><button preventdefault:click',
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi),
+      '></button><button',
+      ctx.eventAttrParts('q-ep:dblclick', q_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n),
+      '></button></div>',
+    ];
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_q_ep_click_segment_0_1d1haenu4olet.js (ENTRY POINT)==
+
+export const component_q_ep_click_segment_0_1d1haenu4olet = () => {
+  return console.log('passive');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_ep_click_segment_0_1d1haenu4olet",
+  "entry": null,
+  "displayName": "component_q_ep_click_segment_0",
+  "hash": "1d1haenu4olet",
+  "canonicalFilename": "component.tsx_component_q_ep_click_segment_0_1d1haenu4olet",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    170,
+    209
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  return console.log('regular');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    283,
+    322
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_ep_scroll_segment_2_nlfghcwaub86.js (ENTRY POINT)==
+
+export const component_q_ep_scroll_segment_2_nlfghcwaub86 = () => {
+  return console.log('scroll');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_ep_scroll_segment_2_nlfghcwaub86",
+  "entry": null,
+  "displayName": "component_q_ep_scroll_segment_2",
+  "hash": "nlfghcwaub86",
+  "canonicalFilename": "component.tsx_component_q_ep_scroll_segment_2_nlfghcwaub86",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onScroll$",
+  "captures": false,
+  "loc": [
+    323,
+    362
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
+  return console.log('disabled');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_3",
+  "hash": "2xwygfdmkpoqi",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    421,
+    461
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n.js (ENTRY POINT)==
+
+export const component_q_ep_dblclick_segment_4_3rnzp5juf9e0n = () => {
+  return console.log('normalized');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_ep_dblclick_segment_4_3rnzp5juf9e0n",
+  "entry": null,
+  "displayName": "component_q_ep_dblclick_segment_4",
+  "hash": "3rnzp5juf9e0n",
+  "canonicalFilename": "component.tsx_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onDblClick$",
+  "captures": false,
+  "loc": [
+    518,
+    563
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

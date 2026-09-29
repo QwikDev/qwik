@@ -1,0 +1,168 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export default component$(() => (
+  <div>
+    <button passive:click preventdefault:click stoppropagation:click capture:click onClick$={() => console.log('passive')} />
+    <button preventdefault:scroll preventdefault:click passive:scroll onClick$={() => console.log('regular')} onScroll$={() => console.log('scroll')} />
+    <button passive:click={false} preventdefault:click onClick$={() => console.log('disabled')} />
+    <button passive:dblClick preventdefault:dblclick onDblClick$={() => console.log('normalized')} />
+  </div>
+));
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _first, _next, _last, _prev, setEvent, _createElementTemplate } from '@qwik.dev/core';
+import { component_q_ep_click_segment_0_1d1haenu4olet } from './component.tsx_component_q_ep_click_segment_0_1d1haenu4olet';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+import { component_q_ep_scroll_segment_2_nlfghcwaub86 } from './component.tsx_component_q_ep_scroll_segment_2_nlfghcwaub86';
+import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
+import { component_q_ep_dblclick_segment_4_3rnzp5juf9e0n } from './component.tsx_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n';
+
+const default_tmpl0 = _createElementTemplate(
+  '<div><button stoppropagation:click capture:click></button><button preventdefault:click></button><button preventdefault:click></button><button></button></div>'
+);
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  setEvent(el1, 'q-ep:click', component_q_ep_click_segment_0_1d1haenu4olet);
+  const el2 = _next(_first(el0));
+  setEvent(el2, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg);
+  setEvent(el2, 'q-ep:scroll', component_q_ep_scroll_segment_2_nlfghcwaub86);
+  const el3 = _prev(_last(el0));
+  setEvent(el3, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi);
+  const el4 = _last(el0);
+  setEvent(el4, 'q-ep:dblclick', component_q_ep_dblclick_segment_4_3rnzp5juf9e0n);
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_q_ep_click_segment_0_1d1haenu4olet.js (ENTRY POINT)==
+
+export const component_q_ep_click_segment_0_1d1haenu4olet = () => {
+  return console.log('passive');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_ep_click_segment_0_1d1haenu4olet",
+  "entry": null,
+  "displayName": "component_q_ep_click_segment_0",
+  "hash": "1d1haenu4olet",
+  "canonicalFilename": "component.tsx_component_q_ep_click_segment_0_1d1haenu4olet",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    170,
+    209
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  return console.log('regular');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    283,
+    322
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_ep_scroll_segment_2_nlfghcwaub86.js (ENTRY POINT)==
+
+export const component_q_ep_scroll_segment_2_nlfghcwaub86 = () => {
+  return console.log('scroll');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_ep_scroll_segment_2_nlfghcwaub86",
+  "entry": null,
+  "displayName": "component_q_ep_scroll_segment_2",
+  "hash": "nlfghcwaub86",
+  "canonicalFilename": "component.tsx_component_q_ep_scroll_segment_2_nlfghcwaub86",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onScroll$",
+  "captures": false,
+  "loc": [
+    323,
+    362
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
+  return console.log('disabled');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_3",
+  "hash": "2xwygfdmkpoqi",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    421,
+    461
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n.js (ENTRY POINT)==
+
+export const component_q_ep_dblclick_segment_4_3rnzp5juf9e0n = () => {
+  return console.log('normalized');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_ep_dblclick_segment_4_3rnzp5juf9e0n",
+  "entry": null,
+  "displayName": "component_q_ep_dblclick_segment_4",
+  "hash": "3rnzp5juf9e0n",
+  "canonicalFilename": "component.tsx_component_q_ep_dblclick_segment_4_3rnzp5juf9e0n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onDblClick$",
+  "captures": false,
+  "loc": [
+    518,
+    563
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

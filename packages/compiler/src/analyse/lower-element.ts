@@ -14,7 +14,7 @@ import {
 } from '../schema';
 import { escapeText, normalizeAttributeName } from '../html';
 import { UnsupportedError } from '../errors';
-import { eventModifierName, eventScopeName, PASSIVE_PREFIX } from './events';
+import { eventModifierName, eventScopeName, normalizeEventName, PASSIVE_PREFIX } from './events';
 import { handlersAreDirect, lowerEventAttribute, qrlAttributeExpression } from './lower-event';
 import { isFunctionLike, jsxAttributeName, unwrapExpression } from './ast/utils';
 import {
@@ -268,6 +268,13 @@ export function lowerAttribute(
     authored === QwikDirective.Slot ||
     authored === QwikDirective.Type ||
     authored.startsWith(PASSIVE_PREFIX)
+  ) {
+    return null;
+  }
+  if (
+    target === 'element' &&
+    authored.startsWith('preventdefault:') &&
+    passiveEvents.has(normalizeEventName(authored.slice('preventdefault:'.length)))
   ) {
     return null;
   }

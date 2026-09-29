@@ -155,6 +155,8 @@ test.describe('event handlers', () => {
         await expect(passiveWindow).not.toHaveAttribute('passive:scroll');
       }
 
+      await expect(passivePreventDefault).not.toHaveAttribute('preventdefault:click');
+
       await regularClick.click();
       await passiveClick.click();
 

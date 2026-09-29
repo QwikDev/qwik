@@ -162,6 +162,32 @@ export default () => {
     expect(code).not.toContain('passive:');
   });
 
+  test('should drop preventdefault only for active passive events', async () => {
+    const output = await testInput(mode, 'event-passive-preventdefault', {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => (
+  <div>
+    <button passive:click preventdefault:click stoppropagation:click capture:click onClick$={() => console.log('passive')} />
+    <button preventdefault:scroll preventdefault:click passive:scroll onClick$={() => console.log('regular')} onScroll$={() => console.log('scroll')} />
+    <button passive:click={false} preventdefault:click onClick$={() => console.log('disabled')} />
+    <button passive:dblClick preventdefault:dblclick onDblClick$={() => console.log('normalized')} />
+  </div>
+));
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    expect(main.match(/preventdefault:click/g)).toHaveLength(2);
+    expect(main).not.toContain('preventdefault:scroll');
+    expect(main).not.toContain('preventdefault:dblclick');
+    expect(main).toContain('stoppropagation:click');
+    expect(main).toContain('capture:click');
+    expect(main).toContain('"q-ep:click"');
+    expect(main).toContain('"q-e:click"');
+    expect(main).toContain('"q-ep:scroll"');
+    expect(main).toContain('"q-ep:dblclick"');
+  });
+
   test('should bind inputs both ways through the runtime bind handlers', async () => {
     const output = await testInput(mode, 'element-bind', {
       code: `import { component$, useSignal } from '@qwik.dev/core';

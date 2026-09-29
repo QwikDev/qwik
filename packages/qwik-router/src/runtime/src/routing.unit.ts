@@ -800,15 +800,6 @@ test('loadRoute — object prototype and metadata names are not static segments'
   }
 });
 
-test('loadRoute — static segments starting with an underscore still match', async () => {
-  const routes: RouteData = { _a: { _I: makeLoader() }, _foo: { _I: makeLoader() } };
-  for (const segment of ['_a', '_foo']) {
-    const result = await loadRoute(routes, false, `/${segment}`);
-    assert.isFalse(result.$notFound$, segment);
-    assert.equal(result.$routeName$, `/${segment}`);
-  }
-});
-
 // ─── Backtracking and specificity tests ──────────────────────────────────────────
 
 test('loadRoute — a static prefix that dead-ends backtracks to a dynamic route in another group', async () => {
@@ -883,6 +874,34 @@ test('loadRoute — a catchall without a page does not match', async () => {
   const result = await loadRoute(routes, false, '/x/y');
   assert.isFalse(result.$notFound$);
   assert.deepEqual(result.$params$, { a: 'x', b: 'y' });
+});
+
+test('loadRoute — underscore-prefixed static segments use escaped trie keys', async () => {
+  const routes: RouteData = {
+    _4: makeLoader(),
+    __drafts: { _I: makeLoader() },
+    _W: { _P: 'slug', _I: makeLoader() },
+  };
+
+  const drafts = await loadRoute(routes, false, '/_drafts');
+  assert.isFalse(drafts.$notFound$);
+  assert.equal(drafts.$routeName$, '/_drafts');
+
+  // `_4` is the 404 boundary, not a static route.
+  const metadataName = await loadRoute(routes, false, '/_4');
+  assert.isFalse(metadataName.$notFound$);
+  assert.deepEqual(metadataName.$params$, { slug: '_4' });
+});
+
+test('loadRoute — rewrite targets through escaped keys resolve the unescaped path', async () => {
+  const routes: RouteData = {
+    __drafts: { _I: makeLoader(), _R: ['draftsLoader'] },
+    entwuerfe: { _G: '/__drafts' },
+  };
+
+  const result = await loadRoute(routes, false, '/entwuerfe');
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$loaderPaths$, { draftsLoader: '/_drafts/' });
 });
 
 // ─── Menu (_N) trie tests ───────────────────────────────────────────────────────

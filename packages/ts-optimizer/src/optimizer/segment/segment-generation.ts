@@ -1441,6 +1441,7 @@ export function buildDefaultStrategySegment(
       origin: { filename: relPath, text: ctx.repairedCode },
       shouldTranspileTs,
       shouldTranspileJsx,
+      decorator: options.decorator,
       isServer: options.isServer,
       emitMode,
       devFile,

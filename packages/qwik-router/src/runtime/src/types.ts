@@ -287,7 +287,8 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
 /**
  * A nested route trie structure. The root represents `/` and each level represents a URL segment.
  *
- * Keys starting with `_` are metadata; all other keys are child route segments.
+ * Keys starting with a single `_` are metadata; all other keys are child route segments. A static
+ * segment that starts with `_` is stored with an extra `_` (`_drafts` → `__drafts`).
  *
  * - Use `_W` as the key for a single dynamic segment (param); `_P` on that node names the param.
  * - Use `_A` as the key for a rest/catch-all segment; `_P` on that node names the param.
@@ -334,7 +335,7 @@ export interface RouteData {
   _R?: string[];
   /** Page loader hashes; override pages include their selected layouts and plugins. */
   _D?: string[];
-  /** Child route segments (any key not starting with `_`) */
+  /** Child route segments (any key not starting with a single `_`) */
   [part: string]:
     | RouteData
     | RouteData[]

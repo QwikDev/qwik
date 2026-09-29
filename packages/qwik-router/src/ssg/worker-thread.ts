@@ -116,6 +116,7 @@ export async function workerThread(sys: System) {
       parentPort?.close();
     }
   });
+  parentPort?.postMessage({ type: 'ready' } satisfies WorkerOutputMessage);
 }
 
 export async function workerRender(

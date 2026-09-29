@@ -24,6 +24,12 @@ export interface ComponentEntryStrategy {
 export const createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
 
 // @public (undocumented)
+export interface DecoratorOptions {
+    emitDecoratorMetadata?: boolean;
+    legacy?: boolean;
+}
+
+// @public (undocumented)
 export interface Diagnostic {
     // (undocumented)
     category: DiagnosticCategory;
@@ -461,6 +467,7 @@ export interface TransformModulesOptions extends TransformOptions {
 
 // @public (undocumented)
 export interface TransformOptions {
+    decorator?: DecoratorOptions;
     // (undocumented)
     entryStrategy?: EntryStrategy;
     // (undocumented)

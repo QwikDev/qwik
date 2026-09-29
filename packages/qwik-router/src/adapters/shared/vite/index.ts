@@ -169,7 +169,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         basePathname,
         rootDir,
         ...opts.ssg,
-        maxWorkers: opts.maxWorkers,
+        maxWorkers: opts.maxWorkers ?? opts.ssg?.maxWorkers,
       };
       for (const key of Object.keys(ssgOpts) as (keyof typeof ssgOpts)[]) {
         if (ssgOpts[key] === undefined) {

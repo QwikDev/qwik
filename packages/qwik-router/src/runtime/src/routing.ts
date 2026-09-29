@@ -1,5 +1,6 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { ensureSlash } from '../../utils/pathname';
+import { escapeStaticTrieKey, unescapeStaticTrieKey } from '../../utils/route-trie-key';
 import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
@@ -117,7 +118,9 @@ function walkTrieKeys(
       collect(group);
     }
     node = match.value;
-    const segment = node._P ? `${node._0 ?? ''}${params[node._P] ?? ''}${node._9 ?? ''}` : key;
+    const segment = node._P
+      ? `${node._0 ?? ''}${params[node._P] ?? ''}${node._9 ?? ''}`
+      : unescapeStaticTrieKey(key);
     const segments = key === '_A' ? segment.split('/') : [segment];
     pathname = ensureSlash(pathname + segments.map(encodeURIComponent).join('/'));
     if (node._P) {
@@ -276,19 +279,13 @@ interface ChildMatch {
   paramValue?: string;
 }
 
-/** Metadata keys a lowercased segment can hit; the rest are uppercase. */
-const SEGMENT_METADATA_KEYS = new Set(['_0', '_4', '_9']);
-
-/**
- * The static child for a segment. Metadata keys and inherited object properties (`constructor`, …)
- * are not routes.
- */
+/** The static child for a segment; inherited object properties (`constructor`, …) are not routes. */
 function getStaticChild(node: RouteData, partLower: string): RouteData | undefined {
-  const isMetadataKey = SEGMENT_METADATA_KEYS.has(partLower);
-  if (isMetadataKey || !Object.prototype.hasOwnProperty.call(node, partLower)) {
+  const key = escapeStaticTrieKey(partLower);
+  if (!Object.prototype.hasOwnProperty.call(node, key)) {
     return undefined;
   }
-  return node[partLower] as RouteData;
+  return node[key] as RouteData;
 }
 
 /**

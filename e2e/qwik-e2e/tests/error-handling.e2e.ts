@@ -188,8 +188,7 @@ test.describe('Catch + fallback$', () => {
       await expect(page.locator('#catch-fallback-count')).toHaveText('1');
     });
 
-    // https://github.com/QwikDev/qwik/issues/8877
-    test.fixme('async deferred throw: streams siblings + skeleton, then tears down the whole boundary', async ({
+    test('async deferred throw: streams siblings + skeleton, then tears down the whole boundary', async ({
       page,
     }) => {
       assertNoBrowserErrors(page);
@@ -620,8 +619,7 @@ test.describe('Catch reset', () => {
     page,
   }) => {
     assertNoBrowserErrors(page);
-    // OOOS: #8876 route shape + #8884 segment reset
-    await page.goto(routeUrl('reset-reerror', { outOfOrder: false }), { waitUntil: 'commit' });
+    await page.goto(routeUrl('reset-reerror'), { waitUntil: 'commit' });
     await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
 
@@ -699,8 +697,7 @@ test.describe('Catch reset', () => {
       page,
     }) => {
       assertNoBrowserErrors(page);
-      // OOOS: #8876 route shape + #8884 segment reset
-      await page.goto(routeUrl('reset-wrapped', { outOfOrder: false }), { waitUntil: 'commit' });
+      await page.goto(routeUrl('reset-wrapped'), { waitUntil: 'commit' });
       await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
 
       await page.locator('#catch-reset').click();
@@ -713,10 +710,7 @@ test.describe('Catch reset', () => {
       page,
     }) => {
       assertNoBrowserErrors(page);
-      // OOOS: #8876 route shape + #8884 segment reset
-      await page.goto(routeUrl('reset-wrapped-key', { outOfOrder: false }), {
-        waitUntil: 'commit',
-      });
+      await page.goto(routeUrl('reset-wrapped-key'), { waitUntil: 'commit' });
       await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
       await page.locator('#catch-reset').click();
       await expect(page.locator('#catch-wrap-recovered')).toBeVisible({ timeout: 10000 });

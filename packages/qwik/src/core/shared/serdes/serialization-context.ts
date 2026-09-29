@@ -88,7 +88,7 @@ export interface SerializationContext {
 
   $isSsrNode$: (obj: unknown) => obj is ISsrNode;
   $isDomRef$: (obj: unknown) => obj is DomRef;
-  $markSsrNodeForSerialization$: (node: ISsrNode, flags: number) => void;
+  $markSsrNodeForSerialization$: (node: ISsrNode, flags: number, isStateRoot?: boolean) => void;
 
   $writer$: SSRInternalStreamWriter;
   $setWriter$(writer: SSRInternalStreamWriter): void;

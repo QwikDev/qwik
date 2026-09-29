@@ -8,17 +8,9 @@ import {
   markErrorFromDeferredSegment,
   type CatchStore,
 } from '../shared/error/error-handling';
-import {
-  ELEMENT_SEQ,
-  ELEMENT_PROPS,
-  QCtxAttr,
-  QDefaultSlot,
-  QSlot,
-  QSlotParent,
-} from '../shared/utils/markers';
+import { ELEMENT_SEQ, QCtxAttr, QDefaultSlot, QSlot, QSlotParent } from '../shared/utils/markers';
 import { qDev } from '../shared/utils/qdev';
 import { getRootContainer } from '../shared/utils/container';
-import { hasSlotProps } from '../shared/utils/prop';
 import { isTask } from '../use/use-task';
 import { VNodeDataFlag } from '../../server/types';
 import type { ISsrNode, SSRContainer } from './ssr-types';
@@ -66,7 +58,8 @@ function markCatchContentInert(
     }
     if (node !== boundaryNode && !boundaryContentOwner) {
       const store = getOwnSSRCatchStore(node);
-      if (store?.error !== undefined || !hasSlotProps(node.getProp(ELEMENT_PROPS))) {
+      // Mirrors the client reset walk, which skips hosts that project content.
+      if (store?.error !== undefined || !node.hasSlotProps()) {
         boundaryContentOwner = node;
       }
     }

@@ -423,6 +423,10 @@ test.describe('out-of-order streaming with <Pending>', () => {
     await expect(page.locator('#ooos-container-first-resolved-count')).toHaveText('1');
     await expect(page.locator('#ooos-container-second-resolved-count')).toHaveText('1');
     await page.waitForLoadState('load');
+
+    const secondContainer = page.locator('#ooos-container-second-stream');
+    await secondContainer.locator('#ooos-force-rerender').click();
+    await expect(secondContainer.locator('#ooos-render-count')).toHaveText('1');
   });
 
   test('keeps streamed container readiness scoped by instance', async ({

@@ -815,12 +815,6 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     if (cachedVNode) {
       return cachedVNode;
     }
-    if (__EXPERIMENTAL__.pendingBoundary && qElement._qSegment) {
-      vNode = vnode_newUnMaterializedElement(refElement);
-      vnode_ensureElementKeyInflated(vNode as ElementVNode);
-      qElement.vNode = vNode;
-      return vNode;
-    }
   }
   isDev &&
     assertDefined(
@@ -833,24 +827,19 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
         containerElement.contains(refElement),
         `Couldn't find the element inside the container while locating the VNode.`
       );
-    if (__EXPERIMENTAL__.pendingBoundary && (refElement as QElement)._qSegment) {
-      vNode = (refElement as QElement).vNode || vnode_newUnMaterializedElement(refElement);
-      vnode_ensureElementKeyInflated(vNode as ElementVNode);
-    } else {
-      // We need to find the vnode.
-      let parent = refElement;
-      const elementPath: Element[] = [refElement];
-      while (parent && parent !== containerElement && !(parent as QElement).vNode) {
-        parent = parent.parentElement!;
-        elementPath.push(parent);
-      }
-      if ((parent as QElement).vNode) {
-        vNode = (parent as QElement).vNode as ElementVNode;
-      }
-      // Start at rootVNode and follow the `elementPath` to find the vnode.
-      for (let i = elementPath.length - 2; i >= 0; i--) {
-        vNode = vnode_getVNodeForChildNode(vNode as ElementVNode, elementPath[i]);
-      }
+    // We need to find the vnode.
+    let parent = refElement;
+    const elementPath: Element[] = [refElement];
+    while (parent && parent !== containerElement && !(parent as QElement).vNode) {
+      parent = parent.parentElement!;
+      elementPath.push(parent);
+    }
+    if ((parent as QElement).vNode) {
+      vNode = (parent as QElement).vNode as ElementVNode;
+    }
+    // Start at rootVNode and follow the `elementPath` to find the vnode.
+    for (let i = elementPath.length - 2; i >= 0; i--) {
+      vNode = vnode_getVNodeForChildNode(vNode as ElementVNode, elementPath[i]);
     }
 
     if (elementOffset != -1) {

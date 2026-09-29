@@ -2326,7 +2326,7 @@ _(Optional)_
 
 A nested route trie structure. The root represents `/` and each level represents a URL segment.
 
-Keys starting with `_` are metadata; all other keys are child route segments.
+Keys starting with a single `_` are metadata; all other keys are child route segments. A static segment that starts with `_` is stored with an extra `_` (`_drafts` → `__drafts`).
 
 - Use `_W` as the key for a single dynamic segment (param); `_P` on that node names the param. - Use `_A` as the key for a rest/catch-all segment; `_P` on that node names the param. - For infix params like `pre[slug]post`, use `_W` with `_0` (prefix) and `_9` (suffix). - Use `_M` for an array of group (pathless layout) nodes, sorted by group name.
 

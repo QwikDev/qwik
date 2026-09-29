@@ -1,4 +1,6 @@
 import type { Component } from '@qwik.dev/core';
+import qwik2RcHero from './blog/(articles)/qwik-2-rc/hero.webp';
+import { RcHero } from './blog/(articles)/qwik-2-rc/rc-hero';
 import fontlessImage from './blog/(articles)/fontless/fontless-hero.webp';
 import preloaderImage from './blog/(articles)/qwik-1-14-preloader/qwik-preloader-hero.webp';
 import hydrationSabotagesHero from './blog/(articles)/hydration-sabotages-lazy-loading/hero.webp';
@@ -57,6 +59,15 @@ type BlogArticle = {
 };
 
 export const blogArticles: BlogArticle[] = [
+  {
+    title: 'Qwik 2.0 RC: JavaScript streaming without the overhead',
+    image: qwik2RcHero,
+    hero: RcHero,
+    path: '/blog/qwik-2-rc/',
+    tags: ['Qwik'],
+    featuredTitlePosition: 'top',
+    readingTime: 8,
+  },
   {
     title: 'Effortlessly optimize web fonts with fontless.',
     image: fontlessImage,

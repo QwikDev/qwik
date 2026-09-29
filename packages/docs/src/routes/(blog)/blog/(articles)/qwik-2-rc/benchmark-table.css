@@ -1,0 +1,148 @@
+@font-face {
+  font-family: 'Ubuntu Sans Regular';
+  src: url('../../../../../media/fonts/ubuntu-sans/ubuntu-sans-latin-400-normal.woff2')
+    format('woff2');
+  font-display: swap;
+}
+
+.benchmark-table {
+  --slowdown-fast: #63bf7c;
+  --slowdown-medium: #ffec84;
+  --slowdown-slow: #f9696c;
+  --cell-gap: 2px;
+  --table-line: 1px solid var(--color-foreground-base);
+  margin-block: 2rem;
+  font-family: 'Ubuntu Sans Regular', var(--font-body);
+}
+
+.benchmark-table-scroll {
+  overflow-x: auto;
+  contain: inline-size;
+}
+
+.docs article .benchmark-table table {
+  min-width: 760px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  box-shadow: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.docs article .benchmark-table :is(th, td) {
+  border: 0;
+  padding: 10px 8px;
+  font-weight: 400;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.docs article .benchmark-table thead th {
+  border-block: var(--table-line);
+  border-right: var(--table-line);
+  background-color: transparent;
+  color: var(--color-foreground-base);
+}
+
+.docs article .benchmark-table tr > :first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: 190px;
+  border-left: var(--table-line);
+  padding-inline: 16px;
+  background-color: var(--color-background-base);
+  text-align: left;
+}
+
+.docs article .benchmark-table :is(tbody, tfoot) th {
+  border-right: var(--table-line);
+  border-bottom: var(--table-line);
+  color: var(--color-foreground-base);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  text-transform: none;
+}
+
+.docs article .benchmark-table td {
+  border: 0 solid var(--color-background-base);
+  border-width: 0 var(--cell-gap) var(--cell-gap) 0;
+  color: var(--color-foreground-emphasis);
+}
+
+.docs article .benchmark-table tfoot td {
+  border-top-width: var(--cell-gap);
+  font-size: var(--text-body-md);
+}
+
+.docs article .benchmark-table thead .is-highlighted {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-standalone-accent);
+}
+
+.benchmark-table .framework-name {
+  display: block;
+}
+
+.benchmark-table .framework-version {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  text-transform: none;
+}
+
+.benchmark-table .confidence-interval,
+.benchmark-table .slowdown {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.benchmark-table .slowdown {
+  display: block;
+}
+
+.benchmark-table figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-top: 12px;
+  font-size: var(--text-body-xs);
+  line-height: var(--text-body-xs--line-height);
+  color: var(--color-foreground-soft);
+}
+
+.benchmark-table .slowdown-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.benchmark-table .slowdown-scale {
+  width: 120px;
+  height: 12px;
+  background: linear-gradient(
+    to right,
+    var(--slowdown-fast),
+    var(--slowdown-medium) 33.33%,
+    var(--slowdown-slow)
+  );
+}
+
+@media (max-width: 640px) {
+  .docs article .benchmark-table table {
+    min-width: 640px;
+  }
+
+  .docs article .benchmark-table tr > :first-child {
+    width: 130px;
+    padding-inline: 10px;
+  }
+
+  .docs article .benchmark-table :is(tbody, tfoot) th {
+    font-size: var(--text-body-xs);
+    line-height: var(--text-body-xs--line-height);
+  }
+}

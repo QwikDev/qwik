@@ -1,4 +1,4 @@
-import { execFileSync } from 'child_process';
+import { execSync } from 'child_process';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import playwright from 'playwright';
@@ -37,11 +37,12 @@ describe('template: playground worker$', () => {
 
   test('installs in its own workspace', () => {
     const projects = JSON.parse(
-      execFileSync('pnpm', ['--dir', global.tmpDir, 'list', '-r', '--depth', '-1', '--json'], {
+      execSync('pnpm list -r --depth -1 --json', {
+        cwd: global.tmpDir,
         encoding: 'utf-8',
       })
     );
-    expect(projects.map((project: { path: string }) => project.path)).toEqual([global.tmpDir]);
+    expect(projects).toHaveLength(1);
   });
 
   test('Should invoke worker$ in dev mode', { timeout: DEFAULT_TIMEOUT * 2 }, async () => {

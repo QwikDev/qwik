@@ -82,14 +82,14 @@ export const ROUTE_PATH_HEADER = 'X-Qwik-route-path';
  * - `d` — data: the loader's return value (including a `fail()` result, which is plain data)
  * - `r` — redirect: URL to navigate to (from `throw redirect()`)
  * - `e` — error: the loader's failure, a crash redacted outside dev
- * - `p` — set with `e` when the failure is the page's: from middleware, or an `HttpError` from a
- *   blocking loader
+ * - `p` — set with `e` when the failure is the page's, from middleware or an `HttpError` from a
+ *   blocking loader: the segment that failed, whose error page renders in its place
  */
 export type LoaderResponse = {
   d?: unknown;
   r?: string;
   e?: Error;
-  p?: 1;
+  p?: number;
 };
 
 /**
@@ -135,7 +135,9 @@ export type RouteLoaderCtx = {
    * Swaps in the route's error page. Client-only, set by each navigation; before the first one, a
    * reload lets SSR render it.
    */
-  showErrorPage?: NoSerialize<(error: Error) => Promise<void>>;
+  showErrorPage?: NoSerialize<
+    (error: Error, failingSegment: number, loaderId: string) => Promise<void>
+  >;
   /** SSR rendered the error page, so a reload would only bring it back. */
   isErrorPage?: boolean;
   /** Client manifest hash for q-loader fetch URLs. */
@@ -367,10 +369,30 @@ export const fetchRouteLoaderData = async (
   return promise;
 };
 
+/** Per navigation, only a shallower failure replaces the error page already shown. */
+export const createErrorPageGate = () => {
+  let shownSegment: number | undefined;
+  return {
+    enter: (segment: number): boolean => {
+      if (shownSegment !== undefined && segment >= shownSegment) {
+        return false;
+      }
+      shownSegment = segment;
+      return true;
+    },
+    isShown: (segment: number): boolean => shownSegment === segment,
+  };
+};
+
 /** A failure that belongs to the page shows its error page, as SSR does. */
-export const showPageFailure = async (ctx: RouteLoaderCtx, error: Error) => {
+export const showPageFailure = async (
+  ctx: RouteLoaderCtx,
+  error: Error,
+  failingSegment: number,
+  loaderId: string
+) => {
   if (ctx.showErrorPage) {
-    await ctx.showErrorPage(error);
+    await ctx.showErrorPage(error, failingSegment, loaderId);
   } else if (!ctx.isErrorPage) {
     location.reload();
   }
@@ -487,8 +509,8 @@ const createRouteLoaderSignal = (
       }
       if (response.e) {
         // The page's own failure shows its error page; the signal settles after the swap.
-        if (response.p) {
-          await showPageFailure(routeLoaderCtx, response.e);
+        if (response.p !== undefined) {
+          await showPageFailure(routeLoaderCtx, response.e, response.p, id);
         }
         throw response.e;
       }
@@ -1141,7 +1163,7 @@ export const getRouteLoaderResponse = async (
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   validators: DataValidator[] | undefined,
   requestEv: RequestEvent,
-  isBlocking = false
+  pageSegment?: number
 ): Promise<LoaderResponse> => {
   try {
     // A fail() result is plain data ({ failed: true, ... }); only thrown errors use `e`.
@@ -1154,7 +1176,7 @@ export const getRouteLoaderResponse = async (
       return { r: location };
     }
     if (err instanceof HttpError) {
-      return isBlocking ? { e: err, p: 1 } : { e: err };
+      return pageSegment === undefined ? { e: err } : { e: err, p: pageSegment };
     }
     if (isCrash(err)) {
       return { e: toLoaderCrash(err) };

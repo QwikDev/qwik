@@ -40,17 +40,21 @@ Set the client's working directory to your project so `npx --no-install` resolve
 
 ## Tools
 
-| Tool                 | Inputs                                                    | Result                                                                     |
-| -------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `get_project_info`   | `{}`                                                      | Installed versions, script names, documentation match and optional dev URL |
-| `list_routes`        | `{}`                                                      | `routerInstalled` and Router's routes, source files, parameters, layouts   |
-| `get_dev_errors`     | `{ url? }`                                                | Vite errors observed by the selected page, with source locations           |
-| `inspect_page`       | `{ url?, selector?, includeHtml?, includeSignalValues? }` | Component tree, component hook metadata, optional signal values and HTML   |
-| `search_docs`        | `{ query, limit? }`                                       | Ranked documentation page IDs, titles, snippets and snapshot version       |
-| `get_doc`            | `{ id }`                                                  | Full Markdown page, source URL and snapshot version                        |
-| `get_best_practices` | `{}`                                                      | Short Qwik coding guide and its bundled version                            |
+| Tool                 | Inputs                                                                                                                   | Result                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `get_project_info`   | `{}`                                                                                                                     | Installed versions, script names, documentation match and optional dev URL       |
+| `list_routes`        | `{}`                                                                                                                     | `routerInstalled` and Router's routes, source files, parameters, layouts         |
+| `get_dev_errors`     | `{ url? }`                                                                                                               | Vite errors observed by the selected page, with source locations                 |
+| `inspect_page`       | `{ url?, selector?, includeHtml?, includeSignalValues?, includeSerializedState?, includeSerializedVNodeTree?, offset? }` | Component tree, hooks, optional HTML, signal values, parsed state and VNode tree |
+| `search_docs`        | `{ query, limit? }`                                                                                                      | Ranked documentation page IDs, titles, snippets and snapshot version             |
+| `get_doc`            | `{ id }`                                                                                                                 | Full Markdown page, source URL and snapshot version                              |
+| `get_best_practices` | `{}`                                                                                                                     | Short Qwik coding guide and its bundled version                                  |
 
 `includeHtml` and `includeSignalValues` default to `false`. `selector` scopes the HTML fragment; component metadata still describes the page. HTML is current DOM, marked `source: "live-dom"`, limited to 64 KiB of UTF-8, with `truncated` indicating an incomplete fragment. It is not the original SSR response.
+
+`includeSerializedState` and `includeSerializedVNodeTree` also default to `false`. They parse the page's Qwik state scripts and reconstruct a VNode tree from a copy of the DOM. Each returns `null` when no Qwik container or relevant state exists, or `{ source: "serialized-dom", content, truncated, nextOffset }` with a 64 KiB UTF-8 limit. These snapshots may differ from current signal values after interaction. `selector` does not scope them.
+
+Each text result also includes `nextOffset`. If `truncated` is `true`, call `inspect_page` again with the same include flag and `offset: nextOffset`. Repeat until `nextOffset` is `null`. The offset counts UTF-8 bytes and applies to every selected text field, so request one text field at a time when paging. Page changes can mix snapshots across calls; if an offset becomes invalid, restart at `0`.
 
 Hook metadata is collected by the shared DevTools instrumentation as components execute and their document-ready tasks run. Components that have not executed in the browser may appear in the tree without hook metadata. Snapshot entries are grouped by component source, so repeated instances share that metadata.
 
@@ -80,7 +84,7 @@ Search matches words in page titles, descriptions and Markdown content, with tit
 
 The plugin runs only during development. Its internal endpoint accepts loopback connections with a random session token and rejects browser origins. Discovery files live in `node_modules/.cache/qwik-mcp`, have owner-only permissions on Unix, and are removed when the server closes. Stale files from terminated processes are ignored.
 
-Use a standalone HTTP Vite server with HMR enabled. HTTPS and middleware mode are currently unsupported. The CLI sends only MCP protocol messages to stdout. Tools inspect the running app and do not edit files, install packages or start builds. Returned HTML, hook metadata and signal values are application content and may contain private information.
+Use a standalone HTTP Vite server with HMR enabled. HTTPS and middleware mode are currently unsupported. The CLI sends only MCP protocol messages to stdout. Tools inspect the running app and do not edit files, install packages or start builds. Returned HTML, hook metadata, signal values, parsed state and VNode tree are application content and may contain private information.
 
 ## Development
 

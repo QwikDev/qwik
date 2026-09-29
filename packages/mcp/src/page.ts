@@ -1,5 +1,24 @@
 import type { InPageBridge } from '../../devtools/kit/src/client-bridge';
 import type { InspectInput } from './protocol';
+import { readSerializedState, readSerializedVNodeTree } from './serialized';
+
+const outputLimit = 65536;
+const bounded = (content: string, source: 'live-dom' | 'serialized-dom', offset = 0) => {
+  const bytes = new TextEncoder().encode(content);
+  if (offset > bytes.length || (offset < bytes.length && (bytes[offset] & 0xc0) === 0x80)) {
+    throw new Error('Invalid offset for current content. Restart at offset 0.');
+  }
+  let end = Math.min(offset + outputLimit, bytes.length);
+  while (end < bytes.length && (bytes[end] & 0xc0) === 0x80) {
+    end--;
+  }
+  return {
+    source,
+    content: new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(offset, end)),
+    truncated: end < bytes.length,
+    nextOffset: end < bytes.length ? end : null,
+  };
+};
 
 export async function readPage(
   options: InspectInput,
@@ -21,17 +40,9 @@ export async function readPage(
       ...node,
       ...(children ? { children: stripProps(children) } : {}),
     }));
-  let html;
-  if (options.includeHtml) {
-    const bytes = new TextEncoder().encode(element.outerHTML);
-    html = {
-      source: 'live-dom' as const,
-      content: new TextDecoder('utf-8', { fatal: false }).decode(bytes.subarray(0, 65536), {
-        stream: true,
-      }),
-      truncated: bytes.length > 65536,
-    };
-  }
+  const html = options.includeHtml ? bounded(element.outerHTML, 'live-dom', options.offset) : null;
+  const state = options.includeSerializedState ? readSerializedState(doc) : null;
+  const vnodeTree = options.includeSerializedVNodeTree ? await readSerializedVNodeTree(doc) : null;
   return {
     url,
     tree: stripProps(tree),
@@ -42,5 +53,16 @@ export async function readPage(
       ),
     })),
     ...(html ? { html } : {}),
+    ...(options.includeSerializedState
+      ? {
+          serializedState: state === null ? null : bounded(state, 'serialized-dom', options.offset),
+        }
+      : {}),
+    ...(options.includeSerializedVNodeTree
+      ? {
+          serializedVNodeTree:
+            vnodeTree === null ? null : bounded(vnodeTree, 'serialized-dom', options.offset),
+        }
+      : {}),
   };
 }

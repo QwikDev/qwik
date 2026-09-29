@@ -5,6 +5,9 @@ export const inspectInput = pageInput.extend({
   selector: z.string().min(1).optional(),
   includeHtml: z.boolean().default(false),
   includeSignalValues: z.boolean().default(false),
+  includeSerializedState: z.boolean().default(false),
+  includeSerializedVNodeTree: z.boolean().default(false),
+  offset: z.number().int().nonnegative().safe().default(0),
 });
 export type InspectInput = z.input<typeof inspectInput>;
 export type ToolName = 'get_project_info' | 'list_routes' | 'get_dev_errors' | 'inspect_page';

@@ -37,6 +37,7 @@ await build({
   entryPoints: ['src/browser.ts'],
   outfile: 'dist/browser.js',
   platform: 'browser',
+  external: ['@qwik.dev/core/internal'],
 });
 await build({
   ...shared,

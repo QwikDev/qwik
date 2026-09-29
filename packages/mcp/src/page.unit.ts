@@ -1,5 +1,7 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { readPage } from './page';
+
+vi.mock('@qwik.dev/core/internal', () => ({}));
 
 test('HTML is opt-in, limited in UTF-8 bytes, and selector failures are explicit', async () => {
   const element = { outerHTML: '<div>' + 'ą'.repeat(40000) + '</div>' };
@@ -39,6 +41,18 @@ test('HTML is opt-in, limited in UTF-8 bytes, and selector failures are explicit
   );
   expect(result.html).toMatchObject({ source: 'live-dom', truncated: true });
   expect(new TextEncoder().encode(result.html!.content).length).toBeLessThanOrEqual(65536);
+  expect(typeof result.html!.nextOffset).toBe('number');
+  const rest = await readPage(
+    { includeHtml: true, offset: result.html!.nextOffset! },
+    doc,
+    bridge,
+    'http://localhost/'
+  );
+  expect(result.html!.content + rest.html!.content).toBe(element.outerHTML);
+  expect(rest.html).toMatchObject({ truncated: false, nextOffset: null });
+  await expect(readPage({ includeHtml: true, offset: 6 }, doc, bridge, '')).rejects.toThrow(
+    'Invalid offset'
+  );
   expect(result.components[0].signals[0]).toHaveProperty('value', 2);
   await expect(readPage({ selector: '#missing' }, doc, bridge, '')).rejects.toThrow('No element');
   await expect(readPage({ selector: '[' }, doc, bridge, '')).rejects.toThrow('Invalid selector');

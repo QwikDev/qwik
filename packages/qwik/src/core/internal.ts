@@ -14,6 +14,7 @@ export {
   DomContainer as _DomContainer,
   getDomContainer as _getDomContainer,
 } from './client/dom-container';
+export { whenContainerDataReady as _whenContainerDataReady } from './client/process-state-data';
 export { _run } from './client/run-qrl';
 export type {
   ContainerElement as _ContainerElement,

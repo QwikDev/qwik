@@ -195,6 +195,34 @@ for (const mode of ['csr', 'ssr']) {
         true
       );
       expect((snapshot.structuredContent?.html as any).content).toContain('Count: 1');
+      if (mode === 'ssr') {
+        const serializedState = await call('inspect_page', { includeSerializedState: true });
+        expect(serializedState.isError, JSON.stringify(serializedState)).not.toBe(true);
+        expect(serializedState.structuredContent).toMatchObject({
+          serializedState: {
+            source: 'serialized-dom',
+            content: expect.any(String),
+            truncated: false,
+          },
+        });
+        const serializedVNodeTree = await call('inspect_page', {
+          includeSerializedVNodeTree: true,
+        });
+        expect(serializedVNodeTree.isError, JSON.stringify(serializedVNodeTree)).not.toBe(true);
+        expect(serializedVNodeTree.structuredContent).toMatchObject({
+          serializedVNodeTree: {
+            source: 'serialized-dom',
+            content: expect.any(String),
+            truncated: false,
+          },
+        });
+        expect(
+          (serializedState.structuredContent?.serializedState as any).content.length
+        ).toBeGreaterThan(0);
+        expect(
+          (serializedVNodeTree.structuredContent?.serializedVNodeTree as any).content.length
+        ).toBeGreaterThan(0);
+      }
       await expect
         .poll(
           async () =>

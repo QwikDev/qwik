@@ -32,7 +32,30 @@ const inspectOutput = z.object({
     })
   ),
   html: z
-    .object({ source: z.literal('live-dom'), content: z.string(), truncated: z.boolean() })
+    .object({
+      source: z.literal('live-dom'),
+      content: z.string(),
+      truncated: z.boolean(),
+      nextOffset: z.number().nullable(),
+    })
+    .optional(),
+  serializedState: z
+    .object({
+      source: z.literal('serialized-dom'),
+      content: z.string(),
+      truncated: z.boolean(),
+      nextOffset: z.number().nullable(),
+    })
+    .nullable()
+    .optional(),
+  serializedVNodeTree: z
+    .object({
+      source: z.literal('serialized-dom'),
+      content: z.string(),
+      truncated: z.boolean(),
+      nextOffset: z.number().nullable(),
+    })
+    .nullable()
     .optional(),
 });
 
@@ -98,7 +121,7 @@ export function createMcpServer(
     },
     inspect_page: {
       description:
-        'Inspect a connected Qwik page and component hooks. HTML and signal values are opt-in. HTML is current live DOM, limited to 64 KiB; selector scopes only the HTML fragment. Supply url when multiple pages are open.',
+        'Inspect a connected Qwik page and component hooks. HTML, signal values, parsed serialized state and serialized VNode tree are opt-in. Text outputs are limited to 64 KiB each. If truncated is true, call inspect_page again with offset set to that field’s nextOffset and the same include flag; repeat until nextOffset is null. Offset is a UTF-8 byte position and applies to every selected text field. Page changes between calls may invalidate it. Selector scopes only HTML. Supply url when multiple pages are open.',
       inputSchema: inspectInput,
       outputSchema: inspectOutput,
     },

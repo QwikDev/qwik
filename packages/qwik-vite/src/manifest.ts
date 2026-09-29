@@ -1,5 +1,6 @@
-import type { Rollup } from 'vite';
+import type { Rolldown } from 'vite';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
+import { condenseImportGraph } from './plugins/bundle-graph';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
 // The handlers that are exported by the core package
@@ -17,13 +18,16 @@ const extraSymbols = new Set([
   // Show
   '_shC',
   '_shT',
-  // Suspense
-  '_suC',
-  '_suT',
+  // Pending
+  '_peC',
+  '_peT',
   // Reveal
   '_reR',
   '_reC',
   '_reT',
+  // Catch
+  '_caC',
+  '_caR',
 ]);
 
 // This is just the initial prioritization of the symbols and entries
@@ -291,76 +295,9 @@ const getBundleInteractivity = (bundle: QwikBundle, manifest: QwikManifest) => {
  * harder than you think to total nodes in a directed cyclic graph
  */
 export function computeTotals(graph: QwikManifest['bundles']): void {
-  // 1) Prepare Tarjan's structures
-  let index = 0;
-  const stack: string[] = [];
-  const sccList: string[][] = [];
+  const { components: sccList, successors: sccDAG } = condenseImportGraph(graph);
 
-  // Maps for Tarjan
-  const idx = new Map<string, number>(); // node -> index
-  const low = new Map<string, number>(); // node -> low-link
-  const onStack = new Set<string>();
-
-  function strongConnect(v: string) {
-    idx.set(v, index);
-    low.set(v, index);
-    index++;
-    stack.push(v);
-    onStack.add(v);
-
-    // Explore children
-    const children = graph[v].imports || [];
-    for (const w of children) {
-      if (!idx.has(w)) {
-        strongConnect(w);
-        low.set(v, Math.min(low.get(v)!, low.get(w)!));
-      } else if (onStack.has(w)) {
-        low.set(v, Math.min(low.get(v)!, idx.get(w)!));
-      }
-    }
-
-    // If v is a root node, pop stack to form an SCC
-    if (low.get(v) === idx.get(v)) {
-      const comp: string[] = [];
-      let x: string;
-      do {
-        x = stack.pop()!;
-        onStack.delete(x);
-        comp.push(x);
-      } while (x !== v);
-      sccList.push(comp);
-    }
-  }
-
-  // Run Tarjan over all nodes
-  for (const v of Object.keys(graph)) {
-    if (!idx.has(v)) {
-      strongConnect(v);
-    }
-  }
-
-  // 2) Build DAG of SCCs
-  // sccIndex: which SCC a node belongs to
-  const sccIndex = new Map<string, number>();
-  sccList.forEach((comp, i) => {
-    for (const v of comp) {
-      sccIndex.set(v, i);
-    }
-  });
-
-  // Create adjacency for the SCC graph
-  const sccDAG: Set<number>[] = Array.from({ length: sccList.length }, () => new Set());
-  for (const v of Object.keys(graph)) {
-    const i = sccIndex.get(v)!;
-    for (const w of graph[v].imports || []) {
-      const j = sccIndex.get(w)!;
-      if (i !== j) {
-        sccDAG[i].add(j);
-      }
-    }
-  }
-
-  // 3) Topological sort the SCC DAG
+  // 1) Topological sort the SCC DAG
   const visited = new Set<number>();
   const order: number[] = [];
 
@@ -381,7 +318,7 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
   }
   order.reverse(); // Now it's a topological order
 
-  // 4) Compute totals from bottom to top
+  // 2) Compute totals from bottom to top
   const sccTotals = new Array<number>(sccList.length).fill(0);
 
   // First compute the sum of 'size' in each SCC
@@ -403,7 +340,7 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
     sccTotals[sccId] = total;
   }
 
-  // 5) Assign computed totals back to each node in the original graph
+  // 3) Assign computed totals back to each node in the original graph
   for (let i = 0; i < sccList.length; i++) {
     const total = sccTotals[i];
     for (const nodeId of sccList[i]) {
@@ -412,9 +349,26 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
   }
 }
 
-const preloaderRegex = /[/\\](core|qwik)[/\\]dist[/\\]preloader\.(|c|m)js$/;
-const coreRegex = /[/\\](core|qwik)[/\\]dist[/\\]core(\.min|\.prod)?\.(|c|m)js$/;
-const qwikLoaderRegex = /[/\\](core|qwik)[/\\](dist[/\\])?qwikloader(\.debug)?\.[^/]*js$/;
+/** The bundles this chunk reaches through `qrl(() => import(segment))`, per rollup module info. */
+function getQrlImports(
+  outputBundle: Rolldown.OutputChunk,
+  bundleFileName: string,
+  bundleByModuleId: Map<string, string>,
+  getModuleInfo: Rolldown.PluginContext['getModuleInfo']
+) {
+  const qrlImports = new Set<string>();
+  for (const moduleId of Object.keys(outputBundle.modules)) {
+    for (const importedId of getModuleInfo(moduleId)?.dynamicallyImportedIds || []) {
+      const importedBundle = bundleByModuleId.get(importedId);
+      const isSegment = getModuleInfo(importedId)?.meta.segment;
+      if (importedBundle && importedBundle !== bundleFileName && isSegment) {
+        qrlImports.add(importedBundle);
+      }
+    }
+  }
+  return [...qrlImports];
+}
+
 /**
  * Generates the Qwik build manifest from the Rollup output bundles. It also figures out the bundle
  * files for the preloader, core, qwikloader and handlers. This information is used during SSR.
@@ -423,10 +377,14 @@ export function generateManifestFromBundles(
   path: Path,
   segments: SegmentAnalysis[],
   injections: GlobalInjections[],
-  outputBundles: Rollup.OutputBundle,
+  outputBundles: Rolldown.OutputBundle,
   opts: NormalizedQwikPluginOptions,
   debug: (...args: any[]) => void,
-  canonPath: (p: string) => string
+  canonPath: (p: string) => string,
+  getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
+  qwikLoaderFileName?: string,
+  preloaderFileName?: string,
+  handlersFileName?: string
 ) {
   // Note that this will be the order of the JSON file
   const manifest: QwikManifest = {
@@ -463,20 +421,39 @@ export function generateManifestFromBundles(
   let preloaderBundleName: string | undefined;
   let qwikHandlersName: string | undefined;
 
+  // A /qwikloader route could shadow a chunk-name match.
+  manifest.qwikLoader = qwikLoaderFileName ? canonPath(qwikLoaderFileName) : undefined;
+
+  // Group names come from plugin.ts; qwik-core also holds the handlers.
   for (const outputBundle of Object.values(outputBundles)) {
     const bundleFileName = getBundleName(outputBundle.fileName);
-    if (outputBundle.name === 'core') {
+    if (outputBundle.name === 'qwik-core') {
       coreBundleName = bundleFileName;
-    }
-    if (outputBundle.name === 'preloader') {
-      preloaderBundleName = bundleFileName;
-    }
-    if (outputBundle.name === 'handlers') {
       qwikHandlersName = bundleFileName;
+      manifest.core = bundleFileName;
     }
+    if (outputBundle.name === 'qwik-preloader') {
+      preloaderBundleName = bundleFileName;
+      manifest.preloader = bundleFileName;
+    }
+  }
+  // Facades keep export names; a merged facade leaves no file.
+  if (preloaderFileName && preloaderFileName in outputBundles) {
+    manifest.preloader = canonPath(preloaderFileName);
+  }
+  if (handlersFileName && handlersFileName in outputBundles) {
+    qwikHandlersName = canonPath(handlersFileName);
   }
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
+  const bundleByModuleId = new Map<string, string>();
+  for (const outputBundle of Object.values(outputBundles)) {
+    if (outputBundle.type === 'chunk') {
+      for (const moduleId of Object.keys(outputBundle.modules)) {
+        bundleByModuleId.set(moduleId, getBundleName(outputBundle.fileName)!);
+      }
+    }
+  }
   for (const outputBundle of Object.values(outputBundles)) {
     if (outputBundle.type === 'asset') {
       // we don't record map files as assets
@@ -506,8 +483,6 @@ export function generateManifestFromBundles(
       }
     }
     const bundleImports = outputBundle.imports
-      // Tree shaking might remove imports
-      .filter((i) => outputBundle.code.includes(path.basename(i)))
       .map((i) => getBundleName(i))
       .filter((i) => i !== preloaderBundleName && i !== coreBundleName && i !== qwikHandlersName)
       .filter(Boolean) as string[];
@@ -515,40 +490,27 @@ export function generateManifestFromBundles(
       bundle.imports = bundleImports;
     }
     const bundleDynamicImports = outputBundle.dynamicImports
-      .filter((i) => outputBundle.code.includes(path.basename(i)))
       .map((i) => getBundleName(i))
       .filter(Boolean) as string[];
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
-    }
-
-    // It can happen that our modules end up in facades, not nice but needs handling
-    if (outputBundle.facadeModuleId) {
-      if (preloaderRegex.test(outputBundle.facadeModuleId)) {
-        manifest.preloader = bundleFileName;
-      } else if (coreRegex.test(outputBundle.facadeModuleId)) {
-        manifest.core = bundleFileName;
-      } else if (qwikLoaderRegex.test(outputBundle.facadeModuleId)) {
-        manifest.qwikLoader = bundleFileName;
+      const qrlImports = getQrlImports(
+        outputBundle,
+        bundleFileName,
+        bundleByModuleId,
+        getModuleInfo
+      );
+      if (qrlImports.length > 0) {
+        bundle.qrlImports = qrlImports;
       }
     }
-    // Rollup doesn't provide the moduleIds in the outputBundle but Vite does
+
     const ids = outputBundle.moduleIds || Object.keys(outputBundle.modules);
     const modulePaths = ids
       .filter((m) => !m.startsWith(`\u0000`))
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
-      // keep these if statements separate so that weird bundling still works
-      if (!manifest.preloader && modulePaths.some((m) => preloaderRegex.test(m))) {
-        manifest.preloader = bundleFileName;
-      }
-      if (!manifest.core && modulePaths.some((m) => coreRegex.test(m))) {
-        manifest.core = bundleFileName;
-      }
-      if (!manifest.qwikLoader && modulePaths.some((m) => qwikLoaderRegex.test(m))) {
-        manifest.qwikLoader = bundleFileName;
-      }
     }
 
     manifest.bundles[bundleFileName] = bundle;

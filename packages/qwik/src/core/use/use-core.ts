@@ -14,21 +14,9 @@ import { QError, qError } from '../shared/error/error';
 import type { Container, HostElement } from '../shared/types';
 import { RenderEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
-import { isObject } from '../shared/utils/types';
 import { setLocale } from './use-locale';
 
-// Simplified version of `ServerRequestEvent` from `@qwik.dev/router` package.
-export interface SimplifiedServerRequestEvent<T = unknown> {
-  url: URL;
-  locale: string | undefined;
-  request: Request;
-}
-
-export type PossibleEvents =
-  | Event
-  | SimplifiedServerRequestEvent
-  | typeof TaskEvent
-  | typeof RenderEvent;
+export type PossibleEvents = Event | typeof TaskEvent | typeof RenderEvent;
 
 export interface RenderInvokeContext extends InvokeContext {
   // The below are just always-defined attributes of InvokeContext.
@@ -149,20 +137,16 @@ export function newRenderInvokeContext(
 }
 
 /** @internal */
-// TODO how about putting url and locale (and event/custom?) in to a "static" object
 export function newInvokeContext(
   locale?: string,
   hostElement?: HostElement,
   event?: Exclude<PossibleEvents, typeof RenderEvent>
 ): InvokeContext {
-  // ServerRequestEvent has .locale, but it's not always defined.
-  const $locale$ =
-    locale || (event && isObject(event) && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $hostElement$: hostElement,
     $event$: event,
     $effectSubscriber$: undefined,
-    $locale$,
+    $locale$: locale,
     $container$: undefined,
   };
   seal(ctx);

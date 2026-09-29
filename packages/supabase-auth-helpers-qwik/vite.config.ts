@@ -13,7 +13,7 @@ export default defineConfig((config) => {
         formats: ['es'],
         fileName: () => `index.qwik.mjs`,
       },
-      rollupOptions: {
+      rolldownOptions: {
         external: [
           '@qwik.dev/core',
           '@qwik.dev/router',
@@ -27,6 +27,6 @@ export default defineConfig((config) => {
       PACKAGE_NAME: JSON.stringify(pkg.name),
       PACKAGE_VERSION: JSON.stringify(pkg.version),
     },
-    plugins: [qwikVite()],
+    plugins: [qwikVite({ tsOptimizer: true })],
   };
 }) as any;

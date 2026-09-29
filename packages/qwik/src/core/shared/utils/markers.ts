@@ -2,6 +2,7 @@ import { QContainerValue } from '../types';
 
 /** State factory of the component. */
 export const OnRenderProp = 'q:renderFn';
+export const QComponentHash = 'q:componentHash';
 
 /** Target DOM element for external projection rendering. */
 export const QTargetElement = 'q:targetEl';
@@ -15,8 +16,10 @@ export const QSlotParent = 'q:sparent';
 export const QSlotS = 'q:s';
 export const QStatePatchAttr = 'q:patch';
 export const QStatePatchAttrSelector = '[q\\:patch]';
-export const QSuspenseResolved = 'q:r';
-export const QSuspenseResultParent = 'q:rp';
+export const QPendingResolved = 'q:r';
+export const QPendingResultParent = 'q:rp';
+export const QErrorContentHost = 'q:cc';
+export const QErrorFallbackHost = 'q:cf';
 export const QStyle = 'q:style';
 export const QStyleSelector = 'style[q\\:style]';
 export const QStyleSSelector = 'style[q\\:sstyle]';
@@ -71,6 +74,16 @@ export const XML_NS = 'http://www.w3.org/XML/1998/namespace';
 export const RenderEvent = 'qRender';
 export const TaskEvent = 'qTask';
 
+/** Scoped qvisible listener attribute; the qwik loader observes elements carrying it. */
+export const QVisibleAttr = 'q-e:qvisible';
+
+/** Events the qwik loader dispatches by scanning the DOM instead of listening. */
+export const enum QwikLoaderScanEvent {
+  qvisible = 'e:qvisible',
+  qinit = 'd:qinit',
+  qidle = 'd:qidle',
+}
+
 /** `<q:slot name="...">` */
 export const QDefaultSlot = '';
 
@@ -85,6 +98,7 @@ export const QDefaultSlot = '';
 export const ELEMENT_ID = 'q:id';
 export const ELEMENT_KEY = 'q:key';
 export const ELEMENT_PROPS = 'q:props';
+export const USE_ON_PLACEHOLDER_KEY = ':useOn';
 /** @internal */
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';

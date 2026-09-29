@@ -1,0 +1,77 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 680
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { flag?: boolean; className?: string }) => {
+	if (props.flag) {
+		const { className, ...rest } = props;
+		console.log(className, rest);
+	}
+	const { className, ...rest } = props;
+	return <div class={className}>{JSON.stringify(rest)}</div>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAOhB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _restProps } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+//
+export const Cmp_component_4ryKJTOKjWE = (props)=>{
+    if (props.flag) {
+        const { className, ...rest } = props;
+        console.log(className, rest);
+    }
+    const rest = _restProps(props, [
+        "className"
+    ]);
+    return /*#__PURE__*/ _jsxSorted("div", {
+        class: _wrapProp(props, "className")
+    }, null, JSON.stringify(rest), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC;IAC9B,IAAI,MAAM,IAAI,EAAE;QACf,MAAM,EAAE,SAAS,EAAE,GAAG,MAAM,GAAG;QAC/B,QAAQ,GAAG,CAAC,WAAW;IACxB;4BAC+B;;;IAC/B,qBAAO,WAAC;QAAI,KAAK,YADc;aACA,KAAK,SAAS,CAAC;AAC/C\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    326
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

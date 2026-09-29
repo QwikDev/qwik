@@ -19,7 +19,7 @@ import {
   createOutOfOrderRevealCoordinator,
   isOutOfOrderStreaming,
   type OutOfOrderRevealCoordinator,
-} from './suspense-utils';
+} from './pending-utils';
 
 export type { RevealOrder } from '../shared/utils/reveal';
 
@@ -127,9 +127,9 @@ const getOutOfOrderCoordinator = (
 
 /** @internal */
 export const revealCmp = (props: RevealProps) => {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     throw new Error(
-      'Reveal is experimental and must be enabled with `experimental: ["suspense"]` in the `qwikVite` plugin.'
+      'Reveal is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
     );
   }
 
@@ -137,7 +137,7 @@ export const revealCmp = (props: RevealProps) => {
   useContextProvider(RevealContext, reveal);
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
-  if (__EXPERIMENTAL__.suspense && isServerEnv && isOutOfOrderStreaming()) {
+  if (__EXPERIMENTAL__.pendingBoundary && isServerEnv && isOutOfOrderStreaming()) {
     const coordinator = getOutOfOrderCoordinator(reveal);
     return /*#__PURE__*/ _jsxSorted(
       SSRRevealSlot,
@@ -163,7 +163,7 @@ type SSRRevealSlotProps = {
   coordinator: OutOfOrderRevealCoordinator;
 };
 
-const SSRRevealSlot = __EXPERIMENTAL__.suspense
+const SSRRevealSlot = __EXPERIMENTAL__.pendingBoundary
   ? /*#__PURE__*/ createInternalServerComponent<SSRRevealSlotProps>(
       (ssr, jsx, _options, enqueue) => {
         const coordinator = jsx.varProps.coordinator as OutOfOrderRevealCoordinator;

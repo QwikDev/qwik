@@ -43,6 +43,7 @@ const booleanOptions = [
   'qwikauth',
   'qwikrouter',
   'qwikreact',
+  'qwikutils',
   'qwikworker',
   'release',
   'supabaseauthhelpers',
@@ -136,7 +137,7 @@ export function loadConfig(args: string[] = []): BuildConfig {
         .map((k) => `  --${kebab(k)}\n`)
         .join('')}${stringOptions
         .map((k) => `  --${kebab(k)} <string>\n`)
-        .join('')}\n=== Use pnpm build.local for initial build. ===\n\n`
+        .join('')}\n=== Use pnpm build.full for initial build. ===\n\n`
     );
     process.exit(1);
   }

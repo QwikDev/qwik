@@ -24,6 +24,7 @@ export default defineConfig({
   plugins: [
     qwikRouter(),
     qwikVite({
+      tsOptimizer: true,
       experimental: ['insights'],
     }),
     tsconfigPaths({ root: '.' }),

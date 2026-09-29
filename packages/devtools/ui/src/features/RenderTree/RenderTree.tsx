@@ -2,6 +2,7 @@ import {
   $,
   Resource,
   component$,
+  useComputed$,
   useResource$,
   useSignal,
   useStyles$,
@@ -9,6 +10,7 @@ import {
 } from '@qwik.dev/core';
 import { Tree } from '../../components/Tree/Tree';
 import type { TreeNode } from '../../components/Tree/type';
+import type { DevtoolsState } from '../../devtools/state';
 import debug from 'debug';
 import type { CodeModule, HookFilterItem, HookType } from './types';
 import { getViteClientRpc } from '@qwik.dev/devtools/kit';
@@ -34,13 +36,14 @@ function applyHookFilters(tree: TreeNode[], filters: HookFilterItem[]) {
   );
 }
 
-export const RenderTree = component$(() => {
+export const RenderTree = component$<{ state: DevtoolsState }>(({ state }) => {
   useStyles$(`
     pre.shiki {
       overflow: auto;
       padding: 10px;
     }
   `);
+  const revealNode = useComputed$(() => state.componentReveal);
   const codes = useSignal<CodeModule[]>([]);
   const data = useSignal<TreeNode[]>([]);
   const lastTreeIds = useSignal('');
@@ -187,7 +190,12 @@ export const RenderTree = component$(() => {
     <div class="border-glass-border bg-card-item-bg h-full w-full flex-1 overflow-hidden rounded-2xl border">
       <div class="flex h-full w-full">
         <div class="custom-scrollbar w-1/2 overflow-hidden p-3" style={{ minWidth: '360px' }}>
-          <Tree data={data} onNodeClick={onNodeClick}></Tree>
+          <Tree
+            data={data}
+            onNodeClick={onNodeClick}
+            revealNode={revealNode}
+            onRevealed$={$(() => (state.componentReveal = null))}
+          ></Tree>
         </div>
         <div class="border-glass-border border-l"></div>
         <div class="flex h-full min-h-0 w-1/2 flex-col overflow-hidden p-4">

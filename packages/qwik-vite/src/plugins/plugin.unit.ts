@@ -5,7 +5,7 @@ import type { QwikManifest } from '../types';
 import { ExperimentalFeatures, createQwikPlugin } from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
-import type { ResolvedId } from 'rollup';
+import type { ResolvedId } from 'rolldown';
 
 const cwd = process.cwd();
 

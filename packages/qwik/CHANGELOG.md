@@ -1,5 +1,229 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.45
+
+## 2.0.0-beta.44
+
+### Major Changes
+
+- refactor: hide `pending` and `error` from public computed and loader signal types (by [@Varixo](https://github.com/Varixo) in [#9013](https://github.com/QwikDev/qwik/pull/9013))
+
+### Minor Changes
+
+- ✨ the optimizer runs transforms in worker threads, isolating memory and parallelizing builds (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- ✨ the Rust optimizer is now an optional peer dependency, installed only if you set `tsOptimizer: false` (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- ✨ `QWIK_OPTIMIZER=ts|rust` overrides the `tsOptimizer` plugin option to test a project on the other optimizer (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- ✨ `QWIK_TS_OPTIMIZER_RAW_TRANSFER` controls the TypeScript optimizer's raw-transfer parsing, which now stays off on hosts with too little memory for it (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- ✨ add `tsOptimizer` flag to qwikVite, selecting the TypeScript optimizer by default (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+### Patch Changes
+
+- 🐞🩹 `cleanup` from the async signal compute context works when destructured (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- 🐞🩹 prevent development image tooling from requesting private network resources (by [@gioboa](https://github.com/gioboa) in [`cd3f0e3`](https://github.com/QwikDev/qwik/commit/cd3f0e3db01f07568dc30956d08a15f54c50bd8e))
+
+- 🐞🩹 preserve captured qrl declaration order (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 build constants in shorthand object properties fold to `key: value` instead of corrupting the key (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 un-exported route loaders and actions no longer break the build (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 preserve async request and locale context on edge runtimes (by [@Varixo](https://github.com/Varixo) in [#8999](https://github.com/QwikDev/qwik/pull/8999))
+
+- 🐞🩹 onQVisible$ now fires for elements rendered on the client (by [@maiieul](https://github.com/maiieul) in [#8988](https://github.com/QwikDev/qwik/pull/8988))
+
+- 🐞🩹 honour a JSDoc-style `@jsxImportSource` pragma, and survive a failed raw-transfer allocation (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 hoisted signal functions could reference the wrong body in multi-component files (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 components referenced as JSX tags inside function scopes are captured like any other binding (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 files without any $ extraction no longer lose module-level declarations (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 arguments after a $ closure (e.g. task options) are no longer dropped (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 SSR and client builds now assign identical JSX keys, preventing full subtree recreation on first rerender (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 stop letting regex pre-checks decide whether the TS strip and constant folding run (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 statement labels no longer pull same-named module variables into segments (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 tasks tracking a prop expression stopped running after repeated parent renders (by [@Varixo](https://github.com/Varixo) in [#9011](https://github.com/QwikDev/qwik/pull/9011))
+
+- 🐞🩹 preserve nested optimizer call boundaries (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 drop code a folded isServer/isBrowser branch made unreachable, so server-only imports leave the client bundle (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 passive event scopes survive the server build's handler rewrite (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 preloader no longer follows user dynamic imports, only qrl edges (by [@Varixo](https://github.com/Varixo) in [#9005](https://github.com/QwikDev/qwik/pull/9005))
+
+- 🐞🩹 serialized q:ps capture arrays follow the client's handler slot order on multi-handler elements (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 prevent infinite retries after component chunk imports fail (by [@Varixo](https://github.com/Varixo) in [#8998](https://github.com/QwikDev/qwik/pull/8998))
+
+- 🐞🩹 qwik lifecycle events no longer delay the first user event behind their imports (by [@maiieul](https://github.com/maiieul) in [#9018](https://github.com/QwikDev/qwik/pull/9018))
+
+- 🐞🩹 ref props are no longer hoisted into read-only signals, and same-line spaces between sibling elements are preserved (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- perf: cut optimizer wall time ~18% by reusing parses and rewriting the code/comment blanking pass (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 client-rendered useVisibleTask$ now waits for visibility instead of running eagerly (by [@maiieul](https://github.com/maiieul) in [#8988](https://github.com/QwikDev/qwik/pull/8988))
+
+- 🐞🩹 props spread after a named prop now overrides it, including with multiple spreads (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 await asynchronous computations on streamed server nodes (by [@Varixo](https://github.com/Varixo) in [#8998](https://github.com/QwikDev/qwik/pull/8998))
+
+- 🐞🩹 serialized reactive expressions no longer leak typescript casts into browser scripts (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 stripped loop event handlers no longer lose their lexical captures (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 prevent stale loader and action results during route transitions (by [@Varixo](https://github.com/Varixo) in [#9006](https://github.com/QwikDev/qwik/pull/9006))
+
+- 🐞🩹 keep CRLF sources and third-party `$` marker packages correct in segments (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 restore the Rust optimizer as the default (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 prevent stalled renders when suspended tasks encounter rejected promises (by [@Varixo](https://github.com/Varixo) in [#8998](https://github.com/QwikDev/qwik/pull/8998))
+
+- 🐞🩹 don't declare the private ts-optimizer as a dependency, it is bundled into core/optimizer (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 the TypeScript optimizer keeps aliased `$ as name` imports from non-Qwik modules (by [@Varixo](https://github.com/Varixo) in [#9006](https://github.com/QwikDev/qwik/pull/9006))
+
+- 🐞🩹 the TypeScript optimizer keeps captures of `$()` component props used outside a `$` boundary (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- 🐞🩹 the TypeScript optimizer no longer hoists `useHook().value` into a lazily run signal wrapper (by [@Varixo](https://github.com/Varixo) in [#9006](https://github.com/QwikDev/qwik/pull/9006))
+
+- 🐞🩹 the TypeScript optimizer keeps the moved-captures marker on library-mode event handlers (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- 🐞🩹 the TypeScript optimizer parenthesizes object and function branches left by nested constant folds (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- 🐞🩹 the TypeScript optimizer no longer fails on constant ternaries whose kept branch contains further constant folds (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- 🐞🩹 the TypeScript optimizer groups a component's segments into one chunk in production builds (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- 🐞🩹 the TypeScript optimizer no longer wires several stripped route loaders to the same client QRL (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- 🐞🩹 TypeScript optimizer worker threads no longer reserve gigabytes of memory that break child process spawning in builds (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- 🐞🩹 the TypeScript optimizer no longer binds a top-level `worker$` to a stripped loader's client QRL (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
+- 🐞🩹 string-keyed prop destructures, multi-capital event names, and manual qrl captures no longer break the transform (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 withLocale() keeps the locale across await when AsyncLocalStorage is missing. (by [@xia-chao](https://github.com/xia-chao) in [#9008](https://github.com/QwikDev/qwik/pull/9008))
+
+- 🐞🩹 worker qrl chunk rewrite no longer breaks on escaped quotes (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- Updated dependencies [[`7f59af3`](https://github.com/QwikDev/qwik/commit/7f59af37edf165d03a724d633e022dd03d79c5a7), [`dd75728`](https://github.com/QwikDev/qwik/commit/dd757289bf15bda9e7fecd6ca87cf02b261babee)]:
+  - @qwik.dev/optimizer@2.1.0-beta.9
+
+## 2.0.0-beta.43
+
+### Patch Changes
+
+- 🐞🩹 release task subscriptions when components are removed (by [@Varixo](https://github.com/Varixo) in [#8982](https://github.com/QwikDev/qwik/pull/8982))
+
+- 🐞🩹 handle malformed images during dimension inspection (by [@gioboa](https://github.com/gioboa) in [#8969](https://github.com/QwikDev/qwik/pull/8969))
+
+- 🐞🩹 a component without its own dom element no longer rebuilds its children on re-render and keeps its `useOn` document and window events (by [@wermetal](https://github.com/wermetal) in [#8981](https://github.com/QwikDev/qwik/pull/8981))
+
+- 🐞🩹 keep sibling updates running after uncaught render errors (by [@Varixo](https://github.com/Varixo) in [#8976](https://github.com/QwikDev/qwik/pull/8976))
+
+- Updated dependencies [[`1d62cd9`](https://github.com/QwikDev/qwik/commit/1d62cd929204e171ea85a6af927533490c3908d1)]:
+  - @qwik.dev/optimizer@2.1.0-beta.8
+
+## 2.0.0-beta.42
+
+### Major Changes
+
+- ✨ `<ErrorBoundary>` moves to `@qwik.dev/core` behind the experimental `errorBoundary` flag and `useErrorBoundary()` is removed. `fallback$` receives `(error, reset)`, `onError$` reports caught errors, and production redacts server-origin errors to a generic message + digest while client-origin errors render as thrown. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+### Minor Changes
+
+- ✨ `renderToStream` reports a pre-flush `<ErrorBoundary>` catch via `onBeforeFirstFlush`; the router sends `Cache-Control: no-store` for those pages and for error documents. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+### Patch Changes
+
+- 🐞🩹 redact server-origin errors when serializing errored async signals in production (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+- 🐞🩹 show the `Suspense` fallback when a suspending child is wrapped in an `ErrorBoundary`. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+- 🐞🩹 a failed handler chunk import is no longer reported twice for streamed containers (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+## 2.0.0-beta.41
+
+### Major Changes
+
+- refactor: remove useAsync$ and createAsync$. Use useComputed$ or createComputed$ instead. (by [@Varixo](https://github.com/Varixo) in [#8941](https://github.com/QwikDev/qwik/pull/8941))
+
+### Patch Changes
+
+- refactor: remove unnecessary font preloading that negatively impacted performance (by [@Varixo](https://github.com/Varixo) in [#8942](https://github.com/QwikDev/qwik/pull/8942))
+
+- 🐞🩹 preserve rest properties for plain objects (by [@wermetal](https://github.com/wermetal) in [#8937](https://github.com/QwikDev/qwik/pull/8937))
+
+- 🐞🩹 widen the `vitest` peer range to `>=2 <5` so Vitest 4 no longer warns (by [@ixcans](https://github.com/ixcans) in [#8959](https://github.com/QwikDev/qwik/pull/8959))
+
+## 2.0.0-beta.40
+
+### Major Changes
+
+- ✨ require Vite 8 and Rolldown. `manualChunks` is no longer supported because Qwik needs Rollup's `outputOpts.manualChunks.onlyExplicitManualChunks` which does not exist in Rolldown's `manualChunks` compatibility API. The qwikVite plugin now relies on Rolldown's equivalent `outputOpts.codeSplitting.includeDependenciesRecursively`. If you used Rollup's `manualChunks`, you need to update your code to Rolldown's `outputOpts.codeSplitting.groups` instead. (by [@maiieul](https://github.com/maiieul) in [#8909](https://github.com/QwikDev/qwik/pull/8909))
+
+### Patch Changes
+
+- Updated dependencies [[`5a824aa`](https://github.com/QwikDev/qwik/commit/5a824aad6f5aae07ec80db94bcc022e31d3ebfe5)]:
+  - @qwik.dev/optimizer@2.1.0-beta.7
+
+## 2.0.0-beta.39
+
+### Major Changes
+
+- ✨ replace the `allowStale` signal option with an explicit `.clear()` method (by [@wmertens](https://github.com/wmertens) in [#8904](https://github.com/QwikDev/qwik/pull/8904))
+
+- ✨ remove `expires`/`poll`/`interval` from computed signals, use `usePoll` from `@qwik.dev/utils` instead (by [@wmertens](https://github.com/wmertens) in [#8904](https://github.com/QwikDev/qwik/pull/8904))
+
+### Minor Changes
+
+- breaking: show suspense fallbacks only during initial loading and remove `showStale` (by [@Varixo](https://github.com/Varixo) in [#8869](https://github.com/QwikDev/qwik/pull/8869))
+
+### Patch Changes
+
+- 🐞🩹 bundle-graph no longer drops reachable dependencies while it gets optimized to avoid transitive duplicates. (by [@maiieul](https://github.com/maiieul) in [#8907](https://github.com/QwikDev/qwik/pull/8907))
+
+- 🐞🩹 support namespaced document and window event names (by [@Varixo](https://github.com/Varixo) in [#8920](https://github.com/QwikDev/qwik/pull/8920))
+
+- 🐞🩹 render nested Each components on the server (by [@Varixo](https://github.com/Varixo) in [#8921](https://github.com/QwikDev/qwik/pull/8921))
+
+- 🐞🩹 build optimizer before Vite ecosystem worker bundles (by [@gioboa](https://github.com/gioboa) in [#8905](https://github.com/QwikDev/qwik/pull/8905))
+
+- 🐞🩹 avoid rerendering unchanged components after resume (by [@Varixo](https://github.com/Varixo) in [#8931](https://github.com/QwikDev/qwik/pull/8931))
+
+- 🐞🩹 the minified build now emits valid `@__PURE__` annotations so downstream bundlers can tree-shake it (by [@maiieul](https://github.com/maiieul) in [#8908](https://github.com/QwikDev/qwik/pull/8908))
+
+- 🐞🩹 handle async component rejections during SSR flushes. (by [@Varixo](https://github.com/Varixo) in [#8851](https://github.com/QwikDev/qwik/pull/8851))
+
+- 🐞🩹 support Vite's Rolldown type definitions in the optimizer plugin (by [@gioboa](https://github.com/gioboa) in [#8874](https://github.com/QwikDev/qwik/pull/8874))
+
+- 🐞🩹 avoid eager container resume for capture-free sibling handlers (by [@Varixo](https://github.com/Varixo) in [#8919](https://github.com/QwikDev/qwik/pull/8919))
+
+- 🐞🩹 `<Link />` data prefetch doesn't fetch already present and still valid loader data (by [@wmertens](https://github.com/wmertens) in [#8870](https://github.com/QwikDev/qwik/pull/8870))
+
+- 🐞🩹 report repeated qrl chunk load failures only once (by [@Varixo](https://github.com/Varixo) in [#8845](https://github.com/QwikDev/qwik/pull/8845))
+
+- 🐞🩹 encode vnode metadata keys in script output. (by [@Varixo](https://github.com/Varixo) in [#8866](https://github.com/QwikDev/qwik/pull/8866))
+
+- 🐞🩹 require noSerialize values to carry the marker brand (by [@Varixo](https://github.com/Varixo) in [#8867](https://github.com/QwikDev/qwik/pull/8867))
+
+- 🐞🩹 avoid projecting HMR placeholders into nested components (by [@Varixo](https://github.com/Varixo) in [#8865](https://github.com/QwikDev/qwik/pull/8865))
+
+- Updated dependencies [[`53231e8`](https://github.com/QwikDev/qwik/commit/53231e8cc638346c303c48f0ccb7807a81b09530)]:
+  - @qwik.dev/optimizer@2.1.0-beta.6
+
 ## 2.0.0-beta.38
 
 ### Major Changes

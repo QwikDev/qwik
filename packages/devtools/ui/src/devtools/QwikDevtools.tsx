@@ -10,6 +10,7 @@ import { loadDevtoolsData } from './rpc';
 import { createDevtoolsState, type DevtoolsState } from './state';
 import { DevtoolsSidebar } from './DevtoolsSidebar';
 import { CustomizeTabsPanel } from './CustomizeTabsPanel';
+import { CommandPalette } from './CommandPalette';
 import { loadVisibleTabIds } from './sidebar-tabs';
 import { ensurePreloadRuntime } from '../runtime/preloads';
 import { isExcludedPathname, normalizeExcludePathnames } from '../../../kit/src/overlay-paths';
@@ -48,6 +49,25 @@ export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
     { strategy: 'document-ready' }
   );
 
+  // Cmd/Ctrl+K toggles the palette, but only while the devtools panel is open. Uses document-ready
+  // (not the default intersection strategy) because the root has no layout size to observe.
+  useVisibleTask$(
+    ({ cleanup }) => {
+      const handleShortcut = (event: KeyboardEvent) => {
+        if ((event.metaKey || event.ctrlKey) && (event.key === 'k' || event.key === 'K')) {
+          if (!state.isOpen) {
+            return;
+          }
+          event.preventDefault();
+          state.isPaletteOpen = !state.isPaletteOpen;
+        }
+      };
+      window.addEventListener('keydown', handleShortcut);
+      cleanup(() => window.removeEventListener('keydown', handleShortcut));
+    },
+    { strategy: 'document-ready' }
+  );
+
   if (!shouldRender.value) {
     return <span style={{ display: 'contents' }} />;
   }
@@ -66,6 +86,7 @@ export const QwikDevtools = component$<QwikDevtoolsProps>((props) => {
                 <DevtoolsContent state={state} />
               </div>
               {!state.isExtension && state.isCustomizeOpen && <CustomizeTabsPanel state={state} />}
+              {state.isPaletteOpen && <CommandPalette state={state} />}
             </div>
           </DevtoolsPanel>
         )}

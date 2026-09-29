@@ -1,0 +1,111 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 639
+expression: output
+---
+==INPUT==
+
+
+import { component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const open = track(() => isOpen?.value ?? true);
+		return open ? initialFee : 0;
+	});
+	return <div>{networkFee.value}</div>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAMhB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useComputedQrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q"), "Cmp_component_networkFee_useComputed_ysNbpjmzm2Q");
+//
+export const Cmp_component_4ryKJTOKjWE = (_rawProps)=>{
+    const networkFee = useComputedQrl(q_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q.w([
+        _rawProps
+    ]));
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(networkFee), 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAG8B;IAC7B,MAAM,aAAa;;;IAInB,qBAAO,WAAC,6BAAK;AACd\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    92,
+    306
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const Cmp_component_networkFee_useComputed_ysNbpjmzm2Q = async (_rawProps)=>{
+    const _rawProps1 = _captures[0];
+    const open = _rawProps.track(()=>_rawProps1.isOpen?.value ?? true);
+    return open ? _rawProps1.initialFee : 0;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;gEAIiC;;IAC/B,MAAM,OAAO,UAD2B,MACrB,IAAM,WAFM,QAEE,SAAS;IAC1C,OAAO,kBAHgC,aAGZ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_networkFee_useComputed_ysNbpjmzm2Q",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_networkFee_useComputed",
+  "hash": "ysNbpjmzm2Q",
+  "canonicalFilename": "test.tsx_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    155,
+    263
+  ],
+  "paramNames": [
+    "_rawProps"
+  ],
+  "captureNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

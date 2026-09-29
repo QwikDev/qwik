@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5053
 expression: output
 ---
 ==INPUT==
@@ -75,7 +74,7 @@ import { qrl } from "@qwik.dev/core";
 const _hf0 = (p0)=>p0.value.id;
 const _hf0_str = "p0.value.id";
 //
-const q_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY"), "Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY");
+const q_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY"), "Foo_component_Inner_component_div_p_q_e_click_7oFgEhSmgvY").m();
 //
 export const Foo_component_Inner_component_AuJ9mTBx5YA = (props)=>{
     const data = props.data;

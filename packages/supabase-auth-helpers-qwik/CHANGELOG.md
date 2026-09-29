@@ -1,5 +1,11 @@
 # supabase-auth-helpers-qwik
 
+## 0.0.4-beta.0
+
+### Patch Changes
+
+- 🛠 build the library packages with the TypeScript optimizer (by [@wmertens](https://github.com/wmertens) in [#9017](https://github.com/QwikDev/qwik/pull/9017))
+
 ## 1.0.0-beta.0
 
 ### Major Changes

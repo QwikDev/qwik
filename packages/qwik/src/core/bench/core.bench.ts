@@ -1,4 +1,4 @@
-import { bench, describe } from 'vitest';
+import { describe, test } from 'vitest';
 import { sharedBaselineWorkload } from './baseline';
 import { scenarios } from './scenarios';
 
@@ -11,21 +11,18 @@ console.warn(
 
 describe('qwik core relative benchmarks', () => {
   if (CI_BENCH) {
-    bench(
-      'baseline.shared-workload',
-      async () => {
+    test('baseline.shared-workload', async ({ bench }) => {
+      await bench('baseline.shared-workload', async () => {
         sharedBaselineWorkload();
-      },
-      { warmupTime: 500, time: 4000 }
-    );
+      }).run({ warmupTime: 500, time: 4000 });
+    });
   }
 
   for (let i = 0; i < scenarios.length; i++) {
     const scenario = scenarios[i];
-    let lastSize: number | null = null;
-    bench(
-      `current.${scenario.id}`,
-      async () => {
+    test(`current.${scenario.id}`, async ({ bench }) => {
+      let lastSize: number | null = null;
+      await bench(`current.${scenario.id}`, async () => {
         const size = await scenario.run();
         if (lastSize === null) {
           lastSize = size;
@@ -35,8 +32,7 @@ describe('qwik core relative benchmarks', () => {
             `Scenario ${scenario.id} returned inconsistent sizes: ${lastSize} vs ${size}`
           );
         }
-      },
-      CI_BENCH ? { warmupTime: 500, time: 6000 } : undefined
-    );
+      }).run(CI_BENCH ? { warmupTime: 500, time: 6000 } : undefined);
+    });
   }
 });

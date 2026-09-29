@@ -3,14 +3,14 @@ import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { basename, extname, join, resolve } from 'node:path';
-import { findExports } from 'mlly';
+import { findExports, findStaticImports, parseStaticImport } from 'mlly';
 import type {
   ConfigEnv,
   EnvironmentOptions,
-  HmrContext,
+  HotUpdateOptions,
   Plugin,
   PluginOption,
-  Rollup,
+  Rolldown,
   UserConfig,
   ViteDevServer,
 } from 'vite';
@@ -24,10 +24,11 @@ import {
   isPluginModule,
   isServiceWorkerName,
   normalizePath,
+  normalizePathKey,
   removeExtension,
 } from '../../utils/fs';
 import { parseRoutesDir } from '../build';
-import { createBuildContext, resetBuildContext } from '../context';
+import { createBuildContext, resetBuildContext, resolveBasePathname } from '../context';
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
@@ -80,30 +81,31 @@ export function qwikRouter(userOpts?: QwikRouterVitePluginOptions): PluginOption
   ];
 }
 
-/** Replace or strip `_R: "__LOADERS:path1|path2__"` placeholders in a bundle chunk. */
+/** Replace or strip loader placeholders in a bundle chunk. */
 export function replaceLoaderPlaceholders(
   code: string,
   loadersByFile: Map<string, string[]>
 ): string {
-  // Replace `_R: "__LOADERS:path1|path2__"` with the actual hash array, or strip the whole
-  // `_R: ...` entry when no routeLoader$ was found — that way the client-side routing code
-  // never sees a stale placeholder string and spreads it character-by-character.
-  return code.replace(/_R\s*:\s*"__LOADERS:([^"]+)__"\s*,?/g, (_match, paths: string) => {
-    const filePaths = paths.split('|');
-    const hashes: string[] = [];
-    for (const filePath of filePaths) {
-      const fileHashes = loadersByFile.get(filePath);
-      if (fileHashes) {
-        hashes.push(...fileHashes);
+  // Missing loaders must not leave placeholder strings in the trie.
+  return code.replace(
+    /(_R|_D)\s*:\s*(["'`])__LOADERS:([^"'`]+)__\2\s*,?/g,
+    (_match, field: string, _q, paths: string) => {
+      const filePaths = (JSON.parse(`"${paths}"`) as string).split('|');
+      const hashes: string[] = [];
+      for (const filePath of filePaths) {
+        const fileHashes = loadersByFile.get(normalizePathKey(filePath));
+        if (fileHashes) {
+          hashes.push(...fileHashes);
+        }
       }
+      if (hashes.length > 0) {
+        return `${field}: ${JSON.stringify(hashes)},`;
+      }
+      // Trailing commas inside object literals are legal, so removing a mid-object entry
+      // (and the trailing comma it emitted with) leaves the surrounding trie literal valid.
+      return '';
     }
-    if (hashes.length > 0) {
-      return `_R: ${JSON.stringify(hashes)},`;
-    }
-    // Trailing commas inside object literals are legal, so removing a mid-object entry
-    // (and the trailing comma it emitted with) leaves the surrounding trie literal valid.
-    return '';
-  });
+  );
 }
 
 export function addRouteLoaderHash(
@@ -111,7 +113,7 @@ export function addRouteLoaderHash(
   filePath: string,
   hash: string
 ) {
-  const normalizedPath = normalizePath(filePath);
+  const normalizedPath = normalizePathKey(filePath).split(/[?#]/, 1)[0];
   const existing = loadersByFile.get(normalizedPath);
   if (!existing) {
     loadersByFile.set(normalizedPath, [hash]);
@@ -125,7 +127,7 @@ export function addRouteLoaderHash(
 }
 
 export function clearRouteLoaderHashes(loadersByFile: Map<string, string[]>, filePath: string) {
-  return loadersByFile.delete(normalizePath(filePath));
+  return loadersByFile.delete(normalizePathKey(filePath).split(/[?#]/, 1)[0]);
 }
 
 export function isRouterSourceFilePath(filePath: string) {
@@ -184,7 +186,7 @@ export async function findRouteLoaderSourceFiles(
     owners.add(plugin.filePath);
   }
   await Promise.all(
-    [...owners].map((owner) => collectReExportSources(owner, owner, resolveSource, sources))
+    [...owners].map((owner) => collectRouteLoaderSources(owner, owner, resolveSource, sources))
   );
   return sources;
 }
@@ -200,7 +202,7 @@ function collectRouteLoaderOwners(node: RoutingContext['routeTrie'], owners: Set
   }
 }
 
-async function collectReExportSources(
+async function collectRouteLoaderSources(
   owner: string,
   filePath: string,
   resolveSource: SourceResolver,
@@ -217,29 +219,51 @@ async function collectReExportSources(
   } catch {
     return;
   }
-  await Promise.all(
-    exportEntries.map(async (exp) => {
-      if (!exp.specifier) {
-        return;
+
+  const importedFactories = new Map<string, string>();
+  for (const entry of findStaticImports(code)) {
+    const parsed = parseStaticImport(entry);
+    if (parsed.defaultImport) {
+      importedFactories.set(parsed.defaultImport, entry.specifier);
+    }
+    if (parsed.namedImports) {
+      for (const localName of Object.values(parsed.namedImports)) {
+        importedFactories.set(localName, entry.specifier);
       }
-      const resolved = await resolveSource(exp.specifier, filePath);
-      if (!resolved || resolved.charCodeAt(0) === 0) {
-        return;
+    }
+  }
+
+  const specifiers = new Set<string>();
+  for (const exp of exportEntries) {
+    if (exp.specifier) {
+      specifiers.add(exp.specifier);
+    } else if (/^export\s+(?:const|let|var)\s*{/.test(exp.code)) {
+      const factoryName = code.slice(exp.end).match(/^\s*([\w$]+)(?:\s*<[^;()]*>)?\s*\(/)?.[1];
+      const specifier = factoryName && importedFactories.get(factoryName);
+      if (specifier) {
+        specifiers.add(specifier);
       }
-      const resolvedPath = normalizePath(resolved.split(/[?#]/, 1)[0]);
-      let ownerSources = sources.get(owner);
-      if (!ownerSources) {
-        sources.set(owner, (ownerSources = []));
-      }
-      if (!ownerSources.includes(resolvedPath)) {
-        ownerSources.push(resolvedPath);
-      }
-      if (!seen.has(resolvedPath)) {
-        seen.add(resolvedPath);
-        await collectReExportSources(owner, resolvedPath, resolveSource, sources, seen);
-      }
-    })
-  );
+    }
+  }
+
+  for (const specifier of specifiers) {
+    const resolved = await resolveSource(specifier, filePath);
+    if (!resolved || resolved.charCodeAt(0) === 0) {
+      continue;
+    }
+    const resolvedPath = normalizePath(resolved.split(/[?#]/, 1)[0]);
+    let ownerSources = sources.get(owner);
+    if (!ownerSources) {
+      sources.set(owner, (ownerSources = []));
+    }
+    if (!ownerSources.includes(resolvedPath)) {
+      ownerSources.push(resolvedPath);
+    }
+    if (!seen.has(resolvedPath)) {
+      seen.add(resolvedPath);
+      await collectRouteLoaderSources(owner, resolvedPath, resolveSource, sources, seen);
+    }
+  }
 }
 
 export function invalidateRouterConfigModules(server: ViteDevServer) {
@@ -317,6 +341,9 @@ function qwikRouterPlugin(
             userOpts?.defaultLoadersSerializationStrategy || 'never'
           ),
           'globalThis.__NO_TRAILING_SLASH__': JSON.stringify(userOpts?.trailingSlash === false),
+          'globalThis.__QWIK_ROUTER_BASE_PATHNAME__': JSON.stringify(
+            resolveBasePathname(userOpts, _viteConfig.base || '/')
+          ),
           'globalThis.__SSR_CACHE_SIZE__': JSON.stringify(
             viteEnv.command === 'serve' ? 0 : (userOpts?.ssrCacheSize ?? 50)
           ),
@@ -359,12 +386,6 @@ function qwikRouterPlugin(
             // We've had reports of bundling issues with zod
             'zod',
           ],
-        },
-        server: {
-          watch: {
-            // needed for recursive watching of index and layout files in the src/routes directory
-            disableGlobbing: false,
-          },
         },
       };
       return updatedViteConfig;
@@ -423,7 +444,7 @@ function qwikRouterPlugin(
         if (segment.ctxName === 'routeLoader$') {
           const changed = addRouteLoaderHash(loadersByFile, parentId, segment.hash);
 
-          // In dev: invalidate @qwik-router-config so it re-emits _R with loader info.
+          // Refresh the dev route plan with newly discovered loaders.
           if (changed && devServer) {
             invalidateRouterConfigModules(devServer);
           }
@@ -442,13 +463,8 @@ function qwikRouterPlugin(
     async configureServer(server) {
       devServer = server;
       // recursively watch all route files in the src/routes directory
-      const toWatch = [
-        join(
-          ctx!.opts.routesDir,
-          '**/{index,index!,index@*,layout,layout!,layout-*,error,404,entry,service-worker,menu}.{ts,tsx,js,jsx,md,mdx}'
-        ),
-        join(ctx!.opts.serverPluginsDir, 'plugin{,@*}.{ts,tsx,js,jsx}'),
-      ];
+      // chokidar 4 dropped globs, so watch directories and filter.
+      const toWatch = [ctx!.opts.routesDir, ctx!.opts.serverPluginsDir];
       server.watcher.add(toWatch);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       server.watcher.on('change', (path) => {
@@ -468,7 +484,11 @@ function qwikRouterPlugin(
       }
     },
 
-    handleHotUpdate({ file, modules, server, timestamp }: HmrContext) {
+    hotUpdate({ file, modules, timestamp }: HotUpdateOptions) {
+      const server = devServer;
+      if (!server) {
+        return;
+      }
       // Route CSS is injected as a <link>; swap it in place rather than forcing a restart.
       if (sendRouterCssHotUpdate(server, file, timestamp)) {
         return [];
@@ -477,19 +497,21 @@ function qwikRouterPlugin(
       if (!ctx) {
         return;
       }
+      // hotUpdate runs per environment, so return this environment's config module.
+      const configModule = this.environment.moduleGraph.getModuleById(QWIK_ROUTER_CONFIG_ID);
       if (!isRouterSourceFileForContext(file, ctx)) {
         if (
           clearedLoaderHashes ||
           isDiscoveredRouteLoaderSource(file, reExportedRouteLoaderSources)
         ) {
-          const configModules = invalidateRouterConfigModules(server);
-          return [...modules, ...configModules];
+          invalidateRouterConfigModules(server);
+          return configModule ? [...modules, configModule] : modules;
         }
         return;
       }
       ctx.isDirty = true;
-      const configModules = invalidateRouterConfigModules(server);
-      return [...modules, ...configModules];
+      invalidateRouterConfigModules(server);
+      return configModule ? [...modules, configModule] : modules;
     },
 
     transformIndexHtml() {
@@ -501,6 +523,14 @@ function qwikRouterPlugin(
 
     buildStart() {
       resetBuildContext(ctx);
+      // The runtime reaches the config only via dynamic import (static imports
+      // would evaluate app route/serverPlugin modules during the runtime's own
+      // import phase — see route-loaders.ts). The client build still needs the
+      // config in its module graph for route discovery and symbol extraction,
+      // so emit it as an explicit entry chunk here.
+      if (this.environment.mode === 'build' && this.environment.config.consumer === 'client') {
+        this.emitFile({ type: 'chunk', id: QWIK_ROUTER_CONFIG_ID });
+      }
     },
 
     resolveId(id) {
@@ -599,7 +629,7 @@ function qwikRouterPlugin(
             if (e && typeof e == 'object' && 'position' in e && 'reason' in e) {
               const column = (e as any).position?.start.column;
               const line = (e as any).position?.start.line;
-              const err: Rollup.RollupError = Object.assign(new Error(e.reason), {
+              const err: Rolldown.RolldownError = Object.assign(new Error(e.reason), {
                 id,
                 plugin: 'qwik-router-mdx',
                 loc: {
@@ -717,7 +747,7 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
   }
   reset();
 
-  async function collectServerFnModules(this: Rollup.PluginContext) {
+  async function collectServerFnModules(this: Rolldown.PluginContext) {
     if (serverFnsReady) {
       await serverFnsReady;
       return;
@@ -761,14 +791,16 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
             await collectServerFnModules.call(this);
           }
           if (!isServerBuild || serverFnModules.size === 0) {
-            return '// No server$ functions';
+            return 'export const importEagerModules = () => Promise.resolve();\n';
           }
-          return [...serverFnModules]
-            .map(
-              (mod, index) =>
-                `import * as serverFnModule${index} from ${JSON.stringify(mod)};\nObject.values(serverFnModule${index});`
-            )
-            .join('\n');
+          // Deliberately dynamic imports behind a function: a static import here
+          // would evaluate the server$ modules during the config's own import
+          // phase, before runtime module bodies initialize (TDZ in bundled SSR).
+          return (
+            'export const importEagerModules = () =>\n  Promise.all([\n' +
+            [...serverFnModules].map((mod) => `    import(${JSON.stringify(mod)}),`).join('\n') +
+            '\n  ]);\n'
+          );
         }
         return null;
       },

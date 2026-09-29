@@ -16,7 +16,13 @@ async function tmp() {
 }
 
 /** Run postBuild against a temp client/server tree and return the injected STATIC_PATHS array. */
-async function run(files: Record<string, string>, userStaticPaths: string[], cleanStatic = false) {
+async function run(
+  files: Record<string, string>,
+  userStaticPaths: string[],
+  cleanStatic = false,
+  noTrailingSlash = false,
+  pathName = '/'
+) {
   const clientOutDir = await tmp();
   const serverOutDir = await tmp();
   for (const [rel, content] of Object.entries(files)) {
@@ -28,7 +34,14 @@ async function run(files: Record<string, string>, userStaticPaths: string[], cle
     join(serverOutDir, 'server.js'),
     `export const staticPaths = new Set(['__QWIK_ROUTER_STATIC_PATHS_ARRAY__']);`
   );
-  await postBuild(clientOutDir, serverOutDir, '/', userStaticPaths, cleanStatic);
+  await postBuild(
+    clientOutDir,
+    serverOutDir,
+    pathName,
+    userStaticPaths,
+    cleanStatic,
+    noTrailingSlash
+  );
   const code = await readFile(join(serverOutDir, 'server.js'), 'utf-8');
   return JSON.parse(code.match(/new Set\((\[[^\]]*\])\)/)![1]) as string[];
 }
@@ -44,6 +57,26 @@ test('lists a written loader sidecar of a static route, but not its index.html',
   expect(paths).toContain('/blog/');
   expect(paths).toContain('/blog/q-loader-WaXl02RHfZE.abc.json');
   expect(paths).not.toContain('/blog/index.html');
+});
+
+test('uses no-trailing-slash static paths for static pages', async () => {
+  const paths = await run(
+    {
+      'blog/index.html': '<html></html>',
+      'blog/q-loader-WaXl02RHfZE.abc.json': '{"d":{}}',
+    },
+    ['/blog'],
+    false,
+    true
+  );
+  expect(paths).toContain('/blog');
+  expect(paths).toContain('/blog/q-loader-WaXl02RHfZE.abc.json');
+  expect(paths).not.toContain('/blog/');
+});
+
+test('keeps the base pathname trailing slash for static pages', async () => {
+  const paths = await run({ 'index.html': '<html></html>' }, ['/app/'], false, true, '/app/');
+  expect(paths).toEqual(['/app/']);
 });
 
 test('does not list a loader sidecar whose route is not static', async () => {

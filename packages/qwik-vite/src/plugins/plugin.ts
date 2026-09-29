@@ -1,4 +1,5 @@
-import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
+import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
+import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import type {
@@ -24,7 +25,7 @@ import {
   isServerOnlyModule,
   mightContainServerOnlyImport,
 } from './server-only-modules';
-import { isVirtualId, isWin, parseId } from './vite-utils';
+import { isVirtualId, isWin, parseId, sanitizeChunkGroupName } from './vite-utils';
 import MagicString from 'magic-string';
 import {
   createDevWorkerQrlChunkResolver,
@@ -82,8 +83,10 @@ export enum ExperimentalFeatures {
   each = 'each',
   /** Enable the Show conditional primitive */
   show = 'show',
-  /** Enable the Suspense fallback primitive */
-  suspense = 'suspense',
+  /** Enable the Pending fallback primitive */
+  pendingBoundary = 'pendingBoundary',
+  /** Enable the Catch primitive */
+  catchBoundary = 'catchBoundary',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
@@ -98,6 +101,18 @@ export interface QwikPackages {
   id: string;
   path: string;
 }
+
+/** `QWIK_OPTIMIZER=ts|rust` overrides the option so a project can be tested on the other optimizer. */
+const resolveTsOptimizerChoice = (tsOptimizer: boolean | undefined): boolean => {
+  const override = typeof process === 'object' ? process.env?.QWIK_OPTIMIZER : undefined;
+  if (override === undefined || override === '') {
+    return !!tsOptimizer;
+  }
+  if (override === 'ts' || override === 'rust') {
+    return override === 'ts';
+  }
+  throw new Error(`QWIK_OPTIMIZER must be "ts" or "rust", got "${override}"`);
+};
 
 export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
@@ -151,10 +166,16 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   let maybeFs: typeof import('fs') | undefined | null;
   const init = async () => {
     if (!internalOptimizer) {
-      const createOptimizer = (
-        (optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer')) ||
-        (await import('@qwik.dev/optimizer'))
-      ).createOptimizer;
+      const loadOptimizerModule = async () => {
+        if (optimizerOptions._optimizer) {
+          return optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer');
+        }
+        if (resolveTsOptimizerChoice(optimizerOptions.tsOptimizer)) {
+          return (await import('@qwik.dev/ts-optimizer')) as unknown as typeof import('@qwik.dev/optimizer');
+        }
+        return import('@qwik.dev/optimizer');
+      };
+      const createOptimizer = (await loadOptimizerModule()).createOptimizer;
       internalOptimizer = await createOptimizer(optimizerOptions);
       lazyNormalizePath = makeNormalizePath(internalOptimizer.sys);
       if (
@@ -425,7 +446,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let optimizer: Optimizer;
   let shouldAddHandlers = false;
-  const buildStart = async (_ctx: Rollup.PluginContext) => {
+  let qwikLoaderChunkRef: string | undefined;
+  let preloaderChunkRef: string | undefined;
+  let handlersChunkRef: string | undefined;
+  const buildStart = async (_ctx: Rolldown.PluginContext) => {
     debug(`buildStart()`, opts.buildMode, opts.scope, opts.target, opts.rootDir, opts.srcDir);
     optimizer = getOptimizer();
     shouldAddHandlers = !devServer;
@@ -441,13 +465,17 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
 
+    qwikLoaderChunkRef = undefined;
+    preloaderChunkRef = undefined;
+    handlersChunkRef = undefined;
     if (opts.target === 'client' && !devServer) {
       // emitFile() is only supported during build, not in Vite serve mode
       const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
         skipSelf: true,
       });
       if (ql) {
-        _ctx.emitFile({
+        // The manifest resolves the loader's output name from this ref.
+        qwikLoaderChunkRef = _ctx.emitFile({
           id: ql.id,
           type: 'chunk',
           preserveSignature: 'allow-extension',
@@ -457,7 +485,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   /** Determine if the current module is being processed for a server environment. */
-  const getIsServer = (ctx: Rollup.PluginContext, viteOpts?: { ssr?: boolean }) => {
+  const getIsServer = (ctx: Rolldown.PluginContext, viteOpts?: { ssr?: boolean }) => {
     return ctx.environment
       ? ctx.environment.config.consumer === 'server'
       : devServer
@@ -484,7 +512,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return normalizedImportId.includes('.server') || /(^|\/)server(\/|$)/.test(normalizedImportId);
   };
 
-  const getImportSpecifiers = (ctx: Rollup.PluginContext, code: string): string[] => {
+  const getImportSpecifiers = (ctx: Rolldown.PluginContext, code: string): string[] => {
     const imports = new Set<string>();
 
     const addSource = (source: any) => {
@@ -532,7 +560,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const assertClientTransformCanImport = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     code: string,
     resolveImporterId: string,
     importerId = resolveImporterId
@@ -553,7 +581,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const assertClientTransformOutputCanImport = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     output: TransformOutput,
     srcDir: string,
     importerId?: string,
@@ -570,7 +598,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const resolveTransformableImport = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     importId: string,
     importerId: string
   ) => {
@@ -592,7 +620,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const restoreSsrImportGraphEdges = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     inputImports: string[],
     importerId: string
   ): Promise<string[]> => {
@@ -624,7 +652,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
    * `load()` phase ensure it is built first.
    */
   const resolveId = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     id: string,
     importerId: string | undefined,
     resolveOpts?: QwikResolveIdOptions
@@ -682,7 +710,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const parsedId = parseId(id);
     const pathId = normalizePath(parsedId.pathId);
 
-    let result: Rollup.ResolveIdResult;
+    let result: Rolldown.ResolveIdResult;
 
     /** At this point, the request has been normalized. */
     if (!(devServer && resolveOpts?.scan)) {
@@ -732,7 +760,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         skipSelf: true,
       });
       if (preloader) {
-        ctx.emitFile({
+        preloaderChunkRef = ctx.emitFile({
           id: preloader.id,
           type: 'chunk',
           preserveSignature: 'allow-extension',
@@ -755,7 +783,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (!key) {
           throw new Error('Failed to resolve @qwik.dev/core/handlers.mjs');
         }
-        ctx.emitFile({
+        handlersChunkRef = ctx.emitFile({
           id: key.id,
           type: 'chunk',
           preserveSignature: 'allow-extension',
@@ -818,10 +846,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let loadCount = 0;
   const load = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     id: string,
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
-  ): Promise<Rollup.LoadResult> => {
+  ): Promise<Rolldown.LoadResult> => {
     if (id === '\0editor') {
       // This doesn't get used, but we need to return something
       return '"opening in editor"';
@@ -931,11 +959,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   let theManifest: string | null | undefined;
   let transformCount = 0;
   const transform = async function (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     code: string,
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
-  ): Promise<Rollup.SourceDescription | undefined> {
+  ): Promise<Rolldown.SourceDescription | undefined> {
     if (isVirtualId(id)) {
       return;
     }
@@ -1176,7 +1204,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     canonPath: (p: string) => string;
   };
 
-  const createOutputAnalyzer = (rollupBundle: Rollup.OutputBundle) => {
+  const createOutputAnalyzer = (
+    rollupBundle: Rolldown.OutputBundle,
+    getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
+    qwikLoaderFileName?: string,
+    preloaderFileName?: string,
+    handlersFileName?: string
+  ) => {
     const injections: GlobalInjections[] = [];
 
     const outputAnalyzer: OutputAnalyzer = {
@@ -1204,7 +1238,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         rollupBundle,
         opts,
         debug,
-        canonPath
+        canonPath,
+        getModuleInfo,
+        qwikLoaderFileName,
+        preloaderFileName,
+        handlersFileName
       );
       if (extra) {
         Object.assign(manifest, extra);
@@ -1355,59 +1393,66 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  const manualChunks: NonNullable<Rollup.OutputOptions['manualChunks']> = (
-    id: string,
-    { getModuleInfo }
-  ) => {
-    if (opts.target === 'client') {
-      if (
-        // The preloader has to stay in a separate chunk if it's a client build
-        id.endsWith('@qwik.dev/core/build') ||
-        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id)
-      ) {
-        return 'qwik-preloader';
-      } else if (
-        // likewise, core and handlers have to be in the same chunk so there's no import waterfall
-        /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/.test(id)
-      ) {
-        return 'qwik-core';
-      } else if (/[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/.test(id)) {
-        return 'qwik-loader';
-      }
-    }
+  // Eager contexts stay with their parent, not a segment chunk.
+  const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
 
-    const module = getModuleInfo(id);
-    if (module) {
-      const segment = module.meta.segment as SegmentAnalysis | undefined;
-      if (segment) {
-        // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-        if (['qwikify$', 'useVisibleTask$', 'useComputed$'].includes(segment.ctxName)) {
+  /** Client-only; the server bundle needs no Qwik chunking. */
+  const codeSplitting = (): CodeSplittingOptions => ({
+    groups: [
+      // core and handlers share a chunk: no import waterfall
+      {
+        name: 'qwik-core',
+        test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
+        includeDependenciesRecursively: false,
+      },
+      {
+        name: 'qwik-preloader',
+        test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,
+        includeDependenciesRecursively: false,
+      },
+      {
+        includeDependenciesRecursively: false,
+        name: (id: string, ctx: ChunkingContext) => {
+          const module = ctx?.getModuleInfo(id);
+          if (module) {
+            const segment = module.meta.segment as SegmentAnalysis | undefined;
+            if (segment) {
+              // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
+              if (EAGER_CTX_NAMES.has(segment.ctxName)) {
+                return null;
+              }
+              const { hash } = segment;
+              // Group segments by entry or Qwik Insights hash.
+              const chunkName =
+                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+              if (chunkName) {
+                return sanitizeChunkGroupName(chunkName);
+              }
+            }
+          }
+          // Non-qwik code: let the bundler decide.
           return null;
-        }
-        const { hash } = segment;
-
-        // We use the manual entry strategy to group segments together based on their common entry or Qwik Insights provided hash
-        const chunkName =
-          (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
-        if (chunkName) {
-          // we group related segments together based on their common entry or Qwik Insights provided hash
-          // This not only applies to source files, but also qwik libraries files that are imported through node_modules
-          return chunkName;
-        }
-      }
-    }
-
-    // The rest is non-qwik code. We let rollup handle it.
-    return null;
-  };
+        },
+      },
+    ],
+  });
 
   async function generateManifest(
-    ctx: Rollup.PluginContext,
-    rollupBundle: Rollup.OutputBundle,
+    ctx: Rolldown.PluginContext,
+    rollupBundle: Rolldown.OutputBundle,
     bundleGraphAdders?: Set<BundleGraphAdder>,
     manifestExtra?: Partial<QwikManifest>
   ) {
-    const outputAnalyzer = createOutputAnalyzer(rollupBundle);
+    const qwikLoaderFileName = qwikLoaderChunkRef ? ctx.getFileName(qwikLoaderChunkRef) : undefined;
+    const preloaderFileName = preloaderChunkRef ? ctx.getFileName(preloaderChunkRef) : undefined;
+    const handlersFileName = handlersChunkRef ? ctx.getFileName(handlersChunkRef) : undefined;
+    const outputAnalyzer = createOutputAnalyzer(
+      rollupBundle,
+      (id) => ctx.getModuleInfo(id),
+      qwikLoaderFileName,
+      preloaderFileName,
+      handlersFileName
+    );
     const manifest = await outputAnalyzer.generateManifest(manifestExtra);
 
     manifest.platform = {
@@ -1475,7 +1520,7 @@ export const isDev = ${JSON.stringify(isDev)};
     setSourceMapSupport,
     configureServer,
     hotUpdate,
-    manualChunks,
+    codeSplitting,
     generateManifest,
   };
 }

@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 4244
 expression: output
 ---
 ==INPUT==
@@ -44,7 +43,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const q_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM"), "Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM");
+const q_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM"), "Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM").m();
 //
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const currentStep = useSignal('STEP_1');

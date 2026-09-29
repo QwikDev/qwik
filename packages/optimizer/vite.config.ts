@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
       fileName: () => 'index.mjs',
       formats: ['es'],
     },
-    rollupOptions: {
+    rolldownOptions: {
       output: { banner: getBanner('@qwik.dev/optimizer', version) },
     },
   },

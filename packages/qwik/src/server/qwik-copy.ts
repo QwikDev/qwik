@@ -50,7 +50,7 @@ export {
   QStatePrewarmAttr,
   QStatePatchAttr,
   QStyle,
-  QSuspenseResolved,
+  QPendingResolved,
   QTemplate,
   QVersionAttr,
   QwikEvContainerReady,
@@ -79,6 +79,7 @@ export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
 export { isHtmlAttributeAnEventName, isPreventDefault } from '../core/shared/utils/event-names';
 export { ITERATION_ITEM_SINGLE, ITERATION_ITEM_MULTI } from '../core/shared/utils/markers';
 export { isObjectEmpty } from '../core/shared/utils/objects';
+export { CatchPhase } from '../core/shared/error/catch-phase';
 export {
   createStringStreamWriter,
   stringifyRootRefPath,
@@ -89,7 +90,7 @@ export {
 export type {
   OutOfOrderRevealBoundary,
   OutOfOrderRevealCoordinator,
-} from '../core/control-flow/suspense-utils';
+} from '../core/control-flow/pending-utils';
 export {
   LT,
   GT,

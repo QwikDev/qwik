@@ -58,3 +58,7 @@ packages/browser-extension/public/devtools-hook.js
 # ruler-check CI). Edit .ruler/ and regenerate instead of letting Prettier reformat these.
 /AGENTS.md
 /CLAUDE.md
+
+# Playwright artifacts (gitignored, but prettier still walks them)
+playwright-report/
+test-results/

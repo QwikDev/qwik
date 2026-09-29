@@ -1,5 +1,13 @@
-import { $, component$, type QRL, useSignal } from '@qwik.dev/core';
-import type { JSXOutput, Signal } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  type QRL,
+  type ReadonlySignal,
+  type Signal,
+  useSignal,
+  useVisibleTask$,
+} from '@qwik.dev/core';
+import type { JSXOutput } from '@qwik.dev/core';
 import { IconChevronUpMini } from '../Icons/Icons';
 
 // ---------------------------------------------------------------------------
@@ -17,6 +25,10 @@ export interface TreeProps {
   animate?: boolean;
   animationDuration?: number;
   expandLevel?: number;
+  /** Name of a node to reveal: expands its ancestors, selects it, and scrolls it into view. */
+  revealNode?: ReadonlySignal<string | null>;
+  /** Called once a reveal has been handled, so the caller can clear its request. */
+  onRevealed$?: QRL<() => void>;
 }
 
 interface TreeNodeComponentProps {
@@ -26,6 +38,9 @@ interface TreeNodeComponentProps {
   isHover: boolean;
   activeNodeId: string;
   expandLevel: number;
+  /** Per-node override of children visibility; absent means the expandLevel default applies. */
+  expanded: Record<string, boolean>;
+  onToggle: QRL<(id: string, childrenVisible: boolean) => void>;
   onNodeClick: QRL<(node: TreeNode) => void>;
   renderNode?: QRL<(node: TreeNode) => JSXOutput>;
   animate?: boolean;
@@ -54,24 +69,39 @@ function formatDisplayProps(props: Record<string, TreeNodePropValue>): string {
   return result;
 }
 
+/** Collects the ids from the root down to the first node whose name or label matches. */
+function findIdPathByName(nodes: TreeNode[], name: string): string[] | null {
+  for (const node of nodes) {
+    if (node.name === name || node.label === name) {
+      return [node.id];
+    }
+    const childPath = node.children?.length ? findIdPathByName(node.children, name) : null;
+    if (childPath) {
+      return [node.id, ...childPath];
+    }
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // TreeNodeComponent
 // ---------------------------------------------------------------------------
 
 const TreeNodeComponent = component$<TreeNodeComponentProps>((props) => {
-  const isExpanded = useSignal(props.expandLevel <= props.level);
   const hasChildren = (props.node.children?.length ?? 0) > 0;
+  const override = props.expanded[props.node.id];
+  const childrenVisible = override !== undefined ? override : props.level < props.expandLevel;
 
   const handleNodeClick = $(() => {
     props.onNodeClick(props.node);
     if (hasChildren) {
-      isExpanded.value = !isExpanded.value;
+      props.onToggle(props.node.id, childrenVisible);
     }
   });
 
   const isActive = props.isHover && props.node.id === props.activeNodeId;
   const duration = props.animationDuration ?? 200;
-  const shouldShowChildren = hasChildren && !isExpanded.value;
+  const showChildren = hasChildren && childrenVisible;
 
   const renderChildren = props.node.children?.map((child) => (
     <TreeNodeComponent
@@ -82,6 +112,8 @@ const TreeNodeComponent = component$<TreeNodeComponentProps>((props) => {
       expandLevel={props.expandLevel}
       level={props.level + 1}
       activeNodeId={props.activeNodeId}
+      expanded={props.expanded}
+      onToggle={props.onToggle}
       onNodeClick={props.onNodeClick}
       renderNode={props.renderNode}
       animate={props.animate}
@@ -112,7 +144,7 @@ const TreeNodeComponent = component$<TreeNodeComponentProps>((props) => {
           {hasChildren ? (
             <IconChevronUpMini
               class={`text-muted-foreground mr-2 h-4 w-4 shrink-0 transition-transform duration-200 ${
-                isExpanded.value ? 'rotate-90' : 'rotate-180'
+                childrenVisible ? 'rotate-180' : 'rotate-90'
               }`}
             />
           ) : (
@@ -139,15 +171,15 @@ const TreeNodeComponent = component$<TreeNodeComponentProps>((props) => {
           <div
             class="overflow-hidden"
             style={{
-              maxHeight: shouldShowChildren ? '1000px' : '0px',
-              opacity: shouldShowChildren ? '1' : '0',
+              maxHeight: showChildren ? '1000px' : '0px',
+              opacity: showChildren ? '1' : '0',
               transition: `max-height ${duration}ms ease-in-out, opacity ${duration}ms ease-in-out`,
             }}
           >
             {renderChildren}
           </div>
         ) : (
-          shouldShowChildren && <>{renderChildren}</>
+          showChildren && <>{renderChildren}</>
         ))}
     </div>
   );
@@ -160,6 +192,9 @@ const TreeNodeComponent = component$<TreeNodeComponentProps>((props) => {
 export const Tree = component$<TreeProps>((props) => {
   const ref = useSignal<HTMLElement | undefined>();
   const activeNodeId = useSignal('');
+  // Per-node children-visibility overrides. A new object identity on each change so the drilled
+  // prop propagates reactively to every node.
+  const expanded = useSignal<Record<string, boolean>>({});
 
   const setActiveNode = $((node: TreeNode) => {
     if (ref.value) {
@@ -167,6 +202,44 @@ export const Tree = component$<TreeProps>((props) => {
     }
     activeNodeId.value = node.id;
     props.onNodeClick?.(node);
+  });
+
+  const toggleNode = $((id: string, childrenVisible: boolean) => {
+    expanded.value = { ...expanded.value, [id]: !childrenVisible };
+  });
+
+  // Signal-driven reveal: expand the target's ancestors, select it, and scroll to it. Retries when
+  // the data arrives, since the tree loads asynchronously.
+  useVisibleTask$(({ track }) => {
+    const name = track(() => props.revealNode?.value);
+    const nodes = track(() => props.data.value);
+    if (!name) {
+      return;
+    }
+    const path = findIdPathByName(nodes, name);
+    if (!path) {
+      return;
+    }
+    // Expand the whole path, including the target, so its own children are visible too.
+    const nextExpanded = { ...expanded.value };
+    for (const id of path) {
+      nextExpanded[id] = true;
+    }
+    expanded.value = nextExpanded;
+    const targetId = path[path.length - 1];
+    activeNodeId.value = targetId;
+
+    const container = ref.value;
+    if (container) {
+      // Wait for the expansion animation to settle before scrolling to the final position.
+      const scrollDelay = (props.animate ?? true) ? (props.animationDuration ?? 200) + 50 : 0;
+      setTimeout(() => {
+        container
+          .querySelector(`[data-node-id="${targetId}"]`)
+          ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }, scrollDelay);
+    }
+    props.onRevealed$?.();
   });
 
   return (
@@ -180,6 +253,8 @@ export const Tree = component$<TreeProps>((props) => {
           level={0}
           expandLevel={props.expandLevel ?? 2}
           activeNodeId={activeNodeId.value}
+          expanded={expanded.value}
+          onToggle={toggleNode}
           onNodeClick={setActiveNode}
           renderNode={props.renderNode}
           animate={props.animate ?? true}

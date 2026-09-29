@@ -52,6 +52,9 @@ function getRoutesExpr(
   routes: BuiltRoute[] = [],
   loadersByFile?: Map<string, string[]>,
   extra?: {
+    basePathname?: string;
+    layouts?: Parameters<typeof createRoutes>[0]['layouts'];
+    serverPlugins?: Parameters<typeof createRoutes>[0]['serverPlugins'];
     isSSR?: boolean;
     serverExcludePaths?: ReadonlySet<string>;
     routeLoaderSourceFiles?: RouteLoaderSourceFiles;
@@ -61,7 +64,7 @@ function getRoutesExpr(
   const esmImports: string[] = [];
   const ctx = {
     opts: {
-      basePathname: '/',
+      basePathname: extra?.basePathname ?? '/',
       routesDir: '/routes',
       platform: null!,
       mdx: null!,
@@ -73,8 +76,8 @@ function getRoutesExpr(
     },
     routeTrie: trie,
     routes,
-    layouts: [],
-    serverPlugins: [],
+    layouts: extra?.layouts ?? [],
+    serverPlugins: extra?.serverPlugins ?? [],
     dynamicImports: true,
     rootDir: '/',
     entries: [],
@@ -150,7 +153,23 @@ describe('generate-routes: empty node pruning', () => {
 });
 
 describe('generate-routes: loadersByFile propagation', () => {
-  test('loadersByFile emits _R hashes for regular child nodes in dev mode', () => {
+  test('separates layout and page loader hashes at the same node', () => {
+    const root = makeNode();
+    const page = makeRouteFile('/test');
+    const layout = { ...makeRouteFile('/test', 'layout'), type: 'layout' as const };
+    root._files = [page, layout];
+    const loadersByFile = new Map([
+      [page.filePath, ['page-loader']],
+      [layout.filePath, ['layout-loader']],
+    ]);
+
+    const expr = getRoutesExpr(root, [makeBuiltRoute(page.filePath)], loadersByFile);
+
+    assert.include(expr, '_R: ["layout-loader"]');
+    assert.include(expr, '_D: ["page-loader"]');
+  });
+
+  test('loadersByFile emits _D hashes for page nodes in dev mode', () => {
     const root = makeNode();
     const child = makeNode();
     const routeFile = makeRouteFile('/test/dashboard');
@@ -161,12 +180,12 @@ describe('generate-routes: loadersByFile propagation', () => {
     const loadersByFile = new Map([[routeFile.filePath, ['loader-hash-abc']]]);
     const expr = getRoutesExpr(root, routes, loadersByFile);
 
-    assert.include(expr, '_R', 'regular child should emit _R when loadersByFile is provided');
+    assert.include(expr, '_D', 'page loaders should not be inherited by child routes');
     assert.include(expr, 'loader-hash-abc', 'loader hash should appear in the output');
     assert.notInclude(expr, '__LOADERS:', 'should not emit placeholder in dev mode');
   });
 
-  test('loadersByFile emits _R hashes for group child nodes in dev mode', () => {
+  test('loadersByFile emits _D hashes for group page nodes in dev mode', () => {
     const root = makeNode();
     const group = makeNode();
     const routeFile = makeRouteFile('/test/(common)');
@@ -180,7 +199,7 @@ describe('generate-routes: loadersByFile propagation', () => {
     assert.include(expr, 'group-loader-hash', 'group child should emit its loader hash');
   });
 
-  test('loadersByFile emits _R hashes from re-exported source files in dev mode', () => {
+  test('loadersByFile emits _D hashes from re-exported source files in dev mode', () => {
     const root = makeNode();
     const child = makeNode();
     const routeFile = makeRouteFile('/test/dashboard');
@@ -366,4 +385,64 @@ describe('generate-routes: error/404 boundaries', () => {
     assert.include(expr, '_E: [ ()=>import', '_E! is an override array');
     assert.include(expr, '_4: [ ()=>import', '_4! is an override array');
   });
+});
+
+test('generate-routes: override metadata follows the selected layout chain', () => {
+  const page = makeRouteFile('/routes', 'index@custom');
+  const defaultLayout = { ...makeRouteFile('/routes', 'layout'), type: 'layout' as const };
+  const namedLayout = { ...makeRouteFile('/routes', 'layout-custom'), type: 'layout' as const };
+  const root = makeNode({ _files: [defaultLayout, namedLayout, page] });
+  const layouts = [defaultLayout, namedLayout].map((layout, i) => ({
+    ...layout,
+    id: `layout${i}`,
+  })) as any;
+  const plugins = [{ filePath: '/routes/plugin.ts', id: 'plugin' }] as any;
+  const hashes = new Map([
+    [defaultLayout.filePath, ['default-hash']],
+    [namedLayout.filePath, ['named-hash']],
+    [page.filePath, ['page-hash']],
+    ['/routes/plugin.ts', ['plugin-hash']],
+  ]);
+  const expr = getRoutesExpr(
+    root,
+    [{ ...makeBuiltRoute(page.filePath), layouts: [layouts[1]] }],
+    hashes,
+    {
+      layouts,
+      serverPlugins: plugins,
+    }
+  );
+  const regularPage = makeRouteFile('/routes');
+  hashes.set(regularPage.filePath, ['regular-hash']);
+  const regular = getRoutesExpr(
+    makeNode({ _files: [defaultLayout, namedLayout, regularPage] }),
+    [makeBuiltRoute(regularPage.filePath)],
+    hashes,
+    { layouts, serverPlugins: plugins }
+  );
+  assert.include(regular, '_R: ["default-hash","plugin-hash"]');
+  assert.include(regular, '_D: ["regular-hash"]');
+  assert.notInclude(regular, 'named-hash');
+  assert.include(expr, '_R: ["default-hash","plugin-hash"]');
+  assert.include(expr, '_D: ["page-hash","named-hash","plugin-hash"]');
+  const production = getRoutesExpr(
+    root,
+    [{ ...makeBuiltRoute(page.filePath), layouts: [layouts[1]] }],
+    undefined,
+    {
+      layouts,
+      serverPlugins: plugins,
+    }
+  );
+  assert.include(
+    production,
+    '__LOADERS:/routes/index@custom.tsx|/routes/layout-custom.tsx|/routes/plugin.ts__'
+  );
+});
+
+test('rewrite targets include the trie base pathname', () => {
+  const trie = makeNode();
+  trie.children.set('alias', makeNode({ _G: 'target' }));
+  const expr = getRoutesExpr(trie, [], undefined, { basePathname: '/app/' });
+  assert.include(expr, '_G: "/app/target"');
 });

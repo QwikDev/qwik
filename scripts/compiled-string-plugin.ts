@@ -28,7 +28,7 @@ export function compiledStringPlugin(): Plugin {
           if (resolved) {
             /**
              * Note: we load the code here instead of in the load hook to prevent a bug in Vite when
-             * `rollupOptions.maxParallelFileOps=1`. See
+             * `rolldownOptions.maxParallelFileOps=1`. See
              * https://github.com/vitejs/vite/issues/20775
              */
             let code: string | null;

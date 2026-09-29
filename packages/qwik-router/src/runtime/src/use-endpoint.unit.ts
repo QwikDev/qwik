@@ -1,8 +1,15 @@
 import { _serialize } from '@qwik.dev/core/internal';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
-import { FULLPATH_HEADER, ROUTE_PATH_HEADER, fetchRouteLoaderData } from './route-loaders';
+import {
+  FULLPATH_HEADER,
+  ROUTE_PATH_HEADER,
+  clearNavFetchCache,
+  fetchRouteLoaderData,
+} from './route-loaders';
 import { submitAction } from './use-endpoint';
+import { loadRoute } from './routing';
+import type { RouteData } from './types';
 
 const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
 
@@ -18,6 +25,24 @@ describe('submitAction', () => {
       status,
       headers: { 'Content-Type': 'application/json' },
     });
+
+  it('returns HTTP redirects without navigating from the transport', async () => {
+    const response = new Response(null);
+    Object.defineProperties(response, {
+      redirected: { value: true },
+      url: { value: 'https://qwik.dev/next/' },
+    });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response));
+    const location = { origin: 'https://qwik.dev', href: 'https://qwik.dev/old/' };
+    vi.stubGlobal('location', location);
+    const result = await submitAction({ id: 'act-a', data: {} } as any, new URL(location.href));
+    expect(result).toEqual({
+      status: 200,
+      result: undefined,
+      redirect: new URL('https://qwik.dev/next/'),
+    });
+    expect(location.href).toBe('https://qwik.dev/old/');
+  });
 
   it('clears action.data immediately after capture to prevent re-submission on task rerun', async () => {
     vi.stubGlobal(
@@ -107,15 +132,123 @@ describe('submitAction', () => {
       new URL('https://qwik.dev/test/')
     );
 
-    expect(result?.status).toBe(422);
-    expect(result?.result).toMatchObject({ failed: true });
+    expect(result).toMatchObject({ status: 422, result: { failed: true } });
   });
 });
 
 describe('fetchRouteLoaderData', () => {
+  it.each([
+    { key: '_W', path: 'a%3Fb%23c%25d%2Fe', value: 'a?b#c%d/e' },
+    { key: '_W', path: 'prea%3Fbpost', value: 'a?b', prefix: 'pre', suffix: 'post' },
+    { key: '_A', path: 'a%3Fb/c%23d%25', value: 'a?b/c#d%' },
+    { key: '_A', path: '', value: '' },
+  ])('preserves encoded rewrite loader paths for $key: $path', async (entry) => {
+    const parameter = { _P: 'id', _0: entry.prefix, _9: entry.suffix };
+    const routes: RouteData = {
+      target: {
+        [entry.key]: { ...parameter, _R: ['layout'], _I: () => ({}) },
+      },
+      source: {
+        [entry.key]: { ...parameter, _G: `target/${entry.key}` },
+      },
+    };
+    const pageUrl = new URL(`https://qwik.dev/source/${entry.path}?filter=active`);
+    const route = await loadRoute(routes, false, pageUrl.pathname);
+    expect(route.$params$).toEqual({ id: entry.value });
+    const expectedPath = entry.path ? `/target/${entry.path}/` : '/target/';
+    expect(route.$loaderPaths$?.layout).toBe(expectedPath);
+    const fetchSpy = vi.fn().mockResolvedValue(new Response('{}'));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await fetchRouteLoaderData('layout', route.$loaderPaths$?.layout, 'dev', { pageUrl });
+
+    const requestedUrl = new URL(fetchSpy.mock.calls[0][0], pageUrl);
+    expect(requestedUrl.pathname).toBe(`${expectedPath}${getLoaderName('layout', 'dev')}`);
+    expect(requestedUrl.search).toBe('?filter=active');
+    expect(requestedUrl.hash).toBe('');
+  });
+
+  it('does not cache a response aborted just before publication', async () => {
+    const response = new Response('stale');
+    vi.spyOn(response, 'text').mockResolvedValue('stale');
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce(response)
+      .mockResolvedValueOnce(new Response('fresh'));
+    vi.stubGlobal('fetch', fetchSpy);
+    const controller = new AbortController();
+    const pending = fetchRouteLoaderData('publish-race', '/a/', 'dev', {
+      signal: controller.signal,
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    expect(await fetchRouteLoaderData('publish-race', '/a/', 'dev')).toEqual({ raw: 'fresh' });
+  });
+
   afterEach(() => {
+    clearNavFetchCache();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it.each(['fetch', 'body'])('ignores cancellation-resistant %s responses', async (stage) => {
+    let finish!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const response = new Response('stale');
+    const fetchSpy = vi
+      .fn()
+      .mockImplementationOnce(async () => {
+        if (stage === 'fetch') {
+          await gate;
+        } else {
+          vi.spyOn(response, 'text').mockImplementation(async () => {
+            await gate;
+            return 'stale';
+          });
+        }
+        return response;
+      })
+      .mockResolvedValueOnce(new Response('fresh'));
+    vi.stubGlobal('fetch', fetchSpy);
+    const controller = new AbortController();
+    const pending = fetchRouteLoaderData('canceled-response', '/a/', 'dev', {
+      signal: controller.signal,
+    });
+    await Promise.resolve();
+    controller.abort();
+    const rejected = expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    finish();
+    await rejected;
+    expect(await fetchRouteLoaderData('canceled-response', '/a/', 'dev')).toEqual({ raw: 'fresh' });
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps late responses out of the next navigation cache', async () => {
+    let finish!: (response: Response) => void;
+    const fetchSpy = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            finish = resolve;
+          })
+      )
+      .mockResolvedValueOnce(new Response('fresh'));
+    vi.stubGlobal('fetch', fetchSpy);
+    const pending = fetchRouteLoaderData('previous-navigation', '/a/', 'dev', {
+      signal: new AbortController().signal,
+    });
+    clearNavFetchCache();
+    finish(new Response('stale'));
+    await pending;
+    expect(await fetchRouteLoaderData('previous-navigation', '/a/', 'dev')).toEqual({
+      raw: 'fresh',
+    });
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
   it('returns undefined when the loader is not valid for the current route', async () => {
@@ -233,10 +366,7 @@ describe('fetchRouteLoaderData', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     resolveFetch!();
 
-    await expect(Promise.all([first, second])).resolves.toEqual([
-      { d: 'prefetched' },
-      { d: 'prefetched' },
-    ]);
+    await expect(Promise.all([first, second])).resolves.toEqual([{ raw: body }, { raw: body }]);
   });
 
   it('lets an abortable caller stop waiting for a shared prefetch', async () => {
@@ -265,7 +395,7 @@ describe('fetchRouteLoaderData', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
     resolveFetch!();
-    await expect(prefetch).resolves.toEqual({ d: 'prefetched' });
+    await expect(prefetch).resolves.toEqual({ raw: body });
   });
 
   it('reuses a recently completed loader fetch', async () => {
@@ -291,9 +421,26 @@ describe('fetchRouteLoaderData', () => {
       }
     );
 
-    expect(first).toEqual({ d: 'cached' });
-    expect(second).toEqual({ d: 'cached' });
+    expect(first).toEqual({ raw: body });
+    expect(second).toEqual({ raw: body });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetches after the per-navigation cache is cleared', async () => {
+    const body = await _serialize({ d: 'cached' });
+    const fetchSpy = vi.fn().mockImplementation(() => Promise.resolve(new Response(body)));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const url = new URL('http://localhost/products/123/?view=full');
+    await fetchRouteLoaderData('nav-cleared', '/products/123/', 'manifest-hash', {
+      pageUrl: url,
+    });
+    clearNavFetchCache();
+    await fetchRouteLoaderData('nav-cleared', '/products/123/', 'manifest-hash', {
+      pageUrl: url,
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
   it('reuses a completed abortable loader request', async () => {

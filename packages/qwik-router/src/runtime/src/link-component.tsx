@@ -1,13 +1,4 @@
-import {
-  $,
-  component$,
-  Slot,
-  sync$,
-  untrack,
-  useContext,
-  type QwikIntrinsicElements,
-} from '@qwik.dev/core';
-import { RouteStateContext } from './contexts';
+import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
 import { prefetchRoute } from './prefetch-route';
 import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
@@ -17,7 +8,6 @@ export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
   const head = useDocumentHead();
-  const loaderState = useContext(RouteStateContext);
   const originalHref = props.href;
   const {
     onClick$,
@@ -53,8 +43,27 @@ export const Link = component$<LinkProps>((props) => {
       // deprecated prop below, remove in favor of prefetchData
       prefetchProp === true);
 
+  const shouldPrefetchBundles =
+    !!clientNavPath &&
+    prefetchBundlesProp !== 'off' &&
+    shouldPrefetch &&
+    !isDepratedPrefetchDisabled;
+
   const shouldPrefetchData =
     !!clientNavPath && prefetchDataProp !== 'off' && shouldPrefetch && !isDepratedPrefetchDisabled;
+
+  const handleBundlePrefetch = shouldPrefetchBundles
+    ? $((_: any, elm: HTMLAnchorElement) => {
+        if ((navigator as any).connection?.saveData) {
+          return;
+        }
+
+        if (elm && elm.href) {
+          const url = new URL(elm.href);
+          prefetchRoute(url, false, 0.8);
+        }
+      })
+    : null;
 
   const handleDataPrefetch = shouldPrefetchData
     ? $((_: any, elm: HTMLAnchorElement) => {
@@ -64,7 +73,7 @@ export const Link = component$<LinkProps>((props) => {
 
         if (elm && elm.href) {
           const url = new URL(elm.href);
-          prefetchRoute(url, true, 0.8, head.manifestHash, false, loaderState);
+          prefetchRoute(url, true, 0.8, head.manifestHash, false);
         }
       })
     : null;
@@ -82,8 +91,14 @@ export const Link = component$<LinkProps>((props) => {
   });
 
   const onEnterKeyDown = $((event: KeyboardEvent, element: HTMLAnchorElement) => {
-    if (event.key === 'Enter') {
+    if (event.key !== 'Enter') {
+      return;
+    }
+    if (prefetchDataProp === 'commit') {
       prefetchData(null, element);
+    }
+    if (prefetchBundlesProp === 'commit') {
+      handleBundlePrefetch?.(null, element);
     }
   });
 
@@ -127,15 +142,24 @@ export const Link = component$<LinkProps>((props) => {
         handleClientSideNavigation,
       ]}
       onPointerEnter$={[
-        linkProps.onMouseOver$,
+        linkProps.onPointerEnter$,
         prefetchDataProp === 'intent' ? prefetchData : null,
+        prefetchBundlesProp === 'intent' ? handleBundlePrefetch : null,
       ]}
-      onFocus$={[linkProps.onFocus$, prefetchDataProp === 'intent' ? prefetchData : null]}
+      onFocus$={[
+        linkProps.onFocus$,
+        prefetchDataProp === 'intent' ? prefetchData : null,
+        prefetchBundlesProp === 'intent' ? handleBundlePrefetch : null,
+      ]}
       onPointerDown$={[
         linkProps.onPointerDown$,
         prefetchDataProp === 'commit' ? prefetchData : null,
+        prefetchBundlesProp === 'commit' ? handleBundlePrefetch : null,
       ]}
-      onKeyDown$={[linkProps.onKeyDown$, prefetchDataProp === 'commit' ? onEnterKeyDown : null]}
+      onKeyDown$={[
+        linkProps.onKeyDown$,
+        prefetchDataProp === 'commit' || prefetchBundlesProp === 'commit' ? onEnterKeyDown : null,
+      ]}
     >
       <Slot />
     </a>

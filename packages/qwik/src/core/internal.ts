@@ -37,7 +37,7 @@ export {
   vnode_toString as _vnode_toString,
 } from './client/vnode-utils';
 export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
-export { getAsyncLocalStorage as _getAsyncLocalStorage } from './shared/platform/async-local-storage';
+export { getAsyncLocalStorage as _getAsyncLocalStorage } from '@qwik.dev/core/async-local-storage';
 export type { Container as _Container, HostElement as _HostElement } from './shared/types';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';
@@ -50,11 +50,7 @@ export {
   createStore as _createStore,
   isStore as _isStore,
 } from './reactive-primitives/impl/store';
-export {
-  _isSignalNotInvalid,
-  _markSignalAsExternallyOwned,
-  isSignal,
-} from './reactive-primitives/utils';
+export { _markSignalAsExternallyOwned, isSignal } from './reactive-primitives/utils';
 export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
 export { getSubscriber as _getSubscriber } from './reactive-primitives/subscriber';
 export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
@@ -81,6 +77,7 @@ export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/u
 export { ELEMENT_SEQ as _ELEMENT_SEQ } from './shared/utils/markers';
 export { _restProps } from './shared/utils/prop';
 export { _walkJSX } from './ssr/ssr-render-jsx';
+export { handleSSRError as _handleSSRError } from './ssr/catch-ssr';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {
   _getContextContainer,
@@ -96,6 +93,7 @@ export { isTask as _isTask, scheduleTask as _task, Task as _Task } from './use/u
 export { _captures } from './shared/qrl/qrl-class';
 export { _rsc } from './use/use-resource';
 export type { AsyncSignalImpl as _AsyncSignalImpl } from './reactive-primitives/impl/async-signal-impl';
+export type { ComputedSignalInternal as _ComputedSignalInternal } from './reactive-primitives/signal.public';
 export { _injectAsyncSignalValue } from './reactive-primitives/impl/async-signal-impl';
 export {
   EffectProperty as _EffectProperty,

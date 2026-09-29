@@ -1,7 +1,7 @@
-import { component$, useTask$, useAsync$, useComputed$ } from '@qwik.dev/core';
+import { component$, useTask$, useComputed$ } from '@qwik.dev/core';
 
 export default component$(() => {
-  const a = useAsync$(() => Promise.resolve(1));
+  const a = useComputed$(async () => 1);
   const b = useComputed$(() => 2);
 
   useTask$(() => {

@@ -35,7 +35,11 @@ export const getStoreHandler = (value: StoreTarget): StoreHandler | null => {
 };
 
 export const getStoreTarget = <T extends StoreTarget>(value: T): T | null => {
-  return value?.[STORE_TARGET] || null;
+  try {
+    return value?.[STORE_TARGET] || null;
+  } catch {
+    return null;
+  }
 };
 
 /**
@@ -163,13 +167,16 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     }
 
     const flags = this.$flags$;
-    if (
-      flags & StoreFlags.RECURSIVE &&
-      isObject(value) &&
-      !Object.isFrozen(value) &&
-      !isStore(value) &&
-      !Object.isFrozen(target)
-    ) {
+    let shouldWrapRecursively = false;
+    if (flags & StoreFlags.RECURSIVE && isObject(value)) {
+      try {
+        shouldWrapRecursively =
+          !Object.isFrozen(value) && !isStore(value) && !Object.isFrozen(target);
+      } catch {
+        // ignore
+      }
+    }
+    if (shouldWrapRecursively) {
       return getOrCreateStore(value, this.$flags$, this.$container$);
     }
     return value;
@@ -275,7 +282,7 @@ export function addStoreEffect(
   // changes we know who to notify.
   const isOnServer = qTest ? isServerPlatform() : isServer;
   const shouldRecordExternalRootEffect =
-    __EXPERIMENTAL__.suspense && store instanceof StoreHandler && isOnServer;
+    __EXPERIMENTAL__.pendingBoundary && store instanceof StoreHandler && isOnServer;
   ensureContainsSubscription(effects, effectSubscription);
   // But when effect is scheduled in needs to be able to know which signals
   // to unsubscribe from. So we need to store the reference from the effect back

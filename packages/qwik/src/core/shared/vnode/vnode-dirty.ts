@@ -9,6 +9,7 @@ import { isServerPlatform } from '../platform/platform';
 import type { Container } from '../types';
 import { throwErrorAndStop } from '../utils/log';
 import { isPromise } from '../utils/promises';
+import type { ValueOrPromise } from '../utils/types';
 import {
   getNearestCursorBoundary,
   getOwnCursorBoundary,
@@ -46,7 +47,7 @@ function propagateToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
   while (current) {
     const isDirty = current.dirty & ChoreBits.DIRTY_MASK;
     const currentIsCursor = isCursor(current);
-    if (__EXPERIMENTAL__.suspense) {
+    if (__EXPERIMENTAL__.pendingBoundary) {
       cursorBoundary ||=
         getOwnCursorBoundary(current) || (isDirty ? getNearestCursorBoundary(current) : null);
     }
@@ -94,7 +95,7 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
 
   while (current) {
     const currentIsCursor = isCursor(current);
-    if (__EXPERIMENTAL__.suspense) {
+    if (__EXPERIMENTAL__.pendingBoundary) {
       cursorBoundary ||=
         getOwnCursorBoundary(current) ||
         (currentIsCursor ? getNearestCursorBoundary(current) : null);
@@ -102,7 +103,7 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
 
     if (currentIsCursor) {
       // Existing cursor case: attach this dirty vnode to the blocking cursor found above it and
-      // remember that cursor's nearest boundary for async/suspense bookkeeping.
+      // remember that cursor's nearest boundary for async/pending bookkeeping.
       setNearestCursorBoundary(vNode, cursorBoundary);
       propagatePath(current);
       reusablePath.length = 0;
@@ -136,7 +137,7 @@ export function markVNodeDirty(
   vNode: VNode | ISsrNode,
   bits: ChoreBits,
   cursorRoot: VNode | null = null
-): void {
+): ValueOrPromise<void> {
   const prevDirty = vNode.dirty;
   vNode.dirty |= bits;
   if (isSsrNodeGuard(vNode)) {
@@ -146,7 +147,7 @@ export function markVNodeDirty(
         ? container.$renderPromise$.then(() => result)
         : result;
     }
-    return;
+    return result;
   }
   const isRealDirty = bits & ChoreBits.DIRTY_MASK;
   // If already dirty, no need to propagate again

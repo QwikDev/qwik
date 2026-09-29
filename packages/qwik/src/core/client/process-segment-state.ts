@@ -1,8 +1,8 @@
-import { applySubscriptionPatches } from '../control-flow/suspense-utils';
+import { applySubscriptionPatches } from '../control-flow/pending-utils';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import type { SubscriptionPatch } from '../shared/serdes/subscription-patch';
-import { QStatePatchAttrSelector, QSuspenseResolved } from '../shared/utils/markers';
+import { QStatePatchAttrSelector, QPendingResolved } from '../shared/utils/markers';
 import { qDev } from '../shared/utils/qdev';
 import type { DomContainer } from './dom-container';
 
@@ -22,7 +22,7 @@ export function* processSegmentStateScriptsIterator(
   container: DomContainer,
   segmentId?: string
 ): Generator<void, void, void> {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     return;
   }
   const stateContainer = container as unknown as SegmentStateContainer;
@@ -32,7 +32,7 @@ export function* processSegmentStateScriptsIterator(
   const processedScripts = getProcessedStatePatchScripts(container);
   for (let i = 0; i < qwikStates.length; i++) {
     const stateScript = qwikStates[i];
-    if (segmentId !== undefined && stateScript.getAttribute(QSuspenseResolved) !== segmentId) {
+    if (segmentId !== undefined && stateScript.getAttribute(QPendingResolved) !== segmentId) {
       continue;
     }
     if (processedScripts.has(stateScript)) {

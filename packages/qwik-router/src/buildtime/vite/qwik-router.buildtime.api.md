@@ -4,7 +4,7 @@
 
 ```ts
 
-import type { BuiltinsWithOptionalParams } from 'svgo/plugins/plugins-types';
+import type { BuiltinsWithOptionalParams } from 'svgo';
 import type { CompileOptions } from '@mdx-js/mdx';
 import type { Config } from 'svgo';
 import { ConfigEnv } from 'vite';

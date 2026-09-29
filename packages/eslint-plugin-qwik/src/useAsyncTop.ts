@@ -13,6 +13,37 @@ function isQrlCallee(context: Rule.RuleContext, callee: TSESTree.Identifier): bo
   return isQwikQrlCallee(context, callee);
 }
 
+function isAsyncComputedCreator(name: string, isAsync: boolean): boolean {
+  return (
+    name === 'routeLoader$' || ((name === 'useComputed$' || name === 'createComputed$') && isAsync)
+  );
+}
+
+function isAsyncComputedCall(call: TSESTree.CallExpression): boolean {
+  if (call.callee.type !== AST_NODE_TYPES.Identifier) {
+    return false;
+  }
+  const compute = call.arguments[0];
+  const isAsync =
+    !!compute &&
+    (compute.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+      compute.type === AST_NODE_TYPES.FunctionExpression) &&
+    compute.async;
+  return isAsyncComputedCreator(call.callee.name, isAsync);
+}
+
+function isAsyncComputedTsCall(call: ts.CallExpression): boolean {
+  if (!ts.isIdentifier(call.expression)) {
+    return false;
+  }
+  const compute = call.arguments[0];
+  const isAsync =
+    !!compute &&
+    (ts.isArrowFunction(compute) || ts.isFunctionExpression(compute)) &&
+    !!compute.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword);
+  return isAsyncComputedCreator(call.expression.text, isAsync);
+}
+
 function getFirstStatementIfValueRead(
   body: TSESTree.BlockStatement
 ): TSESTree.ExpressionStatement | null {
@@ -53,11 +84,7 @@ function isAsyncIdentifier(context: Rule.RuleContext, ident: TSESTree.Identifier
       decl.initializer &&
       ts.isCallExpression(decl.initializer)
     ) {
-      const callee = decl.initializer.expression;
-      if (ts.isIdentifier(callee)) {
-        const name = callee.text;
-        return name === 'createAsync$' || name === 'useAsync$' || name === 'routeLoader$';
-      }
+      return isAsyncComputedTsCall(decl.initializer);
     }
     if (ts.isExportSpecifier(decl) || ts.isImportSpecifier(decl)) {
       // We'll rely on symbol resolution below; these alone don't tell us.
@@ -72,9 +99,8 @@ function isAsyncIdentifier(context: Rule.RuleContext, ident: TSESTree.Identifier
       if (init && init.type === AST_NODE_TYPES.CallExpression) {
         const callee = init.callee;
         if (callee.type === AST_NODE_TYPES.Identifier) {
-          const name = callee.name;
           if (
-            (name === 'useAsync$' || name === 'createAsync$' || name === 'routeLoader$') &&
+            isAsyncComputedCall(init) &&
             isFromQwikModule(resolveVariableForIdentifier(context, callee))
           ) {
             return true;

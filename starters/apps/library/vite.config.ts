@@ -20,7 +20,7 @@ export default defineConfig(() => {
         fileName: (format, entryName) =>
           `${entryName}.qwik.${format === "es" ? "mjs" : "cjs"}`,
       },
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           preserveModules: true,
           preserveModulesRoot: "src",

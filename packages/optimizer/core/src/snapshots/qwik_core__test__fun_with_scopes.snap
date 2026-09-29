@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 6512
 expression: output
 ---
 ==INPUT==
@@ -87,7 +86,7 @@ const q_Field_Lifecycle_children_1_Bk3lkC2Z00U = /*#__PURE__*/ _noopQrl("Field_L
 const q_Field_Lifecycle_children_4aZ3omfUAIs = /*#__PURE__*/ _noopQrl("Field_Lifecycle_children_4aZ3omfUAIs");
 const q_Lifecycle_component_r7jPBpjrWLc = /*#__PURE__*/ _noopQrl("Lifecycle_component_r7jPBpjrWLc");
 const q_it_StyledComponent_component_F9AGTDZHx8I = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_F9AGTDZHx8I");
-const q_it_StyledComponent_component_button_q_e_click_CEp5mVjiu08 = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_button_q_e_click_CEp5mVjiu08");
+const q_it_StyledComponent_component_button_q_e_click_CEp5mVjiu08 = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_button_q_e_click_CEp5mVjiu08").m();
 const q_it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs = /*#__PURE__*/ _noopQrl("it_StyledComponent_component_stylesScopedData_useStylesScoped_423B3OJhrRs");
 //
 export default (()=>{

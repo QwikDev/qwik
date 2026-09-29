@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 4117
 expression: output
 ---
 ==INPUT==
@@ -114,7 +113,7 @@ const _hf0_str = "p0.errors.test";
 const _hf1 = (p0)=>p0.store5.errors.test;
 const _hf1_str = "p0.store5.errors.test";
 //
-const q_test_component_div_button_q_e_click_2TvarUvNGmU = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU"), "test_component_div_button_q_e_click_2TvarUvNGmU");
+const q_test_component_div_button_q_e_click_2TvarUvNGmU = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU"), "test_component_div_button_q_e_click_2TvarUvNGmU").m();
 //
 export const test_component_LUXeXe0DQrg = ()=>{
     const [store, math] = [

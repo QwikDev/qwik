@@ -1,5 +1,18 @@
 // @ts-ignore: Unused import
-import { component$, useSignal, useComputed$ } from '@qwik.dev/core';
+import { component$, useSignal, useComputed$, type Signal } from '@qwik.dev/core';
+
+// @ts-ignore: Unused declaration
+const Repos = component$((props: { org: Signal<string>; repos: Signal<string[]> }) => {
+  return (
+    <ul>
+      {props.repos.value.map((repo) => (
+        <li>
+          <a href={`https://github.com/${props.org.value}/${repo}`}>{repo}</a>
+        </li>
+      ))}
+    </ul>
+  );
+});
 
 export default component$(() => {
   const githubOrg = useSignal('QwikDev');
@@ -29,19 +42,13 @@ export default component$(() => {
         </label>
       </p>
       <section>
-        {/* Display the async signal data using its properties. */}
-        {/* To help, here's a callback function to display the data: */}
-        {/* repos.pending && <div>Loading...</div> */}
-        {/* repos.error && <div>Error: {repos.error.message}</div> */}
-        {/* repos.value && (
-            <ul>
-              {repos.value.map((repo) => (
-                <li>
-                  <a href={`https://github.com/${githubOrg.value}/${repo}`}>{repo}</a>
-                </li>
-              ))}
-            </ul>
-          ) */}
+        {/* Import $, Catch and Pending, then read the data inside them. */}
+        {/* To help, here's the markup to display the data: */}
+        {/* <Catch fallback$={$((error) => <div>Error: {error.message}</div>)}>
+              <Pending fallback$={() => <div>Loading...</div>}>
+                <Repos org={githubOrg} repos={repos} />
+              </Pending>
+            </Catch> */}
       </section>
     </main>
   );

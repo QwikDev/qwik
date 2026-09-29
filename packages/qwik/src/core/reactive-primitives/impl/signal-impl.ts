@@ -82,7 +82,7 @@ export class SignalImpl<T = any> implements Signal<T> {
       // changes we know who to notify.
       const isOnServer = qTest ? isServerPlatform() : isServer;
       const effects = (this.$effects$ ||= new Set());
-      const shouldRecordExternalRootEffect = __EXPERIMENTAL__.suspense && isOnServer;
+      const shouldRecordExternalRootEffect = __EXPERIMENTAL__.pendingBoundary && isOnServer;
 
       ensureContainsSubscription(effects, effectSubscriber);
       // But when effect is scheduled in needs to be able to know which signals

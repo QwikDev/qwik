@@ -1,0 +1,6 @@
+{
+  "name": "error-handling-fragment",
+  "description": "Serves the embedded container fragment inlined by the error-handling multi-container route.",
+  "private": true,
+  "type": "module"
+}

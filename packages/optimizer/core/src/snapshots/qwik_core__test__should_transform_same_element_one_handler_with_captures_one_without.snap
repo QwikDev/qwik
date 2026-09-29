@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5580
 expression: output
 ---
 ==INPUT==
@@ -105,7 +104,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const q_test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps"), "test_component_div_div_q_e_click_Mc600uqO6ps");
+const q_test_component_div_div_q_e_click_Mc600uqO6ps = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_click_Mc600uqO6ps"), "test_component_div_div_q_e_click_Mc600uqO6ps").m();
 const q_test_component_div_div_q_e_keydown_a6RR59yQlXM = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_q_e_keydown_a6RR59yQlXM"), "test_component_div_div_q_e_keydown_a6RR59yQlXM");
 //
 export const test_component_LUXeXe0DQrg = ()=>{

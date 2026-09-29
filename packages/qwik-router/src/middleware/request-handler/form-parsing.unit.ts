@@ -170,6 +170,22 @@ describe('formToObj', () => {
       expect(obj.stillNotArray['1e2']).toBe('scientific');
     });
 
+    it('limits inferred array indexes', () => {
+      const fd = new FormData();
+      fd.append('allowed.9999', 'value');
+      fd.append('excessive.10000', 'value');
+      fd.append('items.4294967294', 'value');
+
+      const obj = formToObj(fd);
+
+      expect(Array.isArray(obj.allowed)).toBe(true);
+      expect(obj.allowed.length).toBe(10_000);
+      expect(Array.isArray(obj.excessive)).toBe(false);
+      expect(obj.excessive['10000']).toBe('value');
+      expect(Array.isArray(obj.items)).toBe(false);
+      expect(obj.items['4294967294']).toBe('value');
+    });
+
     it('keeps object syntax object-shaped when sibling keys are mixed', () => {
       const fd = new FormData();
       fd.append('items.0', 'apple');

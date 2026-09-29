@@ -73,6 +73,20 @@ export function normalizePath(path: string) {
   return normalizePathSlash(normalize(path));
 }
 
+/** Normalize equivalent filesystem paths for string-key comparisons. */
+export function normalizePathKey(path: string) {
+  if (path.startsWith('\\\\?\\UNC\\')) {
+    path = `\\\\${path.slice(8)}`;
+  } else if (path.startsWith('\\\\?\\')) {
+    path = path.slice(4);
+  } else if (path.startsWith('//?/UNC/')) {
+    path = `//${path.slice(8)}`;
+  } else if (path.startsWith('//?/')) {
+    path = path.slice(4);
+  }
+  return normalizePath(path).replace(/\\/g, '/');
+}
+
 export function normalizePathSlash(path: string) {
   // MIT https://github.com/sindresorhus/slash/blob/main/license
   // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
@@ -188,14 +202,14 @@ export function isEntryName(extlessName: string) {
   return extlessName === 'entry';
 }
 
-/** The boundary kind, ignoring any `@x`/`!` modifier: `'404'`, `'error'`, or undefined. */
-export function errorBoundaryName(extlessName: string): '404' | 'error' | undefined {
+/** Which caught error a page renders (`'404'` or `'error'`), ignoring `@x`/`!` modifiers. */
+export function caughtErrorName(extlessName: string): '404' | 'error' | undefined {
   const match = /^(error|404)(?:|!|@.+)$/.exec(extlessName);
   return match ? (match[1] as '404' | 'error') : undefined;
 }
 
 export function isErrorName(extlessName: string) {
-  return errorBoundaryName(extlessName) !== undefined;
+  return caughtErrorName(extlessName) !== undefined;
 }
 
 export function isGroupedLayoutName(dirName: string, warn = true) {

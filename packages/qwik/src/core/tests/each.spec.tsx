@@ -43,6 +43,39 @@ describe.each([
     );
   });
 
+  it('should render nested each items', async () => {
+    const Cmp = component$(() => {
+      return (
+        <div id="loop">
+          <Each
+            items={[
+              ['a', 'b'],
+              ['c', 'd'],
+            ]}
+            key$={(_, index) => String(index)}
+            item$={(items) => (
+              <Each
+                items={items}
+                key$={(_, index) => String(index)}
+                item$={(item) => <span>{item}</span>}
+              />
+            )}
+          />
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await expect(document.getElementById('loop')).toMatchDOM(
+      <div id="loop">
+        <span>a</span>
+        <span>b</span>
+        <span>c</span>
+        <span>d</span>
+      </div>
+    );
+  });
+
   it('should render long each item', async () => {
     const Cmp = component$(() => {
       return (

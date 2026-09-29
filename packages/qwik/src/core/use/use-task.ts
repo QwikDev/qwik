@@ -1,5 +1,6 @@
 import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import { BackRef } from '../reactive-primitives/backref';
+import { CatchPhase, tagErrorPhase } from '../shared/error/error-handling';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import {
@@ -29,6 +30,7 @@ export const enum TaskFlags {
   RENDER_BLOCKING = 1 << 3,
   NEEDS_CLEANUP = 1 << 4,
   EVENTS_REGISTERED = 1 << 5,
+  EXECUTED = 1 << 6,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -181,11 +183,16 @@ export const runTask = (
     return pendingTask;
   }
 
-  task.$flags$ &= ~TaskFlags.DIRTY;
-  const handleError = (reason: unknown) => container.handleError(reason, host);
+  const handleError = (reason: unknown) => {
+    tagErrorPhase(reason, CatchPhase.Hook);
+    container.handleError(reason, host, CatchPhase.Hook);
+  };
 
   let taskPromise: Promise<void> | null = null;
   const result = maybeThen(cleanupAsyncDestroyable(task, handleError), () => {
+    // Clear DIRTY here, not before awaiting cleanup, so only invalidations
+    // raised by this very run trigger a reschedule.
+    task.$flags$ = (task.$flags$ & ~TaskFlags.DIRTY) | TaskFlags.EXECUTED;
     const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
     iCtx.$container$ = container;
     const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
@@ -205,7 +212,7 @@ export const runTask = (
               task.$taskPromise$ = null;
             }
             return runTask(task, container, host);
-          });
+          }, handleError);
         } else {
           handleError(err);
         }
@@ -217,6 +224,10 @@ export const runTask = (
     taskPromise = result.finally(() => {
       if (task.$taskPromise$ === taskPromise) {
         task.$taskPromise$ = null;
+        if (task.$flags$ & TaskFlags.DIRTY) {
+          // The task invalidated itself while it was still running, reschedule it.
+          markVNodeDirty(container, host, ChoreBits.TASKS);
+        }
       }
     });
     task.$taskPromise$ = taskPromise;
@@ -259,6 +270,14 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
       setCaptures(deserializeCaptureDeltas(container, this));
     }
     const task = _captures![0] as Task;
+    if (!task.$el$) {
+      // A Catch tore the host down; the task has nothing left to run against.
+      return;
+    }
+    if (task.$flags$ & (TaskFlags.DIRTY | TaskFlags.EXECUTED)) {
+      // the trigger event only performs the initial run
+      return;
+    }
     task.$flags$ |= TaskFlags.DIRTY;
     markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
   });

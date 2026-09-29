@@ -1,0 +1,246 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 636
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const inner = $(() => track(() => isOpen.value) + initialFee);
+		return inner;
+	});
+	const other = useComputed$(({ track }) => {
+		const deeper = useComputed$(({ track: t2 }) => t2(() => track(() => initialFee)));
+		return deeper;
+	});
+	return <div>{networkFee.value}{other.value}</div>;
+});
+
+============================= test.tsx_Cmp_component_other_useComputed_1mipxhl07gU.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useComputedQrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc"), "Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc");
+//
+export const Cmp_component_other_useComputed_1mipxhl07gU = (_rawProps)=>{
+    const _rawProps1 = _captures[0];
+    const deeper = useComputedQrl(q_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc.w([
+        _rawProps1,
+        _rawProps
+    ]));
+    return deeper;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;2DAQ4B;;IAC1B,MAAM,SAAS;;;;IACf,OAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_other_useComputed_1mipxhl07gU",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_other_useComputed",
+  "hash": "1mipxhl07gU",
+  "canonicalFilename": "test.tsx_Cmp_component_other_useComputed_1mipxhl07gU",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    295,
+    416
+  ],
+  "paramNames": [
+    "_rawProps"
+  ],
+  "captureNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc = (_rawProps)=>{
+    const _rawProps1 = _captures[0], _rawProps2 = _captures[1];
+    return _rawProps.track(()=>_rawProps2.track(()=>_rawProps1.initialFee));
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;8EAS8B;;WAAmB,UAAhB,MAAmB,IAAM,WAD3B,MACiC,eANvB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_other_useComputed_deeper_useComputed",
+  "hash": "QFbdi0j5EAc",
+  "canonicalFilename": "test.tsx_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_other_useComputed_1mipxhl07gU",
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    342,
+    394
+  ],
+  "paramNames": [
+    "_rawProps"
+  ],
+  "captureNames": [
+    "_rawProps",
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+//
+export const Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk = ()=>{
+    const _rawProps = _captures[0], _rawProps1 = _captures[1];
+    return _rawProps1.track(()=>_rawProps.isOpen.value) + _rawProps.initialFee;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;sEAKkB;;WAAM,WADkB,MACZ,IAAM,UAFH,OAEU,KAAK,cAFP\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_networkFee_useComputed_inner",
+  "hash": "n7hnoiBGbxk",
+  "canonicalFilename": "test.tsx_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_networkFee_useComputed_ysNbpjmzm2Q",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    199,
+    243
+  ],
+  "captureNames": [
+    "_rawProps",
+    "_rawProps"
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAUhB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useComputedQrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q"), "Cmp_component_networkFee_useComputed_ysNbpjmzm2Q");
+const q_Cmp_component_other_useComputed_1mipxhl07gU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_other_useComputed_1mipxhl07gU"), "Cmp_component_other_useComputed_1mipxhl07gU");
+//
+export const Cmp_component_4ryKJTOKjWE = (_rawProps)=>{
+    const networkFee = useComputedQrl(q_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q.w([
+        _rawProps
+    ]));
+    const other = useComputedQrl(q_Cmp_component_other_useComputed_1mipxhl07gU.w([
+        _rawProps
+    ]));
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        _wrapProp(networkFee),
+        _wrapProp(other)
+    ], 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAG8B;IAC7B,MAAM,aAAa;;;IAInB,MAAM,QAAQ;;;IAId,qBAAO,WAAC;kBAAK;kBAAkB;;AAChC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    95,
+    472
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q.js (ENTRY POINT)==
+
+import { _captures } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk"), "Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk");
+//
+export const Cmp_component_networkFee_useComputed_ysNbpjmzm2Q = async (_rawProps)=>{
+    const _rawProps1 = _captures[0];
+    const inner = q_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk.w([
+        _rawProps1,
+        _rawProps
+    ]);
+    return inner;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;gEAIiC;;IAC/B,MAAM;;;;IACN,OAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_networkFee_useComputed_ysNbpjmzm2Q",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_networkFee_useComputed",
+  "hash": "ysNbpjmzm2Q",
+  "canonicalFilename": "test.tsx_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    158,
+    264
+  ],
+  "paramNames": [
+    "_rawProps"
+  ],
+  "captureNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

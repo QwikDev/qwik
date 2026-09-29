@@ -115,7 +115,11 @@ export const DevtoolsContent = component$<DevtoolsContentProps>(({ state }) => {
       return (
         <TabContent>
           <TabTitle title={isExtensionMode ? 'Component Tree' : 'Render Tree'} q:slot="title" />
-          {isExtensionMode ? <HookTree q:slot="content" /> : <RenderTree q:slot="content" />}
+          {isExtensionMode ? (
+            <HookTree state={state} q:slot="content" />
+          ) : (
+            <RenderTree state={state} q:slot="content" />
+          )}
         </TabContent>
       );
     case 'codeBreak':
@@ -129,7 +133,7 @@ export const DevtoolsContent = component$<DevtoolsContentProps>(({ state }) => {
       return (
         <TabContent>
           <TabTitle title="Performance" q:slot="title" />
-          <Performance q:slot="content" />
+          <Performance state={state} q:slot="content" />
         </TabContent>
       );
     case 'preloads':

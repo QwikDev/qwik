@@ -1,7 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protect against duplicate imports
 //////////////////////////////////////////////////////////////////////////////////////////
-import { QError, qError } from '../server/qwik-copy';
+import { QError, qError } from './shared/error/error';
+import { isDev } from '@qwik.dev/core/build';
 import { version } from './version';
 
 if ((globalThis as any).__qwik) {
@@ -9,7 +10,7 @@ if ((globalThis as any).__qwik) {
 }
 (globalThis as any).__qwik = version;
 
-if (import.meta.hot) {
+if (isDev && import.meta.hot) {
   import.meta.hot.dispose(() => {
     (globalThis as any).__qwik = undefined;
   });
@@ -155,11 +156,12 @@ export { useResource$ } from './use/use-resource-dollar';
 export { useTaskQrl } from './use/use-task';
 export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
+export type { AsyncFn } from './use/use-computed';
 export { useComputed$ } from './use/use-computed';
-export type { AsyncFn } from './use/use-async';
-export { useAsyncQrl, useAsync$ } from './use/use-async';
-export { useErrorBoundary } from './use/use-error-boundary';
-export type { ErrorBoundaryStore } from './shared/error/error-handling';
+export { Catch, catchCmp as _caC, catchReset as _caR } from './shared/error/catch';
+export type { CatchProps } from './shared/error/catch';
+export { CatchPhase } from './shared/error/catch-phase';
+export type { CatchInfo } from './shared/error/error-handling';
 export {
   type ReadonlySignal,
   type AsyncSignal,
@@ -174,7 +176,6 @@ export {
   createSerializerQrl,
   createSerializer$,
   createAsyncQrl,
-  createAsync$,
 } from './reactive-primitives/signal.public';
 export type { ComputedOptions } from './reactive-primitives/types';
 
@@ -193,9 +194,9 @@ export {
 } from './control-flow/reveal';
 export { Reveal } from './control-flow/reveal';
 export type { RevealOrder, RevealProps } from './control-flow/reveal';
-export { suspenseTask as _suT, suspenseCmp as _suC } from './control-flow/suspense';
-export { Suspense } from './control-flow/suspense';
-export type { SuspenseProps } from './control-flow/suspense';
+export { pendingTask as _peT, pendingCmp as _peC } from './control-flow/pending';
+export { Pending } from './control-flow/pending';
+export type { PendingProps } from './control-flow/pending';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

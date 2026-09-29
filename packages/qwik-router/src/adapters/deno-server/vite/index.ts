@@ -1,4 +1,4 @@
-import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
+import type { SsgRenderOptions } from '../../../ssg';
 import { viteAdapter, type ServerAdapterOptions } from '../../shared/vite';
 
 /** @beta */
@@ -23,10 +23,9 @@ export function denoServerAdapter(opts: DenoServerAdapterOptions = {}): any {
         build: {
           ssr: true,
           target: 'esnext',
-          rollupOptions: {
+          rolldownOptions: {
             output: {
               format: 'es',
-              hoistTransitiveImports: false,
             },
           },
         },

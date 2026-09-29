@@ -10,6 +10,7 @@ import type {
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
   AbortMessage,
+  CacheControl,
   EnvGetter,
   RequestEvent,
   RequestEventAction,
@@ -143,7 +144,9 @@ export type RouteNavigate = QRL<
   ) => Promise<void>
 >;
 
-export type RouteAction = Signal<RouteActionValue>;
+export type RouteAction = Signal<RouteActionValue> & {
+  pendingDispatch?: NoSerialize<Promise<void>>;
+};
 
 export type RouteActionResolver = { status: number; result: unknown };
 export type RouteActionValue =
@@ -152,6 +155,7 @@ export type RouteActionValue =
       data: FormData | Record<string, unknown> | undefined;
       output?: RouteActionResolver;
       resolve?: NoSerialize<(data: RouteActionResolver) => void>;
+      resolveDispatch?: NoSerialize<() => void>;
     }
   | undefined;
 
@@ -326,8 +330,10 @@ export interface RouteData {
   _M?: RouteData[];
   /** Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal. */
   _N?: MenuModuleLoader;
-  /** Array of routeLoader$ hashes for this node's loaders */
+  /** Inherited layout and server plugin routeLoader$ hashes. */
   _R?: string[];
+  /** Page loader hashes; override pages include their selected layouts and plugins. */
+  _D?: string[];
   /** Child route segments (any key not starting with `_`) */
   [part: string]:
     | RouteData
@@ -355,6 +361,12 @@ export interface QwikRouterConfig {
   readonly cacheModules?: boolean;
   /** When true, return null instead of rendering the 404 page, letting the adapter handle it */
   readonly fallthrough?: boolean;
+  /**
+   * Imports the modules containing `server$` functions so their registration side effects run.
+   * Called by the request handler before serving; deliberately async so the config module itself
+   * evaluates without touching the runtime (see the import-cycle notes in `route-loaders.ts`).
+   */
+  readonly importEagerModules?: () => Promise<unknown>;
 }
 
 /** @public */
@@ -446,6 +458,8 @@ export interface LoadedRoute {
   $loaders$?: string[];
   /** Runtime-only mapping of routeLoader$ hashes to the matched pathname used for q-loader fetches */
   $loaderPaths$?: Record<string, string>;
+  /** Runtime-only mapping of routeLoader$ hashes to params matched at their loader path */
+  $loaderParams$?: Record<string, PathParams>;
 }
 
 export interface EndpointResponse {
@@ -501,6 +515,7 @@ export interface SimpleURL {
   hash: string;
 }
 
+/** @public */
 export type Editable<T> = {
   -readonly [P in keyof T]: T[P];
 };
@@ -792,19 +807,22 @@ export type LoaderOptions = {
   readonly validation?: DataValidator[];
   readonly serializationStrategy?: SerializationStrategy;
   /**
-   * Time in milliseconds after which the loader data is considered stale. The server derives
-   * `Cache-Control: max-age` seconds from this value on loader responses.
+   * Cache-Control for this loader's JSON responses. The browser HTTP cache is the single source of
+   * freshness for loader data: on every client navigation the loaders re-fetch, and this header
+   * decides whether the browser serves the fetch from cache, revalidates, or hits the server.
    *
-   * On the client, the loader's ComputedSignal `expires` is set to this value. If `poll` is true,
-   * the signal auto-refetches when expired. If `poll` is false (default), the data is marked stale
-   * but not auto-refetched.
+   * Accepts any `cacheControl()` value (`'immutable'`, `'no-cache'`, a max-age number, an options
+   * object) or a function of the request event; the function may return `null` to skip the header.
+   * A `Cache-Control` header set inside the loader function wins over this option.
+   *
+   * Defaults to `private, no-cache` (browser revalidation without shared caching; combine with
+   * `eTag` for cheap 304s). Explicit `'no-cache'` and numeric values allow shared caching; numeric
+   * values include `s-maxage`.
+   *
+   * The literal value `'immutable'` also marks the loader's data as static, so SSG writes a
+   * per-loader JSON file at build time.
    */
-  readonly expires?: number;
-  /**
-   * When true AND `expires` is set, the loader data is automatically refetched when it expires
-   * (polling behavior). When false (default), expired data is marked stale but not auto-refetched.
-   */
-  readonly poll?: boolean;
+  readonly cacheControl?: CacheControl | ((ev: RequestEvent) => CacheControl | null);
   /**
    * Enable ETag-based caching for this loader's JSON responses.
    *
@@ -830,7 +848,8 @@ export type LoaderOptions = {
    * - `true` — use the default key `${pathname}|${filteredSearch}|${loaderId}` (suffixed with
    *   `|${eTag}` when an eTag is set).
    * - Function `(requestEv, eTag) => string | null` — return a custom key, or `null` to skip caching
-   *   this request.
+   *   this request. For user-specific data, include user identity and relevant permissions in the
+   *   key or disable this cache.
    *
    * On cache miss the loader runs, the serialized response is stored alongside its eTag (computed
    * from the data when no `eTag` option is set), and the response is sent. On cache hit the stored
@@ -852,14 +871,6 @@ export type LoaderOptions = {
    * triggers a re-fetch.
    */
   readonly search?: string[];
-  /**
-   * When true (default), the previous value is kept while the loader re-fetches after navigation,
-   * so components see stale data until the new response arrives.
-   *
-   * When false, the value is cleared on re-fetch, causing reads to suspend (show a loading
-   * boundary). This is useful when showing old data during navigation would be confusing.
-   */
-  readonly allowStale?: boolean;
   /**
    * When true (default), the loader is awaited before SSR renders, so its redirect or error can
    * short-circuit the response and its value is ready for synchronous reads (e.g. in the head).
@@ -1008,7 +1019,7 @@ export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
 export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
   ? Signal<ValueOrPromise<VALIDATOR>>
   : Signal<TYPE>) &
-  Pick<ComputedSignal<any>, 'promise' | 'pending' | 'error' | 'loading'>;
+  Pick<ComputedSignal<any>, 'promise'>;
 
 /** @public */
 export type Loader<RETURN> = {
@@ -1025,12 +1036,10 @@ export interface LoaderInternal extends Loader<any> {
   __id: string;
   __validators: DataValidator[] | undefined;
   __serializationStrategy: SerializationStrategy;
-  __expires: number;
-  __poll: boolean;
+  __cacheControl: CacheControl | ((ev: RequestEvent) => CacheControl | null) | undefined;
   __eTag: string | ((ev: RequestEvent) => string | null) | undefined;
   __cacheKey: CacheKeyFn | undefined;
   __search: string[] | undefined;
-  __allowStale: boolean;
   __blockSSR: boolean;
   (): LoaderSignal<unknown>;
 }
@@ -1130,8 +1139,8 @@ export type ZodConstructor = {
   <T extends z.ZodRawShape>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: T): ZodDataValidator<T>;
-  <T extends z.Schema>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: T): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 
 /** @public */
@@ -1140,8 +1149,8 @@ export type ZodConstructorQRL = {
   <T extends z.ZodRawShape>(
     schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: QRL<T>): ZodDataValidator<T>;
-  <T extends z.Schema>(schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: QRL<T>): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>): ZodDataValidator<T>;
 };
 
 /** @public */

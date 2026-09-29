@@ -1,4 +1,4 @@
-import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
+import type { SsgRenderOptions } from '../../../ssg';
 import fs from 'node:fs';
 import { join, relative } from 'node:path';
 import { normalizePathSlash } from '../../../utils/fs';
@@ -27,10 +27,9 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
         },
         build: {
           ssr: true,
-          rollupOptions: {
+          rolldownOptions: {
             output: {
               format: 'es',
-              hoistTransitiveImports: false,
             },
           },
         },

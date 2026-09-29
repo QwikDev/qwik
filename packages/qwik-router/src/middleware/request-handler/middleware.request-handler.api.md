@@ -215,6 +215,7 @@ export interface ServerRenderOptions extends RenderOptions {
     checkOrigin?: boolean | 'lax-proto';
     // (undocumented)
     render: Render;
+    trustForwardedHeaders?: boolean;
 }
 
 // @public

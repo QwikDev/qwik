@@ -19,11 +19,14 @@ export {
   // Show
   _shC,
   _shT,
-  // Suspense
-  _suC,
-  _suT,
+  // Pending
+  _peC,
+  _peT,
   // Reveal
   _reR,
   _reC,
   _reT,
+  // Catch
+  _caC,
+  _caR,
 } from '@qwik.dev/core/internal';

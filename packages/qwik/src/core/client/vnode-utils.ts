@@ -127,6 +127,7 @@ import {
   DEBUG_TYPE,
   QContainerValue,
   type QElement,
+  type qWindow,
   VirtualType,
   VirtualTypeName,
 } from '../shared/types';
@@ -141,6 +142,7 @@ import {
   ITERATION_ITEM_MULTI,
   ITERATION_ITEM_SINGLE,
   OnRenderProp,
+  QComponentHash,
   Q_PROPS_SEPARATOR,
   QContainerAttr,
   QContainerAttrEnd,
@@ -152,8 +154,8 @@ import {
   QScopedStyle,
   QSlot,
   QStyle,
-  QSuspenseResolved,
-  QSuspenseResultParent,
+  QPendingResolved,
+  QPendingResultParent,
   QTargetElement,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
@@ -454,6 +456,15 @@ export const vnode_setAttr = (
         (vNode.flags & VNodeFlags.NS_svg) !== 0
       )
     );
+  }
+};
+
+export const registerQwikLoaderEvent = (container: ClientContainer, eventName: string) => {
+  const win = qTest
+    ? (container.document.defaultView as qWindow | null)
+    : (window as unknown as qWindow);
+  if (win) {
+    (win._qwikEv ||= [] as any).push(eventName);
   }
 };
 
@@ -804,7 +815,7 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     if (cachedVNode) {
       return cachedVNode;
     }
-    if (__EXPERIMENTAL__.suspense && qElement._qSegment) {
+    if (__EXPERIMENTAL__.pendingBoundary && qElement._qSegment) {
       vNode = vnode_newUnMaterializedElement(refElement);
       vnode_ensureElementKeyInflated(vNode as ElementVNode);
       qElement.vNode = vNode;
@@ -822,7 +833,7 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
         containerElement.contains(refElement),
         `Couldn't find the element inside the container while locating the VNode.`
       );
-    if (__EXPERIMENTAL__.suspense && (refElement as QElement)._qSegment) {
+    if (__EXPERIMENTAL__.pendingBoundary && (refElement as QElement)._qSegment) {
       vNode = (refElement as QElement).vNode || vnode_newUnMaterializedElement(refElement);
       vnode_ensureElementKeyInflated(vNode as ElementVNode);
     } else {
@@ -1509,10 +1520,10 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
   }
   let vFirstChild = (vnode as ElementVNode | VirtualVNode).firstChild;
   if (
-    __EXPERIMENTAL__.suspense &&
+    __EXPERIMENTAL__.pendingBoundary &&
     vFirstChild === undefined &&
     vnode_isElementVNode(vnode) &&
-    hasOnlySuspensePlaceholder(vnode.node)
+    hasOnlyPendingPlaceholder(vnode.node)
   ) {
     return null;
   }
@@ -1546,7 +1557,9 @@ const materialize = (
   vNodeData?: string
 ): VNode | null => {
   vnode_ensureElementKeyInflated(vNode);
-  const segmentId = __EXPERIMENTAL__.suspense ? (element as QElement)._qSegment || null : null;
+  const segmentId = __EXPERIMENTAL__.pendingBoundary
+    ? (element as QElement)._qSegment || null
+    : null;
   if (vNodeData) {
     if (
       vNodeData.charCodeAt(0) === VNodeDataChar.SEPARATOR &&
@@ -2077,8 +2090,8 @@ function shouldSkipElement(element: Element) {
   );
 }
 
-function hasOnlySuspensePlaceholder(element: Element) {
-  const segmentId = element.getAttribute(QSuspenseResultParent);
+function hasOnlyPendingPlaceholder(element: Element) {
+  const segmentId = element.getAttribute(QPendingResultParent);
   if (segmentId === null) {
     return false;
   }
@@ -2086,7 +2099,7 @@ function hasOnlySuspensePlaceholder(element: Element) {
   return (
     isElement(firstChild) &&
     firstChild.localName === 'template' &&
-    firstChild.getAttribute(QSuspenseResolved) === segmentId &&
+    firstChild.getAttribute(QPendingResolved) === segmentId &&
     fastNextSibling(firstChild) === null
   );
 }
@@ -2163,8 +2176,17 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.SCOPED_STYLE) {
       vnode_setProp(vParent, QScopedStyle, consumeValue());
     } else if (peek() === VNodeDataChar.RENDER_FN) {
-      (components ||= []).push(vParent as VirtualVNode);
-      vnode_setProp(vParent, OnRenderProp, consumeValue());
+      const renderRef = consumeValue();
+      if (renderRef.charCodeAt(0) === VNodeDataChar.RENDER_HASH_PREFIX) {
+        vnode_setProp(
+          vParent,
+          QComponentHash,
+          decodeURIComponent(decodeVNodeDataString(renderRef.slice(1)))
+        );
+      } else {
+        (components ||= []).push(vParent as VirtualVNode);
+        vnode_setProp(vParent, OnRenderProp, renderRef);
+      }
     } else if (peek() === VNodeDataChar.ID) {
       if (!container) {
         container = getDomContainer(element);

@@ -14,7 +14,7 @@ import {
   type YieldingIteratorState,
 } from './yielding-iterator';
 
-const Q_SUSPENSE_RESOLVED = 'q:r';
+const Q_PENDING_RESOLVED = 'q:r';
 const Q_PATCH = 'q:patch';
 
 type VNodeDataScope = Document | ShadowRoot;
@@ -95,7 +95,7 @@ export function processOutOfOrderSegmentVNodeData(
   segmentId: string,
   contentNode: Element | null
 ): void {
-  if (!__EXPERIMENTAL__.suspense || !contentNode) {
+  if (!__EXPERIMENTAL__.pendingBoundary || !contentNode) {
     return;
   }
   const qContainerElement = contentNode.closest('[q\\:container]') as ContainerElement | null;
@@ -251,7 +251,7 @@ function* processVNodeDataPatch(
   script: Element | null
 ): Generator<void, void, void> {
   const qContainerElement = script?.closest('[q\\:container]') as ContainerElement | null;
-  const patchSegment = script?.getAttribute(Q_SUSPENSE_RESOLVED);
+  const patchSegment = script?.getAttribute(Q_PENDING_RESOLVED);
   const contentNode =
     qContainerElement &&
     (patchSegment
@@ -283,14 +283,14 @@ function* processVNodeDataImpl(
   const Q_IGNORE_END = '/' + Q_IGNORE;
   const Q_CONTAINER_ISLAND = 'q:container-island';
   const Q_CONTAINER_ISLAND_END = '/' + Q_CONTAINER_ISLAND;
-  const Q_SUSPENSE_RESULT_PARENT = 'q:rp';
+  const Q_PENDING_RESULT_PARENT = 'q:rp';
 
   const enum NodeType {
     CONTAINER_MASK /* ***************** */ = 0b00000001,
     ELEMENT /* ************************ */ = 0b00000010, // regular element
     ELEMENT_CONTAINER /* ************** */ = 0b00000011, // container element need to descend into it
     ELEMENT_SHADOW_ROOT_WRAPPER /* **** */ = 0b00000110, // shadow root wrapper element with q:shadowroot attribute
-    ELEMENT_SUSPENSE_RESULT_PARENT /* * */ = 0b10000010,
+    ELEMENT_PENDING_RESULT_PARENT /* * */ = 0b10000010,
     COMMENT_SKIP_START /* ************* */ = 0b00001001, // Comment but skip the content until COMMENT_SKIP_END
     COMMENT_SKIP_END /* *************** */ = 0b00001000, // Comment end
     COMMENT_IGNORE_START /* *********** */ = 0b00010000, // Comment ignore, descend into children and skip the content until COMMENT_ISLAND_START
@@ -333,7 +333,7 @@ function* processVNodeDataImpl(
       }
 
       const scriptContent = script.textContent!;
-      const segment = __EXPERIMENTAL__.suspense && script.getAttribute(Q_SUSPENSE_RESOLVED);
+      const segment = __EXPERIMENTAL__.pendingBoundary && script.getAttribute(Q_PENDING_RESOLVED);
       if (segment) {
         (qContainer.qSegmentVnodeData ||= new Map()).set(segment, scriptContent);
       } else {
@@ -370,8 +370,11 @@ function* processVNodeDataImpl(
       if (hasAttribute.call(node, Q_SHADOW_ROOT)) {
         return NodeType.ELEMENT_SHADOW_ROOT_WRAPPER;
       }
-      if (__EXPERIMENTAL__.suspense && getAttribute.call(node, Q_SUSPENSE_RESULT_PARENT) !== null) {
-        return NodeType.ELEMENT_SUSPENSE_RESULT_PARENT;
+      if (
+        __EXPERIMENTAL__.pendingBoundary &&
+        getAttribute.call(node, Q_PENDING_RESULT_PARENT) !== null
+      ) {
+        return NodeType.ELEMENT_PENDING_RESULT_PARENT;
       }
       return hasAttribute.call(node, Q_PROPS_SEPARATOR) ? NodeType.ELEMENT : NodeType.OTHER;
     } else if (nodeType === 8 /* Node.COMMENT_NODE */) {
@@ -417,7 +420,7 @@ function* processVNodeDataImpl(
     qContainerElement: ContainerElement | null,
     segmentId?: string
   ): Generator<void, void, void> {
-    const isSegment = __EXPERIMENTAL__.suspense && segmentId !== undefined;
+    const isSegment = __EXPERIMENTAL__.pendingBoundary && segmentId !== undefined;
     const vData_length = vData.length;
     /// Stores the current element index as the TreeWalker traverses the DOM.
     let elementIdx = 0;
@@ -556,10 +559,10 @@ function* processVNodeDataImpl(
           }
         }
         const contentBoundaryId =
-          __EXPERIMENTAL__.suspense &&
+          __EXPERIMENTAL__.pendingBoundary &&
           !isSegment &&
-          nodeType === NodeType.ELEMENT_SUSPENSE_RESULT_PARENT
-            ? getAttribute.call(node!, Q_SUSPENSE_RESULT_PARENT)!
+          nodeType === NodeType.ELEMENT_PENDING_RESULT_PARENT
+            ? getAttribute.call(node!, Q_PENDING_RESULT_PARENT)!
             : null;
         if (elementIdx === vNodeElementIndex) {
           if (needsToStoreRef === elementIdx && !(isSegment && node === containerNode)) {
@@ -585,8 +588,8 @@ function* processVNodeDataImpl(
           }
         }
         elementIdx++;
-        if (__EXPERIMENTAL__.suspense && contentBoundaryId !== null) {
-          yield* processSuspenseContentSegment(
+        if (__EXPERIMENTAL__.pendingBoundary && contentBoundaryId !== null) {
+          yield* processPendingContentSegment(
             qContainerElement,
             node as Element,
             contentBoundaryId
@@ -625,7 +628,7 @@ function* processVNodeDataImpl(
     );
   };
 
-  const processSuspenseContentSegment = function* (
+  const processPendingContentSegment = function* (
     qContainerElement: ContainerElement | null,
     contentNode: Element,
     boundaryId: string,
@@ -639,8 +642,8 @@ function* processVNodeDataImpl(
 
   if (segmentContainer && segmentContent && segmentVNodeData !== undefined) {
     segmentContainer.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
-    if (__EXPERIMENTAL__.suspense && segmentId !== undefined) {
-      yield* processSuspenseContentSegment(
+    if (__EXPERIMENTAL__.pendingBoundary && segmentId !== undefined) {
+      yield* processPendingContentSegment(
         segmentContainer,
         segmentContent,
         segmentId,

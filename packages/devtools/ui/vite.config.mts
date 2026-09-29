@@ -31,7 +31,7 @@ export default defineConfig(() => {
         fileName: (format, entryName) => `${entryName}.qwik.mjs`,
         cssFileName: 'styles',
       },
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           preserveModules: true,
           preserveModulesRoot: 'src',
@@ -46,6 +46,6 @@ export default defineConfig(() => {
         external: ['stream', 'util', /^node:.*/, ...externalDependencies.map(makeRegex)],
       },
     },
-    plugins: [qwikVite(), qwikDevtools(), tailwindcss()],
+    plugins: [qwikVite({ tsOptimizer: true }), qwikDevtools(), tailwindcss()],
   };
 });

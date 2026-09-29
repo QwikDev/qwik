@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       outDir: "azure-functions/render",
-      rollupOptions: {
+      rolldownOptions: {
         input: ["src/entry.azure-swa.tsx"],
         output: {
           entryFileNames: `[name].[hash].mjs`,

@@ -119,6 +119,41 @@ describe.each([
       expect(e).toBe(error);
     }
   });
+  it('finishes rendering after a nonblocking task throws a rejected promise', async () => {
+    const error = new Error('dependency failed');
+    const Counter = component$(() => {
+      const count = useSignal(0);
+      useTask$(
+        ({ track }) => {
+          if (track(count) === 1) {
+            throw Promise.reject(error);
+          }
+        },
+        { deferUpdates: false }
+      );
+      return <button onClick$={() => count.value++}>{count.value}</button>;
+    });
+
+    const { container } = await render(
+      <ErrorProvider>
+        <Counter />
+      </ErrorProvider>
+    );
+    const button = container.element.querySelector('button')!;
+    const handleError = vi.spyOn(container, 'handleError');
+
+    await trigger(container.element, button, 'click');
+    expect(handleError).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ message: 'dependency failed' }),
+      expect.anything(),
+      'hook'
+    );
+    expect(container.$renderPromise$).toBeNull();
+    await trigger(container.element, button, 'click');
+    expect(button.textContent).toBe('2');
+    handleError.mockRestore();
+  });
+
   it('should not run next task until previous async task is finished', async () => {
     const log: string[] = [];
     const Counter = component$(() => {

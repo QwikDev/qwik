@@ -4,6 +4,7 @@ import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { minify } from 'terser';
 import {
   type BuildConfig,
+  copyFile,
   fileSize,
   getBanner,
   readFile,
@@ -18,6 +19,13 @@ import {
  */
 export const MANGLE_PROPS_REGEX = '^\\$.+\\$$';
 
+/** Terser strands these annotations, so bundlers silently drop the tree-shaking hint. */
+function fixPureAnnotations(code: string): string {
+  return code
+    .replace(/\/\*\s*[@#]__PURE__\s*\*\/\s*return\s+/g, 'return /* @__PURE__ */ ')
+    .replace(/\/\*\s*[@#]__PURE__\s*\*\/(\s*)(?=[^\sA-Za-z_$(])/g, '$1');
+}
+
 /**
  * Build the core package which is also the root package: @qwik.dev/core
  *
@@ -28,6 +36,24 @@ export const MANGLE_PROPS_REGEX = '^\\$.+\\$$';
  * mangling and keep $...$ names in sync across both bundles.
  */
 export async function submoduleCore(config: BuildConfig): Promise<object | undefined> {
+  const platformDir = join(config.srcQwikDir, 'core', 'shared', 'platform');
+  await build({
+    entryPoints: [
+      join(platformDir, 'async-local-storage.ts'),
+      join(platformDir, 'async-local-storage.node.ts'),
+    ],
+    outdir: config.distQwikPkgDir,
+    bundle: true,
+    format: 'esm',
+    outExtension: { '.js': '.mjs' },
+    external: ['node:async_hooks'],
+    target,
+  });
+  await copyFile(
+    join(config.dtsDir, 'packages/qwik/src/core/shared/platform/async-local-storage.d.ts'),
+    join(config.distQwikPkgDir, 'async-local-storage.d.ts')
+  );
+
   if (config.dev) {
     await submoduleCoreDev(config);
     return undefined;
@@ -39,7 +65,12 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
-    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      'node:async_hooks',
+      '@qwik.dev/core/async-local-storage',
+    ],
     plugins: [
       {
         name: 'setVersion',
@@ -90,6 +121,9 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
       {
         name: 'build',
         resolveId(id) {
+          if (id === '@qwik.dev/core/async-local-storage') {
+            return join(config.distQwikPkgDir, 'async-local-storage.mjs');
+          }
           if (id === '@index.min') {
             return id;
           }
@@ -158,8 +192,9 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
             },
           });
           const esmMinCode = esmMinifyResult.code!;
-          const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
+          const esmCleanCode = fixPureAnnotations(esmMinCode.replace(/__self__/g, '__SELF__'));
           validateNoBareExperimentalReferences(esmCleanCode, 'core.min.mjs');
+          validateNoHmrReferences(esmCleanCode, 'core.min.mjs');
 
           const selfIdx = esmCleanCode.indexOf('self');
           const indx = Math.max(selfIdx);
@@ -203,7 +238,11 @@ async function prepareProdCode(config: BuildConfig): Promise<string> {
 
   const inputProd: InputOptions = {
     input: join(config.distQwikPkgDir, 'core.mjs'),
-    external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/preloader',
+      'node:async_hooks',
+      '@qwik.dev/core/async-local-storage',
+    ],
     onwarn: rollupOnWarn,
     plugins: [
       {
@@ -311,8 +350,9 @@ async function submoduleCoreProduction(
     },
     mangle,
   });
-  code = result.code!;
+  code = fixPureAnnotations(result.code!);
   validateNoBareExperimentalReferences(code, 'core.prod.mjs');
+  validateNoHmrReferences(code, 'core.prod.mjs');
 
   await writeFile(outPath, code + '\n');
 
@@ -328,6 +368,12 @@ function validateNoBareExperimentalReferences(code: string, filename: string) {
       `"${filename}" should only reference experimental flags as "__EXPERIMENTAL__.feature".\n` +
         code.substring(Math.max(0, index - 100), index + 300)
     );
+  }
+}
+
+function validateNoHmrReferences(code: string, filename: string) {
+  if (code.includes('import.meta.hot')) {
+    throw new Error(`"${filename}" should not contain HMR code.`);
   }
 }
 
@@ -348,7 +394,12 @@ async function submoduleCoreDev(config: BuildConfig) {
 
   await build({
     ...opts,
-    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      'node:async_hooks',
+      '@qwik.dev/core/async-local-storage',
+    ],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });

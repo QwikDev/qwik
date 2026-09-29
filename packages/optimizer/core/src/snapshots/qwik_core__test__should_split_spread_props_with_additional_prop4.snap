@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 4510
 expression: output
 ---
 ==INPUT==
@@ -61,7 +60,7 @@ import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const q_test_component_button_q_e_click_qwSL5gM03T4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4");
+const q_test_component_button_q_e_click_qwSL5gM03T4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_button_q_e_click_qwSL5gM03T4"), "test_component_button_q_e_click_qwSL5gM03T4").m();
 //
 export const test_component_LUXeXe0DQrg = (props)=>{
     return /*#__PURE__*/ _jsxSplit("button", {

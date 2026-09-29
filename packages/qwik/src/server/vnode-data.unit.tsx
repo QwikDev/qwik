@@ -3,9 +3,15 @@ import { component$, componentQrl } from '../core/shared/component.public';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { useSignal } from '../core/use/use-signal';
 import { ssrRenderToDom } from '../testing/rendering.unit-util';
+import { trigger } from '../testing/element-fixture';
 import { encodeAsAlphanumeric } from './vnode-data';
-import { vnode_getProp, vnode_locate } from '../core/client/vnode-utils';
-import { ELEMENT_PROPS, OnRenderProp } from '../core/shared/utils/markers';
+import {
+  vnode_getProp,
+  vnode_getVNodeForChildNode,
+  vnode_locate,
+  vnode_setProp,
+} from '../core/client/vnode-utils';
+import { ELEMENT_PROPS, OnRenderProp, QComponentHash } from '../core/shared/utils/markers';
 import { type QRLInternal } from '../core/shared/qrl/qrl-class';
 import type { DomContainer } from '../core/client/dom-container';
 import { createContextId, useContext, useContextProvider } from '@qwik.dev/core';
@@ -41,6 +47,54 @@ describe('vnode data', () => {
   });
   describe('integration tests', () => {
     const cId = createContextId<number>('cId');
+
+    it('preserves a cold component when its resumed parent rerenders', async () => {
+      const Child = componentQrl(inlinedQrl(() => <input id="child" />, 's_child'));
+      const Parent = component$(() => {
+        const visible = useSignal(false);
+        return (
+          <>
+            <button onClick$={() => (visible.value = true)}>show</button>
+            <Child key="child" />
+            {visible.value && <span>visible</span>}
+          </>
+        );
+      });
+
+      const { container, document } = await ssrRenderToDom(<Parent />, { debug });
+      const input = document.querySelector('#child')!;
+      keepOnlyComponentIdentity(container, input);
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(document.querySelector('#child')).toBe(input);
+      expect(document.querySelector('span')?.textContent).toBe('visible');
+    });
+
+    it('replaces a cold component when its type changes under the same key', async () => {
+      const First = componentQrl(inlinedQrl(() => <input id="first" />, 's_first'));
+      const Second = componentQrl(inlinedQrl(() => <input id="second" />, 's_second'));
+      const Parent = component$(() => {
+        const second = useSignal(false);
+        const Child = second.value ? Second : First;
+        return (
+          <>
+            <button onClick$={() => (second.value = true)}>change</button>
+            <Child key="child" />
+          </>
+        );
+      });
+
+      const { container, document } = await ssrRenderToDom(<Parent />, { debug });
+      const input = document.querySelector('#first')!;
+      keepOnlyComponentIdentity(container, input);
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(document.querySelector('#first')).toBeFalsy();
+      expect(document.querySelector('#second')).not.toBe(input);
+    });
+
     it('components inside the div', async () => {
       const Component = component$<RefIdProp>(({ refId }) => {
         const data = useSignal(1);
@@ -253,4 +307,17 @@ function expectVNodeRefProp(container: DomContainer, vNodeId: string, refIdPropV
     refId: refIdPropValue,
   };
   expectVNodeProps(container, vNodeId, props);
+}
+
+function keepOnlyComponentIdentity(container: DomContainer, element: Element) {
+  const bodyVNode = vnode_getVNodeForChildNode(container.rootVNode, element.ownerDocument.body);
+  const elementVNode = vnode_getVNodeForChildNode(bodyVNode, element);
+  const componentVNode = elementVNode.parent!;
+  const componentQrl = vnode_getProp<QRLInternal>(
+    componentVNode,
+    OnRenderProp,
+    container.$getObjectById$
+  )!;
+  vnode_setProp(componentVNode, QComponentHash, componentQrl.$hash$);
+  vnode_setProp(componentVNode, OnRenderProp, null);
 }

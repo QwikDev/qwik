@@ -1,4 +1,4 @@
-import type { Plugin as VitePlugin, Rollup, UserConfig } from 'vite';
+import type { Plugin as VitePlugin, Rolldown, UserConfig } from 'vite';
 import type { QwikManifest } from '../types';
 import { QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, type QwikBuildTarget } from './plugin';
 import {
@@ -27,8 +27,8 @@ export const loadQwikWorkerCore = () => {
   };
 };
 
-export const emitQwikWorkerCoreChunk = (ctx: Rollup.PluginContext) => {
-  ctx.emitFile({
+export const emitQwikWorkerCoreChunk = (ctx: Rolldown.PluginContext) => {
+  return ctx.emitFile({
     id: QWIK_WORKER_CORE_ID,
     name: 'qwik-worker-core',
     type: 'chunk',
@@ -52,12 +52,14 @@ export const getQwikWorkerConfig = (
   };
 };
 
-export const rewriteClientWorkerCorePlaceholders = (rollupBundle: Rollup.OutputBundle) => {
-  const workerCoreChunk = Object.values(rollupBundle).find(
-    (output) => output.type === 'chunk' && output.facadeModuleId === QWIK_WORKER_CORE_ID
-  );
-  const resolveWorkerCorePath = workerCoreChunk
-    ? createBuildWorkerCoreChunkResolver(workerCoreChunk.fileName)
+export const rewriteClientWorkerCorePlaceholders = (
+  ctx: Rolldown.PluginContext,
+  rollupBundle: Rolldown.OutputBundle,
+  workerCoreChunkRef: string | undefined
+) => {
+  const workerCoreFileName = workerCoreChunkRef ? ctx.getFileName(workerCoreChunkRef) : undefined;
+  const resolveWorkerCorePath = workerCoreFileName
+    ? createBuildWorkerCoreChunkResolver(workerCoreFileName)
     : undefined;
   rewriteWorkerCorePlaceholdersInBundle(rollupBundle, (fileName) =>
     resolveWorkerCorePath?.(fileName)
@@ -65,7 +67,7 @@ export const rewriteClientWorkerCorePlaceholders = (rollupBundle: Rollup.OutputB
 };
 
 export const rewriteSsrWorkerCorePlaceholders = (
-  rollupBundle: Rollup.OutputBundle,
+  rollupBundle: Rolldown.OutputBundle,
   manifest: QwikManifest | null
 ) => {
   const workerCoreChunkFileName = getWorkerCoreChunkFileNameFromManifest(manifest);
@@ -106,7 +108,7 @@ const createQwikWorkerPlugins = (userWorkerPlugins: WorkerConfig['plugins']) => 
 };
 
 const rewriteWorkerCorePlaceholdersInBundle = (
-  rollupBundle: Rollup.OutputBundle,
+  rollupBundle: Rolldown.OutputBundle,
   resolveWorkerCorePath: (fileName: string) => string | undefined
 ) => {
   for (const output of Object.values(rollupBundle)) {

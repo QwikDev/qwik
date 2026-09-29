@@ -57,6 +57,8 @@ export const VNodeDataChar = {
   SCOPED_STYLE_CHAR: /* */ ';',
   RENDER_FN: /* ********** */ 60, // `<` - `q:renderFn' - Component QRL render function (body)
   RENDER_FN_CHAR: /* ** */ '<',
+  RENDER_HASH_PREFIX: /* **/ 95, // `_` after `<` identifies a component hash.
+  RENDER_HASH_PREFIX_CHAR: '_',
   ID: /* ***************** */ 61, // `=` - `q:id` - ID of the element.
   ID_CHAR: /* ********* */ '=',
   PROPS: /* ************** */ 62, // `>` - `q:props' - Component Props
@@ -84,10 +86,10 @@ export const VNodeDataChar = {
 /**
  * Convert a segment-local vnode index into a key for the root container's shared qVNodeRefs map.
  *
- * Out-of-order Suspense segments each start counting vnode refs from 0, but the client merges all
- * segment refs into one root-level map. This uses a Cantor-style pairing function for the
- * zero-based pair `(segmentIndex, localIndex)`, then makes it negative so segment refs cannot
- * collide with root refs, which are non-negative.
+ * Out-of-order segments each start counting vnode refs from 0, but the client merges all segment
+ * refs into one root-level map. This uses a Cantor-style pairing function for the zero-based pair
+ * `(segmentIndex, localIndex)`, then makes it negative so segment refs cannot collide with root
+ * refs, which are non-negative.
  *
  * Examples:
  *

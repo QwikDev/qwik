@@ -68,21 +68,30 @@ export default defineConfig((): UserConfig => {
   return {
     plugins: [
       qwikRouter(),
-      qwikVite({ debug: true }),
+      qwikVite({ debug: true, tsOptimizer: true }),
       // createBulkPlugin(),
       tsconfigPaths({ root: '.' }),
       basicSsl(),
     ],
     build: {
       minify: false,
-      rollupOptions: {
+      rolldownOptions: {
         output: {
-          manualChunks: (id) => {
-            // Put library code in separate chunks
-            if (id.includes('vendor-lib')) {
-              return id;
-            }
+          codeSplitting: {
+            groups: [
+              {
+                name: (id) => {
+                  if (id.includes('vendor-lib')) {
+                    return 'vendor';
+                  }
+                },
+              },
+            ],
           },
+          comments: true,
+        },
+        experimental: {
+          attachDebugInfo: 'full',
         },
       },
     },

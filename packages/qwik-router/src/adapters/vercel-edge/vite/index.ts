@@ -1,4 +1,4 @@
-import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
+import type { SsgRenderOptions } from '../../../ssg';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
 import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
@@ -15,24 +15,25 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
     config(config) {
       const outDir =
         config.build?.outDir || join('.vercel', 'output', 'functions', '_qwik-router.func');
+      const conditions =
+        opts.target === 'node'
+          ? ['node', 'import', 'module', 'browser', 'default']
+          : ['edge-light', 'webworker', 'worker', 'browser', 'module', 'main'];
       return {
         resolve: {
-          conditions:
-            opts.target === 'node'
-              ? ['node', 'import', 'module', 'browser', 'default']
-              : ['edge-light', 'webworker', 'worker', 'browser', 'module', 'main'],
+          conditions,
         },
         ssr: {
+          resolve: { conditions },
           target: opts.target === 'node' ? 'node' : 'webworker',
           noExternal: true,
         },
         build: {
           ssr: true,
           outDir,
-          rollupOptions: {
+          rolldownOptions: {
             output: {
               format: 'es',
-              hoistTransitiveImports: false,
             },
           },
         },

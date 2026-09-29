@@ -1,5 +1,31 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-beta.9
+
+### Patch Changes
+
+- 🐞🩹 preserve nested QRLs captured by library components (by [@Varixo](https://github.com/Varixo) in [#8996](https://github.com/QwikDev/qwik/pull/8996))
+
+- 🐞🩹 duplicate `_defaultValue` const when defaulted props are read in separate QRLs (by [@Varixo](https://github.com/Varixo) in [#9016](https://github.com/QwikDev/qwik/pull/9016))
+
+## 2.1.0-beta.8
+
+### Patch Changes
+
+- 🐞🩹 track props initialized with function call defaults (by [@Varixo](https://github.com/Varixo) in [#8871](https://github.com/QwikDev/qwik/pull/8871))
+
+## 2.1.0-beta.7
+
+### Patch Changes
+
+- 🐞🩹 preserve wrapper context for direct qrl markers (by [@Varixo](https://github.com/Varixo) in [#8924](https://github.com/QwikDev/qwik/pull/8924))
+
+## 2.1.0-beta.6
+
+### Patch Changes
+
+- 🐞🩹 avoid eager container resume for capture-free sibling handlers (by [@Varixo](https://github.com/Varixo) in [#8919](https://github.com/QwikDev/qwik/pull/8919))
+
 ## 2.1.0-beta.5
 
 ### Patch Changes

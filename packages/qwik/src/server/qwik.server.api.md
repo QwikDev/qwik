@@ -85,6 +85,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
     serverData?: Record<string, any>;
     snapshot?: boolean;
     statePrewarm?: number | false;
+    transformError?: (error: unknown) => Error | undefined | null | void;
 }
 
 // @public (undocumented)
@@ -107,6 +108,9 @@ export const renderToStream: (jsx: JSXOutput, opts: RenderToStreamOptions) => Pr
 
 // @public (undocumented)
 export interface RenderToStreamOptions extends RenderOptions {
+    onBeforeFirstFlush?: (info: {
+        hasCaughtError: boolean;
+    }) => void;
     // (undocumented)
     stream: StreamWriter;
     // (undocumented)
@@ -117,6 +121,7 @@ export interface RenderToStreamOptions extends RenderOptions {
 export interface RenderToStreamResult extends RenderResult {
     // (undocumented)
     flushes: number;
+    hasCaughtError?: boolean;
     // (undocumented)
     size: number;
     // (undocumented)

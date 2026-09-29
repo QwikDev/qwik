@@ -1,0 +1,69 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 594
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, useSignal } from '@qwik.dev/core';
+const defaults = { showDelay: 100, hideDelay: 200 };
+export const Repro = component$(({ showDelay = defaults.showDelay, hideDelay = defaults.hideDelay }) => {
+	const open = useSignal(false);
+	const show$ = $(() => setTimeout(() => (open.value = true), showDelay));
+	const hide$ = $(() => setTimeout(() => (open.value = false), hideDelay));
+	return <div onMouseEnter$={show$} onMouseLeave$={hide$} />;
+});
+
+============================= test.js ==
+
+import { untrack } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useSignal } from '@qwik.dev/core';
+//
+const q_Repro_component_6Jd2MfMqiso = /*#__PURE__*/ _noopQrl("Repro_component_6Jd2MfMqiso");
+const q_Repro_component_hide_ZiISwEulF8I = /*#__PURE__*/ _noopQrl("Repro_component_hide_ZiISwEulF8I");
+const q_Repro_component_show_vVBUlDqi4R8 = /*#__PURE__*/ _noopQrl("Repro_component_show_vVBUlDqi4R8");
+//
+q_Repro_component_show_vVBUlDqi4R8.s(()=>{
+    const _defaultValue = _captures[0], _rawProps = _captures[1], open = _captures[2];
+    return setTimeout(()=>open.value = true, _rawProps.showDelay === void 0 ? _defaultValue : _rawProps.showDelay);
+});
+q_Repro_component_hide_ZiISwEulF8I.s(()=>{
+    const _defaultValue1 = _captures[0], _rawProps = _captures[1], open = _captures[2];
+    return setTimeout(()=>open.value = false, _rawProps.hideDelay === void 0 ? _defaultValue1 : _rawProps.hideDelay);
+});
+const defaults = {
+    showDelay: 100,
+    hideDelay: 200
+};
+q_Repro_component_6Jd2MfMqiso.s((_rawProps)=>{
+    const _defaultValue = untrack(()=>_rawProps.showDelay) === void 0 ? defaults.showDelay : void 0;
+    const _defaultValue1 = untrack(()=>_rawProps.hideDelay) === void 0 ? defaults.hideDelay : void 0;
+    const open = useSignal(false);
+    const show$ = q_Repro_component_show_vVBUlDqi4R8.w([
+        _defaultValue,
+        _rawProps,
+        open
+    ]);
+    const hide$ = q_Repro_component_hide_ZiISwEulF8I.w([
+        _defaultValue1,
+        _rawProps,
+        open
+    ]);
+    return /*#__PURE__*/ _jsxSorted("div", null, {
+        "q-e:mouseenter": show$,
+        "q-e:mouseleave": hide$
+    }, null, 3, "u6_0");
+});
+export const Repro = /*#__PURE__*/ componentQrl(q_Repro_component_6Jd2MfMqiso);
+export { defaults as _auto_defaults };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAwB,SAAS,QAAQ,iBAAiB;;;;;;qCAIzC;;WAAM,WAAW,IAAO,KAAK,KAAK,GAAG,gBAFnB,iDAAA;;qCAGlB;;WAAM,WAAW,IAAO,KAAK,KAAK,GAAG,iBAHa,kDAAA;;AADnE,MAAM,WAAW;IAAE,WAAW;IAAK,WAAW;AAAI;gCAClB;gDAAG,wBAAY,SAAS,SAAS;iDAAE,wBAAY,SAAS,SAAS;IAChG,MAAM,OAAO,UAAU;IACvB,MAAM;;;;;IACN,MAAM;;;;;IACN,qBAAO,WAAC;QAAI,kBAAe;QAAO,kBAAe;;AAClD;AALA,OAAO,MAAM,sBAAQ,4CAKlB\"}")
+== DIAGNOSTICS ==
+
+[]

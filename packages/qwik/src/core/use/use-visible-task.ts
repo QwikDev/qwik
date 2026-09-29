@@ -41,14 +41,17 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   assertQrl(qrl);
 
   let flags: number;
-  if (!isServerPlatform()) {
-    // In DOM we immediately execute
+  if (!isServerPlatform() && eagerness !== 'intersection-observer') {
+    // The document is already ready/idle in DOM, so execute immediately
     flags = TaskFlags.VISIBLE_TASK | TaskFlags.DIRTY;
     (qrl as QRLInternal).resolve();
     markVNodeDirty(iCtx.$container$, iCtx.$hostElement$, ChoreBits.TASKS);
   } else {
-    // In SSR we defer execution until triggered in DOM
+    // Defer execution until the trigger event fires
     flags = TaskFlags.VISIBLE_TASK;
+    if (!isServerPlatform()) {
+      (qrl as QRLInternal).resolve();
+    }
   }
 
   const task = new Task(flags, i, iCtx.$hostElement$, qrl, null);

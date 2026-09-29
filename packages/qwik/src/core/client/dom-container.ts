@@ -4,7 +4,16 @@ import { isDev } from '@qwik.dev/core/build';
 import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
-import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
+import {
+  ERROR_CONTEXT,
+  CatchPhase,
+  fireOnError,
+  getOwnCatchStore,
+  handleDevError,
+  installQErrorListener,
+  toBoundaryError,
+} from '../shared/error/error-handling';
+import type { CatchInfo } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
@@ -38,11 +47,11 @@ import {
 } from '../shared/utils/markers';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev, qTest } from '../shared/utils/qdev';
+import { logError, logErrorAndThrowAsync } from '../shared/utils/log';
 import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
 } from '../shared/utils/scoped-styles';
-import { setErrorPayload } from '../shared/cursor/chore-execution';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
@@ -148,13 +157,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
     this.$rawStateData$ = [];
     this.$stateData$ = [];
-    if (__EXPERIMENTAL__.suspense && document.querySelector('template[q\\:r]')) {
+    if (__EXPERIMENTAL__.pendingBoundary && document.querySelector('template[q\\:r]')) {
       document.qProcessOOOS ||= getOutOfOrderStreamingScript;
     }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
     this.$setServerData$();
     element.qContainer = this;
     element.qDestroy = () => this.$destroy$();
+    if (__EXPERIMENTAL__.catchBoundary) {
+      installQErrorListener(this.document);
+    }
     this.$containerDataProcessState$ = ContainerDataProcessState.ProcessingVNode;
     processVNodeData(document, element);
     onVNodeDataReady(document, () => {
@@ -188,7 +200,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
       }
     }
-    if (__EXPERIMENTAL__.suspense) {
+    if (__EXPERIMENTAL__.pendingBoundary) {
       yield* processSegmentStateScriptsIterator(this);
     }
     this.$hoistStyles$();
@@ -208,7 +220,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     el.qContainer = undefined;
     el.qVnodeData = undefined;
     el.qVNodeRefs = undefined;
-    if (__EXPERIMENTAL__.suspense) {
+    if (__EXPERIMENTAL__.pendingBoundary) {
       el.qSegmentVnodeData = undefined;
     }
     el.removeAttribute(QContainerAttr);
@@ -225,7 +237,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       document.qVNodeDataProcessed = undefined;
       document.qProcessVNodeDataPatch = undefined;
     }
-    if (__EXPERIMENTAL__.suspense) {
+    if (__EXPERIMENTAL__.pendingBoundary) {
       if (!hasContainers) {
         document.qProcessOOOS = undefined;
       }
@@ -259,31 +271,52 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   parseQRL<T = unknown>(qrlStr: string): QRL<T> {
-    const qrl = parseQRL(qrlStr, this) as QRLInternal<T>;
-    return qrl;
+    return parseQRL(qrlStr, this) as QRLInternal<T>;
   }
 
-  handleError(err: any, host: VNode | null): void {
+  handleError(err: any, host: VNode | null, phase: CatchPhase = CatchPhase.Render): void {
     if (qDev && host) {
-      if (typeof document !== 'undefined') {
-        setErrorPayload(host, err);
-        markVNodeDirty(this, host, ChoreBits.ERROR_WRAP);
-      }
-
-      if (err && err instanceof Error) {
-        if (!('hostElement' in err)) {
-          (err as any)['hostElement'] = String(host);
-        }
-      }
-      if (!isRecoverable(err)) {
-        throw err;
-      }
+      handleDevError(this, err, host);
     }
-    const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
-    if (!errorStore) {
-      throw err;
+    if (!__EXPERIMENTAL__.catchBoundary) {
+      const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
+      if (!errorStore) {
+        logErrorAndThrowAsync(err);
+        return;
+      }
+      errorStore.error = err;
+      return;
     }
-    errorStore.error = err;
+    // `null` would collide with the capture-only sentinel, so wrap every nullish throw.
+    const storedError = err == null ? toBoundaryError(err) : err;
+    let current: VNode | null = host;
+    while (current) {
+      const boundaryHost = this.resolveContextHost(current, ERROR_CONTEXT);
+      if (!boundaryHost) {
+        break;
+      }
+      const store = getOwnCatchStore(this, boundaryHost);
+      if (store && store.error === undefined) {
+        store.error = storedError;
+        const boundaryProps = this.getHostProp<{
+          onError$?: (error: unknown, info: CatchInfo) => unknown;
+        }>(boundaryHost, ELEMENT_PROPS);
+        fireOnError(boundaryProps?.onError$, err, phase, store.boundaryId ?? '');
+        markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
+        return;
+      }
+      // Capture-only sentinel for the ErrorProvider test spy; folds away in prod builds.
+      if (qTest && store && store.error === null) {
+        store.error = storedError;
+        return;
+      }
+      if (boundaryHost.dirty & ChoreBits.COMPONENT) {
+        logError(err);
+        return;
+      }
+      current = this.getParentHost(boundaryHost);
+    }
+    logErrorAndThrowAsync(err);
   }
 
   setContext<T>(host: VNode, context: ContextId<T>, value: T): void {
@@ -295,14 +328,25 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   resolveContext<T>(host: VNode, contextId: ContextId<T>): T | undefined {
+    const found = this.resolveContextHost(host, contextId);
+    return found
+      ? (mapArray_get(
+          this.getHostProp<Array<string | unknown>>(found, QCtxAttr)!,
+          contextId.id,
+          0
+        ) as T)
+      : undefined;
+  }
+
+  resolveContextHost(host: VNode, contextId: ContextId<unknown>): VNode | null {
     while (host) {
       const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
       if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
-        return mapArray_get(ctx, contextId.id, 0) as T;
+        return host;
       }
       host = this.getParentHost(host)!;
     }
-    return undefined;
+    return null;
   }
 
   getParentHost(host: VNode): VNode | null {

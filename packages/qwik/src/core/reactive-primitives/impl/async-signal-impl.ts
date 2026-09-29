@@ -16,9 +16,9 @@ import { ComputedSignalImpl } from './computed-signal-impl';
  *
  * # ================================
  *
- * The async engine (jobs, loading, error, polling) lives in ComputedSignalImpl; this subclass
- * configures it from options and switches the compute invocation to CTX_ARG mode: the compute fn
- * receives the ComputeCtx argument and tracks only via its explicit `track()` (no auto-tracking).
+ * The async engine (jobs, loading, error) lives in ComputedSignalImpl; this subclass configures it
+ * from options and switches the compute invocation to CTX_ARG mode: the compute fn receives the
+ * ComputeCtx argument and tracks only via its explicit `track()` (no auto-tracking).
  *
  * @internal
  */

@@ -1,5 +1,5 @@
-import { $, component$ } from "@builder.io/qwik";
-import { QwikCityMockProvider } from "@builder.io/qwik-city";
+import { $, component$ } from "@qwik.dev/core";
+import { QwikRouterMockProvider } from "@qwik.dev/router";
 
 import { ExampleTest } from "./example";
 import { useExampleLoader } from "../../loaders/example.loader";
@@ -25,9 +25,9 @@ const Template = component$((props: { flag: boolean }) => {
   ];
 
   return (
-    <QwikCityMockProvider loaders={loadersMock} actions={actionsMock}>
+    <QwikRouterMockProvider loaders={loadersMock} actions={actionsMock}>
       <ExampleTest flag={props.flag} />
-    </QwikCityMockProvider>
+    </QwikRouterMockProvider>
   );
 });
 

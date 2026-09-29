@@ -168,6 +168,35 @@ export async function getSymbolDetails(
   });
 }
 
+export async function getSymbolDetailsByHashes(
+  db: AppDatabase,
+  publicApiKey: string,
+  symbolHashes: string[]
+): Promise<SymbolDetailForApp[]> {
+  if (symbolHashes.length === 0) {
+    return [];
+  }
+  return time('symbolDetailTable.getSymbolDetailsByHashes', async () => {
+    return db
+      .select({
+        hash: symbolDetailTable.hash,
+        fullName: symbolDetailTable.fullName,
+        origin: symbolDetailTable.origin,
+        lo: symbolDetailTable.lo,
+        hi: symbolDetailTable.hi,
+      })
+      .from(symbolDetailTable)
+      .where(
+        and(
+          eq(symbolDetailTable.publicApiKey, publicApiKey),
+          inArray(symbolDetailTable.hash, symbolHashes)
+        )
+      )
+      .groupBy(symbolDetailTable.hash)
+      .all();
+  });
+}
+
 export async function getAppInfo(
   db: AppDatabase,
   publicApiKey: string,

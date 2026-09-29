@@ -5,7 +5,7 @@ import {
   Fragment as Projection,
   Fragment as Signal,
   Slot,
-  useAsync$,
+  useComputed$,
   useSignal,
   useStylesScoped$,
 } from '@qwik.dev/core';
@@ -600,7 +600,7 @@ describe.each([
   it('should await for async component jsx output before setting style scoped id', async () => {
     (globalThis as any).rawStyleId = '';
     const Cmp = component$(() => {
-      const sig = useAsync$(async () => {
+      const sig = useComputed$(async () => {
         return 'computed';
       });
       sig.value;

@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5685
 expression: output
 ---
 ==INPUT==
@@ -67,7 +66,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const q_test_component_div_q_e_click_omwK2O280Tk = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_q_e_click_omwK2O280Tk"), "test_component_div_q_e_click_omwK2O280Tk");
+const q_test_component_div_q_e_click_omwK2O280Tk = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_q_e_click_omwK2O280Tk"), "test_component_div_q_e_click_omwK2O280Tk").m();
 //
 export const test_component_LUXeXe0DQrg = ()=>{
     const arr = useSignal([

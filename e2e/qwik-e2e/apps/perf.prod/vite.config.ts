@@ -4,6 +4,7 @@ export default defineConfig({
   plugins: [
     qwikVite({
       debug: true,
+      tsOptimizer: true,
     }),
   ],
   build: {

@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 6324
 expression: output
 ---
 ==INPUT==
@@ -100,7 +99,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "$",
+  "ctxName": "component$",
   "captures": false,
   "loc": [
     188,

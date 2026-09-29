@@ -506,6 +506,17 @@ const { router } = createQwikRouter({
 });
 ```
 
+### Forwarded Headers
+
+By default, `useLocation()` reports the URL the server received and ignores the `X-Forwarded-Host` and `X-Forwarded-Proto` request headers, since any client can send them. If your reverse proxy always overwrites these headers, enable `trustForwardedHeaders` so `useLocation()` reports the public URL:
+
+```tsx
+const { router } = createQwikRouter({
+  render,
+  trustForwardedHeaders: true, // Only when a proxy overwrites X-Forwarded-* headers
+});
+```
+
 ### Essential Security Headers
 
 Configure these security headers in your web server:

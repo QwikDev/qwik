@@ -16,7 +16,7 @@
 //         formats: ['es'],
 //         fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
 //       },
-//       rollupOptions: {
+//       rolldownOptions: {
 //         external: (id) => {
 //           if (['@qwik.dev/core', '@qwik.dev/router', '@qwik.dev/core/build'].includes(id)) {
 //             return true;

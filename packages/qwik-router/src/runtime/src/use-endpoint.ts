@@ -17,7 +17,7 @@ export async function submitAction(
   | {
       status: number;
       result: unknown;
-      redirect?: string;
+      redirect?: string | URL;
       loaderHashes?: string[];
     }
   | undefined
@@ -55,13 +55,7 @@ export async function submitAction(
   const response = await fetch(url, fetchOptions);
 
   if (response.redirected) {
-    const redirectedURL = new URL(response.url);
-    if (redirectedURL.origin !== location.origin) {
-      location.href = redirectedURL.href;
-      return undefined;
-    }
-    location.href = redirectedURL.href;
-    return undefined;
+    return { status: response.status, result: undefined, redirect: new URL(response.url) };
   }
 
   if ((response.headers.get('content-type') || '').includes('json')) {

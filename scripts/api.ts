@@ -1,6 +1,7 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
+import ts from 'typescript';
 import { generateQwikApiMarkdownDocs, generateQwikRouterApiMarkdownDocs } from './api-docs.ts';
 import { type BuildConfig, copyFile, ensureDir, panic } from './util.ts';
 
@@ -14,7 +15,7 @@ export function writeJsxRuntimeDts(config: BuildConfig) {
   ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
   writeFileSync(
     join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
-    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`
+    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime.js';`
   );
 }
 
@@ -25,54 +26,44 @@ export function writeJsxRuntimeDts(config: BuildConfig) {
 export async function apiExtractorQwik(config: BuildConfig) {
   // core
   // Run the api extractor for each of the submodules
-  createTypesApi(
-    config,
-    join(config.srcQwikDir, 'core'),
-    join(config.distQwikPkgDir, 'core.d.ts'),
-    '.'
-  );
+  createTypesApi(config, join(config.srcQwikDir, 'core'), join(config.distQwikPkgDir, 'core.d.ts'));
   // Special case for jsx-runtime:
   // It only re-exports JSX. Don't duplicate the types
   writeJsxRuntimeDts(config);
-  createTypesApi(config, config.qwikVitePkgDir, join(config.distQwikPkgDir, 'optimizer.d.ts'), '.');
+  createTypesApi(config, config.qwikVitePkgDir, join(config.distQwikPkgDir, 'optimizer.d.ts'));
   createTypesApi(
     config,
     join(config.srcQwikDir, 'server'),
-    join(config.distQwikPkgDir, 'server.d.ts'),
-    '.'
+    join(config.distQwikPkgDir, 'server.d.ts')
   );
   createTypesApi(
     config,
     join(config.srcQwikDir, 'testing'),
-    join(config.distQwikPkgDir, 'testing', 'index.d.ts'),
-    '..'
+    join(config.distQwikPkgDir, 'testing', 'index.d.ts')
   );
   createTypesApi(
     config,
     join(config.srcQwikDir, 'build'),
-    join(config.distQwikPkgDir, 'build', 'index.d.ts'),
-    '..'
+    join(config.distQwikPkgDir, 'build', 'index.d.ts')
   );
   createTypesApi(
     config,
     join(config.srcQwikDir, 'web-worker'),
-    join(config.distQwikPkgDir, 'worker', 'index.d.mts'),
-    '../core-internal.js'
+    join(config.distQwikPkgDir, 'worker', 'index.d.mts')
   );
   createTypesApi(
     config,
     join(config.srcQwikDir, 'insights'),
-    join(config.distQwikPkgDir, 'insights', 'index.d.ts'),
-    '..'
+    join(config.distQwikPkgDir, 'insights', 'index.d.ts')
   );
   createTypesApi(
     config,
     join(config.srcQwikDir, 'insights', 'vite'),
-    join(config.distQwikPkgDir, 'insights', 'vite', 'index.d.ts'),
-    '..'
+    join(config.distQwikPkgDir, 'insights', 'vite', 'index.d.ts')
   );
 
   generateServerReferenceModules(config);
+  validateQwikTypesWithNode16(config);
 
   const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
   await generateQwikApiMarkdownDocs(config, apiJsonInputDir);
@@ -227,12 +218,39 @@ export async function apiExtractorQwikRouter(config: BuildConfig) {
   console.log('🥶', 'qwik-router d.ts API files generated');
 }
 
-function createTypesApi(
-  config: BuildConfig,
-  inPath: string,
-  outPath: string,
-  relativePath?: string
-) {
+/**
+ * Without this, a CI-only API change reports just "API changed true" and the report it wants lives
+ * in a build dir nobody can read from the log.
+ */
+function printApiReportDiff(committedPath: string, generatedPath: string) {
+  const read = (path: string) => {
+    try {
+      return readFileSync(path, 'utf-8').split('\n');
+    } catch {
+      return null;
+    }
+  };
+  const committed = read(committedPath);
+  const generated = read(generatedPath);
+  if (!committed || !generated) {
+    console.error(`Could not read both reports to diff:\n  ${committedPath}\n  ${generatedPath}`);
+    return;
+  }
+  console.error(`--- committed: ${committedPath}`);
+  console.error(`+++ generated: ${generatedPath}`);
+  for (let i = 0; i < Math.max(committed.length, generated.length); i++) {
+    if (committed[i] !== generated[i]) {
+      if (committed[i] !== undefined) {
+        console.error(`-${i + 1}: ${committed[i]}`);
+      }
+      if (generated[i] !== undefined) {
+        console.error(`+${i + 1}: ${generated[i]}`);
+      }
+    }
+  }
+}
+
+function createTypesApi(config: BuildConfig, inPath: string, outPath: string) {
   const extractorConfigPath = join(inPath, 'api-extractor.json');
   const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
   const result = Extractor.invoke(extractorConfig, {
@@ -274,6 +292,12 @@ function createTypesApi(
       'warnings',
       result.warningCount
     );
+    if (result.apiReportChanged) {
+      printApiReportDiff(
+        result.extractorConfig.reportFilePath,
+        result.extractorConfig.reportTempFilePath
+      );
+    }
     panic(
       `Use "pnpm api.update" to automatically update the .md files if the api changes were expected`
     );
@@ -283,7 +307,7 @@ function createTypesApi(
     result.extractorConfig.untrimmedFilePath,
   ]) {
     if (path) {
-      const fixed = fixDtsContent(config, path, relativePath);
+      const fixed = fixDtsContent(config, path, result.extractorConfig.mainEntryPointFilePath);
       writeFileSync(path, fixed);
     }
   }
@@ -305,32 +329,32 @@ export function generateQwikRouterReferenceModules(config: BuildConfig) {
 
 export function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
-  const referenceDts = `/// <reference types="./server" />
+  const referenceDts = `/// <reference path="./server.d.ts" />
 declare module '@qwik-client-manifest' {
   /** @deprecated Use \`getClientManifest()\` instead */
-  const manifest: import('./optimizer').QwikManifest;
+  const manifest: import('./optimizer.js').QwikManifest;
   export { manifest };
 }
 // MD
 declare module '*.md' {
-  const node: import('./core').FunctionComponent;
+  const node: import('./core-internal.js').FunctionComponent;
   export const frontmatter: Record<string, any>;
   export default node;
 }
 // MDX
 declare module '*.mdx' {
-  const node: import('./core').FunctionComponent;
+  const node: import('./core-internal.js').FunctionComponent;
   export const frontmatter: Record<string, any>;
   export default node;
 }
 // SVG ?jsx
 declare module '*.svg?jsx' {
-  const Cmp: import('./core').FunctionComponent<import('./core').QwikIntrinsicElements['svg']>
+  const Cmp: import('./core-internal.js').FunctionComponent<import('./core-internal.js').QwikIntrinsicElements['svg']>
   export default Cmp;
 }
 // Image ?jsx
 declare module '*?jsx' {
-  const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
+  const Cmp: import('./core-internal.js').FunctionComponent<Omit<import('./core-internal.js').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
   export default Cmp;
   export const width: number;
   export const height: number;
@@ -338,7 +362,7 @@ declare module '*?jsx' {
 }
 // Image &jsx
 declare module '*&jsx' {
-  const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
+  const Cmp: import('./core-internal.js').FunctionComponent<Omit<import('./core-internal.js').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
   export default Cmp;
   export const width: number;
   export const height: number;
@@ -358,17 +382,95 @@ declare module '*&jsx' {
 }
 
 /**
- * Fix up the generated dts content, and ensure it's using a relative path to find the core.d.ts
- * file, rather than node resolving it.
+ * Fix up the generated dts content so that its imports also resolve with `moduleResolution:
+ * node16`, which requires explicit file extensions.
  */
-function fixDtsContent(config: BuildConfig, srcPath: string, relativePath?: string) {
-  let dts = readFileSync(srcPath, 'utf-8');
-
-  // ensure we're just using a relative path
-  if (relativePath) {
-    dts = dts.replace(/'@qwik\.dev\/core(.*)'/g, `'${relativePath}$1'`);
+function fixDtsContent(config: BuildConfig, dtsPath: string, entryDtsPath: string) {
+  let dts = readFileSync(dtsPath, 'utf-8');
+  dts = addRelativeImportExtensions(dts, dirname(entryDtsPath));
+  const isQwikCoreDts = !relative(join(config.packagesDir, 'qwik'), dtsPath).startsWith('..');
+  if (isQwikCoreDts) {
+    dts = relativizeQwikCoreImports(config, dts, dirname(dtsPath));
   }
 
   // replace QWIK_VERSION with the actual version number, useful for debugging
   return dts.replace(/QWIK_VERSION/g, config.distVersion);
+}
+
+function readQwikPackageExports(config: BuildConfig) {
+  const qwikPkgDir = join(config.packagesDir, 'qwik');
+  const pkg = JSON.parse(readFileSync(join(qwikPkgDir, 'package.json'), 'utf-8'));
+  return { qwikPkgDir, exports: pkg.exports as Record<string, { types?: string }> };
+}
+
+/** Node16 resolution is the strictest: it requires explicit extensions and honors `exports`. */
+function validateQwikTypesWithNode16(config: BuildConfig) {
+  const { qwikPkgDir, exports } = readQwikPackageExports(config);
+  const typesFiles = Object.values(exports)
+    .map((entry) => entry.types)
+    .filter((types): types is string => types !== undefined)
+    .map((types) => join(qwikPkgDir, types));
+  const program = ts.createProgram(typesFiles, {
+    module: ts.ModuleKind.Node16,
+    moduleResolution: ts.ModuleResolutionKind.Node16,
+    noEmit: true,
+    strict: true,
+    skipLibCheck: false,
+    types: [],
+  });
+  const diagnostics = ts.getPreEmitDiagnostics(program);
+  if (diagnostics.length > 0) {
+    panic(
+      `@qwik.dev/core types fail with moduleResolution node16:\n${ts.formatDiagnostics(
+        diagnostics,
+        {
+          getCurrentDirectory: () => qwikPkgDir,
+          getNewLine: () => '\n',
+          getCanonicalFileName: (fileName) => fileName,
+        }
+      )}`
+    );
+  }
+}
+
+const importSpecifierRegex =
+  /(^(?:import|export)\b[^\n]*?\bfrom |^\}\s*from |\bimport\()'([^']+)'/gm;
+
+/** The rollups mirror the source layout, so resolve their relative imports vs the entry dts. */
+function addRelativeImportExtensions(dts: string, entryDtsDir: string) {
+  return dts.replace(importSpecifierRegex, (match, prefix: string, specifier: string) => {
+    if (!specifier.startsWith('.')) {
+      return match;
+    }
+    const target = join(entryDtsDir, specifier);
+    if (existsSync(`${target}.d.ts`)) {
+      return `${prefix}'${specifier}.js'`;
+    }
+    if (existsSync(join(target, 'index.d.ts'))) {
+      return `${prefix}'${specifier}/index.js'`;
+    }
+    return match;
+  });
+}
+
+/** Point `@qwik.dev/core` self-imports at the dts files of this package, not a node_modules copy. */
+function relativizeQwikCoreImports(config: BuildConfig, dts: string, dtsDir: string) {
+  const { qwikPkgDir, exports } = readQwikPackageExports(config);
+  return dts.replace(importSpecifierRegex, (match, prefix: string, specifier: string) => {
+    const selfImport = /^@qwik\.dev\/core(\/.*)?$/.exec(specifier);
+    if (!selfImport) {
+      return match;
+    }
+    const subpath = selfImport[1];
+    // The public root types are a subset, internal dts files need all of them
+    const exportKey = subpath ? `.${subpath}` : './internal';
+    const typesPath = exports[exportKey]?.types;
+    if (!typesPath) {
+      throw new Error(`No types export for "${specifier}" in ${qwikPkgDir}/package.json`);
+    }
+    const jsPath = relative(dtsDir, join(qwikPkgDir, typesPath))
+      .replaceAll('\\', '/')
+      .replace(/\.d\.(m?)ts$/, '.$1js');
+    return `${prefix}'${jsPath.startsWith('.') ? jsPath : `./${jsPath}`}'`;
+  });
 }

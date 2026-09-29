@@ -8,6 +8,10 @@ export const logError = (message?: any, ...optionalParams: any[]) => {
   return createAndLogError(false, message, ...optionalParams);
 };
 
+export const logErrorAndThrowAsync = (message?: any, ...optionalParams: any[]) => {
+  return createAndLogError(true, message, ...optionalParams);
+};
+
 export const throwErrorAndStop = (message?: any, ...optionalParams: any[]): never => {
   const error = createAndLogError(false, message, ...optionalParams);
   // eslint-disable-next-line no-debugger

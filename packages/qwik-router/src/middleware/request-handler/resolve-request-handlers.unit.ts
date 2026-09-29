@@ -534,6 +534,42 @@ describe('resolve-request-handler', () => {
       expect(requestEv.status()).toBe(418);
       expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('teapot');
     });
+
+    it('should render the error page at 500 for a crash in page middleware', async () => {
+      const route: LoadedRoute = {
+        $routeName$: '/',
+        $params$: {},
+        $mods$: [
+          {
+            onRequest() {
+              throw new Error('middleware boom');
+            },
+          } as RouteModule,
+          justHiModule as RouteModule,
+        ],
+        $errorLoader$: [vi.fn(async () => ({ default: () => null }))],
+      };
+      const renderHandler = vi.fn(async (requestEv: { exit: () => void }) => {
+        requestEv.exit();
+      });
+      const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler);
+      const requestEv = createRequestEvent(
+        createMockServerRequestEvent(),
+        route,
+        handlers,
+        '/',
+        vi.fn()
+      );
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        await requestEv.next();
+      } finally {
+        consoleError.mockRestore();
+      }
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      expect(requestEv.status()).toBe(500);
+    });
   });
 
   describe('blockSSR loaders middleware', () => {

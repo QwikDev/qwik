@@ -498,6 +498,8 @@ export const onGet: RequestHandler = async ({ httpError }) => {
 ```
 </CodeSandbox>
 
+Middleware is the place for access checks: any error it throws, an `HttpError` or not, renders the error page before the route's loaders send any data. See [Error handling](/docs/error-handling/).
+
 
 ### `text()`
 

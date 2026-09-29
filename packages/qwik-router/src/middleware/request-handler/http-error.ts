@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core';
 import { AbortMessage } from './redirect-handler';
 
 /** @public */
@@ -24,6 +25,14 @@ export const ServerError = HttpError;
  * @public
  */
 export type ServerError<T = any> = HttpError<T>;
+
+/** A thrown `Error` other than an `HttpError`: a bug or an outage. */
+export const isCrash = (err: unknown): err is Error =>
+  err instanceof Error && !(err instanceof HttpError);
+
+/** A crash's message reaches the client only in dev. */
+export const getPublicCrashMessage = (err: Error): string =>
+  isDev ? `${err.message}\n(this is only visible in dev mode)` : 'Internal Server Error';
 
 /**
  * `ev.redirect()`, `ev.error()`, etc. return a control-flow signal meant to be thrown. Throw it for

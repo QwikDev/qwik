@@ -718,6 +718,47 @@ describe.each([
       expect(container.element.querySelector('#value')?.textContent).toBe('4');
     });
 
+    it('should show pending after resume when a sync computed starts reading a refreshing signal', async () => {
+      (globalThis as any).delay = () =>
+        new Promise<void>((res) => ((globalThis as any).delay.resolve = res));
+      const Cmp = component$(() => {
+        const count = useSignal(1);
+        const readsSource = useSignal(false);
+        const idle = useSignal(5);
+        const source = useComputed$(async ({ track }) => {
+          const countValue = track(count);
+          if (countValue > 1) {
+            await (globalThis as any).delay();
+          }
+          return countValue;
+        });
+        const shown = useComputed$(() =>
+          readsSource.value ? source.value : idle.value
+        ) as ComputedSignalInternal<number>;
+        return (
+          <>
+            <button id="refresh" onClick$={() => count.value++} />
+            <button id="switch" onClick$={() => (readsSource.value = true)} />
+            <p id="source">{source.value}</p>
+            <b id="value">{shown.value}</b>
+            <i id="pending">{shown.pending ? 'pending' : 'idle'}</i>
+          </>
+        );
+      });
+      const { container } = await render(<Cmp />, { debug });
+
+      await trigger(container.element, '#refresh', 'click');
+      expect(container.element.querySelector('#pending')?.textContent).toBe('idle');
+      await trigger(container.element, '#switch', 'click');
+      expect(container.element.querySelector('#pending')?.textContent).toBe('pending');
+
+      (globalThis as any).delay.resolve();
+      await waitForDrain(container);
+      await waitForDrain(container);
+      expect(container.element.querySelector('#pending')?.textContent).toBe('idle');
+      expect(container.element.querySelector('#value')?.textContent).toBe('2');
+    });
+
     it('should not show initial value after SSR', async () => {
       const Cmp = component$(() => {
         const asyncValue = useComputed$(async () => 42, { initial: 10 });
@@ -773,6 +814,43 @@ describe.each([
           </button>
         </>
       );
+    });
+
+    it('should show a failure after resume when a sync computed starts reading a failed signal', async () => {
+      const Cmp = component$(() => {
+        const count = useSignal(1);
+        const readsSource = useSignal(false);
+        const idle = useSignal(5);
+        const source = useComputed$(async ({ track }) => {
+          const countValue = track(count);
+          if (countValue > 1) {
+            throw new Error('refresh failed');
+          }
+          return countValue;
+        });
+        const shown = useComputed$(() =>
+          readsSource.value ? source.value : idle.value
+        ) as ComputedSignalInternal<number>;
+        return (
+          <>
+            <button id="refresh" onClick$={() => count.value++} />
+            <button id="switch" onClick$={() => (readsSource.value = true)} />
+            <p id="source">{source.value}</p>
+            <b id="value">{shown.value}</b>
+            <i id="error">{shown.error?.message ?? 'none'}</i>
+          </>
+        );
+      });
+      const { container } = await render(<Cmp />, { debug });
+
+      await trigger(container.element, '#refresh', 'click');
+      await waitForDrain(container);
+      expect(container.element.querySelector('#error')?.textContent).toBe('none');
+      await trigger(container.element, '#switch', 'click');
+      await waitForDrain(container);
+
+      expect(container.element.querySelector('#value')?.textContent).toBe('1');
+      expect(container.element.querySelector('#error')?.textContent).toBe('refresh failed');
     });
 
     it('should settle a failed first client refresh of an unserialized signal into .error', async () => {

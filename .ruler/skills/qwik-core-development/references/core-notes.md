@@ -55,6 +55,9 @@ Current API and implementation facts:
 - Serialization keys off `ASYNC_MODE`, not `instanceof`: async-mode computeds round-trip as
   `TypeIds.AsyncSignal` and resume as `AsyncSignalImpl` instances whose serialized flags (no
   `CTX_ARG`) preserve auto-track semantics. Runtime checks must use flags, not class identity.
+- A sync computed goes over the wire as `[qrl, $effects$, value?, $loadingEffects$?, $errorEffects$?]`:
+  the two reader sets follow the value only when one is non-empty, with `NEEDS_COMPUTATION` holding
+  the value's place, so `.pending` and `.error` readers keep waking after resume.
 - `createAsyncSignal()` passes the full `AsyncSignalOptions` object to the constructor.
 - Signals have no built-in polling or expiration. Polling lives in `usePoll(signal, expires)` from
   `@qwik.dev/utils`: an interval-based visible task (document-idle) that calls `invalidate()` and

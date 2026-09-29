@@ -1,5 +1,6 @@
 import type { JSXAttribute, JSXAttributeItem, JSXElement } from 'oxc-parser';
 import {
+  HandlerKind,
   ResumeKind,
   ComponentTargetKind,
   LifetimeOwner,
@@ -102,6 +103,18 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
           return prop === null ? [] : [prop];
         })
       : [];
+  // Bind writes follow authored handlers, regardless of attribute order.
+  for (let i = props.length - 1; i >= 0; i--) {
+    const prop = props[i];
+    if (prop.k !== PropKind.Event || prop.handlers[0]?.h !== HandlerKind.Bind) continue;
+    const event = props.find(
+      (other) => other !== prop && other.k === PropKind.Event && other.name === prop.name
+    );
+    if (event?.k === PropKind.Event) {
+      event.handlers.push(...prop.handlers);
+      props.splice(i, 1);
+    }
+  }
   const styleScopedId = ctx.styleScopes.length === 0 ? null : ctx.styleScopes.join(' ');
   // With a spread the runtime props object writes `class`, scope included; a static one would print twice.
   if (styleScopedId !== null && propsEffect === null) {

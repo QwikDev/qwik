@@ -1307,7 +1307,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return;
       }
       case PropKind.Event: {
-        const singleHandler = prop.handlers.length === 1 ? prop.handlers[0] : null;
+        const values = prop.handlers.filter((handler) => handler.h === HandlerKind.Value);
+        const singleHandler = values.length === 1 ? values[0] : null;
         const value = singleHandler?.h === HandlerKind.Value ? singleHandler.value : null;
         if (value?.v === ValueKind.Computed && value.resume.r !== ResumeKind.Inline) {
           if (value.resume.r !== ResumeKind.Qrl) {
@@ -1320,6 +1321,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           if (qrl.payloadKind !== QrlPayloadKind.Value) {
             throw new UnsupportedError('a non-value computed event QRL');
           }
+          const bindings = prop.handlers.filter((handler) => handler.h === HandlerKind.Bind);
+          const after =
+            bindings.length === 0
+              ? ''
+              : `, [], [${bindings.map((handler) => bindHandlerJs(this.module, handler, this.imports)).join(', ')}]`;
           const step = pass.next(QwikGenWord.Effect);
           this.imports.add(QwikWord.RenderSsrEvent);
           this.imports.add(QwikWord.CreateSsrMarkup);
@@ -1328,7 +1334,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             pass,
             step,
             rootArgs(qrl, args),
-            `${QwikWord.RenderSsrEvent}(${idVariable}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref}, ${pass.names.ctx}.eventAttr)`
+            `${QwikWord.RenderSsrEvent}(${idVariable}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref}, ${pass.names.ctx}.eventAttr${after})`
           );
           parts.push(record ? step : `${QwikWord.CreateSsrMarkup}(${step})`);
           return;

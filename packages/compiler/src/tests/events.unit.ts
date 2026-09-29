@@ -705,3 +705,38 @@ import { linkPrefetchInit } from './link-prefetch';
     expect(code).toContain('eventAttrParts("q-d:qcinit", [spaInit, linkPrefetchInit])');
   });
 });
+
+describe.each([false, true])('bind with dynamic events (SSR: %s)', (isServer) => {
+  test.each(['value', 'checked'] as const)(
+    '%s bind follows the dynamic handler in either attribute order',
+    async (binding) => {
+      for (const bindFirst of [false, true]) {
+        const bind = `bind:${binding}={value}`;
+        const event = 'onInput$={enabled.value ? $(() => console.log(value.value)) : undefined}';
+        const output = await transformModules({
+          srcDir: 'src',
+          isServer,
+          transpileTs: true,
+          input: [
+            {
+              path: 'src/component.tsx',
+              code: `import { $, useSignal } from '@qwik.dev/core';
+export default () => {
+  const enabled = useSignal(false);
+  const value = useSignal(${binding === 'checked' ? 'false' : "''"});
+  return <input ${bindFirst ? bind + ' ' + event : event + ' ' + bind} />;
+};`,
+            },
+          ],
+        });
+        expect(output.diagnostics).toEqual([]);
+        const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+        const handler = binding === 'checked' ? '_chk' : '_val';
+        expect(main).toContain(`, [], [inlinedQrl(${handler}, '${handler}', [value])])`);
+        expect(
+          main.match(new RegExp(isServer ? 'renderSsrEvent\\(' : 'createEventEffect\\(', 'g'))
+        ).toHaveLength(1);
+      }
+    }
+  );
+});

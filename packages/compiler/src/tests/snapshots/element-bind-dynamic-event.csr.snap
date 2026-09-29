@@ -1,0 +1,263 @@
+==INPUT==
+
+import { $, component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const enabled = useSignal(false);
+  const text = useSignal('one');
+  const checked = useSignal(false);
+  const action = $(() => console.log(text.value, checked.value));
+  return (
+    <form>
+      <input onInput$={enabled.value ? action : undefined} bind:value={text} />
+      <input bind:value={text} onInput$={enabled.value ? action : undefined} />
+      <input type="checkbox" onInput$={enabled.value ? action : undefined} bind:checked={checked} />
+      <input type="checkbox" bind:checked={checked} onInput$={enabled.value ? action : undefined} />
+    </form>
+  );
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  _first,
+  _next,
+  _last,
+  _prev,
+  inlinedQrl,
+  _val,
+  createEventEffect,
+  readTrackedValue,
+  patchAttrValue,
+  createDomBatchEffect,
+  _chk,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_onInputqrl_segment_1_1og4fnsuxzixg } from './component.tsx_component_onInputqrl_segment_1_1og4fnsuxzixg';
+import { component_onInputqrl_segment_2_1og4gtw6ohoz1 } from './component.tsx_component_onInputqrl_segment_2_1og4gtw6ohoz1';
+import { component_onInputqrl_segment_3_1og4gfv2rnmyi } from './component.tsx_component_onInputqrl_segment_3_1og4gfv2rnmyi';
+import { component_onInputqrl_segment_4_1og4ehpj7hcvv } from './component.tsx_component_onInputqrl_segment_4_1og4ehpj7hcvv';
+
+const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_action_segment_0_2k64kau1v2n45',
+  () => import('./component.tsx_component_action_segment_0_2k64kau1v2n45'),
+  'component_action_segment_0_2k64kau1v2n45'
+);
+const default_tmpl0 = _createElementTemplate(
+  '<form><input><input><input type="checkbox"><input type="checkbox"></form>'
+);
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const enabled = useSignal(false);
+  const text = useSignal('one');
+  const checked = useSignal(false);
+  const action = q_component_action_segment_0_2k64kau1v2n45.w([text, checked]);
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  const effect0 = createEventEffect(
+    el1,
+    'q-e:input',
+    [enabled, action],
+    component_onInputqrl_segment_1_1og4fnsuxzixg,
+    ctx.scheduler,
+    [],
+    [inlinedQrl(_val, '_val', [text])]
+  );
+  ctx.scheduler.waitFor(effect0.run());
+  const el2 = _next(_first(el0));
+  createDomBatchEffect(() => {
+    patchAttrValue(el1, 'value', readTrackedValue(text));
+    patchAttrValue(el2, 'value', readTrackedValue(text));
+  }, ctx.scheduler);
+  const effect1 = createEventEffect(
+    el2,
+    'q-e:input',
+    [enabled, action],
+    component_onInputqrl_segment_2_1og4gtw6ohoz1,
+    ctx.scheduler,
+    [],
+    [inlinedQrl(_val, '_val', [text])]
+  );
+  ctx.scheduler.waitFor(effect1.run());
+  const el3 = _prev(_last(el0));
+  const effect2 = createEventEffect(
+    el3,
+    'q-e:input',
+    [enabled, action],
+    component_onInputqrl_segment_3_1og4gfv2rnmyi,
+    ctx.scheduler,
+    [],
+    [inlinedQrl(_chk, '_chk', [checked])]
+  );
+  ctx.scheduler.waitFor(effect2.run());
+  const el4 = _last(el0);
+  createDomBatchEffect(() => {
+    patchAttrValue(el3, 'checked', readTrackedValue(checked));
+    patchAttrValue(el4, 'checked', readTrackedValue(checked));
+  }, ctx.scheduler);
+  const effect3 = createEventEffect(
+    el4,
+    'q-e:input',
+    [enabled, action],
+    component_onInputqrl_segment_4_1og4ehpj7hcvv,
+    ctx.scheduler,
+    [],
+    [inlinedQrl(_chk, '_chk', [checked])]
+  );
+  ctx.scheduler.waitFor(effect3.run());
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_action_segment_0_2k64kau1v2n45.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_action_segment_0_2k64kau1v2n45 = () => {
+  const [text, checked] = _captures;
+  return console.log(text.value, checked.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_action_segment_0_2k64kau1v2n45",
+  "entry": null,
+  "displayName": "component_action_segment_0",
+  "hash": "2k64kau1v2n45",
+  "canonicalFilename": "component.tsx_component_action_segment_0_2k64kau1v2n45",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    215,
+    262
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "text",
+    "checked"
+  ]
+}
+*/
+============================= src/component.tsx_component_onInputqrl_segment_1_1og4fnsuxzixg.js (ENTRY POINT)==
+
+export const component_onInputqrl_segment_1_1og4fnsuxzixg = (enabled, action) => {
+  return enabled.value ? action : undefined;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_onInputqrl_segment_1_1og4fnsuxzixg",
+  "entry": null,
+  "displayName": "component_onInputqrl_segment_1",
+  "hash": "1og4fnsuxzixg",
+  "canonicalFilename": "component.tsx_component_onInputqrl_segment_1_1og4fnsuxzixg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onInput$",
+  "captures": true,
+  "loc": [
+    309,
+    343
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "enabled",
+    "action"
+  ]
+}
+*/
+============================= src/component.tsx_component_onInputqrl_segment_2_1og4gtw6ohoz1.js (ENTRY POINT)==
+
+export const component_onInputqrl_segment_2_1og4gtw6ohoz1 = (enabled, action) => {
+  return enabled.value ? action : undefined;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_onInputqrl_segment_2_1og4gtw6ohoz1",
+  "entry": null,
+  "displayName": "component_onInputqrl_segment_2",
+  "hash": "1og4gtw6ohoz1",
+  "canonicalFilename": "component.tsx_component_onInputqrl_segment_2_1og4gtw6ohoz1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onInput$",
+  "captures": true,
+  "loc": [
+    407,
+    441
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "enabled",
+    "action"
+  ]
+}
+*/
+============================= src/component.tsx_component_onInputqrl_segment_3_1og4gfv2rnmyi.js (ENTRY POINT)==
+
+export const component_onInputqrl_segment_3_1og4gfv2rnmyi = (enabled, action) => {
+  return enabled.value ? action : undefined;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_onInputqrl_segment_3_1og4gfv2rnmyi",
+  "entry": null,
+  "displayName": "component_onInputqrl_segment_3",
+  "hash": "1og4gfv2rnmyi",
+  "canonicalFilename": "component.tsx_component_onInputqrl_segment_3_1og4gfv2rnmyi",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onInput$",
+  "captures": true,
+  "loc": [
+    485,
+    519
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "enabled",
+    "action"
+  ]
+}
+*/
+============================= src/component.tsx_component_onInputqrl_segment_4_1og4ehpj7hcvv.js (ENTRY POINT)==
+
+export const component_onInputqrl_segment_4_1og4ehpj7hcvv = (enabled, action) => {
+  return enabled.value ? action : undefined;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_onInputqrl_segment_4_1og4ehpj7hcvv",
+  "entry": null,
+  "displayName": "component_onInputqrl_segment_4",
+  "hash": "1og4ehpj7hcvv",
+  "canonicalFilename": "component.tsx_component_onInputqrl_segment_4_1og4ehpj7hcvv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onInput$",
+  "captures": true,
+  "loc": [
+    609,
+    643
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "enabled",
+    "action"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

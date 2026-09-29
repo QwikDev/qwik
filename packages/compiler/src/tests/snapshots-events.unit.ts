@@ -187,6 +187,28 @@ export default component$(() => {
     expect(main).not.toContain('bind:');
   });
 
+  test('should preserve binds when dynamic input handlers change', async () => {
+    const output = await testInput(mode, 'element-bind-dynamic-event', {
+      code: `import { $, component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const enabled = useSignal(false);
+  const text = useSignal('one');
+  const checked = useSignal(false);
+  const action = $(() => console.log(text.value, checked.value));
+  return (
+    <form>
+      <input onInput$={enabled.value ? action : undefined} bind:value={text} />
+      <input bind:value={text} onInput$={enabled.value ? action : undefined} />
+      <input type="checkbox" onInput$={enabled.value ? action : undefined} bind:checked={checked} />
+      <input type="checkbox" bind:checked={checked} onInput$={enabled.value ? action : undefined} />
+    </form>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should pass handler arrays to components as QRL lists', async () => {
     const output = await testInput(mode, 'component-handler-array', {
       code: `import { component$, useSignal } from '@qwik.dev/core';

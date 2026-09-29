@@ -277,19 +277,29 @@ test.describe('events client side', () => {
     await expect(div).toHaveClass('isOver');
   });
 
-  test('should preserve bind:value with a dynamic input event after resume', async ({ page }) => {
-    const input = page.locator('#input-with-bind');
-    const result = page.locator('#input-with-bind-result');
+  for (const mode of ['resume', 'client'] as const) {
+    test(`should preserve bind:value with a dynamic input event (${mode})`, async ({ page }) => {
+      if (mode === 'client') await page.goto('/e2e/events-client?csr=1');
+      const input = page.locator('#input-with-bind');
+      const result = page.locator('#input-with-bind-result');
 
-    await expect(result).toHaveText('Enabled: false; Dynamic: ; Bound: ');
+      await expect(result).toHaveText('Enabled: false; Dynamic: ; Bound: ');
 
-    await input.focus();
-    await expect(result).toHaveText('Enabled: true; Dynamic: ; Bound: ');
+      // Dispatch without focus: the optional handler is still undefined, but bind must work.
+      await input.evaluate((element: HTMLInputElement) => {
+        element.value = 'initial';
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      await expect(result).toHaveText('Enabled: false; Dynamic: ; Bound: initial');
 
-    await input.fill('first');
-    await expect(result).toHaveText('Enabled: true; Dynamic: ->first; Bound: first');
+      await input.focus();
+      await expect(result).toHaveText('Enabled: true; Dynamic: ; Bound: initial');
 
-    await input.fill('second');
-    await expect(result).toHaveText('Enabled: true; Dynamic: first->second; Bound: second');
-  });
+      await input.fill('first');
+      await expect(result).toHaveText('Enabled: true; Dynamic: initial->first; Bound: first');
+
+      await input.fill('second');
+      await expect(result).toHaveText('Enabled: true; Dynamic: first->second; Bound: second');
+    });
+  }
 });

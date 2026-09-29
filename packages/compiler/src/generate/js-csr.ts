@@ -1258,15 +1258,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
-    const dynamic = handlers.length === 1 ? handlers[0] : null;
-    if (dynamic?.h === HandlerKind.Value && dynamic.value.v === ValueKind.Computed) {
-      if (dynamic.value.resume.r === ResumeKind.Inline) {
-        this.imports.add(QwikWord.SetEvent);
-        statements.push(
-          `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${inlineValueJs(this.module, dynamic.value)});`
-        );
-        return;
-      }
+    const values = handlers.filter((handler) => handler.h === HandlerKind.Value);
+    const dynamic = values.length === 1 ? values[0] : null;
+    if (
+      dynamic?.h === HandlerKind.Value &&
+      dynamic.value.v === ValueKind.Computed &&
+      dynamic.value.resume.r !== ResumeKind.Inline
+    ) {
       if (dynamic.value.resume.r !== ResumeKind.Qrl) {
         throw new UnsupportedError('a non-QRL computed event handler');
       }
@@ -1274,10 +1272,15 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       if (qrl.payloadKind !== QrlPayloadKind.Value) {
         throw new UnsupportedError('a non-value computed event QRL');
       }
+      const bindings = handlers.filter((handler) => handler.h === HandlerKind.Bind);
+      const after =
+        bindings.length === 0
+          ? ''
+          : `, [], [${bindings.map((handler) => bindHandlerJs(this.module, handler, this.imports)).join(', ')}]`;
       const effect = pass.next(QwikGenWord.Effect);
       this.imports.add(QwikWord.CreateEventEffect);
       statements.push(
-        `const ${effect} = ${QwikWord.CreateEventEffect}(${el}, ${JSON.stringify(scopeName)}, [${args.join(', ')}], ${this.chunkSymbol(qrl)}, ${pass.names.ctx}.scheduler);`,
+        `const ${effect} = ${QwikWord.CreateEventEffect}(${el}, ${JSON.stringify(scopeName)}, [${args.join(', ')}], ${this.chunkSymbol(qrl)}, ${pass.names.ctx}.scheduler${after});`,
         `${pass.names.ctx}.scheduler.waitFor(${effect}.run());`
       );
       return;

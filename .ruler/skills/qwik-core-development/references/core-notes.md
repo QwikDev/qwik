@@ -58,7 +58,7 @@ Current API and implementation facts:
 - `createAsyncSignal()` passes the full `AsyncSignalOptions` object to the constructor.
 - Signals have no built-in polling or expiration. Polling lives in `usePoll(signal, expires)` from
   `@qwik.dev/utils`: an interval-based visible task (document-idle) that calls `invalidate()` and
-  resets on the `pending` flip. There is no `expires`/`poll`/`interval` option or property.
+  resets on the `loading` flip. There is no `expires`/`poll`/`interval` option or property.
 - `invalidate()` keeps the previous value readable while recomputing; `clear()` drops the value
   first so readers suspend (the old `allowStale: false` behavior, now explicit and one-shot).
 - `clientOnly` skips server computation and computes on first client read.
@@ -87,6 +87,11 @@ When changing AsyncSignal behavior, inspect:
   changes those sources must wake the `.error` readers, or they keep a stale answer.
 - Reading `.pending` or `.error` triggers computation when needed; serialization must read the
   private `$untrackedPending$`/`$untrackedError$` fields to avoid starting computes.
+- `.pending` and `.error` report only while something is on screen: a value, `initial`, or
+  `VALUE_LEFT_ON_SERVER`, which the serializer sets on an async signal whose value it did not send
+  (`clear()` drops it). A `clientOnly` signal keeps its own pending while it pretends to load.
+  `.loading` and `untrackedPending` stay the own job, first load included: the router,
+  `<Resource>` and `usePoll` rely on that.
 - `clientOnly` resume rides on the state script's `q-d:qidle` `_res` QRL built from
   `$eagerResume$`; SSR must emit the state script whenever `$eagerResume$` is non-empty, even if
   no roots were discovered yet (the QRL captures become roots during attribute serialization).

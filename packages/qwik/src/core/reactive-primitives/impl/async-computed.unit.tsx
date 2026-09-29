@@ -69,19 +69,18 @@ describe('async computed', () => {
     });
   });
 
-  it('should expose deprecated `.loading` / `.untrackedLoading` mirroring pending', async () => {
+  it('should keep `.loading` to the own job, first load included', async () => {
     await withContainer(async () => {
       const signal = createComputed$(async () => {
         await delay(1);
         return 42;
       }) as unknown as ComputedSignalImpl<number>;
 
-      await retryOnPromise(() => signal.value);
-      // Deprecated aliases read the same state as pending, so old code (e.g. route loaders) keeps working.
-      expect(signal.loading).toBe(signal.pending);
+      expect(signal.loading).toBe(true);
+      expect(signal.pending).toBe(false);
+      await signal.promise();
       expect(signal.loading).toBe(false);
 
-      // The deprecated setter writes through to the pending state.
       signal.untrackedLoading = true;
       expect(signal.$untrackedPending$).toBe(true);
     });
@@ -131,21 +130,126 @@ describe('async computed', () => {
     });
   });
 
-  it('should expose pending state and notify pending subscribers', async () => {
-    await withContainer(async () => {
-      const ref: { resolve?: (v: number) => void } = {};
-      const signal = createComputed$(
-        () => new Promise<number>((resolve) => (ref.resolve = resolve))
-      ) as unknown as ComputedSignalImpl<number>;
+  describe('first contact', () => {
+    it('should keep pending false while the first value computes', async () => {
+      await withContainer(async () => {
+        const ref: { resolve?: (v: number) => void } = {};
+        const signal = createComputed$(
+          () => new Promise<number>((resolve) => (ref.resolve = resolve))
+        ) as unknown as ComputedSignalImpl<number>;
 
-      effect$(() => log.push(signal.pending));
-      expect(log).toEqual([true]);
+        effect$(() => log.push(signal.pending));
+        expect(log).toEqual([false]);
+        expect(signal.untrackedPending).toBe(true);
 
-      ref.resolve!(7);
-      await signal.promise();
-      await container.$renderPromise$;
-      expect(signal.untrackedPending).toBe(false);
-      expect(signal.untrackedValue).toBe(7);
+        ref.resolve!(7);
+        await signal.promise();
+        await container.$renderPromise$;
+        expect(signal.pending).toBe(false);
+        expect(signal.untrackedValue).toBe(7);
+      });
+    });
+
+    it('should report pending beside the value during a refresh', async () => {
+      await withContainer(async () => {
+        const ref = { runs: 0 };
+        const signal = createComputed$(async () => {
+          await delay(1);
+          return ++ref.runs;
+        }) as unknown as ComputedSignalImpl<number>;
+        await signal.promise();
+
+        signal.invalidate();
+
+        expect(signal.pending).toBe(true);
+        expect(signal.untrackedValue).toBe(1);
+        await signal.promise();
+        expect(signal.pending).toBe(false);
+        expect(signal.untrackedValue).toBe(2);
+      });
+    });
+
+    it('should count an initial value as on screen', async () => {
+      await withContainer(async () => {
+        const signal = createComputed$(
+          async () => {
+            await delay(1);
+            return 2;
+          },
+          { initial: 1 }
+        ) as unknown as ComputedSignalImpl<number>;
+
+        expect(signal.pending).toBe(true);
+        expect(signal.untrackedValue).toBe(1);
+        await signal.promise();
+        expect(signal.pending).toBe(false);
+      });
+    });
+
+    it('should keep pending false after clear() until a value lands', async () => {
+      await withContainer(async () => {
+        const signal = createComputed$(async () => {
+          await delay(1);
+          return 1;
+        }) as unknown as ComputedSignalImpl<number>;
+        await signal.promise();
+
+        signal.clear();
+
+        expect(signal.pending).toBe(false);
+        await signal.promise();
+        expect(signal.pending).toBe(false);
+        expect(signal.untrackedValue).toBe(1);
+      });
+    });
+
+    it('should not throw from .pending before a sync computed has a value', async () => {
+      await withContainer(async () => {
+        const source = createComputed$(async () => {
+          await delay(1);
+          return 2;
+        }) as unknown as ComputedSignalImpl<number>;
+        const derived = createComputed$(() => source.value * 10) as ComputedSignalImpl<number>;
+
+        expect(derived.pending).toBe(false);
+        await source.promise();
+        expect(derived.value).toBe(20);
+      });
+    });
+
+    it('should report pending while a shown sync computed waits on a promise to recompute', async () => {
+      await withContainer(async () => {
+        const source = createComputed$(async () => {
+          await delay(1);
+          return 2;
+        }) as unknown as ComputedSignalImpl<number>;
+        const derived = createComputed$(() => source.value * 10) as ComputedSignalImpl<number>;
+        await retryOnPromise(() => derived.value);
+
+        source.clear();
+        derived.invalidate();
+
+        expect(derived.pending).toBe(true);
+        await source.promise();
+        await delay(1);
+        expect(derived.pending).toBe(false);
+        expect(derived.value).toBe(20);
+      });
+    });
+
+    it('should start the computation when .pending is read before a value exists', async () => {
+      await withContainer(async () => {
+        const ref = { runs: 0 };
+        const signal = createComputed$(async () => {
+          ref.runs++;
+          await delay(1);
+          return 1;
+        }) as unknown as ComputedSignalImpl<number>;
+
+        signal.pending;
+
+        expect(ref.runs).toBe(1);
+      });
     });
   });
 

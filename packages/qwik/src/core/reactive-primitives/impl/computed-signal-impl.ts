@@ -301,17 +301,31 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   /**
-   * Loading is true if the signal is still waiting for the promise to resolve, false if the promise
-   * has resolved or rejected (or the compute function is synchronous).
+   * Pending is true while a promise is in flight on this signal and its value is on screen. It
+   * stays false on first load, while a `<Pending>` fallback shows instead.
    *
-   * Accessing `.pending` will trigger computation if needed, since it's often used like
-   *
-   * ```ts
-   * signal.pending ? <Loading /> : signal.value
-   * ```
+   * Accessing `.pending` will trigger computation if needed.
    */
   get pending(): boolean {
-    const val = this.untrackedPending;
+    const canBePending = this.$isOnScreen$() || !!(this.$flags$ & AsyncSignalFlags.CLIENT_ONLY);
+    let isPending = false;
+    try {
+      if (canBePending) {
+        isPending = this.untrackedPending;
+      } else {
+        this.$computeIfNeeded$();
+      }
+    } catch (err) {
+      if (!isPromise(err) || (canBePending && (qTest ? isServerPlatform() : isServer))) {
+        throw err;
+      }
+      isPending = canBePending;
+    }
+    this.$trackPendingReader$();
+    return isPending;
+  }
+
+  $trackPendingReader$(): void {
     const ctx = tryGetInvokeContext();
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
@@ -326,7 +340,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         addQrlToSerializationCtx(effectSubscriber, this.$container$);
       }
     }
-    return val;
   }
 
   set untrackedPending(value: boolean) {
@@ -348,9 +361,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     return !!this.$untrackedPending$;
   }
 
-  /** @deprecated Use `pending` instead */
+  /** The own job in flight, first load included, unlike `pending`. */
   get loading(): boolean {
-    return this.pending;
+    const isLoading = this.untrackedPending;
+    this.$trackPendingReader$();
+    return isLoading;
   }
 
   /** @deprecated Use `untrackedPending` instead */

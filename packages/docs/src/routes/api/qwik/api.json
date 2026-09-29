@@ -1,6 +1,6 @@
 {
   "id": "qwik",
-  "package": "@qwik.dev/qwik",
+  "package": "@qwik.dev/core",
   "members": [
     {
       "name": "\"q:slot\"",

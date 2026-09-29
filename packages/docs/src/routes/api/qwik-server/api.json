@@ -1,6 +1,6 @@
 {
   "id": "qwik-server",
-  "package": "@qwik.dev/qwik/server",
+  "package": "@qwik.dev/core/server",
   "members": [
     {
       "name": "getQwikBackpatchExecutorScript",

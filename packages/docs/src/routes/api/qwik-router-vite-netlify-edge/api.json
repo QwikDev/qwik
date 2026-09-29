@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-vite-netlify-edge",
-  "package": "@qwik.dev/qwik-router/vite/netlify-edge",
+  "package": "@qwik.dev/router/vite/netlify-edge",
   "members": [
     {
       "name": "netlifyEdgeAdapter",

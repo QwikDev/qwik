@@ -1,6 +1,6 @@
 {
   "id": "qwik-router",
-  "package": "@qwik.dev/qwik-router",
+  "package": "@qwik.dev/router",
   "members": [
     {
       "name": "Action",

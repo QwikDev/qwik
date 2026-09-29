@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-vite-cloudflare-pages",
-  "package": "@qwik.dev/qwik-router/vite/cloudflare-pages",
+  "package": "@qwik.dev/router/vite/cloudflare-pages",
   "members": [
     {
       "name": "cloudflarePagesAdapter",

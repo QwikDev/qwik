@@ -560,6 +560,9 @@ export { h }
 export function _handleSSRError(container: SSRContainer, err: any, host: ISsrNode | null, phase: CatchPhase): void;
 
 // @internal (undocumented)
+export function _hasSlotProps(props: Props | null | undefined): boolean;
+
+// @internal (undocumented)
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 
 // @internal

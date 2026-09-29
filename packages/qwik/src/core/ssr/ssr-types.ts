@@ -64,6 +64,7 @@ export interface ISsrNode {
   readonly [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null;
   setProp(name: string, value: any): void;
   getProp(name: string): any;
+  hasSlotProps(): boolean;
   removeProp(name: string): void;
   addChild(child: ISsrNode): void;
   setTreeNonUpdatable(): void;

@@ -148,6 +148,18 @@ When touching these areas:
 - test root and nested/container cases when a feature can appear in both;
 - include streaming or out-of-order cases when state can arrive after initial event listeners.
 
+Out-of-order (OOOS) invariants:
+
+- Root vnode data is written before deferred segments resolve, so a component whose attrs were not
+  yet roots gets only a render hash. When a segment later serializes that node, re-emit its element's
+  vnode data as a `q:patch`, or the client can never re-render it.
+- Resumed segment elements must resolve through the normal DOM path in `vnode_locate`; a detached
+  vnode breaks every upward walk (context, reset owner).
+- Scoped client vnode walks (patches, segments) must stop after the scope's subtree, and a nested
+  container's root takes vnode data only from its own container, never from the outer walk.
+- Unit harnesses resolve every segment before resume. Timing-dependent OOOS bugs (shell resumed
+  before release, `SSRStream` nested containers) need the e2e fixtures to reproduce.
+
 ## QRL And Optimizer-Facing Runtime
 
 - Use `$`-suffixed APIs and `$()` in tests when a QRL boundary is expected.

@@ -3030,8 +3030,10 @@ describe('Catch reset', () => {
       </Pending>
     ));
 
-    // out-of-order: https://github.com/QwikDev/qwik/issues/8884
-    it.each([['in-order', IN_ORDER]] as const)(
+    it.each([
+      ['in-order', IN_ORDER],
+      ['out-of-order', OOOS],
+    ] as const)(
       '%s, after a server-side error: reset through a Pending + Slot-projecting wrapper re-executes the children',
       async (_mode, streamOpts) => {
         const { container } = await ssrRenderToDom(<WrappedResetApp />, { debug, ...streamOpts });

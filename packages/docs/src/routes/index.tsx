@@ -12,6 +12,7 @@ export default component$(() => {
       <main class="bg-grid-stars">
         <Home.Hero />
         <Home.Streaming />
+        <Home.Team />
       </main>
       <Footer />
     </>

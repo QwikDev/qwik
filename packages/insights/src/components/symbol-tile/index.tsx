@@ -1,5 +1,6 @@
 import { Resource, component$, useResource$, useStore } from '@qwik.dev/core';
 import { getRequestEvent, server$, useLocation, type RequestEvent } from '@qwik.dev/router';
+import { HttpError } from '@qwik.dev/router/middleware/request-handler';
 import { and, eq } from 'drizzle-orm';
 import { getDB, symbolDetailTable } from '~/db';
 import { dbGetInsightUser, type InsightsUser } from '~/db/sql-user';
@@ -141,7 +142,7 @@ export function displaySymbolDetail(value: string | null | undefined): string {
 type LoadInsightsUser = (email: string) => Promise<InsightsUser>;
 
 export async function getAuthorizedPublicApiKey(
-  requestEvent: Pick<RequestEvent, 'params' | 'sharedMap' | 'error'>,
+  requestEvent: Pick<RequestEvent, 'params' | 'sharedMap'>,
   requestedPublicApiKey = requestEvent.params.publicApiKey,
   loadUser: LoadInsightsUser = dbGetInsightUser
 ): Promise<string> {
@@ -153,7 +154,7 @@ export async function getAuthorizedPublicApiKey(
     (getInsightUser(requestEvent.sharedMap) as InsightsUser | undefined) ??
     (email ? await loadUser(email) : undefined);
   if (!requestedPublicApiKey || !insightUser?.isAuthorizedForApp(requestedPublicApiKey)) {
-    throw requestEvent.error(403, 'Forbidden');
+    throw new HttpError(403, 'Forbidden');
   }
   return requestedPublicApiKey;
 }

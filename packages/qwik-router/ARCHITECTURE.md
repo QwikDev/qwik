@@ -22,7 +22,7 @@ calls `requestHandler(serverRequestEv, opts)`.
 | Handler                 | Description                                               |
 | ----------------------- | --------------------------------------------------------- |
 | jsonRequestWrapper      | wraps redirects/errors as JSON for loader/action fetches  |
-| serverErrorMiddleware   | catches ServerError, swaps to error module, re-renders    |
+| serverErrorMiddleware   | catches HttpError, swaps to error module, re-renders      |
 | csrfCheck               | POST/PUT/PATCH/DELETE origin check                        |
 | serverPlugins.onRequest | global plugin middleware                                  |
 | routeModules.onRequest  | per-route middleware (layouts + page)                     |

@@ -20,11 +20,12 @@ import {
 } from './request-path';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { RewriteMessage } from './rewrite-handler';
-import { ServerError, throwIfControlFlowSignal } from './server-error';
+import { HttpError, throwIfControlFlowSignal } from './http-error';
 import { encoder, getContentType } from './request-utils';
 import type {
   CacheControl,
   CacheControlTarget,
+  ErrorCodes,
   RequestEvent,
   RequestEventCommon,
   RequestEventLoader,
@@ -242,11 +243,14 @@ export function createRequestEvent(
       return locale || '';
     },
 
-    error: <T = any>(statusCode: number, message: T) => {
+    httpError: <T = any>(statusCode: number, message: T) => {
       status = statusCode;
       headers.delete('Cache-Control');
-      return new ServerError(statusCode, message);
+      return new HttpError(statusCode, message);
     },
+
+    error: <T = any>(statusCode: ErrorCodes, message: T) =>
+      requestEv.httpError(statusCode, message),
 
     redirect: (statusCode: number, url: string) => {
       check();
@@ -277,10 +281,7 @@ export function createRequestEvent(
     rewrite: (pathname: string) => {
       check();
       if (pathname.startsWith('http')) {
-        throw new ServerError(
-          400,
-          isDev ? 'Rewrite does not support absolute urls' : 'Bad Request'
-        );
+        throw new HttpError(400, isDev ? 'Rewrite does not support absolute urls' : 'Bad Request');
       }
       sharedMap.set(RequestEvIsRewrite, true);
       return exit(new RewriteMessage(pathname.replace(/\/+/g, '/')));

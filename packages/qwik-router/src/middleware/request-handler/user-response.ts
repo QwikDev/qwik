@@ -10,7 +10,7 @@ import { getErrorHtml } from './error-handler';
 import { createRequestEvent, type RequestEventInternal } from './request-event-core';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { RewriteMessage } from './rewrite-handler';
-import { ServerError } from './server-error';
+import { HttpError } from './http-error';
 import { encoder } from './request-utils';
 import type { ServerRequestEvent, StatusCodes } from './types';
 
@@ -74,7 +74,7 @@ async function runNext(
     const message = 'Resource Not Found';
     requestEv.status(status);
     requestEv.html(status, getErrorHtml(status, message));
-    return new ServerError(status, message);
+    return new HttpError(status, message);
   }
 
   let rewriteAttempt = 1;
@@ -100,7 +100,7 @@ async function runNext(
         return await runOnce();
       } else if (e instanceof AbortMessage) {
         return;
-      } else if (e instanceof ServerError && !requestEv.headersSent) {
+      } else if (e instanceof HttpError && !requestEv.headersSent) {
         const status = e.status as StatusCodes;
         requestEv.headers.set('Cache-Control', 'no-store');
         const accept = requestEv.request.headers.get('Accept');

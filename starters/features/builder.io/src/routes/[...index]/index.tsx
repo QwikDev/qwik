@@ -1,6 +1,7 @@
 import { Content, fetchOneEntry } from "@builder.io/sdk-qwik";
 import { component$ } from "@qwik.dev/core";
 import { routeLoader$ } from "@qwik.dev/router";
+import { HttpError } from "@qwik.dev/router/middleware/request-handler";
 import { CUSTOM_COMPONENTS } from "~/components/builder-registry";
 
 export const BUILDER_MODEL = "page";
@@ -21,7 +22,7 @@ export const useBuilderContent = routeLoader$(async (event) => {
   // If there's no content, throw a 404.
   // You can use your own 404 component here
   if (!builderContent && !isPreviewing) {
-    throw event.error(404, "Page not found");
+    throw new HttpError(404, "Page not found");
   }
   // return content fetched from Builder, which is JSON
   return builderContent;

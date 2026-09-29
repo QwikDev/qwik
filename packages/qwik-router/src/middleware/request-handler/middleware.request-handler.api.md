@@ -91,6 +91,15 @@ export interface EnvGetter {
 // @public (undocumented)
 export function getErrorHtml(status: number, e: any): string;
 
+// @public (undocumented)
+export class HttpError<T = any> extends Error {
+    constructor(status: number, data: T);
+    // (undocumented)
+    data: T;
+    // (undocumented)
+    status: number;
+}
+
 // @public
 export type InternalRequest = false | 'loader' | 'action';
 
@@ -145,11 +154,13 @@ export interface RequestEventBase<PLATFORM = QwikRouterPlatform> {
 
 // @public (undocumented)
 export interface RequestEventCommon<PLATFORM = QwikRouterPlatform> extends RequestEventBase<PLATFORM> {
-    // Warning: (ae-forgotten-export) The symbol "ErrorCodes" needs to be exported by the entry point index.d.ts
-    readonly error: <T = any>(statusCode: ErrorCodes, message: T) => ServerError<T>;
+    // @deprecated
+    readonly error: <T = any>(statusCode: ErrorCodes, message: T) => HttpError<T>;
     // (undocumented)
     readonly exit: () => AbortMessage;
     readonly html: (statusCode: StatusCodes, html: string) => AbortMessage;
+    // Warning: (ae-forgotten-export) The symbol "ErrorCodes" needs to be exported by the entry point index.d.ts
+    readonly httpError: <T = any>(statusCode: ErrorCodes, message: T) => HttpError<T>;
     readonly json: (statusCode: StatusCodes, data: any) => AbortMessage;
     readonly locale: (local?: string) => string;
     // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
@@ -171,7 +182,7 @@ export interface RequestEventLoader<PLATFORM = QwikRouterPlatform> extends Reque
 }
 
 // @public (undocumented)
-export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void | AbortMessage | ServerError> | void | AbortMessage | ServerError;
+export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void | AbortMessage | HttpError> | void | AbortMessage | HttpError;
 
 // Warning: (ae-forgotten-export) The symbol "QwikRouterRun" needs to be exported by the entry point index.d.ts
 //
@@ -201,14 +212,11 @@ export class RewriteMessage extends AbortMessage {
     readonly pathname: string;
 }
 
-// @public (undocumented)
-export class ServerError<T = any> extends Error {
-    constructor(status: number, data: T);
-    // (undocumented)
-    data: T;
-    // (undocumented)
-    status: number;
-}
+// @public @deprecated
+export const ServerError: typeof HttpError;
+
+// @public @deprecated
+export type ServerError<T = any> = HttpError<T>;
 
 // @public (undocumented)
 export interface ServerRenderOptions extends RenderOptions {

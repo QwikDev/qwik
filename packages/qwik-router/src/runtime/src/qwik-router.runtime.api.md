@@ -13,6 +13,7 @@ import { CookieOptions } from '@qwik.dev/router/middleware/request-handler';
 import { CookieValue } from '@qwik.dev/router/middleware/request-handler';
 import { DeferReturn } from '@qwik.dev/router/middleware/request-handler';
 import type { EnvGetter } from '@qwik.dev/router/middleware/request-handler';
+import type { HttpError } from '@qwik.dev/router/middleware/request-handler';
 import { InternalRequest } from '@qwik.dev/router/middleware/request-handler';
 import { JSXOutput } from '@qwik.dev/core';
 import { NoSerialize } from '@qwik.dev/core';
@@ -30,7 +31,6 @@ import { RequestEventLoader } from '@qwik.dev/router/middleware/request-handler'
 import { RequestHandler } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handler';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
-import type { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import type { Signal } from '@qwik.dev/core';
 import * as v from 'valibot';
 import { ValueOrPromise } from '@qwik.dev/core';
@@ -199,7 +199,7 @@ export type Editable<T> = {
 };
 
 // @public
-export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
+export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | HttpError>;
 
 // @public (undocumented)
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;

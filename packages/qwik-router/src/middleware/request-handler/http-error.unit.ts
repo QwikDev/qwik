@@ -1,14 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { RedirectMessage } from './redirect-handler';
 import { RewriteMessage } from './rewrite-handler';
-import { ServerError, throwIfControlFlowSignal } from './server-error';
+import { HttpError, ServerError, throwIfControlFlowSignal } from './http-error';
+
+describe('ServerError', () => {
+  it('is the deprecated name of HttpError', () => {
+    expect(new ServerError(404, 'nope')).toBeInstanceOf(HttpError);
+    expect(new HttpError(404, 'nope')).toBeInstanceOf(ServerError);
+  });
+});
 
 describe('throwIfControlFlowSignal', () => {
   it('throws control-flow signals so returning behaves like throwing', () => {
     const redirect = new RedirectMessage();
     expect(() => throwIfControlFlowSignal(redirect)).toThrow(redirect);
     expect(() => throwIfControlFlowSignal(new RewriteMessage('/x'))).toThrow(RewriteMessage);
-    const error = new ServerError(404, 'nope');
+    const error = new HttpError(404, 'nope');
     expect(() => throwIfControlFlowSignal(error)).toThrow(error);
   });
 

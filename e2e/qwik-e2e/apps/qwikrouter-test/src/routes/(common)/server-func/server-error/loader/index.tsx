@@ -1,16 +1,16 @@
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$, server$ } from '@qwik.dev/router';
-import { ServerError } from '@qwik.dev/router/middleware/request-handler';
+import { HttpError } from '@qwik.dev/router/middleware/request-handler';
 
 export const serverError = server$(() => {
-  throw new ServerError(401, 'loader-error-data');
+  throw new HttpError(401, 'loader-error-data');
 });
 
 const useCatchServerErrorInLoader = routeLoader$(async () => {
   try {
     await serverError();
   } catch (err: any) {
-    if (err instanceof ServerError && typeof err.data === 'string') {
+    if (err instanceof HttpError && typeof err.data === 'string') {
       return err.data;
     }
   }

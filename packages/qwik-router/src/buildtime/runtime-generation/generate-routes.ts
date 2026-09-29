@@ -141,7 +141,7 @@ export function createRoutes(
   );
 
   // Note: both error.tsx and 404.tsx in the same directory is fine.
-  // error.tsx (_E) handles ServerErrors (403, 500, etc.) and 404.tsx (_4) handles not-found routes.
+  // error.tsx (_E) handles HttpErrors (403, 500, etc.) and 404.tsx (_4) handles not-found routes.
   // They are tracked independently in the route trie.
 
   // Wrap the trie in the base pathname segments (e.g., '/qwikrouter-test/' → 'qwikrouter-test')

@@ -188,8 +188,7 @@ test.describe('Catch + fallback$', () => {
       await expect(page.locator('#catch-fallback-count')).toHaveText('1');
     });
 
-    // https://github.com/QwikDev/qwik/issues/8877
-    test.fixme('async deferred throw: streams siblings + skeleton, then tears down the whole boundary', async ({
+    test('async deferred throw: streams siblings + skeleton, then tears down the whole boundary', async ({
       page,
     }) => {
       assertNoBrowserErrors(page);

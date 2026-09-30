@@ -22,14 +22,4 @@ describe.skip('features deferred by the target-native cutover', () => {
     `;
     void source;
   });
-
-  it('Suspense and out-of-order streaming', () => {
-    const source = `
-      import { component$, Suspense } from '@qwik.dev/core';
-      export const App = component$(() => (
-        <Suspense fallback={<p>loading</p>}><AsyncChild /></Suspense>
-      ));
-    `;
-    void source;
-  });
 });

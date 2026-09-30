@@ -1,7 +1,6 @@
 import {
   component$,
   createContextId,
-  isSignal,
   Slot,
   useContext,
   useSignal,
@@ -17,7 +16,7 @@ export interface Greeting {
 export const GreetingContext = createContextId<Greeting>('e2e-library.greeting');
 
 /** Lets the app detect whether the library evaluated its own copy of core. */
-export const libraryIsSignal = isSignal;
+export const libraryUseSignal = useSignal;
 
 export const LibCounter = component$(() => {
   const count = useSignal(0);

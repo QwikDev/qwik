@@ -255,43 +255,43 @@ export default component$((props: { title: string; hidden?: boolean; failed?: bo
     expect(output.diagnostics).toEqual([]);
   });
 
-  test('should lower a Suspense boundary to the runtime race', async () => {
-    await testInput(mode, 'suspense-boundary', {
-      code: `import { component$, useSignal, Suspense } from '@qwik.dev/core';
+  test('should lower a Pending boundary to the runtime race', async () => {
+    await testInput(mode, 'pending-boundary', {
+      code: `import { component$, useSignal, Pending } from '@qwik.dev/core';
 import { Slow } from './slow';
 export default component$(() => {
   const label = useSignal('Loading');
   return (
     <section>
-      <Suspense fallback$={() => <p class="fallback">{label.value}</p>} delay={50}>
+      <Pending fallback$={() => <p class="fallback">{label.value}</p>} delay={50}>
         <Slow id="one" />
-      </Suspense>
+      </Pending>
     </section>
   );
 });`,
     });
   });
 
-  test('should group sibling Suspense boundaries under a Reveal', async () => {
+  test('should group sibling Pending boundaries under a Reveal', async () => {
     const output = await testInput(mode, 'reveal-group', {
-      code: `import { component$, Reveal, Suspense } from '@qwik.dev/core';
+      code: `import { component$, Reveal, Pending } from '@qwik.dev/core';
 import { Slow } from './slow';
 export default component$(() => (
   <section>
     <Reveal order="sequential" collapsed>
-      <Suspense fallback$={() => <p>first</p>}>
+      <Pending fallback$={() => <p>first</p>}>
         <Slow id="one" />
-      </Suspense>
+      </Pending>
       <div>
-        <Suspense fallback$={() => <p>second</p>} delay={10}>
+        <Pending fallback$={() => <p>second</p>} delay={10}>
           <Slow id="two" />
-        </Suspense>
+        </Pending>
       </div>
     </Reveal>
     <Reveal>
-      <Suspense fallback$={() => <p>third</p>}>
+      <Pending fallback$={() => <p>third</p>}>
         <Slow id="three" />
-      </Suspense>
+      </Pending>
     </Reveal>
   </section>
 ));`,
@@ -306,15 +306,15 @@ export default component$(() => (
 
   test('should keep a boundary inside another boundary out of the Reveal group', async () => {
     const output = await testInput(mode, 'reveal-nested-program', {
-      code: `import { component$, Reveal, Suspense } from '@qwik.dev/core';
+      code: `import { component$, Reveal, Pending } from '@qwik.dev/core';
 import { Slow } from './slow';
 export default component$(() => (
   <Reveal order="together">
-    <Suspense fallback$={() => <p>outer</p>}>
-      <Suspense fallback$={() => <p>inner</p>}>
+    <Pending fallback$={() => <p>outer</p>}>
+      <Pending fallback$={() => <p>inner</p>}>
         <Slow id="inner" />
-      </Suspense>
-    </Suspense>
+      </Pending>
+    </Pending>
   </Reveal>
 ));`,
     });

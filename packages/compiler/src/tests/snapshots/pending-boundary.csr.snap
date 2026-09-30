@@ -1,14 +1,14 @@
 ==INPUT==
 
-import { component$, useSignal, Suspense } from '@qwik.dev/core';
+import { component$, useSignal, Pending } from '@qwik.dev/core';
 import { Slow } from './slow';
 export default component$(() => {
   const label = useSignal('Loading');
   return (
     <section>
-      <Suspense fallback$={() => <p class="fallback">{label.value}</p>} delay={50}>
+      <Pending fallback$={() => <p class="fallback">{label.value}</p>} delay={50}>
         <Slow id="one" />
-      </Suspense>
+      </Pending>
     </section>
   );
 });
@@ -74,8 +74,8 @@ export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
   "ctxName": "suspense:fallback",
   "captures": true,
   "loc": [
-    210,
-    264
+    208,
+    262
   ],
   "paramNames": [],
   "captureNames": [
@@ -106,8 +106,8 @@ export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   "ctxName": "suspense:content",
   "captures": false,
   "loc": [
-    200,
-    321
+    199,
+    318
   ],
   "paramNames": []
 }

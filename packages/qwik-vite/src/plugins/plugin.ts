@@ -83,8 +83,8 @@ type QwikResolveIdOptions = Partial<ViteResolveIdOptions> & {
  * @public
  */
 export enum ExperimentalFeatures {
-  /** Enable the Suspense fallback primitive */
-  suspense = 'suspense',
+  /** Enable the Pending fallback primitive */
+  pendingBoundary = 'pendingBoundary',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */

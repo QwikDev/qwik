@@ -41,7 +41,7 @@ import { QRL } from './components/qrl/qrl';
 import { QVisibleRoot } from './components/qvisible/qvisible';
 import { AsyncRoot } from './components/use-async/use-async';
 import { Backpatching } from './components/backpatching/backpatching';
-import { OutOfOrderSuspenseRoot, PendingRoot } from './components/pending/pending';
+import { OutOfOrderPendingRoot, PendingRoot } from './components/pending/pending';
 // Conditional renders as returns inside `if` are unsupported by the compiler.
 
 const TestIndex = component$(() => <section>Test index</section>);
@@ -91,10 +91,11 @@ export const Root = component$<{ pathname: string }>(({ pathname }) => {
       {pathname === '/e2e/exception/render' && <RenderExceptions />}
       {pathname === '/e2e/exception/use-task' && <UseTaskExceptions />}
       {pathname === '/e2e/qrl' && <QRL />}
+      {pathname === '/e2e/qvisible' && <QVisibleRoot />}
       {pathname === '/e2e/async-computed' && <AsyncRoot />}
       {pathname === '/e2e/backpatching' && <Backpatching />}
-      {pathname === '/e2e/suspense' && <PendingRoot />}
-      {pathname === '/e2e/suspense-ooos' && <OutOfOrderSuspenseRoot />}
+      {pathname === '/e2e/pending' && <PendingRoot />}
+      {pathname === '/e2e/pending-ooos' && <OutOfOrderPendingRoot />}
       {pathname === '/e2e/worker' && <WorkerRoot />}
     </>
   );

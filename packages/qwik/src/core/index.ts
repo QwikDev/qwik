@@ -344,14 +344,14 @@ export {
   renderSsrBranch,
 } from './dom/branch/branch';
 export {
-  Suspense,
+  Pending,
   createContentBlock,
   createDynamicContent,
   createSuspense,
   escapeSsrContent,
   renderSsrDynamicContent,
   renderSsrContent,
-  type SuspenseProps,
+  type PendingProps,
 } from './dom/content/content';
 export {
   createSsrSuspense,

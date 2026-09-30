@@ -208,209 +208,6 @@ export type AsyncSignalOptions<T = unknown> = ComputedOptions<T>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
 
-<h2 id="catch">Catch</h2>
-
-Renders `fallback$` instead of its children when a descendant throws.
-
-```typescript
-Catch: Component<CatchProps>;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/catch.ts)
-
-<h2 id="catchinfo">CatchInfo</h2>
-
-Structured metadata about a caught error, passed to `onError$`.
-
-```typescript
-export interface CatchInfo
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-boundaryId
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-Identifies the boundary within the page. Allocated in render order and kept across a resume, so every report from one boundary shares it — but it shifts when render order changes.
-
-</td></tr>
-<tr><td>
-
-digest
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-The code a production fallback shows for a server-origin error, so a user's bug report matches your logs. An error caught during SSR reports a second, different digest if the client re-derives it — the stacks differ.
-
-</td></tr>
-<tr><td>
-
-phase
-
-</td><td>
-
-</td><td>
-
-[CatchPhase](#catchphase)
-
-</td><td>
-
-Where the caught error originated.
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-handling.ts)
-
-<h2 id="catchphase">CatchPhase</h2>
-
-Identifies where an error caught by an error boundary originated.
-
-```typescript
-export declare const enum CatchPhase
-```
-
-<table><thead><tr><th>
-
-Member
-
-</th><th>
-
-Value
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-Event
-
-</td><td>
-
-`"event"`
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-Hook
-
-</td><td>
-
-`"hook"`
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-Render
-
-</td><td>
-
-`"render"`
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/catch-phase.ts)
-
-<h2 id="catchprops">CatchProps</h2>
-
-```typescript
-export interface CatchProps
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-fallback$
-
-</td><td>
-
-</td><td>
-
-[QRL](#qrl-type-alias)&lt;(error: Error &amp; \{ digest?: string; }, reset: [QRL](#qrl-type-alias)&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)&gt;
-
-</td><td>
-
-Rendered when a descendant throws. The error is always an `Error`, so `{error.message}` is safe: a non-Error throw is wrapped, and production redacts server-origin errors to a generic message plus `digest`. Client-origin errors render as thrown — their messages already live in the browser bundle.
-
-Wrap `reset` in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired in a streamed fallback.
-
-</td></tr>
-<tr><td>
-
-onError$?
-
-</td><td>
-
-</td><td>
-
-[QRL](#qrl-type-alias)&lt;(error: Error, info: [CatchInfo](#catchinfo)) =&gt; void&gt;
-
-</td><td>
-
-_(Optional)_ Side effect only; never affects rendering. Receives the original `Error` — a non-Error throw arrives wrapped, with `cause` set to the raw value.
-
-An error caught during SSR fires again when the client re-derives it, so dedupe in your reporter.
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/catch.ts)
-
 <h2 id="classlist">ClassList</h2>
 
 A class list can be a string, a boolean, an array, or an object.
@@ -1967,6 +1764,79 @@ export type OnRenderFn<PROPS> = (props: PROPS) => ValueOrPromise<JSXOutput>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
 
+<h2 id="pending">Pending</h2>
+
+```typescript
+Pending: FunctionComponent<
+  PendingProps & {
+    children?: JSXOutput;
+  }
+>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts)
+
+<h2 id="pendingprops">PendingProps</h2>
+
+```typescript
+export interface PendingProps
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+delay?
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+fallback$?
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[QRL](#qrl)&lt;() =&gt; [JSXOutput](#jsxoutput)&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts)
+
 <h2 id="computedsignal-promise">promise</h2>
 
 ```typescript
@@ -2497,7 +2367,7 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
 
-<h2 id="render-function">render</h2>
+<h2 id="render">render</h2>
 
 ```typescript
 render: Render;
@@ -2785,79 +2655,6 @@ export type Store<T extends object> = T;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/store.ts)
-
-<h2 id="suspense">Suspense</h2>
-
-```typescript
-Suspense: FunctionComponent<
-  SuspenseProps & {
-    children?: JSXOutput;
-  }
->;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts)
-
-<h2 id="suspenseprops">SuspenseProps</h2>
-
-```typescript
-export interface SuspenseProps
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-delay?
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-fallback$?
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-[QRL](#qrl)&lt;() =&gt; [JSXOutput](#jsxoutput)&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts)
 
 <h2 id="svgattributes">SVGAttributes</h2>
 
@@ -7885,8 +7682,6 @@ export type VisibleTaskStrategy =
 <h2 id="withlocale">withLocale</h2>
 
 Override the `getLocale` with `lang` within the `fn` execution.
-
-`fn` may be async. The locale stays set until the returned promise settles, even when AsyncLocalStorage is not available.
 
 ```typescript
 export declare function withLocale<T>(locale: string, fn: () => T): T;

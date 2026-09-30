@@ -73,6 +73,276 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/bundle-graph.ts)
 
+<h2 id="componententrystrategy">ComponentEntryStrategy</h2>
+
+```typescript
+export interface ComponentEntryStrategy
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+manual?
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, string&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+type
+
+</td><td>
+
+</td><td>
+
+'component'
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+<h2 id="createoptimizer">createOptimizer</h2>
+
+```typescript
+createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+optimizerOptions
+
+</td><td>
+
+[OptimizerOptions](#optimizeroptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+Promise&lt;[Optimizer](#optimizer)&gt;
+
+<h2 id="diagnostic">Diagnostic</h2>
+
+```typescript
+export interface Diagnostic
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+category
+
+</td><td>
+
+</td><td>
+
+[DiagnosticCategory](#diagnosticcategory)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+code
+
+</td><td>
+
+</td><td>
+
+string \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+file
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+highlights
+
+</td><td>
+
+</td><td>
+
+[SourceLocation](#sourcelocation)[] \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+message
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+scope
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+suggestions
+
+</td><td>
+
+</td><td>
+
+string[] \| null
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+<h2 id="diagnosticcategory">DiagnosticCategory</h2>
+
+```typescript
+export type DiagnosticCategory = "error" | "warning" | "sourceError";
+```
+
+<h2 id="path-dirname">dirname</h2>
+
+```typescript
+dirname(path: string): string;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+path
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+string
+
+<h2 id="emitmode">EmitMode</h2>
+
+```typescript
+export type EmitMode = "dev" | "prod" | "lib" | "hmr";
+```
+
+<h2 id="entrystrategy">EntryStrategy</h2>
+
+```typescript
+export type EntryStrategy =
+  | InlineEntryStrategy
+  | HoistEntryStrategy
+  | SingleEntryStrategy
+  | HookEntryStrategy
+  | SegmentEntryStrategy
+  | ComponentEntryStrategy
+  | SmartEntryStrategy;
+```
+
+**References:** [InlineEntryStrategy](#inlineentrystrategy), [HoistEntryStrategy](#hoistentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [HookEntryStrategy](#hookentrystrategy), [SegmentEntryStrategy](#segmententrystrategy), [ComponentEntryStrategy](#componententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
+
 <h2 id="experimentalfeatures">ExperimentalFeatures</h2>
 
 Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.
@@ -137,15 +407,15 @@ Disable SPA navigation handler in Qwik Router
 </td></tr>
 <tr><td>
 
-suspense
+pendingBoundary
 
 </td><td>
 
-`"suspense"`
+`"pendingBoundary"`
 
 </td><td>
 
-Enable the Suspense fallback primitive
+Enable the Pending fallback primitive
 
 </td></tr>
 <tr><td>
@@ -2692,7 +2962,214 @@ export type ServerQwikManifest = Pick<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
-<h2 id="experimentalfeatures-suspense">suspense</h2>
+<h2 id="singleentrystrategy">SingleEntryStrategy</h2>
+
+```typescript
+export interface SingleEntryStrategy
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+manual?
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, string&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+type
+
+</td><td>
+
+</td><td>
+
+'single'
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+<h2 id="smartentrystrategy">SmartEntryStrategy</h2>
+
+```typescript
+export interface SmartEntryStrategy
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+manual?
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, string&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+type
+
+</td><td>
+
+</td><td>
+
+'smart'
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+<h2 id="sourcelocation">SourceLocation</h2>
+
+```typescript
+export interface SourceLocation
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+endCol
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+endLine
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+hi
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+lo
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+startCol
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+startLine
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 <h2 id="symbolmapper">SymbolMapper</h2>
 
@@ -3018,17 +3495,32 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-decorator?
+buildConstants?
 
 </td><td>
 
 </td><td>
 
-[DecoratorOptions](#decoratoroptions)
+Readonly&lt;Record&lt;string, boolean&gt;&gt;
 
 </td><td>
 
-_(Optional)_ Decorator lowering, mirroring tsconfig. Only the TypeScript optimizer applies it.
+_(Optional)_ Boolean values the host defines, keyed by `import.meta.env` name.
+
+</td></tr>
+<tr><td>
+
+engine?
+
+</td><td>
+
+</td><td>
+
+'js' \| 'native'
+
+</td><td>
+
+_(Optional)_ `native` warns about every server body the plan carries as JavaScript text.
 
 </td></tr>
 <tr><td>

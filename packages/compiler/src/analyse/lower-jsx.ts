@@ -69,7 +69,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
   if (!/^[a-z]/.test(nameNode.name)) {
     const binding = requireComponentBinding(nameNode, ctx);
     switch (ctx.coreBindings.get(binding)) {
-      case 'Suspense':
+      case 'Pending':
         return [lowerSuspense(element, attributes, ctx)];
       case 'Reveal':
         return lowerReveal(element, attributes, ctx);
@@ -182,7 +182,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
   ];
 }
 
-/** `order` and `collapsed` follow the Suspense `delay` rule: plain expressions over setup values. */
+/** `order` and `collapsed` follow the Pending `delay` rule: plain expressions over setup values. */
 function lowerRevealAttribute(name: string, attribute: JSXAttributeItem, ctx: LowerContext): Value {
   const expression =
     attribute.type === 'JSXAttribute' && attribute.value !== null
@@ -207,7 +207,7 @@ function lowerRevealAttribute(name: string, attribute: JSXAttributeItem, ctx: Lo
 }
 
 /**
- * `<Reveal order collapsed>…</Reveal>`: the marker is erased; the Suspense boundaries lowered under
+ * `<Reveal order collapsed>…</Reveal>`: the marker is erased; the Pending boundaries lowered under
  * it in this program share one runtime group, indexed in lexical order.
  */
 function lowerReveal(
@@ -251,8 +251,8 @@ function lowerReveal(
 }
 
 /**
- * `<Suspense fallback$={() => <F />} delay={n}>…</Suspense>`: the marker is erased; children and
- * the fallback body each become a range program the runtime races (MULTI_HEAD_SSR.md).
+ * `<Pending fallback$={() => <F />} delay={n}>…</Pending>`: the marker is erased; children and the
+ * fallback body each become a range program the runtime races (MULTI_HEAD_SSR.md).
  */
 function lowerSuspense(
   element: JSXElement,
@@ -274,7 +274,7 @@ function lowerSuspense(
       if (body === null || body.statements.length > 0 || expression.params.length > 0) {
         throw new InvalidModuleError(
           'suspense-fallback',
-          'A Suspense fallback$ is a parameterless function returning JSX.',
+          'A Pending fallback$ is a parameterless function returning JSX.',
           [expression.start, expression.end]
         );
       }
@@ -300,7 +300,7 @@ function lowerSuspense(
       if (delay.v !== ValueKind.Computed || delay.resume.r !== ResumeKind.Inline) {
         throw new InvalidModuleError(
           'suspense-delay',
-          'A Suspense delay is a plain expression over setup values.',
+          'A Pending delay is a plain expression over setup values.',
           [expression.start, expression.end]
         );
       }
@@ -308,7 +308,7 @@ function lowerSuspense(
     }
     throw new InvalidModuleError(
       'suspense-attribute',
-      `Suspense takes only fallback$ and delay; "${name ?? 'spread'}" is not supported.`,
+      `Pending takes only fallback$ and delay; "${name ?? 'spread'}" is not supported.`,
       [attribute.start, attribute.end]
     );
   }

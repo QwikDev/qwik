@@ -1,23 +1,23 @@
 ==INPUT==
 
-import { component$, Reveal, Suspense } from '@qwik.dev/core';
+import { component$, Reveal, Pending } from '@qwik.dev/core';
 import { Slow } from './slow';
 export default component$(() => (
   <section>
     <Reveal order="sequential" collapsed>
-      <Suspense fallback$={() => <p>first</p>}>
+      <Pending fallback$={() => <p>first</p>}>
         <Slow id="one" />
-      </Suspense>
+      </Pending>
       <div>
-        <Suspense fallback$={() => <p>second</p>} delay={10}>
+        <Pending fallback$={() => <p>second</p>} delay={10}>
           <Slow id="two" />
-        </Suspense>
+        </Pending>
       </div>
     </Reveal>
     <Reveal>
-      <Suspense fallback$={() => <p>third</p>}>
+      <Pending fallback$={() => <p>third</p>}>
         <Slow id="three" />
-      </Suspense>
+      </Pending>
     </Reveal>
   </section>
 ));
@@ -108,8 +108,8 @@ export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
   "ctxName": "suspense:fallback",
   "captures": false,
   "loc": [
-    198,
-    227
+    196,
+    225
   ],
   "paramNames": []
 }
@@ -137,8 +137,8 @@ export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   "ctxName": "suspense:content",
   "captures": false,
   "loc": [
-    188,
-    273
+    187,
+    270
   ],
   "paramNames": []
 }
@@ -167,8 +167,8 @@ export const component_suspense_fallback_segment_2_1i2rrxydec1vq = (ctx) => {
   "ctxName": "suspense:fallback",
   "captures": false,
   "loc": [
-    304,
-    334
+    300,
+    330
   ],
   "paramNames": []
 }
@@ -196,8 +196,8 @@ export const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
   "ctxName": "suspense:content",
   "captures": false,
   "loc": [
-    294,
-    395
+    291,
+    390
   ],
   "paramNames": []
 }
@@ -226,8 +226,8 @@ export const component_suspense_fallback_segment_4_1i2rsq0l805ws = (ctx) => {
   "ctxName": "suspense:fallback",
   "captures": false,
   "loc": [
-    452,
-    481
+    446,
+    475
   ],
   "paramNames": []
 }
@@ -255,8 +255,8 @@ export const component_suspense_content_segment_5_ozo1223pxaju = (ctx) => {
   "ctxName": "suspense:content",
   "captures": false,
   "loc": [
-    442,
-    529
+    437,
+    522
   ],
   "paramNames": []
 }

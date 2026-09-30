@@ -270,7 +270,7 @@ export { router }
               clientManifest = manifest;
             },
           },
-          experimental: ['suspense', 'blockSSR'],
+          experimental: ['pendingBoundary', 'blockSSR'],
         }),
       ],
     })
@@ -290,7 +290,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ['suspense', 'blockSSR'],
+          experimental: ['pendingBoundary', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,
           },

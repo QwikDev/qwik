@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { assertNoBrowserErrors, collectPageErrors, releaseDeferred } from './e2e-helpers';
 
+test.skip(true, 'Catch is not implemented in v3 yet');
+
 export const streamingModes = [
   { mode: 'in-order', outOfOrder: false },
   { mode: 'out-of-order', outOfOrder: true },

@@ -1,14 +1,14 @@
 ==INPUT==
 
-import { component$, Reveal, Suspense } from '@qwik.dev/core';
+import { component$, Reveal, Pending } from '@qwik.dev/core';
 import { Slow } from './slow';
 export default component$(() => (
   <Reveal order="together">
-    <Suspense fallback$={() => <p>outer</p>}>
-      <Suspense fallback$={() => <p>inner</p>}>
+    <Pending fallback$={() => <p>outer</p>}>
+      <Pending fallback$={() => <p>inner</p>}>
         <Slow id="inner" />
-      </Suspense>
-    </Suspense>
+      </Pending>
+    </Pending>
   </Reveal>
 ));
 == SSR OUTPUT ==
@@ -110,8 +110,8 @@ export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
   "ctxName": "suspense:fallback",
   "captures": false,
   "loc": [
-    170,
-    199
+    168,
+    197
   ],
   "paramNames": []
 }
@@ -161,8 +161,8 @@ export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   "ctxName": "suspense:content",
   "captures": false,
   "loc": [
-    160,
-    311
+    159,
+    306
   ],
   "paramNames": []
 }
@@ -186,8 +186,8 @@ export const component_suspense_fallback_segment_2_1i2rrxydec1vq = (ctx) => {
   "ctxName": "suspense:fallback",
   "captures": false,
   "loc": [
-    218,
-    247
+    215,
+    244
   ],
   "paramNames": []
 }
@@ -215,8 +215,8 @@ export const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
   "ctxName": "suspense:content",
   "captures": false,
   "loc": [
-    208,
-    295
+    206,
+    291
   ],
   "paramNames": []
 }

@@ -710,7 +710,7 @@ describe('SSR context markers', () => {
     expect(result.html).toContain('<p>hi</p><p>hi</p>a &lt;b&gt; c');
   });
 
-  test('keeps synchronous Suspense content inline', async () => {
+  test('keeps synchronous Pending content inline', async () => {
     const fallback = vi.fn(() => '<p>fallback</p>');
 
     const result = await renderToString((_props, ctx) =>
@@ -835,7 +835,7 @@ describe('SSR context markers', () => {
     expect(html.endsWith('</div>')).toBe(true);
   });
 
-  test('writes fallback while Suspense content waits on a task', async () => {
+  test('writes fallback while Pending content waits on a task', async () => {
     let markTaskStarted!: () => void;
     const taskStarted = new Promise<void>((resolve) => (markTaskStarted = resolve));
     let resolveTask!: () => void;
@@ -881,7 +881,7 @@ describe('SSR context markers', () => {
     expect(chunks.join('')).toContain('<template q:s="0"><p>content</p></template>');
   });
 
-  test('fails pending Suspense content when its task rejects', async () => {
+  test('fails pending Pending content when its task rejects', async () => {
     let rejectTask!: (error: Error) => void;
     let markTaskStarted!: () => void;
     const taskStarted = new Promise<void>((resolve) => (markTaskStarted = resolve));

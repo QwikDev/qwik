@@ -1,11 +1,11 @@
-import { component$, isSignal } from '@qwik.dev/core';
+import { component$, useSignal } from '@qwik.dev/core';
 import { RouterOutlet, useQwikRouter } from '@qwik.dev/router';
-import { libraryIsSignal } from 'e2e-library';
+import { libraryUseSignal } from 'e2e-library';
 
 export default component$(() => {
   useQwikRouter();
   // Evaluated on the server only: a second core copy means the library resolved its own core.
-  const coreCopies = libraryIsSignal === isSignal ? 'shared' : 'duplicated';
+  const coreCopies = libraryUseSignal === useSignal ? 'shared' : 'duplicated';
 
   return (
     <>

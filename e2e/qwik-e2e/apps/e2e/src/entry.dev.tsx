@@ -12,7 +12,7 @@ const clientRoots = {
   '/e2e/events': () => import('./components/events/events').then(({ Events }) => Events),
   '/e2e/render': () => import('./components/render/render').then(({ Render }) => Render),
   '/e2e/signals': () => import('./components/signals/signals').then(({ Signals }) => Signals),
-  '/e2e/suspense': () =>
+  '/e2e/pending': () =>
     import('./components/pending/pending').then(({ PendingRoot }) => PendingRoot),
 };
 const loadRoot =

@@ -54,13 +54,13 @@ export type SsrContentFn<TArgs extends unknown[] = unknown[]> = (
 type SuspenseContentFn = (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
 
 /** @public */
-export interface SuspenseProps {
+export interface PendingProps {
   readonly fallback$?: QRL<() => JSXOutput>;
   readonly delay?: number;
 }
 
 /** @public */
-export const Suspense: FunctionComponent<SuspenseProps & { children?: JSXOutput }> = () => null;
+export const Pending: FunctionComponent<PendingProps & { children?: JSXOutput }> = () => null;
 
 /**
  * A child value the compiler could not classify: exactly what it would have emitted had it known

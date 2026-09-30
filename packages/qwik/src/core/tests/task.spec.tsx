@@ -1,4 +1,4 @@
-import { component$, Suspense } from '@qwik.dev/core';
+import { component$, Pending } from '@qwik.dev/core';
 import {
   useAsync$,
   useComputed$,
@@ -148,16 +148,16 @@ describe(`${name}: task`, () => {
         return <span id="ready">ready</span>;
       });
       const App = component$(() => (
-        <Suspense fallback$={(() => <span id="loading">loading</span>) as any}>
+        <Pending fallback$={(() => <span id="loading">loading</span>) as any}>
           <Child />
-        </Suspense>
+        </Pending>
       ));
 
       const { container, cleanup, flush } = await render(App, { debug });
 
       expect(container.textContent).toBe('loading');
 
-      // Suspense content starts off the flush, so its task may not have registered yet.
+      // Pending content starts off the flush, so its task may not have registered yet.
       await vi.waitFor(() =>
         expect(typeof (globalThis as any).__resolveSuspenseTask).toBe('function')
       );

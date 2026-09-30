@@ -86,6 +86,7 @@ export {
   _getContextEvent,
   _getContextHostElement,
   _jsxBranch,
+  _waitOn,
   _waitUntilRendered,
   invoke as _invoke,
   newInvokeContext as _newInvokeContext,

@@ -2,6 +2,12 @@ import { isBrowser, type QRL } from '@qwik.dev/core';
 import type { PreventNavigateCallback } from './types';
 import type { ViewTransition } from './view-transition';
 
+/** Passed to the router's navigate function to run the action set on the action context. */
+export const RUN_PENDING_ACTION = Symbol();
+
+/** Passed to the router's navigate function to re-resolve the document head. */
+export const REFRESH_HEAD = Symbol();
+
 // Gets populated by registerPreventNav on the client
 export const preventNav: {
   $cbs$?: Set<QRL<PreventNavigateCallback>> | undefined;

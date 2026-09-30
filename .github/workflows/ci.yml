@@ -1555,6 +1555,9 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-release-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       id-token: write
       contents: write
@@ -1629,10 +1632,63 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Do this before other release steps to avoid
-      # publishing temporary files
-      - name: Create Release Pull Request or Publish to npm
+      - name: Check current main commit
+        id: current_main
         if: github.ref == 'refs/heads/main'
+        run: |
+          set -o pipefail
+          main_sha=$(git ls-remote --exit-code origin refs/heads/main | cut -f1)
+          if [ "$main_sha" = "$GITHUB_SHA" ]; then
+            echo "is_current=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Publish committed versions before preparing newer changesets.
+      - name: Hide pending changesets for publication
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.current_main.outputs.is_current == 'true'
+        run: rm -f .changeset/*.md
+
+      - name: Publish committed versions to npm
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.current_main.outputs.is_current == 'true'
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1
+        with:
+          publish: pnpm release
+          title: V2 Version Packages
+          branch: main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore pending changesets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.current_main.outputs.is_current == 'true'
+        run: git restore -- .changeset
+
+      - name: Check for pending changesets
+        id: pending_changesets
+        if: github.ref == 'refs/heads/main' && steps.current_main.outputs.is_current == 'true'
+        run: |
+          node <<'NODE'
+          const { appendFileSync, existsSync, readFileSync, readdirSync } = require('node:fs');
+          const pre = existsSync('.changeset/pre.json')
+            ? JSON.parse(readFileSync('.changeset/pre.json', 'utf8'))
+            : null;
+          const included = new Set(pre?.mode === 'pre' ? pre.changesets : []);
+          const pending = readdirSync('.changeset').some(
+            (name) => name.endsWith('.md') && name !== 'README.md' && !included.has(name.slice(0, -3))
+          );
+          if (pending) appendFileSync(process.env.GITHUB_OUTPUT, 'has_pending=true\n');
+          NODE
+
+      - name: Recheck current main commit
+        id: recheck_main
+        if: github.ref == 'refs/heads/main' && steps.current_main.outputs.is_current == 'true'
+        run: |
+          set -o pipefail
+          main_sha=$(git ls-remote --exit-code origin refs/heads/main | cut -f1)
+          if [ "$main_sha" = "$GITHUB_SHA" ]; then
+            echo "is_current=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Release Pull Request
+        if: github.ref == 'refs/heads/main' && steps.recheck_main.outputs.is_current == 'true' && (github.event_name != 'push' || steps.pending_changesets.outputs.has_pending == 'true')
         id: changesets
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1
         with:
@@ -1643,10 +1699,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Fixup package.json files
+        if: github.ref != 'refs/heads/main' || steps.recheck_main.outputs.is_current == 'true'
         run: pnpm run release.fixup-package-json
 
       - name: Commit Build Artifacts
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && (github.ref != 'refs/heads/main' || steps.recheck_main.outputs.is_current == 'true')
         env:
           QWIK_API_TOKEN_GITHUB: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
         run: pnpm run qwik-push-build-repos

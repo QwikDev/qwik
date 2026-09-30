@@ -6,13 +6,18 @@
  * Delete this script (use plain `changeset publish`) once v2 final is out.
  */
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 
 const v1SharedNameManifests = [
   'packages/eslint-plugin-qwik/package.json',
   'packages/create-qwik/package.json',
   'packages/supabase-auth-helpers-qwik/package.json',
 ];
+const v1SharedNames = new Set(v1SharedNameManifests);
+const v2NameManifests = readdirSync('packages', { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => `packages/${entry.name}/package.json`)
+  .filter((path) => existsSync(path) && !v1SharedNames.has(path));
 
 const run = (command) => {
   console.log(`> ${command}`);
@@ -26,6 +31,19 @@ const publish = (tag) => {
   }
   run(command);
 };
+const publishWithHiddenPackages = (tag, manifests) => {
+  const savedManifests = new Map(manifests.map((path) => [path, readFileSync(path, 'utf8')]));
+  try {
+    for (const [path, source] of savedManifests) {
+      writeFileSync(path, JSON.stringify({ ...JSON.parse(source), private: true }, null, 2));
+    }
+    publish(tag);
+  } finally {
+    for (const [path, source] of savedManifests) {
+      writeFileSync(path, source);
+    }
+  }
+};
 
 // `changeset publish` forbids --tag in pre mode; exit it in the working tree
 // only (the committed pre.json keeps versioning on 2.x.y-beta.N).
@@ -33,25 +51,14 @@ if (existsSync('.changeset/pre.json')) {
   run('pnpm changeset pre exit');
 }
 
-// Hide the v1-named packages from the `latest` pass by marking them private.
-const savedManifests = new Map(
-  v1SharedNameManifests.map((path) => [path, readFileSync(path, 'utf8')])
-);
-for (const [path, source] of savedManifests) {
-  writeFileSync(path, JSON.stringify({ private: true, ...JSON.parse(source) }, null, 2));
-}
 // The two passes are independent; a failure in one must not block the other.
 let latestError;
 try {
-  publish('latest');
+  publishWithHiddenPackages('latest', v1SharedNameManifests);
 } catch (error) {
   latestError = error;
-} finally {
-  for (const [path, source] of savedManifests) {
-    writeFileSync(path, source);
-  }
 }
-publish('beta');
+publishWithHiddenPackages('beta', v2NameManifests);
 if (latestError) {
   throw latestError;
 }

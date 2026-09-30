@@ -2,10 +2,10 @@ import { useLocation } from '@qwik.dev/router';
 import { component$, Slot, useComputed$, useSignal, useStyles$ } from '@qwik.dev/core';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import Contributors from '../../components/contributors';
+import { DocsSidebar } from '../../components/docs-sidebar/docs-sidebar';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
-import { Sidebar } from '../../components/sidebar/sidebar';
 import styles from './docs.css?inline';
 
 export default component$(() => {
@@ -18,7 +18,6 @@ export default component$(() => {
     <div class="docs">
       <Header mobileSidebarOpen={mobileSidebarOpen} />
       <div class="docs-grid bg-violet-shallow">
-        <Sidebar mobileOpen={mobileSidebarOpen} />
         <div class="docs-shell fixed-header">
           {hasOnThisPage.value && (
             <div class="docs-toc">
@@ -40,6 +39,7 @@ export default component$(() => {
             <ContentNav />
           </main>
         </div>
+        <DocsSidebar mobileOpen={mobileSidebarOpen} />
         <Footer />
       </div>
     </div>

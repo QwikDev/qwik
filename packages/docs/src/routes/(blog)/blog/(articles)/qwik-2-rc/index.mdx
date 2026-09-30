@@ -82,15 +82,19 @@ Since v1, a mountain of work has been done and we shipped a lot of other goodies
   alt="The Flash sprinting, captioned 'In theory', above the Flash in a wheelchair, captioned 'In reality'"
 />
 
-With the virtual tree out of the DOM, v2 keeps it in memory as small VNode objects. When a signal changes, Qwik updates the text node or attribute that reads it, without running the component again. Large updates are split up: the scheduler yields to the browser every 15 ms, so clicks and typing don't wait behind a long render.
+Qwik mainly relies on signals for reactivity, so in theory v1 should have been good at propagating updates, but the partial vDOM got in the way and the code was not yet optimized. With the virtual tree out of the HTML `body`, v2 keeps it in memory as small VNode objects. When a signal changes, Qwik updates the text node or attribute that reads it, now without parsing the HTML again. Large updates are split up: the scheduler yields to the browser every 15 ms, so clicks and typing don't wait behind a long render.
 
-Here is how v2 compares to v1, Vue, Angular and React on [js-framework-benchmark](https://github.com/krausest/js-framework-benchmark) ([machine, browser]):
+As a result, v2 is more than 2x faster than v1 in terms of reactivity, and faster than Angular, React or Vue.
+
+See the numbers on the [js-framework-benchmark](https://github.com/krausest/js-framework-benchmark) ([machine, browser]) table below:
 
 <BenchmarkTable />
 
-The HTML got smaller as well. We measured improvements from 10% to 25% smaller. Text bindings and component boundaries now live in the `qwik/vnode` string at the end of the page, and Qwik only reads the parts it needs to update. The state shrank too: an object or string used more than once is written once, entries are deserialized only when something reads them, and route loader data is no longer copied into the state by default.
+Qwik v2 has gotten significantly more optimized and stable. While the numbers are great, we know we can make them even better in a later major... so stay tuned!
 
-## Experimental out-of-order streaming
+> *Since this is RC, the results are not published yet and are subject to change until v2 comes out.
+
+## Experimental HTML out-of-order streaming
 
 <Image
   layout="constrained"
@@ -100,7 +104,9 @@ The HTML got smaller as well. We measured improvements from 10% to 25% smaller. 
   alt="Two-panel comic. A designer points at a blank browser window and asks: 'Can you add a skeleton here instead of the blank screen?' The developer answers: 'No, not possible, sorry.' Then he shows a dancing 3D skeleton: 'But we can ask Claude to put a 3D one after the page loads and make it dance, look!' She looks unimpressed."
 />
 
-Some parts of a page are slower than the rest, like search results or recommendations. Wrap them in `<Pending>` and the server stops waiting for them. It sends the rest of the page right away, with a fallback where the slow part goes, and streams the real content later in the same response. A small inline script swaps it in, and it resumes like the rest of the page.
+With in-order streaming, a slow fetch stalls every byte after it. The usual workaround is to start all fetches in parallel before sending the first byte of HTML. This avoids turning all your fetch calls into a giant waterfall, but comes at the price of your users facing a blank screen until the slowest fetch resolves.
+
+With out-of-order streaming now available in Qwik, you can wrap your components in `<Pending fallback$={() => ...}>` boundaries and the server stops waiting for them. Instead, it sends the rest of the page right away, with a fallback where the slow part goes, and streams the real content later in the same response. A small inline script swaps it in, and the boundary resumes like the rest of the page.
 
 `<Pending>`, `<Catch>` and `blockSSR: false` are experimental. Turn them on in `vite.config.ts`:
 
@@ -120,9 +126,9 @@ import {
   type Signal,
 } from '@qwik.dev/core';
 
-const Results = component$((props: { query: Signal<string> }) => {
+const Results = component$(({ query }: { query: Signal<string> }) => {
   const results = useComputed$(async ({ abortSignal }) => {
-    const url = `https://api.example.com/search?q=${encodeURIComponent(props.query.value)}`;
+    const url = `https://api.example.com/search?q=${encodeURIComponent(query.value)}`;
     const res = await fetch(url, { signal: abortSignal });
     if (!res.ok) {
       throw new Error('Search failed');
@@ -175,7 +181,7 @@ After that, typing doesn't bring the fallback back. `results.value` keeps the pr
 
 A failed search keeps the previous results on screen, with the error and a retry button that calls `invalidate()` above them, and the input stays usable. The first search has no results to keep, so if it fails, `results.value` throws and the error reaches `<Catch>`, like anything else you don't handle, such as a bug in `Results`. `<Catch>` replaces the section with its fallback until `reset()` renders it again. In production, the fallback gets a generic message and a digest for errors thrown on the server, and the details stay in your logs.
 
-`useComputed$` now accepts async functions, which makes it a better replacement for `<Resource>`. You read the result like any other signal, stale requests get cancelled, and it works with `<Pending>`, `<Catch>` and streaming.
+`useComputed$` now accepts async functions, which makes it a better replacement for `<Resource>`. You read the result like any other signal, stale requests get cancelled, and it works with `<Pending>` and `<Catch>`.
 
 ### Cacheable loaders
 
@@ -197,7 +203,7 @@ export const useCategories = routeLoader$(
 
 `cacheControl` sets the `Cache-Control` header of the loader's response, so a navigation can read the data from the browser cache without a request. `eTag` lets the server answer `304 Not Modified` without running the loader. An `'immutable'` loader is only fetched when a component reads it, stays cached until the next deploy, and becomes a static JSON file when you build a static site. And since `<Link>` prefetches a route's data on hover by default, the data is often on its way before the user clicks.
 
-With `blockSSR: false`, the first page load works the same way. The server starts streaming before the loader finishes, and the region that reads it streams in later.
+With `blockSSR: false`, the first page load works the same way. The server starts streaming before the loader finishes, and the `Pending` region that reads it's signal streams in later.
 
 ## And a lot more
 

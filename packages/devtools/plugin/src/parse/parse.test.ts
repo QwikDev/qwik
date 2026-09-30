@@ -221,7 +221,7 @@ describe('injectCollectHooks', () => {
   it('injects initialization into component$ (import handled by plugin layer)', () => {
     const input = sampleVarDecl;
     const output = parseQwikCode(input, { path: '/abs/path/Button.tsx?id=abc' });
-    expect(output).toContain('const collecthook = useCollectHooks("/abs/path/Button.tsx_Button")');
+    expect(output).toContain('const collecthook = useCollectHooks("/abs/path/Button.tsx_default")');
   });
 
   it('does not inject virtual import here (plugin layer does it)', () => {
@@ -235,7 +235,7 @@ describe('injectCollectHooks', () => {
   it('inserts initialization at the very beginning of component$ body with proper indent', () => {
     const input = sampleVarDecl;
     const output = parseQwikCode(input, { path: '/abs/path/Button.tsx?id=abc' });
-    const initLine = 'const collecthook = useCollectHooks("/abs/path/Button.tsx_Button")';
+    const initLine = 'const collecthook = useCollectHooks("/abs/path/Button.tsx_default")';
     const firstBodyStmt = "const { class: className = '', onClick$ } = props;";
     const initIdx = output.indexOf(initLine);
     const firstStmtIdx = output.indexOf(firstBodyStmt);
@@ -277,13 +277,13 @@ describe('injectCollectHooks', () => {
   it('supports custom collecthook arg via options', () => {
     const input = sampleVarDecl;
     const output = parseQwikCode(input, { path: 'CUSTOM_PATH' });
-    expect(output).toContain('const collecthook = useCollectHooks("CUSTOM_PATH_CUSTOM_PATH")');
+    expect(output).toContain('const collecthook = useCollectHooks("CUSTOM_PATH_default")');
   });
 
   it('supports passing Vite transform id via options.collectArgValue', () => {
     const input = sampleVarDecl;
     const output = parseQwikCode(input, { path: '/abs/path/Button.tsx?id=abc' });
-    expect(output).toContain('const collecthook = useCollectHooks("/abs/path/Button.tsx_Button")');
+    expect(output).toContain('const collecthook = useCollectHooks("/abs/path/Button.tsx_default")');
   });
 
   it('injects for custom expression (e.g. useHooks without assignment) and uses temp var', () => {
@@ -307,19 +307,19 @@ describe('injectCollectHooks', () => {
     expect(count(twice, "variableName: '_customhook_0'")).toBe(1);
   });
 
-  it('generates parent dir suffix for index.tsx (plain path)', () => {
+  it('identifies the default export in index.tsx', () => {
     const input = sampleVarDecl;
     const output = parseQwikCode(input, { path: '/abs/path/router/index.tsx' });
     expect(output).toContain(
-      'const collecthook = useCollectHooks("/abs/path/router/index.tsx_router")'
+      'const collecthook = useCollectHooks("/abs/path/router/index.tsx_default")'
     );
   });
 
-  it('strips query/hash and uses parent dir for index.tsx', () => {
+  it('strips query/hash from the default export path', () => {
     const input = sampleVarDecl;
     const output = parseQwikCode(input, { path: '/abs/path/router/index.tsx?id=abc#hash' });
     expect(output).toContain(
-      'const collecthook = useCollectHooks("/abs/path/router/index.tsx_router")'
+      'const collecthook = useCollectHooks("/abs/path/router/index.tsx_default")'
     );
   });
 
@@ -426,19 +426,19 @@ export const RouterHead = component$(() => {
     );
   });
 
-  it('replaces hyphen with underscore for file-based suffix', () => {
+  it('identifies the default export in a hyphenated filename', () => {
     const input = sampleVarDecl;
     const output = parseQwikCode(input, { path: '/abs/path/my-button.tsx' });
     expect(output).toContain(
-      'const collecthook = useCollectHooks("/abs/path/my-button.tsx_my_button")'
+      'const collecthook = useCollectHooks("/abs/path/my-button.tsx_default")'
     );
   });
 
-  it('replaces hyphen with underscore for index.tsx parent dir suffix', () => {
+  it('identifies the default export in a hyphenated route', () => {
     const input = sampleVarDecl;
     const output = parseQwikCode(input, { path: '/abs/path/my-router/index.tsx' });
     expect(output).toContain(
-      'const collecthook = useCollectHooks("/abs/path/my-router/index.tsx_my_router")'
+      'const collecthook = useCollectHooks("/abs/path/my-router/index.tsx_default")'
     );
   });
 

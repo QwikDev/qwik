@@ -30,6 +30,7 @@ const artifacts: Array<{ artifact: string; src: string; dest: string }> = [
     dest: 'packages/eslint-plugin-qwik/dist',
   },
   { artifact: 'artifact-devtools', src: 'artifact-devtools', dest: 'packages/devtools/dist' },
+  { artifact: 'artifact-mcp', src: 'artifact-mcp', dest: 'packages/mcp/dist' },
   // qwik-react artifact nests its output in a `lib` subdirectory
   { artifact: 'artifact-qwikreact', src: 'artifact-qwikreact', dest: 'packages/qwik-react/lib' },
   { artifact: 'artifact-qwikutils', src: 'artifact-qwikutils', dest: 'packages/qwik-utils/lib' },

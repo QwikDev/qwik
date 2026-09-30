@@ -6,13 +6,16 @@
  * Delete this script (use plain `changeset publish`) once v2 final is out.
  */
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const v1SharedNameManifests = [
   'packages/eslint-plugin-qwik/package.json',
   'packages/create-qwik/package.json',
   'packages/supabase-auth-helpers-qwik/package.json',
 ];
+const v2OnlyNameManifests = readdirSync('packages')
+  .map((dir) => `packages/${dir}/package.json`)
+  .filter((path) => existsSync(path) && !v1SharedNameManifests.includes(path));
 
 const run = (command) => {
   console.log(`> ${command}`);
@@ -33,25 +36,29 @@ if (existsSync('.changeset/pre.json')) {
   run('pnpm changeset pre exit');
 }
 
-// Hide the v1-named packages from the `latest` pass by marking them private.
-const savedManifests = new Map(
-  v1SharedNameManifests.map((path) => [path, readFileSync(path, 'utf8')])
-);
-for (const [path, source] of savedManifests) {
-  writeFileSync(path, JSON.stringify({ private: true, ...JSON.parse(source) }, null, 2));
-}
+// Hide the other pass's packages: npm may still report them unpublished.
+const publishWithout = (hiddenManifests, tag) => {
+  const savedManifests = new Map(hiddenManifests.map((path) => [path, readFileSync(path, 'utf8')]));
+  for (const [path, source] of savedManifests) {
+    writeFileSync(path, JSON.stringify({ ...JSON.parse(source), private: true }, null, 2));
+  }
+  try {
+    publish(tag);
+  } finally {
+    for (const [path, source] of savedManifests) {
+      writeFileSync(path, source);
+    }
+  }
+};
+
 // The two passes are independent; a failure in one must not block the other.
 let latestError;
 try {
-  publish('latest');
+  publishWithout(v1SharedNameManifests, 'latest');
 } catch (error) {
   latestError = error;
-} finally {
-  for (const [path, source] of savedManifests) {
-    writeFileSync(path, source);
-  }
 }
-publish('beta');
+publishWithout(v2OnlyNameManifests, 'beta');
 if (latestError) {
   throw latestError;
 }

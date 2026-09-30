@@ -47,6 +47,7 @@ import {
   useStore,
   useTask$,
   type QRL,
+  type Signal,
 } from '@qwik.dev/core';
 import {
   _getContextContainer,
@@ -116,6 +117,7 @@ import type {
   ResolvedDocumentHead,
   RouteActionResolver,
   RouteActionValue,
+  RouteLocation,
   RouteNavigate,
   RouteStateInternal,
   ScrollState,
@@ -174,6 +176,11 @@ const internalState: {
   currentTransition?: ViewTransition;
 } = { navCount: 0, attemptCount: 0 };
 
+const ensureRouteInternal = (
+  routeInternal: Signal<RouteStateInternal>,
+  routeLocation: RouteLocation
+) => (routeInternal.untrackedValue ||= { type: 'initial', dest: routeLocation.url });
+
 const getScroller = () => {
   let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
   if (!scroller) {
@@ -223,7 +230,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
   const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void } = {};
-  const routeLoaderCtx = useStore(env.routeLoaderCtx);
+  const routeLoaderCtx = env.routeLoaderCtx;
   routeLoaderCtx.manifestHash = manifestHash;
   // Inject middleware values without fetching.
   const loaderState = {} as Record<string, ComputedSignal<unknown>>;
@@ -243,12 +250,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   // The initial state of routeInternal uses the URL provided by the server environment.
   // It may not be accurate to the actual URL the browser is accessing the site from.
-  // It is useful for the purposes of SSR and SSG, but may be overridden browser-side
-  // if needed for SPA routing.
-  const routeInternal = useSignal<RouteStateInternal>({
-    type: 'initial',
-    dest: url,
-  });
+  // It is only used for SSR and SSG; the browser rebuilds it from routeLocation.
+  const routeInternal = useSignal<RouteStateInternal>(noSerialize({ type: 'initial', dest: url })!);
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(
     () => createDocumentHead(serverHead, manifestHash),
     { deep: false }
@@ -369,6 +372,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     // which in the case of SSG may not match the actual origin the site
     // is deployed on.
     // We only do this for link navigations, as popstate will have already changed the URL
+    ensureRouteInternal(routeInternal, routeLocation);
     if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
       const url = new URL(window.location.href);
       routeInternal.value.dest = url;
@@ -537,7 +541,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
    */
   useTask$(
     async ({ track }) => {
-      const navigation = track(routeInternal);
+      track(routeInternal);
+      const navigation = ensureRouteInternal(routeInternal, routeLocation);
       const action = track(actionState);
       action?.resolveDispatch?.();
       if (action) {
@@ -561,7 +566,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         trackUrl = new URL(navigation.dest, routeLocation.url);
         loadedRoute = env!.loadedRoute;
         endpointResponse = env!.response;
-        actionData = endpointResponse;
+        if (endpointResponse.action || endpointResponse.status !== 200) {
+          actionData = {
+            action: endpointResponse.action,
+            actionResult: endpointResponse.actionResult,
+            status: endpointResponse.status,
+          };
+        }
       } else {
         // client
         trackUrl = new URL(navigation.dest, location as any as URL);
@@ -766,7 +777,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       if (navigation.historyUpdated !== undefined) {
         nextRouteInternal.historyUpdated = navigation.historyUpdated;
       }
-      routeInternal.untrackedValue = nextRouteInternal;
+      if (!isServer) {
+        routeInternal.untrackedValue = nextRouteInternal;
+      }
 
       // Update content.
       // IMPORTANT: contentInternal must use .untrackedValue, NOT .value. Subscribers

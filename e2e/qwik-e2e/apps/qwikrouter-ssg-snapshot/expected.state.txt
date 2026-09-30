@@ -10,9 +10,8 @@
     Constant ':'
   ]
 ]
-5 {number} 24
+5 {number} 23
 6 Array [
-  RootRef [omitted]
   RootRef [omitted]
   RootRef [omitted]
   Store [
@@ -64,7 +63,7 @@
       Task [
         QRL "[omitted]"
         {number} 74
-        {number} 21
+        {number} 20
         RootRef [omitted]
       ]
       Constant ':'
@@ -98,9 +97,10 @@
   Task [
     QRL "[omitted]"
     {number} 74
-    {number} 20
+    {number} 19
     RootRef [omitted]
   ]
+  RootRef [omitted]
   ...
 ]
 7 Array [
@@ -135,30 +135,17 @@
 9 {string} "MANIFEST_HASH"
 10 Object 0
 11 Signal [
-  Object [
-    {string} "type"
-    {string} "initial"
-    {string} "dest"
-    URL "https://snapshot.qwik.dev/"
-  ]
+  Constant undefined
   RootRef [omitted]
 ]
-12 Store [
+12 Object [
+  {string} "loaderPaths"
   Object [
-    {string} "loaderPaths"
-    Object [
-      {string} "qO14f4pG8tQ"
-      {string} "/"
-    ]
-    RootRef [omitted]
-    RootRef [omitted]
+    {string} "qO14f4pG8tQ"
+    {string} "/"
   ]
-  {number} 1
-  Constant undefined
-  Store [
-    RootRef [omitted]
-    {number} 1
-  ]
+  RootRef [omitted]
+  RootRef [omitted]
 ]
 13 Store [
   RootRef [omitted]
@@ -202,17 +189,7 @@
   RootRef [omitted]
 ]
 25 Signal [
-  Object [
-    RootRef [omitted]
-    {number} 200
-    {string} "statusMessage"
-    Constant undefined
-    {string} "action"
-    Constant undefined
-    {string} "actionResult"
-    Constant undefined
-    {string} "formData"
-  ]
+  Constant undefined
   RootRef [omitted]
 ]
 26 RootRef [omitted]
@@ -423,7 +400,7 @@
 43 RootRef [omitted]
 44 Object [
   {string} "url"
-  RootRef [omitted]
+  URL "https://snapshot.qwik.dev/"
   {string} "params"
   Object 0
   {string} "isNavigating"
@@ -438,27 +415,25 @@
 50 RootRef [omitted]
 51 RootRef [omitted]
 52 RootRef [omitted]
-53 RootRef [omitted]
-54 Map [
+53 Map [
   RootRef [omitted]
   RootRef [omitted]
 ]
-55 {string} "q-xxxxxxxx.js"
-56 {string} "s_9CrWYOoCpgY"
+54 {string} "q-xxxxxxxx.js"
+55 {string} "s_9CrWYOoCpgY"
+56 RootRef [omitted]
 57 RootRef [omitted]
 58 RootRef [omitted]
 59 RootRef [omitted]
-60 RootRef [omitted]
-61 RootRef [omitted]
-62 Object [
+60 Object [
   {string} "raw"
 ]
-63 RootRef [omitted]
-64 Array []
-65 {string} "q-xxxxxxxx.js"
-66 {string} "s_4s4ZDCYhDOA"
-67 RootRef [omitted]
-68 Signal [
+61 RootRef [omitted]
+62 Array []
+63 {string} "q-xxxxxxxx.js"
+64 {string} "s_4s4ZDCYhDOA"
+65 RootRef [omitted]
+66 Signal [
   {number} 2
   EffectSubscriptionNoData [
     RootRef [omitted]
@@ -466,7 +441,7 @@
   ]
   RootRef [omitted]
 ]
-69 Store [
+67 Store [
   Object [
     {string} "expanded"
     Constant true
@@ -501,28 +476,30 @@
     ]
   ]
 ]
-70 RootRef [omitted]
-71 {string} "q-xxxxxxxx.js"
-72 {string} "s_cgSl2l0RC14"
-73 RootRef [omitted]
-74 RootRef [omitted]
-75 Map [
+68 RootRef [omitted]
+69 {string} "q-xxxxxxxx.js"
+70 {string} "s_cgSl2l0RC14"
+71 RootRef [omitted]
+72 RootRef [omitted]
+73 Map [
   Constant '.'
   RootRef [omitted]
 ]
+74 RootRef [omitted]
+75 {string} "s_QwONcWD5gIg"
 76 RootRef [omitted]
-77 {string} "s_QwONcWD5gIg"
-78 RootRef [omitted]
-79 {string} "q-xxxxxxxx.js"
-80 {string} "s_LqnNyU1Iy8c"
-81 RootRef [omitted]
-82 QRL "[omitted]"
-83 Object [
+77 {string} "q-xxxxxxxx.js"
+78 {string} "s_LqnNyU1Iy8c"
+79 RootRef [omitted]
+80 QRL "[omitted]"
+81 Object [
   {string} "r"
   RootRef [omitted]
 ]
-84 {string} "q-xxxxxxxx.js"
-85 {string} "_rsc"
+82 {string} "q-xxxxxxxx.js"
+83 {string} "_rsc"
+84 RootRef [omitted]
+85 RootRef [omitted]
 86 RootRef [omitted]
 87 RootRef [omitted]
 88 RootRef [omitted]
@@ -540,15 +517,12 @@
 100 RootRef [omitted]
 101 RootRef [omitted]
 102 RootRef [omitted]
-103 RootRef [omitted]
+103 {string} "s_lKDAUb7ao7U"
 104 RootRef [omitted]
-105 RootRef [omitted]
-106 {string} "s_lKDAUb7ao7U"
-107 RootRef [omitted]
-108 Promise [
+105 Promise [
   Constant true
   RootRef [omitted]
 ]
-109 ForwardRefs [
-  108
+106 ForwardRefs [
+  105
 ]

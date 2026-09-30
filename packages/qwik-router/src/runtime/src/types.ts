@@ -144,7 +144,9 @@ export type RouteNavigate = QRL<
   ) => Promise<void>
 >;
 
-export type RouteAction = Signal<RouteActionValue>;
+export type RouteAction = Signal<RouteActionValue> & {
+  pendingDispatch?: NoSerialize<Promise<void>>;
+};
 
 export type RouteActionResolver = { status: number; result: unknown };
 export type RouteActionValue =
@@ -153,6 +155,7 @@ export type RouteActionValue =
       data: FormData | Record<string, unknown> | undefined;
       output?: RouteActionResolver;
       resolve?: NoSerialize<(data: RouteActionResolver) => void>;
+      resolveDispatch?: NoSerialize<() => void>;
     }
   | undefined;
 
@@ -284,7 +287,8 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
 /**
  * A nested route trie structure. The root represents `/` and each level represents a URL segment.
  *
- * Keys starting with `_` are metadata; all other keys are child route segments.
+ * Keys starting with a single `_` are metadata; all other keys are child route segments. A static
+ * segment that starts with `_` is stored with an extra `_` (`_drafts` → `__drafts`).
  *
  * - Use `_W` as the key for a single dynamic segment (param); `_P` on that node names the param.
  * - Use `_A` as the key for a rest/catch-all segment; `_P` on that node names the param.
@@ -326,9 +330,11 @@ export interface RouteData {
   _M?: RouteData[];
   /** Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal. */
   _N?: MenuModuleLoader;
-  /** Array of routeLoader$ hashes for this node's loaders */
+  /** Inherited layout and server plugin routeLoader$ hashes. */
   _R?: string[];
-  /** Child route segments (any key not starting with `_`) */
+  /** Page loader hashes; override pages include their selected layouts and plugins. */
+  _D?: string[];
+  /** Child route segments (any key not starting with a single `_`) */
   [part: string]:
     | RouteData
     | RouteData[]
@@ -361,6 +367,8 @@ export interface QwikRouterConfig {
    * evaluates without touching the runtime (see the import-cycle notes in `route-loaders.ts`).
    */
   readonly importEagerModules?: () => Promise<unknown>;
+  /** URL of the app's service worker, when the routes define one. */
+  readonly serviceWorkerUrl?: string;
 }
 
 /** @public */
@@ -452,6 +460,8 @@ export interface LoadedRoute {
   $loaders$?: string[];
   /** Runtime-only mapping of routeLoader$ hashes to the matched pathname used for q-loader fetches */
   $loaderPaths$?: Record<string, string>;
+  /** Runtime-only mapping of routeLoader$ hashes to params matched at their loader path */
+  $loaderParams$?: Record<string, PathParams>;
 }
 
 export interface EndpointResponse {
@@ -807,7 +817,9 @@ export type LoaderOptions = {
    * object) or a function of the request event; the function may return `null` to skip the header.
    * A `Cache-Control` header set inside the loader function wins over this option.
    *
-   * Defaults to `no-cache` (always revalidate; combine with `eTag` for cheap 304s).
+   * Defaults to `private, no-cache` (browser revalidation without shared caching; combine with
+   * `eTag` for cheap 304s). Explicit `'no-cache'` and numeric values allow shared caching; numeric
+   * values include `s-maxage`.
    *
    * The literal value `'immutable'` also marks the loader's data as static, so SSG writes a
    * per-loader JSON file at build time.
@@ -838,7 +850,8 @@ export type LoaderOptions = {
    * - `true` — use the default key `${pathname}|${filteredSearch}|${loaderId}` (suffixed with
    *   `|${eTag}` when an eTag is set).
    * - Function `(requestEv, eTag) => string | null` — return a custom key, or `null` to skip caching
-   *   this request.
+   *   this request. For user-specific data, include user identity and relevant permissions in the
+   *   key or disable this cache.
    *
    * On cache miss the loader runs, the serialized response is stored alongside its eTag (computed
    * from the data when no `eTag` option is set), and the response is sent. On cache hit the stored

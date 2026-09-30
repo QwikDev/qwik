@@ -347,10 +347,10 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Experimental',
-      'Suspense',
-      '/docs/labs/suspense/',
+      'Pending',
+      '/docs/labs/pending/',
       'Experimental fallback boundaries for async rendering and out-of-order streaming, including `useComputed$`, `delay`, and `Reveal` patterns.',
-      toSourcePath('docs', 'labs', 'suspense', 'index.mdx')
+      toSourcePath('docs', 'labs', 'pending', 'index.mdx')
     ),
     apiEntry('qwik'),
     apiEntry('qwik-router'),

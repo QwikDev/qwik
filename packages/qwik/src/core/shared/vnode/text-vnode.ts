@@ -1,6 +1,7 @@
 import type { VNodeFlags } from '../../client/types';
 import type { Props } from '../jsx/jsx-runtime';
 import { VNode } from './vnode';
+import { Brand, brandClass } from '../utils/brand';
 
 /** @internal */
 export class TextVNode extends VNode {
@@ -17,3 +18,4 @@ export class TextVNode extends VNode {
     super(flags, parent, previousSibling, nextSibling, props);
   }
 }
+brandClass(TextVNode, Brand.TextVNode);

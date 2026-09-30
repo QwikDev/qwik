@@ -7,6 +7,7 @@ import { isSignal } from '../../reactive-primitives/utils';
 import { unwrapStore } from '../../reactive-primitives/impl/store';
 import { untrack } from '../../use/use-core';
 import { VNode } from '../vnode/vnode';
+import { qwikSymbol, registerSingleton } from '../singletons';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
@@ -104,7 +105,7 @@ const _verifySerializable = <T>(
   return value;
 };
 
-const noSerializeSet = /*#__PURE__*/ new WeakSet<object>();
+const noSerializeSet = /*#__PURE__*/ registerSingleton('noSerialize', () => new WeakSet<object>());
 
 const shouldSerialize = (obj: unknown): boolean => {
   if (isObject(obj) || isFunction(obj)) {
@@ -163,7 +164,7 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
  *
  * @public
  */
-export const NoSerializeSymbol = Symbol('noSerialize');
+export const NoSerializeSymbol: unique symbol = /*#__PURE__*/ qwikSymbol('noSerialize');
 /**
  * If an object has this property as a function, it will be called with the object and should return
  * a serializable value.
@@ -180,4 +181,4 @@ export const NoSerializeSymbol = Symbol('noSerialize');
  *
  * @public
  */
-export const SerializerSymbol = Symbol('serialize');
+export const SerializerSymbol: unique symbol = /*#__PURE__*/ qwikSymbol('serialize');

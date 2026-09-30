@@ -31,14 +31,18 @@ describe('resolveCacheKey', () => {
 });
 
 describe('default cache keys', () => {
-  it('builds the SSR key from request status and pathname', () => {
+  it('builds the SSR key from request status and original pathname', () => {
     const requestEv = {
       status: vi.fn(() => 200),
       url: new URL('http://localhost/products/'),
+      originalUrl: new URL('http://localhost/products/'),
     } as any;
 
     expect(defaultSsrCacheKey(requestEv, 'etag')).toBe('200|etag|/products/');
     expect(defaultSsrCacheKey(requestEv, '')).toBe('200|/products/');
+
+    requestEv.url = new URL('http://localhost/rewrite-target/');
+    expect(defaultSsrCacheKey(requestEv, 'etag')).toBe('200|etag|/products/');
   });
 
   it('builds the loader key from request path and sharedMap loader metadata', () => {

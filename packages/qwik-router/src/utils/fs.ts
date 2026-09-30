@@ -202,14 +202,14 @@ export function isEntryName(extlessName: string) {
   return extlessName === 'entry';
 }
 
-/** The boundary kind, ignoring any `@x`/`!` modifier: `'404'`, `'error'`, or undefined. */
-export function errorBoundaryName(extlessName: string): '404' | 'error' | undefined {
+/** Which caught error a page renders (`'404'` or `'error'`), ignoring `@x`/`!` modifiers. */
+export function caughtErrorName(extlessName: string): '404' | 'error' | undefined {
   const match = /^(error|404)(?:|!|@.+)$/.exec(extlessName);
   return match ? (match[1] as '404' | 'error') : undefined;
 }
 
 export function isErrorName(extlessName: string) {
-  return errorBoundaryName(extlessName) !== undefined;
+  return caughtErrorName(extlessName) !== undefined;
 }
 
 export function isGroupedLayoutName(dirName: string, warn = true) {

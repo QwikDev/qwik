@@ -1,13 +1,9 @@
-import { component$, ErrorBoundary } from '@qwik.dev/core';
-import {
-  defaultFallback,
-  EbContent,
-  EbSyncThrower,
-} from '../../components/error-boundary/error-boundary';
+import { component$, Catch } from '@qwik.dev/core';
+import { defaultFallback, CatchContent, CatchSyncThrower } from '../../components/catch/catch';
 
 export default component$(() => (
-  <ErrorBoundary fallback$={defaultFallback}>
-    <EbContent />
-    <EbSyncThrower />
-  </ErrorBoundary>
+  <Catch fallback$={defaultFallback}>
+    <CatchContent />
+    <CatchSyncThrower />
+  </Catch>
 ));

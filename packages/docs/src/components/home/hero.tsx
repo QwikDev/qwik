@@ -50,10 +50,13 @@ export const Hero = component$(() => {
       <Spacer class="2xl:h-[254px] h-[64px]" />
 
       <div class="relative">
-        <h1 class="uppercase font-display 2xl:text-h2 text-[40px] max-w-[15ch] text-center relative z-10">
-          <span>
-            Auto&shy;matically <span class="text-primary-standalone-emphasis">Instant</span> Web
-            Apps
+        <h1 class="uppercase font-heading 2xl:text-[84px]/[1.25] text-[40px] max-w-[15ch] text-center relative z-10">
+          <span class="[text-shadow:0.035em_0.035em_0_var(--color-background-base),0.07em_0.07em_0_var(--color-shadow-emphasis)]">
+            Auto&shy;matically{' '}
+            <span class="text-primary-standalone-base [text-shadow:0.035em_0.035em_0_var(--color-background-base),0.07em_0.07em_0_var(--color-primary-shadow-base)]">
+              Instant
+            </span>{' '}
+            Web Apps
           </span>
           {shimmerMarkup}
         </h1>

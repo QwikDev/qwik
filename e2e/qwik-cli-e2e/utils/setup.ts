@@ -31,6 +31,12 @@ function ensurePackageBuilt() {
       throw new Error(`Looks like package "${name}" has not been built yet.`);
     }
   }
+  // The scaffolded starters use the Rust optimizer, which needs prebuilt bindings.
+  if (!existsSync(join(workspaceRoot, 'packages/optimizer/bindings'))) {
+    throw new Error(
+      `Missing ${OPTIMIZER_PACKAGE} bindings. Run "pnpm build.rust" (needs the Rust toolchain) or "pnpm build.platform.copy" (downloads the published bindings) first.`
+    );
+  }
 }
 function packPackages() {
   const tarballPaths: { name: string; absolutePath: string }[] = [];

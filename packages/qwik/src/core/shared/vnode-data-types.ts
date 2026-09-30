@@ -86,10 +86,10 @@ export const VNodeDataChar = {
 /**
  * Convert a segment-local vnode index into a key for the root container's shared qVNodeRefs map.
  *
- * Out-of-order Suspense segments each start counting vnode refs from 0, but the client merges all
- * segment refs into one root-level map. This uses a Cantor-style pairing function for the
- * zero-based pair `(segmentIndex, localIndex)`, then makes it negative so segment refs cannot
- * collide with root refs, which are non-negative.
+ * Out-of-order segments each start counting vnode refs from 0, but the client merges all segment
+ * refs into one root-level map. This uses a Cantor-style pairing function for the zero-based pair
+ * `(segmentIndex, localIndex)`, then makes it negative so segment refs cannot collide with root
+ * refs, which are non-negative.
  *
  * Examples:
  *

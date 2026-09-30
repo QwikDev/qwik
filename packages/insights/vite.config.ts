@@ -6,6 +6,11 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  resolve: {
+    // v1 libraries import `@builder.io/qwik`, which only the bundler's aliases resolve. The
+    // top-level option reaches every server environment, including the SSG adapter's.
+    noExternal: ['@auth/qwik', '@modular-forms/qwik'],
+  },
   environments: {
     client: {
       optimizeDeps: {
@@ -16,14 +21,12 @@ export default defineConfig({
       build: {
         sourcemap: true,
       },
-      resolve: {
-        noExternal: ['@auth/qwik', '@modular-forms/qwik'],
-      },
     },
   },
   plugins: [
     qwikRouter(),
     qwikVite({
+      tsOptimizer: true,
       experimental: ['insights'],
     }),
     tsconfigPaths({ root: '.' }),

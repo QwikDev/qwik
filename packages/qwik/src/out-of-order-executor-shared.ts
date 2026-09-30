@@ -1,4 +1,4 @@
-/** Shared out-of-order Suspense executor logic for the inline script and source tests. */
+/** Shared out-of-order streaming executor logic for the inline script and source tests. */
 
 const Q_RESOLVED_SELECTOR = 'template[q\\:r="';
 const Q_RESOLVED_ATTR = 'q:r';

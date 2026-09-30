@@ -4,7 +4,7 @@ import * as logUtils from '../utils/log';
 import {
   markBoundaryErrored,
   redactBoundaryErrorForDisplay,
-  type ErrorBoundaryStore,
+  type CatchStore,
 } from './error-handling';
 
 class NonSerializableError {
@@ -365,7 +365,7 @@ describe('redactBoundaryErrorForDisplay', () => {
 describe('markBoundaryErrored', () => {
   it('fires onError$ with the ORIGINAL error, not the redacted projection', () => {
     const received: unknown[] = [];
-    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const store: CatchStore = { error: undefined, $onError$: (e) => received.push(e) };
     const original = Object.assign(new Error('boom'), { secret: 'x' });
     markBoundaryErrored(store, original);
     expect(received).toHaveLength(1);
@@ -374,7 +374,7 @@ describe('markBoundaryErrored', () => {
 
   it('keeps the raw error in the store; transformError projects at display time', () => {
     const received: unknown[] = [];
-    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const store: CatchStore = { error: undefined, $onError$: (e) => received.push(e) };
     const original = Object.assign(new Error('boom'), { secret: 'x' });
     markBoundaryErrored(store, original);
     expect(store.error).toBe(original);
@@ -385,7 +385,7 @@ describe('markBoundaryErrored', () => {
 
   it('called twice: each new error re-fires onError$ and overwrites store.error', () => {
     const received: unknown[] = [];
-    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const store: CatchStore = { error: undefined, $onError$: (e) => received.push(e) };
     const first = new Error('first');
     const second = new Error('second');
     markBoundaryErrored(store, first);
@@ -399,7 +399,7 @@ describe('markBoundaryErrored', () => {
 
   it('stores the raw throw and fires onError$ with it wrapped, raw as cause', () => {
     const received: unknown[] = [];
-    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const store: CatchStore = { error: undefined, $onError$: (e) => received.push(e) };
     const raw = { code: 401 };
     markBoundaryErrored(store, raw);
     expect(received).toHaveLength(1);
@@ -412,7 +412,7 @@ describe('markBoundaryErrored', () => {
   it('keeps the same Error subclass instance for store.error and onError$', () => {
     class CartError extends Error {}
     const received: unknown[] = [];
-    const store: ErrorBoundaryStore = { error: undefined, $onError$: (e) => received.push(e) };
+    const store: CatchStore = { error: undefined, $onError$: (e) => received.push(e) };
     const err = new CartError('Out of stock');
     markBoundaryErrored(store, err);
     expect(store.error).toBe(err);
@@ -422,7 +422,7 @@ describe('markBoundaryErrored', () => {
   it.each(hostileRows)(
     'absorbs a hostile throw and its display projection is an Error: %s',
     (_, makeHostile) => {
-      const store: ErrorBoundaryStore = { error: undefined };
+      const store: CatchStore = { error: undefined };
       expect(() => markBoundaryErrored(store, makeHostile())).not.toThrow();
       expect(redactBoundaryErrorForDisplay(store.error, false)).toBeInstanceOf(Error);
     }

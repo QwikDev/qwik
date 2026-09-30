@@ -22,14 +22,14 @@ export const Cmp = component$(({ isOpen, initialFee }) => {
 
 ============================= test.tsx_Cmp_component_other_useComputed_1mipxhl07gU.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useComputedQrl } from "@qwik.dev/core";
 //
 const q_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc"), "Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc");
 //
 export const Cmp_component_other_useComputed_1mipxhl07gU = (_rawProps)=>{
-    const _rawProps1 = _captures[0];
+    let _rawProps1 = _capturesObj._[0];
     const deeper = useComputedQrl(q_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc.w([
         _rawProps1,
         _rawProps
@@ -67,10 +67,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Cmp_component_other_useComputed_deeper_useComputed_QFbdi0j5EAc = (_rawProps)=>{
-    const _rawProps1 = _captures[0], _rawProps2 = _captures[1];
+    let _rawProps1 = _capturesObj._[0], _rawProps2 = _capturesObj._[1];
     return _rawProps.track(()=>_rawProps2.track(()=>_rawProps1.initialFee));
 };
 
@@ -105,10 +105,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk = ()=>{
-    const _rawProps = _captures[0], _rawProps1 = _captures[1];
+    let _rawProps = _capturesObj._[0], _rawProps1 = _capturesObj._[1];
     return _rawProps1.track(()=>_rawProps.isOpen.value) + _rawProps.initialFee;
 };
 
@@ -199,13 +199,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Cmp_component_networkFee_useComputed_ysNbpjmzm2Q.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
 const q_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk"), "Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk");
 //
 export const Cmp_component_networkFee_useComputed_ysNbpjmzm2Q = async (_rawProps)=>{
-    const _rawProps1 = _captures[0];
+    let _rawProps1 = _capturesObj._[0];
     const inner = q_Cmp_component_networkFee_useComputed_inner_n7hnoiBGbxk.w([
         _rawProps1,
         _rawProps

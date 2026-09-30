@@ -35,6 +35,12 @@ describe('signal-analysis', () => {
       });
     });
 
+    it('does NOT hoist useData().value into a _fnSignal (call must run in render scope)', () => {
+      const { node, source } = parseExpr('useData().value');
+      const result = analyzeSignalExpression(node, source, importedNames);
+      expect(result).toEqual({ type: 'wrapProp', code: '_wrapProp(useData())' });
+    });
+
     it('does NOT wrap signal.value() (function call on .value)', () => {
       const { node, source } = parseExpr('signal.value()');
       const result = analyzeSignalExpression(node, source, importedNames);

@@ -1,5 +1,5 @@
-const Q_ERROR_CONTENT_SELECTOR = '[q\\:ebc="';
-const Q_ERROR_FALLBACK_SELECTOR = '[q\\:ebf="';
+const Q_ERROR_CONTENT_SELECTOR = '[q\\:cc="';
+const Q_ERROR_FALLBACK_SELECTOR = '[q\\:cf="';
 const Q_CONTAINER_SELECTOR = '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])';
 
 type ErrorSwapExecutor = {

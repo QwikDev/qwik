@@ -6,7 +6,6 @@
  */
 
 import MagicString from 'magic-string';
-import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
@@ -19,6 +18,7 @@ import type { RelativePath } from '../types/brands.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { buildSyncTransform, isWorkerExtraction, needsPureAnnotation } from './rewrite-calls.js';
 import { getQrlCalleeName, isLibModePreservedMarker } from '../qwik/qrl-naming.js';
+import { isQwikPackageSource } from '../qwik/qwik-packages.js';
 import {
   inlineSentinelStep,
   isEventHandlerOrJsxProp,
@@ -34,8 +34,9 @@ import {
   transformJsxCalls,
 } from '../jsx/jsx-call-transform.js';
 import { stripExportDeclarations } from './strip-exports.js';
-import type { EmitMode } from '../types/types.js';
+import type { DecoratorOptions, EmitMode } from '../types/types.js';
 import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
+import { parseWithRawTransfer } from '../ast/parse.js';
 import type {
   AstFunction,
   AstNode,
@@ -53,7 +54,6 @@ import {
   formatImportStatement,
   formatNamedImportPart,
 } from '../edit/import-format.js';
-import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import type { RewriteContext } from './rewrite-context.js';
 import {
   collectNeededImports,
@@ -62,6 +62,7 @@ import {
   assembleOutput,
 } from './output-assembly.js';
 import { detectAndRenameCollisions, reserveGeneratedImportAliases } from './symbol-collision.js';
+import { getSentinelCounter } from '../segment/inline-strategy.js';
 import { countJsxKeysInNode } from '../segment/segment-generation.js';
 
 export {
@@ -120,8 +121,21 @@ export interface ParentRewriteResult {
   jsxRegionKeyBases?: ReadonlyMap<number, number>;
 }
 
-function isMarkerSpecifier(importedName: string, extractedCalleeNames: Set<string>): boolean {
-  return extractedCalleeNames.has(importedName);
+/**
+ * Whether an import specifier is a marker the extraction consumed. A bundled chunk can export any
+ * symbol under a marker name (`$ as basePathname`), so an aliased binding only counts when it comes
+ * from a Qwik package.
+ */
+function isMarkerSpecifier(
+  spec: ImportSpecifier,
+  importedName: string,
+  source: string,
+  extractedCalleeNames: Set<string>
+): boolean {
+  if (!extractedCalleeNames.has(importedName)) {
+    return false;
+  }
+  return spec.local.name === importedName || isQwikPackageSource(source);
 }
 
 /**
@@ -159,6 +173,7 @@ export function rewriteParentModule(
   isServer?: boolean,
   explicitExtensions?: boolean,
   transpileTs?: boolean,
+  decorator?: DecoratorOptions,
   minify?: string,
   outputExtension?: string,
   existingProgram?: AstProgram,
@@ -168,8 +183,7 @@ export function rewriteParentModule(
   elementQpParamsMap?: ReadonlyMap<string, string[]>
 ): ParentRewriteResult {
   const s = new MagicString(source);
-  const program =
-    existingProgram ?? parseSync(relPath, source, RAW_TRANSFER_PARSER_OPTIONS).program;
+  const program = existingProgram ?? parseWithRawTransfer(relPath, source).program;
 
   const ctx: RewriteContext = {
     source,
@@ -191,6 +205,7 @@ export function rewriteParentModule(
     isServer,
     explicitExtensions,
     transpileTs,
+    decorator,
     minify,
     outputExtension,
     extractedCalleeNames: new Set<string>(),
@@ -345,10 +360,11 @@ function collectExtractedCalleeNames(ctx: RewriteContext): void {
   for (const ext of ctx.extractions) {
     ctx.extractedCalleeNames.add(ext.calleeName);
     if (ext.isInlinedQrl) {
-      // `_captures` is a runtime helper used inside inlinedQrl bodies, not a
+      // `_capturesObj` is a runtime helper used inside inlinedQrl bodies, not a
       // marker callee. Stripping its import is only safe when bodies extract to
       // segment files; under inline/hoist they stay in the parent and still need it.
       if (!ctx.isInline) {
+        ctx.extractedCalleeNames.add('_capturesObj');
         ctx.extractedCalleeNames.add('_captures');
       }
       ctx.extractedCalleeNames.add('_inlinedQrl');
@@ -406,7 +422,7 @@ function processImports(ctx: RewriteContext): void {
         continue;
       }
       const importedName = importedSpecifierName(spec);
-      if (isMarkerSpecifier(importedName, extractedCalleeNames)) {
+      if (isMarkerSpecifier(spec, importedName, sourceNode.value, extractedCalleeNames)) {
         if (isLibMode && isLibModePreservedMarker(importedName)) {
           continue;
         }
@@ -625,8 +641,9 @@ function consolidatePromotedParams(
 }
 
 function preComputeQrlVarNames(ctx: RewriteContext): void {
-  let earlyStrippedCounter = 0;
   let inlineSentinelOffset = 0;
+  // Output assembly numbers top-level workers and stripped QRLs in one sequence; mirror it.
+  let topLevelSentinelCounter = 0;
   for (const ext of ctx.extractions) {
     if (ext.isSync) {
       continue;
@@ -639,9 +656,10 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
       if (ctx.inlineOptions?.inline) {
         ctx.earlyQrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
         inlineSentinelOffset += inlineSentinelStep(ext, false, ctx.inlineOptions.regCtxName);
-      } else {
-        const counter = 0xffff0000 + earlyStrippedCounter++ * 2;
-        ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+      } else if (ext.parent === null) {
+        // Nested workers are named by their parent segment; only top-level names are read here.
+        const index = topLevelSentinelCounter++;
+        ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${getSentinelCounter(index)}`);
       }
       continue;
     }
@@ -656,9 +674,11 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
         ctx.inlineOptions.stripCtxName,
         ctx.inlineOptions.stripEventHandlers
       );
-    const offset = ctx.inlineOptions.inline ? inlineSentinelOffset : earlyStrippedCounter * 2;
+    const offset = ctx.inlineOptions.inline ? inlineSentinelOffset : topLevelSentinelCounter * 2;
     if (ctx.inlineOptions.inline) {
       inlineSentinelOffset += inlineSentinelStep(ext, stripped, ctx.inlineOptions.regCtxName);
+    } else if (stripped && ext.parent === null) {
+      topLevelSentinelCounter++;
     }
     if (stripped) {
       const counter = 0xffff0000 + offset;
@@ -943,7 +963,8 @@ function addCaptureWrapping(ctx: RewriteContext): void {
       continue;
     }
 
-    if (isEventHandlerOrJsxProp(ext.ctxKind) && !ext.qrlCallee) {
+    // Implicit JSX-prop QRLs get their captures in rewriteCallSites; bare `$()` props do not.
+    if (isEventHandlerOrJsxProp(ext.ctxKind) && !ext.qrlCallee && !ext.isBare) {
       continue;
     }
 

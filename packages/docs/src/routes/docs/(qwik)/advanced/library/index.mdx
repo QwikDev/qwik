@@ -83,11 +83,20 @@ The most important files of a library are a properly configured `package.json` a
     "lib",
     "lib-types"
   ],
+  "peerDependencies": {
+    "@qwik.dev/core": "^2.0.0",
+    "@qwik.dev/router": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@qwik.dev/router": { "optional": true }
+  },
   "type": "module",
 }
 ```
 
 Notice the `qwik` field, this is the entry point for the Qwik Optimizer, it will use this file to generate the `index.qwik.mjs` file.
+
+List `@qwik.dev/core`, and `@qwik.dev/router` if you use it, in `peerDependencies`, starting at the version you build with: the build imports runtime helpers that older versions lack. The starter's `vite.config.ts` keeps peer dependencies out of the build, so the app provides a single copy of Qwik. A production server may load your library from `node_modules` as it is, and it shares Qwik's runtime state with the app.
 
 <Note>The file must be called with the `.qwik.mjs` extension, otherwise the Qwik Optimizer will not recognize it.</Note>
 

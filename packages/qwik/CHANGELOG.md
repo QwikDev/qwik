@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.47
+
+### Patch Changes
+
+- 🐞🩹 avoid quadratic SSR work for sibling inline components (by [@Varixo](https://github.com/Varixo) in [#9093](https://github.com/QwikDev/qwik/pull/9093))
+
 ## 2.0.0-beta.46
 
 ### Minor Changes

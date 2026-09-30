@@ -2740,6 +2740,60 @@ describe.each([
     );
   });
 
+  it('should remove a forwarded slot whose owner has no state', async () => {
+    const StatefulLink = component$(() => {
+      const clicks = useSignal(0);
+      return (
+        <a data-clicks={clicks.value} onClick$={() => clicks.value++}>
+          <Slot />
+        </a>
+      );
+    });
+    const StatelessLink = component$(() => {
+      return (
+        <div>
+          <StatefulLink>
+            <Slot />
+          </StatefulLink>
+        </div>
+      );
+    });
+    const Section = component$(() => {
+      return (
+        <section>
+          <StatelessLink>link</StatelessLink>
+        </section>
+      );
+    });
+    const Page = component$(() => {
+      return (
+        <main>
+          <Section />
+        </main>
+      );
+    });
+    const Parent = component$(() => {
+      const show = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (show.value = false)}></button>
+          {show.value && <Page />}
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+        </Fragment>
+      </Component>
+    );
+  });
+
   it('should toggle text content projection', async () => {
     const Parent = component$(() => {
       return <Slot />;

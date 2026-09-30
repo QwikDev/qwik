@@ -47,8 +47,17 @@ function isClientAbortWriteError(error: unknown) {
     code === 'EPIPE' ||
     code === 'ECONNRESET' ||
     code === 'ERR_STREAM_DESTROYED' ||
-    code === 'ERR_STREAM_WRITE_AFTER_END'
+    code === 'ERR_STREAM_WRITE_AFTER_END' ||
+    code === 'ERR_HTTP2_INVALID_STREAM' ||
+    code === 'ERR_HTTP2_STREAM_ERROR' ||
+    code === 'ERR_HTTP2_STREAM_CANCEL'
   ) {
+    return true;
+  }
+
+  // Message backstop for runtimes that surface a destroyed/ended stream without one of the codes above.
+  const message = error.message;
+  if (message.includes('The stream has been destroyed') || message.includes('write after end')) {
     return true;
   }
 

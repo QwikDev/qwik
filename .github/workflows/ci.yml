@@ -835,6 +835,7 @@ jobs:
 
       - name: Install Playwright System Dependencies
         if: runner.os == 'Linux'
+        timeout-minutes: 10
         run: pnpm exec playwright install-deps chromium
 
       - name: Install Playwright Browser
@@ -1197,6 +1198,7 @@ jobs:
 
       - name: Install Playwright System Dependencies
         if: runner.os == 'Linux'
+        timeout-minutes: 10
         run: pnpm exec playwright install-deps ${{ matrix.settings.browser }}
 
       - name: Install Playwright Browser
@@ -1221,6 +1223,7 @@ jobs:
         if: failure()
 
   test-cli-e2e:
+    timeout-minutes: 30
     name: E2E CLI Tests (${{ matrix.settings.optimizer }}, ${{ matrix.settings.runtime }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
     if: always() && needs.changes.outputs.build-cli-e2e == 'true'
 
@@ -1437,6 +1440,7 @@ jobs:
 
       - name: Install Playwright System Dependencies
         if: runner.os == 'Linux'
+        timeout-minutes: 10
         run: pnpm exec playwright install-deps ${{ matrix.settings.browser }}
 
       - name: Install Playwright Browser

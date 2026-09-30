@@ -1,0 +1,100 @@
+# Qwik MCP
+
+`@qwik.dev/mcp` connects an MCP client to a running Qwik development server. It supports browser rendering and Router SSR and works independently of the DevTools panel.
+
+## Setup
+
+```sh
+pnpm add -D @qwik.dev/mcp
+```
+
+Add `qwikMcp()` before `qwikVite()` in `vite.config.ts`:
+
+```ts
+import { defineConfig } from 'vite';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikRouter } from '@qwik.dev/router/vite';
+import { qwikMcp } from '@qwik.dev/mcp';
+
+export default defineConfig({
+  plugins: [qwikMcp(), qwikRouter(), qwikVite()],
+});
+```
+
+For a browser-only Qwik app, omit `qwikRouter()` and keep your existing `qwikVite({ csr: true })` configuration. Start Vite and open the app in a local browser.
+
+Configure your MCP client to launch the locally installed binary through stdio:
+
+```json
+{
+  "mcpServers": {
+    "qwik": {
+      "command": "npx",
+      "args": ["--no-install", "qwik-mcp", "/absolute/path/to/project"]
+    }
+  }
+}
+```
+
+Set the client's working directory to your project so `npx --no-install` resolves its local dependency. The optional positional path selects the Vite project root; it defaults to the process's working directory. No package download occurs when launching this configuration.
+
+## Tools
+
+| Tool                 | Inputs                                                                                                                   | Result                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `get_project_info`   | `{}`                                                                                                                     | Installed versions, script names, documentation match and optional dev URL       |
+| `list_routes`        | `{}`                                                                                                                     | `routerInstalled` and Router's routes, source files, parameters, layouts         |
+| `get_dev_errors`     | `{ url? }`                                                                                                               | Vite errors observed by the selected page, with source locations                 |
+| `inspect_page`       | `{ url?, selector?, includeHtml?, includeSignalValues?, includeSerializedState?, includeSerializedVNodeTree?, offset? }` | Component tree, hooks, optional HTML, signal values, parsed state and VNode tree |
+| `search_docs`        | `{ query, limit? }`                                                                                                      | Ranked documentation page IDs, titles, snippets and snapshot version             |
+| `get_doc`            | `{ id }`                                                                                                                 | Full Markdown page, source URL and snapshot version                              |
+| `get_best_practices` | `{}`                                                                                                                     | Short Qwik coding guide and its bundled version                                  |
+
+`includeHtml` and `includeSignalValues` default to `false`. `selector` scopes the HTML fragment; component metadata still describes the page. HTML is current DOM, marked `source: "live-dom"`, limited to 64 KiB of UTF-8, with `truncated` indicating an incomplete fragment. It is not the original SSR response.
+
+`includeSerializedState` and `includeSerializedVNodeTree` also default to `false`. They parse the page's Qwik state scripts and reconstruct a VNode tree from a copy of the DOM. Each returns `null` when no Qwik container or relevant state exists, or `{ source: "serialized-dom", content, truncated, nextOffset }` with a 64 KiB UTF-8 limit. These snapshots may differ from current signal values after interaction. `selector` does not scope them.
+
+Each text result also includes `nextOffset`. If `truncated` is `true`, call `inspect_page` again with the same include flag and `offset: nextOffset`. Repeat until `nextOffset` is `null`. The offset counts UTF-8 bytes and applies to every selected text field, so request one text field at a time when paging. Page changes can mix snapshots across calls; if an offset becomes invalid, restart at `0`.
+
+Hook metadata is collected by the shared DevTools instrumentation as components execute and their document-ready tasks run. Components that have not executed in the browser may appear in the tree without hook metadata. Snapshot entries are grouped by component source, so repeated instances share that metadata.
+
+With several pages connected, provide the exact page URL. Duplicate tabs with the same URL must be closed until one remains. Missing pages, invalid selectors, missing runtime and disconnected servers return tool errors. Vite errors clear after successful HMR; this is not a project-wide typecheck or build report.
+
+## Offline documentation
+
+`get_best_practices`, `search_docs` and `get_doc` work without Vite, an open browser or network access. The short guide and documentation snapshot are bundled with the MCP package and carry its version. The snapshot is generated from all Qwik documentation and API pages during the MCP build. MCP uses the same complete manifest as `llms.txt`; new documentation pages are discovered automatically during the build. It describes that release, which may differ from the Qwik version installed in your application.
+
+The MCP server also sends workflow instructions during initialization: read the guide for Qwik code, search for specific topics, then fetch the full page. The instructions describe which live tools require Vite and a connected browser.
+
+`get_project_info` reads installed Qwik packages and project script names even when Vite is stopped. It returns `documentation.version` and `documentation.matchesProject`, which compares the bundled documentation version with the installed Qwik core version exactly. `devServerRunning` is `false` and `devUrl` is absent until Vite starts. `routerVersion` reports the installed Router package; use `list_routes` to see whether the Router plugin is active.
+
+Search first, then use a returned page ID to read the full document:
+
+```json
+{ "query": "useSignal", "limit": 5 }
+```
+
+```json
+{ "id": "/docs/core/state/" }
+```
+
+Search matches words in page titles, descriptions and Markdown content, with title matches ranked first. `limit` defaults to 5 and accepts 1–20. An unknown page ID returns a tool error.
+
+## Local access
+
+The plugin runs only during development. Its internal endpoint accepts loopback connections with a random session token and rejects browser origins. Discovery files live in `node_modules/.cache/qwik-mcp`, have owner-only permissions on Unix, and are removed when the server closes. Stale files from terminated processes are ignored.
+
+Use a standalone HTTP Vite server with HMR enabled. HTTPS and middleware mode are currently unsupported. The CLI sends only MCP protocol messages to stdout. Tools inspect the running app and do not edit files, install packages or start builds. Returned HTML, hook metadata, signal values, parsed state and VNode tree are application content and may contain private information.
+
+## Development
+
+From the monorepo root:
+
+```sh
+pnpm build.core.dev
+pnpm build.mcp
+pnpm --filter @qwik.dev/mcp typecheck
+pnpm test.mcp
+```
+
+Browser integration tests require Playwright Chromium. MCP bundles selected shared DevTools sources at build time, so publishing it does not require the DevTools UI package.

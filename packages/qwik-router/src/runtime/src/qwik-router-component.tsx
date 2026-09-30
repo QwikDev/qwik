@@ -249,8 +249,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     type: 'initial',
     dest: url,
   });
-  const documentHead = useStore<Editable<ResolvedDocumentHead>>(() =>
-    createDocumentHead(serverHead, manifestHash)
+  const documentHead = useStore<Editable<ResolvedDocumentHead>>(
+    () => createDocumentHead(serverHead, manifestHash),
+    { deep: false }
   );
   const content = useStore<Editable<ContentState>>({
     headings: undefined,

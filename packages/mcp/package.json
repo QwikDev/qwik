@@ -1,0 +1,56 @@
+{
+  "name": "@qwik.dev/mcp",
+  "version": "2.0.0-beta.45",
+  "description": "Local MCP tools for Qwik development",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "qwik-mcp": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.1.0",
+    "oxc-parser": "^0.144.0",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "2.1.0",
+    "@playwright/test": "1.61.1",
+    "@qwik.dev/core": "workspace:*",
+    "@qwik.dev/router": "workspace:*",
+    "@types/node": "25.6.0",
+    "esbuild": "0.28.2",
+    "typescript": "5.9.3",
+    "vite": "8.2.1",
+    "vitest": "5.0.0"
+  },
+  "peerDependencies": {
+    "@qwik.dev/core": "workspace:*",
+    "vite": ">=8 <9"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/mcp"
+  }
+}

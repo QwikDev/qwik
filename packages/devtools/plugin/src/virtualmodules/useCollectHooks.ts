@@ -6,6 +6,7 @@ const componentStateKey = JSON.stringify(QWIK_DEVTOOLS_GLOBAL.props.componentSta
 
 /** Virtual module source for devtools tracking. Collects hooks and tracks render statistics. */
 const useCollectHooks = `import { $, useSignal, useVisibleTask$ } from "@qwik.dev/core"
+import { _getContextContainer, _getContextHostElement } from "@qwik.dev/core/internal"
 
 function initComponentState() {
   return {
@@ -30,11 +31,16 @@ function getOrCreateState(src) {
  * Hook to collect component hooks
  */
 export const useCollectHooks = (src) => {
+  const container = _getContextContainer()
+  const host = _getContextHostElement()
+  const symbol = container?.getHostProp(host, "q:renderFn")?.getSymbol?.()
   const hooksList = useSignal(new Set())
   useVisibleTask$(({ track }) => {
     const newHooks = track(() => hooksList.value)
     const state = getOrCreateState(src)
     state.hooks = [...newHooks]
+    state.symbol = symbol
+    window[${globalKey}]?.hook?.refreshVNodeTree?.()
   }, { strategy: 'document-ready' })
   
   return $((args) => {
@@ -42,6 +48,10 @@ export const useCollectHooks = (src) => {
       return
     }
     hooksList.value.add(args)
+    if (typeof window !== 'undefined') {
+      getOrCreateState(src).hooks = [...hooksList.value]
+      window[${globalKey}]?.hook?.refreshVNodeTree?.()
+    }
   })
 }
 `;

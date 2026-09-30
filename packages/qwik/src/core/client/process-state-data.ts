@@ -55,6 +55,7 @@ export const onContainerDataReady = (container: ClientContainer, callback: () =>
   checkReady();
 };
 
+/** @internal */
 export const whenContainerDataReady = <T>(
   container: ClientContainer,
   callback: () => T | Promise<T>

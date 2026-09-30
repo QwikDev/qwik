@@ -5,7 +5,6 @@ import {
   useSignal,
   useStyles$,
   useTask$,
-  useVisibleTask$,
   type NoSerialize,
 } from '@qwik.dev/core';
 import { Link, useLocation } from '@qwik.dev/router';
@@ -52,7 +51,7 @@ export const SearchModal = component$(() => {
     isOpen.value = false;
   });
 
-  useVisibleTask$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     const open = track(isOpen);
 
     if (!open || pagefind.value || initState.value === 'loading') {
@@ -213,7 +212,7 @@ const SearchIdle = component$(() => {
       {
         title: 'Getting Started',
         subtitle: 'Learn how to get started with Qwik',
-        href: '/docs/getting-started/overview',
+        href: '/docs/getting-started/',
         excerpt: 'This section provides an overview of getting started with Qwik.',
         group: 'Docs',
       },

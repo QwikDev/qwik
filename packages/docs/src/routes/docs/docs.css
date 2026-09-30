@@ -147,7 +147,7 @@
 }
 
 .docs article .card-intro .card-icon {
-  @apply flex items-center justify-center bg-white py-8;
+  @apply flex items-center justify-center bg-background-base py-8;
 }
 
 .docs article .card-intro .card-icon .intro-icon {
@@ -171,11 +171,11 @@
 
 .docs article .card-intro .card-body p {
   @apply text-body-xs mt-0;
-  color: var(--color-sky-80);
+  color: var(--color-standalone-accent);
 }
 
 .docs article .card-intro.card-violet .card-body p {
-  color: var(--color-violet-80);
+  color: var(--color-secondary-foreground-base);
 }
 
 /* ─── Explore cards (horizontal layout) ─── */
@@ -202,7 +202,7 @@
 }
 
 .docs article .card-explore .card-icon {
-  @apply flex items-center justify-center bg-white flex-shrink-0 rounded-l-[10px] p-4;
+  @apply flex items-center justify-center bg-background-base flex-shrink-0 rounded-l-[10px] p-4;
 }
 
 .docs article .card-explore .card-icon .intro-icon {
@@ -226,11 +226,11 @@
 
 .docs article .card-explore p {
   @apply text-body-xs mt-0;
-  color: var(--color-sky-80);
+  color: var(--color-standalone-accent);
 }
 
 .docs article .card-explore.card-violet p {
-  color: var(--color-violet-80);
+  color: var(--color-secondary-foreground-base);
 }
 
 /* ─── Feature cards (text only) ─── */
@@ -362,11 +362,29 @@ h6 a:hover .icon {
 /* ─── Code blocks (card style) ─── */
 
 .highlighted-word {
-  @apply bg-violet-15 rounded px-[1px] py-[1px] -mx-[1px] -my-[1px];
+  @apply bg-secondary-background-base rounded px-[1px] py-[1px] -mx-[1px] -my-[1px];
 }
 
 .highlighted {
-  @apply !bg-violet-5 px-2 -mx-2;
+  @apply !bg-secondary-background-accent px-2 -mx-2;
+}
+
+html.dark .docs article .highlighted,
+html[data-theme='dark'] .docs article .highlighted {
+  background-color: color-mix(
+    in srgb,
+    var(--color-secondary-background-accent) 25%,
+    var(--color-background-base)
+  ) !important;
+}
+
+html.dark .docs article .highlighted-word,
+html[data-theme='dark'] .docs article .highlighted-word {
+  background-color: color-mix(
+    in srgb,
+    var(--color-secondary-background-base) 35%,
+    var(--color-background-base)
+  );
 }
 
 /* First highlighted line in a group */
@@ -394,6 +412,18 @@ h6 a:hover .icon {
   @apply bg-background-base border-[1.6px] border-base rounded-2xl shadow-base overflow-clip py-4 px-6;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.docs article pre.shiki,
+.docs article pre.shiki span {
+  color: var(--shiki-light);
+}
+
+html.dark .docs article pre.shiki,
+html.dark .docs article pre.shiki span,
+html[data-theme='dark'] .docs article pre.shiki,
+html[data-theme='dark'] .docs article pre.shiki span {
+  color: var(--shiki-dark);
 }
 
 .docs article .shiki-title + pre {

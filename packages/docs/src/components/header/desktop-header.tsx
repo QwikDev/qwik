@@ -21,9 +21,10 @@ import NavRouterImg from '../../media/navbar/nav-router.png?jsx';
 import NavTutorialImg from '../../media/navbar/nav-tutorial.png?jsx';
 import { tw } from '~/utils/utils';
 import { SearchModal } from '../search/search';
+import { ThemeToggle } from '../theme-toggle';
 
 const ImageCardClasses =
-  'absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform';
+  'absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform [html.dark_&]:[filter:brightness(.62)_contrast(2.85)]';
 
 const ImageCard = component$(
   (props: { href: string; label: string; description: string; class?: string }) => (
@@ -35,7 +36,7 @@ const ImageCard = component$(
       ]}
     >
       <Slot />
-      <div class="absolute bottom-0 left-0 right-0 h-[134px] bg-linear-to-b from-transparent to-standalone-accent" />
+      <div class="absolute bottom-0 left-0 right-0 h-[134px] bg-linear-to-b from-nav-image-overlay/0 to-nav-image-overlay" />
       <div class="absolute inset-0 pointer-events-none rounded-[inherit] shadow-secondary-border-inset" />
       <span class="relative font-bold text-base leading-[22px] text-primary-foreground-base">
         {props.label}
@@ -93,6 +94,33 @@ export const DesktopHeader = component$(() => {
 
   const navRef = useSignal<HTMLElement>();
 
+  const setNavSlide$ = $((target: EventTarget | null) => {
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    const trigger = target.closest('[ui-qds-popover-trigger]');
+    const root = navRef.value;
+    if (!trigger || !root?.contains(trigger)) {
+      return;
+    }
+
+    const nextItem = trigger.closest<HTMLElement>('[ui-qds-popover-root]');
+    const items = Array.from(root.querySelectorAll<HTMLElement>('[ui-qds-popover-root]'));
+    const nextIndex = nextItem ? items.indexOf(nextItem) : -1;
+    if (nextIndex < 0) {
+      return;
+    }
+
+    const content = nextItem?.querySelector<HTMLElement>('[ui-qds-popover-content]');
+    const openIndex = items.findIndex((item) => item.hasAttribute('ui-open'));
+    if (openIndex < 0) {
+      content?.removeAttribute('data-nav-slide');
+    } else if (openIndex !== nextIndex) {
+      content?.setAttribute('data-nav-slide', nextIndex < openIndex ? 'left' : 'right');
+    }
+  });
+
   const toggleNavbar = $(() => {
     const y = window.scrollY;
 
@@ -136,12 +164,16 @@ export const DesktopHeader = component$(() => {
       class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-[''] 2xl:block hidden"
     >
       <navbar.root
-        class="fixed top-6 left-1/2 z-99999 flex w-full h-[70px] max-w-[840px] items-center justify-between rounded-2xl border-[1.6px] border-base mx-auto bg-background-base shadow-base transition-[translate,opacity] duration-300 ease px-6"
+        class="fixed top-6 left-1/2 z-99999 flex w-full h-[70px] max-w-[900px] items-center justify-between rounded-2xl border-[1.6px] border-base mx-auto bg-background-base shadow-base transition-[translate,opacity] duration-300 ease px-6"
         style={{
           translate: isHidden.value ? '-50% calc(-100% - 24px)' : '-50% 0',
           opacity: isHidden.value ? 0 : 1,
         }}
-        onFocusIn$={() => (focused.value = true)}
+        onPointerOver$={(event) => setNavSlide$(event.target)}
+        onFocusIn$={(event) => {
+          focused.value = true;
+          setNavSlide$(event.target);
+        }}
         onFocusOut$={() => (focused.value = false)}
       >
         <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">
@@ -354,6 +386,7 @@ export const DesktopHeader = component$(() => {
 
           {/* ── Search ── */}
           <SearchModal />
+          <ThemeToggle />
         </div>
 
         <Link href="/docs/getting-started" variant="primary">

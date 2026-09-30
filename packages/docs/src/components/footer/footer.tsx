@@ -109,7 +109,7 @@ export const Footer = component$(() => {
   const hash = normalizeHash(location.url.hash);
 
   return (
-    <footer class="bg-violet-0 px-4 pb-6 pt-16 sm:px-6 md:px-8 lg:px-20 lg:pb-10 lg:pt-32">
+    <footer class="bg-background-accent px-4 pb-6 pt-16 sm:px-6 md:px-8 lg:px-20 lg:pb-10 lg:pt-32">
       <div class="mx-auto flex w-full max-w-[1280px] flex-col gap-16 lg:gap-20">
         <div class="flex flex-col gap-16 lg:hidden">
           <div class="flex flex-col items-start gap-8">
@@ -118,7 +118,7 @@ export const Footer = component$(() => {
             <div class="flex flex-col items-start gap-6">
               <h2 class="m-0 w-full max-w-none text-[20px] leading-[1.26] text-foreground-base">
                 <span class="font-heading">Start building </span>
-                <span class="font-heading text-sky-45">Qwikly</span>
+                <span class="font-heading text-primary-standalone-base">Qwikly</span>
                 <span class="font-heading"> today!</span>
               </h2>
 

@@ -1,4 +1,4 @@
-import { component$, Slot, useSignal, useStylesScoped$ } from '@qwik.dev/core';
+import { component$, Slot, useSignal, useStylesScoped$, useVisibleTask$ } from '@qwik.dev/core';
 import CSS from './index.css?inline';
 import { lucide } from '@qds.dev/ui';
 
@@ -11,8 +11,30 @@ export default component$<{
   style?: Record<string, string>;
 }>(({ url, tabs, src, style, console }) => {
   const activeTab = useSignal(0);
+  const iframe = useSignal<HTMLIFrameElement>();
   useStylesScoped$(CSS);
   const exampleUrl = (url || src) + (console ? '?console=true' : '');
+
+  useVisibleTask$(({ cleanup }) => {
+    const syncTheme = () => {
+      iframe.value?.contentDocument?.documentElement.classList.toggle(
+        'dark',
+        document.documentElement.matches('.dark, [data-theme="dark"]')
+      );
+    };
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme'],
+    });
+    iframe.value?.addEventListener('load', syncTheme);
+    syncTheme();
+    cleanup(() => {
+      observer.disconnect();
+      iframe.value?.removeEventListener('load', syncTheme);
+    });
+  });
+
   return (
     <>
       {tabs && (
@@ -58,6 +80,7 @@ export default component$<{
         </div>
         <div class="border-t-[1.6px] border-base">
           <iframe
+            ref={iframe}
             loading="lazy"
             src={examplePath(exampleUrl)}
             style={{ width: '100%', height: '200px', ...style }}

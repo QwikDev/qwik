@@ -1,9 +1,4 @@
-import {
-  component$,
-  useSignal,
-  useStylesScoped$,
-  useVisibleTask$,
-} from '@qwik.dev/core';
+import { component$, useSignal, useStylesScoped$ } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
 
 const AUDIO_SRC =
@@ -13,10 +8,8 @@ const VIDEO_SRC =
 
 export default component$(() => {
   const audioElementSignal = useSignal<HTMLAudioElement | undefined>();
-  const audioPlayButtonSignal = useSignal<HTMLButtonElement | undefined>();
   const audioIsPlayingSignal = useSignal(false);
-  const videoElementSignal = useSignal<HTMLAudioElement | undefined>();
-  const videoPlayButtonSignal = useSignal<HTMLButtonElement | undefined>();
+  const videoElementSignal = useSignal<HTMLVideoElement | undefined>();
   const videoIsPlayingSignal = useSignal(false);
   const playsInlineSignal = useSignal(true);
   const location = useLocation();
@@ -73,36 +66,6 @@ export default component$(() => {
         }
         `);
 
-  useVisibleTask$(({ track }) => {
-    track(() => audioPlayButtonSignal.value);
-    track(() => audioElementSignal.value);
-
-    const play = () =>
-      audioIsPlayingSignal.value
-        ? audioElementSignal.value?.pause()
-        : audioElementSignal.value?.play();
-
-    audioPlayButtonSignal.value?.removeEventListener('click', play);
-    audioPlayButtonSignal.value?.addEventListener('click', play);
-
-    return () =>
-      audioPlayButtonSignal.value?.removeEventListener('click', play);
-  });
-
-  useVisibleTask$(({ track }) => {
-    track(() => videoPlayButtonSignal.value);
-    track(() => videoElementSignal.value);
-
-    const play = () =>
-      videoIsPlayingSignal.value
-        ? videoElementSignal.value?.pause()
-        : videoElementSignal.value?.play();
-
-    videoPlayButtonSignal.value?.addEventListener('click', play);
-    return () =>
-      videoPlayButtonSignal.value?.removeEventListener('click', play);
-  });
-
   return (
     <segment>
       <div class="content">
@@ -145,12 +108,24 @@ export default component$(() => {
         </div>
 
         <br />
-        <button ref={videoPlayButtonSignal}>
+        <button
+          onClick$={() =>
+            videoIsPlayingSignal.value
+              ? videoElementSignal.value?.pause()
+              : videoElementSignal.value?.play()
+          }
+        >
           {videoIsPlayingSignal.value ? 'Pause' : 'Play'} Video
         </button>
         <br />
         <br />
-        <button ref={audioPlayButtonSignal}>
+        <button
+          onClick$={() =>
+            audioIsPlayingSignal.value
+              ? audioElementSignal.value?.pause()
+              : audioElementSignal.value?.play()
+          }
+        >
           {audioIsPlayingSignal.value ? 'Pause' : 'Play'} Audio
         </button>
       </div>

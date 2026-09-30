@@ -99,7 +99,7 @@
   width: 44px;
   min-height: 44px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--repl-docs-input-strip-bg), white 24%);
+  background: color-mix(in srgb, var(--repl-docs-input-strip-bg), var(--color-background-base) 24%);
   font-size: 24px;
   line-height: 1;
 }

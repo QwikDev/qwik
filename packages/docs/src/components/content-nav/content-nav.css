@@ -6,7 +6,7 @@
   border-radius: 5px;
   padding: 6px 16px;
   text-decoration: none;
-  color: white;
+  color: var(--color-primary-foreground-base);
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;

@@ -17,7 +17,7 @@ export default component$(() => {
   return (
     <div class="docs">
       <Header mobileSidebarOpen={mobileSidebarOpen} />
-      <div class="docs-grid bg-violet-shallow">
+      <div class="docs-grid bg-background-base">
         <div class="docs-shell fixed-header">
           {hasOnThisPage.value && (
             <div class="docs-toc">

@@ -4,12 +4,12 @@
  * The effective theme is stored on the `<html>` element as a `data-theme` attribute. There is also
  * the `data-theme-auto` attribute which is present when the user has selected "auto" theme.
  */
-import { component$, event$, isServer, useContext, useStyles$ } from '@qwik.dev/core';
+import { component$, event$, useContext, useStyles$ } from '@qwik.dev/core';
 import { useVisibleTask$ } from '@qwik.dev/core';
 import { GlobalStore, type SiteStore } from '~/context';
-import { BrillianceIcon } from './Brilliance';
-import { MoonIcon } from './Moon';
-import { SunIcon } from './Sun';
+import { BrillianceIcon } from './icons/brilliance';
+import { MoonIcon } from './icons/moon';
+import { SunIcon } from './icons/sun';
 import toggleCss from './theme-toggle.css?inline';
 
 export type ThemePreference = 'dark' | 'light' | 'auto';
@@ -28,27 +28,34 @@ const getEffectiveTheme = (stored: ThemePreference, systemDark = queryDark().mat
 const applyTheme = (store: SiteStore, theme: ThemePreference, systemDark = queryDark().matches) => {
   const effective = getEffectiveTheme(theme, systemDark);
   store.theme = effective;
-  const el = document.firstElementChild!;
+  const el = document.documentElement;
   el.setAttribute('data-theme', effective);
-  if (theme === 'auto') {
-    el.setAttribute('data-theme-auto', '');
-    localStorage.removeItem(themeStorageKey);
-  } else {
-    el.removeAttribute('data-theme-auto');
-    localStorage.setItem(themeStorageKey, theme);
+  el.classList.toggle('dark', effective === 'dark');
+  el.toggleAttribute('data-theme-auto', theme === 'auto');
+  try {
+    if (theme === 'auto') {
+      localStorage.removeItem(themeStorageKey);
+    } else {
+      localStorage.setItem(themeStorageKey, theme);
+    }
+  } catch {
+    // Keep the current theme when storage is unavailable.
   }
 };
 
 const getThemeFromLS = (): ThemePreference => {
-  let theme;
-  if (!isServer) {
-    try {
-      theme = localStorage.getItem(themeStorageKey);
-    } catch {
-      // ignore
+  try {
+    const theme = localStorage.getItem(themeStorageKey);
+    if (theme === 'light' || theme === 'dark') {
+      return theme;
     }
+  } catch {
+    // Read the current document theme when storage is unavailable.
   }
-  return (theme as ThemePreference) || 'auto';
+  if (document.documentElement.hasAttribute('data-theme-auto')) {
+    return 'auto';
+  }
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
 };
 
 export const ThemeToggle = component$(() => {
@@ -71,33 +78,28 @@ export const ThemeToggle = component$(() => {
       query.addEventListener('change', listener);
       return () => query.removeEventListener('change', listener);
     },
-    { strategy: 'document-idle' }
+    { strategy: 'document-ready' }
   );
 
   const toggleTheme$ = event$(() => {
     let currentTheme = getThemeFromLS();
-    currentTheme = currentTheme === 'dark' ? 'light' : currentTheme === 'light' ? 'auto' : 'dark';
+    currentTheme = currentTheme === 'auto' ? 'light' : currentTheme === 'light' ? 'dark' : 'auto';
     applyTheme(store, currentTheme);
   });
 
   return (
-    <>
-      <button
-        onClick$={toggleTheme$}
-        class="group relative flex h-8 m-auto items-center justify-center rounded-md bg-background text-foreground hover:opacity-60 sm:w-8 sm:px-0"
-        type="button"
-        title="Toggle theme - light, system, dark"
-      >
-        <span class="inset-0 hidden sm:grid place-items-center transition-transform duration-200 ease-out group-hover:scale-110 group-active:scale-75">
-          <SunIcon class="themeIcon light col-start-1 row-start-1" />
-          <MoonIcon class="themeIcon dark col-start-1 row-start-1" />
-          <BrillianceIcon class="themeIcon auto col-start-1 row-start-1" />
-        </span>
-        {/* theme-name is provided by global.css */}
-        <span class="lg:hidden font-medium leading-none ">
-          &nbsp;<span class="theme-name">&nbsp;Theme</span>
-        </span>
-      </button>
-    </>
+    <button
+      onClick$={toggleTheme$}
+      class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 2xl:h-[76px] 2xl:px-5 cursor-pointer"
+      type="button"
+      aria-label="Change color theme"
+      title="Change color theme: system, light, dark"
+    >
+      <span class="grid place-items-center size-6 text-foreground-base">
+        <SunIcon class="themeIcon light col-start-1 row-start-1" />
+        <MoonIcon class="themeIcon dark col-start-1 row-start-1" />
+        <BrillianceIcon class="themeIcon auto col-start-1 row-start-1" />
+      </span>
+    </button>
   );
 });

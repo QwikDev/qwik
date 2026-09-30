@@ -1086,22 +1086,12 @@ jobs:
             host: windows-latest
             browser: chromium
             shard: 1
-            shardTotal: 4
+            shardTotal: 2
           - optimizer: ts
             host: windows-latest
             browser: chromium
             shard: 2
-            shardTotal: 4
-          - optimizer: ts
-            host: windows-latest
-            browser: chromium
-            shard: 3
-            shardTotal: 4
-          - optimizer: ts
-            host: windows-latest
-            browser: chromium
-            shard: 4
-            shardTotal: 4
+            shardTotal: 2
           - optimizer: ts
             host: macos-latest
             browser: webkit
@@ -1300,20 +1290,9 @@ jobs:
             run-cli: true
             run-qwik-react: true
             shard: 1
-            shardTotal: 2
+            shardTotal: 1
             cliShard: 1
-            cliShardTotal: 2
-          - optimizer: ts
-            host: macos-latest
-            browser: webkit
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
-            run-cli: true
-            run-qwik-react: true
-            shard: 2
-            shardTotal: 2
-            cliShard: 2
-            cliShardTotal: 2
+            cliShardTotal: 1
           - optimizer: ts
             host: windows-latest
             browser: chromium

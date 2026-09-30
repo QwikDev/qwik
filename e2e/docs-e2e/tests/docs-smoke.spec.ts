@@ -15,6 +15,40 @@ test.describe('Docs site smoke tests', () => {
     await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(12, 7, 20)');
   });
 
+  test('code examples and previews follow the docs theme', async ({ page }) => {
+    await page.goto('/docs/core/state/');
+    const code = page.locator('article pre.shiki').first();
+    const token = code.locator('span[style*="--shiki-dark"]').first();
+    const highlightedLine = code.locator('.highlighted').first();
+    const highlightedWord = code.locator('.highlighted-word').first();
+    const preview = page.frameLocator('iframe[src*="/demo/state/counter-signal/"]');
+
+    await page.locator('html').evaluate((html) => {
+      html.classList.remove('dark');
+      html.setAttribute('data-theme', 'light');
+    });
+    await expect(code).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(token).toHaveCSS('color', 'rgb(215, 58, 73)');
+    await expect(preview.locator('html')).not.toHaveClass(/\bdark\b/);
+
+    await page.locator('html').evaluate((html) => {
+      html.classList.add('dark');
+      html.setAttribute('data-theme', 'dark');
+    });
+    await expect(code).toHaveCSS('background-color', 'rgb(12, 7, 20)');
+    await expect(token).toHaveCSS('color', 'rgb(249, 117, 131)');
+    await expect(highlightedLine).toHaveCSS(
+      'background-color',
+      'color(srgb 0.0352941 0.118627 0.191176)'
+    );
+    await expect(highlightedWord).toHaveCSS(
+      'background-color',
+      'color(srgb 0.0305882 0.137255 0.212941)'
+    );
+    await expect(preview.locator('html')).toHaveClass(/\bdark\b/);
+    await expect(preview.locator('body')).toHaveCSS('background-color', 'rgb(12, 7, 20)');
+  });
+
   test('docs overview page loads with sidebar', async ({ page }) => {
     await page.goto('/docs/');
     await expect(page).toHaveTitle(/Qwik/);

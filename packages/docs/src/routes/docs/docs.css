@@ -369,6 +369,24 @@ h6 a:hover .icon {
   @apply !bg-secondary-background-accent px-2 -mx-2;
 }
 
+html.dark .docs article .highlighted,
+html[data-theme='dark'] .docs article .highlighted {
+  background-color: color-mix(
+    in srgb,
+    var(--color-secondary-background-accent) 25%,
+    var(--color-background-base)
+  ) !important;
+}
+
+html.dark .docs article .highlighted-word,
+html[data-theme='dark'] .docs article .highlighted-word {
+  background-color: color-mix(
+    in srgb,
+    var(--color-secondary-background-base) 35%,
+    var(--color-background-base)
+  );
+}
+
 /* First highlighted line in a group */
 .highlighted:not(.highlighted + .highlighted) {
   @apply pt-2 rounded-t;
@@ -394,6 +412,18 @@ h6 a:hover .icon {
   @apply bg-background-base border-[1.6px] border-base rounded-2xl shadow-base overflow-clip py-4 px-6;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.docs article pre.shiki,
+.docs article pre.shiki span {
+  color: var(--shiki-light);
+}
+
+html.dark .docs article pre.shiki,
+html.dark .docs article pre.shiki span,
+html[data-theme='dark'] .docs article pre.shiki,
+html[data-theme='dark'] .docs article pre.shiki span {
+  color: var(--shiki-dark);
 }
 
 .docs article .shiki-title + pre {

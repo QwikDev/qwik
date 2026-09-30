@@ -71,6 +71,18 @@ jobs:
           branch: ${{ github.event.workflow_run.event == 'pull_request' && format('pr-{0}', github.event.workflow_run.pull_requests[0].number) || (github.event.workflow_run.head_branch == 'v1' && 'main') || (github.event.workflow_run.head_branch == 'main' && 'qwikdev-build-v2') || format('preview-{0}', github.event.workflow_run.head_branch) }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 
+      # Pages doesn't purge the zone cache, and SSG HTML is edge-cached by a cache rule.
+      - name: Purge Cloudflare cache
+        if: ${{ steps.check-artifact.outputs.has-docs == 'true' && github.event.workflow_run.event != 'pull_request' && contains(fromJSON('["main","v1"]'), github.event.workflow_run.head_branch) }}
+        env:
+          CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CF_PURGE_TOKEN: ${{ secrets.CLOUDFLARE_PURGE_TOKEN }}
+        run: |
+          curl -fsS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache" \
+            -H "Authorization: Bearer $CF_PURGE_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
+
       - name: Skip message when no docs artifact
         if: ${{ steps.check-artifact.outputs.has-docs != 'true' }}
         run: echo "No docs artifact found, skipping deployment"

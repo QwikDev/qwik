@@ -155,7 +155,8 @@ jobs:
         with:
           lookup-only: true
           path: packages/optimizer/
-          key: ${{ hashfiles('Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs') }}
+          # The cache also holds dist/*.d.ts built from the TS bridge, so its sources must invalidate it.
+          key: ${{ hashfiles('Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', 'packages/optimizer/src/**', 'packages/optimizer/package.json', 'packages/optimizer/tsconfig.json', 'packages/optimizer/vite.config.ts', 'scripts/submodule-optimizer.ts') }}
       - run: 'echo ${{ steps.cache-rust.outputs.cache-primary-key }} > rust-key.txt'
       - name: 'check cache: others'
         id: cache-others

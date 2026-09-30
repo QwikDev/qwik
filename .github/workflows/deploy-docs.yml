@@ -78,6 +78,8 @@ jobs:
           CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           CF_PURGE_TOKEN: ${{ secrets.CLOUDFLARE_PURGE_TOKEN }}
         run: |
+          # Purging before the Pages alias switches re-caches the old HTML.
+          sleep 60
           curl -fsS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache" \
             -H "Authorization: Bearer $CF_PURGE_TOKEN" \
             -H "Content-Type: application/json" \

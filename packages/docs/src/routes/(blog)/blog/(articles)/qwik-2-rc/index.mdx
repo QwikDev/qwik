@@ -89,7 +89,7 @@ Since v1, a mountain of work has been done and we shipped a lot of other goodies
 
 Qwik mainly relies on signals for reactivity, so in theory v1 should have been good at propagating updates, but the partial vDOM got in the way and the code was not yet optimized. With the virtual tree out of the HTML `body`, v2 keeps it in memory as small VNode objects. When a signal changes, Qwik updates the text node or attribute that reads it, now without parsing the HTML again. Large updates are split up: the scheduler yields to the browser every 15 ms, so clicks and typing don't wait behind a long render.
 
-As a result, v2 is more than 2x faster than v1 in terms of reactivity, and faster than Angular, React or Vue.
+As a result, v2 is more than 2x faster than v1 in terms of reactivity, and faster than Angular, React or Vue overall.
 
 See the numbers on the [js-framework-benchmark](https://github.com/krausest/js-framework-benchmark) table below:
 

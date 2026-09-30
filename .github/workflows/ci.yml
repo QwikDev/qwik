@@ -10,11 +10,9 @@
 
 name: Qwik CI
 
-# TODO fix e2e tests hanging and not cancelling
-# # We only need one instance of the workflow running at a time, per branch
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
-#   cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 on:
   pull_request:
@@ -310,7 +308,7 @@ jobs:
   ############ BUILD PACKAGE ############
   combined-optimizer:
     name: Prepare Optimizer binaries
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     needs:
       - build-bindings
@@ -385,7 +383,7 @@ jobs:
     needs:
       - changes
       - combined-optimizer
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - name: Verify prerequisites
@@ -567,7 +565,7 @@ jobs:
 
   ############ BUILD INSIGHTS ############
   build-insights:
-    if: always() && needs.changes.outputs.build-insights == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-insights == 'true' }}
     name: Build Insights
     needs:
       - changes
@@ -625,7 +623,7 @@ jobs:
 
   ############ BUILD DOCS ############
   build-docs:
-    if: always() && needs.changes.outputs.build-docs == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-docs == 'true' }}
     name: Build Docs
     needs:
       - changes
@@ -692,7 +690,7 @@ jobs:
   prepare-playwright:
     name: Prepare Playwright (${{ matrix.settings.host }}, ${{ matrix.settings.browser }})
     if: |
-      always() && (
+      !cancelled() && (
         needs.changes.outputs.build-e2e == 'true' ||
         needs.changes.outputs.build-cli-e2e == 'true' ||
         needs.changes.outputs.build-docs-e2e == 'true'
@@ -760,7 +758,7 @@ jobs:
   test-e2e-docs:
     timeout-minutes: 15
     name: Docs E2E Tests (shard ${{ matrix.shard.shard }}/${{ matrix.shard.shardTotal }})
-    if: always() && needs.build-docs.result == 'success' && needs.changes.outputs.build-docs-e2e == 'true'
+    if: ${{ !cancelled() && needs.build-docs.result == 'success' && needs.changes.outputs.build-docs-e2e == 'true' }}
     needs:
       - changes
       - build-docs
@@ -859,7 +857,7 @@ jobs:
     needs:
       - changes
       - test-e2e-docs
-    if: always() && needs.changes.outputs.build-docs-e2e == 'true' && needs.test-e2e-docs.result == 'success'
+    if: ${{ !cancelled() && needs.changes.outputs.build-docs-e2e == 'true' && needs.test-e2e-docs.result == 'success' }}
 
     steps:
       - name: Verify prerequisites
@@ -882,7 +880,7 @@ jobs:
   ############ UNIT TEST ############
   test-unit:
     name: Unit Tests
-    if: always() && needs.changes.outputs.build-unit == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-unit == 'true' }}
     strategy:
       matrix:
         settings:
@@ -948,7 +946,7 @@ jobs:
     needs:
       - changes
       - test-unit
-    if: always() && needs.changes.outputs.build-unit == 'true' && needs.test-unit.result == 'success'
+    if: ${{ !cancelled() && needs.changes.outputs.build-unit == 'true' && needs.test-unit.result == 'success' }}
 
     steps:
       - name: Verify prerequisites
@@ -971,7 +969,7 @@ jobs:
   ############ BENCHMARK TEST ############
   test-bench:
     name: Benchmark Tests
-    if: always() && needs.changes.outputs.build-bench == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-bench == 'true' }}
     runs-on: ubuntu-latest
     needs:
       - changes
@@ -1028,7 +1026,7 @@ jobs:
     needs:
       - changes
       - test-bench
-    if: always() && needs.changes.outputs.build-bench == 'true' && needs.test-bench.result == 'success'
+    if: ${{ !cancelled() && needs.changes.outputs.build-bench == 'true' && needs.test-bench.result == 'success' }}
 
     steps:
       - name: Verify prerequisites
@@ -1053,7 +1051,7 @@ jobs:
     # Sometimes the tests just hang
     timeout-minutes: 20
     name: E2E Tests (${{ matrix.settings.optimizer }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
-    if: always() && needs.changes.outputs.build-e2e == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-e2e == 'true' }}
 
     needs:
       - build-other-packages
@@ -1225,7 +1223,7 @@ jobs:
   test-cli-e2e:
     timeout-minutes: 30
     name: E2E CLI Tests (${{ matrix.settings.optimizer }}, ${{ matrix.settings.runtime }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
-    if: always() && needs.changes.outputs.build-cli-e2e == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-cli-e2e == 'true' }}
 
     needs:
       - build-other-packages
@@ -1469,7 +1467,7 @@ jobs:
     needs:
       - changes
       - test-e2e
-    if: always() && needs.changes.outputs.build-e2e == 'true' && needs.test-e2e.result == 'success'
+    if: ${{ !cancelled() && needs.changes.outputs.build-e2e == 'true' && needs.test-e2e.result == 'success' }}
 
     steps:
       - name: Verify prerequisites
@@ -1495,7 +1493,7 @@ jobs:
     needs:
       - changes
       - test-cli-e2e
-    if: always() && needs.changes.outputs.build-cli-e2e == 'true' && needs.test-cli-e2e.result == 'success'
+    if: ${{ !cancelled() && needs.changes.outputs.build-cli-e2e == 'true' && needs.test-cli-e2e.result == 'success' }}
 
     steps:
       - name: Verify prerequisites
@@ -1534,23 +1532,23 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: "Verify pnpm dedupe"
-        if: always()
+        if: ${{ !cancelled() }}
         run: NPM_CONFIG_USERCONFIG=/dev/null pnpm --config.platform=linux --config.arch=x64 dedupe --check
 
       - name: SyncPack Check
-        if: always()
+        if: ${{ !cancelled() }}
         run: pnpm run lint.syncpack
 
       - name: Prettier Check
-        if: always()
+        if: ${{ !cancelled() }}
         run: pnpm run lint.prettier
 
       - name: Build ESLint
-        if: always()
+        if: ${{ !cancelled() }}
         run: pnpm build --eslint
 
       - name: ESLint Check
-        if: always()
+        if: ${{ !cancelled() }}
         run: pnpm run lint.eslint
 
   ############ RELEASE ############
@@ -1571,7 +1569,7 @@ jobs:
     # on "upcoming", we always check if we have something to release
     # don't run on forks
     if: |
-      always() && 
+      !cancelled() && 
       github.event_name != 'pull_request' &&
       github.repository == 'QwikDev/qwik' && (
         github.ref == 'refs/heads/main' ||
@@ -1668,7 +1666,7 @@ jobs:
 
     # Publish previews as soon as the build is ready, regardless of test status.
     if: |
-      always() &&
+      !cancelled() &&
       github.repository == 'QwikDev/qwik' &&
       github.event_name != 'workflow_dispatch' &&
       (needs.combined-optimizer.result == 'success' || needs.combined-optimizer.result == 'skipped') &&

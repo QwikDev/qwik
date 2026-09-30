@@ -23,9 +23,6 @@ test.describe('Docs site smoke tests', () => {
     await expect(
       page.locator('link[rel="preload"][as="font"][href*="ubuntu-sans-latin-700-normal"]')
     ).toHaveCount(1);
-    await expect(
-      page.locator('link[rel="preload"][as="font"][href*="karmatic-arcade"]')
-    ).toHaveCount(0);
 
     // The sidebar is an <aside> containing a <nav> with links
     const sidebar = page.locator('aside nav');

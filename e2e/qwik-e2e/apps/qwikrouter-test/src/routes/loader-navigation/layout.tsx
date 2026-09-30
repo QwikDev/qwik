@@ -123,20 +123,15 @@ export default component$(() => {
           });
           const readSignals = () =>
             Object.fromEntries(
-              Object.entries(state)
-                .filter(([id]) => !id.startsWith('__qwik_route_loader_value__'))
-                .map(([id, signal]) => {
-                  if (!probe.ids.has(signal)) {
-                    probe.ids.set(signal, probe.next++);
-                  }
-                  return [id, probe.ids.get(signal)];
-                })
+              Object.entries(state).map(([id, signal]) => {
+                if (!probe.ids.has(signal)) {
+                  probe.ids.set(signal, probe.next++);
+                }
+                return [id, probe.ids.get(signal)];
+              })
             );
           (window as any).__readLoaderState = () => ({
             signals: readSignals(),
-            values: Object.keys(state)
-              .filter((id) => id.startsWith('__qwik_route_loader_value__'))
-              .sort(),
             paths: Object.keys(context.loaderPaths).sort(),
           });
           keys.value = JSON.stringify({

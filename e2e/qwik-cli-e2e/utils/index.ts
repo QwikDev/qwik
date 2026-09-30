@@ -73,6 +73,10 @@ function replacePackagesWithLocalOnes(tmpDir: string) {
   for (const { name, absolutePath } of tarballConfig) {
     patchPackageJsonForPlugin(tmpDir, name, absolutePath);
   }
+  writeFileSync(
+    join(tmpDir, 'pnpm-workspace.yaml'),
+    "packages:\n  - .\nallowBuilds:\n  '@parcel/watcher': true\n  sharp: true\n"
+  );
   execSync('pnpm i', {
     cwd: tmpDir,
     // only output errors

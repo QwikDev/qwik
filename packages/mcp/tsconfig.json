@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false,
+    "paths": { "@qwik.dev/devtools/kit": ["packages/devtools/kit/src/index.ts"] }
+  },
+  "include": ["src/**/*.ts", "vitest.config.ts"]
+}

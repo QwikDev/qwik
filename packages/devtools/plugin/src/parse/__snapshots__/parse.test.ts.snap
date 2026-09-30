@@ -39,7 +39,7 @@ interface ButtonProps {
 }
 
 export default component$<ButtonProps>((props) => {
-  const collecthook = useCollectHooks("/abs/path/Button.tsx_Button")
+  const collecthook = useCollectHooks("/abs/path/Button.tsx_default")
   const { class: className = '', onClick$ } = props;
   const testValue2 = props.testValue
   console.log('testValue', testValue2)

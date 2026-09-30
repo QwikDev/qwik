@@ -84,6 +84,22 @@ export const Cmp = component$(() => <div>{listPages().length}</div>);
     expect(segment).not.toContain('{ default as PAGES }');
   });
 
+  it('imports _createElement for a moved helper that spreads props next to a key', () => {
+    const result = transform(`
+import { component$ } from '@qwik.dev/core';
+
+const Item = (props: { href: string }) => <a href={props.href} />;
+const List = (props: { links: { href: string }[] }) => (
+  <div>{props.links.map((link) => <Item key={link.href} {...link} />)}</div>
+);
+
+export const Cmp = component$(() => <List links={[{ href: '/a' }]} />);
+`);
+    const segment = segmentFor(result.modules, 'test.tsx_Cmp_component');
+    expect(segment).toContain('_createElement(Item');
+    expect(segment).toContain('import { createElement as _createElement } from "@qwik.dev/core";');
+  });
+
   it('hoists a loop handler`s capture inside a scope that encloses it', () => {
     const result = transform(`
 import { $, component$, useSignal } from '@qwik.dev/core';

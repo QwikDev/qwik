@@ -80,6 +80,32 @@ export function vNodeData_openElement(vNodeData: VNodeData) {
   vNodeData[0] |= VNodeDataFlag.ELEMENT_NODE;
 }
 
+/**
+ * Where the last `vNodeData_createSsrNodeReference` scan of a `VNodeData` stopped, so the next scan
+ * of the same array resumes there instead of starting at index 1.
+ *
+ * Each inline component opens a fragment and creates a node reference in its parent's `VNodeData`.
+ * With a full scan per reference, n sibling inline components render in n² time.
+ *
+ * Resuming is safe because the array only grows at the end, and the last entry is the only one that
+ * changes in a way the scan reads (a growing element count, see `vNodeData_incrementElementCount`).
+ * Index 0 holds flags the scan skips, and an attributes object may be replaced by another object.
+ * The cursor therefore points at the last entry and holds the state from before it.
+ * `vNodeData_insertEmptyAttributes` shifts every entry, so it drops the cursor.
+ */
+interface ScanCursor {
+  index: number;
+  stack: number[];
+  attributesIndex: number;
+}
+const scanCursors = new WeakMap<VNodeData, ScanCursor>();
+
+/**
+ * A short `VNodeData` is cheaper to scan again than to give a cursor: a page of plain elements
+ * renders slower when every element gets a `scanCursors` entry
+ */
+const MIN_LENGTH_FOR_SCAN_CURSOR = 16;
+
 export function vNodeData_createSsrNodeReference(
   currentComponentNode: ISsrNode | null,
   vNodeData: VNodeData,
@@ -88,10 +114,18 @@ export function vNodeData_createSsrNodeReference(
   currentFile: string | null
 ): ISsrNode {
   vNodeData[0] |= VNodeDataFlag.REFERENCE;
-  const stack: number[] = [-1];
+  const useCursor = vNodeData.length >= MIN_LENGTH_FOR_SCAN_CURSOR;
+  const cursor = useCursor ? scanCursors.get(vNodeData) : undefined;
+  const stack: number[] = cursor ? cursor.stack.slice() : [-1];
   // We are referring to a virtual node. We need to descend into the tree to find the path to the node.
-  let attributesIndex = -1;
-  for (let i = 1; i < vNodeData.length; i++) {
+  let attributesIndex = cursor ? cursor.attributesIndex : -1;
+  let cursorSaved = false;
+  for (let i = cursor ? cursor.index : 1; i < vNodeData.length; i++) {
+    if (useCursor && i === vNodeData.length - 1) {
+      // The last entry may still change, so the next scan starts at it again
+      scanCursors.set(vNodeData, { index: i, stack: stack.slice(), attributesIndex });
+      cursorSaved = true;
+    }
     const value = vNodeData[i];
     if (typeof value === 'object' && value !== null) {
       attributesIndex = i;
@@ -114,6 +148,12 @@ export function vNodeData_createSsrNodeReference(
       stack[stack.length - 1]++;
     }
   }
+  if (useCursor && !cursorSaved) {
+    // The array ends with an attributes object and its marker, which the loop reads as one
+    // pair. Neither changes, so the next scan starts after them. Every inline component hits
+    // this case: `openFragment` pushes the pair right before the reference is created
+    scanCursors.set(vNodeData, { index: vNodeData.length, stack, attributesIndex });
+  }
   let refId = String(depthFirstElementIdx);
   if (vNodeData[0] & (VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.TEXT_DATA)) {
     // encode as alphanumeric only for virtual and text nodes
@@ -132,6 +172,19 @@ export function vNodeData_createSsrNodeReference(
     vNodeData,
     currentFile
   );
+}
+
+/**
+ * Insert an empty attributes object into a `VNodeData` that has none yet and return its index.
+ *
+ * The insert shifts every later entry, so the scan cursor of `vNodeData_createSsrNodeReference` no
+ * longer matches the array and is dropped.
+ */
+export function vNodeData_insertEmptyAttributes(vNodeData: VNodeData): number {
+  const index = vNodeData.length > 1 ? 1 : 0;
+  vNodeData.splice(index, 0, {});
+  scanCursors.delete(vNodeData);
+  return index;
 }
 
 /**

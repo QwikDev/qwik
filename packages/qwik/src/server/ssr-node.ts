@@ -23,7 +23,7 @@ import {
 } from './qwik-copy';
 import type { ISsrNode, ISsrComponentFrame, JSXChildren, Props } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
-import type { VNodeData } from './vnode-data';
+import { vNodeData_insertEmptyAttributes, type VNodeData } from './vnode-data';
 
 /**
  * Server has no DOM, so we need to create a fake node to represent the DOM for serialization
@@ -94,11 +94,9 @@ export class SsrNode implements ISsrNode {
       this.vnodeData[this.attributesIndex] = {};
       this.attrs = this.vnodeData[this.attributesIndex] as Props;
     } else {
-      // we need to insert a new empty array at index 1
+      // we need to insert a new empty attributes object at index 1
       // this can be inefficient, but it is only done once per node and probably not often
-      const newAttributesIndex = this.vnodeData.length > 1 ? 1 : 0;
-      this.vnodeData.splice(newAttributesIndex, 0, {});
-      this.attributesIndex = newAttributesIndex;
+      this.attributesIndex = vNodeData_insertEmptyAttributes(this.vnodeData);
       this.attrs = this.vnodeData[this.attributesIndex] as Props;
     }
   }

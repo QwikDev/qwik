@@ -89,7 +89,7 @@ export const Header = component$(() => {
               </svg>
             </span>
             <span class="v2-docs-super-header-copy">
-              <strong>Qwik v2 beta</strong>
+              <strong>Qwik v2</strong>
               <span>Lighter, faster, better.</span>
             </span>
             <span class="v2-docs-super-header-arrow" aria-hidden="true">

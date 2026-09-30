@@ -8,6 +8,16 @@ test.describe('Docs site smoke tests', () => {
     await expect(page).toHaveTitle(/Qwik/);
   });
 
+  test('search suggestion points to the getting started page', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/');
+    await page.locator('button:has(svg.size-6.text-foreground-base):visible').first().click();
+    await expect(page.locator('.search-modal:visible a[href]').first()).toHaveAttribute(
+      'href',
+      '/docs/getting-started/'
+    );
+  });
+
   test('html dark class applies semantic colors', async ({ page }) => {
     await page.goto('/docs/');
     await page.locator('html').evaluate((html) => html.classList.add('dark'));

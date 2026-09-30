@@ -213,7 +213,7 @@ const SearchIdle = component$(() => {
       {
         title: 'Getting Started',
         subtitle: 'Learn how to get started with Qwik',
-        href: '/docs/getting-started/overview',
+        href: '/docs/getting-started/',
         excerpt: 'This section provides an overview of getting started with Qwik.',
         group: 'Docs',
       },

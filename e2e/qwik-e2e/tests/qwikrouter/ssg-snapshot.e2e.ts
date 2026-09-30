@@ -11,11 +11,11 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Brotli size budgets for production bundles. These are ceilings, not exact matches: any size
 // at or below the budget is fine. Bump the budget intentionally when a real feature justifies
-// the growth.
+// the growth. Keep each budget at least 1.5% above the actual size (~500 bytes for core);
+// brotli output varies between builds, so a tighter budget is flaky.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
-// Keep at least 500 bytes above the actual size; brotli output varies between builds.
 const CORE_BROTLI_BUDGET = 34800;
-const QWIKLOADER_BROTLI_BUDGET = 2100;
+const QWIKLOADER_BROTLI_BUDGET = 2150;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '../../../../');

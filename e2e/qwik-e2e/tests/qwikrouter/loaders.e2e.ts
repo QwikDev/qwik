@@ -10,6 +10,114 @@ test.describe('loaders', () => {
     test.use({ javaScriptEnabled: true });
     tests();
 
+    for (const child of [
+      { link: 'static', path: 'child', title: 'static child' },
+      { link: 'dynamic', path: '42', title: 'child 42' },
+    ]) {
+      test(`only fetches destination loaders when navigating to a ${child.link} child and back`, async ({
+        page,
+      }) => {
+        const requests: string[] = [];
+        const errors: string[] = [];
+        page.on('pageerror', (error) => errors.push(error.message));
+        await page.goto('/qwikrouter-test/loader-navigation/');
+        await expect(page).toHaveTitle('parent - Qwik');
+        await page.waitForLoadState('networkidle');
+        await page.evaluate(() => ((window as any).__loaderNavigationMarker = true));
+        page.on('request', (request) => {
+          if (request.url().includes('/q-loader-navigation-')) {
+            requests.push(new URL(request.url()).pathname);
+          }
+        });
+
+        for (let visit = 0; visit < 2; visit++) {
+          requests.length = 0;
+          await page.locator(`#loader-${child.link}-child`).click();
+          await page.waitForURL(`**/loader-navigation/${child.path}/`);
+          await expect(page).toHaveTitle(`${child.title} - Qwik`);
+          await page.waitForLoadState('networkidle');
+          expect(requests).toHaveLength(1);
+          expect(requests[0]).toContain(`/q-loader-navigation-${child.link}-child.`);
+          await page.locator('#inspect-loader-state').click();
+          await expect(page.locator('#loader-state')).toContainText(
+            `navigation-${child.link}-child`
+          );
+          await expect(page.locator('#loader-state')).not.toContainText('navigation-parent');
+          await expect(page.locator('#shared-loader-path')).toHaveText(
+            `/qwikrouter-test/loader-navigation/${child.path}/`
+          );
+
+          requests.length = 0;
+          await page.locator('#loader-parent').click();
+          await page.waitForURL('**/loader-navigation/');
+          await expect(page).toHaveTitle('parent - Qwik');
+          await page.waitForLoadState('networkidle');
+          expect(requests).toHaveLength(1);
+          expect(requests[0]).toContain('/q-loader-navigation-parent.');
+          await page.locator('#inspect-loader-state').click();
+          await expect(page.locator('#loader-state')).not.toContainText(
+            `navigation-${child.link}-child`
+          );
+        }
+
+        expect(await page.evaluate(() => (window as any).__loaderNavigationMarker)).toBe(true);
+        expect(errors).toEqual([]);
+      });
+    }
+
+    for (const destination of ['dynamic', 'parent']) {
+      test(`retires abandoned loaders on rapid navigation to ${destination}`, async ({ page }) => {
+        const errors: string[] = [];
+        page.on('pageerror', (error) => errors.push(error.message));
+        await page.goto('/qwikrouter-test/loader-navigation/');
+        await expect(page).toHaveTitle('parent - Qwik');
+        await page.locator('#remove-loader-consumer').click();
+        let release!: () => void;
+        const gate = new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        await page.route('**/q-loader-navigation-static-child.*', async (route) => {
+          const response = await route.fetch();
+          await gate;
+          await route.fulfill({ response });
+        });
+        const started = page.waitForRequest('**/q-loader-navigation-static-child.*');
+        await page.locator('#navigate-static').click();
+        await started;
+        await page.locator(`#navigate-${destination}`).click();
+        await expect(page).toHaveTitle(
+          destination === 'parent' ? 'parent - Qwik' : 'child 42 - Qwik'
+        );
+        await expect(page.locator('#completed-loader-navigation')).toHaveText(
+          `/qwikrouter-test/loader-navigation/${destination === 'parent' ? '' : '42/'}`
+        );
+        release();
+        await page.waitForLoadState('networkidle');
+        await page.locator('#inspect-loader-state').click();
+        await expect(page.locator('#loader-state')).not.toContainText('navigation-static-child');
+        await expect(page.locator('#shared-loader-path')).toHaveText(
+          `/qwikrouter-test/loader-navigation/${destination === 'parent' ? '' : '42/'}`
+        );
+        expect(errors).toEqual([]);
+      });
+    }
+
+    test('updates head after a hash-only navigation and manual loader refresh', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test/loader-navigation/');
+      await page.locator('#loader-static-child').click();
+      await expect(page).toHaveTitle('static child - Qwik');
+      await page.locator('#loader-parent').click();
+      await expect(page).toHaveTitle('parent - Qwik');
+      const token = page.locator('meta[name="lifecycle-token"]');
+      const previous = await token.getAttribute('content');
+      await page.locator('#loader-hash').click();
+      await expect(page).toHaveURL(/#anchor$/);
+      await page.locator('#refresh-parent-loader').click();
+      await expect(token).not.toHaveAttribute('content', previous!);
+    });
+
     test('catch-all q-loader requests run server plugins before route loaders', async ({
       page,
     }) => {

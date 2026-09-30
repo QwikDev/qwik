@@ -1,5 +1,5 @@
 import { createDocument } from '@qwik.dev/core/testing';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDomContainer } from '../../client/dom-container';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
@@ -296,6 +296,72 @@ describe('async computed', () => {
 
       await signal.promise();
       expect(signal.untrackedValue).toBe('done');
+    });
+  });
+
+  it('waits for lazy compute code before resolving promise()', async () => {
+    await withContainer(async () => {
+      const signal = createComputed$(async () => 'loaded') as ComputedSignalImpl<string>;
+      const qrl = signal.$computeQrl$;
+      const compute = qrl.resolved!;
+      qrl.resolved = undefined;
+      vi.spyOn(qrl, 'resolve').mockImplementation(async () => {
+        qrl.resolved = compute;
+        return compute;
+      });
+
+      await expect(signal.promise()).resolves.toBeUndefined();
+      expect(signal.untrackedValue).toBe('loaded');
+    });
+  });
+
+  it.each([0, 2])('disposes the first job with concurrency %s', async (concurrency) => {
+    await withContainer(async () => {
+      const ref = { aborted: false, cleanups: 0, finish: undefined as undefined | (() => void) };
+      const signal = createComputed$(
+        async ({ abortSignal, cleanup }) => {
+          abortSignal.addEventListener('abort', () => {
+            ref.aborted = true;
+          });
+          cleanup(() => {
+            ref.cleanups++;
+          });
+          await new Promise<void>((resolve) => {
+            ref.finish = resolve;
+          });
+          return 99;
+        },
+        { concurrency, initial: 7 }
+      ) as ComputedSignalImpl<number>;
+
+      const pending = signal.promise();
+      signal.$dispose();
+      signal.$dispose();
+      ref.finish!();
+      await pending;
+      expect(ref.aborted).toBe(true);
+      expect(ref.cleanups).toBe(1);
+      expect(signal.untrackedValue).toBe(7);
+    });
+  });
+
+  it('cleans up a synchronous computed with concurrency enabled', async () => {
+    await withContainer(async () => {
+      const ref = { cleanups: 0 };
+      const signal = createComputed$(
+        ({ cleanup }) => {
+          cleanup(() => {
+            ref.cleanups++;
+          });
+          return 7;
+        },
+        { concurrency: 2 }
+      ) as ComputedSignalImpl<number>;
+
+      expect(signal.value).toBe(7);
+      signal.$dispose();
+      signal.$dispose();
+      expect(ref.cleanups).toBe(1);
     });
   });
 

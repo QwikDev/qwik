@@ -2,8 +2,11 @@ import type { FunctionComponent, JSXNodeInternal } from '../shared/jsx/types/jsx
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { StackValue } from './ssr-render-jsx';
 import type { SSRContainer, SSRRenderJSXOptions } from './ssr-types';
+import { qwikSymbol } from '../shared/singletons';
 
-const InternalServerComponentSymbol = Symbol('qInternalServerComponent');
+const InternalServerComponentSymbol: unique symbol = /*#__PURE__*/ qwikSymbol(
+  'qInternalServerComponent'
+);
 
 /** @internal */
 export type InternalServerComponentHandler = (

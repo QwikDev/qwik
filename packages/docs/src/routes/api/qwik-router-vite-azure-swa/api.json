@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-vite-azure-swa",
-  "package": "@qwik.dev/qwik-router/vite/azure-swa",
+  "package": "@qwik.dev/router/vite/azure-swa",
   "members": [
     {
       "name": "azureSwaAdapter",

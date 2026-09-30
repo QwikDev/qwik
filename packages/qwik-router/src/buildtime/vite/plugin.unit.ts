@@ -1,16 +1,19 @@
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   addRouteLoaderHash,
   clearRouteLoaderHashes,
   findRouteLoaderSourceFiles,
+  getServerEntryIds,
   invalidateRouterConfigModules,
+  isServerEntryId,
   isRouterSourceFilePath,
   qwikRouter,
   replaceLoaderPlaceholders,
 } from './plugin';
+import { normalizePath } from '../../utils/fs';
 
 describe('qwikRouter plugin', () => {
   describe('defaultLoadersSerializationStrategy', () => {
@@ -149,8 +152,13 @@ describe('qwikRouter plugin', () => {
       addRouteLoaderHash(loadersByFile, loaderPath, 'loader_hash');
 
       for (const placeholderPath of [loaderPath, 'C:/deep/project/src/routes/index.tsx']) {
-        const code = `{ _R: ${JSON.stringify(`__LOADERS:${placeholderPath}__`)}, }`;
-        expect(replaceLoaderPlaceholders(code, loadersByFile)).toContain('_R: ["loader_hash"],');
+        for (const field of ['_R', '_D']) {
+          const code = `{ ${field}: ${JSON.stringify(`__LOADERS:${placeholderPath}__`)}, }`;
+          expect(replaceLoaderPlaceholders(code, loadersByFile)).toContain(
+            `${field}: ["loader_hash"],`
+          );
+          expect(replaceLoaderPlaceholders(code, new Map())).not.toContain('__LOADERS:');
+        }
       }
     });
 
@@ -222,5 +230,31 @@ describe('qwikRouter plugin', () => {
       expect(clientGraph.invalidated).toEqual([clientGraph.mod]);
       expect(ssrGraph.invalidated).toEqual([ssrGraph.mod]);
     });
+  });
+});
+
+describe('server entries that register the router config', () => {
+  it('collects the ssr entry, the build.ssr input and the rolldown inputs', () => {
+    // Absolute like Vite's module ids, which carry a drive letter on Windows.
+    const abs = (path: string) => normalizePath(resolve(path));
+    const ids = getServerEntryIds(abs('/app'), abs('/app/src'), 'src/entry.express.tsx', {
+      main: abs('/app/src/entry.node.ts'),
+    });
+
+    expect(ids).toEqual([
+      abs('/app/src/entry.ssr'),
+      abs('/app/src/entry.express'),
+      abs('/app/src/entry.node'),
+    ]);
+    expect(isServerEntryId(abs('/app/src/entry.ssr.tsx'), ids)).toBe(true);
+    expect(isServerEntryId(`${abs('/app/src/entry.express.tsx')}?v=1`, ids)).toBe(true);
+    expect(isServerEntryId(abs('/app/src/root.tsx'), ids)).toBe(false);
+  });
+
+  it('keeps virtual entry ids as they are', () => {
+    const ids = getServerEntryIds('/app', undefined, '@router-ssr-entry', undefined);
+
+    expect(ids).toEqual(['@router-ssr-entry']);
+    expect(isServerEntryId('@router-ssr-entry', ids)).toBe(true);
   });
 });

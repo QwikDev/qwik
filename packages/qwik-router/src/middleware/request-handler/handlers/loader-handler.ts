@@ -49,12 +49,17 @@ export function loaderHandler(
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
     const cacheControl = resolveLoaderCacheControl(loader.__cacheControl, loaderRequestEv);
+    const applyCacheControl = () => {
+      if (cacheControl !== null && !requestEv.headers.has('Cache-Control')) {
+        requestEv.cacheControl(cacheControl);
+      }
+    };
 
     // Pre-loader eTag: when an explicit string/function eTag is configured, set the ETag header and
     // short-circuit with 304 if If-None-Match already matches — saves running the loader.
     const normalizedETag =
       loader.__eTag !== undefined ? resolvePreETag(loader.__eTag, loaderRequestEv) : '';
-    if (normalizedETag && performETagMatch(loaderRequestEv, normalizedETag)) {
+    if (normalizedETag && performETagMatch(loaderRequestEv, normalizedETag, applyCacheControl)) {
       return;
     }
 
@@ -78,7 +83,7 @@ export function loaderHandler(
         // On hit, surface the cached eTag (auto-hashed from the original body) so a conditional
         // request can 304. The explicit-eTag path already 304'd above if applicable.
         if (!normalizedETag) {
-          if (performETagMatch(loaderRequestEv, cached.eTag)) {
+          if (performETagMatch(loaderRequestEv, cached.eTag, applyCacheControl)) {
             return;
           }
         } else {
@@ -111,7 +116,11 @@ export function loaderHandler(
     }
 
     // If we auto-hashed, check if the request matches
-    if (!normalizedETag && finalETag && performETagMatch(loaderRequestEv, finalETag)) {
+    if (
+      !normalizedETag &&
+      finalETag &&
+      performETagMatch(loaderRequestEv, finalETag, applyCacheControl)
+    ) {
       return;
     }
 
@@ -120,16 +129,15 @@ export function loaderHandler(
 }
 
 /**
- * Resolve the loader's cacheControl option. Loaders default to `no-cache` so the browser always
- * revalidates; pair with `eTag` for cheap 304s. A function form may return `null` to skip the
- * header entirely.
+ * Resolve the loader's cacheControl option. Loaders default to private revalidation; pair with
+ * `eTag` for cheap 304s. A function form may return `null` to skip the header entirely.
  */
 function resolveLoaderCacheControl(
   option: LoaderInternal['__cacheControl'],
   requestEv: RequestEvent
 ): CacheControl | null {
   const value = typeof option === 'function' ? option(requestEv) : option;
-  return value === undefined ? 'no-cache' : value;
+  return value === undefined ? 'private' : value;
 }
 
 async function runBlockingLoadersBeforeTarget(
@@ -204,6 +212,9 @@ export async function sendJsonResponse(
 ) {
   const data = await _serialize(responseData);
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
+  if (!requestEv.headers.has('Cache-Control')) {
+    requestEv.cacheControl('private');
+  }
   requestEv.send(status, data);
 }
 

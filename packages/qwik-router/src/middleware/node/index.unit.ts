@@ -1,5 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { Writable } from 'node:stream';
+import { finished } from 'node:stream/promises';
 import type { QwikRouterNodeRequestOptions } from '.';
+import { staticPaths } from '../request-handler/static-paths';
 
 const { mockRequestHandler, mockFromNodeHttp, mockComputeOrigin, mockGetUrl } = vi.hoisted(() => ({
   mockRequestHandler: vi.fn(),
@@ -16,8 +22,8 @@ vi.mock('@qwik.dev/core/server', () => ({
   setServerPlatform: vi.fn(),
 }));
 
-vi.mock('@qwik.dev/router/middleware/request-handler', () => ({
-  isStaticPath: vi.fn(() => false),
+vi.mock('@qwik.dev/router/middleware/request-handler', async () => ({
+  isStaticPath: (await import('../request-handler/static-paths')).isStaticPath,
   requestHandler: mockRequestHandler,
 }));
 
@@ -103,5 +109,64 @@ describe('createQwikRouter().router', () => {
       undefined,
       1024
     );
+  });
+});
+
+describe('createQwikRouter().staticFile', () => {
+  let staticRoot: string;
+  let originalStaticPaths: Set<string>;
+
+  beforeEach(async () => {
+    originalStaticPaths = new Set(staticPaths);
+    staticRoot = await mkdtemp(join(tmpdir(), 'qwik-static-file-'));
+    await writeFile(join(staticRoot, 'hello.txt'), 'static file content');
+    await mkdir(join(staticRoot, 'blog', 'v1.2'), { recursive: true });
+    await writeFile(join(staticRoot, 'blog', 'v1.2', 'index.html'), 'release page');
+  });
+
+  afterEach(async () => {
+    for (const pathname of staticPaths) {
+      if (!originalStaticPaths.has(pathname)) {
+        staticPaths.delete(pathname);
+      }
+    }
+    vi.unstubAllGlobals();
+    await rm(staticRoot, { recursive: true, force: true });
+  });
+
+  const serveStaticFile = async (url: string) => {
+    const chunks: Buffer[] = [];
+    const response = Object.assign(
+      new Writable({
+        write(chunk, _encoding, callback) {
+          chunks.push(Buffer.from(chunk));
+          callback();
+        },
+      }),
+      { setHeader: vi.fn() }
+    );
+    const completion = finished(response);
+    const middleware = createQwikRouter({ ...createNodeOptions(), static: { root: staticRoot } });
+
+    await middleware.staticFile(
+      { method: 'GET', url, headers: {} } as any,
+      response as any,
+      (error) => response.destroy(error ?? new Error('Static request was not handled'))
+    );
+    await completion;
+    return Buffer.concat(chunks).toString();
+  };
+
+  it('serves a static file from under the base', async () => {
+    vi.stubGlobal('__QWIK_ROUTER_BASE_PATHNAME__', '/docs/');
+    staticPaths.add('/docs/hello.txt');
+
+    expect(await serveStaticFile('/docs/hello.txt')).toBe('static file content');
+  });
+
+  it('serves a prerendered page whose folder name contains a dot', async () => {
+    staticPaths.add('/blog/v1.2/');
+
+    expect(await serveStaticFile('/blog/v1.2/')).toBe('release page');
   });
 });

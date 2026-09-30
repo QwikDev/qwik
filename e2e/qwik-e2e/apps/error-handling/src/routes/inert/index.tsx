@@ -1,24 +1,18 @@
-import {
-  component$,
-  ErrorBoundary,
-  isServer,
-  useSignal,
-  useTask$,
-  type Signal,
-} from '@qwik.dev/core';
-import { defaultFallback, EbSyncThrower } from '../../components/error-boundary/error-boundary';
+import { component$, Catch, isServer, useSignal, useTask$, type Signal } from '@qwik.dev/core';
+import { defaultFallback, CatchSyncThrower } from '../../components/catch/catch';
 
-const EbInertContent = component$<{ trigger: Signal<number> }>((props) => {
+const CatchInertContent = component$<{ trigger: Signal<number> }>((props) => {
   useTask$(({ track }) => {
     track(() => props.trigger.value);
     if (!isServer) {
-      (window as any).__ebDeadTaskClientRuns = ((window as any).__ebDeadTaskClientRuns ?? 0) + 1;
+      (window as any).__catchDeadTaskClientRuns =
+        ((window as any).__catchDeadTaskClientRuns ?? 0) + 1;
     }
   });
   return (
-    <div id="eb-content">
+    <div id="catch-content">
       <p>streamed content</p>
-      <EbSyncThrower />
+      <CatchSyncThrower />
     </div>
   );
 });
@@ -27,13 +21,13 @@ export default component$(() => {
   const inertTrigger = useSignal(0);
   return (
     <>
-      <ErrorBoundary fallback$={defaultFallback}>
-        <EbInertContent trigger={inertTrigger} />
-      </ErrorBoundary>
-      <button id="eb-inert-trigger" onClick$={() => inertTrigger.value++}>
+      <Catch fallback$={defaultFallback}>
+        <CatchInertContent trigger={inertTrigger} />
+      </Catch>
+      <button id="catch-inert-trigger" onClick$={() => inertTrigger.value++}>
         bump signal
       </button>
-      <span id="eb-inert-val">{inertTrigger.value}</span>
+      <span id="catch-inert-val">{inertTrigger.value}</span>
     </>
   );
 });

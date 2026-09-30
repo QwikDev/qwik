@@ -76,7 +76,7 @@ export function computeWouldInjectNames(ctx: RewriteContext): Map<string, string
         )
     );
     if (needsCapturesImport) {
-      add('_captures', '@qwik.dev/core');
+      add('_capturesObj', '@qwik.dev/core');
     }
   } else if (inlineOptions && !inlineOptions.inline) {
     if (hasTopLevelNonSync) {

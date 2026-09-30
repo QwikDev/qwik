@@ -148,6 +148,18 @@ When touching these areas:
 - test root and nested/container cases when a feature can appear in both;
 - include streaming or out-of-order cases when state can arrive after initial event listeners.
 
+Out-of-order (OOOS) invariants:
+
+- Root vnode data is written before deferred segments resolve, so a component whose attrs were not
+  yet roots gets only a render hash. When a segment later serializes that node, re-emit its element's
+  vnode data as a `q:patch`, or the client can never re-render it.
+- Resumed segment elements must resolve through the normal DOM path in `vnode_locate`; a detached
+  vnode breaks every upward walk (context, reset owner).
+- Scoped client vnode walks (patches, segments) must stop after the scope's subtree, and a nested
+  container's root takes vnode data only from its own container, never from the outer walk.
+- Unit harnesses resolve every segment before resume. Timing-dependent OOOS bugs (shell resumed
+  before release, `SSRStream` nested containers) need the e2e fixtures to reproduce.
+
 ## QRL And Optimizer-Facing Runtime
 
 - Use `$`-suffixed APIs and `$()` in tests when a QRL boundary is expected.
@@ -174,7 +186,7 @@ streaming, navigation, or integration with fixture apps. For Qwik e2e, load
 
 Never use `pnpm test.unit` for agent verification in this repo.
 
-## ErrorBoundary (experimental `errorBoundary`)
+## Catch (experimental `catchBoundary`)
 
 Keep error state non-enumerable and out of serialized state. Store the raw throw and project it only
 at display sites; redaction is origin-based — the server display redacts in production unless the
@@ -184,6 +196,66 @@ Reset must re-render the component that authored projected children. Identify an
 component as soon as SSR error teardown determines it; store its VNode reference only when the
 projection cut prevents the client owner walk. Re-key the highest wrapper below that author so
 normal diffing recreates emptied projected content without projection-wide scheduling.
+
+## Duplicated Core Copies
+
+A Qwik library kept external on the server evaluates its own copy of `@qwik.dev/core`, and it
+evaluates before the app bundle (ESM hoists external imports). `e2e/qwik-e2e/tests/external-library.e2e.ts`
+renders such a library; `packages/qwik/src/core/shared/singletons.unit.ts` loads core twice in vitest.
+Keep these invariants so both keep passing:
+
+- Mutable module-level state that another copy may read goes through `registerSingleton` in
+  `shared/singletons.ts`; never a `let` binding or a module-level `Map`/`WeakMap`. The one
+  exception is the platform: each app render installs a platform carrying its own manifest, so it
+  stays per bundle (the `multi-container` error-handling e2e renders two apps in one process).
+- Marker symbols come from `qwikSymbol(name)` in `shared/singletons.ts`, typed `: unique symbol`;
+  a plain `Symbol()` is invisible to the other copy, and a bare `Symbol.for('qwik.…')` would also
+  match another Qwik version on the same page. The server allows one version per process
+  (`shared/duplicate-core.ts` throws Q30 otherwise); the client keeps a registry per version,
+  since every container may come from a different build.
+- A class that is checked with `instanceof` gets `brandClass(Class, Brand.X)` right after its
+  declaration (`shared/utils/brand.ts`); the serializer's unknown-type error (Q20) is the usual sign
+  of an unbranded class.
+- A component the renderer recognizes by identity (`Slot`, `Fragment`, `SSRComment`, `SSRRaw`,
+  `SSRStream`, `SSRStreamBlock`) is created through `registerSingleton`; a library's `<Slot>`
+  from its own copy of core otherwise renders as a plain component and its projected children lose
+  their context (Q8).
+- Never read `__EXPERIMENTAL__.feature` at module top level. The bundler only substitutes literals
+  in bundled copies; an unbundled copy resolves the flags lazily from the bundled copy through
+  `shared/duplicate-core.ts`, which runs once per copy and must stay listed in `sideEffects` in
+  `packages/qwik/package.json`.
+- `dist/preloader.mjs` and `dist/server.mjs` embed their own copy of the registry; keep
+  `shared/singletons.ts` free of heavy imports, and keep `globalThis.QWIK_VERSION` defined in every
+  bundle that embeds it.
+- `src/web-worker/worker.shared.js` may import only what `QWIK_WORKER_CORE_CODE` in
+  `packages/qwik-vite/src/plugins/worker-core.ts` re-exports; a new import there fails only in the
+  `worker.e2e.ts` and adapters `worker.spec.ts` suites.
+- Keep `_captures` exported from core and both optimizers accepting `_captures[N]`: libraries
+  already published against v2 betas read it from their own copy.
+- The server only calls functions registered by hash (`_regSymbol`), so that registry is the
+  allowlist for `server$` calls from the browser; never register every QRL. A library build
+  inlines its QRLs, so the router's `serverQrl()` registers its function (`_regInlinedQrl`); a
+  `server$` declared inside a library component is only registered once that component rendered.
+- The router follows the same rules through `_registerSingleton` and `_qwikSymbol` from
+  `@qwik.dev/core/internal`: the request store is a singleton, a router class checked with
+  `instanceof` gets `shareClassIdentity()` (`middleware/request-handler/shared-class-identity.ts`),
+  and a router copy without a config reads the serving app's config from the request event.
+- In production server builds the Vite plugin leaves Qwik libraries to Vite's defaults and the
+  user's config (`checkExternals` in `packages/qwik-vite/src/plugins/vite.ts`), and only warns
+  when the server could not load an external library at runtime; v1-built libraries
+  import `@builder.io/qwik`, so users list them in top-level `resolve.noExternal`, which also
+  reaches adapter environments such as `ssg` (`ssr.noExternal` does not). The dev
+  server and builds with `NODE_ENV` other than `production` bundle every library: they bundle the
+  development core, whose `$…$` property names differ from the production core Node resolves for
+  an external library, and the dev server's SSR maps a QRL to a segment URL through its parent
+  module, which a raw library cannot provide. The in-repo e2e server passes its own conditions,
+  so only the CLI suite's `external-library.spec.ts` exercises a real starter's builds. The router runtime must keep
+  evaluating without the app build: it reads its config through `getRouterConfig()` in
+  `packages/qwik-router/src/runtime/src/router-config.ts`, never through a static
+  `@qwik-router-config` import, which only the app build resolves. The router plugin appends that
+  import to the server entries so the config registers up front; `getRouterConfig()` falls back to
+  a dynamic import. The config stays per bundle like the platform, since the e2e dev server hosts
+  several apps in one process.
 
 ## Keep This Reference Fresh
 

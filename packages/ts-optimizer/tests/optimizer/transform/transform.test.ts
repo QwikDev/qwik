@@ -347,8 +347,8 @@ export const App = component$(() => {
     const meta = innerSegment!.segment! as SegmentMetadataInternal;
     expect(meta.captureNames).toContain('count');
 
-    expect(innerSegment!.code).toContain('_captures');
-    expect(innerSegment!.code).toContain('const count = _captures[0]');
+    expect(innerSegment!.code).toContain('_capturesObj');
+    expect(innerSegment!.code).toContain('let count = _capturesObj._[0]');
   });
 
   it('migration: top-level const used by $() gets _auto_ export and import', () => {
@@ -918,7 +918,7 @@ export const App = component$(() => {
     expect(seg.hash).toBeTruthy();
     expect(seg.canonicalFilename).toBeTruthy();
     expect(seg.extension).toMatch(/^(tsx|ts|js)$/);
-    expect(seg.entry).toBeNull();
+    expect(seg.entry).toBe('test.tsx_entry_App');
     expect(seg.captures).toBe(false);
     expect(seg.loc).toHaveLength(2);
     expect(seg.loc[0]).toBeGreaterThan(0);

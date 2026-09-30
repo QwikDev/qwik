@@ -1,8 +1,8 @@
-import { basePathname } from './qwik-router-config';
 import { isBrowser, isDev } from '@qwik.dev/core';
 import { _requestPreload as preload } from '@qwik.dev/core/internal';
 import { ensureSlash } from '../../utils/pathname';
 import { fetchRouteLoaderData, getModuleRouteLoaders } from './route-loaders';
+import { getBasePathname, getRouterConfig } from './router-config';
 import { loadRoute } from './routing';
 import type { LoadedRoute, RouteModule } from './types';
 
@@ -31,13 +31,8 @@ export async function prefetchRoute(
   }
 
   try {
-    // Dynamic import on purpose — see qwik-router-component.tsx.
-    const qwikRouterConfig = await import('@qwik-router-config');
-    const loadedRoute = await loadRoute(
-      (qwikRouterConfig as any).routes,
-      (qwikRouterConfig as any).cacheModules,
-      url.pathname
-    );
+    const { routes, cacheModules } = await getRouterConfig();
+    const loadedRoute = await loadRoute(routes, cacheModules, url.pathname);
     if (!loadedRoute) {
       return;
     }
@@ -78,8 +73,7 @@ export const prefetchLoaderData = (loadedRoute: LoadedRoute, url: URL, manifestH
       .filter((loader) => loader.__cacheControl === 'immutable')
       .map((loader) => loader.__id)
   );
-  // Not the config namespace: a static @qwik-router-config import TDZs in bundled output.
-  const basePath = basePathname;
+  const basePath = getBasePathname();
   for (const hash of loadedRoute.$loaders$) {
     if (immutableIds.has(hash)) {
       continue;

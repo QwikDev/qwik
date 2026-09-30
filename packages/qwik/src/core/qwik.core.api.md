@@ -35,8 +35,47 @@ export class _AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> impl
 // @public @deprecated (undocumented)
 export type AsyncSignalOptions<T> = ComputedOptions<T>;
 
-// @internal
+// @internal (undocumented)
+export const _caC: (props: CatchProps) => JSXOutput;
+
+// @internal @deprecated
 export let _captures: Readonly<unknown[]> | null;
+
+// @internal
+export const _capturesObj: {
+    _: Readonly<unknown[]> | null;
+};
+
+// @internal (undocumented)
+export const _caR: () => void;
+
+// @public
+export const Catch: Component<CatchProps>;
+
+// @public
+export interface CatchInfo {
+    boundaryId: string;
+    digest: string;
+    phase: CatchPhase;
+}
+
+// @public
+export const enum CatchPhase {
+    // (undocumented)
+    Event = "event",
+    // (undocumented)
+    Hook = "hook",
+    // (undocumented)
+    Render = "render"
+}
+
+// @public (undocumented)
+export interface CatchProps {
+    fallback$: QRL<(error: Error & {
+        digest?: string;
+    }, reset: QRL<() => void>) => JSXOutput>;
+    onError$?: QRL<(error: Error, info: CatchInfo) => void>;
+}
 
 // @internal
 export function _chk(this: string | undefined, _: any, element: HTMLInputElement): void | Promise<void>;
@@ -118,19 +157,19 @@ export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 export interface ComputedSignal<T> extends Signal<T> {
     abort(reason?: any): void;
     clear(): void;
+    error: Error | undefined;
     // @deprecated (undocumented)
     force(): void;
     invalidate(): void;
     invalidate(info?: unknown): void;
+    pending: boolean;
     promise(): Promise<void>;
 }
 
 // @internal
 export interface _ComputedSignalInternal<T> extends ComputedSignal<T> {
-    error: Error | undefined;
     // @deprecated (undocumented)
     loading: boolean;
-    pending: boolean;
     untrackedError: Error | undefined;
     // @deprecated (undocumented)
     untrackedLoading: boolean;
@@ -180,7 +219,7 @@ export interface _Container {
     // (undocumented)
     getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryPhase): void;
+    handleError(err: any, $host$: _HostElement | null, phase?: CatchPhase): void;
     // (undocumented)
     resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
@@ -362,7 +401,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
     // (undocumented)
-    handleError(err: any, host: _VNode | null, phase?: ErrorBoundaryPhase): void;
+    handleError(err: any, host: _VNode | null, phase?: CatchPhase): void;
     // (undocumented)
     parseQRL<T = unknown>(qrlStr: string): QRL<T>;
     // (undocumented)
@@ -404,12 +443,6 @@ export const Each: EachComponent;
 export const _eaT: (input: TaskCtx) => Promise<void>;
 
 // @internal (undocumented)
-export const _ebC: (props: ErrorBoundaryProps) => JSXOutput;
-
-// @internal (undocumented)
-export const _ebR: () => void;
-
-// @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
@@ -438,34 +471,6 @@ export const _EMPTY_ARRAY: any[];
 
 // @internal (undocumented)
 export const _EMPTY_OBJ: Record<string, any>;
-
-// @public
-export const ErrorBoundary: Component<ErrorBoundaryProps>;
-
-// @public
-export interface ErrorBoundaryInfo {
-    boundaryId: string;
-    digest: string;
-    phase: ErrorBoundaryPhase;
-}
-
-// @public
-export const enum ErrorBoundaryPhase {
-    // (undocumented)
-    Event = "event",
-    // (undocumented)
-    Hook = "hook",
-    // (undocumented)
-    Render = "render"
-}
-
-// @public (undocumented)
-export interface ErrorBoundaryProps {
-    fallback$: QRL<(error: Error & {
-        digest?: string;
-    }, reset: QRL<() => void>) => JSXOutput>;
-    onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
-}
 
 // @public (undocumented)
 export const event$: <T>(qrl: T) => QRL<T>;
@@ -542,6 +547,9 @@ export const getPlatform: () => CorePlatform;
 // @internal (undocumented)
 export function _getQContainerElement(element: Element): Element | null;
 
+// @internal
+export const _getSingleton: <T>(key: string) => T | undefined;
+
 // Warning: (ae-forgotten-export) The symbol "Consumer" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "EffectSubscription" needs to be exported by the entry point index.d.ts
 //
@@ -557,7 +565,10 @@ export { h as createElement }
 export { h }
 
 // @internal (undocumented)
-export function _handleSSRError(container: SSRContainer, err: any, host: ISsrNode | null, phase: ErrorBoundaryPhase): void;
+export function _handleSSRError(container: SSRContainer, err: any, host: ISsrNode | null, phase: CatchPhase): void;
+
+// @internal (undocumented)
+export function _hasSlotProps(props: Props | null | undefined): boolean;
 
 // @internal (undocumented)
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
@@ -800,6 +811,21 @@ export interface OnVisibleTaskOptions {
     strategy?: VisibleTaskStrategy;
 }
 
+// @internal (undocumented)
+export const _peC: (props: PendingProps) => JSXNodeInternal<string>[];
+
+// @public (undocumented)
+export const Pending: Component<PendingProps>;
+
+// @public (undocumented)
+export type PendingProps = {
+    fallback$?: QRL<() => JSXOutput>;
+    delay?: number;
+};
+
+// @internal (undocumented)
+export const _peT: (input: TaskCtx) => void;
+
 // @alpha @deprecated (undocumented)
 export const PrefetchGraph: (_opts?: {
     base?: string;
@@ -993,6 +1019,9 @@ export type QwikSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;
 };
 
+// @internal
+export const _qwikSymbol: <S extends symbol = symbol>(name: string) => S;
+
 // @public
 export type QwikSymbolEvent = CustomEvent<{
     symbol: string;
@@ -1034,6 +1063,12 @@ export const _reC: (props: RevealProps) => JSXNodeInternal<FunctionComponent<   
 name?: string;
 children?: JSXChildren;
 }>> | JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>>;
+
+// @internal
+export const _regInlinedQrl: (qrl: QRL) => void;
+
+// @internal
+export const _registerSingleton: <T>(key: string, factory: () => T) => T;
 
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
@@ -1229,7 +1264,7 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     abstract getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    abstract handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryPhase): void;
+    abstract handleError(err: any, $host$: _HostElement | null, phase?: CatchPhase): void;
     // (undocumented)
     abstract resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)
@@ -1420,23 +1455,6 @@ export class _SubscriptionPatch {
     // (undocumented)
     subscriptions: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>;
 }
-
-// @internal (undocumented)
-export const _suC: (props: SuspenseProps) => JSXNodeInternal<string>[];
-
-// Warning: (ae-incompatible-release-tags) The symbol "Suspense" is marked as @public, but its signature references "_suC" which is marked as @internal
-//
-// @public (undocumented)
-export const Suspense: typeof _suC;
-
-// @public (undocumented)
-export type SuspenseProps = {
-    fallback?: JSXOutput;
-    delay?: number;
-};
-
-// @internal (undocumented)
-export const _suT: (input: TaskCtx) => void;
 
 // Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point index.d.ts
 //

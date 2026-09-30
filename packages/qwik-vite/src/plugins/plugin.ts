@@ -3,6 +3,7 @@ import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer 
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import type {
+  DecoratorOptions,
   Diagnostic,
   EntryStrategy,
   GlobalInjections,
@@ -83,10 +84,10 @@ export enum ExperimentalFeatures {
   each = 'each',
   /** Enable the Show conditional primitive */
   show = 'show',
-  /** Enable the Suspense fallback primitive */
-  suspense = 'suspense',
-  /** Enable the ErrorBoundary primitive */
-  errorBoundary = 'errorBoundary',
+  /** Enable the Pending fallback primitive */
+  pendingBoundary = 'pendingBoundary',
+  /** Enable the Catch primitive */
+  catchBoundary = 'catchBoundary',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
@@ -101,6 +102,18 @@ export interface QwikPackages {
   id: string;
   path: string;
 }
+
+/** `QWIK_OPTIMIZER=ts|rust` overrides the option so a project can be tested on the other optimizer. */
+const resolveTsOptimizerChoice = (tsOptimizer: boolean | undefined): boolean => {
+  const override = typeof process === 'object' ? process.env?.QWIK_OPTIMIZER : undefined;
+  if (override === undefined || override === '') {
+    return !!tsOptimizer;
+  }
+  if (override === 'ts' || override === 'rust') {
+    return override === 'ts';
+  }
+  throw new Error(`QWIK_OPTIMIZER must be "ts" or "rust", got "${override}"`);
+};
 
 export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
@@ -158,7 +171,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (optimizerOptions._optimizer) {
           return optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer');
         }
-        if (optimizerOptions.tsOptimizer) {
+        if (resolveTsOptimizerChoice(optimizerOptions.tsOptimizer)) {
           return (await import('@qwik.dev/ts-optimizer')) as unknown as typeof import('@qwik.dev/optimizer');
         }
         return import('@qwik.dev/optimizer');
@@ -846,6 +859,29 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return result;
   };
 
+  /**
+   * The optimizer can't read tsconfig, so let Vite resolve it for this file and report which
+   * decorator lowering it enables.
+   */
+  const resolveDecoratorOptions = async (
+    ctx: Rolldown.PluginContext,
+    pathId: string
+  ): Promise<DecoratorOptions | undefined> => {
+    const { transformWithOxc }: typeof import('vite') = await getSys().dynamicImport('vite');
+    const probe = await transformWithOxc(
+      '@probe class C { @probe p: string }',
+      pathId,
+      { lang: 'ts', sourcemap: false },
+      undefined,
+      (ctx.environment as DevEnvironment | undefined)?.config
+    );
+    const isLegacy = !probe.code.includes('@probe');
+    if (!isLegacy) {
+      return undefined;
+    }
+    return { legacy: true, emitDecoratorMetadata: probe.code.includes('design:type') };
+  };
+
   let loadCount = 0;
   const load = async (
     ctx: Rolldown.PluginContext,
@@ -1061,6 +1097,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         mode,
         scope: opts.scope || undefined,
         isServer,
+        decorator: mightContainDecorators(code)
+          ? await resolveDecoratorOptions(ctx, pathId)
+          : undefined,
       };
 
       if (strip) {
@@ -1554,6 +1593,9 @@ function isAdditionalFile(mod: TransformModule) {
 }
 
 const isPublicVirtualId = (id: string) => id.startsWith('virtual:');
+
+/** Cheap pre-check; a false positive only costs an extra transform. */
+const mightContainDecorators = (code: string) => /(?:^|[\s(,])@[\p{ID_Start}$_]/mu.test(code);
 
 const TRANSFORM_EXTS = {
   '.jsx': true,

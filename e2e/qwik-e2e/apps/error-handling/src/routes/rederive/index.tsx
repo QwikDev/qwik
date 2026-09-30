@@ -1,15 +1,15 @@
-import { $, component$, ErrorBoundary, isServer } from '@qwik.dev/core';
-import { EbAlwaysThrower, resetFallback } from '../../components/error-boundary/error-boundary';
+import { $, component$, Catch, isServer } from '@qwik.dev/core';
+import { CatchAlwaysThrower, resetFallback } from '../../components/catch/catch';
 
 export default component$(() => (
-  <ErrorBoundary
+  <Catch
     fallback$={resetFallback}
     onError$={$(() => {
       if (!isServer) {
-        (window as any).__ebRederiveRuns = ((window as any).__ebRederiveRuns ?? 0) + 1;
+        (window as any).__catchRederiveRuns = ((window as any).__catchRederiveRuns ?? 0) + 1;
       }
     })}
   >
-    <EbAlwaysThrower />
-  </ErrorBoundary>
+    <CatchAlwaysThrower />
+  </Catch>
 ));

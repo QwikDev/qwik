@@ -11,14 +11,15 @@ import { isPromise } from '../utils/promises';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import type { VNode } from '../vnode/vnode';
 import { markVNodeDirty } from '../vnode/vnode-dirty';
-import { ErrorBoundaryPhase } from './error-boundary-phase';
+import { CatchPhase } from './catch-phase';
+import { qwikSymbol, registerSingleton } from '../singletons';
 
-export { ErrorBoundaryPhase } from './error-boundary-phase';
+export { CatchPhase } from './catch-phase';
 
 /** Structured metadata about a caught error, passed to `onError$`. @public @experimental */
-export interface ErrorBoundaryInfo {
+export interface CatchInfo {
   /** Where the caught error originated. */
-  phase: ErrorBoundaryPhase;
+  phase: CatchPhase;
   /**
    * Identifies the boundary within the page. Allocated in render order and kept across a resume, so
    * every report from one boundary shares it — but it shifts when render order changes.
@@ -33,18 +34,18 @@ export interface ErrorBoundaryInfo {
 }
 
 /** @internal */
-export interface ErrorBoundaryStore {
+export interface CatchStore {
   error: unknown | undefined;
   $fallback$?: (error: unknown) => unknown;
-  $onError$?: (error: unknown, info: ErrorBoundaryInfo) => void;
+  $onError$?: (error: unknown, info: CatchInfo) => void;
   $emitFallback$?: (error: unknown) => void | Promise<void>;
   boundaryId?: string;
   projectedContentOwner?: HostElement;
 }
 
-export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<ErrorBoundaryStore>('qk-error');
+export const ERROR_CONTEXT = /*#__PURE__*/ createContextId<CatchStore>('qk-error');
 
-export const ERROR_BOUNDARY_QRL_SYMBOL = '_ebC';
+export const CATCH_QRL_SYMBOL = '_caC';
 
 const safeRead = <T>(read: () => T, fallback: T): T => {
   try {
@@ -59,7 +60,7 @@ export const isRecoverable = (err: any) =>
 
 const GENERIC_BOUNDARY_ERROR_MESSAGE = 'An error occurred';
 
-const errorBoundaryDigest = (err: unknown): string =>
+const errorDigest = (err: unknown): string =>
   hashCode(
     safeRead(
       () =>
@@ -68,11 +69,11 @@ const errorBoundaryDigest = (err: unknown): string =>
     )
   );
 
-const REDACTED = /*#__PURE__*/ Symbol();
+const REDACTED: unique symbol = /*#__PURE__*/ qwikSymbol('redacted');
 
 export const redactToGeneric = (err: unknown): Error & { digest: string } => {
   const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
-  redacted.digest = errorBoundaryDigest(err);
+  redacted.digest = errorDigest(err);
   Object.defineProperty(redacted, REDACTED, { value: true });
   return redacted;
 };
@@ -146,16 +147,16 @@ export const redactBoundaryErrorForDisplay = (
 };
 
 export const fireOnError = (
-  onError: ((error: Error, info: ErrorBoundaryInfo) => unknown) | undefined | null,
+  onError: ((error: Error, info: CatchInfo) => unknown) | undefined | null,
   error: unknown,
-  phase: ErrorBoundaryPhase,
+  phase: CatchPhase,
   boundaryId: string
 ): void => {
   if (!onError) {
     return;
   }
   try {
-    const digest = errorBoundaryDigest(error);
+    const digest = errorDigest(error);
     void Promise.resolve(onError(toBoundaryError(error), { phase, boundaryId, digest })).catch(
       logError
     );
@@ -164,18 +165,21 @@ export const fireOnError = (
   }
 };
 
-const boundariesWithDeferredError = /*#__PURE__*/ new WeakSet<ErrorBoundaryStore>();
+const boundariesWithDeferredError = /*#__PURE__*/ registerSingleton(
+  'deferredErrorBoundaries',
+  () => new WeakSet<CatchStore>()
+);
 
-export const markErrorFromDeferredSegment = (store: ErrorBoundaryStore): void => {
+export const markErrorFromDeferredSegment = (store: CatchStore): void => {
   boundariesWithDeferredError.add(store);
 };
 
-export const isErrorFromDeferredSegment = (store: ErrorBoundaryStore): boolean =>
+export const isErrorFromDeferredSegment = (store: CatchStore): boolean =>
   boundariesWithDeferredError.has(store);
 
-const ERROR_PHASE = /*#__PURE__*/ Symbol('qErrorPhase');
+const ERROR_PHASE: unique symbol = /*#__PURE__*/ qwikSymbol('qErrorPhase');
 
-export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryPhase): void => {
+export const tagErrorPhase = (err: unknown, phase: CatchPhase): void => {
   try {
     Object.defineProperty(err, ERROR_PHASE, { value: phase, configurable: true });
   } catch {
@@ -183,13 +187,13 @@ export const tagErrorPhase = (err: unknown, phase: ErrorBoundaryPhase): void => 
   }
 };
 
-const getTaggedErrorPhase = (err: unknown): ErrorBoundaryPhase | undefined =>
-  safeRead(() => (err as { [ERROR_PHASE]?: ErrorBoundaryPhase })?.[ERROR_PHASE], undefined);
+const getTaggedErrorPhase = (err: unknown): CatchPhase | undefined =>
+  safeRead(() => (err as { [ERROR_PHASE]?: CatchPhase })?.[ERROR_PHASE], undefined);
 
 export const markBoundaryErrored = (
-  store: ErrorBoundaryStore,
+  store: CatchStore,
   error: unknown,
-  phase: ErrorBoundaryPhase = ErrorBoundaryPhase.Render
+  phase: CatchPhase = CatchPhase.Render
 ): void => {
   // `null` would collide with the capture-only sentinel, so wrap every nullish throw.
   store.error = error == null ? toBoundaryError(error) : error;
@@ -217,7 +221,7 @@ const handleQError = (e: Event) => {
     return;
   }
   try {
-    container.handleError(detail.error, host, ErrorBoundaryPhase.Event);
+    container.handleError(detail.error, host, CatchPhase.Event);
   } catch (handlerError) {
     logError(handlerError);
   }
@@ -252,10 +256,7 @@ export function handleDevError(container: DomContainer, err: any, host: VNode) {
   }
 }
 
-export function getOwnErrorBoundaryStore(
-  container: DomContainer,
-  host: VNode
-): ErrorBoundaryStore | null {
+export function getOwnCatchStore(container: DomContainer, host: VNode): CatchStore | null {
   const ctx = container.getHostProp<Array<string | unknown>>(host, QCtxAttr);
-  return ctx ? (mapArray_get(ctx, ERROR_CONTEXT.id, 0) as ErrorBoundaryStore | null) : null;
+  return ctx ? (mapArray_get(ctx, ERROR_CONTEXT.id, 0) as CatchStore | null) : null;
 }

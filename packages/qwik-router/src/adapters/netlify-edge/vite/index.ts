@@ -1,4 +1,4 @@
-import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
+import type { SsgRenderOptions } from '../../../ssg';
 import fs, { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';

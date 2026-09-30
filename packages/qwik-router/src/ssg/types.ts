@@ -120,7 +120,7 @@ export interface SsgHandlerOptions extends SsgRenderOptions, ServerRenderOptions
 
 export type WorkerInputMessage = SsgRenderInput | WorkerCloseMessage;
 
-export type WorkerOutputMessage = SsgWorkerRenderResult | WorkerCloseMessage;
+export type WorkerOutputMessage = SsgWorkerRenderResult | WorkerCloseMessage | WorkerReadyMessage;
 
 export interface SsgRenderInput extends SsgRoute {
   type: 'render';
@@ -133,6 +133,10 @@ export interface SsgRoute {
 
 export interface WorkerCloseMessage {
   type: 'close';
+}
+
+export interface WorkerReadyMessage {
+  type: 'ready';
 }
 
 export interface SsgWorkerRenderResult {

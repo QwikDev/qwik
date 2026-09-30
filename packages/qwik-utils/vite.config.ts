@@ -12,6 +12,6 @@ export default defineConfig(() => {
         fileName: (format: string, entryName: string) => `${entryName}.mjs`,
       },
     },
-    plugins: [qwikVite()],
+    plugins: [qwikVite({ tsOptimizer: true })],
   };
 });

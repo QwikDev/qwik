@@ -1,8 +1,8 @@
 ---
-title: \@qwik.dev/qwik API Reference
+title: \@qwik.dev/core API Reference
 ---
 
-# [API](/api) &rsaquo; @qwik.dev/qwik
+# [API](/api) &rsaquo; @qwik.dev/core
 
 <h2 id="componentbaseprops-_q_slot_">"q:slot"</h2>
 
@@ -249,6 +249,209 @@ number \| 'immutable'
 **Returns:**
 
 void
+
+<h2 id="catch">Catch</h2>
+
+Renders `fallback$` instead of its children when a descendant throws.
+
+```typescript
+Catch: Component<CatchProps>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/catch.ts)
+
+<h2 id="catchinfo">CatchInfo</h2>
+
+Structured metadata about a caught error, passed to `onError$`.
+
+```typescript
+export interface CatchInfo
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+boundaryId
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+Identifies the boundary within the page. Allocated in render order and kept across a resume, so every report from one boundary shares it — but it shifts when render order changes.
+
+</td></tr>
+<tr><td>
+
+digest
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+The code a production fallback shows for a server-origin error, so a user's bug report matches your logs. An error caught during SSR reports a second, different digest if the client re-derives it — the stacks differ.
+
+</td></tr>
+<tr><td>
+
+phase
+
+</td><td>
+
+</td><td>
+
+[CatchPhase](#catchphase)
+
+</td><td>
+
+Where the caught error originated.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-handling.ts)
+
+<h2 id="catchphase">CatchPhase</h2>
+
+Identifies where an error caught by an error boundary originated.
+
+```typescript
+export declare const enum CatchPhase
+```
+
+<table><thead><tr><th>
+
+Member
+
+</th><th>
+
+Value
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+Event
+
+</td><td>
+
+`"event"`
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+Hook
+
+</td><td>
+
+`"hook"`
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+Render
+
+</td><td>
+
+`"render"`
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/catch-phase.ts)
+
+<h2 id="catchprops">CatchProps</h2>
+
+```typescript
+export interface CatchProps
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fallback$
+
+</td><td>
+
+</td><td>
+
+[QRL](#qrl-type-alias)&lt;(error: Error &amp; \{ digest?: string; }, reset: [QRL](#qrl-type-alias)&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)&gt;
+
+</td><td>
+
+Rendered when a descendant throws. The error is always an `Error`, so `{error.message}` is safe: a non-Error throw is wrapped, and production redacts server-origin errors to a generic message plus `digest`. Client-origin errors render as thrown — their messages already live in the browser bundle.
+
+Wrap `reset` in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired in a streamed fallback.
+
+</td></tr>
+<tr><td>
+
+onError$?
+
+</td><td>
+
+</td><td>
+
+[QRL](#qrl-type-alias)&lt;(error: Error, info: [CatchInfo](#catchinfo)) =&gt; void&gt;
+
+</td><td>
+
+_(Optional)_ Side effect only; never affects rendering. Receives the original `Error` — a non-Error throw arrives wrapped, with `cause` set to the raw value.
+
+An error caught during SSR fires again when the client re-derives it, so dedupe in your reporter.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/catch.ts)
 
 <h2 id="classlist">ClassList</h2>
 
@@ -627,6 +830,55 @@ export interface ComputedSignal<T> extends Signal<T>
 ```
 
 **Extends:** [Signal](#signal)&lt;T&gt;
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+error
+
+</td><td>
+
+</td><td>
+
+Error \| undefined
+
+</td><td>
+
+The computation error, if any. Reading it starts a lazy computation if needed. While set, reading `.value` throws the error.
+
+</td></tr>
+<tr><td>
+
+pending
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+Whether the signal is currently loading. Reading it starts a lazy computation if needed.
+
+</td></tr>
+</tbody></table>
 
 <table><thead><tr><th>
 
@@ -1350,210 +1602,7 @@ type ElementType = string | FunctionComponent<Record<any, any>>;
 
 **References:** [FunctionComponent](#functioncomponent)
 
-<h2 id="errorboundary">ErrorBoundary</h2>
-
-Renders `fallback$` instead of its children when a descendant throws.
-
-```typescript
-ErrorBoundary: Component<ErrorBoundaryProps>;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts)
-
-<h2 id="errorboundaryinfo">ErrorBoundaryInfo</h2>
-
-Structured metadata about a caught error, passed to `onError$`.
-
-```typescript
-export interface ErrorBoundaryInfo
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-boundaryId
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-Identifies the boundary within the page. Allocated in render order and kept across a resume, so every report from one boundary shares it — but it shifts when render order changes.
-
-</td></tr>
-<tr><td>
-
-digest
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-The code a production fallback shows for a server-origin error, so a user's bug report matches your logs. An error caught during SSR reports a second, different digest if the client re-derives it — the stacks differ.
-
-</td></tr>
-<tr><td>
-
-phase
-
-</td><td>
-
-</td><td>
-
-[ErrorBoundaryPhase](#errorboundaryphase)
-
-</td><td>
-
-Where the caught error originated.
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-handling.ts)
-
-<h2 id="errorboundaryphase">ErrorBoundaryPhase</h2>
-
-Identifies where an error caught by an error boundary originated.
-
-```typescript
-export declare const enum ErrorBoundaryPhase
-```
-
-<table><thead><tr><th>
-
-Member
-
-</th><th>
-
-Value
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-Event
-
-</td><td>
-
-`"event"`
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-Hook
-
-</td><td>
-
-`"hook"`
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-Render
-
-</td><td>
-
-`"render"`
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary-phase.ts)
-
-<h2 id="errorboundaryprops">ErrorBoundaryProps</h2>
-
-```typescript
-export interface ErrorBoundaryProps
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-fallback$
-
-</td><td>
-
-</td><td>
-
-[QRL](#qrl-type-alias)&lt;(error: Error &amp; \{ digest?: string; }, reset: [QRL](#qrl-type-alias)&lt;() =&gt; void&gt;) =&gt; [JSXOutput](#jsxoutput)&gt;
-
-</td><td>
-
-Rendered when a descendant throws. The error is always an `Error`, so `{error.message}` is safe: a non-Error throw is wrapped, and production redacts server-origin errors to a generic message plus `digest`. Client-origin errors render as thrown — their messages already live in the browser bundle.
-
-Wrap `reset` in a handler — `onClick$={() => reset()}`, not `onClick$={reset}` — so it stays wired in a streamed fallback.
-
-</td></tr>
-<tr><td>
-
-onError$?
-
-</td><td>
-
-</td><td>
-
-[QRL](#qrl-type-alias)&lt;(error: Error, info: [ErrorBoundaryInfo](#errorboundaryinfo)) =&gt; void&gt;
-
-</td><td>
-
-_(Optional)_ Side effect only; never affects rendering. Receives the original `Error` — a non-Error throw arrives wrapped, with `cause` set to the raw value.
-
-An error caught during SSR fires again when the client re-derives it, so dedupe in your reporter.
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/error/error-boundary.ts)
-
-<h2 id="errorboundaryphase-event">Event</h2>
+<h2 id="catchphase-event">Event</h2>
 
 <h2 id="event_">event$</h2>
 
@@ -1883,7 +1932,7 @@ any[]
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts)
 
-<h2 id="errorboundaryphase-hook">Hook</h2>
+<h2 id="catchphase-hook">Hook</h2>
 
 <h2 id="htmlelementattrs">HTMLElementAttrs</h2>
 
@@ -2789,6 +2838,27 @@ _(Optional)_ The strategy to use to determine when the "VisibleTask" should firs
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts)
+
+<h2 id="pending">Pending</h2>
+
+```typescript
+Pending: Component<PendingProps>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/pending.tsx)
+
+<h2 id="pendingprops">PendingProps</h2>
+
+```typescript
+export type PendingProps = {
+  fallback$?: QRL<() => JSXOutput>;
+  delay?: number;
+};
+```
+
+**References:** [QRL](#qrl-type-alias), [JSXOutput](#jsxoutput)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/pending.tsx)
 
 <h2 id="prefetchgraph">PrefetchGraph</h2>
 
@@ -3789,7 +3859,7 @@ An object containing a cleanup function.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/client/dom-render.ts)
 
-<h2 id="errorboundaryphase-render-enum-member">Render</h2>
+<h2 id="catchphase-render-enum-member">Render</h2>
 
 <h2 id="renderonce">RenderOnce</h2>
 
@@ -5019,27 +5089,6 @@ Description
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts)
-
-<h2 id="suspense">Suspense</h2>
-
-```typescript
-Suspense: typeof suspenseCmp;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/suspense.tsx)
-
-<h2 id="suspenseprops">SuspenseProps</h2>
-
-```typescript
-export type SuspenseProps = {
-  fallback?: JSXOutput;
-  delay?: number;
-};
-```
-
-**References:** [JSXOutput](#jsxoutput)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/control-flow/suspense.tsx)
 
 <h2 id="svgattributes">SVGAttributes</h2>
 
@@ -10346,6 +10395,10 @@ Use `useTask` to observe changes on a set of inputs, and then re-execute the `ta
 
 The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
 
+Cleanup callbacks registered with `cleanup()` or returned from the task may be async. When a task reruns, Qwik waits for the previous cleanup to finish before starting the next invocation.
+
+During SSR, the cleanup function is called immediately after SSR completes. Therefore, it is not called on the client side after resuming, but only the second time the task runs on the client.
+
 ```typescript
 useTask$: (fn: TaskFn, opts?: TaskOptions) => void
 ```
@@ -10416,6 +10469,10 @@ const Timer = component$(() => {
   return <div>{store.count}</div>;
 });
 ```
+
+Visible Tasks are a variant of Tasks that only run in the browser, and are registered but not executed during SSR. They are useful for running code that should only execute in the browser, such as code that interacts with the DOM or browser APIs.
+
+Cleanup callbacks registered with `cleanup()` or returned from the task may be async. When a visible task reruns, Qwik waits for the previous cleanup to finish before starting the next invocation.
 
 ```typescript
 useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void

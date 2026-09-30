@@ -95,6 +95,12 @@ export interface RenderResult {
 export interface RenderToStreamResult extends RenderResult {
   flushes: number;
   size: number;
+  /**
+   * True when a `<Catch>` caught during the render, no matter where in the stream.
+   *
+   * @experimental
+   */
+  hasCaughtError?: boolean;
   timing: {
     firstFlush: number;
     render: number;

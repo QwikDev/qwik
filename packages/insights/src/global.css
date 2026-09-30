@@ -5,73 +5,129 @@
 @import 'tailwindcss';
 
 @theme {
-  /* --link-offset: 0.15rem;
-  --primary-50: #f0f9ff;
-  --primary-100: #dff3ff;
-  --primary-200: #b9e8fe;
-  --primary-300: #7ad7ff;
-  --primary-400: #34c3fc;
-  --primary-500: #18b6f6;
-  --primary-600: #008acb;
-  --primary-700: #006ea4;
-  --primary-800: #045d88;
-  --primary-900: #0a4d70;
-  --primary-950: #07304a;
+  --color-editorial-paper: #f9f9f9;
+  --color-editorial-white: #ffffff;
+  --color-editorial-ink: #080808;
+  --color-editorial-navy: #1e2230;
+  --color-editorial-blue: #0a6ef9;
+  --color-editorial-blue-soft: #d9e7f7;
+  --color-editorial-violet: #a873fa;
+  --color-editorial-violet-soft: #e8d4fc;
+  --color-editorial-red: #f32b17;
+  --color-editorial-red-soft: #fff0ed;
+  --color-editorial-gray-50: #f7f8f9;
+  --color-editorial-gray-100: #dfe0df;
+  --color-editorial-gray-300: #cdced4;
+  --color-editorial-gray-400: #91949b;
+  --color-editorial-gray-500: #707688;
+  --color-editorial-gray-700: #3c4357;
+  --color-editorial-orange: #f28b0c;
+  --color-editorial-green: #199d4d;
 
-  --secondary-50: #f9f6fe;
-  --secondary-100: #f1e9fe;
-  --secondary-200: #e5d7fd;
-  --secondary-300: #d1b8fa;
-  --secondary-400: #ac7ef4;
-  --secondary-500: #985eee;
-  --secondary-600: #803edf;
-  --secondary-700: #6c2cc4;
-  --secondary-800: #5d29a0;
-  --secondary-900: #4d2281;
-  --secondary-950: #310c5f;
+  --color-editorial-canvas: var(--color-editorial-paper);
+  --color-editorial-surface: var(--color-editorial-white);
+  --color-editorial-subtle: var(--color-editorial-gray-50);
+  --color-editorial-selected: var(--color-editorial-blue-soft);
+  --color-editorial-danger-subtle: var(--color-editorial-red-soft);
+  --color-editorial-primary: var(--color-editorial-ink);
+  --color-editorial-secondary: var(--color-editorial-gray-500);
+  --color-editorial-muted: var(--color-editorial-gray-400);
+  --color-editorial-link: var(--color-editorial-blue);
+  --color-editorial-on-accent: var(--color-editorial-white);
+  --color-editorial-border: var(--color-editorial-gray-100);
+  --color-editorial-border-strong: var(--color-editorial-gray-300);
+  --color-editorial-accent: var(--color-editorial-blue);
+  --color-editorial-danger: var(--color-editorial-red);
+  --color-editorial-warning: var(--color-editorial-orange);
+  --color-editorial-success: var(--color-editorial-green);
+  --color-editorial-data-current: var(--color-editorial-blue);
+  --color-editorial-data-previous: var(--color-editorial-violet);
+  --color-editorial-data-band: var(--color-editorial-blue-soft);
 
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
-  --gray-950: #030712;
+  --spacing-editorial-1: 0.25rem;
+  --spacing-editorial-2: 0.5rem;
+  --spacing-editorial-3: 0.75rem;
+  --spacing-editorial-4: 1rem;
+  --spacing-editorial-5: 1.25rem;
+  --spacing-editorial-6: 1.5rem;
+  --spacing-editorial-8: 2rem;
+  --spacing-editorial-10: 2.5rem;
+  --spacing-editorial-11: 2.75rem;
+  --spacing-editorial-12: 3rem;
+  --spacing-editorial-14: 3.5rem;
+  --spacing-editorial-16: 4rem;
+  --spacing-editorial-18: 4.5rem;
+  --spacing-editorial-26: 6.5rem;
+  --spacing-editorial-chart-tall: 13rem;
+  --spacing-editorial-header: 6rem;
+  --spacing-editorial-sidebar-expanded: 16rem;
 
-  --white: #ffffff;
-  --black: #000000;
+  --radius-editorial-xs: 0.125rem;
+  --radius-editorial-sm: 0.25rem;
+  --radius-editorial-md: 0.375rem;
+  --radius-editorial-lg: 0.5rem;
+  --radius-editorial-full: 999px;
 
-  --size-0: 0;
-  --size-px: 1px;
-  --size-0_5: 0.125rem;
-  --size-1: 0.25rem;
-  --size-1_5: 0.375rem;
-  --size-2: 0.5rem;
-  --size-2_5: 0.625rem;
-  --size-3: 0.75rem;
-  --size-3_5: 0.875rem;
-  --size-4: 1rem;
-  --size-5: 1.25rem;
-  --size-6: 1.5rem;
-  --size-7: 1.75rem;
-  --size-8: 2rem;
-  --size-9: 2.25rem;
-  --size-10: 2.5rem;
+  --font-editorial-ui: 'Inter', sans-serif;
+  --font-editorial-mono: 'Roboto Mono', monospace;
+  --text-editorial-11: 0.6875rem;
+  --text-editorial-12: 0.75rem;
+  --text-editorial-14: 0.875rem;
+  --text-editorial-16: 1rem;
+  --text-editorial-20: 1.25rem;
+  --text-editorial-24: 1.5rem;
+  --text-editorial-36: 2.25rem;
+  --text-editorial-44: 2.75rem;
 
-  --size-layout-sm: var(--size-1) var(--size-4);
-  --size-layout-md: var(--size-2) var(--size-8);
+  --container-editorial-viewport: 90rem;
+  --container-editorial-auth-visual: 55rem;
+  --container-editorial-auth-panel: 35rem;
+  --container-editorial-auth-control: 24.5rem;
+  --container-editorial-chart: 43.25rem;
+  --container-editorial-form: 32.5rem;
+  --container-editorial-sidebar: 18.5rem;
+  --container-editorial-shell: 80rem;
+  --container-editorial-manifest: 12rem;
 
-  --bg-color-default: var(--gray-100);
-  --bg-color-bright: var(--white);
-  --text-color-default: var(--black);
-  --text-color-light: var(--gray-600);
-  --border-color-default: var(--gray-200);
+  --breakpoint-editorial-desktop: 80rem;
+}
 
-  --form-element-margin-bottom: var(--size-4); */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./fonts/inter-400.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(./fonts/inter-500.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(./fonts/inter-600.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(./fonts/inter-700.ttf) format('truetype');
+}
+
+html,
+body {
+  height: 100%;
+  font-family: var(--font-editorial-ui);
 }
 
 html {
@@ -79,60 +135,11 @@ html {
   -moz-tab-size: 4;
   -o-tab-size: 4;
   tab-size: 4;
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    'Noto Sans',
-    sans-serif,
-    'Apple Color Emoji',
-    'Segoe UI Emoji',
-    'Segoe UI Symbol',
-    'Noto Color Emoji';
 }
 
-/* latin */
-@font-face {
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 400;
-  src: url(./fonts/poppins-400.woff2) format('woff2');
-  unicode-range:
-    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074,
-    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-/* latin */
-@font-face {
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 500;
-  src: url(./fonts/poppins-500.woff2) format('woff2');
-  unicode-range:
-    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074,
-    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-/* latin */
-@font-face {
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 700;
-  src: url(./fonts/poppins-700.woff2) format('woff2');
-  unicode-range:
-    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074,
-    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-html,
 body {
-  height: 100%;
-  font-family: 'Poppins', Helvetica, Arial, sans-serif;
+  margin: 0;
+  background: var(--color-editorial-canvas);
 }
 
 .h1,
@@ -178,30 +185,28 @@ body {
   @apply mb-2;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-form > div {
-  @apply mb-4;
-}
+  form > div {
+    @apply mb-4;
+  }
 
-label {
-  color: black;
-  display: block;
-}
+  label {
+    color: var(--color-editorial-primary);
+    display: block;
+  }
 
-input {
-  @apply bg-white text-black;
-}
-
-input {
-  @apply px-4 py-2 w-full rounded-sm;
+  input {
+    @apply w-full rounded-editorial-sm bg-editorial-surface px-editorial-5 py-editorial-3 text-editorial-primary;
+  }
 }
 
 .button {
-  @apply inline-flex cursor-pointer items-center justify-center gap-3 rounded-sm border border-slate-300 px-8 py-2;
+  @apply inline-flex cursor-pointer items-center justify-center;
 }
 
 svg {
@@ -211,4 +216,12 @@ svg {
 .button svg {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+.application-navigation-icon [fill='black'] {
+  fill: currentColor;
+}
+
+.application-navigation-icon [stroke='black'] {
+  stroke: currentColor;
 }

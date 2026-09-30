@@ -4,6 +4,9 @@ import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
   generateLlmsFiles,
+  createDocumentationManifest,
+  createLlmsMirrors,
+  createLlmsManifest,
   getMirrorRelativePath,
   renderLlmsTxt,
   resolveLlmsBaseUrl,
@@ -26,6 +29,63 @@ function createTempDir() {
 }
 
 describe('generate-llms', () => {
+  test('llms.txt and MCP share a complete manifest without duplicate pages', () => {
+    const entries = createLlmsManifest();
+    const paths = entries.map((entry) => entry.pathname);
+    expect(paths).toEqual(expect.arrayContaining(['/docs/caching/', '/docs/glossary/', '/api/']));
+    expect(new Set(paths).size).toBe(paths.length);
+    expect(renderLlmsTxt('https://next.qwik.dev', entries)).toContain(
+      'https://next.qwik.dev/docs/caching.md'
+    );
+  });
+
+  test('discovers all documentation and API pages, including pages absent from the curated list', () => {
+    const packageRoot = createTempDir();
+    const write = (relativePath: string, source: string) => {
+      const file = path.join(packageRoot, 'src/routes', relativePath);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, source);
+    };
+    write(
+      'docs/(router)/caching/index.mdx',
+      '---\ntitle: Caching\ndescription: Cache responses\n---\n# Caching\n\n[More](../new-guide/index.mdx)'
+    );
+    write('docs/(router)/new-guide/index.mdx', '# New guide\n\nA newly added page.');
+    write('docs/nested/other.md', '# Another page');
+    write('api/new-package/index.mdx', '---\ntitle: Package API\n---\n# API');
+    write('docs/menu.md', '# Menu');
+    write('docs/layout.tsx', 'export default () => null;');
+    const entries = createDocumentationManifest(packageRoot);
+    expect(entries.map((entry) => entry.pathname).sort()).toEqual([
+      '/api/new-package/',
+      '/docs/caching/',
+      '/docs/nested/other/',
+      '/docs/new-guide/',
+    ]);
+    const caching = entries.find((entry) => entry.pathname === '/docs/caching/')!;
+    expect(caching).toMatchObject({ title: 'Caching', description: 'Cache responses' });
+    const mirrors = createLlmsMirrors({
+      packageDir: packageRoot,
+      outputDir: path.join(packageRoot, 'out'),
+      baseUrl: 'https://next.qwik.dev',
+      entries,
+    });
+    expect(mirrors.find((mirror) => mirror.entry.pathname === '/docs/caching/')?.content).toContain(
+      '[More](/docs/new-guide.md)'
+    );
+    expect(fs.existsSync(path.join(packageRoot, 'out'))).toBe(false);
+  });
+
+  test('fails visibly if a JSX documentation page has no Markdown representation', () => {
+    const packageRoot = createTempDir();
+    const directory = path.join(packageRoot, 'src/routes/docs/new-page');
+    fs.mkdirSync(directory, { recursive: true });
+    fs.writeFileSync(path.join(directory, 'index.tsx'), 'export default () => <h1>New page</h1>;');
+    expect(() => createDocumentationManifest(packageRoot)).toThrow(
+      'Missing Markdown representation'
+    );
+  });
+
   test('transforms MDX into readable markdown', () => {
     const markdown = transformSourceToMarkdown(`---
 title: Sample

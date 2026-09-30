@@ -1,8 +1,8 @@
 ---
-title: \@qwik.dev/qwik/server API Reference
+title: \@qwik.dev/core/server API Reference
 ---
 
-# [API](/api) &rsaquo; @qwik.dev/qwik/server
+# [API](/api) &rsaquo; @qwik.dev/core/server
 
 <h2 id="getqwikloaderscript">getQwikLoaderScript</h2>
 
@@ -295,6 +295,25 @@ Record&lt;string, any&gt;
 _(Optional)_
 
 </td></tr>
+<tr><td>
+
+transformError?
+
+</td><td>
+
+</td><td>
+
+(error: unknown) =&gt; Error \| undefined \| null \| void
+
+</td><td>
+
+_(Optional)_ Server-only. Projects a thrown error into the `Error` a `<Catch>` fallback displays during SSR; `onError$` still receives the original. It never runs on the client, where a re-derived fallback shows the error as thrown.
+
+Return an `Error` to project it, or `undefined`/`null` to decline; any other return, or a throw, redacts to the generic error.
+
+It is called synchronously, so it cannot be `async`: a returned promise redacts every error.
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
@@ -478,6 +497,21 @@ flushes
 number
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+hasCaughtError?
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ True when a `<Catch>` caught during the render, no matter where in the stream.
 
 </td></tr>
 <tr><td>

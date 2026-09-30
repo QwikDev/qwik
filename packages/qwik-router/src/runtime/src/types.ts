@@ -355,6 +355,8 @@ export interface QwikRouterConfig {
   readonly basePathname?: string;
   readonly trailingSlash?: boolean;
   readonly cacheModules?: boolean;
+  readonly importEagerModules?: () => Promise<unknown>;
+  readonly serviceWorkerUrl?: string;
   /** When true, return null instead of rendering the 404 page, letting the adapter handle it */
   readonly fallthrough?: boolean;
 }

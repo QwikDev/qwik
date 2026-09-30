@@ -22,6 +22,6 @@ export default defineConfig(() => {
         ],
       },
     },
-    plugins: [qwikVite()],
+    plugins: [qwikVite({ tsOptimizer: true })],
   };
 });

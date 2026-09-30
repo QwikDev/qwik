@@ -1,4 +1,5 @@
 import { useVisibleTask$, type ComputedSignal } from '@qwik.dev/core';
+import type { _ComputedSignalInternal } from '@qwik.dev/core/internal';
 
 /** Smallest allowed poll interval, so a `0` or negative `expires` can't spin the event loop. */
 const MIN_EXPIRES_MS = 5;

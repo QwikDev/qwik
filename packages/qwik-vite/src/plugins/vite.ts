@@ -61,7 +61,6 @@ const DEDUPE = [
 ];
 
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
-const FONTS = ['.woff', '.woff2', '.ttf'];
 
 const QWIK_HMR_BRIDGE_ID = '@qwik-hmr-bridge';
 /**
@@ -128,7 +127,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const fileFilter: QwikVitePluginOptions['fileFilter'] = qwikViteOpts.fileFilter
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
-  const disableFontPreload = qwikViteOpts.disableFontPreload ?? false;
   const injections: GlobalInjections[] = [];
   const testResume = createTestResume();
   const qwikPlugin = createQwikPlugin(qwikViteOpts.optimizerOptions, testResume);
@@ -662,21 +660,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                     },
                   });
                 }
-              } else {
-                const selectedFont = FONTS.find((ext) => fileName.endsWith(ext));
-                if (selectedFont && !disableFontPreload) {
-                  injections.unshift({
-                    tag: 'link',
-                    location: 'head',
-                    attributes: {
-                      rel: 'preload',
-                      href: baseFilename,
-                      as: 'font',
-                      type: `font/${selectedFont.slice(1)}`,
-                      crossorigin: '',
-                    },
-                  });
-                }
               }
             }
           }
@@ -847,10 +830,27 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 }
 
 /**
- * This plugin checks for external dependencies that should be included in the server bundle,
- * because they use Qwik. If they are not included, the optimizer won't process them, and there will
- * be two instances of Qwik Core loaded.
+ * Qwik libraries ship pre-built `.qwik.mjs` code, so a production server build handles them like
+ * any other dependency: Vite's defaults and the user's config decide what is external, and core and
+ * the router share their runtime state with the copies an external library loads. The build warns
+ * when the production server could not load an external library from node_modules.
+ *
+ * The dev server and non-production builds bundle every Qwik library: their server bundle carries
+ * the development core, which cannot share state with the production core Node loads for an
+ * external library, and the dev server's SSR also needs the segment URLs of the library's QRLs.
+ *
+ * On the client every Qwik library is excluded from dep optimization, so the optimizer can split
+ * its QRLs into segments.
  */
+type PackageJson = {
+  version?: string;
+  qwik?: string;
+  dependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+};
+type InstalledPackage = { dir: string; json: PackageJson };
+
 async function checkExternals() {
   let fs: typeof import('fs').promises;
   let path: typeof import('path');
@@ -871,17 +871,25 @@ async function checkExternals() {
   }
 
   const seen: Set<string> = new Set();
-  const qwikDeps: string[] = [];
+  /** Qwik libraries that must stay in the server bundle. */
+  const bundledDeps: string[] = [];
+  /** Dependencies that production installs may leave out. */
+  let devOnlyDeps = new Set<string>();
+  /** Whether the server bundle carries the production core, the build Node loads for externals. */
+  let bundlesProductionCore = false;
   let rootDir: string;
   const core2 = '@qwik.dev/core';
   const core1 = '@builder.io/qwik';
-  async function getInstalledDependencies(root: string): Promise<string[]> {
+  const qwikRouter = '@qwik.dev/router';
+  /** The project's dependencies, and those it only installs as devDependencies. */
+  async function getInstalledDependencies(root: string) {
     // Walk up from `root` and union deps from every package.json we find, so
     // monorepo setups where Vite's root points at a sub-project still pick up
     // workspace-root deps (e.g. an Nx lib whose deps are declared at the
     // repo root).
     //
-    const deps = new Set<string>();
+    const runtimeDeps = new Set<string>();
+    const devDeps = new Set<string>();
     let dir = root;
     while (dir) {
       try {
@@ -889,13 +897,13 @@ async function checkExternals() {
         const data = await fs.readFile(pkgPath, { encoding: 'utf-8' });
         const json = JSON.parse(data);
         for (const name of Object.keys(json.dependencies || {})) {
-          deps.add(name);
+          runtimeDeps.add(name);
         }
         for (const name of Object.keys(json.devDependencies || {})) {
-          deps.add(name);
+          devDeps.add(name);
         }
         for (const name of Object.keys(json.optionalDependencies || {})) {
-          deps.add(name);
+          runtimeDeps.add(name);
         }
       } catch {
         // No package.json at this level, or unreadable — keep walking.
@@ -906,31 +914,19 @@ async function checkExternals() {
       }
       dir = parent;
     }
-    return [...deps];
+    return {
+      all: [...new Set([...runtimeDeps, ...devDeps])],
+      devOnly: new Set([...devDeps].filter((name) => !runtimeDeps.has(name))),
+    };
   }
 
-  async function isQwikDep(dep: string, dir: string) {
+  /** Finds the package.json that Node resolves for `dep` from `dir`. */
+  async function readInstalledPackage(dep: string, dir: string) {
     while (dir) {
-      const pkg = path.join(dir, 'node_modules', dep, 'package.json');
+      const pkgDir = path.join(dir, 'node_modules', dep);
       try {
-        await fs.access(pkg);
-        const data = await fs.readFile(pkg, {
-          encoding: 'utf-8',
-        });
-        // any mention of lowercase qwik in the package.json is enough
-        const json = JSON.parse(data);
-        if (
-          json.qwik ||
-          json.dependencies?.[core2] ||
-          json.peerDependencies?.[core2] ||
-          json.devDependencies?.[core2] ||
-          json.dependencies?.[core1] ||
-          json.peerDependencies?.[core1] ||
-          json.devDependencies?.[core1]
-        ) {
-          return true;
-        }
-        return false;
+        const data = await fs.readFile(path.join(pkgDir, 'package.json'), { encoding: 'utf-8' });
+        return { dir: pkgDir, json: JSON.parse(data) as PackageJson };
       } catch {
         //empty
       }
@@ -940,7 +936,65 @@ async function checkExternals() {
       }
       dir = nextRoot;
     }
-    return false;
+    return undefined;
+  }
+
+  // any mention of lowercase qwik in the package.json is enough
+  const isQwikPackage = (json: PackageJson) =>
+    !!(
+      json.qwik ||
+      json.dependencies?.[core2] ||
+      json.peerDependencies?.[core2] ||
+      json.devDependencies?.[core2] ||
+      json.dependencies?.[core1] ||
+      json.peerDependencies?.[core1] ||
+      json.devDependencies?.[core1]
+    );
+
+  async function isQwikDep(dep: string, dir: string) {
+    const installed = await readInstalledPackage(dep, dir);
+    return !!installed && isQwikPackage(installed.json);
+  }
+
+  const dependsOn = (json: PackageJson, dep: string) =>
+    !!(json.dependencies?.[dep] || json.peerDependencies?.[dep]);
+  const mentions = (json: PackageJson, dep: string) =>
+    dependsOn(json, dep) || !!json.devDependencies?.[dep];
+
+  /** What would break when the production server loads `name` from node_modules. */
+  async function findExternalLibraryProblems(
+    name: string,
+    library: InstalledPackage,
+    environmentName: string
+  ) {
+    const bundleIt = `or add "${name}" to "resolve.noExternal[]" to bundle it.`;
+    if (mentions(library.json, core1) && !mentions(library.json, core2)) {
+      return [
+        `${name} is built with Qwik 1 and cannot stay external; add it to "resolve.noExternal[]".`,
+      ];
+    }
+    const problems: string[] = [];
+    const runtimeImports = [name, core2];
+    if (dependsOn(library.json, qwikRouter)) {
+      runtimeImports.push(qwikRouter);
+    }
+    const devOnly = runtimeImports.filter((dep) => devOnlyDeps.has(dep));
+    // Static site generation runs during the build, where devDependencies are installed.
+    if (devOnly.length > 0 && environmentName !== 'ssg') {
+      problems.push(
+        `${name} stays external, so the server imports ${devOnly.join(', ')} at runtime, but the project lists them only in "devDependencies", which a production install such as "npm install --omit=dev" leaves out. Move them to "dependencies", ${bundleIt}`
+      );
+    }
+    // Node resolves the library's imports from its real path, e.g. inside pnpm's store.
+    const libraryDir = await fs.realpath(library.dir).catch(() => library.dir);
+    const libraryCore = await readInstalledPackage(core2, libraryDir);
+    const appCore = await readInstalledPackage(core2, rootDir);
+    if (libraryCore && appCore && libraryCore.json.version !== appCore.json.version) {
+      problems.push(
+        `${name} stays external and resolves ${core2} ${libraryCore.json.version}, while the app uses ${appCore.json.version}. The server refuses to load two Qwik versions (Q30); align the versions, ${bundleIt}`
+      );
+    }
+    return problems;
   }
 
   return {
@@ -952,10 +1006,12 @@ async function checkExternals() {
     // Attempt to mark the Qwik dependencies as non-optimizeable
     config: {
       order: 'post',
-      async handler(config) {
+      async handler(config, env) {
         if (!(await loadModules())) {
           return;
         }
+        // Vite sets NODE_ENV before the config hooks, and resolves the production core only then.
+        bundlesProductionCore = env?.command === 'build' && process.env.NODE_ENV === 'production';
         const root = config.root || process.cwd();
         const optimizeDepsExclude = config.optimizeDeps?.exclude ?? [];
 
@@ -963,23 +1019,28 @@ async function checkExternals() {
          * Find Qwik libraries in the project's dependencies and exclude them from dep optimization
          * so the Qwik plugin can transform their $() calls.
          */
-        const candidates = await getInstalledDependencies(root);
-        qwikDeps.length = 0;
-        for (const dep of candidates) {
+        const installed = await getInstalledDependencies(root);
+        devOnlyDeps = installed.devOnly;
+        const qwikDeps: string[] = [];
+        bundledDeps.length = 0;
+        for (const dep of installed.all) {
           if (await isQwikDep(dep, root)) {
             qwikDeps.push(dep);
+            if (!bundlesProductionCore) {
+              bundledDeps.push(dep);
+            }
           }
         }
         const toExclude = qwikDeps.filter((dep) => !optimizeDepsExclude.includes(dep));
         return {
           optimizeDeps: { exclude: toExclude },
-          ssr: { noExternal: toExclude },
+          ssr: { noExternal: [...bundledDeps] },
         };
       },
     },
-    // qwik deps need to be marked as noExternal per-environment
+    // bundled qwik deps need to be marked as noExternal per-environment
     configEnvironment(_name: string, options: Record<string, any>) {
-      if (qwikDeps.length === 0) {
+      if (bundledDeps.length === 0) {
         return;
       }
       const existing = options.resolve?.noExternal;
@@ -995,10 +1056,10 @@ async function checkExternals() {
         currentList = [];
       }
       return {
-        resolve: { noExternal: [...currentList, ...qwikDeps] },
+        resolve: { noExternal: [...currentList, ...bundledDeps] },
       };
     },
-    // We check all SSR build lookups for external Qwik deps
+    // An external Qwik dep breaks outside production builds, and may break a production server
     resolveId: {
       order: 'pre',
       async handler(source, importer, options) {
@@ -1006,18 +1067,20 @@ async function checkExternals() {
           return;
         }
         const isSSR = this.environment.config.consumer === 'server';
-        if (!isSSR || /^([./]|node:|[^a-z@])/i.test(source) || seen.has(source)) {
+        // Server environments externalize differently, e.g. an adapter's `ssg` next to `ssr`.
+        const seenKey = (id: string) => `${this.environment.name}:${id}`;
+        if (!isSSR || /^([./]|node:|[^a-z@])/i.test(source) || seen.has(seenKey(source))) {
           return;
         }
         const packageName = (
           source.startsWith('@') ? source.split('/').slice(0, 2).join('/') : source.split('/')[0]
         ).split('?')[0];
-        if (seen.has(packageName)) {
+        if (seen.has(seenKey(packageName))) {
           return;
         }
         // technically we should check for each importer, but this is ok
-        seen.add(source);
-        seen.add(packageName);
+        seen.add(seenKey(source));
+        seen.add(seenKey(packageName));
         let result: Awaited<ReturnType<Extract<VitePlugin['resolveId'], Function>>>;
         try {
           result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
@@ -1026,15 +1089,25 @@ async function checkExternals() {
           return;
         }
         if (result?.external) {
-          // Qwik deps should not be external
-          if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
-            // TODO link to docs
-            throw new Error(
-              `\n==============\n` +
-                `${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik and it needs to be processed by the optimizer.\n` +
-                `Please add the package to "ssr.noExternal[]" as well as "optimizeDeps.exclude[]" in the Vite config. \n` +
-                `==============\n`
-            );
+          const dir = importer ? path.dirname(importer) : rootDir;
+          const library = await readInstalledPackage(packageName, dir);
+          if (library && isQwikPackage(library.json)) {
+            if (!bundlesProductionCore) {
+              // TODO link to docs
+              throw new Error(
+                `\n==============\n` +
+                  `${packageName} is a Qwik library that is being treated as an external dependency, but development servers and builds need it bundled.\n` +
+                  `Please add the package to "resolve.noExternal[]" as well as "optimizeDeps.exclude[]" in the Vite config. \n` +
+                  `==============\n`
+              );
+            }
+            for (const problem of await findExternalLibraryProblems(
+              packageName,
+              library,
+              this.environment.name
+            )) {
+              this.warn(problem);
+            }
           }
         }
         if (packageName === source) {
@@ -1148,13 +1221,7 @@ interface QwikVitePluginCommonOptions {
    */
   experimental?: (keyof typeof ExperimentalFeatures)[];
 
-  /**
-   * Disables automatic preloading of font assets (WOFF/WOFF2/TTF) found in the build output. When
-   * enabled, the plugin will not add `<link rel="preload">` tags for font files in the document
-   * head.
-   *
-   * Disabling may impact Cumulative Layout Shift (CLS) metrics.
-   */
+  /** @deprecated No longer used. Automatic font preloading has been removed. */
   disableFontPreload?: boolean;
 }
 

@@ -27,6 +27,10 @@ Use this skill for Playwright e2e work in `e2e/**`. Keep the repo-wide rules fro
 - CLI e2e: `e2e/qwik-cli-e2e/tests/`
 - React integration e2e: `e2e/qwik-react-e2e/tests/`
 
+Apps whose directory names contain `.prod` run in production mode under the shared Qwik dev server.
+Keep exact production-only assertions in those fixtures; regular fixtures must pass after either
+`build.core.dev` or `build.core`.
+
 ## Commands
 
 Main Qwik e2e config uses `--browser`, not Playwright projects:
@@ -36,6 +40,38 @@ pnpm build.core.dev
 pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
 pnpm playwright test e2e/qwik-e2e/tests/qwikrouter/nav.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
 ```
+
+For timing-sensitive regressions, prefix the command with `GITHUB_ACTIONS=true` and use
+`--retries=0` to disable local `slowMo: 100` and expose races. Wait for a fresh completion marker
+after lazy handlers; a completed click or previously populated output does not prove completion.
+
+The brotli budget tests in `ssg-snapshot.e2e.ts` measure the built core chunk, so they need a
+production `pnpm build.core` — `build.core.dev` leaves core unminified and blows the budget by ~4%.
+Before believing a budget failure, rebuild with `build.core` and re-run `pnpm test.e2e.router.ssg`.
+
+Playwright's `reuseExistingServer: !CI` means a dev server left over from an earlier run serves
+stale bundles, so a local pass can hide a build break that CI catches. Kill port 3301 before
+trusting a green local sweep after optimizer or bundler changes.
+
+The CLI e2e scaffolds starters with `create-qwik` and runs their own `npm run dev`/`build` scripts,
+so it is the only suite that exercises a real starter's Vite dev server and production builds; the
+shared Qwik dev server above passes its own resolve conditions. Run it locally with `CI=1` so the
+scaffolds land inside the workspace, where pnpm's `allowBuilds` lets `sharp` build (a `/tmp`
+scaffold fails with `ERR_PNPM_IGNORED_BUILDS`), and after `pnpm build.platform.copy` if
+`packages/optimizer/bindings` is missing. It scaffolds from `packages/create-qwik/dist`, so run
+`pnpm build.cli` after editing `starters/`, or the suite silently tests the previous starters:
+
+```bash
+CI=1 pnpm --filter qwik-cli-e2e exec vitest run --config=vite.config.ts tests/external-library.spec.ts
+```
+
+Commands the CLI e2e spawns inherit Vitest's `NODE_ENV=test`, which Vite treats as a development
+build; pass `NODE_ENV` explicitly through `runCommandUntil` when a test depends on the build mode.
+
+For HTTP cache assertions, use a fresh `launchPersistentContext()` profile per test and remove
+it after closing the context. WebKit's default ephemeral context has no network disk cache, so
+`fetch()` may hit the server despite a fresh `Cache-Control` response. Keep request routing off
+for cache tests: Playwright interception disables HTTP caching.
 
 Other suites may use named Playwright projects. Check their config before choosing flags:
 
@@ -58,6 +94,7 @@ pnpm playwright test e2e/qwik-react-e2e/tests/reactify.spec.ts --project=chromiu
 
 Traps:
 
+- The core budget also runs after dev builds; measure it only after `pnpm build.core`.
 - `test.e2e.router.ssg.update` regenerates the goldens only; it never touches the budgets, so a
   budget breach survives the update.
 - The update run can exit non-zero because a sibling budget assertion failed, not the golden. "N

@@ -66,12 +66,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Greeter_component_1_krCndSwhX4U.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { hola } from "sdfds";
 //
 export const Greeter_component_1_krCndSwhX4U = ()=>{
-    const stuff = _captures[0];
+    let stuff = _capturesObj._[0];
     return /*#__PURE__*/ _jsxSorted("div", {
         class: {
             'foo': true,

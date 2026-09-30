@@ -16,7 +16,6 @@ declare module "wxt/browser" {
     | "/inspect-hook.js"
     | "/nav-hook.js"
     | "/panel.html"
-    | "/qwikloader.js"
     | "/theme-init.js"
     | "/vnode-bridge.js"
   type HtmlPublicPath = Extract<PublicPath, `${string}.html`>

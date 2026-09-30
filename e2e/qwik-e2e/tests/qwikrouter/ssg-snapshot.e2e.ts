@@ -11,7 +11,8 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Brotli size budgets for production bundles. These are ceilings, not exact matches: any size
 // at or below the budget is fine. Bump the budget intentionally when a real feature justifies
-// the growth.
+// the growth. Keep each budget above the actual size by at least 500 bytes for core and 100 bytes
+// for the preloader and qwikloader; brotli output varies between builds, so a tighter budget is flaky.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
 const CORE_BROTLI_BUDGET = 35400;
 const QWIKLOADER_BROTLI_BUDGET = 2200;
@@ -59,6 +60,10 @@ test.describe('router ssg snapshot', () => {
     expect(normalizedState).toContain('{string} "loaderPaths"');
     expect(normalizedState).toMatch(
       /\n\d+ Object \[\s+\{string\} "[a-z0-9]+"\s+\{string\} "\/"\s+\]/
+    );
+
+    expect(normalizedState).not.toMatch(
+      /\{string\} "(?:client|routeLoaderIds|committed|navigationKey)"/
     );
 
     let expectedHtml = (await readFile(expectedHtmlPath, 'utf-8').catch(() => '')).replace(
@@ -204,6 +209,7 @@ async function buildFixtureApp() {
         ...plugins,
         captureRouterConfig(),
         qwikVite({
+          tsOptimizer: true,
           client: {
             outDir: distDir,
           },
@@ -222,7 +228,7 @@ async function buildFixtureApp() {
       plugins: [
         ...serverPlugins,
         // No manifestInput: the server build reads the client manifest from disk, like real apps.
-        qwikVite(),
+        qwikVite({ tsOptimizer: true }),
         ssgAdapter({
           origin: 'https://snapshot.qwik.dev',
           include: ['/*'],

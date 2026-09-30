@@ -13,7 +13,7 @@ const clientRoots = {
   '/e2e/render': () => import('./components/render/render').then(({ Render }) => Render),
   '/e2e/signals': () => import('./components/signals/signals').then(({ Signals }) => Signals),
   '/e2e/suspense': () =>
-    import('./components/suspense/suspense').then(({ SuspenseRoot }) => SuspenseRoot),
+    import('./components/pending/pending').then(({ PendingRoot }) => PendingRoot),
 };
 const loadRoot =
   clientRoots[pathname as keyof typeof clientRoots] ??

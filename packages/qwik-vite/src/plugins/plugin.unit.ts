@@ -721,7 +721,7 @@ test('transform uses compiler for core test path', async () => {
     {
       "code": "import { _qrlWithChunk } from "@qwik.dev/core";
 
-    const q_component_spec_jsx_segment_0_1102ojfss05y2 = /*#__PURE__*/ _qrlWithChunk("./component.spec.tsx_component_spec_jsx_segment_0_1102ojfss05y2", () => import("./component.spec.tsx_component_spec_jsx_segment_0_1102ojfss05y2"), "component_spec_jsx_segment_0_1102ojfss05y2");
+    const q_component_spec_jsx_segment_0_1102ojfss05y2 = /*#__PURE__*/ _qrlWithChunk("./component.spec.tsx_component_spec_jsx_segment_0_1102ojfss05y2.js", () => import("./component.spec.tsx_component_spec_jsx_segment_0_1102ojfss05y2.js"), "component_spec_jsx_segment_0_1102ojfss05y2");
     export function view() {
     	return q_component_spec_jsx_segment_0_1102ojfss05y2;
     }

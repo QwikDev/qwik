@@ -27,8 +27,8 @@ export class AbortMessage {
 
 // Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
 //
-// @internal (undocumented)
-export let _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefined;
+// @internal
+export const _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
@@ -220,6 +220,7 @@ export interface ServerRenderOptions extends RenderOptions {
     checkOrigin?: boolean | 'lax-proto';
     // (undocumented)
     render: Render;
+    trustForwardedHeaders?: boolean;
 }
 
 // @public

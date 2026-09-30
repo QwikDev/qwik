@@ -63,7 +63,12 @@ export async function submoduleOptimizer(config: BuildConfig) {
         enforce: 'pre',
         resolveId(id) {
           // throws an error if files from src/core are loaded, except for some allowed imports
-          if (/src[/\\]core[\\/]/.test(id) && !id.includes('util') && !id.includes('shared')) {
+          if (
+            /src[/\\]core[\\/]/.test(id) &&
+            !id.includes('util') &&
+            !id.includes('shared') &&
+            !id.includes('version')
+          ) {
             console.error('forbid-core', id);
             throw new Error('Import of core files is not allowed in server builds.');
           }
@@ -73,7 +78,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
     ],
   };
 
-  // Build qwik-vite optimizer and @qwik.dev/optimizer package (via its own vite.config.ts)
+  // Build qwik-vite optimizer and the @qwik.dev/optimizer Rust wrapper.
   await Promise.all([
     viteBuild(esmConfig),
     viteBuild({

@@ -163,10 +163,13 @@ export function createQwikPlugin(
   let maybeFs: typeof import('fs') | undefined | null;
   const init = async () => {
     if (!internalOptimizer) {
-      const createOptimizer = (
-        (optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer')) ||
-        (await import('@qwik.dev/optimizer'))
-      ).createOptimizer;
+      const loadOptimizerModule = async () => {
+        if (optimizerOptions._optimizer) {
+          return optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer');
+        }
+        return import('@qwik.dev/optimizer');
+      };
+      const createOptimizer = (await loadOptimizerModule()).createOptimizer;
       internalOptimizer = await createOptimizer(optimizerOptions);
       lazyNormalizePath = makeNormalizePath(internalOptimizer.sys);
       if (
@@ -1352,6 +1355,7 @@ export function createQwikPlugin(
 
   const createOutputAnalyzer = (
     rollupBundle: Rolldown.OutputBundle,
+    getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
     qwikLoaderFileName?: string,
     preloaderFileName?: string,
     handlersFileName?: string
@@ -1384,6 +1388,7 @@ export function createQwikPlugin(
         opts,
         debug,
         canonPath,
+        getModuleInfo,
         qwikLoaderFileName,
         preloaderFileName,
         handlersFileName
@@ -1613,6 +1618,7 @@ export const isDev = ${JSON.stringify(isDev)};
     const handlersFileName = handlersChunkRef ? ctx.getFileName(handlersChunkRef) : undefined;
     const outputAnalyzer = createOutputAnalyzer(
       rollupBundle,
+      (id) => ctx.getModuleInfo(id),
       qwikLoaderFileName,
       preloaderFileName,
       handlersFileName

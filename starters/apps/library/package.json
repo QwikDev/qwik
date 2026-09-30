@@ -31,6 +31,15 @@
     "qwik": "qwik",
     "release": "np"
   },
+  "peerDependencies": {
+    "@qwik.dev/core": "latest",
+    "@qwik.dev/router": "latest"
+  },
+  "peerDependenciesMeta": {
+    "@qwik.dev/router": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@qwik.dev/core": "latest",
     "@qwik.dev/router": "latest",

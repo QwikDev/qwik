@@ -1,5 +1,5 @@
-import { createAsync$ } from '@qwik.dev/core';
+import { createComputed$ } from '@qwik.dev/core';
 
-export const userData = createAsync$(async () => {
+export const userData = createComputed$(async () => {
   return { name: 'A' };
 });

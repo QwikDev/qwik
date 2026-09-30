@@ -421,7 +421,7 @@ export const filterSearchParams = (params: URLSearchParams, allowed: string[]): 
 
 const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
   let id: string | undefined;
-  let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY;
+  let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY();
   let cacheControl: LoaderOptions['cacheControl'] | undefined;
   let eTag: LoaderOptions['eTag'] | undefined;
   let cacheKey: LoaderOptions['cacheKey'] | undefined;

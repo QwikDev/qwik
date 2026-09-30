@@ -25,12 +25,12 @@
 ## Project Snapshot
 
 Qwik is a resumable web framework. SSR serializes application and framework state into HTML, and
-the client resumes without re-running component code. Qwik v3 is a rewrite with VNode-based
-runtime work, rewritten reactive primitives, a new serialization mechanism, and a TypeScript
-compiler in `packages/compiler` that replaces the Rust optimizer for component transformation.
+the client resumes without re-running component code. Qwik v3 compiles JSX into direct DOM and
+server operations instead of a VNode tree, with rewritten reactive primitives and serialization.
+The TypeScript compiler in `packages/compiler` owns component transformation.
 
-Key concepts: resumability, QRLs, `$`-suffixed compiler boundaries, fine-grained signals, VNodes,
-the cursor system, and the compiler's lowering and emit pipeline.
+Key concepts: resumability, QRLs, `$`-suffixed compiler boundaries, fine-grained signals,
+templates, owners, and the compiler's lowering and emit pipeline.
 
 ## Monorepo Map
 
@@ -45,7 +45,8 @@ the cursor system, and the compiler's lowering and emit pipeline.
 | `@qwik.dev/dom` | `packages/qwik-dom` | Server-side DOM implementation |
 | `@qwik.dev/qwik-vite` | `packages/qwik-vite` | `vite-plugin-qwik`, private, bundled into `@qwik.dev/core/optimizer` |
 | `@qwik.dev/compiler` | `packages/compiler` | TypeScript compiler: analysis, lowering, CSR/SSR emit |
-| `@qwik.dev/optimizer` | `packages/optimizer` | Rust optimizer, WASM, NAPI bindings |
+| `@qwik.dev/ts-optimizer` | `packages/ts-optimizer` | TypeScript optimizer for v2 parity; v3 uses `@qwik.dev/compiler` |
+| `@qwik.dev/optimizer` | `packages/optimizer` | Rust optimizer, WASM, NAPI bindings; kept for parity comparison |
 | `eslint-plugin-qwik` | `packages/eslint-plugin-qwik` | ESLint rules |
 | `create-qwik` | `packages/create-qwik` | Project scaffolding CLI |
 | `qwik-docs` | `packages/docs` | Docs site, private package |
@@ -73,8 +74,13 @@ pnpm dlx @intellectronica/ruler@0.3.42 apply --no-gitignore --no-mcp
 
 ```bash
 pnpm build.core # for a fresh start
-pnpm build.full # for a fresh start and you are working on the docs (the docs run the optimizer)
+pnpm build.full # for a fresh start and you are working on the docs or the other packages
+pnpm build.rust # only when working on the Rust optimizer; the only step that needs the Rust toolchain
 ```
+
+V3 tests and app builds use `@qwik.dev/compiler` for component transformation. The Rust optimizer
+remains for compatibility and parity work; its platform bindings need a Rust build or copied
+prebuilt artifacts when a script requests them.
 ### Iterating
 
 Prefer focused commands and builds over repo-wide commands and builds.
@@ -95,7 +101,7 @@ pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --confi
 
 For Qwik e2e tests, use `--browser=chromium` with `e2e/qwik-e2e/playwright.config.ts`.
 
-Re-run `pnpm build.full` when you are touching the optimizer rust code.
+Re-run `pnpm build.rust` (or `pnpm build.rust.dev`) when you are touching the optimizer rust code.
 
 ### When making a PR
 
@@ -178,6 +184,18 @@ When a change affects published packages, add a changeset under `.changeset/`.
 - Enforce 1 changeset per change.
 - Write the changeset summary in lowercase (e.g. `fix:`)
 - 1 short sentence (10-ish words) focused on the bug fix or feature. Don't include implementation details.
+
+### Commits
+
+- One coherent set of changes per commit. Do not fold an unrelated fix into a commit for another
+  change.
+- Fixes that are independent of the branch's main change get their own commits, placed before it,
+  so they can be reviewed and cherry-picked on their own.
+- Write the subject as a short imperative summary. The body explains the "why" tersely when it is
+  not obvious from the subject. The "what" and "how" live in the code; summarize them only when the
+  commit is large.
+- When a branch has grown out of that shape, rewrite it into that order before review instead of
+  stacking fix-up commits.
 
 ### Code Quality
 

@@ -15,8 +15,8 @@ force.
 2. For docs content, follow the writing style below before changing site mechanics.
 3. For existing docs pages already in the LLM manifest, edit source content and regenerate only when
    verification requires generated output.
-4. For new pages that should appear in LLM outputs, update the curated manifest in
-   `packages/docs/scripts/generate-llms.ts`.
+4. Documentation and API pages enter LLM outputs automatically through `createLlmsManifest()` in
+   `packages/docs/scripts/generate-llms.ts`; use curated entries for ordering and richer descriptions.
 5. When editing docs scripts, keep generation deterministic and add focused unit coverage for parser,
    path, URL, or output-shape behavior.
 6. Prefer docs-specific commands from `packages/docs/package.json`.
@@ -70,9 +70,8 @@ The docs build can generate:
 Do not hand-edit generated files in `packages/docs/dist/`. Edit docs source or
 `packages/docs/scripts/generate-llms.ts`, then regenerate.
 
-Keep the LLM manifest curated. Existing pages regenerate automatically, but new public LLM surface
-area should be added intentionally with `section`, `title`, `pathname`, `sourcePath`, and
-`description`.
+Keep `llms.txt` and MCP on the same complete manifest. Documentation and API pages are discovered
+automatically; curated entries provide ordering, descriptions, and additional landing pages.
 
 ## Verification
 
@@ -88,8 +87,7 @@ Set `QWIK_LLMS_BASE_URL` only when intentionally testing alternate generated lin
 
 ## Stop Conditions
 
-- Stop before adding a new page to LLM outputs unless it should be part of the curated public LLM
-  surface.
+- Keep additional landing pages in the curated entries of the shared manifest.
 - Stop and run or request the relevant docs build when route generation or static output behavior is
   changed.
 - If docs source or scripts contradict this skill, update the skill before finishing or record why

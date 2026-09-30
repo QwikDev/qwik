@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { getSymbolHash } from '../core/shared/qrl/qrl-utils';
+import { getSingleton } from '../core/shared/singletons';
 import type { TestPlatform } from './types';
 
 const extensions = ['.ts', '.tsx', '.js', '.cjs', '.mjs', '.jsx'];
@@ -23,7 +24,7 @@ const toPath = (url: URL) => {
 const platform: TestPlatform = {
   isServer: false,
   importSymbol(container, url, symbol) {
-    const registered = (globalThis as any).__qwik_reg_symbols?.get(getSymbolHash(symbol));
+    const registered = getSingleton<Map<string, unknown>>('regSymbols')?.get(getSymbolHash(symbol));
     if (registered) {
       return registered;
     }

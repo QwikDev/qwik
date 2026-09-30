@@ -54,11 +54,11 @@ export const PendingComponent = component$(() => {
           resolve(value * 2);
         }, 1000);
       })
-  );
+  ) as _ComputedSignalInternal<number>;
 
   return (
     <div>
-      {(double as any).loading ? 'loading' : 'not loading'}
+      {double.pending ? 'loading' : 'not loading'}
       <div class="result">double: {double.value}</div>
       <button id="increment" onClick$={() => count.value++}>
         Increment

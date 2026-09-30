@@ -320,18 +320,24 @@ The `routeAction$()` function is used to declare a new Server Action in the give
 
 Please refer to the [Server Actions](/docs/(qwikrouter)/action/index.mdx) section for more information.
 
-## List all routes with qwikRouterConfig.routes
+## `getRouterConfig()`
 
-The `qwikRouterConfig.routes` property is used to retrieve the route list of your application.
+Qwik Router generates the route config of your application at build time. Read it through these functions. On the server, a Qwik library kept external reads the config of the app serving the current request:
+
+- `getRouterConfig()` resolves the whole config, with the route trie and the server plugins.
+- `getRoutes()` resolves the route trie.
+- `getBasePathname()` returns the base pathname the app is served under, such as `/`.
+- `getTrailingSlash()` returns whether the app's URLs end with a slash.
 
 ```tsx
-import qwikRouterConfig from '@qwik-router-config';
+import { getRoutes } from '@qwik.dev/router';
 
-const routes = qwikRouterConfig.routes;
-for (const route of routes) {
-	// your logic here
-}
+const routes = await getRoutes();
 ```
+
+A production server build leaves out the pages it prerendered without server code, so its route trie only holds the routes the server still serves.
+
+The `@qwik-router-config` virtual module still exports the same values for existing code, but it only resolves inside the app build.
 
 ## `useQwikRouter()`
 
@@ -443,7 +449,7 @@ test('should render the button and navigate', async () => {
 <Note>If you are using `routeLoader$`s in a Qwik Component that you want to test, you can provide a `loaders` prop to mock the data returned by the loaders</Note>
 
 ```ts title="src/loaders/product.loader.ts"
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
 
 export const useProductData = routeLoader$(async () => {
   const res = await fetch('https://.../product');
@@ -630,7 +636,7 @@ bundles when the link becomes visible and turns route data prefetching off by de
 `prefetch={true}` prefetches route bundles and route data when the link becomes visible, and
 `prefetch={false}` disables prefetching.
 
-<Note title="Warning">If you use `visible` route data prefetching for many visible links, the browser may start many `q-data.json` requests at once.</Note>
+<Note title="Warning">Route data prefetching fetches one `q-loader-*.json` file per `routeLoader$` on the target route. If you use `visible` route data prefetching for many visible links, the browser may start many of these requests at once.</Note>
 
 ```tsx
 import { component$ } from '@qwik.dev/core';

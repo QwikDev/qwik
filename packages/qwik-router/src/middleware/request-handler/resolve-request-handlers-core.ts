@@ -724,7 +724,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
     }
   }
 
-  function renderQwikMiddleware(render: Render) {
+  function renderQwikMiddleware(render: Render, trustForwardedHeaders = false) {
     return async (requestEv: RequestEvent) => {
       if (requestEv.headersSent) {
         return;
@@ -770,7 +770,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       const stream = writable.getWriter();
       try {
         const isStatic = getRequestMode(requestEv) === 'static';
-        const serverData = getQwikRouterServerData(requestEv);
+        const serverData = getQwikRouterServerData(requestEv, trustForwardedHeaders);
         const result = await render({
           base: requestEv.basePathname + 'build/',
           stream,

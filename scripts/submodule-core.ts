@@ -2,7 +2,15 @@ import { build, type BuildOptions } from 'esbuild';
 import { join } from 'node:path';
 import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { minify } from 'terser';
-import { type BuildConfig, fileSize, getBanner, rollupOnWarn, target, writeFile } from './util.ts';
+import {
+  type BuildConfig,
+  copyFile,
+  fileSize,
+  getBanner,
+  rollupOnWarn,
+  target,
+  writeFile,
+} from './util.ts';
 
 /**
  * Regex for property names that should be mangled consistently across all bundles (core + server).
@@ -27,6 +35,24 @@ function fixPureAnnotations(code: string): string {
  * mangling and keep $...$ names in sync across both bundles.
  */
 export async function submoduleCore(config: BuildConfig): Promise<object | undefined> {
+  const platformDir = join(config.srcQwikDir, 'core', 'shared', 'platform');
+  await build({
+    entryPoints: [
+      join(platformDir, 'async-local-storage.ts'),
+      join(platformDir, 'async-local-storage.node.ts'),
+    ],
+    outdir: config.distQwikPkgDir,
+    bundle: true,
+    format: 'esm',
+    outExtension: { '.js': '.mjs' },
+    external: ['node:async_hooks'],
+    target,
+  });
+  await copyFile(
+    join(config.dtsDir, 'packages/qwik/src/core/shared/platform/async-local-storage.d.ts'),
+    join(config.distQwikPkgDir, 'async-local-storage.d.ts')
+  );
+
   if (config.dev) {
     await submoduleCoreDev(config);
     return undefined;
@@ -40,7 +66,12 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
   const input: InputOptions = {
     input: coreInput,
     onwarn: rollupOnWarn,
-    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      'node:async_hooks',
+      '@qwik.dev/core/async-local-storage',
+    ],
     plugins: [
       {
         name: 'setVersion',
@@ -96,6 +127,9 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
       {
         name: 'build',
         resolveId(id) {
+          if (id === '@qwik.dev/core/async-local-storage') {
+            return join(config.distQwikPkgDir, 'async-local-storage.mjs');
+          }
           if (id === '@index.min') {
             return id;
           }
@@ -324,6 +358,12 @@ function validateNoBareExperimentalReferences(code: string, filename: string) {
   }
 }
 
+function validateNoHmrReferences(code: string, filename: string) {
+  if (code.includes('import.meta.hot')) {
+    throw new Error(`"${filename}" should not contain HMR code.`);
+  }
+}
+
 async function submoduleCoreDev(config: BuildConfig) {
   const submodule = 'core';
 
@@ -343,7 +383,12 @@ async function submoduleCoreDev(config: BuildConfig) {
 
   await build({
     ...opts,
-    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      'node:async_hooks',
+      '@qwik.dev/core/async-local-storage',
+    ],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });

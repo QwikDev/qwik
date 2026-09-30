@@ -1,34 +1,30 @@
 import { component$ } from '@qwik.dev/core';
-import { Link, routeLoader$ } from '@qwik.dev/router';
+import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
+import Button, { ButtonLink } from '~/components/button';
 import Histogram, { delayColors, latencyColors } from '~/components/histogram';
-import { ManifestIcon } from '~/components/icons/manifest';
-import { SymbolIcon } from '~/components/icons/symbol';
+import PageHeader from '~/components/page-header';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { getEdges } from '~/db/query';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
-import { BUCKETS, vectorAdd, vectorNew } from '~/stats/vector';
+import { BUCKETS, vectorAdd, vectorNew, vectorSum } from '~/stats/vector';
 
-interface Symbol {
-  hash: string;
-  manifests: Record<string, Manifest>;
-  delay: number[];
-  latency: number[];
-}
-
-interface Manifest {
+interface SymbolStats {
   hash: string;
   delay: number[];
   latency: number[];
 }
 
 interface SymbolsInfo {
-  symbols: Symbol[];
-  manifests: Manifest[];
-  buckets: typeof BUCKETS;
+  symbols: SymbolStats[];
+  manifestCount: number;
   page: number;
   hasNext: boolean;
 }
+
+export const head: DocumentHead = {
+  title: 'Symbols | Qwik Insights',
+};
 
 export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
   const db = getDB();
@@ -46,23 +42,15 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
     ? await getEdges(db, params.publicApiKey, { limit, manifestHashes: pageManifestHashes })
     : [];
 
-  const symbolMap = new Map<string, Symbol>();
-  const manifests = new Map<string, Manifest>();
+  const symbolMap = new Map<string, SymbolStats>();
   edges.forEach((edge) => {
-    const manifest = getManifest('<UNKNOWN>');
     const symbol = getSymbol(edge.to);
-    const symbolManifest = getSymbolManifest(symbol, '<UNKNOWN>');
-    vectorAdd(manifest.delay, edge.delay);
-    vectorAdd(manifest.latency, edge.latency);
-    vectorAdd(symbolManifest.delay, edge.delay);
-    vectorAdd(symbolManifest.latency, edge.latency);
     vectorAdd(symbol.delay, edge.delay);
     vectorAdd(symbol.latency, edge.latency);
   });
   return {
     symbols: Array.from(symbolMap.values()),
-    manifests: Array.from(manifests.values()),
-    buckets: BUCKETS,
+    manifestCount: pageManifestHashes.length,
     page,
     hasNext,
   };
@@ -72,7 +60,6 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
     if (!symbol) {
       symbol = {
         hash: name,
-        manifests: {} as Symbol['manifests'],
         delay: vectorNew(),
         latency: vectorNew(),
       };
@@ -80,132 +67,111 @@ export const useData = routeLoader$<SymbolsInfo>(async ({ params, url }) => {
     }
     return symbol;
   }
-
-  function getSymbolManifest(symbol: Symbol, manifestHash: string) {
-    let manifest = symbol.manifests[manifestHash] as undefined | Manifest;
-    if (!manifest) {
-      manifest = {
-        hash: manifestHash,
-        delay: vectorNew(),
-        latency: vectorNew(),
-      };
-      symbol.manifests[manifestHash] = manifest;
-    }
-    return manifest;
-  }
-
-  function getManifest(manifestHash: string) {
-    let manifest = manifests.get(manifestHash);
-    if (!manifest) {
-      manifest = {
-        hash: manifestHash,
-        delay: vectorNew(),
-        latency: vectorNew(),
-      };
-      manifests.set(manifestHash, manifest);
-    }
-    return manifest;
-  }
 });
 
 export default component$(() => {
   const data = useData();
+  const samples = data.value.symbols.reduce(
+    (total, symbol) => total + vectorSum(symbol.latency),
+    0
+  );
   return (
-    <div>
-      <h1 class="h3">
-        <SymbolIcon />
-        Manifests
-      </h1>
-      <table class="w-full text-sm text-left">
-        <thead class="text-xs text-slate-700 uppercase">
-          <tr class="border-b border-slate-200">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
-              Delay
-            </th>
-            <th scope="col" class="px-6 py-3">
-              Latency
-            </th>
-            <th scope="col" class="px-6 py-3 bg-slate-50">
-              Manifest
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.value.manifests.map((manifest, idx) => {
-            return (
-              <tr key={idx} class="border-b border-slate-200 text-xs">
-                <td scope="col" class="px-6 py-3 bg-slate-50 w-96">
-                  <Histogram
-                    vector={manifest.delay}
-                    colors={delayColors}
-                    buckets={data.value.buckets}
-                  />
-                </td>
-                <td scope="col" class="px-6 py-3 w-96">
-                  <Histogram
-                    vector={manifest.latency}
-                    colors={latencyColors}
-                    buckets={data.value.buckets}
-                  />
-                </td>
-                <td scope="col" class="px-6 py-3 bg-slate-50">
-                  <code>
-                    <ManifestIcon />
-                    {manifest.hash}
-                  </code>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div class="font-editorial-ui text-editorial-primary">
+      <PageHeader
+        eyebrow="Symbol performance"
+        title="Symbols"
+        description="Compare execution delay and latency distributions across recorded symbols."
+      >
+        <Pagination page={data.value.page} hasNext={data.value.hasNext} />
+      </PageHeader>
 
-      <h1 class="h3 mt-10">
-        <SymbolIcon />
-        Symbols
-      </h1>
-      <table class="w-full text-sm text-left">
-        <thead class="text-xs text-slate-700 uppercase">
-          <tr class="border-b border-slate-200">
-            <th scope="col" class="px-6 py-3 bg-slate-50">
-              Delay
-            </th>
-            <th scope="col" class="px-6 py-3">
-              Latency
-            </th>
-            <th scope="col" class="px-6 py-3 bg-slate-50">
-              Symbol
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.value.symbols.map((symbol) => (
-            <tr key={symbol.hash} class="border-b border-slate-200 text-xs">
-              <td scope="col" class="px-6 py-3 bg-slate-50 w-96">
-                <Histogram
-                  vector={symbol.delay}
-                  buckets={data.value.buckets}
-                  colors={delayColors}
-                />
-              </td>
-              <td scope="col" class="px-6 py-3 w-96">
-                <Histogram
-                  vector={symbol.latency}
-                  colors={latencyColors}
-                  buckets={data.value.buckets}
-                />
-              </td>
-              <td scope="col" class="px-6 py-3 bg-slate-50">
-                <SymbolTile symbol={symbol.hash} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <nav class="flex gap-4 mt-6">
-        {data.value.page > 1 && <Link href={`?page=${data.value.page - 1}`}>Previous</Link>}
-        {data.value.hasNext && <Link href={`?page=${data.value.page + 1}`}>Next</Link>}
-      </nav>
+      <dl class="mt-editorial-6 flex flex-wrap items-baseline gap-x-editorial-14 gap-y-editorial-3 border-b border-editorial-border pb-editorial-3">
+        <SummaryMetric
+          value={data.value.symbols.length.toLocaleString('en')}
+          label={data.value.symbols.length === 1 ? 'symbol in range' : 'symbols in range'}
+        />
+        <SummaryMetric value={samples.toLocaleString('en')} label="samples" />
+        <SummaryMetric
+          value={data.value.manifestCount.toLocaleString('en')}
+          label={data.value.manifestCount === 1 ? 'manifest' : 'manifests'}
+        />
+      </dl>
+
+      {data.value.symbols.length ? (
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[1032px] text-left text-editorial-12">
+            <thead class="border-b border-editorial-border text-editorial-11 tracking-[0.04em] text-editorial-muted uppercase">
+              <tr>
+                <th scope="col" class="w-[42%] py-editorial-4 pr-editorial-6 font-semibold">
+                  Delay distribution
+                </th>
+                <th scope="col" class="w-[42%] py-editorial-4 pr-editorial-6 font-semibold">
+                  Latency distribution
+                </th>
+                <th scope="col" class="py-editorial-4 font-semibold">
+                  Symbol
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.value.symbols.map((symbol) => (
+                <tr key={symbol.hash} class="border-b border-editorial-border align-middle">
+                  <td class="py-editorial-5 pr-editorial-6">
+                    <Histogram vector={symbol.delay} buckets={BUCKETS} colors={delayColors} />
+                  </td>
+                  <td class="py-editorial-5 pr-editorial-6">
+                    <Histogram vector={symbol.latency} colors={latencyColors} buckets={BUCKETS} />
+                  </td>
+                  <th scope="row" class="py-editorial-5 font-editorial-mono font-normal">
+                    <SymbolTile symbol={symbol.hash} />
+                  </th>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <section class="border-b border-editorial-border py-editorial-16">
+          <h2 class="text-editorial-24 font-semibold">No symbols yet</h2>
+          <p class="mt-editorial-2 text-editorial-14 text-editorial-secondary">
+            Symbols will appear after the first execution data is recorded.
+          </p>
+        </section>
+      )}
     </div>
+  );
+});
+
+const SummaryMetric = component$<{ label: string; value: string }>(({ label, value }) => (
+  <div class="flex items-baseline gap-editorial-2">
+    <dt class="order-2 text-editorial-14 text-editorial-secondary">{label}</dt>
+    <dd class="order-1 text-editorial-24 font-semibold">{value}</dd>
+  </div>
+));
+
+const Pagination = component$<{ hasNext: boolean; page: number }>(({ hasNext, page }) => {
+  const buttonClass = '!min-h-[41px]';
+  return (
+    <nav aria-label="Pagination" class="flex items-center gap-editorial-6 self-end md:self-auto">
+      {page > 1 ? (
+        <ButtonLink href={`?page=${page - 1}`} theme="secondary" class={buttonClass}>
+          ← Previous
+        </ButtonLink>
+      ) : (
+        <Button disabled theme="secondary" class={buttonClass}>
+          ← Previous
+        </Button>
+      )}
+      <span class="text-editorial-12 font-semibold whitespace-nowrap">Page {page}</span>
+      {hasNext ? (
+        <ButtonLink href={`?page=${page + 1}`} theme="primary" class={buttonClass}>
+          Next →
+        </ButtonLink>
+      ) : (
+        <Button disabled theme="primary" class={buttonClass}>
+          Next →
+        </Button>
+      )}
+    </nav>
   );
 });

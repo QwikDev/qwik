@@ -62,8 +62,25 @@ export const Link = component$<LinkProps>((props) => {
       // deprecated prop below, remove in favor of prefetchData
       prefetchProp === true);
 
+  const shouldPrefetchBundles =
+    !!clientNavPath &&
+    prefetchBundlesProp !== 'off' &&
+    shouldPrefetch &&
+    !isDepratedPrefetchDisabled;
+
   const shouldPrefetchData =
     !!clientNavPath && prefetchDataProp !== 'off' && shouldPrefetch && !isDepratedPrefetchDisabled;
+
+  const handleBundlePrefetch = shouldPrefetchBundles
+    ? $((_: any, elm: HTMLAnchorElement) => {
+        if ((navigator as any).connection?.saveData) {
+          return;
+        }
+        if (elm?.href) {
+          return prefetchRoute(new URL(elm.href), false, 0.8);
+        }
+      })
+    : null;
 
   const handleDataPrefetch = shouldPrefetchData
     ? $((_: any, elm: HTMLAnchorElement) => {
@@ -92,7 +109,10 @@ export const Link = component$<LinkProps>((props) => {
 
   const onEnterKeyDown = $((event: KeyboardEvent, element: HTMLAnchorElement) => {
     if (event.key === 'Enter') {
-      return prefetchData(null, element);
+      const data = prefetchDataProp === 'commit' ? prefetchData(null, element) : undefined;
+      const bundles =
+        prefetchBundlesProp === 'commit' ? handleBundlePrefetch?.(null, element) : undefined;
+      return Promise.all([data, bundles]);
     }
   });
 
@@ -137,17 +157,23 @@ export const Link = component$<LinkProps>((props) => {
         handleClientSideNavigation,
       ]}
       onPointerEnter$={[
-        linkProps.value.onMouseOver$,
+        linkProps.value.onPointerEnter$,
         prefetchDataProp === 'intent' ? prefetchData : null,
+        prefetchBundlesProp === 'intent' ? handleBundlePrefetch : null,
       ]}
-      onFocus$={[linkProps.value.onFocus$, prefetchDataProp === 'intent' ? prefetchData : null]}
+      onFocus$={[
+        linkProps.value.onFocus$,
+        prefetchDataProp === 'intent' ? prefetchData : null,
+        prefetchBundlesProp === 'intent' ? handleBundlePrefetch : null,
+      ]}
       onPointerDown$={[
         linkProps.value.onPointerDown$,
         prefetchDataProp === 'commit' ? prefetchData : null,
+        prefetchBundlesProp === 'commit' ? handleBundlePrefetch : null,
       ]}
       onKeyDown$={[
         linkProps.value.onKeyDown$,
-        prefetchDataProp === 'commit' ? onEnterKeyDown : null,
+        prefetchDataProp === 'commit' || prefetchBundlesProp === 'commit' ? onEnterKeyDown : null,
       ]}
     >
       <Slot />

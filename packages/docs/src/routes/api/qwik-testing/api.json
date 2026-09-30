@@ -1,6 +1,6 @@
 {
   "id": "qwik-testing",
-  "package": "@qwik.dev/qwik/testing",
+  "package": "@qwik.dev/core/testing",
   "members": [
     {
       "name": "cleanup",

@@ -8,11 +8,21 @@ import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { Render, RenderToStreamOptions } from '@qwik.dev/core/server';
 import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
-import { existsSync, readdirSync, readFileSync, rmSync, statSync, unlinkSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  unlinkSync,
+} from 'node:fs';
+import { basename, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build, type InlineConfig, type PluginOption } from 'vite';
 import type { PackageJSON } from '../../scripts/types.ts';
+import { getReleaseKey, getReleaseStore } from './utils/release-gate.ts';
 
 const isWindows = process.platform === 'win32';
 
@@ -55,21 +65,6 @@ const e2eDir = __dirname;
 const repoRoot = resolve(__dirname, '..', '..');
 const appsDir = join(e2eDir, 'apps');
 const appNames = readdirSync(appsDir).filter((p) => statSync(join(appsDir, p)).isDirectory());
-
-type OOOSReleaseStore = {
-  resolved: Set<string>;
-  resolvers: Map<string, Set<() => void>>;
-};
-
-const getOOOSReleaseStore = (): OOOSReleaseStore =>
-  ((globalThis as any).__qwikOOOSReleaseStore ||= {
-    resolved: new Set<string>(),
-    resolvers: new Map<string, Set<() => void>>(),
-  });
-
-const getOOOSReleaseKey = (requestId: string, releaseId: string): string => {
-  return `${requestId}:${releaseId}`;
-};
 
 let ooosRequestCounter = 0;
 
@@ -126,9 +121,10 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     const pkgPath = join(appDir, 'package.json');
     const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
+    const externalLibraries: string[] = pkgJson.__qwik__?.externalLibraries ?? [];
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
-      clientManifest = buildApp(appDir, appName, enableRouterServer);
+      clientManifest = buildApp(appDir, appName, enableRouterServer, externalLibraries);
       cache.set(appDir, clientManifest);
     }
 
@@ -155,8 +151,16 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function buildApp(appDir: string, appName: string, enableRouterServer: boolean) {
+async function buildApp(
+  appDir: string,
+  appName: string,
+  enableRouterServer: boolean,
+  externalLibraries: string[]
+) {
   const optimizer = await import('@qwik.dev/core/optimizer');
+  for (const libraryName of externalLibraries) {
+    await buildLibrary(join(appsDir, libraryName), optimizer);
+  }
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
   const appServerDir = join(appDir, 'server');
@@ -189,6 +193,7 @@ import render from '${escapeChars(resolve(appSrcDir, 'entry.ssr'))}';
 const { router } = createQwikRouter({
   render,
   base: '${basePath}build/',
+  trustForwardedHeaders: true,
 });
 export { router }
 `;
@@ -265,7 +270,7 @@ export { router }
               clientManifest = manifest;
             },
           },
-          experimental: ['each', 'show', 'suspense', 'blockSSR'],
+          experimental: ['suspense', 'blockSSR'],
         }),
       ],
     })
@@ -277,11 +282,15 @@ export { router }
         emitAssets: true,
         minify: isProd,
         ssr: enableRouterServer ? qwikRouterVirtualEntry : resolve(appSrcDir, entrySsrFileName),
+        // Split the SSR build: single-file output inlines dynamic imports and
+        // evaluates them eagerly at top level, which defeats the config's lazy
+        // route/server$ imports and reintroduces module-order TDZs.
+        rollupOptions: { output: { inlineDynamicImports: false } },
       },
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ['each', 'show', 'suspense', 'blockSSR'],
+          experimental: ['suspense', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,
           },
@@ -296,6 +305,43 @@ export { router }
   );
 
   return clientManifest!;
+}
+
+/**
+ * Builds a fixture library the way a published Qwik library is built (lib mode, core external) and
+ * installs it as a real package under this e2e package's node_modules, so Vite treats it as a
+ * dependency rather than as linked source and leaves it external on the server.
+ */
+async function buildLibrary(
+  libraryDir: string,
+  optimizer: typeof import('@qwik.dev/core/optimizer')
+) {
+  const outDir = join(libraryDir, 'lib');
+  removeDir(outDir);
+  await build({
+    root: libraryDir,
+    mode: 'lib',
+    configFile: false,
+    logLevel: 'warn',
+    resolve: { conditions: ['development'], mainFields: [] },
+    build: {
+      outDir,
+      minify: false,
+      lib: {
+        entry: join(libraryDir, 'src', 'index.tsx'),
+        formats: ['es'],
+        fileName: () => 'index.qwik.mjs',
+      },
+      // The router is the library's peer dependency, like core
+      rolldownOptions: { external: [/^@qwik\.dev\//] },
+    },
+    plugins: [optimizer.qwikVite()],
+  });
+  const installDir = join(e2eDir, 'node_modules', basename(libraryDir));
+  removeDir(installDir);
+  mkdirSync(installDir, { recursive: true });
+  cpSync(join(libraryDir, 'package.json'), join(installDir, 'package.json'));
+  cpSync(outDir, join(installDir, 'lib'), { recursive: true });
 }
 
 function csrApp(res: Response, appName: string) {
@@ -332,8 +378,7 @@ function removeDir(dir: string) {
 
 async function routerApp(req: Request, res: Response, next: NextFunction, appDir: string) {
   const ssrPath = join(appDir, 'server', `${qwikRouterVirtualEntry}.js`);
-  // it's ok in the devserver to import core multiple times
-  (globalThis as any).__qwik = null;
+  // it's ok in the devserver to import core multiple times (same version shares singletons)
   const mod = await import(file(ssrPath));
   const router: any = mod.router;
   // await so a rejected request surfaces in the caller's catch instead of killing the process
@@ -474,8 +519,8 @@ async function main() {
   app.post('/__ooos-release/:requestId/:id', (req, res) => {
     const requestId = req.params.requestId;
     const id = req.params.id;
-    const store = getOOOSReleaseStore();
-    const key = getOOOSReleaseKey(requestId, id);
+    const store = getReleaseStore();
+    const key = getReleaseKey(requestId, id);
     const resolvers = store.resolvers.get(key);
     store.resolved.add(key);
     if (resolvers) {

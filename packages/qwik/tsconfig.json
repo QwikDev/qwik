@@ -9,6 +9,7 @@
       "@qwik.dev/core/build": ["packages/qwik/src/build"],
       "@qwik.dev/compiler": ["packages/compiler/src"],
       "@qwik.dev/optimizer": ["packages/optimizer/src"],
+      "@qwik.dev/ts-optimizer": ["packages/ts-optimizer/src"],
       "@qwik.dev/core/optimizer": ["packages/qwik-vite/src"],
       "@qwik.dev/core/preloader": ["packages/qwik/src/preloader"],
       "@qwik.dev/core/server": ["packages/qwik/src/server"],
@@ -19,6 +20,11 @@
       "@qwik.dev/core/insights/vite": ["packages/qwik/src/insights/vite"]
     }
   },
-  "include": ["src", "global.d.ts", "../qwik-vite/global.d.ts"],
+  "include": [
+    "src",
+    "global.d.ts",
+    "../qwik-vite/global.d.ts",
+    "../ts-optimizer/src/hashing/siphash13.d.ts"
+  ],
   "exclude": ["dist"]
 }

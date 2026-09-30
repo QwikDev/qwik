@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import matter from 'gray-matter';
+import { glossaryEntries } from '../src/components/glossary/glossary.data.ts';
 
 export interface LlmsManifestEntry {
   section: string;
@@ -104,7 +105,7 @@ function apiEntry(slug: string, optional = false): LlmsManifestEntry {
 }
 
 export function createLlmsManifest(): LlmsManifestEntry[] {
-  return [
+  const curated: LlmsManifestEntry[] = [
     {
       section: 'Start Here',
       title: 'Qwik Home',
@@ -127,6 +128,13 @@ Key ideas:
 
 Start with the getting started guide, the core concepts pages, and the router guides to understand how applications are structured in practice.`,
     },
+    docEntry(
+      'Tools',
+      'MCP server',
+      '/docs/labs/mcp/',
+      'Connect an MCP client to a running Qwik app for local read-only inspection.',
+      toSourcePath('docs', 'labs', 'mcp', 'index.mdx')
+    ),
     docEntry(
       'Start Here',
       'Getting Started',
@@ -347,10 +355,10 @@ The playground focuses on rapid experimentation rather than long-form documentat
     ),
     docEntry(
       'Experimental',
-      'Suspense',
-      '/docs/labs/suspense/',
+      'Pending',
+      '/docs/labs/pending/',
       'Experimental fallback boundaries for async rendering and out-of-order streaming, including `useComputed$`, `delay`, and `Reveal` patterns.',
-      toSourcePath('docs', 'labs', 'suspense', 'index.mdx')
+      toSourcePath('docs', 'labs', 'pending', 'index.mdx')
     ),
     apiEntry('qwik'),
     apiEntry('qwik-router'),
@@ -377,6 +385,84 @@ The playground focuses on rapid experimentation rather than long-form documentat
     apiEntry('qwik-router-middleware-request-handler', true),
     apiEntry('qwik-router-middleware-vercel-edge', true),
   ];
+  const curatedPaths = new Set(curated.map((entry) => entry.pathname));
+  return [
+    ...curated,
+    ...createDocumentationManifest(packageDir).filter((entry) => !curatedPaths.has(entry.pathname)),
+  ];
+}
+
+export function createDocumentationManifest(packageRoot: string): LlmsManifestEntry[] {
+  const routesDirectory = path.join(packageRoot, 'src', 'routes');
+  const entries: LlmsManifestEntry[] = [];
+  for (const section of ['docs', 'api']) {
+    const directory = path.join(routesDirectory, section);
+    if (!fs.existsSync(directory)) {
+      continue;
+    }
+    for (const relativePath of fs.readdirSync(directory, { recursive: true }).sort()) {
+      if (
+        typeof relativePath !== 'string' ||
+        path.basename(relativePath) === 'menu.md' ||
+        !(/\.mdx?$/.test(relativePath) || /(?:^|[/\\])index!?\.tsx$/.test(relativePath))
+      ) {
+        continue;
+      }
+      const file = path.join(directory, relativePath);
+      const pathname = getPublicRoutePathFromSourceFile(file, routesDirectory);
+      const sourcePath = path.relative(packageRoot, file);
+      if (file.endsWith('.tsx')) {
+        if (pathname === '/docs/glossary/') {
+          entries.push({
+            section: 'Docs',
+            title: 'Glossary',
+            pathname,
+            sourcePath,
+            description: 'Definitions of the key terms used in the Qwik documentation.',
+            inlineContent:
+              '# Glossary\n\n' +
+              glossaryEntries
+                .map(([, entry]) => `## ${entry.display}\n\n${entry.short}`)
+                .join('\n\n'),
+          });
+        } else if (pathname === '/api/') {
+          entries.push({
+            section: 'API Packages',
+            title: 'API Reference',
+            pathname,
+            sourcePath,
+            description: 'Index of Qwik package API references.',
+            inlineContent: '# API Reference\n',
+          });
+        } else {
+          throw new Error(`Missing Markdown representation for documentation page: ${sourcePath}`);
+        }
+        continue;
+      }
+      const parsed = matter(fs.readFileSync(file, 'utf8'));
+      const title =
+        typeof parsed.data.title === 'string'
+          ? parsed.data.title
+          : (parsed.content.match(/^#\s+(.+)$/m)?.[1] ?? pathname);
+      entries.push({
+        section: section === 'api' ? 'API Packages' : 'Docs',
+        title: cleanupInlineText(title),
+        pathname,
+        sourcePath,
+        description: typeof parsed.data.description === 'string' ? parsed.data.description : '',
+      });
+    }
+  }
+  const apiIndex = entries.find((entry) => entry.pathname === '/api/');
+  if (apiIndex) {
+    apiIndex.inlineContent =
+      '# API Reference\n\n' +
+      entries
+        .filter((entry) => entry.pathname.startsWith('/api/') && entry !== apiIndex)
+        .map((entry) => `- [${entry.title}](${entry.pathname})`)
+        .join('\n');
+  }
+  return entries;
 }
 
 function normalizePathname(pathname: string) {
@@ -1205,14 +1291,17 @@ function writeMirror(mirror: GeneratedMirror) {
   fs.writeFileSync(mirror.outputPath, mirror.content);
 }
 
-export function generateLlmsFiles(options: GenerateLlmsOptions) {
+export function createLlmsMirrors(options: GenerateLlmsOptions) {
   validateEntries(options.entries, options.packageDir);
   const mirrorPathnames = new Set(
     options.entries.map((entry) => normalizePathname(entry.pathname))
   );
-  fs.mkdirSync(options.outputDir, { recursive: true });
+  return options.entries.map((entry) => createMirror(entry, options, mirrorPathnames));
+}
 
-  const mirrors = options.entries.map((entry) => createMirror(entry, options, mirrorPathnames));
+export function generateLlmsFiles(options: GenerateLlmsOptions) {
+  const mirrors = createLlmsMirrors(options);
+  fs.mkdirSync(options.outputDir, { recursive: true });
   for (const mirror of mirrors) {
     writeMirror(mirror);
   }

@@ -5,10 +5,12 @@ import type {
   JSONValue,
   LoadedRoute,
   LoaderInternal,
+  QwikRouterConfig,
 } from '../../runtime/src/types';
 import { getRouteLoaderValues, loadRouteLoader } from '../../runtime/src/route-loaders';
 import { QACTION_KEY, QDATA_KEY } from '../../runtime/src/constants';
 import { isPromise } from '../../runtime/src/utils';
+import { RequestEvRouterConfig } from './async-request-store';
 import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
 import {
@@ -43,6 +45,7 @@ export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
 export const RequestEvETagCacheKey = '@eTagCacheKey';
+export const RequestEvCaughtError = '@caughtError';
 export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 
 export function createRequestEvent(
@@ -50,7 +53,8 @@ export function createRequestEvent(
   loadedRoute: LoadedRoute,
   requestHandlers: RequestHandler<any>[],
   basePathname: string,
-  resolved: (response: any) => void
+  resolved: (response: any) => void,
+  routerConfig?: QwikRouterConfig
 ) {
   const { request, platform, env } = serverRequestEv;
 
@@ -160,6 +164,7 @@ export function createRequestEvent(
 
   const requestEv: RequestEventInternal = {
     [RequestEvMode]: serverRequestEv.mode,
+    [RequestEvRouterConfig]: routerConfig,
     get [RequestEvRoute]() {
       return loadedRoute;
     },
@@ -253,11 +258,11 @@ export function createRequestEvent(
       if (url) {
         if (
           // //test.com
-          /^\/\//.test(url) ||
+          /^[/\\]{2,}/.test(url) ||
           // /test//path
-          /([^:])\/\/+/.test(url)
+          /([^:])[/\\]{2,}/.test(url)
         ) {
-          const fixedURL = url.replace(/^\/\/+/, '/').replace(/([^:])\/\/+/g, '$1/');
+          const fixedURL = url.replace(/^[/\\]{2,}/, '/').replace(/([^:])[/\\]{2,}/g, '$1/');
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
           url = fixedURL;
         }
@@ -357,6 +362,7 @@ export function createRequestEvent(
 export interface RequestEventInternal extends Readonly<RequestEvent>, Readonly<RequestEventLoader> {
   readonly [RequestEvMode]: ServerRequestMode;
   readonly [RequestEvRoute]: LoadedRoute;
+  readonly [RequestEvRouterConfig]: QwikRouterConfig | undefined;
 
   /**
    * Check if this request is already written to.
@@ -418,7 +424,9 @@ const parseRequest = async (
 };
 
 const isDangerousKey = (k: string) => k === '__proto__' || k === 'constructor' || k === 'prototype';
-const isArrayIndexKey = (k: string) => /^(0|[1-9]\d*)$/.test(k);
+const MAX_FORM_ARRAY_LENGTH = 10_000;
+const isArrayIndexKey = (k: string) =>
+  /^(0|[1-9]\d*)$/.test(k) && Number(k) < MAX_FORM_ARRAY_LENGTH;
 
 interface FormPathNode {
   children: Map<string, FormPathNode>;

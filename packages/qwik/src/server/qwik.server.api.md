@@ -88,6 +88,7 @@ export interface RenderToStreamOptions<Props = undefined> extends RenderOptions<
 export interface RenderToStreamResult extends RenderResult {
     // (undocumented)
     flushes: number;
+    hasCaughtError?: boolean;
     // (undocumented)
     size: number;
     // (undocumented)

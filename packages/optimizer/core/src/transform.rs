@@ -145,6 +145,7 @@ pub struct QwikTransform<'a> {
 	h_fn: Option<Id>,
 	fragment_fn: Option<Id>,
 	fn_signal_fn: Option<Id>,
+	captures_obj_id: Option<Id>,
 
 	jsx_mutable: bool,
 
@@ -322,6 +323,7 @@ impl<'a> QwikTransform<'a> {
 			fn_signal_fn: options
 				.global_collect
 				.get_imported_local(&_INLINED_FN, &options.core_module),
+			captures_obj_id: None,
 			marker_functions,
 			jsx_functions,
 			immutable_function_cmp,
@@ -587,6 +589,7 @@ impl<'a> QwikTransform<'a> {
 
 		self.segment_stack.push(symbol_name.clone());
 		let folded = *first_arg.expr.fold_with(self);
+		let third_arg = third_arg.map(|arg| arg.fold_with(self));
 		self.segment_stack.pop();
 
 		// Inline const initializer if the value is a simple ident referencing a local const.
@@ -951,10 +954,10 @@ impl<'a> QwikTransform<'a> {
 				scoped_idents = vec![];
 			}
 
-			// Inject _captures destructuring if there are captured variables
+			// Inject _capturesObj reads if there are captured variables
 			let folded = if !scoped_idents.is_empty() {
-				let new_local = self.ensure_core_import(&_CAPTURES);
-				transform_function_expr(folded, &new_local, &scoped_idents)
+				let captures_obj = self.ensure_captures_obj();
+				transform_function_expr(folded, &captures_obj, &scoped_idents)
 			} else {
 				folded
 			};
@@ -1022,7 +1025,7 @@ impl<'a> QwikTransform<'a> {
 			compute_scoped_idents(&descendent_idents, &decl_collect);
 
 		// Filter out function parameters from scoped_idents
-		// Parameters don't need to be captured via _captures
+		// Parameters don't need to be captured via captures
 		scoped_idents.retain(|id| !param_idents.contains(id));
 
 		if !can_capture && !scoped_idents.is_empty() {
@@ -1077,8 +1080,8 @@ impl<'a> QwikTransform<'a> {
 			(self.create_noop_qrl(&symbol_name, segment_data), is_const)
 		} else if self.is_inline() {
 			let folded = if !segment_data.scoped_idents.is_empty() {
-				let new_local = self.ensure_core_import(&_CAPTURES);
-				transform_function_expr(folded, &new_local, &segment_data.scoped_idents)
+				let captures_obj = self.ensure_captures_obj();
+				transform_function_expr(folded, &captures_obj, &segment_data.scoped_idents)
 			} else {
 				folded
 			};
@@ -1298,6 +1301,16 @@ impl<'a> QwikTransform<'a> {
 		self.options
 			.global_collect
 			.import(new_specifier, &self.options.core_module)
+	}
+
+	fn ensure_captures_obj(&mut self) -> Id {
+		if let Some(id) = &self.captures_obj_id {
+			return id.clone();
+		}
+
+		let captures_obj = self.ensure_core_import(&_CAPTURES_OBJ);
+		self.captures_obj_id = Some(captures_obj.clone());
+		captures_obj
 	}
 
 	fn ensure_export(&mut self, id: &Id) {
@@ -1735,15 +1748,12 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
-	/// Helper function to merge an event handler with an existing one in the props list.
-	/// If a handler with the same key already exists, they are merged into an array.
-	/// Otherwise, the new handler is simply added.
-	fn merge_or_add_event_handler(
+	fn merge_event_handler(
 		&mut self,
 		props: &mut Vec<ast::PropOrSpread>,
 		key: Atom,
-		new_handler: Box<ast::Expr>,
-	) {
+		new_handler: &ast::Expr,
+	) -> bool {
 		// Check if there's already a handler with this key
 		let existing_handler_index = props.iter().position(|prop| {
 			if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(kv)) = prop {
@@ -1763,7 +1773,7 @@ impl<'a> QwikTransform<'a> {
 						// Existing handler is already an array, append to it
 						existing_array.elems.push(Some(ast::ExprOrSpread {
 							spread: None,
-							expr: new_handler.fold_with(self),
+							expr: Box::new(new_handler.clone().fold_with(self)),
 						}));
 						ast::Expr::Array(existing_array)
 					} else {
@@ -1777,7 +1787,7 @@ impl<'a> QwikTransform<'a> {
 								}),
 								Some(ast::ExprOrSpread {
 									spread: None,
-									expr: new_handler.fold_with(self),
+									expr: Box::new(new_handler.clone().fold_with(self)),
 								}),
 							],
 						})
@@ -1794,7 +1804,19 @@ impl<'a> QwikTransform<'a> {
 					})));
 				props.push(merged_prop);
 			}
+			true
 		} else {
+			false
+		}
+	}
+
+	fn merge_or_add_event_handler(
+		&mut self,
+		props: &mut Vec<ast::PropOrSpread>,
+		key: Atom,
+		new_handler: Box<ast::Expr>,
+	) {
+		if !self.merge_event_handler(props, key.clone(), &new_handler) {
 			// Add the new handler
 			let handler_prop =
 				ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
@@ -3413,7 +3435,7 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	/// Helper to add a prop to the appropriate props list based on const-ness and spread props
-	/// Handles the special case of merging q-e:input handlers
+	/// Merges repeated event handlers instead of emitting duplicate object keys.
 	fn add_prop_to_appropriate_list(
 		&mut self,
 		expr: Box<ast::Expr>,
@@ -3426,37 +3448,44 @@ impl<'a> QwikTransform<'a> {
 		let is_const = context.is_const;
 		let is_fn = context.is_fn;
 		let spread_props_count = context.spread_props_count;
-		// Check if this is an q-e:input handler that needs to be merged
-		if transformed_event_key.as_ref() == Some(&*ON_INPUT) {
+		if let Some(event_key) = transformed_event_key
+			.as_ref()
+			.filter(|key| key.as_ref().starts_with("q-"))
+		{
 			let target_props = if is_fn || spread_props_count > 0 {
 				if is_const && spread_props_count == 0 {
-					const_props
+					&mut *const_props
 				} else {
-					var_props
+					&mut *var_props
 				}
 			} else if !is_const || spread_props_count > 0 {
-				var_props
+				&mut *var_props
 			} else {
-				const_props
+				&mut *const_props
 			};
-			self.merge_or_add_event_handler(target_props, ON_INPUT.clone(), expr);
-		} else {
-			let converted_prop =
-				ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-					value: expr,
-					key: final_key,
-				})));
-			if is_fn || spread_props_count > 0 {
-				if is_const && spread_props_count == 0 {
-					const_props.push(converted_prop.fold_with(self));
-				} else {
-					var_props.push(converted_prop.fold_with(self));
-				}
-			} else if !is_const || spread_props_count > 0 {
-				var_props.push(converted_prop.fold_with(self));
-			} else {
-				const_props.push(converted_prop.fold_with(self));
+			if event_key == &*ON_INPUT {
+				self.merge_or_add_event_handler(target_props, event_key.clone(), expr);
+				return;
 			}
+			if self.merge_event_handler(target_props, event_key.clone(), &expr) {
+				return;
+			}
+		}
+		let converted_prop =
+			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+				value: expr,
+				key: final_key,
+			})));
+		if is_fn || spread_props_count > 0 {
+			if is_const && spread_props_count == 0 {
+				const_props.push(converted_prop.fold_with(self));
+			} else {
+				var_props.push(converted_prop.fold_with(self));
+			}
+		} else if !is_const || spread_props_count > 0 {
+			var_props.push(converted_prop.fold_with(self));
+		} else {
+			const_props.push(converted_prop.fold_with(self));
 		}
 	}
 }
@@ -4182,7 +4211,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			// Also collect top-level `const <ident> = <expr>` declarations from the
 			// callback body. These derived consts (e.g. `const index = i + 1`) are in
 			// scope at the JSX render site so they can be passed via `q:p`/`q:ps` as
-			// positional arguments rather than captured via `_captures`.
+			// positional arguments rather than captured.
 			if let Some(arg) = node.args.first() {
 				if let ast::Expr::Arrow(arrow) = &*arg.expr {
 					if let box ast::BlockStmtOrExpr::BlockStmt(ref block) = arrow.body {

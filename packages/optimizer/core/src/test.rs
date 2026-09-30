@@ -138,7 +138,7 @@ export const App = () => {
 		);
 	});
 	return Header;
-});
+};
 "#
 		.to_string(),
 		..TestInput::default()
@@ -517,6 +517,7 @@ fn example_props_optimization() {
 		code: r#"
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
+const getValue = () => 0;
 export const Works = component$(({
 	count,
 	some = 1+2,
@@ -545,20 +546,201 @@ export const NoWorks2 = component$(({count, stuff: {hey}}) => {
 	);
 });
 
-export const NoWorks3 = component$(({count, stuff = hola()}) => {
+export const DynamicDefaults = component$(({count, stuff = getValue(), other: value = getValue()}) => {
 	console.log(stuff);
 	useTask$(({track}) => {
-		track(() => count);
-		console.log(count);
+		track(() => stuff);
+		track(() => value);
+		console.log(count, stuff, value);
 	});
 	return (
-		<div class={count}>{count}</div>
+		<div class={stuff}>{value}</div>
 	);
+});
+
+export const ReferencedDefault = component$(({first = getValue(second), second}) => (
+	<div>{first}{second}</div>
+));
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn dynamic_props_defaults_do_not_subscribe_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+const getValue = () => 0;
+export const DynamicDefault = component$(({ value = getValue() }) => {
+	console.log(value);
+	return <div>{value}</div>;
 });
 "#
 		.to_string(),
 		transpile_jsx: true,
 		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn dynamic_props_defaults_in_separate_segments() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from '@qwik.dev/core';
+const defaults = { showDelay: 100, hideDelay: 200 };
+export const Repro = component$(({ showDelay = defaults.showDelay, hideDelay = defaults.hideDelay }) => {
+	const open = useSignal(false);
+	const show$ = $(() => setTimeout(() => (open.value = true), showDelay));
+	const hide$ = $(() => setTimeout(() => (open.value = false), hideDelay));
+	return <div onMouseEnter$={show$} onMouseLeave$={hide$} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_segment_param_does_not_collide_with_captured_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const open = track(() => isOpen?.value ?? true);
+		return open ? initialFee : 0;
+	});
+	return <div>{networkFee.value}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_segments_number_captured_raw_props() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const inner = $(() => track(() => isOpen.value) + initialFee);
+		return inner;
+	});
+	const other = useComputed$(({ track }) => {
+		const deeper = useComputed$(({ track: t2 }) => t2(() => track(() => initialFee)));
+		return deeper;
+	});
+	return <div>{networkFee.value}{other.value}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_segments_number_captured_raw_props_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useComputed$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ isOpen, initialFee }) => {
+	const networkFee = useComputed$(async ({ track }) => {
+		const inner = $(() => track(() => isOpen.value) + initialFee);
+		return inner;
+	});
+	const other = useComputed$(({ track }) => {
+		const deeper = useComputed$(({ track: t2 }) => t2(() => track(() => initialFee)));
+		return deeper;
+	});
+	return <div>{networkFee.value}{other.value}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn repeated_use_context_destructures_get_distinct_bindings() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useContext } from '@qwik.dev/core';
+import { WalletsContextId, SessionContextId } from './ctx';
+
+export const Cmp = component$(() => {
+	const { wallets } = useContext(WalletsContextId);
+	const { user } = useContext(SessionContextId);
+	return <div>{wallets}{user}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn nested_destructure_rebinding_prop_name() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { flag?: boolean; className?: string }) => {
+	if (props.flag) {
+		const { className, ...rest } = props;
+		console.log(className, rest);
+	}
+	const { className, ...rest } = props;
+	return <div class={className}>{JSON.stringify(rest)}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn local_shadowing_destructured_prop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(({ value }: { value?: string }) => {
+	const readInput = (e: any) => {
+		const value = e.target.value;
+		return value;
+	};
+	console.log(readInput);
+	return <input value={value} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
 		transpile_ts: true,
 		..TestInput::default()
 	});
@@ -2251,7 +2433,7 @@ export const App = component$((props) => {
 			>
 				<p>Hello Qwik</p>
 			</Div>
-			[].map(() => (
+			{[].map(() => (
 				<Model
 					class={state}
 					remove$={remove}
@@ -2262,7 +2444,7 @@ export const App = component$((props) => {
 					mutable2={(() => console.log(state.count))()}
 					mutable3={[1, 2, state, null, {}]}
 				/>
-			));
+			))}
 		</>
 	);
 });
@@ -3152,6 +3334,25 @@ export const Issue3742 = component$(({description = '', other}: any) => {
 	});
 }
 #[test]
+fn example_issue_6920_hoisted_alias_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useStore } from '@qwik.dev/core';
+
+export const App = component$(() => {
+	const store = useStore({ counter: { count: 1 }, largeData: { data: 'BIG' } });
+	const counter = store.counter;
+	return <button onClick$={() => counter.count++}>+1</button>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+}
+#[test]
 fn example_getter_generation() {
 	test_input!(TestInput {
 		code: r#"
@@ -3460,6 +3661,9 @@ export const Local = component$(() => {
 	)
 });
 "#;
+	let snapshot_inputs = format!(
+		"==INPUT ../../node_modules/dep/dist/lib.mjs==\n\n{dep}\n==INPUT components/main.tsx==\n\n{code}"
+	);
 	let res = transform_modules(TransformModulesOptions {
 		src_dir: "/path/to/app/src/thing".into(),
 		root_dir: Some("/path/to/app/".into()),
@@ -3492,7 +3696,7 @@ export const Local = component$(() => {
 		reg_ctx_name: None,
 		is_server: None,
 	});
-	snapshot_res!(&res, "".into());
+	snapshot_res!(&res, snapshot_inputs);
 }
 #[test]
 fn consistent_hashes() {
@@ -6415,18 +6619,18 @@ export const Tree = component$((props) => {
 fn component_level_self_referential_qrl() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useAsync$ } from '@qwik.dev/core';
+import { component$, useComputed$ } from '@qwik.dev/core';
 		
 // Component-level self-referential component
 export const Foo = component$((props) => {
-	const sig = useAsync$(async ({cleanup}) => {
+	const sig = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			sig.value++;
 		}, 1000);
 		cleanup(() => clearInterval(timer));
 		return 0;
 	});
-	const other = useAsync$(async ({cleanup}) => {
+	const other = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			other.value++;
 		}, 900);
@@ -6870,11 +7074,11 @@ fn inlined_qrl_after_ref_identifiers_forward_ref() {
 	let res = test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
-import { useAsyncQrl } from '@qwik.dev/core';
+import { useComputedQrl } from '@qwik.dev/core';
 
 export const TestComponent = component$(() => {
 	// This should be hoisted with an identifier
-	const asyncSig = useAsyncQrl$(async () => {
+	const asyncSig = useComputedQrl$(async () => {
 		return 42;
 	});
 	return <div>{asyncSig}</div>;
@@ -7194,10 +7398,10 @@ export const App = component$(() => {
 		"Expected inlinedQrl first arg to be an inline function expression in lib mode.\nGenerated code:\n{}",
 		combined_code
 	);
-	// No _captures should be used
+	// No _capturesObj(Obj) should be used
 	assert!(
-		!compact_code.contains("_captures"),
-		"Expected no _captures in lib mode output.\nGenerated code:\n{}",
+		!compact_code.contains("_capturesObj"),
+		"Expected no _capturesObj.* in lib mode output.\nGenerated code:\n{}",
 		combined_code
 	);
 }
@@ -7206,19 +7410,19 @@ export const App = component$(() => {
 fn inlined_qrl_preserves_captures() {
 	// Simulates lib-preprocessed code being processed by the app optimizer.
 	// The inner inlinedQrl has 5 captures, including variables defined via
-	// the outer function's _captures destructuring.
+	// the outer function's _capturesObj reads.
 	let res = test_input!(TestInput {
 		code: r#"
-import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _captures } from '@qwik.dev/core';
+import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _capturesObj } from '@qwik.dev/core';
 
 export function qwikifyQrl(reactCmp$, opts) {
 	return componentQrl(inlinedQrl((props) => {
-		const opts2 = _captures[0], reactCmp$2 = _captures[1];
+		const opts2 = _capturesObj._[0], reactCmp$2 = _capturesObj._[1];
 		const hostRef = useSignal();
 		const signal = useSignal();
 		const text = 'hello';
 		useTaskQrl(inlinedQrl(async ({ track }) => {
-			const hostRef2 = _captures[0], reactCmp$3 = _captures[1], opts3 = _captures[2], signal2 = _captures[3], text2 = _captures[4];
+			const hostRef2 = _capturesObj._[0], reactCmp$3 = _capturesObj._[1], opts3 = _capturesObj._[2], signal2 = _capturesObj._[3], text2 = _capturesObj._[4];
 			track(signal2);
 			console.log(hostRef2, reactCmp$3, opts3, text2);
 		}, "s_inner123", [hostRef, reactCmp$2, opts2, signal, text]));
@@ -7292,7 +7496,121 @@ export function qwikifyQrl(reactCmp$, opts) {
 }
 
 #[test]
+fn inlined_qrl_in_capture_is_extracted() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { inlinedQrl } from '@qwik.dev/core';
+
+const context = {};
+export const handler = inlinedQrl(() => {}, "outer_abc", [
+	inlinedQrl(() => {}, "inner_def", [context]),
+]);
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Segment,
+		mode: EmitMode::Prod,
+		is_server: Some(true),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let segments: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.map(|segment| segment.name.as_ref())
+		.collect();
+	assert!(
+		segments.contains(&"s_def"),
+		"nested QRL captured by another QRL must be emitted as a segment, got {segments:?}"
+	);
+}
+
+#[test]
 fn inlined_qrl_preserves_destructured_captures() {
+	// Simulates a library .qwik.mjs file being processed by the app optimizer in SSR dev mode.
+	// The library has destructured useCustomSignal() return value, and inner inlinedQrl captures
+	// reference the destructured bindings. transform_props_destructuring must not collapse
+	// the destructuring because it would break the explicit captures.
+	let res = test_input!(TestInput {
+		code: r#"
+import { componentQrl, inlinedQrl, useComputedQrl, useSignal, useTaskQrl, _capturesObj, _jsxSorted } from '@qwik.dev/core';
+import { useCustomSignal } from './use-custom-signal.qwik.mjs';
+
+const MyComponent = componentQrl(inlinedQrl((props) => {
+    const count = useSignal(0);
+    const { openSig: isOpen } = useCustomSignal(props, { open: false });
+    const label = useComputedQrl(inlinedQrl(() => {
+        const count2 = _capturesObj._[0], isOpen2 = _capturesObj._[1];
+        return count2.value + isOpen2.value;
+    }, "MyComponent_component_label_useComputed_ABC123", [count, isOpen]));
+    useTaskQrl(inlinedQrl(({ track }) => {
+        const isOpen3 = _capturesObj._[0];
+        track(() => isOpen3.value);
+        console.log("isOpen changed:", isOpen3.value);
+    }, "MyComponent_component_useTask_DEF456", [isOpen]));
+    return _jsxSorted("div", null, {}, label.value, 0, null);
+}, "MyComponent_component_MNO345"));
+
+export { MyComponent };
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		minify: MinifyMode::None,
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		mode: EmitMode::Dev,
+		is_server: Some(true),
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// Verify isOpen survives transform_props_destructuring
+	assert!(
+		combined_code.contains("isOpen"),
+		"isOpen should be present — transform_props_destructuring must not collapse destructured bindings in inlinedQrl function bodies.\nGenerated code:\n{}",
+		combined_code
+	);
+
+	// Verify computed captures include both count and isOpen
+	let computed_captures = combined_code
+		.find("q_MyComponent_component_label_useComputed_ABC123.w(")
+		.expect(&format!(
+			"Should find computed QRL .w() call.\nGenerated code:\n{}",
+			combined_code
+		));
+	let after = &combined_code[computed_captures..];
+	let bracket_end = after.find("])").expect("Should find end of captures array");
+	let captures_str = &after[..bracket_end + 1];
+	assert!(
+		captures_str.contains("count") && captures_str.contains("isOpen"),
+		"Computed captures should include both count and isOpen.\nCaptures: '{}'\nFull code:\n{}",
+		captures_str,
+		combined_code
+	);
+
+	// Verify task captures include isOpen
+	assert!(
+		combined_code.contains("q_MyComponent_component_useTask_DEF456.w("),
+		"Task QRL should have .w() captures with isOpen.\nGenerated code:\n{}",
+		combined_code
+	);
+}
+
+#[test]
+fn inlined_qrl_preserves_legacy_destructured_captures() {
+	// A library built before `_capturesObj` reads `_captures[N]`; the same guard must hold.
 	// Simulates a library .qwik.mjs file being processed by the app optimizer in SSR dev mode.
 	// The library has destructured useCustomSignal() return value, and inner inlinedQrl captures
 	// reference the destructured bindings. transform_props_destructuring must not collapse
@@ -7378,12 +7696,12 @@ fn lib_full_names_shortened_in_prod() {
 	// When a prod build consumes this lib, names should be shortened to "s_hash".
 	let res = test_input!(TestInput {
 		code: r#"
-import { componentQrl, inlinedQrl, useTaskQrl, _captures } from '@qwik.dev/core';
+import { componentQrl, inlinedQrl, useTaskQrl, _capturesObj } from '@qwik.dev/core';
 
 export const Works = componentQrl(inlinedQrl((props) => {
 	const text = 'hola';
 	useTaskQrl(inlinedQrl(() => {
-		const text = _captures[0];
+		const text = _capturesObj._[0];
 		console.log(text);
 	}, "Works_component_useTask_pjo5U5Ikll0", [text]));
 }, "Works_component_t45qL4vNGv0"));
@@ -7912,15 +8230,15 @@ impl TestInput {
 fn should_preserve_non_ident_explicit_captures() {
 	let res = test_input!(TestInput {
 		code: r#"
-import { _captures, inlinedQrl } from '@qwik.dev/core';
+import { _capturesObj, inlinedQrl } from '@qwik.dev/core';
 
 const left = 1;
 const right = 2;
 
 export const task = inlinedQrl(() => {
-	const left = _captures[0];
-	const middle = _captures[1];
-	const right = _captures[2];
+	const left = _capturesObj._[0];
+	const middle = _capturesObj._[1];
+	const right = _capturesObj._[2];
 	return middle ? left : right;
 }, 'task', [left, true, right]);
 "#

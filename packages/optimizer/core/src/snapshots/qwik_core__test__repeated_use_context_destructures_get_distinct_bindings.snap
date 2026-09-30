@@ -1,0 +1,70 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 660
+expression: output
+---
+==INPUT==
+
+
+import { component$, useContext } from '@qwik.dev/core';
+import { WalletsContextId, SessionContextId } from './ctx';
+
+export const Cmp = component$(() => {
+	const { wallets } = useContext(WalletsContextId);
+	const { user } = useContext(SessionContextId);
+	return <div>{wallets}{user}</div>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,oBAAM,0CAIhB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { SessionContextId } from "./ctx";
+import { WalletsContextId } from "./ctx";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { useContext } from "@qwik.dev/core";
+//
+export const Cmp_component_4ryKJTOKjWE = ()=>{
+    const context = useContext(WalletsContextId);
+    const context1 = useContext(SessionContextId);
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        _wrapProp(context, "wallets"),
+        _wrapProp(context1, "user")
+    ], 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAI8B;IAC7B,MAAM,UAAc,WAAW;IAC/B,MAAM,WAAW,WAAW;IAC5B,qBAAO,WAAC;;;;AACT\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    150,
+    294
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

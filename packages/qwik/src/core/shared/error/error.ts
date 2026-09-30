@@ -38,12 +38,12 @@ const codeToText = (code: number, ...parts: any[]): string => {
       'Materialize error: missing element: {{0}} {{1}} {{2}}', // 27
       'Cannot coerce a Signal, use `.value` instead', // 28
       '', // 29 (cleared: useComputed$ now supports async functions)
-      '===\nQwik version {{0}} already imported while importing {{1}}.\nThis can lead to issues due to duplicated shared structures.\nVerify that the Qwik libraries you\'re using are in "resolve.noExternal[]" and in "optimizeDeps.exclude".\n===\n', // 30
+      '===\nQwik version {{0}} already imported while importing {{1}}.\nDifferent Qwik versions or builds cannot share their runtime state on the server.\nMake sure every Qwik library resolves to the same @qwik.dev/core version and build.\n===\n', // 30
       'WrappedSignal is read-only', // 31
       'Attribute value is unsafe for SSR {{0}}', // 32
       'SerializerSymbol function returned rejected promise', // 33
       'Serialization Error: Cannot serialize function: {{0}}', // 34
-      'Cannot read .value of a clientOnly async signal during SSR. Use .loading to check state, or provide an initial value.', // 35
+      'Cannot read .value of a clientOnly async signal during SSR. Provide an initial value.', // 35
       'Invalid element name for SSR {{0}}', // 36
       'Invalid serialized Promise dependency', // 37
       'Invalid serialized Uint8Array payload', // 38

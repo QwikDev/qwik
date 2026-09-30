@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
+import { createCacheControl } from '../cache-control';
 import { getLoaderName, IsQLoader, QLoaderId } from '../request-path';
 import { RedirectMessage } from '../redirect-handler';
+import type { CacheControl } from '../types';
 import { loaderHandler } from './loader-handler';
 
 describe('loaderHandler', () => {
@@ -15,9 +17,12 @@ describe('loaderHandler', () => {
       headers,
       request: new Request(`http://localhost/products/${getLoaderName('loader-id', 'manifest')}`),
       url: new URL('http://localhost/products/?q=shoes&page=2&ignored=true'),
+      params: { id: '123' },
       headersSent: false,
       exited: false,
-      cacheControl: vi.fn(),
+      cacheControl: vi.fn((value: CacheControl) => {
+        headers.set('Cache-Control', createCacheControl(value));
+      }),
       json: vi.fn(),
       send: vi.fn(),
       status: vi.fn(() => 200),
@@ -28,7 +33,7 @@ describe('loaderHandler', () => {
     };
   }
 
-  it('defaults to no-cache Cache-Control and varies on full path', async () => {
+  it('defaults to private, no-cache Cache-Control and varies on full path', async () => {
     const requestEv = createRequestEv();
     const loader = {
       __id: 'loader-id',
@@ -43,7 +48,7 @@ describe('loaderHandler', () => {
 
     await loaderHandler([loader as any])(requestEv as any);
 
-    expect(requestEv.cacheControl).toHaveBeenCalledWith('no-cache');
+    expect(requestEv.headers.get('Cache-Control')).toBe('no-cache, private');
     expect(requestEv.headers.get('Vary')).toBe(FULLPATH_HEADER);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
@@ -66,6 +71,37 @@ describe('loaderHandler', () => {
 
     expect(requestEv.cacheControl).toHaveBeenCalledWith('immutable');
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
+  it('keeps explicit numeric cacheControl available for shared caching', async () => {
+    const requestEv = createRequestEv();
+    const loader = {
+      __id: 'loader-id',
+      __qrl: { call: vi.fn(async () => 'public-value') },
+      __cacheControl: 60,
+    };
+
+    await loaderHandler([loader as any])(requestEv as any);
+
+    expect(requestEv.headers.get('Cache-Control')).toBe('max-age=60, s-maxage=60');
+  });
+
+  it('sets private cache control on an early 304 response', async () => {
+    const requestEv = createRequestEv();
+    requestEv.request = new Request(requestEv.request.url, {
+      headers: { 'If-None-Match': '"v1"' },
+    });
+    const loader = {
+      __id: 'loader-id',
+      __qrl: { call: vi.fn(async () => 'private-value') },
+      __eTag: 'v1',
+    };
+
+    await loaderHandler([loader as any])(requestEv as any);
+
+    expect(requestEv.headers.get('Cache-Control')).toBe('no-cache, private');
+    expect(requestEv.send).toHaveBeenCalledWith(304, '');
+    expect(loader.__qrl.call).not.toHaveBeenCalled();
   });
 
   it('resolves function-form cacheControl with the loader request event', async () => {
@@ -207,7 +243,7 @@ describe('loaderHandler', () => {
     expect(loaderEv.url.search).toBe('?q=shoes');
     expect(loaderEv.request.url).toBe('http://localhost/products/?q=shoes');
     expect(loaderEv.originalUrl.href).toBe('http://localhost/products/?q=shoes');
-    expect(loaderEv.params).toEqual({});
+    expect(loaderEv.params).toEqual({ id: '123' });
     expect(loaderEv.query.get('q')).toBe('shoes');
     expect(loaderEv.query.has('ignored')).toBe(false);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));

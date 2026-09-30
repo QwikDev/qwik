@@ -9,6 +9,7 @@ import { ContextRoot } from './components/context/context';
 import { EffectClient } from './components/effect-client/effect-client';
 import { Events } from './components/events/events';
 import { EventsClient } from './components/events/events-client';
+import { EventsLifecycle } from './components/events/events-lifecycle';
 import { RenderExceptions, UseTaskExceptions } from './components/exceptions';
 import { Factory } from './components/factory/factory';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
@@ -37,9 +38,10 @@ import { WorkerRoot } from './components/worker/worker';
 
 import './global.css';
 import { QRL } from './components/qrl/qrl';
+import { QVisibleRoot } from './components/qvisible/qvisible';
 import { AsyncRoot } from './components/use-async/use-async';
 import { Backpatching } from './components/backpatching/backpatching';
-import { OutOfOrderSuspenseRoot, SuspenseRoot } from './components/suspense/suspense';
+import { OutOfOrderSuspenseRoot, PendingRoot } from './components/pending/pending';
 // Conditional renders as returns inside `if` are unsupported by the compiler.
 
 const TestIndex = component$(() => <section>Test index</section>);
@@ -91,7 +93,7 @@ export const Root = component$<{ pathname: string }>(({ pathname }) => {
       {pathname === '/e2e/qrl' && <QRL />}
       {pathname === '/e2e/async-computed' && <AsyncRoot />}
       {pathname === '/e2e/backpatching' && <Backpatching />}
-      {pathname === '/e2e/suspense' && <SuspenseRoot />}
+      {pathname === '/e2e/suspense' && <PendingRoot />}
       {pathname === '/e2e/suspense-ooos' && <OutOfOrderSuspenseRoot />}
       {pathname === '/e2e/worker' && <WorkerRoot />}
     </>

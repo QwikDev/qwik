@@ -3,7 +3,9 @@ import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { generateManifestFromBundles } from '../manifest';
 import { convertManifestToBundleGraph } from './bundle-graph';
-// You can generate this file by uncommenting the writing code in manifest.ts, building, running `pnpm build.client` in the e2e/qwik-e2e/apps/preloader-test dir and moving the output
+// Frozen sample from an old, smaller preloader-test build; kept as-is so the snapshots stay reviewable.
+// Regenerating (uncomment the writing code in manifest.ts, build, run `pnpm build.client` in
+// e2e/qwik-e2e/apps/preloader-test, move the output) now yields 300+ bundles from the counters.
 import outputBundles from './fixture-output-bundles.json';
 
 describe('convertManifestToBundleGraph', () => {
@@ -16,12 +18,14 @@ describe('convertManifestToBundleGraph', () => {
         size,
         total,
         dynamicImports: ['@other', 'transitive-dep.js', 'dynamic-dep.js', 'no-symbols.js'],
+        qrlImports: ['transitive-dep.js', 'dynamic-dep.js'],
       },
       'dynamic-dep.js': {
         size,
         total,
         imports: ['static-dep.js', 'transitive-dep.js', '@external-dep'],
         dynamicImports: ['has-a-symbol.js', 'boring-dep.js', 'no-symbols.js'],
+        qrlImports: ['has-a-symbol.js'],
         origins: ['dynamic-dep.js'],
         symbols: ['sym1'],
       },
@@ -31,10 +35,12 @@ describe('convertManifestToBundleGraph', () => {
         size,
         total,
         dynamicImports: ['large-file.js'],
+        qrlImports: ['large-file.js'],
         symbols: ['sym2'],
         origins: ['dynamic-dep.js_handleClick_sym2.js'],
       },
       'no-symbols.js': { size, total },
+      // only reached by a user import()
       'boring-dep.js': { size, total, symbols: ['sym5'], origins: ['boring-dep.js'] },
       'large-file.js': { size: 100000, total: 100000, symbols: ['sym3'] },
     } as Record<string, QwikBundle>,
@@ -55,26 +61,24 @@ describe('convertManifestToBundleGraph', () => {
       // doesn't list 13 because it's also statically imported by dynamic-dep.js
       'dynamic-dep.js', // 5
       2,
-      12,
+      10,
       -9,
-      13,
-      -7,
-      16,
-      'transitive-dep.js', // 12
-      'has-a-symbol.js', // 13
+      11,
+      // boring-dep.js is not listed: a user import() is not a qrl edge
+      'transitive-dep.js', // 10
+      'has-a-symbol.js', // 11
       -5,
-      17,
-      'boring-dep.js', // 16
-      'large-file.js', // 17
-      'sym1', // 18
+      14,
+      'large-file.js', // 14
+      'sym1', // 15
       -7,
       5,
-      'sym2', // 21
+      'sym2', // 18
       -7,
-      13,
-      'sym3', // 24
+      11,
+      'sym3', // 21
       -5,
-      17,
+      14,
     ]);
   });
 
@@ -85,8 +89,8 @@ describe('convertManifestToBundleGraph', () => {
   test('simple file set', () => {
     const manifest = {
       bundles: {
-        'a.js': { size, total, imports: ['b.js'], dynamicImports: ['c.js'] },
-        'b.js': { size, total, dynamicImports: ['c.js'] },
+        'a.js': { size, total, imports: ['b.js'], dynamicImports: ['c.js'], qrlImports: ['c.js'] },
+        'b.js': { size, total, dynamicImports: ['c.js'], qrlImports: ['c.js'] },
         'c.js': { size, total, symbols: ['sym1'] },
       } as Record<string, QwikBundle>,
       mapping: {},
@@ -125,7 +129,13 @@ describe('convertManifestToBundleGraph', () => {
   test('import cycle keeps dynamic deps but still reduces them', () => {
     const manifest = {
       bundles: {
-        'x.js': { size, total, imports: ['a.js'], dynamicImports: ['a.js', 'd.js', 'e.js'] },
+        'x.js': {
+          size,
+          total,
+          imports: ['a.js'],
+          dynamicImports: ['a.js', 'd.js', 'e.js'],
+          qrlImports: ['a.js', 'd.js', 'e.js'],
+        },
         'a.js': { size, total, imports: ['x.js'], symbols: ['sym1'] },
         'd.js': { size, total, symbols: ['sym2'] },
         'e.js': { size, total, imports: ['d.js'], symbols: ['sym3'] },
@@ -143,6 +153,19 @@ describe('convertManifestToBundleGraph', () => {
       'e.js', // 7
       6,
     ]);
+  });
+
+  test('user dynamic import is not followed', () => {
+    const manifest = {
+      bundles: {
+        'page.js': { size, total, dynamicImports: ['widget.js'] },
+        'widget.js': { size, total, symbols: ['sym1'] },
+      } as Record<string, QwikBundle>,
+      mapping: { sym1: 'widget.js' },
+      symbols: {},
+    } as unknown as QwikManifest;
+    // widget.js stays reachable only through its symbol
+    expect(convertManifestToBundleGraph(manifest)).toEqual(['widget.js', 'sym1', -7, 0]);
   });
 
   test('adder', () => {
@@ -205,7 +228,13 @@ describe('convertManifestToBundleGraph', () => {
       outputBundles.bundles as any,
       { rootDir: '/', outDir: '/' } as any,
       console.error,
-      (p) => path.relative('build', p)
+      (p) => path.relative('build', p),
+      (id) => {
+        const info = (outputBundles.moduleInfo as Record<string, any>)[id];
+        return (
+          info && ({ dynamicallyImportedIds: [], ...info, meta: { segment: info.segment } } as any)
+        );
+      }
     );
 
     // Interactivity scores

@@ -255,6 +255,36 @@ describe('link component', () => {
     expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
+  it('prefetches bundles on intent', async () => {
+    const { document, anchor } = await renderLink({
+      prefetchBundles: 'intent',
+      prefetchData: 'off',
+    });
+    prefetchRouteMock.mockClear();
+
+    await trigger(document.body, anchor, 'pointerenter');
+    await trigger(document.body, anchor, 'focus');
+
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
+    expectPrefetchRouteCall(0, '/test', false, 0.8);
+    expectPrefetchRouteCall(1, '/test', false, 0.8);
+  });
+
+  it('prefetches bundles on commit', async () => {
+    const { document, anchor } = await renderLink({
+      prefetchBundles: 'commit',
+      prefetchData: 'off',
+    });
+    prefetchRouteMock.mockClear();
+
+    await trigger(document.body, anchor, 'pointerdown');
+    await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
+
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
+    expectPrefetchRouteCall(0, '/test', false, 0.8);
+    expectPrefetchRouteCall(1, '/test', false, 0.8);
+  });
+
   it('prefetches bundles and route data when visible strategy is enabled for both', async () => {
     const { anchor } = await renderLink({
       prefetchBundles: 'visible',

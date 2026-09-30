@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-ssg",
-  "package": "@qwik.dev/qwik-router/ssg",
+  "package": "@qwik.dev/router/ssg",
   "members": [
     {
       "name": "generate",

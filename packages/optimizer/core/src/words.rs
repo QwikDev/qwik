@@ -17,6 +17,7 @@ lazy_static! {
 	pub static ref _NOOP_QRL: Atom = Atom::from("_noopQrl");
 	pub static ref _NOOP_QRL_DEV: Atom = Atom::from("_noopQrlDEV");
 	pub static ref _REST_PROPS: Atom = Atom::from("_restProps");
+	pub static ref UNTRACK: Atom = Atom::from("untrack");
 	pub static ref QSEGMENT: Atom = Atom::from("$");
 	pub static ref Q_SYNC: Atom = Atom::from("sync$");
 	pub static ref QWIK_INTERNAL: Atom = Atom::from("qwik");
@@ -27,6 +28,7 @@ lazy_static! {
 	pub static ref QCOMPONENT: Atom = Atom::from("component$");
 	pub static ref QWORKER: Atom = Atom::from("worker$");
 	pub static ref _CAPTURES: Atom = Atom::from("_captures");
+	pub static ref _CAPTURES_OBJ: Atom = Atom::from("_capturesObj");
 	pub static ref H: Atom = Atom::from("h");
 	pub static ref FRAGMENT: Atom = Atom::from("Fragment");
 	pub static ref _INLINED_FN: Atom = Atom::from("_fnSignal");

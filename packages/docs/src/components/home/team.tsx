@@ -98,6 +98,7 @@ export const Team = component$(() => {
       aria-labelledby="team-heading"
       class="relative overflow-x-clip flex flex-col gap-10 w-full max-w-[1280px] mx-auto 2xl:pt-40 md:pt-24 pt-16 pb-20 2xl:px-20 px-4"
     >
+      <div class="absolute -z-2 inset-0 bg-hero-gradient-blue opacity-50" />
       <div class="flex flex-col gap-10 max-w-fit">
         <div class="relative w-fit">
           <h2 id="team-heading" class="relative z-2 font-heading 2xl:text-h3 text-[28px]">
@@ -118,7 +119,6 @@ export const Team = component$(() => {
       </div>
 
       <div class="relative flex flex-col gap-4">
-        <div class="absolute -z-2 -inset-x-1/4 -inset-y-1/2 bg-hero-gradient-blue opacity-50" />
         <h3 class="text-foreground-soft text-sm">Core team</h3>
         <ul class="grid grid-cols-2 md:grid-cols-4 gap-6">
           {coreTeam.map(({ login, x }) => (

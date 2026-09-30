@@ -1,13 +1,13 @@
 import { component$ } from '@qwik.dev/core';
-import { _hasStoreEffects } from '@qwik.dev/core/internal';
+import { _hasStoreEffects, _waitUntilRendered } from '@qwik.dev/core/internal';
 import { domRender } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { DocumentHeadTags } from './document-head-tags-component';
 import { QwikRouterMockProvider } from './qwik-router-component';
-import type { ResolvedDocumentHead } from './types';
+import type { Editable, ResolvedDocumentHead } from './types';
 import { useDocumentHead } from './use-functions';
 
-const captured: { head?: ResolvedDocumentHead } = {};
+const captured: { head?: Editable<ResolvedDocumentHead> } = {};
 
 const CaptureHead = component$(() => {
   captured.head = useDocumentHead();
@@ -15,8 +15,8 @@ const CaptureHead = component$(() => {
 });
 
 describe('DocumentHeadTags', () => {
-  it('subscribes only to the head fields it renders', async () => {
-    await domRender(
+  it('re-renders on head changes without a subscription per field', async () => {
+    const { document, container } = await domRender(
       <QwikRouterMockProvider>
         <CaptureHead />
         <DocumentHeadTags />
@@ -24,10 +24,17 @@ describe('DocumentHeadTags', () => {
     );
     const head = captured.head!;
 
-    expect(_hasStoreEffects(head, 'title')).toBe(true);
-    expect(_hasStoreEffects(head, 'meta')).toBe(true);
-    expect(_hasStoreEffects(head, 'frontmatter')).toBe(false);
-    expect(_hasStoreEffects(head, 'manifestHash')).toBe(false);
+    expect(_hasStoreEffects(head, 'title')).toBe(false);
+    expect(_hasStoreEffects(head, 'meta')).toBe(false);
+
+    head.title = 'Updated';
+    head.meta = [{ name: 'description', content: 'updated' }];
+    await _waitUntilRendered(container);
+
+    expect(document.body.querySelector('title')?.textContent).toBe('Updated');
+    expect(document.body.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(
+      'updated'
+    );
   });
 
   it('renders its props over the document head', async () => {

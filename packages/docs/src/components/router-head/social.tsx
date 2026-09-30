@@ -1,5 +1,6 @@
-export const Social = ({ title, description, href, ogImage }: SocialProps) => {
+export const Social = ({ title, description, href, ogImage, ogImageAlt }: SocialProps) => {
   const imgAlt =
+    ogImageAlt ||
     'Image of Qwik Framework Logo, Framework reimagined for the edge. Code snippet npm create qwik@latest';
 
   return (
@@ -35,4 +36,5 @@ interface SocialProps {
   description: string;
   href: string;
   ogImage?: string;
+  ogImageAlt?: string;
 }

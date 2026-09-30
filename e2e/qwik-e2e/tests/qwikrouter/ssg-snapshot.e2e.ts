@@ -65,7 +65,7 @@ test.describe('router ssg snapshot', () => {
       /\{string\} "(?:client|routeLoaderIds|committed|navigationKey|statusMessage|formData)"/
     );
 
-    expect(normalizedState).not.toMatch(/\{string\} "initial"/);
+    expect(normalizedState).not.toMatch(/\{string\} "(?:initial|OK|qr--p)"/);
 
     let expectedHtml = (await readFile(expectedHtmlPath, 'utf-8').catch(() => '')).replace(
       /\r\n/g,

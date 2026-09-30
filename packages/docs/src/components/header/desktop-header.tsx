@@ -94,6 +94,33 @@ export const DesktopHeader = component$(() => {
 
   const navRef = useSignal<HTMLElement>();
 
+  const setNavSlide$ = $((target: EventTarget | null) => {
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    const trigger = target.closest('[ui-qds-popover-trigger]');
+    const root = navRef.value;
+    if (!trigger || !root?.contains(trigger)) {
+      return;
+    }
+
+    const nextItem = trigger.closest<HTMLElement>('[ui-qds-popover-root]');
+    const items = Array.from(root.querySelectorAll<HTMLElement>('[ui-qds-popover-root]'));
+    const nextIndex = nextItem ? items.indexOf(nextItem) : -1;
+    if (nextIndex < 0) {
+      return;
+    }
+
+    const content = nextItem?.querySelector<HTMLElement>('[ui-qds-popover-content]');
+    const openIndex = items.findIndex((item) => item.hasAttribute('ui-open'));
+    if (openIndex < 0) {
+      content?.removeAttribute('data-nav-slide');
+    } else if (openIndex !== nextIndex) {
+      content?.setAttribute('data-nav-slide', nextIndex < openIndex ? 'left' : 'right');
+    }
+  });
+
   const toggleNavbar = $(() => {
     const y = window.scrollY;
 
@@ -142,7 +169,11 @@ export const DesktopHeader = component$(() => {
           translate: isHidden.value ? '-50% calc(-100% - 24px)' : '-50% 0',
           opacity: isHidden.value ? 0 : 1,
         }}
-        onFocusIn$={() => (focused.value = true)}
+        onPointerOver$={(event) => setNavSlide$(event.target)}
+        onFocusIn$={(event) => {
+          focused.value = true;
+          setNavSlide$(event.target);
+        }}
         onFocusOut$={() => (focused.value = false)}
       >
         <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">

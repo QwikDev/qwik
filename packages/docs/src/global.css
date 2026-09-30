@@ -554,3 +554,33 @@ html[data-theme='dark'] {
 .fixed-header {
   @apply 2xl:pt-[102px];
 }
+
+@keyframes nav-slide {
+  from {
+    opacity: 0;
+    transform: translateX(var(--nav-slide-from));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+[ui-qds-navbar-root] [ui-qds-popover-content][data-nav-slide='left'] {
+  --nav-slide-from: 24px;
+}
+
+[ui-qds-navbar-root] [ui-qds-popover-content][data-nav-slide='right'] {
+  --nav-slide-from: -24px;
+}
+
+[ui-qds-navbar-root] [ui-qds-popover-content][data-nav-slide]:popover-open {
+  animation: nav-slide 325ms ease-in-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [ui-qds-navbar-root] [ui-qds-popover-content][data-nav-slide]:popover-open {
+    animation: none;
+    opacity: 1;
+  }
+}

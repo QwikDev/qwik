@@ -8,6 +8,59 @@ test.describe('Docs site smoke tests', () => {
     await expect(page).toHaveTitle(/Qwik/);
   });
 
+  test('desktop menu content slides in the direction of navigation', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/');
+
+    const section = (name: string) =>
+      page.locator('[ui-qds-popover-root]').filter({ has: page.getByRole('button', { name }) });
+
+    await section('Core').locator('[ui-qds-popover-trigger]').hover();
+    await expect(section('Core')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Core').locator('[ui-qds-popover-content]')).not.toHaveAttribute(
+      'data-nav-slide',
+      /.+/
+    );
+
+    await section('Router').locator('[ui-qds-popover-trigger]').hover();
+    await expect(section('Router')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveAttribute(
+      'data-nav-slide',
+      'right'
+    );
+    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveCSS(
+      'animation-name',
+      'nav-slide'
+    );
+    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveCSS(
+      '--nav-slide-from',
+      '-24px'
+    );
+
+    await section('Ecosystem').locator('[ui-qds-popover-trigger]').hover();
+    await expect(section('Ecosystem')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveAttribute(
+      'data-nav-slide',
+      'left'
+    );
+    await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveCSS(
+      'animation-name',
+      'nav-slide'
+    );
+    await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveCSS(
+      '--nav-slide-from',
+      '24px'
+    );
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await section('Resources').locator('[ui-qds-popover-trigger]').hover();
+    await expect(section('Resources')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Resources').locator('[ui-qds-popover-content]')).toHaveCSS(
+      'animation-name',
+      'none'
+    );
+  });
+
   test('search suggestion points to the getting started page', async ({ page }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto('/docs/');

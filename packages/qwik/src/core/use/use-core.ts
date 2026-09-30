@@ -269,3 +269,10 @@ export const _jsxBranch = <T>(input?: T) => {
 export const _waitUntilRendered = (container: Container): Promise<void> => {
   return container.$renderPromise$ || Promise.resolve();
 };
+
+/** @internal */
+export const _waitOn = (promise: Promise<unknown>): void => {
+  const iCtx = useInvokeContext();
+  const waitOn = iCtx.$waitOn$;
+  iCtx.$waitOn$ = waitOn ? waitOn.then(() => promise) : promise;
+};

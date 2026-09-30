@@ -209,28 +209,28 @@ With `blockSSR: false`, the first page load works the same way. The server start
 
 ### A lot more fun to build with
 
-- Vite 8 and Rolldown: Qwik 2 requires Vite 8, so your builds run on Rolldown.
-- HMR: now keeps your signal and store values while you edit a component, and new route files show up without a restart.
-- [Qwik DevTools](https://next.qwik.dev/docs/labs/devtools/): adds an overlay in development and a browser extension for production builds so your agent can inspect props, signals, renders, routes and bundles.
+- **Vite 8 and Rolldown:** Qwik 2 requires Vite 8, so your builds run on Rolldown.
+- **HMR:** now keeps your signal and store values while you edit a component, and new route files show up without a restart.
+- **[Qwik DevTools](https://next.qwik.dev/docs/labs/devtools/):** adds an overlay in development and a browser extension for production builds so your agent can inspect props, signals, renders, routes and bundles.
 
 ### And many new (backwards-compatible) APIs
 
-- [`worker$`](https://next.qwik.dev/docs/advanced/worker/): runs a function in a Web Worker and gives you a promise back.
-- [`reactify$`](https://next.qwik.dev/docs/integrations/react/): is the other half of `qwikify$`. It renders Qwik components inside a React tree, so you can move a React app over one component at a time.
-- [`useSerializer$`](https://next.qwik.dev/docs/core/state/): lets you serialize objects Qwik doesn't know about, like an instance of a library class. The browser only rebuilds the object when something reads it.
-- `<Link>` prefetching: `<Link>` has separate `prefetchBundles` and `prefetchData` props. By default, code is prefetched when the link comes into view, and data on hover or focus.
-- `*.server.ts`: Files named `*.server.ts`, or placed in a `server/` folder, are server-only. If client code imports one, the build fails.
-- Passive event listeners: Event listeners can be passive or use the capture phase. Add `passive:touchmove` or `capture:click` next to the handler.
-- HTTP errors: `404.tsx` and the new `error.tsx` render inside their layouts, in dev too. `useHttpStatus()` gives you the status and message.
-- Control flow components: [`<Each>`](https://next.qwik.dev/docs/labs/each/) and [`<Show>`](https://next.qwik.dev/docs/labs/show/) are experimental too. They handle keyed lists and conditional rendering, and they may be removed in v3.
+- **[`worker$`](https://next.qwik.dev/docs/advanced/worker/):** runs a function in a Web Worker and gives you a promise back.
+- **[`reactify$`](https://next.qwik.dev/docs/integrations/react/):** is the other half of `qwikify$`. It renders Qwik components inside a React tree, so you can move a React app over one component at a time.
+- **[`useSerializer$`](https://next.qwik.dev/docs/core/state/):** lets you serialize objects Qwik doesn't know about, like an instance of a library class. The browser only rebuilds the object when something reads it.
+- **`<Link>` prefetching:** `<Link>` has separate `prefetchBundles` and `prefetchData` props. By default, code is prefetched when the link comes into view, and data on hover or focus.
+- **`*.server.ts`:** Files named `*.server.ts`, or placed in a `server/` folder, are server-only. If client code imports one, the build fails.
+- **Passive event listeners:** Event listeners can be passive or use the capture phase. Add `passive:touchmove` or `capture:click` next to the handler.
+- **HTTP errors:** `404.tsx` and the new `error.tsx` render inside their layouts, in dev too. `useHttpStatus()` gives you the status and message.
+- **Control flow components:** [`<Each>`](https://next.qwik.dev/docs/labs/each/) and [`<Show>`](https://next.qwik.dev/docs/labs/show/) are experimental too. They handle keyed lists and conditional rendering, and they may be removed in v3.
 
 ### With a more robust foundation
 
-- TypeScript optimizer: It's opt-in with `tsOptimizer: true`. It matches the Rust optimizer on every snapshot test at about the same speed, and contributors no longer need Rust to work on Qwik.
-- Better testing: Renderer tests run twice, once through server rendering and resuming and once through client rendering. Playwright runs the end-to-end suites in Chromium, Firefox and WebKit with both the Rust and the TypeScript optimizer, and CI runs speed and memory benchmarks.
-- Preloader fixes: We fixed several cases where the preloader loaded too little or too much. It no longer follows your app's own dynamic imports, and it yields to the browser so it doesn't block input.
-- Reactivity fixes: Signals, stores and computed values were rewritten from scratch. Spreading props no longer breaks reactivity, tasks release their subscriptions when their component is removed, and a task waits for its previous cleanup to finish before it runs again.
-- Backpatching: If a component changes an attribute of an element that has already streamed, Qwik patches it in the browser with a small inline script.
+- **TypeScript optimizer:** It's opt-in with `tsOptimizer: true`. It matches the Rust optimizer on every snapshot test at about the same speed, and contributors no longer need Rust to work on Qwik.
+- **Better testing:** Renderer tests run twice, once through server rendering and resuming and once through client rendering. Playwright runs the end-to-end suites in Chromium, Firefox and WebKit with both the Rust and the TypeScript optimizer, and CI runs speed and memory benchmarks.
+- **Preloader fixes:** We fixed several cases where the preloader loaded too little or too much. It no longer follows your app's own dynamic imports, and it yields to the browser so it doesn't block input.
+- **Reactivity fixes:** Signals, stores and computed values were rewritten from scratch. Spreading props no longer breaks reactivity, tasks release their subscriptions when their component is removed, and a task waits for its previous cleanup to finish before it runs again.
+- **Backpatching:** If a component changes an attribute of an element that has already streamed, Qwik patches it in the browser with a small inline script.
 
 ## What's next
 

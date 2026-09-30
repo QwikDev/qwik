@@ -36,6 +36,86 @@ const createContainer = (buildBase = '/') => {
   };
 };
 
+const expectDeferredUntilAfterPaint = (
+  script: string,
+  shouldFetch: boolean,
+  supportsIdleCallback = true
+) => {
+  const fetch = vi.fn();
+  const importModule = vi.fn(() => Promise.resolve({ l: vi.fn(), p: vi.fn() }));
+  const idleCallbacks: (() => void)[] = [];
+  const requestIdleCallback = vi.fn((callback: () => void) => {
+    idleCallbacks.push(callback);
+  });
+  const timers: (() => void)[] = [];
+  const setTimeout = vi.fn((callback: () => void) => {
+    timers.push(callback);
+  });
+  const animationFrames: (() => void)[] = [];
+  const requestAnimationFrame = vi.fn((callback: () => void) => {
+    animationFrames.push(callback);
+  });
+  let onLoad: (() => void) | undefined;
+  const window = {
+    addEventListener: vi.fn((event: string, callback: () => void) => {
+      if (event === 'load') {
+        onLoad = callback;
+      }
+    }),
+  };
+  // eslint-disable-next-line no-new-func
+  const runScript = new Function(
+    'window',
+    'requestAnimationFrame',
+    'requestIdleCallback',
+    'setTimeout',
+    'fetch',
+    'importModule',
+    script.replaceAll('import(', 'importModule(')
+  );
+
+  runScript(
+    window,
+    requestAnimationFrame,
+    supportsIdleCallback ? requestIdleCallback : undefined,
+    setTimeout,
+    fetch,
+    importModule
+  );
+
+  expect(fetch).not.toHaveBeenCalled();
+  expect(importModule).not.toHaveBeenCalled();
+  expect(onLoad).toBeTypeOf('function');
+
+  onLoad!();
+
+  expect(requestAnimationFrame).toHaveBeenCalledOnce();
+  expect(requestIdleCallback).not.toHaveBeenCalled();
+  animationFrames.shift()!();
+
+  expect(requestAnimationFrame).toHaveBeenCalledTimes(2);
+  expect(requestIdleCallback).not.toHaveBeenCalled();
+  animationFrames.shift()!();
+
+  if (supportsIdleCallback) {
+    expect(requestIdleCallback).toHaveBeenCalledOnce();
+    expect(requestIdleCallback).toHaveBeenCalledWith(expect.any(Function), { timeout: 1000 });
+    expect(setTimeout).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+    expect(importModule).not.toHaveBeenCalled();
+    idleCallbacks.shift()!();
+  } else {
+    expect(animationFrames).toHaveLength(1);
+    animationFrames.shift()!();
+    expect(setTimeout).toHaveBeenCalledOnce();
+    expect(setTimeout).toHaveBeenCalledWith(expect.any(Function));
+    timers.shift()!();
+  }
+
+  expect(importModule).toHaveBeenCalledOnce();
+  expect(fetch).toHaveBeenCalledTimes(shouldFetch ? 1 : 0);
+};
+
 describe('preloader', () => {
   afterEach(() => {
     vi.doUnmock('./qwik-copy');
@@ -69,6 +149,79 @@ describe('preloader', () => {
     expect(getScriptContent()).toBe('');
   });
 
+  it('starts the preloader after page paint during idle time', async () => {
+    const { container, elements, getScriptContent } = createContainer();
+    const { preloaderPre } = await import('./preload-impl');
+
+    preloaderPre(container, { maxIdlePreloads: 1 });
+
+    expect(elements).toEqual([
+      { tagName: 'link', attrs: { rel: 'modulepreload', href: '/preloader.js' } },
+      {
+        tagName: 'link',
+        attrs: {
+          rel: 'preload',
+          href: '/assets/bundle-graph.json',
+          as: 'fetch',
+          crossorigin: 'anonymous',
+        },
+      },
+      {
+        tagName: 'link',
+        attrs: {
+          rel: 'modulepreload',
+          href: '/core.js',
+        },
+      },
+    ]);
+
+    expectDeferredUntilAfterPaint(getScriptContent(), true);
+  });
+
+  it('falls back to the next paint without a fixed delay', async () => {
+    const { container, getScriptContent } = createContainer();
+    const { preloaderPre } = await import('./preload-impl');
+
+    preloaderPre(container, {});
+
+    expectDeferredUntilAfterPaint(getScriptContent(), true, false);
+  });
+
+  it('starts speculative bundle preloads after page paint during idle time', async () => {
+    const { container, elements, getScriptContent } = createContainer();
+    const { includePreloader } = await import('./preload-impl');
+
+    includePreloader(container, { ssrPreloads: 0 }, ['route.js']);
+
+    expect(elements).toEqual([]);
+    expectDeferredUntilAfterPaint(getScriptContent(), false);
+  });
+
+  it('preloads the core bundle from the build base in a development build', async () => {
+    // `vite build` with a NODE_ENV other than production sets DEV, but still serves from /build/.
+    vi.stubEnv('DEV', true);
+    vi.stubEnv('BASE_URL', '/');
+    vi.doMock('./qwik-copy', () => ({
+      initPreloader: vi.fn(),
+      qTest: false,
+    }));
+    vi.resetModules();
+    const { container, elements } = createContainer('/build/');
+    const { preloaderPre } = await import('./preload-impl');
+
+    preloaderPre(container, {});
+
+    expect(elements).toEqual([
+      {
+        tagName: 'link',
+        attrs: {
+          rel: 'modulepreload',
+          href: '/build/core.js',
+        },
+      },
+    ]);
+  });
+
   it('emits no speculative preload links before page load by default', async () => {
     const { container, getScriptContent } = createContainer();
     const { includePreloader } = await import('./preload-impl');
@@ -90,31 +243,5 @@ describe('preloader', () => {
     const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
     expect(immediateScript).toContain('route-2.js');
     expect(immediateScript).not.toContain('route-3.js');
-  });
-
-  it('preloads the core bundle from the build base in a development build', async () => {
-    // `vite build` with a NODE_ENV other than production sets DEV, but still serves from /build/.
-    vi.stubEnv('DEV', true);
-    vi.stubEnv('BASE_URL', '/');
-    vi.doMock('./qwik-copy', () => ({
-      initPreloader: vi.fn(),
-      qTest: false,
-    }));
-    vi.resetModules();
-
-    const { container, elements } = createContainer('/build/');
-    const { preloaderPre } = await import('./preload-impl');
-
-    preloaderPre(container, {});
-
-    expect(elements).toEqual([
-      {
-        tagName: 'link',
-        attrs: {
-          rel: 'modulepreload',
-          href: '/build/core.js',
-        },
-      },
-    ]);
   });
 });

@@ -55,7 +55,7 @@ import {
   revealArgsJs,
 } from './print-js';
 import {
-  chunkCanonicalFilename,
+  chunkImportSpecifier,
   createQrlResolver,
   type QrlResolver,
   syncQrlHoists,
@@ -122,7 +122,7 @@ async function generateModule(
     case ModuleKind.Foreign:
       return [await generateForeignModule(module, options)];
     case ModuleKind.Qwik:
-      return generateQwikModule(module, new SsrModuleEmitter(module), options);
+      return generateQwikModule(module, new SsrModuleEmitter(module, options), options);
     case ModuleKind.Failed:
       return [createFailedModule(module.path)];
     case ModuleKind.ExportsOnly:
@@ -223,6 +223,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   constructor(
     private readonly module: LinkedModule,
+    private readonly options: PresentationOptions,
     private readonly keyedRowQrls = keyedCollectionRows(module)
   ) {
     this.resolveQrlUse = createQrlResolver(module);
@@ -450,13 +451,14 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           this.module,
           qrl,
           this.resolveQrlUse,
-          QwikWord.RenderSsrDynamicContent
+          QwikWord.RenderSsrDynamicContent,
+          this.options
         );
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
       case QrlBodyKind.Program:
         if (this.module.programs[qrl.body.program].body.kind === ProgramBodyKind.Expr) {
-          return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse);
+          return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse, this.options);
         }
         switch (programKind(qrl)) {
           case ProgramKind.BranchArm:
@@ -535,7 +537,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     qrl: LinkedQrl,
     options: SsrRenderOptions
   ): { emission: FunctionEmission; core: SsrProgramEmission; names: GeneratedNames } {
-    const emitter = new SsrModuleEmitter(this.module, this.keyedRowQrls);
+    const emitter = new SsrModuleEmitter(this.module, this.options, this.keyedRowQrls);
     const names = {
       props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
       ctx: allocateGeneratedNames(this.module).ctx,
@@ -588,7 +590,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       // Only invoked uses need the function itself; references stay name-only.
       if (usage.invoked && nested.delivery.d !== DeliveryKind.Stripped) {
         emission.chunkImports.push(
-          `import { ${nested.name} } from ${JSON.stringify(`./${chunkCanonicalFilename(this.module, nested)}`)};`
+          `import { ${nested.name} } from ${JSON.stringify(chunkImportSpecifier(this.module, nested, this.options))};`
         );
         emission.hoists.push(`q_${nested.name}.s(${nested.name});`);
       }

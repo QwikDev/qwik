@@ -22,6 +22,7 @@ import {
 } from './captures';
 import { extractPayloadJs, expressionJs, type EmitQrl } from './print-js';
 import { type QrlResolver } from './qrl-chunks';
+import type { PresentationOptions } from './output';
 import { emitJsSetup, withMarkerEmitter } from './emit-setup';
 import { createNameAllocator } from '../names';
 
@@ -29,7 +30,8 @@ import { createNameAllocator } from '../names';
 export function sourceFunctionEmission(
   module: LinkedModule,
   qrl: LinkedQrl,
-  resolveQrlUse: QrlResolver
+  resolveQrlUse: QrlResolver,
+  options: PresentationOptions
 ): FunctionEmission {
   const captures = captureNames(module, qrl);
   const emission = emptyFunctionEmission();
@@ -40,7 +42,7 @@ export function sourceFunctionEmission(
   emission.statements.push(
     ...capturePrelude(module, qrl),
     ...functionPrelude(module, qrl, (use) =>
-      staticFunctionReference(module, use, propsName, emission, resolveQrlUse)
+      staticFunctionReference(module, use, propsName, emission, resolveQrlUse, options)
     )
   );
   const emitQrl = withMarkerEmitter(
@@ -161,9 +163,10 @@ export function contentFunctionEmission(
   module: LinkedModule,
   qrl: LinkedQrl,
   resolveQrlUse: QrlResolver,
-  helper: QwikWord.CreateDynamicContent | QwikWord.RenderSsrDynamicContent
+  helper: QwikWord.CreateDynamicContent | QwikWord.RenderSsrDynamicContent,
+  options: PresentationOptions
 ): FunctionEmission {
-  const emission = sourceFunctionEmission(module, qrl, resolveQrlUse);
+  const emission = sourceFunctionEmission(module, qrl, resolveQrlUse, options);
   if (qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === 'content') {
     const ctx = createNameAllocator(module)('ctx');
     emission.params = [ctx];

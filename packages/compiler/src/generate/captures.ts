@@ -10,7 +10,8 @@ import {
 import { QwikGenWord, QwikWord } from '../words';
 import { allocateGeneratedName, createNameAllocator } from '../names';
 import type { FunctionEmission } from './emit-function';
-import { chunkCanonicalFilename, type QrlResolver } from './qrl-chunks';
+import { chunkImportSpecifier, type QrlResolver } from './qrl-chunks';
+import type { PresentationOptions } from './output';
 /** Capture names double as the chunk fn's parameters for value-payload QRLs. */
 export function captureNames(module: LinkedModule, qrl: LinkedQrl): string[] {
   const allocate = createNameAllocator(module);
@@ -60,10 +61,11 @@ export function staticFunctionReference(
   use: QrlUse,
   propsName: string,
   emission: Pick<FunctionEmission, 'imports' | 'chunkImports'>,
-  resolveQrlUse: QrlResolver
+  resolveQrlUse: QrlResolver,
+  options: PresentationOptions
 ): string {
   const { qrl, args } = resolveQrlUse(use, propsName);
-  const line = `import { ${qrl.name} } from ${JSON.stringify(`./${chunkCanonicalFilename(module, qrl)}`)};`;
+  const line = `import { ${qrl.name} } from ${JSON.stringify(chunkImportSpecifier(module, qrl, options))};`;
   if (!emission.chunkImports.includes(line)) {
     emission.chunkImports.push(line);
   }

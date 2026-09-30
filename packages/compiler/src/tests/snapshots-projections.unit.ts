@@ -78,6 +78,40 @@ export default component$(() => {
     expect(chunk.code).not.toContain('Child');
   });
 
+  test('should import sibling chunks by their emitted path under explicit extensions', async () => {
+    const output = await testInput(
+      mode,
+      'chunk-explicit-extensions',
+      {
+        code: `import { component$, useSignal } from '@qwik.dev/core';
+export const Child = component$(() => <i>child</i>);
+export default component$(() => {
+  const tag = useSignal('section');
+  const Tag = tag.value;
+  return (
+    <Tag>
+      <button onClick$={() => (tag.value = 'article')} />
+      <Child />
+    </Tag>
+  );
+});
+`,
+      },
+      { explicitExtensions: true }
+    );
+    // Dev servers resolve a segment only by the exact path it was emitted under.
+    const paths = output.modules.map((module) => module.path);
+    const imported = output.modules.flatMap((module) =>
+      [...module.code.matchAll(/(?:from |import\()"(\.\/[^"]+)"/g)].map(
+        ([, specifier]) => `src/${specifier.slice(2)}`
+      )
+    );
+    expect(imported.some((path) => path.endsWith('.js'))).toBe(true);
+    for (const path of imported) {
+      expect(paths).toContain(path);
+    }
+  });
+
   test('should describe projected children to a component that calls useChildrenInfo', async () => {
     const output = await testInput(mode, 'children-descriptor', {
       code: `import { component$, Slot, useChildrenInfo, useSignal } from '@qwik.dev/core';

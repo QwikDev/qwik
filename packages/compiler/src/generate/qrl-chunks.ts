@@ -116,6 +116,16 @@ export function chunkCanonicalFilename(module: LinkedModule, qrl: LinkedQrl): st
   return `${moduleBasename(module)}_${qrl.name}`;
 }
 
+/** Dev servers resolve segments by their emitted `.js` path, so they ask for the extension. */
+export function chunkImportSpecifier(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  options: PresentationOptions
+): string {
+  const specifier = `./${chunkCanonicalFilename(module, qrl)}`;
+  return options.explicitExtensions ? `${specifier}.js` : specifier;
+}
+
 function chunkModuleCode(
   module: LinkedModule,
   qrl: LinkedQrl,

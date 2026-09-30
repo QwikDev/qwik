@@ -131,7 +131,7 @@ test('QRL indexing preserves the first match for duplicate ids', () => {
 
 function emissionOf(qrl: LinkedQrl) {
   const module = moduleWith(qrl);
-  return sourceFunctionEmission(module, qrl, createQrlResolver(module));
+  return sourceFunctionEmission(module, qrl, createQrlResolver(module), {});
 }
 
 const textOf = (qrl: LinkedQrl) => functionText(emissionOf(qrl));
@@ -215,7 +215,8 @@ describe('sourceFunctionEmission', () => {
     const emission = sourceFunctionEmission(
       deepFreeze(module),
       blockQrl,
-      createQrlResolver(module)
+      createQrlResolver(module),
+      {}
     );
     expect(functionText(emission)).toBe(
       '() => {\n  const [count] = _captures;\n  if (count.value > 10) return; count.value++;\n}'

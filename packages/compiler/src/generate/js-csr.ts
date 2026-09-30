@@ -49,7 +49,7 @@ import {
   revealArgsJs,
 } from './print-js';
 import {
-  chunkCanonicalFilename,
+  chunkImportSpecifier,
   createQrlResolver,
   type QrlResolver,
   syncQrlHoists,
@@ -121,7 +121,12 @@ async function generateModule(
     case ModuleKind.Foreign:
       return [await generateForeignModule(module, options)];
     case ModuleKind.Qwik:
-      return generateQwikModule(module, new CsrModuleEmitter(module), options, 'module-top');
+      return generateQwikModule(
+        module,
+        new CsrModuleEmitter(module, options),
+        options,
+        'module-top'
+      );
     case ModuleKind.Failed:
       return [createFailedModule(module.path)];
     case ModuleKind.ExportsOnly:
@@ -151,7 +156,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   private readonly resolveQrlUse: QrlResolver;
 
-  constructor(private readonly module: LinkedModule) {
+  constructor(
+    private readonly module: LinkedModule,
+    private readonly options: PresentationOptions
+  ) {
     this.resolveQrlUse = createQrlResolver(module);
   }
 
@@ -874,19 +882,20 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           this.module,
           qrl,
           this.resolveQrlUse,
-          QwikWord.CreateDynamicContent
+          QwikWord.CreateDynamicContent,
+          this.options
         );
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
       case QrlBodyKind.Program: {
         if (this.module.programs[qrl.body.program].body.kind === ProgramBodyKind.Expr) {
-          return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse);
+          return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse, this.options);
         }
         if (programKind(qrl) === ProgramKind.CollectionRow) {
           return this.rowFunction(qrl);
         }
         // A fresh emitter keeps the render's imports/hoists out of the main module.
-        const emitter = new CsrModuleEmitter(this.module);
+        const emitter = new CsrModuleEmitter(this.module, this.options);
         const names = {
           props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
           ctx: allocateGeneratedNames(this.module).ctx,
@@ -936,7 +945,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const root = body.ops[0];
     const elementRoot = body.ops.length === 1 && root.op === OpKind.Element;
     // A fresh emitter keeps the row's imports/chunk references out of the main module.
-    const emitter = new CsrModuleEmitter(this.module);
+    const emitter = new CsrModuleEmitter(this.module, this.options);
     const pass: RenderPass = {
       batches: new Map(
         [...effectCounts(body.ops)].map(([id, remaining]) => [id, { remaining, patches: [] }])
@@ -1018,7 +1027,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       target.hoists.push(reference);
       return;
     }
-    const path = `./${chunkCanonicalFilename(this.module, qrl)}`;
+    const path = chunkImportSpecifier(this.module, qrl, this.options);
     target.imports.add(QwikWord.QrlWithChunk);
     target.hoists.push(
       `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(path)}, () => import(${JSON.stringify(path)}), ${JSON.stringify(qrl.name)});`
@@ -1323,7 +1332,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         this.hoists.push(syncQrlHoists(qrl, functionText(this.qrlFunction(qrl)))[0]);
       } else {
         this.chunkImports.push(
-          `import { ${qrl.name} } from ${JSON.stringify(`./${chunkCanonicalFilename(this.module, qrl)}`)};`
+          `import { ${qrl.name} } from ${JSON.stringify(chunkImportSpecifier(this.module, qrl, this.options))};`
         );
       }
     }

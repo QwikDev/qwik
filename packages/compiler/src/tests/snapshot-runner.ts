@@ -16,6 +16,7 @@ export interface TestInput {
 export interface TestOptions {
   stripCtxName?: string[];
   stripExports?: string[];
+  explicitExtensions?: boolean;
 }
 
 export async function testInput(

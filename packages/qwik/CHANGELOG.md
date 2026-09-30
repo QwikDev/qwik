@@ -1,5 +1,51 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.46
+
+### Minor Changes
+
+- ✨ `<Pending>` takes its fallback as `fallback$`, like `<Catch>`. (by [@maiieul](https://github.com/maiieul) in [#9045](https://github.com/QwikDev/qwik/pull/9045))
+
+- ✨ expose experimental computed pending and error states (by [@Varixo](https://github.com/Varixo) in [#9037](https://github.com/QwikDev/qwik/pull/9037))
+
+- ✨ rename the experimental `<Suspense>` and `<ErrorBoundary>` to `<Pending>` and `<Catch>`, enabled with the `pendingBoundary` and `catchBoundary` flags. The render result's `errorBoundaryCaught` is now `hasCaughtError`. (by [@maiieul](https://github.com/maiieul) in [#9043](https://github.com/QwikDev/qwik/pull/9043))
+
+- ✨ qwik libraries no longer need `ssr.noExternal`; production servers load them from `node_modules` (by [@wmertens](https://github.com/wmertens) in [#8609](https://github.com/QwikDev/qwik/pull/8609))
+
+### Patch Changes
+
+- 🐞🩹 components that only render a `<Pending>` can re-render after out-of-order resume (by [@wmertens](https://github.com/wmertens) in [#9073](https://github.com/QwikDev/qwik/pull/9073))
+
+- 🐞🩹 loading a second qwik version on the server now fails instead of logging (by [@wmertens](https://github.com/wmertens) in [#8609](https://github.com/QwikDev/qwik/pull/8609))
+
+- 🐞🩹 event handler crashing when it captures a const alias in hoist builds (by [@wmertens](https://github.com/wmertens) in [#9071](https://github.com/QwikDev/qwik/pull/9071))
+
+- 🐞🩹 legacy typescript decorators inside qrl segments are now transpiled (by [@wmertens](https://github.com/wmertens) in [#9076](https://github.com/QwikDev/qwik/pull/9076))
+
+- 🐞🩹 SSR render time grew quadratically with many sibling components using `<Slot/>` (by [@wmertens](https://github.com/wmertens) in [#9068](https://github.com/QwikDev/qwik/pull/9068))
+
+- 🐞🩹 streamed nested containers stay interactive after the outer container resumes (by [@wmertens](https://github.com/wmertens) in [#9073](https://github.com/QwikDev/qwik/pull/9073))
+
+- 🐞🩹 types now resolve with typescript `moduleResolution: node16` (by [@wmertens](https://github.com/wmertens) in [#9070](https://github.com/QwikDev/qwik/pull/9070))
+
+- 🐞🩹 development builds preload the core bundle from the build folder (by [@wmertens](https://github.com/wmertens) in [#8609](https://github.com/QwikDev/qwik/pull/8609))
+
+- 🐞🩹 keep vnode data patches from leaking into content after their container (by [@wmertens](https://github.com/wmertens) in [#9073](https://github.com/QwikDev/qwik/pull/9073))
+
+- 🐞🩹 keep the preloader out of the core startup chunk without losing early preload hints. (by [@maiieul](https://github.com/maiieul) in [#9019](https://github.com/QwikDev/qwik/pull/9019))
+
+- 🐞🩹 wait for the first paint before starting the preloader. (by [@maiieul](https://github.com/maiieul) in [#9021](https://github.com/QwikDev/qwik/pull/9021))
+
+- 🐞🩹 stop speculative preload links from competing with the initial page render. (by [@maiieul](https://github.com/maiieul) in [#9020](https://github.com/QwikDev/qwik/pull/9020))
+
+- 🐞🩹 task that invalidates its own tracked signal now reruns (by [@Varixo](https://github.com/Varixo) in [#9026](https://github.com/QwikDev/qwik/pull/9026))
+
+- 🐞🩹 `<Catch>` reset and re-render work across resumed out-of-order content (by [@wmertens](https://github.com/wmertens) in [#9073](https://github.com/QwikDev/qwik/pull/9073))
+
+- 🐞🩹 same-version qwik copies on the server share their runtime state (by [@wmertens](https://github.com/wmertens) in [#8609](https://github.com/QwikDev/qwik/pull/8609))
+
+- 🐞🩹 support :global selectors in nested scoped CSS rules (by [@Varixo](https://github.com/Varixo) in [#9030](https://github.com/QwikDev/qwik/pull/9030))
+
 ## 2.0.0-beta.45
 
 ## 2.0.0-beta.44

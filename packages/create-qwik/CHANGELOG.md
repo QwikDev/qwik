@@ -1,5 +1,13 @@
 # create-qwik
 
+## 2.0.0-beta.46
+
+### Patch Changes
+
+- 🐞🩹 the base starter no longer rejects qwik packages in `dependencies` (by [@wmertens](https://github.com/wmertens) in [#8609](https://github.com/QwikDev/qwik/pull/8609))
+
+- 🐞🩹 the library starter declares the qwik versions its build can run on (by [@wmertens](https://github.com/wmertens) in [#8609](https://github.com/QwikDev/qwik/pull/8609))
+
 ## 2.0.0-beta.45
 
 ## 2.0.0-beta.44

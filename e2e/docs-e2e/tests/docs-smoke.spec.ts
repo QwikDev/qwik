@@ -15,6 +15,56 @@ test.describe('Docs site smoke tests', () => {
     await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(12, 7, 20)');
   });
 
+  test('theme switch follows the system and remembers manual choices', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.goto('/');
+
+    const html = page.locator('html');
+    const themeSwitch = page.getByRole('button', { name: 'Change color theme' });
+    await expect(themeSwitch).toBeVisible();
+    await expect(html).toHaveClass(/\bdark\b/);
+    await expect(html).toHaveAttribute('data-theme-auto', '');
+    await expect(themeSwitch.locator('.themeIcon.auto')).toHaveCSS('opacity', '1');
+    await expect(themeSwitch.locator('.themeIcon.auto')).toHaveCSS(
+      'transition-duration',
+      '0.42s, 0.18s'
+    );
+    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBeNull();
+
+    await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+    await expect(themeSwitch.locator('.themeIcon.auto')).toHaveCSS('transition-duration', '0s');
+    await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'no-preference' });
+
+    await themeSwitch.click();
+    await expect(html).not.toHaveClass(/\bdark\b/);
+    await expect(html).toHaveAttribute('data-theme', 'light');
+    await expect(themeSwitch.locator('.themeIcon.light')).toHaveCSS('opacity', '1');
+    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('light');
+
+    await page.reload();
+    await expect(html).not.toHaveClass(/\bdark\b/);
+    await expect(html).toHaveAttribute('data-theme', 'light');
+
+    await themeSwitch.click();
+    await expect(html).toHaveClass(/\bdark\b/);
+    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('dark');
+
+    await themeSwitch.click();
+    await expect(html).toHaveAttribute('data-theme-auto', '');
+    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBeNull();
+    await page.emulateMedia({ colorScheme: 'light' });
+    await expect(html).not.toHaveClass(/\bdark\b/);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(themeSwitch).toBeHidden({ timeout: 3000 });
+    await page.getByRole('button', { name: 'Open menu' }).click();
+    await expect(themeSwitch).toBeVisible();
+    await themeSwitch.click();
+    await expect(themeSwitch).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('light');
+  });
+
   test('code examples and previews follow the docs theme', async ({ page }) => {
     await page.goto('/docs/core/state/');
     const code = page.locator('article pre.shiki').first();

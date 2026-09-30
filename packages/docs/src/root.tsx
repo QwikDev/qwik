@@ -8,6 +8,7 @@ import {
 import { Insights } from '@qwik.dev/core/insights';
 import { RouterOutlet, useQwikRouter } from '@qwik.dev/router';
 import { RouterHead } from './components/router-head/router-head';
+import { InjectThemeScript } from './components/theme-toggle';
 import { GlobalStore, type SiteStore } from './context';
 import tomorrowFontUrl from './media/fonts/tomorrow/tomorrow-latin-600-normal.woff2?url';
 import ubuntuSans600FontUrl from './media/fonts/ubuntu-sans/ubuntu-sans-latin-600-normal.woff2?url';
@@ -40,6 +41,7 @@ export default component$(() => {
     <>
       <head>
         <meta charset="utf-8" />
+        <InjectThemeScript />
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="apple-mobile-web-app-title" content="Qwik" />

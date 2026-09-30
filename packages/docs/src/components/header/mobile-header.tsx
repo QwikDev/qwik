@@ -4,6 +4,7 @@ import { Link } from '../action/action';
 import { QwikLogoOnly } from '../svgs/qwik-logo';
 import { modal, lucide } from '@qds.dev/ui';
 import { SearchModal } from '../search/search';
+import { ThemeToggle } from '../theme-toggle';
 
 const MobileNavLink = (props: { href: string; label: string; active?: boolean }) => (
   <a
@@ -88,6 +89,7 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
             </a>
             <div class="flex items-center gap-8">
               <SearchModal />
+              <ThemeToggle />
               <modal.close>
                 <lucide.x class="vanilla-icon" />
               </modal.close>

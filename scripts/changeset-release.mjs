@@ -1,7 +1,7 @@
 /**
  * Publishes changesets releases under the `latest` dist-tag, except packages whose npm names are
- * shared with Qwik v1 — those stay on `beta` so that v1 users installing by `latest` keep getting
- * the v1 line.
+ * shared with Qwik v1 — those go to `rc` so that v1 users installing by `latest` keep getting the
+ * v1 line.
  *
  * Delete this script (use plain `changeset publish`) once v2 final is out.
  */
@@ -31,7 +31,7 @@ const publish = (tag) => {
 };
 
 // `changeset publish` forbids --tag in pre mode; exit it in the working tree
-// only (the committed pre.json keeps versioning on 2.x.y-beta.N).
+// only (the committed pre.json keeps versioning on 2.x.y-rc.N).
 if (existsSync('.changeset/pre.json')) {
   run('pnpm changeset pre exit');
 }
@@ -58,7 +58,7 @@ try {
 } catch (error) {
   latestError = error;
 }
-publishWithout(v2OnlyNameManifests, 'beta');
+publishWithout(v2OnlyNameManifests, 'rc');
 if (latestError) {
   throw latestError;
 }

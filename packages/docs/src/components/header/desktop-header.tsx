@@ -23,7 +23,7 @@ import { tw } from '~/utils/utils';
 import { SearchModal } from '../search/search';
 
 const ImageCardClasses =
-  'absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform';
+  'absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform [html.dark_&]:[filter:brightness(.62)_contrast(2.85)]';
 
 const ImageCard = component$(
   (props: { href: string; label: string; description: string; class?: string }) => (
@@ -35,7 +35,7 @@ const ImageCard = component$(
       ]}
     >
       <Slot />
-      <div class="absolute bottom-0 left-0 right-0 h-[134px] bg-linear-to-b from-transparent to-standalone-accent" />
+      <div class="absolute bottom-0 left-0 right-0 h-[134px] bg-linear-to-b from-nav-image-overlay/0 to-nav-image-overlay" />
       <div class="absolute inset-0 pointer-events-none rounded-[inherit] shadow-secondary-border-inset" />
       <span class="relative font-bold text-base leading-[22px] text-primary-foreground-base">
         {props.label}

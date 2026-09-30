@@ -291,6 +291,7 @@
   --color-standalone-accent: var(--color-sky-75);
   --color-standalone-emphasis: var(--color-sky-85);
   --color-grid-lines: var(--color-slate-0);
+  --color-nav-image-overlay: #00518d;
 
   /* Semantic effects */
   --shadow-xs-base: 2px 2px 0 0 var(--color-shadow-base);

@@ -2360,6 +2360,9 @@ export const _waitUntilRendered: (container: _Container) => Promise<void>;
 // @internal (undocumented)
 export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
 
+// @internal (undocumented)
+export const _whenContainerDataReady: <T>(container: ClientContainer, callback: () => T | Promise<T>) => T | Promise<T>;
+
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;
 

@@ -56,6 +56,7 @@ export interface QwikDevtoolsSignalEntry {
 export interface QwikDevtoolsComponentSnapshot {
   /** Source path (e.g. `src/routes/index.tsx_Counter`) */
   path: string;
+  symbol?: string;
   /** Short display name */
   name: string;
   /** Tracked signals with current values */

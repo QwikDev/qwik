@@ -40,6 +40,12 @@ describe('transform facades', () => {
     );
   });
 
+  test('component collector identifies an anonymous default export explicitly', () => {
+    expect(
+      transformComponentFile(ROOT_SOURCE, '/repo/src/routes/some-fancy-route/index.tsx')
+    ).toContain('useCollectHooks("/repo/src/routes/some-fancy-route/index.tsx_default")');
+  });
+
   test('root transform injects QwikDevtools imports and excluded pathnames prop', () => {
     const transformed = transformRootFile(ROOT_SOURCE, {
       overlay: { excludePathnames: ['admin/', '/docs'] },

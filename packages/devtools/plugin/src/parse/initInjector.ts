@@ -97,6 +97,9 @@ function buildComponentArg(path: string | undefined, exportName: string | undefi
 }
 
 function buildComponentSuffix(baseArg: string, exportName: string | undefined): string {
+  if (exportName === '') {
+    return '_default';
+  }
   if (exportName && typeof exportName === 'string') {
     return `_${exportName}`;
   }

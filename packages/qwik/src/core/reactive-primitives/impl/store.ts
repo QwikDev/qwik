@@ -24,6 +24,7 @@ import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy
 import { isDev, isServer } from '@qwik.dev/core/build';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { SSRSegmentContainer } from '../../ssr/ssr-types';
+import { Brand, brandClass } from '../../shared/utils/brand';
 
 const DEBUG = false;
 
@@ -263,6 +264,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     };
   }
 }
+brandClass(StoreHandler, Brand.StoreHandler);
 
 export function addStoreEffect(
   target: StoreTarget | PropsProxy,

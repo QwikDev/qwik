@@ -12,6 +12,7 @@ import { markVNodeDirty } from '../../shared/vnode/vnode-dirty';
 import { _EFFECT_BACK_REF } from '../backref';
 import { HOST_SIGNAL } from '../../shared/cursor/cursor-props';
 import { isDev } from '@qwik.dev/core/build';
+import { Brand, brandClass } from '../../shared/utils/brand';
 
 export class WrappedSignalImpl<T> extends SignalImpl<T> {
   $args$: any[];
@@ -106,3 +107,4 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
     return super.value;
   }
 }
+brandClass(WrappedSignalImpl, Brand.WrappedSignal);

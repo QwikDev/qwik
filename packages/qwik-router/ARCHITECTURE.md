@@ -11,7 +11,9 @@ calls `requestHandler(serverRequestEv, opts)`.
 ### Route Resolution
 
 1. The build-time generated `@qwik-router-config` provides the route trie, server
-   plugins, caching options, and base pathname.
+   plugins, caching options, and base pathname. The server entry imports it, which
+   registers it with the runtime; the runtime reads it through `getRouterConfig()`
+   and the client loads it as a lazy chunk.
 2. `loadRoute(routes, cacheModules, pathname)` walks the trie to find the matching
    route. Trie nodes encode layouts (`_L`), pages (`_I`), params (`_W`/`_A`),
    loader hashes (`_R`), menus (`_N`), and error/404 modules (`_E`/`_4`).

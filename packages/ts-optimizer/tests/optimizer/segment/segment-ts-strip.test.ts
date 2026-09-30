@@ -117,9 +117,9 @@ describe('foreign-runtime JSX strip probe', () => {
   it('sorts existing capture imports with source imports', async () => {
     const { postProcessSegmentCode } =
       await import('../../../src/optimizer/segment/post-process.js');
-    const code = `import { _captures } from "@qwik.dev/core";
+    const code = `import { _capturesObj } from "@qwik.dev/core";
 import { Q as QDATA_KEY } from "./route";
-export const s_x = () => QDATA_KEY + _captures[0];`;
+export const s_x = () => QDATA_KEY + _capturesObj._[0];`;
     const out = postProcessSegmentCode(code, {
       symbolName: 's_x',
       canonicalFilename: 'test_x',
@@ -134,6 +134,6 @@ export const s_x = () => QDATA_KEY + _captures[0];`;
       emitMode: 'prod',
     });
 
-    expect(out.indexOf('Q as QDATA_KEY')).toBeLessThan(out.indexOf('_captures'));
+    expect(out.indexOf('Q as QDATA_KEY')).toBeLessThan(out.indexOf('_capturesObj'));
   });
 });

@@ -79,6 +79,7 @@ import {
   vnode_setProp,
 } from './vnode-utils';
 import { ContainerDataProcessState, processContainerStateData } from './process-state-data';
+import { Brand, brandClass } from '../shared/utils/brand';
 export { onContainerDataReady, whenContainerDataReady } from './process-state-data';
 
 /** @public */
@@ -467,3 +468,4 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$serverData$ = { containerAttributes };
   }
 }
+brandClass(DomContainer, Brand.DomContainer);

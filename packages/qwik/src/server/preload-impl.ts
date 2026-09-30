@@ -20,15 +20,9 @@ const simplifyPath = (base: string, path: string | null | undefined) => {
   return simplified.join('/');
 };
 
-const getBase = (container: SSRContainer) => {
-  let base = container.$buildBase$!;
-  if (import.meta.env?.DEV && !qTest) {
-    // Vite dev server active
-    // in dev, all bundles are absolute paths from the base url, not /build
-    base = import.meta.env?.BASE_URL;
-  }
-  return base;
-};
+// Built bundles live under the build base even when DEV is set, e.g. a NODE_ENV=development build.
+// The Vite dev server has no built manifest, so it never preloads bundles from here.
+const getBase = (container: SSRContainer) => container.$buildBase$!;
 
 export const preloaderPre = (
   container: SSRContainer,

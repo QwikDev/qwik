@@ -10,7 +10,7 @@ import { isServerPlatform } from '../shared/platform/platform';
 import { _fnSignal } from '../shared/qrl/inlined-fn';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { _captures, type QRLInternal } from '../shared/qrl/qrl-class';
+import { _capturesObj, type QRLInternal } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
   QDefaultSlot,
@@ -69,10 +69,10 @@ const _hf1_str = '{display:p0.value==="content"&&p1.value?"contents":"none"}';
 
 /** @internal */
 export const pendingTask = ({ track, cleanup }: TaskCtx) => {
-  const cursorBoundary = _captures![0] as CursorBoundary,
-    props = _captures![1] as { delay?: number },
-    state = _captures![2] as Signal<PendingState>,
-    revealRegistration = _captures![3] as RevealRegistration | null;
+  const cursorBoundary = _capturesObj._![0] as CursorBoundary,
+    props = _capturesObj._![1] as { delay?: number },
+    state = _capturesObj._![2] as Signal<PendingState>,
+    revealRegistration = _capturesObj._![3] as RevealRegistration | null;
   const pendingCount = track(cursorBoundary);
   const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
   if (revealRegistration !== null && isBrowserEnv) {
@@ -209,33 +209,33 @@ type SSRFallbackProps = {
   state: Signal<PendingState>;
 };
 
-const SSRFallback = __EXPERIMENTAL__.pendingBoundary
-  ? /*#__PURE__*/ createInternalServerComponent<SSRFallbackProps>((ssr, jsx, _options, enqueue) => {
-      const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
-      const fallbackStyle = jsx.varProps.fallbackStyle as Signal<{ display: string }>;
-      const showFallback = jsx.varProps.showFallback === true;
-      const state = jsx.varProps.state as Signal<PendingState>;
-      if (showFallback) {
-        if (boundaryState) {
-          enqueue(() => scheduleOutOfOrderFallbackDelay(ssr, boundaryState, state));
-        } else {
-          state.value = 'fallback';
-        }
+const SSRFallback = /*#__PURE__*/ createInternalServerComponent<SSRFallbackProps>(
+  (ssr, jsx, _options, enqueue) => {
+    const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
+    const fallbackStyle = jsx.varProps.fallbackStyle as Signal<{ display: string }>;
+    const showFallback = jsx.varProps.showFallback === true;
+    const state = jsx.varProps.state as Signal<PendingState>;
+    if (showFallback) {
+      if (boundaryState) {
+        enqueue(() => scheduleOutOfOrderFallbackDelay(ssr, boundaryState, state));
+      } else {
+        state.value = 'fallback';
       }
-      enqueue(
-        /*#__PURE__*/ _jsxSorted(
-          'div',
-          {
-            style: fallbackStyle,
-          },
-          null,
-          jsx.children as JSXOutput,
-          1,
-          null
-        )
-      );
-    })
-  : null!;
+    }
+    enqueue(
+      /*#__PURE__*/ _jsxSorted(
+        'div',
+        {
+          style: fallbackStyle,
+        },
+        null,
+        jsx.children as JSXOutput,
+        1,
+        null
+      )
+    );
+  }
+);
 
 type SSRDeferredSlotProps = {
   boundary: SSROutOfOrderBoundaryState | null;
@@ -244,51 +244,51 @@ type SSRDeferredSlotProps = {
   reveal: OutOfOrderRevealBoundary | null;
 };
 
-const SSRDeferredSlot = __EXPERIMENTAL__.pendingBoundary
-  ? /*#__PURE__*/ createInternalServerComponent<SSRDeferredSlotProps>(async (ssr, jsx, options) => {
-      const boundaryId = jsx.varProps.boundaryId as number;
-      const contentSegment = `${boundaryId}`;
-      const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
-      const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
-      const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
-      const catchStore =
-        __EXPERIMENTAL__.catchBoundary && options.parentComponentFrame
-          ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
-              | CatchStore
-              | undefined)
-          : undefined;
-      const content = ssr.segment(
-        contentSegment,
-        createClaimedDeferredSlot(ssr, jsx, options),
-        options
-      );
+const SSRDeferredSlot = /*#__PURE__*/ createInternalServerComponent<SSRDeferredSlotProps>(
+  async (ssr, jsx, options) => {
+    const boundaryId = jsx.varProps.boundaryId as number;
+    const contentSegment = `${boundaryId}`;
+    const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
+    const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
+    const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
+    const catchStore =
+      __EXPERIMENTAL__.catchBoundary && options.parentComponentFrame
+        ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
+            | CatchStore
+            | undefined)
+        : undefined;
+    const content = ssr.segment(
+      contentSegment,
+      createClaimedDeferredSlot(ssr, jsx, options),
+      options
+    );
 
-      ssr.write(`<template ${QPendingResolved}="${boundaryId}"></template>`);
-      ssr.emitOutOfOrderExecutorIfNeeded();
-      ssr.queueOutOfOrderSegment(
-        content
-          .then((rendered) =>
-            emitRenderedOutOfOrderSegment(
-              ssr,
-              boundaryId,
-              rendered,
-              contentStyle,
-              revealBoundary,
-              boundaryState
-            )
+    ssr.write(`<template ${QPendingResolved}="${boundaryId}"></template>`);
+    ssr.emitOutOfOrderExecutorIfNeeded();
+    ssr.queueOutOfOrderSegment(
+      content
+        .then((rendered) =>
+          emitRenderedOutOfOrderSegment(
+            ssr,
+            boundaryId,
+            rendered,
+            contentStyle,
+            revealBoundary,
+            boundaryState
           )
-          .catch((error) => {
-            if (catchStore?.$emitFallback$) {
-              return catchStore.$emitFallback$(error);
-            }
-            if (catchStore?.error !== undefined) {
-              return;
-            }
-            throw error;
-          })
-      );
-    })
-  : null!;
+        )
+        .catch((error) => {
+          if (catchStore?.$emitFallback$) {
+            return catchStore.$emitFallback$(error);
+          }
+          if (catchStore?.error !== undefined) {
+            return;
+          }
+          throw error;
+        })
+    );
+  }
+);
 
 function createClaimedDeferredSlot(
   ssr: SSRContainer,

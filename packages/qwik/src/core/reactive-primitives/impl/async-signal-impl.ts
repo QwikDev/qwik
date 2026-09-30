@@ -8,6 +8,7 @@ import {
 } from '../types';
 import type { AsyncSignal, ComputedSignal } from '../signal.public';
 import { ComputedSignalImpl } from './computed-signal-impl';
+import { Brand, brandClass } from '../../shared/utils/brand';
 
 /**
  * # ================================
@@ -36,6 +37,7 @@ export class AsyncSignalImpl<T>
     super(container, fn, flags | AsyncSignalFlags.ASYNC_MODE | AsyncSignalFlags.CTX_ARG, options);
   }
 }
+brandClass(AsyncSignalImpl, Brand.AsyncSignal);
 
 /**
  * Inject a pre-loaded value into a signal while preserving subscriptions. Calls `invalidate({__v})`

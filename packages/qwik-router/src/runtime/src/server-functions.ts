@@ -9,7 +9,12 @@ import {
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
-import { _deserialize, _getContextHostElement, _serialize } from '@qwik.dev/core/internal';
+import {
+  _deserialize,
+  _getContextHostElement,
+  _regInlinedQrl,
+  _serialize,
+} from '@qwik.dev/core/internal';
 import * as v from 'valibot';
 import * as z from 'zod';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
@@ -47,9 +52,9 @@ import { _asyncRequestStore } from '../../middleware/request-handler';
 export { getRequestEvent } from './route-loaders';
 
 /**
- * Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`: generated route
- * modules call these factories back during their own evaluation via the `@qwik-router-config`
- * cycle, where a `const` binding would throw a TDZ ReferenceError.
+ * Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`: the app's route
+ * modules call these factories during their own evaluation, which a bundle may run before this
+ * module, where a `const` binding would throw a TDZ ReferenceError.
  *
  * @public
  */
@@ -387,6 +392,8 @@ export function serverQrl<T extends ServerFunction>(
   options?: ServerConfig
 ): ServerQRL<T> {
   if (isServer) {
+    // A library kept external on the server inlines its QRLs, so no segment registers this one.
+    _regInlinedQrl(qrl);
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextHostElement()) {
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');

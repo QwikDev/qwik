@@ -978,7 +978,8 @@ function analyzeMemberExpression(
       return { type: 'wrapProp', code: `_wrapProp(${objIdent})` };
     }
     const { allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
-    if (allDeps.length > 0) {
+    // A call (`useData().value`) must run in render scope, so it stays out of the hoisted body.
+    if (allDeps.length > 0 && !containsNonOptionalCall(exprNode.object)) {
       const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
       if (strBodyLen <= MAX_FN_SIGNAL_BODY_LEN) {
         return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };

@@ -389,7 +389,7 @@ function collectVisibleScopeBindings(
         allScopeIds.add(id);
       }
     }
-    // The enclosing segment's own captures unpack as `_captures[N]` consts in
+    // The enclosing segment's own captures unpack as `_capturesObj._[N]` consts in
     // its emitted body — per-invocation values a nested handler must receive
     // positionally (q:p/q:ps), not via lexical `.w()` capture. Module-scope
     // names resolve by import instead and stay out. This holds for every
@@ -433,7 +433,7 @@ function collectVisibleScopeBindings(
 
 /**
  * Not in a loop. Under the default/segment strategy all captured vars become alphabetically-sorted
- * paramNames. Under inline/hoist they stay in `captureNames` for `_captures[N]` unpacking.
+ * paramNames. Under inline/hoist they stay in `captureNames` for `_capturesObj._[N]` unpacking.
  */
 function promoteNonLoopCaptures(
   extraction: ExtractionResult,

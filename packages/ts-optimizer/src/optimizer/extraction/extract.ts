@@ -62,6 +62,8 @@ import {
 export interface ExtractionBase {
   readonly symbolName: SymbolName;
   readonly displayName: DisplayName;
+  // Outermost enclosing name (component, hook, or default-export stem); null at module level.
+  readonly rootContext: string | null;
   readonly hash: Hash;
   readonly canonicalFilename: CanonicalFilename;
 
@@ -204,7 +206,7 @@ function extensionFromSegmentJsx(hasJsx: boolean, sourceExt: string): string {
  */
 type ContextStackForEnter = Pick<
   ContextStack,
-  'push' | 'pushDefaultExport' | 'getDisplayName' | 'getSymbolName' | 'peek'
+  'push' | 'pushDefaultExport' | 'getDisplayName' | 'getSymbolName' | 'getRootContext' | 'peek'
 >;
 
 /**
@@ -518,6 +520,7 @@ function classifyJsxHandlerCtxKind(
 interface ExtractedSegmentSpec {
   readonly symbolName: SymbolName;
   readonly displayName: DisplayName;
+  readonly rootContext: string | null;
   readonly hash: Hash;
   readonly callStart: number;
   readonly callEnd: number;
@@ -553,6 +556,7 @@ function buildExtractedSegment(spec: ExtractedSegmentSpec): ExtractedSegmentBuil
     phase: 'extracted',
     symbolName: spec.symbolName,
     displayName: spec.displayName,
+    rootContext: spec.rootContext,
     hash: spec.hash,
     canonicalFilename: mkCanonicalFilename(spec.displayName + '_' + spec.hash),
     callStart: mkByteOffset(spec.callStart),
@@ -1052,6 +1056,7 @@ export function createExtractionCollector(
           const extraction = buildExtractedSegment({
             symbolName: mkSymbolName(nameValue),
             displayName: inlinedDisplayName,
+            rootContext: ctx.naming.getRootContext(),
             hash: inlinedHash,
             callStart: node.start,
             callEnd: node.end,
@@ -1125,6 +1130,7 @@ export function createExtractionCollector(
               const wrapper = buildExtractedSegment({
                 symbolName: wrapperSymbolName,
                 displayName: wrapperDisplayName,
+                rootContext: ctx.naming.getRootContext(),
                 hash: hashFromSymbolName(wrapperSymbolName),
                 callStart: jsxAttrParent.start,
                 callEnd: jsxAttrParent.end,
@@ -1262,6 +1268,7 @@ export function createExtractionCollector(
         const extraction = buildExtractedSegment({
           symbolName,
           displayName,
+          rootContext: ctx.naming.getRootContext(),
           hash,
           callStart: node.start,
           callEnd: node.end,
@@ -1341,6 +1348,7 @@ export function createExtractionCollector(
           const extraction = buildExtractedSegment({
             symbolName,
             displayName,
+            rootContext: ctx.naming.getRootContext(),
             hash,
             callStart: node.start,
             callEnd: node.end,
@@ -1417,6 +1425,7 @@ export function createExtractionCollector(
           const extraction = buildExtractedSegment({
             symbolName,
             displayName,
+            rootContext: ctx.naming.getRootContext(),
             hash,
             // Call site is the bare value: replacing `[callStart, callEnd]` with
             // the QRL ref leaves `onClick$: q_<symbol>` for the later

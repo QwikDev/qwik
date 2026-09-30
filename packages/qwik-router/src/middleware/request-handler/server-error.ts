@@ -1,4 +1,5 @@
 import { AbortMessage } from './redirect-handler';
+import { shareClassIdentity } from './shared-class-identity';
 
 /** @public */
 export class ServerError<T = any> extends Error {
@@ -9,6 +10,7 @@ export class ServerError<T = any> extends Error {
     super(typeof data === 'string' ? data : undefined);
   }
 }
+shareClassIdentity(ServerError, 'ServerError');
 
 /**
  * `ev.redirect()`, `ev.error()`, etc. return a control-flow signal meant to be thrown. Throw it for

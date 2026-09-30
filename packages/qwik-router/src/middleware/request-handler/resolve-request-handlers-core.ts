@@ -17,6 +17,7 @@ import type {
 import {
   clearRouteLoaderData,
   getRouteLoaderCtx,
+  getRouteLoaderParams,
   getRouteLoaderValues,
   loadRouteLoader,
   matchesRouteLoaderId,
@@ -26,7 +27,7 @@ import { ensureSlash } from '../../utils/pathname';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
 import {
   getRequestMode,
-  RequestEvErrorBoundaryCaught,
+  RequestEvCaughtError,
   RequestEvETagCacheKey,
   RequestEvHttpStatusMessage,
   RequestEvShareServerTiming,
@@ -362,6 +363,9 @@ function createResolveRequestHandlers() {
     const routeLoaderCtx = getRouteLoaderCtx(requestEv);
     if (route.$loaderPaths$) {
       Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
+    }
+    if (route.$loaderParams$) {
+      Object.assign(getRouteLoaderParams(requestEv), route.$loaderParams$);
     }
 
     // Store loader internals so SSG can check __cacheControl.
@@ -741,7 +745,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
     }
   }
 
-  function renderQwikMiddleware(render: Render) {
+  function renderQwikMiddleware(render: Render, trustForwardedHeaders = false) {
     return async (requestEv: RequestEvent) => {
       if (requestEv.headersSent) {
         return;
@@ -790,7 +794,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       const stream = writable.getWriter();
       try {
         const isStatic = getRequestMode(requestEv) === 'static';
-        const serverData = getQwikRouterServerData(requestEv);
+        const serverData = getQwikRouterServerData(requestEv, trustForwardedHeaders);
         const result = await render({
           base: requestEv.basePathname + 'build/',
           stream,
@@ -804,8 +808,8 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
             ['q:render']: isStatic ? 'static' : '',
             ...serverData.containerAttributes,
           },
-          onBeforeFirstFlush: (info: { errorBoundaryCaught: boolean }) => {
-            if (info.errorBoundaryCaught) {
+          onBeforeFirstFlush: (info: { hasCaughtError: boolean }) => {
+            if (info.hasCaughtError) {
               boundaryErrored = true;
               noStoreSent = true;
               overrodeCacheControl = responseHeaders.has('Cache-Control');
@@ -816,9 +820,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
         }
-        boundaryErrored ||= (result as RenderToStreamResult).errorBoundaryCaught === true;
+        boundaryErrored ||= (result as RenderToStreamResult).hasCaughtError === true;
         if (boundaryErrored) {
-          requestEv.sharedMap.set(RequestEvErrorBoundaryCaught, true);
+          requestEv.sharedMap.set(RequestEvCaughtError, true);
         }
       } finally {
         try {
@@ -836,7 +840,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       // Only worth a log when the developer configured caching and the error disabled it.
       if (boundaryErrored && (noStoreSent ? cachePlan || overrodeCacheControl : !!cachePlan)) {
         console.warn(
-          `An <ErrorBoundary> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
+          `A <Catch> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
             (noStoreSent
               ? 'the response was sent with Cache-Control: no-store.'
               : 'the SSR cache was skipped (response headers were already sent).')

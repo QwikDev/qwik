@@ -16,6 +16,8 @@ import {
   getSharedTransformPool,
   resolvePoolSize,
 } from './worker-pool.js';
+import { disableRawTransfer } from './optimizer/ast/parse.js';
+import { RAW_TRANSFER_ENV, shouldUseRawTransfer } from './raw-transfer-policy.js';
 import { runTransform } from './transform-run.js';
 
 import type { TransformModuleInput, TransformModulesOptions } from './optimizer/types/types.js';
@@ -225,7 +227,29 @@ function buildDefaultSystem(): OptimizerSystem {
  * provided; otherwise a default stub is built. Other `OptimizerOptions` fields are accepted for
  * type-compatibility but not read.
  */
+const isNode = typeof process === 'object' && !!process.versions?.node;
+
+let rawTransferPolicyApplied = false;
+/** Once per process: turn raw transfer off when the host is short on memory or asked for it. */
+async function applyRawTransferPolicy(): Promise<void> {
+  if (rawTransferPolicyApplied || !isNode) {
+    return;
+  }
+  rawTransferPolicyApplied = true;
+  let totalMemoryBytes: number;
+  try {
+    totalMemoryBytes = (await import('node:os')).totalmem();
+  } catch {
+    // A runtime that shims `process.versions.node` without node:os keeps the parser defaults.
+    return;
+  }
+  if (!shouldUseRawTransfer(process.env[RAW_TRANSFER_ENV], totalMemoryBytes)) {
+    disableRawTransfer();
+  }
+}
+
 export async function createOptimizer(options?: OptimizerOptions): Promise<QwikOptimizer> {
+  await applyRawTransferPolicy();
   const sys = options?.sys ?? buildDefaultSystem();
   // Explicit `workers` gets a private, disposable pool; the default shares one
   // process-wide pool so per-build optimizer instances don't multiply workers.

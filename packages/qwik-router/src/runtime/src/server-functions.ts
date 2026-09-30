@@ -9,7 +9,12 @@ import {
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
-import { _deserialize, _getContextHostElement, _serialize } from '@qwik.dev/core/internal';
+import {
+  _deserialize,
+  _getContextHostElement,
+  _regInlinedQrl,
+  _serialize,
+} from '@qwik.dev/core/internal';
 import * as v from 'valibot';
 import * as z from 'zod';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
@@ -47,9 +52,9 @@ import { _asyncRequestStore } from '../../middleware/request-handler';
 export { getRequestEvent } from './route-loaders';
 
 /**
- * Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`: generated route
- * modules call these factories back during their own evaluation via the `@qwik-router-config`
- * cycle, where a `const` binding would throw a TDZ ReferenceError.
+ * Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`: the app's route
+ * modules call these factories during their own evaluation, which a bundle may run before this
+ * module, where a `const` binding would throw a TDZ ReferenceError.
  *
  * @public
  */
@@ -85,6 +90,7 @@ export function routeActionQrl(
       return initialState as ActionStore<unknown, unknown>;
     });
 
+    const latestSubmission = { current: undefined as object | undefined };
     const submit = $((input: unknown | FormData | SubmitEvent = {}) => {
       if (isServer) {
         throw new Error(`Actions can not be invoked within the server during SSR.
@@ -107,24 +113,41 @@ Action.run() can only be called on the browser, for example when a user clicks a
       } else {
         data = input;
       }
-      return new Promise<RouteActionResolver>((resolve) => {
-        if (data instanceof FormData) {
-          state.formData = data;
+      const submission = {};
+      latestSubmission.current = submission;
+      const previousDispatch = currentAction.pendingDispatch ?? Promise.resolve();
+      let resolveDispatch!: () => void;
+      currentAction.pendingDispatch = noSerialize(
+        new Promise<void>((resolve) => {
+          resolveDispatch = resolve;
+        })
+      );
+      const run = previousDispatch.then(
+        () =>
+          new Promise<RouteActionResolver>((resolve) => {
+            if (data instanceof FormData) {
+              state.formData = data;
+            }
+            state.submitted = true;
+            state.isRunning = true;
+            loc.isNavigating = true;
+            currentAction.value = {
+              data: data as Record<string, unknown>,
+              id,
+              resolve: noSerialize(resolve),
+              resolveDispatch: noSerialize(resolveDispatch),
+            };
+          })
+      );
+      return run.then(({ result, status }) => {
+        const isLatestSubmission = latestSubmission.current === submission;
+        if (isLatestSubmission) {
+          state.isRunning = false;
+          state.status = status;
+          state.value = result;
         }
-        state.submitted = true;
-        state.isRunning = true;
-        loc.isNavigating = true;
-        currentAction.value = {
-          data: data as Record<string, unknown>,
-          id,
-          resolve: noSerialize(resolve),
-        };
-      }).then(({ result, status }) => {
-        state.isRunning = false;
-        state.status = status;
-        state.value = result;
         if (form) {
-          if (form.getAttribute('data-spa-reset') === 'true') {
+          if (isLatestSubmission && form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
           }
           const detail = { status, value: result } satisfies FormSubmitCompletedDetail<unknown>;
@@ -369,6 +392,8 @@ export function serverQrl<T extends ServerFunction>(
   options?: ServerConfig
 ): ServerQRL<T> {
   if (isServer) {
+    // A library kept external on the server inlines its QRLs, so no segment registers this one.
+    _regInlinedQrl(qrl);
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextHostElement()) {
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');

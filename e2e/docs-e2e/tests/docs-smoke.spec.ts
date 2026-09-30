@@ -14,6 +14,17 @@ test.describe('Docs site smoke tests', () => {
 
     const sidebar = page.locator('[data-docs-sidebar]');
     await expect(sidebar).toBeVisible();
+    const fontPreloads = page.locator('link[rel="preload"][as="font"]');
+    await expect(fontPreloads).toHaveCount(3);
+    await expect(
+      page.locator('link[rel="preload"][as="font"][href*="tomorrow-latin-600-normal"]')
+    ).toHaveCount(1);
+    await expect(
+      page.locator('link[rel="preload"][as="font"][href*="ubuntu-sans-latin-600-normal"]')
+    ).toHaveCount(1);
+    await expect(
+      page.locator('link[rel="preload"][as="font"][href*="ubuntu-sans-latin-700-normal"]')
+    ).toHaveCount(1);
 
     const links = sidebar.locator('a[href]');
     expect(await links.count()).toBeGreaterThanOrEqual(5);

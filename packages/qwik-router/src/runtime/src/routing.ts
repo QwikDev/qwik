@@ -1,5 +1,6 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { ensureSlash } from '../../utils/pathname';
+import { escapeStaticTrieKey, unescapeStaticTrieKey } from '../../utils/route-trie-key';
 import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
@@ -29,8 +30,8 @@ export const loadRoute = async (
     routeParts,
     notFound,
     routeBundleNames,
-    loaderHashes,
     loaderPathsByHash,
+    loaderParamsByHash,
     menuLoader,
     errorLoader,
   } = result;
@@ -70,99 +71,103 @@ export const loadRoute = async (
     $routeBundleNames$: routeBundleNames,
     $notFound$: notFound,
     $errorLoader$: errorLoader,
-    $loaders$: loaderHashes,
+    $loaders$: loaderPathsByHash && Object.keys(loaderPathsByHash),
     $loaderPaths$: loaderPathsByHash,
+    $loaderParams$: loaderParamsByHash,
   };
 };
 
 /** Built-in fallback error component loader */
 const httpErrorLoader = (() => import('./http-error')) as ContentModuleLoader;
 
-/**
- * Walk trie keys from root, gathering `_L` layouts along the way. Returns the final node and
- * collected layouts, or undefined if any key is missing.
- */
+/** Collect the rewrite target's layouts, loader endpoint paths, and params at those paths. */
 function walkTrieKeys(
   root: RouteData,
-  keys: string[]
-): { node: RouteData; layouts: ModuleLoader[] } | undefined {
+  keys: string[],
+  params: PathParams
+):
+  | {
+      node: RouteData;
+      layouts: ModuleLoader[];
+      loaderPaths: Record<string, string>;
+      loaderParams: Record<string, PathParams>;
+    }
+  | undefined {
   let node = root;
+  let pathname = '/';
+  let pathParams: PathParams = {};
   const layouts: ModuleLoader[] = [];
-  if (node._L) {
-    layouts.push(node._L);
-  }
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    let next = node[key] as RouteData | undefined;
-
-    // If not a direct child, search inside _M group nodes
-    if (!next && node._M) {
-      for (let j = 0; j < node._M.length; j++) {
-        const group = node._M[j];
-        next = group[key] as RouteData | undefined;
-        if (next) {
-          // Collect the group's layout
-          if (group._L) {
-            layouts.push(group._L);
-          }
-          break;
-        }
-      }
-    }
-
-    if (!next) {
-      return undefined;
-    }
-    node = next;
+  const loaderPaths: Record<string, string> = {};
+  const loaderParams: Record<string, PathParams> = {};
+  const collect = (node: RouteData) => {
     if (node._L) {
       layouts.push(node._L);
     }
+    for (const hash of node._R ?? []) {
+      loaderPaths[hash] = pathname;
+      loaderParams[hash] = pathParams;
+    }
+  };
+  collect(root);
+  for (const key of keys) {
+    const match = descendGroups(node, (candidate) => candidate[key] as RouteData | undefined);
+    if (!match) {
+      return undefined;
+    }
+    for (const group of match.groups) {
+      collect(group);
+    }
+    node = match.value;
+    const segment = node._P
+      ? `${node._0 ?? ''}${params[node._P] ?? ''}${node._9 ?? ''}`
+      : unescapeStaticTrieKey(key);
+    const segments = key === '_A' ? segment.split('/') : [segment];
+    pathname = ensureSlash(pathname + segments.map(encodeURIComponent).join('/'));
+    if (node._P) {
+      pathParams = { ...pathParams, [node._P]: params[node._P] ?? '' };
+    }
+    collect(node);
   }
-  return { node, layouts };
+  if (!node._I && node._G == null) {
+    const index = findIndexNode(node);
+    if (index) {
+      for (const group of index.groups) {
+        collect(group);
+      }
+      node = index.target;
+      collect(node);
+    }
+  }
+  return { node, layouts, loaderPaths, loaderParams };
 }
 
-/**
- * Given a matched node that has `_I` or `_G`, resolve the final loaders array.
- *
- * - `_G`: re-walk from root to gather target's layouts and `_I`
- * - `_I` array: use as-is (override, e.g. layout stop)
- * - `_I` function: prepend gathered layouts
- */
+type ResolvedIndex = {
+  loaders: ModuleLoader[];
+  node: RouteData;
+  loaderPaths?: Record<string, string>;
+  loaderParams?: Record<string, PathParams>;
+};
+
+/** Resolve the page and its modules, following rewrite targets. */
 function resolveLoaders(
   root: RouteData,
   node: RouteData,
-  gatheredLayouts: ModuleLoader[]
-): ModuleLoader[] | undefined {
+  gatheredLayouts: ModuleLoader[],
+  params: PathParams
+): ResolvedIndex | undefined {
   if (node._G != null) {
     // Rewrite: re-walk from root using _G's keys
     const keys = (node._G as string).split('/').filter((p) => p.length > 0);
-    const target = walkTrieKeys(root, keys);
+    const target = walkTrieKeys(root, keys, params);
     if (!target) {
       return undefined;
     }
-    let targetNode = target.node;
-    const targetLayouts = target.layouts;
-
-    // If the target node doesn't have _I directly, check group children
-    // (e.g., root index inside (common) group, or routes inside pathless groups)
-    if (!targetNode._I && targetNode._G == null) {
-      const indexResult = findIndexNode(targetNode);
-      if (indexResult) {
-        for (let j = 0; j < indexResult.groups.length; j++) {
-          const g = indexResult.groups[j];
-          if (g._L) {
-            targetLayouts.push(g._L);
-          }
-        }
-        targetNode = indexResult.target;
-        if (targetNode._L) {
-          targetLayouts.push(targetNode._L);
-        }
-      }
+    const resolved = resolveLoaders(root, target.node, target.layouts, params);
+    if (resolved && !resolved.loaderPaths) {
+      resolved.loaderPaths = target.loaderPaths;
+      resolved.loaderParams = target.loaderParams;
     }
-
-    // Recursively resolve the target (it could also have _G, though unlikely)
-    return resolveLoaders(root, targetNode, targetLayouts);
+    return resolved;
   }
 
   const index = node._I;
@@ -172,11 +177,11 @@ function resolveLoaders(
 
   if (Array.isArray(index)) {
     // Override: the array IS the complete loader chain
-    return index;
+    return { loaders: index, node };
   }
 
   // Single loader: prepend gathered layouts
-  return [...gatheredLayouts, index];
+  return { loaders: [...gatheredLayouts, index], node };
 }
 
 /**
@@ -204,21 +209,21 @@ function collectNodeMeta(
   errorLoaderRef: BoundaryRef,
   notFoundLoaderRef: BoundaryRef,
   menuLoaderRef: { v: MenuModuleLoader | undefined },
-  loaderHashes?: string[],
   loaderPathsByHash?: Record<string, string>,
-  matchedPathname = '/'
+  matchedPathname = '/',
+  loaderParamsByHash?: Record<string, PathParams>,
+  matchedParams: PathParams = {}
 ) {
   for (let j = 0; j < groups.length; j++) {
     const g = groups[j];
     if (g._L) {
       layouts.push(g._L);
     }
-    if (g._R && loaderHashes) {
-      loaderHashes.push(...g._R);
-      if (loaderPathsByHash) {
-        for (let i = 0; i < g._R.length; i++) {
-          const hash = g._R[i];
-          loaderPathsByHash[hash] = matchedPathname;
+    if (g._R && loaderPathsByHash) {
+      for (const hash of g._R) {
+        loaderPathsByHash[hash] = matchedPathname;
+        if (loaderParamsByHash) {
+          loaderParamsByHash[hash] = matchedParams;
         }
       }
     }
@@ -237,12 +242,11 @@ function collectNodeMeta(
   if (node._L) {
     layouts.push(node._L);
   }
-  if (node._R && loaderHashes) {
-    loaderHashes.push(...node._R);
-    if (loaderPathsByHash) {
-      for (let i = 0; i < node._R.length; i++) {
-        const hash = node._R[i];
-        loaderPathsByHash[hash] = matchedPathname;
+  if (node._R && loaderPathsByHash) {
+    for (const hash of node._R) {
+      loaderPathsByHash[hash] = matchedPathname;
+      if (loaderParamsByHash) {
+        loaderParamsByHash[hash] = matchedParams;
       }
     }
   }
@@ -291,7 +295,7 @@ function findChild(
   partIndex: number
 ): ChildMatch | undefined {
   // 1. Try exact match on this node's direct children
-  const exact = node[partLower] as RouteData | undefined;
+  const exact = node[escapeStaticTrieKey(partLower)] as RouteData | undefined;
   if (exact) {
     return {
       next: exact,
@@ -475,8 +479,8 @@ function matchRouteTree(
   routeParts: string[];
   notFound: boolean;
   routeBundleNames: string[] | undefined;
-  loaderHashes: string[] | undefined;
   loaderPathsByHash: Record<string, string> | undefined;
+  loaderParamsByHash: Record<string, PathParams> | undefined;
   menuLoader: MenuModuleLoader | undefined;
   /** The nearest _E (error.tsx) boundary's chain to render on a thrown error (in its layouts). */
   errorLoader: ModuleLoader[] | undefined;
@@ -485,8 +489,8 @@ function matchRouteTree(
   const params: PathParams = {};
   const routeParts: string[] = [];
   const layouts: ModuleLoader[] = [];
-  const loaderHashes: string[] = [];
   const loaderPathsByHash: Record<string, string> = {};
+  const loaderParamsByHash: Record<string, PathParams> = {};
   const errorLoaderRef: BoundaryRef = { v: undefined, layouts: [] };
   const notFoundLoaderRef: BoundaryRef = { v: undefined, layouts: [] };
   const menuLoaderRef: { v: MenuModuleLoader | undefined } = { v: undefined };
@@ -502,8 +506,9 @@ function matchRouteTree(
     errorLoaderRef,
     notFoundLoaderRef,
     menuLoaderRef,
-    loaderHashes,
-    loaderPathsByHash
+    loaderPathsByHash,
+    '/',
+    loaderParamsByHash
   );
   if (root._M) {
     groupNodes.push({ node: root, depth: layouts.length });
@@ -528,6 +533,7 @@ function matchRouteTree(
         params: PathParams;
         layouts: ModuleLoader[];
         loaderPathsByHash: Record<string, string>;
+        loaderParamsByHash: Record<string, PathParams>;
         errorLoader: ContentModuleLoader | ModuleLoader[] | undefined;
         errorLayouts: ModuleLoader[];
         notFoundLoader: ContentModuleLoader | ModuleLoader[] | undefined;
@@ -561,6 +567,7 @@ function matchRouteTree(
         params: { ...params },
         layouts: [...layouts],
         loaderPathsByHash: { ...loaderPathsByHash },
+        loaderParamsByHash: { ...loaderParamsByHash },
         errorLoader: errorLoaderRef.v,
         errorLayouts: errorLoaderRef.layouts,
         notFoundLoader: notFoundLoaderRef.v,
@@ -584,9 +591,10 @@ function matchRouteTree(
       errorLoaderRef,
       notFoundLoaderRef,
       menuLoaderRef,
-      loaderHashes,
       loaderPathsByHash,
-      matchedPathname
+      matchedPathname,
+      loaderParamsByHash,
+      { ...params }
     );
     if (node._M) {
       groupNodes.push({ node, depth: layouts.length });
@@ -609,9 +617,10 @@ function matchRouteTree(
           errorLoaderRef,
           notFoundLoaderRef,
           menuLoaderRef,
-          loaderHashes,
           loaderPathsByHash,
-          pathname
+          pathname,
+          loaderParamsByHash,
+          { ...params }
         );
         node = indexResult.target;
       }
@@ -633,9 +642,10 @@ function matchRouteTree(
           errorLoaderRef,
           notFoundLoaderRef,
           menuLoaderRef,
-          loaderHashes,
           loaderPathsByHash,
-          pathname
+          pathname,
+          loaderParamsByHash,
+          { ...params }
         );
         node = next;
       }
@@ -643,7 +653,9 @@ function matchRouteTree(
   }
 
   // Resolve loaders from _I or _G
-  const loaders = matched && (done || i >= len) ? resolveLoaders(root, node, layouts) : undefined;
+  const resolved =
+    matched && (done || i >= len) ? resolveLoaders(root, node, layouts, params) : undefined;
+  const loaders = resolved?.loaders;
 
   // If the primary match failed but we have a rest wildcard fallback, try it.
   // This handles cases where _W matched a segment but the path led to no route,
@@ -654,11 +666,11 @@ function matchRouteTree(
     const fbRouteParts = [...fb.routeParts, `[...${fb.paramName}]`];
     const fbLayouts = [...fb.layouts];
     const fbLoaderPathsByHash = { ...fb.loaderPathsByHash };
+    const fbLoaderParamsByHash = { ...fb.loaderParamsByHash };
     const fbErrorRef: BoundaryRef = { v: fb.errorLoader, layouts: fb.errorLayouts };
     const fbNotFoundRef: BoundaryRef = { v: fb.notFoundLoader, layouts: fb.notFoundLayouts };
     const fbMenuRef: { v: MenuModuleLoader | undefined } = { v: fb.menuLoader };
 
-    const fbLoaderHashes: string[] = [];
     collectNodeMeta(
       fb.aNode,
       fb.groups,
@@ -666,22 +678,25 @@ function matchRouteTree(
       fbErrorRef,
       fbNotFoundRef,
       fbMenuRef,
-      fbLoaderHashes,
       fbLoaderPathsByHash,
-      pathname
+      pathname,
+      fbLoaderParamsByHash,
+      fbParams
     );
 
-    const fbLoaders = resolveLoaders(root, fb.aNode, fbLayouts);
-    if (fbLoaders) {
+    const fallback = resolveLoaders(root, fb.aNode, fbLayouts, fbParams);
+    if (fallback) {
+      collectPageLoaders(fallback, fbLoaderPathsByHash, fbLoaderParamsByHash, pathname, fbParams);
       return {
-        loaders: fbLoaders,
+        loaders: fallback.loaders,
         params: fbParams,
         routeParts: fbRouteParts,
         notFound: false,
         routeBundleNames: fb.aNode._B as string[] | undefined,
-        loaderHashes: fbLoaderHashes.length > 0 ? fbLoaderHashes : undefined,
         loaderPathsByHash:
           Object.keys(fbLoaderPathsByHash).length > 0 ? fbLoaderPathsByHash : undefined,
+        loaderParamsByHash:
+          Object.keys(fbLoaderParamsByHash).length > 0 ? fbLoaderParamsByHash : undefined,
         menuLoader: fbMenuRef.v,
         errorLoader: boundaryChain(fbErrorRef),
       };
@@ -735,22 +750,14 @@ function matchRouteTree(
       routeParts,
       notFound: true,
       routeBundleNames: undefined,
-      loaderHashes: undefined,
       loaderPathsByHash: undefined,
+      loaderParamsByHash: undefined,
       menuLoader: menuLoaderRef.v,
       errorLoader: boundaryChain(errorLoaderRef),
     };
   }
 
-  // Also collect _R from the final matched node (page-level loaders)
-  if (node._R) {
-    loaderHashes.push(...node._R);
-    const matchedPathname = ensureSlash(pathname);
-    for (let i = 0; i < node._R.length; i++) {
-      const hash = node._R[i];
-      loaderPathsByHash[hash] = matchedPathname;
-    }
-  }
+  collectPageLoaders(resolved!, loaderPathsByHash, loaderParamsByHash, pathname, params);
 
   return {
     loaders,
@@ -758,8 +765,8 @@ function matchRouteTree(
     routeParts,
     notFound: false,
     routeBundleNames: node._B as string[] | undefined,
-    loaderHashes: loaderHashes.length > 0 ? loaderHashes : undefined,
     loaderPathsByHash: Object.keys(loaderPathsByHash).length > 0 ? loaderPathsByHash : undefined,
+    loaderParamsByHash: Object.keys(loaderParamsByHash).length > 0 ? loaderParamsByHash : undefined,
     menuLoader: menuLoaderRef.v,
     errorLoader: boundaryChain(errorLoaderRef),
   };
@@ -792,3 +799,35 @@ const loadModule = <T>(
     }
   }
 };
+
+function collectPageLoaders(
+  { node, loaderPaths, loaderParams }: ResolvedIndex,
+  paths: Record<string, string>,
+  pathParams: Record<string, PathParams>,
+  pathname: string,
+  params: PathParams
+) {
+  if (loaderPaths) {
+    for (const hash in paths) {
+      delete paths[hash];
+      delete pathParams[hash];
+    }
+    Object.assign(paths, loaderPaths);
+    Object.assign(pathParams, loaderParams);
+  }
+  const pageHashes = node._D ?? [];
+  if (Array.isArray(node._I)) {
+    for (const hash in paths) {
+      if (!pageHashes.includes(hash)) {
+        delete paths[hash];
+        delete pathParams[hash];
+      }
+    }
+  }
+  for (const hash of pageHashes) {
+    if (!paths[hash]) {
+      paths[hash] = ensureSlash(pathname);
+      pathParams[hash] = { ...params };
+    }
+  }
+}

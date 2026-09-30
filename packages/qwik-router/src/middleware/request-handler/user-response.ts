@@ -1,6 +1,7 @@
 import { _serialize, isDev } from '@qwik.dev/core/internal';
 import type {
   LoadedRoute,
+  QwikRouterConfig,
   RebuildRouteInfoInternal,
   RequestEvent,
   RequestHandler,
@@ -30,7 +31,8 @@ export function runQwikRouter<T>(
   loadedRoute: LoadedRoute,
   requestHandlers: RequestHandler<any>[],
   rebuildRouteInfo: RebuildRouteInfoInternal,
-  basePathname = '/'
+  basePathname = '/',
+  routerConfig?: QwikRouterConfig
 ): QwikRouterRun<T> {
   let resolve: (value: T | null) => void;
   const responsePromise = new Promise<T | null>((r) => (resolve = r));
@@ -40,7 +42,8 @@ export function runQwikRouter<T>(
       loadedRoute,
       requestHandlers,
       basePathname,
-      resolve!
+      resolve!,
+      routerConfig
     );
 
     return {

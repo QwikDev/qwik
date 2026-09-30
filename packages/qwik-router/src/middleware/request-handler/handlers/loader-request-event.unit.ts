@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { getRouteLoaderCtx, loadRouteLoader } from '../../../runtime/src/route-loaders';
+import {
+  getRouteLoaderCtx,
+  getRouteLoaderParams,
+  loadRouteLoader,
+} from '../../../runtime/src/route-loaders';
 import type { LoaderInternal } from '../../../runtime/src/types';
 import type { RequestEventInternal } from '../request-event-core';
 import { createLoaderRequestEventFactory } from './loader-request-event';
@@ -109,6 +113,9 @@ describe('createLoaderRequestEventFactory', () => {
       const routeLoaderCtx = getRouteLoaderCtx(requestEv);
       routeLoaderCtx.loaderPaths['products-loader'] = '/products/';
       routeLoaderCtx.loaderPaths['details-loader'] = '/products/123/';
+      const loaderParams = getRouteLoaderParams(requestEv);
+      loaderParams['products-loader'] = {};
+      loaderParams['details-loader'] = { id: '123' };
       const getLoaderRequestEvent = createLoaderRequestEventFactory(requestEv);
       const productsLoader = createLoader('products-loader', ['page']);
       const detailsLoader = createLoader('details-loader', ['page']);
@@ -123,7 +130,25 @@ describe('createLoaderRequestEventFactory', () => {
       expect(detailsEv.url.href).toBe('http://localhost/products/123/?page=2');
       expect(productsEv.request.url).toBe('http://localhost/products/?page=2');
       expect(productsEv.originalUrl.href).toBe('http://localhost/products/?page=2');
-      expect(productsEv.params).toEqual({ id: '123' });
+      expect(productsEv.params).toEqual({});
+      expect(detailsEv.params).toEqual({ id: '123' });
+    } finally {
+      globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+    }
+  });
+
+  it('gives strict ancestor loaders no params when none were recorded for their path', () => {
+    const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+    globalThis.__STRICT_LOADERS__ = true;
+    try {
+      const requestEv = createRequestEv('http://localhost/products/123/view/');
+      getRouteLoaderCtx(requestEv).loaderPaths['details-loader'] = '/products/123/';
+      const getLoaderRequestEvent = createLoaderRequestEventFactory(requestEv);
+
+      const detailsEv = getLoaderRequestEvent(createLoader('details-loader', undefined));
+
+      expect(detailsEv.pathname).toBe('/products/123/');
+      expect(detailsEv.params).toEqual({});
     } finally {
       globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
     }

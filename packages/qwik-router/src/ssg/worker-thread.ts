@@ -4,7 +4,7 @@ import {
   renderQwikMiddleware,
   resolveRequestHandlers,
 } from '../middleware/request-handler/resolve-request-handlers-core';
-import { RequestEvErrorBoundaryCaught } from '../middleware/request-handler/request-event-core';
+import { RequestEvCaughtError } from '../middleware/request-handler/request-event-core';
 import { trimInternalPathname } from '../middleware/request-handler/request-path';
 import type { ServerRequestEvent } from '../middleware/request-handler/types';
 import { runQwikRouter } from '../middleware/request-handler/user-response';
@@ -116,6 +116,7 @@ export async function workerThread(sys: System) {
       parentPort?.close();
     }
   });
+  parentPort?.postMessage({ type: 'ready' } satisfies WorkerOutputMessage);
 }
 
 export async function workerRender(
@@ -307,14 +308,11 @@ export async function workerRender(
         if (rsp != null) {
           return rsp.completion.then((r) => {
             const failRouteOnCaughtBoundary = (completion: unknown) => {
-              if (
-                completion === undefined &&
-                rsp.requestEv.sharedMap.get(RequestEvErrorBoundaryCaught)
-              ) {
+              if (completion === undefined && rsp.requestEv.sharedMap.get(RequestEvCaughtError)) {
                 result.ok = false;
                 result.filePath = null;
                 return new Error(
-                  `An <ErrorBoundary> caught an error while rendering ${staticRoute.pathname}`
+                  `A <Catch> caught an error while rendering ${staticRoute.pathname}`
                 );
               }
               return completion;
@@ -441,6 +439,7 @@ async function requestHandlerForSsg<T>(
     loadedRoute,
     requestHandlers,
     rebuildRouteInfo,
-    qwikRouterConfig.basePathname
+    qwikRouterConfig.basePathname,
+    qwikRouterConfig
   );
 }

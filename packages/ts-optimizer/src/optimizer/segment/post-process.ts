@@ -3,7 +3,7 @@ import MagicString from 'magic-string';
 import type { SegmentCaptureInfo } from './segment-codegen.js';
 import { runDcePipeline } from '../transform/module-cleanup.js';
 import { deriveIsDev } from '../rewrite/const-replacement.js';
-import type { EmitMode } from '../types/types.js';
+import type { DecoratorOptions, EmitMode } from '../types/types.js';
 import { isAnyComponentCtx } from '../rewrite/predicates.js';
 import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
 import { stripTypeScript, type StripOrigin } from '../edit/strip-types.js';
@@ -27,6 +27,7 @@ export interface SegmentPostProcessOptions {
   origin: StripOrigin;
   shouldTranspileTs: boolean;
   shouldTranspileJsx: boolean;
+  decorator?: DecoratorOptions;
   isServer?: boolean;
   emitMode: string;
   devFile?: string;
@@ -68,6 +69,9 @@ function hasCapturePayload(
   return includeConstLiterals && captureInfo.constLiterals !== undefined;
 }
 
+/** Generated segments import `_capturesObj`; libraries built earlier import `_captures`. */
+const isCapturesImport = (name: string) => name === '_capturesObj' || name === '_captures';
+
 export function resolveCaptureInfo(
   captureInfo: SegmentCaptureInfo,
   isInlinedQrl: boolean
@@ -94,6 +98,7 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
   if (opts.shouldTranspileTs) {
     const tsStripOptions: TransformOptions = {
       typescript: { onlyRemoveTypeImports: (opts.preserveImportNames?.size ?? 0) > 0 },
+      decorator: opts.decorator,
     };
     if (!opts.shouldTranspileJsx) {
       tsStripOptions.jsx = 'preserve';
@@ -153,7 +158,7 @@ function sortSegmentImports(
   const hasExistingCaptureImport =
     !prioritizeGeneratedCaptures &&
     imports.some((node) =>
-      node.specifiers.some((specifier) => specifier.local.name === '_captures')
+      node.specifiers.some((specifier) => isCapturesImport(specifier.local.name))
     );
   const sorted = [...imports].sort((a, b) => {
     const rank = (node: (typeof imports)[number]): number => {
@@ -175,7 +180,7 @@ function sortSegmentImports(
       if (hasExistingCaptureImport) {
         return 1;
       }
-      if (node.specifiers.some((specifier) => specifier.local.name === '_captures')) {
+      if (node.specifiers.some((specifier) => isCapturesImport(specifier.local.name))) {
         return 1;
       }
       return node.source.value === parentModulePath ? 2 : 3;

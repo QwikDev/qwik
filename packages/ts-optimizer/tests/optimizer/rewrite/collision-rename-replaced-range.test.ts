@@ -6,7 +6,7 @@ it('collision renames skip identifiers inside replaced extraction ranges', () =>
   // A manual qrl() with a capture array shadowing an outer name crashed the
   // collision renamer with a MagicString double-edit.
   const code = `
-import { component$, useSignal, useComputedQrl, qrl, _captures } from '@qwik.dev/core';
+import { component$, useSignal, useComputedQrl, qrl, _capturesObj } from '@qwik.dev/core';
 export function setup() {
   const Counter = component$(() => {
     const count = useSignal(123);
@@ -15,7 +15,7 @@ export function setup() {
         () =>
           Promise.resolve({
             lazy: () => {
-              const [count] = _captures as any;
+              const [count] = _capturesObj._ as any;
               return count.value * 2;
             },
           }),

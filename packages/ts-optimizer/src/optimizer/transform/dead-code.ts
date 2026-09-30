@@ -44,6 +44,27 @@ function resolveBoolValue(node: AstMaybeNode): boolean | undefined {
   }
 }
 
+/**
+ * The expression whose text leads the kept branch once the constant folds inside it ran, or null
+ * when a nested ternary fold parenthesizes its own kept branch.
+ */
+function foldedLeadingExpression(node: AstNode): AstNode | null {
+  let current = node;
+  while (current.type === 'LogicalExpression') {
+    const left = resolveBoolValue(current.left);
+    const dropsLeft =
+      (current.operator === '&&' && left === true) || (current.operator === '||' && left === false);
+    if (!dropsLeft) {
+      return current;
+    }
+    current = current.right;
+  }
+  if (current.type === 'ConditionalExpression' && resolveBoolValue(current.test) !== undefined) {
+    return null;
+  }
+  return current;
+}
+
 /** Top-level lexical declarations make a block unsafe to unwrap into statement position. */
 function blockHasLexicalDecls(block: AstNode): boolean {
   if (block.type !== 'BlockStatement') {
@@ -139,12 +160,20 @@ export function applySegmentDCE(
       if (value !== undefined) {
         changed = true;
         const kept = value ? node.consequent : node.alternate;
-        const keptText = code.slice(kept.start, kept.end);
         // An object or function branch would reparse as a block or declaration
         // once the ternary around it is gone.
-        const needsParens = /^[{(]?\s*$|^[{]|^function\b|^class\b/.test(keptText);
-        s.overwrite(node.start, node.end, needsParens ? `(${keptText})` : keptText);
+        const leading = foldedLeadingExpression(kept);
+        const needsParens =
+          leading !== null &&
+          /^[{(]?\s*$|^[{]|^function\b|^class\b/.test(code.slice(leading.start, leading.end));
+        // Trim around the kept branch instead of overwriting it, so nested folds can still edit it.
+        s.remove(node.start, kept.start);
+        s.remove(kept.end, node.end);
         walk(kept, EXPR_CTX);
+        if (needsParens) {
+          s.prependRight(kept.start, '(');
+          s.appendLeft(kept.end, ')');
+        }
         return;
       }
       walk(node.test, EXPR_CTX);

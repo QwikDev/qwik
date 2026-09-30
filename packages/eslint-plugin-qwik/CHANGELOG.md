@@ -1,5 +1,9 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.45
+
+## 2.0.0-beta.44
+
 ## 2.0.0-beta.43
 
 ## 2.0.0-beta.42

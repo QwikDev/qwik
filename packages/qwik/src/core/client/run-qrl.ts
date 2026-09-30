@@ -1,6 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
 import {
-  _captures,
+  _capturesObj,
   deserializeCaptureDeltas,
   setCaptures,
   type QRLInternal,
@@ -15,7 +15,7 @@ import { invokeApply, newInvokeContextFromDOM, type InvokeContext } from '../use
 import { getDomContainer, whenContainerDataReady } from './dom-container';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
-import { ErrorBoundaryPhase } from '../shared/error/error-handling';
+import { CatchPhase } from '../shared/error/error-handling';
 
 /**
  * This safely calls an event handler, handling errors and retrying on thrown Promises, and
@@ -72,7 +72,7 @@ export function runEventHandlerQRL(
         return invokeApply(ctx, realHandler, [event, element]);
       }
     },
-    (err) => container.handleError(err, hostElement, ErrorBoundaryPhase.Event)
+    (err) => container.handleError(err, hostElement, CatchPhase.Event)
   );
 }
 
@@ -92,7 +92,7 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
     if (typeof this === 'string') {
       setCaptures(deserializeCaptureDeltas(ctx.$container$!, this));
     }
-    const qrlToRun = _captures![0] as QRLInternal<(...args: any[]) => void>;
+    const qrlToRun = _capturesObj._![0] as QRLInternal<(...args: any[]) => void>;
     isDev && assertQrl(qrlToRun);
     return runEventHandlerQRL(qrlToRun, event, element, ctx);
   });

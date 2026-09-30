@@ -1,4 +1,3 @@
-import swRegister from '../runtime-generation/sw-register-build?compiled-string';
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -81,17 +80,15 @@ export function qwikRouter(userOpts?: QwikRouterVitePluginOptions): PluginOption
   ];
 }
 
-/** Replace or strip `_R: "__LOADERS:path1|path2__"` placeholders in a bundle chunk. */
+/** Replace or strip loader placeholders in a bundle chunk. */
 export function replaceLoaderPlaceholders(
   code: string,
   loadersByFile: Map<string, string[]>
 ): string {
-  // Replace `_R: "__LOADERS:path1|path2__"` with the actual hash array, or strip the whole
-  // `_R: ...` entry when no routeLoader$ was found — that way the client-side routing code
-  // never sees a stale placeholder string and spreads it character-by-character.
+  // Missing loaders must not leave placeholder strings in the trie.
   return code.replace(
-    /_R\s*:\s*(["'`])__LOADERS:([^"'`]+)__\1\s*,?/g,
-    (_match, _q, paths: string) => {
+    /(_R|_D)\s*:\s*(["'`])__LOADERS:([^"'`]+)__\2\s*,?/g,
+    (_match, field: string, _q, paths: string) => {
       const filePaths = (JSON.parse(`"${paths}"`) as string).split('|');
       const hashes: string[] = [];
       for (const filePath of filePaths) {
@@ -101,7 +98,7 @@ export function replaceLoaderPlaceholders(
         }
       }
       if (hashes.length > 0) {
-        return `_R: ${JSON.stringify(hashes)},`;
+        return `${field}: ${JSON.stringify(hashes)},`;
       }
       // Trailing commas inside object literals are legal, so removing a mid-object entry
       // (and the trailing comma it emitted with) leaves the surrounding trie literal valid.
@@ -314,6 +311,8 @@ function qwikRouterPlugin(
   let reExportedRouteLoaderSources: RouteLoaderSourceFiles | undefined;
   /** SSG include/exclude from the adapter (see `_setSsgRoutes`); drives the server-route prune. */
   let ssgRoutePatterns: { include?: string[]; exclude?: string[] } | undefined;
+  /** Extensionless ids of the server entries that must import the generated config. */
+  let serverEntryIds: string[] = [];
 
   const api: QwikRouterPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -446,7 +445,7 @@ function qwikRouterPlugin(
         if (segment.ctxName === 'routeLoader$') {
           const changed = addRouteLoaderHash(loadersByFile, parentId, segment.hash);
 
-          // In dev: invalidate @qwik-router-config so it re-emits _R with loader info.
+          // Refresh the dev route plan with newly discovered loaders.
           if (changed && devServer) {
             invalidateRouterConfigModules(devServer);
           }
@@ -460,6 +459,12 @@ function qwikRouterPlugin(
         return getRouteImports(ctx!.routes, manifest);
       });
       outDir = config.build?.outDir;
+      serverEntryIds = getServerEntryIds(
+        rootDir!,
+        qwikPlugin.api.getOptions().srcDir ?? undefined,
+        config.build?.ssr,
+        config.build?.rolldownOptions?.input
+      );
     },
 
     async configureServer(server) {
@@ -525,11 +530,8 @@ function qwikRouterPlugin(
 
     buildStart() {
       resetBuildContext(ctx);
-      // The runtime reaches the config only via dynamic import (static imports
-      // would evaluate app route/serverPlugin modules during the runtime's own
-      // import phase — see route-loaders.ts). The client build still needs the
-      // config in its module graph for route discovery and symbol extraction,
-      // so emit it as an explicit entry chunk here.
+      // The client build still needs the config in its module graph for route discovery and
+      // symbol extraction, so emit it as an explicit entry chunk here.
       if (this.environment.mode === 'build' && this.environment.config.consumer === 'client') {
         this.emitFile({ type: 'chunk', id: QWIK_ROUTER_CONFIG_ID });
       }
@@ -602,7 +604,7 @@ function qwikRouterPlugin(
 
           if (isSwRegister) {
             // @qwik-router-sw-register
-            return generateServiceWorkerRegister(ctx, swRegister);
+            return generateServiceWorkerRegister(ctx);
           }
         }
       }
@@ -611,6 +613,11 @@ function qwikRouterPlugin(
     },
 
     async transform(code, id) {
+      // The server entry registers the generated config up front, so the runtime's getters find
+      // it; the client loads it lazily as its own chunk. Appended to keep the source map lines.
+      if (this.environment.config.consumer === 'server' && isServerEntryId(id, serverEntryIds)) {
+        return { code: `${code}\nimport '${QWIK_ROUTER_CONFIG_ID}';`, map: null };
+      }
       const isVirtualId = id.startsWith('\0');
       if (isVirtualId) {
         return;
@@ -808,4 +815,47 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
       },
     },
   };
+}
+
+/**
+ * The server entries: `src/entry.ssr` (what the dev server renders through) plus the configured SSR
+ * build inputs, which may be virtual ids.
+ */
+export function getServerEntryIds(
+  rootDir: string,
+  srcDir: string | undefined,
+  buildSsr: string | boolean | undefined,
+  input: string | string[] | Record<string, string> | undefined
+): string[] {
+  const candidates: string[] = [];
+  if (srcDir) {
+    candidates.push(resolve(srcDir, 'entry.ssr'));
+  }
+  if (typeof buildSsr === 'string') {
+    candidates.push(buildSsr);
+  }
+  if (typeof input === 'string') {
+    candidates.push(input);
+  } else if (Array.isArray(input)) {
+    candidates.push(...input);
+  } else if (input) {
+    candidates.push(...Object.values(input));
+  }
+  return candidates.map((candidate) => normalizeEntryId(candidate, rootDir));
+}
+
+export function isServerEntryId(id: string, serverEntryIds: string[]): boolean {
+  const entryId = normalizeEntryId(id.split('?', 1)[0], '');
+  return serverEntryIds.includes(entryId);
+}
+
+const isVirtualEntryId = (id: string) => id.startsWith('@') || id.startsWith('\0');
+
+/** Absolute path without its script extension, or the id itself for a virtual entry. */
+function normalizeEntryId(id: string, rootDir: string) {
+  if (isVirtualEntryId(id)) {
+    return id;
+  }
+  const absolute = rootDir ? resolve(rootDir, id) : id;
+  return normalizePath(absolute).replace(/\.[cm]?[jt]sx?$/, '');
 }

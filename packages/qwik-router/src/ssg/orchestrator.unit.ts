@@ -108,6 +108,21 @@ test('should prerender <dir>/404.html for each _4 / _E boundary', async () => {
   assert.include(result.staticPaths, '/blog/404.html');
 });
 
+test('should prerender static routes that start with an underscore', async () => {
+  const sys = createSystem({
+    routes: {
+      __drafts: {
+        _I: async () => ({ default: () => null as any }),
+      },
+    },
+    render: async ({ pathname }) => createRenderResult(pathname),
+  });
+
+  const result = await mainThread(sys);
+
+  assert.deepEqual(result.staticPaths, ['/_drafts']);
+});
+
 function createSystem({
   routes,
   render,

@@ -1,6 +1,6 @@
 {
   "id": "qwik-optimizer",
-  "package": "@qwik.dev/qwik/optimizer",
+  "package": "@qwik.dev/core/optimizer",
   "members": [
     {
       "name": "basename",
@@ -51,6 +51,23 @@
       "mdFile": "qwik-vite.bundlegraphadder.md"
     },
     {
+      "name": "catchBoundary",
+      "id": "experimentalfeatures-catchboundary",
+      "hierarchy": [
+        {
+          "name": "ExperimentalFeatures",
+          "id": "experimentalfeatures-catchboundary"
+        },
+        {
+          "name": "catchBoundary",
+          "id": "experimentalfeatures-catchboundary"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "qwik-vite.experimentalfeatures.catchboundary.md"
+    },
+    {
       "name": "ComponentEntryStrategy",
       "id": "componententrystrategy",
       "hierarchy": [
@@ -75,6 +92,19 @@
       "kind": "Function",
       "content": "```typescript\ncreateOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\noptimizerOptions\n\n\n</td><td>\n\n[OptimizerOptions](#optimizeroptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[Optimizer](#optimizer)<!-- -->&gt;",
       "mdFile": "qwik-vite.createoptimizer.md"
+    },
+    {
+      "name": "DecoratorOptions",
+      "id": "decoratoroptions",
+      "hierarchy": [
+        {
+          "name": "DecoratorOptions",
+          "id": "decoratoroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface DecoratorOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nemitDecoratorMetadata?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Tsconfig's `emitDecoratorMetadata`\n\n\n</td></tr>\n<tr><td>\n\nlegacy?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Tsconfig's `experimentalDecorators`\n\n\n</td></tr>\n</tbody></table>",
+      "mdFile": "qwik-vite.decoratoroptions.md"
     },
     {
       "name": "Diagnostic",
@@ -163,23 +193,6 @@
       "mdFile": "qwik-vite.entrystrategy.md"
     },
     {
-      "name": "errorBoundary",
-      "id": "experimentalfeatures-errorboundary",
-      "hierarchy": [
-        {
-          "name": "ExperimentalFeatures",
-          "id": "experimentalfeatures-errorboundary"
-        },
-        {
-          "name": "errorBoundary",
-          "id": "experimentalfeatures-errorboundary"
-        }
-      ],
-      "kind": "EnumMember",
-      "content": "",
-      "mdFile": "qwik-vite.experimentalfeatures.errorboundary.md"
-    },
-    {
       "name": "ExperimentalFeatures",
       "id": "experimentalfeatures",
       "hierarchy": [
@@ -189,7 +202,7 @@
         }
       ],
       "kind": "Enum",
-      "content": "Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nblockSSR\n\n\n</td><td>\n\n`\"blockSSR\"`\n\n\n</td><td>\n\nEnable the `blockSSR: false` route loader option\n\n\n</td></tr>\n<tr><td>\n\neach\n\n\n</td><td>\n\n`\"each\"`\n\n\n</td><td>\n\nEnable the Each keyed-list primitive\n\n\n</td></tr>\n<tr><td>\n\nerrorBoundary\n\n\n</td><td>\n\n`\"errorBoundary\"`\n\n\n</td><td>\n\nEnable the ErrorBoundary primitive\n\n\n</td></tr>\n<tr><td>\n\ninsights\n\n\n</td><td>\n\n`\"insights\"`\n\n\n</td><td>\n\nEnable the ability to use the Qwik Insights vite plugin and `<Insights/>` component\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\nDisable SPA navigation handler in Qwik Router\n\n\n</td></tr>\n<tr><td>\n\nshow\n\n\n</td><td>\n\n`\"show\"`\n\n\n</td><td>\n\nEnable the Show conditional primitive\n\n\n</td></tr>\n<tr><td>\n\nsuspense\n\n\n</td><td>\n\n`\"suspense\"`\n\n\n</td><td>\n\nEnable the Suspense fallback primitive\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\nEnable the Valibot form validation\n\n\n</td></tr>\n</tbody></table>",
+      "content": "Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nblockSSR\n\n\n</td><td>\n\n`\"blockSSR\"`\n\n\n</td><td>\n\nEnable the `blockSSR: false` route loader option\n\n\n</td></tr>\n<tr><td>\n\ncatchBoundary\n\n\n</td><td>\n\n`\"catchBoundary\"`\n\n\n</td><td>\n\nEnable the Catch primitive\n\n\n</td></tr>\n<tr><td>\n\neach\n\n\n</td><td>\n\n`\"each\"`\n\n\n</td><td>\n\nEnable the Each keyed-list primitive\n\n\n</td></tr>\n<tr><td>\n\ninsights\n\n\n</td><td>\n\n`\"insights\"`\n\n\n</td><td>\n\nEnable the ability to use the Qwik Insights vite plugin and `<Insights/>` component\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\nDisable SPA navigation handler in Qwik Router\n\n\n</td></tr>\n<tr><td>\n\npendingBoundary\n\n\n</td><td>\n\n`\"pendingBoundary\"`\n\n\n</td><td>\n\nEnable the Pending fallback primitive\n\n\n</td></tr>\n<tr><td>\n\nshow\n\n\n</td><td>\n\n`\"show\"`\n\n\n</td><td>\n\nEnable the Show conditional primitive\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\nEnable the Valibot form validation\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/plugin.ts",
       "mdFile": "qwik-vite.experimentalfeatures.md"
     },
@@ -401,7 +414,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface OptimizerOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n\\_optimizer?\n\n\n</td><td>\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nbinding?\n\n\n</td><td>\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninlineStylesUpToBytes?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Inline the global styles if they're smaller than this\n\n\n</td></tr>\n<tr><td>\n\nsourcemap?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Enable sourcemaps\n\n\n</td></tr>\n<tr><td>\n\nsys?\n\n\n</td><td>\n\n\n</td><td>\n\n[OptimizerSystem](#optimizersystem)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntsOptimizer?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Use the TypeScript optimizer (`@qwik.dev/ts-optimizer`<!-- -->) instead of the Rust one.\n\nDefault `false`\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface OptimizerOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n\\_optimizer?\n\n\n</td><td>\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nbinding?\n\n\n</td><td>\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninlineStylesUpToBytes?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Inline the global styles if they're smaller than this\n\n\n</td></tr>\n<tr><td>\n\nsourcemap?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Enable sourcemaps\n\n\n</td></tr>\n<tr><td>\n\nsys?\n\n\n</td><td>\n\n\n</td><td>\n\n[OptimizerSystem](#optimizersystem)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntsOptimizer?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Use the TypeScript optimizer (`@qwik.dev/ts-optimizer`<!-- -->) instead of the Rust one. The `QWIK_OPTIMIZER` environment variable (`ts` or `rust`<!-- -->) overrides this, so a project can be built or tested on the other optimizer without changing its config.\n\nDefault `false`\n\n\n</td></tr>\n</tbody></table>",
       "mdFile": "qwik-vite.optimizeroptions.md"
     },
     {
@@ -446,6 +459,23 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface Path \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndelimiter\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nposix\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[Path](#path)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nsep\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nwin32\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nnull\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[basename(path, ext)](#path-basename)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[dirname(path)](#path-dirname)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[extname(path)](#path-extname)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[format(pathObject)](#path-format)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[isAbsolute(path)](#path-isabsolute)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[join(paths)](#path-join)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[normalize(path)](#path-normalize)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[parse(path)](#path-parse)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[relative(from, to)](#path-relative)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[resolve(paths)](#path-resolve)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "mdFile": "qwik-vite.path.md"
+    },
+    {
+      "name": "pendingBoundary",
+      "id": "experimentalfeatures-pendingboundary",
+      "hierarchy": [
+        {
+          "name": "ExperimentalFeatures",
+          "id": "experimentalfeatures-pendingboundary"
+        },
+        {
+          "name": "pendingBoundary",
+          "id": "experimentalfeatures-pendingboundary"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "qwik-vite.experimentalfeatures.pendingboundary.md"
     },
     {
       "name": "QwikAsset",
@@ -802,23 +832,6 @@
       "mdFile": "qwik-vite.sourcelocation.md"
     },
     {
-      "name": "suspense",
-      "id": "experimentalfeatures-suspense",
-      "hierarchy": [
-        {
-          "name": "ExperimentalFeatures",
-          "id": "experimentalfeatures-suspense"
-        },
-        {
-          "name": "suspense",
-          "id": "experimentalfeatures-suspense"
-        }
-      ],
-      "kind": "EnumMember",
-      "content": "",
-      "mdFile": "qwik-vite.experimentalfeatures.suspense.md"
-    },
-    {
       "name": "SymbolMapper",
       "id": "symbolmapper",
       "hierarchy": [
@@ -925,7 +938,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface TransformOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nentryStrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[EntryStrategy](#entrystrategy)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nexplicitExtensions?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nisServer?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nminify?\n\n\n</td><td>\n\n\n</td><td>\n\n[MinifyMode](#minifymode)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nmode?\n\n\n</td><td>\n\n\n</td><td>\n\n[EmitMode](#emitmode)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\npreserveFilenames?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nregCtxName?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nrootDir?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nscope?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nsourceMaps?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nsrcDir\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nstripCtxName?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nstripEventHandlers?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nstripExports?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntranspileJsx?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntranspileTs?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface TransformOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndecorator?\n\n\n</td><td>\n\n\n</td><td>\n\n[DecoratorOptions](#decoratoroptions)\n\n\n</td><td>\n\n_(Optional)_ Decorator lowering, mirroring tsconfig. Only the TypeScript optimizer applies it.\n\n\n</td></tr>\n<tr><td>\n\nentryStrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[EntryStrategy](#entrystrategy)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nexplicitExtensions?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nisServer?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nminify?\n\n\n</td><td>\n\n\n</td><td>\n\n[MinifyMode](#minifymode)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nmode?\n\n\n</td><td>\n\n\n</td><td>\n\n[EmitMode](#emitmode)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\npreserveFilenames?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nregCtxName?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nrootDir?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nscope?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nsourceMaps?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nsrcDir\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nstripCtxName?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nstripEventHandlers?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nstripExports?\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntranspileJsx?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntranspileTs?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "mdFile": "qwik-vite.transformoptions.md"
     },
     {

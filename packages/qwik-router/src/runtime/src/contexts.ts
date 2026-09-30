@@ -8,7 +8,6 @@ import type {
   RouteAction,
   RouteLocation,
   RouteNavigate,
-  RoutePreventNavigate,
 } from './types';
 
 export const RouteStateContext = /*#__PURE__*/ createContextId<RouteLoaderState>('qr-s');
@@ -27,7 +26,5 @@ export const RouteNavigateContext = /*#__PURE__*/ createContextId<RouteNavigate>
 
 export const RouteActionContext = /*#__PURE__*/ createContextId<RouteAction>('qr-a');
 
-export const RoutePreventNavigateContext =
-  /*#__PURE__*/ createContextId<RoutePreventNavigate>('qr-p');
-
-export const HttpStatusContext = /*#__PURE__*/ createContextId<Signal<HttpStatus>>('qr-hs');
+export const HttpStatusContext =
+  /*#__PURE__*/ createContextId<Signal<HttpStatus | undefined>>('qr-hs');

@@ -3,14 +3,14 @@ import { lucide, streamlinepixel as pixel } from '@qds.dev/ui';
 import { Link } from '~/components/action/action';
 
 const coreTeam = [
-  { login: 'mhevery', x: 'mhevery' },
-  { login: 'shairez', x: 'shai_reznik' },
-  { login: 'wmertens', x: 'wmertens' },
-  { login: 'Varixo', x: 'varixo_m' },
-  { login: 'maiieul', x: 'maiieul' },
-  { login: 'thejackshelton', x: 'jackshelton' },
-  { login: 'gioboa', x: 'giorgio_boa' },
-  { login: 'PatrickJS', x: 'PatrickJS' },
+  { login: 'mhevery', x: 'mhevery', name: 'Miško' },
+  { login: 'shairez', x: 'shai_reznik', name: 'Shai' },
+  { login: 'wmertens', x: 'wmertens', name: 'Wout' },
+  { login: 'Varixo', x: 'varixo_m', name: 'Michał' },
+  { login: 'maiieul', x: 'maiieul', name: 'Maïeul' },
+  { login: 'thejackshelton', x: 'jackshelton', name: 'Jack' },
+  { login: 'gioboa', x: 'giorgio_boa', name: 'Giorgio' },
+  { login: 'PatrickJS', x: 'PatrickJS', name: 'Patrick' },
 ];
 
 const specialMentions = ['manucorporat', 'adamdbradley', 'steve8708'];
@@ -121,7 +121,7 @@ export const Team = component$(() => {
       <div class="relative flex flex-col gap-4">
         <h3 class="text-foreground-soft text-sm">Core team</h3>
         <ul class="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {coreTeam.map(({ login, x }) => (
+          {coreTeam.map(({ login, x, name }) => (
             <li key={login}>
               <a
                 href={`https://x.com/${x}`}
@@ -139,7 +139,7 @@ export const Team = component$(() => {
                   class="size-20 2xl:size-24 rounded-full border-[1.6px] border-emphasis bg-background-accent"
                 />
                 <span class="font-heading text-body-xs lg:text-body-sm 2xl:text-body-md wrap-anywhere">
-                  @{login}
+                  {name}
                 </span>
               </a>
             </li>

@@ -121,7 +121,9 @@ const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, it
   return maybeThen(text0, (text0) => [
     '<h2 q:id="',
     createSsrNodeId(id0),
-    '" q:row>',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
     escapeHTML(text0),
     '</h2>',
   ]);
@@ -147,7 +149,9 @@ const component_for_render_segment_6_asysg7p5zyc1 = (ctx, __rangeId, __rowId, it
     q_component_text_segment_8_1fh0xb2pp04b4
   );
   return maybeThen(text0, (text0) => [
-    '<section q:row><span q:id="',
+    '<section q:row="',
+    escapeHTML(__rowId),
+    '"><span q:id="',
     createSsrNodeId(id0),
     '">',
     escapeHTML(text0),
@@ -206,7 +210,9 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     registerProjection(slotScope0, 'footer', q_component_slot_render_segment_4_3b0t8wsj4vdse);
     registerProjection(slotScope0, '', q_component_slot_render_segment_5_3b0t9atn1pfsx.w([items]));
     ctx.addRoot(slotScope0);
-    const component0 = ctx.observeError(createComponent(Panel, null, ctx, { slotScope: slotScope0 }));
+    const component0 = ctx.observeError(
+      createComponent(Panel, null, ctx, { slotScope: slotScope0 })
+    );
     return component0;
   },
   'default_component_3rg6kq1so9aio',
@@ -305,7 +311,9 @@ export const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __ro
   return maybeThen(text0, (text0) => [
     '<h2 q:id="',
     createSsrNodeId(id0),
-    '" q:row>',
+    '" q:row="',
+    escapeHTML(__rowId),
+    '">',
     escapeHTML(text0),
     '</h2>',
   ]);
@@ -496,8 +504,8 @@ export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) =>
 
 import {
   _noopQrl,
-  createSsrNodeId,
   escapeHTML,
+  createSsrNodeId,
   renderSsrTextExpression,
   maybeThen,
 } from '@qwik.dev/core';
@@ -517,7 +525,9 @@ export const component_for_render_segment_6_asysg7p5zyc1 = (ctx, __rangeId, __ro
     q_component_text_segment_8_1fh0xb2pp04b4
   );
   return maybeThen(text0, (text0) => [
-    '<section q:row><span q:id="',
+    '<section q:row="',
+    escapeHTML(__rowId),
+    '"><span q:id="',
     createSsrNodeId(id0),
     '">',
     escapeHTML(text0),

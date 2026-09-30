@@ -88,7 +88,9 @@ const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, __rangeId, __rowId, ro
   ctx.addRoot(row);
   const text0 = renderSsrTextExpression(id0, null, [row], q_component_text_segment_4_1fh11zg0n0shg);
   return maybeThen(text0, (text0) => [
-    '<tr q:row><td q:id="',
+    '<tr q:row="',
+    escapeHTML(__rowId),
+    '"><td q:id="',
     createSsrNodeId(id0),
     '">',
     escapeHTML(text0),
@@ -236,8 +238,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
 
 import {
   _noopQrl,
-  createSsrNodeId,
   escapeHTML,
+  createSsrNodeId,
   renderSsrTextExpression,
   maybeThen,
 } from '@qwik.dev/core';
@@ -252,7 +254,9 @@ export const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, __rangeId, __ro
   ctx.addRoot(row);
   const text0 = renderSsrTextExpression(id0, null, [row], q_component_text_segment_4_1fh11zg0n0shg);
   return maybeThen(text0, (text0) => [
-    '<tr q:row><td q:id="',
+    '<tr q:row="',
+    escapeHTML(__rowId),
+    '"><td q:id="',
     createSsrNodeId(id0),
     '">',
     escapeHTML(text0),

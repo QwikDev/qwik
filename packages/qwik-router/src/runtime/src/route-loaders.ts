@@ -36,6 +36,7 @@ import {
 import { ensureSlash } from '../../utils/pathname';
 import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
 import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
+import { REFRESH_HEAD } from './navigation-state';
 import { getBasePathname } from './router-config';
 import type {
   DataValidator,
@@ -47,8 +48,8 @@ import type {
   QwikRouterEnvData,
   RequestEvent,
   RequestEventLoader,
-  RouteNavigate,
   RouteModule,
+  RouteNavigate,
   ValidatorReturn,
 } from './types';
 
@@ -123,7 +124,9 @@ const wrapWithAbort = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> 
 export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
   /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
-  goto?: NoSerialize<RouteNavigate>;
+  goto?: NoSerialize<(path: string, options: { replaceState: boolean }) => unknown>;
+  /** Router callback that re-resolves the document head after a loader gets a new value. */
+  onValue?: RouteNavigate;
   /** Client manifest hash for q-loader fetch URLs. */
   manifestHash?: string;
 };
@@ -453,6 +456,12 @@ const createRouteLoaderSignal = (
         throw response.e;
       }
       lastFetch.raw = result.raw;
+      const onValue = routeLoaderCtx.onValue;
+      if (onValue) {
+        Promise.resolve()
+          .then(() => state[id].promise())
+          .then(() => onValue(REFRESH_HEAD as unknown as string));
+      }
       return response.d;
     },
 

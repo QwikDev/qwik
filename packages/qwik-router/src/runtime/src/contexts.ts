@@ -26,5 +26,7 @@ export const RouteNavigateContext = /*#__PURE__*/ createContextId<RouteNavigate>
 
 export const RouteActionContext = /*#__PURE__*/ createContextId<RouteAction>('qr-a');
 
+export const RouteActionRunnerContext = /*#__PURE__*/ createContextId<RouteNavigate>('qr-ar');
+
 export const HttpStatusContext =
   /*#__PURE__*/ createContextId<Signal<HttpStatus | undefined>>('qr-hs');

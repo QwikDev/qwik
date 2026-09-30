@@ -537,6 +537,7 @@ type SpecialAttrs = {
     value?: string | ReadonlyArray<string> | number | undefined;
     popovertarget?: string | undefined;
     popovertargetaction?: PopoverTargetAction | undefined;
+    commandfor?: string | undefined;
   };
   canvas: {
     height?: Size | undefined;

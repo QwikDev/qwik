@@ -3,10 +3,15 @@ title: 'Qwik 2.0 RC: JavaScript streaming without the overhead'
 authors:
   - 'The Qwik Team'
 tags: ['Qwik']
-date: 'September 29, 2026'
+date: 'September 30, 2026'
+description: 'Qwik 2.0 RC is out: faster reactivity, smaller HTML and experimental out-of-order streaming.'
+og:
+  - image: /logos/qwik-2-rc-social-card.jpg
+    'image:alt': 'A car with a Qwik light bar overtakes a line of slower cars under a rising Qwik logo'
 ---
 
 import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { DiscordLink } from '~/routes/(blog)/blog/components/mdx/discord-link';
 import { BenchmarkTable } from './benchmark-table';
 import { Image } from 'qwik-image';
 import runtimeMeme from './runtime-meme.webp';
@@ -86,13 +91,13 @@ Qwik mainly relies on signals for reactivity, so in theory v1 should have been g
 
 As a result, v2 is more than 2x faster than v1 in terms of reactivity, and faster than Angular, React or Vue.
 
-See the numbers on the [js-framework-benchmark](https://github.com/krausest/js-framework-benchmark) ([machine, browser]) table below:
+See the numbers on the [js-framework-benchmark](https://github.com/krausest/js-framework-benchmark) table below:
 
 <BenchmarkTable />
 
 Qwik v2 has gotten significantly more optimized and stable. While the numbers are great, we know we can make them even better in a later major... so stay tuned!
 
-> *Since this is RC, the results are not published yet and are subject to change until v2 comes out.
+> Since this is RC, the results are not published yet and are subject to change until v2 comes out.
 
 ## Experimental HTML out-of-order streaming
 
@@ -203,7 +208,7 @@ export const useCategories = routeLoader$(
 
 `cacheControl` sets the `Cache-Control` header of the loader's response, so a navigation can read the data from the browser cache without a request. `eTag` lets the server answer `304 Not Modified` without running the loader. An `'immutable'` loader is only fetched when a component reads it, stays cached until the next deploy, and becomes a static JSON file when you build a static site. And since `<Link>` prefetches a route's data on hover by default, the data is often on its way before the user clicks.
 
-With `blockSSR: false`, the first page load works the same way. The server starts streaming before the loader finishes, and the `Pending` region that reads it's signal streams in later.
+With `routeLoader$(..., { blockSSR: false })`, the first page load works the same way. The server starts streaming before the loader finishes, and the `Pending` region that reads its signal streams in later.
 
 ## And a lot more
 
@@ -243,18 +248,18 @@ Before 2.0, we want to:
 
 Please try the RC and [open an issue](https://github.com/QwikDev/qwik/issues) if anything breaks or doesn't work as expected.
 
-We hope you're as excited as we are for Qwik v2 and beyond. Don't hesitate to try it out during RC and come and share your feedback on our Discord or with the @QwikDev handle on 𝕏. Good or bad, we'd love to hear it!
+We hope you're as excited as we are for Qwik v2 and beyond. Don't hesitate to try it out during RC and come and share your feedback on our <DiscordLink text="Discord" /> or with the [@QwikDev](https://x.com/QwikDev) handle on 𝕏. Good or bad, we'd love to hear it!
 
 You can start playing with it right now:
 - `pnpm create qwik@next`
 - [next.qwik.dev/examples](https://next.qwik.dev/examples/introduction/hello-world/#f=Q040psaDsymCJ20ZmmJNW6mJuShpCyaIkcZQvETlFIZmKa6UBlQxIlIaAA) or [next.qwik.dev/playground/](https://next.qwik.dev/playground/)
-- `pnpm qwik migrate-v2` # only a handful of small breaking changes, all taken care of by the migration script!
+- `pnpm qwik migrate-v2` — only a handful of small breaking changes, all taken care of by the migration script!
 
 ## Thank you
 
-Thank you, to all the contributors that spent some of their free time on Qwik, filing issues and submitting PRs, which ultimately led to what it is today.
+Thank you to all the contributors that spent some of their free time on Qwik, filing issues and submitting PRs, which ultimately led to what it is today.
 
-Thank you, to all the other frontend projects out there, from whom we take a lot of inspiration in making sure the Qwik APIs provide the best in class developer and agent experience.
+Thank you to all the other frontend projects out there, from whom we take a lot of inspiration in making sure the Qwik APIs provide the best in class developer and agent experience.
 
 And truth be told... Thank you to Claude and Codex for their generous open-source programs, which speed up the development and maintenance of the project quite significantly.
 

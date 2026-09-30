@@ -66,7 +66,7 @@ export const blogArticles: BlogArticle[] = [
     path: '/blog/qwik-2-rc/',
     tags: ['Qwik'],
     featuredTitlePosition: 'top',
-    readingTime: 8,
+    readingTime: 10,
   },
   {
     title: 'Effortlessly optimize web fonts with fontless.',

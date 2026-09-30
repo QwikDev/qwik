@@ -3,7 +3,7 @@ import styles from './benchmark-table.css?inline';
 
 const frameworks = [
   { name: 'Vanilla JS', version: 'baseline' },
-  { name: 'Qwik v2', version: '2.0.0-beta.45', isHighlighted: true },
+  { name: 'Qwik v2', version: '2.0.0-rc.0', isHighlighted: true },
   { name: 'Vue', version: '3.5.39' },
   { name: 'Angular', version: '22.0.0, zoneless' },
   { name: 'React', version: '19.0.0, compiler' },

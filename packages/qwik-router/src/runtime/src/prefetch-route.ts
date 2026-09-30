@@ -1,6 +1,5 @@
 import { isBrowser, isDev } from '@qwik.dev/core';
-// @ts-expect-error no types for preloader yet
-import { p as preload } from '@qwik.dev/core/preloader';
+import { _requestPreload as preload } from '@qwik.dev/core/internal';
 import { ensureSlash } from '../../utils/pathname';
 import { fetchRouteLoaderData, getModuleRouteLoaders } from './route-loaders';
 import { getBasePathname, getRouterConfig } from './router-config';

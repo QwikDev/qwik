@@ -30,6 +30,7 @@
   "peerDependencies": {
     "@supabase/supabase-js": "^2.49.4"
   },
+  "private": true,
   "publishConfig": {
     "access": "public"
   },

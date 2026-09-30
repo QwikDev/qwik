@@ -25,10 +25,14 @@ import type { DocumentHeadValue } from './types';
  * @public
  */
 export const DocumentHeadTags = component$((props: DocumentHeadValue) => {
-  let head = useDocumentHead();
-  if (props) {
-    head = { ...head, ...props };
-  }
+  const documentHead = useDocumentHead();
+  const head = {
+    title: props.title ?? documentHead.title,
+    meta: props.meta ?? documentHead.meta,
+    links: props.links ?? documentHead.links,
+    styles: props.styles ?? documentHead.styles,
+    scripts: props.scripts ?? documentHead.scripts,
+  };
 
   return (
     <>

@@ -223,7 +223,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
   const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void } = {};
-  const routeLoaderCtx = useStore(env.routeLoaderCtx);
+  const routeLoaderCtx = env.routeLoaderCtx;
   routeLoaderCtx.manifestHash = manifestHash;
   // Inject middleware values without fetching.
   const loaderState = {} as Record<string, ComputedSignal<unknown>>;
@@ -249,8 +249,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     type: 'initial',
     dest: url,
   });
-  const documentHead = useStore<Editable<ResolvedDocumentHead>>(() =>
-    createDocumentHead(serverHead, manifestHash)
+  const documentHead = useStore<Editable<ResolvedDocumentHead>>(
+    () => createDocumentHead(serverHead, manifestHash),
+    { deep: false }
   );
   const content = useStore<Editable<ContentState>>({
     headings: undefined,
@@ -560,7 +561,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         trackUrl = new URL(navigation.dest, routeLocation.url);
         loadedRoute = env!.loadedRoute;
         endpointResponse = env!.response;
-        actionData = endpointResponse;
+        if (endpointResponse.action || endpointResponse.status !== 200) {
+          actionData = {
+            action: endpointResponse.action,
+            actionResult: endpointResponse.actionResult,
+            status: endpointResponse.status,
+          };
+        }
       } else {
         // client
         trackUrl = new URL(navigation.dest, location as any as URL);

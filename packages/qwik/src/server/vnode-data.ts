@@ -80,21 +80,24 @@ export function vNodeData_openElement(vNodeData: VNodeData) {
   vNodeData[0] |= VNodeDataFlag.ELEMENT_NODE;
 }
 
-export function vNodeData_createSsrNodeReference(
-  currentComponentNode: ISsrNode | null,
-  vNodeData: VNodeData,
-  depthFirstElementIdx: number | string,
-  cleanupQueue: CleanupQueue,
-  currentFile: string | null
-): ISsrNode {
-  vNodeData[0] |= VNodeDataFlag.REFERENCE;
-  const stack: number[] = [-1];
-  // We are referring to a virtual node. We need to descend into the tree to find the path to the node.
-  let attributesIndex = -1;
-  for (let i = 1; i < vNodeData.length; i++) {
+/** Position of a partial `vNodeData` scan, used to compute the path to the next node. */
+interface VNodeDataScan {
+  index: number;
+  stack: number[];
+  attributesIndex: number;
+}
+
+/** Short arrays are cheaper to rescan than to cache. */
+const MIN_CACHED_SCAN_LENGTH = 16;
+const scanCache = new WeakMap<VNodeData, VNodeDataScan>();
+
+function scanVNodeData(vNodeData: VNodeData, scan: VNodeDataScan, end: number) {
+  const stack = scan.stack;
+  let i = scan.index;
+  for (; i < end; i++) {
     const value = vNodeData[i];
     if (typeof value === 'object' && value !== null) {
-      attributesIndex = i;
+      scan.attributesIndex = i;
       i++; // skip the `OPEN_FRAGMENT` or `WRITE_ELEMENT_ATTRS` value
       if (vNodeData[i] !== WRITE_ELEMENT_ATTRS) {
         // ignore pushing to the stack for WRITE_ELEMENT_ATTRS, because we don't want to create more depth. It is the same element
@@ -114,6 +117,44 @@ export function vNodeData_createSsrNodeReference(
       stack[stack.length - 1]++;
     }
   }
+  scan.index = i;
+}
+
+const createScan = (): VNodeDataScan => ({ index: 1, stack: [-1], attributesIndex: -1 });
+
+/** Only the last entry mutates, so resuming the cached scan avoids O(n²) sibling references. */
+function scanToEnd(vNodeData: VNodeData): VNodeDataScan {
+  const length = vNodeData.length;
+  if (length < MIN_CACHED_SCAN_LENGTH) {
+    const scan = createScan();
+    scanVNodeData(vNodeData, scan, length);
+    return scan;
+  }
+  let cachedScan = scanCache.get(vNodeData);
+  if (!cachedScan) {
+    cachedScan = createScan();
+    scanCache.set(vNodeData, cachedScan);
+  }
+  scanVNodeData(vNodeData, cachedScan, length - 1);
+  const scan: VNodeDataScan = {
+    index: cachedScan.index,
+    stack: cachedScan.stack.slice(),
+    attributesIndex: cachedScan.attributesIndex,
+  };
+  scanVNodeData(vNodeData, scan, length);
+  return scan;
+}
+
+export function vNodeData_createSsrNodeReference(
+  currentComponentNode: ISsrNode | null,
+  vNodeData: VNodeData,
+  depthFirstElementIdx: number | string,
+  cleanupQueue: CleanupQueue,
+  currentFile: string | null
+): ISsrNode {
+  vNodeData[0] |= VNodeDataFlag.REFERENCE;
+  // We are referring to a virtual node. We need to descend into the tree to find the path to the node.
+  const { stack, attributesIndex } = scanToEnd(vNodeData);
   let refId = String(depthFirstElementIdx);
   if (vNodeData[0] & (VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.TEXT_DATA)) {
     // encode as alphanumeric only for virtual and text nodes

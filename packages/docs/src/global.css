@@ -34,8 +34,8 @@
 
 /* We use this for accessibility / clear focus indicator regardless of design */
 :focus-visible:not(input):not(textarea):not(select) {
-  outline: 9px double black;
-  box-shadow: 0 0 0 6px white;
+  outline: 9px double var(--color-foreground-emphasis);
+  box-shadow: 0 0 0 6px var(--color-background-base);
 }
 
 /**
@@ -211,6 +211,7 @@
   --color-violet-deep: #0c0714;
 
   /* Rose */
+  --color-rose-white: #fdeeee;
   --color-rose-shallow: #fffbfb;
   --color-rose-0: #fff2f1;
   --color-rose-5: #ffe7e6;
@@ -289,6 +290,7 @@
   --color-standalone-base: var(--color-sky-65);
   --color-standalone-accent: var(--color-sky-75);
   --color-standalone-emphasis: var(--color-sky-85);
+  --color-grid-lines: var(--color-slate-0);
 
   /* Semantic effects */
   --shadow-xs-base: 2px 2px 0 0 var(--color-shadow-base);
@@ -305,6 +307,7 @@
   --shadow-base: 6px 6px 0 0 var(--color-shadow-base);
   --shadow-accent: 6px 6px 0 0 var(--color-shadow-accent);
   --shadow-emphasis: 6px 6px 0 0 var(--color-shadow-emphasis);
+  --shadow-border-inset: inset 2px 2px 0 var(--color-sky-45), inset -2px -2px 0 var(--color-sky-0);
   --shadow-secondary-border-inset:
     inset 2px 2px 0 var(--color-violet-55), inset -2px -2px 0 var(--color-violet-0);
 
@@ -353,6 +356,71 @@
   }
 }
 
+html.dark,
+html[data-theme='dark'] {
+  color-scheme: dark;
+
+  --shadow-border-inset:
+    inset 2px 2px 0 var(--color-violet-85), inset -2px -2px 0 var(--color-violet-65);
+  --shadow-secondary-border-inset:
+    inset 2px 2px 0 var(--color-sky-85), inset -2px -2px 0 var(--color-sky-65);
+
+  --color-primary-background-base: var(--color-sky-65);
+  --color-primary-background-accent: var(--color-sky-60);
+  --color-primary-foreground-base: var(--color-sky-0);
+  --color-primary-foreground-accent: var(--color-sky-shallow);
+  --color-primary-border-base: var(--color-sky-45);
+  --color-primary-border-accent: var(--color-sky-40);
+  --color-primary-shadow-base: var(--color-sky-35);
+  --color-primary-shadow-accent: var(--color-sky-30);
+  --color-primary-ring-base: var(--color-sky-45);
+  --color-primary-standalone-base: var(--color-sky-35);
+  --color-primary-standalone-accent: var(--color-sky-30);
+  --color-primary-standalone-emphasis: var(--color-sky-25);
+
+  --color-secondary-background-base: var(--color-sky-85);
+  --color-secondary-background-accent: var(--color-sky-80);
+  --color-secondary-foreground-base: var(--color-sky-20);
+  --color-secondary-foreground-accent: var(--color-sky-15);
+  --color-secondary-border-base: var(--color-sky-65);
+  --color-secondary-border-accent: var(--color-sky-60);
+  --color-secondary-shadow-base: var(--color-sky-55);
+  --color-secondary-shadow-accent: var(--color-sky-50);
+  --color-secondary-ring-base: var(--color-sky-65);
+
+  --color-alert-background-base: var(--color-rose-70);
+  --color-alert-foreground-base: var(--color-rose-0);
+  --color-alert-border-base: var(--color-rose-60);
+  --color-alert-shadow-base: var(--color-rose-55);
+  --color-alert-ring-base: var(--color-rose-60);
+  --color-alert-standalone-base: var(--color-rose-35);
+  --color-alert-standalone-accent: var(--color-rose-30);
+  --color-alert-standalone-emphasis: var(--color-rose-25);
+
+  --color-background-base: var(--color-violet-deep);
+  --color-background-accent: var(--color-violet-95);
+  --color-background-emphasis: var(--color-violet-90);
+  --color-background-disabled: var(--color-slate-95);
+  --color-foreground-muted: var(--color-slate-40);
+  --color-foreground-soft: var(--color-slate-25);
+  --color-foreground-base: var(--color-slate-10);
+  --color-foreground-accent: var(--color-slate-5);
+  --color-foreground-emphasis: var(--color-slate-0);
+  --color-foreground-disabled: var(--color-slate-65);
+  --color-border-base: var(--color-violet-75);
+  --color-border-accent: var(--color-violet-65);
+  --color-border-emphasis: var(--color-violet-55);
+  --color-border-disabled: var(--color-slate-85);
+  --color-shadow-base: var(--color-violet-90);
+  --color-shadow-accent: var(--color-violet-75);
+  --color-shadow-emphasis: var(--color-violet-65);
+  --color-ring-base: var(--color-violet-75);
+  --color-standalone-base: var(--color-violet-35);
+  --color-standalone-accent: var(--color-violet-30);
+  --color-standalone-emphasis: var(--color-violet-25);
+  --color-grid-lines: var(--color-violet-deep);
+}
+
 @utility border-base {
   border-color: var(--color-border-base);
 }
@@ -374,7 +442,7 @@
     120deg,
     transparent 0%,
     transparent calc(var(--shimmer-x) - 8%),
-    white var(--shimmer-x),
+    var(--color-primary-foreground-base) var(--shimmer-x),
     transparent calc(var(--shimmer-x) + 8%),
     transparent 100%
   );
@@ -411,8 +479,19 @@
 }
 
 @utility bg-grid-stars {
-  background-image: url('./media/decor/grid-star-bg.svg');
-  background-size: contain;
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--color-grid-lines);
+    mask-image: url('./media/decor/grid-star-bg.svg');
+    mask-size: 1440px 720px;
+  }
 }
 
 .vanilla-icon {

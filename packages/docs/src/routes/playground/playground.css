@@ -77,7 +77,7 @@
 }
 
 .playground .repl-main-resizer:hover .repl-main-resizer-line {
-  box-shadow: 0 0 0 4px rgba(178, 228, 255, 0.7);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-shadow-base) 70%, transparent);
   @apply bg-border-base;
 }
 

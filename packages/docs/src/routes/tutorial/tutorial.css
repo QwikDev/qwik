@@ -1,7 +1,7 @@
 @reference "../../global.css";
 
 .tutorial {
-  @apply bg-violet-shallow flex flex-col w-full h-dvh overflow-hidden;
+  @apply bg-background-base flex flex-col w-full h-dvh overflow-hidden;
 }
 
 .tutorial main {
@@ -55,9 +55,9 @@
   padding-bottom: 16px;
   background: linear-gradient(
     180deg,
-    var(--tutorial-page-bg) 0,
-    var(--tutorial-page-bg) calc(100% - 10px),
-    rgba(253, 251, 255, 0) 100%
+    var(--color-background-base) 0,
+    var(--color-background-base) calc(100% - 10px),
+    transparent 100%
   );
 }
 
@@ -161,7 +161,7 @@
 }
 
 .tutorial-copy-body a {
-  color: var(--color-secondary-foreground-base, var(--color-violet-80));
+  color: var(--color-secondary-foreground-base);
   text-decoration-line: underline;
   text-decoration-thickness: 1.5px;
   text-underline-offset: 2px;
@@ -183,7 +183,7 @@
   padding: 10px 12px;
   text-align: left;
   vertical-align: top;
-  border-bottom: 1px solid #d9eef8;
+  border-bottom: 1px solid var(--color-border-base);
 }
 
 .tutorial-copy-body pre {

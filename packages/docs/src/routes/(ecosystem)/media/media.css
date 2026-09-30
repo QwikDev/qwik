@@ -21,7 +21,7 @@
   font-weight: bold;
   margin: 0 0 15px 0;
   padding: 0 0 5px 0;
-  border-bottom: 1px solid var(--media-separator-color);
+  border-bottom: 1px solid var(--color-border-base);
 }
 
 .media h3 {
@@ -44,24 +44,24 @@
   border-radius: 5px;
   width: 100%;
   overflow: hidden;
-  border: 1px solid black;
-  box-shadow: var(--qwik-purple) 2px 2px 2px 0px;
+  border: 1px solid var(--color-border-base);
+  box-shadow: var(--color-primary-shadow-base) 2px 2px 2px 0px;
   transition: ease-in-out 250ms;
 }
 
 .media li a {
-  color: var(--interactive-text-color);
+  color: var(--color-primary-standalone-base);
   display: block;
   font-size: 0.9em;
 }
 
 .media li a:hover {
-  color: var(--qwik-purple);
+  color: var(--color-primary-standalone-accent);
 }
 
 .media li a:hover .thumbnail {
   opacity: 0.9;
-  border: 2.5px solid var(--media-video-shadow-color);
+  border: 2.5px solid var(--color-primary-border-base);
   box-shadow: none;
 }
 
@@ -69,7 +69,7 @@
   font-weight: 400;
   display: inline-block;
   padding: 12px 0;
-  color: var(--interactive-text-color);
+  color: var(--color-primary-standalone-base);
 }
 
 .media .edit-page:hover {
@@ -102,5 +102,7 @@
 }
 
 .info-bg {
-  @apply uppercase text-white bg-black/40 backdrop-blur-md px-1 rounded-md;
+  @apply uppercase backdrop-blur-md px-1 rounded-md;
+  color: var(--color-primary-foreground-base);
+  background: color-mix(in srgb, var(--color-foreground-emphasis) 40%, transparent);
 }

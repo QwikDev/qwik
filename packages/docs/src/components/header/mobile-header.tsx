@@ -78,7 +78,7 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
         <modal.content
           class="fixed inset-0 z-99998 overflow-y-auto open:flex flex-col
             w-full h-full max-w-none m-0 p-0 border-none
-            bg-white/50 backdrop-blur-xl
+            bg-background-base/50 backdrop-blur-xl
             shadow-[0px_2px_16px_0px_rgba(0,0,0,0.08)]"
         >
           {/* Header inside modal */}

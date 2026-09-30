@@ -8,6 +8,13 @@ test.describe('Docs site smoke tests', () => {
     await expect(page).toHaveTitle(/Qwik/);
   });
 
+  test('html dark class applies semantic colors', async ({ page }) => {
+    await page.goto('/docs/');
+    await page.locator('html').evaluate((html) => html.classList.add('dark'));
+    await expect(page.locator('html')).toHaveClass(/\bdark\b/);
+    await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(12, 7, 20)');
+  });
+
   test('docs overview page loads with sidebar', async ({ page }) => {
     await page.goto('/docs/');
     await expect(page).toHaveTitle(/Qwik/);

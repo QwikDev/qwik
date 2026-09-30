@@ -14,7 +14,7 @@
   margin: 0 auto;
 }
 
-[data-theme='light'] .qwik-plus-logo-text {
+:root:not(.dark):not([data-theme='dark']) .qwik-plus-logo-text {
   filter: invert(1);
 }
 
@@ -60,8 +60,9 @@
 .moblie-ecosystem-menu summary,
 .moblie-ecosystem-menu ul {
   background:
-    linear-gradient(var(--qwik-dark-purple-bg), var(--qwik-dark-purple-bg)) padding-box,
-    linear-gradient(to bottom, #ac7ff4, #18b6f6) border-box;
+    linear-gradient(var(--color-background-base), var(--color-background-base)) padding-box,
+    linear-gradient(to bottom, var(--color-primary-border-base), var(--color-border-accent))
+      border-box;
 }
 
 .moblie-ecosystem-menu summary {
@@ -76,7 +77,7 @@
   content: '';
   border-width: 0.4rem;
   border-style: solid;
-  border-color: transparent transparent transparent #ac7ff4;
+  border-color: transparent transparent transparent var(--color-primary-border-base);
   position: absolute;
   top: 1.3rem;
   left: 1rem;
@@ -88,7 +89,7 @@
 
 .ecosystem details[open] > summary:before {
   transform: rotate(90deg);
-  border-color: transparent transparent transparent #18b6f6;
+  border-color: transparent transparent transparent var(--color-border-accent);
 }
 
 .ecosystem details summary::-webkit-details-marker {
@@ -107,12 +108,7 @@
   font-weight: 500;
   padding-bottom: 15px;
   margin-bottom: 25px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-[data-theme='light'] .ecosystem h2,
-[data-theme='light'] .ecosystem-menu h3 {
-  border-color: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--color-border-base);
 }
 
 .ecosystem h2 {
@@ -135,8 +131,8 @@
 }
 
 .ecosystem-menu a:hover {
-  background: linear-gradient(180deg, rgba(46, 51, 90, 0.3) 0%, rgba(28, 27, 51, 0.3) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--color-background-accent);
+  border: 1px solid var(--color-border-base);
 }
 
 .ecosystem-menu svg {
@@ -158,8 +154,9 @@
   position: relative;
 
   background:
-    linear-gradient(var(--qwik-dark-purple-bg), var(--qwik-dark-purple-bg)) padding-box,
-    linear-gradient(to bottom, #ac7ff4, #18b6f6) border-box;
+    linear-gradient(var(--color-background-base), var(--color-background-base)) padding-box,
+    linear-gradient(to bottom, var(--color-primary-border-base), var(--color-border-accent))
+      border-box;
   border-radius: 5px;
   border: 1px solid transparent;
   overflow: hidden;
@@ -249,8 +246,10 @@
   margin: auto;
 }
 
-[data-theme='dark'] [alt='GitHub'],
-[data-theme='dark'] [alt='Twitter'] {
+html.dark [alt='GitHub'],
+html.dark [alt='Twitter'],
+html[data-theme='dark'] [alt='GitHub'],
+html[data-theme='dark'] [alt='Twitter'] {
   filter: invert(1);
 }
 

@@ -37,7 +37,7 @@ export const Streaming = component$(() => {
         <div class="absolute -z-2 -inset-x-1/3 -inset-y-1/2 bg-hero-gradient-purple opacity-50" />
         <TimeToInteractive
           alt="Time to interactive grows with app size in frameworks that hydrate, and stays flat with Qwik's JavaScript streaming."
-          class="w-full md:w-[380px] lg:w-[430px] 2xl:w-[500px] h-auto md:my-auto"
+          class="w-full md:w-[380px] lg:w-[430px] 2xl:w-[500px] h-auto md:my-auto [html.dark_&]:invert [html.dark_&]:hue-rotate-180"
           sizes="(min-width: 90rem) 500px, 440px"
         />
         <Link

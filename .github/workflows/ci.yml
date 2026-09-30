@@ -10,11 +10,9 @@
 
 name: Qwik CI
 
-# TODO fix e2e tests hanging and not cancelling
-# # We only need one instance of the workflow running at a time, per branch
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
-#   cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 on:
   pull_request:

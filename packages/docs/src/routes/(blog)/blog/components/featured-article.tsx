@@ -6,6 +6,8 @@ import { lucide } from '@qds.dev/ui';
 import { ArticleTag } from './article-tag';
 
 export const FeaturedArticle = component$(() => {
+  const titlePosition = blogArticles[0].featuredTitlePosition ?? 'bottom';
+
   return (
     <article class="relative group cursor-pointer">
       <Link href={blogArticles[0].path}>
@@ -22,10 +24,10 @@ export const FeaturedArticle = component$(() => {
 
         <div
           class={{
-            'hidden md:block absolute p-14 text-white': true,
-            'bottom-0': blogArticles[0].featuredTitlePosition === 'bottom',
-            'top-0': blogArticles[0].featuredTitlePosition === 'top',
-            hidden: blogArticles[0].featuredTitlePosition === 'none',
+            'hidden absolute p-14 text-white': true,
+            'md:block': titlePosition !== 'none',
+            'bottom-0': titlePosition === 'bottom',
+            'top-0': titlePosition === 'top',
           }}
         >
           <h2 class="pb-4 text-h5 font-heading leading-tight transition-colors">

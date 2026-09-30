@@ -92,6 +92,11 @@ export function localComponentSetups(module: {
 /** Query paths longer than this collapse to Unknown; a legitimate member chain never gets close. */
 const MAX_QUERY_PATH = 16;
 
+const pathKey = (path: ResultPath) =>
+  JSON.stringify(
+    path.map((part) => (typeof part === 'symbol' ? { result: part.description } : part))
+  );
+
 /** True when every part of `previous` appears in order inside `path`. */
 function growsPath(previous: ResultPath, path: ResultPath): boolean {
   let index = 0;
@@ -335,75 +340,134 @@ export function linkRenderResults(
     }
   });
 
-  /** Kinds a mutation may write into `path`; 0 when the path provably stays untouched. */
-  const mutationKinds = (
-    module: number,
-    binding: number,
-    path: ResultPath,
-    seen: Set<string>
+  const cache = new Map<string, number>();
+  // Each query runs once per pass and a cyclic read takes its provisional value. Passes repeat
+  // until no result gains a kind; every rule only grows with its inputs, so no early partial
+  // answer can pin a result to Unknown.
+  const settled = new Set<string>();
+  const evaluating = new Set<string>();
+  let changed = false;
+  let finalize = false;
+  const memoQuery = (
+    key: string,
+    compute: () => number,
+    settle: (kinds: number) => number,
+    cutoff: () => number | null
   ): number => {
+    if (settled.has(key) || evaluating.has(key)) {
+      return cache.get(key) ?? 0;
+    }
+    const cut = cutoff();
+    if (cut !== null) {
+      return cut;
+    }
+    evaluating.add(key);
+    const computed = compute();
+    evaluating.delete(key);
+    const result = settle(computed | (cache.get(key) ?? 0));
+    if (cache.get(key) !== result) {
+      cache.set(key, result);
+      changed = true;
+    }
+    settled.add(key);
+    return result;
+  };
+  const activeReadPaths = new Map<string, ResultPath[]>();
+  const activeMutationPaths = new Map<string, ResultPath[]>();
+  /** Runs `compute` with `path` on the binding's stack of active paths. */
+  const withActivePath = (
+    active: Map<string, ResultPath[]>,
+    binding: string,
+    path: ResultPath,
+    compute: () => number
+  ): number => {
+    const paths = active.get(binding) ?? [];
+    paths.push(path);
+    active.set(binding, paths);
+    const result = compute();
+    paths.pop();
+    if (paths.length === 0) {
+      active.delete(binding);
+    }
+    return result;
+  };
+  /** A query that only grows an active path on its binding recurses through a structure. */
+  const growsActivePath = (active: Map<string, ResultPath[]>, binding: string, path: ResultPath) =>
+    (active.get(binding) ?? []).some(
+      (previous) => path.length > previous.length && growsPath(previous, path)
+    );
+
+  /** Kinds a mutation may write into `path`; 0 when the path provably stays untouched. */
+  const mutationKinds = (module: number, binding: number, path: ResultPath): number => {
     const key = bindingKey(module, binding);
-    const facts = modules[module].bindings[binding]?.result;
-    if (seen.has(key)) {
-      return 0;
-    }
-    if (facts === undefined) {
-      return Kind.Unknown;
-    }
-    if (
-      facts.escapes.some(
-        (escape) =>
-          escape.length < path.length &&
-          escape.every((part, index) => matchesPath(part, path[index]))
-      )
-    ) {
-      return Kind.Unknown;
-    }
-    const next = new Set(seen).add(key);
-    let kinds = 0;
-    for (const alias of facts.aliases ?? []) {
-      if (
-        alias.path.length < path.length &&
-        alias.path.every((part, index) => matchesPath(part, path[index]))
-      ) {
-        kinds |= aliasMutationKinds(module, alias.target, path.slice(alias.path.length), next);
-      }
-    }
-    for (const call of facts.calls ?? []) {
-      if (
-        call.path.length < path.length &&
-        call.path.every((part, index) => matchesPath(part, path[index])) &&
-        arrayCallMutationKinds(
-          module,
-          call,
-          readBinding(module, binding, call.path),
-          path.slice(call.path.length),
-          next
-        ) !== 0
-      ) {
-        kinds |= Kind.Unknown;
-      }
-    }
-    for (const write of facts.writes) {
-      if (write.path.every((part, index) => matchesPath(part, path[index]))) {
-        kinds |= evaluate(module, write.value, path.slice(write.path.length));
-      }
-    }
-    for (const consumer of facts.consumers ?? []) {
-      if (
-        consumer.path.length < path.length &&
-        consumer.path.every((part, index) => matchesPath(part, path[index]))
-      ) {
-        kinds |= consumerMutationKinds(module, consumer, path.slice(consumer.path.length), next);
-      }
-    }
-    return kinds;
+    return memoQuery(
+      `m:${key}:${pathKey(path)}`,
+      () =>
+        withActivePath(activeMutationPaths, key, path, () => {
+          const facts = modules[module].bindings[binding]?.result;
+          if (facts === undefined) {
+            return Kind.Unknown;
+          }
+          if (
+            facts.escapes.some(
+              (escape) =>
+                escape.length < path.length &&
+                escape.every((part, index) => matchesPath(part, path[index]))
+            )
+          ) {
+            return Kind.Unknown;
+          }
+          let kinds = 0;
+          for (const alias of facts.aliases ?? []) {
+            if (
+              alias.path.length < path.length &&
+              alias.path.every((part, index) => matchesPath(part, path[index]))
+            ) {
+              kinds |= aliasMutationKinds(module, alias.target, path.slice(alias.path.length));
+            }
+          }
+          for (const call of facts.calls ?? []) {
+            if (
+              call.path.length >= path.length ||
+              !call.path.every((part, index) => matchesPath(part, path[index]))
+            ) {
+              continue;
+            }
+            const receiver = readBinding(module, binding, call.path);
+            // nothing yet, or a scalar: no method call can mutate through it
+            if ((receiver & ~scalar) === 0) {
+              continue;
+            }
+            if (
+              arrayCallMutationKinds(module, call, receiver, path.slice(call.path.length)) !== 0
+            ) {
+              kinds |= Kind.Unknown;
+            }
+          }
+          for (const write of facts.writes) {
+            if (write.path.every((part, index) => matchesPath(part, path[index]))) {
+              kinds |= evaluate(module, write.value, path.slice(write.path.length));
+            }
+          }
+          for (const consumer of facts.consumers ?? []) {
+            if (
+              consumer.path.length < path.length &&
+              consumer.path.every((part, index) => matchesPath(part, path[index]))
+            ) {
+              kinds |= consumerMutationKinds(module, consumer, path.slice(consumer.path.length));
+            }
+          }
+          return kinds;
+        }),
+      (kinds) => kinds,
+      // a mutation chain back into its own binding adds nothing new, as the old `seen` set had it
+      () => (growsActivePath(activeMutationPaths, key, path) ? 0 : null)
+    );
   };
   const consumerMutationKinds = (
     module: number,
     consumer: BindingConsumer,
-    path: ResultPath,
-    seen: Set<string>
+    path: ResultPath
   ): number => {
     if (consumer.target.kind === ResultKind.Function && consumer.property === undefined) {
       if (consumer.target.usesArguments) {
@@ -413,7 +477,7 @@ export function linkRenderResults(
         return 0;
       }
       const parameter = consumer.target.params[consumer.argument];
-      return parameter == null ? Kind.Unknown : mutationKinds(module, parameter, path, seen);
+      return parameter == null ? Kind.Unknown : mutationKinds(module, parameter, path);
     }
     if (consumer.target.kind !== Ir.BindingRead) {
       return Kind.Unknown;
@@ -427,7 +491,7 @@ export function linkRenderResults(
       const parameter = componentProps.get(declKey(target));
       return parameter === undefined
         ? Kind.Unknown
-        : mutationKinds(target.module, parameter, [consumer.property, ...path], seen);
+        : mutationKinds(target.module, parameter, [consumer.property, ...path]);
     }
     const binding =
       target.table === DeclTable.Bindings
@@ -450,301 +514,149 @@ export function linkRenderResults(
         continue;
       }
       const parameter = fn.params[consumer.argument];
-      kinds |=
-        parameter == null ? Kind.Unknown : mutationKinds(target.module, parameter, path, seen);
+      kinds |= parameter == null ? Kind.Unknown : mutationKinds(target.module, parameter, path);
     }
     return kinds;
   };
 
-  const queryIds = new Map<string, number>();
-  const queryBindings: string[] = [];
-  const queryGroups: number[] = [];
-  const queryDependents: Set<number>[] = [];
-  const queryRevisions: number[] = [];
-  let activeQuery: number | undefined;
-  const cache = new Map<number, number>();
-  const completed = new Set<number>();
-  const contextualResults = new Map<number, Map<number, { revision: number; result: number }>>();
-  const queryContexts: Map<number, number>[] = [new Map()];
-  const activeContexts = new Map<number, number>();
-  let contextCycleRevision = 0;
-  let cycleRevision = 0;
-  const queryGroup = (query: number): number => {
-    let group = query;
-    while (queryGroups[group] !== group) {
-      group = queryGroups[group];
-    }
-    while (query !== group) {
-      const parent = queryGroups[query];
-      queryGroups[query] = group;
-      query = parent;
-    }
-    return group;
-  };
-  const enterContext = (context: number, query: number): number => {
-    const children = queryContexts[context];
-    let child = children.get(query);
-    if (child === undefined) {
-      child = queryContexts.length;
-      children.set(query, child);
-      queryContexts.push(new Map());
-    }
-    return child;
-  };
-  const cyclicQueries = new Set<number>();
-  const evaluating = new Set<number>();
-  const activePaths = new Map<string, ResultPath[]>();
-  let changed = false;
-  let finalize = false;
-  let recursiveReads = 0;
-  let cacheRevision = 0;
-  const markCycle = (start: number): void => {
-    const group = queryGroup(start);
-    let isCycle = false;
-    for (const active of evaluating) {
-      isCycle ||= active === start;
-      if (isCycle) {
-        if (!cyclicQueries.has(active)) {
-          cyclicQueries.add(active);
-          cycleRevision++;
-        }
-        const activeGroup = queryGroup(active);
-        if (activeGroup !== group) {
-          queryGroups[activeGroup] = group;
-          cycleRevision++;
-        }
-      }
-    }
-  };
   const readBinding = (moduleIndex: number, binding: number, path: ResultPath): number => {
-    const inputKey = bindingKey(moduleIndex, binding);
-    const queryKey = `${inputKey}:${JSON.stringify(path.map((part) => (typeof part === 'symbol' ? { result: part.description } : part)))}`;
-    let key = queryIds.get(queryKey);
-    if (key === undefined) {
-      key = queryIds.size;
-      queryIds.set(queryKey, key);
-      queryBindings[key] = inputKey;
-      queryGroups[key] = key;
-      queryDependents[key] = new Set();
-      queryRevisions[key] = 0;
-    }
-    if (activeQuery !== undefined) {
-      queryDependents[key].add(activeQuery);
-    }
-    if (completed.has(key)) {
-      return cache.get(key)!;
-    }
-    if (contextCycleRevision !== cycleRevision) {
-      activeContexts.clear();
-      for (const active of evaluating) {
-        if (cyclicQueries.has(active)) {
-          const group = queryGroup(active);
-          activeContexts.set(group, enterContext(activeContexts.get(group) ?? 0, active));
-        }
-      }
-      contextCycleRevision = cycleRevision;
-    }
-    const group = queryGroup(key);
-    const context = activeContexts.get(group) ?? 0;
-    const contextual = contextualResults.get(context)?.get(key);
-    if (contextual?.revision === queryRevisions[key]) {
-      recursiveReads++;
-      return contextual.result;
-    }
-    if (evaluating.has(key)) {
-      recursiveReads++;
-      markCycle(key);
-      return cache.get(key) ?? 0;
-    }
-    const paths = activePaths.get(inputKey) ?? [];
-    // A query that only grows an active path (`x.value = x.value.filter()` inserts `[filter, #return]`
-    // in the middle on every level) is a fixpoint: its kinds are the active query's kinds.
-    if (
-      path.length > MAX_QUERY_PATH ||
-      paths.some((previous) => path.length > previous.length && growsPath(previous, path))
-    ) {
-      recursiveReads++;
-      const start = [...evaluating].find((active) => queryBindings[active] === inputKey);
-      if (start !== undefined) {
-        markCycle(start);
-      }
+    if (path.length > MAX_QUERY_PATH) {
       return Kind.Unknown;
     }
-    const previousRecursiveReads = recursiveReads;
-    const previousRevision = queryRevisions[key];
-    const previousQuery = activeQuery;
-    activeQuery = key;
-    const previousCycleRevision = cycleRevision;
-    paths.push(path);
-    activePaths.set(inputKey, paths);
-    evaluating.add(key);
-    if (cyclicQueries.has(key)) {
-      activeContexts.set(group, enterContext(context, key));
-    }
-    const module = modules[moduleIndex];
-    const imported = importsByBinding[moduleIndex].get(binding);
-    const incoming = inputs.get(inputKey);
-    const facts = module.bindings[binding]?.result;
-    let result = 0;
-    if (incoming !== undefined) {
-      if (exposed.has(inputKey) || incoming.length === 0) {
-        result = Kind.Unknown;
-      } else {
-        for (const input of incoming) {
-          result |= evaluate(input.module, input.result, path);
-        }
-      }
-    } else if (imported?.kind === ImportTargetKind.Declaration && imported.target.ok) {
-      const target = imported.target.value;
-      const declaration = modules[target.module][target.table][target.index];
-      const targetBinding =
-        target.table === DeclTable.Bindings
-          ? target.index
-          : target.table === DeclTable.Qrls
-            ? modules[target.module].qrls[target.index].declaration?.binding
-            : (declaration as { binding?: number | null }).binding;
-      result =
-        targetBinding == null ? Kind.Unknown : readBinding(target.module, targetBinding, path);
-    } else {
-      if (facts === undefined) {
-        result = Kind.Unknown;
-      } else {
-        result = evaluate(moduleIndex, facts.value, path);
-      }
-    }
-    if (facts !== undefined) {
-      for (const alias of facts.aliases ?? []) {
-        if (
-          alias.path.length < path.length &&
-          alias.path.every((part, index) => matchesPath(part, path[index]))
-        ) {
-          result |= aliasMutationKinds(
-            moduleIndex,
-            alias.target,
-            path.slice(alias.path.length),
-            new Set([inputKey])
-          );
-        }
-      }
-      for (const call of facts.calls ?? []) {
-        if (
-          call.path.length >= path.length ||
-          !call.path.every((part, index) => matchesPath(part, path[index]))
-        ) {
-          continue;
-        }
-        const receiver = readBinding(moduleIndex, binding, call.path);
-        if (receiver !== 0 && (receiver & ~scalar) === 0) {
-          continue;
-        }
-        if (receiver !== 0 || finalize) {
-          result |= arrayCallMutationKinds(
-            moduleIndex,
-            call,
-            receiver,
-            path.slice(call.path.length),
-            new Set()
-          );
-        }
-      }
-      for (const write of facts.writes) {
-        if (write.path.every((part, index) => matchesPath(part, path[index]))) {
-          result |= evaluate(moduleIndex, write.value, path.slice(write.path.length));
-        }
-      }
-      for (const escape of facts.escapes) {
-        if (
-          escape.length >= path.length ||
-          !escape.every((part, index) => matchesPath(part, path[index]))
-        ) {
-          continue;
-        }
-        const receiver = readBinding(moduleIndex, binding, escape);
-        if (receiver !== 0 && (receiver & ~scalar) === 0) {
-          continue;
-        }
-        if (
-          receiver === Kind.Array &&
-          path.length === escape.length + 1 &&
-          path.at(-1) === 'length'
-        ) {
-          continue;
-        }
-        if (receiver !== 0 || finalize) {
-          result |= Kind.Unknown;
-        }
-      }
-      for (const consumer of facts.consumers ?? []) {
-        if (
-          consumer.path.length >= path.length ||
-          !consumer.path.every((part, index) => matchesPath(part, path[index]))
-        ) {
-          continue;
-        }
-        const receiver = readBinding(moduleIndex, binding, consumer.path);
-        if (receiver !== 0 && (receiver & ~scalar) === 0) {
-          continue;
-        }
-        if (
-          receiver === Kind.Array &&
-          path.length === consumer.path.length + 1 &&
-          path.at(-1) === 'length'
-        ) {
-          continue;
-        }
-        result |= consumerMutationKinds(
-          moduleIndex,
-          consumer,
-          path.slice(consumer.path.length),
-          new Set()
-        );
-      }
-    }
-    evaluating.delete(key);
-    activeContexts.set(group, context);
-    contextCycleRevision = previousCycleRevision;
-    paths.pop();
-    if (paths.length === 0) {
-      activePaths.delete(inputKey);
-    }
-    result |= cache.get(key) ?? 0;
-    if (finalize && result === 0) {
-      result = Kind.Unknown;
-    }
-    if ((result & Kind.Unknown) !== 0) {
-      result =
-        (result & ~Kind.Unknown) |
-        evaluate(moduleIndex, readDeclaredResult(moduleIndex, binding, path));
-    }
-    if (cache.get(key) !== result) {
-      cache.set(key, result);
-      cacheRevision++;
-      const affected = [key];
-      for (const query of affected) {
-        if (queryRevisions[query] === cacheRevision) {
-          continue;
-        }
-        queryRevisions[query] = cacheRevision;
-        affected.push(...queryDependents[query]);
-      }
-      changed = true;
-    }
-    // Recursive results require the same cycle context and unchanged facts.
-    if (recursiveReads === previousRecursiveReads) {
-      completed.add(key);
-    } else if (
-      queryRevisions[key] === previousRevision &&
-      cycleRevision === previousCycleRevision
-    ) {
-      let results = contextualResults.get(context);
-      if (results === undefined) {
-        results = new Map();
-        contextualResults.set(context, results);
-      }
-      results.set(key, { revision: queryRevisions[key], result });
-    }
-    activeQuery = previousQuery;
-    return result;
+    const inputKey = bindingKey(moduleIndex, binding);
+    const settle = (kinds: number): number => {
+      // after the fixpoint, what nothing reached is Unknown
+      const reached = finalize && kinds === 0 ? Kind.Unknown : kinds;
+      return (reached & Kind.Unknown) === 0
+        ? reached
+        : (reached & ~Kind.Unknown) |
+            evaluate(moduleIndex, readDeclaredResult(moduleIndex, binding, path));
+    };
+    return memoQuery(
+      `${inputKey}:${pathKey(path)}`,
+      () =>
+        withActivePath(activeReadPaths, inputKey, path, () => {
+          const module = modules[moduleIndex];
+          const imported = importsByBinding[moduleIndex].get(binding);
+          const incoming = inputs.get(inputKey);
+          const facts = module.bindings[binding]?.result;
+          let result = 0;
+          if (incoming !== undefined) {
+            if (exposed.has(inputKey) || incoming.length === 0) {
+              result = Kind.Unknown;
+            } else {
+              for (const input of incoming) {
+                result |= evaluate(input.module, input.result, path);
+              }
+            }
+          } else if (imported?.kind === ImportTargetKind.Declaration && imported.target.ok) {
+            const target = imported.target.value;
+            const declaration = modules[target.module][target.table][target.index];
+            const targetBinding =
+              target.table === DeclTable.Bindings
+                ? target.index
+                : target.table === DeclTable.Qrls
+                  ? modules[target.module].qrls[target.index].declaration?.binding
+                  : (declaration as { binding?: number | null }).binding;
+            result =
+              targetBinding == null
+                ? Kind.Unknown
+                : readBinding(target.module, targetBinding, path);
+          } else {
+            if (facts === undefined) {
+              result = Kind.Unknown;
+            } else {
+              result = evaluate(moduleIndex, facts.value, path);
+            }
+          }
+          if (facts !== undefined) {
+            for (const alias of facts.aliases ?? []) {
+              if (
+                alias.path.length < path.length &&
+                alias.path.every((part, index) => matchesPath(part, path[index]))
+              ) {
+                result |= aliasMutationKinds(
+                  moduleIndex,
+                  alias.target,
+                  path.slice(alias.path.length)
+                );
+              }
+            }
+            for (const call of facts.calls ?? []) {
+              if (
+                call.path.length >= path.length ||
+                !call.path.every((part, index) => matchesPath(part, path[index]))
+              ) {
+                continue;
+              }
+              const receiver = readBinding(moduleIndex, binding, call.path);
+              // nothing yet, or a scalar: no method call can mutate through it
+              if ((receiver & ~scalar) === 0) {
+                continue;
+              }
+              result |= arrayCallMutationKinds(
+                moduleIndex,
+                call,
+                receiver,
+                path.slice(call.path.length)
+              );
+            }
+            for (const write of facts.writes) {
+              if (write.path.every((part, index) => matchesPath(part, path[index]))) {
+                result |= evaluate(moduleIndex, write.value, path.slice(write.path.length));
+              }
+            }
+            for (const escape of facts.escapes) {
+              if (
+                escape.length >= path.length ||
+                !escape.every((part, index) => matchesPath(part, path[index]))
+              ) {
+                continue;
+              }
+              const receiver = readBinding(moduleIndex, binding, escape);
+              if ((receiver & ~scalar) === 0) {
+                continue;
+              }
+              if (
+                receiver === Kind.Array &&
+                path.length === escape.length + 1 &&
+                path.at(-1) === 'length'
+              ) {
+                continue;
+              }
+              result |= Kind.Unknown;
+            }
+            for (const consumer of facts.consumers ?? []) {
+              if (
+                consumer.path.length >= path.length ||
+                !consumer.path.every((part, index) => matchesPath(part, path[index]))
+              ) {
+                continue;
+              }
+              const receiver = readBinding(moduleIndex, binding, consumer.path);
+              if ((receiver & ~scalar) === 0) {
+                continue;
+              }
+              if (
+                receiver === Kind.Array &&
+                path.length === consumer.path.length + 1 &&
+                path.at(-1) === 'length'
+              ) {
+                continue;
+              }
+              result |= consumerMutationKinds(
+                moduleIndex,
+                consumer,
+                path.slice(consumer.path.length)
+              );
+            }
+          }
+          return result;
+        }),
+      settle,
+      // `x.value = x.value.filter()` inserts `[filter, #return]` on every level: cut it off
+      () => (growsActivePath(activeReadPaths, inputKey, path) ? Kind.Unknown : null)
+    );
   };
 
   const evaluate = (module: number, result: Result, path: ResultPath = []): number => {
@@ -798,7 +710,7 @@ export function linkRenderResults(
       case Ir.Index:
         return result.key.kind === Ir.Lit
           ? evaluate(module, result.obj, [String(result.key.value), ...path])
-          : evaluate(module, result.key) === Kind.Number
+          : (evaluate(module, result.key) & ~Kind.Number) === 0
             ? evaluate(module, result.obj, [numericPath, ...path])
             : Kind.Unknown;
       case Ir.PropRead:
@@ -925,8 +837,7 @@ export function linkRenderResults(
         if (
           result.callee.kind === Ir.Member &&
           ['slice', 'toSpliced', 'findIndex'].includes(result.callee.name) &&
-          evaluate(module, result.callee.obj) === 0 &&
-          !finalize
+          evaluate(module, result.callee.obj) === 0
         ) {
           return 0;
         }
@@ -972,6 +883,12 @@ export function linkRenderResults(
                   elements
                 );
         }
+        if (result.callee.kind === Ir.Member && stringMethods.has(result.callee.name)) {
+          const receiver = evaluate(module, result.callee.obj);
+          if (receiver === 0) {
+            return 0;
+          }
+        }
         if (
           result.callee.kind === Ir.Member &&
           stringMethods.has(result.callee.name) &&
@@ -994,8 +911,8 @@ export function linkRenderResults(
       isArrayReceiver(receiver) &&
       (method === 'slice' || method === 'toSpliced') &&
       args.slice(0, 2).every((argument) => {
-        const kinds = evaluate(module, argument);
-        return kinds !== 0 && (kinds & ~scalar) === 0;
+        // an argument nothing has reached yet cannot rule the copy out
+        return (evaluate(module, argument) & ~scalar) === 0;
       })
     );
   }
@@ -1040,8 +957,7 @@ export function linkRenderResults(
     module: number,
     call: NonNullable<BindingResult['calls']>[number],
     receiver: number,
-    path: ResultPath,
-    seen: Set<string>
+    path: ResultPath
   ): number {
     if (isArrayCopy(module, call.method, call.args, receiver)) {
       return 0;
@@ -1051,26 +967,19 @@ export function linkRenderResults(
         consumerMutationKinds(
           module,
           { path: [], target: call.args[0], argument: 0 },
-          path.slice(1),
-          seen
-        ) |
-        consumerMutationKinds(module, { path: [], target: call.args[0], argument: 2 }, path, seen)
+          path.slice(1)
+        ) | consumerMutationKinds(module, { path: [], target: call.args[0], argument: 2 }, path)
       );
     }
     return Kind.Unknown;
   }
 
-  function aliasMutationKinds(
-    module: number,
-    target: Result,
-    path: ResultPath,
-    seen: Set<string>
-  ): number {
+  function aliasMutationKinds(module: number, target: Result, path: ResultPath): number {
     if (target.kind === Ir.Member) {
-      return aliasMutationKinds(module, target.obj, [target.name, ...path], seen);
+      return aliasMutationKinds(module, target.obj, [target.name, ...path]);
     }
     if (target.kind === Ir.Index) {
-      return aliasMutationKinds(module, target.obj, [numericPath, ...path], seen);
+      return aliasMutationKinds(module, target.obj, [numericPath, ...path]);
     }
     if (
       target.kind === Ir.BindingRead &&
@@ -1079,7 +988,7 @@ export function linkRenderResults(
       return Kind.Unknown;
     }
     return target.kind === Ir.BindingRead
-      ? mutationKinds(module, target.binding, path, seen)
+      ? mutationKinds(module, target.binding, path)
       : Kind.Unknown;
   }
 
@@ -1105,8 +1014,7 @@ export function linkRenderResults(
   };
   do {
     changed = false;
-    completed.clear();
-    contextualResults.clear();
+    settled.clear();
     modules.forEach((module, index) =>
       module.programs.forEach((program) => {
         if (program.body.kind === ProgramBodyKind.Ops) {

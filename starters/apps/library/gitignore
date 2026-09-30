@@ -10,7 +10,7 @@ node_modules
 # Cache
 .cache
 .mf
-.vscode
+.vscode/*
 .rollup.cache
 tsconfig.tsbuildinfo
 
@@ -25,6 +25,7 @@ lerna-debug.log*
 
 # Editor
 !.vscode/extensions.json
+!.vscode/mcp.json
 .idea
 .DS_Store
 *.suo

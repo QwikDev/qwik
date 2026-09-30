@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import playwright from 'playwright';
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
@@ -43,6 +43,15 @@ describe('template: playground worker$', () => {
       })
     );
     expect(projects).toHaveLength(1);
+  });
+
+  test('configures Qwik MCP for VS Code', () => {
+    const config = JSON.parse(readFileSync(join(global.tmpDir, '.vscode/mcp.json'), 'utf-8'));
+    expect(config.servers.qwik).toEqual({
+      type: 'stdio',
+      command: 'npx',
+      args: ['-y', '@qwik.dev/mcp', '${workspaceFolder}'],
+    });
   });
 
   test('Should invoke worker$ in dev mode', { timeout: DEFAULT_TIMEOUT * 2 }, async () => {

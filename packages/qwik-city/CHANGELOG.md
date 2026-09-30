@@ -1,5 +1,11 @@
 # @builder.io/qwik-city
 
+## 1.20.2
+
+### Patch Changes
+
+- 🐞🩹 catch-all route matching no longer hangs on paths containing `//` (by [@wmertens](https://github.com/wmertens) in [#9072](https://github.com/QwikDev/qwik/pull/9072))
+
 ## 1.20.1
 
 ### Patch Changes

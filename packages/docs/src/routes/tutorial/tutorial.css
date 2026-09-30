@@ -272,7 +272,7 @@
   @apply border-t-[1.6px] border-border-base;
 }
 
-@media (max-width: 90rem) {
+@media (width < 90rem) {
   .tutorial {
     @apply mt-0;
   }

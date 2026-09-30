@@ -61,6 +61,27 @@ test.describe('Docs site smoke tests', () => {
     );
   });
 
+  test('tutorial starts directly below the header', async ({ page }) => {
+    await page.goto('/tutorial/welcome/overview/');
+
+    for (const width of [1600, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const nav = await page.locator('[ui-qds-navbar-root]').boundingBox();
+      const main = await page.locator('.tutorial main').boundingBox();
+      expect(nav).not.toBeNull();
+      expect(main).not.toBeNull();
+      expect(main!.y - (nav!.y + nav!.height)).toBeGreaterThanOrEqual(16);
+      expect(main!.y - (nav!.y + nav!.height)).toBeLessThanOrEqual(32);
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const panelToggle = await page.locator('.tutorial .panel-toggle').boundingBox();
+    const main = await page.locator('.tutorial main').boundingBox();
+    expect(panelToggle).not.toBeNull();
+    expect(main).not.toBeNull();
+    expect(main!.y).toBe(panelToggle!.y + panelToggle!.height);
+  });
+
   test('search suggestion points to the getting started page', async ({ page }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto('/docs/');

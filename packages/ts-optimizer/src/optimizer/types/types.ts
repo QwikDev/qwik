@@ -58,6 +58,16 @@ export interface TransformModulesOptions {
   readonly stripEventHandlers?: boolean;
 
   readonly isServer?: boolean;
+
+  /** Decorator lowering applied while stripping TypeScript, mirroring tsconfig. */
+  readonly decorator?: DecoratorOptions;
+}
+
+/** Mirrors tsconfig's `experimentalDecorators` and `emitDecoratorMetadata`. */
+export interface DecoratorOptions {
+  readonly legacy?: boolean;
+
+  readonly emitDecoratorMetadata?: boolean;
 }
 
 /**

@@ -9,6 +9,14 @@ import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
  */
 let rawTransferUnavailable = false;
 
+/**
+ * Raw transfer also reserves ~6 GB of address space per thread, which fork() must account for. Pool
+ * workers switch to the plain parser so the host process stays able to spawn children.
+ */
+export function disableRawTransfer(): void {
+  rawTransferUnavailable = true;
+}
+
 export function parseWithRawTransfer(filename: string, sourceText: string): ParseResult {
   if (rawTransferUnavailable || !RAW_TRANSFER_PARSER_OPTIONS.experimentalRawTransfer) {
     return parseSync(filename, sourceText);

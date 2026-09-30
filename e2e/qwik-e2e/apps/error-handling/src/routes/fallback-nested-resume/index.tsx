@@ -1,30 +1,26 @@
-import { component$, ErrorBoundary } from '@qwik.dev/core';
-import {
-  EbAlwaysThrower,
-  EbSyncThrower,
-  errMsg,
-} from '../../components/error-boundary/error-boundary';
+import { component$, Catch } from '@qwik.dev/core';
+import { CatchAlwaysThrower, CatchSyncThrower, errMsg } from '../../components/catch/catch';
 
 export default component$(() => (
-  <ErrorBoundary
+  <Catch
     fallback$={(e) => (
-      <section id="eb-outer-fb">
-        <p id="eb-outer-fb-msg">outer: {errMsg(e)}</p>
-        <ErrorBoundary
+      <section id="catch-outer-fb">
+        <p id="catch-outer-fb-msg">outer: {errMsg(e)}</p>
+        <Catch
           fallback$={(ie, reset) => (
-            <section id="eb-inner-fb">
-              <p id="eb-inner-fb-msg">inner: {errMsg(ie)}</p>
-              <button id="eb-inner-reset" onClick$={() => reset()}>
+            <section id="catch-inner-fb">
+              <p id="catch-inner-fb-msg">inner: {errMsg(ie)}</p>
+              <button id="catch-inner-reset" onClick$={() => reset()}>
                 Retry inner
               </button>
             </section>
           )}
         >
-          <EbSyncThrower />
-        </ErrorBoundary>
+          <CatchSyncThrower />
+        </Catch>
       </section>
     )}
   >
-    <EbAlwaysThrower />
-  </ErrorBoundary>
+    <CatchAlwaysThrower />
+  </Catch>
 ));

@@ -185,6 +185,23 @@ describe('request-event redirect', () => {
     consoleSpy.mockRestore();
   });
 
+  it.each(['/\\evil.com', '\\/evil.com', '\\\\evil.com'])(
+    'should fix protocol-relative URL redirects containing backslashes: %s',
+    (url) => {
+      const requestEv = createMockRequestEvent();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = requestEv.redirect(302, url);
+
+      expect(result).toBeInstanceOf(RedirectMessage);
+      expect(requestEv.headers.get('Location')).toBe('/evil.com');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Redirect URL ${url} is invalid, fixing to /evil.com`
+      );
+      consoleSpy.mockRestore();
+    }
+  );
+
   it('should preserve valid URLs with protocols', () => {
     const requestEv = createMockRequestEvent();
 

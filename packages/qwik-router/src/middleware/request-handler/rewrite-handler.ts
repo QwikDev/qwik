@@ -1,4 +1,5 @@
 import { AbortMessage } from './redirect-handler';
+import { shareClassIdentity } from './shared-class-identity';
 
 /** @public */
 export class RewriteMessage extends AbortMessage {
@@ -6,3 +7,4 @@ export class RewriteMessage extends AbortMessage {
     super();
   }
 }
+shareClassIdentity(RewriteMessage, 'RewriteMessage');

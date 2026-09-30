@@ -13,17 +13,17 @@ export const ReleaseButton = component$<{
   const releaseUrl = `/__ooos-release/${encodeURIComponent(requestId)}/${encodeURIComponent(
     releaseId
   )}`;
-  const html = `<button id="eb-release" data-release-url="${releaseUrl}" onclick="fetch(this.getAttribute('data-release-url'),{method:'POST'})">${label}</button>`;
+  const html = `<button id="catch-release" data-release-url="${releaseUrl}" onclick="fetch(this.getAttribute('data-release-url'),{method:'POST'})">${label}</button>`;
   return <span dangerouslySetInnerHTML={html} />;
 });
 
-export const EbGatedOk = component$<{ requestId: string; releaseId: string | null }>(
+export const CatchGatedOk = component$<{ requestId: string; releaseId: string | null }>(
   ({ requestId, releaseId }) => {
     if (isServer) {
       return releaseGated(requestId, releaseId, () => (
-        <span id="eb-deferred-ok">deferred ok</span>
+        <span id="catch-deferred-ok">deferred ok</span>
       )) as unknown as JSXOutput;
     }
-    return <span id="eb-deferred-ok">deferred ok</span>;
+    return <span id="catch-deferred-ok">deferred ok</span>;
   }
 );

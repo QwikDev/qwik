@@ -1,15 +1,15 @@
-import { component$, ErrorBoundary, useVisibleTask$ } from '@qwik.dev/core';
-import { defaultFallback } from '../../components/error-boundary/error-boundary';
+import { component$, Catch, useVisibleTask$ } from '@qwik.dev/core';
+import { defaultFallback } from '../../components/catch/catch';
 
 const VisibleTaskThrower = component$(() => {
   useVisibleTask$(() => {
     throw new Error('visible boom');
   });
-  return <div id="eb-content">streamed content</div>;
+  return <div id="catch-content">streamed content</div>;
 });
 
 export default component$(() => (
-  <ErrorBoundary fallback$={defaultFallback}>
+  <Catch fallback$={defaultFallback}>
     <VisibleTaskThrower />
-  </ErrorBoundary>
+  </Catch>
 ));

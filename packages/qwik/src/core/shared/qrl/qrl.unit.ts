@@ -1,10 +1,10 @@
 import { $ } from '@qwik.dev/core';
-import { assert, assertType, describe, expectTypeOf, test, vi } from 'vitest';
+import { assert, assertType, describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
-import { _regSymbol, inlinedQrl, qrl } from './qrl';
-import { _captures, createQRL, deserializeCaptureDeltas } from './qrl-class';
+import { _regInlinedQrl, _regSymbol, inlinedQrl, qrl } from './qrl';
+import { _capturesObj, createQRL, deserializeCaptureDeltas } from './qrl-class';
 import { type QRL } from './qrl.public';
 
 function matchProps(obj: any, properties: Record<string, any>) {
@@ -300,10 +300,22 @@ describe('inlinedQrl', () => {
     await otherQrl.resolve();
     assert.equal(otherQrl.resolved, symbol);
   });
+
+  test('only registers an inlined symbol by hash on request', async () => {
+    const symbol = () => 'from a library';
+    const libraryQrl = inlinedQrl(symbol, 'libSymbol_456');
+    // The server calls registered symbols by hash, so creating a QRL must not expose it.
+    await expect(inlinedQrl(null, 'libSymbol_456').resolve()).rejects.toThrow();
+
+    _regInlinedQrl(libraryQrl);
+    const otherQrl = inlinedQrl(null, 'libSymbol_456');
+    await otherQrl.resolve();
+    assert.equal(otherQrl.resolved, symbol);
+  });
 });
 
 describe('w (with captures)', () => {
-  const capFn = () => _captures;
+  const capFn = () => _capturesObj._;
 
   test('should share the same LazyRef', () => {
     const q1 = createQRL('chunk', 'symbol', capFn, null, ['a']);

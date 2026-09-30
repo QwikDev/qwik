@@ -5,7 +5,7 @@ import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js
 it('a sibling component referenced as a JSX tag is captured', () => {
   // Core unit specs define sibling component$ consts inside it(); the hoisted
   // Counter body must capture Display like any other function-scoped binding
-  // (rust: `const Display = _captures[0]`).
+  // (rust: `let Display = _capturesObj._[0]`).
   const code = `
 import { component$, useSignal } from '@qwik.dev/core';
 export function setup(render: any) {
@@ -39,5 +39,5 @@ export function setup(render: any) {
   // Counter's qrl carries both captures, in code-unit sort order.
   expect(allCode).toMatch(/Counter_component_[A-Za-z0-9]+\.w\(\[\s*Display,\s*log\s*\]\)/);
   // The hoisted body unpacks Display from captures instead of a free ref.
-  expect(allCode).toMatch(/const Display = _captures\[0\], log = _captures\[1\]/);
+  expect(allCode).toMatch(/let Display = _capturesObj\._\[0\], log = _capturesObj\._\[1\]/);
 });

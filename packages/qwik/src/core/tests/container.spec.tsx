@@ -13,7 +13,7 @@ import {
   vnode_getText,
 } from '../client/vnode-utils';
 import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
-import { ComputedSignalFlags } from '../reactive-primitives/types';
+import { ComputedSignalFlags, NEEDS_COMPUTATION } from '../reactive-primitives/types';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
 import { JSXNodeImpl } from '../shared/jsx/jsx-node';
 import { Fragment } from '../shared/jsx/jsx-runtime';
@@ -479,7 +479,7 @@ describe('serializer v2', () => {
           ssr.addRoot(computed);
         });
         const got = container.$getObjectById$(0);
-        expect(got.$untrackedValue$).toMatchInlineSnapshot(`Symbol(invalid)`);
+        expect(got.$untrackedValue$).toBe(NEEDS_COMPUTATION);
         expect(!!(got.$flags$ & ComputedSignalFlags.INVALID)).toBe(true);
         expect(await retryOnPromise(() => got.value)).toBe('test!');
       });

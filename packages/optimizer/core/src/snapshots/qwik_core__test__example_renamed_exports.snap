@@ -29,12 +29,12 @@ export const App = /*#__PURE__*/ componentQrl(q_App_Component_NuXFTHRjvXE);
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAMhB\"}")
 ============================= test.tsx_App_Component_1_A08tXHb9pEk.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 //
 export const App_Component_1_A08tXHb9pEk = ()=>{
-    const state = _captures[0];
+    let state = _capturesObj._[0];
     return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "thing"), 3, "u6_0");
 };
 

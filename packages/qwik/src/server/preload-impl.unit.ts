@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const createContainer = () => {
+const createContainer = (buildBase = '/') => {
   const elements: { tagName: string; attrs: Record<string, string> }[] = [];
   let scriptContent = '';
 
   const container = {
-    $buildBase$: '/',
+    $buildBase$: buildBase,
     resolvedManifest: {
       manifest: {
         preloader: 'preloader.js',
@@ -90,5 +90,31 @@ describe('preloader', () => {
     const immediateScript = getScriptContent().split(`window.addEventListener('load'`)[0];
     expect(immediateScript).toContain('route-2.js');
     expect(immediateScript).not.toContain('route-3.js');
+  });
+
+  it('preloads the core bundle from the build base in a development build', async () => {
+    // `vite build` with a NODE_ENV other than production sets DEV, but still serves from /build/.
+    vi.stubEnv('DEV', true);
+    vi.stubEnv('BASE_URL', '/');
+    vi.doMock('./qwik-copy', () => ({
+      initPreloader: vi.fn(),
+      qTest: false,
+    }));
+    vi.resetModules();
+
+    const { container, elements } = createContainer('/build/');
+    const { preloaderPre } = await import('./preload-impl');
+
+    preloaderPre(container, {});
+
+    expect(elements).toEqual([
+      {
+        tagName: 'link',
+        attrs: {
+          rel: 'modulepreload',
+          href: '/build/core.js',
+        },
+      },
+    ]);
   });
 });

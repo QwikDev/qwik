@@ -169,10 +169,6 @@ export default defineConfig(({ mode }) => {
             'algoliasearch',
             '@algolia/autocomplete-core/dist/esm/reshape',
             'algoliasearch/dist/algoliasearch-lite.esm.browser',
-            'qwik-image',
-            '@modular-forms/qwik',
-            '@qds.dev/ui',
-            '@qds.dev/tools',
           ],
           conditions: ssrConditions,
         },
@@ -188,6 +184,9 @@ export default defineConfig(({ mode }) => {
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     },
     resolve: {
+      // Every server environment, including the adapter's `ssg`, bundles these Qwik libraries;
+      // @modular-forms/qwik is built with Qwik 1.
+      noExternal: ['qwik-image', '@modular-forms/qwik', '@qds.dev/ui', '@qds.dev/tools'],
       alias: [
         {
           find: '~',
@@ -250,7 +249,7 @@ export default defineConfig(({ mode }) => {
       qwikVite({
         debug: false,
         tsOptimizer: true,
-        experimental: ['each', 'show', 'suspense', 'errorBoundary', 'insights'],
+        experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'insights'],
         devTools: { hmr: false },
       }),
       partytownVite({

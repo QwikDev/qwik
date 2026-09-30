@@ -1,24 +1,27 @@
 import { describe, expect, it, vi } from 'vitest';
+import { _setRouterConfig } from '../../runtime/src/router-config';
+import { clearSsrCache } from './etag';
 import { requestHandler } from './request-handler';
 import { ServerError } from './server-error';
 import type { ServerRequestEvent } from './types';
 
-const { routeState } = vi.hoisted(() => ({
-  routeState: { module: {} as Record<string, unknown> },
-}));
+const routeState = {
+  module: {} as Record<string, unknown>,
+  rewriteModule: {} as Record<string, unknown>,
+};
 
-vi.mock('@qwik-router-config', () => ({
+_setRouterConfig({
   routes: {
     _I: async () => routeState.module,
+    first: { _I: async () => routeState.rewriteModule },
+    second: { _I: async () => routeState.rewriteModule },
     'etag-error': { _I: async () => routeState.module },
     'etag-late': { _I: async () => routeState.module },
-  },
-  serverPlugins: undefined,
+  } as any,
   cacheModules: false,
-  importEagerModules: undefined,
   basePathname: '/',
   fallthrough: false,
-}));
+});
 
 function createServerRequestEvent(url = 'http://localhost/') {
   const captured: { status?: number; headers?: Headers; chunks: Uint8Array[] } = { chunks: [] };
@@ -46,14 +49,57 @@ function createServerRequestEvent(url = 'http://localhost/') {
   return { ev, captured };
 }
 
-const createRender = (errorBoundaryCaught: boolean) =>
+const createRender = (hasCaughtError: boolean) =>
   vi.fn(async (opts: any) => {
-    opts.onBeforeFirstFlush?.({ errorBoundaryCaught });
+    opts.onBeforeFirstFlush?.({ hasCaughtError });
     await opts.stream.write('<!DOCTYPE html><html q:container="paused"></html>');
     return { flushes: 1, size: 10, isStatic: false, timing: {} };
   });
 
 describe('render cache control', () => {
+  it('keeps SSR cache entries separate for original URLs rewritten to the same route', async () => {
+    clearSsrCache();
+    routeState.module = {
+      default: () => null,
+      routeConfig: { eTag: 'rewrite-cache-v1', cacheKey: true },
+    };
+    routeState.rewriteModule = {
+      default: () => null,
+      onGet: (ev: { rewrite: (path: string) => unknown }) => {
+        throw ev.rewrite('/');
+      },
+    };
+    const render = vi.fn(async (opts: any) => {
+      opts.onBeforeFirstFlush?.({ hasCaughtError: false });
+      await opts.stream.write(opts.serverData.url);
+      return { flushes: 1, size: 10, isStatic: false, timing: {} };
+    });
+
+    try {
+      const first = createServerRequestEvent('http://localhost/first/');
+      const firstRun = await requestHandler(first.ev, { render: render as any });
+      await firstRun!.completion;
+
+      const second = createServerRequestEvent('http://localhost/second/');
+      const secondRun = await requestHandler(second.ev, { render: render as any });
+      await secondRun!.completion;
+
+      const secondHtml = new TextDecoder().decode(
+        Buffer.concat(second.captured.chunks.map((chunk) => Buffer.from(chunk)))
+      );
+      expect(secondHtml).toBe('http://localhost/second/');
+      expect(second.captured.headers?.get('X-SSR-Cache')).toBeNull();
+
+      const repeated = createServerRequestEvent('http://localhost/first/');
+      const repeatedRun = await requestHandler(repeated.ev, { render: render as any });
+      await repeatedRun!.completion;
+      expect(repeated.captured.headers?.get('X-SSR-Cache')).toBe('HIT');
+      expect(render).toHaveBeenCalledTimes(2);
+    } finally {
+      clearSsrCache();
+    }
+  });
+
   it('a boundary error caught before the first flush responds with no-store', async () => {
     routeState.module = { default: () => null };
     const { ev, captured } = createServerRequestEvent();
@@ -84,7 +130,7 @@ describe('render cache control', () => {
         throw new ServerError(500, 'render boom');
       })
       .mockImplementation(async (opts: any) => {
-        opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+        opts.onBeforeFirstFlush?.({ hasCaughtError: false });
         await opts.stream.write('ERROR DOC');
         return { flushes: 1, size: 9, isStatic: false, timing: {} };
       });
@@ -104,9 +150,9 @@ describe('render cache control', () => {
   it('a boundary caught after the first flush skips the SSR etag cache', async () => {
     routeState.module = { default: () => null, routeConfig: { eTag: 'v1', cacheKey: true } };
     const lateCatchRender = vi.fn(async (opts: any) => {
-      opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+      opts.onBeforeFirstFlush?.({ hasCaughtError: false });
       await opts.stream.write('<html>late fallback</html>');
-      return { flushes: 2, size: 10, isStatic: false, timing: {}, errorBoundaryCaught: true };
+      return { flushes: 2, size: 10, isStatic: false, timing: {}, hasCaughtError: true };
     });
     const first = createServerRequestEvent('http://localhost/etag-late/');
     const run1 = await requestHandler(first.ev, { render: lateCatchRender as any });
@@ -162,9 +208,9 @@ describe('render cache control', () => {
     try {
       routeState.module = { default: () => null, routeConfig: { eTag: 'v1', cacheKey: true } };
       const lateCatchRender = vi.fn(async (opts: any) => {
-        opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+        opts.onBeforeFirstFlush?.({ hasCaughtError: false });
         await opts.stream.write('<html>late fallback</html>');
-        return { flushes: 2, size: 10, isStatic: false, timing: {}, errorBoundaryCaught: true };
+        return { flushes: 2, size: 10, isStatic: false, timing: {}, hasCaughtError: true };
       });
       const { ev } = createServerRequestEvent('http://localhost/etag-late/');
       const run = await requestHandler(ev, { render: lateCatchRender as any });

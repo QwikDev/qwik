@@ -1,6 +1,6 @@
 import { component$ } from '@qwik.dev/core';
-import { EbThrowOnClick } from '../../components/error-boundary/error-boundary';
+import { CatchThrowOnClick } from '../../components/catch/catch';
 
 export default component$(() => (
-  <EbThrowOnClick idPrefix="eb-no-boundary" message="no-boundary boom" />
+  <CatchThrowOnClick idPrefix="catch-no-boundary" message="no-boundary boom" />
 ));

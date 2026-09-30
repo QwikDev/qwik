@@ -1,5 +1,5 @@
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
-import type { StaticGenerateOptions, SsgRenderOptions } from 'packages/qwik-router/src/ssg';
+import type { StaticGenerateOptions, SsgRenderOptions } from '../../../ssg';
 import type { QwikRouterPlugin } from '@qwik.dev/router/vite';
 import { spawn } from 'node:child_process';
 import { readFile, rm, unlink } from 'node:fs/promises';
@@ -169,7 +169,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         basePathname,
         rootDir,
         ...opts.ssg,
-        maxWorkers: opts.maxWorkers,
+        maxWorkers: opts.maxWorkers ?? opts.ssg?.maxWorkers,
       };
       for (const key of Object.keys(ssgOpts) as (keyof typeof ssgOpts)[]) {
         if (ssgOpts[key] === undefined) {

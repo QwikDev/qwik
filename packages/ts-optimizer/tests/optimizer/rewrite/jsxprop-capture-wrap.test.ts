@@ -41,6 +41,31 @@ function findComponentBodySegment(result: ReturnType<typeof transformModule>) {
   return result.modules.find((m) => m.kind === 'segment' && m.segment.ctxName === 'component$');
 }
 
+describe('.w([captures]) on bare $() Component-prop refs outside a component', () => {
+  const source = `
+import { $ } from '@qwik.dev/core';
+import { Card } from './card';
+export function render() {
+  const received: unknown[] = [];
+  return <Card onError$={$((e: any) => received.push(e))} fallback$={$((e: any) => received.push(e))} />;
+}
+`;
+  const wrapped = (prop: string) =>
+    new RegExp(`${prop}\\$:\\s*q_[A-Za-z_0-9]+\\.w\\(\\s*\\[\\s*received\\s*\\]\\s*\\)`);
+
+  it.each([
+    ['default', transformDefault],
+    ['hoist', transformHoist],
+  ])('%s strategy keeps the captures on both props', (_name, transform) => {
+    const parent = transform(source).modules.find((m) => m.kind !== 'segment');
+    if (!parent) {
+      throw new Error('parent module missing');
+    }
+    expect(parent.code).toMatch(wrapped('onError'));
+    expect(parent.code).toMatch(wrapped('fallback'));
+  });
+});
+
 describe('.w([captures]) on Component-prop QRL refs (default strategy)', () => {
   describe('Positive: captured Component-prop emits .w(...) wrap', () => {
     it('single capture: `<Card captured$={() => state.x}>` → `captured$: q_X.w([state])`', () => {

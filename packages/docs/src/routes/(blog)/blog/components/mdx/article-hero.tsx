@@ -42,7 +42,9 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
               <span class="pr-2">{tag}</span>
             ))}
           </h4>
-          <h1 class="text-[48px] font-bold text-center tracking-wide pt-6">{title}</h1>
+          <h1 class="text-[48px] max-sm:text-h5 font-bold text-center tracking-wide pt-6">
+            {title}
+          </h1>
           <div class="flex justify-center pt-8 pb-10 text-xl">
             <h4 class="font-semibold uppercase text-center">{frontmatter.date}</h4>
             <div class="border mx-4"></div>

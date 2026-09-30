@@ -8,6 +8,8 @@ import type { Container, SerializationStrategy } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { PropsProxy } from '../shared/jsx/props-proxy';
+import { Brand, brandClass } from '../shared/utils/brand';
+import { qwikSymbol } from '../shared/singletons';
 
 /**
  * # ================================
@@ -21,7 +23,7 @@ import type { PropsProxy } from '../shared/jsx/props-proxy';
  * Special value used to mark that a given signal needs to be computed. This is essentially a
  * "marked as dirty" flag.
  */
-export const NEEDS_COMPUTATION: any = Symbol('invalid');
+export const NEEDS_COMPUTATION: any = /*#__PURE__*/ qwikSymbol('invalid');
 
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
 export type ComputeCtx<T = unknown> = {
@@ -174,6 +176,7 @@ export class EffectSubscription {
     public data: SubscriptionData | null = null
   ) {}
 }
+brandClass(EffectSubscription, Brand.EffectSubscription);
 
 export type EffectBackRef = SignalImpl | StoreTarget | PropsProxy;
 
@@ -241,9 +244,9 @@ export type CustomSerializable<T extends { [SerializerSymbol]: (obj: any) => any
  * # ================================
  */
 
-export const STORE_TARGET = Symbol('store.target');
-export const STORE_HANDLER = Symbol('store.handler');
-export const STORE_ALL_PROPS = Symbol('store.all');
+export const STORE_TARGET: unique symbol = /*#__PURE__*/ qwikSymbol('store.target');
+export const STORE_HANDLER: unique symbol = /*#__PURE__*/ qwikSymbol('store.handler');
+export const STORE_ALL_PROPS: unique symbol = /*#__PURE__*/ qwikSymbol('store.all');
 
 export type StoreTarget = Record<string | symbol, any>;
 

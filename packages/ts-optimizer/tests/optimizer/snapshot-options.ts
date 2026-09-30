@@ -316,6 +316,11 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     entryStrategy: { type: 'hoist' },
   },
+  example_issue_6920_hoisted_alias_capture: {
+    transpileJsx: true,
+    transpileTs: true,
+    entryStrategy: { type: 'hoist' },
+  },
 
   example_drop_side_effects: {
     transpileTs: true,

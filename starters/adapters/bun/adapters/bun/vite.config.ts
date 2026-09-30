@@ -20,7 +20,6 @@ export default extendConfig(baseConfig, () => {
         ssg: {
           include: ["/*"],
           origin: "https://yoursite.dev",
-          maxWorkers: 1, // Limit Workers to 1, otherwise SSG will hang when compiling Qwik Router app with `bun run --bun build`.
         },
       }),
     ],

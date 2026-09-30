@@ -189,6 +189,7 @@ function applyPassthroughConstFolding(
       code,
       {
         typescript: { onlyRemoveTypeImports: false },
+        decorator: options.decorator,
         ...(ext === '.tsx' ? {} : { jsx: 'preserve' as const }),
       },
       `source file "${relPath}"`,
@@ -819,7 +820,7 @@ function analyzeModuleCaptures(
   const globalDeclPositions = new Map<string, number>();
   // Only `inline` (not `hoist`) skips captures→paramNames promotion: `hoist`
   // still needs the `(_, _1, capture)` param-padding form, while `inline`
-  // keeps captures in `captureNames` for the `_captures[N]` unpacking path.
+  // keeps captures in `captureNames` for the `_capturesObj._[N]` unpacking path.
   const isInlineOnlyStrategy = entryStrategy.type === 'inline';
   const eventCaptureCtx: EventCaptureContext = {
     extractions,
@@ -955,7 +956,7 @@ function attributeSegmentUsage(
   const { segmentUsage, rootUsage } = analysis;
 
   // Augment segmentUsage with a `$()` body's captured names. inlinedQrl
-  // captures arrive via `_captures`, not an import — folding them in would
+  // captures arrive via `_capturesObj`, not an import — folding them in would
   // wrongly mark them dual-use and reexport them.
   for (const ext of extractions) {
     if (ext.isInlinedQrl) {
@@ -1301,6 +1302,7 @@ function rewriteParent(
     options.isServer,
     options.explicitExtensions,
     options.transpileTs,
+    options.decorator,
     options.minify,
     emit.qrlOutputExt,
     program,

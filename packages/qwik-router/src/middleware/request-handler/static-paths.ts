@@ -54,10 +54,11 @@ export function isStaticPath(method: string, url: URL) {
     return false;
   }
   const p = url.pathname;
-  if (p.startsWith('/' + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/')) {
+  const basePathname = globalThis.__QWIK_ROUTER_BASE_PATHNAME__ || '/';
+  if (p.startsWith(basePathname + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/')) {
     return true;
   }
-  if (p.startsWith('/' + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/')) {
+  if (p.startsWith(basePathname + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/')) {
     return true;
   }
   // Loader json files are listed only when SSG wrote them, so a missing one falls through to SSR.

@@ -5,8 +5,12 @@ import type { Container } from '../types';
 import type { VNodeJournal } from '../../client/vnode-utils';
 import type { Task } from '../../use/use-task';
 import type { CursorBoundary } from '../../use/use-cursor-boundary';
+import { registerSingleton } from '../singletons';
 
-export const cursorDatas = new WeakMap<Cursor, CursorData>();
+export const cursorDatas = /*#__PURE__*/ registerSingleton(
+  'cursorDatas',
+  () => new WeakMap<Cursor, CursorData>()
+);
 
 /** Key used to store pending node prop updates in vNode props. */
 export const NODE_PROPS_DATA_KEY = ':nodeProps';
@@ -16,7 +20,10 @@ export const HOST_SIGNAL = ':signal';
 export const INLINE_COMPONENT_DATA_KEY = ':inlineComponentData';
 
 /** Qwik loader events to (re)register once the cursor's journal is flushed to the DOM. */
-const pendingQwikLoaderEvents = new WeakMap<CursorData, string[]>();
+const pendingQwikLoaderEvents = /*#__PURE__*/ registerSingleton(
+  'pendingQwikLoaderEvents',
+  () => new WeakMap<CursorData, string[]>()
+);
 
 export function queueQwikLoaderEvent(cursorData: CursorData, eventName: string): void {
   let loaderEvents = pendingQwikLoaderEvents.get(cursorData);
@@ -135,7 +142,7 @@ export function mergeCursorJournalAndBoundaries(
   }
   // merge cursor boundaries
   const oldBoundaries = oldCursorData.boundaries;
-  if (__EXPERIMENTAL__.suspense && oldBoundaries && oldBoundaries.length > 0) {
+  if (__EXPERIMENTAL__.pendingBoundary && oldBoundaries && oldBoundaries.length > 0) {
     const newBoundaries = (newCursorData.boundaries ||= []);
     for (let i = 0; i < oldBoundaries.length; i++) {
       const boundary = oldBoundaries[i];

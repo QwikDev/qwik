@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-vite-cloud-run",
-  "package": "@qwik.dev/qwik-router/vite/cloud-run",
+  "package": "@qwik.dev/router/vite/cloud-run",
   "members": [
     {
       "name": "cloudRunAdapter",

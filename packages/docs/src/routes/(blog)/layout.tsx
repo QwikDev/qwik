@@ -32,7 +32,7 @@ export default component$(() => {
       <Header />
       {/* blue gradient — centered on section, shifted left */}
       <main class="flex fixed-header">
-        <div class="flex flex-wrap max-w-[1280px] mt-16 mb-20 mx-auto">
+        <div class="flex flex-wrap min-w-0 max-w-[1280px] mt-16 mb-20 mx-auto">
           <div class="w-full px-10 xl:px-0">
             <Slot />
           </div>

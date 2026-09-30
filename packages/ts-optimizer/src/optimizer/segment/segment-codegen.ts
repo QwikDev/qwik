@@ -54,7 +54,7 @@ const qrlConstName = /const\s+(q_\S+)/;
 
 /**
  * Capture/migration payloads for one segment. `skipCaptureInjection` means the body already
- * contains `_captures[i]` references (e.g. an `inlinedQrl`), so the unpacking prologue is not
+ * contains `_capturesObj._[i]` references (e.g. an `inlinedQrl`), so the unpacking prologue is not
  * re-injected. `propsFieldCaptures` are names consolidated into `_rawProps` (field local → prop
  * key); `propsFieldDefaults` carries their destructure-time defaults so defaulted fields emit
  * `(_rawProps.<key> ?? <default>)`. `constLiterals` (captured name → literal source) are inlined
@@ -233,14 +233,14 @@ function addCaptureAndMigrationImports(
       const braceStart = existing.indexOf('{');
       if (braceStart >= 0) {
         parts[qwikCoreImportIdx] =
-          existing.slice(0, braceStart + 2) + '_captures, ' + existing.slice(braceStart + 2);
+          existing.slice(0, braceStart + 2) + '_capturesObj, ' + existing.slice(braceStart + 2);
       } else if (existing.includes('* as')) {
-        parts.push(`import { _captures } from "@qwik.dev/core";`);
+        parts.push(`import { _capturesObj } from "@qwik.dev/core";`);
       } else {
-        parts[qwikCoreImportIdx] = existing.replace(' from', ', { _captures } from');
+        parts[qwikCoreImportIdx] = existing.replace(' from', ', { _capturesObj } from');
       }
     } else {
-      parts.push(`import { _captures } from "@qwik.dev/core";`);
+      parts.push(`import { _capturesObj } from "@qwik.dev/core";`);
     }
   }
 
@@ -434,7 +434,7 @@ function transformSegmentJsx(
 
     const segScopeBindings = collectScopeAwareBindings(session.program);
     if (captureInfo?.captureNames) {
-      // Capture names are injected by `_captures[i]` unpacking at segment
+      // Capture names are injected by `_capturesObj._[i]` unpacking at segment
       // body entry; they're runtime-const but have no AST declaration in
       // this body. Inject as program-scope consts so any reference in the
       // segment classifies as const (unless shadowed by an inner binding).

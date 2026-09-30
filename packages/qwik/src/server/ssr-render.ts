@@ -45,7 +45,7 @@ export const renderToStream = async (
   jsx: JSXOutput,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
-  if (__EXPERIMENTAL__.suspense && opts.streaming?.outOfOrder === undefined) {
+  if (__EXPERIMENTAL__.pendingBoundary && opts.streaming?.outOfOrder === undefined) {
     opts = {
       ...opts,
       streaming: {
@@ -85,7 +85,7 @@ export const renderToStream = async (
   const onBeforeFirstFlush = opts.onBeforeFirstFlush;
   if (onBeforeFirstFlush) {
     streamHandler.onFirstWrite = () =>
-      onBeforeFirstFlush({ errorBoundaryCaught: ssrContainer.$hasBoundaryError$ === true });
+      onBeforeFirstFlush({ hasCaughtError: ssrContainer.$hasBoundaryError$ === true });
   }
 
   await setServerPlatform(opts, resolvedManifest);
@@ -101,7 +101,7 @@ export const renderToStream = async (
     size: ssrContainer.size,
     isStatic: false,
     timing: timing,
-    errorBoundaryCaught: ssrContainer.$hasBoundaryError$ === true,
+    hasCaughtError: ssrContainer.$hasBoundaryError$ === true,
   };
 
   return result;

@@ -43,24 +43,25 @@ import {
   getOwnCursorBoundary,
   resolveCursorBoundaries,
 } from '../../use/use-cursor-boundary';
+import { registerSingleton } from '../singletons';
 
 const DEBUG = false;
 
 const nextMicroTask = createMicroTask(processCursorQueue);
 const nextMacroTask = createMacroTask(processCursorQueue);
-let isNextTickScheduled = false;
+const cursorTick = /*#__PURE__*/ registerSingleton('cursorTick', () => ({ isScheduled: false }));
 
 export function triggerCursors(): void {
-  if (!isNextTickScheduled) {
-    isNextTickScheduled = true;
+  if (!cursorTick.isScheduled) {
+    cursorTick.isScheduled = true;
     nextMicroTask();
   }
 }
 
 /** Schedule continuation as macrotask to yield to browser (for time-slicing) */
 function scheduleYield(): void {
-  if (!isNextTickScheduled) {
-    isNextTickScheduled = true;
+  if (!cursorTick.isScheduled) {
+    cursorTick.isScheduled = true;
     nextMacroTask();
   }
 }
@@ -71,7 +72,7 @@ function scheduleYield(): void {
  * @param options - Walk options (time budget, etc.)
  */
 export function processCursorQueue(): void {
-  isNextTickScheduled = false;
+  cursorTick.isScheduled = false;
   const startTime = performance.now();
   const yieldTime = startTime + 15; // 16 ms = 60 FPS, use 15 to yield slightly before next frame
 
@@ -144,7 +145,7 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
       // Move to next node
-      __EXPERIMENTAL__.suspense && clearNearestCursorBoundary(currentVNode);
+      __EXPERIMENTAL__.pendingBoundary && clearNearestCursorBoundary(currentVNode);
       setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor, container));
       continue;
     }
@@ -364,7 +365,7 @@ export function getNextVNode(vNode: VNode, cursor: Cursor, container?: Container
   parent!.dirty &= ~ChoreBits.CHILDREN;
   parent!.dirtyChildren = null;
   parent!.nextDirtyChildIndex = 0;
-  __EXPERIMENTAL__.suspense && clearNearestCursorBoundary(parent!);
+  __EXPERIMENTAL__.pendingBoundary && clearNearestCursorBoundary(parent!);
   return getNextVNode(parent!, cursor, container);
 }
 

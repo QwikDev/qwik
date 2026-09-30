@@ -18,6 +18,45 @@ test.describe('Docs site smoke tests', () => {
     );
   });
 
+  test('search loads its index after opening the modal', async ({ page }) => {
+    await page.route('**/pagefind/pagefind.js', (route) => route.abort());
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/');
+    await page.locator('button:has(svg.size-6.text-foreground-base):visible').first().click();
+    await page.getByPlaceholder('Search docs').filter({ visible: true }).fill('qwik');
+    await expect(
+      page.getByText(/Search index unavailable/).filter({ visible: true })
+    ).toBeVisible();
+  });
+
+  test('media controls play and pause through button events', async ({ page }) => {
+    await page.goto('/demo/cookbook/mediaController/');
+    await page.locator('video, audio').evaluateAll((elements) => {
+      for (const element of elements) {
+        const media = element as HTMLMediaElement;
+        media.play = () => {
+          media.dataset.action = 'play';
+          media.dispatchEvent(new Event('play'));
+          return Promise.resolve();
+        };
+        media.pause = () => {
+          media.dataset.action = 'pause';
+          media.dispatchEvent(new Event('pause'));
+        };
+      }
+    });
+
+    await page.getByRole('button', { name: 'Play Video' }).click();
+    await expect(page.locator('video')).toHaveAttribute('data-action', 'play');
+    await page.getByRole('button', { name: 'Pause Video' }).click();
+    await expect(page.locator('video')).toHaveAttribute('data-action', 'pause');
+
+    await page.getByRole('button', { name: 'Play Audio' }).click();
+    await expect(page.locator('audio')).toHaveAttribute('data-action', 'play');
+    await page.getByRole('button', { name: 'Pause Audio' }).click();
+    await expect(page.locator('audio')).toHaveAttribute('data-action', 'pause');
+  });
+
   test('html dark class applies semantic colors', async ({ page }) => {
     await page.goto('/docs/');
     await page.locator('html').evaluate((html) => html.classList.add('dark'));

@@ -49,6 +49,23 @@ test.describe('Docs site smoke tests', () => {
     await expect(preview.locator('body')).toHaveCSS('background-color', 'rgb(12, 7, 20)');
   });
 
+  test('playground editor follows the docs theme', async ({ page }) => {
+    await page.goto('/playground/');
+    const editor = page.locator('.monaco-editor .monaco-editor-background').first();
+
+    await page.locator('html').evaluate((html) => {
+      html.classList.remove('dark');
+      html.setAttribute('data-theme', 'light');
+    });
+    await expect(editor).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+
+    await page.locator('html').evaluate((html) => {
+      html.classList.add('dark');
+      html.setAttribute('data-theme', 'dark');
+    });
+    await expect(editor).toHaveCSS('background-color', 'rgb(30, 30, 30)');
+  });
+
   test('docs overview page loads with sidebar', async ({ page }) => {
     await page.goto('/docs/');
     await expect(page).toHaveTitle(/Qwik/);

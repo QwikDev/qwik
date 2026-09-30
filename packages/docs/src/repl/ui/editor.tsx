@@ -49,20 +49,18 @@ export const Editor = component$((props: EditorProps) => {
     };
   });
 
-  useVisibleTask$(async ({ track }) => {
+  useVisibleTask$(async ({ track, cleanup }) => {
     const editorTheme = track(() => props.editorTheme);
     const theme = track(globalStore, 'theme');
-
-    if (editorTheme) {
-      const monaco = await getMonaco();
-      monaco.editor.setTheme(getEditorTheme(editorTheme));
-      return;
-    }
-
-    if (theme !== 'auto') {
-      const monaco = await getMonaco();
-      monaco.editor.setTheme(getEditorTheme(theme));
-    }
+    const monaco = await getMonaco();
+    const syncTheme = () => monaco.editor.setTheme(getEditorTheme(editorTheme ?? theme));
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme'],
+    });
+    syncTheme();
+    cleanup(() => observer.disconnect());
   });
 
   useTask$(async ({ track }) => {

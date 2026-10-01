@@ -1,5 +1,20 @@
 # @qwik.dev/city
 
+## 2.0.0-rc.0
+
+### Major Changes
+
+- breaking: the most specific route now wins regardless of group order, and catch-alls also receive unmatched urls below static routes (by [@blakeley](https://github.com/blakeley) in [#8899](https://github.com/QwikDev/qwik/pull/8899))
+
+### Patch Changes
+
+- fix(http): ignore HTTP/2 client-abort write errors in the Node adapter (by [@intellix](https://github.com/intellix) in [#9088](https://github.com/QwikDev/qwik/pull/9088))
+
+- 🐞🩹 urls like `/constructor` or `/tostring` now reach dynamic routes instead of 404ing (by [@blakeley](https://github.com/blakeley) in [#8899](https://github.com/QwikDev/qwik/pull/8899))
+
+- Updated dependencies [[`d339e78`](https://github.com/QwikDev/qwik/commit/d339e78cee517b56ab8281c7618a2d2bdc573e5f)]:
+  - @qwik.dev/core@2.0.0-rc.0
+
 ## 2.0.0-beta.47
 
 ### Patch Changes

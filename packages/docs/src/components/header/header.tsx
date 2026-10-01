@@ -6,7 +6,7 @@ export const Header = component$((props: { sidebarId?: string }) => {
   return (
     <>
       <MobileHeader sidebarId={props.sidebarId} />
-      <DesktopHeader />
+      <DesktopHeader sidebarId={props.sidebarId} />
     </>
   );
 });

@@ -55,7 +55,7 @@ export const MobileHeader = component$((props: { sidebarId?: string }) => {
     <div class="2xl:hidden h-(--header-height) min-h-(--header-height)">
       <modal.root>
         {/* Top bar (always visible) */}
-        <div class="fixed inset-x-0 top-4 z-99999 flex gap-4 mx-auto w-[calc(100%-2rem)] max-w-[900px]">
+        <div class="fixed inset-x-0 top-4 z-99999 flex gap-4 lg:hidden mx-auto w-[calc(100%-2rem)] max-w-[900px]">
           {props.sidebarId && <SidebarOpenButton sidebarId={props.sidebarId} class="xl:hidden" />}
           <div class="min-w-0 flex-1 flex h-16 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-5 shadow-base">
             <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">

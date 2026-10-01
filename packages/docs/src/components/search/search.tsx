@@ -155,7 +155,7 @@ export const SearchModal = component$(() => {
 
   return (
     <modal.root bind:open={isOpen}>
-      <modal.trigger class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 2xl:h-[76px] 2xl:px-5 cursor-pointer">
+      <modal.trigger class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 lg:h-[76px] lg:px-5 cursor-pointer">
         <lucide.search class="size-6 text-foreground-base" />
       </modal.trigger>
 

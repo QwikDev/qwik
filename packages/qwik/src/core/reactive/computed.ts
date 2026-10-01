@@ -275,6 +275,9 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   computeIfNeeded(): void {
+    if (isSubscriberDisposed(this)) {
+      return;
+    }
     if (this.flags & ComputedFlags.Computing) {
       throw new Error('Circular computed dependency');
     }

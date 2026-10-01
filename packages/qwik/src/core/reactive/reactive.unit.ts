@@ -392,6 +392,21 @@ describe('reactive primitives', () => {
     expect(() => doubled.value).toThrow('Cannot read disposed computed without cached value');
   });
 
+  it('does not recompute disposed signals after invalidation', async () => {
+    let runs = 0;
+    const computed = createOwned(() => useComputed(() => ++runs));
+    expect(computed.value).toBe(1);
+
+    disposeSubscriber(computed);
+    computed.invalidate(true);
+    await computed.promise();
+
+    expect(runs).toBe(1);
+    expect(computed.untrackedPending).toBe(false);
+    expect(computed.untrackedError).toBeUndefined();
+    expect(computed.value).toBe(1);
+  });
+
   it('clears computed subscribers when disposed', () => {
     const count = useSignal(1);
     let runs = 0;

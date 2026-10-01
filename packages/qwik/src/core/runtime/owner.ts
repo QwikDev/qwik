@@ -15,12 +15,15 @@ import { runWithCollector } from '../reactive/tracking';
 
 export type OwnerItem = Owner | Subscriber;
 export type OwnerItems = OwnerItem | OwnerItem[] | null;
+export type PendingWork = { promise: Promise<unknown>; cancel: () => void };
 
 // Owners are lifetime scopes for reactive work. Anything that can become a
 // subscriber should be owned so it can be disposed and removed from sources.
 export class Owner {
   parent: Owner | null = null;
   renderParent?: Owner | null;
+  declare pendingPhases?: PendingWork;
+  declare pendingWork?: Map<Promise<unknown>, PendingWork>;
   items: OwnerItems = null;
   flags = OwnerFlags.None;
 }
@@ -154,6 +157,12 @@ export function disposeOwner(owner: Owner): void {
   owner.flags = (owner.flags | OwnerFlags.Disposed) & ~OwnerFlags.Queued & ~OwnerFlags.DirtyMask;
   detachOwnerFromParent(owner);
   disposeOwnerItems(owner);
+  if (owner.pendingWork !== undefined) {
+    for (const work of owner.pendingWork.values()) {
+      work.cancel();
+    }
+  }
+  owner.pendingPhases?.cancel();
 }
 
 export function disposeOwnerItems(owner: Owner): void {

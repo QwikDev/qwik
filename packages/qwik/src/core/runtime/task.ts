@@ -147,7 +147,7 @@ export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
   const result = maybeThen(invokeContext.pendingSetup, () => subscriber.run());
   if (isPromise(result)) {
     invokeContext.pendingSetup = result;
-    void result.catch(() => {});
+    scheduler.waitFor(result, subscriber.owner);
   }
   return subscriber;
 }

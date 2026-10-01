@@ -100,15 +100,20 @@ import { _props, restorePropsProxyState, type PropSource } from '../../component
 
 export { allocate, needsInflation };
 
-/**
- * A woken subscriber's load joins the flush that woke it, so no effect of that flush commits over a
- * subtree whose state is still loading (a parent level re-rendering while its child inflates).
- */
+/** Restore owners and task code before notifying resumed subscribers. */
 function lazySubscriber(
   container: ContainerContext,
   load: () => ValueOrPromise<Subscriber>
 ): LazySerialized<Subscriber> {
-  return new LazySerialized<Subscriber>(load, container.scheduler);
+  return new LazySerialized<Subscriber>(
+    () =>
+      maybeThen(load(), (subscriber) =>
+        subscriber instanceof TaskSubscription && subscriber.task.phase === Phase.BlockingTask
+          ? maybeThen(getFunctionOrResolve(subscriber.task.qrl!, container), () => subscriber)
+          : subscriber
+      ),
+    container.scheduler
+  );
 }
 
 const dangerousObjectKeys = new Set([
@@ -471,9 +476,8 @@ const inflateResolved = (
       const subscription = target as Subscriber;
       const parts = data as unknown[];
       const kind = parts[0] as EffectKind;
-      // A structural effect inside a suspense boundary needs that boundary live before its owner.
-      const restoreUnderBoundary = (restore: () => Promise<void>) =>
-        maybeThen(typeof parts[10] === 'number' ? container.getRoot(parts[10]) : undefined, () => {
+      const restoreUnderBoundary = (restore: () => Promise<void>, boundaryId = parts[10]) =>
+        maybeThen(restorePendingBoundary(container, boundaryId), () => {
           ensureDeserializedOwner(subscription);
           return restore();
         });
@@ -496,13 +500,17 @@ const inflateResolved = (
         case EffectKind.AttrExpression:
         case EffectKind.Props:
         case EffectKind.Event: {
-          return restoreDomEffect(container, target as Writeable<DomEffect>, parts).then(() =>
-            ensureDeserializedOwner(subscription)
+          return maybeThen(restorePendingBoundary(container, getPendingRootId(parts)), () =>
+            restoreDomEffect(container, target as Writeable<DomEffect>, parts).then(() =>
+              ensureDeserializedOwner(subscription)
+            )
           );
         }
         case EffectKind.DomBatch: {
-          return restoreDomBatchEffect(container, target as Writeable<DomBatchEffect>, parts).then(
-            () => ensureDeserializedOwner(subscription)
+          return maybeThen(restorePendingBoundary(container, getPendingRootId(parts)), () =>
+            restoreDomBatchEffect(container, target as Writeable<DomBatchEffect>, parts).then(() =>
+              ensureDeserializedOwner(subscription)
+            )
           );
         }
         default:
@@ -511,40 +519,41 @@ const inflateResolved = (
       break;
     }
     case TypeIds.Task: {
-      ensureDeserializedOwner(target as Subscriber);
       const parts = data as unknown[];
-      const phase = parts[0];
-      const qrl = parts[1] as TaskQrlRef;
-      const deps = parts[2] as Source[];
-      const subscription = target as TaskSubscription | VisibleTaskSubscription;
-      switch (phase) {
-        case Phase.BlockingTask:
-        case Phase.DeferredTask:
-          if (!(subscription instanceof TaskSubscription)) {
-            throw new Error(`Invalid task subscription for phase ${phase}.`);
-          }
-          (subscription as Writeable<TaskSubscription>).task = new Task(
-            undefined,
-            phase,
-            qrl,
-            container
-          );
-          break;
-        case Phase.VisibleTask:
-          if (!(subscription instanceof VisibleTaskSubscription)) {
-            throw new Error(`Invalid task subscription for phase ${phase}.`);
-          }
-          (subscription as Writeable<VisibleTaskSubscription>).task = new VisibleTask(
-            undefined,
-            qrl,
-            container
-          );
-          break;
-        default:
-          throw new Error(`Invalid serialized task phase ${String(phase)}.`);
-      }
-      restoreDependencies(subscription, deps);
-      break;
+      return maybeThen(restorePendingBoundary(container, getPendingRootId(parts)), () => {
+        ensureDeserializedOwner(target as Subscriber);
+        const phase = parts[0];
+        const qrl = parts[1] as TaskQrlRef;
+        const deps = parts[2] as Source[];
+        const subscription = target as TaskSubscription | VisibleTaskSubscription;
+        switch (phase) {
+          case Phase.BlockingTask:
+          case Phase.DeferredTask:
+            if (!(subscription instanceof TaskSubscription)) {
+              throw new Error(`Invalid task subscription for phase ${phase}.`);
+            }
+            (subscription as Writeable<TaskSubscription>).task = new Task(
+              undefined,
+              phase,
+              qrl,
+              container
+            );
+            break;
+          case Phase.VisibleTask:
+            if (!(subscription instanceof VisibleTaskSubscription)) {
+              throw new Error(`Invalid task subscription for phase ${phase}.`);
+            }
+            (subscription as Writeable<VisibleTaskSubscription>).task = new VisibleTask(
+              undefined,
+              qrl,
+              container
+            );
+            break;
+          default:
+            throw new Error(`Invalid serialized task phase ${String(phase)}.`);
+        }
+        restoreDependencies(subscription, deps);
+      });
     }
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
@@ -838,6 +847,27 @@ function restoreStoreSources(
     }
   };
   return restoreNext();
+}
+
+function getPendingRootId(parts: unknown[]): number | undefined {
+  const last = parts.length - 1;
+  return parts[last - 1] === null && typeof parts[last] === 'number'
+    ? (parts[last] as number)
+    : undefined;
+}
+
+function restorePendingBoundary(
+  container: ContainerContext,
+  boundaryId: unknown
+): ValueOrPromise<void> {
+  return maybeThen(
+    typeof boundaryId === 'number' ? container.getRoot(boundaryId) : undefined,
+    (boundary) => {
+      if (boundaryId !== undefined && !(boundary instanceof SuspenseContentSubscription)) {
+        throw new Error('Pending owner requires a suspense subscription.');
+      }
+    }
+  );
 }
 
 function ensureDeserializedOwner(subscriber: Subscriber): void {

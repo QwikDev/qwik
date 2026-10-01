@@ -567,7 +567,7 @@ export class Serializer {
         serializeEffectSubscription(value, this.$serializationContext$)
       );
     } else if (value instanceof TaskSubscription || value instanceof VisibleTaskSubscription) {
-      this.output(TypeIds.Task, serializeTaskSubscription(value));
+      this.output(TypeIds.Task, serializeTaskSubscription(value, this.$serializationContext$));
     } else if (isContextScope(value)) {
       const out: unknown[] = [value.parent ?? null];
       const values = value.values;
@@ -1068,15 +1068,36 @@ function serializeEffectSubscription(
     return serializeContentSubscription(subscription, context);
   }
 
-  return serializeDomSubscription(subscription);
+  return serializePendingSubscriber(
+    serializeDomSubscription(subscription),
+    subscription.owner,
+    context
+  );
 }
 
 function serializeTaskSubscription(
-  subscription: TaskSubscription | VisibleTaskSubscription
+  subscription: TaskSubscription | VisibleTaskSubscription,
+  context: SerializationContext
 ): unknown[] {
   const phase =
     subscription instanceof VisibleTaskSubscription ? Phase.VisibleTask : subscription.task.phase;
-  return [phase, subscription.task.qrl, serializeDeps(subscription.deps)];
+  return serializePendingSubscriber(
+    [phase, subscription.task.qrl, serializeDeps(subscription.deps)],
+    subscription.owner,
+    context
+  );
+}
+
+function serializePendingSubscriber(
+  parts: unknown[],
+  owner: Owner | null,
+  context: SerializationContext
+): unknown[] {
+  const boundaryId = getSuspenseRootId(owner, context);
+  if (boundaryId !== undefined) {
+    parts.push(null, boundaryId);
+  }
+  return parts;
 }
 
 function getSuspenseRootId(owner: Owner | null, context: SerializationContext): number | undefined {

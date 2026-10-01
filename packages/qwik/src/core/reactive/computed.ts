@@ -11,9 +11,10 @@ import { notifySourceSubscribers } from './notify';
 import { Signal } from './signal';
 import type { Source, SourceSubs } from './source';
 import { isStore } from './store';
-import { runWithCollector, track } from './tracking';
+import { getActiveCollector, runWithCollector, track } from './tracking';
 import type { ContainerContext } from '../runtime/container-context';
-import type { Owner } from '../runtime/owner';
+import { getOrCreateContextOwner, type Owner } from '../runtime/owner';
+import { getActiveInvokeContextOrNull } from '../runtime/invoke-context';
 import { SubscriberKind, type ComputedSubscriber } from '../runtime/subscriber';
 import { getFunctionOrResolve } from '../utils/qrl';
 import type { AsyncCtx, ComputedOptions, ComputedSignal, ComputeCtx } from './public-types';
@@ -294,6 +295,8 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     const job = new AsyncJob(this, this.info);
     this.info = undefined;
     this.current = job;
+    const readerOwner = getActiveCollector()?.owner;
+    const invokeContext = getActiveInvokeContextOrNull();
 
     let result: ValueOrPromise<T>;
     try {
@@ -303,7 +306,10 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
         if (isPromise(run) && !isServerEnv()) {
           // Importing the compute chunk is framework work: the flush must outlast it, or the
           // subscribers this computed then notifies land after the interaction has settled.
-          this.container?.scheduler.waitFor(run);
+          this.container?.scheduler.waitFor(
+            run,
+            readerOwner ?? getOrCreateContextOwner(invokeContext)
+          );
         }
         return maybeThen(run, (run) => this.evaluate(job, run));
       });

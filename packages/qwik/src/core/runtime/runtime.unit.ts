@@ -45,6 +45,7 @@ import {
   type TaskFn,
 } from './task';
 import type { ContainerContext } from './container-context';
+import { LazySerialized } from '../reactive/lazy-serialized';
 
 describe('runtime scheduler and owner lifecycle', () => {
   it('runs scheduled tasks under their creation invoke context', async () => {
@@ -131,6 +132,355 @@ describe('runtime scheduler and owner lifecycle', () => {
     await flushing;
 
     expect(order).toEqual(['effect']);
+  });
+
+  it('runs independent owners while one owner is waiting', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const order: string[] = [];
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => (release = resolve));
+    const blocked = createOrderTextExpressionEffect(scheduler, 'blocked', order);
+    blocked.execute = () => pending;
+    const sibling = createOrderTextExpressionEffect(scheduler, 'sibling', order);
+
+    scheduler.notify(blocked);
+    const flushing = scheduler.flushInteraction();
+    scheduler.notify(sibling);
+    scheduler.flushInteraction();
+    try {
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(order).toEqual(['sibling']);
+    } finally {
+      release();
+      await flushing;
+    }
+  });
+
+  it('drains ready owners while one-shot work is waiting', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const order: string[] = [];
+    let release!: () => void;
+    scheduler.waitFor(new Promise<void>((resolve) => (release = resolve)));
+    scheduler.notify(createOrderTextExpressionEffect(scheduler, 'sibling', order));
+
+    const flushing = scheduler.flushInteraction();
+    try {
+      await Promise.resolve();
+      expect(order).toEqual(['sibling']);
+    } finally {
+      release();
+      await flushing;
+    }
+  });
+
+  it('waits for initial work before flushing that owner', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const order: string[] = [];
+    const blocked = createOrderTextExpressionEffect(scheduler, 'blocked', order);
+    const sibling = createOrderTextExpressionEffect(scheduler, 'sibling', order);
+    let release!: () => void;
+    scheduler.waitFor(new Promise<void>((resolve) => (release = resolve)), blocked.owner);
+    scheduler.notify(blocked);
+    scheduler.notify(sibling);
+    const flushing = scheduler.flushInteraction();
+    try {
+      expect(order).toEqual(['sibling']);
+    } finally {
+      release();
+      await flushing;
+    }
+    expect(order).toEqual(['sibling', 'blocked']);
+  });
+
+  it('runs commit callbacks for a ready owner while another owner waits', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const order: string[] = [];
+    let release!: () => void;
+    const blocked = createOrderTextExpressionEffect(scheduler, 'blocked', order);
+    blocked.execute = () => new Promise<void>((resolve) => (release = resolve));
+    const ready = createOrderTextExpressionEffect(scheduler, 'ready', order);
+    ready.execute = () =>
+      runWithOwner(ready.owner, () => {
+        order.push('commit');
+        scheduler.onFlushed(() => order.push('scan'));
+      });
+    scheduler.notify(blocked);
+    scheduler.notify(ready);
+    const flushing = scheduler.flushInteraction();
+    try {
+      expect(order).toEqual(['commit', 'scan']);
+    } finally {
+      release();
+      await flushing;
+    }
+  });
+
+  it('restores the owner tree before tasks and structural writes while scalar work runs', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const order: string[] = [];
+    const source = useSignal(0);
+    const lazy = createOrderTextExpressionEffect(scheduler, 'lazy', order);
+    let release!: () => void;
+    source.subs = new LazySerialized(
+      () =>
+        new Promise<DomSubscriber>((resolve) => {
+          release = () => resolve(lazy);
+        }),
+      scheduler
+    );
+    const structural = registerSubscriberToOwner(
+      {
+        kind: SubscriberKind.Branch,
+        owner: null,
+        flags: SubscriberFlags.None,
+        deps: null,
+        branch: {} as BranchSubscriber['branch'],
+        scheduler,
+        run: () => {
+          order.push('structural');
+        },
+      },
+      createOwner(null)
+    );
+    source.value++;
+    scheduler.notify(structural);
+    scheduler.notify(
+      registerSubscriberToOwner(
+        new TaskSubscription(
+          new Task(() => {
+            order.push('task');
+          }, Phase.BlockingTask),
+          scheduler
+        ),
+        createOwner(null)
+      )
+    );
+    scheduler.notify(createOrderTextExpressionEffect(scheduler, 'scalar', order));
+    const flushing = scheduler.flushInteraction();
+    try {
+      expect(order).toEqual(['scalar']);
+    } finally {
+      release();
+      await flushing;
+    }
+    expect(order).toContain('structural');
+    expect(order).toContain('task');
+    expect(order).toContain('lazy');
+  });
+
+  it('releases a disposed owner without waiting for its promise', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const owner = createOwner(null);
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => (release = resolve));
+    const effect = runWithOwner(owner, () =>
+      createOrderTextExpressionEffect(scheduler, 'blocked', [])
+    );
+    effect.execute = () => pending;
+    scheduler.notify(effect);
+    let finished = false;
+    const flushing = scheduler.flushInteraction().then(() => (finished = true));
+    disposeOwner(owner);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(finished).toBe(true);
+    } finally {
+      release();
+      await flushing;
+    }
+  });
+
+  it.each([false, true])(
+    'releases initial work with owner already disposed=%s',
+    async (disposed) => {
+      const scheduler = new Scheduler(noopSchedule);
+      const owner = createOwner(null);
+      if (disposed) {
+        disposeOwner(owner);
+      }
+      let release!: () => void;
+      scheduler.waitFor(new Promise<void>((resolve) => (release = resolve)), owner);
+      let finished = false;
+      const flushing = scheduler.flushInteraction().then(() => {
+        finished = true;
+      });
+      if (!disposed) {
+        disposeOwner(owner);
+      }
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(finished).toBe(true);
+      } finally {
+        release();
+        await flushing;
+      }
+    }
+  );
+
+  it('keeps a dirty child behind an already waiting parent task', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const parent = createOwner(null);
+    const order: string[] = [];
+    let releaseChild!: () => void;
+    let releaseParent!: () => void;
+    const childPending = new Promise<void>((resolve) => (releaseChild = resolve));
+    const parentPending = new Promise<void>((resolve) => (releaseParent = resolve));
+    const child = runWithOwner(createOwner(parent), () =>
+      createOrderTextExpressionEffect(scheduler, 'child', order)
+    );
+    let first = true;
+    child.execute = () => {
+      if (first) {
+        first = false;
+        return childPending;
+      }
+      order.push('child');
+    };
+    const task = registerSubscriberToOwner(
+      new TaskSubscription(
+        new Task(() => {
+          order.push('parent:start');
+          return parentPending.then(() => {
+            order.push('parent:done');
+          });
+        }, Phase.BlockingTask),
+        scheduler
+      ),
+      parent
+    );
+    scheduler.notify(child);
+    const flushing = scheduler.flushInteraction();
+    scheduler.notify(task);
+    scheduler.flushInteraction();
+    scheduler.notify(child);
+    releaseChild();
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(order).toEqual(['parent:start']);
+    } finally {
+      releaseParent();
+      await flushing;
+    }
+    expect(order).toEqual(['parent:start', 'parent:done', 'child']);
+  });
+
+  it('waits for an active child task when its parent starts flushing', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const parent = createOwner(null);
+    const child = createOwner(parent);
+    const order: string[] = [];
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => (release = resolve));
+    const task = registerSubscriberToOwner(
+      new TaskSubscription(
+        new Task(() => {
+          order.push('child:start');
+          return pending.then(() => order.push('child:done'));
+        }, Phase.BlockingTask),
+        scheduler
+      ),
+      child
+    );
+    const childEffect = runWithOwner(child, () =>
+      createOrderTextExpressionEffect(scheduler, 'child:dom', order)
+    );
+    const parentEffect = runWithOwner(parent, () =>
+      createOrderTextExpressionEffect(scheduler, 'parent:dom', order)
+    );
+    scheduler.notify(task);
+    const flushing = scheduler.flushInteraction();
+    scheduler.notify(childEffect);
+    scheduler.notify(parentEffect);
+    scheduler.flushInteraction();
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(order).toEqual(['child:start', 'parent:dom']);
+    } finally {
+      release();
+      await flushing;
+    }
+    expect(order).toEqual(['child:start', 'parent:dom', 'child:done', 'child:dom']);
+  });
+
+  it('updates an owner whose own phases finished while its descendant still waits', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const root = createOwner(null);
+    const parent = createOwner(root);
+    const order: string[] = [];
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => (release = resolve));
+    const child = runWithOwner(createOwner(parent), () =>
+      createOrderTextExpressionEffect(scheduler, 'child', order)
+    );
+    child.execute = () => pending;
+    const parentEffect = runWithOwner(parent, () =>
+      createOrderTextExpressionEffect(scheduler, 'parent', order)
+    );
+    const rootEffect = runWithOwner(root, () =>
+      createOrderTextExpressionEffect(scheduler, 'root', order)
+    );
+    const visible = invoke(
+      newInvokeContext({ owner: root, container: createCaptureContainer({}, scheduler) }),
+      () => useVisibleTask(() => order.push('visible'))
+    );
+    scheduler.notify(child);
+    scheduler.notify(parentEffect);
+    const flushing = scheduler.flushInteraction();
+    scheduler.notify(parentEffect);
+    scheduler.notify(rootEffect);
+    scheduler.notify(visible);
+    scheduler.flushInteraction();
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(order).toEqual(['parent', 'root', 'parent']);
+    } finally {
+      release();
+      await flushing;
+    }
+    expect(order).toEqual(['parent', 'root', 'parent', 'visible']);
+  });
+
+  it.each([false, true])('releases a parent flush after child disposal, task=%s', async (task) => {
+    const scheduler = new Scheduler(noopSchedule);
+    const parent = createOwner(null);
+    const child = createOwner(parent);
+    const order: string[] = [];
+    const sibling = runWithOwner(createOwner(parent), () =>
+      createOrderTextExpressionEffect(scheduler, 'sibling', order)
+    );
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => (release = resolve));
+    if (task) {
+      scheduler.notify(
+        registerSubscriberToOwner(
+          new TaskSubscription(new Task(() => pending, Phase.BlockingTask), scheduler),
+          child
+        )
+      );
+    } else {
+      scheduler.waitFor(pending, child);
+    }
+    const effect = runWithOwner(parent, () =>
+      createOrderTextExpressionEffect(scheduler, 'parent', order)
+    );
+    scheduler.notify(sibling);
+    scheduler.notify(effect);
+    let finished = false;
+    const flushing = scheduler.flushInteraction().then(() => {
+      finished = true;
+    });
+    disposeOwner(child);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(finished).toBe(true);
+      expect(parent.flags & OwnerFlags.Disposed).toBe(0);
+      expect(order).toEqual(['parent', 'sibling']);
+    } finally {
+      release();
+      await flushing;
+    }
   });
 
   it('keeps one owner entry when a subscriber is registered repeatedly', () => {

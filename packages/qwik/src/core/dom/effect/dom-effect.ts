@@ -58,7 +58,7 @@ export abstract class DomEffect implements DomSubscriber {
       }),
       invalidation,
     ]);
-    this.scheduler.waitFor(pending);
+    this.scheduler.waitFor(pending, this.owner);
     return pending;
   }
 }

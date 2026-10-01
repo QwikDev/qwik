@@ -73,7 +73,7 @@ export function resolveLazySubscribers(source: Source, notify: () => void): bool
     });
     if (isPromise<Subscriber>(value)) {
       const notified = value.then(notify);
-      subs.scheduler?.waitFor(notified);
+      subs.scheduler?.waitForResume(notified);
     } else {
       notify();
     }
@@ -107,7 +107,7 @@ export function resolveLazySubscribers(source: Source, notify: () => void): bool
     notify();
   } else {
     const notified = Promise.all(pending).then(notify);
-    scheduler?.waitFor(notified);
+    scheduler?.waitForResume(notified);
   }
   return true;
 }

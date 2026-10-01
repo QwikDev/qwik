@@ -1,3 +1,4 @@
+import { OwnerFlags } from '../../reactive/flags';
 import type { Owner } from '../../runtime/owner';
 import type { SuspenseContentSubscription, SSRSuspenseContentSubscription } from './content';
 
@@ -6,6 +7,7 @@ export type SuspenseBoundary = SuspenseContentSubscription | SSRSuspenseContentS
 const suspenseBoundaries = new WeakMap<Owner, SuspenseBoundary>();
 
 export function registerSuspenseBoundary(owner: Owner, boundary: SuspenseBoundary): void {
+  owner.flags |= OwnerFlags.PendingRoot;
   suspenseBoundaries.set(owner, boundary);
 }
 

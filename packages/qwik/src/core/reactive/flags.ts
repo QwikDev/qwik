@@ -7,6 +7,9 @@ export const enum OwnerFlags {
   DirtyScalarDom = 1 << 4,
   DirtyVisibleTask = 1 << 5,
   DirtyDeferredTask = 1 << 6,
+  PendingRoot = 1 << 7,
+  WaitingForPhases = 1 << 8,
+  PendingWork = 1 << 9,
   DirtyMask = DirtyBlockingTask |
     DirtyStructuralDom |
     DirtyScalarDom |

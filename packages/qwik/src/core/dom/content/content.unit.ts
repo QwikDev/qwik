@@ -8,9 +8,10 @@ import { createContainerContext, type ContainerContext } from '../../runtime/con
 import { invoke, newInvokeContext } from '../../runtime/invoke-context';
 import { createOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
+import { useTask } from '../../runtime/task';
 import { findSuspenseBoundary } from './suspense-boundary';
 import { BranchRange } from '../branch/branch';
-import { createTextNodeEffect } from '../effect/text-effect';
+import { createTextExpressionEffect, createTextNodeEffect } from '../effect/text-effect';
 import { toArray } from '../../test-utils';
 import {
   createContentBlock,
@@ -215,6 +216,118 @@ describe('ContentBlock', () => {
 });
 
 describe('createSuspense', () => {
+  it('runs loader scans after a Pending lane commits asynchronously', async () => {
+    const imported = deferred<{ child: RenderFn }>();
+    const childQrl = createQRL<RenderFn>('chunk', 'child', null, () => imported.promise);
+    const scans: string[] = [];
+    const { ctx, host, scheduler } = setupSuspense(
+      renderQrl((ctx) => {
+        const start = ctx!.document.createComment('child-start');
+        const end = ctx!.document.createComment('child-end');
+        const child = createContentBlock(ctx!, start, end, [], childQrl);
+        ctx!.scheduler.notify(child);
+        return [start, end];
+      }),
+      renderQrl(() => textNode('loading'))
+    );
+    await scheduler.flushInteraction();
+    imported.resolve({
+      child: () => {
+        scheduler.onFlushed(() => scans.push(host.textContent!));
+        return ctx.document.createTextNode('ready');
+      },
+    });
+    await vi.waitFor(() => expect(host.textContent).toBe('ready'));
+    expect(scans).toEqual(['ready']);
+  });
+
+  it('keeps blocking tasks local to the boundary while its parent updates', async () => {
+    const source = useSignal(false);
+    const siblingSource = useSignal('sibling');
+    const pending = deferred<void>();
+    const { content, ctx, host, scheduler } = setupSuspense(
+      renderQrl((ctx) => {
+        useTask(() => (source.value ? pending.promise : undefined));
+        const node = ctx!.document.createTextNode('');
+        const effect = createTextExpressionEffect(
+          node,
+          [],
+          () => (source.value ? 'updated' : 'ready'),
+          ctx!.scheduler
+        );
+        effect.run();
+        return node;
+      }),
+      renderQrl(() => textNode('loading'))
+    );
+    const sibling = ctx.document.createTextNode('');
+    invoke(newInvokeContext({ owner: content.owner, container: ctx }), () => {
+      createTextNodeEffect(sibling, siblingSource, scheduler).run();
+    });
+    host.appendChild(sibling);
+
+    source.value = true;
+    siblingSource.value = 'parent updated';
+    await scheduler.flushInteraction();
+    expect(host.textContent).toBe('readyparent updated');
+
+    pending.resolve();
+    await vi.waitFor(() => expect(host.textContent).toBe('updatedparent updated'));
+  });
+
+  it.each(['returned', 'thrown'])(
+    'pending scalar %s promise does not block sibling content',
+    async (mode) => {
+      const pending = deferred<string>();
+      const source = useSignal(false);
+      let hasResolved = false;
+      let effect!: ReturnType<typeof createTextExpressionEffect>;
+      const { ctx, document, host, scheduler } = setupSuspense(
+        renderQrl((ctx) => {
+          const node = ctx!.document.createTextNode('');
+          effect = createTextExpressionEffect(
+            node,
+            [],
+            () => {
+              if (!source.value) {
+                return 'ready';
+              }
+              if (mode === 'thrown' && !hasResolved) {
+                throw pending.promise;
+              }
+              return mode === 'returned' ? pending.promise : 'updated';
+            },
+            ctx!.scheduler
+          );
+          effect.run();
+          return node;
+        }),
+        renderQrl((ctx) => ctx!.document.createTextNode('loading'))
+      );
+      source.value = true;
+      const start = document.createComment('sibling-start');
+      const end = document.createComment('sibling-end');
+      host.appendChild(start);
+      host.appendChild(end);
+      const sibling = invoke(newInvokeContext({ owner: createOwner(null), container: ctx }), () =>
+        createContentBlock(ctx, start, end, [], () => document.createTextNode('sibling'))
+      );
+      scheduler.notify(sibling);
+      const flush = scheduler.flushInteraction();
+      try {
+        await settle();
+        expect(host.textContent).toContain('sibling');
+        expect(host.textContent).toContain('loading');
+      } finally {
+        hasResolved = true;
+        pending.resolve('updated');
+        await flush;
+        await settle();
+      }
+      await vi.waitFor(() => expect(host.textContent).toContain('updated'));
+    }
+  );
+
   it.each([false, true])(
     'shows fallback for nested content with slot=%s while flushing siblings',
     async (viaSlot) => {
@@ -254,8 +367,7 @@ describe('createSuspense', () => {
 
       pending.resolve(document.createTextNode('ready'));
       await flush;
-      await settle();
-      expect(host.textContent).toContain('ready');
+      await vi.waitFor(() => expect(host.textContent).toContain('ready'));
       expect(host.textContent).not.toContain('loading');
     }
   );

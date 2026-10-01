@@ -22,7 +22,8 @@ import { useSignal } from '../reactive/public-api';
 import { createOwner, registerSubscriberToOwner, runWithOwner } from './owner';
 import { renderSsrTextNode } from '../dom/effect/ssr-effect';
 import { SubscriberKind, type Subscriber } from './subscriber';
-import { Scheduler } from './scheduler';
+import { Phase, Scheduler } from './scheduler';
+import { Task, TaskSubscription } from './task';
 import type { Signal } from '../reactive/signal';
 import { toArray } from '../test-utils';
 
@@ -71,6 +72,54 @@ describe('ContainerContext', () => {
     expect(restoredBoundary).toBeInstanceOf(SuspenseContentSubscription);
     expect(findSuspenseBoundary(restoredChild.owner)).toBe(restoredBoundary);
   });
+
+  it.each(['text', 'task'] as const)(
+    'restores a suspense boundary before its lazy %s subscriber',
+    async (kind) => {
+      const qrl = createQRL('chunk', 'render', () => '');
+      const hostOwner = createOwner(null);
+      const boundaryContent = new SSRContent(0, [], qrl, null);
+      const boundary = registerSubscriberToOwner(
+        new SSRSuspenseContentSubscription(boundaryContent, null, 0),
+        hostOwner
+      );
+      const contentOwner = createOwner(hostOwner);
+      boundaryContent.currentOwner = contentOwner;
+      registerSuspenseBoundary(contentOwner, boundary);
+      const signal = runWithOwner(contentOwner, () => useSignal('ready'));
+      let child: Subscriber;
+      if (kind === 'text') {
+        runWithOwner(contentOwner, () => renderSsrTextNode(1, null, signal));
+        child = toArray(signal.subs)[0] as Subscriber;
+      } else {
+        child = registerSubscriberToOwner(
+          new TaskSubscription(new Task(undefined, Phase.BlockingTask, qrl)),
+          contentOwner
+        );
+      }
+      const serialization = createSerializationContext(
+        null,
+        () => '',
+        () => {},
+        new WeakMap()
+      );
+      const childId = serialization.$addRoot$(child);
+      const boundaryId = serialization.$addRoot$(boundary);
+      await serialization.$serialize$();
+      const container = createContainer(`
+        <!--d=0--><p q:id="1">ready</p><!--/d-->
+        <script type="qwik/state" q:base="0" q:len="${serialization.$roots$.length}">${serialization.$writer$.toString()}</script>
+      `);
+      const context = createContainerContext(container);
+
+      expect(context.state.liveRoots.has(boundaryId)).toBe(false);
+      const restoredChild = (await context.getRoot(childId)) as Subscriber;
+      expect(context.state.liveRoots.has(boundaryId)).toBe(true);
+      expect(findSuspenseBoundary(restoredChild.owner)).toBe(
+        context.state.liveRoots.get(boundaryId)
+      );
+    }
+  );
 
   it('adds request data only when provided', () => {
     const withoutData = createContainerContext(createContainer(''));

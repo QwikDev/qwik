@@ -170,6 +170,9 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
         ownerHost: subscription.owner,
         container: this.container,
       });
+      if (subscription instanceof SuspenseContentSubscription) {
+        registerSuspenseBoundary(getOrCreateContextOwner(invokeContext)!, subscription);
+      }
       this.pendingContext = invokeContext;
       return safeCall(
         () =>
@@ -268,7 +271,10 @@ export class ContentSubscription<TArgs extends unknown[] = unknown[]> implements
 export class SuspenseContentSubscription<
   TArgs extends unknown[] = unknown[],
 > extends ContentSubscription<TArgs> {
-  suspend!: (pending: Promise<unknown>) => void;
+  pendingWork: Promise<unknown>[] | null = null;
+  suspend: (pending: Promise<unknown>, shouldShowFallback?: boolean) => void = (pending) => {
+    (this.pendingWork ??= []).push(pending);
+  };
 }
 
 export function createContentBlock<TArgs extends unknown[]>(
@@ -419,11 +425,12 @@ export function attachSuspense(
         return Promise.reject(error);
       }
     );
-    ctx.scheduler.waitFor(work);
+    ctx.scheduler.waitFor(work, subscription.owner);
   };
 
-  subscription.suspend = (pending) => {
-    if (nestedPending++ === 0 && !isPending) {
+  subscription.suspend = (pending, shouldShowFallback = true) => {
+    nestedPending++;
+    if (shouldShowFallback && !isPending) {
       isPending = true;
       if (fallbackQrl !== undefined && delay > 0) {
         timer = setTimeout(showFallback, delay);
@@ -449,6 +456,14 @@ export function attachSuspense(
       }
     );
   };
+
+  const pendingWork = subscription.pendingWork;
+  subscription.pendingWork = null;
+  if (pendingWork !== null) {
+    for (let i = 0; i < pendingWork.length; i++) {
+      subscription.suspend(pendingWork[i]);
+    }
+  }
 
   if (!isPromise(content)) {
     if (subscription.block.currentOwner !== null) {

@@ -13,40 +13,22 @@ test.describe('context', () => {
       const btnLevel2Increment = page.locator('.level2-increment3').nth(0);
       const btnLevel2Increment2 = page.locator('.level2-increment3').nth(1);
 
-      expect(await level2State1.allTextContents()).toEqual([
-        'ROOT / state1 = 0',
-        'ROOT / state1 = 0',
-      ]);
-      expect(await level2State2.allTextContents()).toEqual([
-        'ROOT / state2 = 0',
-        'ROOT / state2 = 0',
-      ]);
-      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
+      await expect(level2State1).toHaveText(['ROOT / state1 = 0', 'ROOT / state1 = 0']);
+      await expect(level2State2).toHaveText(['ROOT / state2 = 0', 'ROOT / state2 = 0']);
+      await expect(level2SSlot).toHaveText(['bar = 0', 'bar = 0']);
 
       await btnRootIncrement1.click();
       await expect(level2State1.first()).toHaveText('ROOT / state1 = 1');
 
-      expect(await level2State1.allTextContents()).toEqual([
-        'ROOT / state1 = 1',
-        'ROOT / state1 = 1',
-      ]);
-      expect(await level2State2.allTextContents()).toEqual([
-        'ROOT / state2 = 0',
-        'ROOT / state2 = 0',
-      ]);
-      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
+      await expect(level2State1).toHaveText(['ROOT / state1 = 1', 'ROOT / state1 = 1']);
+      await expect(level2State2).toHaveText(['ROOT / state2 = 0', 'ROOT / state2 = 0']);
+      await expect(level2SSlot).toHaveText(['bar = 0', 'bar = 0']);
       await btnRootIncrement2.click();
       await expect(level2State2.first()).toHaveText('ROOT / state2 = 1');
 
-      expect(await level2State1.allTextContents()).toEqual([
-        'ROOT / state1 = 1',
-        'ROOT / state1 = 1',
-      ]);
-      expect(await level2State2.allTextContents()).toEqual([
-        'ROOT / state2 = 1',
-        'ROOT / state2 = 1',
-      ]);
-      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
+      await expect(level2State1).toHaveText(['ROOT / state1 = 1', 'ROOT / state1 = 1']);
+      await expect(level2State2).toHaveText(['ROOT / state2 = 1', 'ROOT / state2 = 1']);
+      await expect(level2SSlot).toHaveText(['bar = 0', 'bar = 0']);
       // Add 2 level3 components to the first level2
       await btnLevel2Increment.click();
       await btnLevel2Increment.click();
@@ -62,32 +44,26 @@ test.describe('context', () => {
       const level3Slot = page.locator('.level3-slot');
 
       await expect(level3State1.first()).toHaveText('Level2 / state1 = 0');
-      expect(await level2State1.allTextContents()).toEqual([
-        'ROOT / state1 = 1',
-        'ROOT / state1 = 1',
-      ]);
-      expect(await level2State2.allTextContents()).toEqual([
-        'ROOT / state2 = 1',
-        'ROOT / state2 = 1',
-      ]);
-      expect(await level2SSlot.allTextContents()).toEqual(['bar = 0', 'bar = 0']);
+      await expect(level2State1).toHaveText(['ROOT / state1 = 1', 'ROOT / state1 = 1']);
+      await expect(level2State2).toHaveText(['ROOT / state2 = 1', 'ROOT / state2 = 1']);
+      await expect(level2SSlot).toHaveText(['bar = 0', 'bar = 0']);
 
-      expect(await level3State1.allTextContents()).toEqual([
+      await expect(level3State1).toHaveText([
         'Level2 / state1 = 0',
         'Level2 / state1 = 0',
         'Level2 / state1 = 0',
       ]);
-      expect(await level3State2.allTextContents()).toEqual([
+      await expect(level3State2).toHaveText([
         'ROOT / state2 = 1',
         'ROOT / state2 = 1',
         'ROOT / state2 = 1',
       ]);
-      expect(await level3State3.allTextContents()).toEqual([
+      await expect(level3State3).toHaveText([
         'Level2 / state3 = 2',
         'Level2 / state3 = 2',
         'Level2 / state3 = 1',
       ]);
-      expect(await level3Slot.allTextContents()).toEqual(['bar = 0', 'bar = 0', 'bar = 0']);
+      await expect(level3Slot).toHaveText(['bar = 0', 'bar = 0', 'bar = 0']);
     });
 
     test('issue 1971 - useContext conditional link rendering', async ({ page }) => {

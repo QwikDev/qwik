@@ -239,9 +239,12 @@ test.describe('broadcast-events', () => {
 
   test.describe('client rerender', () => {
     test.beforeEach(async ({ page }) => {
+      // The swap awaits lazy chunks, so tag the outgoing instance instead of timing it.
+      await page.locator('p.document').evaluate((el) => el.setAttribute('data-stale', ''));
       const toggleRender = page.locator('#btn-toggle-render');
       await toggleRender.click();
-      await page.waitForTimeout(100);
+      await expect(page.locator('p.document[data-stale]')).toHaveCount(0);
+      await expect(page.locator('p.document')).toHaveCount(1);
     });
     tests();
   });

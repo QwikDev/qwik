@@ -27,7 +27,7 @@ function tests() {
     });
 
     let menuHeader = locator(ctx, `[data-test-menu-header="0"]`);
-    expect(await menuHeader.innerText()).toBe('Introduction');
+    await expect(menuHeader).toHaveText('Introduction', { useInnerText: true });
 
     let breadcrumb0 = locator(ctx, `[data-test-breadcrumb="0"]`);
     if (await breadcrumb0.isVisible()) {
@@ -45,13 +45,13 @@ function tests() {
     });
 
     menuHeader = locator(ctx, `[data-test-menu-header="0"]`);
-    expect(await menuHeader.innerText()).toBe('Introduction');
+    await expect(menuHeader).toHaveText('Introduction', { useInnerText: true });
 
     breadcrumb0 = locator(ctx, `[data-test-breadcrumb="0"]`);
-    expect(await breadcrumb0.innerText()).toBe('Introduction');
+    await expect(breadcrumb0).toHaveText('Introduction', { useInnerText: true });
 
     let breadcrumb1 = locator(ctx, `[data-test-breadcrumb="1"]`);
-    expect(await breadcrumb1.innerText()).toBe('Overview');
+    await expect(breadcrumb1).toHaveText('Overview', { useInnerText: true });
 
     /** Docs: getting-started ********** */
     await linkNavigate(ctx, '[data-test-menu-link="/qwikrouter-test/docs/getting-started/"]');
@@ -64,13 +64,13 @@ function tests() {
     });
 
     menuHeader = locator(ctx, `[data-test-menu-header="0"]`);
-    expect(await menuHeader.innerText()).toBe('Introduction');
+    await expect(menuHeader).toHaveText('Introduction', { useInnerText: true });
 
     breadcrumb0 = locator(ctx, `[data-test-breadcrumb="0"]`);
-    expect(await breadcrumb0.innerText()).toBe('Introduction');
+    await expect(breadcrumb0).toHaveText('Introduction', { useInnerText: true });
 
     breadcrumb1 = locator(ctx, `[data-test-breadcrumb="1"]`);
-    expect(await breadcrumb1.innerText()).toBe('Getting Started');
+    await expect(breadcrumb1).toHaveText('Getting Started', { useInnerText: true });
 
     /** Docs: core/basics ********** */
     await linkNavigate(ctx, '[data-test-menu-link="/qwikrouter-test/docs/core/basics/"]');
@@ -83,13 +83,13 @@ function tests() {
     });
 
     menuHeader = locator(ctx, `[data-test-menu-header="0"]`);
-    expect(await menuHeader.innerText()).toBe('Introduction');
+    await expect(menuHeader).toHaveText('Introduction', { useInnerText: true });
 
     breadcrumb0 = locator(ctx, `[data-test-breadcrumb="0"]`);
-    expect(await breadcrumb0.innerText()).toBe('Core');
+    await expect(breadcrumb0).toHaveText('Core', { useInnerText: true });
 
     breadcrumb1 = locator(ctx, `[data-test-breadcrumb="1"]`);
-    expect(await breadcrumb1.innerText()).toBe('Basics');
+    await expect(breadcrumb1).toHaveText('Basics', { useInnerText: true });
 
     /** Docs: core/listeners ********** */
     await linkNavigate(ctx, '[data-test-menu-link="/qwikrouter-test/docs/core/listeners/"]');
@@ -102,12 +102,12 @@ function tests() {
     });
 
     menuHeader = locator(ctx, `[data-test-menu-header="0"]`);
-    expect(await menuHeader.innerText()).toBe('Introduction');
+    await expect(menuHeader).toHaveText('Introduction', { useInnerText: true });
 
     breadcrumb0 = locator(ctx, `[data-test-breadcrumb="0"]`);
-    expect(await breadcrumb0.innerText()).toBe('Core');
+    await expect(breadcrumb0).toHaveText('Core', { useInnerText: true });
 
     breadcrumb1 = locator(ctx, `[data-test-breadcrumb="1"]`);
-    expect(await breadcrumb1.innerText()).toBe('Listeners');
+    await expect(breadcrumb1).toHaveText('Listeners', { useInnerText: true });
   });
 }

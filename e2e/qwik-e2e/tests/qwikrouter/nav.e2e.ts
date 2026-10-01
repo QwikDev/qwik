@@ -150,6 +150,10 @@ test.describe('nav', () => {
         await reloadFromPage(page);
         await expect(page.locator('h1')).toHaveText('Page Short');
         await expect.poll(getDocumentLoads).toBe(2);
+        // A popstate that fires before the router's lazy init has run is not handled.
+        await page.waitForFunction(
+          () => !!(window as any)._qRouterSPA || !!(window as any)._qRouterInitPopstate
+        );
 
         await page.goBack();
 
@@ -260,6 +264,8 @@ test.describe('nav', () => {
 
         await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/action-form/');
         await expect(page.locator('#scroll-action-heading')).toHaveText('Action Scroll');
+        // The navigation resets scroll when it settles, which can land after the heading renders.
+        await page.waitForFunction(() => (window as any)._qRouterScrollEnabled === true);
 
         await scrollTo(page, 0, 700);
         await expect.poll(async () => (await getWindowScrollXY(page))[1]).toBe(700);

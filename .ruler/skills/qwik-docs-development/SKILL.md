@@ -57,6 +57,11 @@ For concept docs, use this shape unless the page has a better existing local pat
 - LLM generator: `packages/docs/scripts/generate-llms.ts`
 - Docs e2e: `e2e/docs-e2e/tests/`
 - Generated docs build output: `packages/docs/dist/`
+- Web fonts: `packages/docs/src/font-faces.ts` inlines the `*-subset-*` fonts from
+  `packages/docs/src/media/fonts/` and links the `*-latin-*` files for the remaining characters.
+  Regenerate a subset with fontTools:
+  `pyftsubset <latin file> --unicodes="<subsetUnicodeRange>" --layout-features='*' --flavor=woff2 --output-file=<subset file>`,
+  then keep `restOfLatinUnicodeRange` equal to the rest of the Latin file's characters.
 
 ## LLM Output Rules
 

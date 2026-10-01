@@ -328,8 +328,10 @@ export interface RouteData {
   _M?: RouteData[];
   /** Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal. */
   _N?: MenuModuleLoader;
-  /** Array of routeLoader$ hashes for this node's loaders */
+  /** Layout loader hashes inherited by descendant routes. */
   _R?: string[];
+  /** Loader hashes declared by the page or its layout override. */
+  _D?: string[];
   /** Child route segments (any key not starting with `_`) */
   [part: string]:
     | RouteData
@@ -452,6 +454,8 @@ export interface LoadedRoute {
   $loaders$?: string[];
   /** Runtime-only mapping of routeLoader$ hashes to the matched pathname used for q-loader fetches */
   $loaderPaths$?: Record<string, string>;
+  /** Parameters matched at each loader's endpoint path. */
+  $loaderParams$?: Record<string, PathParams>;
 }
 
 export interface EndpointResponse {

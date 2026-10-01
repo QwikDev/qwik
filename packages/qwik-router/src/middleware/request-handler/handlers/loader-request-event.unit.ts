@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { getRouteLoaderCtx, loadRouteLoader } from '../../../runtime/src/route-loaders';
+import {
+  getRouteLoaderCtx,
+  getRouteLoaderParams,
+  loadRouteLoader,
+} from '../../../runtime/src/route-loaders';
 import type { LoaderInternal } from '../../../runtime/src/types';
 import type { RequestEventInternal } from '../request-event-core';
 import { createLoaderRequestEventFactory } from './loader-request-event';
@@ -19,14 +23,14 @@ describe('createLoaderRequestEventFactory', () => {
     expect(pageEv.query.has('q')).toBe(false);
     expect(pageEv.request.url).toBe('http://localhost/products/?page=2');
     expect(pageEv.originalUrl.href).toBe('http://localhost/products/?page=2');
-    expect(pageEv.params).toEqual({});
+    expect(pageEv.params).toEqual({ id: '123' });
 
     expect(queryEv.url.search).toBe('?q=shoes');
     expect(queryEv.query.get('q')).toBe('shoes');
     expect(queryEv.query.has('page')).toBe(false);
     expect(queryEv.request.url).toBe('http://localhost/products/?q=shoes');
     expect(queryEv.originalUrl.href).toBe('http://localhost/products/?q=shoes');
-    expect(queryEv.params).toEqual({});
+    expect(queryEv.params).toEqual({ id: '123' });
 
     pageEv.sharedMap.set('shared', 'value');
     expect(requestEv.sharedMap.get('shared')).toBe('value');
@@ -96,6 +100,7 @@ describe('createLoaderRequestEventFactory', () => {
       const routeLoaderCtx = getRouteLoaderCtx(requestEv);
       routeLoaderCtx.loaderPaths['products-loader'] = '/products/';
       routeLoaderCtx.loaderPaths['details-loader'] = '/products/123/';
+      getRouteLoaderParams(requestEv)['details-loader'] = { id: '123' };
       const getLoaderRequestEvent = createLoaderRequestEventFactory(requestEv);
       const productsLoader = createLoader('products-loader', ['page']);
       const detailsLoader = createLoader('details-loader', ['page']);
@@ -111,6 +116,7 @@ describe('createLoaderRequestEventFactory', () => {
       expect(productsEv.request.url).toBe('http://localhost/products/?page=2');
       expect(productsEv.originalUrl.href).toBe('http://localhost/products/?page=2');
       expect(productsEv.params).toEqual({});
+      expect(detailsEv.params).toEqual({ id: '123' });
     } finally {
       globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
     }
@@ -142,6 +148,7 @@ function createRequestEv(
     headers: new Headers(),
     request: new Request(url),
     url,
+    params: { id: '123' },
     sharedMap: new Map<string, unknown>(),
   } as any;
   requestEv.resolveValue = (loader: LoaderInternal) => loadRouteLoader(loader, requestEv);

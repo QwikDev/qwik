@@ -509,11 +509,11 @@ describe('resolve-request-handler', () => {
       };
     }
 
-    function runPage(route: LoadedRoute, renderHandler: any) {
+    function runPage(route: LoadedRoute, renderHandler: any, url = 'http://localhost:3000/') {
       globalThis.__NO_TRAILING_SLASH__ = false;
       const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler);
       const requestEv = createRequestEvent(
-        createMockServerRequestEvent('http://localhost:3000/'),
+        createMockServerRequestEvent(url),
         route,
         handlers,
         '/',
@@ -526,6 +526,36 @@ describe('resolve-request-handler', () => {
       vi.fn((requestEv: { exit: () => void }) => {
         requestEv.exit();
       });
+
+    it('passes matched ancestor params to strict loaders during SSR', async () => {
+      const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+      globalThis.__STRICT_LOADERS__ = true;
+      try {
+        const readLoader = vi.fn((ev: RequestEvent) => ({
+          url: ev.url.href,
+          params: ev.params,
+        }));
+        const route = pageRouteWithLoaders(makeLoader('products-loader', readLoader));
+        route.$params$ = { id: '123', view: 'details' };
+        route.$loaderPaths$ = { 'products-loader': '/products/123/' };
+        route.$loaderParams$ = { 'products-loader': { id: '123' } };
+        const requestEv = runPage(
+          route,
+          exitRender(),
+          'http://localhost:3000/products/123/view/?q=shoes'
+        );
+
+        await requestEv.next();
+
+        expect(getRouteLoaderValues(requestEv)['products-loader']).toEqual({
+          url: 'http://localhost:3000/products/123/?q=shoes',
+          params: { id: '123' },
+        });
+        expect(requestEv.params).toEqual({ id: '123', view: 'details' });
+      } finally {
+        globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+      }
+    });
 
     it('starts every loader during the request', async () => {
       const blocking = vi.fn(() => 'a');

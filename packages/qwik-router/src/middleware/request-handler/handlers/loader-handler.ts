@@ -2,12 +2,18 @@ import { _serialize } from '@qwik.dev/core/internal';
 import {
   FULLPATH_HEADER,
   getRouteLoaderCtx,
+  getRouteLoaderParams,
   getRouteLoaderResponse,
   loadRouteLoader,
   resolveRouteLoaderByHash,
   setRouteLoaders,
 } from '../../../runtime/src/route-loaders';
-import type { LoaderInternal, RequestEvent, RequestHandler } from '../../../runtime/src/types';
+import type {
+  LoaderInternal,
+  PathParams,
+  RequestEvent,
+  RequestHandler,
+} from '../../../runtime/src/types';
 import type { CacheControl } from '../types';
 import { defaultLoaderCacheKey, getCachedLoader, resolveCacheKey, setCachedLoader } from '../etag';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from '../etag-hash';
@@ -23,7 +29,8 @@ import { createLoaderRequestEventFactory } from './loader-request-event';
  */
 export function loaderHandler(
   routeLoaders: LoaderInternal[],
-  loaderPaths?: Record<string, string>
+  loaderPaths?: Record<string, string>,
+  loaderParams?: Record<string, PathParams>
 ): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
@@ -44,7 +51,7 @@ export function loaderHandler(
       return;
     }
 
-    setLoaderData(requestEv, routeLoaders, loaderPaths);
+    setLoaderData(requestEv, routeLoaders, loaderPaths, loaderParams);
     await runBlockingLoadersBeforeTarget(routeLoaders, loader, requestEv);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
@@ -158,10 +165,14 @@ async function runBlockingLoadersBeforeTarget(
 function setLoaderData(
   requestEv: RequestEventInternal,
   routeLoaders: LoaderInternal[],
-  loaderPaths: Record<string, string> | undefined
+  loaderPaths: Record<string, string> | undefined,
+  loaderParams: Record<string, PathParams> | undefined
 ) {
   if (loaderPaths) {
     Object.assign(getRouteLoaderCtx(requestEv).loaderPaths, loaderPaths);
+  }
+  if (loaderParams) {
+    Object.assign(getRouteLoaderParams(requestEv), loaderParams);
   }
   setRouteLoaders(requestEv, routeLoaders);
 }

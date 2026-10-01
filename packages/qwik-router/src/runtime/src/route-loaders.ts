@@ -41,6 +41,7 @@ import type {
   LoaderConstructorQRL,
   LoaderInternal,
   LoaderOptions,
+  PathParams,
   RequestEvent,
   RequestEventLoader,
   RouteNavigate,
@@ -57,6 +58,7 @@ import type {
 
 const REQUEST_ROUTE_LOADER_STATE = '@routeLoaderState';
 const REQUEST_LOADER_PATHS_STORE = '@loaderPathsStore';
+const REQUEST_LOADER_PARAMS_STORE = '@loaderParamsStore';
 const REQUEST_ROUTE_LOADERS = '@routeLoaders';
 const REQUEST_ROUTE_LOADER_PROMISES = '@routeLoaderPromises';
 const REQUEST_ROUTE_LOADER_EVENTS = '@routeLoaderEvents';
@@ -95,9 +97,11 @@ export type LoaderFetchResult = {
  * and prevents repeat hover fetches. Cleared after each navigation kicks off its loader fetches;
  * across navigations the browser HTTP cache is the freshness authority.
  */
-const navFetchCache = new Map<string, Promise<LoaderFetchResult | undefined>>();
+let navFetchCache = new Map<string, Promise<LoaderFetchResult | undefined>>();
 
-export const clearNavFetchCache = () => navFetchCache.clear();
+export const clearNavFetchCache = () => {
+  navFetchCache = new Map();
+};
 
 const isRedirectStatus = (status: number) => status >= 300 && status < 400;
 
@@ -218,19 +222,22 @@ export const fetchRouteLoaderData = async (
   }
 
   const cacheKey = `${url}\n${headers[FULLPATH_HEADER] ?? ''}`;
+  const cache = navFetchCache;
   if (!opts?.ignoreCache) {
-    const entry = navFetchCache.get(cacheKey);
+    const entry = cache.get(cacheKey);
     if (entry) {
       return opts?.signal ? wrapWithAbort(entry, opts.signal) : entry;
     }
   }
 
   const request = async (): Promise<LoaderFetchResult | undefined> => {
+    opts?.signal?.throwIfAborted();
     const response = await fetch(url, {
       signal: opts?.signal,
       cache: opts?.ignoreCache ? 'reload' : 'default',
       headers,
     });
+    opts?.signal?.throwIfAborted();
     // Middleware redirects produce HTTP 3xx — convert to a redirect result
     if (response.redirected) {
       return { r: response.url };
@@ -244,7 +251,9 @@ export const fetchRouteLoaderData = async (
     if (!response.ok) {
       return undefined;
     }
-    return { raw: await response.text() };
+    const raw = await response.text();
+    opts?.signal?.throwIfAborted();
+    return { raw };
   };
 
   if (opts?.ignoreCache) {
@@ -254,8 +263,9 @@ export const fetchRouteLoaderData = async (
   if (opts?.signal) {
     // Don't share an abortable request while pending, but reuse it after completion.
     return request().then((value) => {
-      if (value !== undefined && !navFetchCache.has(cacheKey)) {
-        navFetchCache.set(cacheKey, Promise.resolve(value));
+      opts.signal!.throwIfAborted();
+      if (value !== undefined && !cache.has(cacheKey)) {
+        cache.set(cacheKey, Promise.resolve(value));
       }
       return value;
     });
@@ -264,16 +274,16 @@ export const fetchRouteLoaderData = async (
   const promise = request().then(
     (value) => {
       if (value === undefined) {
-        navFetchCache.delete(cacheKey);
+        cache.delete(cacheKey);
       }
       return value;
     },
     (err) => {
-      navFetchCache.delete(cacheKey);
+      cache.delete(cacheKey);
       throw err;
     }
   );
-  navFetchCache.set(cacheKey, promise);
+  cache.set(cacheKey, promise);
   return promise;
 };
 
@@ -562,6 +572,17 @@ export function getRouteLoaderCtx(requestEv: RequestEventBase): RouteLoaderCtx {
   return ctx;
 }
 
+export function getRouteLoaderParams(
+  requestEv: RequestEventBase
+): Record<string, PathParams | undefined> {
+  let params = requestEv.sharedMap.get(REQUEST_LOADER_PARAMS_STORE);
+  if (!params) {
+    params = {};
+    requestEv.sharedMap.set(REQUEST_LOADER_PARAMS_STORE, params);
+  }
+  return params;
+}
+
 /**
  * Update the loader paths store on client-side navigation.
  *
@@ -782,6 +803,10 @@ export const getLoaderRequestEvent = (
   if (pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search) {
     return rootRequestEv;
   }
+  const params =
+    pathname === rootRequestEv.url.pathname
+      ? rootRequestEv.params
+      : getRouteLoaderParams(rootRequestEv)[loader.__id] || {};
 
   let events: Map<string, RequestEvent> = rootRequestEv.sharedMap.get(REQUEST_ROUTE_LOADER_EVENTS);
   if (!events) {
@@ -801,7 +826,7 @@ export const getLoaderRequestEvent = (
         enumerable: true,
       },
       params: {
-        value: {},
+        value: params,
         enumerable: true,
       },
       pathname: {

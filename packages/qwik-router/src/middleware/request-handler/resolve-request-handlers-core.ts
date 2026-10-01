@@ -18,6 +18,7 @@ import type {
 import {
   clearRouteLoaderData,
   getRouteLoaderCtx,
+  getRouteLoaderParams,
   getRouteLoaderValues,
   loadRouteLoader,
   matchesRouteLoaderId,
@@ -120,7 +121,7 @@ function createResolveRequestHandlers() {
 
     if (isPageRoute) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
-      requestHandlers.push(loaderHandler(routeLoaders, route.$loaderPaths$));
+      requestHandlers.push(loaderHandler(routeLoaders, route.$loaderPaths$, route.$loaderParams$));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
       if (!route.$notFound$) {
@@ -363,6 +364,9 @@ function createResolveRequestHandlers() {
     const routeLoaderCtx = getRouteLoaderCtx(requestEv);
     if (route.$loaderPaths$) {
       Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
+    }
+    if (route.$loaderParams$) {
+      Object.assign(getRouteLoaderParams(requestEv), route.$loaderParams$);
     }
 
     // Store loader internals so SSG can check __cacheControl.

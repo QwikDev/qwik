@@ -286,6 +286,34 @@ describe('loaderHandler', () => {
     expect(requestEv.send).not.toHaveBeenCalled();
   });
 
+  it('passes matched ancestor params to a strict loader endpoint', async () => {
+    const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+    globalThis.__STRICT_LOADERS__ = true;
+    try {
+      const requestEv = createRequestEv();
+      requestEv.url = new URL('http://localhost/products/123/view/?q=shoes');
+      requestEv.params = { id: '123', view: 'details' } as any;
+      const loader = {
+        __id: 'loader-id',
+        __qrl: { call: vi.fn(async (_thisArg: unknown, _ev: any) => 'loader-value') },
+        __search: ['q'],
+      };
+
+      await loaderHandler(
+        [loader as any],
+        { 'loader-id': '/products/123/' },
+        { 'loader-id': { id: '123' } }
+      )(requestEv as any);
+
+      const loaderEv = loader.__qrl.call.mock.calls[0][1];
+      expect(loaderEv.url.href).toBe('http://localhost/products/123/?q=shoes');
+      expect(loaderEv.params).toEqual({ id: '123' });
+      expect(requestEv.params).toEqual({ id: '123', view: 'details' });
+    } finally {
+      globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+    }
+  });
+
   it('returns 404 when the requested loader is not available on the matched route', async () => {
     const requestEv = createRequestEv();
 

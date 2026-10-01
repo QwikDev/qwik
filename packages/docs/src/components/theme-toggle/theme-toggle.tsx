@@ -32,12 +32,11 @@ const applyTheme = (store: SiteStore, theme: ThemePreference, systemDark = query
   el.setAttribute('data-theme', effective);
   el.classList.toggle('dark', effective === 'dark');
   el.toggleAttribute('data-theme-auto', theme === 'auto');
+};
+
+const saveTheme = (theme: ThemePreference) => {
   try {
-    if (theme === 'auto') {
-      localStorage.removeItem(themeStorageKey);
-    } else {
-      localStorage.setItem(themeStorageKey, theme);
-    }
+    localStorage.setItem(themeStorageKey, theme);
   } catch {
     // Keep the current theme when storage is unavailable.
   }
@@ -46,7 +45,7 @@ const applyTheme = (store: SiteStore, theme: ThemePreference, systemDark = query
 const getThemeFromLS = (): ThemePreference => {
   try {
     const theme = localStorage.getItem(themeStorageKey);
-    if (theme === 'light' || theme === 'dark') {
+    if (theme === 'light' || theme === 'dark' || theme === 'auto') {
       return theme;
     }
   } catch {
@@ -85,6 +84,7 @@ export const ThemeToggle = component$(() => {
     let currentTheme = getThemeFromLS();
     currentTheme = currentTheme === 'auto' ? 'light' : currentTheme === 'light' ? 'dark' : 'auto';
     applyTheme(store, currentTheme);
+    saveTheme(currentTheme);
   });
 
   return (

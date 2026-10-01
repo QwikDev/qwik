@@ -94,32 +94,32 @@ test.describe('Docs site smoke tests', () => {
       /.+/
     );
 
-    await section('Router').locator('[ui-qds-popover-trigger]').hover();
-    await expect(section('Router')).toHaveAttribute('ui-open', 'true');
-    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveAttribute(
-      'data-nav-slide',
-      'right'
-    );
-    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveCSS(
-      'animation-name',
-      'nav-slide'
-    );
-    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveCSS(
-      '--nav-slide-from',
-      '-24px'
-    );
-
     await section('Ecosystem').locator('[ui-qds-popover-trigger]').hover();
     await expect(section('Ecosystem')).toHaveAttribute('ui-open', 'true');
     await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveAttribute(
       'data-nav-slide',
-      'left'
+      'right'
     );
     await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveCSS(
       'animation-name',
       'nav-slide'
     );
     await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveCSS(
+      '--nav-slide-from',
+      '-24px'
+    );
+
+    await section('Router').locator('[ui-qds-popover-trigger]').hover();
+    await expect(section('Router')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveAttribute(
+      'data-nav-slide',
+      'left'
+    );
+    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveCSS(
+      'animation-name',
+      'nav-slide'
+    );
+    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveCSS(
       '--nav-slide-from',
       '24px'
     );

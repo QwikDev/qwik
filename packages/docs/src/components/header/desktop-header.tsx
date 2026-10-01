@@ -260,37 +260,6 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
             </navbar.itemcontent>
           </navbar.item>
 
-          {/* ── Ecosystem ── */}
-          <navbar.item class="relative">
-            <navbar.itemtrigger
-              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5 cursor-pointer"
-              style={triggerAnchorReset}
-            >
-              <span>Ecosystem</span>
-            </navbar.itemtrigger>
-            <navbar.itemcontent
-              class={[contentBaseClass, getContentWidthClass(NavSections.Ecosystem)]}
-              style={contentAnchorReset}
-            >
-              <ImageCard
-                href="/docs/integrations"
-                label="Integrations"
-                description="Find tools you can use out-of-the-box with Qwik"
-                class="h-[364px] flex-1 min-w-0"
-              >
-                <NavIntegrationsImg class={ImageCardClasses} />
-              </ImageCard>
-              <ImageCard
-                href="/docs/cookbook"
-                label="Cookbooks"
-                description="Guides, recipes and examples"
-                class="h-[364px] flex-1 min-w-0"
-              >
-                <NavCookbooksImg class={ImageCardClasses} />
-              </ImageCard>
-            </navbar.itemcontent>
-          </navbar.item>
-
           {/* ── Router ── */}
           <navbar.item class="relative">
             <navbar.itemtrigger
@@ -339,6 +308,37 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
                 class="flex-1 min-w-0 self-stretch"
               >
                 <NavRouterImg class={ImageCardClasses} />
+              </ImageCard>
+            </navbar.itemcontent>
+          </navbar.item>
+
+          {/* ── Ecosystem ── */}
+          <navbar.item class="relative">
+            <navbar.itemtrigger
+              class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 h-[76px] px-5 cursor-pointer"
+              style={triggerAnchorReset}
+            >
+              <span>Ecosystem</span>
+            </navbar.itemtrigger>
+            <navbar.itemcontent
+              class={[contentBaseClass, getContentWidthClass(NavSections.Ecosystem)]}
+              style={contentAnchorReset}
+            >
+              <ImageCard
+                href="/docs/integrations"
+                label="Integrations"
+                description="Find tools you can use out-of-the-box with Qwik"
+                class="h-[364px] flex-1 min-w-0"
+              >
+                <NavIntegrationsImg class={ImageCardClasses} />
+              </ImageCard>
+              <ImageCard
+                href="/docs/cookbook"
+                label="Cookbooks"
+                description="Guides, recipes and examples"
+                class="h-[364px] flex-1 min-w-0"
+              >
+                <NavCookbooksImg class={ImageCardClasses} />
               </ImageCard>
             </navbar.itemcontent>
           </navbar.item>

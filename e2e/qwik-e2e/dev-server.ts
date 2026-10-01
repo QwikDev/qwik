@@ -285,7 +285,7 @@ export { router }
         // Split the SSR build: single-file output inlines dynamic imports and
         // evaluates them eagerly at top level, which defeats the config's lazy
         // route/server$ imports and reintroduces module-order TDZs.
-        rollupOptions: { output: { inlineDynamicImports: false } },
+        rolldownOptions: { output: { codeSplitting: true } },
       },
       plugins: [
         ...plugins,

@@ -327,7 +327,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
 
   const ssrBundle = await ssrBuild.generate({
     format: 'es',
-    inlineDynamicImports: true,
+    codeSplitting: false,
     sourcemap: false,
   });
 

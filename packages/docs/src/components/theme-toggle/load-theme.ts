@@ -8,16 +8,17 @@ let storedTheme: string | null = null;
 try {
   storedTheme = localStorage.getItem('theme');
 } catch {
-  // Use the system preference when storage is unavailable.
+  // Use the default theme when storage is unavailable.
 }
 
-const isSystem = storedTheme !== 'light' && storedTheme !== 'dark';
-const effectiveTheme =
-  storedTheme === 'light' || storedTheme === 'dark'
-    ? storedTheme
-    : window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
+const isSystem = storedTheme === 'auto';
+const effectiveTheme = isSystem
+  ? window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light'
+  : storedTheme === 'light'
+    ? 'light'
+    : 'dark';
 const html = document.documentElement;
 html.setAttribute('data-theme', effectiveTheme);
 html.classList.toggle('dark', effectiveTheme === 'dark');

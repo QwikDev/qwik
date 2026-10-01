@@ -22,7 +22,7 @@ export default component$(() => {
   const isDocsPath = pathname === '/docs' || pathname?.startsWith('/docs/');
   const preloadedFontUrls = isDocsPath
     ? [tomorrowFontUrl, ubuntuSans600FontUrl, ubuntuSans700FontUrl]
-    : [tomorrowFontUrl];
+    : [tomorrowFontUrl, ubuntuSans600FontUrl];
 
   useQwikRouter();
 

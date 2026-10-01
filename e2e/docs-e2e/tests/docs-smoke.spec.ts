@@ -37,6 +37,26 @@ test.describe('Docs site smoke tests', () => {
     expect(lcpTag).toBe('H1');
   });
 
+  test('home page preloads every web font it renders', async ({ page }) => {
+    await page.goto('/');
+    const { renderedFonts, preloadedFonts } = await page.evaluate(async () => {
+      await document.fonts.ready;
+      const fileName = (url: string) => new URL(url, location.href).pathname.split('/').pop();
+      return {
+        renderedFonts: performance
+          .getEntriesByType('resource')
+          .map((entry) => fileName(entry.name))
+          .filter((name) => name?.endsWith('.woff2')),
+        preloadedFonts: [...document.querySelectorAll('link[rel="preload"][as="font"]')].map(
+          (link) => fileName(link.getAttribute('href')!)
+        ),
+      };
+    });
+
+    expect(renderedFonts.length).toBeGreaterThan(0);
+    expect(preloadedFonts).toEqual(expect.arrayContaining(renderedFonts));
+  });
+
   test('shared grid decoration covers the blog and 404 page', async ({ page }) => {
     for (const path of ['/blog/', '/missing-grid-page/']) {
       await page.goto(path);
@@ -178,32 +198,48 @@ test.describe('Docs site smoke tests', () => {
     await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(12, 7, 20)');
   });
 
-  test('theme switch follows the system and remembers manual choices', async ({ page }) => {
+  test('theme switch starts dark for first-time visitors and remembers every choice', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
-    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.emulateMedia({ colorScheme: 'light' });
     await page.goto('/');
 
     const html = page.locator('html');
     const themeSwitch = page.getByRole('button', { name: 'Change color theme' });
+    const storedTheme = () => page.evaluate(() => localStorage.getItem('theme'));
     await expect(themeSwitch).toBeVisible();
     await expect(html).toHaveClass(/\bdark\b/);
-    await expect(html).toHaveAttribute('data-theme-auto', '');
-    await expect(themeSwitch.locator('.themeIcon.auto')).toHaveCSS('opacity', '1');
-    await expect(themeSwitch.locator('.themeIcon.auto')).toHaveCSS(
+    await expect(html).toHaveAttribute('data-theme', 'dark');
+    await expect(html).not.toHaveAttribute('data-theme-auto');
+    await expect(themeSwitch.locator('.themeIcon.dark')).toHaveCSS('opacity', '1');
+    await expect(themeSwitch.locator('.themeIcon.dark')).toHaveCSS(
       'transition-duration',
       '0.42s, 0.18s'
     );
-    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBeNull();
+    expect(await storedTheme()).toBeNull();
 
-    await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
-    await expect(themeSwitch.locator('.themeIcon.auto')).toHaveCSS('transition-duration', '0s');
-    await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'no-preference' });
+    await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
+    await expect(themeSwitch.locator('.themeIcon.dark')).toHaveCSS('transition-duration', '0s');
+    await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'no-preference' });
+
+    await themeSwitch.click();
+    await expect(html).toHaveAttribute('data-theme-auto', '');
+    await expect(html).toHaveAttribute('data-theme', 'light');
+    await expect(themeSwitch.locator('.themeIcon.auto')).toHaveCSS('opacity', '1');
+    expect(await storedTheme()).toBe('auto');
+
+    await page.reload();
+    await expect(html).toHaveAttribute('data-theme-auto', '');
+    await expect(html).toHaveAttribute('data-theme', 'light');
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await expect(html).toHaveClass(/\bdark\b/);
 
     await themeSwitch.click();
     await expect(html).not.toHaveClass(/\bdark\b/);
     await expect(html).toHaveAttribute('data-theme', 'light');
     await expect(themeSwitch.locator('.themeIcon.light')).toHaveCSS('opacity', '1');
-    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('light');
+    expect(await storedTheme()).toBe('light');
 
     await page.reload();
     await expect(html).not.toHaveClass(/\bdark\b/);
@@ -211,13 +247,7 @@ test.describe('Docs site smoke tests', () => {
 
     await themeSwitch.click();
     await expect(html).toHaveClass(/\bdark\b/);
-    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('dark');
-
-    await themeSwitch.click();
-    await expect(html).toHaveAttribute('data-theme-auto', '');
-    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBeNull();
-    await page.emulateMedia({ colorScheme: 'light' });
-    await expect(html).not.toHaveClass(/\bdark\b/);
+    expect(await storedTheme()).toBe('dark');
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(themeSwitch).toBeHidden({ timeout: 3000 });
@@ -225,7 +255,7 @@ test.describe('Docs site smoke tests', () => {
     await expect(themeSwitch).toBeVisible();
     await themeSwitch.click();
     await expect(themeSwitch).toBeVisible();
-    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('light');
+    expect(await storedTheme()).toBe('auto');
   });
 
   test('code examples and previews follow the docs theme', async ({ page }) => {
@@ -243,6 +273,7 @@ test.describe('Docs site smoke tests', () => {
     await expect(code).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(token).toHaveCSS('color', 'rgb(215, 58, 73)');
     await expect(preview.locator('html')).not.toHaveClass(/\bdark\b/);
+    await expect(preview.locator('html')).toHaveAttribute('data-theme', 'light');
 
     await page.locator('html').evaluate((html) => {
       html.classList.add('dark');
@@ -259,6 +290,7 @@ test.describe('Docs site smoke tests', () => {
       'color(srgb 0.0305882 0.137255 0.212941)'
     );
     await expect(preview.locator('html')).toHaveClass(/\bdark\b/);
+    await expect(preview.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(preview.locator('body')).toHaveCSS('background-color', 'rgb(12, 7, 20)');
   });
 
@@ -304,6 +336,53 @@ test.describe('Docs site smoke tests', () => {
     await expect(sidebar.locator('details').first()).toBeVisible();
     await expect(sidebar.locator('a[aria-current="page"]')).toHaveCount(1);
     await expect(page.locator('.docs-shell ~ [data-docs-sidebar]')).toHaveCount(1);
+  });
+
+  test('docs content keeps its position before the sidebar streams in', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/core/overview/');
+    const main = page.locator('.docs-main');
+    const leftWithSidebar = (await main.boundingBox())!.x;
+
+    await page.locator('[data-docs-sidebar]').evaluate((sidebar) => sidebar.remove());
+
+    expect((await main.boundingBox())!.x).toBe(leftWithSidebar);
+  });
+
+  test('docs text keeps its line layout when web fonts fail to load', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    const isUbuntuSansLoaded = () =>
+      page.evaluate(() =>
+        [...document.fonts].some(
+          (font) => font.family.replaceAll('"', '') === 'Ubuntu Sans' && font.status === 'loaded'
+        )
+      );
+    const measureText = async () => {
+      await page.evaluate(() => document.fonts.ready);
+      return page.locator('article').evaluate((article) =>
+        [...article.querySelectorAll('h1, p')].slice(0, 8).map((element) => {
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          const { width, height } = range.getBoundingClientRect();
+          return { width, height };
+        })
+      );
+    };
+
+    await page.route('**/*.woff2', (route) => route.abort());
+    await page.goto('/docs/core/overview/');
+    const fallbackLayout = await measureText();
+    expect(await isUbuntuSansLoaded()).toBe(false);
+
+    await page.unrouteAll();
+    await page.reload();
+    const webFontLayout = await measureText();
+    expect(await isUbuntuSansLoaded()).toBe(true);
+
+    webFontLayout.forEach(({ width, height }, index) => {
+      expect(fallbackLayout[index].height).toBe(height);
+      expect(Math.abs(fallbackLayout[index].width - width) / width).toBeLessThan(0.05);
+    });
   });
 
   for (const viewport of [

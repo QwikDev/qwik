@@ -68,12 +68,42 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Tomorrow Fallback';
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold');
+  font-weight: 600;
+  size-adjust: 106.28%;
+  ascent-override: 94.09%;
+  descent-override: 18.82%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Ubuntu Sans Fallback';
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold');
+  font-weight: 600;
+  size-adjust: 97.02%;
+  ascent-override: 96.89%;
+  descent-override: 26.8%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Ubuntu Sans Fallback';
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold');
+  font-weight: 700;
+  size-adjust: 98.38%;
+  ascent-override: 95.55%;
+  descent-override: 26.43%;
+  line-gap-override: 0%;
+}
+
 @theme {
   --breakpoint-2xl: 90rem;
 
   /* Font families */
-  --font-heading: 'Tomorrow', sans-serif;
-  --font-body: 'Ubuntu Sans', sans-serif;
+  --font-heading: 'Tomorrow', 'Tomorrow Fallback', sans-serif;
+  --font-body: 'Ubuntu Sans', 'Ubuntu Sans Fallback', sans-serif;
 
   /* Text — Headings */
   --text-h1: 96px;

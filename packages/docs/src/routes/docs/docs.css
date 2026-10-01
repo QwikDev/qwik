@@ -7,7 +7,7 @@
 
   @variant xl {
     @apply grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: 287px minmax(0, 1fr);
   }
 }
 

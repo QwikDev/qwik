@@ -378,7 +378,8 @@ function removeDir(dir: string) {
 
 async function routerApp(req: Request, res: Response, next: NextFunction, appDir: string) {
   const ssrPath = join(appDir, 'server', `${qwikRouterVirtualEntry}.js`);
-  // it's ok in the devserver to import core multiple times (same version shares singletons)
+  // Fixture apps load independently bundled copies of core.
+  (globalThis as any).__qwik = null;
   const mod = await import(file(ssrPath));
   const router: any = mod.router;
   // await so a rejected request surfaces in the caller's catch instead of killing the process

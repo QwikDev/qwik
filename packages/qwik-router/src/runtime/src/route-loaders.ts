@@ -679,6 +679,10 @@ export const isImmutableLoader = (loaderId: string) => immutableLoaderIds.has(lo
 
 export function abortRouteLoaderNavigation(ctx: RouteLoaderCtx) {
   for (const [signal, request] of clientRouteLoaders.get(ctx)?.current.requests ?? []) {
+    if (!request.active) {
+      // Probing a departed loader would start its compute and wake the outgoing page.
+      continue;
+    }
     if (signal.untrackedPending) {
       request.isAborted = true;
     }

@@ -231,6 +231,34 @@ describe('route loader execution', () => {
     expect(invalidate).toHaveBeenCalledOnce();
   });
 
+  it('leaves departed loaders alone when a navigation is interrupted', () => {
+    const state: RouteLoaderState = {};
+    const ctx: RouteLoaderCtx = { loaderPaths: { parent: '/a/' } };
+    const parent = createLoader('parent', async () => 'parent');
+    const child = createLoader('child', async () => 'child');
+    ensureRouteLoaderSignal(parent, state, ctx);
+    const parentSignal = state.parent;
+    const abort = vi.spyOn(parentSignal, 'abort').mockImplementation(() => {});
+    const readPending = vi.fn(() => false);
+    Object.defineProperty(parentSignal, 'untrackedPending', { get: readPending });
+    prepareRouteLoaders(
+      [{ child } as unknown as RouteModule],
+      state,
+      ctx,
+      { child: '/a/child/' },
+      new URL('http://test/a/child/'),
+      new URL('http://test/a/'),
+      1
+    );
+    abort.mockClear();
+
+    abortRouteLoaderNavigation(ctx);
+
+    // Probing a departed loader would start its compute and wake the outgoing page.
+    expect(readPending).not.toHaveBeenCalled();
+    expect(abort).not.toHaveBeenCalled();
+  });
+
   it('injects a value through the computed signal', async () => {
     const signal = runWithOwner(createOwner(null), () =>
       useComputed$(({ info }) =>

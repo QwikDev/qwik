@@ -22,6 +22,7 @@ import NavTutorialImg from '../../media/navbar/nav-tutorial.png?jsx';
 import { tw } from '~/utils/utils';
 import { SearchModal } from '../search/search';
 import { ThemeToggle } from '../theme-toggle';
+import { SidebarOpenButton } from './sidebar-open-button';
 
 const ImageCardClasses =
   'absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform [html.dark_&]:[filter:brightness(.62)_contrast(2.85)]';
@@ -63,7 +64,7 @@ const NavPill = component$((props: { href: string; label: string; icon?: JSXOutp
 ));
 
 const contentBaseClass = tw(
-  'open:flex fixed top-[calc(76px+24px+16px)] left-1/2 -translate-x-1/2 m-0 gap-4 shadow-emphasis rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0'
+  'open:flex fixed top-24 2xl:top-[calc(76px+24px+16px)] left-1/2 -translate-x-1/2 m-0 gap-4 shadow-emphasis rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0'
 );
 
 const triggerAnchorReset = 'anchor-name: none;';
@@ -86,7 +87,10 @@ const contentWidths: Record<NavSections, string> = {
 
 const getContentWidthClass = (label: NavSections) => contentWidths[label] ?? contentWidths.Core;
 
-export const DesktopHeader = component$(() => {
+const navbarTranslateX = 'calc(-50% + var(--sidebar-button-offset, 0px))';
+const hiddenTranslateY = 'calc(-100% - 24px)';
+
+export const DesktopHeader = component$((props: { sidebarId?: string }) => {
   const initialized = useSignal(false);
   const hidden = useSignal(false);
   const focused = useSignal(false);
@@ -161,12 +165,27 @@ export const DesktopHeader = component$(() => {
   return (
     <div
       ref={navRef}
-      class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-[''] 2xl:block hidden"
+      class="has-[[ui-open]]:before:opacity-100 before:pointer-events-none before:fixed before:inset-0 before:z-99998 before:bg-background-base/40 before:opacity-0 before:backdrop-blur-sm before:transition-opacity before:duration-300 before:ease before:content-[''] lg:block hidden"
     >
+      {props.sidebarId && (
+        <SidebarOpenButton
+          sidebarId={props.sidebarId}
+          class="fixed top-4 left-[calc(50%-490px)] z-99999 transition-[translate,opacity] duration-300 ease xl:hidden"
+          style={{
+            translate: isHidden.value ? `0 ${hiddenTranslateY}` : '0',
+            opacity: isHidden.value ? 0 : 1,
+          }}
+        />
+      )}
       <navbar.root
-        class="fixed top-6 left-1/2 z-99999 flex w-full h-[70px] max-w-[900px] items-center justify-between rounded-2xl border-[1.6px] border-base mx-auto bg-background-base shadow-base transition-[translate,opacity] duration-300 ease px-6"
+        class={[
+          'fixed top-4 2xl:top-6 left-1/2 z-99999 flex w-full h-16 2xl:h-[70px] max-w-[900px] items-center justify-between rounded-2xl border-[1.6px] border-base mx-auto bg-background-base shadow-base transition-[translate,opacity] duration-300 ease px-6',
+          props.sidebarId && 'max-xl:[--sidebar-button-offset:40px]',
+        ]}
         style={{
-          translate: isHidden.value ? '-50% calc(-100% - 24px)' : '-50% 0',
+          translate: isHidden.value
+            ? `${navbarTranslateX} ${hiddenTranslateY}`
+            : `${navbarTranslateX} 0`,
           opacity: isHidden.value ? 0 : 1,
         }}
         onPointerOver$={(event) => setNavSlide$(event.target)}

@@ -90,7 +90,7 @@ export const ThemeToggle = component$(() => {
   return (
     <button
       onClick$={toggleTheme$}
-      class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 2xl:h-[76px] 2xl:px-5 cursor-pointer"
+      class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 lg:h-[76px] lg:px-5 cursor-pointer"
       type="button"
       aria-label="Change color theme"
       title="Change color theme: system, light, dark"

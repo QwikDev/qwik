@@ -1,5 +1,4 @@
 import {
-  $,
   component$,
   createContextId,
   type Signal,
@@ -11,6 +10,7 @@ import {
 import { Link, useContent, useLocation, type ContentMenu } from '@qwik.dev/router';
 import { lucide, tree } from '@qds.dev/ui';
 import { maxTs, updated } from '@docs-updated';
+import { hideSidebarOnDismissClick } from '../sidebar-overlay/sidebar-overlay';
 
 const SEEN_STORAGE_KEY = 'docs-updated-seen';
 
@@ -23,15 +23,12 @@ const normalizePath = (path: string) => {
 /** Doc pages updated since the visitor's last visit and not yet opened. */
 const UpdatedPathsContext = createContextId<Signal<Record<string, true>>>('docs-updated-paths');
 
-export const Sidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
+export const sidebarId = 'sidebar';
+
+export const Sidebar = component$(() => {
   const { menu } = useContent();
   const { url } = useLocation();
   const desktopCollapsed = useSignal(false);
-  const closeMobileSidebarOnLink$ = $((target: EventTarget | null) => {
-    if (target instanceof Element && target.closest('a[href]')) {
-      props.mobileOpen.value = false;
-    }
-  });
 
   const updatedPaths = useSignal<Record<string, true>>({});
   useContextProvider(UpdatedPathsContext, updatedPaths);
@@ -69,10 +66,10 @@ export const Sidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
 
   return (
     <aside
-      class={[
-        'fixed inset-y-0 left-0 z-50 xl:sticky xl:top-0 xl:h-screen xl:pointer-events-auto',
-        props.mobileOpen.value ? 'pointer-events-auto' : 'pointer-events-none',
-      ]}
+      id={sidebarId}
+      popover="auto"
+      class="group/sidebar fixed inset-0 z-50 m-0 size-full overflow-hidden border-0 bg-background-base/40 p-0 text-foreground-base opacity-0 backdrop-blur-sm transition-[opacity,display,overlay] transition-discrete duration-300 open:opacity-100 starting:open:opacity-0 xl:sticky xl:top-0 xl:block xl:h-screen xl:w-auto xl:overflow-visible xl:bg-transparent xl:opacity-100 xl:backdrop-blur-none"
+      onClick$={(event, aside) => hideSidebarOnDismissClick(event, aside)}
     >
       <button
         type="button"
@@ -87,11 +84,9 @@ export const Sidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
 
       <nav
         class={[
-          'flex flex-col h-full overflow-y-auto [scrollbar-gutter:stable] w-[287px] bg-background-base border-r-[1.6px] border-base px-4 py-6 gap-4 transition-transform duration-300 ease',
-          props.mobileOpen.value ? 'translate-x-0' : '-translate-x-full',
+          'absolute inset-y-4 left-4 flex w-[287px] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-y-auto rounded-2xl border-[1.6px] border-base bg-background-base px-4 py-6 shadow-base [scrollbar-gutter:stable] -translate-x-[calc(100%+2rem)] transition-transform duration-300 ease group-open/sidebar:translate-x-0 starting:group-open/sidebar:-translate-x-[calc(100%+2rem)] xl:static xl:h-full xl:max-w-none xl:rounded-none xl:border-0 xl:border-r-[1.6px] xl:shadow-none',
           desktopCollapsed.value ? 'xl:-translate-x-full' : 'xl:translate-x-0',
         ]}
-        onClick$={(event) => closeMobileSidebarOnLink$(event.target)}
       >
         {/* Logo + collapse */}
         <div class="flex items-center justify-between">
@@ -100,10 +95,9 @@ export const Sidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
           </Link>
           <button
             type="button"
-            onClick$={() => {
-              desktopCollapsed.value = true;
-              props.mobileOpen.value = false;
-            }}
+            popovertarget={sidebarId}
+            popovertargetaction="hide"
+            onClick$={() => (desktopCollapsed.value = true)}
             aria-label="Close sidebar"
             class="flex items-center justify-center p-0"
           >

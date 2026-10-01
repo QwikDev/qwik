@@ -1,8 +1,8 @@
 import { useLocation } from '@qwik.dev/router';
-import { component$, Slot, useComputed$, useSignal, useStyles$ } from '@qwik.dev/core';
+import { component$, Slot, useComputed$, useStyles$ } from '@qwik.dev/core';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import Contributors from '../../components/contributors';
-import { DocsSidebar } from '../../components/docs-sidebar/docs-sidebar';
+import { DocsSidebar, docsSidebarId } from '../../components/docs-sidebar/docs-sidebar';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
@@ -12,11 +12,10 @@ export default component$(() => {
   useStyles$(styles);
   const loc = useLocation();
   const hasOnThisPage = useComputed$(() => loc.url.pathname !== '/docs/');
-  const mobileSidebarOpen = useSignal(false);
 
   return (
     <div class="docs">
-      <Header mobileSidebarOpen={mobileSidebarOpen} />
+      <Header sidebarId={docsSidebarId} />
       <div class="docs-grid bg-background-base">
         <div class="docs-shell fixed-header">
           {hasOnThisPage.value && (
@@ -39,7 +38,7 @@ export default component$(() => {
             <ContentNav />
           </main>
         </div>
-        <DocsSidebar mobileOpen={mobileSidebarOpen} />
+        <DocsSidebar />
         <Footer />
       </div>
     </div>

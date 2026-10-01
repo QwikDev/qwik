@@ -8,14 +8,16 @@ import GridStarBackground from '~/media/decor/grid-star-bg.svg?jsx';
 export default component$(() => {
   return (
     <>
-      <Header />
-      <main class="bg-grid-stars">
+      <div class="bg-grid-stars">
         <GridStarBackground class="grid-star-background" />
-        <Home.Hero />
-        <Home.Streaming />
-        <Home.Wip />
-        <Home.Team />
-      </main>
+        <Header />
+        <main>
+          <Home.Hero />
+          <Home.Streaming />
+          <Home.Wip />
+          <Home.Team />
+        </main>
+      </div>
       <Footer />
     </>
   );

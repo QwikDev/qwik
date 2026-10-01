@@ -1,5 +1,5 @@
-import { component$, Slot, useSignal, useStyles$ } from '@qwik.dev/core';
-import { Sidebar } from '../../components/sidebar/sidebar';
+import { component$, Slot, useStyles$ } from '@qwik.dev/core';
+import { Sidebar, sidebarId } from '../../components/sidebar/sidebar';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
@@ -8,13 +8,12 @@ import styles from '../docs/docs.css?inline';
 
 export default component$(() => {
   useStyles$(styles);
-  const mobileSidebarOpen = useSignal(false);
 
   return (
     <div class="docs fixed-header">
-      <Header mobileSidebarOpen={mobileSidebarOpen} />
+      <Header sidebarId={sidebarId} />
       <div class="flex gap-12 xl:gap-20 items-stretch content-container">
-        <Sidebar mobileOpen={mobileSidebarOpen} />
+        <Sidebar />
         <main class="contents">
           <div class="docs-container">
             <article>

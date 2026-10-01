@@ -250,12 +250,18 @@ test.describe('Docs site smoke tests', () => {
     expect(await storedTheme()).toBe('dark');
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await expect(themeSwitch).toBeHidden({ timeout: 3000 });
-    await page.getByRole('button', { name: 'Open menu' }).click();
-    await expect(themeSwitch).toBeVisible();
     await themeSwitch.click();
-    await expect(themeSwitch).toBeVisible();
+    await expect(html).toHaveAttribute('data-theme-auto', '');
     expect(await storedTheme()).toBe('auto');
+
+    await page.getByRole('button', { name: 'Open menu' }).click();
+    const menuThemeSwitch = page
+      .getByRole('dialog')
+      .getByRole('button', { name: 'Change color theme' });
+    await menuThemeSwitch.click();
+    await expect(html).toHaveAttribute('data-theme', 'light');
+    await expect(menuThemeSwitch).toBeVisible();
+    expect(await storedTheme()).toBe('light');
   });
 
   test('code examples and previews follow the docs theme', async ({ page }) => {

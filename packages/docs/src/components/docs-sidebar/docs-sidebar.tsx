@@ -24,11 +24,11 @@ export const DocsSidebar = component$((props: { mobileOpen: Signal<boolean> }) =
           }
         }}
         class={[
-          'flex h-full w-[287px] flex-col gap-4 overflow-y-auto border-r-[1.6px] border-base bg-background-base px-4 py-6 [scrollbar-gutter:stable] transition-transform duration-300 ease',
+          'flex h-full w-[287px] flex-col gap-4 overflow-y-auto border-r-[1.6px] border-base bg-background-base px-4 pt-(--header-height) pb-6 xl:pt-6 [scrollbar-gutter:stable] transition-transform duration-300 ease',
           props.mobileOpen.value ? 'translate-x-0' : '-translate-x-full xl:translate-x-0',
         ]}
       >
-        <div class="flex items-center">
+        <div class="hidden items-center xl:flex">
           <Link href="/" aria-label="Qwik Home" prefetchBundles="intent" prefetchData="intent">
             <QwikLogomark />
           </Link>

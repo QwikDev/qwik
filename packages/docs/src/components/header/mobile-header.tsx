@@ -46,10 +46,10 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
   const { url } = useLocation();
   const pathname = url.pathname;
   return (
-    <div class="2xl:hidden h-16 min-h-16">
+    <div class="2xl:hidden h-(--header-height) min-h-(--header-height)">
       <modal.root>
         {/* Top bar (always visible) */}
-        <div class="fixed top-0 left-0 right-0 z-99999 flex items-center justify-between px-4 py-4 bg-background-base border-b-[1.6px] border-base h-16">
+        <div class="fixed inset-x-0 top-4 z-99999 mx-auto w-[calc(100%-2rem)] max-w-[900px] flex h-16 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-5 shadow-base">
           <div class="flex items-center gap-2">
             {props.mobileSidebarOpen && (
               <button
@@ -70,9 +70,13 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
               <QwikLogoOnly />
             </a>
           </div>
-          <modal.trigger aria-label="Open menu">
-            <lucide.menu class="vanilla-icon" />
-          </modal.trigger>
+          <div class="flex items-center gap-4 min-[360px]:gap-8">
+            <SearchModal />
+            <ThemeToggle />
+            <modal.trigger aria-label="Open menu">
+              <lucide.menu class="vanilla-icon" />
+            </modal.trigger>
+          </div>
         </div>
 
         {/* Full-width glass menu panel */}
@@ -83,11 +87,11 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
             shadow-[0px_2px_16px_0px_rgba(0,0,0,0.08)]"
         >
           {/* Header inside modal */}
-          <div class="flex items-center justify-between px-4 py-4 border-b-[1.6px] border-base shrink-0 bg-background-base">
+          <div class="mt-4 shrink-0 mx-auto w-[calc(100%-2rem)] max-w-[900px] flex h-16 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-5 shadow-base">
             <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">
               <QwikLogoOnly />
             </a>
-            <div class="flex items-center gap-8">
+            <div class="flex items-center gap-4 min-[360px]:gap-8">
               <SearchModal />
               <ThemeToggle />
               <modal.close>
@@ -96,7 +100,7 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
             </div>
           </div>
 
-          <div class="px-6 py-8 flex-1">
+          <div class="flex-1 px-5 py-8 mx-auto w-[calc(100%-2rem)] max-w-[900px]">
             <div class="flex flex-col gap-8">
               {/* Row 1: Core + Ecosystem */}
               <div class="grid grid-cols-2 gap-8">

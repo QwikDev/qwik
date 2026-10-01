@@ -49,8 +49,8 @@ export default function App() { const factory = ${callback}; register(factory); 
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
       waitForValue: (value: string) => new Promise((resolve) => pending.push(() => resolve(value))),
       register: (factory: (value: string) => Promise<unknown>) => {

@@ -26,7 +26,7 @@ import {
   registerProjection,
   renderSsrDynamicTag,
   createComponent,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   _noopQrl,
@@ -41,7 +41,7 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
 const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const slotScope0 = createSlotScope(null, [_EMPTY_OBJ]);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
@@ -58,7 +58,7 @@ const q_component_tag_dynamic_segment_1_331xdvyxwe5dy = /*#__PURE__*/ _noopQrl(
 );
 q_component_tag_dynamic_segment_1_331xdvyxwe5dy.s(component_tag_dynamic_segment_1_331xdvyxwe5dy);
 const component_tag_dynamic_segment_3_331xd3wq2q1cw = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const tag0 = props.component;
   const component0 = ctx.observeError(
     createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), null, ctx)
@@ -171,7 +171,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
@@ -185,7 +185,7 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
 q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
 
 export const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const slotScope0 = createSlotScope(null, [_EMPTY_OBJ]);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
@@ -249,10 +249,10 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_tag_dynamic_segment_3_331xd3wq2q1cw.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicTag, createComponent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicTag, createComponent } from '@qwik.dev/core';
 
 export const component_tag_dynamic_segment_3_331xd3wq2q1cw = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const tag0 = props.component;
   const component0 = ctx.observeError(
     createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), null, ctx)

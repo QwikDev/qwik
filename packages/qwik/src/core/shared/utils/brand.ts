@@ -9,33 +9,32 @@ const BRAND: unique symbol = /*#__PURE__*/ qwikSymbol('brand');
 
 export const enum Brand {
   Signal = 1 << 0,
-  WrappedSignal = 1 << 1,
-  ComputedSignal = 1 << 2,
+  Computed = 1 << 1,
+  ComputedQrl = 1 << 2,
   AsyncSignal = 1 << 3,
   SerializerSignal = 1 << 4,
-  Task = 1 << 5,
-  JSXNode = 1 << 6,
-  SubscriptionData = 1 << 7,
-  VNode = 1 << 8,
-  VirtualVNode = 1 << 9,
-  ElementVNode = 1 << 10,
-  TextVNode = 1 << 11,
-  DomContainer = 1 << 12,
-  StoreHandler = 1 << 13,
-  SetTextOperation = 1 << 14,
-  SetAttributeOperation = 1 << 15,
-  DeleteOperation = 1 << 16,
-  RemoveAllChildrenOperation = 1 << 17,
-  InsertOrMoveOperation = 1 << 18,
-  EffectSubscription = 1 << 19,
-  SubscriptionPatch = 1 << 20,
-  SerializationBackRef = 1 << 21,
+  StorePropSource = 1 << 5,
+  PropSource = 1 << 6,
+  Owner = 1 << 7,
+  ContextScope = 1 << 8,
+  SlotScope = 1 << 9,
+  Projection = 1 << 10,
+  TaskSubscription = 1 << 11,
+  VisibleTaskSubscription = 1 << 12,
+  SsrDomEffect = 1 << 13,
+  SsrDomSubscription = 1 << 14,
+  SsrDomBatchEffect = 1 << 15,
+  SsrBranchSubscription = 1 << 16,
+  SsrForBlockSubscription = 1 << 17,
+  SsrContentSubscription = 1 << 18,
+  SsrSuspenseContentSubscription = 1 << 19,
+  SerializationBackRef = 1 << 20,
 }
 
 export const hasBrand = (value: unknown, brand: Brand): boolean =>
   value != null &&
   (typeof value === 'object' || typeof value === 'function') &&
-  ((value as any)[BRAND] & brand) !== 0;
+  ((Object.getPrototypeOf(value)?.[BRAND] as number) & brand) !== 0;
 
 type BrandedClass = abstract new (...args: any[]) => unknown;
 

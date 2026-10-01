@@ -14,7 +14,7 @@ export default (props) => {
 
 import {
   useSignal,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   renderSsrEvent,
   createSsrMarkup,
@@ -25,7 +25,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_action_segment_0_2k64kau1v2n45 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   count.value++;
 };
 const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _noopQrl(
@@ -75,10 +75,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_action_segment_0_2k64kau1v2n45.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_action_segment_0_2k64kau1v2n45 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   count.value++;
 };
 /*

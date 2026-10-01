@@ -75,10 +75,10 @@ export const Card = _markComponent(
 export { Card as Card_component_1j4wd08arm0n5 };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
-  const [count, label] = _captures;
+  const [count, label] = _capturesObj._;
   return console.log(count.value++, label);
 };
 /*

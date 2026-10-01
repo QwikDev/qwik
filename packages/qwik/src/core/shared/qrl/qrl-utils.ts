@@ -3,7 +3,9 @@
 import { isDev } from '@qwik.dev/core/build';
 import type { QRLInternal, SyncQRLInternal } from './qrl-class';
 import type { QRL } from './qrl.public';
+import { qwikSymbol } from '../singletons';
 
+/** @internal */
 export const SYNC_QRL = '<sync>';
 
 /** Sync QRL is a function which is serialized into `<script q:func="qwik/json">` tag. */
@@ -28,7 +30,7 @@ export const getSymbolHash = (symbolName: string) => {
   return symbolName.slice(index);
 };
 
-const QRL_OF_BODY = Symbol('qrl-of-body');
+const QRL_OF_BODY = /*#__PURE__*/ qwikSymbol('qrl-of-body');
 
 /** The body carries its QRL, so a value that crossed `resolve()` can still say what it is. */
 export const rememberQrlOfBody = (body: object, qrl: QRL<unknown>): void => {

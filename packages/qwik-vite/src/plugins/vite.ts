@@ -379,7 +379,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // Dual flavor: the same `vite build --mode lib` also emits the client-compiled
           // runtime entry. Consumer apps resolve it in client environments so resumed QRLs
           // load client implementations by symbol.
-          const libInput = viteConfig.build?.rolldownOptions?.input;
+          const libInput = viteConfig.build?.rolldownOptions?.input ?? libraryInput;
           const clientLibEntry =
             libInput && typeof libInput === 'object' && !Array.isArray(libInput)
               ? (libInput as Record<string, string>).index
@@ -399,8 +399,26 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             const updatedRolldownOptions = updatedViteConfig.build!.rolldownOptions!;
             updatedRolldownOptions.input = undefined;
             const normalizedLibOutput = updatedRolldownOptions.output;
+            const libraryFileName = viteConfig.build?.lib && viteConfig.build.lib.fileName;
+            if (typeof libraryFileName === 'function') {
+              const outputs = Array.isArray(normalizedLibOutput)
+                ? normalizedLibOutput
+                : [normalizedLibOutput];
+              for (const output of outputs) {
+                if (output) {
+                  output.entryFileNames ??= (chunk) =>
+                    libraryFileName(output.format === 'cjs' ? 'cjs' : 'es', chunk.name);
+                }
+              }
+            }
             updatedRolldownOptions.output = undefined;
-            updatedViteConfig.builder = {};
+            updatedViteConfig.builder = {
+              sharedConfigBuild: true,
+              async buildApp(builder) {
+                await builder.build(builder.environments.ssr);
+                await builder.build(builder.environments.client);
+              },
+            };
             updatedViteConfig.environments = {
               ssr: {
                 consumer: 'server',
@@ -412,6 +430,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               client: {
                 consumer: 'client',
                 build: {
+                  lib: false,
                   ssr: false,
                   outDir: viteConfig.build?.outDir,
                   emptyOutDir: false,

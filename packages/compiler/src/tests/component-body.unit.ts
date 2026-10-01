@@ -172,8 +172,8 @@ export default component$((props) => { ${body} });`,
       {
         ...core,
         Error,
-        get _captures() {
-          return core._captures;
+        get _capturesObj() {
+          return core._capturesObj;
         },
         record: (...args: unknown[]) => calls.push(args),
         getLocale: () => 'en',

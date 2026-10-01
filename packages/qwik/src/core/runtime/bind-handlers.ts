@@ -1,4 +1,4 @@
-import { _captures, setCaptures } from '../shared/qrl/qrl-class';
+import { _capturesObj, setCaptures } from '../shared/qrl/qrl-class';
 import { deserializeCaptures } from '../shared/serdes/captures';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { Computed } from '../reactive/computed';
@@ -23,7 +23,7 @@ const withScopeFromQL = <T>(
 /** @internal */
 export function _val(this: string | undefined, _: unknown, element: HTMLInputElement) {
   return withScopeFromQL(this, element, () => {
-    const signal = _captures![0] as Signal<unknown>;
+    const signal = _capturesObj._![0] as Signal<unknown>;
     signal.value = element.type === 'number' ? element.valueAsNumber : element.value;
   });
 }
@@ -31,7 +31,7 @@ export function _val(this: string | undefined, _: unknown, element: HTMLInputEle
 /** @internal */
 export function _chk(this: string | undefined, _: unknown, element: HTMLInputElement) {
   return withScopeFromQL(this, element, () => {
-    const signal = _captures![0] as Signal<unknown>;
+    const signal = _capturesObj._![0] as Signal<unknown>;
     signal.value = element.checked;
   });
 }
@@ -39,9 +39,10 @@ export function _chk(this: string | undefined, _: unknown, element: HTMLInputEle
 /** @internal */
 export function _res(this: string | undefined, _: unknown, element: Element) {
   return withScopeFromQL(this, element, () => {
-    if (_captures) {
-      for (let i = 0; i < _captures.length; i++) {
-        const capture = _captures[i];
+    const captures = _capturesObj._;
+    if (captures) {
+      for (let i = 0; i < captures.length; i++) {
+        const capture = captures[i];
         if (capture instanceof Computed) {
           capture.resume();
         }

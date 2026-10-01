@@ -24,7 +24,7 @@ export default component$(() => {
 import {
   useSignal,
   useTaskQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -35,7 +35,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   if (true) {
     count.value = 1;
   }
@@ -89,10 +89,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   if (true) {
     count.value = 1;
   }
@@ -125,10 +125,10 @@ export const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return (count.value = true ? 3 : 4);
 };
 /*

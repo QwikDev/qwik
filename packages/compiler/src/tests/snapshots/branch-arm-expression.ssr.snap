@@ -12,7 +12,7 @@ export default () => {
 
 import {
   useSignal,
-  _captures,
+  _capturesObj,
   renderSsrBranch,
   createSsrNodeId,
   _noopQrl,
@@ -22,7 +22,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value > 2;
 };
 const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
@@ -32,7 +32,7 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
 const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId0) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(rangeId0, 0, count, undefined, true);
   return maybeThen(text0, (text0) => [
@@ -67,10 +67,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value > 2;
 };
 /*
@@ -98,10 +98,10 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
-import { _captures, escapeHTML, renderSsrTextNode, maybeThen } from '@qwik.dev/core';
+import { _capturesObj, escapeHTML, renderSsrTextNode, maybeThen } from '@qwik.dev/core';
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId0) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(rangeId0, 0, count, undefined, true);
   return maybeThen(text0, (text0) => [

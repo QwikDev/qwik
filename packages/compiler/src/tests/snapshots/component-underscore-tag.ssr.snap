@@ -11,7 +11,7 @@ export default () => <_Layout><_createContent text="hi" /></_Layout>;
 ============================= src/component.tsx ==
 
 import {
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   _noopQrl,
@@ -25,7 +25,7 @@ import {
 } from '@qwik.dev/core';
 
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const content0 = ctx.observeError(
@@ -38,7 +38,7 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
 );
 q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
 const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return renderSsrDynamicContent(props.text, ctx0);
 };
 const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
@@ -82,7 +82,7 @@ export default default_component_3rg6kq1so9aio;
 export { _createContent as __qwik__createContent, _Layout as __qwik__Layout };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, renderSsrContent, createSsrNodeId } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, renderSsrContent, createSsrNodeId } from '@qwik.dev/core';
 import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
 const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
   'component_text_segment_1_1fh10tcowimfv'
@@ -90,7 +90,7 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const content0 = ctx.observeError(
@@ -123,10 +123,10 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return renderSsrDynamicContent(props.text, ctx0);
 };
 /*

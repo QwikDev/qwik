@@ -175,8 +175,8 @@ function lowerNestedComponent(call: CallExpression, ctx: LowerContext): QrlUse {
 }
 
 /**
- * A component below module level. Named, it lifts to a chunk and its scope rides `_captures`; an
- * unnamed one prints where it stands and closes over the live scope, so it delivers nothing.
+ * A component below module level. Named, it lifts to a chunk and its scope rides `_capturesObj._`;
+ * an unnamed one prints where it stands and closes over the live scope, so it delivers nothing.
  */
 export function lowerComponentValue(
   component: Parameters<typeof pushComponentQrl>[0],

@@ -1,3 +1,5 @@
+import { Brand, brandClass } from '../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 import { removeInOrder } from '../utils/array';
 import { disposeSubscriber, runSubscriberCleanups } from '../reactive/cleanup';
 import { OwnerFlags } from '../reactive/flags';
@@ -259,3 +261,5 @@ function detachOwnerFromParent(owner: Owner): void {
 
   removeOwnerItem(parent, owner);
 }
+
+isServer && brandClass(Owner, Brand.Owner);

@@ -397,11 +397,11 @@ export const root_onClickqrl_segment_0_37h438c21ydkt = (props) => {
 */
 ============================= src/root.tsx_root_q_e_click_segment_1_2xenbm08l4dzi.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { buildData } from './build-data/build-data';
 
 export const root_q_e_click_segment_1_2xenbm08l4dzi = () => {
-  const [data] = _captures;
+  const [data] = _capturesObj._;
   return (data.value = buildData(1e3));
 };
 /*
@@ -459,11 +459,11 @@ export const root_slot_render_segment_2_3fnd507dh0o2u = (ctx) => {
 */
 ============================= src/root.tsx_root_q_e_click_segment_3_2xenaty0rg9yg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { buildData } from './build-data/build-data';
 
 export const root_q_e_click_segment_3_2xenaty0rg9yg = () => {
-  const [data] = _captures;
+  const [data] = _capturesObj._;
   return (data.value = buildData(1e4));
 };
 /*
@@ -521,11 +521,11 @@ export const root_slot_render_segment_4_3fnd5s9laos3w = (ctx) => {
 */
 ============================= src/root.tsx_root_q_e_click_segment_5_2xend64o8gm1m.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { buildData } from './build-data/build-data';
 
 export const root_q_e_click_segment_5_2xend64o8gm1m = () => {
-  const [data] = _captures;
+  const [data] = _capturesObj._;
   return (data.value = [...data.value, ...buildData(1e3)]);
 };
 /*
@@ -583,10 +583,10 @@ export const root_slot_render_segment_6_3fnd6kbt4cw4y = (ctx) => {
 */
 ============================= src/root.tsx_root_q_e_click_segment_7_2xence2gesi0k.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const root_q_e_click_segment_7_2xence2gesi0k = () => {
-  const [data] = _captures;
+  const [data] = _capturesObj._;
   const dataValue = data.value;
   for (let i = 0, d = dataValue, len = d.length; i < len; i += 10) {
     d[i].label.value += ' !!!';
@@ -647,10 +647,10 @@ export const root_slot_render_segment_8_3fnd7ce0y1060 = (ctx) => {
 */
 ============================= src/root.tsx_root_q_e_click_segment_9_2xen8hrdafxva.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const root_q_e_click_segment_9_2xen8hrdafxva = () => {
-  const [data] = _captures;
+  const [data] = _capturesObj._;
   return (data.value = []);
 };
 /*
@@ -708,10 +708,10 @@ export const root_slot_render_segment_10_3b8ytyi4ty595 = (ctx) => {
 */
 ============================= src/root.tsx_root_q_e_click_segment_11_1exocx67wfjnx.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const root_q_e_click_segment_11_1exocx67wfjnx = () => {
-  const [data] = _captures;
+  const [data] = _capturesObj._;
   const list = data.value;
   if (list.length > 998) {
     const next = list.slice();
@@ -786,7 +786,7 @@ import {
   setEvent,
   createDomBatchEffect,
   _createElementTemplate,
-  _captures,
+  _capturesObj,
 } from '@qwik.dev/core';
 import { root_class_segment_15_2xl0i26jedthh } from './root.tsx_root_class_segment_15_2xl0i26jedthh';
 import { root_text_segment_16_3hdfyiexi24e1 } from './root.tsx_root_text_segment_16_3hdfyiexi24e1';
@@ -798,7 +798,7 @@ const root_for_render_segment_13_xl6e5erok1z7_tmpl0 = _createElementTemplate(
 );
 
 export const root_for_render_segment_13_xl6e5erok1z7 = (ctx, row) => {
-  const [selectedItem, data] = _captures;
+  const [selectedItem, data] = _capturesObj._;
   const el0 = root_for_render_segment_13_xl6e5erok1z7_tmpl0(ctx.document);
   const text0 = _first(_first(el0));
   const el1 = _first(_next(_first(el0)));
@@ -924,10 +924,10 @@ export const root_text_segment_16_3hdfyiexi24e1 = (row) => {
 */
 ============================= src/root.tsx_root_q_e_click_segment_17_1exoakzkff7kr.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const root_q_e_click_segment_17_1exoakzkff7kr = () => {
-  const [selectedItem, row] = _captures;
+  const [selectedItem, row] = _capturesObj._;
   if (selectedItem.value) {
     selectedItem.value.selected.value = false;
   }
@@ -988,10 +988,10 @@ export const root_text_segment_18_3hdg2eq0meojb = (row) => {
 */
 ============================= src/root.tsx_root_q_e_click_segment_19_1exo9sxclr3jp.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const root_q_e_click_segment_19_1exo9sxclr3jp = () => {
-  const [data, row] = _captures;
+  const [data, row] = _capturesObj._;
   const dataValue = data.value;
   data.value = dataValue.toSpliced(
     dataValue.findIndex((d) => d.id === row.id),

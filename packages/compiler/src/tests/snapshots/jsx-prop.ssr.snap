@@ -29,7 +29,7 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
 );
 q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
 const component_props_segment_3_208o00da84a64 = () => {
-  const [options] = _captures;
+  const [options] = _capturesObj._;
   return { ...options.value, fallback: q_component_jsx_segment_2_38vniss1y6gb4 };
 };
 const q_component_props_segment_3_208o00da84a64 = /*#__PURE__*/ _noopQrl(
@@ -44,7 +44,7 @@ const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _noopQrl(
 );
 q_component_jsx_segment_2_38vniss1y6gb4.s(component_jsx_segment_2_38vniss1y6gb4);
 const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
-  const [row] = _captures;
+  const [row] = _capturesObj._;
   return ['<b>', escapeHTML(_textValue(row)), '</b>'];
 };
 const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _noopQrl(
@@ -61,7 +61,7 @@ import {
   useSignal,
   createPropsProxy,
   useComputedQrl,
-  _captures,
+  _capturesObj,
   renderSsrCollection,
   escapeHTML,
   _textValue,
@@ -213,7 +213,7 @@ export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
 */
 ============================= src/component.tsx_component_props_segment_3_208o00da84a64.js (ENTRY POINT)==
 
-import { _noopQrl, _captures } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj } from '@qwik.dev/core';
 import { component_jsx_segment_2_38vniss1y6gb4 } from './component.tsx_component_jsx_segment_2_38vniss1y6gb4';
 const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _noopQrl(
   'component_jsx_segment_2_38vniss1y6gb4'
@@ -221,7 +221,7 @@ const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _noopQrl(
 q_component_jsx_segment_2_38vniss1y6gb4.s(component_jsx_segment_2_38vniss1y6gb4);
 
 export const component_props_segment_3_208o00da84a64 = () => {
-  const [options] = _captures;
+  const [options] = _capturesObj._;
   return { ...options.value, fallback: q_component_jsx_segment_2_38vniss1y6gb4 };
 };
 /*
@@ -249,10 +249,10 @@ export const component_props_segment_3_208o00da84a64 = () => {
 */
 ============================= src/component.tsx_component_jsx_segment_4_38vnl4ypf6sea.js (ENTRY POINT)==
 
-import { _captures, escapeHTML, _textValue } from '@qwik.dev/core';
+import { _capturesObj, escapeHTML, _textValue } from '@qwik.dev/core';
 
 export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
-  const [row] = _captures;
+  const [row] = _capturesObj._;
   return ['<b>', escapeHTML(_textValue(row)), '</b>'];
 };
 /*

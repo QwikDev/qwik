@@ -138,7 +138,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 ============================= src/component.tsx_component_tag_dynamic_segment_1_331xdvyxwe5dy.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
@@ -153,7 +153,7 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithCh
 );
 
 export const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const slotScope0 = createSlotScope(null, [_EMPTY_OBJ]);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
@@ -217,10 +217,10 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
 */
 ============================= src/component.tsx_component_tag_dynamic_segment_3_331xd3wq2q1cw.js (ENTRY POINT)==
 
-import { _captures, createDynamicTag, createComponent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicTag, createComponent } from '@qwik.dev/core';
 
 export const component_tag_dynamic_segment_3_331xd3wq2q1cw = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const tag0 = props.component;
   const component0 = createComponent((props0) => createDynamicTag(tag0, props0, ctx), null, ctx);
   return component0;

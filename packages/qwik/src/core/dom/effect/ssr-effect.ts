@@ -1,3 +1,4 @@
+import { Brand, brandClass } from '../../shared/utils/brand';
 import { _textValue } from '../../shared/utils/character-escaping';
 import { isSource } from '../../component/props';
 import { EffectKind } from './effect-kind.enum';
@@ -18,7 +19,7 @@ import type { Owner } from '../../runtime/owner';
 import type { QDispatchHandler } from '../../shared/types';
 import type { SSRForBlock } from '../for/for';
 import { renderDomPropsToString, serializeAttrExpressionValue } from './dom-props';
-import { isDev } from '@qwik.dev/core/build';
+import { isServer, isDev } from '@qwik.dev/core/build';
 import { SubscriberFlags } from '../../reactive/flags';
 import { cleanupDeps } from '../../reactive/cleanup';
 import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
@@ -514,3 +515,8 @@ function isSsrAttributeEffect(
 ): effect is SsrAttrEffect | SsrAttrExpressionEffect {
   return effect.effectKind === EffectKind.Attr || effect.effectKind === EffectKind.AttrExpression;
 }
+
+isServer && brandClass(SsrDomEffectBase, Brand.SsrDomEffect);
+isServer && brandClass(SsrDomSubscription, Brand.SsrDomSubscription);
+isServer && brandClass(SsrDomBatchEffect, Brand.SsrDomBatchEffect);
+isServer && brandClass(SSRForBlockSubscription, Brand.SsrForBlockSubscription);

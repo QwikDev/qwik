@@ -643,7 +643,7 @@ export default component$(() => {
       expect(code).toMatch(new RegExp(`_segment_\\w+ = ${alias};`));
     }
     // The setup local is captured, the module function is imported.
-    expect(code).toContain('const [count] = _captures;');
+    expect(code).toContain('const [count] = _capturesObj._;');
     expect(code).toMatch(/import \{ (?:__qwik_)?tick(?: as tick)? \} from "\.\/component\.tsx"/);
     // Replaced marker callees retain no authored core import.
     expect(code).not.toMatch(/import \{[^}]*\s\$[,\s][^}]*\} from "@qwik.dev\/core"/);
@@ -885,7 +885,7 @@ export default component$(() => {
     // A caller captures the function's captures, never the function, and rebinds it in its prelude.
     expect(code).not.toMatch(/\.w\(\[[^\]]*\b(label|suffix|load)\b[^\]]*\]\)/);
     expect(code).toMatch(
-      /const \[count\] = _captures;\n\s*const label = _withCaptures\(component_label_segment_\w+, \[count\]\);/
+      /const \[count\] = _capturesObj._;\n\s*const label = _withCaptures\(component_label_segment_\w+, \[count\]\);/
     );
     expect(code).toMatch(/const suffix = component_suffix_segment_\w+;/);
     // The lifted async function keeps its authored shape.

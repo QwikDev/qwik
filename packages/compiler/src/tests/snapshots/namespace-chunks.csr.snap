@@ -108,10 +108,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   return show.value;
 };
 /*
@@ -267,10 +267,10 @@ export const component_width_segment_4_zbb7nnmt5i2b = (point) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_5_2fzrggonbf7cm.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_5_2fzrggonbf7cm = () => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   return show.value;
 };
 /*
@@ -328,10 +328,10 @@ export const component_branch_then_segment_6_24n7cs22bbj5r = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_7_2fzrfomfhr3bk.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   return show.value;
 };
 /*

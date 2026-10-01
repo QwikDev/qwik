@@ -17,7 +17,7 @@ export default () => {
 import { useLocation } from './location';
 import {
   createSsrOpenTag,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   getActiveInvokeContextOrNull,
@@ -32,7 +32,7 @@ const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
 const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
-  const [_location] = _captures;
+  const [_location] = _capturesObj._;
   return renderSsrDynamicContent(_location.params.category, ctx0);
 };
 const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
@@ -40,7 +40,7 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [_location] = _captures;
+  const [_location] = _capturesObj._;
   return renderSsrDynamicContent(_location.url.pathname, ctx0);
 };
 const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
@@ -104,10 +104,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
-  const [_location] = _captures;
+  const [_location] = _capturesObj._;
   return console.log(_location.params.id);
 };
 /*
@@ -135,10 +135,10 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
 */
 ============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
-  const [_location] = _captures;
+  const [_location] = _capturesObj._;
   return renderSsrDynamicContent(_location.params.category, ctx0);
 };
 /*
@@ -166,10 +166,10 @@ export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
 */
 ============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [_location] = _captures;
+  const [_location] = _capturesObj._;
   return renderSsrDynamicContent(_location.url.pathname, ctx0);
 };
 /*

@@ -65,7 +65,7 @@ export function lowerBranch(
   };
 }
 
-/** The condition is a Function-payload QRL over the test expression — captures via `_captures`. */
+/** The condition is a Function-payload QRL over the test expression — captures via `_capturesObj._`. */
 function lowerCondition(test: Expression, ctx: LowerContext): Value {
   const { captures, args, refs } = lowerCaptures(test, ctx, 'a branch condition');
   const range: [number, number] = [test.start, test.end];

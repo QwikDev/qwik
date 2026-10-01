@@ -46,11 +46,11 @@ export default default_component_3rg6kq1so9aio;
 export { Wrapper as Wrapper_component_1yrb0pezcavja };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { _captures, _first, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
+import { _capturesObj, _first, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = _createElementTemplate('<p> </p>');
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const el0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);

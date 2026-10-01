@@ -1,3 +1,5 @@
+import { Brand, brandClass } from '../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 import type { Source, SourceSubs } from './source';
 import { notifySourceSubscribers } from './notify';
 import { dropWriterDependency } from './cleanup';
@@ -44,3 +46,5 @@ export class Signal<T> implements Source<T> {
     return { value: this.v };
   }
 }
+
+isServer && brandClass(Signal, Brand.Signal);

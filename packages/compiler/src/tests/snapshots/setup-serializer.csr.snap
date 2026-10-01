@@ -76,10 +76,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_count_segment_0_1adkz2bcpjjfs.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_count_segment_0_1adkz2bcpjjfs = () => {
-  const [start] = _captures;
+  const [start] = _capturesObj._;
   return {
     deserialize: (value) => ({ n: value }),
     serialize: (value) => value.n,
@@ -139,10 +139,10 @@ export const component_date_segment_1_89fc8zvxt5qk = () => {
 */
 ============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return createDynamicContent(count.value.n, ctx0);
 };
 /*
@@ -170,10 +170,10 @@ export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
 */
 ============================= src/component.tsx_component_text_segment_3_1fh11lewq6qgx.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
-  const [date] = _captures;
+  const [date] = _capturesObj._;
   return createDynamicContent(date.value.getFullYear(), ctx0);
 };
 /*

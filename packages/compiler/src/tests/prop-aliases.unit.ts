@@ -53,8 +53,8 @@ test.each([
     _qrlWithChunk(chunk: string, _importer: unknown, symbol: string) {
       return core._qrlWithChunk(chunk, async () => ({ [symbol]: globals[symbol] }), symbol);
     },
-    get _captures() {
-      return core._captures;
+    get _capturesObj() {
+      return core._capturesObj;
     },
   };
   for (const module of output.modules) {
@@ -115,8 +115,8 @@ export default ({ ${JSON.stringify(key)}: props }) => {
       output.modules.find((module) => !module.segment)!,
       {
         ...core,
-        get _captures() {
-          return core._captures;
+        get _capturesObj() {
+          return core._capturesObj;
         },
       },
       true

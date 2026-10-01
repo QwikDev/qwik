@@ -75,10 +75,10 @@ export const component_title_segment_0_2f0r0xivypjmx = (props, defaultValue) => 
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [props, defaultValue0, defaultValue] = _captures;
+  const [props, defaultValue0, defaultValue] = _capturesObj._;
   return (0, props.onSave$ === void 0 ? defaultValue0 : props.onSave$)({
     heading: props.title === void 0 ? defaultValue : props.title,
     initial: props.title === void 0 ? defaultValue : props.title,

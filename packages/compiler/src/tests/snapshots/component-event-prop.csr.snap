@@ -88,10 +88,10 @@ export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
 */
 ============================= src/component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value++;
 };
 /*
@@ -119,10 +119,10 @@ export const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
 */
 ============================= src/component.tsx_component_q_e_save_segment_2_3krcacnjwdae8.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_save_segment_2_3krcacnjwdae8 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value--;
 };
 /*

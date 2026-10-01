@@ -18,7 +18,7 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   renderSsrCollection,
   _noopQrl,
@@ -27,7 +27,7 @@ import {
   maybeThen,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  const [items] = _captures;
+  const [items] = _capturesObj._;
   const collectionId0 = ctx.nextId();
   ctx.addRoot(items);
   const collection0 = ctx.observeError(
@@ -115,7 +115,7 @@ export default default_component_3rg6kq1so9aio;
 export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, createSsrNodeId, renderSsrCollection } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrCollection } from '@qwik.dev/core';
 import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
 const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_1_asysu8t2u0ck'
@@ -123,7 +123,7 @@ const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
 q_component_for_render_segment_1_asysu8t2u0ck.s(component_for_render_segment_1_asysu8t2u0ck);
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  const [items] = _captures;
+  const [items] = _capturesObj._;
   const collectionId0 = ctx.nextId();
   ctx.addRoot(items);
   const collection0 = ctx.observeError(

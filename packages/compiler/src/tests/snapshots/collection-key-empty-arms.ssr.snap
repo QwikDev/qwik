@@ -14,7 +14,7 @@ export default (props: { items: { id: string; primary: boolean }[]; visible: boo
 import {
   propSource,
   isSource,
-  _captures,
+  _capturesObj,
   renderSsrCollection,
   createSsrNodeId,
   renderSsrBranch,
@@ -26,7 +26,7 @@ import {
 } from '@qwik.dev/core';
 
 const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item, index) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const key = props.prefix + item.id;
   const branchId0 = ctx.nextId();
   ctx.addRoot(item);
@@ -57,7 +57,7 @@ const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
 );
 q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
 const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const { id, primary } = item;
   const key = props.prefix + id;
   return primary ? key : index;
@@ -67,7 +67,7 @@ const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
 );
 q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
 const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
-  const [item] = _captures;
+  const [item] = _capturesObj._;
   return item.primary;
 };
 const q_component_branch_condition_segment_2_2fzrhmrz1xde7 = /*#__PURE__*/ _noopQrl(
@@ -77,7 +77,7 @@ q_component_branch_condition_segment_2_2fzrhmrz1xde7.s(
   component_branch_condition_segment_2_2fzrhmrz1xde7
 );
 const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const [props, key, item] = _captures;
+  const [props, key, item] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(props);
   ctx.addRoot(key);
@@ -98,7 +98,7 @@ const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_3_24n7atwir5934.s(component_branch_then_segment_3_24n7atwir5934);
 const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
-  const [props, index, item] = _captures;
+  const [props, index, item] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(props);
   ctx.addRoot(index);
@@ -119,7 +119,7 @@ const q_component_branch_else_segment_7_19dvs9iawhlhy = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_else_segment_7_19dvs9iawhlhy.s(component_branch_else_segment_7_19dvs9iawhlhy);
 const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.visible;
 };
 const q_component_branch_condition_segment_4_2fzrgupr899d5 = /*#__PURE__*/ _noopQrl(
@@ -129,7 +129,7 @@ q_component_branch_condition_segment_4_2fzrgupr899d5.s(
   component_branch_condition_segment_4_2fzrgupr899d5
 );
 const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
-  const [key, item] = _captures;
+  const [key, item] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(item);
   const text0 = renderSsrTextExpression(
@@ -151,7 +151,7 @@ const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_5_24n7d63685l6a.s(component_branch_then_segment_5_24n7d63685l6a);
 const component_branch_condition_segment_8_2fzrlj3269xjh = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.visible;
 };
 const q_component_branch_condition_segment_8_2fzrlj3269xjh = /*#__PURE__*/ _noopQrl(
@@ -161,7 +161,7 @@ q_component_branch_condition_segment_8_2fzrlj3269xjh.s(
   component_branch_condition_segment_8_2fzrlj3269xjh
 );
 const component_branch_then_segment_9_24n7eq7lvht8e = (ctx) => {
-  const [index, item] = _captures;
+  const [index, item] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(item);
   const text0 = renderSsrTextExpression(
@@ -222,7 +222,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrBranch } from '@qwik.dev/core';
 import { component_branch_condition_segment_2_2fzrhmrz1xde7 } from './component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7';
 import { component_branch_then_segment_3_24n7atwir5934 } from './component.tsx_component_branch_then_segment_3_24n7atwir5934';
 import { component_branch_else_segment_7_19dvs9iawhlhy } from './component.tsx_component_branch_else_segment_7_19dvs9iawhlhy';
@@ -248,7 +248,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
   item,
   index
 ) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const key = props.prefix + item.id;
   const branchId0 = ctx.nextId();
   ctx.addRoot(item);
@@ -302,10 +302,10 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
 */
 ============================= src/component.tsx_component_for_key_segment_1_24ursak4wzpxf.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const { id, primary } = item;
   const key = props.prefix + id;
   return primary ? key : index;
@@ -338,10 +338,10 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
-  const [item] = _captures;
+  const [item] = _capturesObj._;
   return item.primary;
 };
 /*
@@ -369,7 +369,7 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_3_24n7atwir5934.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, renderSsrBranch, createSsrNodeId } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, renderSsrBranch, createSsrNodeId } from '@qwik.dev/core';
 import { component_branch_condition_segment_4_2fzrgupr899d5 } from './component.tsx_component_branch_condition_segment_4_2fzrgupr899d5';
 import { component_branch_then_segment_5_24n7d63685l6a } from './component.tsx_component_branch_then_segment_5_24n7d63685l6a';
 const q_component_branch_condition_segment_4_2fzrgupr899d5 = /*#__PURE__*/ _noopQrl(
@@ -384,7 +384,7 @@ const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
 q_component_branch_then_segment_5_24n7d63685l6a.s(component_branch_then_segment_5_24n7d63685l6a);
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const [props, key, item] = _captures;
+  const [props, key, item] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(props);
   ctx.addRoot(key);
@@ -427,10 +427,10 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_4_2fzrgupr899d5.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.visible;
 };
 /*
@@ -460,7 +460,7 @@ export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -473,7 +473,7 @@ const q_component_text_segment_6_1fh12ri8gowii = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_6_1fh12ri8gowii.s(component_text_segment_6_1fh12ri8gowii);
 
 export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
-  const [key, item] = _captures;
+  const [key, item] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(item);
   const text0 = renderSsrTextExpression(
@@ -544,7 +544,7 @@ export const component_text_segment_6_1fh12ri8gowii = (item) => {
 */
 ============================= src/component.tsx_component_branch_else_segment_7_19dvs9iawhlhy.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, renderSsrBranch, createSsrNodeId } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, renderSsrBranch, createSsrNodeId } from '@qwik.dev/core';
 import { component_branch_condition_segment_8_2fzrlj3269xjh } from './component.tsx_component_branch_condition_segment_8_2fzrlj3269xjh';
 import { component_branch_then_segment_9_24n7eq7lvht8e } from './component.tsx_component_branch_then_segment_9_24n7eq7lvht8e';
 const q_component_branch_condition_segment_8_2fzrlj3269xjh = /*#__PURE__*/ _noopQrl(
@@ -559,7 +559,7 @@ const q_component_branch_then_segment_9_24n7eq7lvht8e = /*#__PURE__*/ _noopQrl(
 q_component_branch_then_segment_9_24n7eq7lvht8e.s(component_branch_then_segment_9_24n7eq7lvht8e);
 
 export const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
-  const [props, index, item] = _captures;
+  const [props, index, item] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(props);
   ctx.addRoot(index);
@@ -602,10 +602,10 @@ export const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_8_2fzrlj3269xjh.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_8_2fzrlj3269xjh = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.visible;
 };
 /*
@@ -635,7 +635,7 @@ export const component_branch_condition_segment_8_2fzrlj3269xjh = () => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -648,7 +648,7 @@ const q_component_text_segment_10_2cdl418j88efl = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_10_2cdl418j88efl.s(component_text_segment_10_2cdl418j88efl);
 
 export const component_branch_then_segment_9_24n7eq7lvht8e = (ctx) => {
-  const [index, item] = _captures;
+  const [index, item] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(item);
   const text0 = renderSsrTextExpression(

@@ -62,10 +62,10 @@ export default default_component_3rg6kq1so9aio;
 export { useCustom$ as __qwik_useCustom$ };
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useCustomqrl_segment_0_heif5ecaq0pq = ({ cleanup }) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const value = count.value;
   console.log(value);
   cleanup(() => console.log('cleanup', value));
@@ -97,10 +97,10 @@ export const component_useCustomqrl_segment_0_heif5ecaq0pq = ({ cleanup }) => {
 */
 ============================= src/component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return console.log(count.value);
 };
 /*

@@ -87,10 +87,10 @@ export default default_component_3rg6kq1so9aio;
 export { Card as Card_component_1j4wd08arm0n5 };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return (0, props.onSave$)({ label: props['data-label'] });
 };
 /*

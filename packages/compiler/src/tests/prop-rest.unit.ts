@@ -25,8 +25,8 @@ export default ({ title: heading, ...rest }) => <Child {...rest} title={heading}
     expect(output.modules.some((module) => module.segment?.ctxName === 'props:rest')).toBe(false);
     const globals: Record<string, unknown> = {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
     };
     for (const module of output.modules) {
@@ -100,8 +100,8 @@ export default ({ ${pattern} }) => {
       output.modules[0],
       {
         ...core,
-        get _captures() {
-          return core._captures;
+        get _capturesObj() {
+          return core._capturesObj;
         },
       },
       true

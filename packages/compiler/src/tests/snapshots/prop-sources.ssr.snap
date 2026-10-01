@@ -38,7 +38,7 @@ import {
   _markComponent,
   useSignal,
   computedProp,
-  _captures,
+  _capturesObj,
 } from '@qwik.dev/core';
 import { Badge } from './badge';
 const component_text_segment_0_1fh10fbkzokfc = (props) => {
@@ -56,7 +56,7 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 const component_title_segment_2_2f0r05go51flv = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return 'n=' + count.value;
 };
 const q_component_title_segment_2_2f0r05go51flv = /*#__PURE__*/ _noopQrl(
@@ -229,10 +229,10 @@ export const component_text_segment_1_1fh10tcowimfv = (props0) => {
 */
 ============================= src/component.tsx_component_title_segment_2_2f0r05go51flv.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_title_segment_2_2f0r05go51flv = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return 'n=' + count.value;
 };
 /*

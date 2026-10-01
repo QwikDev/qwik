@@ -22,7 +22,7 @@ export default function App() {
 ============================= src/component.tsx ==
 
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [value] = _captures;
+  const [value] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(value);
   const text0 = renderSsrTextExpression(
@@ -44,7 +44,7 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
 );
 q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
 const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(label);
   const text0 = renderSsrTextExpression(
@@ -66,7 +66,7 @@ const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _noopQrl(
 );
 q_component_jsx_segment_2_38vniss1y6gb4.s(component_jsx_segment_2_38vniss1y6gb4);
 const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(label);
   const text0 = renderSsrTextExpression(
@@ -88,7 +88,7 @@ const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _noopQrl(
 );
 q_component_jsx_segment_4_38vnl4ypf6sea.s(component_jsx_segment_4_38vnl4ypf6sea);
 const component_result_segment_8_1732eo28f3tsm = async () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const create = async (_await) => {
     (await _await0(load(_await)))();
     const label = count.value;
@@ -132,7 +132,7 @@ const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuhz);
 const component_jsx_segment_6_38vnkcwhliod8 = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(label);
   const text0 = renderSsrTextExpression(
@@ -162,7 +162,7 @@ const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_7_1fh135jcdiyj1.s(component_text_segment_7_1fh135jcdiyj1);
 import {
   useSignal,
-  _captures,
+  _capturesObj,
   useComputedQrl,
   createSsrNodeId,
   escapeHTML,
@@ -207,7 +207,7 @@ export { App as default_component_3rg6kq1so9aio };
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -220,7 +220,7 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [value] = _captures;
+  const [value] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(value);
   const text0 = renderSsrTextExpression(
@@ -292,7 +292,7 @@ export const component_text_segment_1_1fh10tcowimfv = (value) => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -305,7 +305,7 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
 
 export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(label);
   const text0 = renderSsrTextExpression(
@@ -377,7 +377,7 @@ export const component_text_segment_3_1fh11lewq6qgx = (label) => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -390,7 +390,7 @@ const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuhz);
 
 export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(label);
   const text0 = renderSsrTextExpression(
@@ -462,7 +462,7 @@ export const component_text_segment_5_1fh12dh4juuhz = (label) => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -475,7 +475,7 @@ const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_7_1fh135jcdiyj1.s(component_text_segment_7_1fh135jcdiyj1);
 
 export const component_jsx_segment_6_38vnkcwhliod8 = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(label);
   const text0 = renderSsrTextExpression(
@@ -545,7 +545,7 @@ export const component_text_segment_7_1fh135jcdiyj1 = (label) => {
 */
 ============================= src/component.tsx_component_result_segment_8_1732eo28f3tsm.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, _await as _await0 } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, _await as _await0 } from '@qwik.dev/core';
 import { component_jsx_segment_6_38vnkcwhliod8 } from './component.tsx_component_jsx_segment_6_38vnkcwhliod8';
 import { load } from './consumer';
 const q_component_jsx_segment_6_38vnkcwhliod8 = /*#__PURE__*/ _noopQrl(
@@ -554,7 +554,7 @@ const q_component_jsx_segment_6_38vnkcwhliod8 = /*#__PURE__*/ _noopQrl(
 q_component_jsx_segment_6_38vnkcwhliod8.s(component_jsx_segment_6_38vnkcwhliod8);
 
 export const component_result_segment_8_1732eo28f3tsm = async () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const create = async (_await) => {
     (await _await0(load(_await)))();
     const label = count.value;

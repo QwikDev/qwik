@@ -18,7 +18,7 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   renderSsrCollection,
   _noopQrl,
@@ -28,7 +28,7 @@ import {
   maybeThen,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  const [items] = _captures;
+  const [items] = _capturesObj._;
   const collectionId0 = ctx.nextId();
   ctx.addRoot(items);
   const collection0 = ctx.observeError(
@@ -80,7 +80,7 @@ const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_4_3b0t8wsj4vdse.s(component_slot_render_segment_4_3b0t8wsj4vdse);
 const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
-  const [items] = _captures;
+  const [items] = _capturesObj._;
   const collectionId0 = ctx.nextId();
   ctx.addRoot(items);
   const collection0 = ctx.observeError(
@@ -223,7 +223,7 @@ export default default_component_3rg6kq1so9aio;
 export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, createSsrNodeId, renderSsrCollection } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrCollection } from '@qwik.dev/core';
 import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
 import { component_for_key_segment_2_24ursol8ttrxy } from './component.tsx_component_for_key_segment_2_24ursol8ttrxy';
 const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
@@ -236,7 +236,7 @@ const q_component_for_key_segment_2_24ursol8ttrxy = /*#__PURE__*/ _noopQrl(
 q_component_for_key_segment_2_24ursol8ttrxy.s(component_for_key_segment_2_24ursol8ttrxy);
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  const [items] = _captures;
+  const [items] = _capturesObj._;
   const collectionId0 = ctx.nextId();
   ctx.addRoot(items);
   const collection0 = ctx.observeError(
@@ -439,7 +439,7 @@ export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, createSsrNodeId, renderSsrCollection } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrCollection } from '@qwik.dev/core';
 import { component_for_render_segment_6_asysg7p5zyc1 } from './component.tsx_component_for_render_segment_6_asysg7p5zyc1';
 import { component_for_key_segment_7_24urumqse020l } from './component.tsx_component_for_key_segment_7_24urumqse020l';
 const q_component_for_render_segment_6_asysg7p5zyc1 = /*#__PURE__*/ _noopQrl(
@@ -452,7 +452,7 @@ const q_component_for_key_segment_7_24urumqse020l = /*#__PURE__*/ _noopQrl(
 q_component_for_key_segment_7_24urumqse020l.s(component_for_key_segment_7_24urumqse020l);
 
 export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
-  const [items] = _captures;
+  const [items] = _capturesObj._;
   const collectionId0 = ctx.nextId();
   ctx.addRoot(items);
   const collection0 = ctx.observeError(

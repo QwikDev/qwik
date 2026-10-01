@@ -2,26 +2,29 @@ import { appendSourceSubscriber, type Source } from './source';
 import type { CollectorSubscriber } from '../runtime/subscriber';
 import { getActiveInvokeContextOrNull, setActiveInvokeContext } from '../runtime/invoke-context';
 import { isSubscriberDisposed } from '../runtime/subscriber';
+import { registerSingleton } from '../shared/singletons';
 
-let activeCollector: CollectorSubscriber | null = null;
+const trackingState = /*#__PURE__*/ registerSingleton('v3.tracking', () => ({
+  current: null as CollectorSubscriber | null,
+}));
 
 export function getActiveCollector(): CollectorSubscriber | null {
-  return activeCollector;
+  return trackingState.current;
 }
 
 export function _await<T>(value: T | PromiseLike<T>): Promise<() => Awaited<T>> {
-  const collector = activeCollector;
+  const collector = trackingState.current;
   const invokeContext = getActiveInvokeContextOrNull();
 
   const resume = (value: unknown, rejected: boolean) => () => {
     const restored = collector !== null && isSubscriberDisposed(collector) ? null : collector;
-    activeCollector = restored;
+    trackingState.current = restored;
     setActiveInvokeContext(invokeContext);
 
     // Keep tracking active through the current await continuation, then release the global state.
     queueMicrotask(() => {
-      if (activeCollector === restored) {
-        activeCollector = null;
+      if (trackingState.current === restored) {
+        trackingState.current = null;
       }
       if (getActiveInvokeContextOrNull() === invokeContext) {
         setActiveInvokeContext(null);
@@ -48,24 +51,24 @@ export function runWithCollector<T, TArgs extends unknown[]>(
   run: (...args: TArgs) => T,
   ...args: TArgs
 ): T {
-  const previous = activeCollector;
-  activeCollector = collector;
+  const previous = trackingState.current;
+  trackingState.current = collector;
 
   try {
     return run.apply(undefined, args);
   } finally {
-    activeCollector = previous;
+    trackingState.current = previous;
   }
 }
 
 export function runWithCollector0<T>(collector: CollectorSubscriber | null, run: () => T): T {
-  const previous = activeCollector;
-  activeCollector = collector;
+  const previous = trackingState.current;
+  trackingState.current = collector;
 
   try {
     return run();
   } finally {
-    activeCollector = previous;
+    trackingState.current = previous;
   }
 }
 
@@ -74,13 +77,13 @@ export function runWithCollector1<T, TArg>(
   run: (arg: TArg) => T,
   arg: TArg
 ): T {
-  const previous = activeCollector;
-  activeCollector = collector;
+  const previous = trackingState.current;
+  trackingState.current = collector;
 
   try {
     return run(arg);
   } finally {
-    activeCollector = previous;
+    trackingState.current = previous;
   }
 }
 
@@ -90,7 +93,7 @@ export function untrack<T, TArgs extends unknown[]>(run: (...args: TArgs) => T, 
 }
 
 export function track(source: Source): void {
-  const collector = activeCollector;
+  const collector = trackingState.current;
   if (collector === null || collector === source) {
     return;
   }

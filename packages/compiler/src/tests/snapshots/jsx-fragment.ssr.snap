@@ -23,7 +23,7 @@ import {
   renderSsrCollection,
   createSsrNodeId,
   _noopQrl,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   escapeHTML,
   renderSsrTextExpression,
@@ -45,7 +45,7 @@ const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
 const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
-  const [stored] = _captures;
+  const [stored] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(stored);
   const content0 = ctx.observeError(
@@ -98,7 +98,7 @@ const q_component_for_key_segment_5_24urtuokkbxzj = /*#__PURE__*/ _noopQrl(
 );
 q_component_for_key_segment_5_24urtuokkbxzj.s(component_for_key_segment_5_24urtuokkbxzj);
 const component_content_segment_3_18523gi7fg5bn = (ctx0) => {
-  const [stored] = _captures;
+  const [stored] = _capturesObj._;
   return renderSsrDynamicContent(stored, ctx0);
 };
 const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ _noopQrl(
@@ -217,7 +217,7 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, createSsrNodeId, renderSsrContent } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrContent } from '@qwik.dev/core';
 import { component_content_segment_3_18523gi7fg5bn } from './component.tsx_component_content_segment_3_18523gi7fg5bn';
 const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ _noopQrl(
   'component_content_segment_3_18523gi7fg5bn'
@@ -225,7 +225,7 @@ const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ _noopQrl(
 q_component_content_segment_3_18523gi7fg5bn.s(component_content_segment_3_18523gi7fg5bn);
 
 export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
-  const [stored] = _captures;
+  const [stored] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(stored);
   const content0 = ctx.observeError(
@@ -273,10 +273,10 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_content_segment_3_18523gi7fg5bn.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_content_segment_3_18523gi7fg5bn = (ctx0) => {
-  const [stored] = _captures;
+  const [stored] = _capturesObj._;
   return renderSsrDynamicContent(stored, ctx0);
 };
 /*

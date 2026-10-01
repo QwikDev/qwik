@@ -5,6 +5,7 @@ import {
   useContext,
   useSignal,
   useTask$,
+  untrack,
 } from '@qwik.dev/core';
 import { getBasePathname, getRequestEvent, getRoutes, Link, server$ } from '@qwik.dev/router';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
@@ -23,9 +24,9 @@ export const LibCounter = component$(() => {
   const taskRuns = useSignal(0);
   const greeting = useContext(GreetingContext);
 
-  useTask$(({ track }) => {
-    track(count);
-    taskRuns.value++;
+  useTask$(() => {
+    count.value;
+    untrack(() => taskRuns.value++);
   });
 
   return (

@@ -123,8 +123,8 @@ test.each([
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
     },
     true
@@ -156,8 +156,8 @@ test('preserves native object evaluation order and evaluates each spread once', 
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
       record(value: string) {
         calls.push(value);

@@ -13,7 +13,7 @@ export default component$(() => {
 
 import {
   useSignal,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   escapeHTML,
@@ -24,7 +24,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, null, count);
@@ -43,7 +43,7 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
 );
 q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
 const component_content_segment_2_185232h3im3b4 = (ctx0) => {
-  const [alias] = _captures;
+  const [alias] = _capturesObj._;
   return renderSsrDynamicContent(alias, ctx0);
 };
 const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ _noopQrl(
@@ -51,7 +51,7 @@ const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ _noopQrl(
 );
 q_component_content_segment_2_185232h3im3b4.s(component_content_segment_2_185232h3im3b4);
 const component_content_segment_3_18523gi7fg5bn = (ctx0) => {
-  const [content] = _captures;
+  const [content] = _capturesObj._;
   return renderSsrDynamicContent(content, ctx0);
 };
 const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ _noopQrl(
@@ -110,7 +110,7 @@ export default default_component_3rg6kq1so9aio;
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
@@ -121,7 +121,7 @@ const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
 );
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, null, count);
@@ -160,10 +160,10 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value++;
 };
 /*
@@ -191,10 +191,10 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 */
 ============================= src/component.tsx_component_content_segment_2_185232h3im3b4.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
-  const [alias] = _captures;
+  const [alias] = _capturesObj._;
   return renderSsrDynamicContent(alias, ctx0);
 };
 /*
@@ -222,10 +222,10 @@ export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
 */
 ============================= src/component.tsx_component_content_segment_3_18523gi7fg5bn.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_content_segment_3_18523gi7fg5bn = (ctx0) => {
-  const [content] = _captures;
+  const [content] = _capturesObj._;
   return renderSsrDynamicContent(content, ctx0);
 };
 /*

@@ -26,7 +26,7 @@ export default (props) => {
 
 import {
   useSignal,
-  _captures,
+  _capturesObj,
   useTaskQrl,
   getActiveInvokeContextOrNull,
   maybeThen,
@@ -36,7 +36,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_run_segment_0_3puv0fmsn52m6 = function () {
-  const [count, props] = _captures;
+  const [count, props] = _capturesObj._;
   return async function run(value = props.initial) {
     (await _await(Promise.resolve(value)))();
     return count.value;
@@ -47,7 +47,7 @@ const q_component_run_segment_0_3puv0fmsn52m6 = /*#__PURE__*/ _noopQrl(
 );
 q_component_run_segment_0_3puv0fmsn52m6.s(component_run_segment_0_3puv0fmsn52m6);
 const component_useTaskqrl_segment_1_1og80wrqqnv5v = async () => {
-  const [count, props] = _captures;
+  const [count, props] = _capturesObj._;
   (await _await((await _await(Promise.resolve(props.initial)))()))();
   const nested = async () => {
     await Promise.resolve();
@@ -87,10 +87,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_run_segment_0_3puv0fmsn52m6.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core';
+import { _capturesObj, _await } from '@qwik.dev/core';
 
 export const component_run_segment_0_3puv0fmsn52m6 = function () {
-  const [count, props] = _captures;
+  const [count, props] = _capturesObj._;
   return async function run(value = props.initial) {
     (await _await(Promise.resolve(value)))();
     return count.value;
@@ -124,10 +124,10 @@ export const component_run_segment_0_3puv0fmsn52m6 = function () {
 */
 ============================= src/component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core';
+import { _capturesObj, _await } from '@qwik.dev/core';
 
 export const component_useTaskqrl_segment_1_1og80wrqqnv5v = async () => {
-  const [count, props] = _captures;
+  const [count, props] = _capturesObj._;
   (await _await((await _await(Promise.resolve(props.initial)))()))();
   const nested = async () => {
     await Promise.resolve();
@@ -161,10 +161,10 @@ export const component_useTaskqrl_segment_1_1og80wrqqnv5v = async () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core';
+import { _capturesObj, _await } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = async () => {
-  const [count, run, props] = _captures;
+  const [count, run, props] = _capturesObj._;
   try {
     (await _await(Promise.reject(props.initial)))();
   } catch {

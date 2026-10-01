@@ -38,7 +38,7 @@ export const makeFactory = (prefix) => (label) =>
 ============================= src/helper.tsx_helper_jsx_segment_0_1f76rxaw5v558.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
@@ -47,7 +47,7 @@ import { helper_text_segment_1_2krfyhop1tnmd } from './helper.tsx_helper_text_se
 const helper_jsx_segment_0_1f76rxaw5v558_tmpl0 = _createElementTemplate('<b> </b>');
 
 export const helper_jsx_segment_0_1f76rxaw5v558 = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const el0 = helper_jsx_segment_0_1f76rxaw5v558_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
@@ -113,7 +113,7 @@ export const helper_text_segment_1_2krfyhop1tnmd = (label) => {
 ============================= src/helper.tsx_helper_jsx_segment_2_1f76spd3zj96a.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
@@ -122,7 +122,7 @@ import { helper_text_segment_3_2krfxpmh85jlb } from './helper.tsx_helper_text_se
 const helper_jsx_segment_2_1f76spd3zj96a_tmpl0 = _createElementTemplate('<i> </i>');
 
 export const helper_jsx_segment_2_1f76spd3zj96a = (ctx) => {
-  const [prefix, label] = _captures;
+  const [prefix, label] = _capturesObj._;
   const el0 = helper_jsx_segment_2_1f76spd3zj96a_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
@@ -223,7 +223,7 @@ export { sibling as __qwik_sibling };
 ============================= src/app.tsx_app_jsx_segment_0_3qpc3dhc6i5ki.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
@@ -232,7 +232,7 @@ import { app_text_segment_1_16w10xjw05e13 } from './app.tsx_app_text_segment_1_1
 const app_jsx_segment_0_3qpc3dhc6i5ki_tmpl0 = _createElementTemplate('<u> </u>');
 
 export const app_jsx_segment_0_3qpc3dhc6i5ki = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const el0 = app_jsx_segment_0_3qpc3dhc6i5ki_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
@@ -298,7 +298,7 @@ export const app_text_segment_1_16w10xjw05e13 = (label) => {
 ============================= src/app.tsx_app_jsx_segment_2_3qpc2lf4cu1jg.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
@@ -307,7 +307,7 @@ import { app_text_segment_3_16w11pm3tti25 } from './app.tsx_app_text_segment_3_1
 const app_jsx_segment_2_3qpc2lf4cu1jg_tmpl0 = _createElementTemplate('<span> </span>');
 
 export const app_jsx_segment_2_3qpc2lf4cu1jg = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const el0 = app_jsx_segment_2_3qpc2lf4cu1jg_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(

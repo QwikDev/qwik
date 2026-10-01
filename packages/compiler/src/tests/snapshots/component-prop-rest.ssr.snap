@@ -23,11 +23,11 @@ import {
   createSlotScope,
   forwardSlot,
   createComponent,
-  _captures,
+  _capturesObj,
   _noopQrl,
 } from '@qwik.dev/core';
 const component_props_segment_0_208o16glymg7p = () => {
-  const [rest, props0] = _captures;
+  const [rest, props0] = _capturesObj._;
   return { ...rest, title: props0.title === void 0 ? 'heading' : props0.title };
 };
 const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
@@ -82,10 +82,10 @@ export default default_component_3rg6kq1so9aio;
 export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_props_segment_0_208o16glymg7p = () => {
-  const [rest, props0] = _captures;
+  const [rest, props0] = _capturesObj._;
   return { ...rest, title: props0.title === void 0 ? 'heading' : props0.title };
 };
 /*

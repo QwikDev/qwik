@@ -76,7 +76,7 @@ export function loadChunkFunction(
   const expression = declaration.declarations[0].init!;
   return runInNewContext(`'use strict'; (${module.code.slice(expression.start, expression.end)})`, {
     ...globals,
-    _captures: captures,
+    _capturesObj: { _: captures },
   });
 }
 

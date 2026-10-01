@@ -90,7 +90,7 @@ export function capturePrelude(module: LinkedModule, qrl: LinkedQrl): string[] {
   const captures = captureNames(module, qrl);
   const statements =
     captures.length > 0 && qrl.payloadKind === QrlPayloadKind.Function
-      ? [`const [${captures.join(', ')}] = ${QwikWord.Captures};`]
+      ? [`const [${captures.join(', ')}] = ${QwikWord.Captures}._;`]
       : [];
   qrl.captures.forEach((capture, index) => {
     if (capture.access === CaptureAccess.Arguments) {

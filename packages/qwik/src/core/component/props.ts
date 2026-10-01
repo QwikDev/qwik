@@ -1,3 +1,5 @@
+import { Brand, brandClass } from '../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 import { Computed } from '../reactive/computed';
 import { Signal } from '../reactive/signal';
 import { getStoreSource, isStore, StorePropSource } from '../reactive/store';
@@ -5,18 +7,25 @@ import { readSourceValue, type Source, type SourceSubs } from '../reactive/sourc
 import { isQrl } from '../shared/qrl/qrl-utils';
 import { track } from '../reactive/tracking';
 import { qError, QError } from '../shared/error/error';
+import { registerSingleton } from '../shared/singletons';
 
 type PropsProxyState<T extends object> =
   | { source: Source<T> | null; excluded: null }
   | { source: T | null; excluded: readonly string[] };
 
-const propsProxyStates = new WeakMap<object, PropsProxyState<object>>();
+const propsProxyStates = /*#__PURE__*/ registerSingleton(
+  'v3.propsProxyStates',
+  () => new WeakMap<object, PropsProxyState<object>>()
+);
 
 /**
  * Reactive props are getters, which serialize to a snapshot of whatever they returned. The map
  * records what each reactive key reads from so serialization can store that instead.
  */
-const propsSources = new WeakMap<object, Record<string, unknown>>();
+const propsSources = /*#__PURE__*/ registerSingleton(
+  'v3.propsSources',
+  () => new WeakMap<object, Record<string, unknown>>()
+);
 
 export function _props<T extends object>(props: T, sources: Record<string, unknown>): T {
   for (const key in sources) {
@@ -185,3 +194,5 @@ function isIncludedProp(
       Object.prototype.propertyIsEnumerable.call(props, property))
   );
 }
+
+isServer && brandClass(PropSource, Brand.PropSource);

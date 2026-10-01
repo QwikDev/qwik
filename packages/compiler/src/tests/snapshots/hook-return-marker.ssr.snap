@@ -10,7 +10,7 @@ export function useCounter() {
 ============================= src/use-counter.ts ==
 
 const use_counter_useComputedqrl_segment_0_17tyklczwyk76 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value * 2;
 };
 const q_use_counter_useComputedqrl_segment_0_17tyklczwyk76 = /*#__PURE__*/ _noopQrl(
@@ -19,7 +19,7 @@ const q_use_counter_useComputedqrl_segment_0_17tyklczwyk76 = /*#__PURE__*/ _noop
 q_use_counter_useComputedqrl_segment_0_17tyklczwyk76.s(
   use_counter_useComputedqrl_segment_0_17tyklczwyk76
 );
-import { useSignal, _captures, _noopQrl, useComputed$ } from '@qwik.dev/core';
+import { useSignal, _capturesObj, _noopQrl, useComputed$ } from '@qwik.dev/core';
 import { useComputedQrl } from '@qwik.dev/core';
 export function useCounter() {
   const count = useSignal(0);
@@ -27,10 +27,10 @@ export function useCounter() {
 }
 ============================= src/use-counter.ts_use_counter_useComputedqrl_segment_0_17tyklczwyk76.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const use_counter_useComputedqrl_segment_0_17tyklczwyk76 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value * 2;
 };
 /*

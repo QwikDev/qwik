@@ -166,12 +166,12 @@ test('payload subranges materialize only their own reads without mutating the pl
 });
 
 describe('sourceFunctionEmission', () => {
-  test('a Function payload restores captures from the _captures prelude', () => {
+  test('a Function payload restores captures from the shared captures prelude', () => {
     const qrl = qrlWith({ captures: [{ binding: 0, access: CaptureAccess.Direct }] });
     const emission = emissionOf(qrl);
-    expect([...emission.imports]).toEqual(['_captures']);
+    expect([...emission.imports]).toEqual(['_capturesObj']);
     expect(functionText(emission)).toBe(
-      '() => {\n  const [count] = _captures;\n  return count.value++;\n}'
+      '() => {\n  const [count] = _capturesObj._;\n  return count.value++;\n}'
     );
   });
 
@@ -219,7 +219,7 @@ describe('sourceFunctionEmission', () => {
       {}
     );
     expect(functionText(emission)).toBe(
-      '() => {\n  const [count] = _captures;\n  if (count.value > 10) return; count.value++;\n}'
+      '() => {\n  const [count] = _capturesObj._;\n  if (count.value > 10) return; count.value++;\n}'
     );
   });
 });

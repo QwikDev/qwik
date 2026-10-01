@@ -57,7 +57,7 @@ export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   _next,
   createTemplate,
@@ -68,7 +68,7 @@ import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_com
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
-  const [items, suffix] = _captures;
+  const [items, suffix] = _capturesObj._;
   const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
@@ -120,7 +120,7 @@ import {
   _withCaptures,
   _qrlWithChunk,
   createTemplate,
-  _captures,
+  _capturesObj,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_2_2fzrhmrz1xde7 } from './component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7';
 const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
@@ -131,7 +131,7 @@ const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithCh
 const component_for_render_segment_1_asysu8t2u0ck_tmpl0 = createTemplate('<!><!>');
 
 export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item, index) => {
-  const [suffix] = _captures;
+  const [suffix] = _capturesObj._;
   const label = item.title.toUpperCase() + suffix.value;
   const numbered = index.value + ':' + label;
   const visible = label.length > 0;
@@ -176,10 +176,10 @@ export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item, index) =>
 */
 ============================= src/component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
-  const [visible] = _captures;
+  const [visible] = _capturesObj._;
   return visible;
 };
 /*
@@ -208,7 +208,7 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
 ============================= src/component.tsx_component_branch_then_segment_3_24n7atwir5934.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   createAttrExpressionEffect,
   setEvent,
   _first,
@@ -224,7 +224,7 @@ const component_branch_then_segment_3_24n7atwir5934_tmpl0 =
   _createElementTemplate('<h2><!>:<!></h2>');
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const [numbered, label] = _captures;
+  const [numbered, label] = _capturesObj._;
   const el0 = component_branch_then_segment_3_24n7atwir5934_tmpl0(ctx.document);
   const effect0 = createAttrExpressionEffect(
     el0,
@@ -311,10 +311,10 @@ export const component_title_segment_4_2f0r2hnbm1rp1 = (numbered) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_5_2xwye36z3pcnc.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_5_2xwye36z3pcnc = () => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   return console.log(label);
 };
 /*

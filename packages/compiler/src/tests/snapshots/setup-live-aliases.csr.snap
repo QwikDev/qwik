@@ -64,7 +64,7 @@ export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _qrlWithChunk,
   createSlotScope,
   _EMPTY_OBJ,
@@ -109,7 +109,7 @@ const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ _qrlWithC
 );
 
 export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
-  const [props, store, count] = _captures;
+  const [props, store, count] = _capturesObj._;
   const slotScope0 = createSlotScope(null, [
     _EMPTY_OBJ,
     _EMPTY_OBJ,
@@ -160,10 +160,10 @@ export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [store, count, props] = _captures;
+  const [store, count, props] = _capturesObj._;
   return (store.item = { label: count.value + props.label });
 };
 /*
@@ -193,10 +193,10 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 */
 ============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
-import { _captures, propSource, createTextNodeEffect } from '@qwik.dev/core';
+import { _capturesObj, propSource, createTextNodeEffect } from '@qwik.dev/core';
 
 export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const text0 = ctx.document.createTextNode('');
   const prop0 = propSource(props, 'label');
   const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
@@ -228,10 +228,10 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
 
-import { _captures, propSource, createTextNodeEffect } from '@qwik.dev/core';
+import { _capturesObj, propSource, createTextNodeEffect } from '@qwik.dev/core';
 
 export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const text0 = ctx.document.createTextNode('');
   const prop0 = propSource(props, 'title');
   const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
@@ -263,11 +263,11 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse.js (ENTRY POINT)==
 
-import { _captures, createTextExpressionEffect } from '@qwik.dev/core';
+import { _capturesObj, createTextExpressionEffect } from '@qwik.dev/core';
 import { component_text_segment_5_1fh12dh4juuhz } from './component.tsx_component_text_segment_5_1fh12dh4juuhz';
 
 export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const text0 = ctx.document.createTextNode('');
   const effect0 = createTextExpressionEffect(
     text0,
@@ -332,7 +332,7 @@ export const component_text_segment_5_1fh12dh4juuhz = (count) => {
 ============================= src/component.tsx_component_slot_render_segment_6_3b0t84qbb79rc.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   _next,
   createTemplate,
@@ -347,7 +347,7 @@ const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx) => {
-  const [store] = _captures;
+  const [store] = _capturesObj._;
   const fragment0 = component_slot_render_segment_6_3b0t84qbb79rc_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
@@ -388,10 +388,10 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx) => {
 */
 ============================= src/component.tsx_component_text_segment_7_1fh135jcdiyj1.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_7_1fh135jcdiyj1 = (ctx0) => {
-  const [store] = _captures;
+  const [store] = _capturesObj._;
   return createDynamicContent(store.item.label, ctx0);
 };
 /*
@@ -419,11 +419,11 @@ export const component_text_segment_7_1fh135jcdiyj1 = (ctx0) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_8_3b0t7co3hj5qa.js (ENTRY POINT)==
 
-import { _captures, createTextExpressionEffect } from '@qwik.dev/core';
+import { _capturesObj, createTextExpressionEffect } from '@qwik.dev/core';
 import { component_text_segment_9_1fh0xp3tlu6bn } from './component.tsx_component_text_segment_9_1fh0xp3tlu6bn';
 
 export const component_slot_render_segment_8_3b0t7co3hj5qa = (ctx) => {
-  const [store] = _captures;
+  const [store] = _capturesObj._;
   const text0 = ctx.document.createTextNode('');
   const effect0 = createTextExpressionEffect(
     text0,
@@ -487,11 +487,11 @@ export const component_text_segment_9_1fh0xp3tlu6bn = (store) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_10_3m3ztgqtay7c7.js (ENTRY POINT)==
 
-import { _captures, createComponent } from '@qwik.dev/core';
+import { _capturesObj, createComponent } from '@qwik.dev/core';
 import { Child } from './child';
 
 export const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx) => {
-  const [store] = _captures;
+  const [store] = _capturesObj._;
   const component0 = createComponent(Child, { state: store }, ctx);
   return component0;
 };

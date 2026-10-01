@@ -23,7 +23,7 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -32,7 +32,7 @@ import {
   _noopQrl,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  const [suffix] = _captures;
+  const [suffix] = _capturesObj._;
   function semantic_collectionRender_301_710_2q9lnxoxqq41u(ctx, __rangeId, __rowId, item, index) {
     const {
       title: label = item.fallback,
@@ -183,7 +183,7 @@ export { Panel as Panel_component_5q1hs6sb6j5z };
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -215,7 +215,7 @@ const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuhz);
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  const [suffix] = _captures;
+  const [suffix] = _capturesObj._;
   function semantic_collectionRender_301_710_2q9lnxoxqq41u(ctx, __rangeId, __rowId, item, index) {
     const {
       title: label = item.fallback,
@@ -317,10 +317,10 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [label, first, tail] = _captures;
+  const [label, first, tail] = _capturesObj._;
   return console.log(label, first, tail);
 };
 /*

@@ -50,14 +50,14 @@ import {
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
-  _captures,
+  _capturesObj,
 } from '@qwik.dev/core';
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
 const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate('<li> </li>');
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
-  const [fallback] = _captures;
+  const [fallback] = _capturesObj._;
   const [id, title] = item === void 0 ? fallback.value : item;
   const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
   setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [title]);
@@ -98,10 +98,10 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
 */
 ============================= src/component.tsx_component_for_key_segment_1_24ursak4wzpxf.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
-  const [fallback] = _captures;
+  const [fallback] = _capturesObj._;
   const [id, title] = item === void 0 ? fallback.value : item;
   return id;
 };
@@ -132,10 +132,10 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [title] = _captures;
+  const [title] = _capturesObj._;
   return console.log(title);
 };
 /*

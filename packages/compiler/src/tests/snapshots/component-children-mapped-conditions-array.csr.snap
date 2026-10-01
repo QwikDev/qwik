@@ -139,10 +139,10 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
-  const [item, index] = _captures;
+  const [item, index] = _capturesObj._;
   return item.featured && index === 0;
 };
 /*
@@ -171,12 +171,12 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n.js (ENTRY POINT)==
 
-import { _captures, _first, _last, _textValue, _createElementTemplate } from '@qwik.dev/core';
+import { _capturesObj, _first, _last, _textValue, _createElementTemplate } from '@qwik.dev/core';
 const component_branch_then_segment_2_24n7b7xmnzb3n_tmpl0 =
   _createElementTemplate('<h2><!>:<!></h2>');
 
 export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
-  const [index, item] = _captures;
+  const [index, item] = _capturesObj._;
   const el0 = component_branch_then_segment_2_24n7b7xmnzb3n_tmpl0(ctx.document);
   const marker0 = _first(el0);
   marker0.replaceWith(ctx.document.createTextNode(_textValue(index)));
@@ -293,10 +293,10 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_4_2fzrgupr899d5.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
-  const [item_10, index] = _captures;
+  const [item_10, index] = _capturesObj._;
   return item_10.featured && index === 0;
 };
 /*
@@ -351,7 +351,7 @@ export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
 ============================= src/component.tsx_component_branch_else_segment_6_19dvsnjetbnih.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   _next,
   createTemplate,
@@ -369,7 +369,7 @@ const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _qrlWithCh
 );
 
 export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
-  const [item_10] = _captures;
+  const [item_10] = _capturesObj._;
   const fragment0 = component_branch_else_segment_6_19dvsnjetbnih_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
@@ -408,10 +408,10 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_7_2fzrfomfhr3bk.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
-  const [item_10] = _captures;
+  const [item_10] = _capturesObj._;
   return item_10.visible;
 };
 /*
@@ -439,11 +439,11 @@ export const component_branch_condition_segment_7_2fzrfomfhr3bk = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_8_24n7f48psbv8x.js (ENTRY POINT)==
 
-import { _captures, _first, _textValue, _createElementTemplate } from '@qwik.dev/core';
+import { _capturesObj, _first, _textValue, _createElementTemplate } from '@qwik.dev/core';
 const component_branch_then_segment_8_24n7f48psbv8x_tmpl0 = _createElementTemplate('<p> </p>');
 
 export const component_branch_then_segment_8_24n7f48psbv8x = (ctx) => {
-  const [item_10] = _captures;
+  const [item_10] = _capturesObj._;
   const el0 = component_branch_then_segment_8_24n7f48psbv8x_tmpl0(ctx.document);
   _first(el0).data = _textValue(item_10.title);
   return el0;

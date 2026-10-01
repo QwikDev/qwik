@@ -34,8 +34,8 @@ export default function App() { ${body} }`,
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
       Loading: () => '<b>ready</b>',
       Display: (

@@ -1,6 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
 import { createQRL, type QRLInternal } from './shared/qrl/qrl-class';
-import { _captures, setCaptures, withCaptures } from './shared/qrl/qrl-captures';
+import { _captures, _capturesObj, setCaptures, withCaptures } from './shared/qrl/qrl-captures';
 import { assertQrl } from './shared/qrl/qrl-utils';
 import { isPromise, retryOnPromise } from './shared/utils/promises';
 import type { ValueOrPromise } from './shared/utils/types';
@@ -9,7 +9,7 @@ import type { VisibleTaskSubscription } from './runtime/task';
 import { SubscriberFlags } from './reactive/flags';
 import { invoke, newInvokeContext, type RuntimeInvokeContext } from './runtime/invoke-context';
 
-export { _captures };
+export { _captures, _capturesObj };
 export { withCaptures as _withCaptures };
 
 export function _run(this: string, event: Event, element: Element): ValueOrPromise<unknown> {
@@ -33,7 +33,7 @@ function runQrl(
       return runCapturedQrl(captures, event, element, context, invokeContext);
     });
   }
-  return runCapturedQrl(_captures!, event, element, context, invokeContext);
+  return runCapturedQrl(_capturesObj._!, event, element, context, invokeContext);
 }
 
 function runCapturedQrl(
@@ -68,7 +68,7 @@ export function _visibleTask(this: string, _event: Event, element: Element): Val
       return runCapturedVisibleTask(captures);
     });
   }
-  return runCapturedVisibleTask(_captures!);
+  return runCapturedVisibleTask(_capturesObj._!);
 }
 
 function runCapturedVisibleTask(captures: Readonly<unknown[]>): ValueOrPromise<void> {

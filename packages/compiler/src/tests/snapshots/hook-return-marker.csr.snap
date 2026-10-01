@@ -18,10 +18,10 @@ export function useCounter() {
 }
 ============================= src/use-counter.ts_use_counter_useComputedqrl_segment_0_17tyklczwyk76.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const use_counter_useComputedqrl_segment_0_17tyklczwyk76 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value * 2;
 };
 /*

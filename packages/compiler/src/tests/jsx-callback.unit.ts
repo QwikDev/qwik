@@ -39,8 +39,8 @@ export default function App() { ${body} return <Display />; }`,
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
       record: (count: number) => counts.push(count),
       consume: (callback: (...args: unknown[]) => unknown) => {

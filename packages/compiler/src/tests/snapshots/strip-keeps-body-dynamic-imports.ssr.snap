@@ -20,7 +20,7 @@ export const ping = server$(async () => 'pong');
 import {
   useSignal,
   useVisibleTaskQrl,
-  _captures,
+  _capturesObj,
   createSsrOpenTag,
   renderSsrContent,
   createSsrNodeId,
@@ -32,7 +32,7 @@ const q_index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = /*#__PURE__*/ _noopQrl(
   'index_useVisibleTaskqrl_segment_0_xu37ccow27t1'
 );
 const linked_content_0_1mzevuukkeaia = (ctx0) => {
-  const [result] = _captures;
+  const [result] = _capturesObj._;
   return renderSsrDynamicContent(result.value, ctx0);
 };
 const q_linked_content_0_1mzevuukkeaia = /*#__PURE__*/ _noopQrl('linked_content_0_1mzevuukkeaia');
@@ -62,10 +62,10 @@ export default default_component_tv8h7w8tm3v2;
 /* stripped-body imports: ["../shared/server-fn"] */
 ============================= src/routes/index.tsx_linked_content_0_1mzevuukkeaia.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const linked_content_0_1mzevuukkeaia = (ctx0) => {
-  const [result] = _captures;
+  const [result] = _capturesObj._;
   return renderSsrDynamicContent(result.value, ctx0);
 };
 /*

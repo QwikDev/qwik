@@ -102,7 +102,7 @@ export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
@@ -111,7 +111,7 @@ import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_componen
 const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = _createElementTemplate('<li> </li>');
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [row] = _captures;
+  const [row] = _capturesObj._;
   const el0 = component_jsx_segment_0_38vnjku9rukc6_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
@@ -462,7 +462,7 @@ export const component_text_segment_10_2cdl418j88efl = (row) => {
 ============================= src/component.tsx_component_jsx_segment_11_2wo80qpf8geko.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
@@ -471,7 +471,7 @@ import { component_text_segment_12_2cdl396bekaej } from './component.tsx_compone
 const component_jsx_segment_11_2wo80qpf8geko_tmpl0 = _createElementTemplate('<li> </li>');
 
 export const component_jsx_segment_11_2wo80qpf8geko = (ctx) => {
-  const [row] = _captures;
+  const [row] = _capturesObj._;
   const el0 = component_jsx_segment_11_2wo80qpf8geko_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(

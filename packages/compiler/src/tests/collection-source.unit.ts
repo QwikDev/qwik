@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { ComputedQrl } from '../../../qwik/src/core/reactive/computed-qrl';
 import { _wrapArray, useSignal } from '../../../qwik/src/core/reactive/public-api';
 import { createOwner, disposeOwner, runWithOwner } from '../../../qwik/src/core/runtime/owner';
-import { _captures, createQRL } from '../../../qwik/src/core/shared/qrl/qrl-class';
+import { _capturesObj, createQRL } from '../../../qwik/src/core/shared/qrl/qrl-class';
 import { retryOnPromise } from '../../../qwik/src/core/shared/utils/promises';
 import { parseModule } from '../analyse/ast/parse';
 import { analyseModule } from '../analyse/analyse-module';
@@ -51,8 +51,8 @@ export default () => {
     }
     const expression = declaration.declarations[0].init!;
     const compute = runInNewContext(`(${chunk.code.slice(expression.start, expression.end)})`, {
-      get _captures() {
-        return _captures;
+      get _capturesObj() {
+        return _capturesObj;
       },
     });
     const items = useSignal([

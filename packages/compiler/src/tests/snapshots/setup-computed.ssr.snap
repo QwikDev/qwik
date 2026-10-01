@@ -14,7 +14,7 @@ export default () => {
 import {
   useSignal,
   useComputedQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
@@ -23,7 +23,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_doubled_segment_0_2yvob8vshk72o = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value * 2;
 };
 const q_component_doubled_segment_0_2yvob8vshk72o = /*#__PURE__*/ _noopQrl(
@@ -51,10 +51,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_doubled_segment_0_2yvob8vshk72o.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_doubled_segment_0_2yvob8vshk72o = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value * 2;
 };
 /*

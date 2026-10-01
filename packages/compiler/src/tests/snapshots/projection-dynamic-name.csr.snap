@@ -56,12 +56,12 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { _captures, _createElementTemplate } from '@qwik.dev/core';
+import { _capturesObj, _createElementTemplate } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 =
   _createElementTemplate('<div>content</div>');
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
-  const [side] = _captures;
+  const [side] = _capturesObj._;
   const el0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   return el0;
 };

@@ -53,8 +53,8 @@ export default function App() {
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
       Display: async (
         props: Record<string, (...args: unknown[]) => unknown>,

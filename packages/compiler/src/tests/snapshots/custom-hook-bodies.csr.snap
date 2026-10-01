@@ -62,10 +62,10 @@ export function useMaybeClick(flag, handler) {
 }
 ============================= src/hooks.ts_hooks_useTaskqrl_segment_0_19kov19646us6.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const hooks_useTaskqrl_segment_0_19kov19646us6 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   count.value;
 };
 /*
@@ -226,10 +226,10 @@ export const component_onClickqrl_segment_1_3rzjk4cwl942g = (_counter) => {
 */
 ============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [_counter] = _captures;
+  const [_counter] = _capturesObj._;
   return createDynamicContent(_counter.count.value, ctx0);
 };
 /*

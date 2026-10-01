@@ -20,7 +20,7 @@ import {
   createComponent,
   createSsrNodeId,
   _noopQrl,
-  _captures,
+  _capturesObj,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -33,7 +33,7 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
 const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, 0, count);
@@ -108,7 +108,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
@@ -116,7 +116,7 @@ import {
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, 0, count);

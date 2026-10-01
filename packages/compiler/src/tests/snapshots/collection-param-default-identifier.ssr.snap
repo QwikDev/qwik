@@ -12,7 +12,7 @@ export default () => {
 
 import {
   useSignal,
-  _captures,
+  _capturesObj,
   renderSsrCollection,
   createSsrNodeId,
   escapeHTML,
@@ -22,7 +22,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item_5) => {
-  const [fallback] = _captures;
+  const [fallback] = _capturesObj._;
   const item = item_5 === void 0 ? fallback.value : item_5;
   const id0 = ctx.nextId();
   ctx.addRoot(item);
@@ -49,7 +49,7 @@ const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
 );
 q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
 const component_for_key_segment_1_24ursak4wzpxf = (item_5) => {
-  const [fallback] = _captures;
+  const [fallback] = _capturesObj._;
   const item = item_5 === void 0 ? fallback.value : item_5;
   return item.id;
 };
@@ -96,7 +96,7 @@ export default default_component_3rg6kq1so9aio;
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -112,7 +112,7 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item_5) => {
-  const [fallback] = _captures;
+  const [fallback] = _capturesObj._;
   const item = item_5 === void 0 ? fallback.value : item_5;
   const id0 = ctx.nextId();
   ctx.addRoot(item);
@@ -161,10 +161,10 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
 */
 ============================= src/component.tsx_component_for_key_segment_1_24ursak4wzpxf.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_for_key_segment_1_24ursak4wzpxf = (item_5) => {
-  const [fallback] = _captures;
+  const [fallback] = _capturesObj._;
   const item = item_5 === void 0 ? fallback.value : item_5;
   return item.id;
 };
@@ -195,10 +195,10 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item_5) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [item] = _captures;
+  const [item] = _capturesObj._;
   return console.log(item.title);
 };
 /*

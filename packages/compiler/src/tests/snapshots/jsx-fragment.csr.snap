@@ -151,7 +151,7 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
 ============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   _next,
   createTemplate,
@@ -166,7 +166,7 @@ const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
-  const [stored] = _captures;
+  const [stored] = _capturesObj._;
   const fragment0 = component_slot_render_segment_2_3b0t9ouqyjhtg_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
@@ -207,10 +207,10 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
 */
 ============================= src/component.tsx_component_content_segment_3_18523gi7fg5bn.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_content_segment_3_18523gi7fg5bn = (ctx0) => {
-  const [stored] = _captures;
+  const [stored] = _capturesObj._;
   return createDynamicContent(stored, ctx0);
 };
 /*

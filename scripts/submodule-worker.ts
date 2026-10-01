@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { rmSync } from 'node:fs';
-import { build, type Plugin } from 'vite';
+import { createBuilder, type Plugin } from 'vite';
 import { writeSubmodulePackageJson } from './package-json.ts';
 import { copyFile, emptyDir, type BuildConfig } from './util.ts';
 import { pathToFileURL } from 'node:url';
@@ -16,7 +16,7 @@ export async function submoduleWorker(config: BuildConfig) {
 
   emptyDir(distDir);
 
-  await build({
+  const builder = await createBuilder({
     clearScreen: false,
     mode: 'lib',
     root: rootDir,
@@ -36,6 +36,7 @@ export async function submoduleWorker(config: BuildConfig) {
     },
     plugins: [preserveWorkerImports(), qwikVite({ srcDir: 'src/web-worker' })],
   });
+  await builder.buildApp();
 
   rmSync(join(distDir, 'assets'), { recursive: true, force: true });
   rmSync(join(distDir, 'q-manifest.json'), { force: true });

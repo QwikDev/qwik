@@ -51,8 +51,8 @@ export default () => {
     component,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
       useSignal(initial: number) {
         const signal = core.useSignal(initial);
@@ -91,8 +91,8 @@ export default () => {
       component,
       {
         ...core,
-        get _captures() {
-          return core._captures;
+        get _capturesObj() {
+          return core._capturesObj;
         },
       },
       true
@@ -129,8 +129,8 @@ export default () => {
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
       async ready() {
         runs++;
@@ -197,8 +197,8 @@ export default () => {
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
       loadLabel() {
         runs++;
@@ -252,8 +252,8 @@ export default (props) => {
         output.modules.find((module) => !module.segment)!,
         {
           ...core,
-          get _captures() {
-            return core._captures;
+          get _capturesObj() {
+            return core._capturesObj;
           },
           readOptions(seed: number) {
             expect(seed).toBe(7);

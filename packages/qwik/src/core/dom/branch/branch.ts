@@ -1,3 +1,5 @@
+import { Brand, brandClass } from '../../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import { maybeThen, retryOnPromise, safeCall } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
@@ -311,3 +313,5 @@ export function renderSsrBranch(
   );
   return branch.run();
 }
+
+isServer && brandClass(SSRBranchSubscription, Brand.SsrBranchSubscription);

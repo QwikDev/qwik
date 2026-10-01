@@ -32,8 +32,8 @@ test.each([
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
     },
     true
@@ -57,8 +57,8 @@ test.each(helpers)('renders independent module helper results: %s', async (helpe
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
     },
     true
@@ -98,8 +98,8 @@ ${scope === 'module' ? helper : ''}`,
       output.modules.find((module) => !module.segment)!,
       {
         ...core,
-        get _captures() {
-          return core._captures;
+        get _capturesObj() {
+          return core._capturesObj;
         },
         consume: (value: unknown) => values.push(value),
         Display: (_props: unknown, ctx: Parameters<typeof core.renderSsrDynamicContent>[1]) =>
@@ -130,8 +130,8 @@ export default () => value;`,
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
     },
     true

@@ -54,12 +54,12 @@ import {
   propSource,
   createTextNodeEffect,
   _createElementTemplate,
-  _captures,
+  _capturesObj,
 } from '@qwik.dev/core';
 const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate('<li> </li>');
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) => {
-  const [separator, props] = _captures;
+  const [separator, props] = _capturesObj._;
   const prefix = item.type + separator.value;
   const key = prefix + item.id + index.value;
   const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
@@ -98,10 +98,10 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) =>
 */
 ============================= src/component.tsx_component_for_key_segment_1_24ursak4wzpxf.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
-  const [separator] = _captures;
+  const [separator] = _capturesObj._;
   const { id, type } = item;
   const prefix = type + separator.value;
   const key = prefix + id + index;

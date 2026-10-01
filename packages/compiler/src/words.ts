@@ -100,7 +100,7 @@ export const enum QwikWord {
   Props = '_props',
   NoopQrl = '_noopQrl',
   RegSymbol = '_regSymbol',
-  Captures = '_captures',
+  Captures = '_capturesObj',
   Await = '_await',
   Untrack = 'untrack',
   Invoke = 'invoke',

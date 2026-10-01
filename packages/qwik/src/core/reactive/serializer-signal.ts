@@ -1,3 +1,5 @@
+import { Brand, brandClass } from '../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { isPromise } from '../shared/utils/promises';
 import type { ContainerContext } from '../runtime/container-context';
@@ -95,3 +97,5 @@ function computeSerializerValue<T, S>(this: SerializerSignal<T, S>): T {
 function resolveSerializerArg<T, S>(arg: SerializerArg<T, S>): SerializerArgObject<T, S> {
   return typeof arg === 'function' ? arg() : arg;
 }
+
+isServer && brandClass(SerializerSignal, Brand.SerializerSignal);

@@ -4,6 +4,7 @@ import type { Owner } from './owner';
 import type { VisibleTaskSubscription } from './task';
 import type { SlotScope } from '../dom/slot/slot';
 import type { UseOnMap } from './use-on';
+import { registerSingleton } from '../shared/singletons';
 
 export interface RuntimeInvokeContext {
   owner: Owner | null;
@@ -42,10 +43,12 @@ export interface ChildInvokeContextOptions {
   slotScope?: SlotScope | null;
 }
 
-let activeInvokeContext: RuntimeInvokeContext | null = null;
+const invokeState = /*#__PURE__*/ registerSingleton('v3.invokeContext', () => ({
+  current: null as RuntimeInvokeContext | null,
+}));
 
 export function getActiveInvokeContext(): RuntimeInvokeContext {
-  const context = activeInvokeContext;
+  const context = invokeState.current;
   if (context === null) {
     throw new Error('Missing active invoke context');
   }
@@ -54,15 +57,15 @@ export function getActiveInvokeContext(): RuntimeInvokeContext {
 }
 
 export function getActiveInvokeContextOrNull(): RuntimeInvokeContext | null {
-  return activeInvokeContext;
+  return invokeState.current;
 }
 
 export function getActiveOwnerScope(): Owner | null {
-  return activeInvokeContext?.owner ?? null;
+  return invokeState.current?.owner ?? null;
 }
 
 export function setActiveInvokeContext(context: RuntimeInvokeContext | null): void {
-  activeInvokeContext = context;
+  invokeState.current = context;
 }
 
 export function newInvokeContext(options?: NewInvokeContextOptions): RuntimeInvokeContext {
@@ -78,7 +81,7 @@ export function newInvokeContext(options?: NewInvokeContextOptions): RuntimeInvo
 }
 
 export function newChildInvokeContext(
-  base: RuntimeInvokeContext | null = activeInvokeContext,
+  base: RuntimeInvokeContext | null = invokeState.current,
   options?: ChildInvokeContextOptions
 ): RuntimeInvokeContext {
   return newInvokeContext({
@@ -107,12 +110,12 @@ export function invokeApply<T, TArgs extends unknown[]>(
   run: (...args: TArgs) => T,
   args?: TArgs
 ): T {
-  const previous = activeInvokeContext;
-  activeInvokeContext = context;
+  const previous = invokeState.current;
+  invokeState.current = context;
 
   try {
     return run.apply(undefined, args ?? ([] as unknown as TArgs));
   } finally {
-    activeInvokeContext = previous;
+    invokeState.current = previous;
   }
 }

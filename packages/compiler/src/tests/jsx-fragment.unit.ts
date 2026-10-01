@@ -15,8 +15,8 @@ async function renderSource(code: string) {
     output.modules.find((module) => !module.segment)!,
     {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
     },
     true

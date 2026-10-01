@@ -82,10 +82,10 @@ export const component_qrl_segment_0_2fpowujm1ejve = async function* () {
 */
 ============================= src/component.tsx_component_counted_segment_1_2a19h1ljxbgrm.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_counted_segment_1_2a19h1ljxbgrm = function () {
-  const [step] = _captures;
+  const [step] = _capturesObj._;
   return function* count() {
     yield step.value;
   }.apply(this, arguments);
@@ -115,10 +115,10 @@ export const component_counted_segment_1_2a19h1ljxbgrm = function () {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [counted] = _captures;
+  const [counted] = _capturesObj._;
   return counted;
 };
 /*

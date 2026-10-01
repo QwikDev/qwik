@@ -9,7 +9,7 @@ export default (props) => <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:
 ============================= src/component.tsx ==
 
 import {
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   renderSsrSlot,
@@ -24,7 +24,7 @@ import {
   createComponent,
 } from '@qwik.dev/core';
 const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const slotName0 = props.name;
   const slot0 = ctx.observeError(renderSsrSlot(ctx, slotName0));
   return slot0;
@@ -99,10 +99,10 @@ export default default_component_3rg6kq1so9aio;
 export { Switch as Switch_component_1uyn3u3j9umgv };
 ============================= src/component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.js (ENTRY POINT)==
 
-import { _captures, renderSsrSlot } from '@qwik.dev/core';
+import { _capturesObj, renderSsrSlot } from '@qwik.dev/core';
 
 export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const slotName0 = props.name;
   const slot0 = ctx.observeError(renderSsrSlot(ctx, slotName0));
   return slot0;

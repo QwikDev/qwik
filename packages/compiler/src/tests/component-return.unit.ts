@@ -26,8 +26,8 @@ test.each([
   expect(output.diagnostics).toEqual([]);
   const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
     ...core,
-    get _captures() {
-      return core._captures;
+    get _capturesObj() {
+      return core._capturesObj;
     },
     renderSsrTextExpression(...args: Parameters<typeof core.renderSsrTextExpression>) {
       // VM capture arrays must enter the serializer's realm.
@@ -92,8 +92,8 @@ test.each(['props.visible.value ? <b>on</b> : null', 'props.visible.value && <b>
     expect(output.diagnostics).toEqual([]);
     const globals: Record<string, unknown> = {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
       _qrlWithChunk(chunk: string, _importer: unknown, symbol: string) {
         return core._qrlWithChunk(chunk, async () => ({ [symbol]: globals[symbol] }), symbol);

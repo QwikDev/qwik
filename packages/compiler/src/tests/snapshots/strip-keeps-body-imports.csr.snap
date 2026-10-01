@@ -51,11 +51,11 @@ export const default_component_tv8h7w8tm3v2 = (props, ctx) => {
 export default default_component_tv8h7w8tm3v2;
 ============================= src/routes/index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core';
+import { _capturesObj, _await } from '@qwik.dev/core';
 import { ping } from '../shared/server-fn';
 
 export const index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = async () => {
-  const [result] = _captures;
+  const [result] = _capturesObj._;
   result.value = (await _await(ping()))();
 };
 /*

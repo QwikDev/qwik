@@ -65,10 +65,10 @@ export default default_component_tv8h7w8tm3v2;
 /* stripped-body imports: ["../db.server","../server/folder-secret"] */
 ============================= src/routes/index.tsx_index_text_segment_1_1ipiow57gf7g4.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const index_text_segment_1_1ipiow57gf7g4 = (ctx0) => {
-  const [secret] = _captures;
+  const [secret] = _capturesObj._;
   return createDynamicContent(secret.value, ctx0);
 };
 /*

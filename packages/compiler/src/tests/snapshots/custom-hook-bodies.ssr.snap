@@ -41,14 +41,14 @@ export const Maybe = component$((props: { flag: boolean }) => {
 ============================= src/hooks.ts ==
 
 const hooks_useTaskqrl_segment_0_19kov19646us6 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   count.value;
 };
 const q_hooks_useTaskqrl_segment_0_19kov19646us6 = /*#__PURE__*/ _noopQrl(
   'hooks_useTaskqrl_segment_0_19kov19646us6'
 );
 q_hooks_useTaskqrl_segment_0_19kov19646us6.s(hooks_useTaskqrl_segment_0_19kov19646us6);
-import { useOn, useSignal, useTaskQrl, _captures, _noopQrl } from '@qwik.dev/core';
+import { useOn, useSignal, useTaskQrl, _capturesObj, _noopQrl } from '@qwik.dev/core';
 export const useClick = (handler) => {
   useOn('click', handler);
 };
@@ -69,10 +69,10 @@ export function useMaybeClick(flag, handler) {
 }
 ============================= src/hooks.ts_hooks_useTaskqrl_segment_0_19kov19646us6.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const hooks_useTaskqrl_segment_0_19kov19646us6 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   count.value;
 };
 /*
@@ -107,7 +107,7 @@ import {
   createSsrNodeId,
   renderSsrEvent,
   createSsrMarkup,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   maybeThen,
   getActiveInvokeContextOrNull,
@@ -130,7 +130,7 @@ const q_component_onClickqrl_segment_1_3rzjk4cwl942g = /*#__PURE__*/ _noopQrl(
 );
 q_component_onClickqrl_segment_1_3rzjk4cwl942g.s(component_onClickqrl_segment_1_3rzjk4cwl942g);
 const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [_counter] = _captures;
+  const [_counter] = _capturesObj._;
   return renderSsrDynamicContent(_counter.count.value, ctx0);
 };
 const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
@@ -264,10 +264,10 @@ export const component_onClickqrl_segment_1_3rzjk4cwl942g = (_counter) => {
 */
 ============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [_counter] = _captures;
+  const [_counter] = _capturesObj._;
   return renderSsrDynamicContent(_counter.count.value, ctx0);
 };
 /*

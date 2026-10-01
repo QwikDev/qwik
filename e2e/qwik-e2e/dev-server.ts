@@ -20,7 +20,7 @@ import {
 } from 'node:fs';
 import { basename, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { build, type InlineConfig, type PluginOption } from 'vite';
+import { build, createBuilder, type InlineConfig, type PluginOption } from 'vite';
 import type { PackageJSON } from '../../scripts/types.ts';
 import { getReleaseKey, getReleaseStore } from './utils/release-gate.ts';
 
@@ -318,7 +318,7 @@ async function buildLibrary(
 ) {
   const outDir = join(libraryDir, 'lib');
   removeDir(outDir);
-  await build({
+  const builder = await createBuilder({
     root: libraryDir,
     mode: 'lib',
     configFile: false,
@@ -337,6 +337,7 @@ async function buildLibrary(
     },
     plugins: [optimizer.qwikVite()],
   });
+  await builder.buildApp();
   const installDir = join(e2eDir, 'node_modules', basename(libraryDir));
   removeDir(installDir);
   mkdirSync(installDir, { recursive: true });

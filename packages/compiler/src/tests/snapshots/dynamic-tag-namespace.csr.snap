@@ -42,10 +42,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
 
-import { _captures, createDynamicTag, createComponent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicTag, createComponent } from '@qwik.dev/core';
 
 export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const tag0 = props.shape;
   const component0 = createComponent(
     (props0) => createDynamicTag(tag0, props0, ctx, 'svg'),

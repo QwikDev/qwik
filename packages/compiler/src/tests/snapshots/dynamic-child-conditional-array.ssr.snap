@@ -11,14 +11,14 @@ export default (props: { label?: string; content?: any }) => {
 
 import {
   useSignal,
-  _captures,
+  _capturesObj,
   renderSsrBranch,
   createSsrNodeId,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value > 1;
 };
 const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
@@ -63,10 +63,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value > 1;
 };
 /*

@@ -30,7 +30,7 @@ export default (props: { on: boolean; rows: number[] }) => (
 ============================= src/component.tsx ==
 
 import {
-  _captures,
+  _capturesObj,
   renderSsrBranch,
   createSsrNodeId,
   _noopQrl,
@@ -44,7 +44,7 @@ import {
 } from '@qwik.dev/core';
 
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.on;
 };
 const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
@@ -54,7 +54,7 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
 const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const prop0 = propSource(props, 'rows');
   isSource(prop0) && ctx.addRoot(prop0);
   const collectionId0 = ctx.nextId();
@@ -142,10 +142,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.on;
 };
 /*
@@ -175,7 +175,7 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   propSource,
   isSource,
   renderSsrCollection,
@@ -193,7 +193,7 @@ const q_component_for_key_segment_3_24urt2mcqntyh = /*#__PURE__*/ _noopQrl(
 q_component_for_key_segment_3_24urt2mcqntyh.s(component_for_key_segment_3_24urt2mcqntyh);
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const prop0 = propSource(props, 'rows');
   isSource(prop0) && ctx.addRoot(prop0);
   const collectionId0 = ctx.nextId();

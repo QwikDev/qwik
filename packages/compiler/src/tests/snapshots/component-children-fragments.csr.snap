@@ -86,7 +86,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   _next,
   createTextNodeEffect,
@@ -97,7 +97,7 @@ const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 = _createElementTempla
 );
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const el0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
   const marker0 = _next(_first(el0));
   const text0 = ctx.document.createTextNode('');

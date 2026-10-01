@@ -41,11 +41,11 @@ export default default_component_3rg6kq1so9aio;
 export { runCount as __qwik_runCount, settings as __qwik_settings };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { __qwik_runCount as runCount, __qwik_settings as settings } from './component.tsx';
 
 export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   count.value = ++runCount;
   settings.suffix = '?';
 };

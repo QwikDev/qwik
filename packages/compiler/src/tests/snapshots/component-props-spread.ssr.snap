@@ -21,12 +21,12 @@ import {
   readTrackedValue,
   mergeProps,
   createComponent,
-  _captures,
+  _capturesObj,
   _noopQrl,
 } from '@qwik.dev/core';
 
 const component_props_segment_0_208o16glymg7p = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.base;
 };
 const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
@@ -34,7 +34,7 @@ const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
 );
 q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
 const component_props_segment_1_208o0sfi1se76 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.overrides;
 };
 const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
@@ -87,10 +87,10 @@ export default default_component_3rg6kq1so9aio;
 export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_props_segment_0_208o16glymg7p = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.base;
 };
 /*
@@ -118,10 +118,10 @@ export const component_props_segment_0_208o16glymg7p = () => {
 */
 ============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_props_segment_1_208o0sfi1se76 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.overrides;
 };
 /*

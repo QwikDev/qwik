@@ -317,7 +317,7 @@ Component spreads already exist. Complete element spreads and DOM semantics:
       resume, which also asserts an unread prop never serializes).
 - [x] A computed prop is a real source. An expression passed as a component prop becomes a
       `useComputedQrl` in the parent: the chunk is emitted in the `useComputed$` shape, reading
-      its captures from `_captures`, and `computedProp(qrl)` is that hook with the value never
+      its captures from `_capturesObj._`, and `computedProp(qrl)` is that hook with the value never
       serialized, since a computed prop may hold JSX or a component. A child read then resolves
       to the computed itself, so the `PropSource` branch is left to spread props (`prop-sources`
       snapshots, `prop-sources.spec.tsx` proves a recompute after resume).

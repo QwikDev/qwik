@@ -20,7 +20,7 @@ export default () => {
 ============================= src/component.tsx ==
 
 const component_qrl_segment_0_2fpowujm1ejve = () => {
-  const [run] = _captures;
+  const [run] = _capturesObj._;
   return run();
 };
 const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
@@ -28,7 +28,7 @@ const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
 );
 q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
 const component_qrl_segment_1_2fpox8kpy8lvx = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   count.value++;
 };
 const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _noopQrl(
@@ -36,7 +36,7 @@ const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _noopQrl(
 );
 q_component_qrl_segment_1_2fpox8kpy8lvx.s(component_qrl_segment_1_2fpox8kpy8lvx);
 const component_qrl_segment_2_2fpow2he7qfuc = () => {
-  const [count, step] = _captures;
+  const [count, step] = _capturesObj._;
   return (count.value += step);
 };
 const q_component_qrl_segment_2_2fpow2he7qfuc = /*#__PURE__*/ _noopQrl(
@@ -54,7 +54,7 @@ const q_component_data_n_segment_5_brpnebuasbbh = /*#__PURE__*/ _noopQrl(
 );
 q_component_data_n_segment_5_brpnebuasbbh.s(component_data_n_segment_5_brpnebuasbbh);
 import {
-  _captures,
+  _capturesObj,
   _noopQrl,
   useSignal,
   useOn,
@@ -105,10 +105,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_qrl_segment_0_2fpowujm1ejve = () => {
-  const [run] = _captures;
+  const [run] = _capturesObj._;
   return run();
 };
 /*
@@ -136,10 +136,10 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
 */
 ============================= src/component.tsx_component_qrl_segment_1_2fpox8kpy8lvx.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_qrl_segment_1_2fpox8kpy8lvx = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   count.value++;
 };
 /*
@@ -167,10 +167,10 @@ export const component_qrl_segment_1_2fpox8kpy8lvx = () => {
 */
 ============================= src/component.tsx_component_qrl_segment_2_2fpow2he7qfuc.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_qrl_segment_2_2fpow2he7qfuc = () => {
-  const [count, step] = _captures;
+  const [count, step] = _capturesObj._;
   return (count.value += step);
 };
 /*
@@ -199,10 +199,10 @@ export const component_qrl_segment_2_2fpow2he7qfuc = () => {
 */
 ============================= src/component.tsx_component_qrl_segment_3_2fpowgii4khuv.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_qrl_segment_3_2fpowgii4khuv = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value++;
 };
 /*
@@ -230,7 +230,7 @@ export const component_qrl_segment_3_2fpowgii4khuv = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_4_2xwyeh830jenv.js (ENTRY POINT)==
 
-import { _noopQrl, _captures } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj } from '@qwik.dev/core';
 import { component_qrl_segment_3_2fpowgii4khuv } from './component.tsx_component_qrl_segment_3_2fpowgii4khuv';
 const q_component_qrl_segment_3_2fpowgii4khuv = /*#__PURE__*/ _noopQrl(
   'component_qrl_segment_3_2fpowgii4khuv'
@@ -238,7 +238,7 @@ const q_component_qrl_segment_3_2fpowgii4khuv = /*#__PURE__*/ _noopQrl(
 q_component_qrl_segment_3_2fpowgii4khuv.s(component_qrl_segment_3_2fpowgii4khuv);
 
 export const component_q_e_click_segment_4_2xwyeh830jenv = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const bump = q_component_qrl_segment_3_2fpowgii4khuv.w([count]);
   bump();
 };

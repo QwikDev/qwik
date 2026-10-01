@@ -10,7 +10,7 @@ export default (props: { shape: string }) => (
 ============================= src/component.tsx ==
 
 import {
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   renderSsrDynamicTag,
@@ -20,7 +20,7 @@ import {
 } from '@qwik.dev/core';
 
 const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const tag0 = props.shape;
   const component0 = ctx.observeError(
     createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), { r: '1' }, ctx)
@@ -53,10 +53,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicTag, createComponent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicTag, createComponent } from '@qwik.dev/core';
 
 export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const tag0 = props.shape;
   const component0 = ctx.observeError(
     createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), { r: '1' }, ctx)

@@ -5,7 +5,7 @@ import { analyseModule } from '../index';
 import { BoundaryKind, SetupKind, ValueKind, QrlPayloadKind, ArgPass } from '../schema';
 import { UnsupportedError } from '../errors';
 import { _noopQrl, inlinedQrl } from '../../../qwik/src/core/shared/qrl/qrl';
-import { _captures } from '../../../qwik/src/core/shared/qrl/qrl-captures';
+import { _capturesObj } from '../../../qwik/src/core/shared/qrl/qrl-captures';
 import type { QRLInternal } from '../../../qwik/src/core/shared/qrl/qrl-class';
 
 test('explicit boundaries retain binding identity and source ranges', async () => {
@@ -162,8 +162,8 @@ export default (props) => {
   const component = output.modules.find((module) => !module.segment)!;
   const render = loadDefaultFunction(component, {
     _noopQrl,
-    get _captures() {
-      return _captures;
+    get _capturesObj() {
+      return _capturesObj;
     },
   });
   const handlers: QRLInternal<() => string>[] = [];

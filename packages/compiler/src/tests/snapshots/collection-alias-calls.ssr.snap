@@ -213,10 +213,10 @@ export const component_title_segment_2_2f0r05go51flv = (item) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
-  const [item] = _captures;
+  const [item] = _capturesObj._;
   return (0, item.save)();
 };
 /*
@@ -244,10 +244,10 @@ export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_4_2xwyeh830jenv.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_4_2xwyeh830jenv = (...args0) => {
-  const [item] = _captures;
+  const [item] = _capturesObj._;
   return ((value = (0, item.save)?.()) => [value, (0, item.save)(), item.api.save()])(...args0);
 };
 /*

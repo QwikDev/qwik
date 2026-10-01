@@ -98,7 +98,7 @@ export default () => {
     ],
   });
   const row = output.modules.find((module) => module.segment?.ctxName === 'for:render')!;
-  expect(row.code).toContain('const [suffix] = _captures;');
+  expect(row.code).toContain('const [suffix] = _capturesObj._;');
   expect(row.code.indexOf('const [suffix]')).toBeLessThan(row.code.indexOf('const title'));
   expect(output.modules[0].code).toContain(`_withCaptures(${row.segment!.name}, [suffix])`);
 
@@ -113,14 +113,16 @@ export default () => {
   let reads = 0;
   const effects: (() => string)[] = [];
   const dependencies = {
-    _captures: [
-      {
-        get value() {
-          reads++;
-          return '!';
+    _capturesObj: {
+      _: [
+        {
+          get value() {
+            reads++;
+            return '!';
+          },
         },
-      },
-    ],
+      ],
+    },
     [`${row.segment!.name}_tmpl0`]: () => ({}),
     _first: () => ({}),
     createTextExpressionEffect: (

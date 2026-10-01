@@ -70,10 +70,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.on;
 };
 /*
@@ -102,7 +102,7 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   _next,
   propSource,
@@ -115,7 +115,7 @@ const component_branch_then_segment_1_24n7blyqktd46_tmpl0 =
   _createElementTemplate('<tbody><!><!></tbody>');
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const el0 = component_branch_then_segment_1_24n7blyqktd46_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);

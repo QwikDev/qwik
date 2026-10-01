@@ -32,7 +32,7 @@ import {
   createSsrNodeId,
   renderSsrAttrExpression,
   escapeHTML,
-  _captures,
+  _capturesObj,
   renderSsrBranch,
   createComponent,
   maybeThen,
@@ -57,7 +57,7 @@ const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
 const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
-  const [active] = _captures;
+  const [active] = _capturesObj._;
   return active.value;
 };
 const q_component_branch_condition_segment_3_2fzrh8qv53bdo = /*#__PURE__*/ _noopQrl(
@@ -204,10 +204,10 @@ export const component_class_segment_1_3htuy2t94mso0 = (active) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [active] = _captures;
+  const [active] = _capturesObj._;
   return (active.value = true);
 };
 /*
@@ -235,10 +235,10 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_3_2fzrh8qv53bdo.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
-  const [active] = _captures;
+  const [active] = _capturesObj._;
   return active.value;
 };
 /*

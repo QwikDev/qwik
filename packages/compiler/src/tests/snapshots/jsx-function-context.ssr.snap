@@ -10,7 +10,7 @@ export function makeNode(label) {
 ============================= src/component.tsx ==
 
 import {
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -19,7 +19,7 @@ import {
 } from '@qwik.dev/core';
 
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [_this, _argumentsValues0] = _captures;
+  const [_this, _argumentsValues0] = _capturesObj._;
   const _arguments = (function () {
     'use strict';
     return arguments;
@@ -92,7 +92,7 @@ export function makeNode(label) {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -113,7 +113,7 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [_this, _argumentsValues0] = _captures;
+  const [_this, _argumentsValues0] = _capturesObj._;
   const _arguments = (function () {
     'use strict';
     return arguments;
@@ -176,10 +176,10 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [_this, _argumentsValues0] = _captures;
+  const [_this, _argumentsValues0] = _capturesObj._;
   const _arguments = (function () {
     'use strict';
     return arguments;

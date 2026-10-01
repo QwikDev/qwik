@@ -109,10 +109,10 @@ export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
 */
 ============================= src/component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_save_segment_1_3krcbiqvmvgft = (...args0) => {
-  const [fallback] = _captures;
+  const [fallback] = _capturesObj._;
   return (({ type = fallback } = {}, ...rest) => [type, rest.length])(...args0);
 };
 /*

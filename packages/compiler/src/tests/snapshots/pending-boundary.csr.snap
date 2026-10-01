@@ -47,13 +47,13 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo.js (ENTRY POINT)==
 
-import { _captures, _first, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
+import { _capturesObj, _first, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
 const component_suspense_fallback_segment_0_1i2rr5w5knxuo_tmpl0 = _createElementTemplate(
   '<p class="fallback"> </p>'
 );
 
 export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const el0 = component_suspense_fallback_segment_0_1i2rr5w5knxuo_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextNodeEffect(text0, label, ctx.scheduler);

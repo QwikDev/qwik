@@ -17,7 +17,7 @@ export default () => {
 import {
   useSignal,
   useComputedQrl,
-  _captures,
+  _capturesObj,
   useTaskQrl,
   createSsrNodeId,
   escapeHTML,
@@ -34,7 +34,7 @@ function format(value) {
   return prefix + ': ' + value;
 }
 const component_title_segment_0_2f0r0xivypjmx = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return format(count.value);
 };
 const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
@@ -42,7 +42,7 @@ const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
 );
 q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
 const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
-  const [title] = _captures;
+  const [title] = _capturesObj._;
   return console.log(settings.suffix, title.value);
 };
 const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ _noopQrl(
@@ -83,11 +83,11 @@ export default default_component_3rg6kq1so9aio;
 export { format as __qwik_format, settings as __qwik_settings };
 ============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { __qwik_format as format } from './component.tsx';
 
 export const component_title_segment_0_2f0r0xivypjmx = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return format(count.value);
 };
 /*
@@ -115,11 +115,11 @@ export const component_title_segment_0_2f0r0xivypjmx = () => {
 */
 ============================= src/component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { __qwik_settings as settings } from './component.tsx';
 
 export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
-  const [title] = _captures;
+  const [title] = _capturesObj._;
   return console.log(settings.suffix, title.value);
 };
 /*
@@ -147,11 +147,11 @@ export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { __qwik_format as format, __qwik_settings as settings } from './component.tsx';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return console.log(format(count.value), settings);
 };
 /*

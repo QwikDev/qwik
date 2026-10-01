@@ -9,6 +9,7 @@ import type {
 } from './jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from './jsx/types/jsx-node';
 import type { QwikIntrinsicElements } from './jsx/types/jsx-qwik-elements';
+import { qwikSymbol } from './singletons';
 
 // TS way to check for any
 type IsAny<T> = 0 extends T & 1 ? true : false;
@@ -130,7 +131,7 @@ export const componentQrl = <PROPS extends Record<any, any>>(
 };
 
 /** @internal */
-export const SERIALIZABLE_STATE = Symbol('serializable-data');
+export const SERIALIZABLE_STATE: unique symbol = /*#__PURE__*/ qwikSymbol('serializable-data');
 
 /** @internal The server marks a compiled component with the export it serializes as. */
 export const _markComponent = <T extends { (...args: any[]): any }>(

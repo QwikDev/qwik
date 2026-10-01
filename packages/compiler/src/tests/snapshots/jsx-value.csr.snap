@@ -71,14 +71,20 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
-import { _captures, _first, setEvent, createTextNodeEffect, createTemplate } from '@qwik.dev/core';
+import {
+  _capturesObj,
+  _first,
+  setEvent,
+  createTextNodeEffect,
+  createTemplate,
+} from '@qwik.dev/core';
 import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = createTemplate(
   '<button> </button><span>stored</span>'
 );
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const fragment0 = component_jsx_segment_0_38vnjku9rukc6_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [count]);
@@ -112,10 +118,10 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value++;
 };
 /*
@@ -143,10 +149,10 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 */
 ============================= src/component.tsx_component_content_segment_2_185232h3im3b4.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
-  const [alias] = _captures;
+  const [alias] = _capturesObj._;
   return createDynamicContent(alias, ctx0);
 };
 /*
@@ -174,10 +180,10 @@ export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
 */
 ============================= src/component.tsx_component_content_segment_3_18523gi7fg5bn.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_content_segment_3_18523gi7fg5bn = (ctx0) => {
-  const [content] = _captures;
+  const [content] = _capturesObj._;
   return createDynamicContent(content, ctx0);
 };
 /*

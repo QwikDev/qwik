@@ -517,7 +517,7 @@ test('command: build, --mode lib', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rolldownOptions = build!.rolldownOptions!;
-  const outputOptions = rolldownOptions.output as Rolldown.OutputOptions;
+  const outputOptions = c.environments.ssr.build.rolldownOptions.output as Rolldown.OutputOptions;
 
   assert.deepEqual(opts.target, 'lib');
   assert.deepEqual(opts.buildMode, 'development');
@@ -532,6 +532,32 @@ test('command: build, --mode lib', async () => {
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(opts.resolveQwikBuild, true);
+});
+
+test('lib.entry emits separate server and client library environments', async () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() });
+  const config: any = await plugin.config.call(
+    configHookPluginContext,
+    {
+      build: {
+        lib: {
+          entry: './src/index.ts',
+          formats: ['es'],
+          fileName: (_format, name) => `${name}.qwik.mjs`,
+        },
+      },
+    },
+    { command: 'build', mode: 'lib' }
+  );
+  assert.deepEqual(config.environments.ssr.build.ssr, true);
+  assert.deepEqual(config.environments.client.build.ssr, false);
+  assert.deepEqual(config.environments.client.build.rolldownOptions.input, {
+    index: './src/index.ts',
+  });
+  assert.deepEqual(
+    config.environments.ssr.build.rolldownOptions.output.entryFileNames({ name: 'index' }),
+    'index.qwik.mjs'
+  );
 });
 
 test('command: build, --mode lib with multiple outputs', async () => {
@@ -573,7 +599,7 @@ test('command: build, --mode lib with multiple outputs', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rolldownOptions = build!.rolldownOptions!;
-  const outputOptions = rolldownOptions.output as Rolldown.OutputOptions[];
+  const outputOptions = c.environments.ssr.build.rolldownOptions.output as Rolldown.OutputOptions[];
 
   assert.deepEqual(opts.target, 'lib');
   assert.deepEqual(opts.buildMode, 'development');

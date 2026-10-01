@@ -22,6 +22,7 @@ import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
 import type { ContainerContext } from '../../runtime/container-context';
+import { qwikSymbol } from '../singletons';
 
 export type SyncQRLInternal = QRLInternal & { $chunk$: '' };
 
@@ -212,7 +213,7 @@ isBrowser &&
     getLazyRef = fn;
   });
 
-const QRL_STATE = Symbol('qrl-state');
+const QRL_STATE: unique symbol = /*#__PURE__*/ qwikSymbol('qrl-state');
 
 type QRLCallable<TYPE = unknown> = QRLInternal<TYPE> & {
   [QRL_STATE]: QRLClass<TYPE>;
@@ -463,7 +464,7 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
   },
 });
 
-export { _captures, setCaptures, withCaptures } from './qrl-captures';
+export { _captures, _capturesObj, setCaptures, withCaptures } from './qrl-captures';
 
 const getQrlContainer = (qrl: QRLClass<unknown>, container?: ContainerContext | null) => {
   if (qrl.$container$) {

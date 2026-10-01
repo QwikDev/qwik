@@ -1,3 +1,5 @@
+import { Brand, brandClass } from '../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 import type { ContainerContext } from '../runtime/container-context';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { Computed, type ComputeSignalFn, type ComputeSignalQrl } from './computed';
@@ -19,3 +21,5 @@ export class AsyncSignal<T> extends Computed<T> {
     super(computeQrl as ComputeSignalQrl<T> | null, computeFn, container, options);
   }
 }
+
+isServer && brandClass(AsyncSignal, Brand.AsyncSignal);

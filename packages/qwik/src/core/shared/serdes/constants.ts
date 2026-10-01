@@ -6,9 +6,10 @@ import { Slot } from '../../dom/slot/slot';
 import { Fragment } from '../jsx/compiler-runtime';
 export { TypeIds, _typeIdNames } from './type-id';
 import { TypeIds } from './type-id';
+import { qwikSymbol } from '../singletons';
 
 /** Used to represent an undefined value that must be serialized */
-export const explicitUndefined = Symbol('undefined');
+export const explicitUndefined: unique symbol = /*#__PURE__*/ qwikSymbol('undefined');
 export const EMPTY_OBJECT_PAYLOAD = 0;
 
 export const enum Constants {

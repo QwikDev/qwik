@@ -63,10 +63,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   return show.value;
 };
 /*
@@ -94,11 +94,11 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
-import { _captures, setRef, _createElementTemplate } from '@qwik.dev/core';
+import { _capturesObj, setRef, _createElementTemplate } from '@qwik.dev/core';
 const component_branch_then_segment_1_24n7blyqktd46_tmpl0 = _createElementTemplate('<i>late</i>');
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
-  const [calls] = _captures;
+  const [calls] = _capturesObj._;
   const el0 = component_branch_then_segment_1_24n7blyqktd46_tmpl0(ctx.document);
   setRef((el) => calls.push(el.tagName), el0);
   return el0;

@@ -77,10 +77,10 @@ export default default_component_3rg6kq1so9aio;
 export { List as List_component_3heyy58kmhk1z };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
-  const [children] = _captures;
+  const [children] = _capturesObj._;
   return createDynamicContent(children.length, ctx0);
 };
 /*

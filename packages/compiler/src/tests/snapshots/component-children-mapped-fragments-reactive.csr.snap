@@ -64,12 +64,12 @@ export default default_component_3rg6kq1so9aio;
 export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { _captures, _first, _next, createTemplate, createCollection } from '@qwik.dev/core';
+import { _capturesObj, _first, _next, createTemplate, createCollection } from '@qwik.dev/core';
 import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
-  const [items] = _captures;
+  const [items] = _capturesObj._;
   const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
@@ -180,12 +180,12 @@ export const component_text_segment_2_1fh117dstcoge = (item) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
 
-import { _captures, _first, _next, createTemplate, createCollection } from '@qwik.dev/core';
+import { _capturesObj, _first, _next, createTemplate, createCollection } from '@qwik.dev/core';
 import { component_for_render_segment_4_asyro5hcbuaz } from './component.tsx_component_for_render_segment_4_asyro5hcbuaz';
 const component_slot_render_segment_3_3b0ta2vuvdjtz_tmpl0 = createTemplate('<!><!>');
 
 export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
-  const [items] = _captures;
+  const [items] = _capturesObj._;
   const fragment0 = component_slot_render_segment_3_3b0ta2vuvdjtz_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);

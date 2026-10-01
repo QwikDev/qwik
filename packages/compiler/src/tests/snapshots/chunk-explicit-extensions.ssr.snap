@@ -20,7 +20,7 @@ export default component$(() => {
 import {
   _markComponent,
   useSignal,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   createSlotScope,
@@ -31,7 +31,7 @@ import {
   _noopQrl,
 } from '@qwik.dev/core';
 const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
-  const [tag] = _captures;
+  const [tag] = _capturesObj._;
   const slotScope0 = createSlotScope(null, [_EMPTY_OBJ, _EMPTY_OBJ]);
   const tag0 = tag.value;
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([tag]));
@@ -49,7 +49,7 @@ const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _noopQrl(
 );
 q_component_tag_dynamic_segment_0_331xea01t87eh.s(component_tag_dynamic_segment_0_331xea01t87eh);
 const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  const [tag] = _captures;
+  const [tag] = _capturesObj._;
   return [
     '<!s=',
     createSsrNodeId(__rangeId),
@@ -107,7 +107,7 @@ export { Child as Child_component_syc3erfxihm7 };
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
@@ -126,7 +126,7 @@ const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
 q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
 
 export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
-  const [tag] = _captures;
+  const [tag] = _capturesObj._;
   const slotScope0 = createSlotScope(null, [_EMPTY_OBJ, _EMPTY_OBJ]);
   const tag0 = tag.value;
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([tag]));
@@ -164,13 +164,13 @@ export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, createSsrNodeId } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, createSsrNodeId } from '@qwik.dev/core';
 const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  const [tag] = _captures;
+  const [tag] = _capturesObj._;
   return [
     '<!s=',
     createSsrNodeId(__rangeId),
@@ -204,10 +204,10 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [tag] = _captures;
+  const [tag] = _capturesObj._;
   return (tag.value = 'article');
 };
 /*

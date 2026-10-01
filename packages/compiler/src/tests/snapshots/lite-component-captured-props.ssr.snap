@@ -24,7 +24,7 @@ export const Footer = component$((props: { todos: { filter: string; items: strin
 
 import {
   _withCaptures,
-  _captures,
+  _capturesObj,
   renderSsrBranch,
   createSsrNodeId,
   renderSsrAttrExpression,
@@ -40,7 +40,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_Filter_segment_3_2k94mh76leizk = (props0, ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   ctx.addRoot(props0);
@@ -74,7 +74,7 @@ const q_component_Filter_segment_3_2k94mh76leizk = /*#__PURE__*/ _noopQrl(
 );
 q_component_Filter_segment_3_2k94mh76leizk.s(component_Filter_segment_3_2k94mh76leizk);
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.todos.items.length > 0;
 };
 const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
@@ -84,7 +84,7 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
 const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const Filter = _withCaptures(component_Filter_segment_3_2k94mh76leizk, [props]);
   function semantic_collectionRender_352_411_d9i2g10ik0y4(ctx, __rangeId, __rowId, f) {
     const component0 = ctx.observeError(
@@ -148,10 +148,10 @@ export const Footer = _markComponent(
 export { Footer as Footer_component_d3m2s4mpch0k };
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.todos.items.length > 0;
 };
 /*
@@ -208,10 +208,10 @@ export const component_class_segment_1_3htuy2t94mso0 = (props, props0) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [props, props0] = _captures;
+  const [props, props0] = _capturesObj._;
   return (props.todos.filter = props0.filter);
 };
 /*
@@ -242,7 +242,7 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   renderSsrAttrExpression,
   escapeHTML,
@@ -261,7 +261,7 @@ const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
 );
 
 export const component_Filter_segment_3_2k94mh76leizk = (props0, ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   ctx.addRoot(props0);
@@ -319,7 +319,7 @@ export const component_Filter_segment_3_2k94mh76leizk = (props0, ctx) => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   renderSsrDynamicTag,
   createComponent,
   renderSsrCollection,
@@ -332,7 +332,7 @@ const q_component_Filter_segment_3_2k94mh76leizk = /*#__PURE__*/ _noopQrl(
 q_component_Filter_segment_3_2k94mh76leizk.s(component_Filter_segment_3_2k94mh76leizk);
 
 export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const Filter = _withCaptures(component_Filter_segment_3_2k94mh76leizk, [props]);
   function semantic_collectionRender_352_411_d9i2g10ik0y4(ctx, __rangeId, __rowId, f) {
     const component0 = ctx.observeError(

@@ -137,10 +137,10 @@ export default default_component_3rg6kq1so9aio;
 export { Counter as Counter_component_3h2q15ekklxzt, Plain as Plain_component_25y3k1m6p49gx };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
-  const [children] = _captures;
+  const [children] = _capturesObj._;
   return createDynamicContent(children.length, ctx0);
 };
 /*
@@ -256,10 +256,10 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse.js (ENTRY POINT)==
 
-import { _captures, createTextNodeEffect } from '@qwik.dev/core';
+import { _capturesObj, createTextNodeEffect } from '@qwik.dev/core';
 
 export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const text0 = ctx.document.createTextNode('');
   const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
   ctx.scheduler.notify(effect0);

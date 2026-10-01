@@ -1,3 +1,4 @@
+import { Brand, brandClass } from '../shared/utils/brand';
 import { isServer } from '@qwik.dev/core/build';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
@@ -244,3 +245,6 @@ export const useVisibleTask$ = implicit$FirstArg(useVisibleTaskQrl) as (
   task: TaskFn,
   options?: VisibleTaskOptions
 ) => void;
+
+isServer && brandClass(TaskSubscription, Brand.TaskSubscription);
+isServer && brandClass(VisibleTaskSubscription, Brand.VisibleTaskSubscription);

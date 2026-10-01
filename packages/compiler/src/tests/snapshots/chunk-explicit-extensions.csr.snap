@@ -60,7 +60,7 @@ export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   createSlotScope,
   _EMPTY_OBJ,
   registerProjection,
@@ -80,7 +80,7 @@ const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithCh
 );
 
 export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
-  const [tag] = _captures;
+  const [tag] = _capturesObj._;
   const slotScope0 = createSlotScope(null, [_EMPTY_OBJ, _EMPTY_OBJ]);
   const tag0 = tag.value;
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([tag]));
@@ -115,13 +115,13 @@ export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
-import { _captures, setEvent, _createElementTemplate } from '@qwik.dev/core';
+import { _capturesObj, setEvent, _createElementTemplate } from '@qwik.dev/core';
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js';
 const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 =
   _createElementTemplate('<button></button>');
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
-  const [tag] = _captures;
+  const [tag] = _capturesObj._;
   const el0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
   setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [tag]);
   return el0;
@@ -151,10 +151,10 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [tag] = _captures;
+  const [tag] = _capturesObj._;
   return (tag.value = 'article');
 };
 /*

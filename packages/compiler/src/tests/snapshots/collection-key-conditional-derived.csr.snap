@@ -75,7 +75,7 @@ import {
   _withCaptures,
   _qrlWithChunk,
   createTemplate,
-  _captures,
+  _capturesObj,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_2_2fzrhmrz1xde7 } from './component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7';
 const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
@@ -91,7 +91,7 @@ const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _qrlWithCh
 const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = createTemplate('<!><!>');
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) => {
-  const [selected, props] = _captures;
+  const [selected, props] = _capturesObj._;
   const visible = item.done && selected.value;
   const fragment0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
   const start0 = _first(fragment0);
@@ -135,10 +135,10 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) =>
 */
 ============================= src/component.tsx_component_for_key_segment_1_24ursak4wzpxf.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
-  const [selected, props] = _captures;
+  const [selected, props] = _capturesObj._;
   const { id, done } = item;
   const visible = done && selected.value;
   const prefix = props.prefix;
@@ -173,10 +173,10 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
-  const [visible] = _captures;
+  const [visible] = _capturesObj._;
   return visible;
 };
 /*
@@ -204,11 +204,17 @@ export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_3_24n7atwir5934.js (ENTRY POINT)==
 
-import { _captures, propSource, readTrackedValue, _props, createComponent } from '@qwik.dev/core';
+import {
+  _capturesObj,
+  propSource,
+  readTrackedValue,
+  _props,
+  createComponent,
+} from '@qwik.dev/core';
 import { Done } from './component.tsx';
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const [props, item] = _captures;
+  const [props, item] = _capturesObj._;
   const prop0 = propSource(props, 'title');
   const component0 = createComponent(
     Done,
@@ -251,7 +257,7 @@ export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
 ============================= src/component.tsx_component_branch_else_segment_4_19dvrvh6znjhf.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   propSource,
   createTextNodeEffect,
@@ -260,7 +266,7 @@ import {
 const component_branch_else_segment_4_19dvrvh6znjhf_tmpl0 = _createElementTemplate('<li> </li>');
 
 export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
-  const [index, item, props] = _captures;
+  const [index, item, props] = _capturesObj._;
   const el0 = component_branch_else_segment_4_19dvrvh6znjhf_tmpl0(ctx.document);
   const text0 = _first(el0);
   const prop0 = propSource(props, 'title');

@@ -112,8 +112,8 @@ export default () => {
     let count!: core.Signal<number>;
     const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
       ...core,
-      get _captures() {
-        return core._captures;
+      get _capturesObj() {
+        return core._capturesObj;
       },
       console: {
         log(value: unknown) {

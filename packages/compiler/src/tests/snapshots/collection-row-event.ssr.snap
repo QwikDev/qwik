@@ -139,10 +139,10 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [item] = _captures;
+  const [item] = _capturesObj._;
   return console.log(item.id);
 };
 /*

@@ -1,7 +1,10 @@
+import { Brand, brandClass } from '../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 import type { Source, SourceSubs } from './source';
 import { notifySourceSubscribers } from './notify';
 import { dropWriterDependency } from './cleanup';
 import { getActiveCollector, track, untrack } from './tracking';
+import { registerSingleton } from '../shared/singletons';
 
 /** @public */
 export type Store<T extends object> = T;
@@ -14,10 +17,15 @@ export interface UseStoreOptions {
 
 type StoreTarget = Record<PropertyKey, unknown>;
 
-const rawToProxy = new WeakMap<object, object>();
-const rawToShallowProxy = new WeakMap<object, object>();
-const proxyToRaw = new WeakMap<object, object>();
-const rawToSources = new WeakMap<object, Map<PropertyKey, StorePropSource>>();
+const { rawToProxy, rawToShallowProxy, proxyToRaw, rawToSources } = /*#__PURE__*/ registerSingleton(
+  'v3.stores',
+  () => ({
+    rawToProxy: new WeakMap<object, object>(),
+    rawToShallowProxy: new WeakMap<object, object>(),
+    proxyToRaw: new WeakMap<object, object>(),
+    rawToSources: new WeakMap<object, Map<PropertyKey, StorePropSource>>(),
+  })
+);
 
 export class StorePropSource<T = unknown> implements Source<T> {
   subs: SourceSubs = null;
@@ -275,3 +283,5 @@ function isWrappable(value: unknown): value is object {
 function isObject(value: unknown): value is object {
   return (typeof value === 'object' || typeof value === 'function') && value !== null;
 }
+
+isServer && brandClass(StorePropSource, Brand.StorePropSource);

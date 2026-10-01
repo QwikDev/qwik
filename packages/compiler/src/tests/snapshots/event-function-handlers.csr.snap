@@ -122,10 +122,10 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = function onClick(even
 */
 ============================= src/component.tsx_component_q_e_save_segment_2_3krcacnjwdae8.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_save_segment_2_3krcacnjwdae8 = function () {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return function save(value = props.initial) {
     return props.onSave$(value);
   }.apply(this, arguments);
@@ -157,10 +157,10 @@ export const component_q_e_save_segment_2_3krcacnjwdae8 = function () {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core';
+import { _capturesObj, _await } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_3_2xwygfdmkpoqi = async function (event) {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   (await _await(Promise.resolve()))();
   return props.onSave$(event.type);
 };

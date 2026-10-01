@@ -19,7 +19,7 @@ import {
   createSsrNodeId,
   renderSsrAttrExpression,
   escapeHTML,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   maybeThen,
   untrack,
@@ -36,7 +36,7 @@ const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
 );
 q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
 const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
-  const [props, defaultValue] = _captures;
+  const [props, defaultValue] = _capturesObj._;
   return renderSsrDynamicContent(props.a === void 0 ? defaultValue : props.a, ctx0);
 };
 const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
@@ -44,7 +44,7 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [props, defaultValue0] = _captures;
+  const [props, defaultValue0] = _capturesObj._;
   return renderSsrDynamicContent(props.b === void 0 ? defaultValue0 : props.b, ctx0);
 };
 const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
@@ -52,7 +52,7 @@ const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
 const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
-  const [props, defaultValue1] = _captures;
+  const [props, defaultValue1] = _capturesObj._;
   return renderSsrDynamicContent(props.label === void 0 ? defaultValue1 : props.label, ctx0);
 };
 const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
@@ -173,10 +173,10 @@ export const component_title_segment_0_2f0r0xivypjmx = (fallback) => {
 */
 ============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
-  const [props, defaultValue] = _captures;
+  const [props, defaultValue] = _capturesObj._;
   return renderSsrDynamicContent(props.a === void 0 ? defaultValue : props.a, ctx0);
 };
 /*
@@ -205,10 +205,10 @@ export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
 */
 ============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
-  const [props, defaultValue0] = _captures;
+  const [props, defaultValue0] = _capturesObj._;
   return renderSsrDynamicContent(props.b === void 0 ? defaultValue0 : props.b, ctx0);
 };
 /*
@@ -237,10 +237,10 @@ export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
 */
 ============================= src/component.tsx_component_text_segment_3_1fh11lewq6qgx.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
-  const [props, defaultValue1] = _captures;
+  const [props, defaultValue1] = _capturesObj._;
   return renderSsrDynamicContent(props.label === void 0 ? defaultValue1 : props.label, ctx0);
 };
 /*

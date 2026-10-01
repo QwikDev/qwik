@@ -606,7 +606,7 @@ export default component$(() => {
     // A literal-index alias stays live: the chunk captures the signal and re-reads the tag.
     expect(code).toContain('const tag0 = content.value[1];');
     // A plain const alias rides the captures like any setup local.
-    expect(code).toContain('const [Picked] = _captures;');
+    expect(code).toContain('const [Picked] = _capturesObj._;');
     expect(code).toContain(`${dynamic}(Picked, `);
   });
 
@@ -712,10 +712,10 @@ export const Footer = component$((props: { todos: { filter: string; items: strin
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
     const head =
-      /component_Filter_segment_\d+_\w+ = \((props\d+), ctx\) => \{\n  const \[props\] = _captures;/.exec(
+      /component_Filter_segment_\d+_\w+ = \((props\d+), ctx\) => \{\n {2}const \[props\] = _capturesObj\._;/.exec(
         code
       );
-    // Its own props is the argument; the outer props it closes over arrives through `_captures`.
+    // Its own props is the argument; the outer props it closes over arrives through `_capturesObj._`.
     expect(head, 'the lifted component declares both props names').not.toBeNull();
     expect(code).toContain(`propSource(${head![1]}, "filter")`);
   }
@@ -737,7 +737,9 @@ export const Footer = component$((props: { on: boolean }) => {
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
     const head =
-      /_Mark_segment_\d+_\w+ = \((\w+), ctx\) => \{\n  const \[props\] = _captures;/.exec(code);
+      /_Mark_segment_\d+_\w+ = \((\w+), ctx\) => \{\n {2}const \[props\] = _capturesObj\._;/.exec(
+        code
+      );
     // The unused props slot still has to be declared, under a name the capture cannot collide with.
     expect(head, 'the lifted component declares its unused props slot').not.toBeNull();
     expect(head![1]).not.toBe('props');

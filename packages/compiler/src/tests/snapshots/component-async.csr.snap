@@ -60,10 +60,10 @@ export default default_component_3rg6kq1so9aio;
 export { AsyncCmp as AsyncCmp_component_gw3thccjtr8j };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
-  const [value] = _captures;
+  const [value] = _capturesObj._;
   return createDynamicContent(value, ctx0);
 };
 /*

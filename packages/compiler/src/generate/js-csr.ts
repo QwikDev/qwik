@@ -849,7 +849,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     return row.renderId;
   }
 
-  /** A lazy arm ref wears its captures via `.w([...])` — restored from `_captures` in the chunk. */
+  /**
+   * A lazy arm ref wears its captures via `.w([...])` — restored from `_capturesObj._` in the
+   * chunk.
+   */
   private lazyRenderReference(use: QrlUse, propsName: string): string {
     const resolved = this.resolveQrlUse(use, propsName);
     const ref = this.lazyQrlReference(resolved.qrl);
@@ -901,7 +904,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           ctx: allocateGeneratedNames(this.module).ctx,
         };
         const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
-        // Captures restore from `_captures` ahead of the render statements.
+        // Captures restore from `_capturesObj._` ahead of the render statements.
         const captures = captureNames(this.module, qrl);
         const statements = [
           ...capturePrelude(this.module, qrl),

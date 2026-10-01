@@ -1,12 +1,13 @@
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 import type { FunctionComponent } from './types/jsx-node';
+import { qwikSymbol } from '../singletons';
 
 const unsupportedJsx = (): never => {
   throw new Error('JSX must be transformed by the Qwik compiler.');
 };
 
 /** Compiler-only fragment marker with a callable JSX type. @public */
-export const Fragment = Symbol('Fragment') as unknown as FunctionComponent<{
+export const Fragment = /*#__PURE__*/ qwikSymbol('Fragment') as unknown as FunctionComponent<{
   children?: JSXChildren;
 }>;
 export const jsx = (_type: unknown, _props: unknown): never => unsupportedJsx();

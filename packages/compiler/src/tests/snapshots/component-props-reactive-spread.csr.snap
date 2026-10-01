@@ -50,10 +50,10 @@ export default default_component_3rg6kq1so9aio;
 export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_props_segment_0_208o16glymg7p = () => {
-  const [attributes] = _captures;
+  const [attributes] = _capturesObj._;
   return { ...attributes.value };
 };
 /*

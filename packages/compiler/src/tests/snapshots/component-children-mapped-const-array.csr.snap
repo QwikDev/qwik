@@ -57,7 +57,7 @@ export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   _next,
   createTemplate,
@@ -77,7 +77,7 @@ const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithCh
 );
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
-  const [suffix] = _captures;
+  const [suffix] = _capturesObj._;
   const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
@@ -136,10 +136,10 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
-  const [visible] = _captures;
+  const [visible] = _capturesObj._;
   return visible;
 };
 /*
@@ -168,7 +168,7 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
 ============================= src/component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   createAttrExpressionEffect,
   setEvent,
   _first,
@@ -184,7 +184,7 @@ const component_branch_then_segment_2_24n7b7xmnzb3n_tmpl0 =
   _createElementTemplate('<h2><!>:<!></h2>');
 
 export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
-  const [numbered, label] = _captures;
+  const [numbered, label] = _capturesObj._;
   const el0 = component_branch_then_segment_2_24n7b7xmnzb3n_tmpl0(ctx.document);
   const effect0 = createAttrExpressionEffect(
     el0,
@@ -271,10 +271,10 @@ export const component_title_segment_3_2f0qzrfk87dlc = (numbered) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_4_2xwyeh830jenv.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_4_2xwyeh830jenv = () => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   return console.log(label);
 };
 /*

@@ -43,10 +43,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_onSave_segment_0_2tdav5vx5sjh3.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_onSave_segment_0_2tdav5vx5sjh3 = (event) => {
-  const [count, props] = _captures;
+  const [count, props] = _capturesObj._;
   count.value++;
   props.onSave$(props.id, event.type);
 };

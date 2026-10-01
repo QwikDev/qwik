@@ -1,3 +1,4 @@
+import { Brand, brandClass } from '../shared/utils/brand';
 import { isServer } from '@qwik.dev/core/build';
 import { QError, qError } from '../shared/error/error';
 import type { QRL } from '../shared/qrl/qrl.public';
@@ -509,3 +510,5 @@ export function readComputedUntracked<T>(computed: ComputedSubscriber<T>): T {
 export function isAsyncComputed(computed: ComputedSubscriber): boolean {
   return !!(computed.flags & ComputedFlags.Async);
 }
+
+isServer && brandClass(Computed, Brand.Computed);

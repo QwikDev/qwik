@@ -126,10 +126,10 @@ export default default_component_3rg6kq1so9aio;
 export { Header as __qwik_Header };
 ============================= src/component.tsx_component_increment_segment_0_sk08s17xutli.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_increment_segment_0_sk08s17xutli = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   count.value++;
 };
 /*
@@ -157,10 +157,10 @@ export const component_increment_segment_0_sk08s17xutli = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [label, count, suffix] = _captures;
+  const [label, count, suffix] = _capturesObj._;
   label.value = count.value + suffix;
 };
 /*

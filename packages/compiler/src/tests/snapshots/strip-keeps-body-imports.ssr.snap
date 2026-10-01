@@ -23,7 +23,7 @@ export const formatLabel = (value: string) => value.toUpperCase();
 import {
   useSignal,
   useVisibleTaskQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   createSsrOpenTag,
   escapeHTML,

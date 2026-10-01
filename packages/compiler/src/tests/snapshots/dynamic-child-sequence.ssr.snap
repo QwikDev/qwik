@@ -11,7 +11,7 @@ export default (props: { label?: string; content?: any }) => {
 
 import {
   useSignal,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   renderSsrDynamicContent,
@@ -19,7 +19,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_content_segment_1_185248kf949cp = (ctx0) => {
-  const [count, props] = _captures;
+  const [count, props] = _capturesObj._;
   return renderSsrDynamicContent(
     props.label || (count.value, q_component_jsx_segment_0_38vnjku9rukc6),
     ctx0
@@ -85,7 +85,7 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_content_segment_1_185248kf949cp.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 import { component_jsx_segment_0_38vnjku9rukc6 } from './component.tsx_component_jsx_segment_0_38vnjku9rukc6';
 const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
   'component_jsx_segment_0_38vnjku9rukc6'
@@ -93,7 +93,7 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
 q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
 
 export const component_content_segment_1_185248kf949cp = (ctx0) => {
-  const [count, props] = _captures;
+  const [count, props] = _capturesObj._;
   return renderSsrDynamicContent(
     props.label || (count.value, q_component_jsx_segment_0_38vnjku9rukc6),
     ctx0

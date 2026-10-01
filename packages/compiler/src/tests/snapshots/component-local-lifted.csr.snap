@@ -54,10 +54,10 @@ export const Footer = (props0, ctx) => {
 export { Footer as Footer_component_d3m2s4mpch0k };
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   return n.value > 0;
 };
 /*
@@ -85,10 +85,10 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   return n.value++;
 };
 /*
@@ -117,7 +117,7 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 ============================= src/component.tsx_component_Filter_segment_2_2k94mv8ai8l03.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   setEvent,
   _first,
   propSource,
@@ -128,7 +128,7 @@ import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_com
 const component_Filter_segment_2_2k94mv8ai8l03_tmpl0 = _createElementTemplate('<li> </li>');
 
 export const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   const el0 = component_Filter_segment_2_2k94mv8ai8l03_tmpl0(ctx.document);
   setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [n]);
   const text0 = _first(el0);
@@ -164,11 +164,11 @@ export const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
 */
 ============================= src/component.tsx_component_branch_then_segment_3_24n7atwir5934.js (ENTRY POINT)==
 
-import { _captures, createDynamicTag, createComponent, _withCaptures } from '@qwik.dev/core';
+import { _capturesObj, createDynamicTag, createComponent, _withCaptures } from '@qwik.dev/core';
 import { component_Filter_segment_2_2k94mv8ai8l03 } from './component.tsx_component_Filter_segment_2_2k94mv8ai8l03';
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   const Filter = _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]);
   const component0 = createComponent(
     (props0) => createDynamicTag(Filter, props0, ctx),

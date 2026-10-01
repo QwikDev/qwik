@@ -79,11 +79,11 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { log } from './log';
 
 export const component_qrl_segment_0_2fpowujm1ejve = () => {
-  const [v, step] = _captures;
+  const [v, step] = _capturesObj._;
   return log(v + step);
 };
 /*
@@ -112,7 +112,7 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
 */
 ============================= src/component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v.js (ENTRY POINT)==
 
-import { _captures, _qrlWithChunk } from '@qwik.dev/core';
+import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
 const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
   () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
@@ -120,7 +120,7 @@ const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export const component_useTaskqrl_segment_1_1og80wrqqnv5v = ({ track }) => {
-  const [c, step] = _captures;
+  const [c, step] = _capturesObj._;
   const v = track(() => c.value);
   const report = q_component_qrl_segment_0_2fpowujm1ejve.w([v, step]);
   return report();
@@ -153,11 +153,11 @@ export const component_useTaskqrl_segment_1_1og80wrqqnv5v = ({ track }) => {
 */
 ============================= src/component.tsx_component_qrl_segment_2_2fpow2he7qfuc.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { log } from './log';
 
 export const component_qrl_segment_2_2fpow2he7qfuc = () => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   return log(n);
 };
 /*
@@ -185,7 +185,7 @@ export const component_qrl_segment_2_2fpow2he7qfuc = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _captures, _qrlWithChunk } from '@qwik.dev/core';
+import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
 const q_component_qrl_segment_2_2fpow2he7qfuc = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_qrl_segment_2_2fpow2he7qfuc',
   () => import('./component.tsx_component_qrl_segment_2_2fpow2he7qfuc'),
@@ -193,7 +193,7 @@ const q_component_qrl_segment_2_2fpow2he7qfuc = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
-  const [c] = _captures;
+  const [c] = _capturesObj._;
   const n = c.value;
   const later = q_component_qrl_segment_2_2fpow2he7qfuc.w([n]);
   later();
@@ -223,10 +223,10 @@ export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
 */
 ============================= src/component.tsx_component_text_segment_4_1fh11zg0n0shg.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_4_1fh11zg0n0shg = (ctx0) => {
-  const [c] = _captures;
+  const [c] = _capturesObj._;
   return createDynamicContent(c.value, ctx0);
 };
 /*

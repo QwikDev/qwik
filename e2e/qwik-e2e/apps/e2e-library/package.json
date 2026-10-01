@@ -9,6 +9,7 @@
   "exports": {
     ".": {
       "types": "./src/index.tsx",
+      "browser": "./lib/index.client.qwik.mjs",
       "default": "./lib/index.qwik.mjs"
     }
   },

@@ -18,7 +18,7 @@ export default component$(() => {
 
 import {
   useSignal,
-  _captures,
+  _capturesObj,
   createSsrSuspense,
   createComponent,
   _noopQrl,
@@ -40,7 +40,7 @@ q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
   component_suspense_content_segment_1_oznzhxo2l2hq
 );
 const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(label);
   const text0 = renderSsrTextNode(id0, null, label);
@@ -81,7 +81,7 @@ export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_suspense_fallback_segment_0_1i2rr5w5knxuo.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
@@ -89,7 +89,7 @@ import {
 } from '@qwik.dev/core';
 
 export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(label);
   const text0 = renderSsrTextNode(id0, null, label);

@@ -11,7 +11,7 @@ export default (props: { items: { id: number; title: string; visible: boolean }[
 
 import {
   useSignal,
-  _captures,
+  _capturesObj,
   _wrapArray,
   renderSsrCollection,
   createSsrNodeId,
@@ -22,7 +22,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_collection_source_segment_0_21yfn4vi2lwwj = () => {
-  const [items] = _captures;
+  const [items] = _capturesObj._;
   return items.value.filter((item) => item.visible);
 };
 const q_component_collection_source_segment_0_21yfn4vi2lwwj = /*#__PURE__*/ _noopQrl(
@@ -103,10 +103,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_collection_source_segment_0_21yfn4vi2lwwj.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_collection_source_segment_0_21yfn4vi2lwwj = () => {
-  const [items] = _captures;
+  const [items] = _capturesObj._;
   return items.value.filter((item) => item.visible);
 };
 /*

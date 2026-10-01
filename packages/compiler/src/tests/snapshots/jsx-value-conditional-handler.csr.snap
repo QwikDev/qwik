@@ -26,12 +26,12 @@ export const form = ({ action, onSubmit$, ...rest }) =>
     : q_component_jsx_segment_3_38vnj6t5v0ibn.w([rest, onSubmit$]);
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
-import { _captures, createPropsEffect, _createElementTemplate } from '@qwik.dev/core';
+import { _capturesObj, createPropsEffect, _createElementTemplate } from '@qwik.dev/core';
 import { component_props_segment_2_208o0eee4yc6n } from './component.tsx_component_props_segment_2_208o0eee4yc6n';
 const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = _createElementTemplate('<form></form>');
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [rest, onSubmit$, action] = _captures;
+  const [rest, onSubmit$, action] = _capturesObj._;
   const el0 = component_jsx_segment_0_38vnjku9rukc6_tmpl0(ctx.document);
   const effect0 = createPropsEffect(
     el0,
@@ -69,10 +69,10 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_qrl_segment_1_2fpox8kpy8lvx.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core';
+import { _capturesObj, _await } from '@qwik.dev/core';
 
 export const component_qrl_segment_1_2fpox8kpy8lvx = async (_evt, form) => {
-  const [action] = _captures;
+  const [action] = _capturesObj._;
   (await _await(action.submit(form)))();
 };
 /*
@@ -140,12 +140,12 @@ export const component_props_segment_2_208o0eee4yc6n = (rest, onSubmit$, action)
 */
 ============================= src/component.tsx_component_jsx_segment_3_38vnj6t5v0ibn.js (ENTRY POINT)==
 
-import { _captures, createPropsEffect, _createElementTemplate } from '@qwik.dev/core';
+import { _capturesObj, createPropsEffect, _createElementTemplate } from '@qwik.dev/core';
 import { component_props_segment_4_208nzmc6ba85l } from './component.tsx_component_props_segment_4_208nzmc6ba85l';
 const component_jsx_segment_3_38vnj6t5v0ibn_tmpl0 = _createElementTemplate('<form></form>');
 
 export const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
-  const [rest, onSubmit$] = _captures;
+  const [rest, onSubmit$] = _capturesObj._;
   const el0 = component_jsx_segment_3_38vnj6t5v0ibn_tmpl0(ctx.document);
   const effect0 = createPropsEffect(
     el0,

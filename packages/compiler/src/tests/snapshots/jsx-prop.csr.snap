@@ -200,7 +200,7 @@ export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
 */
 ============================= src/component.tsx_component_props_segment_3_208o00da84a64.js (ENTRY POINT)==
 
-import { _captures, _qrlWithChunk } from '@qwik.dev/core';
+import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
 const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_jsx_segment_2_38vniss1y6gb4',
   () => import('./component.tsx_component_jsx_segment_2_38vniss1y6gb4'),
@@ -208,7 +208,7 @@ const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export const component_props_segment_3_208o00da84a64 = () => {
-  const [options] = _captures;
+  const [options] = _capturesObj._;
   return { ...options.value, fallback: q_component_jsx_segment_2_38vniss1y6gb4 };
 };
 /*
@@ -236,11 +236,11 @@ export const component_props_segment_3_208o00da84a64 = () => {
 */
 ============================= src/component.tsx_component_jsx_segment_4_38vnl4ypf6sea.js (ENTRY POINT)==
 
-import { _captures, _first, _textValue, _createElementTemplate } from '@qwik.dev/core';
+import { _capturesObj, _first, _textValue, _createElementTemplate } from '@qwik.dev/core';
 const component_jsx_segment_4_38vnl4ypf6sea_tmpl0 = _createElementTemplate('<b> </b>');
 
 export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
-  const [row] = _captures;
+  const [row] = _capturesObj._;
   const el0 = component_jsx_segment_4_38vnl4ypf6sea_tmpl0(ctx.document);
   _first(el0).data = _textValue(row);
   return el0;

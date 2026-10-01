@@ -16,7 +16,7 @@ export const Footer = component$(() => {
 import {
   useSignal,
   _withCaptures,
-  _captures,
+  _capturesObj,
   renderSsrBranch,
   createSsrNodeId,
   escapeHTML,
@@ -30,7 +30,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   const id0 = ctx.nextId();
   const prop0 = propSource(props, 'filter');
   isSource(prop0) && ctx.addRoot(prop0);
@@ -50,7 +50,7 @@ const q_component_Filter_segment_2_2k94mv8ai8l03 = /*#__PURE__*/ _noopQrl(
 );
 q_component_Filter_segment_2_2k94mv8ai8l03.s(component_Filter_segment_2_2k94mv8ai8l03);
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   return n.value > 0;
 };
 const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
@@ -60,7 +60,7 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
 const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   const Filter = _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]);
   const component0 = ctx.observeError(
     createComponent((props0) => renderSsrDynamicTag(Filter, props0, ctx), { filter: 'a' }, ctx)
@@ -100,10 +100,10 @@ export const Footer = _markComponent(
 export { Footer as Footer_component_d3m2s4mpch0k };
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   return n.value > 0;
 };
 /*
@@ -131,10 +131,10 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   return n.value++;
 };
 /*
@@ -164,7 +164,7 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   propSource,
@@ -177,7 +177,7 @@ const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
 );
 
 export const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   const id0 = ctx.nextId();
   const prop0 = propSource(props, 'filter');
   isSource(prop0) && ctx.addRoot(prop0);
@@ -221,7 +221,7 @@ export const component_Filter_segment_2_2k94mv8ai8l03 = (props, ctx) => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   renderSsrDynamicTag,
   createComponent,
   _withCaptures,
@@ -233,7 +233,7 @@ const q_component_Filter_segment_2_2k94mv8ai8l03 = /*#__PURE__*/ _noopQrl(
 q_component_Filter_segment_2_2k94mv8ai8l03.s(component_Filter_segment_2_2k94mv8ai8l03);
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const [n] = _captures;
+  const [n] = _capturesObj._;
   const Filter = _withCaptures(component_Filter_segment_2_2k94mv8ai8l03, [n]);
   const component0 = ctx.observeError(
     createComponent((props0) => renderSsrDynamicTag(Filter, props0, ctx), { filter: 'a' }, ctx)

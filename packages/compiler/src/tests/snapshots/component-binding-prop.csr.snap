@@ -98,10 +98,10 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   return show.value;
 };
 /*
@@ -129,11 +129,11 @@ export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n.js (ENTRY POINT)==
 
-import { _captures, createComponent } from '@qwik.dev/core';
+import { _capturesObj, createComponent } from '@qwik.dev/core';
 import { Child } from './component.tsx';
 
 export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
-  const [count, label] = _captures;
+  const [count, label] = _capturesObj._;
   const component0 = createComponent(Child, { count: count, label: label }, ctx);
   return component0;
 };

@@ -22,7 +22,7 @@ export function makeNode(label) {
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   setEvent,
   _first,
   _last,
@@ -37,7 +37,7 @@ const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = _createElementTemplate(
 );
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [_this, _argumentsValues0] = _captures;
+  const [_this, _argumentsValues0] = _capturesObj._;
   const _arguments = (function () {
     'use strict';
     return arguments;
@@ -92,10 +92,10 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [_this, _argumentsValues0] = _captures;
+  const [_this, _argumentsValues0] = _capturesObj._;
   const _arguments = (function () {
     'use strict';
     return arguments;

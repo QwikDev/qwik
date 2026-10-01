@@ -10,7 +10,7 @@ export const form = ({ action, onSubmit$, ...rest }) =>
 ============================= src/component.tsx ==
 
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [rest, onSubmit$, action] = _captures;
+  const [rest, onSubmit$, action] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(rest);
   ctx.addRoot(onSubmit$);
@@ -33,7 +33,7 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
 );
 q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
 const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
-  const [rest, onSubmit$] = _captures;
+  const [rest, onSubmit$] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(rest);
   ctx.addRoot(onSubmit$);
@@ -69,7 +69,7 @@ const q_component_props_segment_4_208nzmc6ba85l = /*#__PURE__*/ _noopQrl(
 );
 q_component_props_segment_4_208nzmc6ba85l.s(component_props_segment_4_208nzmc6ba85l);
 const component_qrl_segment_1_2fpox8kpy8lvx = async (_evt, form) => {
-  const [action] = _captures;
+  const [action] = _capturesObj._;
   (await _await(action.submit(form)))();
 };
 const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _noopQrl(
@@ -77,7 +77,7 @@ const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _noopQrl(
 );
 q_component_qrl_segment_1_2fpox8kpy8lvx.s(component_qrl_segment_1_2fpox8kpy8lvx);
 import {
-  _captures,
+  _capturesObj,
   renderSsrProps,
   createSsrNodeId,
   createSsrOpenTag,
@@ -94,7 +94,7 @@ export const form = ({ action, onSubmit$, ...rest }) =>
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   renderSsrProps,
   createSsrNodeId,
   createSsrOpenTag,
@@ -107,7 +107,7 @@ const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _noopQrl(
 q_component_props_segment_2_208o0eee4yc6n.s(component_props_segment_2_208o0eee4yc6n);
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [rest, onSubmit$, action] = _captures;
+  const [rest, onSubmit$, action] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(rest);
   ctx.addRoot(onSubmit$);
@@ -152,10 +152,10 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_qrl_segment_1_2fpox8kpy8lvx.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core';
+import { _capturesObj, _await } from '@qwik.dev/core';
 
 export const component_qrl_segment_1_2fpox8kpy8lvx = async (_evt, form) => {
-  const [action] = _captures;
+  const [action] = _capturesObj._;
   (await _await(action.submit(form)))();
 };
 /*
@@ -225,7 +225,7 @@ export const component_props_segment_2_208o0eee4yc6n = (rest, onSubmit$, action)
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   renderSsrProps,
   createSsrNodeId,
   createSsrOpenTag,
@@ -238,7 +238,7 @@ const q_component_props_segment_4_208nzmc6ba85l = /*#__PURE__*/ _noopQrl(
 q_component_props_segment_4_208nzmc6ba85l.s(component_props_segment_4_208nzmc6ba85l);
 
 export const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
-  const [rest, onSubmit$] = _captures;
+  const [rest, onSubmit$] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(rest);
   ctx.addRoot(onSubmit$);

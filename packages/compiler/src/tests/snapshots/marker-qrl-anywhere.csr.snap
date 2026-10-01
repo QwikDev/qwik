@@ -61,10 +61,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useCustomqrl_segment_0_heif5ecaq0pq = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value;
 };
 /*
@@ -92,10 +92,10 @@ export const component_useCustomqrl_segment_0_heif5ecaq0pq = () => {
 */
 ============================= src/component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useCustomqrl_segment_1_heifjfg7k2q9 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value + 1;
 };
 /*
@@ -123,10 +123,10 @@ export const component_useCustomqrl_segment_1_heifjfg7k2q9 = () => {
 */
 ============================= src/component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value;
 };
 /*
@@ -154,7 +154,7 @@ export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _captures, _qrlWithChunk } from '@qwik.dev/core';
+import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
 import { useCustomQrl } from './hooks';
 const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo',
@@ -163,7 +163,7 @@ const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _qrlWithCh
 );
 
 export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   useCustomQrl(q_component_useCustomqrl_segment_2_heiedc4h1woo.w([count]));
 };
 /*

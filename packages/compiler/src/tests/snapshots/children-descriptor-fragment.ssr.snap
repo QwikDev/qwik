@@ -18,7 +18,7 @@ export default component$(() => (
 
 import {
   useChildrenInfo,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   renderSsrSlot,
@@ -30,7 +30,7 @@ import {
   createComponent,
 } from '@qwik.dev/core';
 const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
-  const [children] = _captures;
+  const [children] = _capturesObj._;
   return renderSsrDynamicContent(children.length, ctx0);
 };
 const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
@@ -91,10 +91,10 @@ export default default_component_3rg6kq1so9aio;
 export { List as List_component_3heyy58kmhk1z };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
-  const [children] = _captures;
+  const [children] = _capturesObj._;
   return renderSsrDynamicContent(children.length, ctx0);
 };
 /*

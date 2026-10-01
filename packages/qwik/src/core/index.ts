@@ -1,15 +1,20 @@
 import { QError, qError } from './shared/error/error';
 import { version } from './version';
+import { isServer } from '@qwik.dev/core/build';
+import { qwikGlobal } from './shared/singletons';
 
-if ((globalThis as any).__qwik) {
-  qError(QError.duplicateQwik, [(globalThis as any).__qwik, version]);
-}
-(globalThis as any).__qwik = version;
-
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    (globalThis as any).__qwik = undefined;
-  });
+if (isServer) {
+  // Production mangles QRL properties, making its objects incompatible with development.
+  class BuildProbe {
+    $probe$ = 0;
+  }
+  const isMangled = !Object.keys(new BuildProbe()).some((name) => name.includes('probe'));
+  const versionAndBuild = `${version} (${isMangled ? 'production' : 'development'})`;
+  const existing = qwikGlobal.version;
+  if (existing && existing !== versionAndBuild) {
+    throw qError(QError.duplicateQwik, [existing, versionAndBuild]);
+  }
+  qwikGlobal.version = versionAndBuild;
 }
 
 export {
@@ -38,7 +43,7 @@ export {
   _qrlWithChunkDEV,
   _regSymbol,
 } from './shared/qrl/qrl';
-export { isQrl, isSyncQrl } from './shared/qrl/qrl-utils';
+export { isQrl, isSyncQrl, SYNC_QRL as _SYNC_QRL } from './shared/qrl/qrl-utils';
 export { qrlToChunks, qrlToString } from './shared/serdes/qrl-to-string';
 export { qTest } from './shared/utils/qdev';
 export type { QRL, PropFunction } from './shared/qrl/qrl.public';
@@ -462,6 +467,7 @@ export {
 } from './dom/effect/ssr-effect';
 export {
   _captures,
+  _capturesObj,
   _run,
   _visibleTask,
   _withCaptures,

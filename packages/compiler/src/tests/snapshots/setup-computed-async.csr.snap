@@ -37,10 +37,10 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_doubled_segment_0_2yvob8vshk72o.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core';
+import { _capturesObj, _await } from '@qwik.dev/core';
 
 export const component_doubled_segment_0_2yvob8vshk72o = async () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   (await _await(Promise.resolve()))();
   return count.value * 2;
 };

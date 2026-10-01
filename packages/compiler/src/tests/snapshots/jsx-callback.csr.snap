@@ -70,7 +70,7 @@ export { App as default_component_3rg6kq1so9aio };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
@@ -79,7 +79,7 @@ import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_componen
 const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = _createElementTemplate('<b> </b>');
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [value] = _captures;
+  const [value] = _capturesObj._;
   const el0 = component_jsx_segment_0_38vnjku9rukc6_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
@@ -302,7 +302,7 @@ export const component_useTaskqrl_segment_6_1og82uxaau58i = () => {
 ============================= src/component.tsx_component_jsx_segment_7_38vnkqxlicqdr.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
@@ -311,7 +311,7 @@ import { component_text_segment_8_1fh0xb2pp04b4 } from './component.tsx_componen
 const component_jsx_segment_7_38vnkqxlicqdr_tmpl0 = _createElementTemplate('<strong> </strong>');
 
 export const component_jsx_segment_7_38vnkqxlicqdr = (ctx) => {
-  const [label] = _captures;
+  const [label] = _capturesObj._;
   const el0 = component_jsx_segment_7_38vnkqxlicqdr_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
@@ -377,7 +377,7 @@ export const component_text_segment_8_1fh0xb2pp04b4 = (label) => {
 ============================= src/component.tsx_component_jsx_segment_9_38vnn348zd2gx.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
@@ -386,7 +386,7 @@ import { component_text_segment_10_2cdl418j88efl } from './component.tsx_compone
 const component_jsx_segment_9_38vnn348zd2gx_tmpl0 = _createElementTemplate('<small> </small>');
 
 export const component_jsx_segment_9_38vnn348zd2gx = (ctx) => {
-  const [value] = _captures;
+  const [value] = _capturesObj._;
   const el0 = component_jsx_segment_9_38vnn348zd2gx_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
@@ -480,7 +480,7 @@ export const component_jsx_segment_11_2wo80qpf8geko = (ctx) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_12_3lkvrpkpzrkb6.js (ENTRY POINT)==
 
-import { _captures, _qrlWithChunk } from '@qwik.dev/core';
+import { _capturesObj, _qrlWithChunk } from '@qwik.dev/core';
 import { consume } from './consumer';
 const q_component_jsx_segment_9_38vnn348zd2gx = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_jsx_segment_9_38vnn348zd2gx',
@@ -494,7 +494,7 @@ const q_component_jsx_segment_11_2wo80qpf8geko = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export const component_q_e_click_segment_12_3lkvrpkpzrkb6 = () => {
-  const [count, factory, computed] = _captures;
+  const [count, factory, computed] = _capturesObj._;
   const native = (value) => q_component_jsx_segment_9_38vnn348zd2gx.w([value]);
   consume(native(count.value), factory, computed.value, q_component_jsx_segment_11_2wo80qpf8geko);
 };

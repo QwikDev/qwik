@@ -20,7 +20,7 @@ export default component$(() => {
 ============================= src/component.tsx ==
 
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [row] = _captures;
+  const [row] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(row);
   const text0 = renderSsrTextExpression(id0, null, [row], q_component_text_segment_1_1fh10tcowimfv);
@@ -44,7 +44,7 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 const component_jsx_segment_11_2wo80qpf8geko = (ctx) => {
-  const [row] = _captures;
+  const [row] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(row);
   const text0 = renderSsrTextExpression(
@@ -174,7 +174,7 @@ const q_component_text_segment_10_2cdl418j88efl = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_10_2cdl418j88efl.s(component_text_segment_10_2cdl418j88efl);
 import {
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -255,7 +255,7 @@ export default default_component_3rg6kq1so9aio;
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -268,7 +268,7 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [row] = _captures;
+  const [row] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(row);
   const text0 = renderSsrTextExpression(id0, null, [row], q_component_text_segment_1_1fh10tcowimfv);
@@ -658,7 +658,7 @@ export const component_text_segment_10_2cdl418j88efl = (row) => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -671,7 +671,7 @@ const q_component_text_segment_12_2cdl396bekaej = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_12_2cdl396bekaej.s(component_text_segment_12_2cdl396bekaej);
 
 export const component_jsx_segment_11_2wo80qpf8geko = (ctx) => {
-  const [row] = _captures;
+  const [row] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(row);
   const text0 = renderSsrTextExpression(

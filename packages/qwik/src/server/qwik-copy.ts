@@ -7,7 +7,7 @@
 export { QError, qError } from '../core/shared/error/error';
 export { OwnerFlags, SubscriberFlags } from '../core/reactive/flags';
 export { SubscriberKind } from '../core/runtime/subscriber';
-export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
+export { _SYNC_QRL as SYNC_QRL } from '@qwik.dev/core';
 export { QContainerValue } from '../core/shared/types';
 export { QFuncsPrefix } from '../core/shared/utils/markers';
 export { escapeHTML } from '../core/shared/utils/character-escaping';

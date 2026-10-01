@@ -45,7 +45,7 @@ export { _createContent as __qwik__createContent, _Layout as __qwik__Layout };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   _next,
   _qrlWithChunk,
@@ -60,7 +60,7 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
 const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = _createElementTemplate('<p><!><!></p>');
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const el0 = component_jsx_segment_0_38vnjku9rukc6_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
@@ -101,10 +101,10 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return createDynamicContent(props.text, ctx0);
 };
 /*

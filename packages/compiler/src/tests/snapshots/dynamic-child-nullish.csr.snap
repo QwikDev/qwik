@@ -72,7 +72,7 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_content_segment_1_185248kf949cp.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent, _qrlWithChunk } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent, _qrlWithChunk } from '@qwik.dev/core';
 const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
   () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
@@ -80,7 +80,7 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
 );
 
 export const component_content_segment_1_185248kf949cp = (ctx0) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return createDynamicContent(props.content ?? q_component_jsx_segment_0_38vnjku9rukc6, ctx0);
 };
 /*

@@ -15,7 +15,7 @@ export default () => {
 import {
   useSignal,
   useComputedQrl,
-  _captures,
+  _capturesObj,
   useTaskQrl,
   createSsrNodeId,
   escapeHTML,
@@ -28,7 +28,7 @@ import {
 } from '@qwik.dev/core';
 import { calculate, save } from './pricing';
 const component_total_segment_0_33cbacdkct5tt = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return calculate(count.value);
 };
 const q_component_total_segment_0_33cbacdkct5tt = /*#__PURE__*/ _noopQrl(
@@ -36,7 +36,7 @@ const q_component_total_segment_0_33cbacdkct5tt = /*#__PURE__*/ _noopQrl(
 );
 q_component_total_segment_0_33cbacdkct5tt.s(component_total_segment_0_33cbacdkct5tt);
 const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
-  const [total] = _captures;
+  const [total] = _capturesObj._;
   return save(total.value);
 };
 const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ _noopQrl(
@@ -75,11 +75,11 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_total_segment_0_33cbacdkct5tt.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { calculate } from './pricing';
 
 export const component_total_segment_0_33cbacdkct5tt = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return calculate(count.value);
 };
 /*
@@ -107,11 +107,11 @@ export const component_total_segment_0_33cbacdkct5tt = () => {
 */
 ============================= src/component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { save } from './pricing';
 
 export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
-  const [total] = _captures;
+  const [total] = _capturesObj._;
   return save(total.value);
 };
 /*
@@ -139,11 +139,11 @@ export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { save } from './pricing';
 
 export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return save(count.value);
 };
 /*

@@ -23,7 +23,7 @@ import {
   createComponent,
   renderSsrSlotContent,
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   _markComponent,
 } from '@qwik.dev/core';
@@ -36,7 +36,7 @@ const q_component_slot_content_segment_3_25e5vjljuig5s = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_content_segment_3_25e5vjljuig5s.s(component_slot_content_segment_3_25e5vjljuig5s);
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  const [side] = _captures;
+  const [side] = _capturesObj._;
   return ['<!s=', createSsrNodeId(__rangeId), '><div>content</div><!/s>'];
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
@@ -79,10 +79,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { _captures, createSsrNodeId } from '@qwik.dev/core';
+import { _capturesObj, createSsrNodeId } from '@qwik.dev/core';
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  const [side] = _captures;
+  const [side] = _capturesObj._;
   return ['<!s=', createSsrNodeId(__rangeId), '><div>content</div><!/s>'];
 };
 /*

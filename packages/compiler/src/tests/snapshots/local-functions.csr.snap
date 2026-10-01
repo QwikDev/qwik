@@ -107,11 +107,11 @@ export const component_suffix_segment_0_37l3bw02arx82 = (key) => {
 */
 ============================= src/component.tsx_component_label_segment_1_871sx3hwa26q.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { component_suffix_segment_0_37l3bw02arx82 } from './component.tsx_component_suffix_segment_0_37l3bw02arx82';
 
 export const component_label_segment_1_871sx3hwa26q = (key) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const suffix = component_suffix_segment_0_37l3bw02arx82;
   return suffix(key) + count.value;
 };
@@ -143,7 +143,7 @@ export const component_label_segment_1_871sx3hwa26q = (key) => {
 ============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   setEvent,
   _first,
   createTextExpressionEffect,
@@ -154,7 +154,7 @@ import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_componen
 const component_slot_render_segment_2_3b0t9ouqyjhtg_tmpl0 = _createElementTemplate('<b> </b>');
 
 export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const el0 = component_slot_render_segment_2_3b0t9ouqyjhtg_tmpl0(ctx.document);
   setEvent(el0, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [count]);
   const text0 = _first(el0);
@@ -192,11 +192,11 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _captures, _withCaptures } from '@qwik.dev/core';
+import { _capturesObj, _withCaptures } from '@qwik.dev/core';
 import { component_label_segment_1_871sx3hwa26q } from './component.tsx_component_label_segment_1_871sx3hwa26q';
 
 export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const label = _withCaptures(component_label_segment_1_871sx3hwa26q, [count]);
   return console.log(label('h'));
 };
@@ -258,7 +258,7 @@ export const component_text_segment_4_1fh11zg0n0shg = (count) => {
 ============================= src/component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx.js (ENTRY POINT)==
 
 import {
-  _captures,
+  _capturesObj,
   _first,
   _next,
   createTemplate,
@@ -276,7 +276,7 @@ const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ _qrlWithCh
 );
 
 export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx) => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   const fragment0 = component_slot_render_segment_5_3b0t9atn1pfsx_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
@@ -315,10 +315,10 @@ export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_condition_segment_6_2fzrg2njel5c3.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_6_2fzrg2njel5c3 = () => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   return show.value;
 };
 /*
@@ -505,11 +505,11 @@ export const component_text_segment_11_2cdl3n7fbecf2 = () => {
 */
 ============================= src/component.tsx_component_slot_render_segment_12_3m3zu8t14mbd9.js (ENTRY POINT)==
 
-import { _captures, createTextExpressionEffect } from '@qwik.dev/core';
+import { _capturesObj, createTextExpressionEffect } from '@qwik.dev/core';
 import { component_text_segment_13_2cdl2v57hq8e0 } from './component.tsx_component_text_segment_13_2cdl2v57hq8e0';
 
 export const component_slot_render_segment_12_3m3zu8t14mbd9 = (ctx) => {
-  const [direct] = _captures;
+  const [direct] = _capturesObj._;
   const text0 = ctx.document.createTextNode('');
   const effect0 = createTextExpressionEffect(
     text0,

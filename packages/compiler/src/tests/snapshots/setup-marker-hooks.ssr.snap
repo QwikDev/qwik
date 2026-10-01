@@ -22,7 +22,7 @@ export default () => {
 import {
   implicit$FirstArg,
   useSignal,
-  _captures,
+  _capturesObj,
   useTaskQrl,
   useComputedQrl,
   createSsrNodeId,
@@ -41,7 +41,7 @@ export const useLocalQrl = (qrl) => qrl;
 export const useLocal = (fn) => fn;
 export const useLocal$ = implicit$FirstArg(useLocalQrl);
 const component_read_segment_0_1zbzildyw5vrf = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value;
 };
 const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
@@ -49,7 +49,7 @@ const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
 );
 q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
 const component_total_segment_1_33cb9ycgfz3ta = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value * 2;
 };
 const q_component_total_segment_1_33cb9ycgfz3ta = /*#__PURE__*/ _noopQrl(
@@ -57,7 +57,7 @@ const q_component_total_segment_1_33cb9ycgfz3ta = /*#__PURE__*/ _noopQrl(
 );
 q_component_total_segment_1_33cb9ycgfz3ta.s(component_total_segment_1_33cb9ycgfz3ta);
 const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value;
 };
 const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _noopQrl(
@@ -65,7 +65,7 @@ const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _noopQrl(
 );
 q_component_useCustomqrl_segment_2_heiedc4h1woo.s(component_useCustomqrl_segment_2_heiedc4h1woo);
 const component_useLocalqrl_segment_3_34296ojkgual = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value;
 };
 const q_component_useLocalqrl_segment_3_34296ojkgual = /*#__PURE__*/ _noopQrl(
@@ -102,10 +102,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_read_segment_0_1zbzildyw5vrf = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value;
 };
 /*
@@ -133,10 +133,10 @@ export const component_read_segment_0_1zbzildyw5vrf = () => {
 */
 ============================= src/component.tsx_component_total_segment_1_33cb9ycgfz3ta.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_total_segment_1_33cb9ycgfz3ta = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value * 2;
 };
 /*
@@ -164,10 +164,10 @@ export const component_total_segment_1_33cb9ycgfz3ta = () => {
 */
 ============================= src/component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value;
 };
 /*
@@ -195,10 +195,10 @@ export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
 */
 ============================= src/component.tsx_component_useLocalqrl_segment_3_34296ojkgual.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useLocalqrl_segment_3_34296ojkgual = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count.value;
 };
 /*

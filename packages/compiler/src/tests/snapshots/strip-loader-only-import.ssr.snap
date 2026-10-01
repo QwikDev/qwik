@@ -26,7 +26,7 @@ const q_index_routeLoaderqrl_segment_0_1ikesr9pxvi1b = /*#__PURE__*/ _noopQrl(
 );
 q_index_routeLoaderqrl_segment_0_1ikesr9pxvi1b.s(index_routeLoaderqrl_segment_0_1ikesr9pxvi1b);
 const index_text_segment_1_1ipiow57gf7g4 = (ctx0) => {
-  const [secret] = _captures;
+  const [secret] = _capturesObj._;
   return renderSsrDynamicContent(secret.value, ctx0);
 };
 const q_index_text_segment_1_1ipiow57gf7g4 = /*#__PURE__*/ _noopQrl(
@@ -36,7 +36,7 @@ q_index_text_segment_1_1ipiow57gf7g4.s(index_text_segment_1_1ipiow57gf7g4);
 import {
   _noopQrl,
   createSsrOpenTag,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   getActiveInvokeContextOrNull,
@@ -113,10 +113,10 @@ export const index_routeLoaderqrl_segment_0_1ikesr9pxvi1b = () => {
 */
 ============================= src/routes/index.tsx_index_text_segment_1_1ipiow57gf7g4.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const index_text_segment_1_1ipiow57gf7g4 = (ctx0) => {
-  const [secret] = _captures;
+  const [secret] = _capturesObj._;
   return renderSsrDynamicContent(secret.value, ctx0);
 };
 /*

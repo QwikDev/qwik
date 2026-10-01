@@ -14,7 +14,7 @@ export const Footer = component$((props: { on: boolean }) => {
 
 import {
   _withCaptures,
-  _captures,
+  _capturesObj,
   renderSsrBranch,
   createSsrNodeId,
   renderSsrAttrExpression,
@@ -26,7 +26,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_Mark_segment_2_t9oujovgd45s = (props0, ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const attr0 = renderSsrAttrExpression(
@@ -48,7 +48,7 @@ const q_component_Mark_segment_2_t9oujovgd45s = /*#__PURE__*/ _noopQrl(
 );
 q_component_Mark_segment_2_t9oujovgd45s.s(component_Mark_segment_2_t9oujovgd45s);
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.on;
 };
 const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
@@ -58,7 +58,7 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
 const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const Mark = _withCaptures(component_Mark_segment_2_t9oujovgd45s, [props]);
   const component0 = ctx.observeError(
     createComponent((props0) => renderSsrDynamicTag(Mark, props0, ctx), null, ctx)
@@ -101,10 +101,10 @@ export const Footer = _markComponent(
 export { Footer as Footer_component_d3m2s4mpch0k };
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return props.on;
 };
 /*
@@ -162,7 +162,7 @@ export const component_class_segment_1_3htuy2t94mso0 = (props) => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   renderSsrAttrExpression,
   escapeHTML,
@@ -175,7 +175,7 @@ const q_component_class_segment_1_3htuy2t94mso0 = /*#__PURE__*/ _noopQrl(
 q_component_class_segment_1_3htuy2t94mso0.s(component_class_segment_1_3htuy2t94mso0);
 
 export const component_Mark_segment_2_t9oujovgd45s = (props0, ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const attr0 = renderSsrAttrExpression(
@@ -219,7 +219,7 @@ export const component_Mark_segment_2_t9oujovgd45s = (props0, ctx) => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   renderSsrDynamicTag,
   createComponent,
   _withCaptures,
@@ -231,7 +231,7 @@ const q_component_Mark_segment_2_t9oujovgd45s = /*#__PURE__*/ _noopQrl(
 q_component_Mark_segment_2_t9oujovgd45s.s(component_Mark_segment_2_t9oujovgd45s);
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   const Mark = _withCaptures(component_Mark_segment_2_t9oujovgd45s, [props]);
   const component0 = ctx.observeError(
     createComponent((props0) => renderSsrDynamicTag(Mark, props0, ctx), null, ctx)

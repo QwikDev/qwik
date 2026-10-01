@@ -1,3 +1,5 @@
+import { Brand, brandClass } from '../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { Computed } from './computed';
@@ -16,3 +18,5 @@ export class ComputedQrl<T> extends Computed<T> {
     super(computeQrl, null, container, options);
   }
 }
+
+isServer && brandClass(ComputedQrl, Brand.ComputedQrl);

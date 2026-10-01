@@ -25,7 +25,7 @@ import {
   useSignal,
   createComponent,
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -45,7 +45,7 @@ const q_component_fallbackqrl_segment_1_3grqawftcqexb = /*#__PURE__*/ _noopQrl(
 );
 q_component_fallbackqrl_segment_1_3grqawftcqexb.s(component_fallbackqrl_segment_1_3grqawftcqexb);
 const component_renderqrl_segment_4_5bp3q9cb45d6 = (v) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return q_component_jsx_segment_2_38vniss1y6gb4.w([v, count]);
 };
 const q_component_renderqrl_segment_4_5bp3q9cb45d6 = /*#__PURE__*/ _noopQrl(
@@ -53,7 +53,7 @@ const q_component_renderqrl_segment_4_5bp3q9cb45d6 = /*#__PURE__*/ _noopQrl(
 );
 q_component_renderqrl_segment_4_5bp3q9cb45d6.s(component_renderqrl_segment_4_5bp3q9cb45d6);
 const component_dataqrl_segment_5_2mjc43lmu203l = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return { a: count.value };
 };
 const q_component_dataqrl_segment_5_2mjc43lmu203l = /*#__PURE__*/ _noopQrl(
@@ -61,7 +61,7 @@ const q_component_dataqrl_segment_5_2mjc43lmu203l = /*#__PURE__*/ _noopQrl(
 );
 q_component_dataqrl_segment_5_2mjc43lmu203l.s(component_dataqrl_segment_5_2mjc43lmu203l);
 const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
-  const [v, count] = _captures;
+  const [v, count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(v);
   ctx.addRoot(count);
@@ -180,7 +180,7 @@ export const component_fallbackqrl_segment_1_3grqawftcqexb = Fallback;
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -193,7 +193,7 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
 
 export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
-  const [v, count] = _captures;
+  const [v, count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(v);
   ctx.addRoot(count);
@@ -266,7 +266,7 @@ export const component_text_segment_3_1fh11lewq6qgx = (v, count) => {
 */
 ============================= src/component.tsx_component_renderqrl_segment_4_5bp3q9cb45d6.js (ENTRY POINT)==
 
-import { _noopQrl, _captures } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj } from '@qwik.dev/core';
 import { component_jsx_segment_2_38vniss1y6gb4 } from './component.tsx_component_jsx_segment_2_38vniss1y6gb4';
 const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _noopQrl(
   'component_jsx_segment_2_38vniss1y6gb4'
@@ -274,7 +274,7 @@ const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _noopQrl(
 q_component_jsx_segment_2_38vniss1y6gb4.s(component_jsx_segment_2_38vniss1y6gb4);
 
 export const component_renderqrl_segment_4_5bp3q9cb45d6 = (v) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return q_component_jsx_segment_2_38vniss1y6gb4.w([v, count]);
 };
 /*
@@ -304,10 +304,10 @@ export const component_renderqrl_segment_4_5bp3q9cb45d6 = (v) => {
 */
 ============================= src/component.tsx_component_dataqrl_segment_5_2mjc43lmu203l.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_dataqrl_segment_5_2mjc43lmu203l = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return { a: count.value };
 };
 /*

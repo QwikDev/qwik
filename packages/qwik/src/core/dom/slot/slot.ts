@@ -1,3 +1,5 @@
+import { Brand, brandClass } from '../../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import type { FunctionComponent } from '../../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../../shared/jsx/types/jsx-qwik-attributes';
@@ -35,6 +37,7 @@ import {
 import { createPropsEffect } from '../effect/effect';
 import { renderSsrProps, type DomPropsQrl } from '../effect/ssr-effect';
 import { inlinedQrl } from '../../shared/qrl/qrl';
+import { registerSingleton } from '../../shared/singletons';
 
 type SlotRenderFn = (ctx: ContainerContext) => MaybeNodeOutput | Promise<MaybeNodeOutput>;
 type SsrSlotRenderFn = (ctx: SsrSlotContext, rangeId: number) => ValueOrPromise<SsrOutput>;
@@ -94,7 +97,7 @@ export interface SsrSlotContext {
 export const Slot: FunctionComponent<{
   name?: string;
   children?: JSXChildren;
-}> = () => null;
+}> = /*#__PURE__*/ registerSingleton('Slot', () => () => null);
 
 class SlotScopeState implements SlotScope {
   projections: Projection[] = [];
@@ -554,3 +557,6 @@ function renderRemainingSsrProjections(
   }
   return output;
 }
+
+isServer && brandClass(SlotScopeState, Brand.SlotScope);
+isServer && brandClass(ProjectionState, Brand.Projection);

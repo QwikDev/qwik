@@ -12,7 +12,7 @@ export default function App() {
 ============================= src/component.tsx ==
 
 import {
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   _noopQrl,
@@ -28,7 +28,7 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
 );
 q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
 const component_content_segment_1_185248kf949cp = (ctx0) => {
-  const [content] = _captures;
+  const [content] = _capturesObj._;
   return renderSsrDynamicContent(content, ctx0);
 };
 const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ _noopQrl(
@@ -36,7 +36,7 @@ const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ _noopQrl(
 );
 q_component_content_segment_1_185248kf949cp.s(component_content_segment_1_185248kf949cp);
 const component_content_segment_2_185232h3im3b4 = (ctx0) => {
-  const [alias] = _captures;
+  const [alias] = _capturesObj._;
   return renderSsrDynamicContent(alias, ctx0);
 };
 const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ _noopQrl(
@@ -114,10 +114,10 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
 */
 ============================= src/component.tsx_component_content_segment_1_185248kf949cp.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_content_segment_1_185248kf949cp = (ctx0) => {
-  const [content] = _captures;
+  const [content] = _capturesObj._;
   return renderSsrDynamicContent(content, ctx0);
 };
 /*
@@ -145,10 +145,10 @@ export const component_content_segment_1_185248kf949cp = (ctx0) => {
 */
 ============================= src/component.tsx_component_content_segment_2_185232h3im3b4.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
-  const [alias] = _captures;
+  const [alias] = _capturesObj._;
   return renderSsrDynamicContent(alias, ctx0);
 };
 /*

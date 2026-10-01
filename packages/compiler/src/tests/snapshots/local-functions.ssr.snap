@@ -31,7 +31,7 @@ import {
   registerProjection,
   createComponent,
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -48,7 +48,7 @@ const q_component_suffix_segment_0_37l3bw02arx82 = /*#__PURE__*/ _noopQrl(
 );
 q_component_suffix_segment_0_37l3bw02arx82.s(component_suffix_segment_0_37l3bw02arx82);
 const component_label_segment_1_871sx3hwa26q = (key) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const suffix = component_suffix_segment_0_37l3bw02arx82;
   return suffix(key) + count.value;
 };
@@ -64,7 +64,7 @@ const q_component_load_segment_9_3myl24trdze9k = /*#__PURE__*/ _noopQrl(
 );
 q_component_load_segment_9_3myl24trdze9k.s(component_load_segment_9_3myl24trdze9k);
 const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextExpression(
@@ -90,7 +90,7 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
 const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(show);
   const branch0 = ctx.observeError(
@@ -134,7 +134,7 @@ const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_10_3m3ztgqtay7c7.s(component_slot_render_segment_10_3m3ztgqtay7c7);
 const component_slot_render_segment_12_3m3zu8t14mbd9 = (ctx, __rangeId) => {
-  const [direct] = _captures;
+  const [direct] = _capturesObj._;
   const rangeId0 = ctx.nextId();
   ctx.addRoot(direct);
   const text0 = renderSsrTextExpression(
@@ -169,7 +169,7 @@ const q_component_text_segment_4_1fh11zg0n0shg = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_4_1fh11zg0n0shg.s(component_text_segment_4_1fh11zg0n0shg);
 const component_branch_condition_segment_6_2fzrg2njel5c3 = () => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   return show.value;
 };
 const q_component_branch_condition_segment_6_2fzrg2njel5c3 = /*#__PURE__*/ _noopQrl(
@@ -278,11 +278,11 @@ export const component_suffix_segment_0_37l3bw02arx82 = (key) => {
 */
 ============================= src/component.tsx_component_label_segment_1_871sx3hwa26q.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 import { component_suffix_segment_0_37l3bw02arx82 } from './component.tsx_component_suffix_segment_0_37l3bw02arx82';
 
 export const component_label_segment_1_871sx3hwa26q = (key) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const suffix = component_suffix_segment_0_37l3bw02arx82;
   return suffix(key) + count.value;
 };
@@ -315,7 +315,7 @@ export const component_label_segment_1_871sx3hwa26q = (key) => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -331,7 +331,7 @@ const q_component_text_segment_4_1fh11zg0n0shg = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_4_1fh11zg0n0shg.s(component_text_segment_4_1fh11zg0n0shg);
 
 export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextExpression(
@@ -377,11 +377,11 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _captures, _withCaptures } from '@qwik.dev/core';
+import { _capturesObj, _withCaptures } from '@qwik.dev/core';
 import { component_label_segment_1_871sx3hwa26q } from './component.tsx_component_label_segment_1_871sx3hwa26q';
 
 export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   const label = _withCaptures(component_label_segment_1_871sx3hwa26q, [count]);
   return console.log(label('h'));
 };
@@ -442,7 +442,7 @@ export const component_text_segment_4_1fh11zg0n0shg = (count) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch } from '@qwik.dev/core';
+import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrBranch } from '@qwik.dev/core';
 import { component_branch_condition_segment_6_2fzrg2njel5c3 } from './component.tsx_component_branch_condition_segment_6_2fzrg2njel5c3';
 import { component_branch_then_segment_7_24n7ce0yehh58 } from './component.tsx_component_branch_then_segment_7_24n7ce0yehh58';
 const q_component_branch_condition_segment_6_2fzrg2njel5c3 = /*#__PURE__*/ _noopQrl(
@@ -457,7 +457,7 @@ const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ _noopQrl(
 q_component_branch_then_segment_7_24n7ce0yehh58.s(component_branch_then_segment_7_24n7ce0yehh58);
 
 export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(show);
   const branch0 = ctx.observeError(
@@ -504,10 +504,10 @@ export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_branch_condition_segment_6_2fzrg2njel5c3.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_6_2fzrg2njel5c3 = () => {
-  const [show] = _captures;
+  const [show] = _capturesObj._;
   return show.value;
 };
 /*
@@ -720,7 +720,7 @@ export const component_text_segment_11_2cdl3n7fbecf2 = () => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -733,7 +733,7 @@ const q_component_text_segment_13_2cdl2v57hq8e0 = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_13_2cdl2v57hq8e0.s(component_text_segment_13_2cdl2v57hq8e0);
 
 export const component_slot_render_segment_12_3m3zu8t14mbd9 = (ctx, __rangeId) => {
-  const [direct] = _captures;
+  const [direct] = _capturesObj._;
   const rangeId0 = ctx.nextId();
   ctx.addRoot(direct);
   const text0 = renderSsrTextExpression(

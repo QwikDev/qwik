@@ -83,7 +83,7 @@ sibling statements, generated-name allocation, authored param reuse); element ev
 mirrors + `.s()`, `q:id`, `renderSsrTextExpression`/`maybeThen`, CSR placeholder templates +
 `createTextExpressionEffect`); `useSignal` setup + signal-read holes (subscription, no QRL);
 event handlers capturing signal locals (`.w([count])` SSR wrapper, `setEvent` captures arg,
-`_captures` chunk prelude, rust `QrlValue.captures`); the counter (event + signal-read hole
+`_capturesObj._` chunk prelude, rust `QrlValue.captures`); the counter (event + signal-read hole
 composed on one element); text holes with sibling children (SSR range targets + `<!t>`/`<!/t>`
 markers, CSR `<!>` comment placeholder + marker swap, shortest-path child navigation);
 holes in nested elements (recursive SSR emission with per-element ids/markers, recursive
@@ -173,7 +173,7 @@ from a deserialized frozen plan in a fresh process.
   `invoke(invokeCtx, …)` thunks; the staged pipeline evaluates all steps eagerly instead.
 - Capture placement follows payload kind: Function-payload QRLs (events) carry captures in the
   reference (`.w([...])`, `setEvent` 4th arg, rust `QrlValue.captures`) and read them via a
-  `_captures` chunk prelude; Value-payload QRLs (expressions) take captures as chunk params and
+  `_capturesObj._` chunk prelude; Value-payload QRLs (expressions) take captures as chunk params and
   keep `QrlValue.captures` empty.
 - When an authored core import is replaced in place, a chunk-import block ends with a blank line
   before module-top hoists; a lone core import does not.
@@ -273,7 +273,7 @@ from a deserialized frozen plan in a fresh process.
 - QRL extraction conventions follow the ts-optimizer (PR #8872) / rust optimizer, not legacy
   `src`: a chunk reaches a non-exported module binding via an appended
   `export { x as _auto_x };` alias and `import { _auto_x as x }` in the chunk — never via
-  `_captures`. Legacy's bare `export { x }` is its own drift; diverge from it on this fixture
+  `_capturesObj._`. Legacy's bare `export { x }` is its own drift; diverge from it on this fixture
   family.
 - `useOnDocument$`/`useOnWindow$`/element-less `useVisibleTask$` carriers are emitted STATICALLY
   when that slice lands: hook presence is always compile-time knowledge (hooks are unconditional

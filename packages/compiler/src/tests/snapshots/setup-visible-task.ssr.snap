@@ -16,7 +16,7 @@ export default () => {
 import {
   useSignal,
   useVisibleTaskQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   createSsrOpenTag,
   escapeHTML,
@@ -26,7 +26,7 @@ import {
   _markComponent,
 } from '@qwik.dev/core';
 const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {
-  const [status] = _captures;
+  const [status] = _capturesObj._;
   status.value = 'visible';
 };
 const q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = /*#__PURE__*/ _noopQrl(
@@ -36,7 +36,7 @@ q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.s(
   component_useVisibleTaskqrl_segment_0_rykj3v0khy38
 );
 const component_useVisibleTaskqrl_segment_1_rykjhw4hc03r = ({ cleanup }) => {
-  const [status] = _captures;
+  const [status] = _capturesObj._;
   cleanup(() => console.log(status.value));
 };
 const q_component_useVisibleTaskqrl_segment_1_rykjhw4hc03r = /*#__PURE__*/ _noopQrl(
@@ -46,7 +46,7 @@ q_component_useVisibleTaskqrl_segment_1_rykjhw4hc03r.s(
   component_useVisibleTaskqrl_segment_1_rykjhw4hc03r
 );
 const component_useVisibleTaskqrl_segment_2_rykjvx8e624a = () => {
-  const [status] = _captures;
+  const [status] = _capturesObj._;
   return console.log(status.value);
 };
 const q_component_useVisibleTaskqrl_segment_2_rykjvx8e624a = /*#__PURE__*/ _noopQrl(
@@ -80,10 +80,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {
-  const [status] = _captures;
+  const [status] = _capturesObj._;
   status.value = 'visible';
 };
 /*
@@ -111,10 +111,10 @@ export const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {
 */
 ============================= src/component.tsx_component_useVisibleTaskqrl_segment_1_rykjhw4hc03r.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useVisibleTaskqrl_segment_1_rykjhw4hc03r = ({ cleanup }) => {
-  const [status] = _captures;
+  const [status] = _capturesObj._;
   cleanup(() => console.log(status.value));
 };
 /*
@@ -144,10 +144,10 @@ export const component_useVisibleTaskqrl_segment_1_rykjhw4hc03r = ({ cleanup }) 
 */
 ============================= src/component.tsx_component_useVisibleTaskqrl_segment_2_rykjvx8e624a.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_useVisibleTaskqrl_segment_2_rykjvx8e624a = () => {
-  const [status] = _captures;
+  const [status] = _capturesObj._;
   return console.log(status.value);
 };
 /*

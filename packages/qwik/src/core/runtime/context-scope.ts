@@ -1,3 +1,5 @@
+import { Brand, brandClass } from '../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 export type ContextKey = string;
 
 export class ContextScope {
@@ -15,3 +17,5 @@ export const createContextScope = (parent: ContextScope | null): ContextScope =>
 export const isContextScope = (value: unknown): value is ContextScope => {
   return value instanceof ContextScope;
 };
+
+isServer && brandClass(ContextScope, Brand.ContextScope);

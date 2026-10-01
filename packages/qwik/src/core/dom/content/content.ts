@@ -1,3 +1,5 @@
+import { Brand, brandClass } from '../../shared/utils/brand';
+import { isServer } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import type { FunctionComponent, JSXOutput } from '../../shared/jsx/types/jsx-node';
 import {
@@ -608,3 +610,6 @@ export function renderSsrContent<TArgs extends unknown[]>(
     contextArg
   ).run(onSubscription);
 }
+
+isServer && brandClass(SSRContentSubscription, Brand.SsrContentSubscription);
+isServer && brandClass(SSRSuspenseContentSubscription, Brand.SsrSuspenseContentSubscription);

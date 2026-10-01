@@ -96,8 +96,8 @@ export default () => {
   const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
     ...core,
     useCustomQrl: (callback: QRL<() => number>) => callbacks.push(callback),
-    get _captures() {
-      return core._captures;
+    get _capturesObj() {
+      return core._capturesObj;
     },
   });
   render({}, setupOnlyContext);
@@ -367,8 +367,8 @@ export default () => {
   const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
     ...core,
     useCustomQrl,
-    get _captures() {
-      return core._captures;
+    get _capturesObj() {
+      return core._capturesObj;
     },
     read: () => {
       order.push('callback');
@@ -425,8 +425,8 @@ export default () => {
   const render = loadDefaultFunction(component, {
     ...core,
     task: core.useTask$,
-    get _captures() {
-      return core._captures;
+    get _capturesObj() {
+      return core._capturesObj;
     },
     console: { log: (...args: unknown[]) => logs.push(args) },
     useSignal: (initial: number) => {
@@ -523,8 +523,8 @@ export default () => {
   const computeds: ReturnType<typeof core.useComputedQrl>[] = [];
   const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
     ...core,
-    get _captures() {
-      return core._captures;
+    get _capturesObj() {
+      return core._capturesObj;
     },
     useSignal(initial: number) {
       const signal = core.useSignal(initial);

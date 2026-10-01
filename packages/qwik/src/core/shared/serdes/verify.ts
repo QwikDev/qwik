@@ -10,6 +10,7 @@ import { isStore, StorePropSource } from '../../reactive/store';
 import { VisibleTaskSubscription } from '../../runtime/task';
 import { _constants } from './constants';
 import { getPropsProxyState, getPropsSources, PropSource } from '../../component/props';
+import { qwikSymbol, registerSingleton } from '../singletons';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
@@ -186,7 +187,7 @@ const isKnownSerializableValue = (value: unknown): boolean => {
   );
 };
 
-const noSerializeSet = /*#__PURE__*/ new WeakSet<object>();
+const noSerializeSet = /*#__PURE__*/ registerSingleton('noSerialize', () => new WeakSet<object>());
 
 const shouldSerialize = (obj: unknown): boolean => {
   if (isObject(obj) || isFunction(obj)) {
@@ -245,7 +246,7 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
  *
  * @public
  */
-export const NoSerializeSymbol = Symbol('noSerialize');
+export const NoSerializeSymbol: unique symbol = /*#__PURE__*/ qwikSymbol('noSerialize');
 /**
  * If an object has this property as a function, it will be called with the object and should return
  * a serializable value.
@@ -262,4 +263,4 @@ export const NoSerializeSymbol = Symbol('noSerialize');
  *
  * @public
  */
-export const SerializerSymbol = Symbol('serialize');
+export const SerializerSymbol: unique symbol = /*#__PURE__*/ qwikSymbol('serialize');

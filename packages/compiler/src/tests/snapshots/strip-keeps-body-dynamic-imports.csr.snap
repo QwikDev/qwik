@@ -56,10 +56,10 @@ export const default_component_tv8h7w8tm3v2 = (props, ctx) => {
 export default default_component_tv8h7w8tm3v2;
 ============================= src/routes/index.tsx_index_useVisibleTaskqrl_segment_0_xu37ccow27t1.js (ENTRY POINT)==
 
-import { _captures, _await } from '@qwik.dev/core';
+import { _capturesObj, _await } from '@qwik.dev/core';
 
 export const index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = async () => {
-  const [result] = _captures;
+  const [result] = _capturesObj._;
   const { ping } = (await _await(import('../shared/server-fn')))();
   result.value = (await _await(ping()))();
 };
@@ -88,10 +88,10 @@ export const index_useVisibleTaskqrl_segment_0_xu37ccow27t1 = async () => {
 */
 ============================= src/routes/index.tsx_linked_content_0_1mzevuukkeaia.js (ENTRY POINT)==
 
-import { _captures, createDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, createDynamicContent } from '@qwik.dev/core';
 
 export const linked_content_0_1mzevuukkeaia = (ctx0) => {
-  const [result] = _captures;
+  const [result] = _capturesObj._;
   return createDynamicContent(result.value, ctx0);
 };
 /*

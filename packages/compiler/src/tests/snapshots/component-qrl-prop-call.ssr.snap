@@ -13,7 +13,7 @@ export default component$(() => (
 ============================= src/component.tsx ==
 
 import {
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   renderSsrDynamicContent,
@@ -25,7 +25,7 @@ import {
   maybeThen,
 } from '@qwik.dev/core';
 const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return renderSsrDynamicContent(props.render$(['from render$']), ctx0);
 };
 const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
@@ -40,7 +40,7 @@ const q_component_renderqrl_segment_3_5bp1s3sqxvaj = /*#__PURE__*/ _noopQrl(
 );
 q_component_renderqrl_segment_3_5bp1s3sqxvaj.s(component_renderqrl_segment_3_5bp1s3sqxvaj);
 const component_jsx_segment_1_38vnjyvdoomcp = (ctx) => {
-  const [products] = _captures;
+  const [products] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(products);
   const text0 = renderSsrTextExpression(
@@ -106,10 +106,10 @@ export default default_component_3rg6kq1so9aio;
 export { ProductRelations as ProductRelations_component_1ip78ju5ryj73 };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
-  const [props] = _captures;
+  const [props] = _capturesObj._;
   return renderSsrDynamicContent(props.render$(['from render$']), ctx0);
 };
 /*
@@ -139,7 +139,7 @@ export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
 
 import {
   _noopQrl,
-  _captures,
+  _capturesObj,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -152,7 +152,7 @@ const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
 
 export const component_jsx_segment_1_38vnjyvdoomcp = (ctx) => {
-  const [products] = _captures;
+  const [products] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(products);
   const text0 = renderSsrTextExpression(

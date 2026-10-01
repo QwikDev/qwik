@@ -40,7 +40,7 @@ const q_component_later_segment_3_3i4odul1ji17c = /*#__PURE__*/ _noopQrl(
 );
 q_component_later_segment_3_3i4odul1ji17c.s(component_later_segment_3_3i4odul1ji17c);
 const component_snapshot_segment_4_98oramdy0zcr = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count;
 };
 const q_component_snapshot_segment_4_98oramdy0zcr = /*#__PURE__*/ _noopQrl(
@@ -48,7 +48,7 @@ const q_component_snapshot_segment_4_98oramdy0zcr = /*#__PURE__*/ _noopQrl(
 );
 q_component_snapshot_segment_4_98oramdy0zcr.s(component_snapshot_segment_4_98oramdy0zcr);
 const linked_content_0_3641q2pvcvlmq = (ctx0) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return renderSsrDynamicContent(count.value, ctx0);
 };
 const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ _noopQrl('linked_content_0_3641q2pvcvlmq');
@@ -57,7 +57,7 @@ import {
   _noopQrl,
   useSignal,
   useTaskQrl,
-  _captures,
+  _capturesObj,
   renderSsrContent,
   createSsrNodeId,
   getActiveInvokeContextOrNull,
@@ -206,10 +206,10 @@ export const component_later_segment_3_3i4odul1ji17c = tick;
 */
 ============================= src/component.tsx_component_snapshot_segment_4_98oramdy0zcr.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_snapshot_segment_4_98oramdy0zcr = () => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return count;
 };
 /*
@@ -237,10 +237,10 @@ export const component_snapshot_segment_4_98oramdy0zcr = () => {
 */
 ============================= src/component.tsx_linked_content_0_3641q2pvcvlmq.js (ENTRY POINT)==
 
-import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+import { _capturesObj, renderSsrDynamicContent } from '@qwik.dev/core';
 
 export const linked_content_0_3641q2pvcvlmq = (ctx0) => {
-  const [count] = _captures;
+  const [count] = _capturesObj._;
   return renderSsrDynamicContent(count.value, ctx0);
 };
 /*

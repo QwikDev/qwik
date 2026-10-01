@@ -240,10 +240,10 @@ export const component_title_segment_2_2f0r05go51flv = (item, index) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
-  const [item, index] = _captures;
+  const [item, index] = _capturesObj._;
   return {
     id: item.id,
     label: item.label,
@@ -276,10 +276,10 @@ export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_4_2xwyeh830jenv.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _capturesObj } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_4_2xwyeh830jenv = (...args0) => {
-  const [item, index] = _captures;
+  const [item, index] = _capturesObj._;
   return ((value = item.id, position = index.value) => {
     const read = (id) => id;
     return [value, position, item.label, read('shadow')];

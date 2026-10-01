@@ -91,10 +91,13 @@ import {
 import {
   clearNavFetchCache,
   ensureRouteLoaderSignals,
-  invalidateNavRouteLoaders,
+  abortRouteLoaderNavigation,
+  prepareRouteLoaders,
+  commitRouteLoaders,
+  restoreRouteLoaders,
+  getClientRouteLoaders,
   isImmutableLoader,
   setLoaderSignalValue,
-  updateRouteLoaderPaths,
 } from './route-loaders';
 import type {
   Action,
@@ -115,6 +118,7 @@ import type {
   PreventNavigateCallback,
   ResolvedDocumentHead,
   RouteModule,
+  RouteAction,
   RouteActionResolver,
   RouteActionValue,
   RouteNavigate,
@@ -171,10 +175,11 @@ const preventNav: {
 // We need to use an object so we can write into it from qrls.
 const internalState: {
   navCount: number;
+  attemptCount: number;
   currentTransition?: ViewTransition;
   /** Loader stack of the currently rendered route — the per-level nav diff baseline. */
   routedLoaders?: ModuleLoader[];
-} = { navCount: 0 };
+} = { navCount: 0, attemptCount: 0 };
 
 /**
  * Write the level signals from the first changed level down; untouched levels keep their component
@@ -259,16 +264,20 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     prevUrl: undefined,
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
-  const navResolver: { r?: () => void; p?: Promise<void> } = {};
-  // deep: true so that changes to loaderPaths and page path/search properties are tracked by
-  // ComputedSignal QRLs.
+  const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void } = {};
+  // Share serialized loader paths across resumed components.
   const routeLoaderCtx = useStore(env.routeLoaderCtx);
   routeLoaderCtx.manifestHash = manifestHash;
   // Create ComputedSignals whose QRL closures capture the store proxy for client-side reactivity.
   // Then set .value from middleware-computed loader values (inert, non-reactive data).
   const loaderState = {} as Record<string, ComputedSignal<unknown>>;
   const contentModulesForInit = env.loadedRoute.$mods$ as ContentModule[];
-  const loaders = ensureRouteLoaderSignals(contentModulesForInit, loaderState, routeLoaderCtx);
+  const loaders = ensureRouteLoaderSignals(
+    contentModulesForInit,
+    loaderState,
+    routeLoaderCtx,
+    env.ev
+  );
   for (const loader of loaders) {
     if (loader.__id in env.loaderValues) {
       const value = env.loaderValues[loader.__id];
@@ -325,7 +334,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   const currentActionId = env.response.action;
   const currentAction = currentActionId ? env.response.actionResult : undefined;
-  const actionState = useSignal<RouteActionValue>(
+  const actionState: RouteAction = useSignal<RouteActionValue>(
     currentAction
       ? {
           id: currentActionId!,
@@ -354,7 +363,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     }
     preventNav.$handler$ ||= (event: BeforeUnloadEvent) => {
       // track navigations during prevent so we don't overwrite
-      internalState.navCount++;
+      internalState.attemptCount++;
       if (!preventNav.$cbs$) {
         return;
       }
@@ -435,8 +444,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       return navResolver.p;
     }
 
-    const navCount = ++internalState.navCount;
-    internalState.currentTransition?.skipTransition();
+    const attemptCount = ++internalState.attemptCount;
 
     if (
       preventNav.$cbs$ &&
@@ -446,8 +454,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         !isSameOrigin(dest, lastDest))
     ) {
       const prevents = await Promise.all([...preventNav.$cbs$.values()].map((cb) => cb(dest)));
-      if (navCount !== internalState.navCount || prevents.some(Boolean)) {
-        if (navCount === internalState.navCount && type === 'popstate') {
+      if (attemptCount !== internalState.attemptCount || prevents.some(Boolean)) {
+        if (attemptCount === internalState.attemptCount && type === 'popstate') {
           // Popstate events are not cancellable, so we push to undo
           // TODO keep state?
           history.pushState(null, '', lastDest);
@@ -495,10 +503,19 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         routeLocation.url = newUrl;
       }
 
-      return;
+      return navResolver.p;
     }
 
+    const navCount = ++internalState.navCount;
+    internalState.currentTransition?.skipTransition();
+    navResolver.cancel?.();
+    navResolver.cancel = undefined;
+    navResolver.r?.();
+
     let historyUpdated = false;
+    if (isBrowser) {
+      getClientRouteLoaders(routeLoaderCtx, routeLocation.url.href);
+    }
     if (isBrowser && type === 'link' && !forceReload) {
       // WebKit on iOS may treat async pushState() calls as skippable history entries.
       // Commit the navigation entry while the original tap/click is still active.
@@ -513,9 +530,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       historyUpdated = true;
     }
 
+    const wasNavigating = routeLocation.isNavigating;
     routeLocation.isNavigating = true;
     const container = isBrowser ? _getContextContainer() : undefined;
-    if (container) {
+    if (container && !wasNavigating) {
       // flush isNavigating to the DOM before awaiting the next task so that the router outlet can show a loading state
       await _waitUntilRendered(container);
       if (navCount !== internalState.navCount) {
@@ -533,9 +551,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       historyUpdated,
     };
 
+    if (wasNavigating) {
+      abortRouteLoaderNavigation(routeLoaderCtx);
+    }
     if (isBrowser) {
-      // Prefetch: start loading route bundles and optionally loader data
-      prefetchRoute(dest, true, 0.8, manifestHash);
+      // Prefetch bundles; loader signals fetch navigation data below.
+      prefetchRoute(dest, false, 0.8, manifestHash, true);
     }
 
     navResolver.p = new Promise<void>((resolve) => {
@@ -587,7 +608,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       let endpointResponse: EndpointResponse | undefined;
       let actionData: { action?: string; actionResult?: unknown; status: number } | undefined;
       let actionLoaderHashes: string[] | undefined;
-      let shouldInvalidateActionLoaders = false;
       let loadedRoute: LoadedRoute;
       if (isServer) {
         // server
@@ -598,6 +618,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       } else {
         // client
         trackUrl = new URL(navigation.dest, location as any as URL);
+        const canceled = new Promise<undefined>((resolve) => {
+          navResolver.cancel = () => resolve(undefined);
+          actionState.cancelPending = noSerialize(navResolver.cancel);
+        });
 
         // ensure correct trailing slash
         if (trackUrl.pathname.endsWith('/')) {
@@ -607,11 +631,26 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         } else if (!globalThis.__NO_TRAILING_SLASH__) {
           trackUrl.pathname = ensureSlash(trackUrl.pathname);
         }
-        const { routes, cacheModules } = await loadRouterConfig();
-        const loadRoutePromise = loadRoute(routes, cacheModules, trackUrl.pathname);
+        const loadRoutePromise = loadRouterConfig().then((config) => {
+          if (internalState.navCount !== navCountBefore) {
+            return;
+          }
+          return loadRoute(config.routes, config.cacheModules, trackUrl.pathname);
+        });
         try {
-          loadedRoute = await loadRoutePromise;
+          const route = await Promise.race([loadRoutePromise, canceled]);
+          if (!route) {
+            return;
+          }
+          loadedRoute = route;
         } catch (e) {
+          if (internalState.navCount !== navCountBefore) {
+            return;
+          }
+          const preparedNavCount = getClientRouteLoaders(routeLoaderCtx).navCount;
+          if (preparedNavCount !== undefined) {
+            restoreRouteLoaders(loaderState, routeLoaderCtx, preparedNavCount);
+          }
           console.error(`Could not load route ${trackUrl.pathname}, reloading:`, e);
           window.location.href = trackUrl.href;
           return;
@@ -623,6 +662,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
         // Per-level diff: untouched shared layouts stay mounted. Fail open to a full
         // rebuild when no baseline resolves (fresh resume from an unknown route).
+        const { routes } = await loadRouterConfig();
+        if (internalState.navCount !== navCountBefore) {
+          return;
+        }
         newModuleLoaders = loadedRoute.$moduleLoaders$;
         const prevLoaders =
           internalState.routedLoaders ??
@@ -639,26 +682,34 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
         // Submit action if one was triggered
         if (action) {
-          const result = await submitAction(action, trackUrl);
+          const submission = submitAction(action, trackUrl).then((result) => {
+            // Superseded actions still complete their caller's submit promise.
+            if (result && action.resolve) {
+              action.resolve({ status: result.status, result: result.result });
+              action.resolve = undefined;
+            }
+            return result;
+          });
+          action.resolveDispatch?.();
+          action.resolveDispatch = undefined;
+          const result = await Promise.race([submission, canceled]);
+
+          if (internalState.navCount !== navCountBefore || action !== actionState.untrackedValue) {
+            return;
+          }
+          navResolver.cancel = undefined;
           if (!result) {
-            // HTTP redirect happened — bail
             routeInternal.untrackedValue = { type: navType, dest: trackUrl };
             return;
           }
 
-          // Resolve the action promise and free the closure
-          if (action.resolve) {
-            action.resolve({
-              status: result.status,
-              result: result.result,
-            });
-            action.resolve = undefined;
-          }
-
           if (result.redirect) {
-            // Action redirected: SPA-navigate to the target. Don't await — goto re-runs this
-            // same task for the new route, so awaiting its completion here would deadlock.
-            goto(result.redirect, { replaceState: true });
+            if (result.redirect instanceof URL) {
+              location.href = result.redirect.href;
+            } else {
+              // Awaiting goto would deadlock this task's next execution.
+              goto(result.redirect, { replaceState: true });
+            }
             return;
           }
 
@@ -669,8 +720,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           };
 
           actionLoaderHashes = result.loaderHashes;
-          shouldInvalidateActionLoaders = true;
         }
+        navResolver.cancel = undefined;
+        actionState.cancelPending = undefined;
       }
 
       const { $routeName$, $params$, $mods$, $menu$, $notFound$ } = loadedRoute;
@@ -678,22 +730,29 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       if (!isServer) {
         routeLoaderCtx.goto = noSerialize(goto);
       }
-      updateRouteLoaderPaths(routeLoaderCtx, loadedRoute.$loaderPaths$, trackUrl);
-      const routeLoaders = ensureRouteLoaderSignals(contentModules, loaderState, routeLoaderCtx);
-      if (!isServer) {
-        invalidateNavRouteLoaders(loaderState);
-      }
-      if (shouldInvalidateActionLoaders) {
-        // Actions force revalidation (fetch cache: 'reload') for their loaders
-        if (actionLoaderHashes !== undefined) {
-          for (const hash of actionLoaderHashes) {
-            loaderState[hash]?.invalidate(true);
-          }
-        } else {
-          for (const loader of routeLoaders) {
-            loaderState[loader.__id].invalidate(true);
-          }
-        }
+      let routeLoaders;
+      if (isServer) {
+        untrack(() => Object.assign(routeLoaderCtx.loaderPaths, loadedRoute.$loaderPaths$));
+        routeLoaders = ensureRouteLoaderSignals(
+          contentModules,
+          loaderState,
+          routeLoaderCtx,
+          env.ev
+        );
+      } else {
+        routeLoaders = untrack(() =>
+          prepareRouteLoaders(
+            contentModules,
+            loaderState,
+            routeLoaderCtx,
+            loadedRoute.$loaderPaths$,
+            trackUrl,
+            prevUrl,
+            navCountBefore,
+            action ? (actionLoaderHashes ?? null) : undefined,
+            action ?? navigation
+          )
+        );
       }
       if (routeLoaders.length > 0) {
         // Trigger loader signals to fetch data for the new route. No await —
@@ -734,6 +793,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         httpStatus.value = { status: 200, message: 'OK' };
       }
       const pageModule = contentModules[contentModules.length - 1] as PageModule;
+
+      if (isSamePath(trackUrl, navigation.dest)) {
+        trackUrl.hash = navigation.dest.hash;
+      }
 
       // Restore search params unless it's a redirect
       if (navigation.dest.search && !!isSamePath(trackUrl, prevUrl)) {
@@ -812,7 +875,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         routedLoaders: newModuleLoaders,
       });
     },
-    // We should only wait for head calculation to complete on the server
+    // Keep client navigation asynchronous without blocking DOM updates.
     { deferUpdates: isServer }
   );
 
@@ -825,6 +888,15 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   useTask$(
     () => {
       const contentModules = contentInternal.value;
+      const nav = navContext.untrackedValue;
+      if (
+        !isServer &&
+        untrack(() => routeLocation.isNavigating) &&
+        nav &&
+        nav.navCount !== internalState.navCount
+      ) {
+        return;
+      }
       if (!contentModules) {
         return;
       }
@@ -935,7 +1007,19 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         applyRoutedLevels(routedLevels, nav.routedMods, nav.routedFirstChanged);
         internalState.routedLoaders = nav.routedLoaders;
         contentInternal.trigger();
-        return (navigatePromise = _waitUntilRendered(container!));
+        return (navigatePromise = _waitUntilRendered(container!).then(
+          () => {
+            if (nav.navCount === internalState.navCount) {
+              commitRouteLoaders(loaderState, routeLoaderCtx, nav.navCount);
+            }
+          },
+          (error) => {
+            if (nav.navCount === internalState.navCount) {
+              restoreRouteLoaders(loaderState, routeLoaderCtx, nav.navCount);
+            }
+            throw error;
+          }
+        ));
       };
 
       const _waitNextPage = () => {
@@ -1145,6 +1229,10 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
 
   useTask$(async () => {
     const action = actionState.value;
+    action?.resolveDispatch?.();
+    if (action) {
+      action.resolveDispatch = undefined;
+    }
     if (!action?.resolve) {
       return;
     }

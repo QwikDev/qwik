@@ -12,7 +12,11 @@ export default component$(() => {
       <p>{parentData.value.hello}</p>
       <button
         id="refresh-parent-loader"
-        onClick$={() => (parentData as ComputedSignal<unknown>).invalidate(true)}
+        onClick$={() => {
+          const loader = parentData as ComputedSignal<unknown>;
+          loader.invalidate(true);
+          void loader.promise();
+        }}
       >
         Refresh
       </button>

@@ -55,12 +55,9 @@ test.describe('router ssg snapshot', () => {
       manifestHash
     );
 
-    // Regression guard: loaderPaths must map the root loader to "/", or off-route loaders fetch the
-    // wrong URL and 404. The map is its own state root; the loader hash is optimizer-derived.
+    // Root loader paths must survive serialization for off-route fetches.
     expect(normalizedState).toContain('{string} "loaderPaths"');
-    expect(normalizedState).toMatch(
-      /\n\d+ Object \[\s+\{string\} "[a-z0-9]+"\s+\{string\} "\/"\s+\]/
-    );
+    expect(normalizedState).toMatch(/Object \[\s+\{string\} "[a-z0-9]+"\s+\{string\} "\/"\s+\]/);
 
     expect(normalizedState).not.toMatch(
       /\{string\} "(?:client|routeLoaderIds|committed|navigationKey)"/

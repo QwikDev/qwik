@@ -78,6 +78,7 @@ export const routeActionQrl = ((
       return initialState as ActionStore<unknown, unknown>;
     });
 
+    const latestSubmission = { current: undefined as object | undefined };
     const submit = $((input: unknown | FormData | SubmitEvent = {}) => {
       if (isServer) {
         throw new Error(`Actions can not be invoked within the server during SSR.
@@ -100,24 +101,42 @@ Action.run() can only be called on the browser, for example when a user clicks a
       } else {
         data = input;
       }
-      return new Promise<RouteActionResolver>((resolve) => {
-        if (data instanceof FormData) {
-          state.formData = data;
+      const submission = {};
+      latestSubmission.current = submission;
+      const previousDispatch = currentAction.pendingDispatch ?? Promise.resolve();
+      let resolveDispatch!: () => void;
+      currentAction.pendingDispatch = noSerialize(
+        new Promise<void>((resolve) => {
+          resolveDispatch = resolve;
+        })
+      );
+      const run = previousDispatch.then(
+        () =>
+          new Promise<RouteActionResolver>((resolve) => {
+            if (data instanceof FormData) {
+              state.formData = data;
+            }
+            state.submitted = true;
+            state.isRunning = true;
+            loc.isNavigating = true;
+            currentAction.cancelPending?.();
+            currentAction.value = {
+              data: data as Record<string, unknown>,
+              id,
+              resolve: noSerialize(resolve),
+              resolveDispatch: noSerialize(resolveDispatch),
+            };
+          })
+      );
+      return run.then(({ result, status }) => {
+        const isLatestSubmission = latestSubmission.current === submission;
+        if (isLatestSubmission) {
+          state.isRunning = false;
+          state.status = status;
+          state.value = result;
         }
-        state.submitted = true;
-        state.isRunning = true;
-        loc.isNavigating = true;
-        currentAction.value = {
-          data: data as Record<string, unknown>,
-          id,
-          resolve: noSerialize(resolve),
-        };
-      }).then(({ result, status }) => {
-        state.isRunning = false;
-        state.status = status;
-        state.value = result;
         if (form) {
-          if (form.getAttribute('data-spa-reset') === 'true') {
+          if (isLatestSubmission && form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
           }
           const detail = { status, value: result } satisfies FormSubmitCompletedDetail<unknown>;

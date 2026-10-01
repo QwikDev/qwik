@@ -146,7 +146,11 @@ export type RouteNavigate = QRL<
   ) => Promise<void>
 >;
 
-export type RouteAction = Signal<RouteActionValue>;
+export type RouteAction = Signal<RouteActionValue> & {
+  pendingDispatch?: NoSerialize<Promise<void>>;
+  /** Release a pending task before replacing its action. */
+  cancelPending?: NoSerialize<() => void>;
+};
 
 export type RouteActionResolver = { status: number; result: unknown };
 export type RouteActionValue =
@@ -155,6 +159,7 @@ export type RouteActionValue =
       data: FormData | Record<string, unknown> | undefined;
       output?: RouteActionResolver;
       resolve?: NoSerialize<(data: RouteActionResolver) => void>;
+      resolveDispatch?: NoSerialize<() => void>;
     }
   | undefined;
 

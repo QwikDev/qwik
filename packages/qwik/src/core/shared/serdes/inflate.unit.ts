@@ -176,7 +176,9 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
   it('notifies a subscriber root only after its inflation settles', async () => {
     const context = createContext('');
     const signal = useSignal(1);
-    const batch = allocateDomEffect(context, EffectKind.DomBatch) as { fn: () => void };
+    const batch = allocateDomEffect(context, EffectKind.DomBatch) as unknown as {
+      fn: () => void;
+    };
     registerSubscriberToOwner(batch as unknown as DomBatchEffect, createOwner(null));
     let finishInflation!: () => void;
     const inflation = new Promise<void>((resolve) => (finishInflation = resolve));

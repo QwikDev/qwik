@@ -119,6 +119,24 @@ describe('async signal', () => {
     expect(continued).toBe(false);
   });
 
+  it('recomputes when read after an abort left no value', async () => {
+    let runs = 0;
+    const signal = createOwned(() =>
+      useAsync<number>(async () => {
+        const run = ++runs;
+        (await _await(Promise.resolve()))();
+        return run;
+      })
+    );
+
+    expect(() => signal.value).toThrow(Promise);
+    signal.abort();
+
+    expect(() => signal.value).toThrow(Promise);
+    await signal.promise();
+    expect(signal.value).toBe(2);
+  });
+
   it('times out pending work', async () => {
     const signal = createOwned(() =>
       useAsync<number>(

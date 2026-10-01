@@ -268,6 +268,8 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       throw qError(QError.asyncClientOnlyValueDuringSSR);
     }
     if (!(this.flags & ComputedFlags.HasValue)) {
+      // Cancelled work left nothing to return, so the read starts over.
+      this.flags |= ComputedFlags.Dirty;
       this.computeIfNeeded();
       if (this.current?.promise) {
         throw this.current.promise;

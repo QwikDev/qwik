@@ -243,6 +243,7 @@ test.describe('Docs site smoke tests', () => {
     await expect(code).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(token).toHaveCSS('color', 'rgb(215, 58, 73)');
     await expect(preview.locator('html')).not.toHaveClass(/\bdark\b/);
+    await expect(preview.locator('html')).toHaveAttribute('data-theme', 'light');
 
     await page.locator('html').evaluate((html) => {
       html.classList.add('dark');
@@ -259,6 +260,7 @@ test.describe('Docs site smoke tests', () => {
       'color(srgb 0.0305882 0.137255 0.212941)'
     );
     await expect(preview.locator('html')).toHaveClass(/\bdark\b/);
+    await expect(preview.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(preview.locator('body')).toHaveCSS('background-color', 'rgb(12, 7, 20)');
   });
 

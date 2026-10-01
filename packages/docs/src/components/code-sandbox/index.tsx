@@ -17,10 +17,13 @@ export default component$<{
 
   useVisibleTask$(({ cleanup }) => {
     const syncTheme = () => {
-      iframe.value?.contentDocument?.documentElement.classList.toggle(
-        'dark',
-        document.documentElement.matches('.dark, [data-theme="dark"]')
-      );
+      const previewRoot = iframe.value?.contentDocument?.documentElement;
+      if (!previewRoot) {
+        return;
+      }
+      const isDark = document.documentElement.matches('.dark, [data-theme="dark"]');
+      previewRoot.classList.toggle('dark', isDark);
+      previewRoot.setAttribute('data-theme', isDark ? 'dark' : 'light');
     };
     const observer = new MutationObserver(syncTheme);
     observer.observe(document.documentElement, {

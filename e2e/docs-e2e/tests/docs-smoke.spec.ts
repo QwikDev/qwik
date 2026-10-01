@@ -306,6 +306,17 @@ test.describe('Docs site smoke tests', () => {
     await expect(page.locator('.docs-shell ~ [data-docs-sidebar]')).toHaveCount(1);
   });
 
+  test('docs content keeps its position before the sidebar streams in', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/core/overview/');
+    const main = page.locator('.docs-main');
+    const leftWithSidebar = (await main.boundingBox())!.x;
+
+    await page.locator('[data-docs-sidebar]').evaluate((sidebar) => sidebar.remove());
+
+    expect((await main.boundingBox())!.x).toBe(leftWithSidebar);
+  });
+
   for (const viewport of [
     { name: 'mobile', width: 390, height: 844 },
     { name: 'tablet', width: 1024, height: 768 },

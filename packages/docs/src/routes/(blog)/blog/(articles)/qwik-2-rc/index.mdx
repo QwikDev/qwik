@@ -27,7 +27,7 @@ Agents learn an unfamiliar API in seconds, build features and fix bugs in minute
 
 But however smart AI gets, it can't fix a tool's fundamental flaws by using that very same tool. Your self-driving car can get as smart as you want, but if its engine is weak, it will remain stuck behind every grandma on the road. To fix that, you need a better engine.
 
-Coding agents are the same: they can be as smart and code as fast as you want, but if your framework forces the browser to download or run more code than needed or does so inefficiently, your app gets slower as the amount of code and complexity increases, and your users pay the price. To fix that, you need a more efficient framework.
+Coding agents are the same: they can be as smart as you want  and build all the features you can think of, but if your framework forces the browser to download or run more code than needed, your app gets slower as the amount of code and complexity increases, and your users pay the price. To fix that, you need a more efficient framework.
 
 Today the Qwik team is happy to announce the 2.0 RC, far ahead in terms of startup performance on small apps and at scale, and now rivaling in all other areas, from capabilities to agent experience as well as overall performance.
 
@@ -108,9 +108,9 @@ Qwik v2 has gotten significantly more optimized and stable. While the numbers ar
   alt="Two-panel comic. A designer points at a blank browser window and asks: 'Can you add a skeleton here instead of the blank screen?' The developer answers: 'No, not possible, sorry.' Then he shows a dancing 3D skeleton: 'But we can ask Claude to put a 3D one after the page loads and make it dance, look!' She looks unimpressed."
 />
 
-With in-order streaming, a slow fetch stalls every byte after it. The usual workaround is to start all fetches in parallel before sending the first byte of HTML. This avoids turning all your fetch calls into a giant waterfall, but comes at the price of your users facing a blank screen until the slowest fetch resolves.
+AI might be impressive at building 3D animations with threejs, but it can't magically speed up the network. Even with in-order HTML streaming, a slow fetch still stalls every byte after it. The usual workaround is to start all fetches in parallel before sending the first byte of HTML. This avoids turning all your fetch calls into a giant waterfall, but comes at the price of your users facing a blank screen until the slowest fetch resolves.
 
-With out-of-order streaming now available in Qwik, you can wrap your components in `<Pending fallback$={() => ...}>` boundaries and the server stops waiting for them. Instead, it sends the rest of the page right away, with a fallback where the slow part goes, and streams the real content later in the same response. A small inline script swaps it in, and the boundary resumes like the rest of the page.
+With out-of-order streaming now available in Qwik, you can wrap your components in `<Pending fallback$={() => ...}>` boundaries and the server stops waiting for them. Instead, it sends the rest of the page right away, with a fallback where the slow part goes, and streams the real content later in the same response. A small inline script swaps it in, and the boundary resumes like the rest of the page. You can now show your skeleton fallbacks while the data is loading for the first time.
 
 `<Pending>`, `<Catch>` and `blockSSR: false` are experimental. Turn them on in `vite.config.ts`:
 

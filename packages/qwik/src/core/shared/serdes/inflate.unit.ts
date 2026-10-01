@@ -16,6 +16,7 @@ import { useSignal } from '../../reactive/public-api';
 import type { Signal } from '../../reactive/signal';
 import { createContainerContext, type ContainerContext } from '../../runtime/container-context';
 import { createContextScope, isContextScope } from '../../runtime/context-scope';
+import { createOwner, registerSubscriberToOwner } from '../../runtime/owner';
 import { Constants, TypeIds } from './constants';
 import { inflate } from './inflate';
 import { allocateDomEffect } from './allocate';
@@ -170,6 +171,34 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     expect(toArray(signal.subs).some(isLazySerialized)).toBe(false);
     expect(toArray(signal.subs)[0]).toBeInstanceOf(TextNodeEffect);
     expect(context.element.querySelector('p')?.textContent).toBe('2');
+  });
+
+  it('notifies a subscriber root only after its inflation settles', async () => {
+    const context = createContext('');
+    const signal = useSignal(1);
+    const batch = allocateDomEffect(context, EffectKind.DomBatch) as { fn: () => void };
+    registerSubscriberToOwner(batch as unknown as DomBatchEffect, createOwner(null));
+    let finishInflation!: () => void;
+    const inflation = new Promise<void>((resolve) => (finishInflation = resolve));
+    context.state.liveRoots.set(0, batch);
+    context.state.inflatingRoots = new WeakMap([[batch, inflation]]);
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await inflate(context, signal, TypeIds.Signal, [TypeIds.Plain, 1, TypeIds.RootRef, 0]);
+    signal.value = 2;
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve();
+    }
+    expect(toArray(signal.subs).some(isLazySerialized)).toBe(true);
+
+    const run = vi.fn();
+    batch.fn = run;
+    finishInflation();
+    await context.scheduler.flushInteraction();
+
+    expect(run).toHaveBeenCalledOnce();
+    expect(logged).not.toHaveBeenCalled();
+    logged.mockRestore();
   });
 
   it('drops a DOM subscriber whose element is no longer in the document', async () => {

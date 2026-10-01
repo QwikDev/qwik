@@ -43,7 +43,11 @@ import {
 } from '../../reactive/store';
 import { appendSourceSubscriber, type Source, type SourceSub } from '../../reactive/source';
 import { addDependency } from '../../reactive/tracking';
-import { getContextScopeForNode, type ContainerContext } from '../../runtime/container-context';
+import {
+  getContextScopeForNode,
+  whenRootInflated,
+  type ContainerContext,
+} from '../../runtime/container-context';
 import type { ContextScope } from '../../runtime/context-scope';
 import { newInvokeContext, type RuntimeInvokeContext } from '../../runtime/invoke-context';
 import type { UseOnMap } from '../../runtime/use-on';
@@ -107,10 +111,12 @@ function lazySubscriber(
 ): LazySerialized<Subscriber> {
   return new LazySerialized<Subscriber>(
     () =>
-      maybeThen(load(), (subscriber) =>
-        subscriber instanceof TaskSubscription && subscriber.task.phase === Phase.BlockingTask
-          ? maybeThen(getFunctionOrResolve(subscriber.task.qrl!, container), () => subscriber)
-          : subscriber
+      maybeThen(
+        maybeThen(load(), (subscriber) => whenRootInflated(container, subscriber)),
+        (subscriber) =>
+          subscriber instanceof TaskSubscription && subscriber.task.phase === Phase.BlockingTask
+            ? maybeThen(getFunctionOrResolve(subscriber.task.qrl!, container), () => subscriber)
+            : subscriber
       ),
     container.scheduler
   );

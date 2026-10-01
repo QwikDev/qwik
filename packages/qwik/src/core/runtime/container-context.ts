@@ -13,6 +13,7 @@ import type { ServerDataContext } from './use-server-data';
 import type { Subscriber } from './subscriber';
 import { deserializeCaptures } from '../shared/serdes/captures';
 import { isPromise } from '../shared/utils/promises';
+import type { ValueOrPromise } from '../shared/utils/types';
 import { qTest } from '../shared/utils/qdev';
 
 const STATE_SCRIPT_TYPE = 'qwik/state';
@@ -235,6 +236,13 @@ function getForwardRefs(context: ContainerContext): Array<number | string> | nul
 }
 
 /** The shared root reader; standalone contexts (`_deserialize`) use it too. */
+/** A root handed out while it inflates is only safe to run once that inflation settles. */
+export function whenRootInflated<T>(context: ContainerContext, root: T): ValueOrPromise<T> {
+  const inflation =
+    root !== null && typeof root === 'object' ? context.state.inflatingRoots?.get(root) : undefined;
+  return inflation === undefined ? root : inflation.then(() => root);
+}
+
 export function getStateRoot(context: ContainerContext, id: number): Promise<unknown> {
   const state = context.state;
   if (state.liveRoots.has(id)) {
@@ -349,7 +357,10 @@ function appendStreamedSubscriber(
   subscriberId: number
 ): LazySerialized<Subscriber> {
   const lazy = new LazySerialized(
-    () => context.getRoot(subscriberId) as Promise<Subscriber>,
+    () =>
+      context
+        .getRoot(subscriberId)
+        .then((subscriber) => whenRootInflated(context, subscriber as Subscriber)),
     context.scheduler
   );
   appendSourceSubscriber(source, lazy);

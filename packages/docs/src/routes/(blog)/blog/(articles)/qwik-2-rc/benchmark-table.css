@@ -67,7 +67,7 @@
 .docs article .benchmark-table td {
   border: 0 solid var(--color-background-base);
   border-width: 0 var(--cell-gap) var(--cell-gap) 0;
-  color: var(--color-foreground-emphasis);
+  color: var(--color-slate-deep);
 }
 
 .docs article .benchmark-table tfoot td {

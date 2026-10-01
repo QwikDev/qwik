@@ -440,6 +440,122 @@ describe('qwikloader behavior', () => {
     }
   });
 
+  describe('handlers that load before they start', () => {
+    type Phases = Record<string, { loaded: Promise<void>; body?: Promise<void> }>;
+
+    /** One cached internal symbol for every element, like the `_run` the server emits. */
+    const loadingQrl = (label: string) =>
+      `data:text/javascript;charset=utf-8,${encodeURIComponent(
+        'export function _load() { return globalThis.__qwikLoaderLoad(this); }'
+      )}#_load#${label}`;
+
+    const setup = async (phases: Phases) => {
+      const { doc } = createLoaderEnvironment(['e:click']);
+      const logs: string[] = [];
+      (globalThis as any).__qwikLoaderLoad = (label: string) => {
+        logs.push(`load ${label}`);
+        return phases[label].loaded.then(() => () => {
+          logs.push(`start ${label}`);
+          return phases[label].body;
+        });
+      };
+      const container = createMockElement(null, { 'q:container': 'resumed', 'q:base': './' });
+      const click = getSingleListener(doc, 'click').handler;
+      const button = (label: string) =>
+        createMockElement(container, { 'q-e:click': loadingQrl(label) });
+      // the first event imports the symbol; later ones find it cached
+      click(createMockEvent(button('warm')));
+      await vi.waitFor(() => expect(logs).toEqual(['load warm', 'start warm']));
+      logs.length = 0;
+      return { click, button, container, logs };
+    };
+
+    test('starts them in event order when an earlier one loads slower', async () => {
+      let finishLoading!: () => void;
+      const { click, button, logs } = await setup({
+        warm: { loaded: Promise.resolve() },
+        first: { loaded: new Promise<void>((resolve) => (finishLoading = resolve)) },
+        second: { loaded: Promise.resolve() },
+      });
+
+      click(createMockEvent(button('first')));
+      click(createMockEvent(button('second')));
+      await flushQueuedTasks();
+      // both load at once, but neither may start yet
+      expect(logs).toEqual(['load first', 'load second']);
+
+      finishLoading();
+      await vi.waitFor(() =>
+        expect(logs).toEqual(['load first', 'load second', 'start first', 'start second'])
+      );
+    });
+
+    test('starts a later one while an earlier one is still running', async () => {
+      const { click, button, logs } = await setup({
+        warm: { loaded: Promise.resolve() },
+        first: { loaded: Promise.resolve(), body: new Promise<void>(() => {}) },
+        second: { loaded: Promise.resolve() },
+      });
+
+      click(createMockEvent(button('first')));
+      click(createMockEvent(button('second')));
+
+      await vi.waitFor(() =>
+        expect(logs).toEqual(['load first', 'load second', 'start first', 'start second'])
+      );
+    });
+
+    test('holds a client handler back until an earlier event has loaded', async () => {
+      let finishLoading!: () => void;
+      const { click, button, container, logs } = await setup({
+        warm: { loaded: Promise.resolve() },
+        first: { loaded: new Promise<void>((resolve) => (finishLoading = resolve)) },
+      });
+      const clientButton = createMockElement(container, {}, () => {
+        logs.push('start client');
+      });
+
+      click(createMockEvent(button('first')));
+      click(createMockEvent(clientButton));
+      await flushQueuedTasks();
+      expect(logs).toEqual(['load first']);
+
+      finishLoading();
+      await vi.waitFor(() => expect(logs).toEqual(['load first', 'start first', 'start client']));
+    });
+
+    test('starts later events after an earlier one fails to load', async () => {
+      const failed = Promise.reject(new Error('load failed'));
+      failed.catch(() => {});
+      const { click, button, logs } = await setup({
+        warm: { loaded: Promise.resolve() },
+        first: { loaded: failed },
+        second: { loaded: Promise.resolve() },
+      });
+
+      click(createMockEvent(button('first')));
+      click(createMockEvent(button('second')));
+
+      await vi.waitFor(() => expect(logs).toEqual(['load first', 'load second', 'start second']));
+    });
+
+    test('skips one whose element was removed while it loaded', async () => {
+      let finishLoading!: () => void;
+      const { click, button, logs } = await setup({
+        warm: { loaded: Promise.resolve() },
+        first: { loaded: new Promise<void>((resolve) => (finishLoading = resolve)) },
+      });
+      const removed = button('first');
+
+      click(createMockEvent(removed));
+      removed.isConnected = false;
+      finishLoading();
+      await flushQueuedTasks();
+
+      expect(logs).toEqual(['load first']);
+    });
+  });
+
   test('runs sync qrls during dispatch while a prior event is still pending', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];

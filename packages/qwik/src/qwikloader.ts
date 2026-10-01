@@ -30,12 +30,15 @@ import type {
 } from './core/shared/types';
 
 /** Event handlers get the captured ids as a string `this` */
-type Handler = (this: string | undefined, ev: Event, el: Element) => void | Promise<void>;
+type Handler = (this: string | undefined, ev: Event, el: Element) => unknown;
 type CapturedHandler = unknown[] & {
   _qRun?: (captures: CapturedHandler, ev: Event, el: Element) => void | Promise<void>;
 };
 type DispatchHandler = ((ev: Event, el: Element) => void | Promise<void>) | CapturedHandler;
-type Task = () => void | Promise<void>;
+/** Runs the handler; its result is what the rest of the event's chain waits for. */
+type Start = () => unknown;
+/** A handler that already ran is its pending result; any other task resolves to its start. */
+type Task = Promise<unknown> | (() => unknown);
 type QwikEventCommand = typeof QwikEvContainerReady;
 type QwikEventItem = string | (EventTarget & ParentNode) | QwikEventCommand;
 
@@ -58,8 +61,8 @@ const symbols = new Map<string, Handler>();
 const readyContainers: Record<string, 1> = {};
 let observer: IntersectionObserver | undefined;
 let hasInitialized: number | undefined;
-let queuedTasks: Promise<void> | undefined;
-let queuedTaskId = 0;
+/** Settles once every earlier event has loaded its handlers and started the first one. */
+let loadingEvents: Promise<void> | undefined;
 
 // ====== Utilities ======
 const nativeQuerySelectorAll = (root: ParentNode, selector: string) =>
@@ -92,34 +95,50 @@ const findShadowRoots = (fragment: EventTarget & ParentNode) => {
 const isPromise = (promise: any): promise is Promise<any> =>
   promise && typeof promise.then === 'function';
 
-const runTasks = async (tasks: Task[]) => {
+/** Runs `fn`, routing a throw or a rejection to `onError`. */
+const attempt = (fn: () => unknown, onError: (error: unknown) => void) => {
+  try {
+    const result = fn();
+    return isPromise(result) ? result.catch(onError) : result;
+  } catch (error) {
+    onError(error);
+  }
+};
+
+const runTasks = async (tasks: Task[], started?: () => void) => {
   for (let i = 0; i < tasks.length; i++) {
-    await tasks[i]();
+    const task = tasks[i];
+    let result: unknown = task;
+    if (!isPromise(task)) {
+      const start = (await task()) as Start | false | undefined;
+      result = start && start();
+    }
+    i || started?.();
+    await result;
   }
 };
 
 const queueTasks = (tasks: Task[], eventName: string) => {
   if (tasks.length) {
-    const run = () => runTasks(tasks);
+    let started: (() => void) | undefined;
+    const run = () => runTasks(tasks, started);
     if (eventName.charAt(0) === 'q') {
       void run();
       return;
     }
-    const task = queuedTasks ? queuedTasks.then(run, run) : run();
-    const currentTaskId = ++queuedTaskId;
-    queuedTasks = task.then(
-      () => {
-        if (queuedTaskId === currentTaskId) {
-          queuedTasks = undefined;
-        }
-      },
-      (reason) => {
-        if (queuedTaskId === currentTaskId) {
-          queuedTasks = undefined;
-        }
-        throw reason;
-      }
-    );
+    const earlier = loadingEvents;
+    if (!isPromise(tasks[0])) {
+      const loading = (loadingEvents = new Promise<void>((resolve) => {
+        started = () => {
+          resolve();
+          if (loadingEvents === loading) {
+            loadingEvents = undefined;
+          }
+        };
+      }));
+    }
+    // a failed task must not leave later events waiting
+    void (earlier ? earlier.then(run) : run()).finally(started);
   }
 };
 
@@ -281,9 +300,21 @@ const dispatch = (
   /** A capture handler queued work, so bubbling must not overtake it. */
   afterCapture = false
 ) => {
-  let defer = afterCapture;
+  // an earlier event that is still loading must start first
+  let defer = afterCapture || !!loadingEvents;
   /** Async progress within this event's own chain — sync qrls only wait for these. */
   let chainAsync = false;
+  const startOrDefer = (start: Start, isSync = false) => {
+    if (defer && !isSync) {
+      tasks.push(() => start);
+    } else {
+      const result = start();
+      if (isPromise(result)) {
+        defer = chainAsync = true;
+        tasks.push(result);
+      }
+    }
+  };
   if (kebabName) {
     if (allowPreventDefault && element.hasAttribute('preventdefault:' + kebabName)) {
       ev.preventDefault();
@@ -296,40 +327,12 @@ const dispatch = (
   const handlers = (element as QElement)._qDispatch?.[scopedKebabName];
   if (handlers) {
     if (typeof handlers === 'function' || isCapturedHandler(handlers)) {
-      const run = () => runDispatchHandler(handlers as DispatchHandler, ev, element);
-      if (defer) {
-        tasks.push(async () => {
-          const result = run();
-          if (isPromise(result)) {
-            await result;
-          }
-        });
-      } else {
-        const result = run();
-        if (isPromise(result)) {
-          defer = true;
-          tasks.push(() => result);
-        }
-      }
-    } else if (handlers.length) {
+      startOrDefer(() => runDispatchHandler(handlers as DispatchHandler, ev, element));
+    } else {
       for (let i = 0; i < handlers.length; i++) {
         const handler = handlers[i] as DispatchHandler | undefined;
         if (handler) {
-          const run = () => runDispatchHandler(handler, ev, element);
-          if (defer) {
-            tasks.push(async () => {
-              const result = run();
-              if (isPromise(result)) {
-                await result;
-              }
-            });
-          } else {
-            const result = run();
-            if (isPromise(result)) {
-              defer = true;
-              tasks.push(() => result);
-            }
-          }
+          startOrDefer(() => runDispatchHandler(handler, ev, element));
         }
       }
     }
@@ -350,56 +353,51 @@ const dispatch = (
       const qrl = qrls[i];
       const reqTime = performance.now();
       const [chunk, symbol, capturedIds] = qrl.split('#');
-      const run = (handler: Handler | undefined): void | Promise<void> => {
-        if (handler && element.isConnected) {
-          const onError = (error: any) => {
-            emitEvent<QwikErrorEvent>('qerror', {
-              error,
-              qBase,
-              symbol,
-              element,
-              reqTime,
-            });
-          };
-          try {
-            const result = handler.call(capturedIds, ev, element);
-            if (isPromise(result)) {
-              return result.catch(onError);
-            }
-          } catch (error) {
-            return onError(error);
-          }
-        }
+      const onError = (error: unknown) => {
+        emitEvent<QwikErrorEvent>('qerror', {
+          error,
+          qBase,
+          symbol,
+          element,
+          reqTime,
+        });
       };
+      const run = (handler: Handler | undefined) =>
+        handler && element.isConnected
+          ? attempt(() => handler.call(capturedIds, ev, element), onError)
+          : undefined;
       const resolve = (reportSyncError = true) =>
         resolveHandler(container, element, qBase, base, chunk, symbol, reqTime, reportSyncError);
+      // An internal handler only loads when called and resolves to its start, so it may load early.
+      const isInternal = symbol.charAt(0) === '_';
+      const load = (handler: Handler | undefined) => {
+        if (!isInternal) {
+          return () => run(handler);
+        }
+        const loading: unknown = run(handler);
+        return (
+          isPromise(loading) &&
+          loading.then(
+            (start) =>
+              typeof start === 'function' &&
+              (() => element.isConnected && attempt(start as Start, onError))
+          )
+        );
+      };
       const handler = waitForReady ? undefined : resolve();
-      if (waitForReady) {
+      const loading = waitForReady
+        ? (waitForReady as Promise<void>).then(async () =>
+            load((await resolve(false)) || (await resolve()))
+          )
+        : isPromise(handler)
+          ? handler.then(load)
+          : isInternal && load(handler);
+      if (loading) {
         defer = chainAsync = true;
-        tasks.push(async () => {
-          await waitForReady;
-          await run((await resolve(false)) || (await resolve()));
-        });
-      } else if (isPromise(handler)) {
-        defer = chainAsync = true;
-        tasks.push(() => handler.then(run));
-      } else if (!chunk && !chainAsync) {
+        tasks.push(() => loading);
+      } else if (!isInternal) {
         // sync$ modifiers must apply inside the dispatch even while prior events drain
-        const result = run(handler);
-        if (isPromise(result)) {
-          defer = chainAsync = true;
-          tasks.push(() => result);
-        }
-      } else if (defer) {
-        tasks.push(async () => {
-          await run(handler || (await resolve()));
-        });
-      } else {
-        const result = run(handler);
-        if (isPromise(result)) {
-          defer = chainAsync = true;
-          tasks.push(() => result);
-        }
+        startOrDefer(() => run((handler || resolve()) as Handler), !chunk && !chainAsync);
       }
     }
   }

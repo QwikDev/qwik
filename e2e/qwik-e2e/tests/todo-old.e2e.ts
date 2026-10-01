@@ -61,6 +61,21 @@ test.describe('Todo', () => {
     await assertItemCount(page, 2);
   });
 
+  test('should clear completed when the toggle handler loads slowly', async ({ page }) => {
+    let delayedChunks = 0;
+    await page.route(/item.*q_e_click/, async (route) => {
+      delayedChunks++;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      await route.continue();
+    });
+    await assertItemCount(page, 3);
+    await page.locator('.todo-list>li:first-child input[type=checkbox]').click();
+    await page.locator('button.clear-completed').click();
+    await assertItemCount(page, 2);
+    // without a delayed chunk this test proves nothing about event order
+    expect(delayedChunks).toBeGreaterThan(0);
+  });
+
   test('should remove first item and update last', async ({ page }) => {
     await assertItemCount(page, 3);
     await page.locator('.todo-list>li:first-child').hover();

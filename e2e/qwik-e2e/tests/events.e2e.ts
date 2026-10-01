@@ -75,11 +75,28 @@ test.describe('events', () => {
   test('should preserve mouseleave and mouseover execution order', async ({ page }) => {
     const red = page.locator('#hover-order-red');
     const blue = page.locator('#hover-order-blue');
+    // An earlier event loads the shared handler entry, so only the red chunk is slow below.
+    await page.locator('#stop-propagation').click();
+    await expect(page.locator('#count-propagation')).toHaveText('countPropagationStopped: 1');
+    // mouseleave fires first, so the first handler segment requested is the red one
+    let slowSegment: string | undefined;
+    let delayedChunks = 0;
+    await page.route('**/build/**', async (route) => {
+      const segment = route.request().url().split('_segment_')[1];
+      slowSegment ??= segment;
+      if (segment !== undefined && segment === slowSegment) {
+        delayedChunks++;
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+      await route.continue();
+    });
 
     await red.hover();
     await blue.hover();
 
     await expect(page.locator('#hover-order-log')).toHaveText('red mouse out|blue mouse in');
+    // without a delayed chunk this test proves nothing about event order
+    expect(delayedChunks).toBeGreaterThan(0);
   });
 
   test(`GIVEN "stoppropagation" is set as a attribute 

@@ -7,47 +7,38 @@ import type { ValueOrPromise } from './shared/utils/types';
 import { getOrCreateContainerContext, type ContainerContext } from './runtime/container-context';
 import type { VisibleTaskSubscription } from './runtime/task';
 import { SubscriberFlags } from './reactive/flags';
-import { invoke, newInvokeContext, type RuntimeInvokeContext } from './runtime/invoke-context';
+import { invoke, newInvokeContext } from './runtime/invoke-context';
 
 export { _captures, _capturesObj };
 export { withCaptures as _withCaptures };
 
+type EventQrl = QRLInternal<(...args: any[]) => void>;
+
+/** Loads the handler and resolves to its start, which qwikloader calls in event order. */
 export function _run(this: string, event: Event, element: Element): ValueOrPromise<unknown> {
   if (!element.isConnected) {
     return;
   }
   const context = getOrCreateContainerContext(element);
-  return runQrl(this, event, element, context, newInvokeContext({ container: context }));
+  const invokeContext = newInvokeContext({ container: context });
+  return loadEventQrl(this, context).then(
+    (qrl) => () => retryOnPromise(() => invoke(invokeContext, qrl.resolved!, event, element))
+  );
 }
 
-function runQrl(
-  thisValue: unknown,
-  event: Event,
-  element: Element,
-  context: ContainerContext,
-  invokeContext: RuntimeInvokeContext
-): ValueOrPromise<unknown> {
-  if (typeof thisValue === 'string') {
-    return context.restoreCaptures(thisValue).then((captures) => {
-      setCaptures(captures);
-      return runCapturedQrl(captures, event, element, context, invokeContext);
-    });
-  }
-  return runCapturedQrl(_capturesObj._!, event, element, context, invokeContext);
-}
-
-function runCapturedQrl(
-  captures: Readonly<unknown[]>,
-  event: Event,
-  element: Element,
-  context: ContainerContext,
-  invokeContext: RuntimeInvokeContext
-): ValueOrPromise<unknown> {
-  const qrlToRun = captures[0] as QRLInternal<(...args: any[]) => void>;
-  isDev && assertQrl(qrlToRun);
-  return qrlToRun
-    .resolve(context)
-    .then(() => retryOnPromise(() => invoke(invokeContext, qrlToRun.resolved!, event, element)));
+function loadEventQrl(thisValue: unknown, context: ContainerContext): Promise<EventQrl> {
+  const captures =
+    typeof thisValue === 'string'
+      ? context.restoreCaptures(thisValue).then((captures) => {
+          setCaptures(captures);
+          return captures;
+        })
+      : Promise.resolve(_capturesObj._!);
+  return captures.then((captures) => {
+    const qrl = captures[0] as EventQrl;
+    isDev && assertQrl(qrl);
+    return qrl.resolve(context).then(() => qrl);
+  });
 }
 
 /** The server serializes the subscription itself, so the resumed owner tree runs its cleanups. */

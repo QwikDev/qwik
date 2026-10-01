@@ -179,23 +179,23 @@ function runQwikLoader(
     .replace(
       queueTasksDeclaration,
       (declaration) => `${declaration}
-        window.__qwikTestLifecycleTasks ||= new Map();
-        window.__qwikTestGetQueuedTasks = (type) => type.charAt(0) === 'q'
-          ? window.__qwikTestLifecycleTasks.get(type) : queuedTasks;`
+        window.__qwikTestTasks ||= new Map();
+        window.__qwikTestGetQueuedTasks = (type) => {
+          const pending = window.__qwikTestTasks.get(type.charAt(0) === 'q' ? type : '');
+          return pending && pending.size ? Promise.all(pending) : undefined;
+        };`
     )
     .replace(
-      'const run = () => runTasks(tasks);',
+      'const run = () => runTasks(tasks, started);',
       `const run = () => {
-        const pending = runTasks(tasks);
-        if (eventName.charAt(0) === 'q') {
-          window.__qwikTestLifecycleTasks.set(eventName, pending);
-          const release = () => {
-            if (window.__qwikTestLifecycleTasks.get(eventName) === pending) {
-              window.__qwikTestLifecycleTasks.delete(eventName);
-            }
-          };
-          pending.then(release, release);
-        }
+        const pending = runTasks(tasks, started);
+        // lifecycle events settle on their own; every other event shares the loader queue
+        const key = eventName.charAt(0) === 'q' ? eventName : '';
+        const tracked = window.__qwikTestTasks.get(key) || new Set();
+        window.__qwikTestTasks.set(key, tracked);
+        tracked.add(pending);
+        const release = () => tracked.delete(pending);
+        pending.then(release, release);
         return pending;
       };`
     )

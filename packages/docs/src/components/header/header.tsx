@@ -1,11 +1,11 @@
-import { component$, type Signal } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import { MobileHeader } from './mobile-header';
 import { DesktopHeader } from './desktop-header';
 
-export const Header = component$((props: { mobileSidebarOpen?: Signal<boolean> }) => {
+export const Header = component$((props: { sidebarId?: string }) => {
   return (
     <>
-      <MobileHeader mobileSidebarOpen={props.mobileSidebarOpen} />
+      <MobileHeader sidebarId={props.sidebarId} />
       <DesktopHeader />
     </>
   );

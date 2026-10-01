@@ -1,10 +1,11 @@
-import { component$, type Signal } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
 import { Link } from '../action/action';
 import { QwikLogoOnly } from '../svgs/qwik-logo';
 import { modal, lucide } from '@qds.dev/ui';
 import { SearchModal } from '../search/search';
 import { ThemeToggle } from '../theme-toggle';
+import { SidebarOpenButton } from './sidebar-open-button';
 
 const MobileNavLink = (props: { href: string; label: string; active?: boolean }) => (
   <a
@@ -42,40 +43,31 @@ const isActive = (pathname: string | undefined, href: string) => {
   return clean === target;
 };
 
-export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<boolean> }) => {
+const showOnlyLogoMarkOnPhones = {
+  class: 'max-sm:w-[26px]',
+  preserveAspectRatio: 'xMinYMid slice',
+};
+
+export const MobileHeader = component$((props: { sidebarId?: string }) => {
   const { url } = useLocation();
   const pathname = url.pathname;
   return (
     <div class="2xl:hidden h-(--header-height) min-h-(--header-height)">
       <modal.root>
         {/* Top bar (always visible) */}
-        <div class="fixed inset-x-0 top-4 z-99999 mx-auto w-[calc(100%-2rem)] max-w-[900px] flex h-16 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-5 shadow-base">
-          <div class="flex items-center gap-2">
-            {props.mobileSidebarOpen && (
-              <button
-                type="button"
-                aria-label={props.mobileSidebarOpen.value ? 'Close sidebar' : 'Open sidebar'}
-                aria-expanded={props.mobileSidebarOpen.value}
-                class="flex items-center justify-center p-0"
-                onClick$={() => (props.mobileSidebarOpen!.value = !props.mobileSidebarOpen!.value)}
-              >
-                {props.mobileSidebarOpen.value ? (
-                  <lucide.panelleftclose class="vanilla-icon" />
-                ) : (
-                  <lucide.panelleftopen class="vanilla-icon" />
-                )}
-              </button>
-            )}
+        <div class="fixed inset-x-0 top-4 z-99999 flex gap-4 mx-auto w-[calc(100%-2rem)] max-w-[900px]">
+          {props.sidebarId && <SidebarOpenButton sidebarId={props.sidebarId} class="xl:hidden" />}
+          <div class="min-w-0 flex-1 flex h-16 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-5 shadow-base">
             <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">
-              <QwikLogoOnly />
+              <QwikLogoOnly {...showOnlyLogoMarkOnPhones} />
             </a>
-          </div>
-          <div class="flex items-center gap-4 min-[360px]:gap-8">
-            <SearchModal />
-            <ThemeToggle />
-            <modal.trigger aria-label="Open menu">
-              <lucide.menu class="vanilla-icon" />
-            </modal.trigger>
+            <div class="flex items-center gap-4 min-[360px]:gap-8">
+              <SearchModal />
+              <ThemeToggle />
+              <modal.trigger aria-label="Open menu">
+                <lucide.menu class="vanilla-icon" />
+              </modal.trigger>
+            </div>
           </div>
         </div>
 
@@ -89,7 +81,7 @@ export const MobileHeader = component$((props: { mobileSidebarOpen?: Signal<bool
           {/* Header inside modal */}
           <div class="mt-4 shrink-0 mx-auto w-[calc(100%-2rem)] max-w-[900px] flex h-16 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-5 shadow-base">
             <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">
-              <QwikLogoOnly />
+              <QwikLogoOnly {...showOnlyLogoMarkOnPhones} />
             </a>
             <div class="flex items-center gap-4 min-[360px]:gap-8">
               <SearchModal />

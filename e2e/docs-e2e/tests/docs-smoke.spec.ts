@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Locator } from '@playwright/test';
 
 test.describe('Docs site smoke tests', () => {
   test('home page loads', async ({ page }) => {
@@ -416,6 +416,34 @@ test.describe('Docs site smoke tests', () => {
       await expect(sidebar).not.toBeInViewport();
     });
   }
+
+  test('mobile docs sidebar opens above the navbar and closes on Escape or outside click', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/docs/');
+
+    const sidebar = page.locator('[data-docs-sidebar] nav');
+    const navbarLogo = page.getByRole('link', { name: 'Logo' }).filter({ visible: true });
+    const isCoveredBySidebar = (locator: Locator) =>
+      locator.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const topElement = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+        return !!topElement?.closest('[data-docs-sidebar]');
+      });
+
+    await page.getByRole('button', { name: 'Open sidebar' }).click();
+    await expect(sidebar).toBeInViewport();
+    expect(await isCoveredBySidebar(navbarLogo)).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(sidebar).not.toBeInViewport();
+
+    await page.getByRole('button', { name: 'Open sidebar' }).click();
+    await expect(sidebar).toBeInViewport();
+    await page.mouse.click(370, 600);
+    await expect(sidebar).not.toBeInViewport();
+    await expect(page).toHaveURL(/\/docs\/$/);
+  });
 
   test('getting started page loads', async ({ page }) => {
     await page.goto('/docs/getting-started/');

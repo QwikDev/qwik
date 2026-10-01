@@ -1,8 +1,11 @@
-import { component$, type Signal } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import { Link, useContent, useLocation, type ContentMenu } from '@qwik.dev/router';
 import { lucide } from '@qds.dev/ui';
+import { hideSidebarOnDismissClick } from '../sidebar-overlay/sidebar-overlay';
 
-export const DocsSidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
+export const docsSidebarId = 'docs-sidebar';
+
+export const DocsSidebar = component$(() => {
   const { menu } = useContent();
   const { url } = useLocation();
   const introSection = menu?.items?.[0];
@@ -10,28 +13,29 @@ export const DocsSidebar = component$((props: { mobileOpen: Signal<boolean> }) =
 
   return (
     <aside
+      id={docsSidebarId}
+      popover="auto"
       data-docs-sidebar
-      class={[
-        'fixed inset-y-0 left-0 z-50 xl:sticky xl:top-0 xl:h-screen xl:pointer-events-auto',
-        props.mobileOpen.value ? 'pointer-events-auto' : 'pointer-events-none',
-      ]}
+      class="group/sidebar fixed inset-0 z-50 m-0 size-full overflow-hidden border-0 bg-background-base/40 p-0 text-foreground-base opacity-0 backdrop-blur-sm transition-[opacity,display,overlay] transition-discrete duration-300 open:opacity-100 starting:open:opacity-0 xl:sticky xl:top-0 xl:block xl:h-screen xl:w-auto xl:overflow-visible xl:bg-transparent xl:opacity-100 xl:backdrop-blur-none"
+      onClick$={(event, aside) => hideSidebarOnDismissClick(event, aside)}
     >
       <nav
         aria-label="Documentation"
-        onClick$={(event) => {
-          if ((event.target as Element).closest('a[href]')) {
-            props.mobileOpen.value = false;
-          }
-        }}
-        class={[
-          'flex h-full w-[287px] flex-col gap-4 overflow-y-auto border-r-[1.6px] border-base bg-background-base px-4 pt-(--header-height) pb-6 xl:pt-6 [scrollbar-gutter:stable] transition-transform duration-300 ease',
-          props.mobileOpen.value ? 'translate-x-0' : '-translate-x-full xl:translate-x-0',
-        ]}
+        class="absolute inset-y-4 left-4 flex w-[287px] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-y-auto rounded-2xl border-[1.6px] border-base bg-background-base px-4 py-6 shadow-base [scrollbar-gutter:stable] -translate-x-[calc(100%+2rem)] transition-transform duration-300 ease group-open/sidebar:translate-x-0 starting:group-open/sidebar:-translate-x-[calc(100%+2rem)] xl:static xl:h-full xl:max-w-none xl:rounded-none xl:border-0 xl:border-r-[1.6px] xl:shadow-none xl:translate-x-0"
       >
-        <div class="hidden items-center xl:flex">
+        <div class="flex items-center justify-between">
           <Link href="/" aria-label="Qwik Home" prefetchBundles="intent" prefetchData="intent">
             <QwikLogomark />
           </Link>
+          <button
+            type="button"
+            popovertarget={docsSidebarId}
+            popovertargetaction="hide"
+            aria-label="Close sidebar"
+            class="flex items-center justify-center p-0 xl:hidden"
+          >
+            <lucide.panelleftclose class="vanilla-icon" />
+          </button>
         </div>
 
         <div class="flex flex-col gap-6">

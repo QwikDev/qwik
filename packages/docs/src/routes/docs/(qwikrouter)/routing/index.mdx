@@ -103,6 +103,23 @@ export default component$(() => {
 });
 ```
 
+### Route priority
+
+When more than one route matches a URL, the most specific one wins. Qwik Router compares matching routes segment by segment, from left to right: a static segment beats a `[param]`, and a `[param]` beats a `[...catchAll]`. The folder order and route group names don't matter.
+
+```bash title="Directory layout"
+src/routes/(marketing)/pricing/index.tsx          → /pricing
+src/routes/(rss)/[section]/feed.xml/index.tsx     → /news/feed.xml
+src/routes/(pages)/[section]/[topic]/index.tsx    → /news/today
+src/routes/(app)/[org]/[...path]/index.tsx        → /acme/settings/billing
+```
+
+- `/pricing` matches `pricing/`, and also `[org]/[...path]` with an empty `path`. The static segment wins.
+- `/news/feed.xml` matches all three dynamic routes. The static `feed.xml` segment is more specific than `[topic]` or `[...path]`, so the feed wins.
+- `/pricing/plans/pro` doesn't fit `pricing/` or the two-segment routes, so it falls through to `[org]/[...path]` with `org` set to `pricing`. A URL only ends up at a 404 page when no route matches it at all.
+
+<Note>If a catch-all shouldn't handle URLs under a static page, check for that prefix in the catch-all's `onRequest` or `onGet` handler and throw `error(404, ...)`.</Note>
+
 ## `index` files
 
 Inside the `src/routes` directory, all files named `index` are considered pages/endpoint/middleware, Qwik supports the following extensions: `.ts`, `.tsx`, `.md` and `.mdx`.

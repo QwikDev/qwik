@@ -279,6 +279,15 @@ interface ChildMatch {
   paramValue?: string;
 }
 
+/** The static child for a segment; inherited object properties (`constructor`, …) are not routes. */
+function getStaticChild(node: RouteData, partLower: string): RouteData | undefined {
+  const key = escapeStaticTrieKey(partLower);
+  if (!Object.prototype.hasOwnProperty.call(node, key)) {
+    return undefined;
+  }
+  return node[key] as RouteData;
+}
+
 /**
  * Try to find a child matching `partLower` in `node`, including inside group children (_M). Returns
  * the matched child node, the groups entered to reach it, what to push to routeParts, and which
@@ -295,7 +304,7 @@ function findChild(
   partIndex: number
 ): ChildMatch | undefined {
   // 1. Try exact match on this node's direct children
-  const exact = node[escapeStaticTrieKey(partLower)] as RouteData | undefined;
+  const exact = getStaticChild(node, partLower);
   if (exact) {
     return {
       next: exact,
@@ -338,8 +347,16 @@ function tryWildcardMatch(
   parts: string[],
   partIndex: number
 ): Omit<ChildMatch, 'groups'> | undefined {
-  // Wildcard [param]
-  let next = node._W as RouteData | undefined;
+  return matchWildcardNode(node, part, partLower) ?? matchRestNode(node, parts, partIndex);
+}
+
+/** Try to match a segment against a node's `[param]` wildcard child (`_W`). */
+function matchWildcardNode(
+  node: RouteData,
+  part: string,
+  partLower: string
+): Omit<ChildMatch, 'groups'> | undefined {
+  const next = node._W as RouteData | undefined;
   if (next) {
     const prefix = next._0;
     const suffix = next._9;
@@ -375,8 +392,16 @@ function tryWildcardMatch(
     }
   }
 
-  // Rest wildcard [...param]
-  next = node._A as RouteData | undefined;
+  return undefined;
+}
+
+/** Try to match the remaining segments against a node's `[...param]` rest child (`_A`). */
+function matchRestNode(
+  node: RouteData,
+  parts: string[],
+  partIndex: number
+): Omit<ChildMatch, 'groups'> | undefined {
+  const next = node._A as RouteData | undefined;
   if (next) {
     const paramName = next._P!;
     const restValue = parts.slice(partIndex).join('/');
@@ -391,6 +416,109 @@ function tryWildcardMatch(
   }
 
   return undefined;
+}
+
+/**
+ * Every child of `node` that could match `partLower`, in the same priority order `findChild` walks:
+ * exact match → `_M` groups (recursively) → `_W` wildcard → `_A` rest wildcard.
+ *
+ * `findChild` stops at the first of these; this returns them all so the matcher can backtrack when
+ * the highest-priority one dead-ends deeper in the trie.
+ */
+function findChildAll(
+  node: RouteData,
+  part: string,
+  partLower: string,
+  parts: string[],
+  partIndex: number
+): ChildMatch[] {
+  const candidates: ChildMatch[] = [];
+
+  const exact = getStaticChild(node, partLower);
+  if (exact) {
+    candidates.push({
+      next: exact,
+      groups: [],
+      routePart: part,
+      done: false,
+      kind: ChildMatchKind.Exact,
+    });
+  }
+
+  if (node._M) {
+    for (let j = 0; j < node._M.length; j++) {
+      const group = node._M[j];
+      const groupCandidates = findChildAll(group, part, partLower, parts, partIndex);
+      for (let k = 0; k < groupCandidates.length; k++) {
+        const candidate = groupCandidates[k];
+        candidates.push({ ...candidate, groups: [group, ...candidate.groups] });
+      }
+    }
+  }
+
+  const wildcard = matchWildcardNode(node, part, partLower);
+  if (wildcard) {
+    candidates.push({ ...wildcard, groups: [] });
+  }
+
+  const rest = matchRestNode(node, parts, partIndex);
+  if (rest) {
+    candidates.push({ ...rest, groups: [] });
+  }
+
+  return candidates;
+}
+
+/**
+ * Search for the most specific chain of child matches that consumes `parts` from `i` and lands on a
+ * route. Chains rank segment by segment: a static segment beats a `[param]`, which beats a
+ * `[...rest]`; ties go to the first in `findChild` order.
+ *
+ * Only chains strictly more specific than `toBeat` (the best tail found so far) are returned, so
+ * branches that can no longer win are pruned. Returns undefined when nothing matches.
+ */
+function findMatchChain(
+  node: RouteData,
+  parts: string[],
+  i: number,
+  toBeat?: ChildMatch[]
+): ChildMatch[] | undefined {
+  if (i === parts.length) {
+    // Reaching the end with a bound means an equally specific chain already exists.
+    return !toBeat && (findIndexNode(node) || findRestNode(node)) ? [] : undefined;
+  }
+
+  const part = parts[i];
+  const candidates = findChildAll(node, part, part.toLowerCase(), parts, i).sort(
+    (a, b) => a.kind - b.kind
+  );
+
+  let best: ChildMatch[] | undefined;
+  for (let c = 0; c < candidates.length; c++) {
+    const found = candidates[c];
+    const bound = best ?? toBeat;
+    if (bound && found.kind > bound[0].kind) {
+      break;
+    }
+    const tailToBeat = bound && found.kind === bound[0].kind ? bound.slice(1) : undefined;
+    const tail = found.done
+      ? matchRestTail(found.next, tailToBeat)
+      : findMatchChain(found.next, parts, i + 1, tailToBeat);
+    if (tail) {
+      best = [found, ...tail];
+    }
+  }
+  return best;
+}
+
+/** A `[...rest]` match ends the chain; it only counts when it has a page and beats the bound. */
+function matchRestTail(restNode: RouteData, toBeat?: ChildMatch[]): ChildMatch[] | undefined {
+  return !toBeat && isRouteNode(restNode) ? [] : undefined;
+}
+
+/** Whether a node renders something: a page (`_I`) or a rewrite (`_G`). */
+function isRouteNode(node: RouteData): boolean {
+  return !!node._I || node._G != null;
 }
 
 /**
@@ -425,7 +553,7 @@ function descendGroups<T>(
  * isn't double-counted).
  */
 function findIndexNode(node: RouteData): { target: RouteData; groups: RouteData[] } | undefined {
-  const r = descendGroups(node, (n) => (n._I || n._G != null ? n : undefined));
+  const r = descendGroups(node, (n) => (isRouteNode(n) ? n : undefined));
   return r ? { target: r.node, groups: r.groups.filter((g) => g !== r.node) } : undefined;
 }
 
@@ -544,11 +672,15 @@ function matchRouteTree(
 
   let i = 0;
   const len = parts.length;
+  // The best complete match, found up front so the walk can take a less obvious branch when the
+  // greedy one dead-ends. Undefined when no route matches at all — the walk is then unchanged, and
+  // still produces the routeParts/params/boundaries the 404 path reports.
+  const chain = findMatchChain(root, parts, 0);
   for (; !done && i < len; i++) {
     const part = parts[i];
     const partLower = part.toLowerCase();
 
-    const found = findChild(node, part, partLower, parts, i);
+    const found = chain ? chain[i] : findChild(node, part, partLower, parts, i);
     if (!found) {
       matched = false;
       break;

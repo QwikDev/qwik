@@ -1,0 +1,267 @@
+---
+title: 'Qwik 2.0 RC: JavaScript streaming without the overhead'
+authors:
+  - 'The Qwik Team'
+tags: ['Qwik']
+date: 'September 30, 2026'
+description: 'Qwik 2.0 RC is out: faster reactivity, smaller HTML and experimental out-of-order streaming.'
+og:
+  - image: /logos/qwik-2-rc-social-card.jpg
+    'image:alt': 'A car with a Qwik light bar overtakes a line of slower cars under a rising Qwik logo'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { DiscordLink } from '~/routes/(blog)/blog/components/mdx/discord-link';
+import { BenchmarkTable } from './benchmark-table';
+import { Image } from 'qwik-image';
+import runtimeMeme from './runtime-meme.webp';
+import skeletonComic from './skeleton-comic.webp';
+
+<ArticleBlock>
+
+For years we compared frameworks and libraries on what a developer touches every day: the authoring experience, the mental model, the learning curve, the ecosystem...
+
+The AI era is changing that list, fast.
+
+Agents learn an unfamiliar API in seconds, build features and fix bugs in minutes, and with enough tests they can even port a whole codebase to another language in days.
+
+But however smart AI gets, it can't fix a tool's fundamental flaws by using that very same tool. Your self-driving car can get as smart as you want, but if its engine is weak, it will remain stuck behind every grandma on the road. To fix that, you need a better engine.
+
+Coding agents are the same: they can be as smart as you want  and build all the features you can think of, but if your framework forces the browser to download or run more code than needed, your app gets slower as the amount of code and complexity increases, and your users pay the price. To fix that, you need a more efficient framework.
+
+Today the Qwik team is happy to announce the 2.0 RC, far ahead in terms of startup performance on small apps and at scale, and now rivaling in all other areas, from capabilities to agent experience as well as overall performance.
+
+## From v1 to v2
+
+Qwik version 1 introduced the idea of [JavaScript streaming](https://next.qwik.dev/docs/concepts/think-qwik/) in a reactive framework.
+
+Components, props, hooks, context... The DX is familiar.
+
+The difference is that instead of downloading and running all of the JavaScript on startup, the server writes the app's state and event listeners into the HTML, and the browser resumes from there, preloading bits of JavaScript, buffered as the user interacts with the application.
+
+Your app becomes responsive in an O(1) instant, the same way video streaming lets you jump around a video without having to download everything as an O(n) uncanny valley.
+
+But as a new framework with a different architecture, there was a fundamental issue that hurt runtime performance and kept us from shipping out-of-order streaming.
+
+Remember those cute little comments/markers all over the place in order to propagate state updates in the output HTML?
+
+```html
+<!-- Qwik v1, simplified -->
+<main>
+  <!--qv q:id=7 q:key=counter-->
+    Count:
+    <!--t=8-->123<!---->
+    !
+    <button on:click="...">+1</button>
+  <!--/qv-->
+</main>
+<script type="qwik/json">{...}</script>
+```
+
+Well, they not only had to be written in one ordered pass, but they also put a toll on CPU memory and induced many inefficiencies. Reactivity was slower than the average framework, and out-of-order streaming was impossible, so a slow fetch held up everything below it, preventing the end user from seeing useful content sooner.
+
+Qwik v2 has this problem no more. The comments are gone, replaced by a single encoded string at the end of the HTML.
+
+```html
+<!-- Qwik v2, simplified -->
+<main>
+  Count: 123!
+  <button on:click="...">+1</button>
+</main>
+<script type="qwik/state">[...]</script>
+<script type="qwik/vnode">...</script>
+```
+
+**The result:** our internal benchmark runs reveal Qwik is now **faster than React, Angular or Vue in terms of reactivity**, and now ships with **experimental support for out-of-order streaming**.
+
+Since v1, a mountain of work has been done and we shipped a lot of other goodies along the way that make Qwik easier to use and more capable.
+## Faster at runtime
+
+<Image
+  class="mx-auto"
+  layout="constrained"
+  src={runtimeMeme}
+  width={545}
+  height={459}
+  alt="The Flash sprinting, captioned 'In theory', above the Flash in a wheelchair, captioned 'In reality'"
+/>
+
+Qwik mainly relies on signals for reactivity, so in theory v1 should have been good at propagating updates, but the partial vDOM got in the way and the code was not yet optimized. With the virtual tree out of the HTML `body`, v2 keeps it in memory as small VNode objects. When a signal changes, Qwik updates the text node or attribute that reads it, now without parsing the HTML again. Large updates are split up: the scheduler yields to the browser every 15 ms, so clicks and typing don't wait behind a long render.
+
+As a result, v2 is more than 2x faster than v1 in terms of reactivity, and faster than Angular, React or Vue overall.
+
+See the numbers on the [js-framework-benchmark](https://github.com/krausest/js-framework-benchmark) table below:
+
+<BenchmarkTable />
+
+Qwik v2 has gotten significantly more optimized and stable. While the numbers are great, we know we can make them even better in a later major... so stay tuned!
+
+> Since this is RC, the results are not published yet and are subject to change until v2 comes out.
+
+## Experimental HTML out-of-order streaming
+
+<Image
+  layout="constrained"
+  src={skeletonComic}
+  width={2000}
+  height={750}
+  alt="Two-panel comic. A designer points at a blank browser window and asks: 'Can you add a skeleton here instead of the blank screen?' The developer answers: 'No, not possible, sorry.' Then he shows a dancing 3D skeleton: 'But we can ask Claude to put a 3D one after the page loads and make it dance, look!' She looks unimpressed."
+/>
+
+AI might be impressive at building 3D animations with threejs, but it can't magically speed up the network. Even with in-order HTML streaming, a slow fetch still stalls every byte after it. The usual workaround is to start all fetches in parallel before sending the first byte of HTML. This avoids turning all your fetch calls into a giant waterfall, but comes at the price of your users facing a blank screen until the slowest fetch resolves.
+
+With out-of-order streaming now available in Qwik, you can wrap your components in `<Pending fallback$={() => ...}>` boundaries and the server stops waiting for them. Instead, it sends the rest of the page right away, with a fallback where the slow part goes, and streams the real content later in the same response. A small inline script swaps it in, and the boundary resumes like the rest of the page. You can now show your skeleton fallbacks while the data is loading for the first time.
+
+`<Pending>`, `<Catch>` and `blockSSR: false` are experimental. Turn them on in `vite.config.ts`:
+
+```ts
+qwikVite({ experimental: ['pendingBoundary', 'catchBoundary', 'blockSSR'] })
+```
+
+An async state can show up in two ways. A fallback replaces part of the page when there is nothing to show yet. An inline state sits next to content that is already on screen. Here is a search box that uses both:
+
+```tsx
+import {
+  Catch,
+  component$,
+  Pending,
+  useComputed$,
+  useSignal,
+  type Signal,
+} from '@qwik.dev/core';
+
+const Results = component$(({ query }: { query: Signal<string> }) => {
+  const results = useComputed$(async ({ abortSignal }) => {
+    const url = `https://api.example.com/search?q=${encodeURIComponent(query.value)}`;
+    const res = await fetch(url, { signal: abortSignal });
+    if (!res.ok) {
+      throw new Error('Search failed');
+    }
+    return (await res.json()) as string[];
+  });
+
+  return (
+    <section>
+      {results.pending && <p>Searching...</p>}
+      {results.error && (
+        <p>
+          Search failed. <button onClick$={() => results.invalidate()}>Try again</button>
+        </p>
+      )}
+      <ul>
+        {results.value.map((result) => (
+          <li key={result}>{result}</li>
+        ))}
+      </ul>
+    </section>
+  );
+});
+
+export const Search = component$(() => {
+  const query = useSignal('');
+
+  return (
+    <>
+      <input type="search" bind:value={query} />
+      <Catch
+        fallback$={(error, reset) => (
+          <p>
+            {error.message} <button onClick$={() => reset()}>Reload</button>
+          </p>
+        )}
+      >
+        <Pending fallback$={() => <p>Loading results...</p>}>
+          <Results query={query} />
+        </Pending>
+      </Catch>
+    </>
+  );
+});
+```
+
+The first search runs on the server. There are no results yet, so `<Pending>` streams its fallback, and the results follow when they're ready.
+
+After that, typing doesn't bring the fallback back. `results.value` keeps the previous results until the new ones arrive, and `results.pending` shows that a search is running next to them. When the query changes again, `abortSignal` cancels the request still in flight.
+
+A failed search keeps the previous results on screen, with the error and a retry button that calls `invalidate()` above them, and the input stays usable. The first search has no results to keep, so if it fails, `results.value` throws and the error reaches `<Catch>`, like anything else you don't handle, such as a bug in `Results`. `<Catch>` replaces the section with its fallback until `reset()` renders it again. In production, the fallback gets a generic message and a digest for errors thrown on the server, and the details stay in your logs.
+
+`useComputed$` now accepts async functions, which makes it a better replacement for `<Resource>`. You read the result like any other signal, stale requests get cancelled, and it works with `<Pending>` and `<Catch>`.
+
+### Cacheable loaders
+
+The same boundaries work when you navigate. Qwik no longer waits for [route loaders](https://next.qwik.dev/docs/route-loader/) before rendering the next page. It renders right away, and each region wrapped in `<Pending>` shows its fallback until the loader it reads has its data. Loaders that were already on screen, like a layout's, keep their last value while they refresh.
+
+Each `routeLoader$` also has its own JSON endpoint now, instead of one `q-data.json` per route, so the browser can cache loaders one by one:
+
+```tsx
+export const useProduct = routeLoader$(
+  async ({ params }) => fetchProduct(params.productId),
+  { cacheControl: { maxAge: 60 } }
+);
+
+export const useCategories = routeLoader$(
+  async () => fetchCategories(),
+  { cacheControl: 'immutable' }
+);
+```
+
+`cacheControl` sets the `Cache-Control` header of the loader's response, so a navigation can read the data from the browser cache without a request. `eTag` lets the server answer `304 Not Modified` without running the loader. An `'immutable'` loader is only fetched when a component reads it, stays cached until the next deploy, and becomes a static JSON file when you build a static site. And since `<Link>` prefetches a route's data on hover by default, the data is often on its way before the user clicks.
+
+With `routeLoader$(..., { blockSSR: false })`, the first page load works the same way. The server starts streaming before the loader finishes, and the `Pending` region that reads its signal streams in later.
+
+## And a lot more
+
+### A lot more fun to build with
+
+- **Vite 8 and Rolldown:** Qwik 2 requires Vite 8, so your builds run on Rolldown.
+- **HMR:** now keeps your signal and store values while you edit a component, and new route files show up without a restart.
+- **[Qwik DevTools](https://next.qwik.dev/docs/labs/devtools/):** adds an overlay in development and a browser extension for production builds so your agent can inspect props, signals, renders, routes and bundles.
+
+### And many new (backwards-compatible) APIs
+
+- **[`worker$`](https://next.qwik.dev/docs/advanced/worker/):** runs a function in a Web Worker and gives you a promise back.
+- **[`reactify$`](https://next.qwik.dev/docs/integrations/react/):** is the other half of `qwikify$`. It renders Qwik components inside a React tree, so you can move a React app over one component at a time.
+- **[`useSerializer$`](https://next.qwik.dev/docs/core/state/):** lets you serialize objects Qwik doesn't know about, like an instance of a library class. The browser only rebuilds the object when something reads it.
+- **`<Link>` prefetching:** `<Link>` has separate `prefetchBundles` and `prefetchData` props. By default, code is prefetched when the link comes into view, and data on hover or focus.
+- **`*.server.ts`:** Files named `*.server.ts`, or placed in a `server/` folder, are server-only. If client code imports one, the build fails.
+- **Passive event listeners:** Event listeners can be passive or use the capture phase. Add `passive:touchmove` or `capture:click` next to the handler.
+- **HTTP errors:** `404.tsx` and the new `error.tsx` render inside their layouts, in dev too. `useHttpStatus()` gives you the status and message.
+- **Control flow components:** [`<Each>`](https://next.qwik.dev/docs/labs/each/) and [`<Show>`](https://next.qwik.dev/docs/labs/show/) are experimental too. They handle keyed lists and conditional rendering, and they may be removed in v3.
+
+### With a more robust foundation
+
+- **TypeScript optimizer:** It's opt-in with `tsOptimizer: true`. It matches the Rust optimizer on every snapshot test at about the same speed, and contributors no longer need Rust to work on Qwik.
+- **Better testing:** Renderer tests run twice, once through server rendering and resuming and once through client rendering. Playwright runs the end-to-end suites in Chromium, Firefox and WebKit with both the Rust and the TypeScript optimizer, and CI runs speed and memory benchmarks.
+- **Preloader fixes:** We fixed several cases where the preloader loaded too little or too much. It no longer follows your app's own dynamic imports, and it yields to the browser so it doesn't block input.
+- **Reactivity fixes:** Signals, stores and computed values were rewritten from scratch. Spreading props no longer breaks reactivity, tasks release their subscriptions when their component is removed, and a task waits for its previous cleanup to finish before it runs again.
+- **Backpatching:** If a component changes an attribute of an element that has already streamed, Qwik patches it in the browser with a small inline script.
+
+## What's next
+
+Before 2.0, we want to:
+
+- test the RC in more apps,
+- make the experimental `Pending`, `Catch`, `.pending` and `.error` APIs stable,
+- make the TypeScript optimizer the default,
+- finish rewriting the documentation for v2.
+
+Please try the RC and [open an issue](https://github.com/QwikDev/qwik/issues) if anything breaks or doesn't work as expected.
+
+We hope you're as excited as we are for Qwik v2 and beyond. Don't hesitate to try it out during RC and come and share your feedback on our <DiscordLink text="Discord" /> or with the [@QwikDev](https://x.com/QwikDev) handle on 𝕏. Good or bad, we'd love to hear it!
+
+You can start playing with it right now:
+- `pnpm create qwik@next`
+- [next.qwik.dev/examples](https://next.qwik.dev/examples/introduction/hello-world/#f=Q040psaDsymCJ20ZmmJNW6mJuShpCyaIkcZQvETlFIZmKa6UBlQxIlIaAA) or [next.qwik.dev/playground/](https://next.qwik.dev/playground/)
+- `pnpm qwik migrate-v2` — only a handful of small breaking changes, all taken care of by the migration script!
+
+## Thank you
+
+Thank you to all the contributors that spent some of their free time on Qwik, filing issues and submitting PRs, which ultimately led to what it is today.
+
+Thank you to all the other frontend projects out there, from whom we take a lot of inspiration in making sure the Qwik APIs provide the best in class developer and agent experience.
+
+And truth be told... Thank you to Claude and Codex for their generous open-source programs, which speed up the development and maintenance of the project quite significantly.
+
+We're grateful for everyone's contributions big and small. If you like Qwik and what we do, you're welcome to share the news!
+
+</ArticleBlock>

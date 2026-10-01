@@ -1,0 +1,87 @@
+.rc-hero {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 2000 / 1125;
+}
+
+.rc-hero-sky {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.rc-hero-ground {
+  position: absolute;
+  top: calc(620 / 1125 * 100%);
+  left: 0;
+  display: block;
+  width: 100%;
+  height: calc(505 / 1125 * 100%);
+}
+
+.rc-hero-stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: calc(620 / 1125 * 100%);
+  pointer-events: none;
+}
+
+.rc-hero-twinkle,
+.rc-hero-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.rc-hero-twinkle {
+  animation-name: rc-hero-twinkle;
+}
+
+.rc-hero-pulse {
+  opacity: 0;
+  animation-name: rc-hero-pulse;
+  animation-duration: 3.6s;
+}
+
+@keyframes rc-hero-twinkle {
+  0%,
+  100% {
+    opacity: 0.08;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes rc-hero-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  12% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+
+  40%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-hero-twinkle,
+  .rc-hero-pulse {
+    animation: none;
+    opacity: 0.55;
+  }
+}

@@ -15,14 +15,24 @@ export const RouterHead = component$(() => {
   const description =
     head.meta.find((m) => m.name === 'description')?.content ||
     `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;
-  const socialImage = '/logos/og-image.png';
+  const pageMeta = (property: string) => head.meta.find((m) => m.property === property)?.content;
+  const socialImage = new URL(
+    pageMeta('og:image') || '/logos/og-image.png',
+    untrack(() => url.href)
+  ).href;
 
   return (
     <>
       <meta name="description" content={description} />
       <link rel="canonical" href={href} />
 
-      <Social title={title} description={description} href={href} ogImage={socialImage} />
+      <Social
+        title={title}
+        description={description}
+        href={href}
+        ogImage={socialImage}
+        ogImageAlt={pageMeta('og:image:alt')}
+      />
 
       {import.meta.env.PROD && (
         <>
@@ -32,8 +42,10 @@ export const RouterHead = component$(() => {
 
       <DocumentHeadTags
         title={title}
-        // Skip description because that was already added at the top
-        meta={head.meta.filter((s) => s.name !== 'description')}
+        // Skip description and the social image because they were already added at the top
+        meta={head.meta.filter(
+          (s) => s.name !== 'description' && !s.property?.startsWith('og:image')
+        )}
       />
     </>
   );

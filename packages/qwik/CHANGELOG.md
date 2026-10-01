@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.0
+
+### Patch Changes
+
+- 🛠 v2 release candidates, installable with `npm create qwik@rc` (by [@maiieul](https://github.com/maiieul) in [#9101](https://github.com/QwikDev/qwik/pull/9101))
+
 ## 2.0.0-beta.47
 
 ### Patch Changes

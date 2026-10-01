@@ -14,7 +14,8 @@ export interface QwikLoaderTestDriver {
 }
 
 const drivers = new WeakMap<Document, QwikLoaderTestDriver>();
-const queueTasksDeclaration = /\b(?:const|let|var)\s+queueTasks\s*=\s*\(tasks\)\s*=>\s*\{/;
+const queueTasksDeclaration =
+  /\b(?:const|let|var)\s+queueTasks\s*=\s*\(tasks,\s*eventName\)\s*=>\s*\{/;
 
 export async function bootQwikLoader(
   document: Document,
@@ -46,7 +47,7 @@ export async function bootQwikLoader(
       const event = createTestEvent(target.ownerDocument, dispatchType.eventName, init);
       try {
         getDispatchTarget(document, win, target, dispatchType.scope).dispatchEvent(event);
-        await flushQwikLoaderTasks(win);
+        await flushQwikLoaderTasks(win, dispatchType.eventName);
       } finally {
         document.removeEventListener('qerror', onError);
       }
@@ -177,7 +178,26 @@ function runQwikLoader(
   const testSource = source
     .replace(
       queueTasksDeclaration,
-      (declaration) => `${declaration} window.__qwikTestGetQueuedTasks = () => queuedTasks;`
+      (declaration) => `${declaration}
+        window.__qwikTestLifecycleTasks ||= new Map();
+        window.__qwikTestGetQueuedTasks = (type) => type.charAt(0) === 'q'
+          ? window.__qwikTestLifecycleTasks.get(type) : queuedTasks;`
+    )
+    .replace(
+      'const run = () => runTasks(tasks);',
+      `const run = () => {
+        const pending = runTasks(tasks);
+        if (eventName.charAt(0) === 'q') {
+          window.__qwikTestLifecycleTasks.set(eventName, pending);
+          const release = () => {
+            if (window.__qwikTestLifecycleTasks.get(eventName) === pending) {
+              window.__qwikTestLifecycleTasks.delete(eventName);
+            }
+          };
+          pending.then(release, release);
+        }
+        return pending;
+      };`
     )
     .replace(/\bimport\s*\(/g, '__import(');
   const DominoCustomEvent = function <T = unknown>(type: string, init?: CustomEventInit<T>) {
@@ -280,13 +300,13 @@ function getDispatchTarget(
   return target;
 }
 
-async function flushQwikLoaderTasks(win: Window): Promise<void> {
+async function flushQwikLoaderTasks(win: Window, eventName: string): Promise<void> {
   const testWindow = win as Window & {
-    __qwikTestGetQueuedTasks?: () => Promise<void> | undefined;
+    __qwikTestGetQueuedTasks?: (eventName: string) => Promise<void> | undefined;
   };
   const deadline = Date.now() + 5000;
   while (true) {
-    const pending = testWindow.__qwikTestGetQueuedTasks?.();
+    const pending = testWindow.__qwikTestGetQueuedTasks?.(eventName);
     if (pending === undefined) {
       return;
     }

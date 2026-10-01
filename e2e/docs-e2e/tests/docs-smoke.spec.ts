@@ -317,6 +317,42 @@ test.describe('Docs site smoke tests', () => {
     expect((await main.boundingBox())!.x).toBe(leftWithSidebar);
   });
 
+  test('docs text keeps its line layout when web fonts fail to load', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    const isUbuntuSansLoaded = () =>
+      page.evaluate(() =>
+        [...document.fonts].some(
+          (font) => font.family.replaceAll('"', '') === 'Ubuntu Sans' && font.status === 'loaded'
+        )
+      );
+    const measureText = async () => {
+      await page.evaluate(() => document.fonts.ready);
+      return page.locator('article').evaluate((article) =>
+        [...article.querySelectorAll('h1, p')].slice(0, 8).map((element) => {
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          const { width, height } = range.getBoundingClientRect();
+          return { width, height };
+        })
+      );
+    };
+
+    await page.route('**/*.woff2', (route) => route.abort());
+    await page.goto('/docs/core/overview/');
+    const fallbackLayout = await measureText();
+    expect(await isUbuntuSansLoaded()).toBe(false);
+
+    await page.unrouteAll();
+    await page.reload();
+    const webFontLayout = await measureText();
+    expect(await isUbuntuSansLoaded()).toBe(true);
+
+    webFontLayout.forEach(({ width, height }, index) => {
+      expect(fallbackLayout[index].height).toBe(height);
+      expect(Math.abs(fallbackLayout[index].width - width) / width).toBeLessThan(0.05);
+    });
+  });
+
   for (const viewport of [
     { name: 'mobile', width: 390, height: 844 },
     { name: 'tablet', width: 1024, height: 768 },

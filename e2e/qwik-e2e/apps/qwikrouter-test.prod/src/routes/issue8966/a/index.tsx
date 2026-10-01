@@ -8,8 +8,8 @@ export default component$(() => {
   const local = useStore({ value: data.value });
   const navigate = useNavigate();
 
-  useTask$(({ track }) => {
-    local.value = track(() => data.value);
+  useTask$(() => {
+    local.value = data.value;
   });
 
   return (

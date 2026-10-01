@@ -873,3 +873,70 @@ test('links a generated JSX module whose id carries a query, as image ?jsx impor
     await rm(directory, { recursive: true, force: true });
   }
 }, 20000);
+
+test.each([false, true])(
+  'reports route loader identities without shipping server code: server=%s',
+  async (server) => {
+    const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-loader-'));
+    const entry = join(directory, 'entry.ts');
+    await writeFile(
+      entry,
+      `import { routeLoader$ } from '@qwik.dev/router';
+    export const useData = routeLoader$(() => 'server implementation');`
+    );
+    const compiler = createLinkedBuild();
+    const segments: Array<{ parentId: string; hash: string; ctxName: string }> = [];
+    try {
+      const bundle = await rolldown({
+        input: entry,
+        external: (id) => id.startsWith('@qwik.dev/'),
+        plugins: [
+          {
+            name: 'linked-loader-test',
+            buildStart() {
+              return compiler.buildStart(this, {
+                entries: [entry],
+                rootDir: directory,
+                server,
+                library: false,
+                development: false,
+                sourceMaps: false,
+                stripCtxName: server ? [] : ['route'],
+                onSegment(parentId, segment) {
+                  segments.push({ parentId, hash: segment.hash, ctxName: segment.ctxName });
+                },
+                onOutput() {},
+              });
+            },
+            resolveId(id, importer) {
+              return compiler.resolveId(this, id, importer);
+            },
+            load(id) {
+              return compiler.load(this, id);
+            },
+            transform(code, id) {
+              return compiler.transform(code, id);
+            },
+          },
+        ],
+      });
+      try {
+        const output = await bundle.generate({ format: 'es' });
+        expect(segments).toEqual([
+          { parentId: await realpath(entry), hash: expect.any(String), ctxName: 'routeLoader$' },
+        ]);
+        const code = output.output
+          .filter((file) => file.type === 'chunk')
+          .map((file) => file.code)
+          .join('\n');
+        expect(code.includes('server implementation')).toBe(server);
+        expect(code).toContain(segments[0].hash);
+      } finally {
+        await bundle.close();
+      }
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  },
+  20000
+);

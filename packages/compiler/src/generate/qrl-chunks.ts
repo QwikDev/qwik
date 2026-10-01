@@ -30,14 +30,6 @@ export function emitQrlChunks(
   options: PresentationOptions,
   moduleExports: ReadonlyMap<LocalId, string>
 ): GenerateOutput['modules'] {
-  const mapRange =
-    module.source.normalizationMap === null
-      ? (range: [number, number]) => range
-      : createOriginalRangeMapper(
-          module.source.code,
-          module.source.normalizationMap.sourcesContent?.[0] ?? module.source.code,
-          module.source.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
-        );
   // Declared QRLs (components) splice over their authored range — no chunk file (yet); a nested
   // component prints inline where its `component$` call stood.
   return module.qrls
@@ -66,29 +58,43 @@ export function emitQrlChunks(
         map: assembled.map,
         isEntry: true,
         origPath: module.path,
-        segment: {
-          origin: moduleBasename(module),
-          name: qrl.name,
-          entry: null,
-          displayName: getSegmentDisplayName(qrl.name),
-          hash: getSegmentSymbolHash(qrl.name),
-          canonicalFilename: chunkCanonicalFilename(module, qrl),
-          extension: 'js',
-          parent: null,
-          ctxKind:
-            qrl.boundary.kind === 'implicit' && qrl.boundary.role === 'event'
-              ? 'eventHandler'
-              : 'function',
-          ctxName: qrl.ctxName,
-          captures: qrl.captures.length > 0,
-          loc: mapRange(qrl.origin.range),
-          paramNames: qrl.origin.paramRanges.map(([start, end]) =>
-            module.source.code.slice(start, end)
-          ),
-          ...(qrl.captures.length > 0 ? { captureNames: captureNames(module, qrl) } : {}),
-        },
+        segment: getSegmentAnalysis(module, qrl),
       };
     });
+}
+
+/** Segment identity survives stripping its executable body. */
+export function getSegmentAnalysis(
+  module: LinkedModule,
+  qrl: LinkedQrl
+): NonNullable<GenerateOutput['modules'][number]['segment']> {
+  const mapRange =
+    module.source.normalizationMap === null
+      ? (range: [number, number]) => range
+      : createOriginalRangeMapper(
+          module.source.code,
+          module.source.normalizationMap.sourcesContent?.[0] ?? module.source.code,
+          module.source.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
+        );
+  return {
+    origin: moduleBasename(module),
+    name: qrl.name,
+    entry: null,
+    displayName: getSegmentDisplayName(qrl.name),
+    hash: getSegmentSymbolHash(qrl.name),
+    canonicalFilename: chunkCanonicalFilename(module, qrl),
+    extension: 'js',
+    parent: null,
+    ctxKind:
+      qrl.boundary.kind === 'implicit' && qrl.boundary.role === 'event'
+        ? 'eventHandler'
+        : 'function',
+    ctxName: qrl.ctxName,
+    captures: qrl.captures.length > 0,
+    loc: mapRange(qrl.origin.range),
+    paramNames: qrl.origin.paramRanges.map(([start, end]) => module.source.code.slice(start, end)),
+    ...(qrl.captures.length > 0 ? { captureNames: captureNames(module, qrl) } : {}),
+  };
 }
 
 /**

@@ -17,6 +17,7 @@ export {
 } from './link/link-plans';
 export { generateJsCsr } from './generate/js-csr';
 export { generateJsSsr } from './generate/js-ssr';
+export { getSegmentAnalysis } from './generate/qrl-chunks';
 export { type GenerateOutput, type PresentationOptions } from './generate/output';
 export { deadStrippedEdges } from './link/strip';
 export { transformModules } from './transform-modules';

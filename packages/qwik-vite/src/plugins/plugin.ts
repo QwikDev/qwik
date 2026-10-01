@@ -490,15 +490,17 @@ export function createQwikPlugin(
               stripExports: [...SERVER_STRIP_EXPORTS, ...(opts.strip.exports ?? [])],
               stripCtxName: [...SERVER_STRIP_CTX_NAME, ...(opts.strip.ctxName ?? [])],
             }),
+        onSegment(parentId, segment) {
+          for (const callback of segmentCallbacks) {
+            callback(parentId, segment);
+          }
+        },
         onOutput(output) {
           for (const module of output.modules) {
             if (module.segment === null) {
               continue;
             }
             parentIds.set(module.path, module.origPath!);
-            for (const callback of segmentCallbacks) {
-              callback(module.origPath!, module.segment);
-            }
           }
           if (!getIsServer(_ctx)) {
             clientResults.set(opts.rootDir, { ...output, diagnostics: [] });

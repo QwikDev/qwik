@@ -1,18 +1,18 @@
 ---
 name: qwik-optimizer-development
-description: Use when modifying or reviewing the Qwik optimizer under packages/optimizer, Rust transform code, WASM/NAPI bindings, optimizer snapshots, or optimizer-facing runtime behavior.
+description: Use when modifying or reviewing the v3 compiler under packages/compiler, Qwik optimizer under packages/optimizer, Rust transforms, WASM/NAPI bindings, or Vite/compiler integration.
 ---
 
 # Qwik Optimizer Development
 
-Use this skill for `packages/optimizer/**` and Rust optimizer work. Keep the repo-wide rules from
-`.ruler/AGENTS.md` in force.
+Use this skill for `packages/compiler/**`, `packages/optimizer/**`, and Vite/compiler integration.
+Keep the repo-wide rules from `.ruler/AGENTS.md` in force.
 
 ## Fast Path
 
 1. Identify whether the change is Rust transform logic, snapshots, WASM bindings, NAPI bindings, or
    integration with the v3 compiler.
-2. Read the closest Rust source, fixture, snapshot, and runtime helper that consumes the emitted
+2. Read the closest transform source, fixture, snapshot, and runtime helper that consumes the emitted
    shape before editing.
 3. Keep transform behavior deterministic: prefer explicit parser/AST cases and stable ordering over
    source-text heuristics.
@@ -22,6 +22,7 @@ Use this skill for `packages/optimizer/**` and Rust optimizer work. Keep the rep
 
 ## Source Map
 
+- V3 compiler analysis, linking, and emission: `packages/compiler/src/`
 - Rust optimizer core: `packages/optimizer/core/src/`
 - Rust fixtures: `packages/optimizer/core/src/fixtures/`
 - Rust snapshots: `packages/optimizer/core/src/snapshots/`
@@ -46,6 +47,21 @@ pnpm vitest run packages/qwik-vite/src/plugins/plugin.unit.ts
 `packages/optimizer/core/Cargo.toml`. Use `pnpm test.rust.update` only when snapshot updates are
 intentional. V3 tests use `@qwik.dev/compiler` for component transformation; exercise Rust bindings
 with a focused compatibility fixture after `pnpm build.rust`.
+
+## V3 compiler and Vite integration
+
+Compiler unit tests import source; Vite integration and browser builds import the built compiler.
+Run `pnpm build.compiler` before testing integration after compiler changes, then rebuild core for
+browser verification. Rebuild compiler exports before `build.core.dev`: its declaration pass runs
+before the compiler build. If declarations remain stale, rerun
+`pnpm exec tsc -p tsconfig.dts.json --incremental false` before rebuilding core.
+
+```bash
+pnpm vitest run packages/compiler/src/tests/js-csr.unit.ts
+pnpm build.compiler
+pnpm build.core.dev
+pnpm vitest run packages/qwik-vite/src/plugins/linked-build.unit.ts
+```
 
 ## V2 TypeScript optimizer parity
 

@@ -1,8 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import type { Rolldown } from 'vite';
+import type { SegmentAnalysis } from '../types';
 import {
   BuildMode,
+  DeliveryKind,
   EntryKind,
   Environment,
   ExportKind,
@@ -20,6 +22,7 @@ import {
   deadStrippedEdges,
   generateJsCsr,
   generateJsSsr,
+  getSegmentAnalysis,
   linkPlans,
   readLibraryPlan,
 } from '@qwik.dev/compiler';
@@ -59,6 +62,7 @@ export interface LinkedBuildOptions {
   regCtxName?: string[];
   buildConstants?: Readonly<Record<string, boolean>>;
   onOutput: (output: GenerateOutput) => void;
+  onSegment?: (parentId: string, segment: SegmentAnalysis) => void;
 }
 
 /** Collect through bundler hooks, then emit from one application-wide link. */
@@ -295,10 +299,20 @@ export function createLinkedBuild() {
       outputSourceMaps: config.sourceMaps,
       explicitExtensions: true,
     });
+    for (const module of linked.plan.modules) {
+      for (const qrl of module.qrls) {
+        if (qrl.delivery.d === DeliveryKind.Stripped) {
+          config.onSegment?.(module.path, getSegmentAnalysis(module, qrl));
+        }
+      }
+    }
     for (const file of output.modules) {
       const id = normalize(file.path);
       files.set(id, file);
       owners.set(id, file.origPath ?? id);
+      if (file.segment !== null) {
+        config.onSegment?.(file.origPath!, file.segment);
+      }
       if (!config.server && file.segment !== null) {
         ctx.emitFile({ type: 'chunk', id: virtual(id), preserveSignature: 'allow-extension' });
       }

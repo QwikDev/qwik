@@ -4,6 +4,7 @@ import { Footer } from '../../components/footer/footer';
 import { type RequestHandler } from '@qwik.dev/router';
 import { useImageProvider, type ImageTransformerProps } from 'qwik-image';
 import docsStyles from '../docs/docs.css?inline';
+import GridStarBackground from '~/media/decor/grid-star-bg.svg?jsx';
 
 export const onRequest: RequestHandler = async (request) => {
   request.cacheControl(600);
@@ -24,6 +25,7 @@ export default component$(() => {
 
   return (
     <div class="bg-grid-stars">
+      <GridStarBackground class="grid-star-background" />
       <div
         class="absolute -z-2 left-1/2 top-[50vh] -translate-x-[90%] -translate-y-[90%]
           w-[250vw] h-[200vw] bg-hero-gradient-blue

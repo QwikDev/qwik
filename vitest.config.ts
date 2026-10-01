@@ -11,6 +11,7 @@ const renderTests = [
   'packages/qwik-router/src/runtime/src/document-head-tags.unit.tsx',
 ];
 const renderProject = (testTarget: 'csr' | 'resume' | 'ssr'): TestProjectInlineConfiguration => ({
+  extends: false,
   plugins: [
     qwikVite({
       srcDir: fromRoot('.'),
@@ -51,6 +52,7 @@ const renderProject = (testTarget: 'csr' | 'resume' | 'ssr'): TestProjectInlineC
 
 /** The compiler's own project; its tests execute emitted chunks, so it keeps the Qwik plugin. */
 const compilerProject: TestProjectInlineConfiguration = {
+  extends: false,
   plugins: [
     qwikVite({
       srcDir: fromRoot('./packages/qwik/src'),
@@ -81,7 +83,6 @@ export default defineConfig({
   },
   plugins: [
     qwikVite({
-      tsOptimizer: true,
       debug: !true,
       srcDir: fromRoot('./packages/qwik/src'),
       devTools: { hmr: false },

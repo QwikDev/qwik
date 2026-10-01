@@ -37,6 +37,26 @@ test.describe('Docs site smoke tests', () => {
     expect(lcpTag).toBe('H1');
   });
 
+  test('home page preloads every web font it renders', async ({ page }) => {
+    await page.goto('/');
+    const { renderedFonts, preloadedFonts } = await page.evaluate(async () => {
+      await document.fonts.ready;
+      const fileName = (url: string) => new URL(url, location.href).pathname.split('/').pop();
+      return {
+        renderedFonts: performance
+          .getEntriesByType('resource')
+          .map((entry) => fileName(entry.name))
+          .filter((name) => name?.endsWith('.woff2')),
+        preloadedFonts: [...document.querySelectorAll('link[rel="preload"][as="font"]')].map(
+          (link) => fileName(link.getAttribute('href')!)
+        ),
+      };
+    });
+
+    expect(renderedFonts.length).toBeGreaterThan(0);
+    expect(preloadedFonts).toEqual(expect.arrayContaining(renderedFonts));
+  });
+
   test('shared grid decoration covers the blog and 404 page', async ({ page }) => {
     for (const path of ['/blog/', '/missing-grid-page/']) {
       await page.goto(path);

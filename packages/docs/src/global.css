@@ -483,15 +483,14 @@ html[data-theme='dark'] {
   position: relative;
   isolation: isolate;
 
-  &::before {
-    content: '';
+  & > .grid-star-background {
     position: absolute;
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background-color: var(--color-grid-lines);
-    mask-image: url('./media/decor/grid-star-bg.svg');
-    mask-size: 1440px 720px;
+    width: 100%;
+    height: 100%;
+    color: var(--color-grid-lines);
   }
 }
 

@@ -8,6 +8,46 @@ test.describe('Docs site smoke tests', () => {
     await expect(page).toHaveTitle(/Qwik/);
   });
 
+  test('home page LCP is the hero heading rather than its decoration', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 823 });
+    await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
+    await page.goto('/');
+    const maskImage = await page.locator('main').evaluate((element) => {
+      return getComputedStyle(element, '::before').maskImage;
+    });
+    expect(maskImage).toBe('none');
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      );
+    });
+
+    const lcpTag = await page.evaluate(
+      () =>
+        new Promise<string | undefined>((resolve) => {
+          const observer = new PerformanceObserver((list) => {
+            const entries = list.getEntries() as (PerformanceEntry & { element?: Element })[];
+            resolve(entries.at(-1)?.element?.tagName);
+            observer.disconnect();
+          });
+          observer.observe({ type: 'largest-contentful-paint', buffered: true });
+        })
+    );
+    expect(lcpTag).toBe('H1');
+  });
+
+  test('shared grid decoration covers the blog and 404 page', async ({ page }) => {
+    for (const path of ['/blog/', '/missing-grid-page/']) {
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+      const container = page.locator('.bg-grid-stars');
+      const grid = container.locator(':scope > svg');
+      await expect(grid).toHaveAttribute('aria-hidden', 'true');
+      expect(await grid.boundingBox()).toEqual(await container.boundingBox());
+    }
+  });
+
   test('desktop menu content slides in the direction of navigation', async ({ page }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto('/docs/');

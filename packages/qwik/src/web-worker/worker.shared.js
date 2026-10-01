@@ -1,5 +1,4 @@
-import { setPlatform } from '@qwik.dev/core';
-import { _deserialize } from '@qwik.dev/core';
+import { _deserialize, _getSingleton, setPlatform } from '@qwik.dev/core';
 
 const getSymbolHash = (symbolName) => {
   const index = symbolName.lastIndexOf('_');

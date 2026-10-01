@@ -12,7 +12,7 @@ export const QWIK_WORKER_CORE_ID = '@qwik-worker-core';
 type WorkerConfig = NonNullable<UserConfig['worker']>;
 
 const QWIK_WORKER_CORE_CODE = `
-export { setPlatform, _deserialize } from '@qwik.dev/core';
+export { setPlatform, _deserialize, _getSingleton } from '@qwik.dev/core';
 `;
 
 export const isQwikWorkerCoreId = (id: string) => {

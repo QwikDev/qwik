@@ -1,4 +1,4 @@
-import { setPlatform } from '@qwik.dev/core';
+import { _getSingleton, setPlatform } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest, SymbolMapperFn } from '@qwik.dev/core/optimizer';
 import { QError, qError, SYNC_QRL, type CorePlatformServer } from './qwik-copy';
@@ -62,7 +62,7 @@ export function createPlatform(
         if (hash === SYNC_QRL) {
           return [hash, ''] as const;
         }
-        const isRegistered = (globalThis as any).__qwik_reg_symbols?.has(hash);
+        const isRegistered = _getSingleton<Map<string, unknown>>('regSymbols')?.has(hash);
         if (isRegistered) {
           return [symbolName, '_'] as const;
         }
@@ -76,7 +76,7 @@ export function createPlatform(
     isServer: true,
     async importSymbol(_containerEl, url, symbolName) {
       const hash = getSymbolHash(symbolName);
-      const regSym = (globalThis as any).__qwik_reg_symbols?.get(hash);
+      const regSym = _getSingleton<Map<string, unknown>>('regSymbols')?.get(hash);
       if (regSym) {
         return regSym;
       }

@@ -1,4 +1,4 @@
-import { component$, useComputed$, useSignal } from '@qwik.dev/core';
+import { _regSymbol, component$, useComputed$, useSignal } from '@qwik.dev/core';
 import { getPlatform, setPlatform } from '@qwik.dev/core/internal';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createDOM, testTarget } from './index';
@@ -91,6 +91,15 @@ it('resumes computed subscribers', async () => {
   await harness.render(ComputedCounter);
   await harness.userEvent('button', 'click');
   expect(harness.screen.querySelector('button')?.textContent).toBe('2');
+});
+
+it('resolves registered symbols while resuming', async () => {
+  const harness = await createDOM();
+  cleanups.push(harness.cleanup);
+  await harness.render(Counter);
+  const symbol = _regSymbol(() => 'registered', 'resume-platform-test');
+
+  expect(getPlatform().importSymbol(undefined, null, 'handler_resume-platform-test')).toBe(symbol);
 });
 
 it('restores the previous platform when SSR fails', async () => {

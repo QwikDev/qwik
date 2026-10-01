@@ -123,6 +123,7 @@ export {
   _createQRL,
   _dumpState,
   _getAsyncLocalStorage,
+  _getSingleton,
   _qwikSymbol,
   _registerSingleton,
   _getContextContainer,

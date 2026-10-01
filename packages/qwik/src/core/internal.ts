@@ -5,6 +5,7 @@ export { isDev, isServer } from '@qwik.dev/core/build';
 export { getPlatform, setPlatform } from './shared/platform/platform';
 export { getAsyncLocalStorage as _getAsyncLocalStorage } from './shared/platform/async-local-storage';
 export {
+  getSingleton as _getSingleton,
   qwikSymbol as _qwikSymbol,
   registerSingleton as _registerSingleton,
 } from './shared/singletons';

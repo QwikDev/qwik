@@ -1,5 +1,6 @@
 import type { RenderRoot } from '@qwik.dev/core';
 import {
+  _getSingleton,
   QContainerSelector,
   Scheduler,
   createContainerContext,
@@ -253,7 +254,9 @@ function createResumePlatform(document: Document, moduleImport: ModuleImport) {
       url: string | URL | null | undefined,
       symbol: string
     ) {
-      const registered = (globalThis as any).__qwik_reg_symbols?.get(getSymbolHash(symbol));
+      const registered = _getSingleton<Map<string, unknown>>('regSymbols')?.get(
+        getSymbolHash(symbol)
+      );
       if (registered !== undefined) {
         return registered;
       }

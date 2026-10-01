@@ -421,7 +421,7 @@ test('re-resolves an import the library left external when the application provi
 }, 20000);
 
 test('leaves a \\0 virtual module to its plugin, even one that loads linked modules itself', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const directory = await realpath(await mkdtemp(join(tmpdir(), 'qwik-linked-')));
   const route = join(directory, 'route.tsx');
   const application = join(directory, 'application.tsx');
   await writeFile(route, `export default () => <b>route-marker-text</b>;`);
@@ -754,7 +754,7 @@ test('links the imports of a module reached only through a virtual entry', async
 }, 20000);
 
 test('leaves the Qwik runtime to the bundler even outside node_modules', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'qwik-linked-'));
+  const directory = await realpath(await mkdtemp(join(tmpdir(), 'qwik-linked-')));
   const runtimeDir = join(directory, 'runtime');
   const application = join(directory, 'application.tsx');
   await mkdir(runtimeDir);

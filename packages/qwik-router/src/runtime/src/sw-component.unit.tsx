@@ -1,21 +1,28 @@
 import { describe, expect, it } from 'vitest';
+import type { RenderRoot } from '@qwik.dev/core';
+import { renderToString } from '@qwik.dev/core/server';
 import { _setRouterConfig } from './router-config';
 import { ServiceWorkerRegister } from './sw-component';
 
-const renderScript = (nonce?: string) => (ServiceWorkerRegister({ nonce }) as any).props;
+const renderScript = async (nonce?: string) =>
+  (
+    await renderToString(ServiceWorkerRegister as RenderRoot<{ nonce?: string }>, {
+      props: { nonce },
+    })
+  ).html;
 
 describe('ServiceWorkerRegister', () => {
-  it('registers the service worker of the app', () => {
+  it('registers the service worker of the app', async () => {
     _setRouterConfig({ routes: {}, serviceWorkerUrl: '/app/service-worker.js' } as any);
-    const props = renderScript('abc');
+    const html = await renderScript('abc');
 
-    expect(props.nonce).toBe('abc');
-    expect(props.dangerouslySetInnerHTML).toContain('register("/app/service-worker.js")');
+    expect(html).toContain('nonce="abc"');
+    expect(html).toContain('register("/app/service-worker.js")');
   });
 
-  it('unregisters a service worker the app no longer defines', () => {
+  it('unregisters a service worker the app no longer defines', async () => {
     _setRouterConfig({ routes: {} } as any);
 
-    expect(renderScript().dangerouslySetInnerHTML).toContain('unregister()');
+    expect(await renderScript()).toContain('unregister()');
   });
 });

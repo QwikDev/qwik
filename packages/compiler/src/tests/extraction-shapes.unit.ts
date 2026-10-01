@@ -91,16 +91,16 @@ export const Toggle = component$(() => {
   test('every discovered component is lowered or diagnosed', async () => {
     const path = resolve(
       __dirname,
-      '../../../../e2e/qwik-e2e/apps/e2e/src/components/suspense/suspense.tsx'
+      '../../../../e2e/qwik-e2e/apps/e2e/src/components/pending/pending.tsx'
     );
     const code = readFileSync(path, 'utf8');
-    const plan = await analyseModule({ path: 'src/suspense.tsx', code }, { transpileTs: true });
-    const parsed = parseModule('src/suspense.tsx', code);
+    const plan = await analyseModule({ path: 'src/pending.tsx', code }, { transpileTs: true });
+    const parsed = parseModule('src/pending.tsx', code);
     const bindings = createBindingGraph(parsed.program);
     const coreBindings = scanModuleSurface(
       parsed.program,
       null,
-      emptyModulePlan('src/suspense.tsx', code),
+      emptyModulePlan('src/pending.tsx', code),
       bindings
     );
     const candidates = findComponentCandidates(

@@ -59,6 +59,7 @@ export const Root = component$<{ pathname: string }>(({ pathname }) => {
       {pathname === '/e2e/lexical-scope' && <LexicalScope />}
       {pathname === '/e2e/render' && <Render />}
       {pathname === '/e2e/events' && <Events />}
+      {pathname === '/e2e/events-lifecycle' && <EventsLifecycle />}
       {pathname === '/e2e/async' && <Async />}
       {pathname === '/e2e/container' && <Containers />}
       {pathname === '/e2e/factory' && <Factory />}

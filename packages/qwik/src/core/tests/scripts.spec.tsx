@@ -33,7 +33,7 @@ describe.runIf(testRenderer.render === ssrRender)('ssrRender: qwikloader', () =>
     // the table must be defined ahead of the element: a click cannot outrun the stream
     const table = html.indexOf('qFuncs_');
     expect(table, 'sync fn table emitted').toBeGreaterThan(-1);
-    expect(html.slice(table)).toContain('console.log("sync")');
+    expect(html.slice(table)).toMatch(/console\.log\((['"`])sync\1\)/);
     expect(table).toBeLessThan(html.indexOf('<button'));
     // the attribute addresses the same key the table defines
     const key = container.querySelector('button')?.getAttribute('q-e:click')?.slice(1);

@@ -37,24 +37,36 @@ test.describe('Docs site smoke tests', () => {
     expect(lcpTag).toBe('H1');
   });
 
-  test('home page preloads every web font it renders', async ({ page }) => {
-    await page.goto('/');
-    const { renderedFonts, preloadedFonts } = await page.evaluate(async () => {
-      await document.fonts.ready;
-      const fileName = (url: string) => new URL(url, location.href).pathname.split('/').pop();
-      return {
-        renderedFonts: performance
-          .getEntriesByType('resource')
-          .map((entry) => fileName(entry.name))
-          .filter((name) => name?.endsWith('.woff2')),
-        preloadedFonts: [...document.querySelectorAll('link[rel="preload"][as="font"]')].map(
-          (link) => fileName(link.getAttribute('href')!)
-        ),
-      };
-    });
+  for (const { path, fonts } of [
+    { path: '/', fonts: ['Tomorrow 600', 'Ubuntu Sans 600'] },
+    { path: '/docs/core/overview/', fonts: ['Tomorrow 600', 'Ubuntu Sans 600', 'Ubuntu Sans 700'] },
+  ]) {
+    test(`${path} renders its web fonts without requesting font files`, async ({ page }) => {
+      const fontRequests: string[] = [];
+      page.on('request', (request) => {
+        if (request.frame() === page.mainFrame() && request.url().endsWith('.woff2')) {
+          fontRequests.push(request.url());
+        }
+      });
 
-    expect(renderedFonts.length).toBeGreaterThan(0);
-    expect(preloadedFonts).toEqual(expect.arrayContaining(renderedFonts));
+      await page.goto(path);
+      const loadedFonts = await page.evaluate(async () => {
+        await document.fonts.ready;
+        return [...document.fonts]
+          .filter((font) => font.status === 'loaded')
+          .map((font) => `${font.family.replaceAll('"', '')} ${font.weight}`);
+      });
+
+      expect(loadedFonts).toEqual(expect.arrayContaining(fonts));
+      expect(fontRequests).toEqual([]);
+    });
+  }
+
+  test('demo iframes link the shared font files instead of inlining them', async ({ request }) => {
+    const demoHtml = await (await request.get('/demo/component/simple/')).text();
+
+    expect(demoHtml).not.toContain('data:font/woff2');
+    expect(demoHtml).toContain('ubuntu-sans-latin-600-normal');
   });
 
   test('shared grid decoration covers the blog and 404 page', async ({ page }) => {
@@ -317,18 +329,6 @@ test.describe('Docs site smoke tests', () => {
 
     const sidebar = page.locator('[data-docs-sidebar]');
     await expect(sidebar).toBeVisible();
-    const fontPreloads = page.locator('link[rel="preload"][as="font"]');
-    await expect(fontPreloads).toHaveCount(3);
-    await expect(
-      page.locator('link[rel="preload"][as="font"][href*="tomorrow-latin-600-normal"]')
-    ).toHaveCount(1);
-    await expect(
-      page.locator('link[rel="preload"][as="font"][href*="ubuntu-sans-latin-600-normal"]')
-    ).toHaveCount(1);
-    await expect(
-      page.locator('link[rel="preload"][as="font"][href*="ubuntu-sans-latin-700-normal"]')
-    ).toHaveCount(1);
-
     const links = sidebar.locator('a[href]');
     expect(await links.count()).toBeGreaterThanOrEqual(5);
     await expect(sidebar.locator('a[href^="/"]:not([q\\:link])')).toHaveCount(0);
@@ -347,42 +347,6 @@ test.describe('Docs site smoke tests', () => {
     await page.locator('[data-docs-sidebar]').evaluate((sidebar) => sidebar.remove());
 
     expect((await main.boundingBox())!.x).toBe(leftWithSidebar);
-  });
-
-  test('docs text keeps its line layout when web fonts fail to load', async ({ page }) => {
-    await page.setViewportSize({ width: 1600, height: 900 });
-    const isUbuntuSansLoaded = () =>
-      page.evaluate(() =>
-        [...document.fonts].some(
-          (font) => font.family.replaceAll('"', '') === 'Ubuntu Sans' && font.status === 'loaded'
-        )
-      );
-    const measureText = async () => {
-      await page.evaluate(() => document.fonts.ready);
-      return page.locator('article').evaluate((article) =>
-        [...article.querySelectorAll('h1, p')].slice(0, 8).map((element) => {
-          const range = document.createRange();
-          range.selectNodeContents(element);
-          const { width, height } = range.getBoundingClientRect();
-          return { width, height };
-        })
-      );
-    };
-
-    await page.route('**/*.woff2', (route) => route.abort());
-    await page.goto('/docs/core/overview/');
-    const fallbackLayout = await measureText();
-    expect(await isUbuntuSansLoaded()).toBe(false);
-
-    await page.unrouteAll();
-    await page.reload();
-    const webFontLayout = await measureText();
-    expect(await isUbuntuSansLoaded()).toBe(true);
-
-    webFontLayout.forEach(({ width, height }, index) => {
-      expect(fallbackLayout[index].height).toBe(height);
-      expect(Math.abs(fallbackLayout[index].width - width) / width).toBeLessThan(0.05);
-    });
   });
 
   for (const viewport of [

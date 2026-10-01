@@ -98,9 +98,13 @@ const runTasks = async (tasks: Task[]) => {
   }
 };
 
-const queueTasks = (tasks: Task[]) => {
+const queueTasks = (tasks: Task[], eventName: string) => {
   if (tasks.length) {
     const run = () => runTasks(tasks);
+    if (eventName.charAt(0) === 'q') {
+      void run();
+      return;
+    }
     const task = queuedTasks ? queuedTasks.then(run, run) : run();
     const currentTaskId = ++queuedTaskId;
     queuedTasks = task.then(
@@ -442,7 +446,7 @@ const processElementEvent = (
     if (captureHandlers[i]) {
       dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
       if (ev.cancelBubble) {
-        queueTasks(tasks);
+        queueTasks(tasks, ev.type);
         return;
       }
     }
@@ -462,12 +466,12 @@ const processElementEvent = (
         afterCapture
       );
       if (!ev.bubbles || ev.cancelBubble) {
-        queueTasks(tasks);
+        queueTasks(tasks, ev.type);
         return;
       }
     }
   }
-  queueTasks(tasks);
+  queueTasks(tasks, ev.type);
 };
 
 const processPassiveElementEvent = (ev: Event) =>
@@ -482,7 +486,7 @@ const broadcast = (scope: QwikLoaderEventScope, ev: Event, allowPreventDefault =
     const el = elements[i];
     dispatch(el, ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
   }
-  queueTasks(tasks);
+  queueTasks(tasks, ev.type);
 };
 
 /**
@@ -531,7 +535,7 @@ const processReadyStateChange = () => {
         dispatch(el, ev, 'd:qinit', tasks);
         el.removeAttribute('q-d:qinit');
       }
-      queueTasks(tasks);
+      queueTasks(tasks, 'qinit');
     }
 
     if (events.has('d:qidle')) {
@@ -546,7 +550,7 @@ const processReadyStateChange = () => {
           dispatch(el, ev, 'd:qidle', tasks);
           el.removeAttribute('q-d:qidle');
         }
-        queueTasks(tasks);
+        queueTasks(tasks, 'qidle');
       });
     }
 
@@ -565,7 +569,7 @@ const processReadyStateChange = () => {
             );
           }
         }
-        queueTasks(tasks);
+        queueTasks(tasks, 'qvisible');
       });
       const elements = querySelectorAll('[q-e\\:qvisible]:not([q\\:observed])');
       for (let i = 0; i < elements.length; i++) {

@@ -144,6 +144,7 @@ function createMockElement(
     isConnected: true,
     getAttribute: (name: string) => attributeMap.get(name) ?? null,
     hasAttribute: (name: string) => attributeMap.has(name),
+    removeAttribute: (name: string) => attributeMap.delete(name),
     closest: (selector: string) => {
       let current = element as any;
       while (current) {
@@ -390,6 +391,53 @@ describe('qwikloader behavior', () => {
     await flushQueuedTasks();
 
     expect(logs).toEqual(['start 1', 'start 2', 'end 2', 'end 1']);
+  });
+
+  test('dispatches a lazy click while a qinit handler is still pending', async () => {
+    const { doc } = createLoaderEnvironment(['d:qinit', 'e:click']);
+    const logs: string[] = [];
+    const previousLogs = (globalThis as any).__qwikLoaderChunkLogs;
+    (globalThis as any).__qwikLoaderChunkLogs = logs;
+    let releaseInit!: () => void;
+    const init = createMockElement(
+      null,
+      { 'q-d:qinit': '' },
+      async () => {
+        logs.push('init:start');
+        await new Promise<void>((resolve) => {
+          releaseInit = resolve;
+        });
+        logs.push('init:done');
+      },
+      'd:qinit'
+    );
+    doc.querySelectorAll.mockImplementation((selector: string) =>
+      selector === '[q-d\\:qinit]' ? [init] : []
+    );
+    doc.readyState = 'interactive';
+    getSingleListener(doc, 'readystatechange').handler(createMockEvent(doc, 'readystatechange'));
+    expect(logs).toEqual(['init:start']);
+
+    const moduleUrl = `data:text/javascript;charset=utf-8,${encodeURIComponent(
+      'export const handler = () => globalThis.__qwikLoaderChunkLogs.push("clicked");'
+    )}`;
+    const container = createMockElement(null, {
+      'q:container': 'paused',
+      'q:base': './',
+      'q:instance': 'lifecycle',
+    });
+    const button = createMockElement(container, { 'q-e:click': `${moduleUrl}#handler#` });
+
+    try {
+      getSingleListener(doc, 'click').handler(createMockEvent(button));
+      await vi.waitFor(() => expect(logs).toEqual(['init:start', 'clicked']));
+      releaseInit();
+      await vi.waitFor(() => expect(logs).toEqual(['init:start', 'clicked', 'init:done']));
+    } finally {
+      releaseInit();
+      await flushQueuedTasks();
+      (globalThis as any).__qwikLoaderChunkLogs = previousLogs;
+    }
   });
 
   test('runs sync qrls during dispatch while a prior event is still pending', async () => {

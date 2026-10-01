@@ -88,9 +88,13 @@ test.describe('<Pending>', () => {
 
   test.describe('csr rendering', () => {
     test.beforeEach(async ({ page }) => {
+      // The counter updates before the branch swaps, so tag the outgoing instance.
+      await page.locator('#single-boundary').evaluate((el) => el.setAttribute('data-stale', ''));
       const toggleRender = page.locator('#force-rerender');
       await toggleRender.click();
       await expect(page.locator('#render-count')).toHaveText('1');
+      await expect(page.locator('#single-boundary[data-stale]')).toHaveCount(0);
+      await expect(page.locator('#single-boundary')).toHaveCount(1);
     });
 
     tests();

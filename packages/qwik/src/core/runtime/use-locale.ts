@@ -1,4 +1,4 @@
-import { getAsyncLocalStorage } from '../shared/platform/async-local-storage';
+import { getAsyncLocalStorage } from '@qwik.dev/core/async-local-storage';
 import { isServer } from '@qwik.dev/core/build';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 import { getActiveInvokeContextOrNull } from './invoke-context';

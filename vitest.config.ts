@@ -29,6 +29,7 @@ export default defineConfig({
       '**/*.unit.*',
       '!*/(lib|dist|build|server|target)/**',
       '!**/node_modules/**',
+      '!**/__snapshots__/**',
     ],
     setupFiles: [fromRoot('./vitest-setup.ts')],
     projects: ['..'],

@@ -93,6 +93,8 @@ ContainerNode.prototype = Object.create(Node.prototype, {
 
         if (root) root.mutateRemove(kid);
         kid.parentNode = null;
+        // A removed kid still linked to its old siblings drags them along when re-inserted.
+        kid._previousSibling = kid._nextSibling = kid;
       }
       if (this._childNodes) {
         this._childNodes.length = 0;

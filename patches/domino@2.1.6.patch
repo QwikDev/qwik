@@ -627,7 +627,7 @@ index cf1dbc6001fa4315fbeaef8028066a61848a5094..d3217735d6799c11815aa742dd1f5195
  
  for(var prop in cssProperties) defineStyleProperty(prop);
 diff --git a/lib/ContainerNode.js b/lib/ContainerNode.js
-index a143ad847d853e235e03065cf5e342304f0bfc8c..b15e482fd6b1a52785cd0632af4435ed70d09cfe 100644
+index a143ad847d853e235e03065cf5e342304f0bfc8c..22c2f43adda102f77160d79853da0528cdde4816 100644
 --- a/lib/ContainerNode.js
 +++ b/lib/ContainerNode.js
 @@ -56,6 +56,15 @@ ContainerNode.prototype = Object.create(Node.prototype, {
@@ -646,6 +646,15 @@ index a143ad847d853e235e03065cf5e342304f0bfc8c..b15e482fd6b1a52785cd0632af4435ed
    // Remove all of this node's children.  This is a minor
    // optimization that only calls modify() once.
    removeChildren: { value: function removeChildren() {
+@@ -68,6 +77,8 @@ ContainerNode.prototype = Object.create(Node.prototype, {
+ 
+       if (root) root.mutateRemove(kid);
+       kid.parentNode = null;
++      // A removed kid still linked to its old siblings drags them along when re-inserted.
++      kid._previousSibling = kid._nextSibling = kid;
+     }
+     if (this._childNodes) {
+       this._childNodes.length = 0;
 diff --git a/lib/Element.js b/lib/Element.js
 index ecc90a871340ca1e332c432d5486a24226f2f6a8..44d2c818ffbb23724e18e029a98091e4120c9a57 100644
 --- a/lib/Element.js

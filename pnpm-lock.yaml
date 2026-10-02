@@ -35,7 +35,7 @@ overrides:
 
 patchedDependencies:
   density-clustering@1.3.0: 69aaf4eca107f315672d9346910ffffc755c7836f40794e9233441514a7fb84d
-  domino@2.1.6: 4f67ee1ed36bda41b6a5d794bc5c30ba8b07b85da8464f3e722783989813f75e
+  domino@2.1.6: 9692cf11269d3f1c00877fc5e301dd6ce7410cacddd57f3c2a45d588817776b2
   extract-zip@2.0.1: 8cee7fb668ca15e1105855012811b3abe2d04bcba4570ccbef43b2c58711e953
   image-size@2.0.2: 528a7f0bab7d6d539a7b50aba6b45cb5e94dd506574151b0a5adc3a84721800c
 
@@ -911,7 +911,7 @@ importers:
         version: link:../qwik-dom
       domino:
         specifier: 2.1.6
-        version: 2.1.6(patch_hash=4f67ee1ed36bda41b6a5d794bc5c30ba8b07b85da8464f3e722783989813f75e)
+        version: 2.1.6(patch_hash=9692cf11269d3f1c00877fc5e301dd6ce7410cacddd57f3c2a45d588817776b2)
       ignore:
         specifier: 5.3.1
         version: 5.3.1
@@ -17248,7 +17248,7 @@ snapshots:
     dependencies:
       domelementtype: 3.0.0
 
-  domino@2.1.6(patch_hash=4f67ee1ed36bda41b6a5d794bc5c30ba8b07b85da8464f3e722783989813f75e): {}
+  domino@2.1.6(patch_hash=9692cf11269d3f1c00877fc5e301dd6ce7410cacddd57f3c2a45d588817776b2): {}
 
   dompurify@3.4.13:
     optionalDependencies:

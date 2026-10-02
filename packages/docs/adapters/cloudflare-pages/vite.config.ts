@@ -16,9 +16,8 @@ export default extendConfig(baseConfig, () => {
         ssg: {
           include: ['/', '/*'],
           exclude: ['/demo/*', '/shop/*'],
-          origin:
-            (process.env.CF_PAGES_BRANCH !== 'main' ? process.env.CF_PAGES_URL : null) ??
-            'https://qwik.dev',
+          // v2 docs are served from next.qwik.dev; qwik.dev still serves v1.
+          origin: 'https://next.qwik.dev',
         },
       }),
     ],

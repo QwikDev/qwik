@@ -706,8 +706,8 @@ function buildIdentifierReplacementsCollector(
     ) {
       return { replacements: [], skipSubtree: true };
     }
-    // A JSXIdentifier in tag-name position is a reference to the same binding
-    // (`<Model/>` resolves `Model` in scope), so rewrite to `<props.Model/>`.
+    // A tag name not starting with a lowercase letter is a reference to the same binding
+    // (`<Model/>` resolves `Model` in scope), so rewrite to `<props.Model/>`; `<title>` is intrinsic.
     // Only opening/closing tag names are references — attribute names,
     // member-expression properties, and namespace parts must NOT be rewritten.
     if (
@@ -720,7 +720,7 @@ function buildIdentifierReplacementsCollector(
     ) {
       const jsxName = (node as { name: string }).name;
       const jsxKey = fieldLocalToKey.get(jsxName);
-      if (jsxKey !== undefined) {
+      if (jsxKey !== undefined && !/^[a-z]/.test(jsxName)) {
         out.push({
           start: node.start - offset,
           end: node.end - offset,

@@ -747,6 +747,24 @@ export const Cmp = component$(({ value }: { value?: string }) => {
 }
 
 #[test]
+fn destructured_prop_named_like_jsx_tag() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { title: string; _Item: any }) => {
+	const { title, _Item } = props;
+	return <_Item><title>{title}</title></_Item>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_props_wrapping() {
 	test_input!(TestInput {
 		code: r#"

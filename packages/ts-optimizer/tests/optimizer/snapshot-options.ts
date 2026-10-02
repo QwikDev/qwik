@@ -369,6 +369,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  destructured_prop_named_like_jsx_tag: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   nested_destructure_rebinding_prop_name: {
     transpileTs: true,
     transpileJsx: true,

@@ -1191,6 +1191,8 @@ export interface ClientSPAWindow extends Window {
   _qRouterInitScroll?: () => void;
   /** @internal */
   _qcs?: boolean;
+  /** @internal The path this document was rendered for. */
+  _qcp?: string;
 }
 
 // See also spa-init.ts

@@ -163,6 +163,43 @@ test.describe('nav', () => {
         await expect(page.locator('h1')).toHaveText('Page Short', { timeout: 15000 });
         await expect.poll(getDocumentLoads).toBe(2);
       });
+      test('should follow a history move made before the router init loaded', async ({ page }) => {
+        await page.goto('/qwikrouter-test/scroll-restoration/page-long/');
+        await page.locator('#to-page-short').click();
+        await expect(page.locator('h1')).toHaveText('Page Short');
+
+        // hold every lazy chunk but the loader, so the reloaded page cannot run its router init
+        let releaseChunks!: () => void;
+        const chunksHeld = new Promise<void>((resolve) => (releaseChunks = resolve));
+        await page.route('**/build/**', async (route) => {
+          if (!route.request().url().endsWith('/qwikloader.js')) {
+            await chunksHeld;
+          }
+          await route.continue();
+        });
+        try {
+          // the load event waits for the held chunks, so the parsed document has to do
+          const parsed = page.waitForEvent('domcontentloaded');
+          await page.evaluate(() => location.reload());
+          await parsed;
+          await expect(page.locator('h1')).toHaveText('Page Short');
+          // the loader has to reach qinit first; before that nothing has recorded the path
+          await page.waitForFunction(() => (window as any)._qcs === true);
+
+          await page.goBack({ waitUntil: 'commit' });
+          await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/page-long/');
+          expect(
+            await page.evaluate(
+              () => !!(window as any)._qRouterSPA || !!(window as any)._qRouterInitPopstate
+            )
+          ).toBe(false);
+        } finally {
+          releaseChunks();
+        }
+
+        await expect(page.locator('h1')).toHaveText('Page Long', { timeout: 15000 });
+      });
+
       test('should scroll on hash change', async ({ page }) => {
         await page.goto('/qwikrouter-test/scroll-restoration/hash/');
         await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/hash/');

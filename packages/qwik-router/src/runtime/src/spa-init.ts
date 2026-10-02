@@ -45,7 +45,9 @@ export default event$((_: Event, el: Element) => {
   // This complements qwik-router-component.ts
   // only run once, when router didn't init yet
   if (!window._qRouterSPA && !window._qRouterInitPopstate) {
-    const hasPathChanged = createCurrentPathTracker(location.pathname + location.search);
+    const currentPath = location.pathname + location.search;
+    const renderedPath = window._qcp ?? currentPath;
+    const hasPathChanged = createCurrentPathTracker(renderedPath);
 
     const checkAndScroll = (scrollState: ScrollState | undefined) => {
       if (scrollState) {
@@ -69,7 +71,10 @@ export default event$((_: Event, el: Element) => {
       history.replaceState(state, '');
     };
 
-    saveScrollState();
+    // After a missed history move the entry holds its own scroll, not this document's.
+    if (renderedPath === currentPath) {
+      saveScrollState();
+    }
 
     window._qRouterInitPopstate = () => {
       if (window._qRouterSPA) {
@@ -198,6 +203,10 @@ export default event$((_: Event, el: Element) => {
     window._qRouterScrollEnabled = true;
 
     window.addEventListener('popstate', window._qRouterInitPopstate!);
+    // A history move before this script loaded had no listener, so follow it now.
+    if (renderedPath !== currentPath) {
+      window._qRouterInitPopstate();
+    }
     window.addEventListener('scroll', window._qRouterInitScroll!, { passive: true });
     document.addEventListener('click', window._qRouterInitAnchors!);
 

@@ -70,6 +70,8 @@ export const RouterOutlet = component$(() => {
               if (!w._qcs) {
                 // true
                 w._qcs = !0;
+                // the rendered path, read before the lazy spaInit can miss a history move
+                w._qcp = location.pathname + location.search;
 
                 // scrollState
                 const s = h.state?._qRouterScroll;

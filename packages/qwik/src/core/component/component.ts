@@ -9,7 +9,7 @@ import {
 } from '../runtime/invoke-context';
 import type { ContainerContext } from '../runtime/container-context';
 import type { SlotScope } from '../dom/slot/slot';
-import { disposeOwner, getOrCreateContextOwner } from '../runtime/owner';
+import { disposeOwner, getOrCreateContextOwner, type Owner } from '../runtime/owner';
 import { untrack } from '../reactive/tracking';
 import type { NodeOutput } from '../utils/nodes';
 import { EMPTY_NODES } from '../utils/consts';
@@ -75,14 +75,18 @@ function createComponentAttempt<TProps, TRenderContext>(
   render: (props: TProps, context: TRenderContext) => ValueOrPromise<ComponentOutput | void>,
   renderContext: TRenderContext,
   options: ComponentOptions | undefined,
-  retryCount: number
+  retryCount: number,
+  retryOwnerHost?: Owner | null
 ): ValueOrPromise<ComponentOutput | void> {
   const parentInvokeContext =
     options !== undefined && options.invokeContext
       ? options.invokeContext
       : getActiveInvokeContextOrNull();
+  // A retry keeps the first attempt's host; list rows reset the shared context.
+  const ownerHost =
+    retryOwnerHost === undefined ? getOrCreateContextOwner(parentInvokeContext) : retryOwnerHost;
   const invokeContext = newChildInvokeContext(parentInvokeContext, {
-    ownerHost: getOrCreateContextOwner(parentInvokeContext),
+    ownerHost,
     container: options?.container,
     slotScope: options?.slotScope,
   });
@@ -110,7 +114,14 @@ function createComponentAttempt<TProps, TRenderContext>(
       if (retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
         const retryOptions: ComponentOptions = { ...options, invokeContext: parentInvokeContext };
         return (error as Promise<unknown>).then(() =>
-          createComponentAttempt(props, render, renderContext, retryOptions, retryCount + 1)
+          createComponentAttempt(
+            props,
+            render,
+            renderContext,
+            retryOptions,
+            retryCount + 1,
+            ownerHost
+          )
         );
       }
       // never rethrow the promise itself: a thenable error is silently adopted upstream

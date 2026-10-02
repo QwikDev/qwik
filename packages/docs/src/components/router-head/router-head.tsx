@@ -16,10 +16,14 @@ export const RouterHead = component$(() => {
     head.meta.find((m) => m.name === 'description')?.content ||
     `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;
   const pageMeta = (property: string) => head.meta.find((m) => m.property === property)?.content;
+  const pageImage = pageMeta('og:image');
   const socialImage = new URL(
-    pageMeta('og:image') || '/logos/og-image.png',
+    pageImage || '/logos/og-image.png',
     untrack(() => url.href)
   ).href;
+  // Only declare dimensions we know; the default image is 1200x630.
+  const socialImageWidth = pageImage ? pageMeta('og:image:width') : '1200';
+  const socialImageHeight = pageImage ? pageMeta('og:image:height') : '630';
 
   return (
     <>
@@ -32,6 +36,8 @@ export const RouterHead = component$(() => {
         href={href}
         ogImage={socialImage}
         ogImageAlt={pageMeta('og:image:alt')}
+        ogImageWidth={socialImageWidth}
+        ogImageHeight={socialImageHeight}
       />
 
       {import.meta.env.PROD && (

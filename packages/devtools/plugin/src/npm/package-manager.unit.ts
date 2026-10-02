@@ -128,7 +128,15 @@ describe('build package manager commands', () => {
     });
     expect(buildInstallCommand(workspaceContext, 'vite', 'devDependencies')).toEqual({
       command: 'pnpm',
-      args: ['--filter', './packages/docs', 'add', '--ignore-scripts', '-D', 'vite'],
+      args: [
+        '--filter',
+        './packages/docs',
+        '--fail-if-no-match',
+        'add',
+        '--ignore-scripts',
+        '-D',
+        'vite',
+      ],
       cwd: '/repo',
     });
     expect(buildInstallCommand(yarnContext, 'vite', 'dependencies')).toEqual({
@@ -149,6 +157,7 @@ describe('build package manager commands', () => {
       args: [
         '--filter',
         './packages/docs',
+        '--fail-if-no-match',
         'add',
         '--ignore-scripts',
         '-D',

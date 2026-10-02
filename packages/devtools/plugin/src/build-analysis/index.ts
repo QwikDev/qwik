@@ -287,10 +287,9 @@ export function getBuildAnalysisFunctions(
 ): Pick<ServerFunctions, 'getBuildAnalysisStatus' | 'buildBuildAnalysisReport'> {
   return {
     async getBuildAnalysisStatus(): Promise<BuildAnalysisStatus> {
+      const canTriggerBuild = isBuildAnalysisRpcAllowed(getServerRpcRequestContext()?.client);
       const reportPath = resolveBuildAnalysisHtmlPath(ctx.config.root);
       const { command } = await resolveBuildScript(ctx.config.root);
-      const rpcClient = getServerRpcRequestContext()?.client;
-      const canTriggerBuild = isBuildAnalysisRpcAllowed(rpcClient);
 
       return {
         exists: await fileExists(reportPath),

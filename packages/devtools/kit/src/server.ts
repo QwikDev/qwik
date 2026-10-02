@@ -13,14 +13,25 @@ export function getServerRpcRequestContext() {
   return currentServerRpcRequestContext;
 }
 
-function runWithServerRpcRequestContext(context: ServerRpcRequestContext, fn: () => void) {
+function runWithServerRpcRequestContext<T>(context: ServerRpcRequestContext, fn: () => T): T {
   const previous = currentServerRpcRequestContext;
   currentServerRpcRequestContext = context;
   try {
-    fn();
+    return fn();
   } finally {
     currentServerRpcRequestContext = previous;
   }
+}
+
+// birpc invokes functions after an await; the context lasts until their own first await.
+function bindServerRpcRequestContext(_method: string, fn: (...args: unknown[]) => unknown) {
+  const context = currentServerRpcRequestContext;
+  if (!context || !fn) {
+    return fn;
+  }
+  return function (this: unknown, ...args: unknown[]) {
+    return runWithServerRpcRequestContext(context, () => fn.apply(this, args));
+  };
 }
 
 export function createServerRpc(functions: ServerFunctions) {
@@ -34,6 +45,7 @@ export function createServerRpc(functions: ServerFunctions) {
           handler(data);
         });
       }),
+    resolver: bindServerRpcRequestContext,
   });
 
   setViteServerRpc(rpc);

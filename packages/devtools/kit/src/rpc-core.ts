@@ -1,9 +1,10 @@
 import SuperJSON from 'superjson';
-import { createBirpc } from 'birpc';
+import { createBirpc, type EventOptions } from 'birpc';
 
 interface RpcChannel {
   post: (serialized: string) => void;
   on: (handler: (serialized: string) => void) => void;
+  resolver?: EventOptions['resolver'];
 }
 
 const RPC_TIMEOUT = 120_000;
@@ -20,5 +21,6 @@ export function createSerializedRpc<RemoteFunctions extends object, LocalFunctio
     post: (data) => channel.post(SuperJSON.stringify(data)),
     on: (handler) => channel.on((data) => handler(parseRpcPayload(data))),
     timeout: RPC_TIMEOUT,
+    resolver: channel.resolver,
   });
 }

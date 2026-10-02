@@ -17,7 +17,7 @@ export default extendConfig(baseConfig, () => {
           include: ['/', '/*'],
           exclude: ['/demo/*', '/shop/*'],
           // v2 docs are served from next.qwik.dev; qwik.dev still serves v1.
-          origin: 'https://next.qwik.dev',
+          origin: process.env.QWIK_DOCS_ORIGIN || 'https://next.qwik.dev',
         },
       }),
     ],

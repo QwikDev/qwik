@@ -40,6 +40,8 @@ env:
   CARGO_INCREMENTAL: 0
   CI_NODE_VERSION: 24.15.0
   CI_NODE_VERSION_E2E: 22.22.2
+  # Absolute docs URLs (canonical, social images) must match the host deploy-docs.yml publishes to.
+  QWIK_DOCS_ORIGIN: ${{ github.event_name == 'pull_request' && format('https://pr-{0}.qwik-8nx.pages.dev', github.event.pull_request.number) || 'https://next.qwik.dev' }}
 
 permissions:
   contents: read

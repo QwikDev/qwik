@@ -1,4 +1,5 @@
 const REMOTE_BUILD_ANALYSIS_ENV = 'QWIK_DEVTOOLS_ALLOW_REMOTE_BUILD_ANALYSIS';
+const REMOTE_PACKAGE_MANAGEMENT_ENV = 'QWIK_DEVTOOLS_ALLOW_REMOTE_PACKAGE_MANAGEMENT';
 const TRUTHY_ENV_VALUES = new Set(['1', 'true', 'yes', 'on']);
 
 type RpcClientSocket = {
@@ -12,8 +13,8 @@ type RpcClientLike = {
   _socket?: RpcClientSocket | null;
 };
 
-export function isRemoteBuildAnalysisEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  const rawValue = env[REMOTE_BUILD_ANALYSIS_ENV];
+function isEnvFlagEnabled(name: string, env: NodeJS.ProcessEnv): boolean {
+  const rawValue = env[name];
   if (!rawValue) {
     return false;
   }
@@ -74,15 +75,34 @@ export function isLoopbackAddress(address: string | undefined): boolean {
   return false;
 }
 
-export function isBuildAnalysisRpcAllowed(
+function isRpcClientAllowed(
   client: unknown,
-  env: NodeJS.ProcessEnv = process.env
+  remoteOptInEnv: string,
+  env: NodeJS.ProcessEnv
 ): boolean {
-  if (isRemoteBuildAnalysisEnabled(env)) {
+  if (isEnvFlagEnabled(remoteOptInEnv, env)) {
     return true;
   }
 
   return isLoopbackAddress(getRpcClientRemoteAddress(client));
+}
+
+export function isBuildAnalysisRpcAllowed(
+  client: unknown,
+  env: NodeJS.ProcessEnv = process.env
+): boolean {
+  return isRpcClientAllowed(client, REMOTE_BUILD_ANALYSIS_ENV, env);
+}
+
+export function isPackageManagementRpcAllowed(
+  client: unknown,
+  env: NodeJS.ProcessEnv = process.env
+): boolean {
+  return isRpcClientAllowed(client, REMOTE_PACKAGE_MANAGEMENT_ENV, env);
+}
+
+export function getPackageManagementRpcGuardError(): string {
+  return `Refusing to change project dependencies from a non-local DevTools RPC client. Reconnect from localhost or set ${REMOTE_PACKAGE_MANAGEMENT_ENV}=1 to opt in to remote package management.`;
 }
 
 export function getBuildAnalysisRpcGuardError(): string {

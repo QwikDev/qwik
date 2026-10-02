@@ -3,7 +3,6 @@ import {
   getRpcClientRemoteAddress,
   isBuildAnalysisRpcAllowed,
   isLoopbackAddress,
-  isRemoteBuildAnalysisEnabled,
 } from './security';
 
 describe('build analysis RPC security', () => {
@@ -33,9 +32,12 @@ describe('build analysis RPC security', () => {
         { QWIK_DEVTOOLS_ALLOW_REMOTE_BUILD_ANALYSIS: 'true' }
       )
     ).toBe(true);
-    expect(isRemoteBuildAnalysisEnabled({ QWIK_DEVTOOLS_ALLOW_REMOTE_BUILD_ANALYSIS: '1' })).toBe(
-      true
-    );
+    expect(
+      isBuildAnalysisRpcAllowed(
+        { socket: { remoteAddress: '192.168.1.10' } },
+        { QWIK_DEVTOOLS_ALLOW_REMOTE_BUILD_ANALYSIS: '1' }
+      )
+    ).toBe(true);
   });
 
   test('extracts remote address from vite websocket client shapes', () => {

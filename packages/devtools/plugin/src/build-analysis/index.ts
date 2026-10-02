@@ -17,7 +17,7 @@ import {
   getBuildAnalysisRpcGuardError,
   getBuildAnalysisRpcGuardHint,
   isBuildAnalysisRpcAllowed,
-} from './security';
+} from '../rpc/security';
 
 const BUILD_ANALYSIS_VIEW_PATH = '/__qwik_devtools/build-analysis/report';
 const BUILD_ANALYSIS_DIR = path.join('.qwik-devtools', 'build-analysis');

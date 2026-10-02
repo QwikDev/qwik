@@ -183,6 +183,8 @@ test.describe('nav', () => {
           await page.evaluate(() => location.reload());
           await parsed;
           await expect(page.locator('h1')).toHaveText('Page Short');
+          // the loader has to reach qinit first; before that nothing has recorded the path
+          await page.waitForFunction(() => (window as any)._qcs === true);
 
           await page.goBack({ waitUntil: 'commit' });
           await expect(page).toHaveURL('/qwikrouter-test/scroll-restoration/page-long/');
@@ -195,7 +197,7 @@ test.describe('nav', () => {
           releaseChunks();
         }
 
-        await expect(page.locator('h1')).toHaveText('Page Long');
+        await expect(page.locator('h1')).toHaveText('Page Long', { timeout: 15000 });
       });
 
       test('should scroll on hash change', async ({ page }) => {

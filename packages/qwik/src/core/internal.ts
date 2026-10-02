@@ -28,6 +28,8 @@ export { AsyncSignal as _AsyncSignal } from './reactive/async-signal';
 export { useContext as _resolveContext } from './runtime/context';
 export { getActiveInvokeContextOrNull } from './runtime/invoke-context';
 export { createOwner, disposeOwner, runWithOwner } from './runtime/owner';
+export { disposeSubscriber } from './reactive/cleanup';
+export type { Computed } from './reactive/computed';
 export { createQRL as _createQRL } from './shared/qrl/qrl-class';
 export {
   forceStoreEffects,

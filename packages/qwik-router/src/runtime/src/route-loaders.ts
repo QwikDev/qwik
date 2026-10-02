@@ -1,7 +1,5 @@
 import { getBasePathname } from './router-config';
 import {
-  disposeSubscriber,
-  type Computed,
   implicit$FirstArg,
   isDev,
   isServer,
@@ -17,8 +15,10 @@ import {
   _verifySerializable,
   _UNINITIALIZED,
   createOwner,
+  disposeSubscriber,
   runWithOwner,
   SerializerSymbol,
+  type Computed,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import type {

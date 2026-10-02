@@ -142,8 +142,13 @@ test.describe('out-of-order pending streaming', () => {
   test('streams fallback, swaps resolved content, and keeps both interactive', async ({
     page,
     browserName,
-  }) => {
-    await page.goto(getOutOfOrderPendingUrl(browserName), { waitUntil: 'commit' });
+  }, testInfo) => {
+    // the content resolves on release, so a slow client cannot miss the fallback
+    const releaseId = `swap-${testInfo.workerIndex}-${Date.now()}`;
+    await page.goto(
+      getOutOfOrderPendingUrl(browserName, new URLSearchParams({ release: releaseId })),
+      { waitUntil: 'commit' }
+    );
 
     await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-fallback')).toBeVisible({ timeout: 10000 });
@@ -153,6 +158,7 @@ test.describe('out-of-order pending streaming', () => {
     await page.locator('#ooos-fallback-button').click();
     await expect(page.locator('#ooos-fallback-count')).toHaveText('1');
 
+    await releaseOutOfOrderPending(page, '#ooos-default-release');
     await expect(page.locator('#ooos-resolved')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('#ooos-fallback')).toBeHidden();
     await page.evaluate(() => (window as any)._qwikSP);
@@ -193,11 +199,16 @@ test.describe('out-of-order pending streaming', () => {
     expect(await page.content()).not.toContain('qO(');
   });
 
-  test('renders streamed pending after a csr rerender', async ({ page, browserName }) => {
-    await page.goto(getOutOfOrderPendingUrl(browserName), { waitUntil: 'commit' });
+  test('renders streamed pending after a csr rerender', async ({ page, browserName }, testInfo) => {
+    const releaseId = `rerender-csr-${testInfo.workerIndex}-${Date.now()}`;
+    await page.goto(
+      getOutOfOrderPendingUrl(browserName, new URLSearchParams({ release: releaseId })),
+      { waitUntil: 'commit' }
+    );
 
     await expect(page.locator('#ooos-title')).toHaveText('OOOS Pending', { timeout: 10000 });
     await expect(page.locator('#ooos-fallback')).toBeVisible({ timeout: 10000 });
+    await releaseOutOfOrderPending(page, '#ooos-default-release');
     await expect(page.locator('#ooos-resolved')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('#ooos-fallback')).toBeHidden();
 

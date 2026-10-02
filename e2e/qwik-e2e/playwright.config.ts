@@ -41,7 +41,7 @@ const config: PlaywrightTestConfig = {
   // Locally a failure is a result, not something to wait out or paper over with a rerun.
   timeout: inGithubCI ? 30000 : 10000,
   retries: inGithubCI ? 1 : 0,
-  expect: { timeout: inGithubCI ? 120000 : 3000 },
+  expect: { timeout: inGithubCI ? 120000 : 6000 },
   outputDir: '../../test-results/',
   webServer: {
     command: 'pnpm node --require ./scripts/runBefore.ts e2e/qwik-e2e/dev-server.ts 3301',

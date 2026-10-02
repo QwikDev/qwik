@@ -1,6 +1,16 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('server$', () => {
+  test('#3189 - invokes a captured QRL from a nested server$', async ({ page }) => {
+    await page.goto('/qwikrouter-test/issue3189/');
+
+    const result = page.locator('#issue-3189-result');
+    await expect(result).toHaveText('pending');
+
+    await page.locator('#issue-3189-button').click();
+    await expect(result).toHaveText('Hello World!');
+  });
+
   /** Checks that arguments weren't deduplicated or added */
   test('receives exactly the args given', async ({ page }) => {
     await page.goto('/qwikrouter-test/server-func/');

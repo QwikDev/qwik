@@ -712,6 +712,12 @@ export function ensureCoreImports(bodyText: string, parts: string[]): void {
       `import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";`
     );
   }
+  if (bodyText.includes('_createElement(') && !partsHaveImport(parts, '_createElement')) {
+    insertImportBeforeSeparator(
+      parts,
+      `import { createElement as _createElement } from "@qwik.dev/core";`
+    );
+  }
 }
 
 export function removeDeadConstLiterals(

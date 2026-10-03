@@ -24,6 +24,8 @@ test.describe('effect-client', () => {
     await expect(counter).toHaveText('0');
     await expect(msg).toHaveText('empty');
     await expect(msgEager).toHaveText('run');
+    // the remount is in flight once the eager message flips; assert on the new instance only
+    await expect(msgClientSide2).toHaveAttribute('data-instance', 'remounted');
     await expect(msgClientSide1).toHaveText('run');
     await expect(msgClientSide3).toHaveText('run');
     await expect(msgClientSide2).toHaveText('empty 2');

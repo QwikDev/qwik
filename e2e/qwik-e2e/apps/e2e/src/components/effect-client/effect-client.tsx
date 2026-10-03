@@ -104,12 +104,16 @@ export const Eager = component$(() => {
     <div>
       <div id="eager-msg">{state.msg}</div>
       {/* Alternating branches remount ClientSide when msg changes (v3 ignores component key). */}
-      {state.msg === 'empty 0' ? <ClientSide /> : <ClientSide />}
+      {state.msg === 'empty 0' ? (
+        <ClientSide instance="initial" />
+      ) : (
+        <ClientSide instance="remounted" />
+      )}
     </div>
   );
 });
 
-export const ClientSide = component$(() => {
+export const ClientSide = component$((props: { instance: string }) => {
   console.log('<Timer> renders');
 
   const state = useStore({
@@ -143,7 +147,9 @@ export const ClientSide = component$(() => {
   return (
     <>
       <div id="client-side-msg-1">{state.text1}</div>
-      <div id="client-side-msg-2">{state.text2}</div>
+      <div id="client-side-msg-2" data-instance={props.instance}>
+        {state.text2}
+      </div>
       <div id="client-side-msg-3">{state.text3}</div>
     </>
   );

@@ -394,6 +394,9 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
     entryStrategy: { type: 'inline' },
   },
+  should_inline_component_const_literal: { transpileTs: true, transpileJsx: true },
+  should_inline_component_const_literal_scoping: { transpileTs: true, transpileJsx: true },
+  should_inline_component_const_literal_forms: { transpileTs: true, transpileJsx: true },
   jsx_tag_names_without_jsx_transpile: {},
   jsx_underscore_component_tag: {
     transpileTs: true,

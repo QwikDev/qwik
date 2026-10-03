@@ -143,7 +143,7 @@ chunk — is the whole point.
 
 | Phase                     | Does                                                                                                |
 | ------------------------- | --------------------------------------------------------------------------------------------------- |
-| **0 — Prepare**           | Parse with OXC and flatten destructures                                                             |
+| **0 — Prepare**           | Parse with OXC, flatten destructures and inline component-body const literals                       |
 | **1 — Extract**           | Walk the AST, find every `$(...)` / marker call, capture each closure body + naming context         |
 | **2 — Captures**          | Determine which outer-scope variables each closure closes over                                      |
 | **3 — Migrate**           | Decide where each module-level binding lives: stay in the parent, move into a segment, or re-export |

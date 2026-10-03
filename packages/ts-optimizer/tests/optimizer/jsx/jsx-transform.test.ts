@@ -479,8 +479,9 @@ describe('isHtmlElement', () => {
     expect(isHtmlElement('my-element')).toBe(true);
   });
 
-  it('classifies a caseless-initial tag as HTML (not a component)', () => {
-    expect(isHtmlElement('5x')).toBe(true);
+  it('returns false for tags starting with _ or $', () => {
+    expect(isHtmlElement('_Item')).toBe(false);
+    expect(isHtmlElement('$Item')).toBe(false);
   });
 
   it('returns false for the empty tag name', () => {

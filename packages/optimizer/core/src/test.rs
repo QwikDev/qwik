@@ -890,6 +890,31 @@ export const Cmp = component$(() => {
 }
 
 #[test]
+fn jsx_underscore_component_tag() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { _Item } from './item';
+import { useRow } from './row';
+
+export const Cmp = component$(() => {
+	const _Row = useRow();
+	const renderRow = $(() => <_Row />);
+	return (
+		<div onClick$={renderRow}>
+			<_Item onClick$={() => console.log('click')} />
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_props_wrapping() {
 	test_input!(TestInput {
 		code: r#"

@@ -395,6 +395,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'inline' },
   },
   jsx_tag_names_without_jsx_transpile: {},
+  jsx_underscore_component_tag: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   nested_destructure_rebinding_prop_name: {
     transpileTs: true,
     transpileJsx: true,

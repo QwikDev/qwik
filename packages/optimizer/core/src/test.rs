@@ -799,6 +799,44 @@ export const Cmp = component$((props: { flag?: boolean; className?: string }) =>
 }
 
 #[test]
+fn captured_props_shadowed_in_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(Model, [1].map((Model) => Model))} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_shadowed_in_segment_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	const read = $(() => render(Model, [1].map((Model) => Model)));
+	return <button onClick$={read} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn local_shadowing_destructured_prop() {
 	test_input!(TestInput {
 		code: r#"

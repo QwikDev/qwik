@@ -1244,7 +1244,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nuseHttpStatus: () => import(\"./types\").HttpStatus\n```\n**Returns:**\n\nimport(\"./types\").[HttpStatus](#httperrorprops)",
+      "content": "```typescript\nuseHttpStatus: () => HttpStatus\n```\n**Returns:**\n\n[HttpStatus](#httperrorprops)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts",
       "mdFile": "router.usehttpstatus.md"
     },

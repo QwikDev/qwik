@@ -399,6 +399,11 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  hoist_keeps_const_holding_qrl: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'hoist' },
+  },
   nested_destructure_rebinding_prop_name: {
     transpileTs: true,
     transpileJsx: true,

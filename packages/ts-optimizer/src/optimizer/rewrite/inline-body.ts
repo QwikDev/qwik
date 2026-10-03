@@ -412,7 +412,11 @@ export function transformInlineSegmentBody(
     }
   }
 
-  body = propagateConstLiteralsInBody(body, collectElementCaptureNames(nested, elementQpParamsMap));
+  body = propagateConstLiteralsInBody(
+    body,
+    collectElementCaptureNames(nested, elementQpParamsMap),
+    new Set(nested.map((child) => qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`))
+  );
 
   let finalKeyCounterValue: number | undefined;
 

@@ -915,6 +915,26 @@ export const Cmp = component$(() => {
 }
 
 #[test]
+fn hoist_keeps_const_holding_qrl() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(() => {
+	const view = $(() => console.log('view'));
+	const alias = view;
+	return <button onClick$={alias} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_props_wrapping() {
 	test_input!(TestInput {
 		code: r#"

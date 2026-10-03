@@ -101,6 +101,7 @@ import {
   type VNodeJournal,
 } from './vnode-utils';
 import { isObjectEmpty } from '../shared/utils/objects';
+import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { setInlineComponentData } from '../shared/cursor/chore-execution';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 
@@ -1811,6 +1812,10 @@ function handleProps(
       false
     );
     shouldRender ||= constPropsDifferent;
+    if (vNodeProps[_VAR_PROPS] === EMPTY_OBJ && !isPropsEmpty(jsxProps[_VAR_PROPS])) {
+      // The shared empty var props object is frozen, so new props need their own.
+      vNodeProps[_VAR_PROPS] = {};
+    }
     const varPropsDifferent = handleChangedProps(
       jsxProps[_VAR_PROPS],
       vNodeProps[_VAR_PROPS],

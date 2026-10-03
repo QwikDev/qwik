@@ -85,9 +85,12 @@ export {
   consolidateRawPropsCaptures,
   groupPropsFieldsByBinding,
   rawPropsBindingNames,
+  resolveDeferredTagReads,
   resolveRawPropsSlots,
+  type DeferredTagReads,
   type RawPropsConsolidation,
   type RawPropsSource,
+  type RawPropsTransformResult,
 } from './raw-props.js';
 
 import {

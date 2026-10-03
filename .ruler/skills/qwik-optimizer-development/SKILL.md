@@ -87,6 +87,13 @@ starting with `[a-z]` is an intrinsic element, while `<Foo>`, `<_Foo>` and the o
 (or `isNonReferenceIdentifier`) whether a `JSXIdentifier` reads a binding, and `isHtmlElement`
 whether a tag is intrinsic.
 
+## Event handler captures
+
+Rust moves a handler's captures into its element's `q:p` (handler params plus `.m()`) only for
+direct `on*$={fn}` and `worker$` handlers in transpiled JSX, under every entry strategy and in lib
+mode. Explicit `$()` handlers, nested markers such as `server$`, and raw JSX keep `.w([...])`.
+Decide capture delivery by handler kind, not by entry strategy.
+
 ## Worker pool changes
 
 The transform worker pool (`packages/ts-optimizer/src/worker-pool.ts`) never starts real workers

@@ -18,17 +18,14 @@ interface MovedCapturesSource {
   readonly isInlinedQrl?: boolean;
 }
 
-/**
- * Event handlers whose captures were lifted into params need a runtime `.m()` marker. Only direct
- * `on*$={fn}` handlers qualify — nested markers (`server$`, `sync$`, …) keep their captures.
- */
+/** Direct `on*$={fn}` handlers; nested markers (`server$`, `sync$`, …) keep their captures. */
+export function isDirectEventHandler(ext: MovedCapturesSource): boolean {
+  return ext.ctxKind === 'eventHandler' && !ext.isInlinedQrl && ext.calleeName === ext.ctxName;
+}
+
+/** Event handlers whose captures were lifted into params need a runtime `.m()` marker. */
 export function hasMovedCaptures(ext: MovedCapturesSource): boolean {
-  return (
-    ext.ctxKind === 'eventHandler' &&
-    !ext.isInlinedQrl &&
-    ext.calleeName === ext.ctxName &&
-    ext.movedCaptures === true
-  );
+  return isDirectEventHandler(ext) && ext.movedCaptures === true;
 }
 
 /** Appends the `.m()` moved-captures marker to a `;`-terminated QRL declaration. */

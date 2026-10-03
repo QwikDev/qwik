@@ -1,0 +1,56 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(Model)} />;
+});
+
+export const Counter = component$(() => {
+	const count = useSignal(0);
+	return <button onClick$={() => count.value++} />;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useSignal } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ _noopQrl("Cmp_component_4ryKJTOKjWE");
+const q_Cmp_component_button_q_e_click_0O0tA6ahzDQ = /*#__PURE__*/ _noopQrl("Cmp_component_button_q_e_click_0O0tA6ahzDQ").m();
+const q_Counter_component_button_q_e_click_z9H6Z3sPhHc = /*#__PURE__*/ _noopQrl("Counter_component_button_q_e_click_z9H6Z3sPhHc").m();
+const q_Counter_component_zTmRHlL09Gg = /*#__PURE__*/ _noopQrl("Counter_component_zTmRHlL09Gg");
+//
+q_Cmp_component_button_q_e_click_0O0tA6ahzDQ.s((_, _1, _rawProps)=>render(_rawProps.Model ?? Fallback));
+q_Cmp_component_4ryKJTOKjWE.s((_rawProps)=>{
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q-e:click": q_Cmp_component_button_q_e_click_0O0tA6ahzDQ,
+        "q:p": _rawProps
+    }, null, null, 6, "u6_0");
+});
+q_Counter_component_button_q_e_click_z9H6Z3sPhHc.s((_, _1, count)=>count.value++);
+q_Counter_component_zTmRHlL09Gg.s(()=>{
+    const count = useSignal(0);
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q:p": count
+    }, {
+        "q-e:click": q_Counter_component_button_q_e_click_z9H6Z3sPhHc
+    }, null, 7, "u6_1");
+});
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+export const Counter = /*#__PURE__*/ componentQrl(q_Counter_component_zTmRHlL09Gg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;AACvD,SAAS,QAAQ,EAAE,MAAM,QAAQ,MAAM;;;;;;;+CAGb,oBAAM,iBADC,SAAQ;8BAAX;IAC7B,qBAAO,WAAC;QAAO,WAAQ;;;AACxB;mDAI0B,gBAAM,MAAM,KAAK;kCAFT;IACjC,MAAM,QAAQ,UAAU;IACxB,qBAAO,WAAC;;;QAAO,WAAQ;;AACxB;AAPA,OAAO,MAAM,oBAAM,0CAEhB;AAEH,OAAO,MAAM,wBAAU,8CAGpB\"}")
+== DIAGNOSTICS ==
+
+[]

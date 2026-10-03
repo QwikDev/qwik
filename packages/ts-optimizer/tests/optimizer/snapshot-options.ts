@@ -412,6 +412,11 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
     entryStrategy: { type: 'inline' },
   },
+  inline_event_handler_captures_through_q_p: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
   nested_segment_param_does_not_collide_with_captured_props: {
     transpileTs: true,
     transpileJsx: true,

@@ -683,6 +683,30 @@ export const Cmp = component$(({ isOpen, initialFee }) => {
 }
 
 #[test]
+fn inline_event_handler_captures_through_q_p() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(Model)} />;
+});
+
+export const Counter = component$(() => {
+	const count = useSignal(0);
+	return <button onClick$={() => count.value++} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn repeated_use_context_destructures_get_distinct_bindings() {
 	test_input!(TestInput {
 		code: r#"

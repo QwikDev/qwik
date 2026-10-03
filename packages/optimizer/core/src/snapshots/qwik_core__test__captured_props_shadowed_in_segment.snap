@@ -1,0 +1,103 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(Model, [1].map((Model) => Model))} />;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,oBAAM,0CAEhB\"}")
+============================= test.tsx_Cmp_component_button_q_e_click_0O0tA6ahzDQ.js (ENTRY POINT)==
+
+import { Fallback } from "./x";
+import { render } from "./x";
+//
+export const Cmp_component_button_q_e_click_0O0tA6ahzDQ = (_, _1, _rawProps)=>render(_rawProps.Model ?? Fallback, [
+        1
+    ].map((Model)=>Model));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0DAK0B,oBAAM,iBADC,SAAQ,UACK;QAAC;KAAE,CAAC,GAAG,CAAC,CAAC,QAAU\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_button_q_e_click_0O0tA6ahzDQ",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_button_q_e_click",
+  "hash": "0O0tA6ahzDQ",
+  "canonicalFilename": "test.tsx_Cmp_component_button_q_e_click_0O0tA6ahzDQ",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    189,
+    235
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_button_q_e_click_0O0tA6ahzDQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_button_q_e_click_0O0tA6ahzDQ"), "Cmp_component_button_q_e_click_0O0tA6ahzDQ").m();
+//
+export const Cmp_component_4ryKJTOKjWE = (_rawProps)=>{
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q-e:click": q_Cmp_component_button_q_e_click_0O0tA6ahzDQ,
+        "q:p": _rawProps
+    }, null, null, 6, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAI8B;IAC7B,qBAAO,WAAC;QAAO,WAAQ;;;AACxB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    118,
+    242
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

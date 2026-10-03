@@ -73,6 +73,11 @@ function toPnpmSelectorPath(workspaceRoot: string, projectRoot: string): string 
   return `./${relativePath}`;
 }
 
+// Without the flag pnpm exits 0 when the selector matches no workspace project.
+function pnpmFilterArgs(selector: string): string[] {
+  return ['--filter', selector, '--fail-if-no-match'];
+}
+
 export function isValidPackageName(packageName: string): boolean {
   if (!packageName || packageName.length > 214) {
     return false;
@@ -160,8 +165,7 @@ export function buildInstallCommand(
     command: 'pnpm',
     args: context.workspacePackageSelector
       ? [
-          '--filter',
-          context.workspacePackageSelector,
+          ...pnpmFilterArgs(context.workspacePackageSelector),
           'add',
           '--ignore-scripts',
           ...saveArgs,
@@ -234,8 +238,7 @@ export function buildUpdateCommand(
     command: 'pnpm',
     args: context.workspacePackageSelector
       ? [
-          '--filter',
-          context.workspacePackageSelector,
+          ...pnpmFilterArgs(context.workspacePackageSelector),
           'add',
           '--ignore-scripts',
           ...saveArgs,

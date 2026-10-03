@@ -1,4 +1,5 @@
 import { dirname, join, basename } from 'node:path';
+import { isIgnoredRoutePath } from '../routing/ignore-routes';
 import { getSourceFile } from '../routing/source-file';
 import type { NormalizedPluginOptions } from '../types';
 import { getExtension, getPathnameFromDirPath, isMarkdownExt, normalizePath } from '../../utils/fs';
@@ -29,10 +30,17 @@ export function getMarkdownRelativeUrl(
       ? join(opts.routesDir, ...parts)
       : join(dirname(containingFilePath), ...parts);
 
-    if (checkFileExists && !existsSync(filePath)) {
-      console.warn(
-        `\nThe link "${url}", found within "${containingFilePath}" does not have a matching source file.\n`
-      );
+    if (checkFileExists) {
+      const deadLinkReason = !existsSync(filePath)
+        ? 'does not have a matching source file'
+        : isIgnoredRoutePath(opts, filePath)
+          ? 'points to a route skipped by `ignoreRoutes`'
+          : null;
+      if (deadLinkReason) {
+        console.warn(
+          `\nThe link "${url}", found within "${containingFilePath}" ${deadLinkReason}.\n`
+        );
+      }
     }
 
     const fileName = basename(filePath);

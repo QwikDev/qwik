@@ -263,6 +263,7 @@ test('createFileId, Menu', () => {
       mdx: {},
       platform: {},
       rewriteRoutes: [],
+      ignoreRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
       strictLoaders: true,
     };
@@ -366,6 +367,7 @@ test('parseRouteIndexName', () => {
       mdx: {},
       platform: {},
       rewriteRoutes: [],
+      ignoreRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
       strictLoaders: true,
     };

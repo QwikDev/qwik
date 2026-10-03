@@ -18,6 +18,9 @@ import type {
 import { $, component$, sync$ } from '@qwik.dev/core';
 import { assertType, describe, expectTypeOf, test } from 'vitest';
 
+/** A `sync$` body cannot read imports, so it asserts through types alone. */
+type NotAny<T> = 0 extends 1 & T ? never : T;
+
 const Fn = () => <div />;
 
 describe('types', () => {
@@ -198,8 +201,7 @@ describe('types', () => {
         })}
         // Infer through sync$
         onDblClick$={sync$((ev) => {
-          expectTypeOf(ev).not.toBeAny();
-          assertType<PointerEvent>(ev);
+          ev satisfies NotAny<typeof ev> & PointerEvent;
         })}
         // Array of handlers
         onInput$={[
@@ -211,10 +213,8 @@ describe('types', () => {
           undefined,
           [
             sync$(async (ev, el) => {
-              expectTypeOf(ev).not.toBeAny();
-              assertType<InputEvent>(ev);
-              expectTypeOf(el).not.toBeAny();
-              assertType<HTMLDivElement>(el);
+              ev satisfies NotAny<typeof ev> & InputEvent;
+              el satisfies NotAny<typeof el> & HTMLDivElement;
             }),
           ],
         ]}

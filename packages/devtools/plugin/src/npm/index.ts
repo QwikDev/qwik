@@ -1,5 +1,6 @@
 import { ServerContext } from '../types';
 import fsp from 'node:fs/promises';
+import { getServerRpcRequestContext } from '@qwik.dev/devtools/kit';
 import type {
   DependencyInfo,
   DependencyOperationResult,
@@ -23,6 +24,7 @@ import {
 } from './dependency-model';
 import { fetchPackageMetadata, resolveRegistryUrl, searchRegistryPackages } from './registry';
 import { verifyDependencySync } from './package-sync';
+import { getPackageManagementRpcGuardError, isPackageManagementRpcAllowed } from '../rpc/security';
 
 export { detectPackageManager } from './package-manager';
 
@@ -293,6 +295,17 @@ export async function startPreloading({ config }: { config: any }) {
   return Promise.resolve();
 }
 
+// Read the RPC client before any await, the request context does not survive it.
+function refuseNonLocalClient(
+  action: DependencyOperationResult['action'],
+  packageName: string
+): DependencyOperationResult | undefined {
+  if (isPackageManagementRpcAllowed(getServerRpcRequestContext()?.client)) {
+    return undefined;
+  }
+  return { success: false, action, packageName, error: getPackageManagementRpcGuardError() };
+}
+
 export function getNpmFunctions({ config }: ServerContext) {
   const refreshDependencyCache = async (): Promise<DependencyInfo[]> => {
     preloadedDependencies = null;
@@ -381,6 +394,11 @@ export function getNpmFunctions({ config }: ServerContext) {
       packageName: string,
       dependencyType: InstallDependencyType = 'devDependencies'
     ): Promise<DependencyOperationResult> {
+      const refusal = refuseNonLocalClient('install', packageName);
+      if (refusal) {
+        return refusal;
+      }
+
       try {
         if (!isValidPackageName(packageName)) {
           return {
@@ -409,6 +427,11 @@ export function getNpmFunctions({ config }: ServerContext) {
     },
 
     async updatePackage(packageName: string): Promise<DependencyOperationResult> {
+      const refusal = refuseNonLocalClient('update', packageName);
+      if (refusal) {
+        return refusal;
+      }
+
       try {
         if (!isValidPackageName(packageName)) {
           return {

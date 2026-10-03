@@ -1,6 +1,7 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
+import ts from 'typescript';
 import { generateQwikApiMarkdownDocs, generateQwikRouterApiMarkdownDocs } from './api-docs.ts';
 import { type BuildConfig, copyFile, ensureDir, panic } from './util.ts';
 
@@ -80,6 +81,7 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
 
   generateServerReferenceModules(config);
+  validateQwikTypes(config);
 
   const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
   await generateQwikApiMarkdownDocs(config, apiJsonInputDir);
@@ -423,6 +425,36 @@ function readQwikPackageExports(config: BuildConfig) {
   const qwikPkgDir = join(config.packagesDir, 'qwik');
   const pkg = JSON.parse(readFileSync(join(qwikPkgDir, 'package.json'), 'utf-8'));
   return { qwikPkgDir, exports: pkg.exports as Record<string, { types?: string }> };
+}
+
+/** Every published types entry must resolve its own imports, or consumers get broken types. */
+function validateQwikTypes(config: BuildConfig) {
+  const { qwikPkgDir, exports } = readQwikPackageExports(config);
+  const typesFiles = Object.values(exports)
+    .map((entry) => entry.types)
+    .filter((types): types is string => types !== undefined)
+    .map((types) => join(qwikPkgDir, types));
+  const program = ts.createProgram(typesFiles, {
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.Bundler,
+    noEmit: true,
+    strict: true,
+    skipLibCheck: false,
+    types: [],
+  });
+  // Dependencies ship their own types; only this package's files are ours to keep valid.
+  const diagnostics = ts
+    .getPreEmitDiagnostics(program)
+    .filter((diagnostic) => diagnostic.file?.fileName.includes('/node_modules/') !== true);
+  if (diagnostics.length > 0) {
+    panic(
+      `@qwik.dev/core published types do not type-check:\n${ts.formatDiagnostics(diagnostics, {
+        getCurrentDirectory: () => qwikPkgDir,
+        getNewLine: () => '\n',
+        getCanonicalFileName: (fileName) => fileName,
+      })}`
+    );
+  }
 }
 
 const importSpecifierRegex =

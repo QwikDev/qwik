@@ -157,6 +157,8 @@ Out-of-order (OOOS) invariants:
   vnode breaks every upward walk (context, reset owner).
 - Scoped client vnode walks (patches, segments) must stop after the scope's subtree, and a nested
   container's root takes vnode data only from its own container, never from the outer walk.
+- The root walk must resume after a `q:rp` subtree even when it is its parent's last child;
+  counting segment elements shifts the vnode data of everything after that parent.
 - Unit harnesses resolve every segment before resume. Timing-dependent OOOS bugs (shell resumed
   before release, `SSRStream` nested containers) need the e2e fixtures to reproduce.
 

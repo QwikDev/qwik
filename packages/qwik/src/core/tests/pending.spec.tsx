@@ -1161,6 +1161,38 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
+  it('should keep a component after the segment parent element reactive', async () => {
+    const Slow = component$(() => {
+      const data = useComputed$(async () => {
+        await delay(10);
+        return 'resolved';
+      });
+      return <p>{data.value}</p>;
+    });
+    const Counter = component$(() => {
+      const count = useSignal(0);
+      return <button onClick$={() => count.value++}>count: {count.value}</button>;
+    });
+    const chunks: string[] = [];
+
+    const { document, container } = await ssrRenderPendingStream(
+      <>
+        <main>
+          <Pending fallback$={() => <p>loading…</p>}>
+            <Slow />
+          </Pending>
+        </main>
+        <Counter />
+      </>,
+      chunks
+    );
+
+    expect(chunks.join('')).toContain('qO(1)');
+    expect(getParagraphHost(document, 'resolved')).not.toBeUndefined();
+    await trigger(container.element, 'button', 'click');
+    expect(document.querySelector('button')!.textContent).toBe('count: 1');
+  });
+
   it('should preserve a slow root forward ref when a later segment has a faster forward ref', async () => {
     let resolveRootPromise!: (value: string) => void;
     let resolveSegment!: (value: JSXOutput) => void;

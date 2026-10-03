@@ -9,7 +9,6 @@ import type {
   CallExpression,
   AstMaybeNode,
   AstNode,
-  AstParentNode,
 } from '../../ast-types.js';
 import { buildPropertyAccessor, isSimpleIdentifierName } from '../ast/identifier-name.js';
 import { rewritePropsFieldReferences } from './props-field-rewrite.js';
@@ -43,7 +42,7 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import type { DevSuffixOptions } from '../jsx/jsx.js';
-import { ScopeTracker, walk } from 'oxc-walker';
+import { isReferenceIdentifier, ScopeTracker, walk } from 'oxc-walker';
 
 function isRawPropsMemberExpression(
   node: unknown
@@ -697,19 +696,6 @@ function isExcludedRange(
   return excludedRanges.some((range) => node.start >= range.start && node.end <= range.end);
 }
 
-function isJsxTagNameReference(
-  parentKey: string | undefined,
-  parentNode: AstParentNode | undefined
-): boolean {
-  if (parentNode?.type === 'JSXMemberExpression') {
-    return parentKey === 'object';
-  }
-  return (
-    parentKey === 'name' &&
-    (parentNode?.type === 'JSXOpeningElement' || parentNode?.type === 'JSXClosingElement')
-  );
-}
-
 /**
  * Collector matching Identifier references to destructured prop locals, emitting
  * `IdentifierReplacement` records for the `_rawProps.<key>` rewrite. Uses the local shape (not
@@ -733,25 +719,15 @@ function buildIdentifierReplacementsCollector(
     ) {
       return { replacements: [], skipSubtree: true };
     }
-    // A JSXIdentifier in tag-name position is a reference to the same binding
-    // (`<Model/>` resolves `Model` in scope), so rewrite to `<props.Model/>`.
-    // Only opening/closing tag names are references — attribute names,
-    // member-expression properties, and namespace parts must NOT be rewritten.
-    if (
-      isAstNode(node) &&
-      node.type === 'JSXIdentifier' &&
-      hasRange(node) &&
-      typeof (node as { name?: unknown }).name === 'string' &&
-      isJsxTagNameReference(ctx.parentKey, ctx.parentNode)
-    ) {
-      const jsxName = (node as { name: string }).name;
-      const jsxKey = fieldLocalToKey.get(jsxName);
-      if (jsxKey !== undefined) {
+    // `<Model/>` and `<Model.Item/>` read the binding, so they become `<props.Model/>`.
+    if (node.type === 'JSXIdentifier') {
+      const jsxKey = fieldLocalToKey.get(node.name);
+      if (jsxKey !== undefined && isReferenceIdentifier(node, ctx.parentNode ?? null)) {
         out.push({
           start: node.start - offset,
           end: node.end - offset,
           key: jsxKey,
-          local: jsxName,
+          local: node.name,
           // JSX tag position does not need parens around a MemberExpression.
           needsParens: false,
           isJsxTagName: true,

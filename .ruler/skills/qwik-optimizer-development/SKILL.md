@@ -79,6 +79,14 @@ DCE'd. Lower such syntax inside `stripTypeScript` itself, threading the option t
 (see `decorator`); lowering later in the Vite plugin is too late. Segments are served as `.js`, so
 Vite's own `vite:oxc` pass never touches them.
 
+## JSX tag names
+
+Rust transpiles JSX before its Qwik transform, so SWC's rule decides what a tag is: only a tag
+starting with `[a-z]` is an intrinsic element, while `<Foo>`, `<_Foo>` and the object of
+`<ui.Home>` read bindings. In the TypeScript optimizer, ask oxc-walker's `isReferenceIdentifier`
+(or `isNonReferenceIdentifier`) whether a `JSXIdentifier` reads a binding, and `isHtmlElement`
+whether a tag is intrinsic.
+
 ## Worker pool changes
 
 The transform worker pool (`packages/ts-optimizer/src/worker-pool.ts`) never starts real workers

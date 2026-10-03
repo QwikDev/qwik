@@ -11,7 +11,7 @@
  * this walk rather than in a separate pass before it.
  */
 
-import { isBindingIdentifier } from 'oxc-walker';
+import { isBindingIdentifier, isReferenceIdentifier } from 'oxc-walker';
 import type { ScopeTrackerNode } from 'oxc-walker';
 import { ScopeQueryTracker } from './scope-query-tracker.js';
 import type {
@@ -556,19 +556,7 @@ function enterFreeIdentifiers(
     return;
   }
   if (node.type !== 'Identifier') {
-    // A capitalized JSX tag (`<Display/>`) references a scope binding like any
-    // identifier; attribute names, namespaced parts, and member properties
-    // don't, and lowercase tags are intrinsic elements.
-    if (node.type !== 'JSXIdentifier') {
-      return;
-    }
-    if (parent?.type === 'JSXAttribute' || parent?.type === 'JSXNamespacedName') {
-      return;
-    }
-    if (parent?.type === 'JSXMemberExpression' && parent.property === node) {
-      return;
-    }
-    if (!/^[A-Z]/.test(node.name)) {
+    if (node.type !== 'JSXIdentifier' || !isReferenceIdentifier(node, parent)) {
       return;
     }
   } else if (

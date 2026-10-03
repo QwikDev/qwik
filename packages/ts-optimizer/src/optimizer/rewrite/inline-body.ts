@@ -374,7 +374,7 @@ export function transformInlineSegmentBody(
       additionalImports.set('_capturesObj', '@qwik.dev/core');
     }
   }
-  let deferredTagReads: DeferredTagReads | undefined;
+  const deferredTagReads: DeferredTagReads[] = [];
   {
     // Consolidate any destructured first param (component props AND hook
     // contexts like useComputed$'s { cleanup }) — a bare destructured method
@@ -388,7 +388,9 @@ export function transformInlineSegmentBody(
       : { code: body };
     if (rawPropsResult.code !== body) {
       body = rawPropsResult.code;
-      deferredTagReads = rawPropsResult.deferredTagReads;
+      if (rawPropsResult.deferredTagReads) {
+        deferredTagReads.push(rawPropsResult.deferredTagReads);
+      }
       if (body.includes('_restProps(')) {
         additionalImports.set('_restProps', '@qwik.dev/core');
       }
@@ -406,13 +408,17 @@ export function transformInlineSegmentBody(
       bindingNames
     );
     for (const [propsName, fields] of groups) {
-      body = replacePropsFieldReferencesInBody(
+      const rewritten = replacePropsFieldReferencesInBody(
         body,
         fields,
         propsName,
         ext.propsFieldDefaults,
         ext.propsFieldDynamicDefaults
       );
+      body = rewritten.code;
+      if (rewritten.deferredTagReads) {
+        deferredTagReads.push(rewritten.deferredTagReads);
+      }
     }
   }
 

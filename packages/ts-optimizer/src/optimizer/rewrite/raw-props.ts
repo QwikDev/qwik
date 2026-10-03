@@ -100,8 +100,8 @@ interface IdentifierReplacement {
 export interface DeferredTagReads {
   readonly baseName: string;
   readonly fieldLocalToKey: Map<string, string>;
-  readonly fieldLocalToDefault: Map<string, string>;
-  readonly fieldLocalToDynamicDefault: Map<string, string>;
+  readonly fieldLocalToDefault: ReadonlyMap<string, string>;
+  readonly fieldLocalToDynamicDefault: ReadonlyMap<string, string>;
 }
 
 export interface RawPropsTransformResult {
@@ -864,23 +864,27 @@ function applyIdentifierReplacements(
   return deferredTagFields;
 }
 
-export function resolveDeferredTagReads(body: string, reads: DeferredTagReads | undefined): string {
-  if (reads === undefined) {
-    return body;
+export function resolveDeferredTagReads(
+  body: string,
+  deferredReads: readonly DeferredTagReads[]
+): string {
+  let resolved = body;
+  for (const reads of deferredReads) {
+    const session = createFunctionTransformSession(resolved);
+    if (!session) {
+      return resolved;
+    }
+    const replacements = collectIdentifierReplacements(session, reads.fieldLocalToKey);
+    applyIdentifierReplacements(
+      session,
+      replacements,
+      reads.baseName,
+      reads.fieldLocalToDefault,
+      reads.fieldLocalToDynamicDefault
+    );
+    resolved = session.toSource();
   }
-  const session = createFunctionTransformSession(body);
-  if (!session) {
-    return body;
-  }
-  const replacements = collectIdentifierReplacements(session, reads.fieldLocalToKey);
-  applyIdentifierReplacements(
-    session,
-    replacements,
-    reads.baseName,
-    reads.fieldLocalToDefault,
-    reads.fieldLocalToDynamicDefault
-  );
-  return session.toSource();
+  return resolved;
 }
 
 function formatConsolidatedWItems(items: string[]): string {
@@ -1236,7 +1240,7 @@ export function replacePropsFieldReferencesInBody(
   propsName: string,
   defaultValues?: ReadonlyMap<string, string>,
   dynamicDefaults?: ReadonlyMap<string, string>
-): string {
+): RawPropsTransformResult {
   return rewritePropsFieldReferences(body, fieldMap, {
     memberPropertyMode: 'nonComputed',
     propsName,

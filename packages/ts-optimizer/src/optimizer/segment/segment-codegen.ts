@@ -12,6 +12,7 @@ import {
   resolveDeferredTagReads,
   resolveRawPropsSlots,
   type DeferredTagReads,
+  type RawPropsTransformResult,
 } from '../rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
 import type { ConsolidatedSegment } from '../extraction/extract.js';
@@ -148,7 +149,7 @@ function replacePropsFieldReferences(
   propsName: string,
   defaultValues?: ReadonlyMap<string, string>,
   dynamicDefaults?: ReadonlyMap<string, string>
-): string {
+): RawPropsTransformResult {
   return rewritePropsFieldReferences(bodyText, fieldMap, {
     memberPropertyMode: 'all',
     propsName,
@@ -674,7 +675,7 @@ function applyBodyTransforms(
 ): {
   bodyText: string;
   captureInfo: SegmentCaptureInfo | undefined;
-  deferredTagReads?: DeferredTagReads;
+  deferredTagReads: DeferredTagReads[];
 } {
   // Internal helpers work on plain string; the BodyText brand applies only at
   // the ExtractionResult boundary.
@@ -705,7 +706,7 @@ function applyBodyTransforms(
   // `_rawProps`. Doing so renamed the param while the body still referenced the
   // original binding and dropped the closing brace, producing an unbalanced,
   // unparseable segment.
-  let deferredTagReads: DeferredTagReads | undefined;
+  const deferredTagReads: DeferredTagReads[] = [];
   if (!extraction.isInlinedQrl) {
     const rawProps = applyRawPropsToSegmentBody(
       bodyText,
@@ -713,7 +714,9 @@ function applyBodyTransforms(
       rawPropsInfo?.fieldDynamicDefaults
     );
     bodyText = rawProps.code;
-    deferredTagReads = rawProps.deferredTagReads;
+    if (rawProps.deferredTagReads) {
+      deferredTagReads.push(rawProps.deferredTagReads);
+    }
   }
   bodyText = stripDiagnosticsAndDirectives(bodyText);
 
@@ -725,13 +728,17 @@ function applyBodyTransforms(
       bindingNames
     );
     for (const [propsName, fields] of groups) {
-      bodyText = replacePropsFieldReferences(
+      const rewritten = replacePropsFieldReferences(
         bodyText,
         fields,
         propsName,
         captureInfo?.propsFieldDefaults,
         captureInfo?.propsFieldDynamicDefaults
       );
+      bodyText = rewritten.code;
+      if (rewritten.deferredTagReads) {
+        deferredTagReads.push(rewritten.deferredTagReads);
+      }
     }
   }
 

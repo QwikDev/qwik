@@ -1,6 +1,10 @@
 import { inlinedQrl, isDev, type QRL } from '@qwik.dev/core';
 import { _serialize, _verifySerializable } from '@qwik.dev/core/internal';
-import type { RenderToStringResult } from '@qwik.dev/core/server';
+import type {
+  RenderToStreamOptions,
+  RenderToStreamResult,
+  RenderToStringResult,
+} from '@qwik.dev/core/server';
 import type { Render } from './types';
 import type {
   ActionInternal,
@@ -28,6 +32,7 @@ import { ensureSlash } from '../../utils/pathname';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
 import {
   getRequestMode,
+  RequestEvCaughtError,
   RequestEvETagCacheKey,
   RequestEvHttpStatusMessage,
   RequestEvShareServerTiming,
@@ -494,6 +499,7 @@ function createResolveRequestHandlers() {
 
         const status = e.status as number;
         requestEv.status(status);
+        requestEv.headers.set('Cache-Control', 'no-store');
 
         // $errorLoader$ is the error boundary's chain, rendered as-is — a bare error.tsx in its
         // layouts, `error!.tsx` standalone. Undefined → built-in fallback.
@@ -518,6 +524,8 @@ function createResolveRequestHandlers() {
     requestEv.sharedMap.delete(RequestEvSharedActionId);
     requestEv.sharedMap.delete(RequestEvSharedActionFormData);
     requestEv.sharedMap.delete('@actionResult');
+    // The error document must never read or write the page's SSR cache entry.
+    requestEv.sharedMap.delete(RequestEvETagCacheKey);
   }
 
   async function runValidators(
@@ -728,6 +736,11 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
     }
   }
 
+  /** A render that supports `<Catch>` reports a catch here, before headers are committed. */
+  type CatchAwareRenderOptions = RenderToStreamOptions & {
+    onBeforeFirstFlush?: (info: { hasCaughtError: boolean }) => void;
+  };
+
   function renderQwikMiddleware(render: Render, trustForwardedHeaders = false) {
     return async (requestEv: RequestEvent) => {
       if (requestEv.headersSent) {
@@ -745,7 +758,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
 
       const { readable, writable } = new TextEncoderStream();
       // Headers commit when the response stream is created, so defer it to the first rendered
-      // chunk: a render that fails before any output still lets the error handler answer.
+      // chunk: until then a failed render or a caught boundary can still change the answer.
       let responseWriter: WritableStreamDefaultWriter<Uint8Array> | undefined;
       const lazyResponseSink = new WritableStream<Uint8Array>({
         write(chunk) {
@@ -768,6 +781,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       }
 
       let pipeError: unknown;
+      let boundaryErrored = false;
+      let noStoreSent = false;
+      let overrodeCacheControl = false;
       const pipe = pipeSource.pipeTo(lazyResponseSink, { preventClose: true }).catch((error) => {
         pipeError = error;
       });
@@ -775,7 +791,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       try {
         const isStatic = getRequestMode(requestEv) === 'static';
         const serverData = getQwikRouterServerData(requestEv, trustForwardedHeaders);
-        const result = await render({
+        const renderOptions: CatchAwareRenderOptions = {
           base: requestEv.basePathname + 'build/',
           stream,
           serverData,
@@ -783,9 +799,22 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
             ['q:render']: isStatic ? 'static' : '',
             ...serverData.containerAttributes,
           },
-        });
+          onBeforeFirstFlush: (info) => {
+            if (info.hasCaughtError) {
+              boundaryErrored = true;
+              noStoreSent = true;
+              overrodeCacheControl = responseHeaders.has('Cache-Control');
+              responseHeaders.set('Cache-Control', 'no-store');
+            }
+          },
+        };
+        const result = await render(renderOptions);
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
+        }
+        boundaryErrored ||= (result as RenderToStreamResult).hasCaughtError === true;
+        if (boundaryErrored) {
+          requestEv.sharedMap.set(RequestEvCaughtError, true);
         }
       } finally {
         try {
@@ -800,7 +829,17 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         throw pipeError;
       }
 
-      if (cachePlan && cacheChunks && cacheChunks.length > 0) {
+      // Only worth a log when the developer configured caching and the error disabled it.
+      if (boundaryErrored && (noStoreSent ? cachePlan || overrodeCacheControl : !!cachePlan)) {
+        console.warn(
+          `A <Catch> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
+            (noStoreSent
+              ? 'the response was sent with Cache-Control: no-store.'
+              : 'the SSR cache was skipped (response headers were already sent).')
+        );
+      }
+
+      if (cachePlan && cacheChunks && cacheChunks.length > 0 && !boundaryErrored) {
         const totalLength = cacheChunks.reduce((sum, chunk) => sum + chunk.length, 0);
         const combined = new Uint8Array(totalLength);
         let offset = 0;

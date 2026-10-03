@@ -95,7 +95,6 @@ export function transformInlineSegmentBody(
   transformedBody: string;
   additionalImports: Map<string, string>;
   hoistedDeclarations: string[];
-  keyCounterValue?: number;
 } {
   let body: string = ext.bodyText;
   const additionalImports = new Map<string, string>();
@@ -418,8 +417,6 @@ export function transformInlineSegmentBody(
     new Set(nested.map((child) => qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`))
   );
 
-  let finalKeyCounterValue: number | undefined;
-
   // Rewrite peer-tool `jsx(...)` calls (e.g. qwik-react codegen inside
   // `inlinedQrl(...)` bodies) to `_jsxSorted(...)` form. Runs here because
   // under inline strategy the body stays in the parent, not a segment file.
@@ -441,7 +438,7 @@ export function transformInlineSegmentBody(
             const callS = new MagicString(wrappedBody);
             const relPathForPrefix = parentRelPath ?? jsxBodyOptions?.relPath;
             const prefix = relPathForPrefix ? computeKeyPrefix(relPathForPrefix) : 'u6';
-            const startAt = sharedKeyCounterStart ?? jsxBodyOptions?.keyCounterStart ?? 0;
+            const startAt = sharedKeyCounterStart ?? 0;
             const keyCounter = new JsxKeyCounter(startAt, prefix);
             const callNeededImports = new Set<string>();
             // Map each child event handler's QRL var to its capture params so
@@ -481,7 +478,6 @@ export function transformInlineSegmentBody(
                 additionalImports.set(sym, '@qwik.dev/core');
               }
               hoistedDeclarations.push(...bodyJsxCallHoister.getDeclarations().slice(declsBefore));
-              finalKeyCounterValue = keyCounter.current();
             }
           }
         } catch {
@@ -606,7 +602,7 @@ export function transformInlineSegmentBody(
         {
           skipRanges: [],
           devOptions: devOptionsForCall,
-          keyCounterStart: sharedKeyCounterStart ?? jsxBodyOptions.keyCounterStart,
+          keyCounterStart: sharedKeyCounterStart,
           qpOverrides: bodyQpOverrides,
           qrlsWithCaptures: bodyQrlsWithCaptures,
           qrlsNonConst: bodyQrlsNonConst,
@@ -631,7 +627,6 @@ export function transformInlineSegmentBody(
       }
 
       hoistedDeclarations.push(...bodyJsxResult.hoistedDeclarations);
-      finalKeyCounterValue = bodyJsxResult.keyCounterValue;
     }
   }
 
@@ -653,7 +648,6 @@ export function transformInlineSegmentBody(
     transformedBody: body,
     additionalImports,
     hoistedDeclarations,
-    keyCounterValue: finalKeyCounterValue,
   };
 }
 

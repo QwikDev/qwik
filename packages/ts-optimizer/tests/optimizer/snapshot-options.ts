@@ -404,6 +404,17 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
     entryStrategy: { type: 'hoist' },
   },
+  inline_jsx_keys_follow_source_order_across_components: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
+  inline_jsx_keys_count_stripped_event_handlers: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+    stripEventHandlers: true,
+  },
   nested_destructure_rebinding_prop_name: {
     transpileTs: true,
     transpileJsx: true,

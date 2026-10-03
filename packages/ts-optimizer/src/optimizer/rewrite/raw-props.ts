@@ -83,7 +83,6 @@ export interface InlineSegmentJsxOptions {
   importedNames: Set<string>;
   devOptions?: DevSuffixOptions;
   source?: string;
-  keyCounterStart?: number;
   relPath?: string;
 }
 

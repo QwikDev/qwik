@@ -2,4 +2,4 @@
 '@qwik.dev/core': patch
 ---
 
-fix: the TypeScript optimizer no longer breaks on destructured props used as JSX tags, like `<Model />` with a default or `<ui.Home />`
+fix: the TypeScript optimizer no longer fails when a destructured prop with a default or a string key is used as a JSX tag

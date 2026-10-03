@@ -9,7 +9,9 @@ import {
   groupPropsFieldsByBinding,
   inlineConstCaptures,
   rawPropsBindingNames,
+  resolveDeferredTagReads,
   resolveRawPropsSlots,
+  type DeferredTagReads,
 } from '../rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
 import type { ConsolidatedSegment } from '../extraction/extract.js';
@@ -668,7 +670,11 @@ function applyBodyTransforms(
   nestedCallSites: NestedCallSiteInfo[] | undefined,
   enumValueMap: Map<string, Map<string, string>> | undefined,
   preserveOffsets: boolean
-): { bodyText: string; captureInfo: SegmentCaptureInfo | undefined } {
+): {
+  bodyText: string;
+  captureInfo: SegmentCaptureInfo | undefined;
+  deferredTagReads?: DeferredTagReads;
+} {
   // Internal helpers work on plain string; the BodyText brand applies only at
   // the ExtractionResult boundary.
   let bodyText: string = extraction.bodyText;
@@ -698,8 +704,15 @@ function applyBodyTransforms(
   // `_rawProps`. Doing so renamed the param while the body still referenced the
   // original binding and dropped the closing brace, producing an unbalanced,
   // unparseable segment.
+  let deferredTagReads: DeferredTagReads | undefined;
   if (!extraction.isInlinedQrl) {
-    bodyText = applyRawPropsToSegmentBody(bodyText, parts, rawPropsInfo?.fieldDynamicDefaults);
+    const rawProps = applyRawPropsToSegmentBody(
+      bodyText,
+      parts,
+      rawPropsInfo?.fieldDynamicDefaults
+    );
+    bodyText = rawProps.code;
+    deferredTagReads = rawProps.deferredTagReads;
   }
   bodyText = stripDiagnosticsAndDirectives(bodyText);
 
@@ -745,7 +758,7 @@ function applyBodyTransforms(
     bodyText = injectCapturesUnpacking(bodyText, liveCaptureInfo.captureNames);
   }
 
-  return { bodyText, captureInfo: liveCaptureInfo };
+  return { bodyText, captureInfo: liveCaptureInfo, deferredTagReads };
 }
 
 export function generateSegmentCode(
@@ -788,7 +801,7 @@ export function generateSegmentCode(
       nestedCallSites,
       liveCaptureInfo
     );
-    bodyText = jsxResult.bodyText;
+    bodyText = resolveDeferredTagReads(jsxResult.bodyText, transformed.deferredTagReads);
     segmentKeyCounterValue = jsxResult.keyCounterValue;
   }
 

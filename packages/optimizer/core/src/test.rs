@@ -8434,3 +8434,69 @@ export const task = inlinedQrl(() => {
 		entry_module.code
 	);
 }
+
+#[test]
+fn should_drop_unused_pure_calls() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+const div = Math.random();
+const date = Date();
+const upper = 'abc'.toUpperCase();
+const trimmed = `abc`.trim();
+const noop = function (a, b) {}(1, 2);
+const now = Date.now();
+const replaced = 'abc'.replace('a', 'b');
+
+export const Cmp = component$(() => {
+	const random = Math.random();
+	const pi = Math.PI;
+	return <p>hello</p>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_migrate_pure_call_into_its_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const x = Math.random();
+
+export const readX = $(() => x);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_calls_on_shadowed_pure_globals() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Math } from './math';
+
+const random = Math.random();
+
+export const Cmp = component$(() => {
+	const Date = () => 0;
+	const date = Date();
+	return <p>hello</p>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}

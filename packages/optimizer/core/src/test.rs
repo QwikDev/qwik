@@ -765,6 +765,131 @@ export const Cmp = component$((props: { title: string; _Item: any }) => {
 }
 
 #[test]
+fn jsx_tag_names_are_not_segment_uses() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { icons } from './icons';
+
+const div = Math.random();
+const title = Math.random();
+const Home = Math.random();
+console.log(div, title, Home);
+
+export const Cmp = component$(() => {
+	return <div title="hello"><icons.Home /></div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn jsx_lowercase_tag_outside_segments() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+const div = { size: 1 };
+const span = { size: 2 };
+console.log(span, <div />);
+
+const Label = () => <span>label</span>;
+
+export const Cmp = component$(() => {
+	console.log(div);
+	return <Label />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn jsx_member_tag_object_is_captured() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { Home } from './icons';
+
+export const Cmp = component$(() => {
+	const ui = { Home };
+	const render = $(() => <ui.Home />);
+	return <button onClick$={render} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructured_prop_used_as_member_tag() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { Model: any }) => {
+	const { Model } = props;
+	return <Model.Item />;
+});
+
+export const Other = component$(({ ui }: { ui: any }) => <ui.Home />);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn jsx_tag_named_like_inlined_const() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(() => {
+	const title = 'Hello';
+	return <title>{title}</title>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn jsx_tag_names_without_jsx_transpile() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { title } from './i18n';
+
+export const Logo = <svg title="logo" />;
+
+export const Cmp = component$(() => {
+	const div = 1;
+	return <div />;
+});
+"#
+		.to_string(),
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_props_wrapping() {
 	test_input!(TestInput {
 		code: r#"

@@ -3,7 +3,7 @@
  * from the original segmentImports; this scans the final body text and adds the missing imports.
  */
 
-import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
+import { walk, getUndeclaredIdentifiersInFunction, isReferenceIdentifier } from 'oxc-walker';
 import type { AstFunction, AstNode } from '../../ast-types.js';
 import { createTransformSession } from '../edit/transform-session.js';
 import { rewriteImportSource } from '../rewrite/rewrite-imports.js';
@@ -30,19 +30,14 @@ export function collectBodyIdentifiers(bodyText: string): Set<string> {
     let funcNode: AstFunction | null = null;
     const bareIds = new Set<string>();
     walk(session.program, {
-      enter(node: AstNode) {
+      enter(node: AstNode, parent) {
         if (
           !funcNode &&
           (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression')
         ) {
           funcNode = node;
         }
-        if (
-          node.type === 'JSXIdentifier' &&
-          node.name &&
-          node.name[0] >= 'A' &&
-          node.name[0] <= 'Z'
-        ) {
+        if (node.type === 'JSXIdentifier' && isReferenceIdentifier(node, parent)) {
           ids.add(node.name);
           return;
         }

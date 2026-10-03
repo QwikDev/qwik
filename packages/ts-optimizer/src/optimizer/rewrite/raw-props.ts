@@ -42,7 +42,7 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import type { DevSuffixOptions } from '../jsx/jsx.js';
-import { ScopeTracker, walk } from 'oxc-walker';
+import { isReferenceIdentifier, ScopeTracker, walk } from 'oxc-walker';
 
 function isRawPropsMemberExpression(
   node: unknown
@@ -706,26 +706,15 @@ function buildIdentifierReplacementsCollector(
     ) {
       return { replacements: [], skipSubtree: true };
     }
-    // A tag name not starting with a lowercase letter is a reference to the same binding
-    // (`<Model/>` resolves `Model` in scope), so rewrite to `<props.Model/>`; `<title>` is intrinsic.
-    // Only opening/closing tag names are references — attribute names,
-    // member-expression properties, and namespace parts must NOT be rewritten.
-    if (
-      isAstNode(node) &&
-      node.type === 'JSXIdentifier' &&
-      hasRange(node) &&
-      typeof (node as { name?: unknown }).name === 'string' &&
-      ctx.parentKey === 'name' &&
-      (ctx.parentNode?.type === 'JSXOpeningElement' || ctx.parentNode?.type === 'JSXClosingElement')
-    ) {
-      const jsxName = (node as { name: string }).name;
-      const jsxKey = fieldLocalToKey.get(jsxName);
-      if (jsxKey !== undefined && !/^[a-z]/.test(jsxName)) {
+    // `<Model/>` and `<Model.Item/>` read the binding, so they become `<props.Model/>`.
+    if (node.type === 'JSXIdentifier') {
+      const jsxKey = fieldLocalToKey.get(node.name);
+      if (jsxKey !== undefined && isReferenceIdentifier(node, ctx.parentNode ?? null)) {
         out.push({
           start: node.start - offset,
           end: node.end - offset,
           key: jsxKey,
-          local: jsxName,
+          local: node.name,
           // JSX tag position does not need parens around a MemberExpression.
           needsParens: false,
         });

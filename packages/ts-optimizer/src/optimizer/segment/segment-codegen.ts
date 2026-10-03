@@ -70,6 +70,7 @@ export interface SegmentCaptureInfo {
   skipCaptureInjection?: boolean;
   propsFieldCaptures?: Map<string, string>;
   propsFieldSources?: Map<string, string>;
+  propsFieldBindings?: Map<string, string>;
   propsFieldDefaults?: Map<string, string>;
   propsFieldDynamicDefaults?: Map<string, string>;
   constLiterals?: Map<string, string>;
@@ -709,7 +710,8 @@ function applyBodyTransforms(
     const groups = groupPropsFieldsByBinding(
       propsFieldCaptures,
       captureInfo?.propsFieldSources,
-      bindingNames
+      bindingNames,
+      captureInfo?.propsFieldBindings
     );
     for (const [propsName, fields] of groups) {
       bodyText = replacePropsFieldReferences(

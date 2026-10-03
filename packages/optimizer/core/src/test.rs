@@ -863,6 +863,49 @@ export const Cmp = component$(
 }
 
 #[test]
+fn captured_props_shadowed_in_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(Model, [1].map((Model) => Model))} />;
+});
+
+export const Cmp2 = component$(({ Model }: { Model: any }) => {
+	return <button onClick$={() => render(<Model />, [1].map((Model) => <Model />))} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_shadowed_in_segment_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback, Layout }: { Model?: any; Layout: any }) => {
+	const read = $(() => render(Model, [1].map((Model) => Model)));
+	const view = $(() => render(<Layout />, [1].map((Layout) => <Layout />)));
+	return <button onClick$={read} onDblClick$={view} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn local_shadowing_destructured_prop() {
 	test_input!(TestInput {
 		code: r#"

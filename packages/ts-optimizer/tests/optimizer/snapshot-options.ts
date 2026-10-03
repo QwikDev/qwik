@@ -421,6 +421,15 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
     entryStrategy: { type: 'inline' },
   },
+  captured_props_shadowed_in_segment: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  captured_props_shadowed_in_segment_inline: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
   nested_segments_number_captured_raw_props: {
     transpileTs: true,
     transpileJsx: true,

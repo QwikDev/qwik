@@ -420,6 +420,15 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  segments_capture_body_destructured_props: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  segments_capture_body_destructured_props_hoist: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'hoist' },
+  },
   example_input_bind: {
     entryStrategy: { type: 'inline' },
     transpileTs: true,

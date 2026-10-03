@@ -683,6 +683,59 @@ export const Cmp = component$(({ isOpen, initialFee }) => {
 }
 
 #[test]
+fn segments_capture_body_destructured_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+import { List } from './list';
+
+export const Cmp = component$((props: { a?: string; b?: number }) => {
+	const { a, b = 1 } = props;
+	const count = useSignal(0);
+	useTask$(() => console.log(a));
+	return (
+		<div>
+			<button onClick$={() => console.log(a)}>{a}</button>
+			<button onClick$={() => console.log(b, count.value)} />
+			<List renderItem$={() => <button onClick$={() => console.log(a)} />} />
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn segments_capture_body_destructured_props_hoist() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { a?: string; b?: number }) => {
+	const { a, b = 1 } = props;
+	const count = useSignal(0);
+	useTask$(() => console.log(a));
+	return (
+		<div>
+			<button onClick$={() => console.log(a)}>{a}</button>
+			<button onClick$={() => console.log(b, count.value)} />
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn repeated_use_context_destructures_get_distinct_bindings() {
 	test_input!(TestInput {
 		code: r#"

@@ -12,7 +12,6 @@ describe('qrlToString', () => {
     mockContext = {
       $symbolToChunkResolver$: vi.fn((hash: string) => `chunk-${hash}`),
       $addRoot$: vi.fn((obj: unknown) => 1) as any,
-      $addSyncFn$: vi.fn((funcStr: string | null, argsCount: number, fn: Function) => 42),
     } as unknown as SerializationContext;
   });
 
@@ -59,17 +58,12 @@ describe('qrlToString', () => {
   });
 
   describe('sync QRL serialization', () => {
-    it('should serialize a sync QRL', () => {
-      const testFn = function myFunc() {
-        return 42;
-      };
-      const qrl = createSyncQRL(SYNC_QRL, testFn) as SyncQRLInternal;
-      mockContext.$addSyncFn$ = vi.fn(() => 5);
+    it('refuses to serialize a sync QRL without a compiler key', () => {
+      const qrl = createSyncQRL(SYNC_QRL, () => 42) as SyncQRLInternal;
 
-      const result = qrlToString(mockContext, qrl);
-
-      expect(mockContext.$addSyncFn$).toHaveBeenCalledWith(null, 0, testFn);
-      expect(result).toBe('#5');
+      expect(() => qrlToString(mockContext, qrl)).toThrow(
+        'A sync$ without a compiler key cannot be serialized.'
+      );
     });
 
     it('preserves a compiler table key when serializing and parsing a sync QRL', () => {
@@ -81,7 +75,6 @@ describe('qrlToString', () => {
       const serialized = qrlToString(mockContext, qrl);
       expect(serialized).toBe('#text-key');
       expect(mockContext.$requireSyncFn$).toHaveBeenCalledWith('text-key', handler.toString());
-      expect(mockContext.$addSyncFn$).not.toHaveBeenCalled();
       expect(mockContext.$qrlMapper$).not.toHaveBeenCalled();
       const restored = parseQRL(serialized);
       expect(isSyncQrl(restored)).toBe(true);
@@ -95,16 +88,6 @@ describe('qrlToString', () => {
       expect(isSyncQrl(qrl)).toBe(false);
       expect(qrlToString(mockContext, qrl)).toBe('chunk-abc123#mySymbol_abc123');
       expect(mockContext.$requireSyncFn$).not.toHaveBeenCalled();
-    });
-
-    it('should not include chunk for sync QRL', () => {
-      const testFn = () => 'test';
-      const qrl = createSyncQRL(SYNC_QRL, testFn) as SyncQRLInternal;
-      mockContext.$addSyncFn$ = vi.fn(() => 99);
-
-      const result = qrlToString(mockContext, qrl);
-
-      expect(result).toBe('#99');
     });
   });
 
@@ -203,13 +186,10 @@ describe('qrlToString', () => {
     });
 
     it('should return tuple in raw mode for sync QRL', () => {
-      const testFn = () => {};
-      const qrl = createSyncQRL(SYNC_QRL, testFn) as SyncQRLInternal;
-      mockContext.$addSyncFn$ = vi.fn(() => 15);
+      const qrl = _qrlSync(() => {}, 'raw-key') as unknown as QRLInternal;
+      mockContext.$requireSyncFn$ = vi.fn();
 
-      const result = qrlToString(mockContext, qrl, true);
-
-      expect(result).toEqual(['', '15', null]);
+      expect(qrlToString(mockContext, qrl, true)).toEqual(['', 'raw-key', null]);
     });
 
     it('should return tuple in raw mode with chunk starting with "./"', () => {

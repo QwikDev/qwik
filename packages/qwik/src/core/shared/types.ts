@@ -35,7 +35,6 @@ export const enum QContainerValue {
 }
 
 export interface QContainerElement extends Element {
-  qFuncs?: Function[];
   _qwikjson_?: unknown;
 }
 

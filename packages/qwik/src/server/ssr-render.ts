@@ -600,7 +600,6 @@ export const renderToStreamCompiled = async <Props = undefined>(
       isStatic: serializationCtx.$roots$.length === 0 && serializationCtx.$eventQrls$.size === 0,
       manifest: resolvedManifest?.manifest,
       snapshotResult: {
-        funcs: serializationCtx.$syncFns$,
         qrls: Array.from(serializationCtx.$eventQrls$),
         mode:
           serializationCtx.$roots$.length > 0

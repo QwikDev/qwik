@@ -6,6 +6,7 @@
 
 import { PhaseSubscriber } from '@qwik.dev/core';
 import type { QRL } from '@qwik.dev/core';
+import { QRLInternal } from '@qwik.dev/core';
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { RenderRoot } from '@qwik.dev/core';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
@@ -138,8 +139,6 @@ export function setServerPlatform(manifest?: Partial<QwikManifest | ResolvedMani
 
 // @public (undocumented)
 export interface SnapshotResult {
-    // (undocumented)
-    funcs: string[];
     // (undocumented)
     mode: 'render' | 'listeners' | 'static';
     // (undocumented)

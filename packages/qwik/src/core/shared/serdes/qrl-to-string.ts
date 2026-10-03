@@ -61,17 +61,12 @@ export function qrlToString(
     }
   } else {
     chunk = '';
-    // the compiler emits the function into the container's table under this key
-    const fn = qrl.resolved as Function;
     if (symbol === SYNC_QRL) {
-      symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
-    } else {
-      // the container defines it when the compiler could not reach the use site
-      serializationContext.$requireSyncFn$(
-        symbol,
-        ((fn as { serialized?: string }).serialized ?? fn.toString()) as string
-      );
+      throw new Error('A sync$ without a compiler key cannot be serialized.');
     }
+    // the container defines it when the compiler could not reach the use site
+    const fn = qrl.resolved as Function & { serialized?: string };
+    serializationContext.$requireSyncFn$(symbol, fn.serialized ?? fn.toString());
   }
 
   const captures = qrl.$captures$;

@@ -79,7 +79,6 @@ export interface RenderToStreamOptions<Props = undefined> extends RenderOptions<
 
 /** @public */
 export interface SnapshotResult {
-  funcs: string[];
   qrls: QRL[];
   mode: 'render' | 'listeners' | 'static';
 }

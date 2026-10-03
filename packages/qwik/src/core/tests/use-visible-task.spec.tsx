@@ -655,6 +655,34 @@ describe.each([
       (globalThis as any).log = undefined;
     });
 
+    it('should run visible task once when invalidated by a signal and a ref it mounts', async () => {
+      (globalThis as any).log = [] as string[];
+      const Cmp = component$(() => {
+        const show = useSignal(false);
+        const el = useSignal<HTMLElement>();
+        useVisibleTask$(({ track }) => {
+          track(show);
+          track(el);
+          (globalThis as any).log.push(`visible task: ${show.value} ${!!el.value}`);
+          return () => (globalThis as any).log.push('cleanup');
+        });
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}>toggle</button>
+            {show.value && <div ref={el}>shown</div>}
+          </>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      await trigger(document.body, 'button', 'qvisible');
+      expect((globalThis as any).log).toEqual(['visible task: false false']);
+      (globalThis as any).log = [];
+      await trigger(document.body, 'button', 'click');
+      expect((globalThis as any).log).toEqual(['cleanup', 'visible task: true true']);
+      (globalThis as any).log = undefined;
+    });
+
     it('should execute cleanup visible task on unmount', async () => {
       (globalThis as any).log = [] as string[];
       const Child = component$(() => {

@@ -212,6 +212,19 @@ export const routeConfig: RouteConfig = {
 };
 ```
 
+> **Security warning**: The in-memory cache is shared by every visitor of the server process, and the default key (`cacheKey: true`) contains nothing that identifies the visitor — no cookie, session, or `Authorization` header. Never use `cacheKey: true` on a route or layout that renders per-visitor content: the first visitor's HTML would be served to everyone else requesting the same URL. On a cache hit nothing is re-rendered, so checks inside components do not run either.
+>
+> For personalized routes, either skip caching for identified visitors or fold the identifying value into the key:
+
+```tsx title="src/routes/account/index.tsx"
+import type { RouteConfig } from '@qwik.dev/router';
+
+export const routeConfig: RouteConfig = {
+  // Only cache for anonymous visitors; `null` skips the cache
+  cacheKey: (ev) => (ev.cookie.has('session') ? null : ev.url.pathname),
+};
+```
+
 `cacheKey` can be set without an `eTag`. In that case the first SSR streams as usual (no ETag header on the first response), and the cache write hashes the rendered HTML so subsequent hits serve the entry with a stable ETag and can answer conditional requests with `304`.
 
 The cache uses LRU eviction with a default capacity of 50 entries. You can configure this in your server entry:
@@ -248,6 +261,8 @@ export const routeConfig: RouteConfig = {
 };
 ```
 
+A layout-level `cacheKey` applies to every page below it, so make sure none of them render per-visitor content (see the [security warning](#cachekey) above).
+
 See the [routeConfig documentation](/docs/(qwikrouter)/pages/index.mdx#routeconfig-export) for the full resolution rules.
 
 ## Loader caching
@@ -273,6 +288,8 @@ export const useProduct = routeLoader$(
 
 - `eTag` (string | function): explicit validator. Set before the loader runs, so a matching `If-None-Match` short-circuits with `304` and the loader is skipped entirely.
 - `cacheKey` (`true` | function): enables an in-memory cache for the serialized JSON response. Default key: `${pathname}|${filteredSearch}|${loaderId}`, suffixed with `|${eTag}` when an explicit eTag is set.
+
+> **Security warning**: On a cache hit the loader function is **not executed**, so any authentication or authorization check written inside the loader is skipped and the cached JSON is returned to whoever asks. The default key does not identify the visitor. Do not use `cacheKey: true` on loaders that return per-visitor data — return `null` from a custom `cacheKey` function for identified visitors, or include the identifying value in the key — and enforce access control in `onRequest` middleware, which always runs before the cache lookup.
 
 Loader `cacheKey` callbacks receive the loader-filtered request event. They can read the filtered search string from `ev.url.search`.
 

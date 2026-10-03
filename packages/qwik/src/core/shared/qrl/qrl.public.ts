@@ -1,6 +1,6 @@
 import { qDev, qRuntimeQrl } from '../utils/qdev';
 import type { QRLDev } from './qrl';
-import { createQRL } from './qrl-class';
+import { createQRL, createSyncQRL } from './qrl-class';
 import { SYNC_QRL } from './qrl-utils';
 import type { ValueOrPromise } from '../utils/types';
 
@@ -295,7 +295,7 @@ export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
     fn = new Function('return ' + fn.toString())() as any;
   }
 
-  return createQRL<T>('', SYNC_QRL, fn, null, null) as any;
+  return createSyncQRL<T>(SYNC_QRL, fn) as any;
 };
 
 /**
@@ -315,5 +315,5 @@ export const _qrlSync = function <TYPE extends Function>(
   serialized?: string
 ): SyncQRL<TYPE> {
   (fn as any).serialized = serialized ?? fn.toString();
-  return createQRL<TYPE>('', syncKey ?? SYNC_QRL, fn, null, null) as any;
+  return createSyncQRL<TYPE>(syncKey ?? SYNC_QRL, fn) as any;
 };

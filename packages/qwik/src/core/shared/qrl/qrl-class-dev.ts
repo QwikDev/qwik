@@ -56,10 +56,7 @@ export const setupHmr = (
     let lazyRef = allLazyRefs.get(symbol);
     if (!lazyRef) {
       lazyRef = new LazyRefClass(chunk, symbol, symbolFn, ref, container);
-      // Ignore sync QRLs
-      if (chunk !== '') {
-        allLazyRefs.set(symbol, lazyRef);
-      }
+      allLazyRefs.set(symbol, lazyRef);
     }
     return lazyRef;
   });

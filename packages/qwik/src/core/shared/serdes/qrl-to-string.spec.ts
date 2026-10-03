@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { parseQRL, qrlToString } from './qrl-to-string';
-import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
+import { createQRL, createSyncQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
 import type { SerializationContext } from './serialization-context';
 import { isSyncQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { _qrlSync } from '../qrl/qrl.public';
@@ -63,7 +63,7 @@ describe('qrlToString', () => {
       const testFn = function myFunc() {
         return 42;
       };
-      const qrl = createQRL('', SYNC_QRL, testFn, null, null) as SyncQRLInternal;
+      const qrl = createSyncQRL(SYNC_QRL, testFn) as SyncQRLInternal;
       mockContext.$addSyncFn$ = vi.fn(() => 5);
 
       const result = qrlToString(mockContext, qrl);
@@ -88,9 +88,18 @@ describe('qrlToString', () => {
       expect(restored.$symbol$).toBe('text-key');
     });
 
+    it('treats an empty chunk as a missing chunk, not as a sync QRL', () => {
+      const qrl = createQRL('', 'mySymbol_abc123', () => 'content', null, null) as QRLInternal;
+      mockContext.$requireSyncFn$ = vi.fn();
+
+      expect(isSyncQrl(qrl)).toBe(false);
+      expect(qrlToString(mockContext, qrl)).toBe('chunk-abc123#mySymbol_abc123');
+      expect(mockContext.$requireSyncFn$).not.toHaveBeenCalled();
+    });
+
     it('should not include chunk for sync QRL', () => {
       const testFn = () => 'test';
-      const qrl = createQRL('', SYNC_QRL, testFn, null, null) as SyncQRLInternal;
+      const qrl = createSyncQRL(SYNC_QRL, testFn) as SyncQRLInternal;
       mockContext.$addSyncFn$ = vi.fn(() => 99);
 
       const result = qrlToString(mockContext, qrl);
@@ -195,7 +204,7 @@ describe('qrlToString', () => {
 
     it('should return tuple in raw mode for sync QRL', () => {
       const testFn = () => {};
-      const qrl = createQRL('', SYNC_QRL, testFn, null, null) as SyncQRLInternal;
+      const qrl = createSyncQRL(SYNC_QRL, testFn) as SyncQRLInternal;
       mockContext.$addSyncFn$ = vi.fn(() => 15);
 
       const result = qrlToString(mockContext, qrl, true);

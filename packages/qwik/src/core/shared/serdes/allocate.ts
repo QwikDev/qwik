@@ -29,6 +29,7 @@ import { maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import { _constants, TypeIds, type Constants } from './constants';
 import { createQRLWithBackChannel } from './qrl-to-string';
+import { createSyncQRL } from '../qrl/qrl-class';
 import { findQwikElement } from '../../runtime/node-walker';
 import { allocatePropsProxy, PropSource } from '../../component/props';
 import { PromiseRoot } from './promise-root';
@@ -101,7 +102,7 @@ export const allocate = (
       }
       // Sync qrl: the payload is its table key
       const syncKey = typeof value === 'string' ? value.slice(1) : String(value);
-      return createQRLWithBackChannel('', syncKey, null, context);
+      return createSyncQRL(syncKey, null, context);
     }
     case TypeIds.URL:
       return new URL(value as string);

@@ -42,7 +42,7 @@ import type { RuntimeInvokeContext } from '../../runtime/invoke-context';
 import type { SerdesWriter, SsrWriteChunk } from './writer';
 import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { isQrl, qrlOfBody } from '../qrl/qrl-utils';
+import { isQrl, isSyncQrl, qrlOfBody } from '../qrl/qrl-utils';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { createQRL } from '../qrl/qrl-class';
 import {
@@ -466,7 +466,7 @@ export class Serializer {
                 true
               );
               let data: string | number;
-              if (chunk !== '') {
+              if (!isSyncQrl(qrlValue)) {
                 // not a sync QRL, replace all parts with string references
                 const chunkRootId = this.$serializationContext$.$addRoot$(chunk);
                 const symbolRootId = this.$serializationContext$.$addRoot$(symbol);

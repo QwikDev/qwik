@@ -24,7 +24,7 @@ import { p as preload } from '@qwik.dev/core/preloader';
 import type { ContainerContext } from '../../runtime/container-context';
 import { qwikSymbol } from '../singletons';
 
-export type SyncQRLInternal = QRLInternal & { $chunk$: '' };
+export type SyncQRLInternal = QRLInternal & { $chunk$: null };
 
 export type QrlCaptures = Readonly<unknown[]> | string | null;
 
@@ -108,6 +108,7 @@ export class LazyRef<TYPE = unknown> {
   declare dev?: QRLDev | null | undefined;
   // documenter fails on WeakRef
   declare qrls?: Set<any>;
+  declare readonly $isSync$?: true;
 
   constructor(
     readonly $chunk$: string | null,
@@ -175,16 +176,6 @@ export class LazyRef<TYPE = unknown> {
   $load$(): ValueOrPromise<TYPE> {
     if (this.$ref$ != null) {
       return this.$ref$;
-    }
-
-    if (this.$chunk$ === '') {
-      // Sync QRL
-      isDev && assertDefined(this.$container$, 'Sync QRL must have container element');
-      const element = (this.$container$ as ContainerContext).element;
-      const hash = element.getAttribute(QInstanceAttr)!;
-      const doc = element.ownerDocument || document;
-      const qFuncs = getQFuncs(doc, hash);
-      return (this.$ref$ = qFuncs[this.$symbol$] as TYPE);
     }
 
     if (isBrowser && this.$chunk$) {
@@ -557,6 +548,34 @@ function invokeQrlApply<T>(
  *
  * @internal
  */
+/** A `sync$` function: the container's table holds it under a key, so there is no chunk to load. */
+export class SyncLazyRef<TYPE = unknown> extends LazyRef<TYPE> {
+  readonly $isSync$ = true;
+
+  constructor(key: string, ref?: null | ValueOrPromise<TYPE>, container?: ContainerContext | null) {
+    super(null, key, null, ref);
+    this.$container$ = container ?? undefined;
+  }
+
+  $load$(): ValueOrPromise<TYPE> {
+    if (this.$ref$ != null) {
+      return this.$ref$;
+    }
+    isDev && assertDefined(this.$container$, 'Sync QRL must have container element');
+    const element = (this.$container$ as ContainerContext).element;
+    const doc = element.ownerDocument || document;
+    const qFuncs = getQFuncs(doc, element.getAttribute(QInstanceAttr)!);
+    return (this.$ref$ = qFuncs[this.$symbol$] as TYPE);
+  }
+}
+
+export const createSyncQRL = <TYPE>(
+  key: string,
+  fn?: null | TYPE,
+  container?: ContainerContext
+): QRLInternal<TYPE> =>
+  makeQrlFn(new QRLClass<TYPE>(new SyncLazyRef<TYPE>(key, fn, container), undefined, container));
+
 export const createQRL = <TYPE>(
   chunk: string | null,
   symbol: string,

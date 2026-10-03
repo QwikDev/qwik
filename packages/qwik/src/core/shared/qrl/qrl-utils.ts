@@ -10,7 +10,7 @@ export const SYNC_QRL = '<sync>';
 
 /** Sync QRL is a function which is serialized into `<script q:func="qwik/json">` tag. */
 export const isSyncQrl = (value: any): value is SyncQRLInternal => {
-  return isQrl(value) && value.$chunk$ === '';
+  return isQrl(value) && value.$lazy$.$isSync$ === true;
 };
 
 export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {

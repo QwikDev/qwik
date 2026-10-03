@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { qTest, qrlToString, type SerializationContext } from '@qwik.dev/core';
+import { isSyncQrl, qTest, qrlToString, type SerializationContext } from '@qwik.dev/core';
 import { escapeHTML } from './qwik-copy';
 import type { PreloaderOptions, ServerQwikManifest } from './types';
 
@@ -67,9 +67,8 @@ export function createPreloaderTail(
   }
   const bundles = new Set<string>();
   for (const qrl of serializationCtx.$eventQrls$) {
-    const [chunk] = qrlToString(serializationCtx, qrl as never, true);
-    if (chunk !== '') {
-      bundles.add(chunk);
+    if (!isSyncQrl(qrl)) {
+      bundles.add(qrlToString(serializationCtx, qrl as never, true)[0]);
     }
   }
   if (bundles.size === 0) {

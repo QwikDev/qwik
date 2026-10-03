@@ -2,7 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import { type SerializationContext } from './serialization-context';
 import { qError, QError } from '../error/error';
 import { getPlatform } from '../platform/platform';
-import { createQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
+import { createQRL, createSyncQRL, type QRLInternal, type SyncQRLInternal } from '../qrl/qrl-class';
 import { isSyncQrl, SYNC_QRL } from '../qrl/qrl-utils';
 import { assertDefined } from '../error/assert';
 import type { SsrWriteChunk } from './writer';
@@ -141,6 +141,10 @@ export function createQRLWithBackChannel(
 
 /** Parses "chunk#hash#...captureDelta" */
 export function parseQRL(qrl: string, container?: ContainerContext): QRLInternal<any> {
+  // `#key` has no chunk: the container's table holds the function under the key.
+  if (qrl.startsWith('#')) {
+    return createSyncQRL(qrl.slice(1), null, container);
+  }
   const [chunk, symbol, captures] = qrl.split('#');
   return createQRLWithBackChannel(chunk, symbol, captures || null, container);
 }

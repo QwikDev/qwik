@@ -172,6 +172,8 @@ export const enum DeliveryKind {
 }
 
 export interface LinkedQrl extends Qrl {
+  /** `component$(X)` of a component: the declaration is `X` itself, not a second copy. */
+  aliasOf?: LocalId;
   /** Direct executable references, excluding bodies behind another QRL boundary. */
   dependencies: { bindings: LocalId[]; qrls: QrlId[] };
   /** Full delivery states, per environment link; chunk naming decided at link, not in neutral data. */

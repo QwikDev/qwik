@@ -1,0 +1,231 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+import { Imported } from './imported';
+const plain = () => <i>x</i>;
+export function make(label: string) {
+  const Fn = () => <div>{label}</div>;
+  return [component$(Fn), Fn()];
+}
+export const makePlain = () => component$(plain);
+export const wrap = (Param: any) => component$(Param);
+export default component$(() => {
+  const Fn = () => <div />;
+  const Cmp = component$(Fn);
+  const Wrapped = component$(Imported);
+  return <><Cmp /><Wrapped /></>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_jsx_segment_0_38vnjku9rukc6',
+  () => import('./component.tsx_component_jsx_segment_0_38vnjku9rukc6'),
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+const component_component_segment_2_1wtrerw3judm6_tmpl0 = _createElementTemplate('<div> </div>');
+const q_component_jsx_segment_3_38vnj6t5v0ibn = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_jsx_segment_3_38vnj6t5v0ibn',
+  () => import('./component.tsx_component_jsx_segment_3_38vnj6t5v0ibn'),
+  'component_jsx_segment_3_38vnj6t5v0ibn'
+);
+const component_component_segment_5_1wtrfxzfacjnr_tmpl0 = _createElementTemplate('<i>x</i>');
+const default_5_tmpl0 = _createElementTemplate('<div></div>');
+const default_6_tmpl0 = _createElementTemplate('<div></div>');
+const default_tmpl0 = createTemplate('<!><!>');
+import {
+  _qrlWithChunk,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+  component$,
+  _last,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  createDynamicTag,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+import { Imported } from './imported';
+const plain = () => q_component_jsx_segment_0_38vnjku9rukc6;
+export function make(label) {
+  const Fn = () => q_component_jsx_segment_3_38vnj6t5v0ibn.w([label]);
+  return [
+    (props, ctx) => {
+      const el0 = component_component_segment_2_1wtrerw3judm6_tmpl0(ctx.document);
+      const text0 = _first(el0);
+      const effect0 = createTextExpressionEffect(
+        text0,
+        [label],
+        component_text_segment_1_1fh10tcowimfv,
+        ctx.scheduler
+      );
+      ctx.scheduler.notify(effect0);
+      return el0;
+    },
+    Fn(),
+  ];
+}
+export const makePlain = () => (props, ctx) => {
+  const el0 = component_component_segment_5_1wtrfxzfacjnr_tmpl0(ctx.document);
+  return el0;
+};
+export const wrap = (Param) => component$(Param);
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const Fn = (props, ctx) => {
+    const el0 = default_5_tmpl0(ctx.document);
+    return el0;
+  };
+  const Cmp = (props, ctx) => {
+    const el0 = default_6_tmpl0(ctx.document);
+    return el0;
+  };
+  const Wrapped = component$(Imported);
+  const fragment0 = default_tmpl0(ctx.document);
+  const marker0 = _last(fragment0);
+  const component0 = createComponent(Cmp, null, ctx);
+  const marker1 = _first(fragment0);
+  maybeThen(component0, (component1) => marker1.replaceWith(..._toNodes(component1)));
+  const component2 = createComponent((props0) => createDynamicTag(Wrapped, props0, ctx), null, ctx);
+  maybeThen(component2, (component3) => marker0.replaceWith(..._toNodes(component3)));
+  return [...fragment0.childNodes];
+};
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_jsx_segment_0_38vnjku9rukc6_tmpl0 = _createElementTemplate('<i>x</i>');
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const el0 = component_jsx_segment_0_38vnjku9rukc6_tmpl0(ctx.document);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": false,
+  "loc": [
+    104,
+    112
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (label) => {
+  return label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    177,
+    182
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_jsx_segment_3_38vnj6t5v0ibn.js (ENTRY POINT)==
+
+import {
+  _capturesObj,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_component_text_segment_4_1fh11zg0n0shg';
+const component_jsx_segment_3_38vnj6t5v0ibn_tmpl0 = _createElementTemplate('<div> </div>');
+
+export const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
+  const [label] = _capturesObj._;
+  const el0 = component_jsx_segment_3_38vnj6t5v0ibn_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [label],
+    component_text_segment_4_1fh11zg0n0shg,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_3_38vnj6t5v0ibn",
+  "entry": null,
+  "displayName": "component_jsx_segment_3",
+  "hash": "38vnj6t5v0ibn",
+  "canonicalFilename": "component.tsx_component_jsx_segment_3_38vnj6t5v0ibn",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    171,
+    189
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_4_1fh11zg0n0shg.js (ENTRY POINT)==
+
+export const component_text_segment_4_1fh11zg0n0shg = (label) => {
+  return label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_4_1fh11zg0n0shg",
+  "entry": null,
+  "displayName": "component_text_segment_4",
+  "hash": "1fh11zg0n0shg",
+  "canonicalFilename": "component.tsx_component_text_segment_4_1fh11zg0n0shg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    177,
+    182
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

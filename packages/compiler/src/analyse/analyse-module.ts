@@ -241,6 +241,8 @@ export async function analyseModule(
   for (const component of components) {
     const componentBinding =
       component.bindingNode === null ? null : bindings.declaration(component.bindingNode);
+    const referencedBinding =
+      component.reference === undefined ? null : bindings.reference(component.reference);
     let qrlIndex;
     try {
       // A component IS a QRL: a Program body plus an authored declaration to splice over.
@@ -264,6 +266,7 @@ export async function analyseModule(
             component.statement.type === 'ExportNamedDeclaration' ||
             component.statement.type === 'ExportDefaultDeclaration',
           localName: componentBinding === null ? null : plan.bindings[componentBinding].name,
+          ...(referencedBinding === null ? {} : { componentOf: referencedBinding }),
           ...(component.expressionOnly
             ? {}
             : {

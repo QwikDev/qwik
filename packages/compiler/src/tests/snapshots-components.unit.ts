@@ -346,7 +346,7 @@ export const Footer = component$(() => {
     expect(code).toMatch(/const Filter = _withCaptures\(\w*Filter\w*, \[n\]\)/);
   });
 
-  test('should alias component$ of a component reference', async () => {
+  test('should compile component$ of a function reference as its inline function', async () => {
     const output = await testInput(mode, 'component-reference', {
       code: `import { component$, componentQrl, qrl } from '@qwik.dev/core';
 import { Imported } from './imported';
@@ -358,24 +358,93 @@ export const App = component$(Body);
 export const Marked = component$(plain);
 export const Wrapped = component$(Imported);
 export const Lazy = componentQrl(qrl(() => import('./body'), 'Body'));
+export const direct = () => plain({ x: 'a' });
 `,
     });
     expect(output.diagnostics).toEqual([]);
     const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
-    // The referenced functions compile as components; the runtime marker call is an identity.
-    expect(main).toContain('function Body(props, ctx) {');
+    // A component already: the link aliases it instead of compiling a second copy.
+    expect(main).toContain('export const App = Body;');
     expect(main).toContain(
-      mode === 'ssr'
-        ? 'const plain = _markComponent((props, ctx) =>'
-        : 'const plain = (props, ctx) =>'
+      `export const Marked = ${mode === 'ssr' ? '_markComponent((props, ctx) =>' : '(props, ctx) =>'}`
     );
-    expect(main).toContain('export const App = component$(Body);');
-    expect(main).toContain('export const Marked = component$(plain);');
+    // The referenced function keeps its own meaning for every other use.
+    expect(main).toContain('const plain = (props) =>');
+    // An import cannot be compiled here, so the runtime marker call stays an identity.
     expect(main).toContain('export const Wrapped = component$(Imported);');
     // An authored QRL component stays as written.
     expect(main).toMatch(
       /export const Lazy = componentQrl\(qrl\(\(\) => import\(["']\.\/body["']\), ["']Body["']\)\);/
     );
+  });
+
+  test('should compile a nested component$ of a function reference', async () => {
+    const output = await testInput(mode, 'component-reference-nested', {
+      code: `import { component$ } from '@qwik.dev/core';
+import { Imported } from './imported';
+const plain = () => <i>x</i>;
+export function make(label: string) {
+  const Fn = () => <div>{label}</div>;
+  return [component$(Fn), Fn()];
+}
+export const makePlain = () => component$(plain);
+export const wrap = (Param: any) => component$(Param);
+export default component$(() => {
+  const Fn = () => <div />;
+  const Cmp = component$(Fn);
+  const Wrapped = component$(Imported);
+  return <><Cmp /><Wrapped /></>;
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    expect(main).toMatch(/return \[\(props, ctx\) => \{[^]*?\}, Fn\(\)\];/);
+    expect(main).toContain('export const makePlain = () => (props, ctx) =>');
+    expect(main).toContain('const Cmp = (props, ctx) =>');
+    // Nothing to compile behind a parameter or an import: the marker call stays an identity.
+    expect(main).toContain('component$(Param)');
+    expect(main).toContain('component$(Imported)');
+  });
+
+  test('should check component$ of an import against its declaring module', async () => {
+    const app = `import { component$ } from '@qwik.dev/core';
+import { Declared, plain } from './helpers';
+export const Wrapped = component$(Declared);
+`;
+    const helpers = `import { component$ } from '@qwik.dev/core';
+export const Declared = component$(() => <b>hi</b>);
+export const plain = (props: { x: string }) => <i>{props.x}</i>;
+`;
+    const output = await testInputs(mode, 'component-reference-import', [
+      { path: 'src/component.tsx', code: app },
+      { path: 'src/helpers.tsx', code: helpers },
+    ]);
+    expect(output.diagnostics).toEqual([]);
+    await expect(
+      testInputs(mode, 'component-reference-import-refused', [
+        { path: 'src/component.tsx', code: app + 'export const Broken = component$(plain);\n' },
+        { path: 'src/helpers.tsx', code: helpers },
+      ])
+    ).rejects.toThrow(
+      'component$(plain): "plain" from "./helpers" is a plain function, and a function can only be compiled as a component in its own module. Wrap it where it is declared — export const plain = component$(...) — or move the function into "src/component.tsx".'
+    );
+  });
+
+  test.each([
+    ['function Fn() { return <div>{label}</div>; }', 'the local function declaration "Fn"'],
+    ['let Fn = () => <div>{label}</div>;', '"Fn", which is not a const'],
+  ])('should refuse component$ of %s', async (declaration, reason) => {
+    await expect(
+      testInput(mode, 'component-reference-refused', {
+        code: `import { component$ } from '@qwik.dev/core';
+export function make(label: string) {
+  ${declaration}
+  return component$(Fn);
+}
+`,
+      })
+    ).rejects.toThrow(`component$ of ${reason}`);
   });
 
   test('should render a local component call', async () => {
@@ -567,11 +636,11 @@ export default component$(() => <Picker />);
     const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
     // Every component, private or not, is exported under its hashed symbol for resume to import.
     expect(main).toMatch(
-      /export \{ Body as Body_component_\w+, Hidden as Hidden_component_\w+, Picker as Picker_component_\w+ \};/
+      /export \{ Body as Body_component_\w+, App as App_component_\w+, Hidden as Hidden_component_\w+, Picker as Picker_component_\w+ \};/
     );
     expect(main).toMatch(/export const default_component_\w+ = /);
     expect(main).toMatch(/export default default_component_\w+;/);
-    expect(main).toContain('export const App = component$(Body);');
+    expect(main).toContain('export const App = Body;');
     if (mode === 'ssr') {
       // Only the server serializes: it marks the function with symbol and chunk.
       expect(main).toMatch(/const Hidden = _markComponent\(\(props0, ctx\) => \{/);

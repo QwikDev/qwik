@@ -18,6 +18,7 @@ import { planModuleBindingExports, replacedCoreImports, requestBindingImport } f
 import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 import {
   allocateGeneratedNames,
+  emitComponentAlias,
   emitComponentFunction,
   type ComponentEmission,
   type ComponentMarker,
@@ -174,17 +175,20 @@ export function assembleQwikModule(
           ...names,
           props: componentPropsName(module, declaration) ?? names.props,
         };
-        const { text, alias } = emitComponentFunction(
-          qrl,
-          parts.emitProgram(qrl, componentNames),
-          componentNames,
-          componentMarker(module, qrl, parts)
-        );
+        const { text, alias } =
+          qrl.aliasOf === undefined
+            ? emitComponentFunction(
+                qrl,
+                parts.emitProgram(qrl, componentNames),
+                componentNames,
+                componentMarker(module, qrl, parts)
+              )
+            : emitComponentAlias(qrl, module.bindings[qrl.aliasOf].name);
         if (alias !== null) {
           componentAliases.push(alias);
         }
         const edit = { range: declaration.replacementRange, text };
-        for (const binding of qrl.dependencies.bindings) {
+        for (const binding of qrl.aliasOf === undefined ? qrl.dependencies.bindings : []) {
           requestBindingImport(module, binding, parts.imports);
         }
         edits.push(edit);

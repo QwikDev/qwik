@@ -24,6 +24,7 @@ import { InvalidModuleError, UnsupportedError } from '../errors';
 import { createCapturedContext, lowerCaptures } from './ast/capture-analysis';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { readComponentFunction } from './discover';
+import { referencedComponentFunction } from './ast/returns-jsx';
 import { pushComponentQrl } from './lower-component-body';
 import { lowerComputedExpressionValue, recordPayloadJsx, recordPayloadReads } from './lower-expr';
 import { LocalKind, type SetupLocal, type SetupLocals } from './locals';
@@ -161,12 +162,21 @@ function isComponentMarkerCall(call: CallExpression, ctx: LowerContext): boolean
  * `component$(fn)` below module level: a compiled component value closing over its scope. It prints
  * inline where the call stood, so it needs no chunk and carries no serializable symbol.
  */
-function lowerNestedComponent(call: CallExpression, ctx: LowerContext): QrlUse {
+function nestedComponentFunction(call: CallExpression, ctx: LowerContext) {
   const first = call.arguments[0];
-  const fn = first === undefined || first.type === 'SpreadElement' ? null : unwrapExpression(first);
-  if (fn === null || call.arguments.length !== 1 || !isFunctionLike(fn)) {
-    throw new UnsupportedError('a nested component$ without an inline function');
+  const argument =
+    first === undefined || first.type === 'SpreadElement' ? null : unwrapExpression(first);
+  if (argument === null || call.arguments.length !== 1) {
+    throw new UnsupportedError('component$ without exactly one argument');
   }
+  return isFunctionLike(argument) ? argument : referencedComponentFunction(argument, ctx.bindings);
+}
+
+function lowerNestedComponent(
+  call: CallExpression,
+  fn: ArrowFunctionExpression | FunctionNode,
+  ctx: LowerContext
+): QrlUse {
   return lowerComponentValue(
     { ...readComponentFunction(fn), statement: call },
     functionScope(ctx, fn),
@@ -298,11 +308,16 @@ export function recordPayloadQrls(
     if (current.type === 'JSXElement' || current.type === 'JSXFragment') {
       return;
     }
-    if (current.type === 'CallExpression' && isComponentMarkerCall(current, scope)) {
+    const componentFn =
+      current.type === 'CallExpression' && isComponentMarkerCall(current, scope)
+        ? nestedComponentFunction(current, scope)
+        : null;
+    // An unresolved reference (an import, a parameter) keeps the runtime identity call.
+    if (current.type === 'CallExpression' && componentFn !== null) {
       if (owner === 'qrl') {
         throw new UnsupportedError('a component$ inside a $ boundary');
       }
-      const use = lowerNestedComponent(current, scope);
+      const use = lowerNestedComponent(current, componentFn, scope);
       extractedCalls.add(current);
       const target = ctx.plan.payloads[payload];
       target.reads = target.reads.filter(
@@ -379,7 +394,11 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
         (Array.isArray(current) ? current : []).forEach(visit);
         return;
       }
-      if (current.type === 'CallExpression' && markerQrlCall(current, ctx) !== null) {
+      if (
+        current.type === 'CallExpression' &&
+        (markerQrlCall(current, ctx) !== null ||
+          (isComponentMarkerCall(current, ctx) && nestedComponentFunction(current, ctx) !== null))
+      ) {
         found = true;
         return;
       }

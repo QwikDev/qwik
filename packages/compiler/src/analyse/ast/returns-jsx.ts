@@ -12,7 +12,7 @@ import { isNode, type WalkableNode } from './ast-types';
 import { identifierName, isFunctionLike, unwrapExpression } from './utils';
 import type { JsxAnalysis } from './jsx-analysis';
 import type { BindingGraph } from './bindings';
-import type { LocalId } from '../../schema';
+import { BindingScope, VarKind, type LocalId } from '../../schema';
 import { QwikMarker } from '../../words';
 import { UnsupportedError } from '../../errors';
 
@@ -24,6 +24,8 @@ export interface ComponentCandidate {
   statement: Statement;
   fn: Node;
   name: string | null;
+  /** `component$(X)`: the `X` the function was read through. */
+  reference?: Node;
 }
 
 /** Explicit markers and JSX-returning functions share component discovery. */
@@ -63,10 +65,13 @@ export function findComponentCandidates(
       }
     }
   });
-  // `component$(Body)` marks the module-level `Body`; the runtime call itself is an identity.
-  const marked = new Set<string>();
-  for (const { call } of declared) {
+  const candidates: ComponentCandidate[] = [];
+  for (const { value, call, name, statement } of declared) {
     if (call === null) {
+      const fn = unwrapExpression(value);
+      if (fn !== null && isHeuristicComponent(fn, name, jsx)) {
+        candidates.push({ statement, fn, name });
+      }
       continue;
     }
     const argument = call.arguments[0];
@@ -77,24 +82,57 @@ export function findComponentCandidates(
     ) {
       throw new UnsupportedError('component$ without exactly one argument');
     }
-    const reference = unwrapExpression(argument);
-    if (reference?.type === 'Identifier') {
-      marked.add(reference.name);
+    const inline = unwrapExpression(argument);
+    if (inline === null) {
+      continue;
     }
-  }
-  const candidates: ComponentCandidate[] = [];
-  for (const { value, call, name, statement } of declared) {
-    const fn = unwrapExpression(call === null ? value : call.arguments[0]);
-    const isMarked = call !== null || (name !== null && marked.has(name));
-    if (
-      fn !== null &&
-      isFunctionLike(fn) &&
-      (isMarked || (hasComponentName(name) && returnPositionContainsJsx(fn, jsx, name === null)))
-    ) {
-      candidates.push({ statement, fn, name });
+    // An import cannot be compiled here: the link checks it and the call stays an identity.
+    if (isFunctionLike(inline)) {
+      candidates.push({ statement, fn: inline, name });
+      continue;
+    }
+    const fn = referencedComponentFunction(inline, bindings);
+    if (fn !== null) {
+      candidates.push({ statement, fn, name, reference: inline });
     }
   }
   return candidates;
+}
+
+function isHeuristicComponent(fn: Node, name: string | null, jsx: JsxAnalysis): boolean {
+  return (
+    isFunctionLike(fn) &&
+    hasComponentName(name) &&
+    returnPositionContainsJsx(fn, jsx, name === null)
+  );
+}
+
+/** `component$(X)` compiles the function `X` names as if it were written inline. */
+export function referencedComponentFunction(
+  reference: Node,
+  bindings: BindingGraph
+): ArrowFunctionExpression | FunctionNode | null {
+  const binding = reference.type === 'Identifier' ? bindings.reference(reference) : null;
+  if (binding === null) {
+    return null;
+  }
+  const { name, scope, varKind } = bindings.bindings[binding];
+  const declarations = bindings.declarationsOf(binding);
+  const declaration = declarations.length === 1 ? declarations[0] : null;
+  if (declaration?.type === 'FunctionDeclaration') {
+    if (scope !== BindingScope.Module) {
+      throw new UnsupportedError(`component$ of the local function declaration "${name}"`);
+    }
+    return declaration;
+  }
+  const fn = declaration?.type === 'VariableDeclarator' ? unwrapExpression(declaration.init) : null;
+  if (fn === null || !isFunctionLike(fn)) {
+    return null;
+  }
+  if (varKind !== VarKind.Const) {
+    throw new UnsupportedError(`component$ of "${name}", which is not a const`);
+  }
+  return fn;
 }
 
 /** Visits each top-level declaration, looking through `export`. */

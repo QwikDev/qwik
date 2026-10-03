@@ -61,7 +61,7 @@ const UNCOVERED: Record<string, readonly string[]> = {
   SeedKind: ['root', 'v'],
   SetupKind: ['render-value'],
   SideEffects: ['present'],
-  StripForm: ['direct-named-export'],
+  StripForm: ['direct-named-export', 'plain'],
   StrippedExportForm: ['variable-declarator', 'specifier'],
   TaskStepKind: [
     'set-signal',

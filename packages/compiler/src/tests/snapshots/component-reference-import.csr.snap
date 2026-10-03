@@ -1,0 +1,113 @@
+==INPUT==
+
+// src/component.tsx
+import { component$ } from '@qwik.dev/core';
+import { Declared, plain } from './helpers';
+export const Wrapped = component$(Declared);
+
+// src/helpers.tsx
+import { component$ } from '@qwik.dev/core';
+export const Declared = component$(() => <b>hi</b>);
+export const plain = (props: { x: string }) => <i>{props.x}</i>;
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { component$ } from '@qwik.dev/core';
+import { Declared } from './helpers';
+export const Wrapped = component$(Declared);
+============================= src/helpers.tsx ==
+
+const q_helpers_jsx_segment_0_32g7syw1xnsrq = /*#__PURE__*/ _qrlWithChunk(
+  './helpers.tsx_helpers_jsx_segment_0_32g7syw1xnsrq',
+  () => import('./helpers.tsx_helpers_jsx_segment_0_32g7syw1xnsrq'),
+  'helpers_jsx_segment_0_32g7syw1xnsrq'
+);
+const Declared_tmpl0 = _createElementTemplate('<b>hi</b>');
+import { _qrlWithChunk, _createElementTemplate } from '@qwik.dev/core';
+export const Declared = (props0, ctx) => {
+  const el0 = Declared_tmpl0(ctx.document);
+  return el0;
+};
+export const plain = (props) => q_helpers_jsx_segment_0_32g7syw1xnsrq.w([props]);
+
+export { Declared as Declared_component_2m8wav44xl533 };
+============================= src/helpers.tsx_helpers_jsx_segment_0_32g7syw1xnsrq.js (ENTRY POINT)==
+
+import {
+  _capturesObj,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { helpers_text_segment_1_2gnwsr5013erv } from './helpers.tsx_helpers_text_segment_1_2gnwsr5013erv';
+const helpers_jsx_segment_0_32g7syw1xnsrq_tmpl0 = _createElementTemplate('<i> </i>');
+
+export const helpers_jsx_segment_0_32g7syw1xnsrq = (ctx) => {
+  const [props] = _capturesObj._;
+  const el0 = helpers_jsx_segment_0_32g7syw1xnsrq_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    helpers_text_segment_1_2gnwsr5013erv,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+/*
+{
+  "origin": "helpers.tsx",
+  "name": "helpers_jsx_segment_0_32g7syw1xnsrq",
+  "entry": null,
+  "displayName": "helpers_jsx_segment_0",
+  "hash": "32g7syw1xnsrq",
+  "canonicalFilename": "helpers.tsx_helpers_jsx_segment_0_32g7syw1xnsrq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    145,
+    161
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/helpers.tsx_helpers_text_segment_1_2gnwsr5013erv.js (ENTRY POINT)==
+
+export const helpers_text_segment_1_2gnwsr5013erv = (props) => {
+  return props.x;
+};
+/*
+{
+  "origin": "helpers.tsx",
+  "name": "helpers_text_segment_1_2gnwsr5013erv",
+  "entry": null,
+  "displayName": "helpers_text_segment_1",
+  "hash": "2gnwsr5013erv",
+  "canonicalFilename": "helpers.tsx_helpers_text_segment_1_2gnwsr5013erv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    149,
+    156
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -5,10 +5,11 @@ import type {
   Directive,
   Function as FunctionNode,
   Expression,
+  Node,
   Statement,
 } from 'oxc-parser';
 import { DeclarationKind } from '../schema';
-import { unwrapExpression } from './ast/utils';
+import { isFunctionLike, unwrapExpression } from './ast/utils';
 import type { ComponentCandidate } from './ast/returns-jsx';
 import { UnsupportedError } from '../errors';
 import { readObjectParameter } from './ast/parameter-members';
@@ -30,50 +31,62 @@ export interface DiscoveredComponent {
   replacementRange: [number, number];
   expressionOnly?: boolean;
   statement: Statement;
+  /** `component$(X)`: the `X` the function was read through. */
+  reference?: Node;
 }
 
 /** Validate candidate declarations before lowering their setup and JSX. */
 export function discoverComponents(
   candidates: readonly ComponentCandidate[]
 ): DiscoveredComponent[] {
-  return candidates.map(({ statement, fn, name }) => {
-    if (fn.type === 'FunctionDeclaration') {
-      const isDefault = statement.type === 'ExportDefaultDeclaration';
-      return describeComponent(
-        statement,
-        fn,
-        isDefault ? 'default' : name!,
-        isDefault ? DeclarationKind.DefaultFunction : DeclarationKind.Function,
-        fn.id
-      );
-    }
-    if (fn.type !== 'ArrowFunctionExpression' && fn.type !== 'FunctionExpression') {
-      throw new UnsupportedError('a component declaration without an inline function');
-    }
-    if (statement.type === 'ExportDefaultDeclaration') {
-      return describeComponent(statement, fn, 'default', DeclarationKind.DefaultArrow, null);
-    }
-    const declaration =
-      statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement;
-    if (declaration?.type !== 'VariableDeclaration') {
-      throw new UnsupportedError('a component without a variable declaration');
-    }
-    const declarator = declaration.declarations.find(
-      (entry) => entry.id.type === 'Identifier' && entry.id.name === name
+  return candidates.map((candidate) => ({
+    ...describeCandidate(candidate),
+    ...(candidate.reference === undefined ? {} : { reference: candidate.reference }),
+  }));
+}
+
+function describeCandidate({ statement, fn, name }: ComponentCandidate): DiscoveredComponent {
+  const authored =
+    statement.type === 'ExportNamedDeclaration' || statement.type === 'ExportDefaultDeclaration'
+      ? statement.declaration
+      : statement;
+  // A function declaration that `component$(X)` references prints under the marker's own binding.
+  if (fn.type === 'FunctionDeclaration' && fn === authored) {
+    const isDefault = statement.type === 'ExportDefaultDeclaration';
+    return describeComponent(
+      statement,
+      fn,
+      isDefault ? 'default' : name!,
+      isDefault ? DeclarationKind.DefaultFunction : DeclarationKind.Function,
+      fn.id
     );
-    if (declarator === undefined || declarator.id.type !== 'Identifier' || name === null) {
-      throw new UnsupportedError('a destructured component declaration');
-    }
-    if (declaration.kind !== 'const') {
-      throw new UnsupportedError(`a component declared with "${declaration.kind}"`);
-    }
-    const component = describeComponent(statement, fn, name, DeclarationKind.Const, declarator.id);
-    if (declaration.declarations.length > 1) {
-      component.replacementRange = [declarator.init!.start, declarator.init!.end];
-      component.expressionOnly = true;
-    }
-    return component;
-  });
+  }
+  if (!isFunctionLike(fn)) {
+    throw new UnsupportedError('a component declaration without an inline function');
+  }
+  if (statement.type === 'ExportDefaultDeclaration') {
+    return describeComponent(statement, fn, 'default', DeclarationKind.DefaultArrow, null);
+  }
+  const declaration =
+    statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement;
+  if (declaration?.type !== 'VariableDeclaration') {
+    throw new UnsupportedError('a component without a variable declaration');
+  }
+  const declarator = declaration.declarations.find(
+    (entry) => entry.id.type === 'Identifier' && entry.id.name === name
+  );
+  if (declarator === undefined || declarator.id.type !== 'Identifier' || name === null) {
+    throw new UnsupportedError('a destructured component declaration');
+  }
+  if (declaration.kind !== 'const') {
+    throw new UnsupportedError(`a component declared with "${declaration.kind}"`);
+  }
+  const component = describeComponent(statement, fn, name, DeclarationKind.Const, declarator.id);
+  if (declaration.declarations.length > 1) {
+    component.replacementRange = [declarator.init!.start, declarator.init!.end];
+    component.expressionOnly = true;
+  }
+  return component;
 }
 
 function describeComponent(

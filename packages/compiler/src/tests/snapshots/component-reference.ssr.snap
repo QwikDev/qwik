@@ -10,21 +10,54 @@ export const App = component$(Body);
 export const Marked = component$(plain);
 export const Wrapped = component$(Imported);
 export const Lazy = componentQrl(qrl(() => import('./body'), 'Body'));
+export const direct = () => plain({ x: 'a' });
 
 == SSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
+const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [props] = _capturesObj._;
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [props],
+    q_component_text_segment_1_1fh10tcowimfv
+  );
+  return maybeThen(text0, (text0) => [
+    '<i q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</i>',
+  ]);
+};
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
+const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return props.x;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 import {
+  _capturesObj,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
   component$,
   componentQrl,
   qrl,
-  createSsrNodeId,
-  escapeHTML,
   propSource,
   isSource,
   renderSsrTextNode,
-  maybeThen,
   _markComponent,
 } from '@qwik.dev/core';
 import { Imported } from './imported';
@@ -42,7 +75,9 @@ function Body(props, ctx) {
   ]);
 }
 _markComponent(Body, 'Body_component_3fvssuocvtjmf', './component.tsx');
-const plain = _markComponent(
+const plain = (props) => q_component_jsx_segment_0_38vnjku9rukc6.w([props]);
+export const App = Body;
+export const Marked = _markComponent(
   (props, ctx) => {
     const id0 = ctx.nextId();
     const prop0 = propSource(props, 'x');
@@ -56,15 +91,103 @@ const plain = _markComponent(
       '</i>',
     ]);
   },
-  'plain_component_3f8zmel10yhqp',
+  'Marked_component_3gj4wfqq43v17',
   './component.tsx'
 );
-export const App = component$(Body);
-export const Marked = component$(plain);
 export const Wrapped = component$(Imported);
 export const Lazy = componentQrl(qrl(() => import('./body'), 'Body'));
+export const direct = () => plain({ x: 'a' });
 
-export { Body as Body_component_3fvssuocvtjmf, plain as plain_component_3f8zmel10yhqp };
+export {
+  Body as Body_component_3fvssuocvtjmf,
+  App as App_component_d9hqa5uju2ca,
+  Marked as Marked_component_3gj4wfqq43v17,
+};
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _capturesObj,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [props] = _capturesObj._;
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [props],
+    q_component_text_segment_1_1fh10tcowimfv
+  );
+  return maybeThen(text0, (text0) => [
+    '<i q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</i>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    210,
+    226
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return props.x;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    214,
+    221
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
 == SSR DIAGNOSTICS ==
 
 []

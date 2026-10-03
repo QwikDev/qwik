@@ -14,6 +14,7 @@ import {
 import { linkRenderResults } from './render-results';
 import { linkContent } from './link-content';
 import { linkEffects } from './link-effects';
+import { linkComponentReferences } from './component-references';
 import { linkHookTwins } from './link-hooks';
 import { resolveModules } from './resolve';
 import { materializeModules } from './materialize';
@@ -102,6 +103,11 @@ export function linkPlans(
     diagnostics
   );
   linkedModules.forEach((module) => linkHookTwins(module, diagnostics));
+  // A refused reference is known, not missing, so it fails an incomplete link too.
+  const refused = linkComponentReferences(plans, linkedModules, resolveLocalBinding);
+  if (refused.length > 0) {
+    return failed(refused, plans);
+  }
   if (complete && diagnostics.length > 0) {
     return failed(diagnostics, plans);
   }

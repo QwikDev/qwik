@@ -148,6 +148,8 @@ export interface QrlDeclaration {
   localName: string | null;
   /** The hashed export the component serializes as; an inline expression has none. */
   symbol?: string;
+  /** `component$(X)`: the binding whose function this declaration compiles. */
+  componentOf?: LocalId;
 }
 
 // ---------------------------------------------------------------------------------------------

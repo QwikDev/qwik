@@ -415,6 +415,24 @@ export function inlineComponentText(emission: ComponentEmission, names: Generate
   return `${emission.async === true ? 'async ' : ''}(${params}) => {\n${body}\n}`;
 }
 
+/** `component$(X)` of a component: the declaration names `X`, which carries its own marker. */
+export function emitComponentAlias(qrl: LinkedQrl, target: string): ComponentDeclarationEmission {
+  const { expressionOnly, declarationKind, isExported, name, symbol } = qrl.declaration!;
+  if (expressionOnly) {
+    return { text: target, alias: null };
+  }
+  if (declarationKind !== DeclarationKind.DefaultArrow) {
+    return {
+      text: `${isExported ? 'export ' : ''}const ${name} = ${target};`,
+      alias: symbol === undefined ? null : `${name} as ${symbol}`,
+    };
+  }
+  return {
+    text: `export default ${target};`,
+    alias: symbol === undefined ? null : `${target} as ${symbol}`,
+  };
+}
+
 export function emitComponentFunction(
   qrl: LinkedQrl,
   emission: ComponentEmission,

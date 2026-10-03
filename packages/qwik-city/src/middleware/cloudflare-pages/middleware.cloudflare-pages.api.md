@@ -27,6 +27,7 @@ export interface PlatformCloudflarePages {
 
 // @public (undocumented)
 export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {
+    requestBodyLimit?: number;
 }
 
 // (No @packageDocumentation comment for this package)

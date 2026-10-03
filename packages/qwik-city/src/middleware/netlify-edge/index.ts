@@ -12,6 +12,7 @@ import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
+import { limitRequestBody } from '../request-handler/request-body-limit';
 
 // @builder.io/qwik-city/middleware/netlify-edge
 
@@ -40,7 +41,7 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
         locale: undefined,
         url,
         env: Deno.env,
-        request,
+        request: limitRequestBody(request, opts.requestBodyLimit),
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream<Uint8Array>();
           const response = new Response(readable, {
@@ -99,7 +100,10 @@ export function createQwikCity(opts: QwikCityNetlifyOptions) {
 }
 
 /** @public */
-export interface QwikCityNetlifyOptions extends ServerRenderOptions {}
+export interface QwikCityNetlifyOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+}
 
 /** @public */
 export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies'>> {}

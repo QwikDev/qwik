@@ -28,6 +28,7 @@ export interface NetAddr {
 export interface QwikCityDenoOptions extends ServerRenderOptions {
     getClientConn?: (request: Request, info: ServeHandlerInfo) => ClientConn;
     getOrigin?: (request: Request, info?: ServeHandlerInfo) => string | null;
+    requestBodyLimit?: number;
     static?: {
         root?: string;
         cacheControl?: string;

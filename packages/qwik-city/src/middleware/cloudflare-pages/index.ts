@@ -11,6 +11,7 @@ import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
+import { limitRequestBody } from '../request-handler/request-body-limit';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
@@ -59,6 +60,9 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
           return cachedResponse;
         }
       }
+
+      // platform.request shares the limited body, the original stream is locked by the limiter
+      request = limitRequestBody(request, opts.requestBodyLimit);
 
       const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
@@ -138,7 +142,10 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
 }
 
 /** @public */
-export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
+export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+}
 
 /** @public */
 export interface PlatformCloudflarePages {

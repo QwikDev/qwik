@@ -18,6 +18,7 @@ export function createQwikCity(opts: QwikCityBunOptions): {
 export interface QwikCityBunOptions extends ServerRenderOptions {
     getClientConn?: (request: Request) => ClientConn;
     getOrigin?: (request: Request) => string | null;
+    requestBodyLimit?: number;
     static?: {
         root?: string;
         cacheControl?: string;

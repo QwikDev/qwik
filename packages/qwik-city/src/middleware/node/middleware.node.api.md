@@ -41,6 +41,7 @@ export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
     getOrigin?: (req: IncomingMessage | Http2ServerRequest) => string | null;
     // @deprecated (undocumented)
     origin?: string;
+    requestBodyLimit?: number;
     static?: {
         root?: string;
         cacheControl?: string;

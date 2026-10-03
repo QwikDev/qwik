@@ -2242,6 +2242,7 @@ function isSSRUnsafeAttr(name: string): boolean {
       ch === 9 /* \t */ ||
       ch === 10 /* \n */ ||
       ch === 12 /* \f */ ||
+      ch === 13 /* \r */ ||
       ch === 32 /* space */
     ) {
       return true;

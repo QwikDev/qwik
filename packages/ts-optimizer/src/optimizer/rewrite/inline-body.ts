@@ -34,9 +34,11 @@ import {
   bodyConsolidatesToRawProps,
   groupPropsFieldsByBinding,
   rawPropsBindingNames,
+  resolveDeferredTagReads,
   resolveRawPropsSlots,
   consolidateQpCaptureValues,
   extractDestructuredFieldInfo,
+  type DeferredTagReads,
   type InlineSegmentJsxOptions,
 } from './raw-props.js';
 import {
@@ -372,6 +374,7 @@ export function transformInlineSegmentBody(
       additionalImports.set('_capturesObj', '@qwik.dev/core');
     }
   }
+  let deferredTagReads: DeferredTagReads | undefined;
   {
     // Consolidate any destructured first param (component props AND hook
     // contexts like useComputed$'s { cleanup }) — a bare destructured method
@@ -382,9 +385,10 @@ export function transformInlineSegmentBody(
           rawPropsInfo?.fieldDynamicDefaults,
           bindingNames.get(ext.symbolName)
         )
-      : body;
-    if (rawPropsResult !== body) {
-      body = rawPropsResult;
+      : { code: body };
+    if (rawPropsResult.code !== body) {
+      body = rawPropsResult.code;
+      deferredTagReads = rawPropsResult.deferredTagReads;
       if (body.includes('_restProps(')) {
         additionalImports.set('_restProps', '@qwik.dev/core');
       }
@@ -618,6 +622,7 @@ export function transformInlineSegmentBody(
       if (body.endsWith(';') && !ext.bodyText.endsWith(';')) {
         body = body.slice(0, -1);
       }
+      body = resolveDeferredTagReads(body, deferredTagReads);
 
       for (const sym of bodyJsxResult.neededImports) {
         additionalImports.set(sym, '@qwik.dev/core');

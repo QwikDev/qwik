@@ -518,11 +518,12 @@ describe(`${name}: visible task`, () => {
     it('chains promises through a signal across visible tasks', async () => {
       const App = component$(() => {
         const promise = useSignal<Promise<number>>(Promise.resolve(0));
+        // Each task runs when its own chunk lands, so the result must not depend on their order.
         useVisibleTask$(() => {
-          promise.value = promise.value.then(() => Promise.resolve()).then(() => 1);
+          promise.value = promise.value.then((value) => Promise.resolve(value)).then((n) => n + 1);
         });
         useVisibleTask$(() => {
-          promise.value = promise.value.then(() => 2);
+          promise.value = promise.value.then((n) => n + 2);
         });
         return <p>Should have a number: "{promise.value}"</p>;
       });
@@ -530,7 +531,7 @@ describe(`${name}: visible task`, () => {
       const paragraph = container.querySelector('p')!;
       await qwikLoader?.dispatch(paragraph, 'qvisible');
       await flush();
-      expect(paragraph.textContent).toBe('Should have a number: "2"');
+      expect(paragraph.textContent).toBe('Should have a number: "3"');
       cleanup();
     });
   });

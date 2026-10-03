@@ -148,7 +148,7 @@ export interface SSRContainer extends Container {
   openFragment(attrs: Props): void;
   closeFragment(): void;
 
-  openProjection(attrs: Props): void;
+  openProjection(attrs: Props, slotParentNode: ISsrNode): void;
   closeProjection(): void;
 
   openComponent(attrs: Props): void;

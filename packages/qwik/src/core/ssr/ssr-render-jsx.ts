@@ -297,7 +297,7 @@ function processJSXNode(
               ? { [DEBUG_TYPE]: VirtualType.Projection }
               : {};
             projectionAttrs[QSlotParent] = compId;
-            ssr.openProjection(projectionAttrs);
+            ssr.openProjection(projectionAttrs, componentFrame.componentNode);
             const host = componentFrame.componentNode;
             const node = ssr.getOrCreateLastNode();
             const slotName = resolveSlotName(host, jsx, ssr);

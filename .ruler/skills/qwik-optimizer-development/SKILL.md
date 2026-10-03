@@ -100,6 +100,13 @@ one mapping (three workers made an 18 GB mapping on a 16 GB host), so keep raw-t
 and other multi-gigabyte reservations out of the workers. `QWIK_TS_OPTIMIZER_RAW_TRANSFER=0` turns
 raw transfer off in the host as well when a spawn still fails with ENOMEM.
 
+## Pre-extraction rewrites
+
+Rust's `props_destructuring.rs` rewrites component bodies before `QwikTransform`, so captures, `q:p`
+lifting and JSX flags already see its output. Port such rewrites as `prepare/` passes over the
+shared MagicString in `prepareModuleInput`: a segment- or inline-body rewrite runs after capture
+analysis and cannot change captures or flags.
+
 ## Generated Binding Names
 
 Both optimizers invent bindings (`_rawProps`, `_defaultValue`, the `use*` destructure flattening).

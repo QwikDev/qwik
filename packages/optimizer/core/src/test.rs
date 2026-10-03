@@ -871,6 +871,78 @@ export const Cmp = component$(() => {
 }
 
 #[test]
+fn should_inline_component_const_literal() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(() => {
+	const greeting = 'Hello';
+	return <title>{greeting}</title>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_inline_component_const_literal_scoping() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+
+export const Greeter = component$(() => {
+	const greeting = 'Hello';
+	const format = (greeting) => {
+		const suffix = '!';
+		return greeting + suffix;
+	};
+	return <p onClick$={() => console.log(greeting)}>{format('World')}</p>;
+});
+
+export const Counter = component$(() => {
+	let count = 0;
+	const label = 'Count';
+	return <p onClick$={() => count++}>{label}</p>;
+});
+
+export const read = $(() => {
+	const value = 'kept';
+	return value;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_inline_component_const_literal_forms() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(() => {
+	const size = 42, seed = Math.random();
+	const variant = 'primary' as const;
+	const label = variant;
+	const style = { label, seed };
+	return <button data-size={size.toFixed(1)} data-variant={label} style={style} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn jsx_tag_names_without_jsx_transpile() {
 	test_input!(TestInput {
 		code: r#"

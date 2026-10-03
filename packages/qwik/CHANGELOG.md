@@ -1,5 +1,17 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- 🐞🩹 adding spread props to a component first rendered without them no longer throws (by [@intellix](https://github.com/intellix) in [#9140](https://github.com/QwikDev/qwik/pull/9140))
+
+- Add type declarations for the `commandfor` attribute on buttons. (by [@tscpp](https://github.com/tscpp) in [#9105](https://github.com/QwikDev/qwik/pull/9105))
+
+- 🐞🩹 the TypeScript optimizer no longer turns `<title>` into a prop read when a destructured prop is named `title` (by [@maiieul](https://github.com/maiieul) in [#9126](https://github.com/QwikDev/qwik/pull/9126))
+
+- 🐞🩹 the TypeScript optimizer now handles JSX tag names like `<ui.Home />` the same way as the Rust optimizer (by [@maiieul](https://github.com/maiieul) in [#9126](https://github.com/QwikDev/qwik/pull/9126))
+
 ## 2.0.0-rc.0
 
 ### Patch Changes

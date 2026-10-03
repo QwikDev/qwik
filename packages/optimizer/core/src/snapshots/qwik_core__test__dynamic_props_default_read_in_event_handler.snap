@@ -1,0 +1,196 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { getFallback, render } from './x';
+
+export const Cmp = component$(({ Model = getFallback() }: { Model?: any }) => {
+	let count = useSignal(0);
+	return (
+		<>
+			<button onClick$={() => render(Model)} />
+			<button onClick$={() => render(Model)} onDblClick$={() => count.value++} />
+		</>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,oBAAM,0CAQhB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { getFallback } from "./x";
+import { qrl } from "@qwik.dev/core";
+import { untrack } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+const q_Cmp_component_Fragment_button_q_e_click_1_0JgM4hZ9AcM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_Fragment_button_q_e_click_1_0JgM4hZ9AcM"), "Cmp_component_Fragment_button_q_e_click_1_0JgM4hZ9AcM").m();
+const q_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM"), "Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM").m();
+const q_Cmp_component_Fragment_button_q_e_dblclick_QOru1yyq00g = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_Fragment_button_q_e_dblclick_QOru1yyq00g"), "Cmp_component_Fragment_button_q_e_dblclick_QOru1yyq00g").m();
+//
+export const Cmp_component_4ryKJTOKjWE = (_rawProps)=>{
+    const _defaultValue = untrack(()=>_rawProps.Model) === void 0 ? getFallback() : void 0;
+    let count = useSignal(0);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": q_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM,
+            "q:ps": [
+                _defaultValue,
+                _rawProps
+            ]
+        }, null, null, 6, null),
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": q_Cmp_component_Fragment_button_q_e_click_1_0JgM4hZ9AcM,
+            "q-e:dblclick": q_Cmp_component_Fragment_button_q_e_dblclick_QOru1yyq00g,
+            "q:ps": [
+                _defaultValue,
+                _rawProps,
+                count
+            ]
+        }, null, null, 6, null)
+    ], 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;yCAI8B;gDAAG,oBAAQ;IACxC,IAAI,QAAQ,UAAU;IACtB,qBACC;sBACC,WAAC;YAAO,WAAQ;;;;;;sBAChB,WAAC;YAAO,WAAQ;YAAuB,cAAW;;;;;;;;AAGrD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    132,
+    359
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM.js (ENTRY POINT)==
+
+import { render } from "./x";
+//
+export const Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM = (_, _1, _defaultValue, _rawProps)=>render(_rawProps.Model === void 0 ? _defaultValue : _rawProps.Model);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mEAQqB,mCAAM,iBAJM,6CAAA\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_Fragment_button_q_e_click",
+  "hash": "veAZ2ow0cnM",
+  "canonicalFilename": "test.tsx_Cmp_component_Fragment_button_q_e_click_veAZ2ow0cnM",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    245,
+    264
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_defaultValue",
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_Fragment_button_q_e_click_1_0JgM4hZ9AcM.js (ENTRY POINT)==
+
+import { render } from "./x";
+//
+export const Cmp_component_Fragment_button_q_e_click_1_0JgM4hZ9AcM = (_, _1, _defaultValue, _rawProps)=>render(_rawProps.Model === void 0 ? _defaultValue : _rawProps.Model);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;qEASqB,mCAAM,iBALM,6CAAA\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_Fragment_button_q_e_click_1_0JgM4hZ9AcM",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_Fragment_button_q_e_click_1",
+  "hash": "0JgM4hZ9AcM",
+  "canonicalFilename": "test.tsx_Cmp_component_Fragment_button_q_e_click_1_0JgM4hZ9AcM",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    290,
+    309
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_defaultValue",
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_Fragment_button_q_e_dblclick_QOru1yyq00g.js (ENTRY POINT)==
+
+export const Cmp_component_Fragment_button_q_e_dblclick_QOru1yyq00g = (_, _1, _2, _3, count)=>count.value++;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sEASuD,wBAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_Fragment_button_q_e_dblclick_QOru1yyq00g",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_Fragment_button_q_e_dblclick",
+  "hash": "QOru1yyq00g",
+  "canonicalFilename": "test.tsx_Cmp_component_Fragment_button_q_e_dblclick_QOru1yyq00g",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onDblClick$",
+  "captures": false,
+  "loc": [
+    324,
+    343
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_2",
+    "_3",
+    "count"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

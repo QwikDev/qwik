@@ -11,7 +11,10 @@ import type {
   AstNode,
 } from '../../ast-types.js';
 import { buildPropertyAccessor, isSimpleIdentifierName } from '../ast/identifier-name.js';
-import { rewritePropsFieldReferences } from './props-field-rewrite.js';
+import {
+  collectShadowedIdentifierStarts,
+  rewritePropsFieldReferences,
+} from './props-field-rewrite.js';
 import {
   forEachAstChild,
   getAssignedIdentifierName,
@@ -42,7 +45,7 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import type { DevSuffixOptions } from '../jsx/jsx.js';
-import { isReferenceIdentifier, ScopeTracker, walk } from 'oxc-walker';
+import { isReferenceIdentifier } from 'oxc-walker';
 
 function isRawPropsMemberExpression(
   node: unknown
@@ -779,7 +782,11 @@ function collectIdentifierReplacements(
   excludedRanges?: Array<{ start: number; end: number }>
 ): IdentifierReplacement[] {
   const out: IdentifierReplacement[] = [];
-  const shadowedStarts = collectShadowedIdentifierStarts(session.fn, fieldLocalToKey);
+  const shadowedStarts = collectShadowedIdentifierStarts(
+    session.fn,
+    fieldLocalToKey,
+    session.fn.body
+  );
   collectRangeReplacements(session.program as unknown as AstNode, 0, '', [
     buildIdentifierReplacementsCollector(
       fieldLocalToKey,
@@ -790,34 +797,6 @@ function collectIdentifierReplacements(
     ),
   ]);
   return out;
-}
-
-function collectShadowedIdentifierStarts(
-  fn: FunctionTransformSession['fn'],
-  fieldLocalToKey: ReadonlyMap<string, string>
-): Set<number> {
-  const tracker = new ScopeTracker({ preserveExitedScopes: true });
-  walk(fn, { scopeTracker: tracker });
-  tracker.freeze();
-
-  const shadowedStarts = new Set<number>();
-  let bodyScope: string | undefined;
-  walk(fn, {
-    scopeTracker: tracker,
-    enter(node) {
-      if (node === fn.body) {
-        bodyScope = tracker.getCurrentScope();
-      }
-      const name = (node as { name?: unknown }).name;
-      if (bodyScope === undefined || typeof name !== 'string' || !fieldLocalToKey.has(name)) {
-        return;
-      }
-      if (tracker.getDeclaration(name)?.scope.startsWith(`${bodyScope}-`)) {
-        shadowedStarts.add(node.start);
-      }
-    },
-  });
-  return shadowedStarts;
 }
 
 function applyIdentifierReplacements(

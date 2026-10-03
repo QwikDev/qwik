@@ -8,7 +8,11 @@ import {
 } from '../edit/transform-session.js';
 import { buildSyncTransform, needsPureAnnotation } from '../rewrite/rewrite-calls.js';
 import { formatWCall, parseArrayItems } from '../qwik/w-call.js';
-import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
+import {
+  applyRawPropsTransform,
+  consolidateRawPropsInWCalls,
+  type RawPropsTransformResult,
+} from '../rewrite/index.js';
 import type { NestedCallSiteInfo } from './segment-codegen.js';
 import {
   blankNonCode,
@@ -575,20 +579,20 @@ export function applyRawPropsToSegmentBody(
   bodyText: string,
   parts: string[],
   preferredDynamicDefaultNames?: ReadonlyMap<string, string>
-): string {
+): RawPropsTransformResult {
   const result = applyRawPropsTransform(bodyText, preferredDynamicDefaultNames);
-  if (result === bodyText) {
-    return bodyText;
+  if (result.code === bodyText) {
+    return result;
   }
 
-  bodyText = consolidateRawPropsInWCalls(result);
+  bodyText = consolidateRawPropsInWCalls(result.code);
   if (bodyText.includes('_restProps(') && !parts.some((p) => p.includes('_restProps'))) {
     insertImportBeforeSeparator(parts, `import { _restProps } from "@qwik.dev/core";`);
   }
   if (bodyText.includes('untrack(') && !parts.some((p) => p.includes('untrack'))) {
     insertImportBeforeSeparator(parts, `import { untrack } from "@qwik.dev/core";`);
   }
-  return bodyText;
+  return { code: bodyText, deferredTagReads: result.deferredTagReads };
 }
 
 /** Must run AFTER nested call site rewriting, which uses original positions. */

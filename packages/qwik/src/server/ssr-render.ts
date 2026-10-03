@@ -34,6 +34,7 @@ import {
   renderSsrDynamicContent,
   runOwnerCleanups,
   type JSXOutput,
+  type QRLInternal,
 } from '@qwik.dev/core';
 import {
   QContainerValue,
@@ -85,8 +86,8 @@ export interface SsrRenderContext extends ServerDataContext {
     value: unknown,
     needsInvokeContext?: boolean
   ): (string | SsrReferenceChunk)[];
-  /** Registers a compiler-emitted sync handler; returns its table script the first time. */
-  syncFn(key: string, source: string): string;
+  /** The table script of a compiler-placed sync handler, written right before its element. */
+  syncFn(qrl: QRLInternal): string;
   observeError(output: ValueOrPromise<SsrOutput>): SsrOutput;
   wrapRange(rangeId: number, content: SsrOutput): SsrOutput;
   createRangeScope(rangeId: number): SsrRenderContext;
@@ -279,14 +280,15 @@ export const renderToStreamCompiled = async <Props = undefined>(
           serializeSsrEvent(serializationCtx, name, value, needsInvokeContext || locale !== '')
         );
       },
-      syncFn(key, source) {
+      syncFn(qrl) {
+        const key = qrl.$symbol$;
         // one definition per container: repeated uses of the same handler cost nothing
         if (emittedSyncFns.has(key)) {
           return '';
         }
         emittedSyncFns.add(key);
-        serializationCtx.$pendingSyncFns$.delete(key);
-        return scripts.emitSyncFn(key, source, instanceHash);
+        const { serialized } = qrl.resolved as { serialized: string };
+        return scripts.emitSyncFn(key, serialized, instanceHash);
       },
       wrapRange(rangeId, content) {
         return wrapContent(rangeId, content);

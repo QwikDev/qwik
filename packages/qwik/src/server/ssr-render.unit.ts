@@ -32,6 +32,7 @@ import {
   renderToStreamCompiled as renderToStream,
   renderToStringCompiled as renderToString,
   renderToString as publicRenderToString,
+  type SsrRenderContext,
   type SsrRenderRoot,
 } from './ssr-render';
 
@@ -152,6 +153,25 @@ describe('SSR context markers', () => {
     await Promise.resolve();
     resolveFirst('first');
     await rejected;
+  });
+
+  test('defines a placed sync handler right before its element, once', async () => {
+    const handler = _qrlSync((event: Event) => event.preventDefault(), 'placed_key', 'e=>e.p()');
+    const button = (ctx: SsrRenderContext) => [
+      ctx.syncFn(handler as never),
+      '<button',
+      ctx.eventAttrParts('q-e:click', handler),
+      '>go</button>',
+    ];
+    const result = await renderToString((_props, ctx) => [
+      '<p>far away</p>',
+      button(ctx),
+      button(ctx),
+    ]);
+
+    expect(result.html).toContain('<p>far away</p><script q:func="qwik/json">((d)=>{(d["qFuncs_');
+    expect(result.html).toMatch(/\["placed_key"\]=e=>e\.p\(\)\}\)\(document\)<\/script><button/);
+    expect(result.html.match(/<script q:func="qwik\/json"/g)).toHaveLength(1);
   });
 
   test('defines a late sync handler before streaming its element', async () => {

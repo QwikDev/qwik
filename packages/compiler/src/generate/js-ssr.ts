@@ -710,6 +710,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const section = documentSection(op.tag);
     const record = hookEvents || propsStep !== null || section !== null;
     const openTag: string[] = record ? [] : parts;
+    // A script ahead of a document section would make the browser drop the authored tag.
+    if (section === null) {
+      this.pushSyncDefinitions(pass, op.props, parts);
+    }
     pushMergedStatic(openTag, `<${op.tag}`);
     if (idVariable !== null) {
       this.imports.add(QwikWord.CreateSsrNodeId);
@@ -1290,6 +1294,22 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       }
     }
     return { qrl, ref, args };
+  }
+
+  /** A sync handler's table entry goes right before its element, so no event can outrun it. */
+  private pushSyncDefinitions(pass: RenderPass, props: readonly Prop[], parts: string[]): void {
+    for (const prop of props) {
+      for (const handler of prop.k === PropKind.Event ? prop.handlers : []) {
+        if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
+          continue;
+        }
+        const { qrl } = this.resolveQrlUse(handler.value.use, pass.names.props);
+        if (qrl.boundary.kind === BoundaryKind.Sync) {
+          pass.usedCtx = true;
+          parts.push(`${pass.names.ctx}.syncFn(${this.qrlReference(qrl)})`);
+        }
+      }
+    }
   }
 
   /** The handler or handler list of a static event prop, as one expression. */

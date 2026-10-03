@@ -33,6 +33,7 @@ export const stop = q_component_sync_segment_0_ka0ivw29msk8;
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     return [
+      ctx.syncFn(q_component_sync_segment_1_ka0j9x66gukr),
       '<a href="/x"',
       ctx.eventAttrParts('q-e:click', q_component_sync_segment_1_ka0j9x66gukr),
       '>go</a>',

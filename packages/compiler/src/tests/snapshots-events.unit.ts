@@ -115,6 +115,8 @@ export default () => (
     // the server writes the source into the HTML, so it arrives minified
     if (mode === 'ssr') {
       expect(main).toContain('"e=>e.preventDefault()"');
+      // its table entry is written right before the element that uses it
+      expect(main).toMatch(/ctx\.syncFn\(q_\w+\),\s*["']<a href=/);
     }
     expect(main).not.toContain('sync$(');
     expect(output.modules.filter((module) => module.path.includes('sync'))).toHaveLength(0);

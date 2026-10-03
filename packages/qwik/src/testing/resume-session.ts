@@ -13,7 +13,9 @@ import {
 } from '@qwik.dev/core/server';
 import type { RenderOptions, RenderResult } from '../core/test-utils';
 import { bootQwikLoader, type QwikLoaderTestDriver } from '../core/qwikloader-test-driver';
+import { LazyRef } from '../core/shared/qrl/qrl-class';
 import { getSymbolHash, SYNC_QRL } from '../core/shared/qrl/qrl-utils';
+import { isPromise } from '../core/shared/utils/promises';
 import { QRL_RUNTIME_CHUNK } from '../core/shared/serdes/qrl-to-string';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
@@ -336,10 +338,23 @@ export function trackPendingImports(load: ModuleImport, inFlight: InFlightImport
   };
 }
 
+/** A compiled QRL imports its own chunk, so no module importer of the harness ever sees it. */
+const qrlLoads: InFlightImports = { count: 0 };
+const loadLazyRef = LazyRef.prototype.$load$;
+LazyRef.prototype.$load$ = function (this: LazyRef) {
+  const loaded = loadLazyRef.call(this);
+  if (isPromise(loaded)) {
+    qrlLoads.count++;
+    const release = () => qrlLoads.count--;
+    loaded.then(release, release);
+  }
+  return loaded;
+};
+
 /**
- * Drains a fixed number of turns, then keeps going while a chunk import is still in flight: a
- * resumed QRL queues its work only once its import lands, which under load is later than any number
- * of turns chosen in advance.
+ * Drains a fixed number of turns, then keeps going while a chunk import is still in flight: a lazy
+ * QRL queues its work only once its import lands, which under load is later than any number of
+ * turns chosen in advance.
  */
 export async function settleScheduler(
   scheduler: Scheduler,
@@ -348,7 +363,7 @@ export async function settleScheduler(
   for (let turns = 0; turns < 500; turns++) {
     await scheduler.flushInteraction();
     await new Promise((resolve) => setTimeout(resolve, 0));
-    if (turns >= 50 && inFlight.count === 0) {
+    if (turns >= 50 && inFlight.count === 0 && qrlLoads.count === 0) {
       return;
     }
   }

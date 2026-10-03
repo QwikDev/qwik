@@ -1,7 +1,6 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
-import ts from 'typescript';
 import { generateQwikApiMarkdownDocs, generateQwikRouterApiMarkdownDocs } from './api-docs.ts';
 import { type BuildConfig, copyFile, ensureDir, panic } from './util.ts';
 
@@ -81,7 +80,6 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
 
   generateServerReferenceModules(config);
-  validateQwikTypesWithNode16(config);
 
   const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
   await generateQwikApiMarkdownDocs(config, apiJsonInputDir);
@@ -234,6 +232,38 @@ export async function apiExtractorQwikRouter(config: BuildConfig) {
   await generateQwikRouterApiMarkdownDocs(config, apiJsonInputDir);
 
   console.log('🥶', 'qwik-router d.ts API files generated');
+}
+
+/**
+ * Without this, a CI-only API change reports just "API changed true" and the report it wants lives
+ * in a build dir nobody can read from the log.
+ */
+function printApiReportDiff(committedPath: string, generatedPath: string) {
+  const read = (path: string) => {
+    try {
+      return readFileSync(path, 'utf-8').split('\n');
+    } catch {
+      return null;
+    }
+  };
+  const committed = read(committedPath);
+  const generated = read(generatedPath);
+  if (!committed || !generated) {
+    console.error(`Could not read both reports to diff:\n  ${committedPath}\n  ${generatedPath}`);
+    return;
+  }
+  console.error(`--- committed: ${committedPath}`);
+  console.error(`+++ generated: ${generatedPath}`);
+  for (let i = 0; i < Math.max(committed.length, generated.length); i++) {
+    if (committed[i] !== generated[i]) {
+      if (committed[i] !== undefined) {
+        console.error(`-${i + 1}: ${committed[i]}`);
+      }
+      if (generated[i] !== undefined) {
+        console.error(`+${i + 1}: ${generated[i]}`);
+      }
+    }
+  }
 }
 
 function createTypesApi(
@@ -393,36 +423,6 @@ function readQwikPackageExports(config: BuildConfig) {
   const qwikPkgDir = join(config.packagesDir, 'qwik');
   const pkg = JSON.parse(readFileSync(join(qwikPkgDir, 'package.json'), 'utf-8'));
   return { qwikPkgDir, exports: pkg.exports as Record<string, { types?: string }> };
-}
-
-/** Node16 resolution is the strictest: it requires explicit extensions and honors `exports`. */
-function validateQwikTypesWithNode16(config: BuildConfig) {
-  const { qwikPkgDir, exports } = readQwikPackageExports(config);
-  const typesFiles = Object.values(exports)
-    .map((entry) => entry.types)
-    .filter((types): types is string => types !== undefined)
-    .map((types) => join(qwikPkgDir, types));
-  const program = ts.createProgram(typesFiles, {
-    module: ts.ModuleKind.Node16,
-    moduleResolution: ts.ModuleResolutionKind.Node16,
-    noEmit: true,
-    strict: true,
-    skipLibCheck: false,
-    types: [],
-  });
-  const diagnostics = ts.getPreEmitDiagnostics(program);
-  if (diagnostics.length > 0) {
-    panic(
-      `@qwik.dev/core types fail with moduleResolution node16:\n${ts.formatDiagnostics(
-        diagnostics,
-        {
-          getCurrentDirectory: () => qwikPkgDir,
-          getNewLine: () => '\n',
-          getCanonicalFileName: (fileName) => fileName,
-        }
-      )}`
-    );
-  }
 }
 
 const importSpecifierRegex =

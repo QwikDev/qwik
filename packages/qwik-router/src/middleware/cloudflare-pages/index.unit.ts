@@ -5,6 +5,7 @@ const { mockRequestHandler } = vi.hoisted(() => ({
 }));
 
 vi.mock('@qwik.dev/core/build', () => ({
+  isBrowser: false,
   isDev: false,
   isServer: true,
 }));
@@ -58,6 +59,24 @@ describe('createQwikRouter()', () => {
     expect(response.status, 'BODYLESS_304_STATUS').toBe(304);
     expect(response.body).toBeNull();
     expect(response.headers.get('ETag')).toBe('"resource"');
+  });
+
+  it('rejects request bodies over the limit', async () => {
+    let body!: Promise<ArrayBuffer>;
+    mockRequestHandler.mockImplementation(async (serverRequestEv) => {
+      expect(serverRequestEv.platform.request).toBe(serverRequestEv.request);
+      body = serverRequestEv.request.arrayBuffer();
+      body.catch(() => {});
+    });
+
+    const handler = createQwikRouter({ render: vi.fn(), requestBodyLimit: 8 } as any);
+    await handler(
+      new Request('http://localhost/action', { method: 'POST', body: new Uint8Array(9) }),
+      { ASSETS: { fetch: vi.fn() } },
+      { waitUntil: vi.fn() }
+    );
+
+    await expect(body).rejects.toMatchObject({ status: 413 });
   });
 
   it.each(['private, no-cache', 'NO-STORE', 'no-cache'])(

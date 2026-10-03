@@ -516,6 +516,7 @@ export interface SimpleURL {
   hash: string;
 }
 
+/** @public */
 export type Editable<T> = {
   -readonly [P in keyof T]: T[P];
 };

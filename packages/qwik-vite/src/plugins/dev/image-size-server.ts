@@ -406,9 +406,19 @@ export const getImageSizeServer = (
         res.end();
         return;
       } else if (req.method === 'POST' && url.pathname === '/__image_fix') {
-        const loc = url.searchParams.get('loc') as string;
+        const rejectRequest = (statusCode: number) => {
+          res.statusCode = statusCode;
+          res.end();
+        };
+        if (!isSameOriginRequest(req)) {
+          return rejectRequest(403);
+        }
+        const loc = url.searchParams.get('loc') ?? '';
         const width = url.searchParams.get('width');
         const height = url.searchParams.get('height');
+        if (!isPixelSize(width) || !isPixelSize(height)) {
+          return rejectRequest(400);
+        }
         const src = url.searchParams.get('src') as string;
         const currentHref = url.searchParams.get('currentHref') as string;
 
@@ -416,6 +426,9 @@ export const getImageSizeServer = (
         const column = parseInt(locParts[locParts.length - 1], 10) - 1;
         let line = parseInt(locParts[locParts.length - 2], 10) - 1;
         const filePath = path.resolve(srcDir, locParts.slice(0, locParts.length - 2).join(':'));
+        if (!filePath.startsWith(path.resolve(srcDir) + path.sep)) {
+          return rejectRequest(400);
+        }
         const extension = path.extname(filePath).toLowerCase();
         const buffer = fs.readFileSync(filePath);
         let text = buffer.toString('utf-8');
@@ -435,8 +448,7 @@ export const getImageSizeServer = (
           console.error(
             'Could not apply auto fix, because it was not possible to find the original <img> tag'
           );
-          res.statusCode = 500;
-          return;
+          return rejectRequest(500);
         }
 
         const end = text.indexOf('>', offset) + 1;
@@ -444,8 +456,7 @@ export const getImageSizeServer = (
           console.error(
             'Could not apply auto fix, because it was not possible to find the original <img> tag'
           );
-          res.statusCode = 500;
-          return;
+          return rejectRequest(500);
         }
 
         const extensionSupportsImport = ['.ts', '.tsx', '.js', '.jsx', '.mdx'].includes(extension);
@@ -468,7 +479,7 @@ export const getImageSizeServer = (
             } else if (fs.existsSync(rootImagePath)) {
               relativeLocation = urlSrc.pathname.replace('/src/', '~/');
             } else {
-              return;
+              return rejectRequest(404);
             }
             const importIdent = imgImportName(urlSrc.pathname);
             const importSrc = `${relativeLocation}?jsx`;
@@ -481,7 +492,7 @@ export const getImageSizeServer = (
             if (extension === '.mdx' && text.startsWith('---')) {
               insertImport = text.indexOf('---', 4) + 3;
               if (insertImport === -1) {
-                return;
+                return rejectRequest(500);
               }
             }
             const newImport = `\nimport ${importIdent} from '${importSrc}';`;
@@ -490,6 +501,7 @@ export const getImageSizeServer = (
               offset
             )}${imgTag}${text.slice(end)}`;
             fs.writeFileSync(filePath, text);
+            res.end();
             return;
           }
         }
@@ -504,6 +516,7 @@ export const getImageSizeServer = (
         }
         text = text.slice(0, offset) + imgTag + text.slice(end);
         fs.writeFileSync(filePath, text);
+        res.end();
       } else {
         next();
       }
@@ -515,6 +528,19 @@ export const getImageSizeServer = (
     }
   };
 };
+
+// The fix endpoint writes source files, so cross-site pages must not reach it.
+function isSameOriginRequest(req: Connect.IncomingMessage): boolean {
+  try {
+    return new URL(req.headers.origin!).host === req.headers.host;
+  } catch {
+    return false;
+  }
+}
+
+function isPixelSize(value: string | null): value is string {
+  return value !== null && /^\d{1,5}$/.test(value);
+}
 
 function imgImportName(value: string) {
   const dot = value.lastIndexOf('.');

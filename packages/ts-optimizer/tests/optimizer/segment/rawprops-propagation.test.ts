@@ -11,7 +11,7 @@ function findParent(result: { modules: readonly TransformModule[] }): TransformM
   return parent;
 }
 
-describe('Inline strategy keeps captureNames intact for non-loop nested handlers', () => {
+describe('Inline raw-JSX output keeps captureNames intact for non-loop nested handlers', () => {
   it('emits inline-style body with _capturesObj._[N] unpacking + _rawProps.X rewriting', () => {
     const input = `
 import { component$ } from '@qwik.dev/core';
@@ -27,6 +27,7 @@ export const AtomStatus = component$(({ctx, atom}) => {
       input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
       entryStrategy: { type: 'inline' },
+      transpileJsx: false,
     });
 
     const parent = findParent(result);

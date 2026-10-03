@@ -104,6 +104,7 @@ export interface SegmentImportData {
 export interface SegmentJsxOptions {
   enableJsx: boolean;
   importedNames: Set<string>;
+  moduleScopeNames?: ReadonlySet<string>;
   paramNames?: Set<string>;
   relPath?: string;
   keyCounterStart?: number;
@@ -472,6 +473,7 @@ function transformSegmentJsx(
         qrlsWithCaptures,
         qrlsNonConst,
         paramNames: jsxOptions.paramNames,
+        moduleScopeNames: jsxOptions.moduleScopeNames,
         relPath: jsxOptions.relPath,
         precomputedScopeBindings: segScopeBindings,
       }

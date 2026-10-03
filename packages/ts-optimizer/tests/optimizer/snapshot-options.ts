@@ -567,6 +567,12 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  should_treat_module_level_bindings_as_globals_in_inline_jsx: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
+  should_treat_module_level_bindings_as_globals_in_jsx: { transpileTs: true, transpileJsx: true },
   should_work: { transpileTs: true, transpileJsx: true },
   should_wrap_inner_inline_component_prop: { transpileTs: true, transpileJsx: true },
   should_wrap_logical_expression_in_template: { transpileTs: true, transpileJsx: true },

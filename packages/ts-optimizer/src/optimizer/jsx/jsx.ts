@@ -2,8 +2,9 @@ import type MagicString from 'magic-string';
 import { walkWithProtocol } from '../ast/walk-with-protocol.js';
 import { forEachAstChild } from '../ast/guards.js';
 import { isCaptureWrappingQrlCall } from '../qwik/w-call.js';
+import { isNonReferenceIdentifier } from '../analysis/variable-migration.js';
 import type { AstNode, AstProgram, Expression, JSXElementName } from '../../ast-types.js';
-import { SignalHoister } from './signal-analysis.js';
+import { SignalHoister, containsJsx } from './signal-analysis.js';
 import { collectPassiveDirectives } from './event-handlers.js';
 import { detectLoopContext, type LoopContext } from './loop-hoisting.js';
 import { computeKeyPrefix } from './key-prefix.js';
@@ -57,6 +58,7 @@ export interface JsxTransformContext {
    */
   bindings?: ScopeAwareBindings;
   allDeclaredNames?: Set<string>;
+  moduleScopeNames?: ReadonlySet<string>;
   paramNames?: Set<string>;
   qrlsWithCaptures?: Set<string>;
   /** QRL vars whose lifted captures vary per invocation — their entries classify var. */
@@ -210,6 +212,7 @@ interface ScopeRange {
   readonly start: number;
   readonly end: number;
   readonly kind: 'const' | 'var' | 'param';
+  readonly isModuleScope: boolean;
 }
 
 export interface ScopeAwareBindings {
@@ -218,6 +221,7 @@ export interface ScopeAwareBindings {
    * binds it (caller falls through to imports/undeclared).
    */
   classify(name: string, atPosition: number): 'const' | 'var' | 'param' | undefined;
+  resolveScope(name: string, atPosition: number): 'module' | 'local' | undefined;
   /**
    * Register `name` as const everywhere — for names that aren't AST-declared but are runtime-const
    * (e.g. `_capturesObj._[i]` unpacking bindings). Inner-scope bindings still shadow.
@@ -235,19 +239,40 @@ class ScopeAwareBindingsImpl implements ScopeAwareBindings {
    */
   private alwaysConst = new Set<string>();
 
-  add(name: string, start: number, end: number, kind: 'const' | 'var' | 'param'): void {
+  add(
+    name: string,
+    start: number,
+    end: number,
+    kind: 'const' | 'var' | 'param',
+    isModuleScope: boolean
+  ): void {
     let arr = this.nameToScopes.get(name);
     if (!arr) {
       arr = [];
       this.nameToScopes.set(name, arr);
     }
-    arr.push({ start, end, kind });
+    arr.push({ start, end, kind, isModuleScope });
   }
 
   classify(name: string, atPosition: number): 'const' | 'var' | 'param' | undefined {
     if (this.alwaysConst.has(name)) {
       return 'const';
     }
+    return this.innermostScope(name, atPosition)?.kind;
+  }
+
+  resolveScope(name: string, atPosition: number): 'module' | 'local' | undefined {
+    if (this.alwaysConst.has(name)) {
+      return 'local';
+    }
+    const scope = this.innermostScope(name, atPosition);
+    if (!scope) {
+      return undefined;
+    }
+    return scope.isModuleScope ? 'module' : 'local';
+  }
+
+  private innermostScope(name: string, atPosition: number): ScopeRange | undefined {
     const scopes = this.nameToScopes.get(name);
     if (!scopes) {
       return undefined;
@@ -263,7 +288,7 @@ class ScopeAwareBindingsImpl implements ScopeAwareBindings {
         }
       }
     }
-    return best?.kind;
+    return best;
   }
 
   addProgramScopeConst(name: string): void {
@@ -296,9 +321,19 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
   const allLocalNames = new Set<string>();
 
   const scopeStack: Array<{ start: number; end: number }> = [];
+  const programScope = { start: program.start ?? 0, end: program.end ?? Number.MAX_SAFE_INTEGER };
 
   function currentScope(): { start: number; end: number } {
     return scopeStack[scopeStack.length - 1];
+  }
+
+  function addBinding(
+    name: string,
+    scope: { start: number; end: number },
+    kind: 'const' | 'var' | 'param'
+  ): void {
+    allLocalNames.add(name);
+    bindings.add(name, scope.start, scope.end, kind, scope === programScope);
   }
 
   function addBindingIdent(
@@ -309,9 +344,7 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
       return;
     }
     if (idNode.type === 'Identifier') {
-      allLocalNames.add(idNode.name);
-      const scope = currentScope();
-      bindings.add(idNode.name, scope.start, scope.end, kind);
+      addBinding(idNode.name, currentScope(), kind);
     } else if (idNode.type === 'ArrayPattern') {
       for (const elem of idNode.elements) {
         if (elem) {
@@ -429,15 +462,12 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
     if (node.type === 'FunctionDeclaration' && node.id) {
       const targetScope =
         pushed && scopeStack.length >= 2 ? scopeStack[scopeStack.length - 2] : currentScope();
-      allLocalNames.add(node.id.name);
-      bindings.add(node.id.name, targetScope.start, targetScope.end, 'var');
+      addBinding(node.id.name, targetScope, 'var');
     }
     if (node.type === 'ClassDeclaration' && node.id) {
       // Classes aren't scope-introducing in this model (no push), so the name
       // binds in the current scope.
-      allLocalNames.add(node.id.name);
-      const scope = currentScope();
-      bindings.add(node.id.name, scope.start, scope.end, 'var');
+      addBinding(node.id.name, currentScope(), 'var');
     }
 
     if (
@@ -478,7 +508,7 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
 
   // Push the program-level scope frame so top-level bindings land somewhere;
   // never popped, so `result` is readable after the traversal.
-  scopeStack.push({ start: program.start ?? 0, end: program.end ?? Number.MAX_SAFE_INTEGER });
+  scopeStack.push(programScope);
 
   return {
     enter,
@@ -641,6 +671,56 @@ export function classifyConstness(
     default:
       return 'var';
   }
+}
+
+const LITERAL_GLOBAL_NAMES = new Set(['undefined', 'NaN', 'Infinity']);
+const TS_TYPE_KEYS = new Set(['typeAnnotation', 'typeArguments', 'typeParameters', 'returnType']);
+
+export function classifyModuleScopeRead(
+  expr: AstNode,
+  ctx: Pick<JsxTransformContext, 'importedNames' | 'bindings' | 'moduleScopeNames'>
+): 'const' | 'var' | null {
+  if (containsJsx(expr)) {
+    return null;
+  }
+  let readsModuleScope = false;
+  let readsOnlyGlobals = true;
+  const visit = (node: AstNode, parent: AstNode | null): void => {
+    if (
+      node.type === 'Identifier' &&
+      !isNonReferenceIdentifier(node, parent) &&
+      !LITERAL_GLOBAL_NAMES.has(node.name)
+    ) {
+      const scope = resolveReferenceScope(node.name, node.start, ctx);
+      readsModuleScope ||= scope === 'module';
+      readsOnlyGlobals &&= scope !== 'other';
+    }
+    forEachAstChild(node, (child, key, childParent) => {
+      if (!TS_TYPE_KEYS.has(key)) {
+        visit(child, childParent);
+      }
+    });
+  };
+  visit(expr, null);
+  if (!readsModuleScope) {
+    return null;
+  }
+  return readsOnlyGlobals ? 'const' : 'var';
+}
+
+function resolveReferenceScope(
+  name: string,
+  atPosition: number,
+  ctx: Pick<JsxTransformContext, 'importedNames' | 'bindings' | 'moduleScopeNames'>
+): 'module' | 'import' | 'other' {
+  const bindingScope = ctx.bindings?.resolveScope(name, atPosition);
+  if (bindingScope) {
+    return bindingScope === 'module' ? 'module' : 'other';
+  }
+  if (ctx.importedNames.has(name)) {
+    return 'import';
+  }
+  return ctx.moduleScopeNames?.has(name) ? 'module' : 'other';
 }
 
 /**
@@ -912,6 +992,7 @@ export interface TransformAllJsxOptions {
   qrlsWithCaptures?: Set<string>;
   qrlsNonConst?: Set<string>;
   paramNames?: Set<string>;
+  moduleScopeNames?: ReadonlySet<string>;
   relPath?: string;
   sharedSignalHoister?: SignalHoister;
   precomputedScopeBindings?: ScopeAwareCollectResult;
@@ -932,6 +1013,7 @@ export function transformAllJsx(
     qrlsWithCaptures,
     qrlsNonConst,
     paramNames,
+    moduleScopeNames,
     relPath,
     sharedSignalHoister,
     precomputedScopeBindings,
@@ -955,6 +1037,7 @@ export function transformAllJsx(
     signalHoister,
     bindings: resolvedBindings,
     allDeclaredNames,
+    moduleScopeNames,
     paramNames,
     qrlsWithCaptures,
     qrlsNonConst,

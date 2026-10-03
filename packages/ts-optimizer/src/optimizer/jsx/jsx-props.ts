@@ -6,6 +6,7 @@ import { isBindProp, transformBindProp, mergeEventHandlers } from './bind.js';
 import { isCaptureWrappingQrlCall } from '../qwik/w-call.js';
 import {
   classifyConstness,
+  classifyModuleScopeRead,
   isConstBindingName,
   fnSignalDepsAllConst,
   sliceTransformed,
@@ -511,7 +512,14 @@ export function processProps(
       continue;
     }
 
-    if (valueNode && !skipSignalAnalysis) {
+    const moduleScopeRead =
+      valueNode &&
+      valueNode.type !== 'ArrowFunctionExpression' &&
+      valueNode.type !== 'FunctionExpression'
+        ? classifyModuleScopeRead(valueNode, ctx)
+        : null;
+
+    if (valueNode && !skipSignalAnalysis && !moduleScopeRead) {
       const signalResult = analyzeSignalExpression(
         valueNode,
         source,
@@ -592,13 +600,15 @@ export function processProps(
       }
     }
 
-    const classification = !valueNode
-      ? 'const'
-      : valueNode.type === 'JSXElement' || valueNode.type === 'JSXFragment'
-        ? isStaticJsxAttrValue(valueNode)
-          ? 'const'
-          : 'var'
-        : classifyConstness(valueNode, importedNames, bindings, valueNode.start);
+    const classification =
+      moduleScopeRead ??
+      (!valueNode
+        ? 'const'
+        : valueNode.type === 'JSXElement' || valueNode.type === 'JSXFragment'
+          ? isStaticJsxAttrValue(valueNode)
+            ? 'const'
+            : 'var'
+          : classifyConstness(valueNode, importedNames, bindings, valueNode.start));
 
     const entry = `${formatPropName(propName)}: ${valueText}`;
 

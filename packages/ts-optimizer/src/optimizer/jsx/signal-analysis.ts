@@ -113,7 +113,7 @@ function isStoreFieldAccess(
   return true;
 }
 
-function containsJsx(node: AstMaybeNode): boolean {
+export function containsJsx(node: AstMaybeNode): boolean {
   return someAstDescendant(node, (n) => n.type === 'JSXElement' || n.type === 'JSXFragment');
 }
 

@@ -54,6 +54,8 @@ const SERVER_STRIP_CTX_NAME = [
   'action$',
   'loader$',
   'zod$',
+  'schema$',
+  'valibot$',
   'validator$',
   'globalAction$',
 ];

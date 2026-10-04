@@ -50,15 +50,14 @@ export function devtoolsPlugin(opts: QwikDevtoolsOptions = {}): Plugin {
     transform: {
       order: 'pre',
       handler(code, id) {
-        if (id.endsWith('.tsx') && code.includes('component$')) {
-          code = transformComponentFile(code, id);
+        let transformed = code;
+        if (id.endsWith('.tsx') && transformed.includes('component$')) {
+          transformed = transformComponentFile(transformed, id);
         }
-
         if (id.endsWith('root.tsx')) {
-          return { code: transformRootFile(code, opts), map: null };
+          transformed = transformRootFile(transformed, opts);
         }
-
-        return { code, map: { mappings: '' } };
+        return transformed === code ? null : { code: transformed, map: null };
       },
     },
 

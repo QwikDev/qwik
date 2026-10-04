@@ -20,7 +20,6 @@ import type {
   ResolveSyncValue,
   ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
-import type * as v from 'valibot';
 import type * as z from 'zod';
 import type { Q_ROUTE } from './constants';
 import type { RouteLoaderCtx } from './route-loaders';
@@ -660,21 +659,17 @@ export type JSONObject = { [x: string]: JSONValue };
 export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
   VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
     ? StandardSchemaV1.InferInput<TYPE>
-    : VALIDATOR extends ValibotDataValidator<infer TYPE>
-      ? v.InferInput<TYPE>
-      : VALIDATOR extends ZodDataValidator<infer TYPE>
-        ? z.input<TYPE>
-        : never;
+    : VALIDATOR extends ZodDataValidator<infer TYPE>
+      ? z.input<TYPE>
+      : never;
 
 /** @public */
 export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
   VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
     ? StandardSchemaV1.InferOutput<TYPE>
-    : VALIDATOR extends ValibotDataValidator<infer TYPE>
-      ? v.InferOutput<TYPE>
-      : VALIDATOR extends ZodDataValidator<infer TYPE>
-        ? z.output<TYPE>
-        : never;
+    : VALIDATOR extends ZodDataValidator<infer TYPE>
+      ? z.output<TYPE>
+      : never;
 
 /** @public */
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
@@ -1285,33 +1280,6 @@ export type StandardSchemaConstructorQRL = {
   ): StandardSchemaDataValidator<T>;
 };
 
-/** @beta */
-export type ValibotDataValidator<
-  T extends v.GenericSchema | v.GenericSchemaAsync = v.GenericSchema | v.GenericSchemaAsync,
-> = {
-  readonly __brand: 'valibot';
-  validate(
-    ev: RequestEvent,
-    data: unknown
-  ): Promise<ValidatorReturn<ValidatorErrorType<v.InferInput<T>>>>;
-};
-
-/** @beta */
-export type ValibotConstructor = {
-  <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: T): ValibotDataValidator<T>;
-  <T extends v.GenericSchema | v.GenericSchemaAsync>(
-    schema: (ev: RequestEvent) => T
-  ): ValibotDataValidator<T>;
-};
-
-/** @beta */
-export type ValibotConstructorQRL = {
-  <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: QRL<T>): ValibotDataValidator<T>;
-  <T extends v.GenericSchema | v.GenericSchemaAsync>(
-    schema: QRL<(ev: RequestEvent) => T>
-  ): ValibotDataValidator<T>;
-};
-
 /** @public */
 export type ZodDataValidator<T extends z.ZodType = z.ZodType> = {
   readonly __brand: 'zod';
@@ -1342,10 +1310,7 @@ export type ZodConstructorQRL = {
 };
 
 /** @public */
-export type TypedDataValidator =
-  | StandardSchemaDataValidator
-  | ValibotDataValidator
-  | ZodDataValidator;
+export type TypedDataValidator = StandardSchemaDataValidator | ZodDataValidator;
 
 /** @public */
 export interface ServerConfig {

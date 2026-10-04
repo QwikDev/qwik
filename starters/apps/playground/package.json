@@ -9,5 +9,8 @@
     "docs": [
       "https://qwik.dev/docs/getting-started/"
     ]
+  },
+  "devDependencies": {
+    "zod": "^3.25.48"
   }
 }

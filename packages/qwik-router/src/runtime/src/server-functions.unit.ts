@@ -12,7 +12,7 @@ vi.mock('../../middleware/request-handler/async-request-store', () => ({
 
 import * as z from 'zod';
 import { routeLoader$ } from './route-loaders';
-import { getRequestEvent, routeAction$, schema$, server$ } from './server-functions';
+import { getRequestEvent, routeAction$, schema$, server$, zod$ } from './server-functions';
 import type {
   RequestEventBase,
   StandardSchemaV1,
@@ -341,6 +341,40 @@ describe('types', () => {
         },
         issues,
       },
+    });
+  });
+
+  test('standard schema keys array-level issues like zod$ and valibot$', async () => {
+    // Valibot reports `Array`, Zod reports `array`.
+    const schema = schema$(() =>
+      createStandardSchema<{ items: string[] }>(() => ({
+        issues: [
+          { message: 'Array issue', path: ['items'], expected: 'Array' } as StandardSchemaV1.Issue,
+          { message: 'array issue', path: ['items'], expected: 'array' } as StandardSchemaV1.Issue,
+        ],
+      }))
+    );
+
+    const result = await schema.validate(undefined as any, { items: 'nope' });
+
+    expect(result.success === false && result.error.fieldErrors).toEqual({
+      'items[]': ['Array issue', 'array issue'],
+    });
+  });
+
+  test('zod$ loads zod lazily for raw shapes and schema callbacks', async () => {
+    const requestEvent = { locale: () => 'en' } as any;
+    const shapeValidator = zod$({ name: z.string() });
+    const callbackValidator = zod$((zod) => zod.object({ age: zod.number() }));
+
+    await expect(shapeValidator.validate(requestEvent, { name: 'Qwik' })).resolves.toMatchObject({
+      success: true,
+      data: { name: 'Qwik' },
+    });
+    await expect(callbackValidator.validate(requestEvent, { age: 'old' })).resolves.toMatchObject({
+      success: false,
+      status: 400,
+      error: { fieldErrors: { age: 'Expected number, received string' } },
     });
   });
 

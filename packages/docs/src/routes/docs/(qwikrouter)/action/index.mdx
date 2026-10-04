@@ -482,7 +482,8 @@ A native browser form submission always includes `text/html` in the `Accept` hea
 
 ```tsx title="src/routes/index.tsx" // ⚠️ without PRG
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, zod$, z } from '@qwik.dev/router';
+import { routeAction$, zod$ } from '@qwik.dev/router';
+import { z } from 'zod';
 
 export const useCreatePost = routeAction$(
   async (data) => {
@@ -508,7 +509,8 @@ To fix this, detect the submission type using the `Accept` header and `throw red
 
 ```tsx title="src/routes/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, routeLoader$, Form, zod$, z } from '@qwik.dev/router';
+import { routeAction$, routeLoader$, Form, zod$ } from '@qwik.dev/router';
+import { z } from 'zod';
 
 export const useCreatePost = routeAction$(
   async (data, { request, redirect }) => {

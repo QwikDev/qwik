@@ -15,6 +15,7 @@ vi.mock('./async-request-store', () => ({
   },
 }));
 
+import { ServerError } from './server-error';
 import { runQwikRouter } from './user-response';
 import type { ServerRequestEvent } from './types';
 
@@ -64,4 +65,28 @@ describe('runQwikRouter', () => {
     );
     expect(result.completion).toBe(completion);
   });
+
+  it.each(['application/json', 'text/html'])(
+    'sends a thrown ServerError with Cache-Control: no-store for %s',
+    async (accept) => {
+      const requestEv = {
+        originalUrl: new URL('http://localhost/members/'),
+        request: new Request('http://localhost/members/', { headers: { Accept: accept } }),
+        headers: new Headers({ 'Cache-Control': 'public, max-age=60' }),
+        headersSent: false,
+        next: vi.fn(async () => {
+          throw new ServerError(403, 'Members only');
+        }),
+        send: vi.fn(),
+        html: vi.fn(),
+        isDirty: () => true,
+      };
+      mocks.createRequestEvent.mockReturnValue(requestEv);
+
+      await runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/').completion;
+
+      expect(requestEv.send.mock.calls.length + requestEv.html.mock.calls.length).toBe(1);
+      expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+    }
+  );
 });

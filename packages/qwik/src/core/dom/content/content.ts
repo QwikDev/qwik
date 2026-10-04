@@ -26,6 +26,7 @@ import {
   getOrCreateContextOwner,
   registerSubscriberToOwner,
   type Owner,
+  showsProjection,
 } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import { registerSuspenseBoundary } from './suspense-boundary';
@@ -226,7 +227,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
       disposeOwner(pendingContext.owner);
       pendingContext.owner = null;
     }
-    replaceRange(this.document, this.start, this.end, EMPTY_NODES);
+    replaceRange(this.document, this.start, this.end, EMPTY_NODES, showsProjection(owner));
   }
 
   private commit(invokeContext: RuntimeInvokeContext, output: ContentOutput): readonly Node[] {
@@ -238,7 +239,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
         ? reapplyUseOnContexts(output, this.invokeContext, this.document)
         : output
     );
-    replaceRange(this.document, this.start, this.end, nodes);
+    replaceRange(this.document, this.start, this.end, nodes, showsProjection(previousOwner));
     this.committed = true;
     // Deferred content claims the owner after this commit, so materialize it now or lose the handle.
     this.currentOwner = getOrCreateContextOwner(invokeContext);

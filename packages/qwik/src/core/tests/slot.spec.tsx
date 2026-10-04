@@ -319,4 +319,79 @@ describe(`${name}: slot`, () => {
 
     cleanup();
   });
+
+  describe('projected content belongs to the component that declares it', () => {
+    it('stays live when the consumer re-renders to the same slot name', async () => {
+      const CmpA = component$((props: { pick: string; tick: number }) => {
+        return <Slot name={props.tick > 100 ? props.pick : props.pick} />;
+      });
+      const Parent = component$(() => {
+        const state = useStore({ count: 0, tick: 0 });
+        return (
+          <div id="parent">
+            <button id="inc" onClick$={() => state.count++}></button>
+            <button id="tick" onClick$={() => state.tick++}></button>
+            <CmpA pick="a" tick={state.tick}>
+              <span q:slot="a">P {state.count}</span>
+            </CmpA>
+          </div>
+        );
+      });
+
+      const { container, cleanup, qwikLoader } = await render(Parent, { debug });
+      const shown = () => container.querySelector('#parent')?.textContent?.trim();
+      const click = (id: string) => qwikLoader?.dispatch(container.querySelector(id)!, 'click');
+
+      await click('#tick');
+      await click('#inc');
+      expect(shown()).toBe('P 1');
+      const span = container.querySelector('#parent span');
+
+      await click('#tick');
+      await click('#inc');
+      expect(shown()).toBe('P 2');
+      expect(container.querySelector('#parent span')).toBe(span);
+
+      cleanup();
+    });
+
+    it('stays in memory and current while the consumer does not show it', async () => {
+      const CmpA = component$((props: { open: boolean }) => {
+        return <div id="consumer">{props.open && <Slot />}</div>;
+      });
+      const Parent = component$(() => {
+        const state = useStore({ open: true, count: 0 });
+        return (
+          <div>
+            <button id="toggle" onClick$={() => (state.open = !state.open)}></button>
+            <button id="inc" onClick$={() => state.count++}></button>
+            <CmpA open={state.open}>
+              <span>P {state.count}</span>
+            </CmpA>
+          </div>
+        );
+      });
+
+      const { container, cleanup, qwikLoader } = await render(Parent, { debug });
+      const shown = () => container.querySelector('#consumer')?.textContent?.trim();
+      const click = (id: string) => qwikLoader?.dispatch(container.querySelector(id)!, 'click');
+      expect(shown()).toBe('P 0');
+
+      await click('#toggle');
+      expect(shown()).toBe('');
+      await click('#toggle');
+      expect(shown()).toBe('P 0');
+      const span = container.querySelector('#consumer span');
+
+      await click('#toggle');
+      await click('#inc');
+      expect(shown()).toBe('');
+      await click('#toggle');
+      expect(shown()).toBe('P 1');
+      // the same content comes back: it was kept, not rendered again
+      expect(container.querySelector('#consumer span')).toBe(span);
+
+      cleanup();
+    });
+  });
 });

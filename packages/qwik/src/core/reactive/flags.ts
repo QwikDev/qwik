@@ -10,6 +10,8 @@ export const enum OwnerFlags {
   PendingRoot = 1 << 7,
   WaitingForPhases = 1 << 8,
   PendingWork = 1 << 9,
+  /** Content under this owner includes a projection another owner keeps alive. */
+  ShowsProjection = 1 << 10,
   DirtyMask = DirtyBlockingTask |
     DirtyStructuralDom |
     DirtyScalarDom |

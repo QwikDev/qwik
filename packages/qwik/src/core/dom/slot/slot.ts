@@ -15,13 +15,22 @@ import {
   newChildInvokeContext,
   type RuntimeInvokeContext,
 } from '../../runtime/invoke-context';
-import { disposeOwner, getOrCreateContextOwner, type Owner } from '../../runtime/owner';
+import {
+  disposeOwner,
+  getOrCreateContextOwner,
+  registerSubscriberToOwner,
+  type Owner,
+} from '../../runtime/owner';
+import { disposeSubscriber } from '../../reactive/cleanup';
+import { isSubscriberDisposed } from '../../runtime/subscriber';
 import { DangerousInnerHTMLAttr, EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '../../utils/consts';
 import { MATH_NS, SVG_NS } from '../../shared/utils/markers';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve, readExpression } from '../../utils/qrl';
 import { isQrl } from '../../shared/qrl/qrl-utils';
 import {
+  ContentBlock,
+  ContentSubscription,
   createContentBlock,
   renderSsrContent,
   type ContentFn,
@@ -47,8 +56,12 @@ type SlotNameSource = string | (() => string) | QRL<() => string>;
 
 export interface Projection {
   renderQrl: unknown;
+  /** The owner of the component that declared the content: its lifetime, whoever shows it. */
+  host: Owner | null;
   owner: Owner | null;
   nodes: readonly Node[] | null;
+  /** The live block of the content, once a consumer has shown it. */
+  subscription: (ContentSubscription<[]> & { block: ProjectionBlock }) | null;
   slotScope: SlotScope | null;
   name: SlotNameSource;
 }
@@ -110,11 +123,13 @@ class SlotScopeState implements SlotScope {
 class ProjectionState implements Projection {
   owner: Owner | null = null;
   nodes: readonly Node[] | null = null;
+  subscription: Projection['subscription'] = null;
 
   constructor(
     public renderQrl: unknown,
     public slotScope: SlotScope | null,
-    public name: SlotNameSource
+    public name: SlotNameSource,
+    public host: Owner | null
   ) {}
 }
 
@@ -130,7 +145,7 @@ export function isSlotScope(value: unknown): value is SlotScope {
 }
 
 export function createProjection(): Projection {
-  return new ProjectionState(null, null, EMPTY_STRING);
+  return new ProjectionState(null, null, EMPTY_STRING, null);
 }
 
 export function isProjection(value: unknown): value is ProjectionState {
@@ -143,10 +158,12 @@ export function registerProjection(
   renderQrl: unknown,
   slotScope?: SlotScope | null
 ): Projection {
+  const context = getActiveInvokeContextOrNull();
   const registered = new ProjectionState(
     renderQrl,
-    slotScope ?? getActiveInvokeContextOrNull()?.slotScope ?? null,
-    name
+    slotScope ?? context?.slotScope ?? null,
+    name,
+    getOrCreateContextOwner(context)
   );
   scope.projections.push(registered);
   return registered;
@@ -167,7 +184,7 @@ export function forwardSlot(
   }
   for (let i = 0; i < source.length; i++) {
     scope.projections.push(
-      new ProjectionState(source[i].renderQrl, source[i].slotScope, targetName)
+      new ProjectionState(source[i].renderQrl, source[i].slotScope, targetName, source[i].host)
     );
   }
 }
@@ -434,52 +451,81 @@ function renderSsrProjections(
   return output;
 }
 
+/**
+ * Projected content as a block its declaring component owns. The range is not tied to one place:
+ * whoever shows the content takes the whole range, and the block keeps rendering into it
+ * meanwhile.
+ */
+export class ProjectionBlock extends ContentBlock<[]> {
+  /** The range with everything in it right now, or null when it no longer holds together. */
+  take(): readonly Node[] | null {
+    let last: Node | null = this.start;
+    while (last !== null && last !== this.end) {
+      last = last.nextSibling;
+    }
+    if (last === null) {
+      return null;
+    }
+    const holder = this.document.createDocumentFragment();
+    let node: Node | null = this.start;
+    while (node !== null) {
+      const next: Node | null = node === this.end ? null : node.nextSibling;
+      holder.appendChild(node);
+      node = next;
+    }
+    return [holder];
+  }
+}
+
+/**
+ * Every render between the consumer and the declaring component can be the one that removes the
+ * projection's range, so each of them must keep what it removes in one piece.
+ */
+function markShowsProjection(consumer: Owner | null, host: Owner | null): void {
+  for (let owner = consumer; owner !== null && owner !== host; owner = owner.parent) {
+    owner.flags |= OwnerFlags.ShowsProjection;
+  }
+}
+
 function project(
   projection: Projection,
   container: ContainerContext,
   parentInvokeContext: RuntimeInvokeContext | null
 ): ValueOrPromise<readonly Node[]> {
-  const renderParent = getOrCreateContextOwner(parentInvokeContext);
-  if (projection.owner !== null && projection.owner.flags & OwnerFlags.Disposed) {
-    projection.owner = null;
-    projection.nodes = null;
+  markShowsProjection(getOrCreateContextOwner(parentInvokeContext), projection.host);
+  const shown =
+    projection.subscription === null || isSubscriberDisposed(projection.subscription)
+      ? null
+      : projection.subscription.block.take();
+  if (shown !== null) {
+    return shown;
   }
-  if (projection.nodes !== null) {
-    projection.owner!.renderParent = renderParent;
-    return projection.nodes;
+  if (projection.subscription !== null) {
+    // The kept range was torn apart, so nothing can be shown again: render it fresh.
+    disposeSubscriber(projection.subscription);
   }
-  const render = getFunctionOrResolve(
-    projection.renderQrl as SlotRenderFn | QRL<SlotRenderFn>,
-    container
+  const document = container.document;
+  const holder = document.createDocumentFragment();
+  const start = holder.appendChild(document.createComment(EMPTY_STRING));
+  const end = holder.appendChild(document.createComment(EMPTY_STRING));
+  const block = new ProjectionBlock(
+    document,
+    start,
+    end,
+    [],
+    projection.renderQrl as QRL<ContentFn<[]>>,
+    newChildInvokeContext(parentInvokeContext, { container, slotScope: projection.slotScope }),
+    container,
+    false,
+    true
   );
-  return maybeThen(render, (render) => {
-    // The QRL may resolve asynchronously, so the caller's context is passed in rather than read
-    // from the ambient one, which is already gone by the time this runs.
-    const invokeContext = newChildInvokeContext(parentInvokeContext, {
-      ownerHost: projection.owner ?? renderParent,
-      container,
-      slotScope: projection.slotScope,
-    });
-    return safeCall(
-      // projected content owns its own subscriptions: the consumer's collector must not take them
-      () => runWithCollector(null, () => invoke(invokeContext, render, container)),
-      (output) => {
-        const nodes = toNodes(output);
-        // The cache is dropped only when this owner is disposed, so it must never stay unmaterialized.
-        projection.owner = getOrCreateContextOwner(invokeContext);
-        projection.owner!.renderParent = renderParent;
-        projection.nodes = nodes;
-        return nodes;
-      },
-      (error) => {
-        if (invokeContext.owner !== null) {
-          disposeOwner(invokeContext.owner);
-          invokeContext.owner = null;
-        }
-        throw error;
-      }
-    );
-  });
+  // The declaring component owns the content, so the consumer can stop showing it and keep it.
+  projection.subscription = registerSubscriberToOwner(
+    new ContentSubscription(block, container.scheduler) as NonNullable<Projection['subscription']>,
+    projection.host ?? getOrCreateContextOwner(parentInvokeContext)
+  );
+  container.scheduler.notify(projection.subscription);
+  return [holder];
 }
 
 function renderSsrProjection(

@@ -42,6 +42,11 @@ export function getActiveOwner(): Owner | null {
   return getActiveOwnerScope();
 }
 
+/** Whether removing this owner's content must keep it in one piece for a projection inside it. */
+export function showsProjection(owner: Owner | null): boolean {
+  return owner !== null && (owner.flags & OwnerFlags.ShowsProjection) !== 0;
+}
+
 export function getOrCreateContextOwner(context: RuntimeInvokeContext | null): Owner | null {
   return context === null ? null : materializeContextOwner(context);
 }

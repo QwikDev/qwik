@@ -12,7 +12,9 @@ export function replaceRange(
   document: Document,
   start: Comment,
   end: Comment,
-  nodes: readonly Node[]
+  nodes: readonly Node[],
+  /** Removed content holds a projection its owner keeps: it must stay one tree to come back. */
+  keepRemoved = false
 ): void {
   // detached markers mean an ancestor already tore this range out of the DOM — nothing to do
   if (start.parentNode === null) {
@@ -23,7 +25,12 @@ export function replaceRange(
   const range = document.createRange();
   range.setStartAfter(start);
   range.setEndBefore(end);
-  range.deleteContents();
+  if (keepRemoved) {
+    range.extractContents();
+  } else {
+    // Each removed node stands alone, so a reference to one never retains the rest.
+    range.deleteContents();
+  }
 
   if (nodes.length === 1) {
     range.insertNode(nodes[0]);

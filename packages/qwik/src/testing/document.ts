@@ -159,6 +159,28 @@ function createMockRange(): Range {
         throw new Error('Range end marker not found');
       }
     },
+    extractContents(): DocumentFragment {
+      if (start === null || end === null) {
+        throw new Error('Range boundary not set');
+      }
+      const parent = start.parentNode;
+      if (parent === null || parent !== end.parentNode) {
+        throw new Error('Range markers must share a parent');
+      }
+
+      const extracted = parent.ownerDocument!.createDocumentFragment();
+      let child = startAfter ? start.nextSibling : start;
+      const boundary = endAfter ? end.nextSibling : end;
+      while (child !== null && child !== boundary) {
+        const next = child.nextSibling;
+        extracted.appendChild(child);
+        child = next;
+      }
+      if (child !== boundary) {
+        throw new Error('Range end marker not found');
+      }
+      return extracted;
+    },
     insertNode(node: Node): void {
       if (end === null || end.parentNode === null) {
         throw new Error('Range boundary not set');

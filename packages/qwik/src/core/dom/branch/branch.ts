@@ -19,6 +19,7 @@ import {
   getOrCreateContextOwner,
   registerSubscriberToOwner,
   type Owner,
+  showsProjection,
 } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import {
@@ -47,8 +48,8 @@ export class BranchRange {
     readonly end: Comment
   ) {}
 
-  replace(nodes: readonly Node[]): void {
-    replaceRange(this.document, this.start, this.end, nodes);
+  replace(nodes: readonly Node[], keepRemoved = false): void {
+    replaceRange(this.document, this.start, this.end, nodes, keepRemoved);
   }
 }
 
@@ -82,7 +83,7 @@ export class Branch {
       disposeOwner(owner);
     }
 
-    this.range.replace(EMPTY_NODES);
+    this.range.replace(EMPTY_NODES, showsProjection(owner));
   }
 
   commit(
@@ -96,7 +97,7 @@ export class Branch {
         ? reapplyUseOnContexts(output, this.invokeContext, this.range.document)
         : output
     );
-    this.range.replace(nodes);
+    this.range.replace(nodes, showsProjection(previousOwner));
     this.currentBranch = nextBranch;
     // Deferred content claims the owner after this commit, so materialize it now or lose the handle.
     this.currentOwner = invokeContext === null ? null : getOrCreateContextOwner(invokeContext);

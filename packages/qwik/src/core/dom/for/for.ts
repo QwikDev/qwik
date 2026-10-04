@@ -20,6 +20,7 @@ import {
   disposeOwnerItems,
   registerSubscriberToOwner,
   type Owner,
+  showsProjection,
 } from '../../runtime/owner';
 import { findForRows } from '../../runtime/node-walker';
 import type { ForBlockSubscriber } from '../../runtime/subscriber';
@@ -94,11 +95,11 @@ export class ForRange {
     readonly end: Comment
   ) {}
 
-  clear(): void {
+  clear(keepRemoved = false): void {
     if (this.start.parentNode === null || replaceForRangeParent(this) !== null) {
       return;
     }
-    replaceRange(this.document, this.start, this.end, EMPTY_NODES);
+    replaceRange(this.document, this.start, this.end, EMPTY_NODES, keepRemoved);
   }
 }
 
@@ -137,7 +138,7 @@ export class ForBlock<T = unknown> {
     this.owners = EMPTY_ARRAY;
     this.indexSignals = this.indexMode !== IndexMode.None ? EMPTY_ARRAY : null;
     disposeOwner(this.listOwner);
-    this.range.clear();
+    this.range.clear(showsProjection(this.listOwner));
   }
 
   run(subscription: ForBlockSubscription<T>): ValueOrPromise<void> {
@@ -525,7 +526,7 @@ export class ForBlock<T = unknown> {
     if (this.rows.length === 0) {
       return;
     }
-    this.range.clear();
+    this.range.clear(showsProjection(this.listOwner));
     disposeOwnerItems(this.listOwner);
     this.commitRows(
       EMPTY_ARRAY,

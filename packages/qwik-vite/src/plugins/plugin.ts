@@ -299,10 +299,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // we only provide inputs if none were provided by the user
       if (opts.target === 'ssr') {
         // this is for dev mode, prod will have own setting
-        opts.input = [resolvePath(srcDir, 'entry.ssr')];
+        opts.input = [resolvePath(opts.srcDir, 'entry.ssr')];
       } else if (opts.target === 'client') {
         // not really an entry, just a starting point
-        opts.input = [resolvePath(srcDir, 'root')];
+        opts.input = [resolvePath(opts.srcDir, 'root')];
       } else {
         // others including lib should be ok already
         opts.input = undefined!;

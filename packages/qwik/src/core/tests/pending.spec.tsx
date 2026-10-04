@@ -24,6 +24,7 @@ import {
   render,
   setPlatform,
   useComputed$,
+  useContext,
   useContextProvider,
   Slot,
   useTask$,
@@ -33,6 +34,7 @@ import {
   Fragment as Signal,
   type Signal as SignalType,
 } from '@qwik.dev/core';
+import { _DomContainer } from '@qwik.dev/core/internal';
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
 import { useCatchStore } from '../use/use-catch-store';
 import { isServerPlatform } from '../shared/platform/platform';
@@ -1890,6 +1892,60 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     } finally {
       delete (globalThis as any).__ooosUnitStoreShellValue;
       delete (globalThis as any).__ooosUnitStoreResolvedValue;
+    }
+  });
+
+  it('should not report an error when a resolved segment attribute reads a root-owned store through a computed', async () => {
+    const storeContext = createContextId<{ count: number }>('ooos-unit-computed-attr');
+    const Slow = component$(() => {
+      const store = useContext(storeContext);
+      const text = useComputed$(async () => {
+        await delay(10);
+        return 'Ready computed attr';
+      });
+      const href = useComputed$(() => `/item/${store.count}/`);
+      return (
+        <a id="ooos-unit-computed-attr" href={href.value}>
+          {text.value}
+        </a>
+      );
+    });
+    const App = component$(() => {
+      const store = useStore({ count: 1 });
+      useContextProvider(storeContext, store);
+      return (
+        <>
+          <button id="ooos-unit-computed-attr-button" onClick$={() => store.count++}></button>
+          <Pending fallback$={() => <p>Waiting computed attr</p>}>
+            <Slow />
+          </Pending>
+        </>
+      );
+    });
+    const handleErrorSpy = vi
+      .spyOn(_DomContainer.prototype, 'handleError')
+      .mockImplementation(() => {});
+
+    try {
+      const { document, container } = await ssrRenderPendingStream(<App />, []);
+      await waitForDrain(container);
+
+      const link = document.querySelector('#ooos-unit-computed-attr')!;
+      expect(handleErrorSpy).not.toHaveBeenCalled();
+      expect(link.getAttribute('href')).toBe('/item/1/');
+      expect(link.textContent).toBe('Ready computed attr');
+
+      await trigger(container.element, '#ooos-unit-computed-attr-button', 'click');
+      await waitForDrain(container);
+      expect(handleErrorSpy).not.toHaveBeenCalled();
+      expect(link.getAttribute('href')).toBe('/item/2/');
+
+      await trigger(container.element, '#ooos-unit-computed-attr-button', 'click');
+      await waitForDrain(container);
+      expect(handleErrorSpy).not.toHaveBeenCalled();
+      expect(link.getAttribute('href')).toBe('/item/3/');
+    } finally {
+      handleErrorSpy.mockRestore();
     }
   });
 

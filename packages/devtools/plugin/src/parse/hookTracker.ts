@@ -13,7 +13,6 @@ import {
   buildCollecthookPayload,
   hasCollecthookAfterByVariableId,
   hasCollecthookAfterByVariableName,
-  trimStatementSemicolon,
   isCustomHook,
 } from './helpers';
 import { INNER_USE_HOOK } from '@qwik.dev/devtools/kit';
@@ -47,9 +46,10 @@ export function injectHookTrackers(code: string): string {
 
       // Handle expression statements: useTask$(() => {})
       if (node.type === 'ExpressionStatement') {
-        const result = processExpressionStatement(code, node, customHookIndex);
+        const needsBlock = !STATEMENT_LIST_TYPES.has(path.parent?.type);
+        const result = processExpressionStatement(code, node, needsBlock, customHookIndex);
         if (result) {
-          tasks.push(result.task);
+          tasks.push(...result.tasks);
           customHookIndex = result.newIndex;
         }
       }
@@ -125,8 +125,9 @@ function processVariableDeclarator(
 function processExpressionStatement(
   code: string,
   node: any,
+  needsBlock: boolean,
   currentIndex: number
-): { task: InjectionTask; newIndex: number } | null {
+): { tasks: InjectionTask[]; newIndex: number } | null {
   const hookInfo = extractExpressionHookInfo(node);
   if (!hookInfo) {
     return null;
@@ -156,44 +157,42 @@ function processExpressionStatement(
       'undefined'
     );
     return {
-      task: insertAfterStatement(code, stmtEnd, payload),
+      tasks: trackStatement(code, stmtStart, stmtEnd, payload, needsBlock),
       newIndex: currentIndex,
     };
   }
 
-  // Custom hook (expression form) - convert to variable declaration
+  // Custom hook (expression form) - capture its result in a variable to track it
   if (isCustomHook(normalizedName)) {
-    return convertToVariableDeclaration(code, stmtStart, stmtEnd, currentIndex);
+    const variableName = `_customhook_${currentIndex}`;
+    const payload = buildCollecthookPayload(
+      variableName,
+      'customhook',
+      'VariableDeclarator',
+      variableName
+    );
+    const tasks = trackStatement(code, stmtStart, stmtEnd, payload, needsBlock, variableName);
+    return { tasks, newIndex: currentIndex + 1 };
   }
 
   return null;
 }
 
-/** Converts a custom hook expression to a variable declaration with tracking */
-function convertToVariableDeclaration(
+// A braceless `if`/`else`/loop body holds one statement, so tracking code must go in a block.
+const STATEMENT_LIST_TYPES = new Set(['Program', 'BlockStatement', 'StaticBlock', 'SwitchCase']);
+
+/** Tracks a hook statement with inserts only, so edits for hooks nested in it never overlap */
+function trackStatement(
   code: string,
   stmtStart: number,
   stmtEnd: number,
-  currentIndex: number
-): { task: InjectionTask; newIndex: number } {
-  const callSource = code.slice(stmtStart, stmtEnd);
-  const variableName = `_customhook_${currentIndex}`;
-  const payload = buildCollecthookPayload(
-    variableName,
-    'customhook',
-    'VariableDeclarator',
-    variableName
-  );
-
-  return {
-    task: {
-      kind: 'replace',
-      start: stmtStart,
-      end: stmtEnd,
-      text: `let ${variableName} = ${trimStatementSemicolon(callSource)}; ${payload}`,
-    },
-    newIndex: currentIndex + 1,
-  };
+  payload: string,
+  needsBlock: boolean,
+  resultVariable?: string
+): InjectionTask[] {
+  const before = `${needsBlock ? '{ ' : ''}${resultVariable ? `let ${resultVariable} = ` : ''}`;
+  const after = insertAfterStatement(code, stmtEnd, needsBlock ? `${payload} }` : payload);
+  return before ? [{ kind: 'insert', pos: stmtStart, text: before }, after] : [after];
 }
 
 // ============================================================================
@@ -247,8 +246,11 @@ function extractHookCall(node: unknown): { hookName: string; normalizedName: str
 
 /** Inserts on the statement's own line, adding the `;` it may lack because of ASI */
 function insertAfterStatement(code: string, statementEnd: number, statement: string): InsertTask {
-  const separator = code[statementEnd - 1] === ';' ? ' ' : '; ';
-  return { kind: 'insert', pos: statementEnd, text: separator + statement };
+  return {
+    kind: 'insert',
+    pos: statementEnd,
+    text: (code[statementEnd - 1] === ';' ? ' ' : '; ') + statement,
+  };
 }
 
 function getParentRange(parent: any): [number, number] | null {

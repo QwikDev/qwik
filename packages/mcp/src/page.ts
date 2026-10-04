@@ -1,8 +1,10 @@
 import type { InPageBridge } from '../../devtools/kit/src/client-bridge';
-import type { InspectInput } from './protocol';
+import { QWIK_ATTR } from '../../devtools/kit/src/protocol/dom';
+import type { InspectInput, LocateInput } from './protocol';
 import { readSerializedState, readSerializedVNodeTree } from './serialized';
 
 const outputLimit = 65536;
+const inspectorLocation = /^(.*):(\d+):(\d+)$/;
 const bounded = (content: string, source: 'live-dom' | 'serialized-dom', offset = 0) => {
   const bytes = new TextEncoder().encode(content);
   if (offset > bytes.length || (offset < bytes.length && (bytes[offset] & 0xc0) === 0x80)) {
@@ -64,5 +66,31 @@ export async function readPage(
             vnodeTree === null ? null : bounded(vnodeTree, 'serialized-dom', options.offset),
         }
       : {}),
+  };
+}
+
+/** Reads the `file:line:column` that Qwik dev SSR writes on native elements */
+export function locateElement(options: LocateInput, doc: Document, url: string) {
+  const elements = doc.querySelectorAll(options.selector);
+  if (!elements.length) {
+    throw new Error(`No element matches selector: ${options.selector}`);
+  }
+  const result = { url, selector: options.selector, matches: elements.length };
+  // Browser-created elements have no location; fall back to the nearest ancestor, flagged inexact.
+  const located = elements[0].closest(`[${QWIK_ATTR.INSPECTOR}]`);
+  const match = located?.getAttribute(QWIK_ATTR.INSPECTOR)?.match(inspectorLocation);
+  if (!located || !match) {
+    return { ...result, source: null };
+  }
+  const [, file, line, column] = match;
+  return {
+    ...result,
+    source: {
+      file,
+      line: Number(line),
+      column: Number(column),
+      tag: located.tagName.toLowerCase(),
+      exact: located === elements[0],
+    },
   };
 }

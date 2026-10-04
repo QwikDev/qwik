@@ -4,6 +4,7 @@ import { bgMagenta, bgRed, bold, green } from 'kleur/colors';
 import { bye } from '../utils/utils';
 import { replacePackage } from './replace-package';
 import {
+  addZodDependency,
   installTsMorph,
   removeTsMorphFromPackageJson,
   updateDependencies,
@@ -14,6 +15,7 @@ export async function runV2Migration(app: AppCommand) {
     `✨  ${bgMagenta(' This command will migrate your Qwik application from v1 to v2')}\n` +
       `This includes the following: \n` +
       `  - "@builder.io/qwik", "@builder.io/qwik-city" and "@builder.io/qwik-react" packages will be rescoped to "@qwik.dev/core", "@qwik.dev/router" and "@qwik.dev/react" respectively \n` +
+      `  - "z" imports from the router will import from "zod" instead \n` +
       `  - related dependencies will be updated \n\n` +
       `${bold(bgRed('Warning: migration tool is experimental and will migrate your application to the "alpha" release of Qwik V2'))}`
   );
@@ -45,6 +47,10 @@ export async function runV2Migration(app: AppCommand) {
       '@qwik-city-plan' // using old name, package name will be updated in the next step
     );
     await replaceImportInFiles([['jsxs', 'jsx']], '@builder.io/qwik/jsx-runtime');
+    const { moveZodImportInFiles } = await import('./move-zod-import');
+    if (await moveZodImportInFiles()) {
+      await addZodDependency();
+    }
 
     replacePackage('@qwik-city-plan', '@qwik-router-config', true);
     replacePackage('@builder.io/qwik-city', '@qwik.dev/router');

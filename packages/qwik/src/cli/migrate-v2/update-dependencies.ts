@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 import { installDeps } from '../utils/install-deps';
 import { getPackageManager, readPackageJson, writePackageJson } from './../utils/utils';
-import { packageNames, versionTagPriority } from './versions';
+import { packageNames, versionTagPriority, zodVersion } from './versions';
 import { log, spinner } from '@clack/prompts';
 
 export async function updateDependencies() {
@@ -73,6 +73,16 @@ async function getPackageTag() {
   }
   log.warn('Failed to resolve the Qwik version tag, version "2.0.0" will be installed');
   return '2.0.0';
+}
+
+/** The router no longer bundles `zod`, so apps using `zod$` must install it. */
+export async function addZodDependency() {
+  const packageJson = await readPackageJson(process.cwd());
+  if (packageJson.dependencies?.zod || packageJson.devDependencies?.zod) {
+    return;
+  }
+  (packageJson.dependencies ??= {}).zod = zodVersion;
+  await writePackageJson(process.cwd(), packageJson);
 }
 
 export async function installTsMorph() {

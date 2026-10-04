@@ -66,6 +66,11 @@
       "imgSrc": "/ecosystem/tailwind.svg"
     },
     {
+      "title": "Testing Library",
+      "href": "/docs/integrations/testing-library/",
+      "imgSrc": "/ecosystem/testing-library.svg"
+    },
+    {
       "title": "Vitest",
       "href": "/docs/integrations/vitest/",
       "imgSrc": "/ecosystem/vitest.svg"

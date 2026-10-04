@@ -105,7 +105,7 @@ function toInterface(paramName: string, route: string): string {
   return (
     (paramName ? paramName + (params.length ? ':' : '?:') : '') +
     '{' +
-    params.map((param) => param + ': string').join(';') +
+    params.map((param) => s(param) + ': string').join(';') +
     '}'
   );
 }

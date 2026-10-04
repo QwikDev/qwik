@@ -25,13 +25,13 @@ export function parseDirName(name: string): {
   }
 
   // Rest param: [...name]
-  const restMatch = /^\[\.\.\.(\w+)\]$/.exec(name);
+  const restMatch = /^\[\.\.\.([\w-]+)\]$/.exec(name);
   if (restMatch) {
     return { key: '_A', paramName: restMatch[1] };
   }
 
   // Param or infix param: [name] or pre[name]post
-  const paramMatch = /^(.*?)\[(\w+)\](.*?)$/.exec(name);
+  const paramMatch = /^(.*?)\[([\w-]+)\](.*?)$/.exec(name);
   if (paramMatch) {
     return {
       key: '_W',

@@ -232,7 +232,7 @@ describe('injectCollectHooks', () => {
     );
   });
 
-  it('inserts initialization at the very beginning of component$ body with proper indent', () => {
+  it('inserts initialization at the very beginning of component$ body, on its opening line', () => {
     const input = sampleVarDecl;
     const output = parseQwikCode(input, { path: '/abs/path/Button.tsx?id=abc' });
     const initLine = 'const collecthook = useCollectHooks("/abs/path/Button.tsx_default")';
@@ -242,8 +242,7 @@ describe('injectCollectHooks', () => {
     expect(initIdx).toBeGreaterThan(-1);
     expect(firstStmtIdx).toBeGreaterThan(-1);
     expect(initIdx).toBeLessThan(firstStmtIdx);
-    const initLineWithIndent = '\n  ' + initLine;
-    expect(output).toContain(initLineWithIndent);
+    expect(output).toContain(`{ ${initLine};`);
   });
 
   it('is idempotent: running twice does not duplicate init', () => {
@@ -335,9 +334,7 @@ export default component$(function(props){
     const output = parseQwikCode(src, { path: 'CUSTOM_PATH' });
     // import is handled by plugin layer; parseQwikCode only injects init and payloads
     expect(
-      /component\$\(function\([^)]*\)\s*\{[\r\n]+\s*const collecthook = useCollectHooks\(/m.test(
-        output
-      )
+      /component\$\(function\([^)]*\)\s*\{ const collecthook = useCollectHooks\(/m.test(output)
     ).toBe(true);
     const decl = 'const signal = useSignal(0);';
     const declIdx = output.indexOf(decl);
@@ -356,8 +353,9 @@ export default component$(function(props){
     const afterDecl = output.slice(declIdx);
     const match = afterDecl.match(hookBlock);
     expect(match).not.toBeNull();
-    expect(output).toContain('\n  collecthook({');
-    expect(output).toContain('\n    data: signal');
+    expect(output).toContain(
+      "const signal = useSignal<any>('111'); collecthook({ variableName: 'signal',"
+    );
   });
 
   it('injects for custom use*-not-in-list (e.g. useDebouncer)', () => {

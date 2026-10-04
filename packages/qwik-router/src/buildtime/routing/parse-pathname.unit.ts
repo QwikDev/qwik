@@ -48,6 +48,16 @@ const tests = {
     pattern: /^\/blog\/([^/]+?)\.json\/?$/,
     paramNames: ['slug'],
   },
+  '/users/[user-id]': {
+    basePathname: '/',
+    pattern: /^\/users\/([^/]+?)\/?$/,
+    paramNames: ['user-id'],
+  },
+  '/files/[...rest-path]': {
+    basePathname: '/',
+    pattern: /^\/files(?:\/(.*))?\/?$/,
+    paramNames: ['rest-path'],
+  },
   '/[...rest]': {
     basePathname: '/',
     pattern: /^(?:\/(.*))?\/?$/,

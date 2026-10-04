@@ -188,9 +188,16 @@ function staticPropKeyName(key: AstNode | null | undefined): string | null {
   return null;
 }
 
-function isReturnStatic(init: Expression | null | undefined): boolean {
+function isReturnStatic(
+  init: Expression | null | undefined,
+  staticInitializerNames?: ReadonlySet<string>
+): boolean {
   if (!init) {
     return true;
+  }
+  if (init.type === 'Identifier') {
+    // Rewritten QRL aliases retain their original static marker provenance.
+    return staticInitializerNames?.has(init.name) === true;
   }
   if (init.type === 'CallExpression' && init.callee.type === 'Identifier') {
     const calleeName = init.callee.name;
@@ -291,7 +298,10 @@ export interface ScopeBindingsCollector {
   readonly result: () => ScopeAwareCollectResult;
 }
 
-export function createScopeBindingsCollector(program: AstProgram): ScopeBindingsCollector {
+export function createScopeBindingsCollector(
+  program: AstProgram,
+  staticInitializerNames?: ReadonlySet<string>
+): ScopeBindingsCollector {
   const bindings = new ScopeAwareBindingsImpl();
   const allLocalNames = new Set<string>();
 
@@ -339,7 +349,7 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
       return;
     }
     if (id.type === 'Identifier') {
-      addBindingIdent(id, isReturnStatic(init) ? 'const' : 'var');
+      addBindingIdent(id, isReturnStatic(init, staticInitializerNames) ? 'const' : 'var');
       return;
     }
     if (id.type === 'ArrayPattern') {
@@ -487,8 +497,11 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
   };
 }
 
-export function collectScopeAwareBindings(program: AstProgram): ScopeAwareCollectResult {
-  const collector = createScopeBindingsCollector(program);
+export function collectScopeAwareBindings(
+  program: AstProgram,
+  staticInitializerNames?: ReadonlySet<string>
+): ScopeAwareCollectResult {
+  const collector = createScopeBindingsCollector(program, staticInitializerNames);
   function visit(node: AstNode | null | undefined): void {
     if (!node) {
       return;

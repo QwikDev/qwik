@@ -255,3 +255,21 @@ describe('request-event redirect', () => {
     expect(error.data).toBe('teapot');
   });
 });
+
+describe('request-event cacheControl', () => {
+  it('should set zero-valued directives', () => {
+    const requestEv = createMockRequestEvent();
+
+    requestEv.cacheControl({ maxAge: 0, staleWhileRevalidate: 0 });
+
+    expect(requestEv.headers.get('Cache-Control')).toBe('max-age=0, stale-while-revalidate=0');
+  });
+
+  it('should not set an empty Cache-Control header', () => {
+    const requestEv = createMockRequestEvent();
+
+    requestEv.cacheControl({});
+
+    expect(requestEv.headers.has('Cache-Control')).toBe(false);
+  });
+});

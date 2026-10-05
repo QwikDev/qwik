@@ -1204,6 +1204,13 @@ export const _rsc: <T>(arg: ResourceCtx<T>) => Promise<{
 // @internal
 export function _run(this: string, event: Event, element: Element): ValueOrPromise<unknown>;
 
+// @internal
+export class _SerializationBackRef {
+    $path$: number[];
+    constructor(
+    $path$: number[]);
+}
+
 // @public
 export type SerializationStrategy = 'never' | 'always';
 
@@ -1449,11 +1456,14 @@ export class _SubscriptionData {
 
 // @internal (undocumented)
 export class _SubscriptionPatch {
-    constructor(rootId?: number, subscriptions?: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>);
+    constructor(rootId?: number, subscriptions?: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>,
+    unsettledComputed?: unknown | undefined);
     // (undocumented)
     rootId: number;
     // (undocumented)
     subscriptions: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>;
+    unsettledComputed?: unknown | undefined;
+    value: unknown;
 }
 
 // Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point index.d.ts

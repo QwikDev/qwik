@@ -50,7 +50,9 @@ export const recordExternalRootEffect = (
 export const collectSubscriptionPatches = (
   rootCtx: SerializationContext,
   records: SubscriptionPatchRecords | null,
-  rootLimit: number
+  rootLimit: number,
+  /** Objects the root state serialized inline, re-rooted by this segment, keyed to their root id. */
+  inlineRootIds?: Map<unknown, number>
 ): SubscriptionPatch[] | undefined => {
   if (!records?.length) {
     return;
@@ -59,15 +61,19 @@ export const collectSubscriptionPatches = (
   const patchesByRoot = new Map<number, SubscriptionPatch>();
   for (let i = 0; i < records.length; i++) {
     const entry = records[i];
-    const rootId = entry.rootId === undefined ? rootCtx.$hasRootId$(entry.rootObj) : entry.rootId;
+    let rootId = entry.rootId === undefined ? rootCtx.$hasRootId$(entry.rootObj) : entry.rootId;
     if (rootId === undefined || rootId >= rootLimit) {
-      continue;
+      rootId = inlineRootIds?.get(entry.rootObj);
+      if (rootId === undefined) {
+        continue;
+      }
     }
     let patch = patchesByRoot.get(rootId);
     if (!patch) {
       patch = new SubscriptionPatch(
         rootId,
-        entry.prop === null ? new Set() : new Map<string | symbol, Set<EffectSubscription>>()
+        entry.prop === null ? new Set() : new Map<string | symbol, Set<EffectSubscription>>(),
+        rootCtx.$unsettledComputeds$.has(entry.rootObj as object) ? entry.rootObj : undefined
       );
       patchesByRoot.set(rootId, patch);
       patches.push(patch);

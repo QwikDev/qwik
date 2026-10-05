@@ -429,9 +429,13 @@ function* inflateIterator(
       const d = data as [
         number,
         Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>,
+        unknown?,
       ];
       patch.rootId = d[0];
       patch.subscriptions = d[1];
+      if (d.length > 2) {
+        patch.value = d[2];
+      }
       break;
     }
     case TypeIds.EffectSubscriptionNoData: {

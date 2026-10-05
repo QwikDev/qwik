@@ -21,6 +21,8 @@ export let isDomRef = (obj: unknown): obj is DomRef => false;
 /**
  * A back reference to a previously serialized object. Before deserialization, all backrefs are
  * swapped with their original locations.
+ *
+ * @internal
  */
 export class SerializationBackRef {
   constructor(
@@ -56,6 +58,8 @@ export interface SerializationContext {
    * - `undefined` - Object has not been seen yet.
    */
   getSeenRef: (obj: unknown) => SeenRef | undefined;
+  /** Path from a root to a seen object: the root id, then the index within each parent. */
+  $getObjectPath$: (ref: SeenRef) => number[];
 
   /** Returns the root index of the object, if it is a root. Otherwise returns undefined. */
   $hasRootId$: (obj: unknown) => number | undefined;
@@ -101,6 +105,8 @@ export interface SerializationContext {
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
   $eagerResume$: Set<unknown>;
+  /** Computeds serialized without a value, so a later segment must send it. */
+  $unsettledComputeds$: WeakSet<object>;
 
   $setProp$: (obj: any, prop: string, value: any) => void;
 }
@@ -119,6 +125,7 @@ class SerializationContextImpl implements SerializationContext {
   public $rootStateRootCount$ = 0;
   public $hasRootStateForwardRefs$ = false;
   public $eagerResume$: Set<unknown> = new Set();
+  public $unsettledComputeds$: WeakSet<object> = new WeakSet();
   public $eventQrls$: Set<QRL> = new Set();
   public $eventNames$: Set<string> = new Set();
   public $renderSymbols$: Set<string> = new Set();

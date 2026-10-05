@@ -1,6 +1,7 @@
 /** @file Public APIs for the SSR */
 import { isDev } from '@qwik.dev/core/build';
 import {
+  _SerializationBackRef as SerializationBackRef,
   _SubscriptionData as SubscriptionData,
   _SharedContainer,
   _jsxSorted,
@@ -1871,6 +1872,8 @@ interface SegmentRootCommit {
   rootIdMap: number[];
   newRootStart: number;
   newRootLocalIds: number[];
+  /** Objects the root state serialized inline, re-rooted for this segment, with their root ids. */
+  inlineRootIds: Map<unknown, number>;
 }
 
 export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentContainer {
@@ -1931,7 +1934,8 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       const subscriptionPatchRootId = this.$addSubscriptionsToRoots$(
         rootContainer,
         rootReadyAtSegment,
-        segmentSerializationCtx
+        segmentSerializationCtx,
+        commit.inlineRootIds
       );
       if (
         rootReadyAtSegment &&
@@ -2057,13 +2061,15 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   private $addSubscriptionsToRoots$(
     rootContainer: SSRContainer,
     rootReadyAtSegment: boolean,
-    segmentSerializationCtx: SerializationContext
+    segmentSerializationCtx: SerializationContext,
+    inlineRootIds: Map<unknown, number>
   ) {
     let subscriptionPatchRootId: number | undefined = undefined;
     const subscriptionPatches = rootReadyAtSegment
       ? this.collectSubscriptionPatches(
           rootContainer,
-          rootContainer.rootContainerSerializedRootCount
+          rootContainer.rootContainerSerializedRootCount,
+          inlineRootIds
         )
       : undefined;
     if (subscriptionPatches) {
@@ -2085,6 +2091,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       rootIdMap,
       newRootStart,
       newRootLocalIds,
+      inlineRootIds: new Map<unknown, number>(),
     };
     this.promoteSharedSegmentRoots(rootContainer, segmentSerializationCtx, commit);
     const segmentRoots = segmentSerializationCtx.$roots$;
@@ -2139,17 +2146,38 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     if (commit.rootIdMap[localId] !== undefined) {
       return;
     }
-    let rootId = rootContainer.serializationCtx.$hasRootId$(rootObj);
+    const rootCtx = rootContainer.serializationCtx;
+    let rootId = rootCtx.$hasRootId$(rootObj);
+    let isInlineInRootState = false;
     if (rootId === undefined) {
-      rootId = rootContainer.serializationCtx.$commitRoot$(root, rootObj);
+      const seen = rootContainer.$isReadyForOOOS$() ? rootCtx.getSeenRef(rootObj) : undefined;
+      if (seen?.$parent$) {
+        // The emitted root state already holds this object inline (e.g. in its owner's hook state).
+        // Point at that copy; serializing it again would resume as a second, unrelated object.
+        root = this.backRefIntoRootState(rootContainer, rootCtx.$getObjectPath$(seen));
+        this.serializationCtx.$roots$[localId] = root;
+        isInlineInRootState = true;
+      }
+      rootId = rootCtx.$commitRoot$(root, rootObj);
       commit.newRootLocalIds.push(localId);
       this.seedCommittedRootForLiveSegments(rootContainer, rootObj);
     }
-    const rootCtx = rootContainer.serializationCtx;
-    commit.rootIdMap[localId] =
+    const mappedRootId =
       rootContainer.$isReadyForOOOS$() && rootId >= rootCtx.$rootStateRootCount$
         ? rootId + (rootCtx.$hasRootStateForwardRefs$ ? 1 : 0)
         : rootId;
+    commit.rootIdMap[localId] = mappedRootId;
+    if (isInlineInRootState) {
+      commit.inlineRootIds.set(rootObj, mappedRootId);
+    }
+  }
+
+  /** A back reference to an object inside the emitted root state, headed by a local root id. */
+  private backRefIntoRootState(rootContainer: SSRContainer, path: number[]) {
+    const rootCtx = rootContainer.serializationCtx;
+    const localPath = path.slice();
+    localPath[0] = this.serializationCtx.$addRoot$(rootCtx.$rootObjs$[path[0]]);
+    return new SerializationBackRef(localPath);
   }
 
   private seedCommittedRootForLiveSegments(rootContainer: SSRContainer, rootObj: unknown): void {
@@ -2174,11 +2202,16 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     }
   }
 
-  private collectSubscriptionPatches(rootContainer: SSRContainer, rootLimit: number) {
+  private collectSubscriptionPatches(
+    rootContainer: SSRContainer,
+    rootLimit: number,
+    inlineRootIds: Map<unknown, number>
+  ) {
     return collectSubscriptionPatches(
       rootContainer.serializationCtx,
       this.subscriptionPatchRecords,
-      rootLimit
+      rootLimit,
+      inlineRootIds
     );
   }
 

@@ -1757,6 +1757,138 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
+  it('should not rerun an async computed resolved in a segment on unrelated renders', async () => {
+    (globalThis as any).__ooosUnitComputedRuns = [];
+    let resolveSlow!: () => void;
+    (globalThis as any).__ooosUnitComputedSlow = new Promise<void>((resolve) => {
+      resolveSlow = resolve;
+    });
+
+    const Reader = component$<{ resource: { value: string } }>(({ resource }) => (
+      <p id="ooos-unit-computed-value">{resource.value}</p>
+    ));
+    const Boundary = component$<{ resource: { value: string } }>(({ resource }) => (
+      <Pending fallback$={() => <p>Waiting computed</p>}>
+        <Reader resource={resource} />
+      </Pending>
+    ));
+    const Toggle = component$<{ on: SignalType<boolean> }>(({ on }) =>
+      on.value ? <b>on</b> : <i>off</i>
+    );
+    const App = component$(() => {
+      const on = useSignal(false);
+      const data = useComputed$(async () => {
+        const where = isServerPlatform() ? 'server' : 'client';
+        (globalThis as any).__ooosUnitComputedRuns.push(where);
+        await (globalThis as any).__ooosUnitComputedSlow;
+        return `computed on the ${where}`;
+      });
+      // A fragment root makes the computed a shared root serialized before it settles.
+      return (
+        <>
+          <button id="ooos-unit-computed-toggle" onClick$={() => (on.value = !on.value)}>
+            toggle
+          </button>
+          <Toggle on={on} />
+          <Boundary resource={data} />
+        </>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting computed'));
+      resolveSlow();
+      const { document, container } = await renderPromise;
+      expect(chunks.join('')).toMatch(/type="qwik\/state"[^>]* q:patch/);
+      expect(document.querySelector('#ooos-unit-computed-value')?.textContent).toBe(
+        'computed on the server'
+      );
+
+      await trigger(container.element, '#ooos-unit-computed-toggle', 'click');
+      await waitForDrain(container);
+      expect(document.querySelector('b')?.textContent).toBe('on');
+      expect((globalThis as any).__ooosUnitComputedRuns).toEqual(['server']);
+      expect(document.querySelector('#ooos-unit-computed-value')?.textContent).toBe(
+        'computed on the server'
+      );
+    } finally {
+      resolveSlow();
+      await renderPromise;
+      delete (globalThis as any).__ooosUnitComputedRuns;
+      delete (globalThis as any).__ooosUnitComputedSlow;
+    }
+  });
+
+  it('should not rerun an async computed resolved in a segment when its owner re-renders', async () => {
+    (globalThis as any).__ooosUnitOwnerRuns = [];
+    let resolveSlow!: () => void;
+    (globalThis as any).__ooosUnitOwnerSlow = new Promise<void>((resolve) => {
+      resolveSlow = resolve;
+    });
+
+    const Reader = component$<{ resource: { value: string } }>(({ resource }) => (
+      <p id="ooos-unit-owner-value">{resource.value}</p>
+    ));
+    const App = component$(() => {
+      const on = useSignal(false);
+      const data = useComputed$(async () => {
+        const where = isServerPlatform() ? 'server' : 'client';
+        (globalThis as any).__ooosUnitOwnerRuns.push(where);
+        await (globalThis as any).__ooosUnitOwnerSlow;
+        return `computed on the ${where}`;
+      });
+      // Only the segment references the computed, so the root state serializes it inline in this
+      // component's hook state; the structural branch re-renders this component on the client.
+      return (
+        <>
+          <button id="ooos-unit-owner-toggle" onClick$={() => (on.value = !on.value)}>
+            toggle
+          </button>
+          {on.value && <b>on</b>}
+          <Pending fallback$={() => <p>Waiting owner computed</p>}>
+            <Reader resource={data} />
+          </Pending>
+        </>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
+
+    try {
+      // Settle only after the root state is out, so the computed is already serialized inline.
+      await vi.waitFor(() => expect(chunks.join('')).toMatch(/type="qwik\/state"(?![^>]*q:patch)/));
+      resolveSlow();
+      const { document, container } = await renderPromise;
+      const html = chunks.join('');
+      const patch = html.match(/<script type="qwik\/state"[^>]* q:patch[^>]*>([\s\S]*?)<\/script>/);
+      // The root state holds the computed inline; the segment must point at that copy rather than
+      // serialize a second one, which the client would resume as an unrelated, unsettled object.
+      const [, patchRoots] = JSON.parse(patch![1]) as [number, unknown[]];
+      const patchRootTypes = patchRoots.filter((_, i) => i % 2 === 0);
+      expect(patchRootTypes).not.toContain(TypeIds.AsyncSignal);
+      expect(document.querySelector('#ooos-unit-owner-value')?.textContent).toBe(
+        'computed on the server'
+      );
+
+      await trigger(container.element, '#ooos-unit-owner-toggle', 'click');
+      await waitForDrain(container);
+      expect(document.querySelector('b')?.textContent).toBe('on');
+      expect((globalThis as any).__ooosUnitOwnerRuns).toEqual(['server']);
+      expect(document.querySelector('#ooos-unit-owner-value')?.textContent).toBe(
+        'computed on the server'
+      );
+    } finally {
+      resolveSlow();
+      await renderPromise;
+      delete (globalThis as any).__ooosUnitOwnerRuns;
+      delete (globalThis as any).__ooosUnitOwnerSlow;
+    }
+  });
+
   it('should let resolved segment QRLs capture root-owned state', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {

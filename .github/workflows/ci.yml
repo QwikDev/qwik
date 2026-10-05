@@ -1532,6 +1532,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: pnpm run lint.oxlint
 
+      - name: ESLint Check
+        if: ${{ !cancelled() }}
+        run: pnpm run lint.eslint
+
   ############ RELEASE ############
   release:
     name: Release

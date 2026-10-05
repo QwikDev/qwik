@@ -50,7 +50,7 @@ const EXTENSION_HOOK_BANNER = [
 
 // Bundled output is tab-indented; prepend a tab (not spaces) so the wrapped body stays
 // uniformly tab-indented rather than mixing tabs and spaces. The emitted file is a
-// generated artifact (see .prettierignore).
+// generated artifact (see .oxfmtrc.json).
 const indent = (source: string): string =>
   source
     .split('\n')

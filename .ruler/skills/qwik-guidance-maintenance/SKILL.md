@@ -67,7 +67,7 @@ npx @intellectronica/ruler apply --agents codex --dry-run --no-mcp --no-gitignor
 ruler apply --agents codex
 rg -n 'Source: .ruler/AGENTS.md' AGENTS.md
 find .codex/skills -name SKILL.md
-pnpm prettier --check .ruler README.md .gitignore
+pnpm lint.fmt
 git diff --check
 ```
 

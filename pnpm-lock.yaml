@@ -171,7 +171,7 @@ importers:
         specifier: 0.13.0
         version: 0.13.0
       lint-staged:
-        specifier: ^16.4.0
+        specifier: 16.4.0
         version: 16.4.0
       memfs:
         specifier: 4.51.1
@@ -230,6 +230,9 @@ importers:
       typescript:
         specifier: 5.9.3
         version: 5.9.3
+      typescript-eslint:
+        specifier: 8.56.1
+        version: 8.56.1(eslint@10.0.3(jiti@2.7.0)(supports-color@11.0.0))(supports-color@11.0.0)(typescript@5.9.3)
       vfile:
         specifier: 6.0.3
         version: 6.0.3

@@ -1,4 +1,13 @@
-import type { Container } from '../shared/types';
+import type { ClientContainer } from '../client/types';
+import type { Container, HostElement } from '../shared/types';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import {
+  ELEMENT_SEQ,
+  OnRenderProp,
+  QContainerSelector,
+  QErrorContentHost,
+  QPendingResultParent,
+} from '../shared/utils/markers';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import { getStoreHandler, getStoreTarget } from '../reactive-primitives/impl/store';
 import type { EffectSubscription } from '../reactive-primitives/types';
@@ -106,6 +115,50 @@ export const isOutOfOrderStreaming = (): boolean => {
 /** @internal */
 export const nextOutOfOrderPendingId = (): number =>
   (tryGetInvokeContext()!.$container$! as SSRContainer).nextOutOfOrderId();
+
+// Pending's `state` signal is the first hook it registers.
+const PENDING_STATE_SEQ_INDEX = 0;
+
+/**
+ * The server serializes an out-of-order Pending in its 'fallback' state, so once qO() swaps the
+ * content in, the client state must follow.
+ */
+export const markPendingContentSwapped = (container: ClientContainer, contentHost: Element) => {
+  if (isCatchLateFallbackHost(contentHost)) {
+    return;
+  }
+  const pendingHost = container.vNodeLocate(contentHost).parent as HostElement | null;
+  if (!pendingHost) {
+    return;
+  }
+  const renderQrl = container.getHostProp<QRLInternal>(pendingHost, OnRenderProp);
+  if (renderQrl?.$symbol$ !== PENDING_QRL_SYMBOL) {
+    return;
+  }
+  const state = container.getHostProp<unknown[]>(pendingHost, ELEMENT_SEQ)?.[
+    PENDING_STATE_SEQ_INDEX
+  ];
+  if (state instanceof SignalImpl) {
+    // qO() owns the DOM swap, so only the state needs to catch up.
+    state.untrackedValue = 'content';
+  }
+};
+
+/** Content hosts whose deferred content qO() swapped in before the container resumed. */
+export const getSwappedPendingContentHosts = (containerElement: Element): Element[] =>
+  Array.from(containerElement.querySelectorAll('[q\\:rp]')).filter(
+    (contentHost) =>
+      contentHost.closest(QContainerSelector) === containerElement &&
+      !hasPendingPlaceholder(contentHost)
+  );
+
+// Catch reuses q:rp for a late fallback host, rendered right after its content host.
+const isCatchLateFallbackHost = (host: Element) =>
+  host.previousElementSibling?.hasAttribute(QErrorContentHost) === true;
+
+const hasPendingPlaceholder = (contentHost: Element) =>
+  contentHost.querySelector(`template[q\\:r="${contentHost.getAttribute(QPendingResultParent)}"]`)
+    ?.parentElement === contentHost;
 
 /** @internal */
 export const applySubscriptionPatches = (

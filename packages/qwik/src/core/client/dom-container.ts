@@ -60,6 +60,10 @@ import type { VNode } from '../shared/vnode/vnode';
 import type { ContextId } from '../use/use-context';
 import { processSegmentStateScriptsIterator } from './process-segment-state';
 import {
+  getSwappedPendingContentHosts,
+  markPendingContentSwapped,
+} from '../control-flow/pending-utils';
+import {
   onVNodeDataReady,
   processOutOfOrderSegmentVNodeData,
   processVNodeData,
@@ -116,10 +120,19 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
       qContainer.element.qContainer === qContainer &&
         processContainerStateData(
           qContainer,
-          processSegmentStateScriptsIterator(qContainer, segmentId)
+          processSwappedSegmentIterator(qContainer, segmentId, content!)
         );
     });
   }
+}
+
+function* processSwappedSegmentIterator(
+  qContainer: DomContainer,
+  segmentId: string,
+  contentHost: Element
+): Generator<void, void, void> {
+  yield* processSegmentStateScriptsIterator(qContainer, segmentId);
+  markPendingContentSwapped(qContainer, contentHost);
 }
 
 /** @internal */
@@ -203,6 +216,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
     if (__EXPERIMENTAL__.pendingBoundary) {
       yield* processSegmentStateScriptsIterator(this);
+      for (const contentHost of getSwappedPendingContentHosts(element)) {
+        markPendingContentSwapped(this, contentHost);
+      }
     }
     this.$hoistStyles$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);

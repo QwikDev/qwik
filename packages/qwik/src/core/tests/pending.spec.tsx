@@ -35,7 +35,12 @@ import {
   type Signal as SignalType,
 } from '@qwik.dev/core';
 import { _DomContainer } from '@qwik.dev/core/internal';
-import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
+import {
+  ErrorProvider,
+  emulateExecutionOfBackpatch,
+  emulateExecutionOfOutOfOrderScripts,
+} from '../../testing/rendering.unit-util';
+import { whenContainerDataReady } from '../client/process-state-data';
 import { useCatchStore } from '../use/use-catch-store';
 import { isServerPlatform } from '../shared/platform/platform';
 import { delay } from '../shared/utils/promises';
@@ -1888,6 +1893,121 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     } finally {
       delete (globalThis as any).__ooosShellCapture;
     }
+  });
+
+  it('should keep a child reading an owner signal intact when the owner re-renders', async () => {
+    const Reader = component$<{ value: SignalType<string> }>(({ value }) => (
+      <p id="ooos-unit-owner-signal-reader">{value.value}</p>
+    ));
+    const App = component$(() => {
+      const isOn = useSignal(false);
+      const text = useSignal('hello');
+      return (
+        <>
+          <button id="ooos-unit-owner-signal-toggle" onClick$={() => (isOn.value = !isOn.value)}>
+            toggle
+          </button>
+          {isOn.value && <b>on</b>}
+          <Pending fallback$={() => <p>Waiting owner signal</p>}>
+            <Reader value={text} />
+          </Pending>
+        </>
+      );
+    });
+    const chunks: string[] = [];
+
+    const { document, container } = await ssrRenderPendingStream(<App />, chunks);
+    await trigger(container.element, '#ooos-unit-owner-signal-toggle', 'click');
+    await waitForDrain(container);
+
+    expect(document.querySelector('b')?.textContent).toBe('on');
+    expect(document.querySelectorAll('#ooos-unit-owner-signal-reader')).toHaveLength(1);
+    expect(getParagraphHost(document, 'Waiting owner signal').getAttribute('style')).toMatch(
+      /display:\s*none/
+    );
+  });
+
+  it('should keep content visible when the swap lands after the container resumed', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const App = component$(() => {
+      const isOn = useSignal(false);
+      return (
+        <>
+          <button id="ooos-unit-live-swap-toggle" onClick$={() => (isOn.value = !isOn.value)}>
+            toggle
+          </button>
+          {isOn.value && <b>on</b>}
+          <Pending fallback$={() => <p>Waiting live swap</p>}>
+            <Slow />
+          </Pending>
+        </>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks, { resume: false });
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting live swap'));
+    resolveSlow(<section>Live swap done</section>);
+    const { document } = await renderPromise;
+
+    emulateExecutionOfQwikFuncs(document);
+    emulateExecutionOfBackpatch(document);
+    const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+    await whenContainerDataReady(container, () => undefined);
+    emulateExecutionOfOutOfOrderScripts(document);
+    await whenContainerDataReady(container, () => undefined);
+
+    await trigger(container.element, '#ooos-unit-live-swap-toggle', 'click');
+    await waitForDrain(container);
+
+    expect(document.querySelector('b')?.textContent).toBe('on');
+    expect(document.querySelector('section')?.textContent).toBe('Live swap done');
+    expect(getParagraphHost(document, 'Waiting live swap').getAttribute('style')).toMatch(
+      /display:\s*none/
+    );
+  });
+
+  it('should keep a delayed fallback hidden after resolving when the owner re-renders', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    // Keeps the shell rendering until the delayed fallback has been revealed.
+    const SlowShell = component$(() => <footer>{delay(30).then(() => 'Footer')}</footer>);
+    const App = component$(() => {
+      const isOn = useSignal(false);
+      return (
+        <>
+          <button id="ooos-unit-delayed-owner-toggle" onClick$={() => (isOn.value = !isOn.value)}>
+            toggle
+          </button>
+          {isOn.value && <b>on</b>}
+          <Pending fallback$={() => <p>Waiting delayed owner</p>} delay={5}>
+            <Slow />
+          </Pending>
+          <SlowShell />
+        </>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
+    await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/backpatch"'));
+    resolveSlow(<section>Delayed owner done</section>);
+    const { document, container } = await renderPromise;
+
+    await trigger(container.element, '#ooos-unit-delayed-owner-toggle', 'click');
+    await waitForDrain(container);
+
+    expect(document.querySelector('b')?.textContent).toBe('on');
+    expect(getParagraphHost(document, 'Waiting delayed owner').getAttribute('style')).toMatch(
+      /display:\s*none/
+    );
   });
 
   it('should merge resolved segment effects for root-owned stores', async () => {

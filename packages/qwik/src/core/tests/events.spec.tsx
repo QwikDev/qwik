@@ -302,3 +302,43 @@ describe.each([
     (globalThis as any).logs = undefined;
   });
 });
+
+const QinitNextToPropsHandler = component$((props: { label: string }) => {
+  const upper = props.label.toUpperCase();
+  return (
+    <div
+      id="qinit"
+      document:onQinit$={() => (globalThis as any).logs.push('qinit')}
+      onClick$={() => (globalThis as any).logs.push('click:' + upper)}
+    />
+  );
+});
+
+const QinitParent = component$(() => {
+  const label = useSignal('one');
+  return (
+    <div>
+      <QinitNextToPropsHandler label={label.value} />
+      <button id="next" onClick$={() => (label.value = 'two')} />
+    </div>
+  );
+});
+
+describe.each([
+  { render: ssrRenderToDom }, //
+  { render: domRender }, //
+])('$render.name: document handlers next to handlers that capture props', ({ render }) => {
+  it('should not re-arm document:onQinit$ when the element re-renders', async () => {
+    const { document } = await render(<QinitParent />, { debug });
+    const win = document.defaultView as any;
+    const element = document.querySelector('#qinit')!;
+    expect(element.hasAttribute('q-d:qinit')).toBe(true);
+    element.removeAttribute('q-d:qinit');
+    win._qwikEv = [];
+
+    await trigger(document.body, '#next', 'click');
+
+    expect(document.querySelector('#qinit')!.hasAttribute('q-d:qinit')).toBe(false);
+    expect(win._qwikEv).not.toContain('d:qinit');
+  });
+});

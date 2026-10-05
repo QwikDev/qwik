@@ -5,7 +5,6 @@ import {
   processProps,
   formatPropName,
   isRewrittenEventEntry,
-  sortVarEntries,
   type SlotEntry,
 } from './jsx-props.js';
 import { processChildren } from './jsx-children.js';
@@ -16,7 +15,6 @@ import {
   computeJsxFlags,
   type JsxTransformContext,
   type JsxElementOptions,
-  type ScopeAwareBindings,
 } from './jsx.js';
 
 function buildAdditionalSpreadsPart(additionalSpreads: string[], spreadArg: string): string {
@@ -145,49 +143,6 @@ function eventHandlerReferencesCapturingQrl(
     }
   }
   return false;
-}
-
-function moveEventHandlersForNonConstCaptures(
-  node: JSXElement,
-  tagIsHtml: boolean,
-  inLoop: boolean,
-  qpOverrides: Map<number, string[]> | undefined,
-  bindings: ScopeAwareBindings | undefined,
-  importedNames: Set<string>,
-  varEntries: string[],
-  constEntries: string[],
-  hasSpread: boolean
-): boolean {
-  if (!tagIsHtml || inLoop) {
-    return false;
-  }
-
-  const overrideParams = qpOverrides?.get(node.start);
-  if (!overrideParams || overrideParams.length === 0) {
-    return false;
-  }
-
-  const hasNonConstParam = overrideParams.some(
-    (p) => bindings?.classify(p, node.start) !== 'const' && !importedNames.has(p)
-  );
-  if (!hasNonConstParam) {
-    return false;
-  }
-
-  let movedAny = false;
-  for (let i = constEntries.length - 1; i >= 0; i--) {
-    if (isRewrittenEventEntry(constEntries[i])) {
-      varEntries.push(constEntries[i]);
-      constEntries.splice(i, 1);
-      movedAny = true;
-    }
-  }
-
-  if (movedAny && !hasSpread) {
-    sortVarEntries(varEntries);
-  }
-
-  return movedAny;
 }
 
 function buildCreateElementCall(
@@ -493,7 +448,7 @@ export function transformJsxElement(
     return null;
   }
 
-  const { source, importedNames, keyCounter, bindings, qrlsWithCaptures } = ctx;
+  const { source, keyCounter, qrlsWithCaptures } = ctx;
   const {
     passiveEvents,
     loopCtx,
@@ -531,7 +486,7 @@ export function transformJsxElement(
     additionalSpreads,
     key: explicitKey,
     hasVarProps,
-    hasVarEventHandler: initialHasVarEventHandler,
+    hasVarEventHandler,
     hasSpread,
     slotOrder,
     neededImports: propImports,
@@ -542,7 +497,6 @@ export function transformJsxElement(
     skipSignalAnalysis: willUseCreateElement,
     loopIterVars: loopCtx?.iterVars,
   });
-  let hasVarEventHandler = initialHasVarEventHandler;
 
   for (const imp of propImports) {
     neededImports.add(imp);
@@ -558,22 +512,6 @@ export function transformJsxElement(
     constEntries,
     qrlsWithCaptures
   );
-
-  if (
-    moveEventHandlersForNonConstCaptures(
-      node,
-      tagIsHtml,
-      inLoop,
-      qpOverrides,
-      bindings,
-      importedNames,
-      varEntries,
-      constEntries,
-      hasSpread
-    )
-  ) {
-    hasVarEventHandler = true;
-  }
 
   const childSignalsEnabled = enableChildSignals && !textOnly;
   const { text: childrenText, type: childrenType } = processChildren(ctx, node.children, {

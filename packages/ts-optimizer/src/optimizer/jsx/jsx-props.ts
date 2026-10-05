@@ -221,6 +221,7 @@ export function processProps(
     signalHoister,
     qrlsWithCaptures,
     qrlsNonConst,
+    qrlOwnParams,
     paramNames,
     bindings,
     allDeclaredNames,
@@ -267,6 +268,12 @@ export function processProps(
   const pushSpread = (expr: string, sourceStart: number): void => {
     slotOrder.push({ kind: 'spread', expr, sourceStart });
   };
+  const ownCapturesVary = (qrlName: string, position: number): boolean =>
+    qrlOwnParams
+      ?.get(qrlName)
+      ?.some(
+        (param) => !importedNames.has(param) && bindings?.classify(param, position) !== 'const'
+      ) ?? false;
 
   const hasSpreadAttr = attributes.some((a) => a.type === 'JSXSpreadAttribute');
   const hasBindAttr = attributes.some(
@@ -415,7 +422,9 @@ export function processProps(
       if (renamedProp !== null) {
         const formattedName = formatPropName(renamedProp);
         // A rewritten inlinedQrl(...) value is a runtime call — not static.
-        const isNonConstQrl = qrlsNonConst?.has(valueText.trim()) === true;
+        const isNonConstQrl =
+          qrlsNonConst?.has(valueText.trim()) === true ||
+          ownCapturesVary(valueText.trim(), attr.start);
         if (isConstEventHandlerValue(valueNode) && !isNonConstQrl) {
           pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
         } else {
@@ -469,7 +478,9 @@ export function processProps(
       } else {
         // A handler whose lifted captures include per-invocation values
         // re-renders with fresh values: entry is var, static_listeners clears.
-        const capturesVary = qrlsNonConst?.has(valueText.trim()) === true;
+        const qrlName = valueText.trim();
+        const capturesVary =
+          qrlsNonConst?.has(qrlName) === true || ownCapturesVary(qrlName, attr.start);
         const isConst = isConstEventHandlerValue(valueNode) && !capturesVary;
         if (!isConst) {
           hasVarEventHandler = true;

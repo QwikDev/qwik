@@ -592,6 +592,21 @@ export function transformInlineSegmentBody(
         );
       }
 
+      let bodyQrlOwnParams: Map<string, string[]> | undefined;
+      for (const child of nested) {
+        if (child.ctxKind !== 'eventHandler') {
+          continue;
+        }
+        const ownParams = eventHandlerQpParams(child.paramNames);
+        if (ownParams.length === 0) {
+          continue;
+        }
+        (bodyQrlOwnParams ??= new Map()).set(
+          qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`,
+          qpValues(ownParams)
+        );
+      }
+
       const bodyJsxResult = transformAllJsx(
         {
           source: wrappedSource,
@@ -606,6 +621,7 @@ export function transformInlineSegmentBody(
           qpOverrides: bodyQpOverrides,
           qrlsWithCaptures: bodyQrlsWithCaptures,
           qrlsNonConst: bodyQrlsNonConst,
+          qrlOwnParams: bodyQrlOwnParams,
           relPath: jsxBodyOptions.relPath,
           sharedSignalHoister,
           paramNames: ext.paramNames ? new Set(ext.paramNames) : undefined,

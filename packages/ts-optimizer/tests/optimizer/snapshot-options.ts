@@ -497,6 +497,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
   },
   should_move_bind_value_to_var_props: { transpileTs: true, transpileJsx: true },
+  should_classify_event_handlers_per_handler: { transpileTs: true, transpileJsx: true },
   should_move_props_related_to_iteration_variables_to_var_props: {
     transpileTs: true,
     transpileJsx: true,

@@ -256,6 +256,8 @@ export function createRequestEvent(
       check();
       status = statusCode;
       if (url) {
+        // browsers strip ASCII tab/LF/CR before parsing a URL, so /<TAB>/test.com is //test.com
+        url = url.replace(/[\t\n\r]/g, '');
         if (
           // //test.com
           /^[/\\]{2,}/.test(url) ||

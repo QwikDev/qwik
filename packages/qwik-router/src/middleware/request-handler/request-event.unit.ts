@@ -202,6 +202,25 @@ describe('request-event redirect', () => {
     }
   );
 
+  it.each(['/\t/evil.com', '/\n/evil.com', '/\r\\evil.com', '\t//evil.com', '/\t\t/evil.com'])(
+    'should fix protocol-relative URL redirects hidden behind tab/LF/CR: %j',
+    (url) => {
+      // Browsers remove ASCII tab/LF/CR before parsing a URL, so these are
+      // protocol-relative redirects to evil.com as well.
+      const requestEv = createMockRequestEvent();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = requestEv.redirect(302, url);
+
+      expect(result).toBeInstanceOf(RedirectMessage);
+      const location = requestEv.headers.get('Location')!;
+      expect(new URL(location, 'http://localhost:3000').host).toBe('localhost:3000');
+      expect(location).toBe('/evil.com');
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    }
+  );
+
   it('should preserve valid URLs with protocols', () => {
     const requestEv = createMockRequestEvent();
 

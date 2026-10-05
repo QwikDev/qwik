@@ -448,6 +448,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
   },
   should_disable_qwik_transform_error_by_code: { transpileTs: true, transpileJsx: true },
+  should_drop_unused_pure_calls: { transpileTs: true, transpileJsx: true },
   should_extract_multiple_qrls_with_item_and_index: { transpileTs: true, transpileJsx: true },
   should_extract_multiple_qrls_with_item_and_index_and_capture_ref: {
     transpileTs: true,
@@ -460,6 +461,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_handle_dangerously_set_inner_html: { transpileTs: true, transpileJsx: true },
   should_ignore_passive_jsx_events_without_handlers: { transpileTs: true, transpileJsx: true },
   should_ignore_preventdefault_with_passive: { transpileTs: true, transpileJsx: true },
+  should_keep_calls_on_shadowed_pure_globals: { transpileTs: true, transpileJsx: true },
   should_keep_module_level_var_used_in_both_main_and_qrl: { transpileTs: true, transpileJsx: true },
   should_auto_export_shared_let_kept_in_parent: { transpileTs: true, transpileJsx: true },
   should_preserve_let_when_migrated_into_segment: { transpileTs: true, transpileJsx: true },
@@ -496,6 +498,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  should_migrate_pure_call_into_its_segment: { transpileTs: true, transpileJsx: true },
   should_move_bind_value_to_var_props: { transpileTs: true, transpileJsx: true },
   should_move_props_related_to_iteration_variables_to_var_props: {
     transpileTs: true,

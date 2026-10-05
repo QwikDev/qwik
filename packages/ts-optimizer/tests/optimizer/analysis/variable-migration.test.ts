@@ -307,13 +307,13 @@ describe('collectModuleLevelDecls', () => {
     expect(decls[0].kind).toBe('function');
   });
 
-  it('treats Math.random() call as side effect', () => {
+  it('treats Math.random() call as pure', () => {
     const code = 'const id = Math.random();';
     const program = parse(code);
     const decls = collectModuleLevelDecls(program, code);
 
     expect(decls).toHaveLength(1);
-    expect(decls[0].hasSideEffects).toBe(true);
+    expect(decls[0].hasSideEffects).toBe(false);
   });
 
   it('treats object/array literals with only safe values as safe', () => {

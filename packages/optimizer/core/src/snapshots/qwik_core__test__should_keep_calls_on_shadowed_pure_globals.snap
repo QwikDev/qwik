@@ -1,0 +1,66 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+import { Math } from './math';
+
+const random = Math.random();
+
+export const Cmp = component$(() => {
+	const Date = () => 0;
+	const date = Date();
+	return <p>hello</p>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { Math } from './math';
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+Math.random();
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,IAAI,QAAQ,SAAS;;;;AAEf,KAAK,MAAM;AAE1B,OAAO,MAAM,oBAAM,0CAIhB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const Cmp_component_4ryKJTOKjWE = ()=>{
+    const Date = ()=>0;
+    Date();
+    return /*#__PURE__*/ _jsxSorted("p", null, null, "hello", 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAM8B;IAC7B,MAAM,OAAO,IAAM;IACN;IACb,qBAAO,WAAC,iBAAE;AACX\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    140,
+    216
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

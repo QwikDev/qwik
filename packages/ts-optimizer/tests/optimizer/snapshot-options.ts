@@ -365,6 +365,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'inline' },
     transpileTs: true,
   },
+  dynamic_props_default_read_in_event_handler: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   local_shadowing_destructured_prop: {
     transpileTs: true,
     transpileJsx: true,

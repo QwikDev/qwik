@@ -10,6 +10,11 @@ import {
 } from './loop-hoisting.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
+import {
+  consolidateRawPropsCaptures,
+  extractDestructuredFieldInfo,
+  type RawPropsSource,
+} from '../rewrite/raw-props.js';
 import { getWholeWordPattern } from '../segment/post-process.js';
 
 interface BuildExtractionLoopMapEnterContext {
@@ -438,18 +443,35 @@ function collectVisibleScopeBindings(
 function promoteNonLoopCaptures(
   extraction: ExtractionResult,
   uniqueCaptures: readonly string[],
-  keepInlineCaptures: boolean
+  keepInlineCaptures: boolean,
+  propsSource: RawPropsSource | undefined
 ): void {
   const sortedCaptures = [...uniqueCaptures].sort();
   if (keepInlineCaptures) {
     extraction.captureNames = sortedCaptures;
     extraction.captures = sortedCaptures.length > 0;
   } else {
-    extraction.paramNames = generateParamPadding(sortedCaptures, extraction.paramNames);
+    const params = consolidatePromotedPropsFields(extraction, sortedCaptures, propsSource);
+    extraction.paramNames = generateParamPadding(params, extraction.paramNames);
     extraction.captureNames = [];
     extraction.captures = false;
     extraction.movedCaptures = sortedCaptures.length > 0;
   }
+}
+
+function consolidatePromotedPropsFields(
+  extraction: ExtractionResult,
+  sortedCaptures: string[],
+  propsSource: RawPropsSource | undefined
+): string[] {
+  const rawProps = propsSource && consolidateRawPropsCaptures(sortedCaptures, [propsSource]);
+  if (!rawProps) {
+    return sortedCaptures;
+  }
+  extraction.propsFieldCaptures = rawProps.propsFieldCaptures;
+  extraction.propsFieldDefaults = rawProps.propsFieldDefaults;
+  extraction.propsFieldDynamicDefaults = rawProps.propsFieldDynamicDefaults;
+  return rawProps.newCaptureNames;
 }
 
 /**
@@ -515,6 +537,16 @@ export function promoteEventHandlerCaptures(
     loopBodyVarDecls,
     isInlineStrategy,
   } = ctx;
+
+  const propsSources = new Map<string, RawPropsSource>();
+  const propsSourceOf = (ext: ExtractionResult): RawPropsSource => {
+    let source = propsSources.get(ext.symbolName);
+    if (source === undefined) {
+      source = { symbolName: ext.symbolName, ...extractDestructuredFieldInfo(ext.bodyText) };
+      propsSources.set(ext.symbolName, source);
+    }
+    return source;
+  };
 
   for (const extraction of extractions) {
     if (extraction.ctxKind !== 'eventHandler' && !extraction.isWorkerEventHandler) {
@@ -591,7 +623,12 @@ export function promoteEventHandlerCaptures(
       if (!keepsWCall || extraction.isWorkerEventHandler) {
         // Rust lifts inline document handlers through q:p.
         const keepInlineCaptures = isInlineStrategy && !extraction.ctxName.startsWith('document:');
-        promoteNonLoopCaptures(extraction, uniqueCaptures, keepInlineCaptures);
+        promoteNonLoopCaptures(
+          extraction,
+          uniqueCaptures,
+          keepInlineCaptures,
+          enclosingExt && propsSourceOf(enclosingExt)
+        );
       } else {
         extraction.captureNames = [...uniqueCaptures].sort();
         extraction.captures = extraction.captureNames.length > 0;

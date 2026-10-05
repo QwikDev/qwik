@@ -611,6 +611,30 @@ export const Repro = component$(({ showDelay = defaults.showDelay, hideDelay = d
 }
 
 #[test]
+fn dynamic_props_default_read_in_event_handler() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+import { getFallback, render } from './x';
+
+export const Cmp = component$(({ Model = getFallback() }: { Model?: any }) => {
+	let count = useSignal(0);
+	return (
+		<>
+			<button onClick$={() => render(Model)} />
+			<button onClick$={() => render(Model)} onDblClick$={() => count.value++} />
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn nested_segment_param_does_not_collide_with_captured_props() {
 	test_input!(TestInput {
 		code: r#"

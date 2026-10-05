@@ -1,0 +1,270 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+import { List } from './list';
+
+export const Cmp = component$((props: { a?: string; b?: number }) => {
+	const { a, b = 1 } = props;
+	const count = useSignal(0);
+	useTask$(() => console.log(a));
+	return (
+		<div>
+			<button onClick$={() => console.log(a)}>{a}</button>
+			<button onClick$={() => console.log(b, count.value)} />
+			<List renderItem$={() => <button onClick$={() => console.log(a)} />} />
+		</div>
+	);
+});
+
+============================= test.tsx_Cmp_component_div_button_q_e_click_8Y30xbf9NRA.js (ENTRY POINT)==
+
+export const Cmp_component_div_button_q_e_click_8Y30xbf9NRA = (_, _1, props)=>console.log(props.a);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8DAUqB,gBAAM,QAAQ,GAAG,CALhB,MAAb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_div_button_q_e_click_8Y30xbf9NRA",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_div_button_q_e_click",
+  "hash": "8Y30xbf9NRA",
+  "canonicalFilename": "test.tsx_Cmp_component_div_button_q_e_click_8Y30xbf9NRA",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    301,
+    321
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_div_List_renderItem_PKPGOq7rdBw.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_div_List_renderItem_button_q_e_click_shRPXYo0VD8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_div_List_renderItem_button_q_e_click_shRPXYo0VD8"), "Cmp_component_div_List_renderItem_button_q_e_click_shRPXYo0VD8").m();
+//
+export const Cmp_component_div_List_renderItem_PKPGOq7rdBw = ()=>{
+    let props = _capturesObj._[0];
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q-e:click": q_Cmp_component_div_List_renderItem_button_q_e_click_shRPXYo0VD8,
+        "q:p": props
+    }, null, null, 6, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;6DAYsB;;yBAAM,WAAC;QAAO,WAAQ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_div_List_renderItem_PKPGOq7rdBw",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_div_List_renderItem",
+  "hash": "PKPGOq7rdBw",
+  "canonicalFilename": "test.tsx_Cmp_component_div_List_renderItem_PKPGOq7rdBw",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "jSXProp",
+  "ctxName": "renderItem$",
+  "captures": true,
+  "loc": [
+    417,
+    465
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,oBAAM,0CAWhB\"}")
+============================= test.tsx_Cmp_component_div_List_renderItem_button_q_e_click_shRPXYo0VD8.js (ENTRY POINT)==
+
+export const Cmp_component_div_List_renderItem_button_q_e_click_shRPXYo0VD8 = (_, _1, props)=>console.log(props.a);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8EAY8C,gBAAM,QAAQ,GAAG,CAPzC,MAAb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_div_List_renderItem_button_q_e_click_shRPXYo0VD8",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_div_List_renderItem_button_q_e_click",
+  "hash": "shRPXYo0VD8",
+  "canonicalFilename": "test.tsx_Cmp_component_div_List_renderItem_button_q_e_click_shRPXYo0VD8",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_div_List_renderItem_PKPGOq7rdBw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    441,
+    461
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { List } from "./list";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_div_List_renderItem_PKPGOq7rdBw = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_div_List_renderItem_PKPGOq7rdBw"), "Cmp_component_div_List_renderItem_PKPGOq7rdBw");
+const q_Cmp_component_div_button_q_e_click_1_0qASlsb6g64 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_div_button_q_e_click_1_0qASlsb6g64"), "Cmp_component_div_button_q_e_click_1_0qASlsb6g64").m();
+const q_Cmp_component_div_button_q_e_click_8Y30xbf9NRA = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_div_button_q_e_click_8Y30xbf9NRA"), "Cmp_component_div_button_q_e_click_8Y30xbf9NRA").m();
+const q_Cmp_component_useTask_bNlzGV2RmqM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_useTask_bNlzGV2RmqM"), "Cmp_component_useTask_bNlzGV2RmqM");
+//
+export const Cmp_component_4ryKJTOKjWE = (props)=>{
+    const count = useSignal(0);
+    useTaskQrl(q_Cmp_component_useTask_bNlzGV2RmqM.w([
+        props
+    ]));
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": q_Cmp_component_div_button_q_e_click_8Y30xbf9NRA,
+            "q:p": props
+        }, null, _wrapProp(props, "a"), 4, null),
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": q_Cmp_component_div_button_q_e_click_1_0qASlsb6g64,
+            "q:ps": [
+                count,
+                props
+            ]
+        }, null, null, 6, null),
+        /*#__PURE__*/ _jsxSorted(List, {
+            renderItem$: q_Cmp_component_div_List_renderItem_PKPGOq7rdBw.w([
+                props
+            ])
+        }, null, null, 2, "u6_1")
+    ], 1, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;yCAI8B,CAAC;IAE9B,MAAM,QAAQ,UAAU;IACxB;;;IACA,qBACC,WAAC;sBACA,WAAC;YAAO,WAAQ;;2BALG;sBAMnB,WAAC;YAAO,WAAQ;;;;;;sBAChB,WAAC;YAAK,WAAW;;;;;AAGpB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    130,
+    484
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_useTask_bNlzGV2RmqM.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const Cmp_component_useTask_bNlzGV2RmqM = ()=>{
+    let props = _capturesObj._[0];
+    return console.log(props.a);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;iDAOU;;WAAM,QAAQ,GAAG,CAFL,MAAb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_useTask_bNlzGV2RmqM",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_useTask",
+  "hash": "bNlzGV2RmqM",
+  "canonicalFilename": "test.tsx_Cmp_component_useTask_bNlzGV2RmqM",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    239,
+    259
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_div_button_q_e_click_1_0qASlsb6g64.js (ENTRY POINT)==
+
+export const Cmp_component_div_button_q_e_click_1_0qASlsb6g64 = (_, _1, count, props)=>console.log(props.b ?? 1, count.value);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gEAWqB,uBAAM,QAAQ,GAAG,CANhB,MAAV,KAAI,GAM0B,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_div_button_q_e_click_1_0qASlsb6g64",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_div_button_q_e_click_1",
+  "hash": "0qASlsb6g64",
+  "canonicalFilename": "test.tsx_Cmp_component_div_button_q_e_click_1_0qASlsb6g64",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    357,
+    390
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "count",
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

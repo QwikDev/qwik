@@ -57,6 +57,15 @@ export const collectSubscriptionPatches = (
     SubscriptionPatchChannel | undefined,
     Map<number, SubscriptionPatch>
   >();
+  const rootsCarryingValue = new Set<unknown>();
+  // Only one patch per root needs to carry the settled computed value.
+  const takeUnsettledComputed = (rootObj: unknown) => {
+    if (rootsCarryingValue.has(rootObj) || !rootCtx.$unsettledComputeds$.has(rootObj as object)) {
+      return undefined;
+    }
+    rootsCarryingValue.add(rootObj);
+    return rootObj;
+  };
   for (let i = 0; i < records.length; i++) {
     const entry = records[i];
     const rootId = rootCtx.$hasRootId$(entry.rootObj);
@@ -73,7 +82,8 @@ export const collectSubscriptionPatches = (
       patch = new SubscriptionPatch(
         rootId,
         entry.prop === null ? new Set() : new Map<string | symbol, Set<EffectSubscription>>(),
-        entry.channel
+        entry.channel,
+        takeUnsettledComputed(entry.rootObj)
       );
       const clientRootId =
         rootId >= rootCtx.$rootStateRootCount$ && rootCtx.$hasRootStateForwardRefs$

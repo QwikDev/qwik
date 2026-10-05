@@ -566,7 +566,15 @@ export class Serializer {
         this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
       }
     } else if (__EXPERIMENTAL__.pendingBoundary && value instanceof SubscriptionPatch) {
-      this.output(TypeIds.SubscriptionPatch, [value.rootId, value.subscriptions, value.channel]);
+      const out: unknown[] = [value.rootId, value.subscriptions, value.channel];
+      const settledValue =
+        value.unsettledComputed instanceof ComputedSignalImpl
+          ? getSerializableComputedValue(value.unsettledComputed)
+          : NEEDS_COMPUTATION;
+      if (settledValue !== NEEDS_COMPUTATION) {
+        out.push(settledValue === undefined ? explicitUndefined : settledValue);
+      }
+      this.output(TypeIds.SubscriptionPatch, out);
     } else if (isStore(value)) {
       const storeHandler = getStoreHandler(value)!;
       const storeTarget = getStoreTarget(value);
@@ -656,16 +664,12 @@ export class Serializer {
           ...this.getSubscriptions(value.$effects$),
         ]);
       } else if (value instanceof ComputedSignalImpl) {
-        let v = value.$untrackedValue$;
-        const shouldAlwaysSerialize =
-          value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
-        const shouldNeverSerialize =
-          value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
-        const isInvalid = value.$flags$ & (ComputedSignalFlags.INVALID | ComputedSignalFlags.CHECK);
-        const isSkippable = fastSkipSerialize(value.$untrackedValue$);
+        const v = getSerializableComputedValue(value);
+        if (v === NEEDS_COMPUTATION) {
+          this.$serializationContext$.$unsettledComputeds$.add(value);
+        }
         // async-mode computeds carry the same engine state and must round-trip like AsyncSignals
         const isAsync = !!(value.$flags$ & AsyncSignalFlags.ASYNC_MODE);
-        const isErrored = isAsync && !!value.$untrackedError$;
         const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
         const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
 
@@ -677,14 +681,6 @@ export class Serializer {
                 SerializationSignalFlags.SERIALIZATION_ALL_STRATEGIES | ComputedSignalFlags.CHECK
               )) ||
           undefined;
-
-        if (isInvalid || isSkippable || isErrored) {
-          v = NEEDS_COMPUTATION;
-        } else if (shouldAlwaysSerialize) {
-          v = value.$untrackedValue$;
-        } else if (shouldNeverSerialize) {
-          v = NEEDS_COMPUTATION;
-        }
 
         const out: unknown[] = [value.$computeQrl$, value.$effects$];
         if (isAsync) {
@@ -1036,6 +1032,26 @@ export class Serializer {
     this.$serializationContext$.$serializedForwardRefCount$ = forwardRefCount;
   }
 }
+
+/** Returns the value to serialize, or NEEDS_COMPUTATION when the client must compute it. */
+const getSerializableComputedValue = (computed: ComputedSignalImpl<unknown, any>): unknown => {
+  const flags = computed.$flags$;
+  const isErrored = !!(flags & AsyncSignalFlags.ASYNC_MODE) && !!computed.$untrackedError$;
+  if (
+    flags & (ComputedSignalFlags.INVALID | ComputedSignalFlags.CHECK) ||
+    fastSkipSerialize(computed.$untrackedValue$) ||
+    isErrored
+  ) {
+    return NEEDS_COMPUTATION;
+  }
+  if (flags & SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS) {
+    return computed.$untrackedValue$;
+  }
+  if (flags & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER) {
+    return NEEDS_COMPUTATION;
+  }
+  return computed.$untrackedValue$;
+};
 
 export class PromiseResult {
   constructor(

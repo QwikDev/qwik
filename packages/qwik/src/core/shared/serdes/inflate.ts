@@ -435,12 +435,14 @@ function* inflateIterator(
         number,
         Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>,
         SubscriptionPatch['channel']?,
+        unknown?,
       ];
       patch.rootId = d[0];
       patch.subscriptions = d[1];
       if (d[2] !== undefined) {
         patch.channel = d[2];
       }
+      patch.value = d.length > 3 ? d[3] : NEEDS_COMPUTATION;
       break;
     }
     case TypeIds.EffectSubscriptionNoData: {

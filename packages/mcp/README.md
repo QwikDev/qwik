@@ -23,20 +23,68 @@ export default defineConfig({
 
 For a browser-only Qwik app, omit `qwikRouter()` and keep your existing `qwikVite({ csr: true })` configuration. Start Vite and open the app in a local browser.
 
-Configure your MCP client to launch the locally installed binary through stdio:
+## MCP client configuration
+
+The examples below run the installed package directly with Node.js 22.18 or later. They use the same package version as your Vite plugin, require no download at startup, and work even when the client starts the process outside your project directory.
+
+Replace `/absolute/path/to/project` with the directory containing your app's `vite.config.ts` and `node_modules`. The first argument points to the installed CLI; the second selects the Qwik project. Passing only the project path to `npx --no-install` does not change where npm looks for the local package.
+
+### Codex
+
+Add this to `.codex/config.toml` in your project:
+
+```toml
+[mcp_servers.qwik]
+command = "node"
+args = ["/absolute/path/to/project/node_modules/@qwik.dev/mcp/dist/cli.js", "/absolute/path/to/project"]
+```
+
+Codex loads project configuration for trusted projects. You can also add the entry to `~/.codex/config.toml` for a personal configuration. Restart your Codex session after editing the file; in the CLI, use `/mcp` to check the connection. See the [Codex MCP documentation](https://developers.openai.com/codex/mcp).
+
+### Claude Code
+
+Create `.mcp.json` in your project root:
 
 ```json
 {
   "mcpServers": {
     "qwik": {
-      "command": "npx",
-      "args": ["--no-install", "qwik-mcp", "/absolute/path/to/project"]
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/absolute/path/to/project/node_modules/@qwik.dev/mcp/dist/cli.js",
+        "/absolute/path/to/project"
+      ]
     }
   }
 }
 ```
 
-Set the client's working directory to your project so `npx --no-install` resolves its local dependency. The optional positional path selects the Vite project root; it defaults to the process's working directory. No package download occurs when launching this configuration.
+Start Claude Code in the project, approve the project MCP server when prompted, and use `/mcp` to check its status. See the [Claude Code MCP documentation](https://code.claude.com/docs/en/mcp).
+
+### GitHub Copilot in VS Code
+
+Create or update `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "qwik": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/node_modules/@qwik.dev/mcp/dist/cli.js", "${workspaceFolder}"]
+    }
+  }
+}
+```
+
+VS Code replaces `${workspaceFolder}` with the project directory. This format uses `servers`, whereas Claude Code uses `mcpServers`. Run **MCP: List Servers** from the Command Palette, select `qwik`, and start it. In Copilot Chat, select **Agent** mode and enable the Qwik tools in the tools picker. See the [VS Code MCP documentation](https://code.visualstudio.com/docs/agent-customization/mcp-servers).
+
+### Check the connection
+
+Ask your agent to call `get_project_info` and confirm that `root` is your app directory. `devServerRunning: false` means the CLI connected but Vite is not running with `qwikMcp()`. Start Vite and open the app in a browser to use the live inspection tools.
+
+If the client cannot find `node`, set `command` to the absolute path of your Node.js executable. If it cannot find `cli.js`, check that `@qwik.dev/mcp` is installed in the selected project. On Windows, use forward slashes in paths, such as `C:/projects/my-app`, or escape each backslash as `\\` in JSON and TOML strings.
 
 ## Tools
 

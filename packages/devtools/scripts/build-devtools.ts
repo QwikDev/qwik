@@ -43,7 +43,7 @@ rmSync(join(UI_PATH, 'lib'), { recursive: true, force: true });
 exec('pnpm exec vite build --config ui/vite.config.mts --mode lib');
 
 log('Linting devtools UI...');
-exec('pnpm exec eslint "ui/src/**/*.ts*"');
+exec('pnpm exec oxlint ui/src');
 
 // Copy lib and lib-types to dist
 log('Copying files to dist...');

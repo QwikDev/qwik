@@ -1,0 +1,151 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { format } from './format';
+
+const label = 'Count';
+let total = 0;
+const theme = format('dark');
+const classes = { root: 'root' };
+function suffix() {
+	return '!';
+}
+
+export function renderLabel() {
+	return <span title={label}>{label}</span>;
+}
+
+export const Counter = component$(() => {
+	const count = useSignal(0);
+	return (
+		<div class={classes.root} data-theme={theme} title={label + suffix()}>
+			<p>{label}</p>
+			<p>{total + 1}</p>
+			<p>{`${label}: ${theme}`}</p>
+			<p>{label + count.value}</p>
+			<p data-suffix={suffix()}>{suffix()}</p>
+		</div>
+	);
+});
+
+export const Badge = component$(() => <Counter title={label} data-theme={theme} />);
+
+============================= test.js ==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { format } from './format';
+//
+const q_Badge_component_WfgKQIZWdn8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Badge_component_WfgKQIZWdn8"), "Badge_component_WfgKQIZWdn8");
+const q_Counter_component_zTmRHlL09Gg = /*#__PURE__*/ qrl(()=>import("./test.tsx_Counter_component_zTmRHlL09Gg"), "Counter_component_zTmRHlL09Gg");
+//
+const label = 'Count';
+const theme = format('dark');
+export function renderLabel() {
+    return /*#__PURE__*/ _jsxSorted("span", null, {
+        title: label
+    }, label, 3, "u6_0");
+}
+export const Counter = /*#__PURE__*/ componentQrl(q_Counter_component_zTmRHlL09Gg);
+export const Badge = /*#__PURE__*/ componentQrl(q_Badge_component_WfgKQIZWdn8);
+export { label as _auto_label };
+export { theme as _auto_theme };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,SAAS,MAAM,QAAQ,WAAW;;;;;AAElC,MAAM,QAAQ;AAEd,MAAM,QAAQ,OAAO;AAMrB,OAAO,SAAS;IACf,qBAAO,WAAC;QAAK,OAAO;OAAQ;AAC7B;AAEA,OAAO,MAAM,wBAAU,8CAWpB;AAEH,OAAO,MAAM,sBAAQ,4CAA+D\"}")
+============================= test.tsx_Counter_component_zTmRHlL09Gg.js (ENTRY POINT)==
+
+import { _auto_label as label } from "./test";
+import { _auto_theme as theme } from "./test";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+let total = 0;
+const classes = {
+    root: 'root'
+};
+function suffix() {
+    return '!';
+}
+export const Counter_component_zTmRHlL09Gg = ()=>{
+    const count = useSignal(0);
+    return /*#__PURE__*/ _jsxSorted("div", null, {
+        class: classes.root,
+        "data-theme": theme,
+        title: label + suffix()
+    }, [
+        /*#__PURE__*/ _jsxSorted("p", null, null, label, 3, null),
+        /*#__PURE__*/ _jsxSorted("p", null, null, total + 1, 3, null),
+        /*#__PURE__*/ _jsxSorted("p", null, null, `${label}: ${theme}`, 3, null),
+        /*#__PURE__*/ _jsxSorted("p", null, null, label + count.value, 1, null),
+        /*#__PURE__*/ _jsxSorted("p", null, {
+            "data-suffix": suffix()
+        }, suffix(), 1, null)
+    ], 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;IAKI,QAAQ;MAEN,UAAU;IAAE,MAAM;AAAO;AAC/B,SAAS;IACR,OAAO;AACR;6CAMkC;IACjC,MAAM,QAAQ,UAAU;IACxB,qBACC,WAAC;QAAI,OAAO,QAAQ,IAAI;QAAE,cAAY;QAAO,OAAO,QAAQ;;sBAC3D,WAAC,iBAAG;sBACJ,WAAC,iBAAG,QAAQ;sBACZ,WAAC,iBAAG,GAAG,MAAM,EAAE,EAAE,OAAO;sBACxB,WAAC,iBAAG,QAAQ,MAAM,KAAK;sBACvB,WAAC;YAAE,eAAa;WAAW;;AAG9B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Counter_component_zTmRHlL09Gg",
+  "entry": null,
+  "displayName": "test.tsx_Counter_component",
+  "hash": "zTmRHlL09Gg",
+  "canonicalFilename": "test.tsx_Counter_component_zTmRHlL09Gg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    345,
+    628
+  ]
+}
+*/
+============================= test.tsx_Badge_component_WfgKQIZWdn8.js (ENTRY POINT)==
+
+import { Counter } from "./test";
+import { _auto_label as label } from "./test";
+import { _auto_theme as theme } from "./test";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const Badge_component_WfgKQIZWdn8 = ()=>/*#__PURE__*/ _jsxSorted(Counter, null, {
+        title: label,
+        "data-theme": theme
+    }, null, 3, "u6_2");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CA6BgC,kBAAM,WAAC;QAAQ,OAAO;QAAO,cAAY\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Badge_component_WfgKQIZWdn8",
+  "entry": null,
+  "displayName": "test.tsx_Badge_component",
+  "hash": "WfgKQIZWdn8",
+  "canonicalFilename": "test.tsx_Badge_component_WfgKQIZWdn8",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    664,
+    714
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

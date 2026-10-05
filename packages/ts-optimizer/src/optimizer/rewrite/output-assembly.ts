@@ -519,6 +519,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     ? {
         enableJsx: true,
         importedNames: jsxOptions.importedNames,
+        moduleScopeNames: new Set(ctx.moduleLevelDecls?.map((decl) => decl.name)),
         // JSX dev-info `fileName:` honors only an explicit user `devPath`,
         // otherwise falling back to `relPath` — not the composed `devFilePath`.
         devOptions: isDevMode ? { relPath: ctx.userDevPath ?? relPath } : undefined,

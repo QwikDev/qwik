@@ -8434,3 +8434,73 @@ export const task = inlinedQrl(() => {
 		entry_module.code
 	);
 }
+
+#[test]
+fn should_treat_module_level_bindings_as_globals_in_jsx() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+import { format } from './format';
+
+const label = 'Count';
+let total = 0;
+const theme = format('dark');
+const classes = { root: 'root' };
+function suffix() {
+	return '!';
+}
+
+export function renderLabel() {
+	return <span title={label}>{label}</span>;
+}
+
+export const Counter = component$(() => {
+	const count = useSignal(0);
+	return (
+		<div class={classes.root} data-theme={theme} title={label + suffix()}>
+			<p>{label}</p>
+			<p>{total + 1}</p>
+			<p>{`${label}: ${theme}`}</p>
+			<p>{label + count.value}</p>
+			<p data-suffix={suffix()}>{suffix()}</p>
+		</div>
+	);
+});
+
+export const Badge = component$(() => <Counter title={label} data-theme={theme} />);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_treat_module_level_bindings_as_globals_in_inline_jsx() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+const label = 'Count';
+const classes = { root: 'root' };
+
+export const Counter = component$(() => {
+	const count = useSignal(0);
+	return (
+		<div class={classes.root} title={label}>
+			<p>{label}</p>
+			<p>{label + count.value}</p>
+		</div>
+	);
+});
+
+export const Badge = component$(() => <span class={classes.root}>{label}</span>);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}

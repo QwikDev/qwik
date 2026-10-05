@@ -1396,6 +1396,7 @@ export function buildDefaultStrategySegment(
           ? {
               enableJsx: true,
               importedNames,
+              moduleScopeNames: new Set(moduleLevelDeclsByName.keys()),
               paramNames: ext.paramNames.length > 0 ? new Set(ext.paramNames) : undefined,
               relPath,
               // JSX dev-info `fileName:` only switches to the user-supplied

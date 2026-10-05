@@ -609,6 +609,7 @@ export function transformInlineSegmentBody(
           relPath: jsxBodyOptions.relPath,
           sharedSignalHoister,
           paramNames: ext.paramNames ? new Set(ext.paramNames) : undefined,
+          moduleScopeNames: jsxBodyOptions.moduleScopeNames,
         }
       );
 

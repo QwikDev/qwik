@@ -2,6 +2,7 @@ import { decodeHTMLStrict } from 'entities';
 import { analyzeSignalExpression } from './signal-analysis.js';
 import {
   classifyConstness,
+  classifyModuleScopeRead,
   isHtmlElement,
   sliceTransformed,
   type JsxTransformContext,
@@ -232,6 +233,13 @@ function processExpressionChild(
   // Without signal analysis, staticness can't be proven — classify dynamic.
   if (!enableSignalAnalysis) {
     return { text: exprText, type: 'dynamic' };
+  }
+
+  if (expr.type !== 'CallExpression' && expr.type !== 'TaggedTemplateExpression') {
+    const moduleScopeRead = classifyModuleScopeRead(expr, ctx);
+    if (moduleScopeRead) {
+      return { text: exprText, type: moduleScopeRead === 'const' ? 'static' : 'dynamic' };
+    }
   }
 
   const signalResult = analyzeSignalExpression(expr, source, importedNames, allDeclaredNames);

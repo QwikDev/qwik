@@ -21,6 +21,8 @@ export let isDomRef = (obj: unknown): obj is DomRef => false;
 /**
  * A back reference to a previously serialized object. Before deserialization, all backrefs are
  * swapped with their original locations.
+ *
+ * @internal
  */
 export class SerializationBackRef {
   constructor(
@@ -56,6 +58,8 @@ export interface SerializationContext {
    * - `undefined` - Object has not been seen yet.
    */
   getSeenRef: (obj: unknown) => SeenRef | undefined;
+  /** Path from a root to a seen object: the root id, then the index within each parent. */
+  $getObjectPath$: (ref: SeenRef) => number[];
 
   /** Returns the root index of the object, if it is a root. Otherwise returns undefined. */
   $hasRootId$: (obj: unknown) => number | undefined;

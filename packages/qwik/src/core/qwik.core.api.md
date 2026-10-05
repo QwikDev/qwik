@@ -1204,6 +1204,13 @@ export const _rsc: <T>(arg: ResourceCtx<T>) => Promise<{
 // @internal
 export function _run(this: string, event: Event, element: Element): ValueOrPromise<unknown>;
 
+// @internal
+export class _SerializationBackRef {
+    $path$: number[];
+    constructor(
+    $path$: number[]);
+}
+
 // @public
 export type SerializationStrategy = 'never' | 'always';
 

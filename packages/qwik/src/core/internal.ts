@@ -71,6 +71,7 @@ export {
   preprocessState as _preprocessState,
   _serialize,
 } from './shared/serdes/index';
+export { SerializationBackRef as _SerializationBackRef } from './shared/serdes/serialization-context';
 export { SubscriptionPatch as _SubscriptionPatch } from './shared/serdes/subscription-patch';
 export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
 export { _SharedContainer } from './shared/shared-container';

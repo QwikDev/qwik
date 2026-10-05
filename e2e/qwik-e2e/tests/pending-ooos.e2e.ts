@@ -62,6 +62,23 @@ test.describe('out-of-order streaming with <Pending>', () => {
     await expect(page.locator('#ooos-computed-value')).toHaveText('Computed on the server');
   });
 
+  test('keeps an async computed resolved in a segment when its owner re-renders', async ({
+    page,
+    browserName,
+  }) => {
+    await page.goto(
+      getOutOfOrderPendingUrl(browserName, new URLSearchParams({ scenario: 'computed-owner' }))
+    );
+
+    await expect(page.locator('#ooos-computed-value')).toHaveText('Computed on the server', {
+      timeout: 10000,
+    });
+
+    await page.locator('#ooos-computed-owner-toggle').click();
+    await expect(page.locator('#ooos-computed-owner-on')).toHaveText('On');
+    await expect(page.locator('#ooos-computed-value')).toHaveText('Computed on the server');
+  });
+
   test('renders with ssr when out-of-order streaming is disabled', async ({
     page,
     browserName,

@@ -772,7 +772,7 @@ export const usePreventNavigateQrl: (fn: QRL<PreventNavigateCallback>) => void;
 // @public
 export const useQwikRouter: (props?: QwikRouterProps) => void;
 
-// @beta (undocumented)
+// @public (undocumented)
 export const valibot$: StandardSchemaConstructor;
 
 // Warning: (ae-internal-missing-underscore) The name "valibotQrl" should be prefixed with an underscore because the declaration is marked as @internal

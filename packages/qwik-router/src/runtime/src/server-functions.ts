@@ -319,18 +319,9 @@ export const schemaQrl: StandardSchemaConstructorQRL = (
 export const schema$: StandardSchemaConstructor = /*#__PURE__*/ implicit$FirstArg(schemaQrl);
 
 /** @internal */
-export const valibotQrl: StandardSchemaConstructorQRL = (
-  qrl: QRL<StandardSchemaV1 | ((ev: RequestEvent) => StandardSchemaV1)>
-) => {
-  if (!__EXPERIMENTAL__.valibot) {
-    throw new Error(
-      'Valibot is an experimental feature and is not enabled. Please enable the feature flag by adding `experimental: ["valibot"]` to your qwikVite plugin options.'
-    );
-  }
-  return schemaQrl(qrl as QRL<StandardSchemaV1>);
-};
+export const valibotQrl: StandardSchemaConstructorQRL = schemaQrl;
 
-/** @beta */
+/** @public */
 export const valibot$: StandardSchemaConstructor = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
 
 const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {

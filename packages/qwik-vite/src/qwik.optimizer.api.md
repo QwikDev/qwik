@@ -64,8 +64,7 @@ export enum ExperimentalFeatures {
     insights = "insights",
     noSPA = "noSPA",
     pendingBoundary = "pendingBoundary",
-    show = "show",
-    valibot = "valibot"
+    show = "show"
 }
 
 // @public (undocumented)

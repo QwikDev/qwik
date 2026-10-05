@@ -1652,7 +1652,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nvalibot$: StandardSchemaConstructor\n```",
+      "content": "```typescript\nvalibot$: StandardSchemaConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
       "mdFile": "router.valibot_.md"
     },

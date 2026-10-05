@@ -16,6 +16,7 @@ export interface PlatformNetlify extends Partial<Omit<Context, 'next' | 'cookies
 
 // @public (undocumented)
 export interface QwikCityNetlifyOptions extends ServerRenderOptions {
+    requestBodyLimit?: number;
 }
 
 // (No @packageDocumentation comment for this package)

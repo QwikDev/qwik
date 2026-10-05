@@ -46,7 +46,8 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
         req,
         res,
         'server',
-        opts.getClientConn
+        opts.getClientConn,
+        opts.requestBodyLimit
       );
       const handled = await requestHandler(serverRequestEv, opts, qwikSerializer);
       if (handled) {
@@ -153,6 +154,9 @@ export interface PlatformNode {
 
 /** @public */
 export interface QwikCityNodeRequestOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+
   /** Options for serving static files */
   static?: {
     /** The root folder for statics files. Defaults to /dist */

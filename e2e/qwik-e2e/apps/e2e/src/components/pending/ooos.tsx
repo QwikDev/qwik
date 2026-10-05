@@ -80,6 +80,8 @@ export const OutOfOrderPendingRoot = component$(() => {
           <CustomerProfileOutOfOrderPending />
         ) : scenario === 'computed' ? (
           <ComputedOutOfOrderPending />
+        ) : scenario === 'computed-owner' ? (
+          <ComputedOwnerOutOfOrderPending />
         ) : (
           <Pending
             key={scenario === 'owner-update' ? null : render.value}
@@ -348,6 +350,29 @@ export const ComputedOutOfOrderPending = component$(() => {
       </button>
       <ComputedOutOfOrderToggle isOn={isOn} />
       <ComputedOutOfOrderBoundary computed={computed} />
+    </>
+  );
+});
+
+export const ComputedOwnerOutOfOrderPending = component$(() => {
+  const isOn = useSignal(false);
+  const computed = useComputed$(async () => {
+    const side = isServer ? 'server' : 'client';
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return `Computed on the ${side}`;
+  });
+
+  // Only the segment references the computed, so the root state holds it inline in this
+  // component's hook state; the structural branch re-renders this component on the client.
+  return (
+    <>
+      <button id="ooos-computed-owner-toggle" onClick$={() => (isOn.value = !isOn.value)}>
+        Toggle
+      </button>
+      {isOn.value && <b id="ooos-computed-owner-on">On</b>}
+      <Pending fallback$={() => <p id="ooos-computed-owner-fallback">Loading computed</p>}>
+        <ComputedOutOfOrderReader computed={computed} />
+      </Pending>
     </>
   );
 });

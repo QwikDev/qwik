@@ -18,14 +18,21 @@ const themeStorageKey = 'theme';
 
 const queryDark = () => window.matchMedia('(prefers-color-scheme: dark)');
 
-const getEffectiveTheme = (stored: ThemePreference, systemDark = queryDark().matches) => {
+const getEffectiveTheme = (
+  stored: ThemePreference,
+  systemDark = queryDark().matches
+) => {
   if (stored === 'auto') {
     return systemDark ? 'dark' : 'light';
   }
   return stored;
 };
 
-const applyTheme = (store: SiteStore, theme: ThemePreference, systemDark = queryDark().matches) => {
+const applyTheme = (
+  store: SiteStore,
+  theme: ThemePreference,
+  systemDark = queryDark().matches
+) => {
   const effective = getEffectiveTheme(theme, systemDark);
   store.theme = effective;
   const el = document.documentElement;
@@ -54,7 +61,9 @@ const getThemeFromLS = (): ThemePreference => {
   if (document.documentElement.hasAttribute('data-theme-auto')) {
     return 'auto';
   }
-  return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  return document.documentElement.getAttribute('data-theme') === 'dark'
+    ? 'dark'
+    : 'light';
 };
 
 export const ThemeToggle = component$(() => {
@@ -82,7 +91,12 @@ export const ThemeToggle = component$(() => {
 
   const toggleTheme$ = event$(() => {
     let currentTheme = getThemeFromLS();
-    currentTheme = currentTheme === 'auto' ? 'light' : currentTheme === 'light' ? 'dark' : 'auto';
+    currentTheme =
+      currentTheme === 'auto'
+        ? 'light'
+        : currentTheme === 'light'
+          ? 'dark'
+          : 'auto';
     applyTheme(store, currentTheme);
     saveTheme(currentTheme);
   });

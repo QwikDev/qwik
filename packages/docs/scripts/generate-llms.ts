@@ -29,7 +29,10 @@ interface GeneratedMirror {
   content: string;
 }
 
-const packageDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const packageDir = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..'
+);
 const outputDir = path.join(packageDir, 'dist');
 const DEFAULT_LLMS_BASE_URL = 'https://qwik.dev';
 const DOC_SUMMARY =
@@ -40,7 +43,8 @@ const DOC_INTRO = [
   'The linked markdown mirrors are generated from the local docs sources so they stay readable for both people and LLM tools.',
 ];
 
-const toSourcePath = (...segments: string[]) => path.join('src', 'routes', ...segments);
+const toSourcePath = (...segments: string[]) =>
+  path.join('src', 'routes', ...segments);
 
 function docEntry(
   section: string,
@@ -307,7 +311,13 @@ The playground focuses on rapid experimentation rather than long-form documentat
       'Prevent Navigation',
       '/docs/advanced/prevent-navigation/',
       'How to use `usePreventNavigate$` to guard unsaved state during SPA and browser navigation.',
-      toSourcePath('docs', '(qwikrouter)', 'advanced', 'prevent-navigation', 'index.mdx')
+      toSourcePath(
+        'docs',
+        '(qwikrouter)',
+        'advanced',
+        'prevent-navigation',
+        'index.mdx'
+      )
     ),
     docEntry(
       'Routing and Server',
@@ -342,7 +352,13 @@ The playground focuses on rapid experimentation rather than long-form documentat
       'React Cheat Sheet',
       '/docs/guides/react-cheat-sheet/',
       'Maps common React concepts to Qwik primitives for teams migrating or comparing frameworks.',
-      toSourcePath('docs', '(qwikrouter)', 'guides', 'react-cheat-sheet', 'index.mdx'),
+      toSourcePath(
+        'docs',
+        '(qwikrouter)',
+        'guides',
+        'react-cheat-sheet',
+        'index.mdx'
+      ),
       true
     ),
     docEntry(
@@ -388,11 +404,15 @@ The playground focuses on rapid experimentation rather than long-form documentat
   const curatedPaths = new Set(curated.map((entry) => entry.pathname));
   return [
     ...curated,
-    ...createDocumentationManifest(packageDir).filter((entry) => !curatedPaths.has(entry.pathname)),
+    ...createDocumentationManifest(packageDir).filter(
+      (entry) => !curatedPaths.has(entry.pathname)
+    ),
   ];
 }
 
-export function createDocumentationManifest(packageRoot: string): LlmsManifestEntry[] {
+export function createDocumentationManifest(
+  packageRoot: string
+): LlmsManifestEntry[] {
   const routesDirectory = path.join(packageRoot, 'src', 'routes');
   const entries: LlmsManifestEntry[] = [];
   for (const section of ['docs', 'api']) {
@@ -400,11 +420,16 @@ export function createDocumentationManifest(packageRoot: string): LlmsManifestEn
     if (!fs.existsSync(directory)) {
       continue;
     }
-    for (const relativePath of fs.readdirSync(directory, { recursive: true }).sort()) {
+    for (const relativePath of fs
+      .readdirSync(directory, { recursive: true })
+      .sort()) {
       if (
         typeof relativePath !== 'string' ||
         path.basename(relativePath) === 'menu.md' ||
-        !(/\.mdx?$/.test(relativePath) || /(?:^|[/\\])index!?\.tsx$/.test(relativePath))
+        !(
+          /\.mdx?$/.test(relativePath) ||
+          /(?:^|[/\\])index!?\.tsx$/.test(relativePath)
+        )
       ) {
         continue;
       }
@@ -418,7 +443,8 @@ export function createDocumentationManifest(packageRoot: string): LlmsManifestEn
             title: 'Glossary',
             pathname,
             sourcePath,
-            description: 'Definitions of the key terms used in the Qwik documentation.',
+            description:
+              'Definitions of the key terms used in the Qwik documentation.',
             inlineContent:
               '# Glossary\n\n' +
               glossaryEntries
@@ -435,7 +461,9 @@ export function createDocumentationManifest(packageRoot: string): LlmsManifestEn
             inlineContent: '# API Reference\n',
           });
         } else {
-          throw new Error(`Missing Markdown representation for documentation page: ${sourcePath}`);
+          throw new Error(
+            `Missing Markdown representation for documentation page: ${sourcePath}`
+          );
         }
         continue;
       }
@@ -449,7 +477,10 @@ export function createDocumentationManifest(packageRoot: string): LlmsManifestEn
         title: cleanupInlineText(title),
         pathname,
         sourcePath,
-        description: typeof parsed.data.description === 'string' ? parsed.data.description : '',
+        description:
+          typeof parsed.data.description === 'string'
+            ? parsed.data.description
+            : '',
       });
     }
   }
@@ -458,7 +489,9 @@ export function createDocumentationManifest(packageRoot: string): LlmsManifestEn
     apiIndex.inlineContent =
       '# API Reference\n\n' +
       entries
-        .filter((entry) => entry.pathname.startsWith('/api/') && entry !== apiIndex)
+        .filter(
+          (entry) => entry.pathname.startsWith('/api/') && entry !== apiIndex
+        )
         .map((entry) => `- [${entry.title}](${entry.pathname})`)
         .join('\n');
   }
@@ -489,7 +522,10 @@ function toPosixPath(value: string) {
 
 export function getMirrorUrl(baseUrl: string, pathname: string) {
   const relativePath = getMirrorRelativePath(pathname);
-  return new URL(toPosixPath(relativePath), ensureTrailingSlash(baseUrl)).toString();
+  return new URL(
+    toPosixPath(relativePath),
+    ensureTrailingSlash(baseUrl)
+  ).toString();
 }
 
 function getCanonicalUrl(baseUrl: string, pathname: string) {
@@ -667,7 +703,11 @@ function transformCardGridBlock(blockLines: string[]) {
     }
 
     if (trimmed.startsWith('<a ')) {
-      const { block, endIndex } = collectBalancedTagBlock(innerLines, index, 'a');
+      const { block, endIndex } = collectBalancedTagBlock(
+        innerLines,
+        index,
+        'a'
+      );
       const bullet = renderCardBullet(block);
       if (bullet) {
         bullets.push(bullet);
@@ -677,7 +717,11 @@ function transformCardGridBlock(blockLines: string[]) {
     }
 
     if (trimmed.startsWith('<div ') && /\bclass="[^"]*\bcard\b/.test(trimmed)) {
-      const { block, endIndex } = collectBalancedTagBlock(innerLines, index, 'div');
+      const { block, endIndex } = collectBalancedTagBlock(
+        innerLines,
+        index,
+        'div'
+      );
       const bullet = renderCardBullet(block);
       if (bullet) {
         bullets.push(bullet);
@@ -696,7 +740,9 @@ function transformDetailsBlock(blockLines: string[]) {
 
   for (const line of contentLines) {
     const trimmed = line.trim();
-    const summaryMatch = trimmed.match(/^<summary(?:\s[^>]*)?>([\s\S]*)<\/summary>$/i);
+    const summaryMatch = trimmed.match(
+      /^<summary(?:\s[^>]*)?>([\s\S]*)<\/summary>$/i
+    );
     if (summaryMatch) {
       const summary = cleanupInlineText(summaryMatch[1]);
       if (summary) {
@@ -744,7 +790,11 @@ function preprocessDetailsBlocks(sourceContent: string) {
   for (let index = 0; index < lines.length; index++) {
     const trimmed = lines[index]?.trim();
     if (trimmed === '<details>') {
-      const { block, endIndex } = collectBalancedTagBlock(lines, index, 'details');
+      const { block, endIndex } = collectBalancedTagBlock(
+        lines,
+        index,
+        'details'
+      );
       output.push(...transformDetailsBlock(block));
       index = endIndex;
       continue;
@@ -757,16 +807,20 @@ function preprocessDetailsBlocks(sourceContent: string) {
 }
 
 function renderMarkdownTable(tableHtml: string) {
-  const rows = Array.from(tableHtml.matchAll(/<tr>([\s\S]*?)<\/tr>/gi)).map((match) => {
-    return Array.from(match[1].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)).map((cellMatch) =>
-      escapeMarkdownTableCell(
-        cleanupInlineText(cellMatch[1])
-          .replace(/<br\s*\/?>/gi, ' ')
-          .replace(/\s+/g, ' ')
-          .trim()
-      )
-    );
-  });
+  const rows = Array.from(tableHtml.matchAll(/<tr>([\s\S]*?)<\/tr>/gi)).map(
+    (match) => {
+      return Array.from(
+        match[1].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)
+      ).map((cellMatch) =>
+        escapeMarkdownTableCell(
+          cleanupInlineText(cellMatch[1])
+            .replace(/<br\s*\/?>/gi, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+        )
+      );
+    }
+  );
 
   const nonEmptyRows = rows.filter((row) => row.length > 0);
   if (nonEmptyRows.length === 0) {
@@ -806,10 +860,13 @@ function preprocessMediaBlocks(sourceContent: string) {
     return label ? `\n**Diagram:** ${label}\n` : '\n';
   });
 
-  content = content.replace(/<video\b[^>]*>[\s\S]*?<\/video>/gi, (videoBlock) => {
-    const sourceMatch = videoBlock.match(/<source\b[^>]*src="([^"]+)"/i);
-    return sourceMatch ? `\n[Video](${sourceMatch[1]})\n` : '\n';
-  });
+  content = content.replace(
+    /<video\b[^>]*>[\s\S]*?<\/video>/gi,
+    (videoBlock) => {
+      const sourceMatch = videoBlock.match(/<source\b[^>]*src="([^"]+)"/i);
+      return sourceMatch ? `\n[Video](${sourceMatch[1]})\n` : '\n';
+    }
+  );
 
   content = content.replace(/<img\b[^>]*\/?>/gi, (imgTag) => {
     const src = extractAttribute(imgTag, 'src');
@@ -840,7 +897,9 @@ function preprocessSimpleHtml(sourceContent: string) {
 
 function preprocessStructuralHtml(sourceContent: string) {
   return preprocessMediaBlocks(
-    preprocessHtmlTables(preprocessDetailsBlocks(preprocessCardGrids(sourceContent)))
+    preprocessHtmlTables(
+      preprocessDetailsBlocks(preprocessCardGrids(sourceContent))
+    )
   );
 }
 
@@ -926,7 +985,10 @@ export function transformSourceToMarkdown(source: string) {
       continue;
     }
 
-    if (/^\s*import\s/.test(line) || /^\s*export\s+(?!default component\$)/.test(line)) {
+    if (
+      /^\s*import\s/.test(line) ||
+      /^\s*export\s+(?!default component\$)/.test(line)
+    ) {
       continue;
     }
 
@@ -988,7 +1050,9 @@ export function transformSourceToMarkdown(source: string) {
 
     const headingMatch = trimmed.match(/^<h([1-6])(?:\s[^>]*)?>(.*)<\/h\1>$/i);
     if (headingMatch) {
-      output.push(`${'#'.repeat(Number(headingMatch[1]))} ${cleanupInlineText(headingMatch[2])}`);
+      output.push(
+        `${'#'.repeat(Number(headingMatch[1]))} ${cleanupInlineText(headingMatch[2])}`
+      );
       output.push('');
       continue;
     }
@@ -1056,7 +1120,10 @@ function stripRouteGroups(value: string) {
   return value.replace(/\([^/]+\)\//g, '');
 }
 
-function getPublicRoutePathFromSourceFile(sourceFilePath: string, routesDirectory: string) {
+function getPublicRoutePathFromSourceFile(
+  sourceFilePath: string,
+  routesDirectory: string
+) {
   const relativePath = stripRouteGroups(
     path.relative(routesDirectory, sourceFilePath).split(path.sep).join('/')
   );
@@ -1200,7 +1267,9 @@ function groupBySection(entries: LlmsManifestEntry[]) {
 
 export function renderLlmsTxt(baseUrl: string, entries: LlmsManifestEntry[]) {
   const grouped = groupBySection(entries);
-  const orderedSections = Array.from(grouped.keys()).filter((section) => section !== 'Optional');
+  const orderedSections = Array.from(grouped.keys()).filter(
+    (section) => section !== 'Optional'
+  );
   if (grouped.has('Optional')) {
     orderedSections.push('Optional');
   }
@@ -1245,18 +1314,24 @@ function validateEntries(entries: LlmsManifestEntry[], packageRoot: string) {
   for (const entry of entries) {
     const normalizedPathname = normalizePathname(entry.pathname);
     if (pathnames.has(normalizedPathname)) {
-      throw new Error(`Duplicate pathname in LLM manifest: ${normalizedPathname}`);
+      throw new Error(
+        `Duplicate pathname in LLM manifest: ${normalizedPathname}`
+      );
     }
     pathnames.add(normalizedPathname);
 
     const sourcePath = path.join(packageRoot, entry.sourcePath);
     if (!fs.existsSync(sourcePath)) {
-      throw new Error(`Missing source file for LLM manifest entry: ${entry.sourcePath}`);
+      throw new Error(
+        `Missing source file for LLM manifest entry: ${entry.sourcePath}`
+      );
     }
 
     const outputPath = getMirrorRelativePath(normalizedPathname);
     if (outputPaths.has(outputPath)) {
-      throw new Error(`Duplicate mirror output path in LLM manifest: ${outputPath}`);
+      throw new Error(
+        `Duplicate mirror output path in LLM manifest: ${outputPath}`
+      );
     }
     outputPaths.add(outputPath);
   }
@@ -1269,12 +1344,20 @@ function createMirror(
 ): GeneratedMirror {
   const sourceFilePath = path.join(options.packageDir, entry.sourcePath);
   const routesDirectory = path.join(options.packageDir, 'src', 'routes');
-  const outputPath = path.join(options.outputDir, getMirrorRelativePath(entry.pathname));
+  const outputPath = path.join(
+    options.outputDir,
+    getMirrorRelativePath(entry.pathname)
+  );
   const baseContent = entry.inlineContent
     ? normalizeMarkdown(entry.inlineContent)
     : transformSourceToMarkdown(fs.readFileSync(sourceFilePath, 'utf-8'));
   const content = normalizeMarkdownForLlms(
-    rewriteMarkdownLinks(baseContent, sourceFilePath, mirrorPathnames, routesDirectory)
+    rewriteMarkdownLinks(
+      baseContent,
+      sourceFilePath,
+      mirrorPathnames,
+      routesDirectory
+    )
   );
 
   return {
@@ -1296,7 +1379,9 @@ export function createLlmsMirrors(options: GenerateLlmsOptions) {
   const mirrorPathnames = new Set(
     options.entries.map((entry) => normalizePathname(entry.pathname))
   );
-  return options.entries.map((entry) => createMirror(entry, options, mirrorPathnames));
+  return options.entries.map((entry) =>
+    createMirror(entry, options, mirrorPathnames)
+  );
 }
 
 export function generateLlmsFiles(options: GenerateLlmsOptions) {
@@ -1331,6 +1416,9 @@ export function runGenerateLlms() {
   });
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   runGenerateLlms();
 }

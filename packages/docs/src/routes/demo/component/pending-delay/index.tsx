@@ -1,9 +1,4 @@
-import {
-  component$,
-  Pending,
-  useSignal,
-  type JSXOutput,
-} from '@qwik.dev/core';
+import { component$, Pending, useSignal, type JSXOutput } from '@qwik.dev/core';
 
 const LOAD_MS = 2500;
 const FALLBACK_DELAY_MS = 1000;

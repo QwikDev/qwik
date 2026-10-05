@@ -1,19 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
-  "plugins": [
-    "jsdoc",
-    "import",
-    "unicorn",
-    "vitest"
-  ],
+  "plugins": ["jsdoc", "import", "unicorn", "vitest"],
   "rules": {
     "no-console": [
       "error",
       {
-        "allow": [
-          "warn",
-          "error"
-        ]
+        "allow": ["warn", "error"]
       }
     ],
     "curly": "error",
@@ -51,43 +43,31 @@
   },
   "overrides": [
     {
-      "files": [
-        "packages/docs/**/*.ts",
-        "packages/docs/**/*.tsx"
-      ],
+      "files": ["packages/docs/**/*.ts", "packages/docs/**/*.tsx"],
       "rules": {
         "no-console": "off",
         "curly": "off"
       }
     },
     {
-      "files": [
-        "packages/ts-optimizer/tests/**/*.ts",
-        "packages/ts-optimizer/tests/**/*.tsx"
-      ],
+      "files": ["packages/ts-optimizer/tests/**/*.ts", "packages/ts-optimizer/tests/**/*.tsx"],
       "rules": {
         "no-console": "off"
       }
     },
     {
-      "files": [
-        "packages/qwik/src/server/**/*.ts"
-      ],
+      "files": ["packages/qwik/src/server/**/*.ts"],
       "rules": {
         "no-restricted-imports": [
           "error",
           {
             "patterns": [
               {
-                "group": [
-                  "packages/*"
-                ],
+                "group": ["packages/*"],
                 "message": "Absolute imports are not allowed."
               },
               {
-                "group": [
-                  "../**"
-                ],
+                "group": ["../**"],
                 "message": "Relative imports are not allowed."
               }
             ]
@@ -96,33 +76,25 @@
       }
     },
     {
-      "files": [
-        "packages/qwik/src/server/qwik-copy.ts"
-      ],
+      "files": ["packages/qwik/src/server/qwik-copy.ts"],
       "rules": {
         "no-restricted-imports": "off"
       }
     },
     {
-      "files": [
-        "packages/qwik/src/server/qwik-types.ts"
-      ],
+      "files": ["packages/qwik/src/server/qwik-types.ts"],
       "rules": {
         "no-restricted-imports": [
           "error",
           {
             "patterns": [
               {
-                "group": [
-                  "packages/*"
-                ],
+                "group": ["packages/*"],
                 "message": "Absolute imports are not allowed.",
                 "allowTypeImports": true
               },
               {
-                "group": [
-                  "../**"
-                ],
+                "group": ["../**"],
                 "message": "Relative imports are not allowed.",
                 "allowTypeImports": true
               }

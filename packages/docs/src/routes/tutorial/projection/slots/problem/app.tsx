@@ -6,7 +6,12 @@ export default component$(() => {
     <Collapsable>
       <div q:slot="closed">▶ (collapsed summary)</div>
       <div q:slot="open">
-        ▼<div> Content that should be displayed when the collapse component is open. </div>
+        ▼
+        <div>
+          {' '}
+          Content that should be displayed when the collapse component is
+          open.{' '}
+        </div>
       </div>
     </Collapsable>
   );

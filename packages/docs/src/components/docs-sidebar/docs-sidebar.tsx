@@ -1,5 +1,10 @@
 import { component$ } from '@qwik.dev/core';
-import { Link, useContent, useLocation, type ContentMenu } from '@qwik.dev/router';
+import {
+  Link,
+  useContent,
+  useLocation,
+  type ContentMenu,
+} from '@qwik.dev/router';
 import { lucide } from '@qds.dev/ui';
 import { hideSidebarOnDismissClick } from '../sidebar-overlay/sidebar-overlay';
 
@@ -24,7 +29,12 @@ export const DocsSidebar = component$(() => {
         class="absolute inset-y-4 left-4 flex w-[287px] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-y-auto rounded-2xl border-[1.6px] border-base bg-background-base px-4 py-6 shadow-base [scrollbar-gutter:stable] -translate-x-[calc(100%+2rem)] transition-transform duration-300 ease group-open/sidebar:translate-x-0 starting:group-open/sidebar:-translate-x-[calc(100%+2rem)] xl:static xl:h-full xl:max-w-none xl:rounded-none xl:border-0 xl:border-r-[1.6px] xl:shadow-none xl:translate-x-0"
       >
         <div class="flex items-center justify-between">
-          <Link href="/" aria-label="Qwik Home" prefetchBundles="intent" prefetchData="intent">
+          <Link
+            href="/"
+            aria-label="Qwik Home"
+            prefetchBundles="intent"
+            prefetchData="intent"
+          >
             <QwikLogomark />
           </Link>
           <button
@@ -60,7 +70,9 @@ export const DocsSidebar = component$(() => {
 
           {guideSections.length > 0 && (
             <section>
-              <h2 class="p-2 text-[16px] font-bold leading-[22px] text-foreground-base">Guides</h2>
+              <h2 class="p-2 text-[16px] font-bold leading-[22px] text-foreground-base">
+                Guides
+              </h2>
               <div class="flex flex-col gap-0.5">
                 {guideSections.map((section, index) => (
                   <MenuSection
@@ -80,14 +92,21 @@ export const DocsSidebar = component$(() => {
 });
 
 const MenuSection = component$(
-  (props: { section: ContentMenu; pathname: string; initiallyOpen: boolean }) => {
+  (props: {
+    section: ContentMenu;
+    pathname: string;
+    initiallyOpen: boolean;
+  }) => {
     if (!props.section.items?.length) {
       return null;
     }
 
     return (
       <details
-        open={props.initiallyOpen || containsActiveLink(props.section, props.pathname)}
+        open={
+          props.initiallyOpen ||
+          containsActiveLink(props.section, props.pathname)
+        }
         class="group"
       >
         <summary class="flex cursor-pointer list-none items-center justify-between rounded-lg p-2 text-[16px] font-semibold leading-[22px] text-foreground-muted hover:text-standalone-accent [&::-webkit-details-marker]:hidden">
@@ -100,7 +119,11 @@ const MenuSection = component$(
         <div class="flex flex-col gap-0.5">
           {props.section.items.map((item) =>
             item.items?.length ? (
-              <MenuSubsection key={item.text} section={item} pathname={props.pathname} />
+              <MenuSubsection
+                key={item.text}
+                section={item}
+                pathname={props.pathname}
+              />
             ) : (
               <MenuLink
                 key={item.href}
@@ -116,36 +139,46 @@ const MenuSection = component$(
   }
 );
 
-const MenuSubsection = component$((props: { section: ContentMenu; pathname: string }) => {
-  if (!props.section.items?.length) {
-    return null;
-  }
+const MenuSubsection = component$(
+  (props: { section: ContentMenu; pathname: string }) => {
+    if (!props.section.items?.length) {
+      return null;
+    }
 
-  return (
-    <details open={containsActiveLink(props.section, props.pathname)} class="group/subsection">
-      <summary class="flex cursor-pointer list-none items-center justify-between rounded-lg py-2 pl-6 pr-2 text-[16px] font-semibold leading-[22px] text-foreground-muted hover:text-standalone-accent [&::-webkit-details-marker]:hidden">
-        <span class="flex items-center gap-2">
-          <SubsectionIcon name={props.section.text} />
-          <span>{props.section.text}</span>
-        </span>
-        <lucide.chevronright class="size-4 shrink-0 transition-transform duration-200 group-open/subsection:rotate-90" />
-      </summary>
-      <div class="flex flex-col gap-0.5">
-        {props.section.items.map((item) => (
-          <MenuLink
-            key={item.href}
-            item={item}
-            pathname={props.pathname}
-            paddingClass="pl-10 pr-2"
-          />
-        ))}
-      </div>
-    </details>
-  );
-});
+    return (
+      <details
+        open={containsActiveLink(props.section, props.pathname)}
+        class="group/subsection"
+      >
+        <summary class="flex cursor-pointer list-none items-center justify-between rounded-lg py-2 pl-6 pr-2 text-[16px] font-semibold leading-[22px] text-foreground-muted hover:text-standalone-accent [&::-webkit-details-marker]:hidden">
+          <span class="flex items-center gap-2">
+            <SubsectionIcon name={props.section.text} />
+            <span>{props.section.text}</span>
+          </span>
+          <lucide.chevronright class="size-4 shrink-0 transition-transform duration-200 group-open/subsection:rotate-90" />
+        </summary>
+        <div class="flex flex-col gap-0.5">
+          {props.section.items.map((item) => (
+            <MenuLink
+              key={item.href}
+              item={item}
+              pathname={props.pathname}
+              paddingClass="pl-10 pr-2"
+            />
+          ))}
+        </div>
+      </details>
+    );
+  }
+);
 
 const MenuLink = component$(
-  (props: { item: ContentMenu; pathname: string; paddingClass: string; introIcon?: boolean }) => {
+  (props: {
+    item: ContentMenu;
+    pathname: string;
+    paddingClass: string;
+    introIcon?: boolean;
+  }) => {
     if (!props.item.href) {
       return null;
     }
@@ -235,7 +268,13 @@ const SubsectionIcon = component$((props: { name: string }) => {
 });
 
 const QwikLogomark = component$(() => (
-  <svg width="25" height="27" viewBox="0 0 47 53" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="25"
+    height="27"
+    viewBox="0 0 47 53"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <path
       d="M40.973 52.5351L32.0861 43.6985L31.9503 43.7179V43.621L13.0511 24.9595L17.708 20.4637L14.9721 4.76715L1.99103 20.8513C-0.220992 23.0798 -0.628467 26.7036 0.962635 29.3778L9.07337 42.8265C10.3152 44.9 12.566 46.1402 14.9915 46.1208L19.0081 46.082L40.973 52.5351Z"
       fill="#18B6F6"

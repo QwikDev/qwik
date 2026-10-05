@@ -1,9 +1,4 @@
-import {
-  component$,
-  Pending,
-  useSignal,
-  type JSXOutput,
-} from '@qwik.dev/core';
+import { component$, Pending, useSignal, type JSXOutput } from '@qwik.dev/core';
 
 const AsyncMessage = component$(() => {
   const content = new Promise<JSXOutput>((resolve) => {

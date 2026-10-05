@@ -41,7 +41,11 @@ function readFile(path: string) {
 }
 
 function findCodeSandboxes(
-  codeSandboxTransformFn: (mdxPath: string, srcPath: string, lines: string[]) => string[],
+  codeSandboxTransformFn: (
+    mdxPath: string,
+    srcPath: string,
+    lines: string[]
+  ) => string[],
   mdxPath: string,
   lines: string[]
 ): string[] {
@@ -49,7 +53,9 @@ function findCodeSandboxes(
   for (let lineNo = 0; lineNo < lines.length; lineNo++) {
     const line = lines[lineNo];
     newLines.push(line);
-    const match = line.match(/(.*)<(CodeSandbox|CodeFile) src=["']([^"']*)["'].*>$/);
+    const match = line.match(
+      /(.*)<(CodeSandbox|CodeFile) src=["']([^"']*)["'].*>$/
+    );
     if (match) {
       const [, prefix, tag, srcPath] = match;
       const content: string[] = [];

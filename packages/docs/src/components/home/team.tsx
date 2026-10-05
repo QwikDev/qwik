@@ -77,7 +77,10 @@ const AvatarStack = ({ logins, size }: AvatarStackProps) => {
               alt=""
               loading="lazy"
               decoding="async"
-              class={['rounded-full border-background-base bg-background-accent', image]}
+              class={[
+                'rounded-full border-background-base bg-background-accent',
+                image,
+              ]}
             />
             <span
               aria-hidden="true"
@@ -101,7 +104,10 @@ export const Team = component$(() => {
       <div class="absolute -z-2 inset-0 bg-hero-gradient-blue opacity-50" />
       <div class="flex flex-col gap-10 max-w-fit">
         <div class="relative w-fit">
-          <h2 id="team-heading" class="relative z-2 font-heading 2xl:text-h3 text-[28px]">
+          <h2
+            id="team-heading"
+            class="relative z-2 font-heading 2xl:text-h3 text-[28px]"
+          >
             <span class="bg-secondary-background-base mb-2 block w-fit shadow-primary-accent">
               Built by
             </span>
@@ -113,7 +119,8 @@ export const Team = component$(() => {
         </div>
         <p class="max-w-[50ch]">
           <span class="shadow-sm-base 2xl:text-body-md text-body-sm">
-            Qwik is open source. A core team maintains it, with help from hundreds of contributors.
+            Qwik is open source. A core team maintains it, with help from
+            hundreds of contributors.
           </span>
         </p>
       </div>

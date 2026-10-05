@@ -14,12 +14,17 @@ import { setReplCorsHeaders } from '~/utils/utils';
 import { Header } from '../../components/header/header';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import { Repl } from '../../repl/ui';
-import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/ui/repl-share-url';
+import {
+  createPlaygroundShareUrl,
+  parsePlaygroundShareUrl,
+} from '../../repl/ui/repl-share-url';
 import styles from './playground.css?inline';
 
 export default component$(() => {
   useStyles$(styles);
-  const shareUrlTmr = useSignal<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const shareUrlTmr = useSignal<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   const store = useStore<ReplAppInput>(() => ({
     files: playgroundApp.inputs,

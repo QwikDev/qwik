@@ -15,7 +15,10 @@ export default component$(() => {
       <button
         onClick$={() => {
           // @ts-ignore
-          const id = setInterval(() => (store.time = new Date().toString()), 1000);
+          const id = setInterval(
+            () => (store.time = new Date().toString()),
+            1000
+          );
           // assign a cleanup function to: store.cleanup
         }}
       >

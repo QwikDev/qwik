@@ -1,4 +1,9 @@
-import { component$, useSignal, useComputed$, useStyles$ } from '@qwik.dev/core';
+import {
+  component$,
+  useSignal,
+  useComputed$,
+  useStyles$,
+} from '@qwik.dev/core';
 import { _dumpState, _preprocessState } from '@qwik.dev/core/internal';
 import type { DocumentHead } from '@qwik.dev/router';
 
@@ -116,8 +121,12 @@ export default component$(() => {
               </svg>
             </div>
             <div>
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Input State</h2>
-              <p class="text-sm text-gray-600 dark:text-gray-300">Paste your Qwik state data</p>
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Input State
+              </h2>
+              <p class="text-sm text-gray-600 dark:text-gray-300">
+                Paste your Qwik state data
+              </p>
             </div>
           </div>
         </div>
@@ -152,7 +161,9 @@ export default component$(() => {
                 </svg>
               </div>
               <div>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Parsed State</h2>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  Parsed State
+                </h2>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
                   Formatted and syntax-highlighted output
                 </p>

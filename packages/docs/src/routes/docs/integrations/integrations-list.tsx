@@ -4,7 +4,9 @@ import { Link, useContent } from '@qwik.dev/router';
 export const IntegrationsList = component$(() => {
   const { menu } = useContent();
 
-  const integrations = menu?.items?.find((item) => item.text === 'Integrations')?.items;
+  const integrations = menu?.items?.find(
+    (item) => item.text === 'Integrations'
+  )?.items;
 
   return (
     <ul>

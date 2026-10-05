@@ -18,7 +18,10 @@ import type {
 } from './bundler/repl-ssr-worker';
 import ssrWorkerUrl from './bundler/repl-ssr-worker?worker&url';
 import listenerScript from './bundler/client-events-listener?compiled-string';
-import { createPreviewStyleInjector, injectPreviewStyle } from './repl-preview-html';
+import {
+  createPreviewStyleInjector,
+  injectPreviewStyle,
+} from './repl-preview-html';
 
 const isPreviewHtmlRequest = (url: string) => {
   const match = url.match(/\/repl\/client\/[a-z0-9]+\/(.*)/);
@@ -169,7 +172,10 @@ export class ReplInstance {
           requestId,
           body: errorHtml((e as Error).message, 'REPL'),
         });
-        channel!.postMessage({ type: 'repl-stream-end', requestId } as StreamEndMessage);
+        channel!.postMessage({
+          type: 'repl-stream-end',
+          requestId,
+        } as StreamEndMessage);
       });
       return;
     }
@@ -181,7 +187,11 @@ export class ReplInstance {
     });
     const status = fileContent === null ? 404 : error ? 500 : 200;
     const statusText =
-      status === 200 ? 'OK' : status === 404 ? 'Not Found' : 'Internal Server Error';
+      status === 200
+        ? 'OK'
+        : status === 404
+          ? 'Not Found'
+          : 'Internal Server Error';
     const headers: Record<string, string> = {
       'Cache-Control': 'no-store, no-cache, max-age=0',
       // Needed for SharedArrayBuffer
@@ -253,7 +263,10 @@ export class ReplInstance {
       requestId,
       body: `<script>${listenerScript}</script>`,
     });
-    channel!.postMessage({ type: 'repl-stream-end', requestId } as StreamEndMessage);
+    channel!.postMessage({
+      type: 'repl-stream-end',
+      requestId,
+    } as StreamEndMessage);
 
     if (this.lastResult) {
       this.lastResult.html = ssrResult.html;
@@ -328,7 +341,10 @@ export class ReplInstance {
       await ssrPromise.catch(() => {});
       if (this.lastResult.html) {
         // Inject the event listener script
-        return injectPreviewStyle(this.lastResult.html) + `<script>${listenerScript}</script>`;
+        return (
+          injectPreviewStyle(this.lastResult.html) +
+          `<script>${listenerScript}</script>`
+        );
       }
       return errorHtml('No HTML generated', 'REPL');
     }
@@ -356,7 +372,9 @@ export class ReplInstance {
     }
     if (!this._ssrWorkerP || this._ssrKey !== key) {
       if (this._ssrWorkerP) {
-        this.resolvePendingSsrRequests(errorHtml('SSR worker replaced by a newer build', 'SSR'));
+        this.resolvePendingSsrRequests(
+          errorHtml('SSR worker replaced by a newer build', 'SSR')
+        );
         await this._ssrWorkerP.then((w) => w.terminate());
       }
       // Start from /repl so repl-sw can intercept the requests
@@ -402,11 +420,17 @@ export class ReplInstance {
       };
 
       ssrWorker.onerror = (event) => {
-        const location = event.filename ? `\n${event.filename}:${event.lineno}:${event.colno}` : '';
-        const error = new Error((event.message || 'SSR worker failed to load') + location);
+        const location = event.filename
+          ? `\n${event.filename}:${event.lineno}:${event.colno}`
+          : '';
+        const error = new Error(
+          (event.message || 'SSR worker failed to load') + location
+        );
         console.error('SSR worker failed', event.error || error);
         rejectWorker(error);
-        this.resolvePendingSsrRequests(errorHtml(event.error?.stack || error.message, 'SSR'));
+        this.resolvePendingSsrRequests(
+          errorHtml(event.error?.stack || error.message, 'SSR')
+        );
         ssrWorker.terminate();
         this._ssrWorkerP = null;
       };
@@ -417,9 +441,13 @@ export class ReplInstance {
     result: ReplResult,
     onChunk?: (html: string) => void
   ): Promise<{ html: string; events?: any[] }> {
-    const entryModule = result.ssrModules.find((m) => m.path.includes('entry.server'));
+    const entryModule = result.ssrModules.find((m) =>
+      m.path.includes('entry.server')
+    );
     if (!entryModule || typeof entryModule.code !== 'string') {
-      return { html: result.html || errorHtml('No SSR entry module found', 'SSR') };
+      return {
+        html: result.html || errorHtml('No SSR entry module found', 'SSR'),
+      };
     }
     try {
       const ssrWorker = await this.getSsrWorker(result);

@@ -48,7 +48,10 @@ export const getNpmCdnUrl = (
     if (pkgVersion < '2') {
       pkgName = '@builder.io/qwik';
       compat = true;
-    } else if (pkgVersion.startsWith('2.0.0-') && Number(pkgVersion.split('.').slice(-1)[0]) < 30) {
+    } else if (
+      pkgVersion.startsWith('2.0.0-') &&
+      Number(pkgVersion.split('.').slice(-1)[0]) < 30
+    ) {
       pkgName = '@qwik.dev/core';
       compat = true;
     }
@@ -88,7 +91,8 @@ export const getDeps = (qwikVersion: string) => {
   const out = { ...bundled };
   if (qwikVersion !== 'bundled') {
     const [M, m, p] = qwikVersion.split('-')[0].split('.').map(Number);
-    const prefix = M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2))) ? '/dist/' : '/';
+    const prefix =
+      M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2))) ? '/dist/' : '/';
     const isV2 = qwikVersion >= '2';
     const pkgName = isV2 ? QWIK_PKG_NAME_V2 : QWIK_PKG_NAME_V1;
     out[QWIK_PKG_NAME_V1] = {

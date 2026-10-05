@@ -1,4 +1,10 @@
-import { $, component$, useOnDocument, useSignal, useStyles$ } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  useOnDocument,
+  useSignal,
+  useStyles$,
+} from '@qwik.dev/core';
 import { Link, useContent, useLocation } from '@qwik.dev/router';
 import styles from './on-this-page.css?inline';
 import { OnThisPageMore } from './on-this-page-more';
@@ -162,7 +168,10 @@ export const OnThisPage = component$(() => {
             <h6>On this page</h6>
             <ul>
               {contentHeadings.map((h) => (
-                <li key={h.id} style={{ paddingLeft: h.level > 2 ? '16px' : undefined }}>
+                <li
+                  key={h.id}
+                  style={{ paddingLeft: h.level > 2 ? '16px' : undefined }}
+                >
                   {activeId.value === h.id ? (
                     <span class="on-this-page-item-active">{h.text}</span>
                   ) : (

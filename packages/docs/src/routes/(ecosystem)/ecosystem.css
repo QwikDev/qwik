@@ -60,8 +60,13 @@
 .moblie-ecosystem-menu summary,
 .moblie-ecosystem-menu ul {
   background:
-    linear-gradient(var(--color-background-base), var(--color-background-base)) padding-box,
-    linear-gradient(to bottom, var(--color-primary-border-base), var(--color-border-accent))
+    linear-gradient(var(--color-background-base), var(--color-background-base))
+      padding-box,
+    linear-gradient(
+        to bottom,
+        var(--color-primary-border-base),
+        var(--color-border-accent)
+      )
       border-box;
 }
 
@@ -77,7 +82,8 @@
   content: '';
   border-width: 0.4rem;
   border-style: solid;
-  border-color: transparent transparent transparent var(--color-primary-border-base);
+  border-color: transparent transparent transparent
+    var(--color-primary-border-base);
   position: absolute;
   top: 1.3rem;
   left: 1rem;
@@ -154,8 +160,13 @@
   position: relative;
 
   background:
-    linear-gradient(var(--color-background-base), var(--color-background-base)) padding-box,
-    linear-gradient(to bottom, var(--color-primary-border-base), var(--color-border-accent))
+    linear-gradient(var(--color-background-base), var(--color-background-base))
+      padding-box,
+    linear-gradient(
+        to bottom,
+        var(--color-primary-border-base),
+        var(--color-border-accent)
+      )
       border-box;
   border-radius: 5px;
   border: 1px solid transparent;

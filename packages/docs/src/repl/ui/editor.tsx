@@ -53,7 +53,8 @@ export const Editor = component$((props: EditorProps) => {
     const editorTheme = track(() => props.editorTheme);
     const theme = track(globalStore, 'theme');
     const monaco = await getMonaco();
-    const syncTheme = () => monaco.editor.setTheme(getEditorTheme(editorTheme ?? theme));
+    const syncTheme = () =>
+      monaco.editor.setTheme(getEditorTheme(editorTheme ?? theme));
     const observer = new MutationObserver(syncTheme);
     observer.observe(document.documentElement, {
       attributes: true,

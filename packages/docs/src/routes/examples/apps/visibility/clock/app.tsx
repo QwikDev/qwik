@@ -1,4 +1,9 @@
-import { component$, useStore, useStyles$, useVisibleTask$ } from '@qwik.dev/core';
+import {
+  component$,
+  useStore,
+  useStyles$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
 import styles from './clock.css?inline';
 
 export default component$(() => {
@@ -8,7 +13,8 @@ export default component$(() => {
   return (
     <div>
       <p onClick$={() => console.log('test')}>
-        This is an example of Lazy executing code on component when component becomes visible.
+        This is an example of Lazy executing code on component when component
+        becomes visible.
       </p>
 
       <p>
@@ -55,8 +61,14 @@ export const Clock = component$(() => {
       <div class="six"></div>
       <div class="nine"></div>
       <div class="hour" style={{ transform: `rotate(${store.hour}deg)` }}></div>
-      <div class="minute" style={{ transform: `rotate(${store.minute}deg)` }}></div>
-      <div class="second" style={{ transform: `rotate(${store.second}deg)` }}></div>
+      <div
+        class="minute"
+        style={{ transform: `rotate(${store.minute}deg)` }}
+      ></div>
+      <div
+        class="second"
+        style={{ transform: `rotate(${store.second}deg)` }}
+      ></div>
     </div>
   );
 });

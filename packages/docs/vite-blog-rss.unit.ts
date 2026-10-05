@@ -25,7 +25,11 @@ function createTemporaryArticlesDir() {
   return directory;
 }
 
-function writeArticle(directory: string, relativePath: string, frontmatter: string) {
+function writeArticle(
+  directory: string,
+  relativePath: string,
+  frontmatter: string
+) {
   const file = path.join(directory, relativePath);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, `---\n${frontmatter}\n---\n\nArticle body\n`);
@@ -33,9 +37,9 @@ function writeArticle(directory: string, relativePath: string, frontmatter: stri
 
 describe('blog RSS generation', () => {
   test('converts pathless route groups into public blog paths', () => {
-    expect(fileToBlogPath(path.join('nested', '(articles)', 'post', 'index.mdx'))).toBe(
-      '/blog/nested/post/'
-    );
+    expect(
+      fileToBlogPath(path.join('nested', '(articles)', 'post', 'index.mdx'))
+    ).toBe('/blog/nested/post/');
   });
 
   test('escapes XML text and attributes', () => {
@@ -47,7 +51,11 @@ describe('blog RSS generation', () => {
 
   test('uses canonical URLs and falls back to the generated route', () => {
     const canonical = parseBlogArticle(
-      { title: 'Canonical', date: '2026-01-02', canonical: 'https://example.com/post' },
+      {
+        title: 'Canonical',
+        date: '2026-01-02',
+        canonical: 'https://example.com/post',
+      },
       '/blog/post/',
       'https://qwik.dev'
     );
@@ -62,11 +70,18 @@ describe('blog RSS generation', () => {
   });
 
   test('skips articles without a valid title or date', () => {
-    expect(parseBlogArticle({ title: 'Missing date' }, '/blog/missing/')).toBeNull();
     expect(
-      parseBlogArticle({ title: 'Invalid date', date: 'not-a-date' }, '/blog/invalid/')
+      parseBlogArticle({ title: 'Missing date' }, '/blog/missing/')
     ).toBeNull();
-    expect(parseBlogArticle({ date: '2026-01-02' }, '/blog/missing-title/')).toBeNull();
+    expect(
+      parseBlogArticle(
+        { title: 'Invalid date', date: 'not-a-date' },
+        '/blog/invalid/'
+      )
+    ).toBeNull();
+    expect(
+      parseBlogArticle({ date: '2026-01-02' }, '/blog/missing-title/')
+    ).toBeNull();
   });
 
   test('normalizes timezone-free calendar dates to UTC', () => {
@@ -102,10 +117,17 @@ describe('blog RSS generation', () => {
       path.join('newer', 'index.mdx'),
       "title: Newer\nauthors:\n  - A\n  - B\ndate: 'January 1, 2025'\ndescription: A summary"
     );
-    writeArticle(directory, path.join('invalid', 'index.mdx'), "title: Invalid\ndate: 'unknown'");
+    writeArticle(
+      directory,
+      path.join('invalid', 'index.mdx'),
+      "title: Invalid\ndate: 'unknown'"
+    );
 
     const articles = readBlogArticles(directory, 'https://qwik.dev');
-    expect(articles.map((article) => article.title)).toEqual(['Newer', 'Older']);
+    expect(articles.map((article) => article.title)).toEqual([
+      'Newer',
+      'Older',
+    ]);
     expect(articles[0]).toMatchObject({
       authors: ['A', 'B'],
       description: 'A summary',
@@ -141,14 +163,23 @@ describe('blog RSS generation', () => {
     expect(feed).toContain('<dc:creator>A &lt;B&gt;</dc:creator>');
     expect(feed).toContain('<category>News</category>');
     expect(feed).toContain('<guid isPermaLink="false">qwik-blog:older</guid>');
-    expect(feed).toContain('<guid isPermaLink="true">https://qwik.dev/blog/newest/</guid>');
+    expect(feed).toContain(
+      '<guid isPermaLink="true">https://qwik.dev/blog/newest/</guid>'
+    );
     expect(feed).toContain('type="application/rss+xml"');
-    expect(renderRssFeed([], 'https://qwik.dev')).not.toContain('<lastBuildDate>');
+    expect(renderRssFeed([], 'https://qwik.dev')).not.toContain(
+      '<lastBuildDate>'
+    );
   });
 
   test('emits the feed only for the client environment', () => {
     const routesDirectory = createTemporaryArticlesDir();
-    const articlesDirectory = path.join(routesDirectory, '(blog)', 'blog', '(articles)');
+    const articlesDirectory = path.join(
+      routesDirectory,
+      '(blog)',
+      'blog',
+      '(articles)'
+    );
     writeArticle(
       articlesDirectory,
       path.join('post', 'index.mdx'),
@@ -177,6 +208,11 @@ describe('blog RSS generation', () => {
         throw new Error('RSS should not be emitted by server builds');
       },
     };
-    plugin.generateBundle.call(serverContext as any, {} as any, {} as any, false);
+    plugin.generateBundle.call(
+      serverContext as any,
+      {} as any,
+      {} as any,
+      false
+    );
   });
 });

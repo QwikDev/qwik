@@ -19,7 +19,8 @@ export const ReplConsole = component$(({ store }: ReplConsoleProps) => {
         <div class="console-empty-state">
           <p class="console-empty-title">No console activity yet</p>
           <p class="console-empty-copy">
-            Interact with the app or trigger a render to see client and SSR messages here.
+            Interact with the app or trigger a render to see client and SSR
+            messages here.
           </p>
         </div>
       ) : (
@@ -35,7 +36,9 @@ export const ReplConsole = component$(({ store }: ReplConsoleProps) => {
 
 export function ReplLog({ entry }: { entry: ConsoleEntry }) {
   if (entry.type === 'linked-console') {
-    const elapsed = entry.value.end ? renderElapsed(entry.value.end - entry.value.start) : '';
+    const elapsed = entry.value.end
+      ? renderElapsed(entry.value.end - entry.value.start)
+      : '';
 
     return (
       <article
@@ -48,14 +51,18 @@ export function ReplLog({ entry }: { entry: ConsoleEntry }) {
         <div class="console-log-linked-block">
           <div class="console-log-inline console-log-linked-source">
             <span class="console-source-meta">from</span>
-            <code class="console-context-value">{basename(entry.source.message.join(' '))}</code>
+            <code class="console-context-value">
+              {basename(entry.source.message.join(' '))}
+            </code>
           </div>
           <div class="console-log-inline console-log-linked-message">
             <span class={['console-platform', entry.value.scope]}>
               {getScopeLabel(entry.value.scope)}
             </span>
             {entry.value.kind !== 'console-log' ? (
-              <span class="console-kind-badge">{getConsoleKindLabel(entry.value.kind)}</span>
+              <span class="console-kind-badge">
+                {getConsoleKindLabel(entry.value.kind)}
+              </span>
             ) : null}
             <span class="console-message-inline console-message-linked-value">
               {renderConsoleMessage(entry.value.message)}
@@ -77,22 +84,38 @@ export function ReplLog({ entry }: { entry: ConsoleEntry }) {
   switch (log.kind) {
     case 'pause':
       return (
-        <article class={['console-log-entry', 'console-log-state', 'console-log-paused']}>
+        <article
+          class={[
+            'console-log-entry',
+            'console-log-state',
+            'console-log-paused',
+          ]}
+        >
           <div class="console-log-inline">
             <span class={['console-platform', 'ssr']}>SSR</span>
             <span class="console-kind-badge">Paused</span>
-            <span class="console-message-inline">Execution paused in the server render.</span>
+            <span class="console-message-inline">
+              Execution paused in the server render.
+            </span>
           </div>
         </article>
       );
 
     case 'resume':
       return (
-        <article class={['console-log-entry', 'console-log-state', 'console-log-resumed']}>
+        <article
+          class={[
+            'console-log-entry',
+            'console-log-state',
+            'console-log-resumed',
+          ]}
+        >
           <div class="console-log-inline">
             <span class={['console-platform', 'client']}>Client</span>
             <span class="console-kind-badge">Resumed</span>
-            <span class="console-message-inline">Execution resumed in the client.</span>
+            <span class="console-message-inline">
+              Execution resumed in the client.
+            </span>
             {elapsed ? <span class="console-elapsed">{elapsed}</span> : null}
           </div>
         </article>
@@ -111,11 +134,17 @@ export function ReplLog({ entry }: { entry: ConsoleEntry }) {
           ]}
         >
           <div class="console-log-inline">
-            <span class={['console-platform', log.scope]}>{getScopeLabel(log.scope)}</span>
+            <span class={['console-platform', log.scope]}>
+              {getScopeLabel(log.scope)}
+            </span>
             {log.kind !== 'console-log' ? (
-              <span class="console-kind-badge">{getConsoleKindLabel(log.kind)}</span>
+              <span class="console-kind-badge">
+                {getConsoleKindLabel(log.kind)}
+              </span>
             ) : null}
-            <span class="console-message-inline">{renderConsoleMessage(log.message)}</span>
+            <span class="console-message-inline">
+              {renderConsoleMessage(log.message)}
+            </span>
             {elapsed ? <span class="console-elapsed">{elapsed}</span> : null}
           </div>
         </article>
@@ -125,9 +154,13 @@ export function ReplLog({ entry }: { entry: ConsoleEntry }) {
       return (
         <article class={['console-log-entry', 'console-log-symbol']}>
           <div class="console-log-inline">
-            <span class={['console-platform', log.scope]}>{getScopeLabel(log.scope)}</span>
+            <span class={['console-platform', log.scope]}>
+              {getScopeLabel(log.scope)}
+            </span>
             <span class="console-kind-badge">Symbol</span>
-            <code class="console-context-value">{basename(log.message.join(' '))}</code>
+            <code class="console-context-value">
+              {basename(log.message.join(' '))}
+            </code>
           </div>
         </article>
       );
@@ -136,7 +169,9 @@ export function ReplLog({ entry }: { entry: ConsoleEntry }) {
       return (
         <article class={['console-log-entry', 'console-log-prefetch']}>
           <div class="console-log-inline">
-            <span class={['console-platform', log.scope]}>{getScopeLabel(log.scope)}</span>
+            <span class={['console-platform', log.scope]}>
+              {getScopeLabel(log.scope)}
+            </span>
             <span class="console-kind-badge">Prefetch</span>
             <span class="console-message-inline">{log.message.join(' ')}</span>
           </div>
@@ -147,9 +182,13 @@ export function ReplLog({ entry }: { entry: ConsoleEntry }) {
       return (
         <article class={['console-log-entry', 'console-log-module']}>
           <div class="console-log-inline">
-            <span class={['console-platform', log.scope]}>{getScopeLabel(log.scope)}</span>
+            <span class={['console-platform', log.scope]}>
+              {getScopeLabel(log.scope)}
+            </span>
             <span class="console-kind-badge">Module</span>
-            <code class="console-context-value">{basename(log.message.join(' '))}</code>
+            <code class="console-context-value">
+              {basename(log.message.join(' '))}
+            </code>
           </div>
         </article>
       );
@@ -165,7 +204,12 @@ function renderConsoleMessage(texts: string[]) {
   for (let i = 0; i < texts.length; i++) {
     const msg = texts[i];
     if (msg.startsWith(styleprefix)) {
-      nodes.push(jsx('span', { style: texts[i + 1], children: msg.slice(styleprefix.length) }));
+      nodes.push(
+        jsx('span', {
+          style: texts[i + 1],
+          children: msg.slice(styleprefix.length),
+        })
+      );
       i++;
     } else {
       nodes.push(i === 0 ? msg : ` ${msg}`);

@@ -1,4 +1,11 @@
-import { $, Slot, component$, isBrowser, useContext, useSignal } from '@qwik.dev/core';
+import {
+  $,
+  Slot,
+  component$,
+  isBrowser,
+  useContext,
+  useSignal,
+} from '@qwik.dev/core';
 import { tabs, lucide, devicon } from '@qds.dev/ui';
 import { GlobalStore } from '../../context';
 
@@ -15,7 +22,8 @@ const setPreference = (value: PkgManagers) => {
 
 export const getPkgManagerPreference = () => {
   try {
-    return (localStorage.getItem(pkgManagerStorageKey) || 'pnpm') as PkgManagers;
+    return (localStorage.getItem(pkgManagerStorageKey) ||
+      'pnpm') as PkgManagers;
   } catch (err) {
     return 'pnpm';
   }
@@ -82,7 +90,9 @@ const CopyButton = component$(() => {
     <button
       onClick$={copyToClipboard$}
       class="absolute right-4 top-4 cursor-pointer"
-      aria-label={isClickedSig.value ? 'Copied to clipboard' : 'Copy to clipboard'}
+      aria-label={
+        isClickedSig.value ? 'Copied to clipboard' : 'Copy to clipboard'
+      }
       title={isClickedSig.value ? 'Copied!' : 'Copy to clipboard'}
     >
       {isClickedSig.value ? (

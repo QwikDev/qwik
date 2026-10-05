@@ -1,4 +1,8 @@
-import { rolldown, type OutputAsset, type OutputChunk } from '@rolldown/browser';
+import {
+  rolldown,
+  type OutputAsset,
+  type OutputChunk,
+} from '@rolldown/browser';
 // Browser builds of the TS optimizer's runtime deps, bundled into this worker by vite.
 // Rolldown embeds the same oxc version, so reusing its parser saves 4.5MB of extra wasm.
 // `/experimental` re-exports these as deprecated aliases; move to `/utils` once that
@@ -8,7 +12,12 @@ import * as oxcWalker from 'oxc-walker';
 import * as magicRegexp from 'magic-regexp';
 import * as magicString from 'magic-string';
 import * as pathe from 'pathe';
-import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
+import type {
+  PkgUrls,
+  ReplInputOptions,
+  ReplModuleOutput,
+  ReplResult,
+} from '../types';
 import {
   definesPlugin,
   replCss,
@@ -81,7 +90,11 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
         };
         self.postMessage(message);
       } catch (error) {
-        console.error(`Bundler worker for %s failed`, deps[QWIK_PKG_NAME_V1].version, error);
+        console.error(
+          `Bundler worker for %s failed`,
+          deps[QWIK_PKG_NAME_V1].version,
+          error
+        );
         const message: ErrorMessage = {
           type: 'error',
           buildId: e.data.buildId,
@@ -105,7 +118,10 @@ let version: number[];
  * and the fetched code's import specifiers are rewritten to those Blob URLs before importing.
  */
 const shimUrls = new Map<string, string>();
-function getDepShimUrl(specifier: string, mod: Record<string, unknown>): string {
+function getDepShimUrl(
+  specifier: string,
+  mod: Record<string, unknown>
+): string {
   let url = shimUrls.get(specifier);
   if (url) {
     return url;
@@ -120,7 +136,9 @@ function getDepShimUrl(specifier: string, mod: Record<string, unknown>): string 
       lines.push(`export const ${name} = m[${JSON.stringify(name)}];`);
     }
   }
-  url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/javascript' }));
+  url = URL.createObjectURL(
+    new Blob([lines.join('\n')], { type: 'text/javascript' })
+  );
   shimUrls.set(specifier, url);
   return url;
 }
@@ -146,7 +164,9 @@ async function loadTsOptimizer(url: string) {
       () => `from ${JSON.stringify(getDepShimUrl(specifier, mod))}`
     );
   }
-  const blobUrl = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+  const blobUrl = URL.createObjectURL(
+    new Blob([code], { type: 'text/javascript' })
+  );
   try {
     return await import(/* @vite-ignore */ blobUrl);
   } finally {
@@ -167,24 +187,33 @@ async function loadOptimizer() {
       qwikOptimizerModule = await loadTsOptimizer(tsOptimizerUrl);
       tsOptimizerLoaded = true;
     } catch (e) {
-      console.warn(`ts-optimizer not loadable for ${qwikDeps.version}, using Rust wasm`, e);
+      console.warn(
+        `ts-optimizer not loadable for ${qwikDeps.version}, using Rust wasm`,
+        e
+      );
     }
   }
   if (!tsOptimizerLoaded) {
     const optimizerDeps = deps['@qwik.dev/optimizer'];
-    const wasmLoader = await import(/* @vite-ignore */ optimizerDeps['/bindings/qwik.wasm.mjs']);
-
-    const wasmBuffer = await fetch(optimizerDeps['/bindings/qwik_wasm_bg.wasm']).then((r) =>
-      r.arrayBuffer()
+    const wasmLoader = await import(
+      /* @vite-ignore */ optimizerDeps['/bindings/qwik.wasm.mjs']
     );
+
+    const wasmBuffer = await fetch(
+      optimizerDeps['/bindings/qwik_wasm_bg.wasm']
+    ).then((r) => r.arrayBuffer());
     const wasm = await WebAssembly.compile(wasmBuffer);
     await wasmLoader.default(wasm);
     binding = wasmLoader;
 
-    qwikOptimizerModule = await import(/* @vite-ignore */ optimizerDeps['/dist/index.mjs']);
+    qwikOptimizerModule = await import(
+      /* @vite-ignore */ optimizerDeps['/dist/index.mjs']
+    );
   }
 
-  qwikViteModule = await import(/* @vite-ignore */ qwikDeps['/dist/optimizer.mjs']);
+  qwikViteModule = await import(
+    /* @vite-ignore */ qwikDeps['/dist/optimizer.mjs']
+  );
   console.warn(
     `Bundler for ${qwikDeps.version} ready (${tsOptimizerLoaded ? 'ts-optimizer' : 'rust optimizer'})`
   );
@@ -207,7 +236,13 @@ const getOutput = (o: OutputChunk | OutputAsset) => {
 
 async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const { buildId } = message;
-  const { srcInputs, buildMode, entryStrategy: _entryStrategy, replId, debug } = message.data;
+  const {
+    srcInputs,
+    buildMode,
+    entryStrategy: _entryStrategy,
+    replId,
+    debug,
+  } = message.data;
 
   // Handle the renamed entry strategy for older Qwik versions
   const entryStrategy =
@@ -339,7 +374,9 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     message: [`SSR build: ${(performance.now() - start).toFixed(2)}ms`],
   });
 
-  result.ssrModules = ssrBundle.output.map(getOutput).sort((a, b) => a.path.localeCompare(b.path));
+  result.ssrModules = ssrBundle.output
+    .map(getOutput)
+    .sort((a, b) => a.path.localeCompare(b.path));
 
   // SSR execution moved to separate SSR worker
   result.html = '';

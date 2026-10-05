@@ -43,19 +43,35 @@ export const glossary = {
   },
   'lazy-loading': {
     display: 'Lazy loading',
-    aliases: ['lazy load', 'lazy-load', 'lazy loaded', 'lazy execution', 'lazily'],
+    aliases: [
+      'lazy load',
+      'lazy-load',
+      'lazy loaded',
+      'lazy execution',
+      'lazily',
+    ],
     short:
       'Downloading and running code only at the moment it is actually needed instead of up front. Qwik splits an app into many lazy-loadable chunks and the runtime fetches each one on demand.',
   },
   ssr: {
     display: 'SSR',
-    aliases: ['server-side rendering', 'server side rendering', 'server-rendered', 'server render'],
+    aliases: [
+      'server-side rendering',
+      'server side rendering',
+      'server-rendered',
+      'server render',
+    ],
     short:
       "Server-side rendering: generating a page's HTML on the server so the user sees content immediately. Qwik serializes the app state into that HTML so the client can resume without re-rendering.",
   },
   csr: {
     display: 'CSR',
-    aliases: ['client-side rendering', 'client side rendering', 'client-rendered', 'client render'],
+    aliases: [
+      'client-side rendering',
+      'client side rendering',
+      'client-rendered',
+      'client render',
+    ],
     short:
       'Client-side rendering: building the page in the browser with JavaScript after load, so users wait on a blank shell until the bundle downloads and runs. The opposite trade-off from SSR.',
   },
@@ -67,7 +83,12 @@ export const glossary = {
   },
   preloading: {
     display: 'Preloading',
-    aliases: ['preload', 'prefetch', 'modulepreload', 'speculative module fetching'],
+    aliases: [
+      'preload',
+      'prefetch',
+      'modulepreload',
+      'speculative module fetching',
+    ],
     short:
       'Fetching the JavaScript a user is likely to need next into the browser cache ahead of time, so it is already there when they interact. Qwik preloads bundles based on likely next interactions.',
   },
@@ -133,7 +154,12 @@ export const glossary = {
   },
   'class-binding': {
     display: 'Class binding',
-    aliases: ['classlist', 'class object', 'conditional classes', 'class dictionary'],
+    aliases: [
+      'classlist',
+      'class object',
+      'conditional classes',
+      'class dictionary',
+    ],
     short:
       'The ability to pass the class attribute an object mapping CSS class names to boolean conditions, so classes are applied only when their conditions are true.',
   },
@@ -282,7 +308,13 @@ export const glossary = {
   },
   'client-directives': {
     display: 'client: directives',
-    aliases: ['client:load', 'client:idle', 'client:visible', 'client:hover', 'client:only'],
+    aliases: [
+      'client:load',
+      'client:idle',
+      'client:visible',
+      'client:hover',
+      'client:only',
+    ],
     short:
       'JSX attributes that control when a qwikified React component is downloaded and made interactive in the browser: client:load, client:idle, client:visible, client:hover, client:signal, client:event, or client:only.',
   },
@@ -419,7 +451,12 @@ export const glossary = {
   },
   'serverless-functions': {
     display: 'Serverless functions',
-    aliases: ['serverless function', 'serverless', 'functions as a service', 'faas'],
+    aliases: [
+      'serverless function',
+      'serverless',
+      'functions as a service',
+      'faas',
+    ],
     short:
       'Stateless, on-demand code execution (e.g. AWS Lambda) that scales automatically, where you pay only for the time code runs without managing servers.',
   },
@@ -461,20 +498,26 @@ type CanonicalId = keyof GlossaryEntries;
 export type GlossaryId =
   | CanonicalId
   | {
-      [K in CanonicalId]: GlossaryEntries[K] extends { readonly aliases: readonly string[] }
+      [K in CanonicalId]: GlossaryEntries[K] extends {
+        readonly aliases: readonly string[];
+      }
         ? GlossaryEntries[K]['aliases'][number]
         : never;
     }[CanonicalId];
 
 /** All entries as `[canonicalId, entry]` for the `/docs/glossary` page. */
-export const glossaryEntries = Object.entries(glossary) as Array<[CanonicalId, GlossaryEntry]>;
+export const glossaryEntries = Object.entries(glossary) as Array<
+  [CanonicalId, GlossaryEntry]
+>;
 
 /** Resolve a canonical id or alias to its canonical id (the `/docs/glossary#<id>` anchor). */
 export function resolveGlossaryId(id: GlossaryId): CanonicalId {
   if (id in glossary) {
     return id as CanonicalId;
   }
-  const match = glossaryEntries.find(([, entry]) => entry.aliases?.includes(id));
+  const match = glossaryEntries.find(([, entry]) =>
+    entry.aliases?.includes(id)
+  );
   if (!match) {
     throw new Error(`Unknown glossary term: ${id}`);
   }

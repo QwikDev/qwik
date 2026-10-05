@@ -66,8 +66,7 @@ export const UnderstandingResumability = component$(() => {
                         component.
                       </li>
                       <li>
-                        The code is executed in slow interpretive mode (no
-                        JIT.)
+                        The code is executed in slow interpretive mode (no JIT.)
                       </li>
                     </ul>
                   </Callout>
@@ -155,8 +154,8 @@ export const UnderstandingResumability = component$(() => {
                   <ul>
                     <li>
                       JS is eagerly downloaded in service worker off the main
-                      thread into browser cache. Once downloaded the
-                      application interactivity does not depend on network.
+                      thread into browser cache. Once downloaded the application
+                      interactivity does not depend on network.
                     </li>
                     <li>
                       JS is not brought to main thread until user interaction.

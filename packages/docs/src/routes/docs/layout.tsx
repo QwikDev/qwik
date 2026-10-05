@@ -2,7 +2,10 @@ import { useLocation } from '@qwik.dev/router';
 import { component$, Slot, useComputed$, useStyles$ } from '@qwik.dev/core';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import Contributors from '../../components/contributors';
-import { DocsSidebar, docsSidebarId } from '../../components/docs-sidebar/docs-sidebar';
+import {
+  DocsSidebar,
+  docsSidebarId,
+} from '../../components/docs-sidebar/docs-sidebar';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';

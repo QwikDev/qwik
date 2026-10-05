@@ -11,7 +11,10 @@ export default component$(() => {
       <p>
         <label>
           GitHub username:
-          <input value={github.org} onInput$={(ev, el) => (github.org = el.value)} />
+          <input
+            value={github.org}
+            onInput$={(ev, el) => (github.org = el.value)}
+          />
         </label>
       </p>
       <section>

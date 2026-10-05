@@ -77,11 +77,20 @@ async function captureMultipleScreenshots() {
 
         const title = await page.title();
         const html = page.locator('html');
-        const hasContainer = await html.evaluate((node) => node.hasAttribute('q:container'));
+        const hasContainer = await html.evaluate((node) =>
+          node.hasAttribute('q:container')
+        );
         if (!hasContainer) {
-          console.warn('❌ Not a Qwik Site', href, await html.getAttribute('q:container'));
+          console.warn(
+            '❌ Not a Qwik Site',
+            href,
+            await html.getAttribute('q:container')
+          );
           existingJson.splice(existingJson.indexOf(existing), 1);
-          writeFileSync(OUTPUT_JSON, JSON.stringify(existingJson, undefined, 2) + '\n');
+          writeFileSync(
+            OUTPUT_JSON,
+            JSON.stringify(existingJson, undefined, 2) + '\n'
+          );
           continue;
         }
         const version = await html.getAttribute('q:version');
@@ -103,29 +112,41 @@ async function captureMultipleScreenshots() {
           }),
         ]);
         const fcpDisplay =
-          pagespeedOutput.lighthouseResult?.audits?.['first-contentful-paint']?.displayValue;
+          pagespeedOutput.lighthouseResult?.audits?.['first-contentful-paint']
+            ?.displayValue;
         const fcpScore =
-          pagespeedOutput?.lighthouseResult?.audits?.['first-contentful-paint']?.score;
+          pagespeedOutput?.lighthouseResult?.audits?.['first-contentful-paint']
+            ?.score;
 
         const lcpDisplay =
-          pagespeedOutput?.lighthouseResult?.audits?.['largest-contentful-paint']?.displayValue;
+          pagespeedOutput?.lighthouseResult?.audits?.[
+            'largest-contentful-paint'
+          ]?.displayValue;
         const lcpScore =
-          pagespeedOutput?.lighthouseResult?.audits?.['largest-contentful-paint']?.score;
+          pagespeedOutput?.lighthouseResult?.audits?.[
+            'largest-contentful-paint'
+          ]?.score;
 
         const loadExpMetrics = pagespeedOutput.loadingExperience?.metrics;
         // ms score of the 75th percentile of the page users
         const inpMs = loadExpMetrics?.INTERACTION_TO_NEXT_PAINT?.percentile;
         // no unit, less than 0.1 is good
-        const clsScore = loadExpMetrics?.CUMULATIVE_LAYOUT_SHIFT_SCORE?.percentile / 100;
+        const clsScore =
+          loadExpMetrics?.CUMULATIVE_LAYOUT_SHIFT_SCORE?.percentile / 100;
         // not core but interesting
-        const ttfbMs = loadExpMetrics?.EXPERIMENTAL_TIME_TO_FIRST_BYTE?.percentile;
+        const ttfbMs =
+          loadExpMetrics?.EXPERIMENTAL_TIME_TO_FIRST_BYTE?.percentile;
 
-        const ttiDisplay = pagespeedOutput?.lighthouseResult?.audits?.interactive?.displayValue;
-        const ttiScore = pagespeedOutput?.lighthouseResult?.audits?.interactive?.score;
+        const ttiDisplay =
+          pagespeedOutput?.lighthouseResult?.audits?.interactive?.displayValue;
+        const ttiScore =
+          pagespeedOutput?.lighthouseResult?.audits?.interactive?.score;
 
-        const ttiTime = pagespeedOutput?.lighthouseResult?.audits?.interactive?.numericValue;
+        const ttiTime =
+          pagespeedOutput?.lighthouseResult?.audits?.interactive?.numericValue;
 
-        const score = pagespeedOutput?.lighthouseResult?.categories?.performance?.score;
+        const score =
+          pagespeedOutput?.lighthouseResult?.categories?.performance?.score;
         const perf = {
           score,
           inpMs,
@@ -147,7 +168,10 @@ async function captureMultipleScreenshots() {
           perf,
           version,
         });
-        writeFileSync(OUTPUT_JSON, JSON.stringify(existingJson, undefined, 2) + '\n');
+        writeFileSync(
+          OUTPUT_JSON,
+          JSON.stringify(existingJson, undefined, 2) + '\n'
+        );
         console.log(`✅ ${title} - (${href})`);
       } catch (err) {
         console.error(err);

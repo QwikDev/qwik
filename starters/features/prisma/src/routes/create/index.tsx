@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-import { Form, routeAction$, z, zod$ } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
+import { PrismaClient } from '@prisma/client';
+import { Form, routeAction$, z, zod$ } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
 
 export const useCreateUser = routeAction$(
   async (data) => {
@@ -13,7 +13,7 @@ export const useCreateUser = routeAction$(
   zod$({
     name: z.string(),
     email: z.string().email(),
-  }),
+  })
 );
 
 export default component$(() => {
@@ -24,11 +24,11 @@ export default component$(() => {
       <Form action={createUserAction}>
         <label>
           Name
-          <input name="name" value={createUserAction.formData?.get("name")} />
+          <input name="name" value={createUserAction.formData?.get('name')} />
         </label>
         <label>
           Email
-          <input name="email" value={createUserAction.formData?.get("email")} />
+          <input name="email" value={createUserAction.formData?.get('email')} />
         </label>
         <button type="submit">Create</button>
       </Form>

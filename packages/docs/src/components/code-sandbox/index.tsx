@@ -1,4 +1,10 @@
-import { component$, Slot, useSignal, useStylesScoped$, useVisibleTask$ } from '@qwik.dev/core';
+import {
+  component$,
+  Slot,
+  useSignal,
+  useStylesScoped$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
 import CSS from './index.css?inline';
 import { lucide } from '@qds.dev/ui';
 
@@ -21,7 +27,9 @@ export default component$<{
       if (!previewRoot) {
         return;
       }
-      const isDark = document.documentElement.matches('.dark, [data-theme="dark"]');
+      const isDark = document.documentElement.matches(
+        '.dark, [data-theme="dark"]'
+      );
       previewRoot.classList.toggle('dark', isDark);
       previewRoot.setAttribute('data-theme', isDark ? 'dark' : 'light');
     };
@@ -73,7 +81,10 @@ export default component$<{
             </a>
           </div>
           <a
-            href={'https://github.com/QwikDev/qwik/blob/main/packages/docs/' + (url || src)}
+            href={
+              'https://github.com/QwikDev/qwik/blob/main/packages/docs/' +
+              (url || src)
+            }
             rel="noopener"
             target="_blank"
             title="edit this snippet"

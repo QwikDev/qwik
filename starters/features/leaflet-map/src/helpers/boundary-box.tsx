@@ -1,4 +1,4 @@
-import type { Map } from "leaflet";
+import type { Map } from 'leaflet';
 export const getBoundaryBox = (map: Map) => {
   const northEast = map.getBounds().getNorthEast();
   const southWest = map.getBounds().getSouthWest();

@@ -1,5 +1,5 @@
-import { routeAction$ } from "@qwik.dev/router";
+import { routeAction$ } from '@qwik.dev/router';
 
 export const useExampleAction = routeAction$(() => {
-  return "This is example action data.";
+  return 'This is example action data.';
 });

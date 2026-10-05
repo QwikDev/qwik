@@ -3,7 +3,9 @@ import { useLocation } from '@qwik.dev/router';
 
 export default component$(() => {
   const location = useLocation();
-  const selectedTab = useSignal(location.url.pathname.includes('/html') ? 'html' : 'state');
+  const selectedTab = useSignal(
+    location.url.pathname.includes('/html') ? 'html' : 'state'
+  );
 
   return (
     <div class="min-h-screen p-4 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-slate-800">
@@ -12,7 +14,12 @@ export default component$(() => {
         <div class="text-center mb-8">
           <div class="inline-flex items-center gap-3 mb-4">
             <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                class="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -26,7 +33,8 @@ export default component$(() => {
             </h1>
           </div>
           <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300">
-            Transform your code data into beautifully formatted and syntax-highlighted output
+            Transform your code data into beautifully formatted and
+            syntax-highlighted output
           </p>
         </div>
 
@@ -42,7 +50,12 @@ export default component$(() => {
               }`}
             >
               <span class="flex items-center gap-1.5">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  class="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -62,7 +75,12 @@ export default component$(() => {
               }`}
             >
               <span class="flex items-center gap-1.5">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  class="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -98,7 +116,8 @@ export default component$(() => {
               />
             </svg>
             <p class="text-sm text-gray-600 dark:text-gray-300">
-              Perfect for debugging Qwik applications and analyzing code structure
+              Perfect for debugging Qwik applications and analyzing code
+              structure
             </p>
           </div>
         </div>

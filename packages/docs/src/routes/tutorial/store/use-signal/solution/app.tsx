@@ -1,4 +1,9 @@
-import { component$, useVisibleTask$, useSignal, useStore } from '@qwik.dev/core';
+import {
+  component$,
+  useVisibleTask$,
+  useSignal,
+  useStore,
+} from '@qwik.dev/core';
 
 export default component$(() => {
   const store = useStore({
@@ -16,11 +21,15 @@ export default component$(() => {
 
   return (
     <main>
-      <aside style={{ border: '1px solid red', width: '100px' }} ref={outputRef}>
+      <aside
+        style={{ border: '1px solid red', width: '100px' }}
+        ref={outputRef}
+      >
         Change text value here to stretch the box.
       </aside>
       <p>
-        The above red box is {store.height} pixels high and {store.width} pixels wide.
+        The above red box is {store.height} pixels high and {store.width} pixels
+        wide.
       </p>
     </main>
   );

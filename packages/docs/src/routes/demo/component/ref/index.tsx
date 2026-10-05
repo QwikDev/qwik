@@ -22,8 +22,8 @@ export default component$(() => {
         Change text value here to stretch the box.
       </article>
       <p>
-        The above red box is {height.value} pixels high and {width.value}{' '}
-        pixels wide.
+        The above red box is {height.value} pixels high and {width.value} pixels
+        wide.
       </p>
     </section>
   );

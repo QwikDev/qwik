@@ -8,9 +8,7 @@ export default component$(() => {
       <input
         type="checkbox"
         checked={shouldPreventDefault.value}
-        onChange$={(e, target) =>
-          (shouldPreventDefault.value = target.checked)
-        }
+        onChange$={(e, target) => (shouldPreventDefault.value = target.checked)}
       />{' '}
       Should Prevent Default
       <hr />

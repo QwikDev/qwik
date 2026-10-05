@@ -99,7 +99,11 @@
   width: 44px;
   min-height: 44px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--repl-docs-input-strip-bg), var(--color-background-base) 24%);
+  background: color-mix(
+    in srgb,
+    var(--repl-docs-input-strip-bg),
+    var(--color-background-base) 24%
+  );
   font-size: 24px;
   line-height: 1;
 }
@@ -275,7 +279,10 @@
 
   .examples .repl {
     gap: 0;
-    grid-template-rows: minmax(0, 1.15fr) minmax(220px, 0.85fr) minmax(220px, 0.72fr);
+    grid-template-rows: minmax(0, 1.15fr) minmax(220px, 0.85fr) minmax(
+        220px,
+        0.72fr
+      );
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       'repl-input-panel'
@@ -305,7 +312,10 @@
   .examples .repl {
     grid-template-rows: minmax(0, 1fr) minmax(220px, 0.72fr);
     grid-template-columns:
-      minmax(0, var(--repl-main-left-width, calc((100% - var(--examples-repl-gap)) / 2)))
+      minmax(
+        0,
+        var(--repl-main-left-width, calc((100% - var(--examples-repl-gap)) / 2))
+      )
       var(--examples-repl-gap)
       minmax(0, 1fr);
     grid-template-areas:

@@ -1,11 +1,11 @@
-import { Form, routeAction$, z, zod$ } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { schema } from "../../../drizzle/schema";
+import { Form, routeAction$, z, zod$ } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
+import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { schema } from '../../../drizzle/schema';
 export const useCreateUser = routeAction$(
   async (data) => {
-    const sqlite = new Database("./drizzle/db/db.sqlite");
+    const sqlite = new Database('./drizzle/db/db.sqlite');
     const db = drizzle(sqlite, { schema });
     const user = await db.insert(schema.users).values(data);
     return user;
@@ -13,7 +13,7 @@ export const useCreateUser = routeAction$(
   zod$({
     name: z.string(),
     email: z.string().email(),
-  }),
+  })
 );
 
 export default component$(() => {
@@ -24,11 +24,11 @@ export default component$(() => {
       <Form action={createUserAction}>
         <label>
           Name
-          <input name="name" value={createUserAction.formData?.get("name")} />
+          <input name="name" value={createUserAction.formData?.get('name')} />
         </label>
         <label>
           Email
-          <input name="email" value={createUserAction.formData?.get("email")} />
+          <input name="email" value={createUserAction.formData?.get('email')} />
         </label>
         <button type="submit">Create</button>
       </Form>

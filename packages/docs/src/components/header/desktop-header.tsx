@@ -28,7 +28,12 @@ const ImageCardClasses =
   'absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform [html.dark_&]:[filter:brightness(.62)_contrast(2.85)]';
 
 const ImageCard = component$(
-  (props: { href: string; label: string; description: string; class?: string }) => (
+  (props: {
+    href: string;
+    label: string;
+    description: string;
+    class?: string;
+  }) => (
     <a
       href={props.href}
       class={[
@@ -49,19 +54,21 @@ const ImageCard = component$(
   )
 );
 
-const NavPill = component$((props: { href: string; label: string; icon?: JSXOutput }) => (
-  <a
-    href={props.href}
-    class="flex gap-3 items-center px-4 pt-4 pb-3 relative rounded-[4px] bg-secondary-background-base hover:bg-secondary-background-accent transition-colors shadow-secondary-border-inset"
-  >
-    <div class="size-9 bg-background-base border-[1.6px] border-emphasis rounded-lg shadow-xs-emphasis flex items-center justify-center shrink-0">
-      {props.icon}
-    </div>
-    <span class="font-bold text-base leading-[22px] text-secondary-foreground-base whitespace-nowrap">
-      {props.label}
-    </span>
-  </a>
-));
+const NavPill = component$(
+  (props: { href: string; label: string; icon?: JSXOutput }) => (
+    <a
+      href={props.href}
+      class="flex gap-3 items-center px-4 pt-4 pb-3 relative rounded-[4px] bg-secondary-background-base hover:bg-secondary-background-accent transition-colors shadow-secondary-border-inset"
+    >
+      <div class="size-9 bg-background-base border-[1.6px] border-emphasis rounded-lg shadow-xs-emphasis flex items-center justify-center shrink-0">
+        {props.icon}
+      </div>
+      <span class="font-bold text-base leading-[22px] text-secondary-foreground-base whitespace-nowrap">
+        {props.label}
+      </span>
+    </a>
+  )
+);
 
 const contentBaseClass = tw(
   'open:flex fixed top-24 2xl:top-[calc(76px+24px+16px)] left-1/2 -translate-x-1/2 m-0 gap-4 shadow-emphasis rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0'
@@ -85,7 +92,8 @@ const contentWidths: Record<NavSections, string> = {
   [NavSections.Resources]: 'w-[calc(100vw-48px)] max-w-[840px]',
 };
 
-const getContentWidthClass = (label: NavSections) => contentWidths[label] ?? contentWidths.Core;
+const getContentWidthClass = (label: NavSections) =>
+  contentWidths[label] ?? contentWidths.Core;
 
 const navbarTranslateX = 'calc(-50% + var(--sidebar-button-offset, 0px))';
 const hiddenTranslateY = 'calc(-100% - 24px)';
@@ -110,18 +118,25 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
     }
 
     const nextItem = trigger.closest<HTMLElement>('[ui-qds-popover-root]');
-    const items = Array.from(root.querySelectorAll<HTMLElement>('[ui-qds-popover-root]'));
+    const items = Array.from(
+      root.querySelectorAll<HTMLElement>('[ui-qds-popover-root]')
+    );
     const nextIndex = nextItem ? items.indexOf(nextItem) : -1;
     if (nextIndex < 0) {
       return;
     }
 
-    const content = nextItem?.querySelector<HTMLElement>('[ui-qds-popover-content]');
+    const content = nextItem?.querySelector<HTMLElement>(
+      '[ui-qds-popover-content]'
+    );
     const openIndex = items.findIndex((item) => item.hasAttribute('ui-open'));
     if (openIndex < 0) {
       content?.removeAttribute('data-nav-slide');
     } else if (openIndex !== nextIndex) {
-      content?.setAttribute('data-nav-slide', nextIndex < openIndex ? 'left' : 'right');
+      content?.setAttribute(
+        'data-nav-slide',
+        nextIndex < openIndex ? 'left' : 'right'
+      );
     }
   });
 
@@ -160,7 +175,9 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
 
   const loc = useLocation();
   const isHomepage = useComputed$(() => loc.url.pathname === '/');
-  const isHidden = useComputed$(() => hidden.value && !focused.value && !isHomepage.value);
+  const isHidden = useComputed$(
+    () => hidden.value && !focused.value && !isHomepage.value
+  );
 
   return (
     <div
@@ -195,7 +212,11 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
         }}
         onFocusOut$={() => (focused.value = false)}
       >
-        <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">
+        <a
+          href="/"
+          class="flex items-center gap-2 text-foreground-accent"
+          aria-label="Logo"
+        >
           <QwikLogoOnly />
         </a>
 
@@ -217,7 +238,9 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
                 <NavPill
                   href="/docs/core/state"
                   label="State"
-                  icon={<pixel.internetnetworkarrowsync class={navPillIconClass} />}
+                  icon={
+                    <pixel.internetnetworkarrowsync class={navPillIconClass} />
+                  }
                 />
                 <NavPill
                   href="/docs/core/tasks"
@@ -227,17 +250,25 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
                 <NavPill
                   href="/docs/core/events"
                   label="Events"
-                  icon={<pixel.interfaceessentialcursorclickpoint class={navPillIconClass} />}
+                  icon={
+                    <pixel.interfaceessentialcursorclickpoint
+                      class={navPillIconClass}
+                    />
+                  }
                 />
                 <NavPill
                   href="/docs/core/tasks"
                   label="Tasks"
-                  icon={<pixel.interfaceessentiallist class={navPillIconClass} />}
+                  icon={
+                    <pixel.interfaceessentiallist class={navPillIconClass} />
+                  }
                 />
                 <NavPill
                   href="/docs/core/slots"
                   label="Slots"
-                  icon={<pixel.contentfilesarchivebooks1 class={navPillIconClass} />}
+                  icon={
+                    <pixel.contentfilesarchivebooks1 class={navPillIconClass} />
+                  }
                 />
               </div>
               {/* Image cards */}
@@ -269,7 +300,10 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
               <span>Router</span>
             </navbar.itemtrigger>
             <navbar.itemcontent
-              class={[contentBaseClass, getContentWidthClass(NavSections.Router)]}
+              class={[
+                contentBaseClass,
+                getContentWidthClass(NavSections.Router),
+              ]}
               style={contentAnchorReset}
             >
               {/* Pills column */}
@@ -277,27 +311,43 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
                 <NavPill
                   href="/docs/routing"
                   label="Routing"
-                  icon={<pixel.computersdeviceselectronicsboard class={navPillIconClass} />}
+                  icon={
+                    <pixel.computersdeviceselectronicsboard
+                      class={navPillIconClass}
+                    />
+                  }
                 />
                 <NavPill
                   href="/docs/route-loader"
                   label="Data Fetching"
-                  icon={<pixel.internetnetworkdownload class={navPillIconClass} />}
+                  icon={
+                    <pixel.internetnetworkdownload class={navPillIconClass} />
+                  }
                 />
                 <NavPill
                   href="/docs/deployments"
                   label="Deployments"
-                  icon={<pixel.businessproductstartup1 class={navPillIconClass} />}
+                  icon={
+                    <pixel.businessproductstartup1 class={navPillIconClass} />
+                  }
                 />
                 <NavPill
                   href="/docs/middleware"
                   label="Middleware"
-                  icon={<pixel.interfaceessentialhierarchy1 class={navPillIconClass} />}
+                  icon={
+                    <pixel.interfaceessentialhierarchy1
+                      class={navPillIconClass}
+                    />
+                  }
                 />
                 <NavPill
                   href="/docs/endpoints"
                   label="API Routes"
-                  icon={<pixel.interfaceessentialcogdouble class={navPillIconClass} />}
+                  icon={
+                    <pixel.interfaceessentialcogdouble
+                      class={navPillIconClass}
+                    />
+                  }
                 />
               </div>
               {/* Single wide image card */}
@@ -321,7 +371,10 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
               <span>Ecosystem</span>
             </navbar.itemtrigger>
             <navbar.itemcontent
-              class={[contentBaseClass, getContentWidthClass(NavSections.Ecosystem)]}
+              class={[
+                contentBaseClass,
+                getContentWidthClass(NavSections.Ecosystem),
+              ]}
               style={contentAnchorReset}
             >
               <ImageCard
@@ -352,7 +405,10 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
               <span>Resources</span>
             </navbar.itemtrigger>
             <navbar.itemcontent
-              class={[contentBaseClass, getContentWidthClass(NavSections.Resources)]}
+              class={[
+                contentBaseClass,
+                getContentWidthClass(NavSections.Resources),
+              ]}
               style={contentAnchorReset}
             >
               {/* Image cards */}
@@ -377,7 +433,9 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
                 <NavPill
                   href="/playground"
                   label="Playground"
-                  icon={<pixel.codingappswebsitesplugin class={navPillIconClass} />}
+                  icon={
+                    <pixel.codingappswebsitesplugin class={navPillIconClass} />
+                  }
                 />
                 <NavPill
                   href="/docs/labs"
@@ -387,17 +445,29 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
                 <NavPill
                   href="/media/"
                   label="Media"
-                  icon={<pixel.entertainmenteventshobbiesfilmplayer class={navPillIconClass} />}
+                  icon={
+                    <pixel.entertainmenteventshobbiesfilmplayer
+                      class={navPillIconClass}
+                    />
+                  }
                 />
                 <NavPill
                   href="/press/"
                   label="Press"
-                  icon={<pixel.interfaceessentialpaginatefilterpicture class={navPillIconClass} />}
+                  icon={
+                    <pixel.interfaceessentialpaginatefilterpicture
+                      class={navPillIconClass}
+                    />
+                  }
                 />
                 <NavPill
                   href="/ecosystem/#community"
                   label="Community"
-                  icon={<pixel.businessproductsnetworkuser class={navPillIconClass} />}
+                  icon={
+                    <pixel.businessproductsnetworkuser
+                      class={navPillIconClass}
+                    />
+                  }
                 />
               </div>
             </navbar.itemcontent>

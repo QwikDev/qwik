@@ -4,5 +4,7 @@
  * bundle. Throwing beats a silent stub if that ever changes.
  */
 export function createRequire(): never {
-  throw new Error('node:module createRequire is not available in the browser REPL');
+  throw new Error(
+    'node:module createRequire is not available in the browser REPL'
+  );
 }

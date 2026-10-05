@@ -43,11 +43,19 @@ const createFontFace = (
 export const inlinedFontFaces = webFonts
   .map(
     ({ family, weight, subsetDataUrl, latinUrl }) =>
-      createFontFace(family, weight, subsetDataUrl, 'block', subsetUnicodeRange) +
+      createFontFace(
+        family,
+        weight,
+        subsetDataUrl,
+        'block',
+        subsetUnicodeRange
+      ) +
       createFontFace(family, weight, latinUrl, 'swap', restOfLatinUnicodeRange)
   )
   .join('');
 
 export const linkedFontFaces = webFonts
-  .map(({ family, weight, latinUrl }) => createFontFace(family, weight, latinUrl, 'block'))
+  .map(({ family, weight, latinUrl }) =>
+    createFontFace(family, weight, latinUrl, 'block')
+  )
   .join('');

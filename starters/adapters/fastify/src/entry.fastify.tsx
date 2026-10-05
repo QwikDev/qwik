@@ -7,34 +7,34 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { getRequestEvent } from "@qwik.dev/router";
-import { type PlatformNode } from "@qwik.dev/router/middleware/node";
-import "dotenv/config";
-import Fastify from "fastify";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-import FastifyQwik from "./plugins/fastify-qwik";
+import { getRequestEvent } from '@qwik.dev/router';
+import { type PlatformNode } from '@qwik.dev/router/middleware/node';
+import 'dotenv/config';
+import Fastify from 'fastify';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import FastifyQwik from './plugins/fastify-qwik';
 
 declare global {
   type QwikRouterPlatform = PlatformNode;
 }
 
 // Directories where the static assets are located
-const distDir = join(fileURLToPath(import.meta.url), "..", "..", "dist");
-const buildDir = join(distDir, "build");
-const assetsDir = join(distDir, "assets");
+const distDir = join(fileURLToPath(import.meta.url), '..', '..', 'dist');
+const buildDir = join(distDir, 'build');
+const assetsDir = join(distDir, 'assets');
 
 // Allow for dynamic port and host
-const PORT = parseInt(process.env.PORT ?? "3000");
-const HOST = process.env.HOST ?? "0.0.0.0";
+const PORT = parseInt(process.env.PORT ?? '3000');
+const HOST = process.env.HOST ?? '0.0.0.0';
 
 // Optional request-aware diagnostics for crashes that escape request boundaries.
 // This does not prevent Node from crashing, but it does provide better diagnostics for uncaught exceptions.
 // See the Node documentation to handle uncaught exceptions and unhandled rejections in your app.
-process.on("uncaughtExceptionMonitor", (error, origin) => {
+process.on('uncaughtExceptionMonitor', (error, origin) => {
   const requestEv = getRequestEvent();
   if (requestEv) {
-    console.error("Unhandled exception during request", {
+    console.error('Unhandled exception during request', {
       origin,
       method: requestEv.method,
       url: requestEv.url.href,
@@ -44,7 +44,7 @@ process.on("uncaughtExceptionMonitor", (error, origin) => {
     return;
   }
 
-  console.error("Unhandled exception outside request", { origin, error });
+  console.error('Unhandled exception outside request', { origin, error });
 });
 
 const start = async () => {

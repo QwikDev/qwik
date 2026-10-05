@@ -30,7 +30,9 @@ const importPagefind = async (): Promise<PagefindModuleNamespace> => {
   // as a normal source dependency, but Pagefind only exists as a generated
   // public asset after indexing.
   // eslint-disable-next-line no-new-func
-  const importer = new Function('return import("/pagefind/pagefind.js")') as () => Promise<unknown>;
+  const importer = new Function(
+    'return import("/pagefind/pagefind.js")'
+  ) as () => Promise<unknown>;
   return (await importer()) as PagefindModuleNamespace;
 };
 
@@ -129,7 +131,10 @@ export const SearchModal = component$(() => {
         return;
       }
 
-      results.value = groupSearchResults(normalizePagefindResults(loadedResults), trimmedQuery);
+      results.value = groupSearchResults(
+        normalizePagefindResults(loadedResults),
+        trimmedQuery
+      );
     } catch (_error) {
       if (!cancelled) {
         searchError.value = true;
@@ -142,14 +147,25 @@ export const SearchModal = component$(() => {
   });
 
   const trimmedQuery = useComputed$(() => query.value.trim());
-  const queryReady = useComputed$(() => trimmedQuery.value.length >= MIN_QUERY_LENGTH);
-  const isUnavailable = useComputed$(() => initState.value === 'error' || searchError.value);
+  const queryReady = useComputed$(
+    () => trimmedQuery.value.length >= MIN_QUERY_LENGTH
+  );
+  const isUnavailable = useComputed$(
+    () => initState.value === 'error' || searchError.value
+  );
   const isLoading = useComputed$(() => {
-    return queryReady.value && (initState.value === 'loading' || isSearching.value);
+    return (
+      queryReady.value && (initState.value === 'loading' || isSearching.value)
+    );
   });
   const hasResults = useComputed$(() => results.value.length > 0);
   const showEmpty = useComputed$(() => {
-    return queryReady.value && !isLoading.value && !isUnavailable.value && !hasResults.value;
+    return (
+      queryReady.value &&
+      !isLoading.value &&
+      !isUnavailable.value &&
+      !hasResults.value
+    );
   });
   const shouldScrollResults = useComputed$(() => hasResults.value);
 
@@ -196,7 +212,9 @@ export const SearchModal = component$(() => {
             ) : showEmpty.value ? (
               <SearchNoResults />
             ) : (
-              results.value.map((group) => <SearchResults key={group.title} group={group} />)
+              results.value.map((group) => (
+                <SearchResults key={group.title} group={group} />
+              ))
             )}
           </div>
         </div>
@@ -213,7 +231,8 @@ const SearchIdle = component$(() => {
         title: 'Getting Started',
         subtitle: 'Learn how to get started with Qwik',
         href: '/docs/getting-started/',
-        excerpt: 'This section provides an overview of getting started with Qwik.',
+        excerpt:
+          'This section provides an overview of getting started with Qwik.',
         group: 'Docs',
       },
       {
@@ -258,7 +277,11 @@ const SearchUnavailable = component$(() => {
 });
 
 const SearchNoResults = component$(() => {
-  return <p class="w-full text-center text-foreground-muted text-body-xs">No search results.</p>;
+  return (
+    <p class="w-full text-center text-foreground-muted text-body-xs">
+      No search results.
+    </p>
+  );
 });
 
 type SearchResultsProps = {

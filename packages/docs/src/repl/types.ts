@@ -16,8 +16,13 @@ export interface ReplAppInput {
   outOfOrderStreaming?: boolean;
 }
 
-export type PkgUrls = { [pkgName: string]: { [path: string]: string; version: string } };
-export interface ReplInputOptions extends Omit<QwikRolldownPluginOptions, 'srcDir'> {
+export type PkgUrls = {
+  [pkgName: string]: { [path: string]: string; version: string };
+};
+export interface ReplInputOptions extends Omit<
+  QwikRolldownPluginOptions,
+  'srcDir'
+> {
   replId: string;
   srcInputs: ReplModuleInput[];
   version: string;

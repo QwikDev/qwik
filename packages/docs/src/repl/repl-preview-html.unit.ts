@@ -1,11 +1,16 @@
 import { describe, expect, test } from 'vitest';
-import { createPreviewStyleInjector, injectPreviewStyle } from './repl-preview-html';
+import {
+  createPreviewStyleInjector,
+  injectPreviewStyle,
+} from './repl-preview-html';
 
 const previewStyleMarker = 'data-repl-preview-font';
 
 describe('REPL preview HTML font style', () => {
   test('injects the preview style into complete HTML', () => {
-    const html = injectPreviewStyle('<!doctype html><html><head><title>Demo</title></head></html>');
+    const html = injectPreviewStyle(
+      '<!doctype html><html><head><title>Demo</title></head></html>'
+    );
 
     expect(html).toContain(`<title>Demo</title><style ${previewStyleMarker}>`);
     expect(html.match(new RegExp(previewStyleMarker, 'g'))).toHaveLength(1);
@@ -18,7 +23,9 @@ describe('REPL preview HTML font style', () => {
     const firstChunk = injector.write('<head><title>Demo</title>');
 
     expect(firstChunk).toContain(`<html><head><style ${previewStyleMarker}>`);
-    expect(firstChunk.match(new RegExp(previewStyleMarker, 'g'))).toHaveLength(1);
+    expect(firstChunk.match(new RegExp(previewStyleMarker, 'g'))).toHaveLength(
+      1
+    );
     expect(injector.write('</head><body>Preview</body></html>')).toBe(
       '</head><body>Preview</body></html>'
     );

@@ -7,11 +7,8 @@
  * - https://qwik.dev/docs/deployments/azure-swa/
  *
  */
-import {
-  createQwikRouter,
-  type PlatformAzure,
-} from "@qwik.dev/router/middleware/azure-swa";
-import render from "./entry.ssr";
+import { createQwikRouter, type PlatformAzure } from '@qwik.dev/router/middleware/azure-swa';
+import render from './entry.ssr';
 
 declare global {
   type QwikRouterPlatform = PlatformAzure;

@@ -197,7 +197,9 @@ const resolveRelativeFileId = (id: string, importer?: string) => {
     .replace(/\/[^/]+\/\.\.\//g, '/');
 };
 
-export const replCss = (options: Pick<ReplInputOptions, 'srcInputs'>): Plugin => {
+export const replCss = (
+  options: Pick<ReplInputOptions, 'srcInputs'>
+): Plugin => {
   const isStylesheet = (id: string) =>
     ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
       id.endsWith(`${ext}?inline`)
@@ -215,7 +217,9 @@ export const replCss = (options: Pick<ReplInputOptions, 'srcInputs'>): Plugin =>
 
     load(id) {
       if (isStylesheet(id)) {
-        const input = options.srcInputs.find((i) => i.path.endsWith(id.replace(/\?inline$/, '')));
+        const input = options.srcInputs.find((i) =>
+          i.path.endsWith(id.replace(/\?inline$/, ''))
+        );
         if (input && typeof input.code === 'string') {
           return `const css = ${JSON.stringify(input.code)}; export default css;`;
         }
@@ -225,7 +229,9 @@ export const replCss = (options: Pick<ReplInputOptions, 'srcInputs'>): Plugin =>
   };
 };
 
-export const replWorkerQrlChunks = (getManifest: () => QwikManifest | undefined): Plugin => {
+export const replWorkerQrlChunks = (
+  getManifest: () => QwikManifest | undefined
+): Plugin => {
   return {
     name: 'repl-worker-qrl-chunks',
 
@@ -235,19 +241,31 @@ export const replWorkerQrlChunks = (getManifest: () => QwikManifest | undefined)
         return;
       }
 
-      const resolveChunkPath = createRelativeBuildWorkerQrlChunkResolver(manifest);
+      const resolveChunkPath =
+        createRelativeBuildWorkerQrlChunkResolver(manifest);
       for (const output of Object.values(bundle)) {
         if (output.type === 'chunk') {
-          output.code = rewriteWorkerQrlChunkPlaceholders(output.code, resolveChunkPath);
-        } else if (output.type === 'asset' && typeof output.source === 'string') {
-          output.source = rewriteWorkerQrlChunkPlaceholders(output.source, resolveChunkPath);
+          output.code = rewriteWorkerQrlChunkPlaceholders(
+            output.code,
+            resolveChunkPath
+          );
+        } else if (
+          output.type === 'asset' &&
+          typeof output.source === 'string'
+        ) {
+          output.source = rewriteWorkerQrlChunkPlaceholders(
+            output.source,
+            resolveChunkPath
+          );
         }
       }
     },
   };
 };
 
-export const replMinify = (buildMode: ReplInputOptions['buildMode']): Plugin => {
+export const replMinify = (
+  buildMode: ReplInputOptions['buildMode']
+): Plugin => {
   return {
     name: 'repl-minify',
 

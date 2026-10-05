@@ -62,10 +62,22 @@ const linkColumns: FooterColumn[] = [
 ];
 
 const socialLinks = [
-  { href: 'https://qwik.dev/chat', title: 'Discord', Icon: simpleicons.discord },
-  { href: 'https://github.com/QwikDev/qwik', title: 'GitHub', Icon: simpleicons.github },
+  {
+    href: 'https://qwik.dev/chat',
+    title: 'Discord',
+    Icon: simpleicons.discord,
+  },
+  {
+    href: 'https://github.com/QwikDev/qwik',
+    title: 'GitHub',
+    Icon: simpleicons.github,
+  },
   { href: 'https://twitter.com/QwikDev', title: 'X', Icon: simpleicons.x },
-  { href: 'https://bsky.app/profile/qwik.dev', title: 'Bluesky', Icon: simpleicons.bluesky },
+  {
+    href: 'https://bsky.app/profile/qwik.dev',
+    title: 'Bluesky',
+    Icon: simpleicons.bluesky,
+  },
 ];
 
 const normalizePath = (value: string) => {
@@ -77,7 +89,9 @@ const normalizeHash = (value?: string) => {
   if (!value) {
     return '';
   }
-  return value.startsWith('#') ? value.toLowerCase() : `#${value.toLowerCase()}`;
+  return value.startsWith('#')
+    ? value.toLowerCase()
+    : `#${value.toLowerCase()}`;
 };
 
 const isLinkActive = (pathname: string, hash: string, link: FooterLinkItem) => {
@@ -95,7 +109,12 @@ const isLinkActive = (pathname: string, hash: string, link: FooterLinkItem) => {
   return hash === targetHash;
 };
 
-const footerLinkClass = (pathname: string, hash: string, link: FooterLinkItem, mobile = false) => [
+const footerLinkClass = (
+  pathname: string,
+  hash: string,
+  link: FooterLinkItem,
+  mobile = false
+) => [
   mobile ? 'text-body-md leading-[140%]' : 'text-body-sm leading-[137.5%]',
   'font-semibold no-underline transition-colors',
   isLinkActive(pathname, hash, link)
@@ -118,11 +137,17 @@ export const Footer = component$(() => {
             <div class="flex flex-col items-start gap-6">
               <h2 class="m-0 w-full max-w-none text-[20px] leading-[1.26] text-foreground-base">
                 <span class="font-heading">Start building </span>
-                <span class="font-heading text-primary-standalone-base">Qwikly</span>
+                <span class="font-heading text-primary-standalone-base">
+                  Qwikly
+                </span>
                 <span class="font-heading"> today!</span>
               </h2>
 
-              <ActionLink href="/docs/getting-started" variant="primary" class="text-sm">
+              <ActionLink
+                href="/docs/getting-started"
+                variant="primary"
+                class="text-sm"
+              >
                 <span>Get Started</span>
                 <lucide.arrowright class="size-4" />
               </ActionLink>
@@ -163,7 +188,9 @@ export const Footer = component$(() => {
             <div class="grid grid-cols-4 gap-x-16 xl:gap-x-32">
               {linkColumns.map((column) => (
                 <div key={column.heading} class="flex min-w-0 flex-col gap-4">
-                  <span class="text-label-sm text-foreground-soft">{column.heading}</span>
+                  <span class="text-label-sm text-foreground-soft">
+                    {column.heading}
+                  </span>
 
                   <div class="flex flex-col items-start gap-3">
                     {column.links.map((link) => (
@@ -210,7 +237,12 @@ export const Footer = component$(() => {
 
 const QwikIconMark = component$((props: { class?: string }) => {
   return (
-    <svg class={props.class} viewBox="0 0 48 53" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      class={props.class}
+      viewBox="0 0 48 53"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M40.973 52.5351L32.0861 43.6985L31.9503 43.7179V43.621L13.0511 24.9595L17.708 20.4637L14.9721 4.76715L1.99103 20.8513C-0.220992 23.0798 -0.628467 26.7036 0.962635 29.3778L9.07337 42.8265C10.3152 44.9 12.566 46.1402 14.9915 46.1208L19.0081 46.082L40.973 52.5351Z"
         fill="#18B6F6"

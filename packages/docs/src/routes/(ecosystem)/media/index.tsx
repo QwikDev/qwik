@@ -29,14 +29,19 @@ export const MEDIA = mediaObj({
       promoted: true,
       author: 'HiRez.io',
     },
-    youtube('Qwik JS - Crash Introduction to Building a Super Fast Application', 'zLHYDY9dAbs', {
-      playlist: 'PLkswEDcfBXYcl1gW7L5zyCVF9LpGhlOqu',
-      promoted: true,
-      author: 'Code Raiders',
-    }),
+    youtube(
+      'Qwik JS - Crash Introduction to Building a Super Fast Application',
+      'zLHYDY9dAbs',
+      {
+        playlist: 'PLkswEDcfBXYcl1gW7L5zyCVF9LpGhlOqu',
+        promoted: true,
+        author: 'Code Raiders',
+      }
+    ),
     {
       href: 'https://frontendmasters.com/courses/qwik/',
-      imgSrc: 'https://static.frontendmasters.com/assets/courses/2023-02-28-qwik/posterframe.webp',
+      imgSrc:
+        'https://static.frontendmasters.com/assets/courses/2023-02-28-qwik/posterframe.webp',
       title: 'FrontendMasters: Qwik for Instant-Loading Websites & Apps',
       language: 'en',
       promoted: true,
@@ -56,10 +61,14 @@ export const MEDIA = mediaObj({
       author: 'Dev Talles',
       promoted: true,
     },
-    youtube('⭐️ Domina QWIK, el revolucionario framework de JS', 'X4puVLRTr4k', {
-      language: 'es',
-      author: 'Manuel Sánchez WEB',
-    }),
+    youtube(
+      '⭐️ Domina QWIK, el revolucionario framework de JS',
+      'X4puVLRTr4k',
+      {
+        language: 'es',
+        author: 'Manuel Sánchez WEB',
+      }
+    ),
     {
       href: 'https://www.udemy.com/course/curso-intermedio-qwik-espanol/?referralCode=3D453D600C0CB529D84B',
       imgSrc: 'https://www.manuelsanchezweb.com/img/qwik-intermedio.png',
@@ -83,13 +92,21 @@ export const MEDIA = mediaObj({
   /* Videos
   /*****************************************/
   videos: [
-    youtube("Qwik… the world's first O(1) JavaScript framework?", 'x2eF3YLiNhY', {
-      promoted: true,
-      author: 'Fireship',
-    }),
-    youtube('Qwik: Performance is a Human Design Issue | ViteConf 2023', 'bvSlEweRyjE', {
-      promoted: true,
-    }),
+    youtube(
+      "Qwik… the world's first O(1) JavaScript framework?",
+      'x2eF3YLiNhY',
+      {
+        promoted: true,
+        author: 'Fireship',
+      }
+    ),
+    youtube(
+      'Qwik: Performance is a Human Design Issue | ViteConf 2023',
+      'bvSlEweRyjE',
+      {
+        promoted: true,
+      }
+    ),
     youtube(
       'Miško Hevery: Creator of AngularJS & now Qwik | The Frontend Masters Podcast Ep.4',
       'CcLgQaJIyn0',
@@ -111,13 +128,21 @@ export const MEDIA = mediaObj({
         promoted: true,
       }
     ),
-    youtube('JavaScript Streaming: A Qwik Glimpse Into The Future - Shai Reznik', '5vckrrqtWto', {
-      promoted: true,
-    }),
-    youtube('Get Started With Qwik: The JavaScript Framework Game-Changer', 'uXVaeKzN44Y', {
-      promoted: true,
-      author: 'camelCase',
-    }),
+    youtube(
+      'JavaScript Streaming: A Qwik Glimpse Into The Future - Shai Reznik',
+      '5vckrrqtWto',
+      {
+        promoted: true,
+      }
+    ),
+    youtube(
+      'Get Started With Qwik: The JavaScript Framework Game-Changer',
+      'uXVaeKzN44Y',
+      {
+        promoted: true,
+        author: 'camelCase',
+      }
+    ),
   ],
 
   /***/
@@ -141,23 +166,38 @@ export const MEDIA = mediaObj({
       promoted: true,
       author: 'Angular Nation',
     }),
-    youtube('Resumable Apps in Qwik', 'LbMRs7l4czI', { promoted: true, author: 'Tony Alicea' }),
-    youtube('Qwik: A no-hydration instant-on personalized web applications', '0tCuUQe_ZA0', {
+    youtube('Resumable Apps in Qwik', 'LbMRs7l4czI', {
       promoted: true,
-      author: 'This Dot Media',
+      author: 'Tony Alicea',
     }),
+    youtube(
+      'Qwik: A no-hydration instant-on personalized web applications',
+      '0tCuUQe_ZA0',
+      {
+        promoted: true,
+        author: 'This Dot Media',
+      }
+    ),
     youtube('QWIK - Set of great demos by Misko Hevery', '7MgNMIPISY4', {
       author: 'JS Poland Conf',
     }),
-    youtube('Qwik the HTML First Framework', 'GdIZh42etYk', { author: 'CodingCatDev' }),
-    youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc', { author: 'Learn With Jason' }),
-    youtube('Introduction to Qwik - Misko Hevery', 'gYbHdss_y04', { author: 'JavaScript Israel' }),
+    youtube('Qwik the HTML First Framework', 'GdIZh42etYk', {
+      author: 'CodingCatDev',
+    }),
+    youtube('Build Resumable Apps with Qwik', '_PDpoJUacuc', {
+      author: 'Learn With Jason',
+    }),
+    youtube('Introduction to Qwik - Misko Hevery', 'gYbHdss_y04', {
+      author: 'JavaScript Israel',
+    }),
     youtube(
       'Build Performant, Resumable Sites with Qwik and Partytown (with Miško Hevery) | Some Antics',
       'aGuJPcIdX0A',
       { author: 'Ben Myers' }
     ),
-    youtube('Qwik with Miško Hevery (JS Party Live!)', 'rS8hXFHWKJQ', { author: 'Changelog' }),
+    youtube('Qwik with Miško Hevery (JS Party Live!)', 'rS8hXFHWKJQ', {
+      author: 'Changelog',
+    }),
     youtube(
       'JSMP 4: Misko Hevery on Qwik - No hydration, auto lazy-loading, edge cacheable, and fun',
       'wMnqgjHkLiY',
@@ -172,7 +212,8 @@ export const MEDIA = mediaObj({
     },
     {
       href: 'https://open.spotify.com/episode/5AnveNaA0SG9b85VChMAjD',
-      imgSrc: 'https://i.scdn.co/image/ab6765630000ba8a18aa5c33cbb1658d26724fcf',
+      imgSrc:
+        'https://i.scdn.co/image/ab6765630000ba8a18aa5c33cbb1658d26724fcf',
       title: 'FedBites: Qwik Special with Miško Hevery & Adam Bradley',
       author: 'FedBites',
     },
@@ -208,15 +249,22 @@ export const MEDIA = mediaObj({
       'JxYbg7eZNLY',
       { promoted: true, author: 'JNation' }
     ),
-    youtube('Qwik: A no hydration instant', 'Zddw6qy5pf0', { promoted: true, author: 'Devoxx' }),
+    youtube('Qwik: A no hydration instant', 'Zddw6qy5pf0', {
+      promoted: true,
+      author: 'Devoxx',
+    }),
     youtube(
       'Qwik City: Reimangined meta-framework for the edge, Adam Bradley, ViteConf 2022',
       'dSLWJBGWigs',
       { promoted: true, author: 'ViteConf' }
     ),
-    youtube('Qwik Workshop Part 1 - Live Coding', 'GHbNaDSWUX8', { author: 'Pull Request' }),
+    youtube('Qwik Workshop Part 1 - Live Coding', 'GHbNaDSWUX8', {
+      author: 'Pull Request',
+    }),
     youtube('Qwik: Beta and Beyond', 'Tfd62DiRTKc', { author: 'Builder' }),
-    youtube('Qwik Core Developers Training', 'Mi7udzhcCDQ', { author: 'Misko Hevery' }),
+    youtube('Qwik Core Developers Training', 'Mi7udzhcCDQ', {
+      author: 'Misko Hevery',
+    }),
   ],
 
   /***/
@@ -234,7 +282,8 @@ export const MEDIA = mediaObj({
       href: 'https://www.builder.io/blog/speculative-module-fetching',
       imgSrc:
         'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F72106cceede74975947a7686d083a38a?format=webp&width=1200',
-      title: 'Speculative Module Fetching: a Modern Approach to Faster App Interactivity',
+      title:
+        'Speculative Module Fetching: a Modern Approach to Faster App Interactivity',
       author: 'Adam Bradley',
     },
     {
@@ -451,44 +500,50 @@ export interface MediaEntry {
   promoted?: boolean;
 }
 
-export const ThumbnailLink = component$((props: { entry: MediaEntry; imgLoading?: 'eager' }) => {
-  const itemURL = new URL(props.entry.href);
-  return (
-    <li>
-      <a href={props.entry.href} target="_blank" rel="noreferrer">
-        <div class="relative">
-          <img
-            src={props.entry.imgSrc ? props.entry.imgSrc : '/ecosystem/qwik-blog-fallback.png'}
-            width={props.entry.width || 360}
-            height={props.entry.height || 200}
-            loading={props.imgLoading === 'eager' ? undefined : 'lazy'}
-            decoding={props.imgLoading === 'eager' ? undefined : 'async'}
-            class="thumbnail"
-            aria-hidden="true"
-          />
-          <div class="info">
-            {props.entry.language ? (
-              <span class="info-bg font-bold">{props.entry.language}</span>
-            ) : null}
+export const ThumbnailLink = component$(
+  (props: { entry: MediaEntry; imgLoading?: 'eager' }) => {
+    const itemURL = new URL(props.entry.href);
+    return (
+      <li>
+        <a href={props.entry.href} target="_blank" rel="noreferrer">
+          <div class="relative">
+            <img
+              src={
+                props.entry.imgSrc
+                  ? props.entry.imgSrc
+                  : '/ecosystem/qwik-blog-fallback.png'
+              }
+              width={props.entry.width || 360}
+              height={props.entry.height || 200}
+              loading={props.imgLoading === 'eager' ? undefined : 'lazy'}
+              decoding={props.imgLoading === 'eager' ? undefined : 'async'}
+              class="thumbnail"
+              aria-hidden="true"
+            />
+            <div class="info">
+              {props.entry.language ? (
+                <span class="info-bg font-bold">{props.entry.language}</span>
+              ) : null}
+            </div>
           </div>
-        </div>
-        <div class="flex gap-2">
-          <img
-            src={`https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${itemURL.host}&size=128`}
-            width={128}
-            height={128}
-            alt={`${itemURL.host.split('.').at(1)} logo`}
-            class="icon"
-          />
-          <div class="flex flex-col">
-            <p class="line-clamp-2">{props.entry.title}</p>
-            <p class={`text-gray-400 text-xs`}>by {props.entry.author}</p>
+          <div class="flex gap-2">
+            <img
+              src={`https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${itemURL.host}&size=128`}
+              width={128}
+              height={128}
+              alt={`${itemURL.host.split('.').at(1)} logo`}
+              class="icon"
+            />
+            <div class="flex flex-col">
+              <p class="line-clamp-2">{props.entry.title}</p>
+              <p class={`text-gray-400 text-xs`}>by {props.entry.author}</p>
+            </div>
           </div>
-        </div>
-      </a>
-    </li>
-  );
-});
+        </a>
+      </li>
+    );
+  }
+);
 
 export const BulletLink = component$((props: { entry: MediaEntry }) => {
   return (
@@ -522,7 +577,13 @@ export const Section = component$(
               return null;
             }
             if (props.listStyle === 'thumbnails') {
-              return <ThumbnailLink key={key} entry={entry} imgLoading={props.imgLoading} />;
+              return (
+                <ThumbnailLink
+                  key={key}
+                  entry={entry}
+                  imgLoading={props.imgLoading}
+                />
+              );
             }
             return <BulletLink key={key} entry={entry} />;
           })}
@@ -534,7 +595,11 @@ export const Section = component$(
             <ul class={props.listStyle}>
               {entriesInOtherLanguages.map((entry, key) =>
                 props.listStyle === 'thumbnails' ? (
-                  <ThumbnailLink key={key} entry={entry} imgLoading={props.imgLoading} />
+                  <ThumbnailLink
+                    key={key}
+                    entry={entry}
+                    imgLoading={props.imgLoading}
+                  />
                 ) : (
                   <BulletLink key={key} entry={entry} />
                 )

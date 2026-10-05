@@ -14,9 +14,12 @@ export const HackerNews = component$(() => {
 
   const data = useComputed$<IStory[]>(async ({ abortSignal }) => {
     const pageNum = page.value;
-    const response = await fetch(`https://node-hnapi.herokuapp.com/news?page=${pageNum}`, {
-      signal: abortSignal,
-    });
+    const response = await fetch(
+      `https://node-hnapi.herokuapp.com/news?page=${pageNum}`,
+      {
+        signal: abortSignal,
+      }
+    );
     return await response.json();
   });
 
@@ -54,7 +57,12 @@ const Nav = component$(() => {
           <a href="/?type=job">
             <strong>Jobs</strong>
           </a>
-          <a class="github" href="http://github.com/QwikDev/qwik" target="_blank" rel="noreferrer">
+          <a
+            class="github"
+            href="http://github.com/QwikDev/qwik"
+            target="_blank"
+            rel="noreferrer"
+          >
             Built with Qwik
           </a>
         </nav>
@@ -63,42 +71,51 @@ const Nav = component$(() => {
   );
 });
 
-const Stories = component$<{ stories: Signal<IStory[]>; 'bind:page': Signal<number> }>(
-  ({ stories, 'bind:page': page }) => {
-    return (
-      <main class="news-view">
-        <section class="news-list-nav">
-          {page.value > 0 ? (
-            <button class="page-link" onClick$={() => (page.value -= 1)} aria-label="Previous Page">
-              {'<'} prev
-            </button>
-          ) : (
-            <span class="page-link disabled" aria-disabled="true">
-              {'<'} prev
-            </span>
-          )}
-          <span>page {page.value + 1}</span>
-          {stories.value.length >= 29 ? (
-            <button class="page-link" onClick$={() => (page.value += 1)} aria-label="Next Page">
-              more {'>'}
-            </button>
-          ) : (
-            <span class="page-link disabled" aria-disabled="true">
-              more {'>'}
-            </span>
-          )}
-        </section>
-        <article class="news-list">
-          <ul>
-            {stories.value.map((story: IStory) => (
-              <StoryPreview story={story} />
-            ))}
-          </ul>
-        </article>
-      </main>
-    );
-  }
-);
+const Stories = component$<{
+  stories: Signal<IStory[]>;
+  'bind:page': Signal<number>;
+}>(({ stories, 'bind:page': page }) => {
+  return (
+    <main class="news-view">
+      <section class="news-list-nav">
+        {page.value > 0 ? (
+          <button
+            class="page-link"
+            onClick$={() => (page.value -= 1)}
+            aria-label="Previous Page"
+          >
+            {'<'} prev
+          </button>
+        ) : (
+          <span class="page-link disabled" aria-disabled="true">
+            {'<'} prev
+          </span>
+        )}
+        <span>page {page.value + 1}</span>
+        {stories.value.length >= 29 ? (
+          <button
+            class="page-link"
+            onClick$={() => (page.value += 1)}
+            aria-label="Next Page"
+          >
+            more {'>'}
+          </button>
+        ) : (
+          <span class="page-link disabled" aria-disabled="true">
+            more {'>'}
+          </span>
+        )}
+      </section>
+      <article class="news-list">
+        <ul>
+          {stories.value.map((story: IStory) => (
+            <StoryPreview story={story} />
+          ))}
+        </ul>
+      </article>
+    </main>
+  );
+});
 
 const StoryPreview = component$<{ story: IStory }>((props) => {
   return (
@@ -120,10 +137,12 @@ const StoryPreview = component$<{ story: IStory }>((props) => {
       <span class="meta">
         {props.story.type !== 'job' ? (
           <>
-            by <a href={`/users/${props.story.user}`}>{props.story.user}</a> {props.story.time_ago}{' '}
-            |{' '}
+            by <a href={`/users/${props.story.user}`}>{props.story.user}</a>{' '}
+            {props.story.time_ago} |{' '}
             <a href={`/stories/${props.story.id}`}>
-              {props.story.comments_count ? `${props.story.comments_count} comments` : 'discuss'}
+              {props.story.comments_count
+                ? `${props.story.comments_count} comments`
+                : 'discuss'}
             </a>
           </>
         ) : (

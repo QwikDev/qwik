@@ -4,7 +4,10 @@ export default component$(() => {
   const goodbye$ = $(() => alert('Good Bye!'));
   return (
     <main>
-      <MyComponent goodbye$={goodbye$} hello$={async (name) => alert('Hello ' + name)} />
+      <MyComponent
+        goodbye$={goodbye$}
+        hello$={async (name) => alert('Hello ' + name)}
+      />
     </main>
   );
 });

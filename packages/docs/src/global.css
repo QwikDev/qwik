@@ -283,9 +283,11 @@
   --shadow-base: 6px 6px 0 0 var(--color-shadow-base);
   --shadow-accent: 6px 6px 0 0 var(--color-shadow-accent);
   --shadow-emphasis: 6px 6px 0 0 var(--color-shadow-emphasis);
-  --shadow-border-inset: inset 2px 2px 0 var(--color-sky-45), inset -2px -2px 0 var(--color-sky-0);
+  --shadow-border-inset:
+    inset 2px 2px 0 var(--color-sky-45), inset -2px -2px 0 var(--color-sky-0);
   --shadow-secondary-border-inset:
-    inset 2px 2px 0 var(--color-violet-55), inset -2px -2px 0 var(--color-violet-0);
+    inset 2px 2px 0 var(--color-violet-55),
+    inset -2px -2px 0 var(--color-violet-0);
 
   --animate-to-visible: to-visible 325ms ease-in-out forwards;
   --animate-to-invisible: to-invisible 325ms ease-in-out forwards;
@@ -337,7 +339,8 @@ html[data-theme='dark'] {
   color-scheme: dark;
 
   --shadow-border-inset:
-    inset 2px 2px 0 var(--color-violet-85), inset -2px -2px 0 var(--color-violet-65);
+    inset 2px 2px 0 var(--color-violet-85),
+    inset -2px -2px 0 var(--color-violet-65);
   --shadow-secondary-border-inset:
     inset 2px 2px 0 var(--color-sky-85), inset -2px -2px 0 var(--color-sky-65);
 
@@ -427,7 +430,11 @@ html[data-theme='dark'] {
 }
 
 @utility bg-hero-gradient-blue {
-  --gradient-color: color-mix(in srgb, var(--color-border-accent) 40%, transparent);
+  --gradient-color: color-mix(
+    in srgb,
+    var(--color-border-accent) 40%,
+    transparent
+  );
   --gradient-color-transparent: transparent;
   --gradient-size: 60% 50%;
   --gradient-center: 50% 42%;
@@ -441,7 +448,11 @@ html[data-theme='dark'] {
 }
 
 @utility bg-hero-gradient-purple {
-  --gradient-color: color-mix(in srgb, var(--color-primary-background-base) 40%, transparent);
+  --gradient-color: color-mix(
+    in srgb,
+    var(--color-primary-background-base) 40%,
+    transparent
+  );
   --gradient-color-transparent: transparent;
   --gradient-size: 58% 58%;
   --gradient-center: 49% 42%;

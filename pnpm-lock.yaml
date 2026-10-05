@@ -191,6 +191,9 @@ importers:
       path-browserify:
         specifier: 1.0.1
         version: 1.0.1
+      prettier:
+        specifier: 3.7.4
+        version: 3.7.4
       prompts:
         specifier: 2.4.2
         version: 2.4.2

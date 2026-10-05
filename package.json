@@ -157,6 +157,7 @@
     "oxfmt": "0.41.0",
     "oxlint": "1.56.0",
     "path-browserify": "1.0.1",
+    "prettier": "3.7.4",
     "prompts": "2.4.2",
     "rollup": "4.61.0",
     "semver": "7.7.3",

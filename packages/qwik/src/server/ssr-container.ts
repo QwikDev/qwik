@@ -251,7 +251,7 @@ const enum OutOfOrderSegmentState {
 
 type VNodeDataOwner = string | undefined;
 type PendingVNodeDataPatches = Map<VNodeDataOwner, Map<number, VNodeData>>;
-type VNodeDataSerializableNode = Pick<ISsrNode, 'id' | 'vnodeData'>;
+type VNodeDataSerializableNode = Pick<ISsrNode, 'id' | 'vnodeData' | 'getProp' | 'setProp'>;
 
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
@@ -1179,7 +1179,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             } else if (value === CLOSE_FRAGMENT) {
               // write out fragment attributes
               if (fragmentAttrs) {
-                this.writeFragmentAttrs(fragmentAttrs);
+                this.writeFragmentAttrs(fragmentAttrs, patch);
                 fragmentAttrs = vNodeAttrsStack.pop()!;
               }
               depth--;
@@ -1190,7 +1190,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 // double `|` to handle the case when the separator character is also at the beginning or end of the string
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
-                this.writeFragmentAttrs(fragmentAttrs);
+                this.writeFragmentAttrs(fragmentAttrs, patch);
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
                 fragmentAttrs = vNodeAttrsStack.pop()!;
@@ -1205,7 +1205,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           }
           while (depth-- > 0) {
             if (fragmentAttrs) {
-              this.writeFragmentAttrs(fragmentAttrs);
+              this.writeFragmentAttrs(fragmentAttrs, patch);
               fragmentAttrs = vNodeAttrsStack.pop()!;
             }
             this.write(VNodeDataChar.CLOSE_CHAR);
@@ -1259,14 +1259,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return { owner: String(segmentIndex + 1), localIndex };
   }
 
-  private writeFragmentAttrs(fragmentAttrs: Props): void {
+  private writeFragmentAttrs(fragmentAttrs: Props, hasGlobalElementIds: boolean): void {
     for (const key in fragmentAttrs) {
       const rawValue = fragmentAttrs[key];
       let value = rawValue as string;
       let rootId: number | string | undefined;
       let encodeValue: ((value: string) => string) | null = null;
       if (key === ELEMENT_ID && typeof rawValue === 'number') {
-        rootId = rawValue;
+        rootId = hasGlobalElementIds ? undefined : rawValue;
         value = String(rawValue);
       } else if (typeof rawValue !== 'string') {
         rootId = this.addRoot(rawValue);
@@ -1966,12 +1966,9 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       this.emitPatchDataIfNeeded();
       this.drainCleanupQueue();
       const rootIdMap = commit.rootIdMap;
-      if (rootReadyAtSegment) {
-        this.$outOfOrderState$ = OutOfOrderSegmentState.Done;
-      } else {
-        this.$outOfOrderRootIdMap$ = rootIdMap;
-        this.$outOfOrderState$ = OutOfOrderSegmentState.EarlyFinalized;
-      }
+      this.$outOfOrderState$ = rootReadyAtSegment
+        ? OutOfOrderSegmentState.Done
+        : OutOfOrderSegmentState.EarlyFinalized;
       return {
         html: renderSSRChunks(segment.htmlChunks, rootIdMap),
         scripts: segment.writer.toString(rootIdMap),
@@ -2009,17 +2006,29 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     node.vnodeData[0] = nextFlags;
     // Already-emitted vnode data wrote this node's attrs before they became roots.
     if (isStateRoot || nextFlags !== previousFlags) {
-      this.queueLateVNodeDataPatch(node, isStateRoot ? nextFlags : nextFlags & ~previousFlags);
+      this.queueLateVNodeDataPatch(
+        node,
+        isStateRoot ? nextFlags : nextFlags & ~previousFlags,
+        isStateRoot
+      );
     }
   }
 
-  private queueLateVNodeDataPatch(node: VNodeDataSerializableNode, addedFlags: number): void {
+  private queueLateVNodeDataPatch(
+    node: VNodeDataSerializableNode,
+    addedFlags: number,
+    isStateRoot: boolean
+  ): void {
     if (!(addedFlags & (VNodeDataFlag.SERIALIZE | VNodeDataFlag.REFERENCE))) {
       return;
     }
     const owner = this.getVNodeDataOwnerFromNodeId(node.id);
     if (!this.$getRootContainer$().isVNodeDataOwnerEmitted(owner.owner)) {
       return;
+    }
+    if (isStateRoot) {
+      // Patched vnode data sits beside nodes holding global ids, so store ours as global too.
+      node.setProp(ELEMENT_ID, this.$outOfOrderRootIdMap$![node.getProp(ELEMENT_ID)]);
     }
     let ownerPatches = (this.pendingVNodeDataPatches ||= new Map()).get(owner.owner);
     if (!ownerPatches) {
@@ -2048,6 +2057,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     segmentSerializationCtx: SerializationContext
   ): SegmentRootCommit {
     const commit = this.commitSegmentRoots(rootContainer, segmentSerializationCtx);
+    this.$outOfOrderRootIdMap$ = commit.rootIdMap;
     segmentSerializationCtx.$onAddRoot$ = (localId, root, obj) => {
       this.commitSegmentRoot(rootContainer, localId, root, obj, commit);
     };

@@ -1823,6 +1823,55 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
+  it('should keep shell vnode ids when a resolved segment patches shell vnode data', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+
+    const ShellReader = component$((props: { state: { url: string } }) => {
+      const url = props.state.url;
+      return <button onClick$={() => props.state.url}>{url}</button>;
+    });
+    const SegmentReader = component$((props: { other: SignalType<string> }) => {
+      const other = props.other.value;
+      return <span>{other}</span>;
+    });
+    const Slide = component$((props: { other: SignalType<string> }) => (
+      <>
+        {slow}
+        <b>{props.other.value}</b>
+      </>
+    ));
+    const App = component$(() => {
+      const state = useStore({ url: '/' });
+      const other = useSignal('other');
+      return (
+        <main>
+          <ShellReader state={state} />
+          <SegmentReader other={other} />
+          <Pending fallback$={() => <p>Waiting shell vnode ids</p>}>
+            <Slide other={other} />
+          </Pending>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting shell vnode ids'));
+    resolveSlow(<span>Ready shell vnode ids</span>);
+    const { document } = await renderPromise;
+
+    const getVNodeIds = (selector: string) =>
+      Array.from(document.querySelector(selector)!.textContent!.matchAll(/=(\d+)/g), (m) => m[1]);
+    const shellIds = getVNodeIds('script[type="qwik/vnode"]:not([q\\:patch]):not([q\\:r])');
+    const patchIds = getVNodeIds('script[type="qwik/vnode"][q\\:patch]');
+    expect(patchIds.length).toBeGreaterThan(0);
+    expect(shellIds).toEqual(expect.arrayContaining(patchIds));
+  });
+
   it('should merge resolved segment effects for root-owned stores', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {

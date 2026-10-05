@@ -152,4 +152,49 @@ export const C = component$(() => {
       expect(out).not.toMatch(/_wrapProp\(open/);
     });
   });
+
+  describe('bind:value next to an onInput$={$(…)} handler', () => {
+    const transformInputs = () =>
+      transformComponentBind(`import { $, component$, useSignal } from '@qwik.dev/core';
+export const C = component$((props: { label: string }) => {
+  const text = useSignal('');
+  const count = useSignal(0);
+  const upper = props.label.toUpperCase();
+  return (
+    <div>
+      <input id="free" bind:value={text} onInput$={$(() => console.log('x'))} />
+      <input id="signal" bind:value={text} onInput$={$(() => count.value++)} />
+      <input id="derived" bind:value={text} onInput$={$(() => console.log(upper))} />
+    </div>
+  );
+});
+`);
+    const inputCall = (out: string, id: string) => {
+      const call = out.split('_jsxSorted("input"').find((part) => part.includes(`id: "${id}"`));
+      if (!call) {
+        throw new Error(`input ${id} not found`);
+      }
+      return call;
+    };
+    const varBagOf = (call: string) =>
+      call.startsWith(', {') ? call.slice(0, call.indexOf('}, {')) : '';
+
+    it('merges a capture-free handler with the bind handler', () => {
+      const call = inputCall(transformInputs(), 'free');
+      expect(call.match(/"q-e:input"/g)).toHaveLength(1);
+      expect(call).toMatch(/"q-e:input": \[q_\w+, inlinedQrl\(_val/);
+    });
+
+    it('merges a handler capturing a signal into one var entry', () => {
+      const call = inputCall(transformInputs(), 'signal');
+      expect(call.match(/"q-e:input"/g)).toHaveLength(1);
+      expect(varBagOf(call)).toMatch(/"q-e:input": \[q_\w+\.w\(\[count\]\), inlinedQrl\(_val/);
+    });
+
+    it('merges a handler capturing a derived value into one var entry', () => {
+      const call = inputCall(transformInputs(), 'derived');
+      expect(call.match(/"q-e:input"/g)).toHaveLength(1);
+      expect(varBagOf(call)).toMatch(/"q-e:input": \[q_\w+\.w\(\[upper\]\), inlinedQrl\(_val/);
+    });
+  });
 });

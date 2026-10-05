@@ -236,6 +236,8 @@ export function createRequestEvent(
       check();
       status = statusCode;
       if (url) {
+        // browsers strip ASCII tab/LF/CR before parsing a URL, so /<TAB>/test.com is //test.com
+        url = url.replace(/[\t\n\r]/g, '');
         if (
           // protocol-relative URL, e.g. //test.com — browsers also treat backslashes
           // as forward slashes in http(s) URLs, so /\test.com, \\test.com, \/test.com

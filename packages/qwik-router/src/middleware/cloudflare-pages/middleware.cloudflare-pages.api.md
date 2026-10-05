@@ -33,6 +33,7 @@ export type QwikCityCloudflarePagesOptions = QwikRouterCloudflarePagesOptions;
 
 // @public (undocumented)
 export interface QwikRouterCloudflarePagesOptions extends ServerRenderOptions {
+    requestBodyLimit?: number;
 }
 
 // (No @packageDocumentation comment for this package)

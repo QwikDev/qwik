@@ -10,6 +10,7 @@ import {
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
 import { isDev } from '@qwik.dev/core/build';
+import { limitRequestBody } from '../request-handler/request-body-limit';
 
 // @qwik.dev/router/middleware/vercel-edge
 const COUNTRY_HEADER_NAME = 'x-vercel-ip-country';
@@ -43,7 +44,7 @@ export function createQwikRouter(opts: QwikRouterVercelEdgeOptions) {
         mode: 'server',
         locale: undefined,
         url,
-        request,
+        request: limitRequestBody(request, opts.requestBodyLimit),
         env: {
           get(key) {
             return p.env[key];
@@ -124,7 +125,10 @@ export function createQwikRouter(opts: QwikRouterVercelEdgeOptions) {
 export const createQwikCity = createQwikRouter;
 
 /** @public */
-export interface QwikRouterVercelEdgeOptions extends ServerRenderOptions {}
+export interface QwikRouterVercelEdgeOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+}
 
 /**
  * @deprecated Use `QwikRouterVercelEdgeOptions` instead. Will be removed in V3

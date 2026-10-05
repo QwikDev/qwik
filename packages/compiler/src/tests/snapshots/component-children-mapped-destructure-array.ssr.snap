@@ -24,6 +24,7 @@ import {
   registerProjection,
   createComponent,
   _capturesObj,
+  _createSsrSlotMarker,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -31,7 +32,7 @@ import {
   renderSsrCollection,
   _noopQrl,
 } from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
   const [suffix] = _capturesObj._;
   function semantic_collectionRender_301_710_2q9lnxoxqq41u(ctx, __rangeId, __rowId, item, index) {
     const {
@@ -107,7 +108,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
       0
     )
   );
-  return ['<!s=', createSsrNodeId(__rangeId), '>', collection0, '<!/s>'];
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), collection0, '<!/s>'];
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -184,6 +185,7 @@ export { Panel as Panel_component_5q1hs6sb6j5z };
 import {
   _noopQrl,
   _capturesObj,
+  _createSsrSlotMarker,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -214,7 +216,11 @@ const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuhz);
 
-export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+export const component_slot_render_segment_0_3b0tagwys7lui = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const [suffix] = _capturesObj._;
   function semantic_collectionRender_301_710_2q9lnxoxqq41u(ctx, __rangeId, __rowId, item, index) {
     const {
@@ -290,7 +296,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
       0
     )
   );
-  return ['<!s=', createSsrNodeId(__rangeId), '>', collection0, '<!/s>'];
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), collection0, '<!/s>'];
 };
 /*
 {

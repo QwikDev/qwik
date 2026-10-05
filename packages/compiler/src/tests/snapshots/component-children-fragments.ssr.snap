@@ -18,29 +18,29 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
-  createSsrNodeId,
+  _createSsrSlotMarker,
   _noopQrl,
   _capturesObj,
+  createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
 } from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '><h1>Title</h1><!/s>'];
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<h1>Title</h1><!/s>'];
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
   const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, 0, count);
   return maybeThen(text0, (text0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><p q:id="',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<p q:id="',
     createSsrNodeId(id0),
     '">Count: <!t>',
     escapeHTML(text0),
@@ -80,10 +80,14 @@ export default default_component_3rg6kq1so9aio;
 export { Card as Card_component_1j4wd08arm0n5 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { createSsrNodeId } from '@qwik.dev/core';
+import { _createSsrSlotMarker } from '@qwik.dev/core';
 
-export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '><h1>Title</h1><!/s>'];
+export const component_slot_render_segment_0_3b0tagwys7lui = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<h1>Title</h1><!/s>'];
 };
 /*
 {
@@ -109,21 +113,25 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
 
 import {
   _capturesObj,
+  _createSsrSlotMarker,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
 } from '@qwik.dev/core';
 
-export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, 0, count);
   return maybeThen(text0, (text0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><p q:id="',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<p q:id="',
     createSsrNodeId(id0),
     '">Count: <!t>',
     escapeHTML(text0),

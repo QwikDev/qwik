@@ -3,7 +3,7 @@ import { createDocument } from '../../testing/document';
 import { Constants, TypeIds } from '../shared/serdes/constants';
 import { QContainerAttr } from '../shared/utils/markers';
 import { createContainerContext, getContextScopeForNode } from './container-context';
-import { isContextScope } from './context-scope';
+import { createContextScope, isContextScope } from './context-scope';
 import { EffectKind } from '../dom/effect/effect-kind.enum';
 import { isLazySerialized } from '../reactive/lazy-serialized';
 import { SubscriberFlags } from '../reactive/flags';
@@ -26,8 +26,37 @@ import { Phase, Scheduler } from './scheduler';
 import { Task, TaskSubscription } from './task';
 import type { Signal } from '../reactive/signal';
 import { toArray } from '../test-utils';
+import { ProjectionBlock } from '../dom/slot/slot';
+import { newInvokeContext } from './invoke-context';
 
 describe('ContainerContext', () => {
+  it('limits saved ancestor contexts to their detached projection range', async () => {
+    const container = createContainer('');
+    const context = createContainerContext(container);
+    const fragment = container.ownerDocument.createDocumentFragment();
+    const start = container.ownerDocument.createComment('s=0,0');
+    const button = container.ownerDocument.createElement('button');
+    const end = container.ownerDocument.createComment('/s');
+    const outside = container.ownerDocument.createElement('span');
+    for (const node of [start, button, end, outside]) {
+      fragment.appendChild(node);
+    }
+    const scope = createContextScope(null);
+    const owner = createOwner(null);
+    owner.projection = new ProjectionBlock(
+      container.ownerDocument,
+      start,
+      end,
+      [],
+      () => [],
+      newInvokeContext({ container: context, contextScope: scope }),
+      context
+    );
+    context.state.detachedProjectionNodes = fragment;
+    expect(await getContextScopeForNode(context, button, owner)).toBe(scope);
+    expect(await getContextScopeForNode(context, outside)).toBeNull();
+  });
+
   it('restores a suspense boundary before its lazy child root', async () => {
     const qrl = createQRL('chunk', 'render', () => '');
     const hostOwner = createOwner(null);
@@ -190,7 +219,7 @@ describe('ContainerContext', () => {
   it('keeps a disposed streamed root out of an owner tree', async () => {
     const container = createContainer(`
       <script type="qwik/state" q:base="0" q:len="2" q:dispose="1">
-        [${TypeIds.Owner},[${TypeIds.RootRef},1],
+        [${TypeIds.Owner},[${TypeIds.Constant},${Constants.Null},${TypeIds.Plain},0,${TypeIds.Constant},${Constants.False}],
          ${TypeIds.EffectSubscription},[${TypeIds.Plain},${EffectKind.Content}]]
       </script>
     `);

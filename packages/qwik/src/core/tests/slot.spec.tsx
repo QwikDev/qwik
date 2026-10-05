@@ -321,6 +321,86 @@ describe(`${name}: slot`, () => {
   });
 
   describe('projected content belongs to the component that declares it', () => {
+    it('disposes a hidden projection declared inside a removed row', async () => {
+      const Consumer = component$(() => {
+        const shown = useSignal(true);
+        return (
+          <>
+            <button id="hide-row" onClick$={() => (shown.value = false)} />
+            {shown.value && <Slot />}
+          </>
+        );
+      });
+      const Parent = component$(() => {
+        const rows = useSignal([1]);
+        const count = useSignal(0);
+        return (
+          <>
+            <button id="remove-row" onClick$={() => (rows.value = [])} />
+            <button id="update-row" onClick$={() => count.value++} />
+            {rows.value.map(() => (
+              <Consumer>
+                <span id="owned-row">{count.value}</span>
+              </Consumer>
+            ))}
+          </>
+        );
+      });
+      const { container, cleanup, qwikLoader } = await render(Parent, { debug });
+      const span = container.querySelector('#owned-row')!;
+      const click = (id: string) => qwikLoader?.dispatch(container.querySelector(id)!, 'click');
+      await click('#hide-row');
+      await click('#update-row');
+      expect(span.textContent).toBe('1');
+      await click('#remove-row');
+      await click('#update-row');
+      expect(span.textContent).toBe('1');
+      expect(span.parentNode).toBeNull();
+      cleanup();
+    });
+
+    it('keeps an outside projection when its consumer row is removed', async () => {
+      const Consumer = component$(() => {
+        const rows = useSignal([1]);
+        return (
+          <>
+            <button
+              id="rows"
+              onClick$={() => {
+                rows.value = rows.value.length ? [] : [2];
+              }}
+            />
+            <div id="rows-content">
+              {rows.value.map(() => (
+                <Slot />
+              ))}
+            </div>
+          </>
+        );
+      });
+      const Parent = component$(() => {
+        const count = useSignal(0);
+        return (
+          <>
+            <button id="row-count" onClick$={() => count.value++} />
+            <Consumer>
+              <span id="row-projected">{count.value}</span>
+            </Consumer>
+          </>
+        );
+      });
+      const { container, cleanup, qwikLoader } = await render(Parent, { debug });
+      const span = container.querySelector('#row-projected');
+      const click = (id: string) => qwikLoader?.dispatch(container.querySelector(id)!, 'click');
+      await click('#rows');
+      expect(container.querySelector('#row-projected')).toBeFalsy();
+      await click('#row-count');
+      expect(span?.textContent).toBe('1');
+      await click('#rows');
+      expect(container.querySelector('#row-projected') === span).toBe(true);
+      cleanup();
+    });
+
     it('stays live when the consumer re-renders to the same slot name', async () => {
       const CmpA = component$((props: { pick: string; tick: number }) => {
         return <Slot name={props.tick > 100 ? props.pick : props.pick} />;
@@ -376,16 +456,19 @@ describe(`${name}: slot`, () => {
       const shown = () => container.querySelector('#consumer')?.textContent?.trim();
       const click = (id: string) => qwikLoader?.dispatch(container.querySelector(id)!, 'click');
       expect(shown()).toBe('P 0');
+      const ssrSpan = container.querySelector('#consumer span');
 
       await click('#toggle');
       expect(shown()).toBe('');
       await click('#toggle');
       expect(shown()).toBe('P 0');
       const span = container.querySelector('#consumer span');
+      expect(span === ssrSpan).toBe(true);
 
       await click('#toggle');
       await click('#inc');
       expect(shown()).toBe('');
+      expect(span?.textContent).toBe('P 1');
       await click('#toggle');
       expect(shown()).toBe('P 1');
       // the same content comes back: it was kept, not rendered again

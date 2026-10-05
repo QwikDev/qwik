@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { _captures, createQRL, type QRLInternal } from './shared/qrl/qrl-class';
 import { needsInflation } from './shared/serdes/constants';
-import { deserializeData, inflate } from './shared/serdes/inflate';
-import { restoreStreamedSubscribers } from './runtime/container-context';
+import {
+  deserializeData as deserializeState,
+  inflate as inflateState,
+} from './shared/serdes/inflate';
+import { restoreStreamedSubscribers, registerStateData } from './runtime/container-context';
 import { createSerializationContext } from './shared/serdes/serialization-context';
 import { Constants, EMPTY_OBJECT_PAYLOAD, TypeIds } from './shared/serdes/constants';
 import { allocate } from './shared/serdes/allocate';
@@ -30,7 +33,7 @@ import {
   SsrDomSubscription,
 } from './dom/effect/ssr-effect';
 import { createSsrEventAttr } from './ssr/output';
-import { ComputedFlags } from './reactive/flags';
+import { ComputedFlags, OwnerFlags } from './reactive/flags';
 import { useAsyncQrl, useComputedQrl, useSerializerQrl, useSignal } from './reactive/public-api';
 import { type SerializerSignal } from './reactive/serializer-signal';
 import { type Signal } from './reactive/signal';
@@ -40,7 +43,15 @@ import type { ValueOrPromise } from './shared/utils/types';
 import { createContainerContext, type ContainerContext } from './runtime/container-context';
 import { createContextScope } from './runtime/context-scope';
 import { invoke, newInvokeContext } from './runtime/invoke-context';
-import { createOwner, registerSubscriberToOwner, runWithOwner } from './runtime/owner';
+import {
+  createOwner,
+  registerSubscriberToOwner,
+  runWithOwner,
+  disposeOwner,
+  disposeOwnerItems,
+} from './runtime/owner';
+import { disposeSubscriber } from './reactive/cleanup';
+import { isSubscriberDisposed, type Subscriber } from './runtime/subscriber';
 import { Phase, Scheduler } from './runtime/scheduler';
 import { useTaskQrl, Task, TaskSubscription, type TaskFn } from './runtime/task';
 import { runWithCollector } from './reactive/tracking';
@@ -50,9 +61,44 @@ import {
   createSlotScope,
   forwardSlot,
   registerProjection,
+  renderSsrSlot,
   resolveSlot,
   type SlotScope,
 } from './dom/slot/slot';
+
+const subscriberTypes = [
+  TypeIds.EffectSubscription,
+  TypeIds.SuspenseSubscription,
+  TypeIds.Task,
+  TypeIds.ComputedSignal,
+  TypeIds.AsyncSignal,
+  TypeIds.SerializerSignal,
+];
+
+function inflate(container: ContainerContext, target: unknown, type: TypeIds, payload: unknown[]) {
+  if (subscriberTypes.includes(type)) {
+    const owner =
+      (target as { owner: ReturnType<typeof createOwner> | null }).owner ?? createOwner(null);
+    return inflateState(container, target, type, [
+      ...payload,
+      TypeIds.Plain,
+      owner,
+      TypeIds.Plain,
+      0,
+    ]);
+  }
+  return inflateState(container, target, type, payload);
+}
+
+function deserializeData(container: ContainerContext, type: TypeIds, payload: unknown) {
+  return deserializeState(
+    container,
+    type,
+    subscriberTypes.includes(type)
+      ? [...(payload as unknown[]), TypeIds.Plain, createOwner(null), TypeIds.Plain, 0]
+      : payload
+  );
+}
 
 type BranchConditionFn = () => boolean;
 type BranchRenderFn = (ctx: ContainerContext) => ValueOrPromise<string>;
@@ -74,6 +120,286 @@ class TestDomRef {
 }
 
 describe('serdes emit-only', () => {
+  it('omits an unset projection bit from serialized owners', async () => {
+    const owner = createOwner(null);
+    const plain = JSON.parse(await _serialize(owner));
+    expect(plain[0]).toBe(TypeIds.Owner);
+    expect(plain[1]).toHaveLength(4);
+    owner.flags |= OwnerFlags.ShowsProjection;
+    const projecting = JSON.parse(await _serialize(owner));
+    expect(projecting[1]).toHaveLength(6);
+    expect(
+      (await _deserialize<typeof owner>(JSON.stringify(plain))).flags & OwnerFlags.ShowsProjection
+    ).toBe(0);
+  });
+
+  it('resolves detached projection references within the same container', async () => {
+    const window = createWindow({ html: '<div q:container></div>' });
+    const container = createContainerContext(window.document.body.firstElementChild!);
+    const fragment = window.document.createDocumentFragment();
+    const start = window.document.createComment('s=0,0');
+    const node = window.document.createElement('button');
+    node.setAttribute('q:id', '7');
+    const end = window.document.createComment('/s');
+    for (const child of [start, node, end]) {
+      fragment.appendChild(child);
+    }
+    container.state.detachedProjectionNodes = fragment;
+    expect(await allocate(container, TypeIds.RefVNode, 7)).toBe(node);
+    const other = createContainerContext(window.document.createElement('div'));
+    await expect(async () => allocate(other, TypeIds.RefVNode, 7)).rejects.toThrow(
+      'Missing element ref'
+    );
+  });
+
+  it('keeps owner identity and order across streamed state', async () => {
+    const owner = createOwner(null);
+    const makeComputed = (name: string) =>
+      runWithOwner(owner, () => useComputedQrl(createQRL('chunk', name, () => 1)));
+    const first = makeComputed('first');
+    const last = makeComputed('last');
+    first.value;
+    last.value;
+    const serializer = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    const firstId = serializer.$addRoot$(first);
+    await serializer.$serialize$();
+    const initial = serializer.$writer$.toString();
+    const lastId = serializer.$addRoot$(last);
+    const streamed = await serializer.$serializeNext$();
+    expect(streamed).not.toBeNull();
+    const window = createWindow({ html: '<div q:container></div>' });
+    const element = window.document.body.firstElementChild!;
+    element.innerHTML = `<script type="qwik/state" q:base="0" q:len="${JSON.parse(initial).length / 2}">${initial}</script><script type="qwik/state" q:base="${streamed!.base}" q:len="${streamed!.len}">${streamed!.state}</script>`;
+    const container = createContainerContext(element);
+    const restoredLast = (await container.getRoot(lastId)) as Subscriber;
+    const restoredFirst = (await container.getRoot(firstId)) as Subscriber;
+    expect(restoredLast.owner).toBe(restoredFirst.owner);
+    expect(toArray(restoredFirst.owner!.items)).toEqual([restoredFirst, restoredLast]);
+  });
+
+  it('keeps serialized order across reversed resume, removal, and new client work', async () => {
+    const owner = createOwner(null);
+    const makeComputed = (name: string) =>
+      runWithOwner(owner, () => useComputedQrl(createQRL('chunk', name, () => 1)));
+    const first = makeComputed('first');
+    const middle = makeComputed('middle');
+    const last = makeComputed('last');
+    first.value;
+    middle.value;
+    last.value;
+    const window = createWindow({ html: '<div q:container></div>' });
+    const container = createContainerContext(window.document.body.firstElementChild!);
+    registerStateData(container, await serialize(first, middle, last, owner));
+    const restoredLast = (await container.getRoot(2)) as Subscriber;
+    const restoredOwner = (await container.getRoot(3)) as typeof owner;
+    const client = runWithOwner(restoredOwner, () =>
+      useComputedQrl(createQRL('chunk', 'client', () => 1))
+    );
+    const restoredFirst = (await container.getRoot(0)) as Subscriber;
+    const restoredMiddle = (await container.getRoot(1)) as Subscriber;
+    expect(
+      toArray(restoredOwner.items).map((item) =>
+        item === restoredFirst
+          ? 'first'
+          : item === restoredMiddle
+            ? 'middle'
+            : item === restoredLast
+              ? 'last'
+              : 'client'
+      )
+    ).toEqual(['first', 'middle', 'last', 'client']);
+    disposeSubscriber(restoredMiddle);
+    expect(
+      toArray(restoredOwner.items).map((item) =>
+        item === restoredFirst ? 'first' : item === restoredLast ? 'last' : 'client'
+      )
+    ).toEqual(['first', 'last', 'client']);
+    expect(client).toBeDefined();
+  });
+
+  it.each([
+    ['dispose', 'initial'],
+    ['clear', 'initial'],
+    ['dispose', 'streamed'],
+    ['clear', 'streamed'],
+  ] as const)(
+    'rejects late subscribers after owner %s in %s state',
+    async (operation, stateKind) => {
+      const owner = createOwner(null);
+      const computed = runWithOwner(owner, () =>
+        useComputedQrl(createQRL('chunk', 'late', () => 1))
+      );
+      computed.value;
+      const window = createWindow({ html: '<div q:container></div>' });
+      const container = createContainerContext(window.document.body.firstElementChild!);
+      if (stateKind === 'initial') {
+        registerStateData(container, await serialize(owner, computed));
+      } else {
+        const serializer = createSerializationContext(
+          null,
+          () => '',
+          () => {},
+          new WeakMap()
+        );
+        serializer.$addRoot$(owner);
+        await serializer.$serialize$();
+        registerStateData(container, JSON.parse(serializer.$writer$.toString()));
+        await container.getRoot(0);
+        serializer.$addRoot$(computed);
+        const streamed = (await serializer.$serializeNext$())!;
+        const script = window.document.createElement('script');
+        script.setAttribute('type', 'qwik/state');
+        script.setAttribute('q:base', String(streamed.base));
+        script.setAttribute('q:len', String(streamed.len));
+        script.textContent = streamed.state;
+        container.element.appendChild(script);
+        container.registerStateScripts!([script]);
+      }
+      const restoredOwner = (await container.getRoot(0)) as typeof owner;
+      if (operation === 'dispose') {
+        disposeOwner(restoredOwner);
+      } else {
+        disposeOwnerItems(restoredOwner);
+      }
+      const restored = (await container.getRoot(1)) as Subscriber;
+      expect(isSubscriberDisposed(restored)).toBe(true);
+      expect(restoredOwner.items).toBeNull();
+      if (operation === 'clear') {
+        const next = runWithOwner(restoredOwner, () =>
+          useComputedQrl(createQRL('chunk', 'next', () => 2))
+        );
+        expect(restoredOwner.items).toBe(next);
+      }
+    }
+  );
+
+  it('disposes a subscriber whose owner disappears during inflation', async () => {
+    const owner = createOwner(null);
+    let release!: (value: Signal<number>) => void;
+    const source = useSignal(1);
+    const dependency = new Promise<Signal<number>>((resolve) => {
+      release = resolve;
+    });
+    const container = createCaptureContainer({ 0: dependency });
+    const subscription = new TaskSubscription(
+      new Task(undefined, Phase.DeferredTask, undefined, container)
+    );
+    const pending = inflateState(container, subscription, TypeIds.Task, [
+      TypeIds.Plain,
+      Phase.DeferredTask,
+      TypeIds.Plain,
+      createQRL('chunk', 'task', () => {}),
+      TypeIds.Array,
+      [TypeIds.RootRef, 0],
+      TypeIds.Plain,
+      owner,
+      TypeIds.Plain,
+      0,
+    ]);
+    disposeOwner(owner);
+    release(source);
+    await pending;
+    expect(isSubscriberDisposed(subscription)).toBe(true);
+    expect(source.subs).toBeNull();
+    expect(owner.items).toBeNull();
+  });
+
+  it.each([-1, 0.5, Number.MAX_SAFE_INTEGER + 1])(
+    'rejects invalid serialized owner order %s',
+    async (position) => {
+      const container = createCaptureContainer({});
+      await expect(async () =>
+        inflateState(container, createOwner(null), TypeIds.Owner, [
+          TypeIds.Plain,
+          null,
+          TypeIds.Plain,
+          position,
+          TypeIds.Plain,
+          false,
+        ])
+      ).rejects.toThrow('Invalid serialized owner');
+    }
+  );
+
+  it('rejects an ownership reference to another runtime value', async () => {
+    const container = createCaptureContainer({});
+    await expect(async () =>
+      inflateState(container, createOwner(null), TypeIds.Owner, [
+        TypeIds.Plain,
+        'not an owner',
+        TypeIds.Plain,
+        0,
+        TypeIds.Plain,
+        false,
+      ])
+    ).rejects.toThrow('Invalid serialized owner');
+    await expect(async () =>
+      inflateState(
+        container,
+        allocate(container, TypeIds.ComputedSignal, []),
+        TypeIds.ComputedSignal,
+        [TypeIds.Plain, {}, TypeIds.Plain, 0]
+      )
+    ).rejects.toThrow('Invalid serialized ownership');
+  });
+
+  it('restores owner ancestry without serializing unrelated work', async () => {
+    const parent = createOwner(null);
+    const child = createOwner(parent);
+    child.flags |= OwnerFlags.ShowsProjection;
+    runWithOwner(parent, () => useComputedQrl(createQRL('chunk', 'unused', () => 1)));
+
+    const restored = await _deserialize<typeof child>(await _serialize(child));
+
+    expect(restored.parent).not.toBeNull();
+    expect(restored.parent!.items).toBe(restored);
+    expect(restored.items).toBeNull();
+    expect(restored.flags & OwnerFlags.ShowsProjection).not.toBe(0);
+  });
+
+  it('serializes rendered projections through their subscription only', async () => {
+    const host = createOwner(null);
+    const scope = createSlotScope();
+    const container = createCaptureContainer({});
+    const context = newInvokeContext({ owner: host, container, slotScope: scope });
+    const projection = invoke(context, () =>
+      registerProjection(
+        scope,
+        'body',
+        createQRL('chunk', 'projected', () => 'body')
+      )
+    );
+    const lazy = JSON.parse(await _serialize(projection));
+    expect(lazy[0]).toBe(TypeIds.Projection);
+    expect(lazy[1]).toHaveLength(8);
+    await invoke(context, () => renderSsrSlot(container, 'body'));
+    const shown = JSON.parse(await _serialize(projection));
+    expect(shown[0]).toBe(TypeIds.Projection);
+    expect(shown[1]).toHaveLength(4);
+  });
+
+  it('shares the declaring owner between a projection and its restored host', async () => {
+    const host = createOwner(null);
+    const scope = createSlotScope();
+    const projection = invoke(newInvokeContext({ owner: host }), () =>
+      registerProjection(
+        scope,
+        '',
+        createQRL('chunk', 'projected', () => null)
+      )
+    );
+    const restored = await _deserialize<[typeof projection, typeof host]>(
+      await _serialize([projection, host])
+    );
+
+    expect(restored[0].host).toBe(restored[1]);
+  });
+
   it('round-trips one QRL shared by independent forwarded projections', async () => {
     const sourceScope = createSlotScope();
     const renderQrl = createQRL('chunk', 'projection', () => null);
@@ -372,7 +698,7 @@ describe('serdes emit-only', () => {
     );
     expect(effectPayload[4]).toBe(TypeIds.Plain);
     expect(effectPayload[5]).toBe(7);
-    expect(effectPayload.slice(6)).toEqual([
+    expect(effectPayload.slice(6, -4)).toEqual([
       ...(markerIndex === null ? [] : [TypeIds.Plain, markerIndex]),
       TypeIds.Array,
       [TypeIds.RootRef, 0],
@@ -675,7 +1001,7 @@ describe('serdes emit-only', () => {
     expect(effectPayload[11]).toEqual([TypeIds.RootRef, 0]);
     expect(effectPayload[12]).toBe(TypeIds.QRL);
     expect(effectPayload[13]).toBe('1#1#-2');
-    expect(state.slice(2)).toEqual([TypeIds.Plain, 'counter.text.js', TypeIds.Plain, 'label']);
+    expect(state.slice(2, 6)).toEqual([TypeIds.Plain, 'counter.text.js', TypeIds.Plain, 'label']);
   });
 
   it('serializes SSR class and style subscribers', async () => {
@@ -815,7 +1141,7 @@ describe('serdes emit-only', () => {
     const restored = (await deserializeData(
       container,
       TypeIds.EffectSubscription,
-      effectPayload
+      (effectPayload as unknown[]).slice(0, -4)
     )) as DomBatchEffect;
     expect(restored.deps).toEqual([restoredCount, restoredTitle]);
 
@@ -851,8 +1177,7 @@ describe('serdes emit-only', () => {
     const state = await serialize(visible, child);
     const signalPayload = state[1] as unknown[];
     const branchPayload = signalPayload[3] as unknown[];
-    const ownedPayload = branchPayload[15] as unknown[];
-    const ownedEffectPayload = ownedPayload[1] as unknown[];
+    const ownerRootId = branchPayload[15] as number;
 
     expect(html).toBe('then');
     expect(signalPayload[2]).toBe(TypeIds.EffectSubscription);
@@ -864,8 +1189,9 @@ describe('serdes emit-only', () => {
     expect(branchPayload[10]).toBe(TypeIds.QRL);
     expect(branchPayload[12]).toBe(TypeIds.Constant);
     expect(branchPayload[13]).toBe(Constants.Null);
-    expect(ownedPayload[0]).toBe(TypeIds.EffectSubscription);
-    expect(ownedEffectPayload[1]).toBe(EffectKind.TextNode);
+    expect(branchPayload[14]).toBe(TypeIds.RootRef);
+    expect(state[ownerRootId * 2]).toBe(TypeIds.Owner);
+    expect((state[ownerRootId * 2 + 1] as unknown[])[0]).toBe(TypeIds.RootRef);
   });
 
   it('serializes for block subscriptions without eager row-local subscribers', async () => {
@@ -960,6 +1286,8 @@ describe('serdes emit-only', () => {
       [TypeIds.Plain, firstIndex, TypeIds.Plain, secondIndex],
       TypeIds.Plain,
       3,
+      TypeIds.Plain,
+      createOwner(subscription.owner),
     ]);
 
     subscription.block.reconcile(subscription, key, render);
@@ -1060,8 +1388,8 @@ describe('serdes emit-only', () => {
       [TypeIds.Plain, value],
       TypeIds.Plain,
       renderQrl,
-      TypeIds.Array,
-      [],
+      TypeIds.Plain,
+      createOwner(owner),
       TypeIds.Constant,
       Constants.Null,
     ]);
@@ -1088,6 +1416,8 @@ describe('serdes emit-only', () => {
       rootOwner
     );
 
+    const mountedOwner = createOwner(rootOwner);
+    registerSubscriberToOwner(ownedEffect, mountedOwner);
     runWithCollector(ownedEffect, () => local.value);
     await inflate(container, branch, TypeIds.EffectSubscription, [
       TypeIds.Plain,
@@ -1110,8 +1440,8 @@ describe('serdes emit-only', () => {
       createQRL<BranchRenderFn>('./branch.then.js', 'renderThen', () => '', null, null),
       TypeIds.Constant,
       Constants.Null,
-      TypeIds.Array,
-      [TypeIds.Plain, ownedEffect],
+      TypeIds.Plain,
+      mountedOwner,
     ]);
 
     expect(branch.branch.currentBranch).toBe(BRANCH_THEN);

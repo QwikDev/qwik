@@ -30,9 +30,10 @@ import {
   _capturesObj,
   renderSsrBranch,
   createSsrNodeId,
+  _createSsrSlotMarker,
   _noopQrl,
 } from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
   const [show] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(show);
@@ -46,9 +47,8 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     )
   );
   return [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><!b=',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
     createSsrNodeId(branchId0),
     '>',
     branch0,
@@ -59,7 +59,7 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
+const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId, __projectionRootId) => {
   const [show] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(show);
@@ -73,9 +73,8 @@ const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
     )
   );
   return [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><!b=',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
     createSsrNodeId(branchId0),
     '>',
     branch0,
@@ -86,7 +85,7 @@ const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
 );
 q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
-const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) => {
+const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId, __projectionRootId) => {
   const [show] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(show);
@@ -100,9 +99,8 @@ const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) => {
     )
   );
   return [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><!b=',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
     createSsrNodeId(branchId0),
     '>',
     branch0,
@@ -221,7 +219,13 @@ export default default_component_3rg6kq1so9aio;
 export { Host as Host_component_omsd8g3aigfl };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrBranch } from '@qwik.dev/core';
+import {
+  _noopQrl,
+  _capturesObj,
+  _createSsrSlotMarker,
+  renderSsrBranch,
+  createSsrNodeId,
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
 import { component_branch_then_segment_2_24n7b7xmnzb3n } from './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n';
 const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _noopQrl(
@@ -235,7 +239,11 @@ const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
 
-export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+export const component_slot_render_segment_0_3b0tagwys7lui = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const [show] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(show);
@@ -249,9 +257,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     )
   );
   return [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><!b=',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
     createSsrNodeId(branchId0),
     '>',
     branch0,
@@ -339,7 +346,13 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
 
-import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrBranch } from '@qwik.dev/core';
+import {
+  _noopQrl,
+  _capturesObj,
+  _createSsrSlotMarker,
+  renderSsrBranch,
+  createSsrNodeId,
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_4_2fzrgupr899d5 } from './component.tsx_component_branch_condition_segment_4_2fzrgupr899d5';
 import { component_branch_then_segment_5_24n7d63685l6a } from './component.tsx_component_branch_then_segment_5_24n7d63685l6a';
 const q_component_branch_condition_segment_4_2fzrgupr899d5 = /*#__PURE__*/ _noopQrl(
@@ -353,7 +366,11 @@ const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_5_24n7d63685l6a.s(component_branch_then_segment_5_24n7d63685l6a);
 
-export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
+export const component_slot_render_segment_3_3b0ta2vuvdjtz = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const [show] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(show);
@@ -367,9 +384,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) =>
     )
   );
   return [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><!b=',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
     createSsrNodeId(branchId0),
     '>',
     branch0,
@@ -457,7 +473,13 @@ export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_6_3b0t84qbb79rc.js (ENTRY POINT)==
 
-import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrBranch } from '@qwik.dev/core';
+import {
+  _noopQrl,
+  _capturesObj,
+  _createSsrSlotMarker,
+  renderSsrBranch,
+  createSsrNodeId,
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_7_2fzrfomfhr3bk } from './component.tsx_component_branch_condition_segment_7_2fzrfomfhr3bk';
 import { component_branch_then_segment_8_24n7f48psbv8x } from './component.tsx_component_branch_then_segment_8_24n7f48psbv8x';
 const q_component_branch_condition_segment_7_2fzrfomfhr3bk = /*#__PURE__*/ _noopQrl(
@@ -471,7 +493,11 @@ const q_component_branch_then_segment_8_24n7f48psbv8x = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_8_24n7f48psbv8x.s(component_branch_then_segment_8_24n7f48psbv8x);
 
-export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) => {
+export const component_slot_render_segment_6_3b0t84qbb79rc = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const [show] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(show);
@@ -485,9 +511,8 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) =>
     )
   );
   return [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><!b=',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
     createSsrNodeId(branchId0),
     '>',
     branch0,

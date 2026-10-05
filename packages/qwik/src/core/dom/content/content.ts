@@ -26,7 +26,6 @@ import {
   getOrCreateContextOwner,
   registerSubscriberToOwner,
   type Owner,
-  showsProjection,
 } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import { registerSuspenseBoundary } from './suspense-boundary';
@@ -42,7 +41,7 @@ import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import { isQrl } from '../../shared/qrl/qrl-utils';
 import type { SsrOutput } from '../../ssr/output';
-import { replaceRange } from '../range/range';
+import { replaceRange, prepareProjectionRanges, parkProjections } from '../range/range';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
 import type { BranchRange } from '../branch/branch';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
@@ -165,6 +164,13 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
   }
 
   run(subscription: ContentSubscription<TArgs>): ValueOrPromise<readonly Node[]> {
+    return maybeThen(
+      prepareProjectionRanges(this.container, this.start, this.end, this.currentOwner),
+      () => this.runPrepared(subscription)
+    );
+  }
+
+  private runPrepared(subscription: ContentSubscription<TArgs>): ValueOrPromise<readonly Node[]> {
     return maybeThen(getFunctionOrResolve(this.fn, this.container), (fn) => {
       if (isSubscriberDisposed(subscription)) {
         return EMPTY_NODES;
@@ -218,6 +224,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
   dispose(): void {
     const owner = this.currentOwner;
     this.currentOwner = null;
+    parkProjections(owner);
     if (owner !== null) {
       disposeOwner(owner);
     }
@@ -227,7 +234,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
       disposeOwner(pendingContext.owner);
       pendingContext.owner = null;
     }
-    replaceRange(this.document, this.start, this.end, EMPTY_NODES, showsProjection(owner));
+    replaceRange(this.document, this.start, this.end, EMPTY_NODES);
   }
 
   private commit(invokeContext: RuntimeInvokeContext, output: ContentOutput): readonly Node[] {
@@ -239,7 +246,8 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
         ? reapplyUseOnContexts(output, this.invokeContext, this.document)
         : output
     );
-    replaceRange(this.document, this.start, this.end, nodes, showsProjection(previousOwner));
+    parkProjections(previousOwner);
+    replaceRange(this.document, this.start, this.end, nodes);
     this.committed = true;
     // Deferred content claims the owner after this commit, so materialize it now or lose the handle.
     this.currentOwner = getOrCreateContextOwner(invokeContext);

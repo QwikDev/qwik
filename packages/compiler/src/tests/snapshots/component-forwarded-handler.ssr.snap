@@ -26,13 +26,13 @@ import {
   _markComponent,
   registerProjection,
   _noopQrl,
-  createSsrNodeId,
+  _createSsrSlotMarker,
 } from '@qwik.dev/core';
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
-const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>go<!/s>'];
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'go<!/s>'];
 };
 const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_1_3b0tauy2p1nv1'
@@ -116,10 +116,14 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
 */
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
-import { createSsrNodeId } from '@qwik.dev/core';
+import { _createSsrSlotMarker } from '@qwik.dev/core';
 
-export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>go<!/s>'];
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'go<!/s>'];
 };
 /*
 {

@@ -32,16 +32,31 @@ export type RowMarkerRange = readonly [Comment, Comment];
 export type ForRow = { readonly dom: Element | RowMarkerRange; readonly key: string | null };
 export type ForRowRange = Element | RowMarkerRange;
 
-export function findQwikElement(element: Element, elementId: string | number): Element | null {
+export function findQwikElement(
+  element: Element | DocumentFragment,
+  elementId: string | number
+): Element | null {
   if (elementId == null) {
     // TODO: throw error?
     return null;
   }
   const stringId = String(elementId);
-  if (fastGetAttribute(element, ELEMENT_ID) === stringId) {
-    return element;
+  if (
+    element.nodeType === NodeType.Element &&
+    fastGetAttribute(element as Element, ELEMENT_ID) === stringId
+  ) {
+    return element as Element;
   }
-  return element.querySelector(`[${ELEMENT_ID_SELECTOR}="${stringId}"]`) ?? null;
+  for (const candidate of element.querySelectorAll(`[${ELEMENT_ID_SELECTOR}="${stringId}"]`)) {
+    let ancestor: Element | null = candidate;
+    while (ancestor !== null && ancestor !== element && !ancestor.hasAttribute('q:container')) {
+      ancestor = ancestor.parentElement;
+    }
+    if (ancestor === element || ancestor === null) {
+      return candidate;
+    }
+  }
+  return null;
 }
 
 export function findElementText(parentNode: Node): Text {
@@ -96,25 +111,42 @@ export function findBranchTextNode(range: BranchMarkerRange, markerIndex: number
 }
 
 export function findBranchRange(
-  element: Element,
+  element: Element | DocumentFragment,
   rangeId: string | number
 ): BranchMarkerRange | null {
   return findMarkerRange(element, BRANCH_OPEN + String(rangeId), BRANCH_OPEN, BRANCH_CLOSE);
 }
 
-export function findForRange(element: Element, rangeId: string | number): ForMarkerRange | null {
+export function findForRange(
+  element: Element | DocumentFragment,
+  rangeId: string | number
+): ForMarkerRange | null {
   return findMarkerRange(element, FOR_OPEN + String(rangeId), FOR_OPEN, FOR_CLOSE);
 }
 
 export function findContentRange(
-  element: Element,
+  element: Element | DocumentFragment,
   rangeId: string | number
 ): ContentMarkerRange | null {
   return findMarkerRange(element, CONTENT_OPEN + String(rangeId), CONTENT_OPEN, CONTENT_CLOSE);
 }
 
+export function findProjectionRange(
+  element: Element | DocumentFragment,
+  rangeId: number
+): ContentMarkerRange | null {
+  const walker = createCommentWalker(element);
+  let node: Node | null;
+  while ((node = walker.nextNode()) !== null) {
+    if ((node as Comment).data.startsWith('s=' + String(rangeId) + ',')) {
+      return toRange(node as Comment, SLOT_OPEN, SLOT_CLOSE);
+    }
+  }
+  return null;
+}
+
 function findMarkerRange(
-  element: Element,
+  element: Element | DocumentFragment,
   marker: string,
   open: string,
   close: string
@@ -183,11 +215,18 @@ function isMarkerFor(data: string, prefix: string, id: string): boolean {
 }
 
 // 128 = NodeFilter.SHOW_COMMENT
-function createCommentWalker(element: Element): TreeWalker {
-  return element.ownerDocument!.createTreeWalker(element, 128);
+export function createCommentWalker(element: Element | DocumentFragment): TreeWalker {
+  return element.ownerDocument!.createTreeWalker(element, 129, {
+    acceptNode(node) {
+      if (node.nodeType === NodeType.Element) {
+        return (node as Element).hasAttribute('q:container') ? 2 : 3;
+      }
+      return 1;
+    },
+  });
 }
 
-function findComment(element: Element, data: string): Comment | null {
+function findComment(element: Element | DocumentFragment, data: string): Comment | null {
   const walker = createCommentWalker(element);
   let comment: Node | null;
   while ((comment = walker.nextNode()) !== null) {
@@ -203,7 +242,7 @@ function findComment(element: Element, data: string): Comment | null {
  * per-container counter, so at most one kind owns an id and the first match wins.
  */
 export function findBranchTextRange(
-  element: Element,
+  element: Element | DocumentFragment,
   rangeId: string | number
 ): readonly [Comment, Comment] | null {
   const id = String(rangeId);
@@ -249,9 +288,9 @@ function findRangeEnd(start: Comment, open: string, close: string): Comment | nu
   return null;
 }
 
-export function findContextScopeId(node: Node): string | null {
+export function findContextScopeId(node: Node, boundary?: Node): string | null {
   let current: Node | null = node;
-  while (current !== null) {
+  while (current !== null && current !== boundary) {
     const parent: ParentNode | null = current.parentNode;
     if (parent === null) {
       return null;
@@ -260,6 +299,9 @@ export function findContextScopeId(node: Node): string | null {
     let depth = 0;
     let sibling = fastPreviousSibling(current);
     while (sibling !== null) {
+      if (sibling === boundary) {
+        return null;
+      }
       if (sibling.nodeType === NodeType.Comment) {
         const data = (sibling as Comment).data;
         if (data === CONTEXT_CLOSE) {

@@ -18,7 +18,7 @@ import { Signal } from '../../reactive/signal';
 import { useStore, StorePropSource, unwrapStore } from '../../reactive/store';
 import type { ContainerContext } from '../../runtime/container-context';
 import { createContextScope } from '../../runtime/context-scope';
-import { createProjection, createSlotScope } from '../../dom/slot/slot';
+import { createProjection, createSlotScope, ProjectionSubscription } from '../../dom/slot/slot';
 import { createOwner } from '../../runtime/owner';
 import { Task, TaskSubscription, VisibleTask, VisibleTaskSubscription } from '../../runtime/task';
 import { Phase } from '../../runtime/scheduler';
@@ -31,6 +31,7 @@ import { _constants, TypeIds, type Constants } from './constants';
 import { createQRLWithBackChannel } from './qrl-to-string';
 import { createSyncQRL } from '../qrl/qrl-class';
 import { findQwikElement } from '../../runtime/node-walker';
+import { findContainerNode } from '../../dom/range/range';
 import { allocatePropsProxy, PropSource } from '../../component/props';
 import { PromiseRoot } from './promise-root';
 
@@ -77,7 +78,9 @@ export const allocate = (
     case TypeIds.ForwardRefs:
       return value;
     case TypeIds.RefVNode: {
-      const element = findQwikElement(context.element, value as string | number);
+      const element = findContainerNode(context, (root) =>
+        findQwikElement(root, value as string | number)
+      );
       if (element === null) {
         throw new Error(`Missing element ref ${String(value)}.`);
       }
@@ -207,6 +210,9 @@ export const allocate = (
       }
       if (effectKind === EffectKind.ForBlock) {
         return new ForBlockSubscription(null!, context.scheduler);
+      }
+      if (effectKind === EffectKind.Projection) {
+        return new ProjectionSubscription(null!, context.scheduler);
       }
       if (effectKind === EffectKind.Content) {
         return new ContentSubscription(null!, context.scheduler);

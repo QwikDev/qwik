@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   createSsrOpenTag,
+  _createSsrSlotMarker,
   createSsrEventAttr,
   createSsrNodeId,
   createSsrMarkup,
@@ -10,6 +11,17 @@ import {
 import { SsrOutputWriter } from './output-writer';
 
 describe('SsrOutputWriter', () => {
+  it.each([
+    [undefined, '<!s=3>'],
+    [0, '<!s=3,0>'],
+    [7, '<!s=3,7>'],
+  ])('writes a slot marker with optional projection root %s', (rootId, expected) => {
+    const chunks: string[] = [];
+    const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
+    writer.finish(_createSsrSlotMarker(3, rootId));
+    expect(chunks.join('')).toBe(expected);
+  });
+
   it('omits null markup parts while preserving references and event attributes', () => {
     const chunks: string[] = [];
     const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });

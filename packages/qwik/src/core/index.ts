@@ -211,6 +211,7 @@ export { useId } from './runtime/use-id';
 export {
   createSsrEventAttr,
   createSsrNodeId,
+  _createSsrSlotMarker,
   createSsrOpenTag,
   createSsrSection,
   createSsrMarkup,

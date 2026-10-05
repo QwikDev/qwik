@@ -20,6 +20,7 @@ import {
   _EMPTY_OBJ,
   registerProjection,
   createComponent,
+  _createSsrSlotMarker,
   renderSsrDynamicTag,
   _markComponent,
 } from '@qwik.dev/core';
@@ -45,7 +46,7 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
   'component_text_segment_1_1fh10tcowimfv'
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
-const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId, __projectionRootId) => {
   const component0 = ctx.observeError(
     createComponent(
       (props0) => renderSsrDynamicTag(_createContent, props0, ctx),
@@ -53,7 +54,7 @@ const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
       ctx
     )
   );
-  return ['<!s=', createSsrNodeId(__rangeId), '>', component0, '<!/s>'];
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), component0, '<!/s>'];
 };
 const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
@@ -154,10 +155,14 @@ export const component_text_segment_1_1fh10tcowimfv = (ctx0) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
-import { createSsrNodeId, renderSsrDynamicTag, createComponent } from '@qwik.dev/core';
+import { _createSsrSlotMarker, renderSsrDynamicTag, createComponent } from '@qwik.dev/core';
 import { __qwik__createContent as _createContent } from './component.tsx';
 
-export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const component0 = ctx.observeError(
     createComponent(
       (props0) => renderSsrDynamicTag(_createContent, props0, ctx),
@@ -165,7 +170,7 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
       ctx
     )
   );
-  return ['<!s=', createSsrNodeId(__rangeId), '>', component0, '<!/s>'];
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), component0, '<!/s>'];
 };
 /*
 {

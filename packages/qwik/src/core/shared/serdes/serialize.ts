@@ -16,7 +16,7 @@ import {
   type SsrScalarDomEffect,
   type SsrDomEffect,
 } from '../../dom/effect/ssr-effect';
-import { ComputedFlags } from '../../reactive/flags';
+import { ComputedFlags, OwnerFlags } from '../../reactive/flags';
 import { AsyncSignal } from '../../reactive/async-signal';
 import { Computed, isAsyncComputed } from '../../reactive/computed';
 import { ComputedQrl } from '../../reactive/computed-qrl';
@@ -34,9 +34,15 @@ import type { Source, SourceSubs } from '../../reactive/source';
 import { isContextScope } from '../../runtime/context-scope';
 import { TaskSubscription, VisibleTaskSubscription } from '../../runtime/task';
 import { Phase } from '../../runtime/scheduler';
-import { isProjection, isSlotScope, type Projection, type SlotScope } from '../../dom/slot/slot';
+import {
+  isProjection,
+  isSlotScope,
+  SSRProjectionSubscription,
+  type Projection,
+  type SlotScope,
+} from '../../dom/slot/slot';
 import { getPropsProxyState, getPropsSources, PropSource } from '../../component/props';
-import { Owner } from '../../runtime/owner';
+import { Owner, ownerItemAt, ownerItemsLength, type OwnerItem } from '../../runtime/owner';
 import type { Subscriber } from '../../runtime/subscriber';
 import type { RuntimeInvokeContext } from '../../runtime/invoke-context';
 import type { SerdesWriter, SsrWriteChunk } from './writer';
@@ -62,8 +68,6 @@ import { SerializationBackRef } from './serialization-back-ref';
 import type { SeenRef, SerializationContext } from './serialization-context';
 import { fastSkipSerialize, SerializerSymbol } from './verify';
 
-export type SerializedOwnerItems = Array<Subscriber | Owner>;
-
 const MAX_INLINE_ARRAY_ITEMS = 64;
 
 /**
@@ -76,6 +80,10 @@ const MAX_INLINE_ARRAY_ITEMS = 64;
  * - Therefore root indexes need to be doubled to get the actual index.
  */
 export class Serializer {
+  private $ownerOrders$ = new WeakMap<
+    Owner,
+    { positions: WeakMap<OwnerItem, number>; next: number }
+  >();
   private $rootIdx$ = 0;
   private $forwardRefs$: Array<number | string | number[]> = [];
   private $forwardRefsId$ = 0;
@@ -506,6 +514,9 @@ export class Serializer {
           } else if (value instanceof SerializationBackRef) {
             this.output(TypeIds.RootRef, value.$path$);
           } else {
+            if (value instanceof Owner && this.$parent$ !== undefined) {
+              this.$serializationContext$.$addRoot$(value);
+            }
             const newSeenRef = this.getSeenRefOrOutput(value, index);
             if (newSeenRef) {
               const oldParent = this.$parent$;
@@ -522,6 +533,38 @@ export class Serializer {
     }
   }
 
+  private ownerPosition(item: OwnerItem, owner: Owner | null): number {
+    if (owner === null) {
+      return 0;
+    }
+    let order = this.$ownerOrders$.get(owner);
+    if (order === undefined) {
+      order = { positions: new WeakMap(), next: 0 };
+      this.$ownerOrders$.set(owner, order);
+    }
+    const cached = order.positions.get(item);
+    if (cached !== undefined) {
+      return cached;
+    }
+    if (owner.items !== null) {
+      for (let i = 0; i < ownerItemsLength(owner.items); i++) {
+        const owned = ownerItemAt(owner.items, i)!;
+        if (!order.positions.has(owned)) {
+          order.positions.set(owned, order.next++);
+        }
+      }
+    }
+    const position = order.positions.get(item);
+    if (position === undefined) {
+      throw new Error('Missing owner membership');
+    }
+    return position;
+  }
+
+  private withOwner(parts: unknown[], subscriber: Subscriber): unknown[] {
+    return [...parts, subscriber.owner, this.ownerPosition(subscriber, subscriber.owner)];
+  }
+
   private writeObjectValue(value: {}, index: number) {
     let propsProxy: ReturnType<typeof getPropsProxyState>;
     let propsSources: Record<string, unknown> | undefined;
@@ -533,15 +576,21 @@ export class Serializer {
         });
         this.output(TypeIds.ForwardRef, forwardRefId);
       } else {
-        this.output(TypeIds.SerializerSignal, serializeSerializerSignal(value, maybeValue));
+        this.output(
+          TypeIds.SerializerSignal,
+          this.withOwner(serializeSerializerSignal(value, maybeValue), value)
+        );
       }
     } else if (value instanceof ComputedQrl) {
       this.output(
         isAsyncComputed(value) ? TypeIds.AsyncSignal : TypeIds.ComputedSignal,
-        isAsyncComputed(value) ? serializeAsyncSignal(value) : serializeComputed(value)
+        this.withOwner(
+          isAsyncComputed(value) ? serializeAsyncSignal(value) : serializeComputed(value),
+          value
+        )
       );
     } else if (value instanceof AsyncSignal) {
-      this.output(TypeIds.AsyncSignal, serializeAsyncSignal(value));
+      this.output(TypeIds.AsyncSignal, this.withOwner(serializeAsyncSignal(value), value));
     } else if (value instanceof Signal) {
       this.output(TypeIds.Signal, serializeSignal(value));
     } else if (isStore(value)) {
@@ -564,10 +613,13 @@ export class Serializer {
         value instanceof SsrSuspenseContentSubscription
           ? TypeIds.SuspenseSubscription
           : TypeIds.EffectSubscription,
-        serializeEffectSubscription(value, this.$serializationContext$)
+        this.withOwner(serializeEffectSubscription(value, this.$serializationContext$), value)
       );
     } else if (value instanceof TaskSubscription || value instanceof VisibleTaskSubscription) {
-      this.output(TypeIds.Task, serializeTaskSubscription(value, this.$serializationContext$));
+      this.output(
+        TypeIds.Task,
+        this.withOwner(serializeTaskSubscription(value, this.$serializationContext$), value)
+      );
     } else if (isContextScope(value)) {
       const out: unknown[] = [value.parent ?? null];
       const values = value.values;
@@ -576,7 +628,11 @@ export class Serializer {
       }
       this.output(TypeIds.ContextScope, out);
     } else if (value instanceof Owner) {
-      this.output(TypeIds.Owner, getSsrOwnerItems(value));
+      this.output(TypeIds.Owner, [
+        value.parent,
+        this.ownerPosition(value, value.parent),
+        ...(value.flags & OwnerFlags.ShowsProjection ? [true] : []),
+      ]);
     } else if (isSlotScope(value)) {
       this.output(TypeIds.SlotScope, serializeSlotScope(value));
     } else if (isProjection(value)) {
@@ -681,7 +737,7 @@ export class Serializer {
         }
         this.output(
           TypeIds.SerializerSignal,
-          serializeSerializerSignal(value.$signal$!, value.$value$)
+          this.withOwner(serializeSerializerSignal(value.$signal$!, value.$value$), value.$signal$!)
         );
       } else {
         this.output(TypeIds.Promise, [value.$resolved$, value.$value$]);
@@ -1120,30 +1176,11 @@ function serializeBranchSubscription(
     effect.conditionQrl,
     effect.thenQrl,
     effect.elseQrl ?? null,
-    getSsrOwnerItems(subscription.effect.currentOwner),
+    effect.currentOwner,
     effect.invokeContext?.slotScope ?? null,
     effect.useOnRoot ? serializeUseOnScopes(effect.invokeContext) : null,
     ...(suspenseRoot === undefined ? [] : [suspenseRoot]),
   ];
-}
-
-/** A child owner rides the list by reference, so resume restores the same tree, not a copy of it. */
-function getSsrOwnerItems(owner: Owner | null): SerializedOwnerItems {
-  const items = owner?.items;
-  if (items == null) {
-    return EMPTY_ARRAY;
-  }
-
-  const out: Array<Subscriber | Owner> = [];
-  const itemCount = Array.isArray(items) ? items.length : 1;
-  for (let i = 0; i < itemCount; i++) {
-    const item = Array.isArray(items) ? items[i] : items;
-    // an owner that owns nothing has no lifetime worth restoring
-    if (!(item instanceof Owner) || getSsrOwnerItems(item).length > 0) {
-      out.push(item);
-    }
-  }
-  return out;
 }
 
 function serializeContentSubscription(
@@ -1157,16 +1194,20 @@ function serializeContentSubscription(
       : undefined;
   const suspenseRoot = getSuspenseRootId(subscription.owner, context);
   return [
-    EffectKind.Content,
+    subscription instanceof SSRProjectionSubscription ? EffectKind.Projection : EffectKind.Content,
     content.rangeId,
     serializeDeps(subscription.deps),
-    content.args,
+    subscription instanceof SSRProjectionSubscription ? EMPTY_ARRAY : content.args,
     content.qrl,
-    suspense === undefined ? getSsrOwnerItems(content.currentOwner) : content.currentOwner,
+    content.currentOwner,
     content.invokeContext?.slotScope ?? null,
     content.useOnRoot ? serializeUseOnScopes(content.invokeContext) : null,
     content.contextArg,
-    ...(suspense === undefined && suspenseRoot === undefined ? [] : [suspense ?? null]),
+    ...(subscription instanceof SSRProjectionSubscription
+      ? [subscription.renderOwner]
+      : suspense === undefined && suspenseRoot === undefined
+        ? []
+        : [suspense ?? null]),
     ...(suspenseRoot === undefined ? [] : [suspenseRoot]),
   ];
 }
@@ -1190,6 +1231,7 @@ function serializeForBlockSubscription(
     // Effects-mode indices re-derive from row position at resume — only escaped ones serialize.
     effect.indexMode === IndexMode.Escapes ? effect.indexSignals : null,
     effect.rowShape,
+    effect.listOwner,
     ...(suspenseRoot === undefined ? [] : [suspenseRoot]),
   ];
 }
@@ -1210,7 +1252,9 @@ function serializeSlotScope(scope: SlotScope): unknown[] {
 }
 
 function serializeProjection(projection: Projection): unknown[] {
-  return [projection.renderQrl, projection.slotScope, projection.name];
+  return projection.subscription === null
+    ? [projection.name, projection.renderQrl, projection.slotScope, projection.host]
+    : [projection.name, projection.subscription];
 }
 
 function serializeDomSubscription(subscription: SsrDomEffectBase | SsrDomSubscription): unknown[] {

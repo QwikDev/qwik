@@ -18,7 +18,8 @@ import { createContainerContext, type ContainerContext } from '../../runtime/con
 import { createContextScope, isContextScope } from '../../runtime/context-scope';
 import { createOwner, registerSubscriberToOwner } from '../../runtime/owner';
 import { Constants, TypeIds } from './constants';
-import { inflate } from './inflate';
+import { inflate as inflateState } from './inflate';
+import type { Subscriber } from '../../runtime/subscriber';
 import { allocateDomEffect } from './allocate';
 import { toArray } from '../../test-utils';
 import type { QElement } from '../../shared/types';
@@ -31,6 +32,35 @@ const encodeObjectData = (entries: Array<[unknown, unknown]>): unknown[] => {
   }
   return out;
 };
+
+function ownershipPayload(type: TypeIds, data: unknown, owner = createOwner(null)): unknown {
+  if (!Array.isArray(data)) {
+    return data;
+  }
+  const parts = data.slice();
+  for (let i = 0; i < parts.length; i += 2) {
+    if (
+      parts[i] === TypeIds.Array ||
+      parts[i] === TypeIds.EffectSubscription ||
+      parts[i] === TypeIds.ComputedSignal
+    ) {
+      parts[i + 1] = ownershipPayload(parts[i], parts[i + 1]);
+    }
+  }
+  if (type === TypeIds.EffectSubscription || type === TypeIds.ComputedSignal) {
+    parts.push(TypeIds.Plain, owner, TypeIds.Plain, 0);
+  }
+  return parts;
+}
+
+function inflate(container: ContainerContext, target: unknown, type: TypeIds, data: unknown) {
+  return inflateState(
+    container,
+    target,
+    type,
+    ownershipPayload(type, data, (target as Subscriber).owner ?? createOwner(null))
+  );
+}
 
 describe('inflate(TypeIds.Object) unsafe key handling', () => {
   it('should skip "__proto__" to prevent prototype pollution', async () => {

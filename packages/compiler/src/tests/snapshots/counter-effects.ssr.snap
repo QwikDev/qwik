@@ -193,6 +193,7 @@ import {
   createComponent,
   _capturesObj,
   renderSsrCollection,
+  _createSsrSlotMarker,
   createSsrDomBatchEffect,
   renderSsrAttrExpression,
   renderSsrTextExpression,
@@ -207,8 +208,8 @@ q_root_onClickqrl_segment_0_37h438c21ydkt.s(root_onClickqrl_segment_0_37h438c21y
 const q_root_q_e_click_segment_1_2xenbm08l4dzi = /*#__PURE__*/ _noopQrl(
   'root_q_e_click_segment_1_2xenbm08l4dzi'
 );
-const root_slot_render_segment_2_3fnd507dh0o2u = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Create 1,000 rows<!/s>'];
+const root_slot_render_segment_2_3fnd507dh0o2u = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Create 1,000 rows<!/s>'];
 };
 const q_root_slot_render_segment_2_3fnd507dh0o2u = /*#__PURE__*/ _noopQrl(
   'root_slot_render_segment_2_3fnd507dh0o2u'
@@ -217,8 +218,8 @@ q_root_slot_render_segment_2_3fnd507dh0o2u.s(root_slot_render_segment_2_3fnd507d
 const q_root_q_e_click_segment_3_2xenaty0rg9yg = /*#__PURE__*/ _noopQrl(
   'root_q_e_click_segment_3_2xenaty0rg9yg'
 );
-const root_slot_render_segment_4_3fnd5s9laos3w = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Create 10,000 rows<!/s>'];
+const root_slot_render_segment_4_3fnd5s9laos3w = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Create 10,000 rows<!/s>'];
 };
 const q_root_slot_render_segment_4_3fnd5s9laos3w = /*#__PURE__*/ _noopQrl(
   'root_slot_render_segment_4_3fnd5s9laos3w'
@@ -227,8 +228,8 @@ q_root_slot_render_segment_4_3fnd5s9laos3w.s(root_slot_render_segment_4_3fnd5s9l
 const q_root_q_e_click_segment_5_2xend64o8gm1m = /*#__PURE__*/ _noopQrl(
   'root_q_e_click_segment_5_2xend64o8gm1m'
 );
-const root_slot_render_segment_6_3fnd6kbt4cw4y = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Append 1,000 rows<!/s>'];
+const root_slot_render_segment_6_3fnd6kbt4cw4y = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Append 1,000 rows<!/s>'];
 };
 const q_root_slot_render_segment_6_3fnd6kbt4cw4y = /*#__PURE__*/ _noopQrl(
   'root_slot_render_segment_6_3fnd6kbt4cw4y'
@@ -237,8 +238,8 @@ q_root_slot_render_segment_6_3fnd6kbt4cw4y.s(root_slot_render_segment_6_3fnd6kbt
 const q_root_q_e_click_segment_7_2xence2gesi0k = /*#__PURE__*/ _noopQrl(
   'root_q_e_click_segment_7_2xence2gesi0k'
 );
-const root_slot_render_segment_8_3fnd7ce0y1060 = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Update every 10th row<!/s>'];
+const root_slot_render_segment_8_3fnd7ce0y1060 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Update every 10th row<!/s>'];
 };
 const q_root_slot_render_segment_8_3fnd7ce0y1060 = /*#__PURE__*/ _noopQrl(
   'root_slot_render_segment_8_3fnd7ce0y1060'
@@ -247,8 +248,8 @@ q_root_slot_render_segment_8_3fnd7ce0y1060.s(root_slot_render_segment_8_3fnd7ce0
 const q_root_q_e_click_segment_9_2xen8hrdafxva = /*#__PURE__*/ _noopQrl(
   'root_q_e_click_segment_9_2xen8hrdafxva'
 );
-const root_slot_render_segment_10_3b8ytyi4ty595 = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Clear<!/s>'];
+const root_slot_render_segment_10_3b8ytyi4ty595 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Clear<!/s>'];
 };
 const q_root_slot_render_segment_10_3b8ytyi4ty595 = /*#__PURE__*/ _noopQrl(
   'root_slot_render_segment_10_3b8ytyi4ty595'
@@ -257,8 +258,8 @@ q_root_slot_render_segment_10_3b8ytyi4ty595.s(root_slot_render_segment_10_3b8yty
 const q_root_q_e_click_segment_11_1exocx67wfjnx = /*#__PURE__*/ _noopQrl(
   'root_q_e_click_segment_11_1exocx67wfjnx'
 );
-const root_slot_render_segment_12_3b8yt6fx0a183 = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Swap Rows<!/s>'];
+const root_slot_render_segment_12_3b8yt6fx0a183 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Swap Rows<!/s>'];
 };
 const q_root_slot_render_segment_12_3b8yt6fx0a183 = /*#__PURE__*/ _noopQrl(
   'root_slot_render_segment_12_3b8yt6fx0a183'
@@ -564,10 +565,10 @@ export const root_q_e_click_segment_1_2xenbm08l4dzi = () => {
 */
 ============================= src/root.tsx_root_slot_render_segment_2_3fnd507dh0o2u.js (ENTRY POINT)==
 
-import { createSsrNodeId } from '@qwik.dev/core';
+import { _createSsrSlotMarker } from '@qwik.dev/core';
 
-export const root_slot_render_segment_2_3fnd507dh0o2u = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Create 1,000 rows<!/s>'];
+export const root_slot_render_segment_2_3fnd507dh0o2u = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Create 1,000 rows<!/s>'];
 };
 /*
 {
@@ -623,10 +624,10 @@ export const root_q_e_click_segment_3_2xenaty0rg9yg = () => {
 */
 ============================= src/root.tsx_root_slot_render_segment_4_3fnd5s9laos3w.js (ENTRY POINT)==
 
-import { createSsrNodeId } from '@qwik.dev/core';
+import { _createSsrSlotMarker } from '@qwik.dev/core';
 
-export const root_slot_render_segment_4_3fnd5s9laos3w = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Create 10,000 rows<!/s>'];
+export const root_slot_render_segment_4_3fnd5s9laos3w = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Create 10,000 rows<!/s>'];
 };
 /*
 {
@@ -682,10 +683,10 @@ export const root_q_e_click_segment_5_2xend64o8gm1m = () => {
 */
 ============================= src/root.tsx_root_slot_render_segment_6_3fnd6kbt4cw4y.js (ENTRY POINT)==
 
-import { createSsrNodeId } from '@qwik.dev/core';
+import { _createSsrSlotMarker } from '@qwik.dev/core';
 
-export const root_slot_render_segment_6_3fnd6kbt4cw4y = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Append 1,000 rows<!/s>'];
+export const root_slot_render_segment_6_3fnd6kbt4cw4y = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Append 1,000 rows<!/s>'];
 };
 /*
 {
@@ -743,10 +744,10 @@ export const root_q_e_click_segment_7_2xence2gesi0k = () => {
 */
 ============================= src/root.tsx_root_slot_render_segment_8_3fnd7ce0y1060.js (ENTRY POINT)==
 
-import { createSsrNodeId } from '@qwik.dev/core';
+import { _createSsrSlotMarker } from '@qwik.dev/core';
 
-export const root_slot_render_segment_8_3fnd7ce0y1060 = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Update every 10th row<!/s>'];
+export const root_slot_render_segment_8_3fnd7ce0y1060 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Update every 10th row<!/s>'];
 };
 /*
 {
@@ -801,10 +802,10 @@ export const root_q_e_click_segment_9_2xen8hrdafxva = () => {
 */
 ============================= src/root.tsx_root_slot_render_segment_10_3b8ytyi4ty595.js (ENTRY POINT)==
 
-import { createSsrNodeId } from '@qwik.dev/core';
+import { _createSsrSlotMarker } from '@qwik.dev/core';
 
-export const root_slot_render_segment_10_3b8ytyi4ty595 = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Clear<!/s>'];
+export const root_slot_render_segment_10_3b8ytyi4ty595 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Clear<!/s>'];
 };
 /*
 {
@@ -866,10 +867,10 @@ export const root_q_e_click_segment_11_1exocx67wfjnx = () => {
 */
 ============================= src/root.tsx_root_slot_render_segment_12_3b8yt6fx0a183.js (ENTRY POINT)==
 
-import { createSsrNodeId } from '@qwik.dev/core';
+import { _createSsrSlotMarker } from '@qwik.dev/core';
 
-export const root_slot_render_segment_12_3b8yt6fx0a183 = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '>Swap Rows<!/s>'];
+export const root_slot_render_segment_12_3b8yt6fx0a183 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), 'Swap Rows<!/s>'];
 };
 /*
 {

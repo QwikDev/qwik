@@ -1,5 +1,5 @@
 import { Brand, brandClass } from '../../shared/utils/brand';
-import { isServer } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import type { FunctionComponent } from '../../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../../shared/jsx/types/jsx-qwik-attributes';
@@ -20,12 +20,14 @@ import {
   getOrCreateContextOwner,
   registerSubscriberToOwner,
   type Owner,
+  runWithOwner,
 } from '../../runtime/owner';
 import { disposeSubscriber } from '../../reactive/cleanup';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
 import { DangerousInnerHTMLAttr, EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '../../utils/consts';
 import { MATH_NS, SVG_NS } from '../../shared/utils/markers';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
+import { removeInOrder } from '../../utils/array';
 import { getFunctionOrResolve, readExpression } from '../../utils/qrl';
 import { isQrl } from '../../shared/qrl/qrl-utils';
 import {
@@ -35,6 +37,8 @@ import {
   renderSsrContent,
   type ContentFn,
   type SsrContentFn,
+  SSRContent,
+  SSRContentSubscription,
 } from '../content/content';
 import {
   createSsrOpenTag,
@@ -47,9 +51,14 @@ import { createPropsEffect } from '../effect/effect';
 import { renderSsrProps, type DomPropsQrl } from '../effect/ssr-effect';
 import { inlinedQrl } from '../../shared/qrl/qrl';
 import { registerSingleton } from '../../shared/singletons';
+import { whenRootInflated } from '../../runtime/container-context';
 
 type SlotRenderFn = (ctx: ContainerContext) => MaybeNodeOutput | Promise<MaybeNodeOutput>;
-type SsrSlotRenderFn = (ctx: SsrSlotContext, rangeId: number) => ValueOrPromise<SsrOutput>;
+type SsrSlotRenderFn = (
+  ctx: SsrSlotContext,
+  rangeId: number,
+  projectionRootId?: number
+) => ValueOrPromise<SsrOutput>;
 export type SlotName = string;
 /** A `q:slot` name: a string, or for `q:slot={expr}` a function the live slot reads tracked. */
 type SlotNameSource = string | (() => string) | QRL<() => string>;
@@ -58,10 +67,8 @@ export interface Projection {
   renderQrl: unknown;
   /** The owner of the component that declared the content: its lifetime, whoever shows it. */
   host: Owner | null;
-  owner: Owner | null;
-  nodes: readonly Node[] | null;
   /** The live block of the content, once a consumer has shown it. */
-  subscription: (ContentSubscription<[]> & { block: ProjectionBlock }) | null;
+  subscription: ProjectionSubscription | SSRProjectionSubscription | null;
   slotScope: SlotScope | null;
   name: SlotNameSource;
 }
@@ -99,6 +106,7 @@ type SlotContentFn = ContentFn<[SlotScope, string, SlotRenderFn | null]>;
 
 export interface SsrSlotContext {
   nextId(): number;
+  addRoot(value: unknown): number;
 }
 
 /**
@@ -121,8 +129,6 @@ class SlotScopeState implements SlotScope {
 }
 
 class ProjectionState implements Projection {
-  owner: Owner | null = null;
-  nodes: readonly Node[] | null = null;
   subscription: Projection['subscription'] = null;
 
   constructor(
@@ -429,17 +435,12 @@ function renderSsrProjections(
   }
   if (projections.length === 1) {
     const projection = projections[0];
-    return renderSsrProjection(ctx, projection.renderQrl, projection.slotScope, context);
+    return renderRegisteredSsrProjection(ctx, projection, context);
   }
 
   const output: SsrOutput[] = [];
   for (let i = 0; i < projections.length; i++) {
-    const projected = renderSsrProjection(
-      ctx,
-      projections[i].renderQrl,
-      projections[i].slotScope,
-      context
-    );
+    const projected = renderRegisteredSsrProjection(ctx, projections[i], context);
     if (isPromise(projected)) {
       return projected.then((resolved) => {
         output.push(resolved);
@@ -457,8 +458,68 @@ function renderSsrProjections(
  * meanwhile.
  */
 export class ProjectionBlock extends ContentBlock<[]> {
+  host: Owner | null = null;
+  renderOwner: Owner | null = null;
+
+  run(subscription: ContentSubscription<[]>): ValueOrPromise<readonly Node[]> {
+    return maybeThen(super.run(subscription), (nodes) => {
+      if (this.currentOwner !== null) {
+        this.currentOwner.renderParent = this.renderOwner;
+        this.currentOwner.projection = this;
+      }
+      return nodes;
+    });
+  }
+
+  setRenderOwner(owner: Owner | null): void {
+    if (this.currentOwner !== null) {
+      this.currentOwner.renderParent = owner;
+      this.currentOwner.projection = this;
+    }
+    const previous = this.renderOwner;
+    if (previous === owner) {
+      return;
+    }
+    if (previous !== null) {
+      const shown = previous.shownProjections;
+      if (shown === this) {
+        delete previous.shownProjections;
+      } else if (Array.isArray(shown)) {
+        removeInOrder(shown, this);
+        if (shown.length === 1) {
+          previous.shownProjections = shown[0];
+        } else if (shown.length === 0) {
+          delete previous.shownProjections;
+        }
+      }
+    }
+    this.renderOwner = owner;
+    if (owner !== null) {
+      const shown = owner.shownProjections;
+      if (shown === undefined) {
+        owner.shownProjections = this;
+      } else if (Array.isArray(shown)) {
+        shown.push(this);
+      } else {
+        owner.shownProjections = [shown, this];
+      }
+    }
+  }
+
+  park(): void {
+    const container = this.container!;
+    const holder = (container.state.detachedProjectionNodes ??=
+      this.document.createDocumentFragment());
+    if (this.start.parentNode === holder) {
+      this.setRenderOwner(null);
+      return;
+    }
+    this.take(holder);
+    this.setRenderOwner(null);
+  }
+
   /** The range with everything in it right now, or null when it no longer holds together. */
-  take(): readonly Node[] | null {
+  take(holder?: DocumentFragment): readonly Node[] | null {
     let last: Node | null = this.start;
     while (last !== null && last !== this.end) {
       last = last.nextSibling;
@@ -466,21 +527,25 @@ export class ProjectionBlock extends ContentBlock<[]> {
     if (last === null) {
       return null;
     }
-    const holder = this.document.createDocumentFragment();
+    const previousParent = this.start.parentNode;
+    holder ??= this.document.createDocumentFragment();
     let node: Node | null = this.start;
     while (node !== null) {
       const next: Node | null = node === this.end ? null : node.nextSibling;
       holder.appendChild(node);
       node = next;
     }
+    if (
+      previousParent === this.container?.state.detachedProjectionNodes &&
+      previousParent?.firstChild === null
+    ) {
+      delete this.container.state.detachedProjectionNodes;
+    }
     return [holder];
   }
 }
 
-/**
- * Every render between the consumer and the declaring component can be the one that removes the
- * projection's range, so each of them must keep what it removes in one piece.
- */
+/** Consumer ancestors must detach surviving projections before removing their DOM. */
 function markShowsProjection(consumer: Owner | null, host: Owner | null): void {
   for (let owner = consumer; owner !== null && owner !== host; owner = owner.parent) {
     owner.flags |= OwnerFlags.ShowsProjection;
@@ -492,17 +557,30 @@ function project(
   container: ContainerContext,
   parentInvokeContext: RuntimeInvokeContext | null
 ): ValueOrPromise<readonly Node[]> {
-  markShowsProjection(getOrCreateContextOwner(parentInvokeContext), projection.host);
-  const shown =
-    projection.subscription === null || isSubscriberDisposed(projection.subscription)
-      ? null
-      : projection.subscription.block.take();
-  if (shown !== null) {
-    return shown;
+  return maybeThen(
+    projection.subscription === null ? null : whenRootInflated(container, projection.subscription),
+    () => projectRestored(projection, container, parentInvokeContext)
+  );
+}
+
+function projectRestored(
+  projection: Projection,
+  container: ContainerContext,
+  parentInvokeContext: RuntimeInvokeContext | null
+): ValueOrPromise<readonly Node[]> {
+  if (projection.subscription !== null && isSubscriberDisposed(projection.subscription)) {
+    return EMPTY_NODES;
   }
-  if (projection.subscription !== null) {
-    // The kept range was torn apart, so nothing can be shown again: render it fresh.
-    disposeSubscriber(projection.subscription);
+  const consumer = getOrCreateContextOwner(parentInvokeContext);
+  markShowsProjection(consumer, projection.host);
+  const subscription = projection.subscription;
+  if (subscription instanceof ProjectionSubscription) {
+    subscription.block.setRenderOwner(consumer);
+    const shown = subscription.block.take();
+    if (shown !== null) {
+      return shown;
+    }
+    disposeSubscriber(subscription);
   }
   const document = container.document;
   const holder = document.createDocumentFragment();
@@ -521,11 +599,82 @@ function project(
   );
   // The declaring component owns the content, so the consumer can stop showing it and keep it.
   projection.subscription = registerSubscriberToOwner(
-    new ContentSubscription(block, container.scheduler) as NonNullable<Projection['subscription']>,
+    new ProjectionSubscription(block, container.scheduler),
     projection.host ?? getOrCreateContextOwner(parentInvokeContext)
   );
+  block.host = projection.host;
+  block.setRenderOwner(consumer);
   container.scheduler.notify(projection.subscription);
   return [holder];
+}
+
+export class ProjectionSubscription extends ContentSubscription<[]> {
+  declare readonly block: ProjectionBlock;
+
+  dispose(): void {
+    if (this.block !== null) {
+      this.block.setRenderOwner(null);
+      if (this.block.currentOwner !== null) {
+        delete this.block.currentOwner.projection;
+      }
+    }
+    super.dispose();
+    const parent = this.block.start.parentNode;
+    this.block.start.remove();
+    this.block.end.remove();
+    if (
+      parent === this.block.container?.state.detachedProjectionNodes &&
+      parent?.firstChild === null
+    ) {
+      delete this.block.container.state.detachedProjectionNodes;
+    }
+  }
+}
+
+export class SSRProjectionSubscription extends SSRContentSubscription<[number, number]> {
+  constructor(
+    content: SSRContent<[number, number]>,
+    readonly renderOwner: Owner | null
+  ) {
+    super(content);
+  }
+}
+
+function renderRegisteredSsrProjection(
+  ctx: SsrSlotContext,
+  projection: Projection,
+  base: RuntimeInvokeContext
+): ValueOrPromise<SsrOutput> {
+  const container = ctx as ContainerContext & SsrSlotContext;
+  const rangeId = ctx.nextId();
+  const consumer = getOrCreateContextOwner(base);
+  markShowsProjection(consumer, projection.host);
+  const context = newChildInvokeContext(base, { slotScope: projection.slotScope });
+  const args: [number, number] = [rangeId, -1];
+  const content = new SSRContent<[number, number]>(
+    rangeId,
+    args,
+    projection.renderQrl as QRL<SsrContentFn<[number, number]>>,
+    context,
+    container,
+    false,
+    true
+  );
+  const subscription = new SSRProjectionSubscription(content, consumer);
+  projection.subscription = subscription;
+  if (isDev && ctx.addRoot === undefined) {
+    throw new Error('Missing SSR projection root registration');
+  }
+  args[1] = ctx.addRoot(subscription);
+  return maybeThen(
+    runWithOwner(projection.host ?? consumer, () => content.run(undefined, subscription)),
+    (output) => {
+      if (content.currentOwner !== null) {
+        content.currentOwner.renderParent = consumer;
+      }
+      return output;
+    }
+  );
 }
 
 function renderSsrProjection(
@@ -587,12 +736,7 @@ function renderRemainingSsrProjections(
   invokeContext: RuntimeInvokeContext
 ): ValueOrPromise<SsrOutput> {
   for (let i = start; i < projections.length; i++) {
-    const projected = renderSsrProjection(
-      ctx,
-      projections[i].renderQrl,
-      projections[i].slotScope,
-      invokeContext
-    );
+    const projected = renderRegisteredSsrProjection(ctx, projections[i], invokeContext);
     if (isPromise(projected)) {
       return projected.then((resolved) => {
         output.push(resolved);
@@ -606,3 +750,4 @@ function renderRemainingSsrProjections(
 
 isServer && brandClass(SlotScopeState, Brand.SlotScope);
 isServer && brandClass(ProjectionState, Brand.Projection);
+isServer && brandClass(SSRProjectionSubscription, Brand.SsrProjectionSubscription);

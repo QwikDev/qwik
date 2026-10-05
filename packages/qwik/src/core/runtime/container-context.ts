@@ -9,6 +9,7 @@ import { isContextScope } from './context-scope';
 import { defaultScheduler, type Scheduler } from './scheduler';
 import { fastGetAttribute } from './fast-getters';
 import { findContextScopeId } from './node-walker';
+import type { Owner } from './owner';
 import type { ServerDataContext } from './use-server-data';
 import type { Subscriber } from './subscriber';
 import { deserializeCaptures } from '../shared/serdes/captures';
@@ -27,6 +28,7 @@ export interface StateChunk {
 }
 
 export interface ContainerState {
+  detachedProjectionNodes?: DocumentFragment;
   rootToChunk: StateChunk[];
   forwardRefsChunk: StateChunk | null;
   liveRoots: Map<number, unknown>;
@@ -86,10 +88,21 @@ export function getOrCreateContainerContext(element: Element): ContainerContext 
 
 export async function getContextScopeForNode(
   context: ContainerContext,
-  node: Node
+  node: Node,
+  owner: Owner | null = null
 ): Promise<unknown> {
-  const id = findContextScopeId(node);
-  return id === null ? null : context.getRoot(id);
+  let projection;
+  for (let scope = owner; scope !== null; scope = scope.parent) {
+    if (scope.projection !== undefined) {
+      projection = scope.projection;
+      break;
+    }
+  }
+  const id = findContextScopeId(node, projection?.start);
+  if (id !== null) {
+    return context.getRoot(id);
+  }
+  return projection?.invokeContext?.contextScope ?? null;
 }
 
 function createContainerContextRecord(
@@ -121,12 +134,15 @@ function createContainerContextRecord(
       const rootId = Number(id);
       state.disposedRoots.add(rootId);
       const root = state.liveRoots.get(rootId);
-      if (root !== undefined) {
+      if (root !== undefined && !state.inflatingRoots?.has(root as object)) {
         disposeSubscriber(root as Subscriber);
       }
     },
     async disposeRoot(id) {
-      const root = (await getStateRoot(context, Number(id))) as Subscriber;
+      const root = await whenRootInflated(
+        context,
+        (await getStateRoot(context, Number(id))) as Subscriber
+      );
       disposeSubscriber(root);
     },
     async prepareRoot(id) {
@@ -282,7 +298,9 @@ async function loadStateRoot(context: ContainerContext, id: number): Promise<unk
       type === TypeIds.EffectSubscription ||
       type === TypeIds.SuspenseSubscription ||
       type === TypeIds.Task ||
-      type === TypeIds.ComputedSignal
+      type === TypeIds.ComputedSignal ||
+      type === TypeIds.AsyncSignal ||
+      type === TypeIds.SerializerSignal
     ) {
       (root as Subscriber).flags |= SubscriberFlags.Disposed;
     }
@@ -302,6 +320,10 @@ async function loadStateRoot(context: ContainerContext, id: number): Promise<unk
     } else {
       await inflation;
     }
+  }
+
+  if (context.state.disposedRoots.has(id)) {
+    disposeSubscriber(root as Subscriber);
   }
 
   const subscriberRoots = context.state.subscriberRoots;

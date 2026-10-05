@@ -19,9 +19,10 @@ import {
   renderSsrSlot,
   resolveSlot,
   type SlotScope,
+  type SsrSlotContext,
 } from './slot/slot';
 
-type SsrContext = ContainerContext & { nextId(): number };
+type SsrContext = ContainerContext & { nextId(): number; addRoot?(value: unknown): number };
 type SsrBranchRender = (ctx: ContainerContext, rangeId: number) => ValueOrPromise<SsrOutput>;
 
 describe('structured SSR boundaries', () => {
@@ -313,11 +314,12 @@ describe('structured SSR boundaries', () => {
   });
 });
 
-function createSsrContext(): SsrContext {
+function createSsrContext(): ContainerContext & SsrSlotContext {
   let nextId = 0;
   return {
     nextId: () => nextId++,
-  } as SsrContext;
+    addRoot: () => 0,
+  } as unknown as ContainerContext & SsrSlotContext;
 }
 
 function invokeWithScope<T>(

@@ -19,7 +19,6 @@ import {
   getOrCreateContextOwner,
   registerSubscriberToOwner,
   type Owner,
-  showsProjection,
 } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import {
@@ -31,7 +30,7 @@ import { EMPTY_NODES } from '../../utils/consts';
 import { toNodes } from '../../utils/nodes';
 import type { MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
-import { replaceRange } from '../range/range';
+import { prepareProjectionRanges, parkProjections, replaceRange } from '../range/range';
 import type { SsrOutput } from '../../ssr/output';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
@@ -48,8 +47,8 @@ export class BranchRange {
     readonly end: Comment
   ) {}
 
-  replace(nodes: readonly Node[], keepRemoved = false): void {
-    replaceRange(this.document, this.start, this.end, nodes, keepRemoved);
+  replace(nodes: readonly Node[]): void {
+    replaceRange(this.document, this.start, this.end, nodes);
   }
 }
 
@@ -79,11 +78,12 @@ export class Branch {
     this.currentOwner = null;
     this.currentBranch = null;
 
+    parkProjections(owner);
     if (owner !== null) {
       disposeOwner(owner);
     }
 
-    this.range.replace(EMPTY_NODES, showsProjection(owner));
+    this.range.replace(EMPTY_NODES);
   }
 
   commit(
@@ -97,7 +97,8 @@ export class Branch {
         ? reapplyUseOnContexts(output, this.invokeContext, this.range.document)
         : output
     );
-    this.range.replace(nodes, showsProjection(previousOwner));
+    parkProjections(previousOwner);
+    this.range.replace(nodes);
     this.currentBranch = nextBranch;
     // Deferred content claims the owner after this commit, so materialize it now or lose the handle.
     this.currentOwner = invokeContext === null ? null : getOrCreateContextOwner(invokeContext);
@@ -119,6 +120,21 @@ export class BranchSubscription implements BranchSubscriber {
   ) {}
 
   run(): ValueOrPromise<void> {
+    if (isSubscriberDisposed(this)) {
+      return;
+    }
+    return maybeThen(
+      prepareProjectionRanges(
+        this.branch.container,
+        this.branch.range.start,
+        this.branch.range.end,
+        this.branch.currentOwner
+      ),
+      () => this.runPrepared()
+    );
+  }
+
+  private runPrepared(): ValueOrPromise<void> {
     const conditionFn = getFunctionOrResolve(this.branch.conditionFn, this.branch.container);
 
     return maybeThen(conditionFn, (conditionFn) => {

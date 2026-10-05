@@ -178,6 +178,7 @@ interface RenderPass {
 /** Per-kind needs the emission wrappers state explicitly — the core never inspects the QRL. */
 /** The runtime row ABI's positional parameter names. */
 const RangeIdParam = '__rangeId';
+const ProjectionRootParam = '__projectionRootId';
 const RowIdParam = '__rowId';
 
 interface SsrRenderOptions {
@@ -382,12 +383,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       parts.push(`${QwikWord.CreateSsrNodeId}(${ownRange})`);
       pushMergedStatic(parts, '>');
     }
-    if (options.fence !== undefined) {
+    if (options.fence === 's') {
+      this.imports.add(QwikWord.CreateSsrSlotMarker);
+      parts.push(`${QwikWord.CreateSsrSlotMarker}(${RangeIdParam}, ${ProjectionRootParam})`);
+    } else if (options.fence === 'r') {
       this.imports.add(QwikWord.CreateSsrNodeId);
-      pushMergedStatic(parts, `<!${options.fence}=`);
-      parts.push(
-        `${QwikWord.CreateSsrNodeId}(${options.fence === 'r' ? RowIdParam : RangeIdParam})`
-      );
+      pushMergedStatic(parts, '<!r=');
+      parts.push(`${QwikWord.CreateSsrNodeId}(${RowIdParam})`);
       pushMergedStatic(parts, '>');
     }
     // The runtime splices `useOn*` registrations into the first open-tag record after the render.
@@ -513,7 +515,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** Slot content chunks own their resume-time marker range. */
   private slotContentEmission(qrl: LinkedQrl): FunctionEmission {
     const { emission, names } = this.renderEmission(qrl, { fence: 's' });
-    emission.params = [names.ctx, RangeIdParam];
+    emission.params = [names.ctx, RangeIdParam, ProjectionRootParam];
     return emission;
   }
 

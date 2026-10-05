@@ -15,15 +15,44 @@ import { isPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { runWithCollector } from '../reactive/tracking';
 
+import type { ProjectionBlock } from '../dom/slot/slot';
+
 export type OwnerItem = Owner | Subscriber;
 export type OwnerItems = OwnerItem | OwnerItem[] | null;
 export type PendingWork = { promise: Promise<unknown>; cancel: () => void };
+
+const resumedPositions = new WeakMap<OwnerItem, number>();
+const closedResumeOwners = new WeakSet<Owner>();
+
+export function isResumeOwnerClosed(owner: Owner): boolean {
+  return closedResumeOwners.has(owner) || (owner.flags & OwnerFlags.Disposed) !== 0;
+}
+
+export function restoreOwnerItemOrder(item: OwnerItem, owner: Owner, position: number): void {
+  resumedPositions.set(item, position);
+  const items = owner.items;
+  if (!Array.isArray(items)) {
+    return;
+  }
+  const index = items.indexOf(item);
+  if (index === -1) {
+    return;
+  }
+  items.splice(index, 1);
+  let next = 0;
+  while (next < items.length && (resumedPositions.get(items[next]) ?? Infinity) < position) {
+    next++;
+  }
+  items.splice(next, 0, item);
+}
 
 // Owners are lifetime scopes for reactive work. Anything that can become a
 // subscriber should be owned so it can be disposed and removed from sources.
 export class Owner {
   parent: Owner | null = null;
   renderParent?: Owner | null;
+  declare projection?: ProjectionBlock;
+  declare shownProjections?: ProjectionBlock | ProjectionBlock[];
   declare pendingPhases?: PendingWork;
   declare pendingWork?: Map<Promise<unknown>, PendingWork>;
   items: OwnerItems = null;
@@ -42,7 +71,7 @@ export function getActiveOwner(): Owner | null {
   return getActiveOwnerScope();
 }
 
-/** Whether removing this owner's content must keep it in one piece for a projection inside it. */
+/** Whether removing this scope must preserve projections owned outside it. */
 export function showsProjection(owner: Owner | null): boolean {
   return owner !== null && (owner.flags & OwnerFlags.ShowsProjection) !== 0;
 }
@@ -173,6 +202,7 @@ export function disposeOwner(owner: Owner): void {
 }
 
 export function disposeOwnerItems(owner: Owner): void {
+  closedResumeOwners.add(owner);
   const items = owner.items;
   owner.items = null;
   if (items === null) {
@@ -244,7 +274,7 @@ function materializeContextOwner(context: RuntimeInvokeContext): Owner {
 }
 
 export function registerOwnerToOwner(owner: Owner, parent: Owner | null): void {
-  if (parent === null) {
+  if (parent === null || owner.parent === parent) {
     return;
   }
 

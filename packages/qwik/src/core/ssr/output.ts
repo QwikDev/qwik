@@ -96,6 +96,13 @@ export function createSsrNodeId(localId: number | string): SsrReferenceChunk {
   return { type: 'node-id', localId };
 }
 
+/** @internal */
+export function _createSsrSlotMarker(rangeId: number, projectionRootId?: number): SsrOutput[] {
+  return projectionRootId === undefined
+    ? ['<!s=', createSsrNodeId(rangeId), '>']
+    : ['<!s=', createSsrNodeId(rangeId), ',', createSsrRootRef(projectionRootId), '>'];
+}
+
 export function createSsrRootRef(localId: number): SsrReferenceChunk {
   return { type: 'root-ref', localId };
 }

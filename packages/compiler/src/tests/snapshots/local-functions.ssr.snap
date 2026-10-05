@@ -32,6 +32,7 @@ import {
   createComponent,
   _noopQrl,
   _capturesObj,
+  _createSsrSlotMarker,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -63,7 +64,7 @@ const q_component_load_segment_9_3myl24trdze9k = /*#__PURE__*/ _noopQrl(
   'component_load_segment_9_3myl24trdze9k'
 );
 q_component_load_segment_9_3myl24trdze9k.s(component_load_segment_9_3myl24trdze9k);
-const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId, __projectionRootId) => {
   const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
@@ -74,9 +75,8 @@ const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
     q_component_text_segment_4_1fh11zg0n0shg
   );
   return maybeThen(text0, (text0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><b q:id="',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<b q:id="',
     createSsrNodeId(id0),
     '"',
     ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([count])),
@@ -89,7 +89,7 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );
 q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
-const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
+const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId, __projectionRootId) => {
   const [show] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(show);
@@ -103,9 +103,8 @@ const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
     )
   );
   return [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><!b=',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
     createSsrNodeId(branchId0),
     '>',
     branch0,
@@ -116,15 +115,15 @@ const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_5_3b0t9atn1pfsx'
 );
 q_component_slot_render_segment_5_3b0t9atn1pfsx.s(component_slot_render_segment_5_3b0t9atn1pfsx);
-const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId) => {
+const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId, __projectionRootId) => {
   const rangeId0 = ctx.nextId();
   const text0 = renderSsrTextExpression(rangeId0, 0, [], q_component_text_segment_11_2cdl3n7fbecf2);
   return maybeThen(text0, (text0) => [
     '<!b=',
     createSsrNodeId(rangeId0),
-    '><!s=',
-    createSsrNodeId(__rangeId),
-    '><!t>',
+    '>',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!t>',
     escapeHTML(text0),
     '<!/t><!/s><!/b>',
   ]);
@@ -133,7 +132,7 @@ const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_10_3m3ztgqtay7c7'
 );
 q_component_slot_render_segment_10_3m3ztgqtay7c7.s(component_slot_render_segment_10_3m3ztgqtay7c7);
-const component_slot_render_segment_12_3m3zu8t14mbd9 = (ctx, __rangeId) => {
+const component_slot_render_segment_12_3m3zu8t14mbd9 = (ctx, __rangeId, __projectionRootId) => {
   const [direct] = _capturesObj._;
   const rangeId0 = ctx.nextId();
   ctx.addRoot(direct);
@@ -146,9 +145,9 @@ const component_slot_render_segment_12_3m3zu8t14mbd9 = (ctx, __rangeId) => {
   return maybeThen(text0, (text0) => [
     '<!b=',
     createSsrNodeId(rangeId0),
-    '><!s=',
-    createSsrNodeId(__rangeId),
-    '><!t>',
+    '>',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!t>',
     escapeHTML(text0),
     '<!/t><!/s><!/b>',
   ]);
@@ -316,6 +315,7 @@ export const component_label_segment_1_871sx3hwa26q = (key) => {
 import {
   _noopQrl,
   _capturesObj,
+  _createSsrSlotMarker,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
@@ -330,7 +330,11 @@ const q_component_text_segment_4_1fh11zg0n0shg = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_4_1fh11zg0n0shg.s(component_text_segment_4_1fh11zg0n0shg);
 
-export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
@@ -341,9 +345,8 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
     q_component_text_segment_4_1fh11zg0n0shg
   );
   return maybeThen(text0, (text0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><b q:id="',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<b q:id="',
     createSsrNodeId(id0),
     '"',
     ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([count])),
@@ -442,7 +445,13 @@ export const component_text_segment_4_1fh11zg0n0shg = (count) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx.js (ENTRY POINT)==
 
-import { _noopQrl, _capturesObj, createSsrNodeId, renderSsrBranch } from '@qwik.dev/core';
+import {
+  _noopQrl,
+  _capturesObj,
+  _createSsrSlotMarker,
+  renderSsrBranch,
+  createSsrNodeId,
+} from '@qwik.dev/core';
 import { component_branch_condition_segment_6_2fzrg2njel5c3 } from './component.tsx_component_branch_condition_segment_6_2fzrg2njel5c3';
 import { component_branch_then_segment_7_24n7ce0yehh58 } from './component.tsx_component_branch_then_segment_7_24n7ce0yehh58';
 const q_component_branch_condition_segment_6_2fzrg2njel5c3 = /*#__PURE__*/ _noopQrl(
@@ -456,7 +465,11 @@ const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_7_24n7ce0yehh58.s(component_branch_then_segment_7_24n7ce0yehh58);
 
-export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
+export const component_slot_render_segment_5_3b0t9atn1pfsx = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const [show] = _capturesObj._;
   const branchId0 = ctx.nextId();
   ctx.addRoot(show);
@@ -470,9 +483,8 @@ export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) =>
     )
   );
   return [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><!b=',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!b=',
     createSsrNodeId(branchId0),
     '>',
     branch0,
@@ -645,6 +657,7 @@ export const component_load_segment_9_3myl24trdze9k = async (key) => {
 import {
   _noopQrl,
   createSsrNodeId,
+  _createSsrSlotMarker,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -655,15 +668,19 @@ const q_component_text_segment_11_2cdl3n7fbecf2 = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_11_2cdl3n7fbecf2.s(component_text_segment_11_2cdl3n7fbecf2);
 
-export const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId) => {
+export const component_slot_render_segment_10_3m3ztgqtay7c7 = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const rangeId0 = ctx.nextId();
   const text0 = renderSsrTextExpression(rangeId0, 0, [], q_component_text_segment_11_2cdl3n7fbecf2);
   return maybeThen(text0, (text0) => [
     '<!b=',
     createSsrNodeId(rangeId0),
-    '><!s=',
-    createSsrNodeId(__rangeId),
-    '><!t>',
+    '>',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!t>',
     escapeHTML(text0),
     '<!/t><!/s><!/b>',
   ]);
@@ -722,6 +739,7 @@ import {
   _noopQrl,
   _capturesObj,
   createSsrNodeId,
+  _createSsrSlotMarker,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -732,7 +750,11 @@ const q_component_text_segment_13_2cdl2v57hq8e0 = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_13_2cdl2v57hq8e0.s(component_text_segment_13_2cdl2v57hq8e0);
 
-export const component_slot_render_segment_12_3m3zu8t14mbd9 = (ctx, __rangeId) => {
+export const component_slot_render_segment_12_3m3zu8t14mbd9 = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const [direct] = _capturesObj._;
   const rangeId0 = ctx.nextId();
   ctx.addRoot(direct);
@@ -745,9 +767,9 @@ export const component_slot_render_segment_12_3m3zu8t14mbd9 = (ctx, __rangeId) =
   return maybeThen(text0, (text0) => [
     '<!b=',
     createSsrNodeId(rangeId0),
-    '><!s=',
-    createSsrNodeId(__rangeId),
-    '><!t>',
+    '>',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<!t>',
     escapeHTML(text0),
     '<!/t><!/s><!/b>',
   ]);

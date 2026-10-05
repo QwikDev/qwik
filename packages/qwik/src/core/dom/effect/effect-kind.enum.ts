@@ -9,4 +9,5 @@ export const enum EffectKind {
   Content = 7,
   Event = 8,
   AttrExpression = 9,
+  Projection = 10,
 }

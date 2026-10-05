@@ -354,9 +354,10 @@ export function createAttrTarget(): { element: Element; attrs: Map<string, strin
 export function createCaptureContainer(
   captures: Record<string, unknown>,
   scheduler = new Scheduler(noopSchedule)
-): ContainerContext & { nextId(): number } {
+): ContainerContext & { nextId(): number; addRoot(value: unknown): number } {
   let nextId = 0;
-  const container: ContainerContext & { nextId(): number } = {
+  let nextRootId = Object.keys(captures).length;
+  const container: ContainerContext & { nextId(): number; addRoot(value: unknown): number } = {
     element: {} as HTMLElement,
     document: null!,
     locale: null,
@@ -382,6 +383,11 @@ export function createCaptureContainer(
     },
     nextId() {
       return nextId++;
+    },
+    addRoot(value) {
+      const id = nextRootId++;
+      captures[String(id)] = value;
+      return id;
     },
   };
   return container;

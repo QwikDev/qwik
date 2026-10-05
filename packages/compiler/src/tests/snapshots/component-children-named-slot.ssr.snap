@@ -14,18 +14,18 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
-  createSsrNodeId,
+  _createSsrSlotMarker,
   _noopQrl,
 } from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '><h1>Title</h1><!/s>'];
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<h1>Title</h1><!/s>'];
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '><p>Content</p><!/s>'];
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId, __projectionRootId) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<p>Content</p><!/s>'];
 };
 const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_1_3b0tauy2p1nv1'
@@ -59,10 +59,14 @@ export default default_component_3rg6kq1so9aio;
 export { Card as Card_component_1j4wd08arm0n5 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { createSsrNodeId } from '@qwik.dev/core';
+import { _createSsrSlotMarker } from '@qwik.dev/core';
 
-export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '><h1>Title</h1><!/s>'];
+export const component_slot_render_segment_0_3b0tagwys7lui = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<h1>Title</h1><!/s>'];
 };
 /*
 {
@@ -86,10 +90,14 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
-import { createSsrNodeId } from '@qwik.dev/core';
+import { _createSsrSlotMarker } from '@qwik.dev/core';
 
-export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  return ['<!s=', createSsrNodeId(__rangeId), '><p>Content</p><!/s>'];
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
+  return [_createSsrSlotMarker(__rangeId, __projectionRootId), '<p>Content</p><!/s>'];
 };
 /*
 {

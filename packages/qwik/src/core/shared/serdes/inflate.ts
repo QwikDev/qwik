@@ -29,7 +29,7 @@ import {
 } from '../../dom/effect/text-effect';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
 import { EffectTargetKind } from '../../dom/effect/ssr-effect';
-import { ComputedFlags } from '../../reactive/flags';
+import { ComputedFlags, OwnerFlags, SubscriberFlags } from '../../reactive/flags';
 import { AsyncSignal } from '../../reactive/async-signal';
 import { ComputedQrl } from '../../reactive/computed-qrl';
 import { SerializerSignal } from '../../reactive/serializer-signal';
@@ -51,13 +51,21 @@ import {
 import type { ContextScope } from '../../runtime/context-scope';
 import { newInvokeContext, type RuntimeInvokeContext } from '../../runtime/invoke-context';
 import type { UseOnMap } from '../../runtime/use-on';
-import type { Projection, SlotScope } from '../../dom/slot/slot';
+import {
+  ProjectionBlock,
+  ProjectionSubscription,
+  type Projection,
+  type SlotScope,
+} from '../../dom/slot/slot';
 import { EMPTY_NODES } from '../../utils/consts';
 import {
   Owner,
   createOwner,
   registerOwnerToOwner,
   registerSubscriberToOwner,
+  isResumeOwnerClosed,
+  restoreOwnerItemOrder,
+  disposeOwner,
 } from '../../runtime/owner';
 import { Phase } from '../../runtime/scheduler';
 import {
@@ -72,6 +80,7 @@ import {
   findBranchTextNode,
   findBranchTextRange,
   findContentRange,
+  findProjectionRange,
   findElementText,
   findForRange,
   findQwikElement,
@@ -99,10 +108,29 @@ import { allocate, allocateDomEffect, pendingStoreTargets, resolvers } from './a
 import { PromiseRoot, unwrapPromiseRoot } from './promise-root';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './constants';
-import type { SerializedOwnerItems } from './serialize';
+import { disposeSubscriber } from '../../reactive/cleanup';
+import { findContainerNode } from '../../dom/range/range';
 import { _props, restorePropsProxyState, type PropSource } from '../../component/props';
 
 export { allocate, needsInflation };
+
+function readOwner(value: unknown): Owner | null {
+  if (value !== null && !(value instanceof Owner)) {
+    throw new Error('Invalid serialized owner reference');
+  }
+  return value;
+}
+
+function rejectDisposedInflation(subscriber: Subscriber): boolean {
+  if (
+    isSubscriberDisposed(subscriber) ||
+    (subscriber.owner !== null && isResumeOwnerClosed(subscriber.owner))
+  ) {
+    subscriber.flags |= SubscriberFlags.Disposed;
+    return true;
+  }
+  return false;
+}
 
 /** Restore owners and task code before notifying resumed subscribers. */
 function lazySubscriber(
@@ -114,7 +142,9 @@ function lazySubscriber(
       maybeThen(
         maybeThen(load(), (subscriber) => whenRootInflated(container, subscriber)),
         (subscriber) =>
-          subscriber instanceof TaskSubscription && subscriber.task.phase === Phase.BlockingTask
+          !isSubscriberDisposed(subscriber) &&
+          subscriber instanceof TaskSubscription &&
+          subscriber.task.phase === Phase.BlockingTask
             ? maybeThen(getFunctionOrResolve(subscriber.task.qrl!, container), () => subscriber)
             : subscriber
       ),
@@ -144,7 +174,65 @@ const isSafeObjectKV = (key: unknown, value: unknown): key is string | number =>
   );
 };
 
+const ownedTypes = new Set([
+  TypeIds.EffectSubscription,
+  TypeIds.SuspenseSubscription,
+  TypeIds.Task,
+  TypeIds.ComputedSignal,
+  TypeIds.AsyncSignal,
+  TypeIds.SerializerSignal,
+]);
+
 export const inflate = (
+  container: ContainerContext,
+  target: unknown,
+  typeId: TypeIds,
+  data: unknown
+): ValueOrPromise<void> => {
+  if (!ownedTypes.has(typeId)) {
+    return inflatePayload(container, target, typeId, data);
+  }
+  if (!Array.isArray(data) || data.length < 4) {
+    throw new Error('Missing serialized ownership');
+  }
+  const payload = data.slice(0, -4);
+  return maybeThen(_eagerDeserializeArray(container, data.slice(-4)), ([owner, position]) => {
+    if (
+      (owner !== null && !(owner instanceof Owner)) ||
+      !Number.isSafeInteger(position) ||
+      (position as number) < 0
+    ) {
+      throw new Error('Invalid serialized ownership');
+    }
+    return maybeThen(owner === null ? null : whenRootInflated(container, owner), () => {
+      const subscriber = target as Subscriber;
+      if (isSubscriberDisposed(subscriber) || (owner !== null && isResumeOwnerClosed(owner))) {
+        subscriber.flags |= SubscriberFlags.Disposed;
+        return;
+      }
+      subscriber.owner = owner;
+      return maybeThen(inflatePayload(container, target, typeId, payload), () => {
+        if (owner !== null && isResumeOwnerClosed(owner)) {
+          disposeSubscriber(subscriber);
+          return;
+        }
+        if (owner !== null && !isSubscriberDisposed(subscriber)) {
+          // Join the owner only after the shell is restored.
+          if (
+            owner.items !== subscriber &&
+            (!Array.isArray(owner.items) || !owner.items.includes(subscriber))
+          ) {
+            subscriber.owner = null;
+            registerSubscriberToOwner(subscriber, owner);
+          }
+          restoreOwnerItemOrder(subscriber, owner, position as number);
+        }
+      });
+    });
+  });
+};
+
+const inflatePayload = (
   container: ContainerContext,
   target: unknown,
   typeId: TypeIds,
@@ -170,9 +258,12 @@ export const inflate = (
     typeId !== TypeIds.SerializerSignal &&
     Array.isArray(data)
   ) {
-    return maybeThen(_eagerDeserializeArray(container, data), (data) =>
-      inflateResolved(container, target, typeId, data)
-    );
+    return maybeThen(_eagerDeserializeArray(container, data), (data) => {
+      if (ownedTypes.has(typeId) && rejectDisposedInflation(target as Subscriber)) {
+        return;
+      }
+      return inflateResolved(container, target, typeId, data);
+    });
   }
   return inflateResolved(container, target, typeId, data);
 };
@@ -273,11 +364,13 @@ const inflateResolved = (
     }
     case TypeIds.ComputedSignal: {
       const computed = target as Writeable<ComputedQrl<unknown>>;
-      ensureDeserializedOwner(computed);
       const d = data as unknown[];
       return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
         maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
           maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) => {
+            if (rejectDisposedInflation(computed)) {
+              return;
+            }
             computed.computeQrl = qrl as ComputedQrl<unknown>['computeQrl'];
             computed.container = container;
             restoreDependencies(computed, deps as Source[]);
@@ -299,13 +392,15 @@ const inflateResolved = (
     }
     case TypeIds.AsyncSignal: {
       const signal = target as AsyncSignal<unknown>;
-      ensureDeserializedOwner(signal);
       const d = data as unknown[];
       const subscriberOffset = 8;
       return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
         maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
           maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) =>
             maybeThen(deserializeData(container, d[6] as TypeIds, d[7]), (options) => {
+              if (rejectDisposedInflation(signal)) {
+                return;
+              }
               signal.computeQrl = qrl as AsyncSignal<unknown>['computeQrl'];
               signal.setOptions((options as AsyncSignalOptions<unknown> | null) ?? undefined);
               restoreDependencies(signal, deps as Source[]);
@@ -328,13 +423,15 @@ const inflateResolved = (
     }
     case TypeIds.SerializerSignal: {
       const signal = target as SerializerSignal<unknown, unknown>;
-      ensureDeserializedOwner(signal);
       const d = data as unknown[];
       const subscriberOffset = 8;
       return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
         maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
           maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) =>
             maybeThen(deserializeData(container, d[6] as TypeIds, d[7]), (initialized) => {
+              if (rejectDisposedInflation(signal)) {
+                return;
+              }
               signal.argQrl = qrl as SerializerSignal<unknown, unknown>['argQrl'];
               restoreDependencies(signal, deps as Source[]);
               signal.v = initialized ? (value as unknown) : NEEDS_COMPUTATION;
@@ -441,17 +538,60 @@ const inflateResolved = (
       break;
     }
     case TypeIds.Owner: {
-      restoreOwnerItems(data as SerializedOwnerItems, target as Owner);
+      const values = data as unknown[];
+      const [parent, position] = values;
+      const shows = values.length === 2 ? false : values[2];
+      if (
+        (values.length !== 2 && values.length !== 3) ||
+        (parent !== null && !(parent instanceof Owner)) ||
+        !Number.isSafeInteger(position) ||
+        (position as number) < 0 ||
+        typeof shows !== 'boolean'
+      ) {
+        throw new Error('Invalid serialized owner');
+      }
+      const owner = target as Owner;
+      owner.flags |= shows
+        ? OwnerFlags.ShowsProjection | OwnerFlags.ResumeProjection
+        : OwnerFlags.None;
+      return maybeThen(parent === null ? null : whenRootInflated(container, parent), () => {
+        if (parent !== null) {
+          if (isResumeOwnerClosed(parent)) {
+            disposeOwner(owner);
+          } else {
+            registerOwnerToOwner(owner, parent);
+            restoreOwnerItemOrder(owner, parent, position as number);
+          }
+        }
+      });
       break;
     }
     case TypeIds.Projection: {
       const projection = target as Projection;
       const d = data as unknown[];
-      projection.renderQrl = d[0];
-      projection.owner = null;
-      projection.nodes = null;
-      projection.slotScope = (d[1] as SlotScope | null) ?? null;
-      projection.name = d[2] as Projection['name'];
+      if (d.length !== 2 && d.length !== 4) {
+        throw new Error('Invalid serialized projection');
+      }
+      projection.name = d[0] as Projection['name'];
+      if (d.length === 4) {
+        projection.renderQrl = d[1];
+        projection.slotScope = (d[2] as SlotScope | null) ?? null;
+        projection.host = readOwner(d[3]);
+        projection.subscription = null;
+      } else {
+        const subscription = d[1];
+        if (!(subscription instanceof ProjectionSubscription)) {
+          throw new Error('Invalid serialized projection subscription');
+        }
+        projection.subscription = subscription;
+        return maybeThen(whenRootInflated(container, subscription), () => {
+          projection.host = subscription.owner;
+          if (subscription.block !== null) {
+            projection.renderQrl = subscription.block.fn;
+            projection.slotScope = subscription.block.invokeContext?.slotScope ?? null;
+          }
+        });
+      }
       break;
     }
     case TypeIds.Promise: {
@@ -479,26 +619,39 @@ const inflateResolved = (
       break;
     case TypeIds.EffectSubscription:
     case TypeIds.SuspenseSubscription: {
-      const subscription = target as Subscriber;
       const parts = data as unknown[];
       const kind = parts[0] as EffectKind;
-      const restoreUnderBoundary = (restore: () => Promise<void>, boundaryId = parts[10]) =>
+      const restoreUnderBoundary = (restore: () => Promise<void>, boundaryId: unknown) =>
         maybeThen(restorePendingBoundary(container, boundaryId), () => {
-          ensureDeserializedOwner(subscription);
           return restore();
         });
       switch (kind) {
         case EffectKind.Branch:
-          return restoreUnderBoundary(() =>
-            restoreBranchSubscription(container, target as Writeable<BranchSubscription>, parts)
+          return restoreUnderBoundary(
+            () =>
+              restoreBranchSubscription(container, target as Writeable<BranchSubscription>, parts),
+            parts[10]
           );
         case EffectKind.ForBlock:
-          return restoreUnderBoundary(() =>
-            restoreForBlockSubscription(container, target as Writeable<ForBlockSubscription>, parts)
+          return restoreUnderBoundary(
+            () =>
+              restoreForBlockSubscription(
+                container,
+                target as Writeable<ForBlockSubscription>,
+                parts
+              ),
+            parts[11]
           );
         case EffectKind.Content:
-          return restoreUnderBoundary(() =>
-            restoreContentSubscription(container, target as Writeable<ContentSubscription>, parts)
+        case EffectKind.Projection:
+          return restoreUnderBoundary(
+            () =>
+              restoreContentSubscription(
+                container,
+                target as Writeable<ContentSubscription>,
+                parts
+              ),
+            parts[10]
           );
         case EffectKind.TextNode:
         case EffectKind.TextExpression:
@@ -507,16 +660,12 @@ const inflateResolved = (
         case EffectKind.Props:
         case EffectKind.Event: {
           return maybeThen(restorePendingBoundary(container, getPendingRootId(parts)), () =>
-            restoreDomEffect(container, target as Writeable<DomEffect>, parts).then(() =>
-              ensureDeserializedOwner(subscription)
-            )
+            restoreDomEffect(container, target as Writeable<DomEffect>, parts)
           );
         }
         case EffectKind.DomBatch: {
           return maybeThen(restorePendingBoundary(container, getPendingRootId(parts)), () =>
-            restoreDomBatchEffect(container, target as Writeable<DomBatchEffect>, parts).then(() =>
-              ensureDeserializedOwner(subscription)
-            )
+            restoreDomBatchEffect(container, target as Writeable<DomBatchEffect>, parts)
           );
         }
         default:
@@ -527,7 +676,6 @@ const inflateResolved = (
     case TypeIds.Task: {
       const parts = data as unknown[];
       return maybeThen(restorePendingBoundary(container, getPendingRootId(parts)), () => {
-        ensureDeserializedOwner(target as Subscriber);
         const phase = parts[0];
         const qrl = parts[1] as TaskQrlRef;
         const deps = parts[2] as Source[];
@@ -578,16 +726,16 @@ async function restoreBranchSubscription(
   const thenQrl = parts[5] as QRLInternal<(ctx: ContainerContext) => readonly Node[]>;
   const elseQrl =
     (parts[6] as QRLInternal<(ctx: ContainerContext) => readonly Node[]> | null) ?? undefined;
-  const ownedItems = parts[7] as SerializedOwnerItems | undefined;
+  const owner = readOwner(parts[7]);
   const slotScope = (parts[8] as SlotScope | null | undefined) ?? null;
   const useOnScopes = parts[9] as UseOnMap[] | null | undefined;
-  const markerRange = findBranchRange(container.element, rangeId);
+  const markerRange = findContainerNode(container, (root) => findBranchRange(root, rangeId));
   isDev && assertDefined(markerRange, `Missing branch range ${rangeId}.`);
   if (markerRange === null) {
     throw new Error(`Missing branch range ${rangeId}.`);
   }
 
-  const invokeContext = await restoreInvokeContext(container, markerRange[0]);
+  const invokeContext = await restoreInvokeContext(container, markerRange[0], subscription.owner);
   invokeContext.slotScope = slotScope;
   restoreUseOnScopes(invokeContext, useOnScopes);
   subscription.branch = new Branch(
@@ -600,12 +748,10 @@ async function restoreBranchSubscription(
     container,
     useOnScopes != null
   );
-  restoreDependencies(subscription, deps);
+  restoreDependencies(subscription as BranchSubscription, deps);
 
-  if (Array.isArray(ownedItems) && ownedItems.length > 0) {
-    const owner = createOwner(subscription.owner);
+  if (owner !== null) {
     subscription.branch.currentOwner = owner;
-    restoreOwnerItems(ownedItems, owner);
   }
 }
 
@@ -623,10 +769,18 @@ async function restoreForBlockSubscription(
   const indexMode = parts[5] as IndexMode;
   const slotScope = (parts[6] as SlotScope | null | undefined) ?? null;
   const rowOwners = (parts[7] as Array<Owner | null> | null | undefined) ?? null;
+  if (rowOwners !== null) {
+    if (!Array.isArray(rowOwners)) {
+      throw new Error('Invalid serialized row owners');
+    }
+    for (const rowOwner of rowOwners) {
+      readOwner(rowOwner);
+    }
+  }
   const indexSignals =
     (parts[8] as Array<ReactiveSignal<number> | null> | null | undefined) ?? null;
   const rowShape = (parts[9] as 0 | 1 | 2 | 3 | null | undefined) ?? 3;
-  const markerRange = findForRange(container.element, rangeId);
+  const markerRange = findContainerNode(container, (root) => findForRange(root, rangeId));
   isDev && assertDefined(markerRange, `Missing for range ${rangeId}.`);
   if (markerRange === null) {
     throw new Error(`Missing for range ${rangeId}.`);
@@ -635,15 +789,11 @@ async function restoreForBlockSubscription(
     throw new Error('ForBlock subscription requires a source dependency.');
   }
 
-  const listOwner = createOwner(subscription.owner);
-  // the rows rendered under the list owner, so adopting them keeps that tree across resume
-  if (rowOwners) {
-    for (let i = 0; i < rowOwners.length; i++) {
-      const rowOwner = rowOwners[i];
-      rowOwner && registerOwnerToOwner(rowOwner, listOwner);
-    }
+  const listOwner = parts[10];
+  if (!(listOwner instanceof Owner)) {
+    throw new Error('Missing serialized list owner');
   }
-  const invokeContext = await restoreInvokeContext(container, markerRange[0]);
+  const invokeContext = await restoreInvokeContext(container, markerRange[0], subscription.owner);
   invokeContext.slotScope = slotScope;
   const block = new ForBlock(
     new ForRange(container.document, markerRange[0], markerRange[1]),
@@ -674,28 +824,32 @@ async function restoreContentSubscription(
   const deps = parts[2] as Source[];
   const args = parts[3] as unknown[];
   const renderQrl = parts[4] as QRLInternal<(...args: unknown[]) => ValueOrPromise<ContentOutput>>;
-  const ownedItems = parts[5] as SerializedOwnerItems | Owner | null | undefined;
+  const owner = readOwner(parts[5]);
   const slotScope = (parts[6] as SlotScope | null | undefined) ?? null;
   const useOnScopes = parts[7] as UseOnMap[] | null | undefined;
   const contextArg = parts[8] === true;
-  const suspense = parts[9] as
+  const suspense = (parts[0] === EffectKind.Projection ? undefined : parts[9]) as
     | [Parameters<typeof attachSuspense>[4] | null, number]
     | null
     | undefined;
-  const markerRange = findContentRange(container.element, rangeId);
+  const isProjection = subscription instanceof ProjectionSubscription;
+  const markerRange = findContainerNode(container, (root) =>
+    isProjection ? findProjectionRange(root, rangeId) : findContentRange(root, rangeId)
+  );
   isDev && assertDefined(markerRange, `Missing content range ${rangeId}.`);
   if (markerRange === null) {
     throw new Error(`Missing content range ${rangeId}.`);
   }
 
-  const invokeContext = await restoreInvokeContext(container, markerRange[0]);
+  const invokeContext = await restoreInvokeContext(container, markerRange[0], subscription.owner);
   invokeContext.slotScope = slotScope;
   restoreUseOnScopes(invokeContext, useOnScopes);
-  subscription.block = new ContentBlock(
+  const Block = isProjection ? ProjectionBlock : ContentBlock;
+  subscription.block = new Block(
     container.document,
     markerRange[0],
     markerRange[1],
-    args,
+    args as [],
     renderQrl,
     invokeContext,
     container,
@@ -705,15 +859,15 @@ async function restoreContentSubscription(
   );
   restoreDependencies(subscription, deps);
 
-  if (ownedItems instanceof Owner) {
-    registerOwnerToOwner(ownedItems, subscription.owner);
-    subscription.block.currentOwner = ownedItems;
-  } else if ((Array.isArray(ownedItems) && ownedItems.length > 0) || suspense != null) {
-    const owner = createOwner(subscription.owner);
+  if (owner !== null) {
     subscription.block.currentOwner = owner;
-    if (Array.isArray(ownedItems)) {
-      restoreOwnerItems(ownedItems, owner);
-    }
+  } else if (suspense != null) {
+    subscription.block.currentOwner = createOwner(subscription.owner);
+  }
+  if (isProjection) {
+    const block = subscription.block as ProjectionBlock;
+    block.host = subscription.owner;
+    block.setRenderOwner(readOwner(parts[9]));
   }
   if (suspense != null) {
     if (!(subscription instanceof SuspenseContentSubscription)) {
@@ -732,25 +886,14 @@ async function restoreContentSubscription(
   }
 }
 
-function restoreOwnerItems(items: SerializedOwnerItems, owner: Owner): void {
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    if (item instanceof Owner) {
-      // the child arrived with its own identity; adopting it keeps the tree, not a copy
-      registerOwnerToOwner(item, owner);
-    } else if (!isSubscriberDisposed(item)) {
-      registerSubscriberToOwner(item, owner);
-    }
-  }
-}
-
 async function restoreInvokeContext(
   container: ContainerContext,
-  node: Node
+  node: Node,
+  owner: Owner | null
 ): Promise<RuntimeInvokeContext> {
   return newInvokeContext({
     container,
-    contextScope: (await getContextScopeForNode(container, node)) as ContextScope | null,
+    contextScope: (await getContextScopeForNode(container, node, owner)) as ContextScope | null,
   });
 }
 
@@ -874,12 +1017,6 @@ function restorePendingBoundary(
       }
     }
   );
-}
-
-function ensureDeserializedOwner(subscriber: Subscriber): void {
-  if (subscriber.owner === null) {
-    registerSubscriberToOwner(subscriber, createOwner(null));
-  }
 }
 
 async function restoreDomEffect(
@@ -1090,7 +1227,7 @@ function resolveElementTarget(
   if (targetKind !== EffectTargetKind.Element) {
     throw new Error(`Unsupported element target kind ${targetKind}.`);
   }
-  return findQwikElement(container.element, elementId);
+  return findContainerNode(container, (root) => findQwikElement(root, elementId));
 }
 
 function resolveTextTarget(
@@ -1099,7 +1236,7 @@ function resolveTextTarget(
   elementId: number,
   markerIndex: number | undefined
 ): Text | null {
-  const element = findQwikElement(container.element, elementId);
+  const element = findContainerNode(container, (root) => findQwikElement(root, elementId));
 
   if (targetKind === EffectTargetKind.ElementText) {
     if (element == null) {
@@ -1125,7 +1262,7 @@ function resolveBranchTextTarget(
   rangeId: number,
   markerIndex: number
 ): Text | null {
-  const range = findBranchTextRange(container.element, rangeId);
+  const range = findContainerNode(container, (root) => findBranchTextRange(root, rangeId));
   return range === null ? null : findBranchTextNode(range, markerIndex);
 }
 
@@ -1142,6 +1279,12 @@ function restoreDependencies(
     | SerializerSignal<unknown, unknown>,
   deps: Source[]
 ) {
+  if (
+    isSubscriberDisposed(collector) ||
+    (collector.owner !== null && isResumeOwnerClosed(collector.owner))
+  ) {
+    return;
+  }
   if (deps && deps.length > 0) {
     collector.deps = [];
     for (let i = 0; i < deps.length; i++) {

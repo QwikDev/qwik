@@ -1,3 +1,4 @@
+import { prepareProjectionRanges, parkProjections } from '../range/range';
 import { isDev } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
@@ -20,7 +21,6 @@ import {
   disposeOwnerItems,
   registerSubscriberToOwner,
   type Owner,
-  showsProjection,
 } from '../../runtime/owner';
 import { findForRows } from '../../runtime/node-walker';
 import type { ForBlockSubscriber } from '../../runtime/subscriber';
@@ -95,11 +95,11 @@ export class ForRange {
     readonly end: Comment
   ) {}
 
-  clear(keepRemoved = false): void {
+  clear(): void {
     if (this.start.parentNode === null || replaceForRangeParent(this) !== null) {
       return;
     }
-    replaceRange(this.document, this.start, this.end, EMPTY_NODES, keepRemoved);
+    replaceRange(this.document, this.start, this.end, EMPTY_NODES);
   }
 }
 
@@ -137,11 +137,19 @@ export class ForBlock<T = unknown> {
     this.rows = EMPTY_ARRAY;
     this.owners = EMPTY_ARRAY;
     this.indexSignals = this.indexMode !== IndexMode.None ? EMPTY_ARRAY : null;
+    parkProjections(this.listOwner);
     disposeOwner(this.listOwner);
-    this.range.clear(showsProjection(this.listOwner));
+    this.range.clear();
   }
 
   run(subscription: ForBlockSubscription<T>): ValueOrPromise<void> {
+    return maybeThen(
+      prepareProjectionRanges(this.container, this.range.start, this.range.end, this.listOwner),
+      () => this.runPrepared(subscription)
+    );
+  }
+
+  private runPrepared(subscription: ForBlockSubscription<T>): ValueOrPromise<void> {
     const keyFn = this.keyFn == null ? null : getFunctionOrResolve(this.keyFn, this.container);
     return maybeThen(keyFn, (keyFn) => {
       const renderFn = getFunctionOrResolve(this.renderFn, this.container);
@@ -304,11 +312,15 @@ export class ForBlock<T = unknown> {
       const oldRows = this.rows;
       const oldOwners = this.owners;
       if (firstChanged === oldLast && !isRangeRow(oldRows[firstChanged])) {
+        parkProjections(oldOwners[firstChanged]);
         removeRow(oldRows[firstChanged]);
       } else {
         const range = this.range.document.createRange();
         range.setStartBefore(firstRowNode(oldRows[firstChanged]));
         range.setEndAfter(lastRowNode(oldRows[oldLast]));
+        for (let i = firstChanged; i <= oldLast; i++) {
+          parkProjections(oldOwners[i]);
+        }
         range.deleteContents();
       }
       // Last to first, so every removal pops the owner and subscriber lists
@@ -376,6 +388,7 @@ export class ForBlock<T = unknown> {
             lastRetainedNewIndex = nextIndex;
           }
         } else {
+          parkProjections(oldOwners[oldIndex]);
           removeRow(oldRows[oldIndex]);
           const owner = oldOwners[oldIndex];
           if (owner !== null) {
@@ -395,6 +408,7 @@ export class ForBlock<T = unknown> {
             lastRetainedNewIndex = nextIndex;
           }
         } else {
+          parkProjections(oldOwners[oldIndex]);
           removeRow(oldRows[oldIndex]);
           const owner = oldOwners[oldIndex];
           if (owner !== null) {
@@ -445,6 +459,7 @@ export class ForBlock<T = unknown> {
     nextIndexSignals: Array<Signal<number> | null> | null,
     renderFn: ForRenderFn<T>
   ): void {
+    parkProjections(this.listOwner);
     const parent = replaceForRangeParent(this.range);
     const oldOwners = this.owners;
     const fragment = this.container.document.createDocumentFragment();
@@ -526,7 +541,8 @@ export class ForBlock<T = unknown> {
     if (this.rows.length === 0) {
       return;
     }
-    this.range.clear(showsProjection(this.listOwner));
+    parkProjections(this.listOwner);
+    this.range.clear();
     disposeOwnerItems(this.listOwner);
     this.commitRows(
       EMPTY_ARRAY,

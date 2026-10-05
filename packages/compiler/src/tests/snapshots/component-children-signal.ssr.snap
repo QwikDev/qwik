@@ -19,21 +19,21 @@ import {
   registerProjection,
   createComponent,
   _capturesObj,
+  _createSsrSlotMarker,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
   const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, null, count);
   return maybeThen(text0, (text0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><p q:id="',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<p q:id="',
     createSsrNodeId(id0),
     '">',
     escapeHTML(text0),
@@ -73,21 +73,25 @@ export { Wrapper as Wrapper_component_1yrb0pezcavja };
 
 import {
   _capturesObj,
+  _createSsrSlotMarker,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
 } from '@qwik.dev/core';
 
-export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+export const component_slot_render_segment_0_3b0tagwys7lui = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
   const [count] = _capturesObj._;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, null, count);
   return maybeThen(text0, (text0) => [
-    '<!s=',
-    createSsrNodeId(__rangeId),
-    '><p q:id="',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    '<p q:id="',
     createSsrNodeId(id0),
     '">',
     escapeHTML(text0),

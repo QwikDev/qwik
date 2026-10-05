@@ -1,8 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import { createWindow } from '../../testing/document';
-import { findBranchTextRange, findForRange, findForRows } from './node-walker';
+import {
+  findBranchTextRange,
+  findForRange,
+  findForRows,
+  findQwikElement,
+  findProjectionRange,
+} from './node-walker';
 
 describe('node walker', () => {
+  it("does not resolve another container's elements or ranges", () => {
+    const win = createWindow({
+      html: '<div id="root" q:container="resumed"><div q:container="paused"><span q:id="7"></span><!--f=7--><!--/f--></div></div>',
+    });
+    const root = win.document.getElementById('root')!;
+    expect(findQwikElement(root, 7)).toBeNull();
+    expect(findForRange(root, 7)).toBeNull();
+  });
+  it('matches projection ids exactly and skips nested slot closers', () => {
+    const root = createWindow({
+      html: '<div id="root"><!--s=70,1--><!--/s--><!--s=7,2--><!--s=8,3--><!--/s--><!--/s--></div>',
+    }).document.getElementById('root')!;
+    const range = findProjectionRange(root, 7)!;
+    expect(range[0].data).toBe('s=7,2');
+    expect(range[1]).toBe(root.lastChild);
+  });
   it('keeps nested for rows inside their parent row', () => {
     const win = createWindow({
       html: '<div id="root"><!--f=1--><!--r=10--><!--f=2--><!--r=20--><i></i><!--/r--><!--/f--><!--/r--><!--r=11--><b></b><!--/r--><!--/f--></div>',
@@ -23,6 +45,7 @@ describe('node walker', () => {
       ['branch', '<!--b=7--><span></span><!--/b-->', 'b=7', '/b'],
       ['for row', '<!--f=1--><!--r=7--><span></span><!--/r--><!--/f-->', 'r=7', '/r'],
       ['slot', '<!--s=7--><span></span><!--/s-->', 's=7', '/s'],
+      ['projection', '<!--s=7,12--><span></span><!--/s-->', 's=7,12', '/s'],
     ])('finds a %s range', (_name, html, open, close) => {
       const range = findBranchTextRange(rootWith(html), 7)!;
 

@@ -2,12 +2,18 @@ import { _serialize } from '@qwik.dev/core/internal';
 import {
   FULLPATH_HEADER,
   getRouteLoaderCtx,
+  getRouteLoaderParams,
   getRouteLoaderResponse,
   loadRouteLoader,
   resolveRouteLoaderByHash,
   setRouteLoaders,
 } from '../../../runtime/src/route-loaders';
-import type { LoaderInternal, RequestEvent, RequestHandler } from '../../../runtime/src/types';
+import type {
+  LoadedRoute,
+  LoaderInternal,
+  RequestEvent,
+  RequestHandler,
+} from '../../../runtime/src/types';
 import type { CacheControl } from '../types';
 import { defaultLoaderCacheKey, getCachedLoader, resolveCacheKey, setCachedLoader } from '../etag';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from '../etag-hash';
@@ -23,7 +29,7 @@ import { createLoaderRequestEventFactory } from './loader-request-event';
  */
 export function loaderHandler(
   routeLoaders: LoaderInternal[],
-  loaderPaths?: Record<string, string>
+  route?: RouteLoaderData
 ): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
@@ -44,7 +50,7 @@ export function loaderHandler(
       return;
     }
 
-    setLoaderData(requestEv, routeLoaders, loaderPaths);
+    setRouteLoaderData(requestEv, routeLoaders, route);
     await runBlockingLoadersBeforeTarget(routeLoaders, loader, requestEv);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
@@ -155,13 +161,18 @@ async function runBlockingLoadersBeforeTarget(
   }
 }
 
-function setLoaderData(
+type RouteLoaderData = Pick<LoadedRoute, '$loaderPaths$' | '$loaderParams$'>;
+
+export function setRouteLoaderData(
   requestEv: RequestEventInternal,
   routeLoaders: LoaderInternal[],
-  loaderPaths: Record<string, string> | undefined
+  route: RouteLoaderData | undefined
 ) {
-  if (loaderPaths) {
-    Object.assign(getRouteLoaderCtx(requestEv).loaderPaths, loaderPaths);
+  if (route?.$loaderPaths$) {
+    Object.assign(getRouteLoaderCtx(requestEv).loaderPaths, route.$loaderPaths$);
+  }
+  if (route?.$loaderParams$) {
+    Object.assign(getRouteLoaderParams(requestEv), route.$loaderParams$);
   }
   setRouteLoaders(requestEv, routeLoaders);
 }

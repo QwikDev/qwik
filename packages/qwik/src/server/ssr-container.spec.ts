@@ -272,6 +272,29 @@ describe('SSR Container', () => {
     }
   });
 
+  it('should reject unsafe attribute names before writing markup', () => {
+    const unsafeAttrNames = [
+      'x onmouseover',
+      'x\tonmouseover',
+      'x\nonmouseover',
+      'x\fonmouseover',
+      'x\ronmouseover',
+      'x/onmouseover',
+      'x>onmouseover',
+      'x=onmouseover',
+      'x"onmouseover',
+      "x'onmouseover",
+    ];
+    for (let i = 0; i < unsafeAttrNames.length; i++) {
+      const { container, writer } = createTestContainer();
+
+      expect(() =>
+        container.openElement('div', null, { [unsafeAttrNames[i]]: 'value' }, null, null, null)
+      ).toThrow(`Code(Q${QError.unsafeAttr})`);
+      expect(writer.toString()).not.toContain('onmouseover');
+    }
+  });
+
   it('should preserve element keys in quoted attributes', async () => {
     const keys = [
       'plain',

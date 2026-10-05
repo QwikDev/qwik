@@ -1,0 +1,113 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+const useLogger = () => {
+	const count = useSignal(0);
+	useTask$(() => console.log(count.value));
+	return count;
+};
+
+export const Counter = component$(() => {
+	const count = useLogger();
+	return <p>{count.value}</p>;
+});
+
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_Counter_component_zTmRHlL09Gg = /*#__PURE__*/ qrl(()=>import("./test.tsx_Counter_component_zTmRHlL09Gg"), "Counter_component_zTmRHlL09Gg");
+//
+qrl(()=>import("./test.tsx_useLogger_useTask_0vnJnikBpko"), "useLogger_useTask_0vnJnikBpko");
+export const Counter = /*#__PURE__*/ componentQrl(q_Counter_component_zTmRHlL09Gg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AASA,OAAO,MAAM,wBAAU,8CAGpB\"}")
+============================= test.tsx_useLogger_useTask_0vnJnikBpko.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const useLogger_useTask_0vnJnikBpko = ()=>{
+    let count = _capturesObj._[0];
+    return console.log(count.value);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6CAKU;;WAAM,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "useLogger_useTask_0vnJnikBpko",
+  "entry": null,
+  "displayName": "test.tsx_useLogger_useTask",
+  "hash": "0vnJnikBpko",
+  "canonicalFilename": "test.tsx_useLogger_useTask_0vnJnikBpko",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    134,
+    164
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.tsx_Counter_component_zTmRHlL09Gg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+//
+const q_useLogger_useTask_0vnJnikBpko = /*#__PURE__*/ qrl(()=>import("./test.tsx_useLogger_useTask_0vnJnikBpko"), "useLogger_useTask_0vnJnikBpko");
+//
+const useLogger = ()=>{
+    const count = useSignal(0);
+    useTaskQrl(q_useLogger_useTask_0vnJnikBpko.w([
+        count
+    ]));
+    return count;
+};
+export const Counter_component_zTmRHlL09Gg = ()=>{
+    const count = useLogger();
+    return /*#__PURE__*/ _jsxSorted("p", null, null, _wrapProp(count), 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;MAGM,YAAY;IACjB,MAAM,QAAQ,UAAU;IACxB;;;IACA,OAAO;AACR;6CAEkC;IACjC,MAAM,QAAQ;IACd,qBAAO,WAAC,2BAAG;AACZ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Counter_component_zTmRHlL09Gg",
+  "entry": null,
+  "displayName": "test.tsx_Counter_component",
+  "hash": "zTmRHlL09Gg",
+  "canonicalFilename": "test.tsx_Counter_component_zTmRHlL09Gg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    220,
+    287
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

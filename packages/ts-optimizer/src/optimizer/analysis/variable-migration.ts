@@ -33,6 +33,7 @@ export interface ModuleLevelDecl {
   readonly kind: string;
   /** Initializer is a direct `routeLoader$`/`routeAction$`/`globalAction$` (or Qrl-form) call. */
   readonly hasRouterMarkerInit: boolean;
+  readonly initStart?: number;
 }
 
 const ROUTER_MARKER_CALLEES = new Set([
@@ -210,6 +211,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
             isPartOfSharedDestructuring: isShared,
             kind,
             hasRouterMarkerInit,
+            initStart: declarator.init?.start,
           });
         }
       }

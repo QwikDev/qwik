@@ -13,6 +13,7 @@ export const enum OwnerFlags {
   /** Content under this owner includes a projection another owner keeps alive. */
   ShowsProjection = 1 << 10,
   ResumeProjection = 1 << 11,
+  ResumeClosed = 1 << 12,
   DirtyMask = DirtyBlockingTask |
     DirtyStructuralDom |
     DirtyScalarDom |

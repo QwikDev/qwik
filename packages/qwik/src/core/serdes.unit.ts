@@ -125,6 +125,8 @@ describe('serdes emit-only', () => {
     const plain = JSON.parse(await _serialize(owner));
     expect(plain[0]).toBe(TypeIds.Owner);
     expect(plain[1]).toHaveLength(4);
+    disposeOwnerItems(owner);
+    expect(JSON.parse(await _serialize(owner))).toEqual(plain);
     owner.flags |= OwnerFlags.ShowsProjection;
     const projecting = JSON.parse(await _serialize(owner));
     expect(projecting[1]).toHaveLength(6);
@@ -381,6 +383,7 @@ describe('serdes emit-only', () => {
     const shown = JSON.parse(await _serialize(projection));
     expect(shown[0]).toBe(TypeIds.Projection);
     expect(shown[1]).toHaveLength(4);
+    expect(shown[1][3]).toHaveLength(18);
   });
 
   it('shares the declaring owner between a projection and its restored host', async () => {
@@ -866,8 +869,7 @@ describe('serdes emit-only', () => {
     expect(payload[3]).toBe(Constants.EMPTY_ARRAY);
     expect(payload[4]).toBe(TypeIds.Plain);
     expect(payload[5]).toBe(4);
-    expect(payload[6]).toBe(TypeIds.Constant);
-    expect(payload[7]).toBe(Constants.True);
+    expect(payload).toHaveLength(10);
   });
 
   it('serializes an unread serializer signal as needing computation', async () => {
@@ -883,8 +885,7 @@ describe('serdes emit-only', () => {
 
     expect(payload[4]).toBe(TypeIds.Constant);
     expect(payload[5]).toBe(Constants.NEEDS_COMPUTATION);
-    expect(payload[6]).toBe(TypeIds.Constant);
-    expect(payload[7]).toBe(Constants.False);
+    expect(payload).toHaveLength(10);
   });
 
   it('serializes an async serializer result through a forward ref', async () => {
@@ -926,8 +927,6 @@ describe('serdes emit-only', () => {
       [],
       TypeIds.Plain,
       9,
-      TypeIds.Constant,
-      Constants.True,
     ])) as SerializerSignal<CustomSerializable, number>;
 
     expect(loadCount).toBe(1);
@@ -958,8 +957,7 @@ describe('serdes emit-only', () => {
 
     expect(payload[4]).toBe(TypeIds.Plain);
     expect(payload[5]).toBe(8);
-    expect(payload[6]).toBe(TypeIds.Constant);
-    expect(payload[7]).toBe(Constants.True);
+    expect(payload).toHaveLength(10);
   });
 
   it('does not serialize orphan SSR effect targets', async () => {
@@ -1019,13 +1017,12 @@ describe('serdes emit-only', () => {
     const stylePayload = (state[3] as unknown[])[3] as unknown[];
 
     expect(classPayload[1]).toBe(EffectKind.Attr);
-    expect(classPayload[3]).toBe(EffectTargetKind.Element);
-    expect(classPayload[5]).toBe(2);
-    expect(classPayload[9]).toBe('class');
+    expect(classPayload).toHaveLength(14);
+    expect(classPayload[3]).toBe(2);
+    expect(classPayload[7]).toBe('class');
     expect(stylePayload[1]).toBe(EffectKind.Attr);
-    expect(stylePayload[3]).toBe(EffectTargetKind.Element);
-    expect(stylePayload[5]).toBe(2);
-    expect(stylePayload[9]).toBe('style');
+    expect(stylePayload[3]).toBe(2);
+    expect(stylePayload[7]).toBe('style');
   });
 
   it('serializes SSR attr expression subscribers as attrs', async () => {
@@ -1049,11 +1046,10 @@ describe('serdes emit-only', () => {
     const effectPayload = signalPayload[3] as unknown[];
 
     expect(effectPayload[1]).toBe(EffectKind.AttrExpression);
-    expect(effectPayload[3]).toBe(EffectTargetKind.Element);
-    expect(effectPayload[5]).toBe(2);
-    expect(effectPayload[9]).toBe('style');
-    expect(effectPayload[10]).toBe(TypeIds.Array);
-    expect(effectPayload[12]).toBe(TypeIds.QRL);
+    expect(effectPayload[3]).toBe(2);
+    expect(effectPayload[7]).toBe('style');
+    expect(effectPayload[8]).toBe(TypeIds.Array);
+    expect(effectPayload[10]).toBe(TypeIds.QRL);
   });
 
   it('serializes SSR event expression subscribers with ordered handlers', async () => {
@@ -1087,11 +1083,10 @@ describe('serdes emit-only', () => {
     const effectPayload = signalPayload[3] as unknown[];
 
     expect(effectPayload[1]).toBe(EffectKind.Event);
-    expect(effectPayload[3]).toBe(EffectTargetKind.Element);
-    expect(effectPayload[5]).toBe(2);
-    expect(effectPayload[9]).toBe('q-e:click');
+    expect(effectPayload[3]).toBe(2);
+    expect(effectPayload[7]).toBe('q-e:click');
+    expect(effectPayload[12]).toBe(TypeIds.Array);
     expect(effectPayload[14]).toBe(TypeIds.Array);
-    expect(effectPayload[16]).toBe(TypeIds.Array);
     expect(JSON.stringify(state)).toContain('before.js');
     expect(JSON.stringify(state)).toContain('after.js');
   });
@@ -1117,7 +1112,7 @@ describe('serdes emit-only', () => {
     expect(effectPayload[3]).toEqual([TypeIds.RootRef, 0, TypeIds.RootRef, 1]);
     expect(textOpPayload[1]).toBe(EffectKind.TextNode);
     expect(classOpPayload[1]).toBe(EffectKind.Attr);
-    expect(classOpPayload[9]).toBe('class');
+    expect(classOpPayload[7]).toBe('class');
   });
 
   it('round-trips DOM batch dependencies and asynchronous scalar patches', async () => {
@@ -1245,8 +1240,54 @@ describe('serdes emit-only', () => {
     expect(forPayload[3]).toBe(9);
     expect(forPayload[10]).toBe(TypeIds.Plain);
     expect(forPayload[11]).toBe(IndexMode.None);
+    expect(forPayload[16]).toBe(TypeIds.Plain);
+    expect(forPayload[17]).toBe(0);
     expect(countSerializedValue(state, TypeIds.EffectSubscription)).toBe(2);
   });
+
+  it.each([IndexMode.None, IndexMode.Effects])(
+    'restores omitted index signals in mode %s',
+    async (indexMode) => {
+      const win = createWindow({
+        html: '<div q:container><!--f=9--><span q:row="a">a</span><span q:row="b">b</span><!--/f--></div>',
+      });
+      const container = createContainerContext(win.document.body.firstElementChild!);
+      const rows = [{ id: 'a' }, { id: 'b' }];
+      const items = useSignal(rows);
+      const key = (row: { id: string }) => row.id;
+      const render = () => [];
+      const subscription = registerSubscriberToOwner(
+        new ForBlockSubscription<{ id: string }>(null!, container.scheduler),
+        createOwner(null)
+      );
+      await inflate(container, subscription, TypeIds.EffectSubscription, [
+        TypeIds.Plain,
+        EffectKind.ForBlock,
+        TypeIds.Plain,
+        9,
+        TypeIds.Array,
+        [TypeIds.Plain, items],
+        TypeIds.Plain,
+        key,
+        TypeIds.Plain,
+        render,
+        TypeIds.Plain,
+        indexMode,
+        TypeIds.Constant,
+        Constants.Null,
+        TypeIds.Constant,
+        Constants.Null,
+        TypeIds.Plain,
+        3,
+        TypeIds.Plain,
+        createOwner(subscription.owner),
+      ]);
+      subscription.block.reconcile(subscription, key, render);
+      expect(subscription.block.indexSignals?.map((signal) => signal?.value) ?? null).toEqual(
+        indexMode === IndexMode.None ? null : [0, 1]
+      );
+    }
+  );
 
   it('reuses serialized for index signals after inflation', async () => {
     type Row = { id: string };
@@ -1277,17 +1318,17 @@ describe('serdes emit-only', () => {
       TypeIds.Plain,
       render,
       TypeIds.Plain,
-      true,
+      IndexMode.Escapes,
       TypeIds.Constant,
       Constants.Null,
       TypeIds.Constant,
       Constants.Null,
-      TypeIds.Array,
-      [TypeIds.Plain, firstIndex, TypeIds.Plain, secondIndex],
       TypeIds.Plain,
       3,
       TypeIds.Plain,
       createOwner(subscription.owner),
+      TypeIds.Array,
+      [TypeIds.Plain, firstIndex, TypeIds.Plain, secondIndex],
     ]);
 
     subscription.block.reconcile(subscription, key, render);

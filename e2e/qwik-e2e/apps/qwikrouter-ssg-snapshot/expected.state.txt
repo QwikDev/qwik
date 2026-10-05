@@ -60,7 +60,6 @@
       {string} "url"
       EffectSubscription [
         {number} 9
-        {number} 2
         {number} 0
         Array [
           StoreProp [
@@ -163,7 +162,6 @@
             Array [
               RootRef [omitted]
             ]
-            Constant null
             {number} 0
             RootRef [omitted]
             RootRef [omitted]
@@ -192,7 +190,6 @@
           RootRef [omitted]
           EffectSubscription [
             {number} 4
-            {number} 2
             {number} 4
             Array [
               StoreProp [
@@ -263,7 +260,6 @@
             {number} 0
             Constant null
             Array []
-            Constant null
             {number} 0
             RootRef [omitted]
             RootRef [omitted]
@@ -312,7 +308,6 @@
             {number} 0
             Constant null
             Array []
-            Constant null
             {number} 0
             RootRef [omitted]
             RootRef [omitted]
@@ -361,7 +356,6 @@
             {number} 0
             Constant null
             Array []
-            Constant null
             {number} 0
             RootRef [omitted]
             RootRef [omitted]
@@ -505,7 +499,6 @@
     Array [
       RootRef [omitted]
     ]
-    Constant null
     {number} 3
     RootRef [omitted]
     RootRef [omitted]

@@ -22,10 +22,9 @@ export type OwnerItems = OwnerItem | OwnerItem[] | null;
 export type PendingWork = { promise: Promise<unknown>; cancel: () => void };
 
 const resumedPositions = new WeakMap<OwnerItem, number>();
-const closedResumeOwners = new WeakSet<Owner>();
 
 export function isResumeOwnerClosed(owner: Owner): boolean {
-  return closedResumeOwners.has(owner) || (owner.flags & OwnerFlags.Disposed) !== 0;
+  return (owner.flags & (OwnerFlags.Disposed | OwnerFlags.ResumeClosed)) !== 0;
 }
 
 export function restoreOwnerItemOrder(item: OwnerItem, owner: Owner, position: number): void {
@@ -202,7 +201,7 @@ export function disposeOwner(owner: Owner): void {
 }
 
 export function disposeOwnerItems(owner: Owner): void {
-  closedResumeOwners.add(owner);
+  owner.flags |= OwnerFlags.ResumeClosed;
   const items = owner.items;
   owner.items = null;
   if (items === null) {

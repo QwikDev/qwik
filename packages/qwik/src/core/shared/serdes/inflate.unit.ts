@@ -384,8 +384,6 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
       TypeIds.Plain,
       EffectKind.Event,
       TypeIds.Plain,
-      EffectTargetKind.Element,
-      TypeIds.Plain,
       10,
       TypeIds.Array,
       [TypeIds.Plain, enabled],
@@ -429,8 +427,6 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     await inflate(context, effect, TypeIds.EffectSubscription, [
       TypeIds.Plain,
       EffectKind.AttrExpression,
-      TypeIds.Plain,
-      EffectTargetKind.Element,
       TypeIds.Plain,
       10,
       TypeIds.Array,

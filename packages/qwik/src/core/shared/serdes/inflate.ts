@@ -9,7 +9,7 @@ import {
   SuspenseContentSubscription,
   type ContentOutput,
 } from '../../dom/content/content';
-import { ForBlock, ForRange, type IndexMode } from '../../dom/for/for';
+import { ForBlock, ForRange, IndexMode } from '../../dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
@@ -57,7 +57,7 @@ import {
   type Projection,
   type SlotScope,
 } from '../../dom/slot/slot';
-import { EMPTY_NODES } from '../../utils/consts';
+import { EMPTY_ARRAY, EMPTY_NODES } from '../../utils/consts';
 import {
   Owner,
   createOwner,
@@ -424,25 +424,23 @@ const inflateResolved = (
     case TypeIds.SerializerSignal: {
       const signal = target as SerializerSignal<unknown, unknown>;
       const d = data as unknown[];
-      const subscriberOffset = 8;
+      const subscriberOffset = 6;
       return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
         maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
-          maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) =>
-            maybeThen(deserializeData(container, d[6] as TypeIds, d[7]), (initialized) => {
-              if (rejectDisposedInflation(signal)) {
-                return;
-              }
-              signal.argQrl = qrl as SerializerSignal<unknown, unknown>['argQrl'];
-              restoreDependencies(signal, deps as Source[]);
-              signal.v = initialized ? (value as unknown) : NEEDS_COMPUTATION;
-              signal.flags = ComputedFlags.HasValue;
-              signal.didInitialize = false;
-              if (d.length > subscriberOffset) {
-                restoreSourceSubs(signal, container, d, subscriberOffset);
-              }
-              return maybeThen(getFunctionOrResolve(signal.argQrl!, container), () => {});
-            })
-          )
+          maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) => {
+            if (rejectDisposedInflation(signal)) {
+              return;
+            }
+            signal.argQrl = qrl as SerializerSignal<unknown, unknown>['argQrl'];
+            restoreDependencies(signal, deps as Source[]);
+            signal.v = value;
+            signal.flags = ComputedFlags.HasValue;
+            signal.didInitialize = false;
+            if (d.length > subscriberOffset) {
+              restoreSourceSubs(signal, container, d, subscriberOffset);
+            }
+            return maybeThen(getFunctionOrResolve(signal.argQrl!, container), () => {});
+          })
         )
       );
     }
@@ -640,7 +638,7 @@ const inflateResolved = (
                 target as Writeable<ForBlockSubscription>,
                 parts
               ),
-            parts[11]
+            parts[parts[5] === IndexMode.Escapes ? 11 : 10]
           );
         case EffectKind.Content:
         case EffectKind.Projection:
@@ -651,7 +649,7 @@ const inflateResolved = (
                 target as Writeable<ContentSubscription>,
                 parts
               ),
-            parts[10]
+            parts[kind === EffectKind.Projection ? 7 : 10]
           );
         case EffectKind.TextNode:
         case EffectKind.TextExpression:
@@ -777,9 +775,9 @@ async function restoreForBlockSubscription(
       readOwner(rowOwner);
     }
   }
-  const indexSignals =
-    (parts[8] as Array<ReactiveSignal<number> | null> | null | undefined) ?? null;
-  const rowShape = (parts[9] as 0 | 1 | 2 | 3 | null | undefined) ?? 3;
+  const hasIndexSignals = indexMode === IndexMode.Escapes;
+  const indexSignals = hasIndexSignals ? (parts[10] as Array<ReactiveSignal<number> | null>) : null;
+  const rowShape = (parts[8] as 0 | 1 | 2 | 3 | null | undefined) ?? 3;
   const markerRange = findContainerNode(container, (root) => findForRange(root, rangeId));
   isDev && assertDefined(markerRange, `Missing for range ${rangeId}.`);
   if (markerRange === null) {
@@ -789,7 +787,7 @@ async function restoreForBlockSubscription(
     throw new Error('ForBlock subscription requires a source dependency.');
   }
 
-  const listOwner = parts[10];
+  const listOwner = parts[9];
   if (!(listOwner instanceof Owner)) {
     throw new Error('Missing serialized list owner');
   }
@@ -822,17 +820,20 @@ async function restoreContentSubscription(
 ): Promise<void> {
   const rangeId = parts[1] as number;
   const deps = parts[2] as Source[];
-  const args = parts[3] as unknown[];
-  const renderQrl = parts[4] as QRLInternal<(...args: unknown[]) => ValueOrPromise<ContentOutput>>;
-  const owner = readOwner(parts[5]);
-  const slotScope = (parts[6] as SlotScope | null | undefined) ?? null;
-  const useOnScopes = parts[7] as UseOnMap[] | null | undefined;
-  const contextArg = parts[8] === true;
+  const isProjection = subscription instanceof ProjectionSubscription;
+  const args = isProjection ? EMPTY_ARRAY : (parts[3] as unknown[]);
+  const qrlIndex = isProjection ? 3 : 4;
+  const renderQrl = parts[qrlIndex] as QRLInternal<
+    (...args: unknown[]) => ValueOrPromise<ContentOutput>
+  >;
+  const owner = readOwner(parts[qrlIndex + 1]);
+  const slotScope = (parts[qrlIndex + 2] as SlotScope | null | undefined) ?? null;
+  const useOnScopes = isProjection ? null : (parts[7] as UseOnMap[] | null | undefined);
+  const contextArg = isProjection || parts[8] === true;
   const suspense = (parts[0] === EffectKind.Projection ? undefined : parts[9]) as
     | [Parameters<typeof attachSuspense>[4] | null, number]
     | null
     | undefined;
-  const isProjection = subscription instanceof ProjectionSubscription;
   const markerRange = findContainerNode(container, (root) =>
     isProjection ? findProjectionRange(root, rangeId) : findContentRange(root, rangeId)
   );
@@ -867,7 +868,7 @@ async function restoreContentSubscription(
   if (isProjection) {
     const block = subscription.block as ProjectionBlock;
     block.host = subscription.owner;
-    block.setRenderOwner(readOwner(parts[9]));
+    block.setRenderOwner(readOwner(parts[6]));
   }
   if (suspense != null) {
     if (!(subscription instanceof SuspenseContentSubscription)) {
@@ -1071,7 +1072,7 @@ async function populateDomEffect(
   const kind = parts[0] as EffectKind;
   switch (kind) {
     case EffectKind.TextNode: {
-      const target = readDomEffectTarget(parts);
+      const target = readDomEffectTarget(parts, true);
       const text = resolveTextTarget(
         container,
         target.targetKind,
@@ -1090,7 +1091,7 @@ async function populateDomEffect(
       return target.deps;
     }
     case EffectKind.TextExpression: {
-      const target = readDomEffectTarget(parts);
+      const target = readDomEffectTarget(parts, true);
       const text = resolveTextTarget(
         container,
         target.targetKind,
@@ -1189,18 +1190,21 @@ async function populateDomEffect(
   }
 }
 
-function readDomEffectTarget(parts: unknown[]): {
+function readDomEffectTarget(
+  parts: unknown[],
+  isText = false
+): {
   targetKind: EffectTargetKind;
   targetId: number;
   markerIndex: number | undefined;
   depsIndex: number;
   deps: Source[];
 } {
-  const targetKind = parts[1] as EffectTargetKind;
-  const targetId = parts[2] as number;
+  const targetKind = isText ? (parts[1] as EffectTargetKind) : EffectTargetKind.Element;
+  const targetId = parts[isText ? 2 : 1] as number;
   const isRangeText = targetKind === EffectTargetKind.RangeText;
   const markerIndex = isRangeText ? (parts[3] as number) : undefined;
-  const depsIndex = isRangeText ? 4 : 3;
+  const depsIndex = isText ? (isRangeText ? 4 : 3) : 2;
   const deps = parts[depsIndex] as Source[];
   return { targetKind, targetId, markerIndex, depsIndex, deps };
 }

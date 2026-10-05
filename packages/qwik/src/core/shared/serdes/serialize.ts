@@ -562,7 +562,8 @@ export class Serializer {
   }
 
   private withOwner(parts: unknown[], subscriber: Subscriber): unknown[] {
-    return [...parts, subscriber.owner, this.ownerPosition(subscriber, subscriber.owner)];
+    parts.push(subscriber.owner, this.ownerPosition(subscriber, subscriber.owner));
+    return parts;
   }
 
   private writeObjectValue(value: {}, index: number) {
@@ -1016,12 +1017,10 @@ function serializeSerializerSignal(
   signal: SerializerSignal<unknown, unknown>,
   value: unknown
 ): unknown[] {
-  const initialized = value !== NEEDS_COMPUTATION;
   return [
     signal.argQrl,
     serializeDeps(signal.deps),
     value === undefined ? explicitUndefined : value,
-    initialized,
     ...serializeSubscribers(signal.subs),
   ];
 }
@@ -1193,21 +1192,29 @@ function serializeContentSubscription(
       ? [subscription.fallbackQrl, subscription.delay]
       : undefined;
   const suspenseRoot = getSuspenseRootId(subscription.owner, context);
+  if (subscription instanceof SSRProjectionSubscription) {
+    return [
+      EffectKind.Projection,
+      content.rangeId,
+      serializeDeps(subscription.deps),
+      content.qrl,
+      content.currentOwner,
+      content.invokeContext?.slotScope ?? null,
+      subscription.renderOwner,
+      ...(suspenseRoot === undefined ? [] : [suspenseRoot]),
+    ];
+  }
   return [
-    subscription instanceof SSRProjectionSubscription ? EffectKind.Projection : EffectKind.Content,
+    EffectKind.Content,
     content.rangeId,
     serializeDeps(subscription.deps),
-    subscription instanceof SSRProjectionSubscription ? EMPTY_ARRAY : content.args,
+    content.args,
     content.qrl,
     content.currentOwner,
     content.invokeContext?.slotScope ?? null,
     content.useOnRoot ? serializeUseOnScopes(content.invokeContext) : null,
     content.contextArg,
-    ...(subscription instanceof SSRProjectionSubscription
-      ? [subscription.renderOwner]
-      : suspense === undefined && suspenseRoot === undefined
-        ? []
-        : [suspense ?? null]),
+    ...(suspense === undefined && suspenseRoot === undefined ? [] : [suspense ?? null]),
     ...(suspenseRoot === undefined ? [] : [suspenseRoot]),
   ];
 }
@@ -1228,10 +1235,9 @@ function serializeForBlockSubscription(
     effect.indexMode,
     effect.invokeContext?.slotScope ?? null,
     effect.rowOwners,
-    // Effects-mode indices re-derive from row position at resume — only escaped ones serialize.
-    effect.indexMode === IndexMode.Escapes ? effect.indexSignals : null,
     effect.rowShape,
     effect.listOwner,
+    ...(effect.indexMode === IndexMode.Escapes ? [effect.indexSignals] : []),
     ...(suspenseRoot === undefined ? [] : [suspenseRoot]),
   ];
 }
@@ -1322,7 +1328,6 @@ function serializeSsrScalarDomEffect(
     case EffectKind.Attr:
       return [
         effect.effectKind,
-        EffectTargetKind.Element,
         effect.targetId,
         serializedDeps,
         effect.name,
@@ -1331,7 +1336,6 @@ function serializeSsrScalarDomEffect(
     case EffectKind.AttrExpression:
       return [
         effect.effectKind,
-        EffectTargetKind.Element,
         effect.targetId,
         serializedDeps,
         effect.name,
@@ -1342,7 +1346,6 @@ function serializeSsrScalarDomEffect(
     case EffectKind.Props:
       return [
         effect.effectKind,
-        EffectTargetKind.Element,
         effect.targetId,
         serializedDeps,
         effect.args,
@@ -1352,7 +1355,6 @@ function serializeSsrScalarDomEffect(
     case EffectKind.Event:
       return [
         effect.effectKind,
-        EffectTargetKind.Element,
         effect.targetId,
         serializedDeps,
         effect.name,

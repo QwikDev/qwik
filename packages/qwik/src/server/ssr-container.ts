@@ -253,6 +253,16 @@ type VNodeDataOwner = string | undefined;
 type PendingVNodeDataPatches = Map<VNodeDataOwner, Map<number, VNodeData>>;
 type VNodeDataSerializableNode = Pick<ISsrNode, 'id' | 'vnodeData'>;
 
+function getSegmentRefDiagonal(pair: number): number {
+  let diagonal = Math.floor((Math.sqrt(8 * pair + 1) - 1) / 2);
+  if ((diagonal * (diagonal + 1)) / 2 > pair) {
+    diagonal--;
+  } else if (((diagonal + 1) * (diagonal + 2)) / 2 <= pair) {
+    diagonal++;
+  }
+  return diagonal;
+}
+
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
   public isHtml: boolean;
@@ -328,6 +338,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public emittedSyncFnCount = 0;
   public rootContainerSerializedRootCount = 0;
   private emittedVNodeDataOwners: Set<VNodeDataOwner> | null = null;
+  private segmentRootIdMaps: number[][] | null = null;
 
   constructor(opts: SSRContainerOptions) {
     super(opts.renderOptions.serverData ?? {}, opts.locale);
@@ -412,12 +423,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   async render(jsx: JSXOutput) {
-    this.openContainer();
-    await this.renderJSX(jsx, {
-      currentStyleScoped: null,
-      parentComponentFrame: this.getComponentFrame(),
-    });
-    await this.closeContainer();
+    try {
+      this.openContainer();
+      await this.renderJSX(jsx, {
+        currentStyleScoped: null,
+        parentComponentFrame: this.getComponentFrame(),
+      });
+      await this.closeContainer();
+    } finally {
+      this.segmentRootIdMaps = null;
+    }
   }
 
   async renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions) {
@@ -523,6 +538,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return rootContainer;
   }
 
+  protected createSegmentRootIdMap(): number[] {
+    const root = this.$getRootContainer$();
+    const maps = (root.segmentRootIdMaps ||= []);
+    return (maps[Number(this.vnodeSegment)] = []);
+  }
+
+  protected getSegmentRootIdMap(segmentId = Number(this.vnodeSegment)): number[] {
+    const map = this.$getRootContainer$().segmentRootIdMaps?.[segmentId];
+    if (!map) {
+      throw qError(QError.serializeErrorMissingRootId, [`segment ${segmentId}`]);
+    }
+    return map;
+  }
+
   private createSegmentContainer(
     segmentId: string,
     writer: StringBufferSegmentWriter
@@ -622,6 +651,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   setHostProp<T>(host: ISsrNode, name: string, value: T): void {
     const ssrNode: ISsrNode = host as any;
+    if (name === ELEMENT_ID && this.vnodeSegment) {
+      const localRootId = value as number;
+      const encoded = getSegmentVNodeRefId(this.vnodeSegment, localRootId);
+      if (!Number.isSafeInteger(localRootId) || localRootId < 0 || !Number.isSafeInteger(encoded)) {
+        throw new Error('Invalid segment root id');
+      }
+      ssrNode.setProp(name, encoded);
+      return;
+    }
     return ssrNode.setProp(name, value);
   }
 
@@ -1252,7 +1290,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return { owner: undefined, localIndex: refBase };
     }
     const pair = -refBase - 1;
-    const diagonal = Math.floor((Math.sqrt(8 * pair + 1) - 1) / 2);
+    const diagonal = getSegmentRefDiagonal(pair);
     const diagonalStart = (diagonal * (diagonal + 1)) / 2;
     const localIndex = pair - diagonalStart;
     const segmentIndex = diagonal - localIndex;
@@ -1266,8 +1304,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       let rootId: number | string | undefined;
       let encodeValue: ((value: string) => string) | null = null;
       if (key === ELEMENT_ID && typeof rawValue === 'number') {
-        rootId = rawValue;
-        value = String(rawValue);
+        let globalId = rawValue;
+        if (rawValue < 0) {
+          // we are inside a segment and need to resolve the local root id to a global id
+          const pair = -rawValue - 1;
+          const diagonal = getSegmentRefDiagonal(pair);
+          const localRootId = pair - (diagonal * (diagonal + 1)) / 2;
+          const segmentId = diagonal - localRootId + 1;
+          globalId = this.getSegmentRootIdMap(segmentId)[localRootId];
+          if (globalId === undefined) {
+            throw qError(QError.serializeErrorMissingRootId, [
+              `segment ${segmentId} root ${localRootId}`,
+            ]);
+          }
+        }
+        value = String(globalId);
       } else if (typeof rawValue !== 'string') {
         rootId = this.addRoot(rawValue);
         if (rootId === undefined) {
@@ -1868,14 +1919,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 }
 
 interface SegmentRootCommit {
-  rootIdMap: number[];
   newRootStart: number;
   newRootLocalIds: number[];
 }
 
 export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentContainer {
   $outOfOrderState$ = OutOfOrderSegmentState.Rendering;
-  $outOfOrderRootIdMap$: number[] | null = null;
   $errorSwapIds$: number[] | null = null;
   private subscriptionPatchRecords: SubscriptionPatchRecord[] = [];
   private pendingVNodeDataPatches: PendingVNodeDataPatches | null = null;
@@ -1965,11 +2014,10 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       }
       this.emitPatchDataIfNeeded();
       this.drainCleanupQueue();
-      const rootIdMap = commit.rootIdMap;
+      const rootIdMap = this.getSegmentRootIdMap();
       if (rootReadyAtSegment) {
         this.$outOfOrderState$ = OutOfOrderSegmentState.Done;
       } else {
-        this.$outOfOrderRootIdMap$ = rootIdMap;
         this.$outOfOrderState$ = OutOfOrderSegmentState.EarlyFinalized;
       }
       return {
@@ -1990,7 +2038,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       this.emitVNodeData(this.vnodeSegment!);
       this.emitPendingVNodeDataPatches();
       this.$rootContainer$.emitOutOfOrderSegmentScripts(
-        this.writer.toString(this.$outOfOrderRootIdMap$!)
+        this.writer.toString(this.getSegmentRootIdMap())
       );
       this.$outOfOrderState$ = OutOfOrderSegmentState.Done;
       this.$rootContainer$.removeOutOfOrderSegment(this);
@@ -2076,13 +2124,12 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     rootContainer: SSRContainer,
     segmentSerializationCtx: SerializationContext
   ): SegmentRootCommit {
-    const rootIdMap: number[] = [];
+    this.createSegmentRootIdMap();
     const newRootStart = rootContainer.$isReadyForOOOS$()
       ? rootContainer.serializationCtx.$serializedRootCount$
       : rootContainer.serializationCtx.$roots$.length;
     const newRootLocalIds: number[] = [];
     const commit = {
-      rootIdMap,
       newRootStart,
       newRootLocalIds,
     };
@@ -2136,7 +2183,8 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     rootObj: unknown,
     commit: SegmentRootCommit
   ): void {
-    if (commit.rootIdMap[localId] !== undefined) {
+    const rootIdMap = this.getSegmentRootIdMap();
+    if (rootIdMap[localId] !== undefined) {
       return;
     }
     let rootId = rootContainer.serializationCtx.$hasRootId$(rootObj);
@@ -2146,7 +2194,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       this.seedCommittedRootForLiveSegments(rootContainer, rootObj);
     }
     const rootCtx = rootContainer.serializationCtx;
-    commit.rootIdMap[localId] =
+    rootIdMap[localId] =
       rootContainer.$isReadyForOOOS$() && rootId >= rootCtx.$rootStateRootCount$
         ? rootId + (rootCtx.$hasRootStateForwardRefs$ ? 1 : 0)
         : rootId;

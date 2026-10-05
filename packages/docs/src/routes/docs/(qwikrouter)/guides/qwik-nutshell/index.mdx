@@ -563,8 +563,8 @@ Qwik provides the `routeAction$()` API exported from `@qwik.dev/router` to handl
 ```tsx title="src/routes/user/[userID]/index.tsx"
 
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, Form } from '@qwik.dev/router';
-import { zod$, z } from '@qwik.dev/utils';
+import { routeAction$, Form, zod$ } from '@qwik.dev/router';
+import { z } from 'zod';
 
 // The `routeAction$()` function is used to create a data loader that will be executed on the server when the form is submitted.
 // The return of `routeAction$()` is a custom use hook, which can be used to access the data returned from `routeAction$()`.

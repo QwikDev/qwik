@@ -980,7 +980,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   commentNode(text: string) {
-    this.write('<!--' + text + '-->');
+    this.write('<!--' + escapeHTML(text) + '-->');
   }
 
   addRoot(obj: unknown) {

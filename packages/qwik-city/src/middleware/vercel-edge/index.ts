@@ -10,6 +10,7 @@ import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
+import { limitRequestBody } from '../request-handler/request-body-limit';
 
 // @builder.io/qwik-city/middleware/vercel-edge
 const COUNTRY_HEADER_NAME = 'x-vercel-ip-country';
@@ -48,7 +49,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
         mode: 'server',
         locale: undefined,
         url,
-        request,
+        request: limitRequestBody(request, opts.requestBodyLimit),
         env: {
           get(key) {
             return p.env[key];
@@ -126,7 +127,10 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
 }
 
 /** @public */
-export interface QwikCityVercelEdgeOptions extends ServerRenderOptions {}
+export interface QwikCityVercelEdgeOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+}
 
 /** @public */
 export interface PlatformVercel {}

@@ -141,6 +141,30 @@ describe('request-event redirect', () => {
     }
   });
 
+  it('should fix protocol-relative URL redirects hidden behind tab/LF/CR', () => {
+    // Browsers remove ASCII tab/LF/CR before parsing a URL, so these are
+    // protocol-relative redirects to evil.com as well.
+    for (const evil of [
+      '/\t/evil.com',
+      '/\n/evil.com',
+      '/\r\\evil.com',
+      '\t//evil.com',
+      '/\t\t/evil.com',
+    ]) {
+      const requestEv = createMockRequestEvent();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = requestEv.redirect(302, evil);
+
+      expect(result).toBeInstanceOf(RedirectMessage);
+      const location = requestEv.headers.get('Location')!;
+      expect(new URL(location, 'http://localhost:3000').host).toBe('localhost:3000');
+      expect(location).toBe('/evil.com');
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    }
+  });
+
   it('should fix mixed slash/backslash sequences in the path', () => {
     const requestEv = createMockRequestEvent();
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});

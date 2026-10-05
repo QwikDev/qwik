@@ -101,6 +101,8 @@ export interface SerializationContext {
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
   $eagerResume$: Set<unknown>;
+  /** Computeds serialized without a value, so a later segment must send it. */
+  $unsettledComputeds$: WeakSet<object>;
 
   $setProp$: (obj: any, prop: string, value: any) => void;
 }
@@ -119,6 +121,7 @@ class SerializationContextImpl implements SerializationContext {
   public $rootStateRootCount$ = 0;
   public $hasRootStateForwardRefs$ = false;
   public $eagerResume$: Set<unknown> = new Set();
+  public $unsettledComputeds$: WeakSet<object> = new WeakSet();
   public $eventQrls$: Set<QRL> = new Set();
   public $eventNames$: Set<string> = new Set();
   public $renderSymbols$: Set<string> = new Set();

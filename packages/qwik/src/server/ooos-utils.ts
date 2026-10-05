@@ -67,7 +67,8 @@ export const collectSubscriptionPatches = (
     if (!patch) {
       patch = new SubscriptionPatch(
         rootId,
-        entry.prop === null ? new Set() : new Map<string | symbol, Set<EffectSubscription>>()
+        entry.prop === null ? new Set() : new Map<string | symbol, Set<EffectSubscription>>(),
+        rootCtx.$unsettledComputeds$.has(entry.rootObj as object) ? entry.rootObj : undefined
       );
       patchesByRoot.set(rootId, patch);
       patches.push(patch);

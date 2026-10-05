@@ -24,6 +24,7 @@ import {
   EffectProperty,
   EffectSubscription,
   ComputedSignalFlags,
+  NEEDS_COMPUTATION,
   StoreFlags,
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
@@ -951,6 +952,27 @@ describe('shared-serialization', () => {
           0 SubscriptionDataConstTrue 0
           (6 chars)"
         `);
+    });
+    it(title(TypeIds.SubscriptionPatch) + ' with a settled computed value', async () => {
+      const settled = createAsyncSignal(inlinedQrl(() => Promise.resolve('ready'), 'settled', []));
+      const never = createAsyncSignal(
+        inlinedQrl(() => Promise.resolve('hidden'), 'never', []),
+        {
+          serializationStrategy: 'never',
+        }
+      );
+      await (settled as any).promise();
+      await (never as any).promise();
+      const objs = await serialize([
+        new SubscriptionPatch(7, new Set(), settled),
+        new SubscriptionPatch(8, new Set(), never),
+        new SubscriptionPatch(9, new Set()),
+      ]);
+      const [settledPatch, neverPatch, plainPatch] = deserialize(objs)[0] as SubscriptionPatch[];
+
+      expect(settledPatch.value).toBe('ready');
+      expect(neverPatch.value).toBe(NEEDS_COMPUTATION);
+      expect(plainPatch.value).toBe(NEEDS_COMPUTATION);
     });
     it(title(TypeIds.SubscriptionData) + ' const false', async () => {
       expect(await dump(new SubscriptionData({ $isConst$: false, $scopedStyleIdPrefix$: null })))

@@ -3,9 +3,11 @@ import {
   isServer,
   Reveal,
   Pending,
+  useComputed$,
   useServerData,
   useSignal,
   type JSXOutput,
+  type ReadonlySignal,
   type Signal,
 } from '@qwik.dev/core';
 import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
@@ -62,6 +64,8 @@ export const OutOfOrderPendingRoot = component$(() => {
           <OutOfOrderPendingContainerFragment />
         ) : scenario === 'rerender' ? (
           <OutOfOrderPendingRerender />
+        ) : scenario === 'computed' ? (
+          <ComputedOutOfOrderPending />
         ) : (
           <Pending key={render.value} fallback$={() => <FallbackOutOfOrderContent />}>
             <SlowOutOfOrderContent />
@@ -303,6 +307,44 @@ export const DelayedFallbackOutOfOrderPending = component$(() => {
     </section>
   );
 });
+
+export const ComputedOutOfOrderPending = component$(() => {
+  const isOn = useSignal(false);
+  const computed = useComputed$(async () => {
+    const side = isServer ? 'server' : 'client';
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return `Computed on the ${side}`;
+  });
+
+  // A fragment root makes the computed a shared root serialized before it settles.
+  return (
+    <>
+      <button id="ooos-computed-toggle" onClick$={() => (isOn.value = !isOn.value)}>
+        Toggle
+      </button>
+      <ComputedOutOfOrderToggle isOn={isOn} />
+      <ComputedOutOfOrderBoundary computed={computed} />
+    </>
+  );
+});
+
+export const ComputedOutOfOrderToggle = component$((props: { isOn: Signal<boolean> }) =>
+  props.isOn.value ? <b id="ooos-computed-on">On</b> : <i id="ooos-computed-off">Off</i>
+);
+
+export const ComputedOutOfOrderBoundary = component$(
+  (props: { computed: ReadonlySignal<string> }) => (
+    <Pending fallback$={() => <p id="ooos-computed-fallback">Loading computed</p>}>
+      <ComputedOutOfOrderReader computed={props.computed} />
+    </Pending>
+  )
+);
+
+export const ComputedOutOfOrderReader = component$(
+  (props: { computed: ReadonlySignal<string> }) => (
+    <p id="ooos-computed-value">{props.computed.value}</p>
+  )
+);
 
 export const OutOfOrderPendingRerender = component$(() => {
   const render = useSignal(0);

@@ -43,6 +43,25 @@ test.describe('out-of-order streaming with <Pending>', () => {
     await page.waitForLoadState('load');
   });
 
+  test('keeps an async computed resolved in a segment across unrelated renders', async ({
+    page,
+    browserName,
+  }) => {
+    await page.goto(
+      getOutOfOrderPendingUrl(browserName, new URLSearchParams({ scenario: 'computed' }))
+    );
+
+    await expect(page.locator('#ooos-computed-value')).toHaveText('Computed on the server', {
+      timeout: 10000,
+    });
+
+    await page.locator('#ooos-computed-toggle').click();
+    await expect(page.locator('#ooos-computed-on')).toHaveText('On');
+    await page.locator('#ooos-computed-toggle').click();
+    await expect(page.locator('#ooos-computed-off')).toHaveText('Off');
+    await expect(page.locator('#ooos-computed-value')).toHaveText('Computed on the server');
+  });
+
   test('renders with ssr when out-of-order streaming is disabled', async ({
     page,
     browserName,

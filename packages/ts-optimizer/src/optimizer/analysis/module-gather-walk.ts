@@ -108,6 +108,7 @@ export interface ModuleGatherInputs {
 export interface ModuleGatherFacts {
   readonly extractions: readonly ExtractedSegment[];
   readonly closureFreeIdentifiers: ReadonlyMap<AstFunction, readonly string[]>;
+  readonly closureFreeBindingStarts: ReadonlyMap<AstFunction, ReadonlyMap<string, number>>;
   readonly closureLexicalScopes: Map<AstFunction, Set<string>>;
   readonly nonFunctionCaptures: ReadonlyMap<
     string,
@@ -439,7 +440,7 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   }
 
   tracker.freeze();
-  resolveFreeIdentifiers(pendingResolutions, tracker);
+  const closureFreeBindingStarts = resolveFreeIdentifiers(pendingResolutions, tracker);
 
   // Deferred to post-walk: a later `const` in an enclosing scope is still a capture.
   for (const { node, frames } of pendingLexicalUnions) {
@@ -475,6 +476,7 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   return {
     extractions,
     closureFreeIdentifiers: freeIdentNames,
+    closureFreeBindingStarts,
     closureLexicalScopes,
     nonFunctionCaptures,
     extractionLoopMap,
@@ -579,15 +581,16 @@ function enterFreeIdentifiers(
 }
 
 /**
- * Resolve the buffered free-identifier visits in occurrence order against the frozen tracker.
- * Memoized per `(name, scopeKey)`: the chain-walk is the expensive step and identical pairs resolve
- * identically.
+ * Resolve the buffered free-identifier visits in occurrence order against the frozen tracker, and
+ * return where each closure's free names are declared. Memoized per `(name, scopeKey)`: the
+ * chain-walk is the expensive step and identical pairs resolve identically.
  */
 function resolveFreeIdentifiers(
   pending: readonly PendingResolution[],
   tracker: ScopeQueryTracker
-): void {
+): Map<AstFunction, Map<string, number>> {
   const memo = new Map<string, ScopeTrackerNode | null>();
+  const bindingStarts = new Map<AstFunction, Map<string, number>>();
   for (const { oc, name, scopeKey } of pending) {
     if (oc.dedupe.has(name)) {
       continue;
@@ -613,8 +616,18 @@ function resolveFreeIdentifiers(
     if (free) {
       oc.dedupe.add(name);
       oc.names.push(name);
+      if (decl !== null) {
+        const starts = bindingStarts.get(oc.fn) ?? new Map<string, number>();
+        starts.set(name, bindingIdentifierStart(decl));
+        bindingStarts.set(oc.fn, starts);
+      }
     }
   }
+  return bindingStarts;
+}
+
+function bindingIdentifierStart(decl: ScopeTrackerNode): number {
+  return decl.type === 'Import' ? decl.node.local.start : decl.node.start;
 }
 
 function enterLexicalScopes(node: AstNode, ctx: GatherEnterContext): void {

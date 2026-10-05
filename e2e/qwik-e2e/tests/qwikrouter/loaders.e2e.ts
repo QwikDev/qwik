@@ -162,6 +162,7 @@ test.describe('loaders', () => {
       await expect(routePath).toHaveText('routePath: alpha');
       await expect(keep).toHaveText('keep: one');
       await expect(noise).toHaveText('noise: none');
+      await expect(token).toHaveText(/^token: \S+$/);
       const alphaToken = await token.innerText();
 
       await page.locator('#link-search-cache-alpha-second').click();
@@ -186,6 +187,7 @@ test.describe('loaders', () => {
       await expect(routePath).toHaveText('routePath: beta');
       await expect(keep).toHaveText('keep: one');
       await expect(noise).toHaveText('noise: none');
+      await expect(token).toHaveText(/^token: \S+$/);
       await expect(token).not.toHaveText(alphaToken);
     });
 

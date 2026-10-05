@@ -52,6 +52,8 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
         this.$container$.setHostProp(this.$hostElement$ as HostElement, HOST_SIGNAL, this);
         markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
       }
+      // RUN_EFFECTS may be stale from an earlier compute
+      return;
     }
     // if the computation not failed, we can run the effects directly
     if (this.$flags$ & ComputedSignalFlags.RUN_EFFECTS) {

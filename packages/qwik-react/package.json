@@ -59,8 +59,8 @@
     "dev.ssr": "vite --mode ssr",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
-    "lint.fix": "eslint --fix \"src/**/*.ts*\"",
+    "lint": "oxlint src",
+    "lint.fix": "oxlint --fix src",
     "release": "pnpm run -w build.full && pnpm publish",
     "start": "npm run dev",
     "typecheck": "tsc --noEmit"

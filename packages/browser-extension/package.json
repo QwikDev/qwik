@@ -20,7 +20,7 @@
     "build:firefox": "node scripts/gen-injected-scripts.mjs && wxt build --browser firefox",
     "dev": "node scripts/gen-injected-scripts.mjs && wxt",
     "dev:firefox": "node scripts/gen-injected-scripts.mjs && wxt --browser firefox",
-    "lint": "eslint src/",
+    "lint": "oxlint src",
     "test": "vitest run",
     "test:watch": "vitest",
     "zip": "wxt zip",

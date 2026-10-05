@@ -24,7 +24,7 @@
     "express": "pnpm build && pnpm serve",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
+    "lint": "oxlint -c ../../.oxlintrc.json src",
     "preview": "qwik build preview && vite preview --open",
     "qwik": "qwik",
     "serve": "node server/entry.express",

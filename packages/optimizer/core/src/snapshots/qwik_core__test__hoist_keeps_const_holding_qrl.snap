@@ -1,0 +1,40 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(() => {
+	const view = $(() => console.log('view'));
+	const alias = view;
+	return <button onClick$={alias} />;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ _noopQrl("Cmp_component_4ryKJTOKjWE");
+const q_Cmp_component_view_ITAz7Hgj10g = /*#__PURE__*/ _noopQrl("Cmp_component_view_ITAz7Hgj10g");
+//
+const Cmp_component_view_ITAz7Hgj10g = ()=>console.log('view');
+q_Cmp_component_view_ITAz7Hgj10g.s(Cmp_component_view_ITAz7Hgj10g);
+const Cmp_component_4ryKJTOKjWE = ()=>{
+    const view = q_Cmp_component_view_ITAz7Hgj10g;
+    return /*#__PURE__*/ _jsxSorted("button", null, {
+        "q-e:click": view
+    }, null, 3, "u6_0");
+};
+q_Cmp_component_4ryKJTOKjWE.s(Cmp_component_4ryKJTOKjWE);
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;uCAIgB,IAAM,QAAQ,GAAG,CAAC;;kCADJ;IAC7B,MAAM;IAEN,qBAAO,WAAC;QAAO,aADD;;AAEf;;AAJA,OAAO,MAAM,oBAAM,0CAIhB\"}")
+== DIAGNOSTICS ==
+
+[]

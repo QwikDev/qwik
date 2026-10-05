@@ -915,6 +915,73 @@ export const Cmp = component$(() => {
 }
 
 #[test]
+fn hoist_keeps_const_holding_qrl() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(() => {
+	const view = $(() => console.log('view'));
+	const alias = view;
+	return <button onClick$={alias} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn inline_jsx_keys_follow_source_order_across_components() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { render } from './x';
+
+export const Cmp = component$(() => {
+	const view = $(() => render(<div />));
+	return <button onClick$={view} />;
+});
+
+export const Cmp2 = component$(() => {
+	const view = $(() => render(<p><span /></p>));
+	return <button onClick$={view} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn inline_jsx_keys_count_stripped_event_handlers() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { render } from './x';
+
+export const Cmp = component$(() => {
+	return <button onClick$={() => render(<div />)} />;
+});
+
+export const Cmp2 = component$(() => <p />);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		strip_event_handlers: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_props_wrapping() {
 	test_input!(TestInput {
 		code: r#"

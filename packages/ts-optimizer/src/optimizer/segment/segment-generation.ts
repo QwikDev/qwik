@@ -1565,7 +1565,7 @@ export function generateAllSegmentModules(ctx: SegmentGenerationContext): Transf
  * direct children's totals — a parent's bodyText textually contains its children's, so naive totals
  * would double-count.
  */
-function computeSegmentStartKeys(
+export function computeSegmentStartKeys(
   sortedExtractions: readonly ConsolidatedSegment[],
   parentJsxKeyCounterValue: number,
   closureNodes: ReadonlyMap<string, AstFunction>,

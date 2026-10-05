@@ -286,7 +286,8 @@ function bodyHasAwaitBetween(body: string, from: number, to: number): boolean {
 /** `elementCaptureNames` feed a later-emitted `q:p` prop, so they must keep their decls. */
 export function propagateConstLiteralsInBody(
   body: string,
-  elementCaptureNames: ReadonlySet<string> = new Set()
+  elementCaptureNames: ReadonlySet<string> = new Set(),
+  nestedQrlVarNames: ReadonlySet<string> = new Set()
 ): string {
   const session = createTransformSession(body);
   if (!session) {
@@ -369,6 +370,7 @@ export function propagateConstLiteralsInBody(
         const stmtEnd = node.end - offset;
 
         if (initStart >= 0 && initEnd <= body.length && stmtStart >= 0) {
+          const holdsNestedQrl = init.type === 'Identifier' && nestedQrlVarNames.has(init.name);
           constDecls.set(decl.id.name, {
             name: decl.id.name,
             initText: body.slice(initStart, initEnd),
@@ -376,7 +378,7 @@ export function propagateConstLiteralsInBody(
             stmtStart,
             stmtEnd,
             isLiteral: isLiteralNode(init),
-            isSideEffectFree: isSimpleSideEffectFree(init),
+            isSideEffectFree: isSimpleSideEffectFree(init) && !holdsNestedQrl,
             initRefersTo: collectIdentifiers(init),
           });
 

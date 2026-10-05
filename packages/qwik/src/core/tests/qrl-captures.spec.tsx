@@ -144,6 +144,47 @@ describe.each([
       );
     });
   });
+
+  describe('loop params named like a prop', () => {
+    it('should select the clicked tab', async () => {
+      const Tabs = component$(({ tab, tabs }: { tab: string; tabs: string[] }) => {
+        const selected = useSignal('');
+        return (
+          <div>
+            {tabs.map((tab) => (
+              <button id={tab} onClick$={() => (selected.value = tab)} />
+            ))}
+            <p>{selected.value}</p>
+          </div>
+        );
+      });
+
+      const { document } = await render(<Tabs tab="prop" tabs={['a', 'b']} />, { debug });
+      await trigger(document.body, 'button#b', 'click');
+
+      expect(document.querySelector('p')!.textContent).toBe('b');
+    });
+
+    it('should read the loop item', async () => {
+      (globalThis as any).__loopItemLog = [];
+      const List = component$(({ item, items }: { item: string; items: string[] }) => {
+        return (
+          <ul>
+            {items.map((item) => (
+              <li id={item} onClick$={() => (globalThis as any).__loopItemLog.push(item)} />
+            ))}
+          </ul>
+        );
+      });
+
+      const { document } = await render(<List item="prop" items={['a', 'b']} />, { debug });
+      await trigger(document.body, 'li#a', 'click');
+      await trigger(document.body, 'li#b', 'click');
+
+      expect((globalThis as any).__loopItemLog).toEqual(['a', 'b']);
+      delete (globalThis as any).__loopItemLog;
+    });
+  });
 });
 
 describe('QRL captures serialization', () => {

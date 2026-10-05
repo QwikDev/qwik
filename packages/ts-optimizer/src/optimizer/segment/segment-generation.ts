@@ -57,6 +57,7 @@ import { hoistInlinedQrlBodies } from './hoist-inlined-qrl.js';
 import {
   extractDestructuredFieldInfo,
   bodyConsolidatesToRawProps,
+  collectElementBindingStarts,
   consolidateQpCaptureValues,
   collectAncestorPropsSources,
   consolidateRawPropsCaptures,
@@ -358,6 +359,7 @@ function buildPropsSources(
       propsSources.set(parentExt.symbolName, {
         symbolName: parentExt.symbolName,
         ...extractDestructuredFieldInfo(parentExt.bodyText),
+        bindingStarts: parentExt.propsBindingStarts,
       });
     }
   }
@@ -377,7 +379,7 @@ function tryConsolidateRawProps(
     (symbolName) => prep.extBySymbol.get(symbolName)?.parent ?? null,
     (symbolName) => prep.propsSources.get(symbolName)
   );
-  return consolidateRawPropsCaptures(ext.captureNames, ancestors);
+  return consolidateRawPropsCaptures(ext.captureNames, ancestors, ext.freeBindingStarts);
 }
 
 /**
@@ -1101,15 +1103,21 @@ export function buildNestedCallSites(
   elementQpParamsMap: Map<string, string[]>,
   extractionLoopMap: Map<string, LoopContext[]>,
   parentBindingNames: ReadonlyMap<string, string>,
-  parentRawPropsFieldMap?: ReadonlyMap<string, string>
+  parentRawPropsFieldMap?: ReadonlyMap<string, string>,
+  parentPropsBindingStarts?: ReadonlyMap<string, number>
 ): NestedCallSiteInfo[] {
-  const consolidateParams = (params: string[]): string[] =>
+  const consolidateParams = (params: string[], child: ConsolidatedSegment): string[] =>
     parentRawPropsFieldMap === undefined
       ? params
-      : consolidateQpCaptureValues(params, parentRawPropsFieldMap);
-  const qp = (symbolName: string): string[] | undefined => {
-    const params = elementQpParamsMap.get(symbolName);
-    return params ? consolidateParams(params) : params;
+      : consolidateQpCaptureValues(
+          params,
+          parentRawPropsFieldMap,
+          parentPropsBindingStarts,
+          collectElementBindingStarts(child, children, elementQpParamsMap)
+        );
+  const qp = (child: ConsolidatedSegment): string[] | undefined => {
+    const params = elementQpParamsMap.get(child.symbolName);
+    return params ? consolidateParams(params, child) : params;
   };
   const nestedCallSites: NestedCallSiteInfo[] = [];
   for (const child of children) {
@@ -1162,7 +1170,7 @@ export function buildNestedCallSites(
         child.captureNames.length > 0 &&
         (hasUnderscorePlaceholderParams(child.paramNames, child.movedCaptures) || childIsInLoop);
 
-      const loopLocalParams = consolidateParams(eventHandlerQpParams(child.paramNames));
+      const loopLocalParams = consolidateParams(eventHandlerQpParams(child.paramNames), child);
 
       nestedCallSites.push({
         qrlVarName,
@@ -1180,7 +1188,7 @@ export function buildNestedCallSites(
         // is unset.
         captureNames: !hasLoopCrossCaptures && captureNames.length > 0 ? captureNames : undefined,
         loopLocalParamNames: loopLocalParams.length > 0 ? loopLocalParams : undefined,
-        elementQpParams: qp(child.symbolName),
+        elementQpParams: qp(child),
         liftedNonConst: child.liftedNonConst === true || undefined,
       });
     } else {
@@ -1191,14 +1199,14 @@ export function buildNestedCallSites(
       // after the `_, _1` (event, element) prefix — the same positional
       // delivery the loop-iter path uses. The peer-tool JSX-call rewriter
       // (`buildJsxSortedCall`) reads `elementQpParams` to inject the prop.
-      let qpParams: string[] | undefined = qp(child.symbolName);
+      let qpParams: string[] | undefined = qp(child);
       if (
         qpParams === undefined &&
         (child.ctxKind === 'eventHandler' || child.ctxKind === 'jSXProp')
       ) {
         const params = eventHandlerQpParams(child.paramNames);
         if (params.length > 0) {
-          qpParams = consolidateParams(params);
+          qpParams = consolidateParams(params, child);
         }
       }
       const explicitCaptureItems =
@@ -1336,7 +1344,8 @@ export function buildDefaultStrategySegment(
     elementQpParamsMap,
     ctx.extractionLoopMap,
     rawPropsBindingNames([ext]),
-    parentRawPropsFieldMap
+    parentRawPropsFieldMap,
+    ext.propsBindingStarts
   );
 
   const effectiveCaptureInfo = resolveCaptureInfo(captureInfo, ext.isInlinedQrl);

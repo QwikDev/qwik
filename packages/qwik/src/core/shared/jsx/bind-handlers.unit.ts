@@ -1,10 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { $ } from '@qwik.dev/core';
+import { afterEach, describe, expect, it } from 'vitest';
 import { _res, _chk, _val } from './bind-handlers';
 import { createSignal } from '../../reactive-primitives/signal.public';
+import { createAsyncSignal, createComputedSignal } from '../../reactive-primitives/signal-api';
+import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
+import { ComputedSignalFlags } from '../../reactive-primitives/types';
 import { createDocument } from '@qwik.dev/core/testing';
 import { QContainerAttr, QInstanceAttr } from '../../shared/utils/markers';
 import { setCaptures } from '../qrl/qrl-class';
 import { TypeIds } from '../serdes/constants';
+import { createSerializationContext } from '../serdes/serialization-context';
 import { getDomContainer } from '../../client/dom-container';
 
 const instanceId = 'bind-handlers-unit';
@@ -25,7 +30,83 @@ const addStateRoots = (document: Document, ...roots: unknown[]) => {
 };
 
 describe('bind handlers', () => {
+  afterEach(() => {
+    setCaptures(null);
+  });
+
   describe('_res', () => {
+    it('should start every client-only signal when compute QRLs replace captures', async () => {
+      const document = createContainerDocument();
+      const container = getDomContainer(document.body);
+      const first = { calls: 0, value: 'layout data' };
+      const second = { calls: 0, value: 'page data' };
+      const firstCompute = $(async () => {
+        first.calls++;
+        return first.value;
+      });
+      const secondCompute = $(async () => {
+        second.calls++;
+        return second.value;
+      });
+      const firstSignal = createAsyncSignal(firstCompute, { container, clientOnly: true });
+      const secondSignal = createAsyncSignal(secondCompute, { container, clientOnly: true });
+
+      // Preloaded QRLs replace captures synchronously during computation
+      await Promise.all([firstCompute.resolve(), secondCompute.resolve()]);
+      setCaptures([firstSignal, secondSignal]);
+
+      await _res.call(undefined, null, document.body);
+
+      // Reading signal state here would start any skipped computations
+      expect(first.calls).toBe(1);
+      expect(second.calls).toBe(1);
+      await Promise.all([firstSignal.promise(), secondSignal.promise()]);
+      expect(firstSignal.value).toBe('layout data');
+      expect(secondSignal.value).toBe('page data');
+    });
+
+    it('should resume every serialized client-only computed from capture deltas', async () => {
+      const layout = { value: 'layout data' };
+      const page = { value: 'page data' };
+      const firstSignal = createComputedSignal(
+        $(async () => layout.value),
+        { clientOnly: true }
+      );
+      const secondSignal = createComputedSignal(
+        $(async () => page.value),
+        { clientOnly: true }
+      );
+      const serializationContext = createSerializationContext(
+        null,
+        null,
+        () => '',
+        () => {},
+        new WeakMap()
+      );
+      const firstId = serializationContext.$addRoot$(firstSignal);
+      const secondId = serializationContext.$addRoot$(secondSignal);
+      await serializationContext.$serialize$();
+
+      const document = createContainerDocument();
+      const state = document.createElement('script');
+      state.setAttribute('type', 'qwik/state');
+      state.setAttribute(QInstanceAttr, instanceId);
+      state.textContent = serializationContext.$writer$.toString();
+      document.body.appendChild(state);
+
+      await _res.call(`${firstId} ${secondId - firstId}`, null, document.body);
+
+      const container = getDomContainer(document.body);
+      const firstResumed = container.$getObjectById$(firstId) as AsyncSignalImpl<string>;
+      const secondResumed = container.$getObjectById$(secondId) as AsyncSignalImpl<string>;
+      // Assert startup before promise() can start skipped computations
+      expect(firstResumed.$flags$ & ComputedSignalFlags.INVALID).toBe(0);
+      expect(secondResumed.$flags$ & ComputedSignalFlags.INVALID).toBe(0);
+      await Promise.all([firstResumed.promise(), secondResumed.promise()]);
+      expect(firstResumed.value).toBe('layout data');
+      expect(secondResumed.value).toBe('page data');
+    });
+
     it('should handle being called with capture string without errors', () => {
       const document = createContainerDocument();
       const element = document.createElement('div');

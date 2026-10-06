@@ -63,7 +63,7 @@ export const ArticleHero = component$<Props>(({ image, hero: Hero, authorLinks }
           </div>
         </div>
       </div>
-      <div class="relative max-w-[1280px] pb-4">
+      <div class="relative max-w-[1104px] pb-4 mx-auto">
         {Hero ? <Hero /> : <Image alt={title} src={image} layout="fullWidth" priority />}
       </div>
     </>

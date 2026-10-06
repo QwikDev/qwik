@@ -1,0 +1,125 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+const Inner = component$(() => <p onClick$={() => console.log('inner')}>inner</p>);
+
+export const Outer = component$(() => (
+	<div>
+		<Inner />
+	</div>
+));
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+qrl(()=>import("./test.tsx_Inner_component_f8kVziTmIO8"), "Inner_component_f8kVziTmIO8");
+//
+const q_Outer_component_qwx60a4JUUw = /*#__PURE__*/ qrl(()=>import("./test.tsx_Outer_component_qwx60a4JUUw"), "Outer_component_qwx60a4JUUw");
+//
+export const Outer = /*#__PURE__*/ componentQrl(q_Outer_component_qwx60a4JUUw);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAKA,OAAO,MAAM,sBAAQ,4CAIlB\"}")
+============================= test.tsx_Outer_component_qwx60a4JUUw.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Inner_component_f8kVziTmIO8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Inner_component_f8kVziTmIO8"), "Inner_component_f8kVziTmIO8");
+//
+const Inner = /*#__PURE__*/ componentQrl(q_Inner_component_f8kVziTmIO8);
+export const Outer_component_qwx60a4JUUw = ()=>/*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted(Inner, null, null, null, 3, "u6_1"), 1, "u6_2");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;MAGM,sBAAQ;2CAEkB,kBAC/B,WAAC,iCACA,WAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Outer_component_qwx60a4JUUw",
+  "entry": null,
+  "displayName": "test.tsx_Outer_component",
+  "hash": "qwx60a4JUUw",
+  "canonicalFilename": "test.tsx_Outer_component_qwx60a4JUUw",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    165,
+    201
+  ]
+}
+*/
+============================= test.tsx_Inner_component_p_q_e_click_0bp6JnRFeXY.js (ENTRY POINT)==
+
+export const Inner_component_p_q_e_click_0bp6JnRFeXY = ()=>console.log('inner');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uDAG4C,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Inner_component_p_q_e_click_0bp6JnRFeXY",
+  "entry": null,
+  "displayName": "test.tsx_Inner_component_p_q_e_click",
+  "hash": "0bp6JnRFeXY",
+  "canonicalFilename": "test.tsx_Inner_component_p_q_e_click_0bp6JnRFeXY",
+  "path": "",
+  "extension": "js",
+  "parent": "Inner_component_f8kVziTmIO8",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    92,
+    118
+  ]
+}
+*/
+============================= test.tsx_Inner_component_f8kVziTmIO8.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Inner_component_p_q_e_click_0bp6JnRFeXY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Inner_component_p_q_e_click_0bp6JnRFeXY"), "Inner_component_p_q_e_click_0bp6JnRFeXY");
+//
+export const Inner_component_f8kVziTmIO8 = ()=>/*#__PURE__*/ _jsxSorted("p", null, {
+        "q-e:click": q_Inner_component_p_q_e_click_0bp6JnRFeXY
+    }, "inner", 3, "u6_0");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAGyB,kBAAM,WAAC;QAAE,WAAQ;OAA8B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Inner_component_f8kVziTmIO8",
+  "entry": null,
+  "displayName": "test.tsx_Inner_component",
+  "hash": "f8kVziTmIO8",
+  "canonicalFilename": "test.tsx_Inner_component_f8kVziTmIO8",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    73,
+    129
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

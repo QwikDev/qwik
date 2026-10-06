@@ -6665,6 +6665,76 @@ export const Other = component$(() => {
 	});
 }
 
+#[test]
+fn should_move_function_component_with_event_handler() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+const Row = (props: { n: number }) => (
+	<tr onClick$={() => console.log('row')}>
+		<td>{props.n}</td>
+	</tr>
+);
+
+export const Table = component$(() => (
+	<table>
+		<Row n={1} />
+	</table>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_custom_hook_with_task() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+const useLogger = () => {
+	const count = useSignal(0);
+	useTask$(() => console.log(count.value));
+	return count;
+};
+
+export const Counter = component$(() => {
+	const count = useLogger();
+	return <p>{count.value}</p>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_component_marker_into_its_only_consumer() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+const Inner = component$(() => <p onClick$={() => console.log('inner')}>inner</p>);
+
+export const Outer = component$(() => (
+	<div>
+		<Inner />
+	</div>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 /// Regression test: when a root variable is pulled in as a transitive dependency
 /// for migration to segment A, but is also directly used by segment B, it must NOT
 /// be migrated. Otherwise segment B loses access to it (the export is removed).

@@ -577,6 +577,9 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
 
   component_level_self_referential_qrl: {},
   example_segment_variable_migration: {},
+  should_move_function_component_with_event_handler: { transpileTs: true, transpileJsx: true },
+  should_move_custom_hook_with_task: { transpileTs: true, transpileJsx: true },
+  should_move_component_marker_into_its_only_consumer: { transpileTs: true, transpileJsx: true },
   rename_builder_io: { transpileJsx: true },
   root_level_self_referential_qrl: {},
   should_not_transform_events_on_non_elements: {},

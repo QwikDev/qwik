@@ -759,7 +759,9 @@ function tryBuildMarkerDeclMove(
     if (ext.isInlinedQrl || ext.isSync) {
       continue;
     }
-    if (ext.displayName === exactDisplayName || ext.displayName.startsWith(prefixDisplayName)) {
+    const isNamedAfterDecl =
+      ext.displayName === exactDisplayName || ext.displayName.startsWith(prefixDisplayName);
+    if (isNamedAfterDecl && ext.callStart === decl.initStart) {
       match = ext;
       break;
     }

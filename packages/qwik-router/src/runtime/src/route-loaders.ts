@@ -15,7 +15,6 @@ import {
   _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
-  _UNINITIALIZED,
   SerializerSymbol,
   type _AsyncSignalImpl,
   type _ComputedSignalInternal,
@@ -67,7 +66,6 @@ const REQUEST_ROUTE_LOADERS = '@routeLoaders';
 const REQUEST_ROUTE_LOADER_PROMISES = '@routeLoaderPromises';
 const REQUEST_ROUTE_LOADER_EVENTS = '@routeLoaderEvents';
 const REQUEST_ROUTE_LOADER_ROOT_EVENT = '@routeLoaderRootEvent';
-const ROUTE_LOADER_VALUE_PREFIX = '__qwik_route_loader_value__';
 
 /** Header name sent by client to tell the server the actual page URL for loader requests. */
 export const FULLPATH_HEADER = 'X-Qwik-fullpath';
@@ -200,8 +198,6 @@ function assertCurrentLoaderRequest(
 }
 
 export type RouteLoaderState = Record<string, ComputedSignal<unknown>>;
-
-const getRouteLoaderValueStateKey = (loaderId: string) => `${ROUTE_LOADER_VALUE_PREFIX}${loaderId}`;
 
 class ServerRouteLoaderCapture {
   constructor(
@@ -356,8 +352,6 @@ const createRouteLoaderSignal = (
   requestEv?: RequestEvent
 ) => {
   const id = loader.__id;
-  const stateValues = state as Record<string, unknown>;
-  const resumeValueKey = getRouteLoaderValueStateKey(id);
   const capture = isServer
     ? new ServerRouteLoaderCapture(
         id,
@@ -379,9 +373,6 @@ const createRouteLoaderSignal = (
       // Pre-loaded value injection (from middleware via setLoaderSignalValue).
       if (hasInjectedValue) {
         const value = (info as { __v: unknown }).__v;
-        if (!isServer && resumeValueKey in stateValues) {
-          stateValues[resumeValueKey] = value;
-        }
         // The injected value may differ from the last fetched text; don't skip the next fetch
         lastFetch.raw = undefined;
         return value;
@@ -402,7 +393,6 @@ const createRouteLoaderSignal = (
       const pageUrl = new URL(request.pageUrl);
       const mHash = untrack(() => routeLoaderCtx.manifestHash) || 'dev';
       const basePath = getBasePathname();
-      const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
       const fetchRoutePath = request.routePath;
 
       // Build a URL with only the allowed search params for the fetch
@@ -463,9 +453,6 @@ const createRouteLoaderSignal = (
         throw response.e;
       }
       lastFetch.raw = result.raw;
-      if (needsResumeFetch) {
-        stateValues[resumeValueKey] = response.d;
-      }
       return response.d;
     },
 
@@ -724,9 +711,7 @@ export function prepareRouteLoaders(
   const previous = client.current;
   if (client.navCount === undefined) {
     for (const id in state) {
-      if (!id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
-        getLoaderRequest(ctx, state, id, id);
-      }
+      getLoaderRequest(ctx, state, id, id);
     }
   }
   client.navCount = navCount;
@@ -743,9 +728,6 @@ export function prepareRouteLoaders(
     current.paths[loader.__id] ||= current.paths[loader.__qrl.getHash()] || pageUrl.pathname;
   }
   for (const id in state) {
-    if (id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
-      continue;
-    }
     const signal = state[id];
     const old = previous.requests.get(signal);
     const loader = routeLoaders.get(id);
@@ -784,9 +766,6 @@ function pruneRouteLoaders(state: RouteLoaderState, ctx: RouteLoaderCtx) {
   const { requests } = clientRouteLoaders.get(ctx)!.current;
   const paths: Record<string, string> = {};
   for (const id in state) {
-    if (id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
-      continue;
-    }
     const signal = state[id];
     const request = requests.get(signal);
     if (request?.active) {
@@ -795,7 +774,6 @@ function pruneRouteLoaders(state: RouteLoaderState, ctx: RouteLoaderCtx) {
       (signal as _AsyncSignalImpl<unknown>).$dispose();
       requests.delete(signal);
       delete state[id];
-      delete (state as Record<string, unknown>)[getRouteLoaderValueStateKey(id)];
     }
   }
   ctx.loaderPaths = paths;
@@ -835,9 +813,6 @@ export const ensureRouteLoaderSignal = (
 ) => {
   if (loader.__cacheControl === 'immutable') {
     immutableLoaderIds.add(loader.__id);
-  }
-  if (isServer && loader.__serializationStrategy === 'never') {
-    (state as Record<string, unknown>)[getRouteLoaderValueStateKey(loader.__id)] = _UNINITIALIZED;
   }
   return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx, state, requestEv));
 };

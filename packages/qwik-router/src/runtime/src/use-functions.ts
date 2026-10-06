@@ -13,9 +13,10 @@ import {
   RouteActionContext,
   RouteLocationContext,
   RouteNavigateContext,
-  RoutePreventNavigateContext,
 } from './contexts';
+import { registerPreventNav } from './navigation-state';
 import type {
+  HttpStatus,
   PreventNavigateCallback,
   QwikRouterEnvData,
   ResolvedDocumentHead,
@@ -24,8 +25,10 @@ import type {
   RouteNavigate,
 } from './types';
 
+const DEFAULT_HTTP_STATUS: HttpStatus = Object.freeze({ status: 200, message: 'OK' });
+
 /** @public */
-export const useHttpStatus = () => useContext(HttpStatusContext).value;
+export const useHttpStatus = () => useContext(HttpStatusContext).value ?? DEFAULT_HTTP_STATUS;
 
 /** @public */
 export const useContent = () => useContext(ContentContext);
@@ -47,7 +50,6 @@ export const useNavigate = (): RouteNavigate => useContext(RouteNavigateContext)
 
 /** @internal Implementation of usePreventNavigate$ */
 export const usePreventNavigateQrl = (fn: QRL<PreventNavigateCallback>): void => {
-  const registerPreventNav = useContext(RoutePreventNavigateContext);
   // Note: we have to use a visible task because:
   // - the onbeforeunload event is synchronous, so we need to preload the callbacks
   // - to unregister the callback, we need to run code on unmount, which means a visible task

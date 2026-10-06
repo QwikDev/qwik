@@ -10,7 +10,7 @@ export function installDeps(pkgManager: string, dir: string) {
 }
 
 export function runInPkg(pkgManager: string, args: string[], cwd: string) {
-  const cmd = pkgManager === 'npm' ? 'npx' : pkgManager;
+  const cmd = pkgManager === 'npm' ? 'npx' : pkgManager === 'nub' ? 'nubx' : pkgManager;
   return runCommand(cmd, args, cwd);
 }
 

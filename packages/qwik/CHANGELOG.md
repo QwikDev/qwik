@@ -1,5 +1,29 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- 🐞🩹 preserve state identities when streaming vnode patches between segments (by [@Varixo](https://github.com/Varixo) in [#9170](https://github.com/QwikDev/qwik/pull/9170))
+
+- 🐞🩹 adding spread props to a component first rendered without them no longer throws (by [@intellix](https://github.com/intellix) in [#9140](https://github.com/QwikDev/qwik/pull/9140))
+
+- Add type declarations for the `commandfor` attribute on buttons. (by [@tscpp](https://github.com/tscpp) in [#9105](https://github.com/QwikDev/qwik/pull/9105))
+
+- 🐞🩹 components after an out-of-order segment's parent element stay interactive after resume (by [@intellix](https://github.com/intellix) in [#9143](https://github.com/QwikDev/qwik/pull/9143))
+
+- 🐞🩹 `[object Promise]` error on resume when a streamed `<Pending>` attribute reads a computed (by [@Varixo](https://github.com/Varixo) in [#9147](https://github.com/QwikDev/qwik/pull/9147))
+
+- 🐞🩹 `SSRComment` data could close the comment early and inject markup (by [@Varixo](https://github.com/Varixo) in [`3a38a40`](https://github.com/QwikDev/qwik/commit/3a38a4014b49002d9d03751560f3da3a9cd58a8e))
+
+- 🐞🩹 the TypeScript optimizer no longer turns `<title>` into a prop read when a destructured prop is named `title` (by [@maiieul](https://github.com/maiieul) in [#9126](https://github.com/QwikDev/qwik/pull/9126))
+
+- 🐞🩹 the TypeScript optimizer now handles JSX tag names like `<ui.Home />` the same way as the Rust optimizer (by [@maiieul](https://github.com/maiieul) in [#9126](https://github.com/QwikDev/qwik/pull/9126))
+
+- 🐞🩹 `useVisibleTask$` no longer runs twice when invalidated twice before running (by [@intellix](https://github.com/intellix) in [#9145](https://github.com/QwikDev/qwik/pull/9145))
+
+- 🐞🩹 `waitForDrain` waits for a render to be scheduled when a timeout is passed (by [@Varixo](https://github.com/Varixo) in [#9149](https://github.com/QwikDev/qwik/pull/9149))
+
 ## 2.0.0-rc.0
 
 ### Patch Changes

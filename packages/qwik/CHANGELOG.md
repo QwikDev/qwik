@@ -1,5 +1,13 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- 🐞🩹 dev server image auto fix endpoint accepted cross-site requests and paths outside `src` (by [@Varixo](https://github.com/Varixo) in [`9ef4079`](https://github.com/QwikDev/qwik/commit/9ef40794be3ca6d0f7a6001d14b5afa3e69f07c5))
+
+- 🐞🩹 ssr attribute names containing a carriage return are rejected (by [@Varixo](https://github.com/Varixo) in [`ea4ebd4`](https://github.com/QwikDev/qwik/commit/ea4ebd4c950513c4104f1dbd2e578847256b9875))
+
 ## 2.0.0-rc.1
 
 ### Patch Changes

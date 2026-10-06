@@ -1,5 +1,16 @@
 # @qwik.dev/city
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- 🐞🩹 enforce the request body limit (`requestBodyLimit`, 10 MiB by default) in the Bun, Cloudflare Pages, Netlify Edge and Vercel Edge adapters (by [@Varixo](https://github.com/Varixo) in [`8327fb7`](https://github.com/QwikDev/qwik/commit/8327fb70604ba4e5b693ae74ade3c5f5196f49b4))
+
+- 🐞🩹 `redirect()` now strips ASCII tab/LF/CR from the URL, so targets like `/<TAB>/example.com` can no longer redirect to another origin (by [@Varixo](https://github.com/Varixo) in [`b15de41`](https://github.com/QwikDev/qwik/commit/b15de41e955f9e8cd04a2c307cb2c1322b6bf19f))
+
+- Updated dependencies [[`9ef4079`](https://github.com/QwikDev/qwik/commit/9ef40794be3ca6d0f7a6001d14b5afa3e69f07c5), [`ea4ebd4`](https://github.com/QwikDev/qwik/commit/ea4ebd4c950513c4104f1dbd2e578847256b9875)]:
+  - @qwik.dev/core@2.0.0-rc.2
+
 ## 2.0.0-rc.1
 
 ### Patch Changes

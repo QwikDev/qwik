@@ -2836,6 +2836,26 @@ export const RouterHead = component$(() => {
 }
 
 #[test]
+fn example_moved_helper_spread_with_key() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+const Item = (props: { href: string }) => <a href={props.href} />;
+const List = (props: { links: { href: string }[] }) => (
+	<div>{props.links.map((link) => <Item key={link.href} {...link} />)}</div>
+);
+
+export const Cmp = component$(() => <List links={[{ href: '/a' }]} />);
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_export_issue() {
 	test_input!(TestInput {
 		code: r#"
@@ -5188,6 +5208,31 @@ fn should_not_split_member_expression_spreads() {
 		});
 
 		export const Destructured = component$(({ a }: any) => <div {...a} />);
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_props_with_key_after_spread() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+		import { Item } from './item';
+
+		export default component$((props: any) => {
+			return (
+				<>
+					<Item {...props.a} key="children">child</Item>
+					<Item {...props.a} {...props.b} key="spreads" />
+					<div title="x" {...props.a} key="attribute" />
+					<Item {...props.a} key="between" {...props.b} />
+				</>
+			);
+		});
 		"#
 		.to_string(),
 		transpile_ts: true,

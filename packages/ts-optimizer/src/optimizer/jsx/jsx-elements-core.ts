@@ -193,35 +193,6 @@ function moveEventHandlersForNonConstCaptures(
   return movedAny;
 }
 
-function buildCreateElementCall(
-  tag: string,
-  spreadArg: string,
-  beforeSpreadEntries: string[],
-  varEntries: string[],
-  constEntries: string[],
-  explicitKey: string,
-  childrenText: string | null,
-  neededImports: Set<string>
-): JsxTransformResult {
-  neededImports.add('createElement as _createElement');
-
-  const allPropEntries = [...beforeSpreadEntries, ...varEntries, ...constEntries];
-  allPropEntries.push(`key: ${explicitKey}`);
-  const propsObj = `{ ...${spreadArg}, ${allPropEntries.join(', ')} }`;
-  const callString = `_createElement(${tag}, ${propsObj})`;
-
-  return {
-    tag,
-    varProps: null,
-    constProps: null,
-    children: childrenText,
-    flags: 0,
-    key: explicitKey,
-    callString,
-    neededImports,
-  };
-}
-
 /**
  * Source-ordered `_jsxSplit` emission. Returns null when the rule doesn't apply (single spread, no
  * spread, or no real-const-after-all-spreads — the wrapper-based path handles those).
@@ -529,18 +500,6 @@ export function transformJsxElement(
   const elementPassiveEvents = passiveEvents ?? collectPassiveDirectives(openingElement.attributes);
   const inLoop = !!loopCtx && loopCtx.iterVars.length > 0;
 
-  const preHasSpread =
-    openingElement.attributes?.some((a: JSXAttributeItem) => a.type === 'JSXSpreadAttribute') ??
-    false;
-  const preHasKey =
-    openingElement.attributes?.some(
-      (a: JSXAttributeItem) =>
-        a.type === 'JSXAttribute' &&
-        ((a.name?.type === 'JSXIdentifier' && a.name.name === 'key') ||
-          (a.name?.type === 'JSXNamespacedName' && a.name.name?.name === 'key'))
-    ) ?? false;
-  const willUseCreateElement = preHasSpread && preHasKey;
-
   const {
     varEntries,
     constEntries,
@@ -556,7 +515,6 @@ export function transformJsxElement(
     tagIsHtml,
     passiveEvents: elementPassiveEvents,
     inLoop,
-    skipSignalAnalysis: willUseCreateElement,
     loopIterVars: loopCtx?.iterVars,
   });
   let hasVarEventHandler = initialHasVarEventHandler;
@@ -644,19 +602,6 @@ export function transformJsxElement(
       ? source.slice(spreadAttr.argument.start, spreadAttr.argument.end)
       : 'props';
     const shouldSplitSpread = spreadAttr?.argument.type === 'Identifier';
-
-    if (explicitKey !== null) {
-      return buildCreateElementCall(
-        tag,
-        spreadArg,
-        beforeSpreadEntries,
-        varEntries,
-        constEntries,
-        explicitKey,
-        childrenText,
-        neededImports
-      );
-    }
 
     return buildJsxSplitCall(
       tag,

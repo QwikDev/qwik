@@ -5169,6 +5169,34 @@ fn should_split_spread_props_with_additional_prop5() {
 }
 
 #[test]
+fn should_not_split_member_expression_spreads() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+		import { Item } from './item';
+
+		export default component$((props: any) => {
+			return (
+				<>
+					<Item {...props.a} />
+					<Item {...props.a} title="x" />
+					<div {...props.a} />
+					<div {...props.a} title="x" />
+					<div title="x" {...props.a} />
+				</>
+			);
+		});
+
+		export const Destructured = component$(({ a }: any) => <div {...a} />);
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_not_generate_conflicting_props_identifiers() {
 	test_input!(TestInput {
 		code: r#"

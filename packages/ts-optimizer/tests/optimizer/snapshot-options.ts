@@ -506,6 +506,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_not_auto_export_var_shadowed_in_labeled_block: { transpileTs: true, transpileJsx: true },
   should_not_auto_export_var_shadowed_in_switch: { transpileTs: true, transpileJsx: true },
   should_not_inline_exported_var_into_segment: { transpileTs: true, transpileJsx: true },
+  should_not_split_member_expression_spreads: { transpileTs: true, transpileJsx: true },
   should_not_transform_bind_checked_in_var_props_for_jsx_split: {
     transpileTs: true,
     transpileJsx: true,

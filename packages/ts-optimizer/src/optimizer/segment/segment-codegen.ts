@@ -430,6 +430,7 @@ function transformSegmentJsx(
 
     const qrlsWithCaptures = buildQrlsWithCapturesSet(nestedCallSites);
     const qrlsNonConst = buildQrlsNonConstSet(nestedCallSites);
+    const qrlOwnParams = buildQrlOwnParams(nestedCallSites);
     const qpOverrides = buildQpOverrides(nestedCallSites, session.program);
 
     const segScopeBindings = collectScopeAwareBindings(session.program);
@@ -471,6 +472,7 @@ function transformSegmentJsx(
         qpOverrides,
         qrlsWithCaptures,
         qrlsNonConst,
+        qrlOwnParams,
         paramNames: jsxOptions.paramNames,
         relPath: jsxOptions.relPath,
         precomputedScopeBindings: segScopeBindings,
@@ -513,6 +515,25 @@ function buildQrlsNonConstSet(
   for (const site of nestedCallSites) {
     if (site.liftedNonConst) {
       result.add(site.qrlVarName);
+    }
+  }
+  return result.size > 0 ? result : undefined;
+}
+
+function buildQrlOwnParams(
+  nestedCallSites: NestedCallSiteInfo[] | undefined
+): Map<string, string[]> | undefined {
+  if (!nestedCallSites) {
+    return undefined;
+  }
+  const result = new Map<string, string[]>();
+  for (const site of nestedCallSites) {
+    if (!site.isJsxAttr || !site.loopLocalParamNames) {
+      continue;
+    }
+    result.set(site.qrlVarName, site.loopLocalParamNames);
+    if (site.hoistedSymbolName) {
+      result.set(site.hoistedSymbolName, site.loopLocalParamNames);
     }
   }
   return result.size > 0 ? result : undefined;

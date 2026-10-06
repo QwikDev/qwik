@@ -1119,3 +1119,46 @@ describe.each([
     });
   });
 });
+
+const OwnClickNextToPropsHandler = component$((props: { label: string }) => {
+  const count = useSignal(0);
+  const upper = props.label.toUpperCase();
+  useOn(
+    'click',
+    $(() => (globalThis as any).logs.push('useOn'))
+  );
+  return (
+    <button
+      id="own"
+      onClick$={() => (globalThis as any).logs.push('own:' + count.value)}
+      onDblClick$={() => (globalThis as any).logs.push('dbl:' + upper)}
+    />
+  );
+});
+
+const OwnClickParent = component$(() => {
+  const label = useSignal('one');
+  return (
+    <div>
+      <OwnClickNextToPropsHandler label={label.value} />
+      <button id="next" onClick$={() => (label.value = 'two')} />
+    </div>
+  );
+});
+
+describe.each([
+  { render: ssrRenderToDom }, //
+  { render: domRender }, //
+])('$render.name: useOn next to element handlers', ({ render }) => {
+  it('should keep the element handler for the same event', async () => {
+    (globalThis as any).logs = [];
+    const { document } = await render(<OwnClickParent />, { debug });
+
+    await trigger(document.body, '#own', 'click');
+    await trigger(document.body, '#next', 'click');
+    await trigger(document.body, '#own', 'click');
+
+    expect((globalThis as any).logs.slice().sort()).toEqual(['own:0', 'own:0', 'useOn', 'useOn']);
+    (globalThis as any).logs = undefined;
+  });
+});

@@ -1,0 +1,142 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { render } from './x';
+
+export const PropsAndSignal = component$(({ Model }: { Model?: any }) => {
+	const count = useSignal(0);
+	return <button onClick$={() => render(Model)} onDblClick$={() => count.value++} />;
+});
+
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_PropsAndSignal_component_FuLakydnh2k = /*#__PURE__*/ qrl(()=>import("./test.tsx_PropsAndSignal_component_FuLakydnh2k"), "PropsAndSignal_component_FuLakydnh2k");
+//
+export const PropsAndSignal = /*#__PURE__*/ componentQrl(q_PropsAndSignal_component_FuLakydnh2k);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,+BAAiB,qDAG3B\"}")
+============================= test.tsx_PropsAndSignal_component_FuLakydnh2k.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+const q_PropsAndSignal_component_button_q_e_click_eVnaZb8GFIg = /*#__PURE__*/ qrl(()=>import("./test.tsx_PropsAndSignal_component_button_q_e_click_eVnaZb8GFIg"), "PropsAndSignal_component_button_q_e_click_eVnaZb8GFIg").m();
+const q_PropsAndSignal_component_button_q_e_dblclick_MId0IqWMbok = /*#__PURE__*/ qrl(()=>import("./test.tsx_PropsAndSignal_component_button_q_e_dblclick_MId0IqWMbok"), "PropsAndSignal_component_button_q_e_dblclick_MId0IqWMbok").m();
+//
+export const PropsAndSignal_component_FuLakydnh2k = (_rawProps)=>{
+    const count = useSignal(0);
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q-e:click": q_PropsAndSignal_component_button_q_e_click_eVnaZb8GFIg,
+        "q:ps": [
+            _rawProps,
+            count
+        ]
+    }, {
+        "q-e:dblclick": q_PropsAndSignal_component_button_q_e_dblclick_MId0IqWMbok
+    }, null, 6, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;oDAIyC;IACxC,MAAM,QAAQ,UAAU;IACxB,qBAAO,WAAC;QAAO,WAAQ;;;;;;QAAuB,cAAW;;AAC1D\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PropsAndSignal_component_FuLakydnh2k",
+  "entry": null,
+  "displayName": "test.tsx_PropsAndSignal_component",
+  "hash": "FuLakydnh2k",
+  "canonicalFilename": "test.tsx_PropsAndSignal_component_FuLakydnh2k",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    130,
+    279
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_PropsAndSignal_component_button_q_e_click_eVnaZb8GFIg.js (ENTRY POINT)==
+
+import { render } from "./x";
+//
+export const PropsAndSignal_component_button_q_e_click_eVnaZb8GFIg = (_, _1, _rawProps)=>render(_rawProps.Model);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;qEAM0B,oBAAM,iBAFY\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PropsAndSignal_component_button_q_e_click_eVnaZb8GFIg",
+  "entry": null,
+  "displayName": "test.tsx_PropsAndSignal_component_button_q_e_click",
+  "hash": "eVnaZb8GFIg",
+  "canonicalFilename": "test.tsx_PropsAndSignal_component_button_q_e_click_eVnaZb8GFIg",
+  "path": "",
+  "extension": "js",
+  "parent": "PropsAndSignal_component_FuLakydnh2k",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    219,
+    238
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_PropsAndSignal_component_button_q_e_dblclick_MId0IqWMbok.js (ENTRY POINT)==
+
+export const PropsAndSignal_component_button_q_e_dblclick_MId0IqWMbok = (_, _1, _2, count)=>count.value++;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wEAM4D,oBAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "PropsAndSignal_component_button_q_e_dblclick_MId0IqWMbok",
+  "entry": null,
+  "displayName": "test.tsx_PropsAndSignal_component_button_q_e_dblclick",
+  "hash": "MId0IqWMbok",
+  "canonicalFilename": "test.tsx_PropsAndSignal_component_button_q_e_dblclick_MId0IqWMbok",
+  "path": "",
+  "extension": "js",
+  "parent": "PropsAndSignal_component_FuLakydnh2k",
+  "ctxKind": "eventHandler",
+  "ctxName": "onDblClick$",
+  "captures": false,
+  "loc": [
+    253,
+    272
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_2",
+    "count"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

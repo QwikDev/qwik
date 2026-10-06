@@ -1,6 +1,13 @@
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { $, component$, Fragment as Component, inlinedQrl, type QRL } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  Fragment as Component,
+  inlinedQrl,
+  useSignal,
+  type QRL,
+} from '@qwik.dev/core';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -232,4 +239,106 @@ it('preserves mouseleave and mouseover execution order when delayed qrls resolve
   (globalThis as any).overPromise = undefined;
   (globalThis as any).resolveLeave = undefined;
   (globalThis as any).resolveOver = undefined;
+});
+
+const DollarHandlerChild = component$((props: { label: string }) => {
+  const upper = props.label.toUpperCase();
+  return (
+    <button id="dollar" onClick$={$(() => (globalThis as any).logs.push('dollar:' + upper))} />
+  );
+});
+
+const BindWithDollarInput = component$((props: { label: string }) => {
+  const text = useSignal('');
+  const upper = props.label.toUpperCase();
+  return (
+    <div>
+      <input
+        bind:value={text}
+        onInput$={$(() => (globalThis as any).logs.push('input:' + upper))}
+      />
+      <p>{text.value}</p>
+    </div>
+  );
+});
+
+const LabelParent = component$(() => {
+  const label = useSignal('one');
+  return (
+    <div>
+      <DollarHandlerChild label={label.value} />
+      <BindWithDollarInput label={label.value} />
+      <button id="next" onClick$={() => (label.value = 'two')} />
+    </div>
+  );
+});
+
+describe.each([
+  { render: ssrRenderToDom }, //
+  { render: domRender }, //
+])('$render.name: $() event handlers that capture props', ({ render }) => {
+  it('should use the latest captured value after the prop changes', async () => {
+    (globalThis as any).logs = [];
+    const { document } = await render(<LabelParent />, { debug });
+
+    await trigger(document.body, '#dollar', 'click');
+    await trigger(document.body, '#next', 'click');
+    await trigger(document.body, '#dollar', 'click');
+
+    expect((globalThis as any).logs).toEqual(['dollar:ONE', 'dollar:TWO']);
+    (globalThis as any).logs = undefined;
+  });
+
+  it('should keep bind:value working next to a capturing onInput$', async () => {
+    (globalThis as any).logs = [];
+    const { document } = await render(<LabelParent />, { debug });
+
+    const input = document.querySelector('input')!;
+    input.value = 'abc';
+    await trigger(document.body, input, 'input');
+
+    expect(document.querySelector('p')!.textContent).toBe('abc');
+    expect((globalThis as any).logs).toEqual(['input:ONE']);
+    (globalThis as any).logs = undefined;
+  });
+});
+
+const QinitNextToPropsHandler = component$((props: { label: string }) => {
+  const upper = props.label.toUpperCase();
+  return (
+    <div
+      id="qinit"
+      document:onQinit$={() => (globalThis as any).logs.push('qinit')}
+      onClick$={() => (globalThis as any).logs.push('click:' + upper)}
+    />
+  );
+});
+
+const QinitParent = component$(() => {
+  const label = useSignal('one');
+  return (
+    <div>
+      <QinitNextToPropsHandler label={label.value} />
+      <button id="next" onClick$={() => (label.value = 'two')} />
+    </div>
+  );
+});
+
+describe.each([
+  { render: ssrRenderToDom }, //
+  { render: domRender }, //
+])('$render.name: document handlers next to handlers that capture props', ({ render }) => {
+  it('should not re-arm document:onQinit$ when the element re-renders', async () => {
+    const { document } = await render(<QinitParent />, { debug });
+    const win = document.defaultView as any;
+    const element = document.querySelector('#qinit')!;
+    expect(element.hasAttribute('q-d:qinit')).toBe(true);
+    element.removeAttribute('q-d:qinit');
+    win._qwikEv = [];
+
+    await trigger(document.body, '#next', 'click');
+
+    expect(document.querySelector('#qinit')!.hasAttribute('q-d:qinit')).toBe(false);
+    expect(win._qwikEv).not.toContain('d:qinit');
+  });
 });

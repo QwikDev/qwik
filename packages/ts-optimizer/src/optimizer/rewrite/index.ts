@@ -1055,6 +1055,7 @@ function runJsxTransform(ctx: RewriteContext): void {
       devOptions: ctx.isDevMode ? { relPath: ctx.userDevPath ?? ctx.relPath } : undefined,
       enableSignals: ctx.jsxOptions.enableSignals !== false,
       qpOverrides,
+      qrlOwnParams: buildParentQrlOwnParams(ctx),
       keyReservations: ctx.jsxKeyReservations,
       relPath: ctx.relPath,
       precomputedScopeBindings: ctx.jsxOptions.precomputedScopeBindings,
@@ -1275,4 +1276,18 @@ function buildParentLiftedQpOverrides(ctx: RewriteContext): Map<number, string[]
   });
 
   return overrides.size > 0 ? overrides : undefined;
+}
+
+function buildParentQrlOwnParams(ctx: RewriteContext): Map<string, string[]> | undefined {
+  const result = new Map<string, string[]>();
+  for (const ext of ctx.topLevel) {
+    if (ext.ctxKind !== 'eventHandler' || ext.isSync) {
+      continue;
+    }
+    const ownParams = eventHandlerQpParams(ext.paramNames);
+    if (ownParams.length > 0) {
+      result.set(getQrlVarName(ctx, ext.symbolName), ownParams);
+    }
+  }
+  return result.size > 0 ? result : undefined;
 }

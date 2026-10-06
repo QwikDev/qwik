@@ -6152,6 +6152,26 @@ export const FieldInput = component$(
 }
 
 #[test]
+fn should_classify_event_handlers_per_handler() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+import { render } from './x';
+
+export const PropsAndSignal = component$(({ Model }: { Model?: any }) => {
+	const count = useSignal(0);
+	return <button onClick$={() => render(Model)} onDblClick$={() => count.value++} />;
+});
+
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_move_props_related_to_iteration_variables_to_var_props() {
 	test_input!(TestInput {
 		code: r#"

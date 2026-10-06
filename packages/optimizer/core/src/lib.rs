@@ -19,6 +19,7 @@ mod errors;
 mod filter_exports;
 mod inlined_fn;
 mod is_const;
+mod key_before_spread;
 mod parse;
 mod props_destructuring;
 mod rename_imports;

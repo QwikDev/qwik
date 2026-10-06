@@ -14,7 +14,11 @@ export const MenuItems = () => {
   return (
     <>
       <li>
-        <Link href="#deployments" onClick$={scrollIntoView} preventdefault:click>
+        <Link
+          href="#deployments"
+          onClick$={scrollIntoView}
+          preventdefault:click
+        >
           <svg
             width="22"
             height="19"
@@ -139,7 +143,11 @@ export const MenuItems = () => {
       </li>
 
       <li>
-        <Link href="#integrations" onClick$={scrollIntoView} preventdefault:click>
+        <Link
+          href="#integrations"
+          onClick$={scrollIntoView}
+          preventdefault:click
+        >
           <svg
             width="20"
             height="19"
@@ -194,7 +202,12 @@ export const MenuItems = () => {
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
           >
-            <g fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="4">
+            <g
+              fill="none"
+              stroke="currentColor"
+              stroke-linejoin="round"
+              stroke-width="4"
+            >
               <path d="M8 7h32v24H8z"></path>
               <path
                 stroke-linecap="round"
@@ -266,7 +279,11 @@ export const MenuItems = () => {
       </li>
 
       <li>
-        <Link href="#presentations" onClick$={scrollIntoView} preventdefault:click>
+        <Link
+          href="#presentations"
+          onClick$={scrollIntoView}
+          preventdefault:click
+        >
           <svg
             width="20"
             height="20"
@@ -286,7 +303,12 @@ export const MenuItems = () => {
 
       <li>
         <Link href="#community" onClick$={scrollIntoView} preventdefault:click>
-          <svg width="18" viewBox="0 0 13 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg
+            width="18"
+            viewBox="0 0 13 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path
               d="M3.18359 1.63867H9.49316C9.45898 1.07812 9.1377 0.78418 8.5293 0.78418H4.1543C3.5459 0.78418 3.22461 1.07812 3.18359 1.63867ZM2.0625 3.45703H10.6143C10.5186 2.8623 10.2314 2.52734 9.56836 2.52734H3.11523C2.45215 2.52734 2.1582 2.8623 2.0625 3.45703ZM2.71191 15.8916H10.1699C11.3594 15.8916 12.0498 15.208 12.0498 13.8613V6.5332C12.0498 5.17969 11.3525 4.49609 9.98535 4.49609H2.71191C1.34473 4.49609 0.647461 5.17969 0.647461 6.5332V13.8613C0.647461 15.208 1.34473 15.8916 2.71191 15.8916ZM4.27734 11.9199C3.01953 11.9199 2.09668 12.6514 1.76855 13.4717V6.60156C1.76855 5.94531 2.11719 5.61035 2.74609 5.61035H9.95117C10.5732 5.61035 10.9287 5.94531 10.9287 6.60156V13.0889C10.4434 12.4463 9.56152 11.9336 8.39941 11.9336C6.54688 11.9336 5.38477 13.2598 5.38477 14.2988C5.38477 14.5107 5.43262 14.668 5.50098 14.7773H4.69434C4.65332 14.627 4.63281 14.4629 4.63281 14.2988C4.63281 13.5264 5.00195 12.8018 5.61035 12.2412C5.25488 12.0293 4.81738 11.9199 4.27734 11.9199ZM8.39941 11.1611C9.17188 11.1611 9.82812 10.4775 9.82812 9.58203C9.82812 8.7002 9.17188 8.04395 8.39941 8.04395C7.63379 8.04395 6.96387 8.7207 6.9707 9.5957C6.9707 10.4775 7.63379 11.1611 8.39941 11.1611ZM4.28418 11.25C4.9541 11.25 5.52832 10.6484 5.52832 9.8623C5.52832 9.09668 4.9541 8.5293 4.28418 8.5293C3.61426 8.5293 3.0332 9.11035 3.0332 9.86914C3.0332 10.6484 3.61426 11.25 4.28418 11.25Z"
               fill="currentColor"
@@ -310,7 +332,11 @@ export const MenuItems = () => {
           >
             <g id="SVGRepo_bgCarrier" stroke-width="0" />
 
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" />
+            <g
+              id="SVGRepo_tracerCarrier"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
 
             <g id="SVGRepo_iconCarrier">
               <g>

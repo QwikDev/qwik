@@ -1,4 +1,7 @@
-export const hideSidebarOnDismissClick = (event: Event, overlay: HTMLElement) => {
+export const hideSidebarOnDismissClick = (
+  event: Event,
+  overlay: HTMLElement
+) => {
   if (!overlay.matches(':popover-open')) {
     return;
   }

@@ -4,9 +4,14 @@ import url from 'node:url';
 import matter from 'gray-matter';
 import { loadEnv } from 'vite';
 
-const rootDir = path.join(path.dirname(url.fileURLToPath(import.meta.url)), '..', '..');
+const rootDir = path.join(
+  path.dirname(url.fileURLToPath(import.meta.url)),
+  '..',
+  '..'
+);
 export const PRIVATE_GITHUB_ACCESS_TOKEN =
-  process.env.GITHUB_TOKEN || loadEnv('', '.', 'PRIVATE').PRIVATE_GITHUB_ACCESS_TOKEN;
+  process.env.GITHUB_TOKEN ||
+  loadEnv('', '.', 'PRIVATE').PRIVATE_GITHUB_ACCESS_TOKEN;
 
 async function updateContributors() {
   const routesDir = path.join(rootDir, 'packages', 'docs', 'src', 'routes');
@@ -50,7 +55,12 @@ async function updateGithubCommits(filePath: string) {
     },
   });
   if (response.status !== 200) {
-    console.log('error', response.status, response.statusText, await response.text());
+    console.log(
+      'error',
+      response.status,
+      response.statusText,
+      await response.text()
+    );
     await new Promise((resolve) => setTimeout(resolve, 5000));
     return;
   }
@@ -109,7 +119,9 @@ async function updateGithubCommits(filePath: string) {
 
   if (response.headers.get('x-ratelimit-remaining') === '0') {
     const resetHeader = response.headers.get('x-ratelimit-reset');
-    const resetTime = resetHeader ? parseInt(resetHeader) * 1000 : Date.now() + 1000;
+    const resetTime = resetHeader
+      ? parseInt(resetHeader) * 1000
+      : Date.now() + 1000;
     const waitTime = resetTime - Date.now();
     console.log(
       `next request is rate limited, waiting ${Math.round(waitTime / 1000 / 60)} minutes`

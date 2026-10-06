@@ -93,7 +93,9 @@ export default component$(() => {
           <div class=" text-foreground-base flex flex-col items-center justify-center">
             <h1 class="text-h1 font-heading">404</h1>
             <p class="text-h5 font-heading mt-4">Page not found</p>
-            <p class="text-body-sm mt-10">Your rocket landed on the wrong planet.</p>
+            <p class="text-body-sm mt-10">
+              Your rocket landed on the wrong planet.
+            </p>
             <Link variant="primary" class="mt-10" href="/">
               <lucide.house class="size-4" />
               Back to home

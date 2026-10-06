@@ -37,7 +37,9 @@ export default component$(() => {
       display: none;
     }`);
 
-  useImageProvider({ imageTransformer$: $(({ src }: ImageTransformerProps): string => src) });
+  useImageProvider({
+    imageTransformer$: $(({ src }: ImageTransformerProps): string => src),
+  });
 
   return (
     <div class="bg-grid-stars">

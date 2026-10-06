@@ -80,7 +80,11 @@ export const BenchmarkTable = component$(() => {
             <tr>
               <th scope="col">Operation (ms)</th>
               {frameworks.map(({ name, version, isHighlighted }) => (
-                <th key={name} scope="col" class={{ 'is-highlighted': isHighlighted }}>
+                <th
+                  key={name}
+                  scope="col"
+                  class={{ 'is-highlighted': isHighlighted }}
+                >
                   <span class="framework-name">{name}</span>
                   <span class="framework-version">{version}</span>
                 </th>
@@ -129,8 +133,8 @@ export const BenchmarkTable = component$(() => {
       </div>
       <figcaption>
         <span>
-          Mean duration ± 95% confidence interval, and how many times slower than the fastest. Lower
-          is better.
+          Mean duration ± 95% confidence interval, and how many times slower
+          than the fastest. Lower is better.
         </span>
         <span class="slowdown-legend" aria-hidden="true">
           1×

@@ -3,8 +3,9 @@ import { component$ } from '@qwik.dev/core';
 export default component$(() => {
   return (
     <main>
-      Insert Greeter component here. By composing components together large applications can be
-      written without putting all of the code into a single file/component.
+      Insert Greeter component here. By composing components together large
+      applications can be written without putting all of the code into a single
+      file/component.
     </main>
   );
 });

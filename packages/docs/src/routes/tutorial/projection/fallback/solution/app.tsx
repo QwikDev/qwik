@@ -19,16 +19,19 @@ export default component$(() => {
     <>
       <Card>
         <span q:slot="title">Qwik</span>
-        <span q:slot="body">Qwik is a resumable framework for building instant web apps.</span>
+        <span q:slot="body">
+          Qwik is a resumable framework for building instant web apps.
+        </span>
       </Card>
       <Card>
         <span q:slot="title">Partytown</span>
       </Card>
       <Card>
         <span q:slot="body">
-          Builder.io allows you to visually build on your tech stack Empower your entire team to
-          visually create and optimize high-speed experiences on your sites and apps. Provide
-          whole-team autonomy with a platform that is developer approved.
+          Builder.io allows you to visually build on your tech stack Empower
+          your entire team to visually create and optimize high-speed
+          experiences on your sites and apps. Provide whole-team autonomy with a
+          platform that is developer approved.
         </span>
       </Card>
     </>

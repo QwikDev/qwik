@@ -14,8 +14,7 @@ export default component$(() => {
   const playsInlineSignal = useSignal(true);
   const location = useLocation();
 
-  const videoPoster =
-    location.url.origin + '/sample-media/qwik-koi-poster.jpg';
+  const videoPoster = location.url.origin + '/sample-media/qwik-koi-poster.jpg';
 
   useStylesScoped$(`
         segment {

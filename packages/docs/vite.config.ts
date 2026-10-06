@@ -8,16 +8,30 @@ import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
 import shikiRehype from '@shikijs/rehype';
 import githubDark from '@shikijs/themes/github-dark';
 import githubLight from '@shikijs/themes/github-light';
-import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
+import {
+  transformerMetaHighlight,
+  transformerMetaWordHighlight,
+} from '@shikijs/transformers';
 import type { ShikiTransformer } from '@shikijs/types';
 import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
 // import { qwikDevtools } from '@qwik.dev/devtools';
-import { defineConfig, loadEnv, type Connect, type Plugin, type UserConfig } from 'vite';
+import {
+  defineConfig,
+  loadEnv,
+  type Connect,
+  type Plugin,
+  type UserConfig,
+} from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import { blogRssData } from './vite-blog-rss';
 import { docsUpdatedData } from './vite-docs-updated';
-import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
+import {
+  examplesData,
+  playgroundData,
+  rawSource,
+  tutorialData,
+} from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 
 const insightsApiKey = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
@@ -38,7 +52,8 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
               if (type === 'warn') {
                 if (warning.code) {
                   const muted = warningsToIgnore.find(
-                    ([code, message]) => code == warning.code && warning.message.includes(message)
+                    ([code, message]) =>
+                      code == warning.code && warning.message.includes(message)
                   );
 
                   if (muted) {
@@ -47,7 +62,9 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
                   }
                 }
               }
-              origOnLog ? origOnLog(type, warning, defaultHandler) : defaultHandler(type, warning);
+              origOnLog
+                ? origOnLog(type, warning, defaultHandler)
+                : defaultHandler(type, warning);
             },
           },
         },
@@ -56,7 +73,9 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
     closeBundle() {
       const diff = warningsToIgnore.filter((x) => !mutedMessages.has(x.join()));
       if (diff.length > 0) {
-        this.warn('Some of your muted warnings never appeared during the build process:');
+        this.warn(
+          'Some of your muted warnings never appeared during the build process:'
+        );
         diff.forEach((m) => this.warn(`- ${m.join(': ')}`));
       }
     },
@@ -70,7 +89,9 @@ const crossOriginIsolateRepl = (): Plugin => {
   const isolateRepl: Connect.NextHandleFunction = (req, res, next) => {
     if (
       REPL_PATHS.some((replPath) => req.url?.startsWith(replPath)) ||
-      new URL(req.url || '/', 'http://localhost').searchParams.has('worker_file')
+      new URL(req.url || '/', 'http://localhost').searchParams.has(
+        'worker_file'
+      )
     ) {
       res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
       res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
@@ -136,7 +157,12 @@ export default defineConfig(({ mode }) => {
     'import',
     'default',
   ];
-  const ssrConditions = ['import', 'worker', isProd ? 'production' : 'development', 'default'];
+  const ssrConditions = [
+    'import',
+    'worker',
+    isProd ? 'production' : 'development',
+    'default',
+  ];
 
   return {
     environments: {
@@ -187,7 +213,12 @@ export default defineConfig(({ mode }) => {
     resolve: {
       // Every server environment, including the adapter's `ssg`, bundles these Qwik libraries;
       // @modular-forms/qwik is built with Qwik 1.
-      noExternal: ['qwik-image', '@modular-forms/qwik', '@qds.dev/ui', '@qds.dev/tools'],
+      noExternal: [
+        'qwik-image',
+        '@modular-forms/qwik',
+        '@qds.dev/ui',
+        '@qds.dev/tools',
+      ],
       alias: [
         {
           find: '~',
@@ -202,12 +233,21 @@ export default defineConfig(({ mode }) => {
         },
         {
           find: '@docsearch/css',
-          replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
+          replacement: path.resolve(
+            __dirname,
+            'node_modules/@docsearch/css/dist/style.css'
+          ),
         },
         {
           // The REPL worker bundles oxc-walker, which statically imports node:module.
           find: 'node:module',
-          replacement: path.resolve(__dirname, 'src', 'repl', 'bundler', 'node-module-shim.ts'),
+          replacement: path.resolve(
+            __dirname,
+            'src',
+            'repl',
+            'bundler',
+            'node-module-shim.ts'
+          ),
         },
       ],
     },
@@ -251,7 +291,13 @@ export default defineConfig(({ mode }) => {
       qwikVite({
         debug: false,
         tsOptimizer: true,
-        experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'insights'],
+        experimental: [
+          'each',
+          'show',
+          'pendingBoundary',
+          'catchBoundary',
+          'insights',
+        ],
         devTools: { hmr: false },
       }),
       partytownVite({

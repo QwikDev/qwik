@@ -1,4 +1,9 @@
-import { component$, useStore, useStyles$, useVisibleTask$ } from '@qwik.dev/core';
+import {
+  component$,
+  useStore,
+  useStyles$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
 import styles from './clock.css?inline';
 
 interface ClockStore {
@@ -26,8 +31,14 @@ export const Clock = component$(() => {
       <div class="six"></div>
       <div class="nine"></div>
       <div class="hour" style={{ transform: `rotate(${store.hour}deg)` }}></div>
-      <div class="minute" style={{ transform: `rotate(${store.minute}deg)` }}></div>
-      <div class="second" style={{ transform: `rotate(${store.second}deg)` }}></div>
+      <div
+        class="minute"
+        style={{ transform: `rotate(${store.minute}deg)` }}
+      ></div>
+      <div
+        class="second"
+        style={{ transform: `rotate(${store.second}deg)` }}
+      ></div>
     </div>
   );
 });
@@ -42,7 +53,10 @@ export function updateClock(store: ClockStore) {
 export default component$(() => {
   return (
     <main>
-      <p>This is an example of Lazy executing code on component when component becomes visible.</p>
+      <p>
+        This is an example of Lazy executing code on component when component
+        becomes visible.
+      </p>
 
       <p style={{ height: '800px' }}>
         ⬇️ <strong>Scroll down</strong> until the clock is in view.

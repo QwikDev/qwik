@@ -92,12 +92,16 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
   });
 
   const highlighted =
-    codeSig.value != null && language ? highlight(codeSig.value, language) : codeSig.value;
+    codeSig.value != null && language
+      ? highlight(codeSig.value, language)
+      : codeSig.value;
   const className = `language-${language}`;
   return (
     <div class="relative">
       <pre class={className} ref={listSig}>
-        {highlighted && <code class={className} dangerouslySetInnerHTML={highlighted} />}
+        {highlighted && (
+          <code class={className} dangerouslySetInnerHTML={highlighted} />
+        )}
       </pre>
       {(language === 'markup' || language === 'javascript') && (
         <PrettierToggle bind:value={formatSig} />
@@ -107,17 +111,28 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
   );
 });
 
-const PrettierToggle = component$((props: { 'bind:value': Signal<boolean>; error?: string }) => {
-  return (
-    <label
-      class="prettier-toggle"
-      title={`Toggle Prettier ${props.error ? `\n${props.error}` : ''}`}
-      aria-label="Toggle Prettier"
-    >
-      <input type="checkbox" bind:checked={props['bind:value']} style="display: none;" />
-      <span class={[props['bind:value'].value ? 'checked' : '', props.error ? 'error' : '']}>
-        P
-      </span>
-    </label>
-  );
-});
+const PrettierToggle = component$(
+  (props: { 'bind:value': Signal<boolean>; error?: string }) => {
+    return (
+      <label
+        class="prettier-toggle"
+        title={`Toggle Prettier ${props.error ? `\n${props.error}` : ''}`}
+        aria-label="Toggle Prettier"
+      >
+        <input
+          type="checkbox"
+          bind:checked={props['bind:value']}
+          style="display: none;"
+        />
+        <span
+          class={[
+            props['bind:value'].value ? 'checked' : '',
+            props.error ? 'error' : '',
+          ]}
+        >
+          P
+        </span>
+      </label>
+    );
+  }
+);

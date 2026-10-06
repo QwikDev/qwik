@@ -1,13 +1,19 @@
-import { component$, useComputed$, useSignal, type Signal } from '@qwik.dev/core';
+import {
+  component$,
+  useComputed$,
+  useSignal,
+  type Signal,
+} from '@qwik.dev/core';
 
 export default component$(() => {
   return (
     <article>
-      This example features an auto-complete component with a debounce of 150 ms.
+      This example features an auto-complete component with a debounce of 150
+      ms.
       <br />
       <br />
-      Go ahead, search for Star Wars characters such as "Luke Skywalker", it uses the{' '}
-      <a href="https://swapi.py4e.com/">Star Wars API</a>:
+      Go ahead, search for Star Wars characters such as "Luke Skywalker", it
+      uses the <a href="https://swapi.py4e.com/">Star Wars API</a>:
       <br />
       <br />
       <AutoComplete />
@@ -31,9 +37,12 @@ export const AutoComplete = component$(() => {
       await new Promise((resolve) => setTimeout(resolve, 150));
 
       // If the signal was aborted during the debounce, this will throw
-      const response = await fetch(`https://swapi.py4e.com/api/people/?search=${query}`, {
-        signal: abortSignal,
-      });
+      const response = await fetch(
+        `https://swapi.py4e.com/api/people/?search=${query}`,
+        {
+          signal: abortSignal,
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.statusText}`);
@@ -70,7 +79,8 @@ export const SuggestionsListComponent = component$<{
             style={{
               cursor: 'pointer',
               padding: '0.25em 0',
-              background: suggestion === selected.value ? '#eee' : 'transparent',
+              background:
+                suggestion === selected.value ? '#eee' : 'transparent',
             }}
             onClick$={() => (selected.value = suggestion)}
           >

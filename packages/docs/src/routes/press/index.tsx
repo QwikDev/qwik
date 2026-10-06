@@ -103,22 +103,29 @@ export default component$(() => {
     });
   });
 
-  const Logo = component$((props: { title: string; alt: string; downloadHref: string }) => {
-    return (
-      <div class="flex flex-col justify-between h-72 border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-        <p class="text-2xl font-bold text-center py-4 ">{props.title}</p>
-        <div class="flex-grow flex items-center justify-center overflow-hidden px-2">
-          <Slot name="logo" />
+  const Logo = component$(
+    (props: { title: string; alt: string; downloadHref: string }) => {
+      return (
+        <div class="flex flex-col justify-between h-72 border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+          <p class="text-2xl font-bold text-center py-4 ">{props.title}</p>
+          <div class="flex-grow flex items-center justify-center overflow-hidden px-2">
+            <Slot name="logo" />
+          </div>
+          <div class="flex justify-center mt-auto py-4">
+            <DownloadButton href={props.downloadHref} />
+          </div>
         </div>
-        <div class="flex justify-center mt-auto py-4">
-          <DownloadButton href={props.downloadHref} />
-        </div>
-      </div>
-    );
-  });
+      );
+    }
+  );
 
   const ColorButton = component$(
-    (props: { color: string; name: string; hexCode: string; text: string | undefined }) => {
+    (props: {
+      color: string;
+      name: string;
+      hexCode: string;
+      text: string | undefined;
+    }) => {
       return (
         <button
           onClick$={() => copyToClipboard(props.hexCode)}
@@ -126,11 +133,21 @@ export default component$(() => {
           class="flex justify-center text-white items-center cursor-pointer h-12  "
         >
           {activeColor.value === props.hexCode ? (
-            <p class={props.color === 'var(--qwik-light-blue)' ? 'text-black' : 'text-white'}>
+            <p
+              class={
+                props.color === 'var(--qwik-light-blue)'
+                  ? 'text-black'
+                  : 'text-white'
+              }
+            >
               Copied ✓
             </p>
           ) : (
-            <p class={props.color === 'var(--qwik-light-blue)' ? 'text-black' : ''}>
+            <p
+              class={
+                props.color === 'var(--qwik-light-blue)' ? 'text-black' : ''
+              }
+            >
               {props.name} {props.hexCode}
             </p>
           )}
@@ -141,10 +158,26 @@ export default component$(() => {
 
   const qwikColors = [
     { color: 'var(--qwik-blue)', name: 'Qwik Blue', hexCode: color.qwikBlue },
-    { color: 'var(--qwik-dark-blue)', name: 'Qwik Dark Blue', hexCode: color.qwikDarkBlue },
-    { color: 'var(--qwik-light-blue)', name: 'Qwik Light Blue', hexCode: color.qwikLightBlue },
-    { color: 'var(--qwik-purple)', name: 'Qwik Purple', hexCode: color.qwikPurple },
-    { color: 'var(--qwik-dark-purple)', name: 'Qwik Dark Purple', hexCode: color.qwikDarkPurple },
+    {
+      color: 'var(--qwik-dark-blue)',
+      name: 'Qwik Dark Blue',
+      hexCode: color.qwikDarkBlue,
+    },
+    {
+      color: 'var(--qwik-light-blue)',
+      name: 'Qwik Light Blue',
+      hexCode: color.qwikLightBlue,
+    },
+    {
+      color: 'var(--qwik-purple)',
+      name: 'Qwik Purple',
+      hexCode: color.qwikPurple,
+    },
+    {
+      color: 'var(--qwik-dark-purple)',
+      name: 'Qwik Dark Purple',
+      hexCode: color.qwikDarkPurple,
+    },
     {
       color: 'var(--qwik-dark-purple-bg)',
       name: 'Qwik Dark Purple Bg',
@@ -158,9 +191,19 @@ export default component$(() => {
       <Header />
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5 p-2 px-10 py-10 md:px-32">
         {logos.map((item) => (
-          <Logo key={item.title} title={item.title} alt={item.alt} downloadHref={item.downloadHref}>
+          <Logo
+            key={item.title}
+            title={item.title}
+            alt={item.alt}
+            downloadHref={item.downloadHref}
+          >
             {item.Logo === 'img' ? (
-              <img q:slot="logo" src={item.src} alt={item.alt} class="bg-cover" />
+              <img
+                q:slot="logo"
+                src={item.src}
+                alt={item.alt}
+                class="bg-cover"
+              />
             ) : (
               <item.Logo q:slot="logo" alt={item.alt} class={item.className} />
             )}

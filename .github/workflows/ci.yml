@@ -1520,13 +1520,17 @@ jobs:
         if: ${{ !cancelled() }}
         run: pnpm run lint.syncpack
 
-      - name: Prettier Check
+      - name: Format Check
         if: ${{ !cancelled() }}
-        run: pnpm run lint.prettier
+        run: pnpm run lint.fmt
 
-      - name: Build ESLint
+      - name: Build ESLint Plugin
         if: ${{ !cancelled() }}
         run: pnpm build --eslint
+
+      - name: Lint Check
+        if: ${{ !cancelled() }}
+        run: pnpm run lint.oxlint
 
       - name: ESLint Check
         if: ${{ !cancelled() }}

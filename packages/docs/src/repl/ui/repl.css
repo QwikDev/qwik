@@ -108,7 +108,11 @@ html[data-theme='dark'] {
 .repl-main-resizer:hover .repl-main-resizer-line {
   background: var(--repl-docs-accent);
   box-shadow: 0 0 0 4px
-    color-mix(in srgb, var(--repl-docs-accent-soft), var(--color-background-base) 35%);
+    color-mix(
+      in srgb,
+      var(--repl-docs-accent-soft),
+      var(--color-background-base) 35%
+    );
 }
 
 .repl-tab-diagnostics.has-errors {
@@ -333,7 +337,11 @@ html[data-theme='dark'] .output-code-theme {
 }
 
 .diagnostics-summary-warnings {
-  border-color: color-mix(in srgb, var(--repl-warning-border), var(--color-background-base) 44%);
+  border-color: color-mix(
+    in srgb,
+    var(--repl-warning-border),
+    var(--color-background-base) 44%
+  );
 }
 
 .diagnostics-summary-warnings strong {
@@ -369,10 +377,15 @@ html[data-theme='dark'] .output-code-theme {
 }
 
 .diagnostic-item {
-  border: 1.6px solid color-mix(in srgb, var(--repl-docs-border), transparent 18%);
+  border: 1.6px solid
+    color-mix(in srgb, var(--repl-docs-border), transparent 18%);
   border-radius: 16px;
   padding: 14px 16px;
-  background: color-mix(in srgb, var(--repl-docs-input-strip-bg), var(--color-background-base) 55%);
+  background: color-mix(
+    in srgb,
+    var(--repl-docs-input-strip-bg),
+    var(--color-background-base) 55%
+  );
 }
 
 .diagnostic-item-error {
@@ -389,8 +402,16 @@ html[data-theme='dark'] .output-code-theme {
 }
 
 .diagnostic-item-warning {
-  border-color: color-mix(in srgb, var(--repl-warning-border), var(--color-background-base) 38%);
-  background: color-mix(in srgb, var(--repl-warning-background), var(--color-background-base) 12%);
+  border-color: color-mix(
+    in srgb,
+    var(--repl-warning-border),
+    var(--color-background-base) 38%
+  );
+  background: color-mix(
+    in srgb,
+    var(--repl-warning-background),
+    var(--color-background-base) 12%
+  );
 }
 
 .diagnostic-item-header {
@@ -416,7 +437,11 @@ html[data-theme='dark'] .output-code-theme {
 }
 
 .diagnostic-item-badge {
-  background: color-mix(in srgb, var(--repl-docs-accent-soft), var(--color-background-base) 22%);
+  background: color-mix(
+    in srgb,
+    var(--repl-docs-accent-soft),
+    var(--color-background-base) 22%
+  );
   color: var(--repl-docs-accent);
 }
 
@@ -430,7 +455,11 @@ html[data-theme='dark'] .output-code-theme {
 }
 
 .diagnostic-item-warning .diagnostic-item-badge {
-  background: color-mix(in srgb, var(--repl-warning-badge), var(--color-background-base) 10%);
+  background: color-mix(
+    in srgb,
+    var(--repl-warning-badge),
+    var(--color-background-base) 10%
+  );
   color: var(--repl-warning-text);
 }
 
@@ -480,7 +509,8 @@ html[data-theme='dark'] .output-code-theme {
 
 .diagnostic-item-suggestions {
   margin-top: 12px;
-  border-top: 1px solid color-mix(in srgb, var(--repl-docs-border), transparent 32%);
+  border-top: 1px solid
+    color-mix(in srgb, var(--repl-docs-border), transparent 32%);
   padding-top: 10px;
 }
 
@@ -550,7 +580,11 @@ html[data-theme='dark'] .output-code-theme {
 
 .file-tree-items a:hover,
 .file-tree-items a.in-view {
-  background: color-mix(in srgb, var(--repl-docs-input-strip-bg), var(--color-background-base) 25%);
+  background: color-mix(
+    in srgb,
+    var(--repl-docs-input-strip-bg),
+    var(--color-background-base) 25%
+  );
   color: var(--repl-docs-accent);
 }
 
@@ -572,7 +606,11 @@ html[data-theme='dark'] .output-code-theme {
 .output-column-resizer:hover .output-column-resizer-line {
   background: var(--repl-docs-accent);
   box-shadow: 0 0 0 4px
-    color-mix(in srgb, var(--repl-docs-accent-soft), var(--color-background-base) 35%);
+    color-mix(
+      in srgb,
+      var(--repl-docs-accent-soft),
+      var(--color-background-base) 35%
+    );
 }
 
 .repl-resizing-columns {
@@ -657,7 +695,8 @@ html[data-theme='dark'] .output-code-theme {
 }
 
 .console-log-entry {
-  border-bottom: 1px solid color-mix(in srgb, var(--repl-docs-border), transparent 36%);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--repl-docs-border), transparent 36%);
   padding: 7px 0;
   background: transparent;
 }
@@ -699,7 +738,11 @@ html[data-theme='dark'] .output-code-theme {
 }
 
 .console-platform {
-  background: color-mix(in srgb, var(--repl-docs-accent-soft), var(--color-background-base) 22%);
+  background: color-mix(
+    in srgb,
+    var(--repl-docs-accent-soft),
+    var(--color-background-base) 22%
+  );
   color: var(--repl-docs-accent);
 }
 
@@ -713,7 +756,11 @@ html[data-theme='dark'] .output-code-theme {
 }
 
 .console-platform.client {
-  background: color-mix(in srgb, var(--repl-client-background), var(--color-background-base) 10%);
+  background: color-mix(
+    in srgb,
+    var(--repl-client-background),
+    var(--color-background-base) 10%
+  );
   color: var(--repl-client-text);
 }
 
@@ -733,7 +780,11 @@ html[data-theme='dark'] .output-code-theme {
 }
 
 .console-log-entry.console-kind-warn .console-kind-badge {
-  background: color-mix(in srgb, var(--repl-warning-badge), var(--color-background-base) 10%);
+  background: color-mix(
+    in srgb,
+    var(--repl-warning-badge),
+    var(--color-background-base) 10%
+  );
   color: var(--repl-warning-text);
 }
 
@@ -937,7 +988,11 @@ html[data-theme='dark'] .output-code-theme {
   padding: 18px 18px 16px;
   background: var(--color-background-base);
   box-shadow: 6px 6px 0 0
-    color-mix(in srgb, var(--color-border-base), var(--color-background-base) 18%);
+    color-mix(
+      in srgb,
+      var(--color-border-base),
+      var(--color-background-base) 18%
+    );
 }
 
 .repl-loading-meta {

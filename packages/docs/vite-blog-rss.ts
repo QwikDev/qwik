@@ -74,7 +74,10 @@ function ensureTrailingSlash(value: string): string {
 }
 
 function toAbsoluteUrl(pathname: string, siteUrl: string): string {
-  return new URL(pathname.replace(/^\/+/, ''), ensureTrailingSlash(siteUrl)).toString();
+  return new URL(
+    pathname.replace(/^\/+/, ''),
+    ensureTrailingSlash(siteUrl)
+  ).toString();
 }
 
 function asStringList(value: unknown): string[] {
@@ -126,7 +129,9 @@ export function parseBlogDate(value: unknown): Date | null {
 
   // Blog frontmatter currently stores calendar dates without a timezone. Convert those local
   // parses to UTC so builds produce the same publication time on every developer machine and CI.
-  const hasTimezone = /(?:Z|[+-]\d{2}(?::?\d{2})?|\b(?:UTC|GMT)\b)\s*$/i.test(raw);
+  const hasTimezone = /(?:Z|[+-]\d{2}(?::?\d{2})?|\b(?:UTC|GMT)\b)\s*$/i.test(
+    raw
+  );
   if (!hasTimezone) {
     return new Date(
       Date.UTC(
@@ -157,7 +162,8 @@ export function parseBlogArticle(
     return null;
   }
 
-  const canonical = typeof data.canonical === 'string' ? data.canonical.trim() : '';
+  const canonical =
+    typeof data.canonical === 'string' ? data.canonical.trim() : '';
   const routeUrl = toAbsoluteUrl(pathname, siteUrl);
   let url = routeUrl;
   if (canonical) {
@@ -172,7 +178,8 @@ export function parseBlogArticle(
   }
 
   const descriptionValue = data.description ?? data.summary;
-  const description = typeof descriptionValue === 'string' ? descriptionValue.trim() : '';
+  const description =
+    typeof descriptionValue === 'string' ? descriptionValue.trim() : '';
 
   return {
     title,
@@ -207,7 +214,10 @@ function sortArticles(articles: BlogRssArticle[]): BlogRssArticle[] {
 }
 
 /** Read and sort all blog article frontmatter for the RSS feed. */
-export function readBlogArticles(articlesDir: string, siteUrl = BLOG_SITE_URL): BlogRssArticle[] {
+export function readBlogArticles(
+  articlesDir: string,
+  siteUrl = BLOG_SITE_URL
+): BlogRssArticle[] {
   const files = [...walkIndexFiles(articlesDir)].sort();
   const articles: BlogRssArticle[] = [];
 
@@ -234,10 +244,14 @@ function renderArticle(article: BlogRssArticle): string {
   ];
 
   if (article.description) {
-    lines.push(`      <description>${escapeXml(article.description)}</description>`);
+    lines.push(
+      `      <description>${escapeXml(article.description)}</description>`
+    );
   }
   if (article.authors.length > 0) {
-    lines.push(`      <dc:creator>${escapeXml(article.authors.join(', '))}</dc:creator>`);
+    lines.push(
+      `      <dc:creator>${escapeXml(article.authors.join(', '))}</dc:creator>`
+    );
   }
   for (const tag of article.tags) {
     lines.push(`      <category>${escapeXml(tag)}</category>`);
@@ -248,7 +262,10 @@ function renderArticle(article: BlogRssArticle): string {
 }
 
 /** Render a deterministic RSS 2.0 document from blog article metadata. */
-export function renderRssFeed(articles: BlogRssArticle[], siteUrl = BLOG_SITE_URL): string {
+export function renderRssFeed(
+  articles: BlogRssArticle[],
+  siteUrl = BLOG_SITE_URL
+): string {
   const sortedArticles = sortArticles(articles);
   const blogUrl = toAbsoluteUrl('/blog/', siteUrl);
   const feedUrl = toAbsoluteUrl(`/${BLOG_RSS_FILE}`, siteUrl);
@@ -265,7 +282,9 @@ export function renderRssFeed(articles: BlogRssArticle[], siteUrl = BLOG_SITE_UR
   ];
 
   if (latestArticle) {
-    lines.push(`    <lastBuildDate>${escapeXml(latestArticle.date.toUTCString())}</lastBuildDate>`);
+    lines.push(
+      `    <lastBuildDate>${escapeXml(latestArticle.date.toUTCString())}</lastBuildDate>`
+    );
   }
 
   if (sortedArticles.length > 0) {
@@ -277,7 +296,10 @@ export function renderRssFeed(articles: BlogRssArticle[], siteUrl = BLOG_SITE_UR
 }
 
 /** Generate the blog RSS asset during the client-side docs build. */
-export function blogRssData(routesDir: string, siteUrl = BLOG_SITE_URL): Plugin {
+export function blogRssData(
+  routesDir: string,
+  siteUrl = BLOG_SITE_URL
+): Plugin {
   const articlesDir = join(routesDir, BLOG_ARTICLES_PATH);
 
   return {

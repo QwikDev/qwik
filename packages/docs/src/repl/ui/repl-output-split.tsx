@@ -5,7 +5,12 @@ const MIN_RIGHT_WIDTH = 320;
 const RESIZER_WIDTH = 12;
 
 export const ReplOutputSplit = component$(
-  ({ left, right, rootClass, defaultLeftWidth = 248 }: ReplOutputSplitProps) => {
+  ({
+    left,
+    right,
+    rootClass,
+    defaultLeftWidth = 248,
+  }: ReplOutputSplitProps) => {
     const hostRef = useSignal<Element>();
     const leftWidth = useSignal(defaultLeftWidth);
     const isDragging = useSignal(false);
@@ -30,7 +35,10 @@ export const ReplOutputSplit = component$(
         }
 
         leftWidth.value = Math.min(
-          Math.max(startWidth.value + event.clientX - startX.value, MIN_LEFT_WIDTH),
+          Math.max(
+            startWidth.value + event.clientX - startX.value,
+            MIN_LEFT_WIDTH
+          ),
           maxLeftWidth.value
         );
       })

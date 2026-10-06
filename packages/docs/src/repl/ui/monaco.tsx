@@ -81,7 +81,10 @@ export const initMonacoEditor = async (
   editorStore.editor = noSerialize(editor);
 };
 
-export const updateMonacoEditor = async (props: EditorProps, editorStore: EditorStore) => {
+export const updateMonacoEditor = async (
+  props: EditorProps,
+  editorStore: EditorStore
+) => {
   const monaco = await getMonaco();
 
   const selectedPath = props.store.selectedInputPath;
@@ -90,7 +93,9 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
 
   for (const existingModel of existingModels) {
     try {
-      const input = inputs.find((i) => getUri(monaco, i.path).fsPath === existingModel.uri.fsPath);
+      const input = inputs.find(
+        (i) => getUri(monaco, i.path).fsPath === existingModel.uri.fsPath
+      );
       if (input) {
         if (input.code !== existingModel.getValue()) {
           existingModel.setValue(input.code);
@@ -121,12 +126,18 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
     if (previousSelectedModel) {
       const viewState = editorStore.editor.saveViewState();
       if (viewState) {
-        editorStore.viewStates[previousSelectedModel.uri.fsPath] = noSerialize(viewState);
+        editorStore.viewStates[previousSelectedModel.uri.fsPath] =
+          noSerialize(viewState);
       }
     }
 
-    if (!previousSelectedModel || previousSelectedModel.uri.fsPath !== selectedFsPath) {
-      const selectedModel = monaco.editor.getModels().find((m) => m.uri.fsPath === selectedFsPath);
+    if (
+      !previousSelectedModel ||
+      previousSelectedModel.uri.fsPath !== selectedFsPath
+    ) {
+      const selectedModel = monaco.editor
+        .getModels()
+        .find((m) => m.uri.fsPath === selectedFsPath);
       if (selectedModel) {
         editorStore.editor.setModel(selectedModel);
 
@@ -190,7 +201,10 @@ const checkDiagnostics = async (
   } else if (replStore.monacoDiagnostics.length > 0) {
     replStore.monacoDiagnostics = [];
 
-    if (replStore.selectedOutputPanel === 'diagnostics' && replStore.diagnostics.length === 0) {
+    if (
+      replStore.selectedOutputPanel === 'diagnostics' &&
+      replStore.diagnostics.length === 0
+    ) {
       replStore.selectedOutputPanel = 'app';
     }
   }
@@ -223,7 +237,10 @@ export const addQwikLibs = async (version: string) => {
     `declare module '@qwik.dev/core/jsx-runtime' { export * from '@qwik.dev/core' }`,
     '/node_modules/@qwik.dev/core/dist/jsx-runtime.d.ts'
   );
-  typescriptDefaults.addExtraLib(WORKER_LIB, '/node_modules/@qwik.dev/core/worker.d.ts');
+  typescriptDefaults.addExtraLib(
+    WORKER_LIB,
+    '/node_modules/@qwik.dev/core/worker.d.ts'
+  );
   typescriptDefaults.addExtraLib(CLIENT_LIB);
   typescriptDefaults.addExtraLib(cssTypes, '/node_modules/csstype/index.d.ts');
 };
@@ -279,7 +296,9 @@ const loadDeps = async (pkgVersion: string) => {
   for (const dep of deps) {
     let storedDep = monacoCtx.deps.find(
       (d) =>
-        d.pkgName === dep.pkgName && d.pkgPath === dep.pkgPath && d.pkgVersion === dep.pkgVersion
+        d.pkgName === dep.pkgName &&
+        d.pkgPath === dep.pkgPath &&
+        d.pkgVersion === dep.pkgVersion
     );
     if (!storedDep) {
       storedDep = {
@@ -292,7 +311,9 @@ const loadDeps = async (pkgVersion: string) => {
 
       const url = depUrls[dep.pkgName][dep.pkgPath];
       if (!url) {
-        console.error(`Missing URL for ${dep.pkgName}${dep.pkgPath} (${dep.pkgVersion})`);
+        console.error(
+          `Missing URL for ${dep.pkgName}${dep.pkgPath} (${dep.pkgVersion})`
+        );
         break;
       }
       toFetch[url] ||= fetch(url).then((r) => r.text());
@@ -398,7 +419,12 @@ const monacoCtx: MonacoContext = {
 };
 
 const MONACO_VERSION = '0.45.0';
-const MONACO_VS_URL = getNpmCdnUrl(bundled, 'monaco-editor', MONACO_VERSION, '/min/vs');
+const MONACO_VS_URL = getNpmCdnUrl(
+  bundled,
+  'monaco-editor',
+  MONACO_VERSION,
+  '/min/vs'
+);
 const MONACO_LOADER_URL = `${MONACO_VS_URL}/loader.js`;
 
 const CLIENT_LIB = `
@@ -431,10 +457,13 @@ export type IStandaloneCodeEditor = MonacoTypes.editor.IStandaloneCodeEditor;
 export type ICodeEditorViewState = MonacoTypes.editor.ICodeEditorViewState;
 export type IStandaloneEditorConstructionOptions =
   MonacoTypes.editor.IStandaloneEditorConstructionOptions;
-export type IModelContentChangedEvent = MonacoTypes.editor.IModelContentChangedEvent;
-export type TypeScriptWorker = MonacoTypes.languages.typescript.TypeScriptWorker;
+export type IModelContentChangedEvent =
+  MonacoTypes.editor.IModelContentChangedEvent;
+export type TypeScriptWorker =
+  MonacoTypes.languages.typescript.TypeScriptWorker;
 export type TypeScriptDiagnostic = MonacoTypes.languages.typescript.Diagnostic;
-export type DiagnosticMessageChain = MonacoTypes.languages.typescript.DiagnosticMessageChain;
+export type DiagnosticMessageChain =
+  MonacoTypes.languages.typescript.DiagnosticMessageChain;
 export type EditorThemeName = ThemePreference | 'github-light';
 
 interface MonacoContext {

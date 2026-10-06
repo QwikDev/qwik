@@ -104,5 +104,9 @@
 .info-bg {
   @apply uppercase backdrop-blur-md px-1 rounded-md;
   color: var(--color-primary-foreground-base);
-  background: color-mix(in srgb, var(--color-foreground-emphasis) 40%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--color-foreground-emphasis) 40%,
+    transparent
+  );
 }

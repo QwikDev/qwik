@@ -32,7 +32,9 @@ describe('generate-llms', () => {
   test('llms.txt and MCP share a complete manifest without duplicate pages', () => {
     const entries = createLlmsManifest();
     const paths = entries.map((entry) => entry.pathname);
-    expect(paths).toEqual(expect.arrayContaining(['/docs/caching/', '/docs/glossary/', '/api/']));
+    expect(paths).toEqual(
+      expect.arrayContaining(['/docs/caching/', '/docs/glossary/', '/api/'])
+    );
     expect(new Set(paths).size).toBe(paths.length);
     expect(renderLlmsTxt('https://next.qwik.dev', entries)).toContain(
       'https://next.qwik.dev/docs/caching.md'
@@ -50,7 +52,10 @@ describe('generate-llms', () => {
       'docs/(router)/caching/index.mdx',
       '---\ntitle: Caching\ndescription: Cache responses\n---\n# Caching\n\n[More](../new-guide/index.mdx)'
     );
-    write('docs/(router)/new-guide/index.mdx', '# New guide\n\nA newly added page.');
+    write(
+      'docs/(router)/new-guide/index.mdx',
+      '# New guide\n\nA newly added page.'
+    );
     write('docs/nested/other.md', '# Another page');
     write('api/new-package/index.mdx', '---\ntitle: Package API\n---\n# API');
     write('docs/menu.md', '# Menu');
@@ -62,17 +67,23 @@ describe('generate-llms', () => {
       '/docs/nested/other/',
       '/docs/new-guide/',
     ]);
-    const caching = entries.find((entry) => entry.pathname === '/docs/caching/')!;
-    expect(caching).toMatchObject({ title: 'Caching', description: 'Cache responses' });
+    const caching = entries.find(
+      (entry) => entry.pathname === '/docs/caching/'
+    )!;
+    expect(caching).toMatchObject({
+      title: 'Caching',
+      description: 'Cache responses',
+    });
     const mirrors = createLlmsMirrors({
       packageDir: packageRoot,
       outputDir: path.join(packageRoot, 'out'),
       baseUrl: 'https://next.qwik.dev',
       entries,
     });
-    expect(mirrors.find((mirror) => mirror.entry.pathname === '/docs/caching/')?.content).toContain(
-      '[More](/docs/new-guide.md)'
-    );
+    expect(
+      mirrors.find((mirror) => mirror.entry.pathname === '/docs/caching/')
+        ?.content
+    ).toContain('[More](/docs/new-guide.md)');
     expect(fs.existsSync(path.join(packageRoot, 'out'))).toBe(false);
   });
 
@@ -80,7 +91,10 @@ describe('generate-llms', () => {
     const packageRoot = createTempDir();
     const directory = path.join(packageRoot, 'src/routes/docs/new-page');
     fs.mkdirSync(directory, { recursive: true });
-    fs.writeFileSync(path.join(directory, 'index.tsx'), 'export default () => <h1>New page</h1>;');
+    fs.writeFileSync(
+      path.join(directory, 'index.tsx'),
+      'export default () => <h1>New page</h1>;'
+    );
     expect(() => createDocumentationManifest(packageRoot)).toThrow(
       'Missing Markdown representation'
     );
@@ -259,7 +273,9 @@ signal.loading ? <Loading /> : <Ready />
     `);
 
     expect(markdown).toContain('| Property | Description |');
-    expect(markdown).toContain('| loading | Whether the signal is currently loading.');
+    expect(markdown).toContain(
+      '| loading | Whether the signal is currently loading.'
+    );
     expect(markdown).toContain('```tsx');
     expect(markdown).not.toContain('<table>');
   });
@@ -390,18 +406,28 @@ title: Diagram
   });
 
   test('resolves the llms base url from env', () => {
-    expect(resolveLlmsBaseUrl({} as NodeJS.ProcessEnv)).toBe('https://qwik.dev');
+    expect(resolveLlmsBaseUrl({} as NodeJS.ProcessEnv)).toBe(
+      'https://qwik.dev'
+    );
     expect(
-      resolveLlmsBaseUrl({ QWIK_LLMS_BASE_URL: 'https://v2.qwik.dev/' } as NodeJS.ProcessEnv)
+      resolveLlmsBaseUrl({
+        QWIK_LLMS_BASE_URL: 'https://v2.qwik.dev/',
+      } as NodeJS.ProcessEnv)
     ).toBe('https://v2.qwik.dev');
     expect(
-      resolveLlmsBaseUrl({ QWIK_LLMS_BASE_URL: 'https://v2.qwik.dev/' } as NodeJS.ProcessEnv)
+      resolveLlmsBaseUrl({
+        QWIK_LLMS_BASE_URL: 'https://v2.qwik.dev/',
+      } as NodeJS.ProcessEnv)
     ).toBe('https://v2.qwik.dev');
     expect(() =>
-      resolveLlmsBaseUrl({ QWIK_LLMS_BASE_URL: 'not-a-url' } as NodeJS.ProcessEnv)
+      resolveLlmsBaseUrl({
+        QWIK_LLMS_BASE_URL: 'not-a-url',
+      } as NodeJS.ProcessEnv)
     ).toThrow('Invalid QWIK_LLMS_BASE_URL');
     expect(
-      resolveLlmsBaseUrl({ CF_PAGES_URL: 'https://preview.qwik.pages.dev/' } as NodeJS.ProcessEnv)
+      resolveLlmsBaseUrl({
+        CF_PAGES_URL: 'https://preview.qwik.pages.dev/',
+      } as NodeJS.ProcessEnv)
     ).toBe('https://qwik.dev');
   });
 
@@ -418,7 +444,10 @@ title: Diagram
       `# Sample\n\nSee [Optional](./optional.mdx).\n\nThis is the main guide.\n\n<Note>Helpful context.</Note>\n`
     );
 
-    fs.writeFileSync(path.join(sourceDir, 'optional.mdx'), `# Optional\n\nOptional body.\n`);
+    fs.writeFileSync(
+      path.join(sourceDir, 'optional.mdx'),
+      `# Optional\n\nOptional body.\n`
+    );
 
     const entries: LlmsManifestEntry[] = [
       {
@@ -449,12 +478,19 @@ title: Diagram
     expect(fs.existsSync(path.join(outputDir, 'llms.txt'))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, 'llms-ctx.txt'))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, 'llms-ctx-full.txt'))).toBe(true);
-    expect(fs.existsSync(path.join(outputDir, getMirrorRelativePath('/docs/sample/')))).toBe(true);
+    expect(
+      fs.existsSync(
+        path.join(outputDir, getMirrorRelativePath('/docs/sample/'))
+      )
+    ).toBe(true);
     expect(result.ctx).toContain('Sample');
     expect(result.ctx).not.toContain('Optional body.');
     expect(result.ctxFull).toContain('Optional body.');
     expect(
-      fs.readFileSync(path.join(outputDir, getMirrorRelativePath('/docs/sample/')), 'utf-8')
+      fs.readFileSync(
+        path.join(outputDir, getMirrorRelativePath('/docs/sample/')),
+        'utf-8'
+      )
     ).toContain('[Optional](/docs/optional.md)');
   });
 });

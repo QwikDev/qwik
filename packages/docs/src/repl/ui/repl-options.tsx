@@ -1,8 +1,15 @@
 import { lucide } from '@qds.dev/ui';
 import type { ReplAppInput } from '../types';
-import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-option-values';
+import {
+  BUILD_MODE_OPTIONS,
+  ENTRY_STRATEGY_OPTIONS,
+} from './repl-option-values';
 
-export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) => {
+export const ReplOptions = ({
+  input,
+  versions,
+  qwikVersion,
+}: ReplOptionsProps) => {
   return (
     <div class="output-detail detail-options">
       <StoreOption
@@ -14,7 +21,12 @@ export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) 
         isLoading={versions.length === 0}
       />
 
-      <StoreOption label="Mode" inputProp="buildMode" options={BUILD_MODE_OPTIONS} input={input} />
+      <StoreOption
+        label="Mode"
+        inputProp="buildMode"
+        options={BUILD_MODE_OPTIONS}
+        input={input}
+      />
 
       <StoreOption
         label="Entry Strategy"
@@ -23,7 +35,11 @@ export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) 
         input={input}
       />
 
-      <StoreBoolean label="Out of Order Streaming" inputProp="outOfOrderStreaming" input={input} />
+      <StoreBoolean
+        label="Out of Order Streaming"
+        inputProp="outOfOrderStreaming"
+        input={input}
+      />
 
       <StoreBoolean label="Debug" inputProp="debug" input={input} />
     </div>
@@ -64,7 +80,9 @@ const StoreOption = (props: StoreOptionProps) => {
           {props.options.map((value) => (
             <option
               value={value}
-              selected={value === props.input[props.inputProp] ? true : undefined}
+              selected={
+                value === props.input[props.inputProp] ? true : undefined
+              }
               key={value}
             >
               {props.labels?.[value] || value}

@@ -41,7 +41,8 @@ const redirects: Record<string, string> = {
   '/tutorial/hooks/use-client-effect/': '/tutorial/hooks/use-visible-task/',
 
   '/integrations/deployments/azure-swa/': '/deployments/azure-swa/',
-  '/integrations/deployments/cloudflare-pages/': '/deployments/cloudflare-pages/',
+  '/integrations/deployments/cloudflare-pages/':
+    '/deployments/cloudflare-pages/',
   '/integrations/deployments/express/': '/deployments/express/',
   '/integrations/deployments/netlify-edge/': '/deployments/netlify-edge/',
   '/integrations/deployments/vercel-edge/': '/deployments/vercel-edge/',
@@ -67,10 +68,12 @@ const redirects: Record<string, string> = {
   '/qwikcity/middleware/express/': '/deployments/node/',
   '/qwikcity/middleware/netlify-edge/': '/deployments/netlify-edge/',
   '/qwikcity/middleware/node/': '/deployments/node/',
-  '/qwikcity/prefetching/overview/': '/docs/advanced/speculative-module-fetching/',
+  '/qwikcity/prefetching/overview/':
+    '/docs/advanced/speculative-module-fetching/',
   '/qwikcity/prefetching/parallelizing-network-requests/':
     '/docs/advanced/speculative-module-fetching/',
-  '/qwikcity/prefetching/request-response-cache/': '/docs/advanced/speculative-module-fetching/',
+  '/qwikcity/prefetching/request-response-cache/':
+    '/docs/advanced/speculative-module-fetching/',
   '/qwikcity/prefetching/service-worker-prefetching/':
     '/docs/advanced/speculative-module-fetching/',
   '/qwikcity/routing/error-responses/': '/docs/advanced/routing/',
@@ -78,9 +81,12 @@ const redirects: Record<string, string> = {
   '/qwikcity/routing/pathless/': '/docs/layout/grouped/',
   '/qwikcity/routing/route-parameters/': '/docs/routing/',
   '/qwikcity/static-assets/': '/docs/advanced/static-assets/',
-  '/qwikcity/static-site-generation/dynamic-routes/': '/docs/guides/static-site-generation/',
-  '/qwikcity/static-site-generation/overview/': '/docs/guides/static-site-generation/',
-  '/qwikcity/static-site-generation/static-site-config/': '/docs/guides/static-site-generation/',
+  '/qwikcity/static-site-generation/dynamic-routes/':
+    '/docs/guides/static-site-generation/',
+  '/qwikcity/static-site-generation/overview/':
+    '/docs/guides/static-site-generation/',
+  '/qwikcity/static-site-generation/static-site-config/':
+    '/docs/guides/static-site-generation/',
 
   '/docs/advanced/i18n/': '/docs/integrations/i18n/',
   '/docs/cheat/best-practices/': '/docs/guides/best-practices/',

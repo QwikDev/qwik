@@ -7,7 +7,11 @@ import { SearchModal } from '../search/search';
 import { ThemeToggle } from '../theme-toggle';
 import { SidebarOpenButton } from './sidebar-open-button';
 
-const MobileNavLink = (props: { href: string; label: string; active?: boolean }) => (
+const MobileNavLink = (props: {
+  href: string;
+  label: string;
+  active?: boolean;
+}) => (
   <a
     href={props.href}
     class={[
@@ -27,9 +31,15 @@ const MobileNavSection = (props: {
   links: { href: string; label: string }[];
 }) => (
   <div class="flex min-w-0 flex-col gap-4">
-    <span class="font-bold text-sm leading-[143%] text-foreground-muted">{props.title}</span>
+    <span class="font-bold text-sm leading-[143%] text-foreground-muted">
+      {props.title}
+    </span>
     {props.links.map((link) => (
-      <MobileNavLink key={link.href} {...link} active={isActive(props.pathname, link.href)} />
+      <MobileNavLink
+        key={link.href}
+        {...link}
+        active={isActive(props.pathname, link.href)}
+      />
     ))}
   </div>
 );
@@ -56,9 +66,15 @@ export const MobileHeader = component$((props: { sidebarId?: string }) => {
       <modal.root>
         {/* Top bar (always visible) */}
         <div class="fixed inset-x-0 top-4 z-99999 flex gap-4 lg:hidden mx-auto w-[calc(100%-2rem)] max-w-[900px]">
-          {props.sidebarId && <SidebarOpenButton sidebarId={props.sidebarId} class="xl:hidden" />}
+          {props.sidebarId && (
+            <SidebarOpenButton sidebarId={props.sidebarId} class="xl:hidden" />
+          )}
           <div class="min-w-0 flex-1 flex h-16 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-5 shadow-base">
-            <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">
+            <a
+              href="/"
+              class="flex items-center gap-2 text-foreground-accent"
+              aria-label="Logo"
+            >
               <QwikLogoOnly {...showOnlyLogoMarkOnPhones} />
             </a>
             <div class="flex items-center gap-4 min-[360px]:gap-8">
@@ -80,7 +96,11 @@ export const MobileHeader = component$((props: { sidebarId?: string }) => {
         >
           {/* Header inside modal */}
           <div class="mt-4 shrink-0 mx-auto w-[calc(100%-2rem)] max-w-[900px] flex h-16 items-center justify-between rounded-2xl border-[1.6px] border-base bg-background-base px-5 shadow-base">
-            <a href="/" class="flex items-center gap-2 text-foreground-accent" aria-label="Logo">
+            <a
+              href="/"
+              class="flex items-center gap-2 text-foreground-accent"
+              aria-label="Logo"
+            >
               <QwikLogoOnly {...showOnlyLogoMarkOnPhones} />
             </a>
             <div class="flex items-center gap-4 min-[360px]:gap-8">
@@ -148,7 +168,11 @@ export const MobileHeader = component$((props: { sidebarId?: string }) => {
             </div>
 
             <div class="mt-8">
-              <Link href="/docs/getting-started" variant="primary" class="text-sm">
+              <Link
+                href="/docs/getting-started"
+                variant="primary"
+                class="text-sm"
+              >
                 <span>Get started</span>
                 <lucide.arrowright class="size-4" />
               </Link>

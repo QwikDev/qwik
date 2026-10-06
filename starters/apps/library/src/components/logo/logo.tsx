@@ -1,4 +1,4 @@
-import { component$ } from "@qwik.dev/core";
+import { component$ } from '@qwik.dev/core';
 
 export const Logo = component$(() => {
   return (

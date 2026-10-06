@@ -1,18 +1,25 @@
 // @ts-ignore: Unused import
-import { component$, useSignal, useComputed$, type Signal } from '@qwik.dev/core';
+import {
+  component$,
+  useSignal,
+  useComputed$,
+  type Signal,
+} from '@qwik.dev/core';
 
 // @ts-ignore: Unused declaration
-const Repos = component$((props: { org: Signal<string>; repos: Signal<string[]> }) => {
-  return (
-    <ul>
-      {props.repos.value.map((repo) => (
-        <li>
-          <a href={`https://github.com/${props.org.value}/${repo}`}>{repo}</a>
-        </li>
-      ))}
-    </ul>
-  );
-});
+const Repos = component$(
+  (props: { org: Signal<string>; repos: Signal<string[]> }) => {
+    return (
+      <ul>
+        {props.repos.value.map((repo) => (
+          <li>
+            <a href={`https://github.com/${props.org.value}/${repo}`}>{repo}</a>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+);
 
 export default component$(() => {
   const githubOrg = useSignal('QwikDev');

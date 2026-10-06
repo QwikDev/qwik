@@ -1,4 +1,10 @@
-import { $, component$, useOnWindow, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  useOnWindow,
+  useSignal,
+  useVisibleTask$,
+} from '@qwik.dev/core';
 
 const MIN_LEFT_WIDTH = 360;
 const MIN_RIGHT_WIDTH = 360;
@@ -12,7 +18,10 @@ const clampLeftWidth = (parentWidth: number, requestedWidth: number) => {
     minLeftWidth,
     Math.min(Math.max(availableWidth - MIN_RIGHT_WIDTH, 0), availableWidth)
   );
-  const nextWidth = Math.min(Math.max(requestedWidth, minLeftWidth), maxLeftWidth);
+  const nextWidth = Math.min(
+    Math.max(requestedWidth, minLeftWidth),
+    maxLeftWidth
+  );
   return {
     availableWidth,
     nextWidth,
@@ -21,7 +30,10 @@ const clampLeftWidth = (parentWidth: number, requestedWidth: number) => {
 };
 
 const getLeftWidthStyle = (parent: HTMLElement, requestedWidth: number) => {
-  const { ratio } = clampLeftWidth(parent.getBoundingClientRect().width, requestedWidth);
+  const { ratio } = clampLeftWidth(
+    parent.getBoundingClientRect().width,
+    requestedWidth
+  );
   parent.style.setProperty(
     '--repl-main-left-width',
     `calc((100% - ${RESIZER_WIDTH}px) * ${ratio.toFixed(6)})`
@@ -45,13 +57,19 @@ export const ReplMainResizer = component$(() => {
 
     leftRatio.value = getLeftWidthStyle(
       parent,
-      Math.floor((parent.getBoundingClientRect().width - RESIZER_WIDTH) * DEFAULT_LEFT_RATIO)
+      Math.floor(
+        (parent.getBoundingClientRect().width - RESIZER_WIDTH) *
+          DEFAULT_LEFT_RATIO
+      )
     );
 
     const resizeObserver = new ResizeObserver(() => {
       if (!isDragging.value) {
         const parentWidth = parent.getBoundingClientRect().width;
-        const requestedWidth = Math.max((parentWidth - RESIZER_WIDTH) * leftRatio.value, 0);
+        const requestedWidth = Math.max(
+          (parentWidth - RESIZER_WIDTH) * leftRatio.value,
+          0
+        );
         leftRatio.value = getLeftWidthStyle(parent, requestedWidth);
       }
     });

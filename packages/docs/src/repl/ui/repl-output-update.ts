@@ -4,7 +4,11 @@ import type { ReplResult, ReplStore } from '../types';
 // Maybe we should change useStore to recursively notify subscribers when a top-level property changes
 const deepUpdate = (prev: any, next: any) => {
   for (const key in next) {
-    if (prev[key] && typeof next[key] === 'object' && typeof prev[key] === 'object') {
+    if (
+      prev[key] &&
+      typeof next[key] === 'object' &&
+      typeof prev[key] === 'object'
+    ) {
       deepUpdate(prev[key], next[key]);
     } else {
       if (unwrapStore(prev[key]) !== next[key]) {
@@ -35,7 +39,11 @@ export const updateReplOutput = async (
   deepUpdate(store.clientBundles, result.clientBundles);
   deepUpdate(store.ssrModules, result.ssrModules);
 
-  if (!result.diagnostics.some((d) => d.category === 'error' || d.category === 'sourceError')) {
+  if (
+    !result.diagnostics.some(
+      (d) => d.category === 'error' || d.category === 'sourceError'
+    )
+  ) {
     if (result.html && store.html !== result.html) {
       store.html = result.html;
       store.events = result.events;
@@ -45,7 +53,10 @@ export const updateReplOutput = async (
     }
   }
 
-  if (store.selectedOutputPanel === 'diagnostics' && store.monacoDiagnostics.length === 0) {
+  if (
+    store.selectedOutputPanel === 'diagnostics' &&
+    store.monacoDiagnostics.length === 0
+  ) {
     store.selectedOutputPanel = 'app';
   }
 };

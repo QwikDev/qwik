@@ -25,7 +25,7 @@
     "express": "pnpm build.runtime.express && pnpm serve.express",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
+    "lint": "oxlint -c ../../.oxlintrc.json src",
     "preview": "qwik build preview && vite preview --open",
     "qwik": "qwik",
     "serve": "pnpm serve.express",

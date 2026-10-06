@@ -4,7 +4,13 @@ interface CloseIconProps {
 }
 
 export const CloseIcon = ({ width, height }: CloseIconProps) => (
-  <svg width={width} height={height} viewBox="0 0 10 10" role="img" aria-label="Close Icon">
+  <svg
+    width={width}
+    height={height}
+    viewBox="0 0 10 10"
+    role="img"
+    aria-label="Close Icon"
+  >
     <path
       d="M0 0L10 10M10 0L0 10"
       fill="none"

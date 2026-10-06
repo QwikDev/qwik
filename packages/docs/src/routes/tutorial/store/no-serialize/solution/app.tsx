@@ -1,4 +1,9 @@
-import { component$, noSerialize, type NoSerialize, useStore } from '@qwik.dev/core';
+import {
+  component$,
+  noSerialize,
+  type NoSerialize,
+  useStore,
+} from '@qwik.dev/core';
 
 interface AppStore {
   time: null | string;
@@ -14,7 +19,10 @@ export default component$(() => {
       <p>Current Time: {store.time}</p>
       <button
         onClick$={() => {
-          const id = setInterval(() => (store.time = new Date().toString()), 1000);
+          const id = setInterval(
+            () => (store.time = new Date().toString()),
+            1000
+          );
           store.cleanup = noSerialize(() => clearInterval(id));
         }}
       >

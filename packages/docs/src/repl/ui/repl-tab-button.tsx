@@ -5,7 +5,11 @@ export const ReplTabButton: Component<ReplTabButtonProps> = (props) => {
   return (
     <div
       key={props.text}
-      class={{ 'active-tab': props.isActive, 'repl-tab-button': true, ...props.cssClass }}
+      class={{
+        'active-tab': props.isActive,
+        'repl-tab-button': true,
+        ...props.cssClass,
+      }}
       style={{ '--buttons-z-index': props.order }}
     >
       <button

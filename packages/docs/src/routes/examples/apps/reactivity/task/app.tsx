@@ -28,15 +28,17 @@ export default component$(() => {
   );
 });
 
-export const Child = component$((props: { count: number; debounced: number }) => {
-  console.log('<Child> render');
-  return (
-    <div>
-      <div id="child">{props.count}</div>
-      <GrandChild debounced={props.debounced} />
-    </div>
-  );
-});
+export const Child = component$(
+  (props: { count: number; debounced: number }) => {
+    console.log('<Child> render');
+    return (
+      <div>
+        <div id="child">{props.count}</div>
+        <GrandChild debounced={props.debounced} />
+      </div>
+    );
+  }
+);
 
 export const GrandChild = component$((props: { debounced: number }) => {
   console.log('<GrandChild> render');

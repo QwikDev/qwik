@@ -35,7 +35,10 @@ test('round trip str', () => {
   assert.deepEqual(strToFiles(filesToStr(data.files)), data.files);
 });
 test('compressFiles', () => {
-  assert.equal(compressFiles(data.files), 'M6tJy8/XyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA+UB');
+  assert.equal(
+    compressFiles(data.files),
+    'M6tJy8/XyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA+UB'
+  );
 });
 test('parseCompressedFiles', () => {
   assert.deepEqual(
@@ -86,7 +89,9 @@ test('createPlaygroundShareUrl includes out of order streaming when disabled', (
 
 test('parsePlaygroundShareUrl with out of order streaming', () => {
   expect(
-    parsePlaygroundShareUrl('v=1.2.3&ooos=1&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB')
+    parsePlaygroundShareUrl(
+      'v=1.2.3&ooos=1&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB'
+    )
   ).toMatchObject({
     version: '1.2.3',
     outOfOrderStreaming: true,
@@ -95,7 +100,9 @@ test('parsePlaygroundShareUrl with out of order streaming', () => {
 
 test('parsePlaygroundShareUrl defaults to out of order streaming', () => {
   expect(
-    parsePlaygroundShareUrl('v=1.2.3&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB')
+    parsePlaygroundShareUrl(
+      'v=1.2.3&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB'
+    )
   ).toMatchObject({
     version: '1.2.3',
     outOfOrderStreaming: true,
@@ -104,7 +111,9 @@ test('parsePlaygroundShareUrl defaults to out of order streaming', () => {
 
 test('parsePlaygroundShareUrl with disabled out of order streaming', () => {
   expect(
-    parsePlaygroundShareUrl('v=1.2.3&ooos=0&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB')
+    parsePlaygroundShareUrl(
+      'v=1.2.3&ooos=0&f=M6tJy8%2FXyyoGeqYGub5UAgoraVrXmNUkJRZhkwcKA%2BUB'
+    )
   ).toMatchObject({
     version: '1.2.3',
     outOfOrderStreaming: false,

@@ -14,13 +14,20 @@ export default component$(() => {
   return (
     <div class="wrapper">
       <h3>Contributors</h3>
-      <p>Thanks to all the contributors who have helped make this documentation better!</p>
+      <p>
+        Thanks to all the contributors who have helped make this documentation
+        better!
+      </p>
       <ul class="list">
         {contributors.map((contributor: string) => {
           const id = useId();
           return (
             <li key={id} class="contributor">
-              <a href={`https://github.com/${contributor}`} target="_blank" rel="noreferrer">
+              <a
+                href={`https://github.com/${contributor}`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <img
                   loading="lazy"
                   src={`https://github.com/${contributor}.png?size=80`}

@@ -1,4 +1,7 @@
-import { BUILD_MODE_OPTIONS, ENTRY_STRATEGY_OPTIONS } from './repl-option-values';
+import {
+  BUILD_MODE_OPTIONS,
+  ENTRY_STRATEGY_OPTIONS,
+} from './repl-option-values';
 // We use deflate because it has no metadata, just raw compression
 import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
 
@@ -17,7 +20,9 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
 
       const version = params.get('v')! || params.get('version')!;
       data.version =
-        typeof version === 'string' && version.split('.').length > 2 ? version : 'bundled';
+        typeof version === 'string' && version.split('.').length > 2
+          ? version
+          : 'bundled';
 
       const buildMode = params.get('buildMode')!;
       if (BUILD_MODE_OPTIONS.includes(buildMode)) {
@@ -29,8 +34,10 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
         data.entryStrategy = entryStrategy;
       }
 
-      const outOfOrderStreaming = params.get('ooos') ?? params.get('outOfOrder');
-      data.outOfOrderStreaming = outOfOrderStreaming === null || outOfOrderStreaming === '1';
+      const outOfOrderStreaming =
+        params.get('ooos') ?? params.get('outOfOrder');
+      data.outOfOrderStreaming =
+        outOfOrderStreaming === null || outOfOrderStreaming === '1';
 
       if (params.has('files')) {
         // Old URLs that didn't compress
@@ -56,7 +63,9 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
 };
 
 export const filesToStr = (files: any[]) =>
-  files.map((f) => `${f.path.length}|${f.path}|${f.code.length}|${f.code}`).join('|');
+  files
+    .map((f) => `${f.path.length}|${f.path}|${f.code.length}|${f.code}`)
+    .join('|');
 const readChunk = (str: string) => {
   const sepIdx = str.indexOf('|');
   if (sepIdx < 1) {
@@ -122,7 +131,10 @@ export const dictionary = strToU8(
   ])
 );
 
-export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/playground/') => {
+export const createPlaygroundShareUrl = (
+  data: PlaygroundShareUrl,
+  pathname = '/playground/'
+) => {
   const params = new URLSearchParams();
   if (data.version !== 'bundled') {
     params.set('v', data.version);
@@ -163,7 +175,9 @@ function parseUncompressedFiles(filesBase64: string) {
   const files = JSON.parse(filesStr);
 
   if (Array.isArray(files)) {
-    return files.filter((f) => typeof f.code === 'string' && typeof f.path === 'string');
+    return files.filter(
+      (f) => typeof f.code === 'string' && typeof f.path === 'string'
+    );
   }
 
   return [];

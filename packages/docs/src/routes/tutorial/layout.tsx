@@ -1,7 +1,16 @@
-import { component$, Slot, useStore, useStyles$, useTask$ } from '@qwik.dev/core';
+import {
+  component$,
+  Slot,
+  useStore,
+  useStyles$,
+  useTask$,
+} from '@qwik.dev/core';
 import type { RequestHandler } from '@qwik.dev/router';
 import { useLocation, useNavigate } from '@qwik.dev/router';
-import tutorialSections, { type TutorialApp, type TutorialSection } from '@tutorial-data';
+import tutorialSections, {
+  type TutorialApp,
+  type TutorialSection,
+} from '@tutorial-data';
 import { setReplCorsHeaders } from '~/utils/utils';
 import { Header } from '../../components/header/header';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
@@ -80,19 +89,21 @@ export default component$(() => {
                         }
                       }}
                     >
-                      {(tutorialSections as TutorialSection[]).map((section) => (
-                        <optgroup key={section.id} label={section.title}>
-                          {section.apps.map((tutorial) => (
-                            <option
-                              selected={tutorial.id === store.appId}
-                              value={tutorial.id}
-                              key={tutorial.id}
-                            >
-                              {tutorial.title}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
+                      {(tutorialSections as TutorialSection[]).map(
+                        (section) => (
+                          <optgroup key={section.id} label={section.title}>
+                            {section.apps.map((tutorial) => (
+                              <option
+                                selected={tutorial.id === store.appId}
+                                value={tutorial.id}
+                                key={tutorial.id}
+                              >
+                                {tutorial.title}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )
+                      )}
                     </select>
                     <span class="repl-select-icon">
                       <lucide.chevrondown class="size-4" />
@@ -193,7 +204,11 @@ export const Root = () => {
   }
 
   if (!files.some((i) => i.code === '/entry.server.tsx')) {
-    files.push({ path: '/entry.server.tsx', code: DEFAULT_ENTRY_SERVER, hidden: true });
+    files.push({
+      path: '/entry.server.tsx',
+      code: DEFAULT_ENTRY_SERVER,
+      hidden: true,
+    });
   }
 
   return files;

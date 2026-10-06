@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-import type { mount } from "cypress-ct-qwik";
+import type { mount } from 'cypress-ct-qwik';
 
 type MountParams = Parameters<typeof mount>;
 type OptionsParam = MountParams[0];

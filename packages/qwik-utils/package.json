@@ -39,7 +39,7 @@
     "build": "vite build --mode lib",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
+    "lint": "oxlint src",
     "typecheck": "tsc --noEmit"
   },
   "sideEffects": false,

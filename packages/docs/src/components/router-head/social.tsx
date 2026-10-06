@@ -19,8 +19,12 @@ export const Social = ({
       <meta property="og:description" content={description} />
       <meta property="og:image" content={ogImage} />
       <meta property="og:image:alt" content={imgAlt} />
-      {ogImageWidth && <meta property="og:image:width" content={ogImageWidth} />}
-      {ogImageHeight && <meta property="og:image:height" content={ogImageHeight} />}
+      {ogImageWidth && (
+        <meta property="og:image:width" content={ogImageWidth} />
+      )}
+      {ogImageHeight && (
+        <meta property="og:image:height" content={ogImageHeight} />
+      )}
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Qwik" />
       <meta property="og:locale" content="en_US" />

@@ -28,7 +28,9 @@ export const ReplInputPanel = ({
                 store.selectedInputPath = f.path;
               }}
               onClose$={async () => {
-                const shouldDelete = confirm(`Are you sure you want to delete "${f.path}"?`);
+                const shouldDelete = confirm(
+                  `Are you sure you want to delete "${f.path}"?`
+                );
                 if (shouldDelete) {
                   onInputDelete$(f.path);
                 }

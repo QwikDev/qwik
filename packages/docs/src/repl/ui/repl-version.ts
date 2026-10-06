@@ -13,7 +13,10 @@ const blockList = new Set(
   )
 );
 
-export const getReplVersion = async (version: string | undefined, offline: boolean) => {
+export const getReplVersion = async (
+  version: string | undefined,
+  offline: boolean
+) => {
   let npmData: NpmData | null = null;
 
   try {
@@ -22,7 +25,9 @@ export const getReplVersion = async (version: string | undefined, offline: boole
     if (!offline && isExpiredNpmData(npmData)) {
       // fetch most recent NPM version data
       console.debug(`Qwik REPL, fetch npm data: ${QWIK_NPM_V1_DATA}`);
-      const fetchedNpmData = (await fetch(QWIK_NPM_V1_DATA).then((r) => r.json())) as NpmData;
+      const fetchedNpmData = (await fetch(QWIK_NPM_V1_DATA).then((r) =>
+        r.json()
+      )) as NpmData;
       fetchedNpmData.timestamp = Date.now();
       const v2Data = await fetch(QWIK_NPM_V2_DATA).then((r) => r.json());
       fetchedNpmData.versions.unshift(...v2Data.versions);

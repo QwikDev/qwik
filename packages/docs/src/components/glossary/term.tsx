@@ -20,7 +20,10 @@ export const Term = component$<TermProps>(({ id }) => {
   return (
     <popover.root asChild>
       <span class="">
-        <popover.trigger type="button" class="w-auto cursor-help text-standalone-base underline">
+        <popover.trigger
+          type="button"
+          class="w-auto cursor-help text-standalone-base underline"
+        >
           <Slot />
         </popover.trigger>
         <popover.content asChild>
@@ -29,7 +32,10 @@ export const Term = component$<TermProps>(({ id }) => {
             class="w-[min(18rem,90vw)]! rounded-lg border-[1.6px] border-accent p-3 text-left text-body-sm leading-[1.5] text-foreground-base shadow-lg [&:popover-open]:block"
           >
             {entry.short}{' '}
-            <a href={href} class="whitespace-nowrap text-standalone-accent underline">
+            <a
+              href={href}
+              class="whitespace-nowrap text-standalone-accent underline"
+            >
               Read more
             </a>
           </span>

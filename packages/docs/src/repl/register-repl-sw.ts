@@ -24,7 +24,10 @@ const _registerReplSW = async (retries = 5) => {
               return;
             }
             isRefreshing = true;
-            navigator.serviceWorker.removeEventListener('controllerchange', reloadWhenControlled);
+            navigator.serviceWorker.removeEventListener(
+              'controllerchange',
+              reloadWhenControlled
+            );
             window.location.reload();
           };
 
@@ -33,7 +36,10 @@ const _registerReplSW = async (retries = 5) => {
             reloadWhenControlled();
           } else {
             // Otherwise wait for controllerchange which signals the new worker controls the page.
-            navigator.serviceWorker.addEventListener('controllerchange', reloadWhenControlled);
+            navigator.serviceWorker.addEventListener(
+              'controllerchange',
+              reloadWhenControlled
+            );
           }
         } else if (state === 'redundant') {
           // console.warn('Qwik REPL service worker became redundant during installation');
@@ -45,7 +51,9 @@ const _registerReplSW = async (retries = 5) => {
               // );
               return _registerReplSW(retries - 1);
             }
-            console.warn('Max retries reached, not attempting to re-register service worker');
+            console.warn(
+              'Max retries reached, not attempting to re-register service worker'
+            );
             return null;
           }
         }
@@ -73,10 +81,16 @@ const _registerReplSW = async (retries = 5) => {
       // the page from reloading too early and creating redundant workers.
       await new Promise<void>((resolve) => {
         const onControllerChange = () => {
-          navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+          navigator.serviceWorker.removeEventListener(
+            'controllerchange',
+            onControllerChange
+          );
           resolve();
         };
-        navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+        navigator.serviceWorker.addEventListener(
+          'controllerchange',
+          onControllerChange
+        );
       });
 
       return reg;

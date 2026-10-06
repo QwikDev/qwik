@@ -1,4 +1,9 @@
-import { component$, useSignal, useStyles$, useVisibleTask$ } from '@qwik.dev/core';
+import {
+  component$,
+  useSignal,
+  useStyles$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
 import skyImage from './hero.webp';
 import styles from './rc-hero.css?inline';
 
@@ -32,7 +37,8 @@ const CAR_POOL_SIZE = 12;
 const REDUCED_MOTION_TIME = 7.55;
 
 const screenY = (distance: number) => HORIZON + GROUND_HEIGHT / distance;
-const laneX = (distance: number, side: number) => VANISHING_X + (side * LANE_OFFSET) / distance;
+const laneX = (distance: number, side: number) =>
+  VANISHING_X + (side * LANE_OFFSET) / distance;
 const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
 const smoothstep = (value: number) => {
   const clamped = clamp01(value);
@@ -155,12 +161,15 @@ const slowCarDistances = (time: number) => {
   const shift = SLOW_CAR_SPEED * time - distanceTravelled(time);
   const firstVisibleCar = Math.max(
     0,
-    Math.ceil((NEAREST_DISTANCE - FIRST_SLOW_CAR_DISTANCE - shift) / SLOW_CAR_SPACING)
+    Math.ceil(
+      (NEAREST_DISTANCE - FIRST_SLOW_CAR_DISTANCE - shift) / SLOW_CAR_SPACING
+    )
   );
   const distances: number[] = [];
   for (
     let car = firstVisibleCar;
-    FIRST_SLOW_CAR_DISTANCE + car * SLOW_CAR_SPACING + shift <= FARTHEST_DISTANCE;
+    FIRST_SLOW_CAR_DISTANCE + car * SLOW_CAR_SPACING + shift <=
+    FARTHEST_DISTANCE;
     car++
   ) {
     distances.push(FIRST_SLOW_CAR_DISTANCE + car * SLOW_CAR_SPACING + shift);
@@ -199,25 +208,36 @@ const slowCar = (distance: number) => ({
   opacity: clamp01((FARTHEST_DISTANCE - distance) / 6),
 });
 
-type TrailSample = { x: number; y: number; lightOffset: number; progress: number };
+type TrailSample = {
+  x: number;
+  y: number;
+  lightOffset: number;
+  progress: number;
+};
 
-const trailSamples: TrailSample[] = Array.from({ length: TRAIL_SAMPLES + 1 }, (_, index) => {
-  const progress = index / TRAIL_SAMPLES;
-  const distance = QWIK_CAR_DISTANCE - progress * (QWIK_CAR_DISTANCE - TRAIL_END_DISTANCE);
-  return {
-    x: laneX(distance, -1),
-    y: screenY(distance) - (LIGHT_BAR_HEIGHT / distance) * (1 - progress),
-    lightOffset: LIGHT_OFFSET / distance,
-    progress,
-  };
-});
+const trailSamples: TrailSample[] = Array.from(
+  { length: TRAIL_SAMPLES + 1 },
+  (_, index) => {
+    const progress = index / TRAIL_SAMPLES;
+    const distance =
+      QWIK_CAR_DISTANCE - progress * (QWIK_CAR_DISTANCE - TRAIL_END_DISTANCE);
+    return {
+      x: laneX(distance, -1),
+      y: screenY(distance) - (LIGHT_BAR_HEIGHT / distance) * (1 - progress),
+      lightOffset: LIGHT_OFFSET / distance,
+      progress,
+    };
+  }
+);
 
 const ribbon = (
   center: (sample: TrailSample) => number,
   halfWidth: (sample: TrailSample) => number
 ) =>
   [
-    ...trailSamples.map((sample) => `${center(sample) - halfWidth(sample)},${sample.y}`),
+    ...trailSamples.map(
+      (sample) => `${center(sample) - halfWidth(sample)},${sample.y}`
+    ),
     ...[...trailSamples]
       .reverse()
       .map((sample) => `${center(sample) + halfWidth(sample)},${sample.y}`),
@@ -240,7 +260,8 @@ const trails = [-1, 1].flatMap((lightSide) =>
   TRAIL_LAYERS.map(({ fromHalfWidth, toHalfWidth, opacity, white }) => ({
     points: ribbon(
       (sample) => sample.x + lightSide * sample.lightOffset,
-      (sample) => fromHalfWidth + (toHalfWidth - fromHalfWidth) * sample.progress
+      (sample) =>
+        fromHalfWidth + (toHalfWidth - fromHalfWidth) * sample.progress
     ),
     fill: white
       ? 'url(#rc-hero-trail-white)'
@@ -255,8 +276,12 @@ const computeFrame = (time: number) => {
   const travelled = distanceTravelled(time);
   const distances = slowCarDistances(time);
   return {
-    gridLines: Array.from({ length: GRID_LINE_COUNT }, (_, index) => gridLine(index, travelled)),
-    dashes: Array.from({ length: DASH_COUNT }, (_, index) => dashPoints(index, travelled)),
+    gridLines: Array.from({ length: GRID_LINE_COUNT }, (_, index) =>
+      gridLine(index, travelled)
+    ),
+    dashes: Array.from({ length: DASH_COUNT }, (_, index) =>
+      dashPoints(index, travelled)
+    ),
     cars: Array.from({ length: CAR_POOL_SIZE }, (_, index) =>
       index < distances.length ? slowCar(distances[index]) : hiddenCar
     ),
@@ -292,7 +317,9 @@ export const RcHero = component$(() => {
         line.setAttribute('stroke-width', String(strokeWidth));
         line.setAttribute('opacity', String(opacity));
       });
-      dashes.forEach((dash, index) => dash.setAttribute('points', frame.dashes[index]));
+      dashes.forEach((dash, index) =>
+        dash.setAttribute('points', frame.dashes[index])
+      );
       cars.forEach((car, index) => {
         car.setAttribute('transform', frame.cars[index].transform);
         car.setAttribute('opacity', String(frame.cars[index].opacity));
@@ -371,9 +398,22 @@ export const RcHero = component$(() => {
           />
         ))}
         {SPARKLES.map(([x, y, radius], index) => (
-          <g key={`sparkle-${index}`} class="rc-hero-twinkle" style={twinkleTiming(index, 2, 4)}>
-            <circle cx={x} cy={y} r={radius * 2.25} fill="url(#rc-hero-star-glow)" />
-            <path d={sparklePath(x, y, radius * 1.08)} fill="#ffffff" opacity="0.85" />
+          <g
+            key={`sparkle-${index}`}
+            class="rc-hero-twinkle"
+            style={twinkleTiming(index, 2, 4)}
+          >
+            <circle
+              cx={x}
+              cy={y}
+              r={radius * 2.25}
+              fill="url(#rc-hero-star-glow)"
+            />
+            <path
+              d={sparklePath(x, y, radius * 1.08)}
+              fill="#ffffff"
+              opacity="0.85"
+            />
           </g>
         ))}
         {NETWORK_CLUSTERS.flatMap((nodes, cluster) =>
@@ -381,7 +421,9 @@ export const RcHero = component$(() => {
             <circle
               key={`node-${cluster}-${index}`}
               class="rc-hero-pulse"
-              style={{ animationDelay: `${(cluster * 1.4 + index * 0.3).toFixed(2)}s` }}
+              style={{
+                animationDelay: `${(cluster * 1.4 + index * 0.3).toFixed(2)}s`,
+              }}
               cx={x}
               cy={y}
               r="12"
@@ -390,7 +432,12 @@ export const RcHero = component$(() => {
           ))
         )}
       </svg>
-      <svg ref={groundRef} class="rc-hero-ground" viewBox="0 620 2000 505" aria-hidden="true">
+      <svg
+        ref={groundRef}
+        class="rc-hero-ground"
+        viewBox="0 620 2000 505"
+        aria-hidden="true"
+      >
         <defs>
           <linearGradient id="rc-hero-ground-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#1a0b3d" />
@@ -463,7 +510,13 @@ export const RcHero = component$(() => {
             <stop offset="1" stop-color="#6f8cff" stop-opacity="0.3" />
           </linearGradient>
           <g id="rc-hero-car">
-            <ellipse cx="0" cy="2" rx="260" ry="30" fill="url(#rc-hero-taillight-glow)" />
+            <ellipse
+              cx="0"
+              cy="2"
+              rx="260"
+              ry="30"
+              fill="url(#rc-hero-taillight-glow)"
+            />
             <path d="M -143 -130 Q 0 -221 143 -130 Z" fill="#1d1440" />
             <rect
               x="-210"
@@ -486,16 +539,43 @@ export const RcHero = component$(() => {
                   fill="#ff4d6d"
                   opacity="0.18"
                 />
-                <rect x={side * 151 - 42} y="-109" width="84" height="25" rx="10" fill="#ff4d6d" />
+                <rect
+                  x={side * 151 - 42}
+                  y="-109"
+                  width="84"
+                  height="25"
+                  rx="10"
+                  fill="#ff4d6d"
+                />
               </g>
             ))}
             <path d={sparklePath(0, -97, 21)} fill="#d8d0ff" opacity="0.75" />
-            <rect x="-185" y="-15" width="59" height="25" rx="4" fill="#0a0718" />
-            <rect x="126" y="-15" width="59" height="25" rx="4" fill="#0a0718" />
+            <rect
+              x="-185"
+              y="-15"
+              width="59"
+              height="25"
+              rx="4"
+              fill="#0a0718"
+            />
+            <rect
+              x="126"
+              y="-15"
+              width="59"
+              height="25"
+              rx="4"
+              fill="#0a0718"
+            />
           </g>
         </defs>
 
-        <rect x="0" y="620" width="2000" height="505" fill="url(#rc-hero-ground-fill)" />
+        <rect
+          x="0"
+          y="620"
+          width="2000"
+          height="505"
+          fill="url(#rc-hero-ground-fill)"
+        />
         {Array.from({ length: 49 }, (_, index) => (
           <line
             key={index}
@@ -525,7 +605,13 @@ export const RcHero = component$(() => {
           points={`${VANISHING_X - 6},${HORIZON} ${VANISHING_X + 6},${HORIZON} ${VANISHING_X + ROAD_HALF_WIDTH},${HEIGHT} ${VANISHING_X - ROAD_HALF_WIDTH},${HEIGHT}`}
           fill="url(#rc-hero-road)"
         />
-        <ellipse cx="1000" cy="640" rx="110" ry="250" fill="url(#rc-hero-reflection)" />
+        <ellipse
+          cx="1000"
+          cy="640"
+          rx="110"
+          ry="250"
+          fill="url(#rc-hero-reflection)"
+        />
         {[-1, 1].map((side) =>
           [
             [18, 0.1],
@@ -545,10 +631,22 @@ export const RcHero = component$(() => {
           ))
         )}
         {initialFrame.dashes.map((points, index) => (
-          <polygon key={index} data-dash points={points} fill="#f3ecff" opacity="0.75" />
+          <polygon
+            key={index}
+            data-dash
+            points={points}
+            fill="#f3ecff"
+            opacity="0.75"
+          />
         ))}
         {initialFrame.cars.map(({ transform, opacity }, index) => (
-          <use key={index} data-car href="#rc-hero-car" transform={transform} opacity={opacity} />
+          <use
+            key={index}
+            data-car
+            href="#rc-hero-car"
+            transform={transform}
+            opacity={opacity}
+          />
         ))}
 
         <g data-trails opacity={initialFrame.trailOpacity}>
@@ -556,15 +654,33 @@ export const RcHero = component$(() => {
             <polygon key={index} points={points} fill="url(#rc-hero-beam)" />
           ))}
           {trails.map(({ points, fill, opacity }, index) => (
-            <polygon key={index} points={points} fill={fill} opacity={opacity} />
+            <polygon
+              key={index}
+              points={points}
+              fill={fill}
+              opacity={opacity}
+            />
           ))}
         </g>
 
         <g
           transform={`translate(${laneX(QWIK_CAR_DISTANCE, -1)} ${screenY(QWIK_CAR_DISTANCE)}) scale(${1 / QWIK_CAR_DISTANCE})`}
         >
-          <ellipse cx="0" cy="0" rx="346" ry="44" fill="url(#rc-hero-underglow)" />
-          <rect x="-211" y="-38" width="77" height="38" rx="10" fill="#07041a" />
+          <ellipse
+            cx="0"
+            cy="0"
+            rx="346"
+            ry="44"
+            fill="url(#rc-hero-underglow)"
+          />
+          <rect
+            x="-211"
+            y="-38"
+            width="77"
+            height="38"
+            rx="10"
+            fill="#07041a"
+          />
           <rect x="134" y="-38" width="77" height="38" rx="10" fill="#07041a" />
           <path
             d="M -163 -162 L -115 -259 Q 0 -283 115 -259 L 163 -162 Z"
@@ -614,9 +730,28 @@ export const RcHero = component$(() => {
           <path d={sparklePath(0, -65, 34)} fill="#ffffff" />
         </g>
 
-        <rect x="0" y="620" width="2000" height="12" fill="url(#rc-hero-horizon)" />
-        <rect x="0" y="620" width="2000" height="1.2" fill="#d9c7ff" opacity="0.8" />
-        <rect x="0" y="0" width="2000" height="1125" fill="url(#rc-hero-vignette)" />
+        <rect
+          x="0"
+          y="620"
+          width="2000"
+          height="12"
+          fill="url(#rc-hero-horizon)"
+        />
+        <rect
+          x="0"
+          y="620"
+          width="2000"
+          height="1.2"
+          fill="#d9c7ff"
+          opacity="0.8"
+        />
+        <rect
+          x="0"
+          y="0"
+          width="2000"
+          height="1125"
+          fill="url(#rc-hero-vignette)"
+        />
       </svg>
     </div>
   );

@@ -6,8 +6,14 @@ export default component$(() => {
   return (
     <>
       <Display counter={store.counter} list={store.list} />
-      <button onClick$={() => (store.counter = { count: ++store.counter.count })}>+1 Count</button>
-      <button onClick$={() => (store.list = [...store.list, 0])}>+1 List element</button>
+      <button
+        onClick$={() => (store.counter = { count: ++store.counter.count })}
+      >
+        +1 Count
+      </button>
+      <button onClick$={() => (store.list = [...store.list, 0])}>
+        +1 List element
+      </button>
     </>
   );
 });

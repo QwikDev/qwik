@@ -4,7 +4,11 @@
   { "href": "https://ale.gimona.it/" },
   { "href": "https://amo.co/" },
   { "href": "https://bato.si/" },
-  { "href": "https://birdflop.com/", "tags": "site", "repo": "https://github.com/birdflop/web" },
+  {
+    "href": "https://birdflop.com/",
+    "tags": "site",
+    "repo": "https://github.com/birdflop/web"
+  },
   { "href": "https://blueagle.top/", "tags": "portfolio,site,blog" },
   { "href": "https://bot-whatsapp.netlify.app/", "tags": "site" },
   { "href": "https://builtwith.appwrite.io/" },
@@ -22,7 +26,11 @@
   { "href": "https://qit.tools/", "tags": "online,tools,converters" },
   { "href": "https://quotemingle.com/", "tags": "site" },
   { "href": "https://qwik-pokedex.vercel.app/en" },
-  { "href": "https://qwik-storefront.vendure.io/", "size": "large", "tags": "ecommerce" },
+  {
+    "href": "https://qwik-storefront.vendure.io/",
+    "size": "large",
+    "tags": "ecommerce"
+  },
   { "href": "https://qwik.dev" },
   { "href": "https://qwikpdf.alexismoren.fr/", "tags": "pdf,services,free" },
   { "href": "https://qwind.pages.dev/", "tags": "template", "size": "large" },
@@ -42,9 +50,16 @@
   { "href": "https://www.herold.at/" },
   { "href": "https://www.honda.com.tr/" },
   { "href": "https://www.le-cv-du-bantu.com/" },
-  { "href": "https://www.learn-qwik.com/", "size": "large", "tags": "site,tutorial,learn" },
+  {
+    "href": "https://www.learn-qwik.com/",
+    "size": "large",
+    "tags": "site,tutorial,learn"
+  },
   { "href": "https://www.nau.ch/" },
-  { "href": "https://www.placementpreparation.io/", "tags": "aptitude,learning,platform" },
+  {
+    "href": "https://www.placementpreparation.io/",
+    "tags": "aptitude,learning,platform"
+  },
   { "href": "https://www.sport-thieme.de/" },
   { "href": "https://www.uswitch.com/" }
 ]

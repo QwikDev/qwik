@@ -35,7 +35,9 @@ export const ArticlesGrid = component$(() => {
               </div>
               <div class="flex items-center space-x-2">
                 <lucide.clock2 class="size-[18px] text-primary-standalone-base" />
-                <span class="text-body-sm">{post.readingTime || '5'} min read</span>
+                <span class="text-body-sm">
+                  {post.readingTime || '5'} min read
+                </span>
               </div>
             </div>
           </Link>

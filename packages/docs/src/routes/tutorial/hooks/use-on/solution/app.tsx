@@ -1,4 +1,11 @@
-import { component$, useOnDocument, $, useStore, useOn, useOnWindow } from '@qwik.dev/core';
+import {
+  component$,
+  useOnDocument,
+  $,
+  useStore,
+  useOn,
+  useOnWindow,
+} from '@qwik.dev/core';
 
 export default component$(() => {
   const store = useStore(

@@ -29,7 +29,9 @@ export const ReplDetailPanel = ({ input, store }: ReplDetailPanelProps) => {
       </ReplTabButtons>
 
       <div class="repl-tab">
-        {store.selectedOutputDetail === 'console' ? <ReplConsole store={store} /> : null}
+        {store.selectedOutputDetail === 'console' ? (
+          <ReplConsole store={store} />
+        ) : null}
         {store.selectedOutputDetail === 'options' ? (
           <ReplOptions
             input={input}

@@ -1,7 +1,7 @@
-import type { DocumentHead } from "@qwik.dev/router";
-import { component$ } from "@qwik.dev/core";
-import { Spinner } from "~/components/bootstrap";
-import { colorVariantsList } from "~/constants/data";
+import type { DocumentHead } from '@qwik.dev/router';
+import { component$ } from '@qwik.dev/core';
+import { Spinner } from '~/components/bootstrap';
+import { colorVariantsList } from '~/constants/data';
 
 export default component$(() => {
   return (
@@ -35,11 +35,11 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Qwik - Bootstrap v5 - Spinners",
+  title: 'Qwik - Bootstrap v5 - Spinners',
   meta: [
     {
-      name: "description",
-      content: "Spinners with Boostrap in Qwik",
+      name: 'description',
+      content: 'Spinners with Boostrap in Qwik',
     },
   ],
 };

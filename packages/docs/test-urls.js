@@ -207,7 +207,9 @@ async function testAllPaths() {
     }
   }
 
-  console.log(`\nTest complete: ${successCount} successful, ${failCount} failed`);
+  console.log(
+    `\nTest complete: ${successCount} successful, ${failCount} failed`
+  );
   if (failCount > 0) {
     console.log('\nFailed paths:');
     failedPaths.forEach((path) => {

@@ -7,25 +7,22 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { getRequestEvent } from "@qwik.dev/router";
-import {
-  createQwikRouter,
-  type PlatformNode,
-} from "@qwik.dev/router/middleware/node";
-import "dotenv/config";
-import express from "express";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-import render from "./entry.ssr";
+import { getRequestEvent } from '@qwik.dev/router';
+import { createQwikRouter, type PlatformNode } from '@qwik.dev/router/middleware/node';
+import 'dotenv/config';
+import express from 'express';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import render from './entry.ssr';
 
 declare global {
   type QwikRouterPlatform = PlatformNode;
 }
 
 // Directories where the static assets are located
-const distDir = join(fileURLToPath(import.meta.url), "..", "..", "dist");
-const buildDir = join(distDir, "build");
-const assetsDir = join(distDir, "assets");
+const distDir = join(fileURLToPath(import.meta.url), '..', '..', 'dist');
+const buildDir = join(distDir, 'build');
+const assetsDir = join(distDir, 'assets');
 
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3000;
@@ -50,10 +47,10 @@ const app = express();
 // Optional request-aware diagnostics for crashes that escape request boundaries.
 // This does not prevent Node from crashing, but it does provide better diagnostics for uncaught exceptions.
 // See the Node documentation to handle uncaught exceptions and unhandled rejections in your app.
-process.on("uncaughtExceptionMonitor", (error, origin) => {
+process.on('uncaughtExceptionMonitor', (error, origin) => {
   const requestEv = getRequestEvent();
   if (requestEv) {
-    console.error("Unhandled exception during request", {
+    console.error('Unhandled exception during request', {
       origin,
       method: requestEv.method,
       url: requestEv.url.href,
@@ -63,7 +60,7 @@ process.on("uncaughtExceptionMonitor", (error, origin) => {
     return;
   }
 
-  console.error("Unhandled exception outside request", { origin, error });
+  console.error('Unhandled exception outside request', { origin, error });
 });
 
 // Enable gzip compression
@@ -71,11 +68,8 @@ process.on("uncaughtExceptionMonitor", (error, origin) => {
 
 // Static asset handlers
 // https://expressjs.com/en/starter/static-files.html
-app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: "1y" }));
-app.use(
-  `/assets`,
-  express.static(assetsDir, { immutable: true, maxAge: "1y" }),
-);
+app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y' }));
+app.use(`/assets`, express.static(assetsDir, { immutable: true, maxAge: '1y' }));
 app.use(express.static(distDir, { redirect: false }));
 
 // Use Qwik Router's page and endpoint request handler

@@ -53,7 +53,10 @@ export const Repl = component$((props: ReplProps) => {
   useTask$(({ track }) => {
     track(() => input.files);
 
-    if (!input.files.some((i) => i.path === props.selectedInputPath) && input.files.length > 0) {
+    if (
+      !input.files.some((i) => i.path === props.selectedInputPath) &&
+      input.files.length > 0
+    ) {
       store.selectedInputPath = input.files[0].path;
     }
   });

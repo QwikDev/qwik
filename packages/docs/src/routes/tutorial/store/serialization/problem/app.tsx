@@ -22,7 +22,9 @@ export default component$(() => {
   return (
     <>
       {parentStore.name}
-      <button onClick$={async () => await parentStore.greetNames(parent)}>alert</button>
+      <button onClick$={async () => await parentStore.greetNames(parent)}>
+        alert
+      </button>
       <ul>
         {parentStore.children.map((child) => (
           <li>

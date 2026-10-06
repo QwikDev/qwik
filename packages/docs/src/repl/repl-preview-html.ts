@@ -17,10 +17,16 @@ const tryInjectPreviewStyle = (html: string) => {
     return html.replace(/<\/head>/i, `${replPreviewStyle}</head>`);
   }
   if (/<body(?:\s[^>]*)?>/i.test(html)) {
-    return html.replace(/<body(?:\s[^>]*)?>/i, (body) => `${body}${replPreviewStyle}`);
+    return html.replace(
+      /<body(?:\s[^>]*)?>/i,
+      (body) => `${body}${replPreviewStyle}`
+    );
   }
   if (/<head(?:\s[^>]*)?>/i.test(html)) {
-    return html.replace(/<head(?:\s[^>]*)?>/i, (head) => `${head}${replPreviewStyle}`);
+    return html.replace(
+      /<head(?:\s[^>]*)?>/i,
+      (head) => `${head}${replPreviewStyle}`
+    );
   }
   return null;
 };

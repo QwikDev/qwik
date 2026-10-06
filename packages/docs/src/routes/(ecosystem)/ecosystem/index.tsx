@@ -107,7 +107,10 @@ export default component$(() => {
                   thumbnailBg={true}
                 />
               ))}
-              <AddIntegrationItem title="Add A Library" href="/docs/advanced/library/" />
+              <AddIntegrationItem
+                title="Add A Library"
+                href="/docs/advanced/library/"
+              />
             </ul>
           </section>
 
@@ -121,7 +124,9 @@ export default component$(() => {
                 >
                   <ImgQwikNewsletter />
                 </div>
-                <div class="text-2xl font-bold">Qwikly Newsletter - Weekly news about Qwik</div>
+                <div class="text-2xl font-bold">
+                  Qwikly Newsletter - Weekly news about Qwik
+                </div>
               </div>
             </a>
           </section>
@@ -272,7 +277,12 @@ export default component$(() => {
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-4">
               {data.communities.map((item, i) => (
-                <GridItem title={item.title} href={item.href} imgSrc={item.imgSrc} key={i} />
+                <GridItem
+                  title={item.title}
+                  href={item.href}
+                  imgSrc={item.imgSrc}
+                  key={i}
+                />
               ))}
             </ul>
 
@@ -297,7 +307,12 @@ export default component$(() => {
             </h2>
             <ul class="grid gap-8 grid-cols-2 md:grid-cols-3">
               {data.social.map((item, i) => (
-                <GridItem title={item.title} href={item.href} imgSrc={item.imgSrc} key={i} />
+                <GridItem
+                  title={item.title}
+                  href={item.href}
+                  imgSrc={item.imgSrc}
+                  key={i}
+                />
               ))}
             </ul>
           </section>
@@ -316,7 +331,13 @@ export const GridItem: FunctionComponent<GridItemProps> = (props) => {
     <li class="grid-item">
       <Link href={props.href}>
         <div class={{ thumbnail: props.thumbnailBg, cover: props.imgCover }}>
-          <img src={props.imgSrc} alt={props.title} width="250" height="120" loading="lazy" />
+          <img
+            src={props.imgSrc}
+            alt={props.title}
+            width="250"
+            height="120"
+            loading="lazy"
+          />
         </div>
         <div class="text">{props.title}</div>
       </Link>
@@ -324,7 +345,9 @@ export const GridItem: FunctionComponent<GridItemProps> = (props) => {
   );
 };
 
-export const LibraryGridItem: FunctionComponent<LibraryGridItemProps> = (props) => {
+export const LibraryGridItem: FunctionComponent<LibraryGridItemProps> = (
+  props
+) => {
   return (
     <li class="grid-item">
       <Link href={props.href}>
@@ -349,8 +372,16 @@ export const AddIntegrationItem: FunctionComponent<GridItemProps> = (props) => {
     <li class="grid-item add-integration">
       <Link href={props.href}>
         <div class="thumbnail">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 64 64">
-            <path fill="currentColor" d="M38 26V2H26v24H2v12h24v24h12V38h24V26z" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="48"
+            height="48"
+            viewBox="0 0 64 64"
+          >
+            <path
+              fill="currentColor"
+              d="M38 26V2H26v24H2v12h24v24h12V38h24V26z"
+            />
           </svg>
         </div>
         <div class="text">{props.title}</div>

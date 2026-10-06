@@ -1,5 +1,9 @@
 import { component$, untrack } from '@qwik.dev/core';
-import { DocumentHeadTags, useDocumentHead, useLocation } from '@qwik.dev/router';
+import {
+  DocumentHeadTags,
+  useDocumentHead,
+  useLocation,
+} from '@qwik.dev/router';
 import { Social } from './social';
 import { Vendor } from './vendor';
 
@@ -15,7 +19,8 @@ export const RouterHead = component$(() => {
   const description =
     head.meta.find((m) => m.name === 'description')?.content ||
     `No hydration, auto lazy-loading, edge-optimized, and fun 🎉!`;
-  const pageMeta = (property: string) => head.meta.find((m) => m.property === property)?.content;
+  const pageMeta = (property: string) =>
+    head.meta.find((m) => m.property === property)?.content;
   const pageImage = pageMeta('og:image');
   const socialImage = new URL(
     pageImage || '/logos/og-image.png',

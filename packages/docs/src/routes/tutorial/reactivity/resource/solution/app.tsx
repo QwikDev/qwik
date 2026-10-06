@@ -9,17 +9,19 @@ import {
   type Signal,
 } from '@qwik.dev/core';
 
-const Repos = component$((props: { org: Signal<string>; repos: Signal<string[]> }) => {
-  return (
-    <ul>
-      {props.repos.value.map((repo) => (
-        <li>
-          <a href={`https://github.com/${props.org.value}/${repo}`}>{repo}</a>
-        </li>
-      ))}
-    </ul>
-  );
-});
+const Repos = component$(
+  (props: { org: Signal<string>; repos: Signal<string[]> }) => {
+    return (
+      <ul>
+        {props.repos.value.map((repo) => (
+          <li>
+            <a href={`https://github.com/${props.org.value}/${repo}`}>{repo}</a>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+);
 
 export default component$(() => {
   const githubOrg = useSignal('QwikDev');
@@ -45,7 +47,8 @@ export default component$(() => {
         <Catch
           fallback$={$((error, reset) => (
             <>
-              Error: {error.message} <button onClick$={() => reset()}>Retry</button>
+              Error: {error.message}{' '}
+              <button onClick$={() => reset()}>Retry</button>
             </>
           ))}
         >

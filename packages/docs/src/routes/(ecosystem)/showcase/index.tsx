@@ -27,7 +27,9 @@ export default component$(() => {
   useStyles$(styles);
   pages.sort(() => (Math.random() > 0.5 ? 1 : -1));
   const greatSites = pages.filter((site) => site.perf.score >= 0.9);
-  const runnerUpSites = pages.filter((site) => site.perf.score >= 0.8 && site.perf.score < 0.9);
+  const runnerUpSites = pages.filter(
+    (site) => site.perf.score >= 0.8 && site.perf.score < 0.9
+  );
   return (
     <article class="showcase">
       <h1>Showcase</h1>
@@ -68,7 +70,13 @@ export const SiteLink = component$((props: { entry: MediaEntry }) => {
     <li class={size}>
       <Score speedScore={perf.score} url={href}></Score>
       <a class="card" href={href} target="_blank" rel="nofollow noreferrer">
-        <img width="1440" height="980" loading="lazy" src={imgSrc} aria-hidden="true" />
+        <img
+          width="1440"
+          height="980"
+          loading="lazy"
+          src={imgSrc}
+          aria-hidden="true"
+        />
         <div class="backdrop">
           <div class="metrics">
             {perf.inpMs ? (
@@ -137,7 +145,13 @@ export const SiteLink = component$((props: { entry: MediaEntry }) => {
   );
 });
 
-export const Score = ({ speedScore, url }: { speedScore: number; url: string }) => {
+export const Score = ({
+  speedScore,
+  url,
+}: {
+  speedScore: number;
+  url: string;
+}) => {
   return (
     <a
       class="score"
@@ -151,7 +165,13 @@ export const Score = ({ speedScore, url }: { speedScore: number; url: string }) 
     >
       <div class="score-inner">
         <svg viewBox="0 0 120 120">
-          <circle class="circle-1" r="56" cx="60" cy="60" stroke-width="8"></circle>
+          <circle
+            class="circle-1"
+            r="56"
+            cx="60"
+            cy="60"
+            stroke-width="8"
+          ></circle>
           <circle
             r="56"
             cx="60"
@@ -175,13 +195,25 @@ const lighthouseOrange = '#ffaa32';
 const lighthouseGreen = '#0c6';
 
 function getLighthouseColorForScore(score: number) {
-  return score < 0.5 ? lighthouseRed : score < 0.9 ? lighthouseOrange : lighthouseGreen;
+  return score < 0.5
+    ? lighthouseRed
+    : score < 0.9
+      ? lighthouseOrange
+      : lighthouseGreen;
 }
 function getLighthouseColorForMs(ms: number, goodMs: number, badMs: number) {
-  return ms < goodMs ? lighthouseGreen : ms < badMs ? lighthouseOrange : lighthouseRed;
+  return ms < goodMs
+    ? lighthouseGreen
+    : ms < badMs
+      ? lighthouseOrange
+      : lighthouseRed;
 }
 function getLighthouseColorForCls(cls: number) {
-  return cls < 0.1 ? lighthouseGreen : cls < 0.25 ? lighthouseOrange : lighthouseRed;
+  return cls < 0.1
+    ? lighthouseGreen
+    : cls < 0.25
+      ? lighthouseOrange
+      : lighthouseRed;
 }
 function getPagespeedInsightsUrl(url: string) {
   return `https://pagespeed.web.dev/report?url=${encodeURIComponent(url)}`;

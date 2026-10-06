@@ -7,16 +7,16 @@ html {
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
-    "Segoe UI",
+    'Segoe UI',
     Roboto,
-    "Helvetica Neue",
+    'Helvetica Neue',
     Arial,
-    "Noto Sans",
+    'Noto Sans',
     sans-serif,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol",
-    "Noto Color Emoji";
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Segoe UI Symbol',
+    'Noto Color Emoji';
 }
 
 body {
@@ -194,7 +194,7 @@ button.button-small {
 .icon:before {
   width: 18px;
   height: 18px;
-  content: "";
+  content: '';
   display: inline-block;
   margin-right: 20px;
   position: relative;

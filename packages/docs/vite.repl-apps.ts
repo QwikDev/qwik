@@ -190,12 +190,16 @@ export function tutorialData(routesDir: string): Plugin {
           const appTypeDir = join(appDir, appType);
 
           if (!existsSync(appTypeDir)) {
-            throw new Error(`Tutorial "${appType}" dir "${appTypeDir}" doesn't exist`);
+            throw new Error(
+              `Tutorial "${appType}" dir "${appTypeDir}" doesn't exist`
+            );
           }
 
           const s = statSync(sectionDir);
           if (!s.isDirectory()) {
-            throw new Error(`Tutorial "${appType}" dir "${appTypeDir}" is not a directory`);
+            throw new Error(
+              `Tutorial "${appType}" dir "${appTypeDir}" is not a directory`
+            );
           }
 
           const inputs: ReplModuleInput[] = readdirSync(appTypeDir)
@@ -320,10 +324,13 @@ export function rawSource(): Plugin {
     resolveId: {
       order: 'pre',
       async handler(id, importer) {
-        const match = /^(?<path>.*)\?(|(?<before>.+)&)raw-source($|&(?<after>.*))/.exec(id);
+        const match =
+          /^(?<path>.*)\?(|(?<before>.+)&)raw-source($|&(?<after>.*))/.exec(id);
 
         if (match) {
-          const newQuery = [match.groups!.before, match.groups!.after].filter(Boolean).join('&');
+          const newQuery = [match.groups!.before, match.groups!.after]
+            .filter(Boolean)
+            .join('&');
           const newId = `${match.groups!.path}${newQuery ? `?${newQuery}` : ''}`;
           const resolved = await this.resolve(newId, importer, {
             skipSelf: true,
@@ -376,7 +383,11 @@ export function rawSource(): Plugin {
         const ref = match[1];
         const fileName = this.getFileName(ref);
         chunk.viteMetadata!.importedAssets.add(fileName);
-        s.overwrite(match.index, match.index + match[0].length, base + fileName);
+        s.overwrite(
+          match.index,
+          match.index + match[0].length,
+          base + fileName
+        );
       }
       return s
         ? {

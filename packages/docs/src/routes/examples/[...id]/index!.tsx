@@ -7,13 +7,20 @@ import {
   useTask$,
   useVisibleTask$,
 } from '@qwik.dev/core';
-import type { PathParams, RequestHandler, StaticGenerateHandler } from '@qwik.dev/router';
+import type {
+  PathParams,
+  RequestHandler,
+  StaticGenerateHandler,
+} from '@qwik.dev/router';
 import { useLocation, type DocumentHead } from '@qwik.dev/router';
 import { Header } from '../../../components/header/header';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
 import type { ReplAppInput } from '../../../repl/types';
 import { Repl } from '../../../repl/ui';
-import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/ui/repl-share-url';
+import {
+  createPlaygroundShareUrl,
+  parsePlaygroundShareUrl,
+} from '../../../repl/ui/repl-share-url';
 import { setReplCorsHeaders } from '~/utils/utils';
 import styles from './examples.css?inline';
 

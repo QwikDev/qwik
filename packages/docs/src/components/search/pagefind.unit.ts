@@ -113,7 +113,12 @@ test('groupSearchResults promotes partial title matches before excerpt-only matc
 
   assert.deepEqual(
     grouped[0]?.items.map((item) => item.title),
-    ['Getting started qwikly', 'CSS', 'Tutorial overview', 'Notes about getting started']
+    [
+      'Getting started qwikly',
+      'CSS',
+      'Tutorial overview',
+      'Notes about getting started',
+    ]
   );
 });
 

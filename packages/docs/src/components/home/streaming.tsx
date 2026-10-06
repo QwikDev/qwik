@@ -28,7 +28,9 @@ export const Streaming = component$(() => {
         <div class="flex flex-col gap-6">
           {streamingHighlights.map((highlight, index) => (
             <p key={highlight} class={index === 1 ? 'max-w-[50ch]' : 'w-fit'}>
-              <span class="shadow-sm-base 2xl:text-body-md text-body-sm">{highlight}</span>
+              <span class="shadow-sm-base 2xl:text-body-md text-body-sm">
+                {highlight}
+              </span>
             </p>
           ))}
         </div>
@@ -53,24 +55,26 @@ export const Streaming = component$(() => {
   );
 });
 
-export const Card = component$(({ class: className, ...rest }: PropsOf<'div'>) => {
-  const dots = Array.from({ length: 3 }).map(() => (
-    <div class="bg-background-base 2xl:size-3 size-2 rounded-full" />
-  ));
+export const Card = component$(
+  ({ class: className, ...rest }: PropsOf<'div'>) => {
+    const dots = Array.from({ length: 3 }).map(() => (
+      <div class="bg-background-base 2xl:size-3 size-2 rounded-full" />
+    ));
 
-  return (
-    <div
-      class={[
-        'w-fit rounded-2xl border-[1.6px] border-emphasis h-fit bg-background-base',
-        className,
-      ]}
-      {...rest}
-    >
-      <div class="bg-background-accent border-b-[1.6px] border-emphasis h-[27.241px] 2xl:h-11 rounded-t-2xl flex gap-2 px-3 items-center">
-        {dots}
+    return (
+      <div
+        class={[
+          'w-fit rounded-2xl border-[1.6px] border-emphasis h-fit bg-background-base',
+          className,
+        ]}
+        {...rest}
+      >
+        <div class="bg-background-accent border-b-[1.6px] border-emphasis h-[27.241px] 2xl:h-11 rounded-t-2xl flex gap-2 px-3 items-center">
+          {dots}
+        </div>
+
+        <Slot />
       </div>
-
-      <Slot />
-    </div>
-  );
-});
+    );
+  }
+);

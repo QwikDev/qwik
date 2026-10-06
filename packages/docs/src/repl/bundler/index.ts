@@ -2,7 +2,11 @@
 
 import type { ReplInputOptions, ReplResult } from '../types';
 import { getDeps } from './bundled';
-import type { BundleMessage, InitMessage, OutgoingMessage } from './repl-bundler-worker';
+import type {
+  BundleMessage,
+  InitMessage,
+  OutgoingMessage,
+} from './repl-bundler-worker';
 import bundlerWorkerUrl from './repl-bundler-worker?worker&url';
 
 const bundlers = new Map<string, Bundler>();
@@ -73,7 +77,9 @@ class Bundler {
     this.timer = setTimeout(() => this.terminateWorker(), 1000 * 60 * 5);
   }
 
-  bundle(options: Omit<ReplInputOptions, 'version' | 'serverUrl'>): Promise<ReplResult> {
+  bundle(
+    options: Omit<ReplInputOptions, 'version' | 'serverUrl'>
+  ): Promise<ReplResult> {
     if (!this.worker) {
       this.initWorker();
     }

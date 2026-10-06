@@ -1,124 +1,19 @@
-import globals from 'globals';
-import js from '@eslint/js';
+// Rules oxlint can't express: type-aware and esquery-selector checks.
 import tseslint from 'typescript-eslint';
-import noOnlyTests from 'eslint-plugin-no-only-tests';
-import { globalIgnores } from 'eslint/config';
 import { qwikLoopStyleRule } from './eslint-rules/qwik-loop-style.mjs';
-// import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
-
-const ignores = [
-  '**/.history',
-  '**/.vscode',
-  '**/dist',
-  '**/dist-dev',
-  '**/lib',
-  '**/node_modules',
-  '**/tsc-out',
-  '**/external',
-  '**/*.',
-  '**/*.log',
-  '**/etc',
-  '**/target',
-  '**/temp',
-  '**/tsdoc-metadata.json',
-  '**/.DS_Store',
-  '**/*.mp4',
-  'scripts',
-  '**/server/**/*.js',
-  '**/*.tsbuildinfo',
-  'packages/docs/api',
-  'packages/docs/public/repl/repl-sw.js*',
-  'packages/docs/src/routes/examples/apps',
-  'packages/docs/src/routes/playground/app',
-  'packages/docs/src/routes/tutorial',
-  'packages/optimizer/core/src/fixtures',
-  'packages/optimizer/bindings',
-  'packages/qwik-labs/lib',
-  'packages/qwik-labs/lib-types',
-  'packages/qwik-labs/vite',
-  'packages/insights/drizzle.config.ts',
-  'packages/insights/panda.config.ts',
-  'packages/optimizer/napi',
-  'starters/apps/base',
-  'starters/apps/library',
-  'starters/templates',
-  '**/vite.config.ts',
-  // packages with eslint.config.mjs
-  'packages/qwik-labs',
-  'packages/insights',
-  // eslint.config.*
-  '**/eslint.config.mjs',
-  '**/eslint.config.js',
-  '.changeset',
-  'packages/docs/public/builder',
-];
 
 export default tseslint.config(
-  globalIgnores(ignores),
-  js.configs.recommended,
-  tseslint.configs.recommended,
-  // qwikEslint9Plugin.configs.recommended,
   {
+    files: ['packages/qwik/src/**/*.{ts,tsx}', 'packages/qwik-router/src/**/*.{ts,tsx}'],
     languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-        ...globals.es2021,
-      },
-      parserOptions: {
-        // Needed when using the qwik plugin
-        // projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
+      parser: tseslint.parser,
     },
-  },
-  {
+    // Lets existing `@typescript-eslint/*` disable comments resolve.
     plugins: {
-      'no-only-tests': noOnlyTests,
+      '@typescript-eslint': tseslint.plugin,
     },
-    rules: {
-      'no-only-tests/no-only-tests': 'error',
-    },
-    name: 'no-only-tests',
-  },
-  {
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-inferrable-types': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/no-empty-interface': 'off',
-      '@typescript-eslint/no-namespace': 'off',
-      '@typescript-eslint/no-empty-function': 'off',
-      '@typescript-eslint/no-this-alias': 'off',
-      '@typescript-eslint/ban-types': 'off',
-      '@typescript-eslint/ban-ts-comment': 'off',
-      'prefer-spread': 'off',
-      'no-case-declarations': 'off',
-      'no-console': ['error', { allow: ['warn', 'error'] }],
-      'no-only-tests/no-only-tests': 'error',
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-var-requires': 'off',
-      curly: 'error',
-      'no-new-func': 'error',
-      '@typescript-eslint/no-empty-object-type': 'off',
-      '@typescript-eslint/no-unused-expressions': 'off',
-      '@typescript-eslint/no-unsafe-function-type': 'off',
-      '@typescript-eslint/no-require-imports': 'off',
-      '@typescript-eslint/no-wrapper-object-types': 'off',
-    },
-  },
-  {
-    files: ['packages/docs/**/*.{ts,tsx}'],
-    rules: {
-      'no-console': 'off',
-    },
-  },
-  {
-    // Benchmark and rust-convergence tests report their results on stdout.
-    files: ['packages/ts-optimizer/tests/**/*.{ts,tsx}'],
-    rules: {
-      'no-console': 'off',
+    linterOptions: {
+      reportUnusedDisableDirectives: 'off',
     },
   },
   {
@@ -194,50 +89,6 @@ export default tseslint.config(
             'Use the `qTest` const from `<...>/shared/utils/qdev` instead of ' +
             '`import.meta.env?.TEST`. `qTest` reads `globalThis.qTest` (webpack-safe) AND ' +
             'lets Terser fold it via `global_defs` for prod tree-shaking.',
-        },
-      ],
-    },
-  },
-  {
-    files: ['packages/qwik/src/server/**/*.ts'],
-    ignores: ['packages/qwik/src/server/qwik-copy.ts'],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['packages/*'],
-              message: 'Absolute imports are not allowed.',
-            },
-            {
-              group: ['../**'],
-              message: 'Relative imports are not allowed.',
-            },
-          ],
-        },
-      ],
-      'no-duplicate-imports': 'error',
-    },
-  },
-  {
-    files: ['packages/qwik/src/server/qwik-types.ts'],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['packages/*'],
-              message: 'Absolute imports are not allowed.',
-              allowTypeImports: true,
-            },
-            {
-              group: ['../**'],
-              message: 'Relative imports are not allowed.',
-              allowTypeImports: true,
-            },
-          ],
         },
       ],
     },

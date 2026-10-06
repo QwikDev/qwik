@@ -22,7 +22,10 @@ export type PagefindSearchResponse = {
 };
 
 export type PagefindModuleNamespace = {
-  options: (options: { bundlePath?: string; excerptLength?: number }) => Promise<void>;
+  options: (options: {
+    bundlePath?: string;
+    excerptLength?: number;
+  }) => Promise<void>;
   init: () => Promise<void>;
   debouncedSearch: (
     term: string,
@@ -74,24 +77,32 @@ const normalizeTitle = (title: string): string => {
 
 export const normalizeSearchHref = (href: string): string => {
   const url = new URL(href, 'https://qwik.dev');
-  const pathname = url.pathname === '/' ? '/' : url.pathname.replace(/\/$/, '') || '/';
+  const pathname =
+    url.pathname === '/' ? '/' : url.pathname.replace(/\/$/, '') || '/';
   return `${pathname}${url.hash}`;
 };
 
 export const isApiSearchHref = (href: string): boolean => {
   const normalizedHref = normalizeSearchHref(href);
-  return normalizedHref === API_PREFIX || normalizedHref.startsWith(`${API_PREFIX}/`);
+  return (
+    normalizedHref === API_PREFIX || normalizedHref.startsWith(`${API_PREFIX}/`)
+  );
 };
 
-const pickBestResult = (item: PagefindSearchData): PagefindSubResult | PagefindSearchData => {
+const pickBestResult = (
+  item: PagefindSearchData
+): PagefindSubResult | PagefindSearchData => {
   return (
     item.sub_results?.find(
-      (subResult) => Boolean(subResult.url) && Boolean(subResult.title || subResult.excerpt)
+      (subResult) =>
+        Boolean(subResult.url) && Boolean(subResult.title || subResult.excerpt)
     ) ?? item
   );
 };
 
-export const normalizePagefindResults = (items: PagefindSearchData[]): SearchResultItem[] => {
+export const normalizePagefindResults = (
+  items: PagefindSearchData[]
+): SearchResultItem[] => {
   return items.map((item) => {
     const bestResult = pickBestResult(item);
     const href = normalizeSearchHref(bestResult.url);
@@ -109,7 +120,10 @@ export const normalizePagefindResults = (items: PagefindSearchData[]): SearchRes
   });
 };
 
-const rankGroupItems = (items: SearchResultItem[], query: string): SearchResultItem[] => {
+const rankGroupItems = (
+  items: SearchResultItem[],
+  query: string
+): SearchResultItem[] => {
   const normalizedQuery = normalizeQuery(query);
 
   if (!normalizedQuery) {
@@ -136,11 +150,17 @@ const rankGroupItems = (items: SearchResultItem[], query: string): SearchResultI
       index,
       priority: getPriority(item),
     }))
-    .sort((left, right) => left.priority - right.priority || left.index - right.index)
+    .sort(
+      (left, right) =>
+        left.priority - right.priority || left.index - right.index
+    )
     .map(({ item }) => item);
 };
 
-export const groupSearchResults = (items: SearchResultItem[], query = ''): SearchResultGroup[] => {
+export const groupSearchResults = (
+  items: SearchResultItem[],
+  query = ''
+): SearchResultGroup[] => {
   const docsItems: SearchResultItem[] = [];
   const apiItems: SearchResultItem[] = [];
 

@@ -7,7 +7,12 @@ import {
   useSignal,
   useVisibleTask$,
 } from '@qwik.dev/core';
-import { Link, useContent, useLocation, type ContentMenu } from '@qwik.dev/router';
+import {
+  Link,
+  useContent,
+  useLocation,
+  type ContentMenu,
+} from '@qwik.dev/router';
 import { lucide, tree } from '@qds.dev/ui';
 import { maxTs, updated } from '@docs-updated';
 import { hideSidebarOnDismissClick } from '../sidebar-overlay/sidebar-overlay';
@@ -21,7 +26,8 @@ const normalizePath = (path: string) => {
 };
 
 /** Doc pages updated since the visitor's last visit and not yet opened. */
-const UpdatedPathsContext = createContextId<Signal<Record<string, true>>>('docs-updated-paths');
+const UpdatedPathsContext =
+  createContextId<Signal<Record<string, true>>>('docs-updated-paths');
 
 export const sidebarId = 'sidebar';
 
@@ -39,7 +45,9 @@ export const Sidebar = component$(() => {
     ({ track }) => {
       const current = normalizePath(track(() => url.pathname));
       const stored = localStorage.getItem(SEEN_STORAGE_KEY);
-      const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const monthAgo = new Date(
+        Date.now() - 30 * 24 * 60 * 60 * 1000
+      ).toISOString();
       const state: { lastTs: string; pending: string[] } = stored
         ? JSON.parse(stored)
         : { lastTs: monthAgo, pending: [] };
@@ -56,7 +64,9 @@ export const Sidebar = component$(() => {
         state.pending.splice(openedIndex, 1);
       }
       localStorage.setItem(SEEN_STORAGE_KEY, JSON.stringify(state));
-      updatedPaths.value = Object.fromEntries(state.pending.map((path) => [path, true]));
+      updatedPaths.value = Object.fromEntries(
+        state.pending.map((path) => [path, true])
+      );
     },
     { strategy: 'document-idle' }
   );
@@ -156,30 +166,32 @@ const UpdatedDot = component$<{ href: string | undefined }>((props) => {
   );
 });
 
-const IntroTreeItem = component$((props: { item: ContentMenu; pathname: string }) => {
-  const isActive = props.pathname === props.item.href;
+const IntroTreeItem = component$(
+  (props: { item: ContentMenu; pathname: string }) => {
+    const isActive = props.pathname === props.item.href;
 
-  return (
-    <tree.item>
-      <tree.itemlabel class="w-full my-0.5">
-        <Link
-          href={props.item.href}
-          tabIndex={-1}
-          class={[
-            'flex items-center gap-2 p-2 rounded-lg text-[16px] leading-[22px] font-semibold',
-            isActive
-              ? 'bg-background-emphasis text-standalone-emphasis border-[1.6px] border-transparent'
-              : 'text-foreground-muted hover:bg-background-accent hover:text-standalone-accent border-[1.6px] border-transparent',
-          ]}
-        >
-          <IntroItemIcon text={props.item.text} />
-          <span>{props.item.text}</span>
-          <UpdatedDot href={props.item.href} />
-        </Link>
-      </tree.itemlabel>
-    </tree.item>
-  );
-});
+    return (
+      <tree.item>
+        <tree.itemlabel class="w-full my-0.5">
+          <Link
+            href={props.item.href}
+            tabIndex={-1}
+            class={[
+              'flex items-center gap-2 p-2 rounded-lg text-[16px] leading-[22px] font-semibold',
+              isActive
+                ? 'bg-background-emphasis text-standalone-emphasis border-[1.6px] border-transparent'
+                : 'text-foreground-muted hover:bg-background-accent hover:text-standalone-accent border-[1.6px] border-transparent',
+            ]}
+          >
+            <IntroItemIcon text={props.item.text} />
+            <span>{props.item.text}</span>
+            <UpdatedDot href={props.item.href} />
+          </Link>
+        </tree.itemlabel>
+      </tree.item>
+    );
+  }
+);
 
 const GuidesTreeNode = component$(
   (props: { section: ContentMenu; pathname: string; sectionIndex: number }) => {
@@ -190,7 +202,9 @@ const GuidesTreeNode = component$(
     }
 
     const hasActiveChild = section.items.some(
-      (item) => pathname === item.href || item.items?.some((sub) => pathname === sub.href)
+      (item) =>
+        pathname === item.href ||
+        item.items?.some((sub) => pathname === sub.href)
     );
     const isOpen = useSignal(sectionIndex === 0 || hasActiveChild);
 
@@ -238,51 +252,56 @@ const GuidesTreeNode = component$(
   }
 );
 
-const SubTreeNode = component$((props: { item: ContentMenu; pathname: string }) => {
-  const { item, pathname } = props;
-  const hasActiveChild = item.items?.some((child) => pathname === child.href);
-  const isOpen = useSignal(hasActiveChild || false);
+const SubTreeNode = component$(
+  (props: { item: ContentMenu; pathname: string }) => {
+    const { item, pathname } = props;
+    const hasActiveChild = item.items?.some((child) => pathname === child.href);
+    const isOpen = useSignal(hasActiveChild || false);
 
-  return (
-    <tree.item bind:open={isOpen}>
-      <tree.itemtrigger class="w-full cursor-pointer flex items-center pl-6 pr-2 py-2 rounded-lg hover:text-standalone-accent text-foreground-muted justify-between">
-        <span class="flex items-center gap-2 text-[16px] leading-[22px] font-semibold">
-          <SubTreeIcon name={item.text} />
-          <span>{item.text}</span>
-        </span>
-        <span
-          class={['transition-transform duration-200 size-4 shrink-0', isOpen.value && 'rotate-90']}
-        >
-          <lucide.chevronright class="size-4" />
-        </span>
-      </tree.itemtrigger>
-      <tree.itemcontent class="flex flex-col gap-0.5">
-        {item.items?.map((child, k) => {
-          const isActive = pathname === child.href;
-          return (
-            <tree.item key={k}>
-              <tree.itemlabel class="w-full my-0.5">
-                <Link
-                  href={child.href}
-                  tabIndex={-1}
-                  class={[
-                    'flex items-center gap-2 pl-10 pr-2 py-2 rounded-lg text-[16px] leading-[22px] font-semibold',
-                    isActive
-                      ? 'bg-background-emphasis text-standalone-emphasis border-[1.6px] border-transparent'
-                      : 'text-foreground-muted hover:bg-background-accent hover:text-standalone-accent border-[1.6px] border-transparent',
-                  ]}
-                >
-                  <span class="truncate">{child.text}</span>
-                  <UpdatedDot href={child.href} />
-                </Link>
-              </tree.itemlabel>
-            </tree.item>
-          );
-        })}
-      </tree.itemcontent>
-    </tree.item>
-  );
-});
+    return (
+      <tree.item bind:open={isOpen}>
+        <tree.itemtrigger class="w-full cursor-pointer flex items-center pl-6 pr-2 py-2 rounded-lg hover:text-standalone-accent text-foreground-muted justify-between">
+          <span class="flex items-center gap-2 text-[16px] leading-[22px] font-semibold">
+            <SubTreeIcon name={item.text} />
+            <span>{item.text}</span>
+          </span>
+          <span
+            class={[
+              'transition-transform duration-200 size-4 shrink-0',
+              isOpen.value && 'rotate-90',
+            ]}
+          >
+            <lucide.chevronright class="size-4" />
+          </span>
+        </tree.itemtrigger>
+        <tree.itemcontent class="flex flex-col gap-0.5">
+          {item.items?.map((child, k) => {
+            const isActive = pathname === child.href;
+            return (
+              <tree.item key={k}>
+                <tree.itemlabel class="w-full my-0.5">
+                  <Link
+                    href={child.href}
+                    tabIndex={-1}
+                    class={[
+                      'flex items-center gap-2 pl-10 pr-2 py-2 rounded-lg text-[16px] leading-[22px] font-semibold',
+                      isActive
+                        ? 'bg-background-emphasis text-standalone-emphasis border-[1.6px] border-transparent'
+                        : 'text-foreground-muted hover:bg-background-accent hover:text-standalone-accent border-[1.6px] border-transparent',
+                    ]}
+                  >
+                    <span class="truncate">{child.text}</span>
+                    <UpdatedDot href={child.href} />
+                  </Link>
+                </tree.itemlabel>
+              </tree.item>
+            );
+          })}
+        </tree.itemcontent>
+      </tree.item>
+    );
+  }
+);
 
 const SubTreeIcon = component$<{ name: string }>((props) => {
   switch (props.name) {
@@ -337,7 +356,13 @@ const IntroItemIcon = component$<{ text: string }>((props) => {
 
 const QwikLogomark = component$(() => {
   return (
-    <svg width="25" height="27" viewBox="0 0 47 53" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="25"
+      height="27"
+      viewBox="0 0 47 53"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M40.973 52.5351L32.0861 43.6985L31.9503 43.7179V43.621L13.0511 24.9595L17.708 20.4637L14.9721 4.76715L1.99103 20.8513C-0.220992 23.0798 -0.628467 26.7036 0.962635 29.3778L9.07337 42.8265C10.3152 44.9 12.566 46.1402 14.9915 46.1208L19.0081 46.082L40.973 52.5351Z"
         fill="#18B6F6"

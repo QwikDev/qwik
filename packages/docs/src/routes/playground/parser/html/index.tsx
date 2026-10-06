@@ -1,4 +1,9 @@
-import { component$, useComputed$, useSignal, useStyles$ } from '@qwik.dev/core';
+import {
+  component$,
+  useComputed$,
+  useSignal,
+  useStyles$,
+} from '@qwik.dev/core';
 import { _getDomContainer, _vnode_toString } from '@qwik.dev/core/internal';
 import type { DocumentHead } from '@qwik.dev/router';
 
@@ -102,8 +107,12 @@ export default component$(() => {
               </svg>
             </div>
             <div>
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Input HTML</h2>
-              <p class="text-sm text-gray-600 dark:text-gray-300">Paste your HTML code</p>
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Input HTML
+              </h2>
+              <p class="text-sm text-gray-600 dark:text-gray-300">
+                Paste your HTML code
+              </p>
             </div>
           </div>
         </div>
@@ -138,7 +147,9 @@ export default component$(() => {
                 </svg>
               </div>
               <div>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">VNode Tree</h2>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  VNode Tree
+                </h2>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
                   Qwik container VNode tree structure
                 </p>

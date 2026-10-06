@@ -210,7 +210,8 @@ export const blogArticles: BlogArticle[] = [
     readingTime: 6,
   },
   {
-    title: 'Unveiling the Magic: Exploring Reactivity Across Various Frameworks',
+    title:
+      'Unveiling the Magic: Exploring Reactivity Across Various Frameworks',
     image: reactivityHero,
     path: '/blog/reactivity-across-frameworks/',
     tags: ['Web Development'],

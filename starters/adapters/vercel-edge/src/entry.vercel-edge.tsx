@@ -7,11 +7,8 @@
  * - https://qwik.dev/docs/deployments/vercel-edge/
  *
  */
-import {
-  createQwikRouter,
-  type PlatformVercel,
-} from "@qwik.dev/router/middleware/vercel-edge";
-import render from "./entry.ssr";
+import { createQwikRouter, type PlatformVercel } from '@qwik.dev/router/middleware/vercel-edge';
+import render from './entry.ssr';
 
 declare global {
   type QwikRouterPlatform = PlatformVercel;

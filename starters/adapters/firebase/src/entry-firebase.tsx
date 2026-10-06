@@ -7,11 +7,8 @@
  * - https://qwik.dev/docs/deployments/firebase/
  *
  */
-import {
-  createQwikRouter,
-  type PlatformFirebase,
-} from "@qwik.dev/router/middleware/firebase";
-import render from "./entry.ssr";
+import { createQwikRouter, type PlatformFirebase } from '@qwik.dev/router/middleware/firebase';
+import render from './entry.ssr';
 
 declare global {
   type QwikRouterPlatform = PlatformFirebase;

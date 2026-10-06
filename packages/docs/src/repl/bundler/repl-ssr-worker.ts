@@ -90,7 +90,9 @@ const importFrom = (url: string) => {
   return import(/*@vite-ignore*/ url);
 };
 
-async function executeSSR(message: InitSSRMessage): Promise<{ html: string; events: any[] }> {
+async function executeSSR(
+  message: InitSSRMessage
+): Promise<{ html: string; events: any[] }> {
   const { baseUrl, manifest, entry } = message;
   const start = performance.now();
 
@@ -100,7 +102,9 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
 
   const render: Render = typeof server === 'function' ? server : server?.render;
   if (typeof render !== 'function') {
-    throw new Error(`Server module ${entry} does not export default render function`);
+    throw new Error(
+      `Server module ${entry} does not export default render function`
+    );
   }
 
   const events: ReplEvent[] = [];

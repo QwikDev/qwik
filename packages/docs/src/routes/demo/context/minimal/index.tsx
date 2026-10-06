@@ -5,9 +5,8 @@ import {
   createContextId,
 } from '@qwik.dev/core';
 
-export const ThemeContext = createContextId<Signal<string>>(
-  'docs.theme-context'
-);
+export const ThemeContext =
+  createContextId<Signal<string>>('docs.theme-context');
 
 export default component$(() => {
   const theme = useSignal('dark');

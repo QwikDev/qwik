@@ -871,7 +871,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.lastNode = null;
   }
 
-  openProjection(attrs: Props) {
+  openProjection(attrs: Props, slotParentNode: ISsrNode) {
     this.openFragment(attrs);
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
@@ -879,9 +879,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.markVNodeRefForSerialization(projectionNode);
       // TODO: we should probably serialize only projection VNode
       if (!this.vnodeSegment) {
-        this.addRoot(componentFrame.componentNode);
+        this.addRoot(slotParentNode);
       } else {
-        this.markVNodeRefForSerialization(componentFrame.componentNode);
+        this.markVNodeRefForSerialization(slotParentNode);
       }
       componentFrame.projectionDepth++;
     }

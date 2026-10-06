@@ -22,7 +22,8 @@ vi.mock('@qwik-city-static-paths', () => ({
   isStaticPath: vi.fn(() => false),
 }));
 
-vi.mock('@builder.io/qwik-city/middleware/request-handler', () => ({
+vi.mock('@builder.io/qwik-city/middleware/request-handler', async () => ({
+  ServerError: (await import('../request-handler/server-error')).ServerError,
   _TextEncoderStream_polyfill: TextEncoderStream,
   mergeHeadersCookies: vi.fn((headers) => headers),
   requestHandler: mockRequestHandler,

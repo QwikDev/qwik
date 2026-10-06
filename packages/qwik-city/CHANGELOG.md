@@ -1,5 +1,19 @@
 # @builder.io/qwik-city
 
+## 1.20.2
+
+### Patch Changes
+
+- 🐞🩹 limit request bodies to 10 MiB by default in the Node, Deno, Bun, Cloudflare Pages, Netlify Edge and Vercel Edge adapters (and AWS Lambda / Firebase through Node); configurable with the new `requestBodyLimit` option (by [@github-actions](https://github.com/apps/github-actions) in [#9074](https://github.com/QwikDev/qwik/pull/9074))
+
+- 🐞🩹 prevent private responses from entering shared Cloudflare caches (by [@Varixo](https://github.com/Varixo) in [`0585c24`](https://github.com/QwikDev/qwik/commit/0585c24c10ef41153abf5b8bf2b76bd5206d82fd))
+
+- 🐞🩹 prevent excessive array lengths from form field indexes (by [@Varixo](https://github.com/Varixo) in [`b40324c`](https://github.com/QwikDev/qwik/commit/b40324c6a6b3ee5d31bcb7b75a6f533a81c0b013))
+
+- 🐞🩹 catch-all route matching no longer hangs on paths containing `//` (by [@wmertens](https://github.com/wmertens) in [#9072](https://github.com/QwikDev/qwik/pull/9072))
+
+- 🐞🩹 `redirect()` now strips ASCII tab/LF/CR from the URL, so targets like `/<TAB>/example.com` can no longer redirect to another origin (by [@github-actions](https://github.com/apps/github-actions) in [#9074](https://github.com/QwikDev/qwik/pull/9074))
+
 ## 1.20.1
 
 ### Patch Changes

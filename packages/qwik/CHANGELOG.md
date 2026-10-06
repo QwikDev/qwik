@@ -1,5 +1,13 @@
 # @builder.io/qwik
 
+## 1.20.2
+
+### Patch Changes
+
+- 🐞🩹 prevent development image tooling from requesting private network resources (by [@github-actions](https://github.com/apps/github-actions) in [#9074](https://github.com/QwikDev/qwik/pull/9074))
+
+- 🐞🩹 dev server image auto fix endpoint accepted cross-site requests and paths outside `src` (by [@Varixo](https://github.com/Varixo) in [`85efa68`](https://github.com/QwikDev/qwik/commit/85efa68e417bed900910ee90554aaa963fdd47ff))
+
 ## 1.20.1
 
 ### Patch Changes

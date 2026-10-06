@@ -1,5 +1,12 @@
 # @qwik.dev/mcp
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- Updated dependencies [[`9ef4079`](https://github.com/QwikDev/qwik/commit/9ef40794be3ca6d0f7a6001d14b5afa3e69f07c5), [`ea4ebd4`](https://github.com/QwikDev/qwik/commit/ea4ebd4c950513c4104f1dbd2e578847256b9875)]:
+  - @qwik.dev/core@2.0.0-rc.2
+
 ## 2.0.0-rc.1
 
 ### Patch Changes

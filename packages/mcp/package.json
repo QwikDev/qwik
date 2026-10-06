@@ -1,6 +1,6 @@
 {
   "name": "@qwik.dev/mcp",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "description": "Local MCP tools for Qwik development",
   "type": "module",
   "license": "MIT",

@@ -175,6 +175,12 @@ for (const mode of ['csr', 'ssr']) {
       expect(await page.locator('script[src*="virtual:qwik-mcp"]').count()).toBe(1);
       await page.locator('#counter').waitFor();
       expect(pageErrors).toEqual([]);
+      if (mode === 'ssr') {
+        // Hook instrumentation must not shift the source lines the optimizer reports.
+        expect(await page.locator('#counter').getAttribute('data-qwik-inspector')).toMatch(
+          /\/routes\/index\.tsx:5:5$/
+        );
+      }
       await expect
         .poll(async () => (await call('inspect_page')).structuredContent?.tree)
         .toEqual(expect.arrayContaining([expect.objectContaining({ id: expect.any(String) })]));

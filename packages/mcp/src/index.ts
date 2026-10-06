@@ -132,6 +132,7 @@ export function qwikMcp(): Plugin {
         );
       }
     },
+    // Runs before the optimizer, which has no input sourcemap: never add or remove source lines.
     transform(code, id) {
       if (
         /\.[jt]sx(?:\?|$)/.test(id) &&

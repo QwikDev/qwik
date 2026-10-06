@@ -46,6 +46,7 @@ export function devtoolsPlugin(opts: QwikDevtoolsOptions = {}): Plugin {
       }
     },
 
+    // Runs before the optimizer, which has no input sourcemap: never add or remove source lines.
     transform: {
       order: 'pre',
       handler(code, id) {

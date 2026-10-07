@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { _captures, createQRL } from '../shared/qrl/qrl-class';
 import {
   createCaptureContainer,
@@ -12,6 +12,7 @@ import {
 } from '../test-utils';
 import { disposeSubscriber } from '../reactive/cleanup';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
+import type { Signal } from '../reactive/signal';
 import { useSignal, useComputed } from '../reactive/public-api';
 import { _await, getActiveCollector, runWithCollector } from '../reactive/tracking';
 import { createTextNodeEffect, type TextExpressionEffect } from '../dom/effect/text-effect';
@@ -43,6 +44,7 @@ import {
   useVisibleTask,
   useVisibleTaskQrl,
   type TaskFn,
+  type TaskCtx,
 } from './task';
 import type { ContainerContext } from './container-context';
 import { LazySerialized } from '../reactive/lazy-serialized';
@@ -1379,6 +1381,94 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     expect(resolved).toBe(true);
     expect(order).toEqual(['qrl']);
+  });
+
+  describe.each([
+    ['task', useTaskQrl],
+    ['visible task', useVisibleTaskQrl],
+  ] as const)('%s raw QRL', (_, createTask) => {
+    it('shares code while restoring scopes, tracking after await, and cleaning up', async () => {
+      const scheduler = new Scheduler(noopSchedule);
+      const firstSource = useSignal(1);
+      const firstAfter = useSignal(10);
+      const secondSource = useSignal(3);
+      const secondAfter = useSignal(20);
+      const seen: number[] = [];
+      const cleanups: number[] = [];
+      const returnedCleanups: number[] = [];
+      const contexts: unknown[] = [];
+      const receivers: unknown[] = [];
+      const container = createCaptureContainer(
+        { 0: firstSource, 1: firstAfter, 2: 100 },
+        scheduler
+      );
+      const body = async function (this: unknown, ctx: TaskCtx) {
+        const [source, after, offset] = _captures as [Signal<number>, Signal<number>, number];
+        contexts.push(getActiveInvokeContextOrNull()?.container);
+        receivers.push(this);
+        const value = source.value;
+        ctx.cleanup(() => {
+          cleanups.push(value + offset);
+        });
+        (await _await(Promise.resolve()))();
+        seen.push(value + after.value + offset);
+        return () => {
+          returnedCleanups.push(value + offset);
+        };
+      };
+      const load = vi.fn(async () => ({ body }));
+      const firstQrl = createQRL<TaskFn>('chunk', 'body', null, load, '0 1 1', container);
+      const secondQrl = firstQrl.w([secondSource, secondAfter, 200]);
+      const first = createOwned(() => createTask(firstQrl), container);
+      const second = createOwned(() => createTask(secondQrl), container);
+      scheduler.notify(first);
+      scheduler.notify(second);
+      await scheduler.flushInteraction();
+      await Promise.all([first.runPromise, second.runPromise]);
+
+      expect(seen.sort((a, b) => a - b)).toEqual([111, 223]);
+      expect(contexts).toEqual([container, container]);
+      expect(receivers).toEqual([undefined, undefined]);
+      expect(load).toHaveBeenCalledOnce();
+      expect(firstQrl.resolved).toBeUndefined();
+      expect(secondQrl.resolved).toBeUndefined();
+      expect(first.deps).toEqual([firstSource, firstAfter]);
+      expect(second.deps).toEqual([secondSource, secondAfter]);
+
+      const reload = vi.spyOn(firstQrl.$lazy$, '$load$');
+      firstAfter.value = 11;
+      await scheduler.flushInteraction();
+      await Promise.all([first.runPromise, second.runPromise]);
+      expect(seen.at(-1)).toBe(112);
+      expect(cleanups).toEqual([101]);
+      expect(returnedCleanups).toEqual([101]);
+      expect(reload).not.toHaveBeenCalled();
+      disposeSubscriber(first);
+      disposeSubscriber(second);
+      expect(cleanups).toEqual([101, 101, 203]);
+      expect(returnedCleanups).toEqual([101, 101, 203]);
+      expect(firstSource.subs).toBeNull();
+      expect(firstAfter.subs).toBeNull();
+      expect(secondSource.subs).toBeNull();
+      expect(secondAfter.subs).toBeNull();
+    });
+
+    it('keeps public resolved overrides without loading unused captures', async () => {
+      const scheduler = new Scheduler(noopSchedule);
+      const load = vi.fn(async () => ({ body: () => {} }));
+      const restoreCaptures = vi.fn(async () => ['unused']);
+      const qrl = createQRL<TaskFn>('chunk', 'body', null, load, '0', { restoreCaptures } as any);
+      const run = vi.fn();
+      qrl.resolved = run;
+      const task = runWithTestContainer(scheduler, () => createTask(qrl));
+      scheduler.notify(task);
+      await scheduler.flushInteraction();
+
+      expect(run).toHaveBeenCalledOnce();
+      expect(load).not.toHaveBeenCalled();
+      expect(restoreCaptures).not.toHaveBeenCalled();
+      disposeSubscriber(task);
+    });
   });
 
   it('runs visible tasks in enqueue order', async () => {

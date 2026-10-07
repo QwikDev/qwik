@@ -17,7 +17,9 @@ import type { ContainerContext } from '../runtime/container-context';
 import { getOrCreateContextOwner, type Owner } from '../runtime/owner';
 import { getActiveInvokeContextOrNull } from '../runtime/invoke-context';
 import { SubscriberKind, type ComputedSubscriber } from '../runtime/subscriber';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { getFunctionOrResolve } from '../utils/qrl';
+import { invokeCaptured } from '../shared/qrl/qrl-captures';
 import type { AsyncCtx, ComputedOptions, ComputedSignal, ComputeCtx } from './public-types';
 import { isSubscriberDisposed } from '../runtime/subscriber';
 
@@ -305,7 +307,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     try {
       result = maybeThen(this.runStoredCleanups(), () => {
         cleanupDeps(this);
-        const run = this.computeFn ?? getFunctionOrResolve(this.computeQrl!, this.container);
+        const run = this.computeFn ?? getFunctionOrResolve(this.computeQrl!, this.container, false);
         if (isPromise(run) && !isServerEnv()) {
           // Importing the compute chunk is framework work: the flush must outlast it, or the
           // subscribers this computed then notifies land after the interaction has settled.
@@ -396,7 +398,13 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   private evaluate(job: AsyncJob<T>, run: ComputeSignalFn<T>): ValueOrPromise<T> {
-    return retryOnPromise(() => runWithCollector(this, () => run.call(this, job)));
+    const qrl =
+      this.computeFn === null ? (this.computeQrl as QRLInternal<ComputeSignalFn<T>>) : null;
+    const captures =
+      qrl?.resolved === run
+        ? undefined
+        : (qrl?.$captures$ as readonly unknown[] | null | undefined);
+    return retryOnPromise(() => runWithCollector(this, invokeCaptured, run, captures, this, [job]));
   }
 
   private publishValue(value: T, notify = true): void {

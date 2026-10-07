@@ -2,10 +2,12 @@ import { cleanupDeps } from '../reactive/cleanup';
 import { SubscriberFlags } from '../reactive/flags';
 import { runWithCollector } from '../reactive/tracking';
 import { invoke, newInvokeContext } from './invoke-context';
+import { invokeCaptured } from '../shared/qrl/qrl-captures';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { getFunctionOrResolve } from '../utils/qrl';
 import { isPromise, maybeThen, retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
-import type { Task, TaskCleanupFn, VisibleTask } from './task';
+import type { Task, TaskCleanupFn, TaskFn, VisibleTask } from './task';
 import { takeDirty, type TaskSubscriber, type VisibleTaskSubscriber } from './subscriber';
 import { isSubscriberDisposed } from './subscriber';
 
@@ -29,26 +31,36 @@ export function runTaskSubscriber(
   try {
     result = maybeThen(runTaskCleanups(task), () => {
       cleanupDeps(subscriber);
-      return maybeThen(task.runFn ?? getFunctionOrResolve(task.qrl!, task.container), (run) =>
-        maybeThen(
-          // a read of a pending async value throws its promise; re-run when it settles
-          retryOnPromise(() =>
-            runWithCollector(subscriber, () =>
-              invoke(invokeContext, () =>
-                run({
-                  cleanup(callback) {
-                    addCleanup(task, callback);
-                  },
-                })
+      return maybeThen(
+        task.runFn ?? getFunctionOrResolve(task.qrl!, task.container, false),
+        (run) => {
+          const qrl = task.runFn === undefined ? (task.qrl as QRLInternal<TaskFn>) : undefined;
+          const captures =
+            qrl?.resolved === run
+              ? undefined
+              : (qrl?.$captures$ as readonly unknown[] | null | undefined);
+          return maybeThen(
+            // a read of a pending async value throws its promise; re-run when it settles
+            retryOnPromise(() =>
+              runWithCollector(subscriber, () =>
+                invoke(invokeContext, () =>
+                  invokeCaptured(run, captures, undefined, [
+                    {
+                      cleanup(callback: TaskCleanupFn) {
+                        addCleanup(task, callback);
+                      },
+                    },
+                  ])
+                )
               )
-            )
-          ),
-          (cleanup) => {
-            if (typeof cleanup === 'function') {
-              addCleanup(task, cleanup as TaskCleanupFn);
+            ),
+            (cleanup) => {
+              if (typeof cleanup === 'function') {
+                addCleanup(task, cleanup as TaskCleanupFn);
+              }
             }
-          }
-        )
+          );
+        }
       );
     });
   } catch (error) {

@@ -4,10 +4,23 @@ import { isQrl } from '../shared/qrl/qrl-utils';
 import { isPromise } from '../shared/utils/promises';
 import type { ContainerContext } from '../runtime/container-context';
 
-export function getFunctionOrResolve<T>(fn: T | QRL<T>, ctx?: ContainerContext): T | Promise<T> {
-  return isQrl(fn)
-    ? (((fn as QRLInternal<T>).resolved ?? fn.resolve(ctx)) as T | Promise<T>)
-    : (fn as T);
+export function getFunctionOrResolve<T>(
+  fn: T | QRL<T>,
+  ctx?: ContainerContext,
+  bindCaptures = true
+): T | Promise<T> {
+  if (!isQrl(fn)) {
+    return fn as T;
+  }
+  const qrl = fn as QRLInternal<T>;
+  if (qrl.resolved != null) {
+    return qrl.resolved;
+  }
+  const loaded = qrl.$lazy$.$ref$;
+  if (!bindCaptures && loaded != null && !isPromise(loaded) && typeof qrl.$captures$ !== 'string') {
+    return loaded;
+  }
+  return qrl.resolve(ctx, bindCaptures);
 }
 
 /**

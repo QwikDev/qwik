@@ -41,7 +41,7 @@ export type QRLInternalMethods<TYPE> = {
   readonly $hasMovedCaptures$?: boolean;
   dev?: QRLDev | null;
 
-  resolve(container?: ContainerContext): Promise<TYPE>;
+  resolve(container?: ContainerContext, bindCaptures?: boolean): Promise<TYPE>;
   resolved: undefined | TYPE;
 
   getSymbol(): string;
@@ -315,10 +315,39 @@ const qrlSetRef = function <TYPE>(
 
 const qrlResolve = async function <TYPE>(
   this: QRLClass<TYPE> | QRLCallable<TYPE>,
-  container?: ContainerContext
+  container?: ContainerContext,
+  bindCaptures = true
 ): Promise<TYPE> {
   const qrl = getInstance<TYPE>(this);
-  return maybeThen($resolve$(qrl, container), () => qrl.resolved!);
+  if (qrl.resolved !== undefined) {
+    return qrl.resolved;
+  }
+  const lazy = qrl.$lazy$;
+
+  // Capture context while still sync
+  const start = now();
+  const ctx = getActiveInvokeContextOrNull();
+
+  // Load raw value via LazyRef - may be sync (e.g. sync QRLs) or async
+  const rawOrPromise = lazy.$load$();
+  const capturesOrPromise = restoreQrlCaptures(qrl, container);
+  const maybePromise = maybeThen(
+    promiseAll([rawOrPromise, capturesOrPromise] as const),
+    ([raw, captures]) => {
+      if (!bindCaptures) {
+        return raw as TYPE;
+      }
+      return (qrl.resolved = bindResolved(qrl, withCaptures(raw as TYPE, captures)));
+    }
+  );
+
+  if (isPromise(rawOrPromise)) {
+    // We're importing; emit symbol usage event
+    const symbol = lazy.$symbol$;
+    emitUsedSymbol(symbol, ctx?.container?.element, start);
+  }
+
+  return bindCaptures ? maybeThen(maybePromise, () => qrl.resolved!) : maybePromise;
 };
 
 const qrlGetSymbol = function <TYPE>(this: QRLClass<TYPE> | QRLCallable<TYPE>): string {
@@ -485,39 +514,6 @@ const restoreQrlCaptures = (
     qrl.$captures$ = refs;
     return refs;
   });
-};
-
-const $resolve$ = <TYPE>(
-  qrl: QRLClass<TYPE>,
-  container?: ContainerContext | null
-): ValueOrPromise<void> => {
-  const lazy = qrl.$lazy$;
-
-  if (qrl.resolved !== undefined) {
-    return;
-  }
-
-  // Capture context while still sync
-  const start = now();
-  const ctx = getActiveInvokeContextOrNull();
-
-  // Load raw value via LazyRef - may be sync (e.g. sync QRLs) or async
-  const rawOrPromise = lazy.$load$();
-  const capturesOrPromise = restoreQrlCaptures(qrl, container);
-  const maybePromise = maybeThen(
-    promiseAll([rawOrPromise, capturesOrPromise] as const),
-    ([raw, captures]) => {
-      qrl.resolved = bindResolved(qrl, withCaptures(raw, captures));
-    }
-  );
-
-  if (isPromise(rawOrPromise)) {
-    // We're importing; emit symbol usage event
-    const symbol = lazy.$symbol$;
-    emitUsedSymbol(symbol, ctx?.container?.element, start);
-  }
-
-  return maybePromise;
 };
 
 function invokeQrlApply<T>(

@@ -144,7 +144,10 @@ function lazySubscriber(
           !isSubscriberDisposed(subscriber) &&
           subscriber instanceof TaskSubscription &&
           subscriber.task.phase === Phase.BlockingTask
-            ? maybeThen(getFunctionOrResolve(subscriber.task.qrl!, container), () => subscriber)
+            ? maybeThen(
+                getFunctionOrResolve(subscriber.task.qrl!, container, false),
+                () => subscriber
+              )
             : subscriber
       ),
     container.scheduler
@@ -383,7 +386,10 @@ const inflateResolved = (
               restoreSourceSubs(computed, container, d, 6);
             }
             if (value === NEEDS_COMPUTATION) {
-              return maybeThen(getFunctionOrResolve(computed.computeQrl!, container), () => {});
+              return maybeThen(
+                getFunctionOrResolve(computed.computeQrl!, container, false),
+                () => {}
+              );
             }
           })
         )
@@ -413,7 +419,10 @@ const inflateResolved = (
                 restoreSourceSubs(signal, container, d, subscriberOffset);
               }
               if (value === NEEDS_COMPUTATION) {
-                return maybeThen(getFunctionOrResolve(signal.computeQrl!, container), () => {});
+                return maybeThen(
+                  getFunctionOrResolve(signal.computeQrl!, container, false),
+                  () => {}
+                );
               }
             })
           )

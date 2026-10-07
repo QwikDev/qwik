@@ -4,6 +4,7 @@ import { getPlatform, setPlatform } from '../platform/platform';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 import { _regSymbol, inlinedQrl, qrl } from './qrl';
 import { _captures, createQRL, withCaptures } from './qrl-class';
+import { getFunctionOrResolve } from '../../utils/qrl';
 import { _qrlSync, type QRL } from './qrl.public';
 import { isSyncQrl } from './qrl-utils';
 import { allocate } from '../serdes/allocate';
@@ -346,6 +347,86 @@ describe('createQRL', () => {
     assert.deepEqual(await q.getCaptured(), ['capture']);
     assert.deepEqual(restoreCaptures.mock.calls, [['0']]);
     assert.equal(loadSymbol.mock.calls.length, 0);
+  });
+});
+
+describe('getFunctionOrResolve without capture binding', () => {
+  test('preserves the default asynchronous result for a null resolved value', async () => {
+    const qrl = createQRL<unknown>('chunk', 'value');
+    qrl.resolved = null;
+    const result = getFunctionOrResolve(qrl);
+    assert.instanceOf(result, Promise);
+    assert.isNull(await result);
+  });
+
+  test('waits for the body and captures without binding the public value', async () => {
+    let restore!: (captures: string[]) => void;
+    const restoreCaptures = vi.fn(() => new Promise<string[]>((resolve) => (restore = resolve)));
+    const body = () => _captures;
+    assert.equal(getFunctionOrResolve(body, undefined, false), body);
+    const qrl = createQRL('chunk', 'body', null, async () => ({ body }), '0', {
+      restoreCaptures,
+    } as any);
+    let settled = false;
+    const loading = Promise.resolve(getFunctionOrResolve(qrl, undefined, false)).then((fn) => {
+      settled = true;
+      return fn;
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.isFalse(settled);
+    restore(['scope']);
+    assert.equal(await loading, body);
+    assert.deepEqual(qrl.$captures$, ['scope']);
+    assert.isUndefined(qrl.resolved);
+    assert.equal(getFunctionOrResolve(qrl, undefined, false), body);
+
+    const bound = await qrl.resolve();
+    assert.notEqual(bound, body);
+    assert.deepEqual(bound(), ['scope']);
+    assert.equal(getFunctionOrResolve(qrl, undefined, false), bound);
+    assert.equal(getFunctionOrResolve(qrl), bound);
+    assert.equal(restoreCaptures.mock.calls.length, 1);
+  });
+
+  test('uses the sync QRL loader without allocating a public wrapper', async () => {
+    const body = () => 7;
+    const container = {
+      element: {
+        getAttribute: () => 'raw-sync-test',
+        ownerDocument: { 'qFuncs_raw-sync-test': { key: body } },
+      },
+    } as any;
+    const qrl = await allocate(container, TypeIds.QRL, '#key');
+
+    assert.equal(await getFunctionOrResolve(qrl, undefined, false), body);
+    assert.equal(getFunctionOrResolve(qrl, undefined, false), body);
+    assert.isUndefined(qrl.resolved);
+    assert.equal(await qrl(), 7);
+  });
+
+  test('keeps concurrent public resolutions bound to the same cached function', async () => {
+    const qrl = createQRL('chunk', 'body', null, async () => ({ body: () => _captures }), [
+      'scope',
+    ]);
+    const [first, second] = await Promise.all([qrl.resolve(), qrl.resolve()]);
+    assert.equal(first, second);
+    assert.equal(first, qrl.resolved);
+    assert.deepEqual(first(), ['scope']);
+  });
+
+  test('preserves the public capture snapshot across an asynchronous load', async () => {
+    const qrl = createQRL(
+      'chunk',
+      'body',
+      Promise.resolve(() => _captures),
+      null,
+      ['first']
+    );
+    const resolving = qrl.resolve();
+    (qrl as { $captures$: string[] }).$captures$ = ['second'];
+
+    assert.deepEqual((await resolving)(), ['first']);
   });
 });
 

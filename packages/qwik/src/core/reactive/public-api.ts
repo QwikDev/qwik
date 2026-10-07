@@ -82,7 +82,9 @@ export function useComputedQrl<T>(
 ): ComputedQrl<T> {
   const contextContainer = container ?? getActiveInvokeContextOrNull()?.container;
   const computed = new ComputedQrl(computeQrl, contextContainer, options);
-  void computed.computeQrl!.resolve().catch(() => {});
+  void (computeQrl as QRLInternal<ComputeSignalFn<T>>)
+    .resolve(contextContainer, false)
+    .catch(() => {});
   return registerSubscriberToOwner(computed);
 }
 
@@ -111,7 +113,7 @@ export function useAsyncQrl<T>(
 ): AsyncSignal<T> {
   const container = getActiveInvokeContextOrNull()?.container;
   const signal = new AsyncSignal<T>(computeQrl, null, container, options);
-  void (signal.computeQrl as QRLInternal<AsyncSignalFn<T>>).resolve(container).catch(() => {});
+  void (computeQrl as QRLInternal<AsyncSignalFn<T>>).resolve(container, false).catch(() => {});
   return registerSubscriberToOwner(signal);
 }
 

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { _captures, createQRL, type QRLInternal } from './shared/qrl/qrl-class';
+import { _capturesObj } from './shared/qrl/qrl-captures';
+import type { ComputedQrl } from './reactive/computed-qrl';
 import { needsInflation } from './shared/serdes/constants';
 import {
   deserializeData as deserializeState,
@@ -551,7 +553,7 @@ describe('serdes emit-only', () => {
   it.each([
     ['computed', TypeIds.ComputedSignal],
     ['async', TypeIds.AsyncSignal],
-  ])('resolves a restored %s QRL before finishing inflation', async (_name, typeId) => {
+  ])('loads a restored %s body before finishing inflation', async (_name, typeId) => {
     const container = createCaptureContainer({});
     let resolveModule!: (module: { symbol: () => string }) => void;
     const qrl = createQRL(
@@ -586,7 +588,8 @@ describe('serdes emit-only', () => {
     resolveModule({ symbol: () => 'resolved' });
     await inflation;
 
-    expect(qrl.resolved).toBeTypeOf('function');
+    expect(qrl.resolved).toBeUndefined();
+    expect((restored as { value: string }).value).toBe('resolved');
   });
 
   it('resolves a RefVNode to the matching DOM element', () => {
@@ -1565,6 +1568,52 @@ describe('serdes emit-only', () => {
     expect(computedPayload[4]).toBe(TypeIds.Constant);
     expect(computedPayload[5]).toBe(Constants.NEEDS_COMPUTATION);
   });
+
+  it.each([TypeIds.ComputedSignal, TypeIds.AsyncSignal])(
+    'loads uncached computed wire type %s without binding its QRL',
+    async (type) => {
+      const count = useSignal(2);
+      const win = createWindow({ html: '<div q:container></div>' });
+      const container = createContainerContext(win.document.body.firstElementChild as HTMLElement);
+      container.state.liveRoots.set(0, count);
+      let imports = 0;
+      const body = () => (_capturesObj._![0] as Signal<number>).value * 2;
+      const qrl = createQRL(
+        'computed',
+        'body',
+        null,
+        async () => {
+          imports++;
+          return { body };
+        },
+        '0',
+        container
+      );
+      const payload: unknown[] = [
+        TypeIds.Plain,
+        qrl,
+        TypeIds.Array,
+        [],
+        TypeIds.Constant,
+        Constants.NEEDS_COMPUTATION,
+      ];
+      if (type === TypeIds.AsyncSignal) {
+        payload.push(TypeIds.Constant, Constants.Null);
+      }
+      const computed = (await deserializeData(container, type, payload)) as ComputedQrl<number>;
+
+      expect(imports).toBe(1);
+      expect(qrl.$captures$).toEqual([count]);
+      expect(qrl.resolved).toBeUndefined();
+      expect(computed.value).toBe(4);
+      count.value = 3;
+      expect(computed.value).toBe(6);
+      const state = await serialize(computed);
+      expect(state[0]).toBe(type);
+      expect((state[1] as unknown[])[5]).toBe(6);
+      expect(qrl.resolved).toBeUndefined();
+    }
+  );
 
   it('serializes a context scope with falsy values and explicit undefined', async () => {
     const scope = createContextScope(null);

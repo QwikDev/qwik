@@ -33,6 +33,7 @@ import {
 } from './route-files';
 import { keepV1TaskCleanupTiming, removeTaskEagerness } from './tasks';
 import {
+  bundleV1Libraries,
   keepAssetsDir,
   keepBaseOutDir,
   removeDevInput,
@@ -79,7 +80,7 @@ export const codemods: Codemod[] = [
 ];
 
 /** Codemods for the current v2 release, also run on v2 apps, so they must be idempotent. */
-export const upgradeCodemods: Codemod[] = [];
+export const upgradeCodemods: Codemod[] = [bundleV1Libraries];
 
 /** Codemods run on the whole project before the file codemods. */
 export const projectCodemods: ProjectCodemod[] = [

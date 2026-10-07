@@ -1,5 +1,13 @@
-import { Node, SyntaxKind, type ObjectLiteralExpression, type SourceFile } from 'ts-morph';
+import { dirname } from 'path';
+import {
+  Node,
+  SyntaxKind,
+  type CallExpression,
+  type ObjectLiteralExpression,
+  type SourceFile,
+} from 'ts-morph';
 import { warn } from '../report';
+import { findV1Libraries } from '../tools/v1-libraries';
 import { appendProperty, findCalls, findNamedImports } from './utils';
 
 const qwikViteCalls = (file: SourceFile) =>
@@ -212,4 +220,82 @@ export const addExperimentalFeature = (file: SourceFile, feature: string) => {
   } else {
     warn(file.getFilePath(), `add '${feature}' to \`qwikVite({ experimental })\`.`);
   }
+};
+
+/** The config object whose `plugins` array contains `call`. */
+const findConfigObject = (call: CallExpression) => {
+  const plugins = call
+    .getParentIfKind(SyntaxKind.ArrayLiteralExpression)
+    ?.getParentIfKind(SyntaxKind.PropertyAssignment);
+  return plugins?.getName() === 'plugins'
+    ? plugins.getParentIfKind(SyntaxKind.ObjectLiteralExpression)
+    : undefined;
+};
+
+/** Adds `libraries` to `resolve.noExternal` of `config`, returns whether it could. */
+const addToNoExternal = (config: ObjectLiteralExpression, libraries: string[]) => {
+  const list = libraries.map((name) => `'${name}'`).join(', ');
+  const resolve = objectProperty(config, 'resolve');
+  if (!resolve) {
+    if (config.getProperty('resolve')) {
+      return false;
+    }
+    appendProperty(config, `resolve: { noExternal: [${list}] }`);
+    return true;
+  }
+  const prop = resolve.getProperty('noExternal');
+  if (!prop) {
+    appendProperty(resolve, `noExternal: [${list}]`);
+    return true;
+  }
+  const value = Node.isPropertyAssignment(prop) ? prop.getInitializer() : undefined;
+  if (!Node.isArrayLiteralExpression(value)) {
+    return false;
+  }
+  for (const name of libraries) {
+    value.addElement(`'${name}'`);
+  }
+  return true;
+};
+
+/**
+ * Libraries built with Qwik 1 import `@builder.io/qwik`, which only the bundler resolves, so the
+ * server build must bundle them.
+ */
+export const bundleV1Libraries = (file: SourceFile) => {
+  const calls = findCalls(file, [
+    ...findNamedImports(file, '@builder.io/qwik/optimizer', 'qwikVite'),
+    ...findNamedImports(file, '@qwik.dev/core/optimizer', 'qwikVite'),
+  ]);
+  if (calls.length !== 1) {
+    return false;
+  }
+  const config = findConfigObject(calls[0]);
+  const noExternal = config && objectProperty(config, 'resolve')?.getProperty('noExternal');
+  const value = Node.isPropertyAssignment(noExternal) ? noExternal.getInitializer() : undefined;
+  if (value?.getKind() === SyntaxKind.TrueKeyword) {
+    return false;
+  }
+  const listed = Node.isArrayLiteralExpression(value)
+    ? value.getElements().map((e) => (Node.isStringLiteral(e) ? e.getLiteralValue() : ''))
+    : [];
+  const libraries = findV1Libraries(dirname(file.getFilePath())).filter(
+    (name) => !listed.includes(name)
+  );
+  if (libraries.length === 0) {
+    return false;
+  }
+  const names = libraries.map((name) => `"${name}"`).join(', ');
+  if (!config || !addToNoExternal(config, libraries)) {
+    warn(
+      file.getFilePath(),
+      `add ${names} to \`resolve.noExternal\`, libraries built with Qwik 1 must be bundled.`
+    );
+    return false;
+  }
+  warn(
+    file.getFilePath(),
+    `added ${names} to \`resolve.noExternal\` because libraries built with Qwik 1 must be bundled, remove them once they support v2.`
+  );
+  return true;
 };

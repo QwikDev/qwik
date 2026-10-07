@@ -223,9 +223,10 @@ describe('runV2Migration', () => {
     expect(readFiles(project, paths)).toEqual(migrated);
   });
 
-  test('only updates the dependencies of an app already on v2', async () => {
+  test('only applies the upgrade codemods to an app already on v2', async () => {
     const files = {
       'package.json': JSON.stringify({
+        dependencies: { 'v1-lib': '1' },
         devDependencies: { '@qwik.dev/core': '2.0.0-rc.1', '@qwik.dev/router': '2.0.0-rc.1' },
         overrides: { '@builder.io/qwik': 'npm:@qwik.dev/core@2.0.0-rc.1' },
         type: 'module',
@@ -238,11 +239,25 @@ describe('runV2Migration', () => {
       'src/routes/layout.tsx': `export default () => <div />;`,
       'src/routes/error.tsx': `export default () => <p>error</p>;`,
     };
-    project = createTmpProject(files);
+    project = createTmpProject({
+      ...files,
+      'node_modules/v1-lib/package.json': JSON.stringify({
+        peerDependencies: { '@builder.io/qwik': '^1' },
+      }),
+    });
     vi.mocked(updateDependencies).mockClear();
     await migrate();
-    expect(readFiles(project, Object.keys(files))).toEqual(files);
+    expect(readFiles(project, Object.keys(files))).toEqual({
+      ...files,
+      'vite.config.ts': files['vite.config.ts'].replace(
+        '] };',
+        `], resolve: { noExternal: ['v1-lib'] } };`
+      ),
+    });
     expect(project.exists('src/routes/plugin@000-v1-errors.ts')).toBe(false);
     expect(updateDependencies).toHaveBeenCalled();
+    const migrated = readFiles(project, Object.keys(files));
+    await migrate();
+    expect(readFiles(project, Object.keys(files))).toEqual(migrated);
   });
 });

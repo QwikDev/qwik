@@ -424,7 +424,7 @@ describe('getFunctionOrResolve without capture binding', () => {
       ['first']
     );
     const resolving = qrl.resolve();
-    (qrl as { $captures$: string[] }).$captures$ = ['second'];
+    (qrl as { $captures$: (typeof qrl)['$captures$'] }).$captures$ = ['second'];
 
     assert.deepEqual((await resolving)(), ['first']);
   });

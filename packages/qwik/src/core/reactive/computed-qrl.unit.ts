@@ -89,7 +89,9 @@ describe.each([
   it('honors a public resolved override without restoring unused captures', async () => {
     const restoreCaptures = vi.fn(async () => ['unused']);
     const load = vi.fn(async () => ({ body: () => 1 }));
-    const qrl = createQRL('computed', 'body', null, load, '0', { restoreCaptures } as any);
+    const qrl = createQRL<() => number>('computed', 'body', null, load, '0', {
+      restoreCaptures,
+    } as any);
     qrl.resolved = () => 7;
     const computed = runWithOwner(createOwner(null), () => createComputed(qrl));
 

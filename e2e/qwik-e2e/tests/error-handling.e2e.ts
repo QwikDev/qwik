@@ -476,8 +476,8 @@ test.describe('qerror (client event channel)', () => {
       await expect.poll(() => pageErrors, { timeout: 10000 }).toContain('no-boundary boom');
     });
 
-    // https://github.com/QwikDev/qwik/issues/8962 — resumed dispatch bypasses the importError skip
-    test.fixme('a failed qwikloader dynamic import (chunk 404) leaves the boundary inert', async ({
+    // https://github.com/QwikDev/qwik/issues/8962 — resumed core dispatch reports chunk failures as importError too
+    test('a failed qwikloader dynamic import (chunk 404) leaves the boundary inert', async ({
       page,
     }) => {
       const pageErrors = collectPageErrors(page);

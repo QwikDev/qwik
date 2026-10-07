@@ -1971,6 +1971,57 @@ describe('qerror (client event channel)', () => {
       expect(container.element.querySelector('#fb')).toBeFalsy();
     });
 
+    it('a failed handler-chunk import in core dispatch is reported as an importError qerror, not routed to the boundary (#8962)', async () => {
+      const importFailure = new Error('Failed to fetch dynamically imported module: /q-h.js');
+      const failingHandler = qrl(() => Promise.reject(importFailure), 's_failingHandler') as any;
+      const { container } = await domRender(
+        <Catch fallback$={fb()}>
+          <button id="target" onClick$={failingHandler}>
+            x
+          </button>
+        </Catch>,
+        { debug }
+      );
+      const doc = container.element.ownerDocument;
+      const seen: any[] = [];
+      const listener = (e: Event) => seen.push((e as CustomEvent).detail);
+      doc.addEventListener('qerror', listener);
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        await trigger(container.element, '#target', 'click');
+        await waitForDrain(container).catch(() => {});
+        await delay(0);
+      } finally {
+        doc.removeEventListener('qerror', listener);
+        errorSpy.mockRestore();
+      }
+
+      expect(container.element.querySelector('#fb')).toBeFalsy();
+      expect(seen).toHaveLength(1);
+      expect(seen[0].importError).toBe('async');
+      expect(seen[0].error).toBe(importFailure);
+    });
+
+    it('a handler that resolves but throws in core dispatch still reaches the boundary', async () => {
+      const { container } = await domRender(
+        <Catch fallback$={fb()}>
+          <button
+            id="target"
+            onClick$={$(() => {
+              throw new Error('handler boom');
+            })}
+          >
+            x
+          </button>
+        </Catch>,
+        { debug }
+      );
+      await trigger(container.element, '#target', 'click');
+      await waitForDrain(container).catch(() => {});
+
+      expect(container.element.querySelector('#fb')?.textContent).toContain('caught: handler boom');
+    });
+
     it('CSR: a non-recoverable build error is not caught by the boundary', async () => {
       const { container } = await domRender(
         <Catch fallback$={fb()}>

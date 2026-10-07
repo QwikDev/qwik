@@ -27,6 +27,26 @@ interface SyncQRLSymbol {
 
 export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
 
+/**
+ * Errors produced by a failed QRL chunk/symbol import (e.g. a chunk 404 after a deploy). These are
+ * a version-skew problem, not an application error, so callers can route them like qwikloader's
+ * `importError` instead of feeding them to an `<ErrorBoundary>` (#8795, #8962).
+ */
+const qrlImportErrors: WeakSet<object> = /*#__PURE__*/ new WeakSet();
+
+const tagImportError = (err: unknown): never => {
+  if (err !== null && (typeof err === 'object' || typeof err === 'function')) {
+    qrlImportErrors.add(err);
+  }
+  throw err;
+};
+
+/** @internal Whether `err` came from a failed QRL import rather than from running user code. */
+export const isQrlImportError = (err: unknown): boolean =>
+  err !== null && (typeof err === 'object' || typeof err === 'function')
+    ? qrlImportErrors.has(err)
+    : false;
+
 export type QrlCaptures = Readonly<unknown[]> | string | null;
 
 /** @internal */
@@ -196,13 +216,16 @@ export class LazyRef<TYPE = unknown> {
     }
 
     const symbol = this.$symbol$;
-    const importP: Promise<TYPE> = this.$symbolFn$
+    let importP: ValueOrPromise<TYPE> = this.$symbolFn$
       ? this.$symbolFn$().then((module) => module[symbol] as TYPE)
       : (getPlatform().importSymbol(
           (this.$container$ as DomContainer | null)?.element,
           this.$chunk$,
           symbol
-        ) as Promise<TYPE>);
+        ) as ValueOrPromise<TYPE>);
+    if (isPromise(importP)) {
+      importP = importP.then(undefined, tagImportError);
+    }
 
     this.$setRef$(importP);
 

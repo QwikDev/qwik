@@ -2,6 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import {
   _capturesObj,
   deserializeCaptureDeltas,
+  isQrlImportError,
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
@@ -72,7 +73,29 @@ export function runEventHandlerQRL(
         return invokeApply(ctx, realHandler, [event, element]);
       }
     },
-    (err) => container.handleError(err, hostElement, CatchPhase.Event)
+    (err) => {
+      if (isQrlImportError(err)) {
+        // A failed handler-chunk import is version skew (#8795), not an app error: report it on
+        // the same `qerror` channel qwikloader uses (with `importError`), which the client
+        // listener deliberately skips, so no <ErrorBoundary> renders the raw fetch message. The
+        // QRL already logged the failure. See #8962.
+        const doc = element.ownerDocument;
+        if (doc) {
+          // `createEvent` + `detail` works in browsers and in the server-side DOM used in tests.
+          const ev = doc.createEvent('Event');
+          ev.initEvent('qerror', false, false);
+          (ev as Event & { detail: unknown }).detail = {
+            importError: 'async',
+            error: err,
+            element,
+            symbol: (handler as QRLInternal).getSymbol?.(),
+          };
+          doc.dispatchEvent(ev);
+        }
+        return;
+      }
+      return container.handleError(err, hostElement, CatchPhase.Event);
+    }
   );
 }
 

@@ -205,7 +205,7 @@ async function validatePackageJson(config: BuildConfig, pkg: PackageJSON, errors
   validateExports(pkg.exports!);
 }
 
-async function validateModuleTreeshake(
+export async function validateModuleTreeshake(
   entryModulePath: string,
   external: string[] = [],
   exportName?: string,
@@ -217,7 +217,13 @@ async function validateModuleTreeshake(
     treeshake: {
       moduleSideEffects: false,
     },
-    external: ['@qwik.dev/core/build', '@qwik.dev/core', '@qwik.dev/core/preloader', ...external],
+    external: [
+      '@qwik.dev/core/build',
+      '@qwik.dev/core',
+      '@qwik.dev/core/preloader',
+      '@qwik.dev/core/async-local-storage',
+      ...external,
+    ],
     plugins: [
       {
         name: 'resolver',

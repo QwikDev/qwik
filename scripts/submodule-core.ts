@@ -243,7 +243,11 @@ async function submoduleCoreProduction(config: BuildConfig, nameCache: object | 
 
   const inputProd: InputOptions = {
     input: inputCore,
-    external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/preloader',
+      'node:async_hooks',
+      '@qwik.dev/core/async-local-storage',
+    ],
     onwarn: rollupOnWarn,
     plugins: [
       {

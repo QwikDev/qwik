@@ -1,7 +1,7 @@
 import {
   AttrEffect,
   AttrExpressionEffect,
-  DomBatchEffect,
+  ResumedDomBatchEffect,
   EventEffect,
   ForBlockSubscription,
   PropsEffect,
@@ -265,7 +265,7 @@ export function allocateDomEffect(
     case EffectKind.Event:
       return new EventEffect(null!, null!, null!, null!, context.scheduler);
     case EffectKind.DomBatch:
-      return new DomBatchEffect(null!, context.scheduler);
+      return new ResumedDomBatchEffect(null!, context.scheduler);
     default:
       throw qError(QError.serializeErrorNotImplemented, [kind]);
   }

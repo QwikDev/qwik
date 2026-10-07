@@ -13,6 +13,7 @@ import { removeEvent, setEvent } from '../event/event';
 import type { CapturedEventHandler, QDispatchHandler } from '../../shared/types';
 import { EMPTY_ARRAY } from '../../utils/consts';
 import { invokeCaptured } from '../../shared/qrl/qrl-captures';
+import { isPromise } from '../../shared/utils/promises';
 
 export type AttrExpressionFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
@@ -144,6 +145,26 @@ export class DomBatchEffect extends DomEffect {
 
   execute(): ValueOrPromise<void> {
     return this.fn();
+  }
+}
+
+export class ResumedDomBatchEffect extends DomEffect {
+  constructor(
+    readonly effects: DomEffect[],
+    scheduler?: Scheduler
+  ) {
+    super(scheduler);
+  }
+
+  execute(): ValueOrPromise<void> {
+    let pending: Promise<void>[] | undefined;
+    for (let i = 0; i < this.effects.length; i++) {
+      const value = this.effects[i].execute();
+      if (isPromise(value)) {
+        (pending ??= []).push(value);
+      }
+    }
+    return pending === undefined ? undefined : Promise.all(pending).then(() => undefined);
   }
 }
 

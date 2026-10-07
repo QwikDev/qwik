@@ -2,7 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { createWindow } from '../../../testing/document';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
 import { DomEffect } from '../../dom/effect/dom-effect';
-import { AttrExpressionEffect, DomBatchEffect, EventEffect } from '../../dom/effect/effect';
+import {
+  AttrExpressionEffect,
+  DomBatchEffect,
+  EventEffect,
+  ResumedDomBatchEffect,
+} from '../../dom/effect/effect';
 import { EffectTargetKind } from '../../dom/effect/ssr-effect';
 import { TextNodeEffect } from '../../dom/effect/text-effect';
 import { ComputedQrl } from '../../reactive/computed-qrl';
@@ -207,10 +212,8 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
   it('notifies a subscriber root only after its inflation settles', async () => {
     const context = createContext('');
     const signal = useSignal(1);
-    const batch = allocateDomEffect(context, EffectKind.DomBatch) as unknown as {
-      fn: () => void;
-    };
-    registerSubscriberToOwner(batch as unknown as DomBatchEffect, createOwner(null));
+    const batch = allocateDomEffect(context, EffectKind.DomBatch) as ResumedDomBatchEffect;
+    registerSubscriberToOwner(batch, createOwner(null));
     let finishInflation!: () => void;
     const inflation = new Promise<void>((resolve) => (finishInflation = resolve));
     context.state.liveRoots.set(0, batch);
@@ -224,8 +227,9 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     }
     expect(toArray(signal.subs).some(isLazySerialized)).toBe(true);
 
-    const run = vi.fn();
-    batch.fn = run;
+    const scalar = new TextNodeEffect(context.element.ownerDocument.createTextNode(''), signal);
+    const run = vi.spyOn(scalar, 'execute');
+    (batch as { effects: DomEffect[] }).effects = [scalar];
     finishInflation();
     await context.scheduler.flushInteraction();
 
@@ -356,21 +360,51 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     expect(context.element.querySelector('p')?.textContent).toBe('2');
   });
 
-  it('restores DOM batches as functions', async () => {
+  it('restores DOM batches with one shared executor', async () => {
     const context = createContext('');
-    const subscription = allocateDomEffect(context, EffectKind.DomBatch) as DomBatchEffect;
+    const first = allocateDomEffect(context, EffectKind.DomBatch);
+    const second = allocateDomEffect(context, EffectKind.DomBatch);
+    const payload = [TypeIds.Plain, EffectKind.DomBatch, TypeIds.Array, [], TypeIds.Array, []];
+    await inflate(context, first, TypeIds.EffectSubscription, payload);
+    await inflate(context, second, TypeIds.EffectSubscription, payload);
 
-    await inflate(context, subscription, TypeIds.EffectSubscription, [
-      TypeIds.Plain,
-      EffectKind.DomBatch,
-      TypeIds.Array,
-      [],
-      TypeIds.Array,
-      [],
-    ]);
-
-    expect(subscription.fn).toBeTypeOf('function');
+    expect(Object.hasOwn(first, 'fn')).toBe(false);
+    expect(Object.hasOwn(first, 'execute')).toBe(false);
+    expect(first.execute).toBe(second.execute);
+    expect(first.execute()).toBeUndefined();
+    expect(second.execute()).toBeUndefined();
   });
+
+  it.each([true, false])(
+    'drops missing batch targets with a surviving target: %s',
+    async (hasSurvivor) => {
+      const context = createContext(hasSurvivor ? '<p q:id="10">1</p>' : '');
+      const count = useSignal(1);
+      const removed = useSignal(1);
+      const batch = allocateDomEffect(context, EffectKind.DomBatch) as ResumedDomBatchEffect;
+      await inflate(context, batch, TypeIds.EffectSubscription, [
+        TypeIds.Plain,
+        EffectKind.DomBatch,
+        TypeIds.Array,
+        [TypeIds.Plain, count, TypeIds.Plain, removed],
+        TypeIds.Array,
+        [
+          TypeIds.Plain,
+          [EffectKind.TextNode, EffectTargetKind.ElementText, 10, [count]],
+          TypeIds.Plain,
+          [EffectKind.TextNode, EffectTargetKind.ElementText, 49, [removed]],
+        ],
+      ]);
+
+      expect(batch.effects).toHaveLength(hasSurvivor ? 1 : 0);
+      count.value = 2;
+      removed.value = 2;
+      await context.scheduler.flushInteraction();
+      expect(context.element.textContent).toBe(hasSurvivor ? '2' : '');
+      expect(batch.deps).toEqual(hasSurvivor ? [count] : null);
+      expect(removed.subs).toBeNull();
+    }
+  );
 
   it.each([
     EffectKind.TextExpression,

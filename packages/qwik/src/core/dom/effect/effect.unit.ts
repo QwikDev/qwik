@@ -21,6 +21,7 @@ import {
   DomBatchEffect,
   EventEffect,
   PropsEffect,
+  ResumedDomBatchEffect,
   resolveEventHandlers,
 } from './effect';
 import {
@@ -34,7 +35,7 @@ import { applyDomProps, patchAttrValue, renderDomPropsToString, setRef } from '.
 import { _chk, _val } from '../../runtime/bind-handlers';
 import { _capturesObj, setCaptures } from '../../shared/qrl/qrl-class';
 import type { Signal } from '../../reactive/signal';
-import type { DomEffect } from './dom-effect';
+import { registerDomEffect, type DomEffect } from './dom-effect';
 import { createCapturedEvent } from '../event/event';
 
 describe('DOM effects', () => {
@@ -782,6 +783,92 @@ describe('DOM effects', () => {
     expect(active.subs).toBe(effect);
     expect(text.data).toBe('1');
     expect(attrs.has('class')).toBe(false);
+  });
+
+  it('collects resumed scalar dependencies and awaits every patch in the batch', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const text = createText();
+    const { element, attrs } = createAttrTarget();
+    const textValue = deferred<string>();
+    const attrValue = deferred<string>();
+    const label = useSignal<string | Promise<string>>(textValue.promise);
+    const title = useSignal<string | Promise<string>>(attrValue.promise);
+    const scalars = [
+      new TextNodeEffect(text, label, scheduler),
+      new AttrEffect(element, 'title', title, scheduler),
+    ];
+    const batch = createOwned(() =>
+      registerDomEffect(new ResumedDomBatchEffect(scalars, scheduler))
+    );
+    let settled = false;
+    const pending = Promise.resolve(batch.run()).then(() => (settled = true));
+
+    expect(label.subs).toBe(batch);
+    expect(title.subs).toBe(batch);
+    expect(scalars.map((scalar) => scalar.deps)).toEqual([null, null]);
+    textValue.resolve('ready');
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve();
+    }
+    expect(text.data).toBe('ready');
+    expect(settled).toBe(false);
+
+    attrValue.resolve('title');
+    await pending;
+    expect(attrs.get('title')).toBe('title');
+    disposeSubscriber(batch);
+    expect(label.subs).toBeNull();
+    expect(title.subs).toBeNull();
+  });
+
+  it.each(['supersede', 'dispose'])(
+    'ignores pending resumed batch patches after %s',
+    async (action) => {
+      const scheduler = new Scheduler(noopSchedule);
+      const text = createText();
+      const { element, attrs } = createAttrTarget();
+      const stale = deferred<string>();
+      const value = useSignal<string | Promise<string>>(stale.promise);
+      const batch = createOwned(() =>
+        registerDomEffect(
+          new ResumedDomBatchEffect(
+            [
+              new TextNodeEffect(text, value, scheduler),
+              new AttrEffect(element, 'title', value, scheduler),
+            ],
+            scheduler
+          )
+        )
+      );
+      const initial = batch.run();
+      if (action === 'dispose') {
+        disposeSubscriber(batch);
+      } else {
+        value.value = 'current';
+      }
+      await scheduler.flushInteraction();
+      stale.resolve('stale');
+      await initial;
+      expect(text.data).toBe(action === 'dispose' ? '' : 'current');
+      expect(attrs.get('title')).toBe(action === 'dispose' ? undefined : 'current');
+    }
+  );
+
+  it('propagates a rejected resumed scalar patch', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const value = deferred<string>();
+    const error = new Error('failed scalar');
+    const batch = createOwned(() =>
+      registerDomEffect(
+        new ResumedDomBatchEffect(
+          [new TextNodeEffect(createText(), useSignal(value.promise), scheduler)],
+          scheduler
+        )
+      )
+    );
+    const rejected = expect(batch.run()).rejects.toBe(error);
+    value.reject(error);
+    await rejected;
   });
 
   it('awaits async text and attributes on the initial run', async () => {

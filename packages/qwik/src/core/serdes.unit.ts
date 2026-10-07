@@ -14,7 +14,11 @@ import { QRL_RUNTIME_CHUNK } from './shared/serdes/qrl-to-string';
 import { SerializerSymbol } from './shared/serdes/verify';
 import { SERIALIZABLE_STATE } from './shared/component.public';
 import { EffectKind } from './dom/effect/effect-kind.enum';
-import type { AttrExpressionFn, EventExpressionFn, DomBatchEffect } from './dom/effect/effect';
+import type {
+  AttrExpressionFn,
+  EventExpressionFn,
+  ResumedDomBatchEffect,
+} from './dom/effect/effect';
 import { createTextNodeEffect, type TextExpressionFn } from './dom/effect/text-effect';
 import { BranchSubscription, renderSsrBranch } from './dom/branch/branch';
 import { ContentSubscription, renderSsrContent } from './dom/content/content';
@@ -1137,7 +1141,7 @@ describe('serdes emit-only', () => {
       container,
       TypeIds.EffectSubscription,
       (effectPayload as unknown[]).slice(0, -4)
-    )) as DomBatchEffect;
+    )) as ResumedDomBatchEffect;
     expect(restored.deps).toEqual([restoredCount, restoredTitle]);
 
     restoredCount.value = Promise.resolve(2);

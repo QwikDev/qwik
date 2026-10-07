@@ -13,7 +13,7 @@ import { ForBlock, ForRange, IndexMode } from '../../dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
-  DomBatchEffect,
+  ResumedDomBatchEffect,
   EventEffect,
   ForBlockSubscription,
   PropsEffect,
@@ -662,7 +662,7 @@ const inflateResolved = (
         }
         case EffectKind.DomBatch: {
           return maybeThen(restorePendingBoundary(container, getPendingRootId(parts)), () =>
-            restoreDomBatchEffect(container, target as Writeable<DomBatchEffect>, parts)
+            restoreDomBatchEffect(container, target as Writeable<ResumedDomBatchEffect>, parts)
           );
         }
         default:
@@ -1034,7 +1034,7 @@ async function restoreDomEffect(
 
 async function restoreDomBatchEffect(
   container: ContainerContext,
-  batch: Writeable<DomBatchEffect>,
+  batch: Writeable<ResumedDomBatchEffect>,
   parts: unknown[]
 ): Promise<void> {
   const deps = parts[1] as Source[];
@@ -1049,16 +1049,7 @@ async function restoreDomBatchEffect(
     }
   }
 
-  batch.fn = () => {
-    let pending: Promise<void>[] | undefined;
-    for (let i = 0; i < effects.length; i++) {
-      const value = effects[i].execute();
-      if (isPromise(value)) {
-        (pending ??= []).push(value);
-      }
-    }
-    return pending === undefined ? undefined : Promise.all(pending).then(() => undefined);
-  };
+  batch.effects = effects;
   restoreDependencies(batch, deps);
 }
 

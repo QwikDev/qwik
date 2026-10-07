@@ -255,7 +255,7 @@ describe('runV2Migration', () => {
       ),
     });
     expect(project.exists('src/routes/plugin@000-v1-errors.ts')).toBe(false);
-    expect(updateDependencies).toHaveBeenCalled();
+    expect(updateDependencies).toHaveBeenCalledWith({ redirectV1Packages: true });
     const migrated = readFiles(project, Object.keys(files));
     await migrate();
     expect(readFiles(project, Object.keys(files))).toEqual(migrated);

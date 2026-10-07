@@ -3,7 +3,7 @@ import { updatePackageJsons } from './replace-package';
 import { installDeps } from '../utils/install-deps';
 import { getPackageManager, readPackageJson, writePackageJson } from './../utils/utils';
 import { packageNames, versionTagPriority } from './versions';
-import { major, minVersion, validRange } from 'semver';
+import { gt, major, minVersion, validRange } from 'semver';
 import { log, spinner } from '@clack/prompts';
 
 export async function updateDependencies() {
@@ -13,7 +13,9 @@ export async function updateDependencies() {
   updatePackageJsons((deps) => {
     let changed = false;
     for (const name of Object.keys(deps)) {
-      const newVersion = packageNames.includes(name) ? version : toolingVersion(name, deps[name]);
+      const newVersion = packageNames.includes(name)
+        ? qwikVersion(deps[name], version)
+        : toolingVersion(name, deps[name]);
       if (newVersion && deps[name] !== newVersion) {
         deps[name] = newVersion;
         changed = true;
@@ -26,6 +28,12 @@ export async function updateDependencies() {
   loading.start(`Updating dependencies...`);
   await runInstall();
   loading.stop('Dependencies have been updated');
+}
+
+/** Keeps a newer version, so running the migration again never downgrades Qwik. */
+function qwikVersion(range: string, version: string) {
+  const current = validRange(range) && minVersion(range);
+  return current && gt(current, version) ? range : version;
 }
 
 /** V2 requires Vite 8 (Rolldown), Vitest supports Vite 8 since v4. */

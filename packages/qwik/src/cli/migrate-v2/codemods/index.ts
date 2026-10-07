@@ -78,6 +78,9 @@ export const codemods: Codemod[] = [
   ...importRenames,
 ];
 
+/** Codemods for the current v2 release, also run on v2 apps, so they must be idempotent. */
+export const upgradeCodemods: Codemod[] = [];
+
 /** Codemods run on the whole project before the file codemods. */
 export const projectCodemods: ProjectCodemod[] = [
   renameV2ErrorBoundaryFiles,

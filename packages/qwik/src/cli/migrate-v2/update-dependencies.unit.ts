@@ -55,6 +55,20 @@ describe('update-dependencies', () => {
       expect(installDeps).toHaveBeenCalledOnce();
     });
 
+    test('keeps qwik versions newer than the dist-tag', async () => {
+      execSync.mockReturnValue('latest: 2.0.0\nbeta: 2.1.0-beta.1\n');
+      project = createTmpProject({
+        'package.json': JSON.stringify({
+          devDependencies: { '@qwik.dev/core': '^2.1.0-beta.2', '@qwik.dev/router': '2.0.0-rc.1' },
+        }),
+      });
+      await updateDependencies();
+      expect(pkg().devDependencies).toEqual({
+        '@qwik.dev/core': '^2.1.0-beta.2',
+        '@qwik.dev/router': '2.0.0',
+      });
+    });
+
     test('updates workspace package.json files too', async () => {
       execSync.mockReturnValue('latest: 2.0.0\n');
       const unrelated = '{"name":"c",  "dependencies": {}}';

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { AppCommand } from '../utils/app-command';
 import { log } from '@clack/prompts';
 import { runV2Migration } from './run-migration';
+import { updateDependencies } from './update-dependencies';
 import { createTmpProject } from './tools/tmp-project';
 
 vi.mock('@clack/prompts', () => ({
@@ -15,6 +16,12 @@ vi.mock('./update-dependencies', () => ({
   removeTsMorphFromPackageJson: vi.fn(),
   updateDependencies: vi.fn(),
 }));
+
+const V1_PACKAGE_JSON = JSON.stringify({ devDependencies: { '@builder.io/qwik': '1' } });
+
+/** Reads every project file, to compare the project before and after a migration. */
+const readFiles = (project: ReturnType<typeof createTmpProject>, paths: string[]) =>
+  Object.fromEntries(paths.map((path) => [path, project.exists(path) && project.read(path)]));
 
 describe('runV2Migration', () => {
   let project: ReturnType<typeof createTmpProject>;
@@ -52,7 +59,9 @@ describe('runV2Migration', () => {
 
   test('renames the qwik-city plan, vite plugin and qwik-react', async () => {
     project = createTmpProject({
-      'package.json': JSON.stringify({ devDependencies: { '@builder.io/qwik-react': '0.5.0' } }),
+      'package.json': JSON.stringify({
+        devDependencies: { '@builder.io/qwik': '1', '@builder.io/qwik-react': '0.5.0' },
+      }),
       'vite.config.ts': [
         `import { qwikCity } from '@builder.io/qwik-city/vite';`,
         `import { qwikReact } from '@builder.io/qwik-react/vite';`,
@@ -66,6 +75,7 @@ describe('runV2Migration', () => {
     });
     await migrate();
     expect(JSON.parse(project.read('package.json')).devDependencies).toEqual({
+      '@qwik.dev/core': '1',
       '@qwik.dev/react': '0.5.0',
     });
     expect(project.read('vite.config.ts')).toBe(
@@ -85,7 +95,7 @@ describe('runV2Migration', () => {
 
   test('renames deprecated qwik-city exports', async () => {
     project = createTmpProject({
-      'package.json': '{}',
+      'package.json': V1_PACKAGE_JSON,
       'src/a.tsx': [
         `import { QwikCityMockProvider, type QwikCityMockProps, type QwikCityMockActionProp, type QwikCityMockLoaderProp, type QwikCityPlan, type QwikCityProps } from '@builder.io/qwik-city';`,
         `import type { QwikCityBunOptions } from '@builder.io/qwik-city/middleware/bun';`,
@@ -108,7 +118,7 @@ describe('runV2Migration', () => {
 
   test('renames qwik-city virtual modules', async () => {
     project = createTmpProject({
-      'package.json': '{}',
+      'package.json': V1_PACKAGE_JSON,
       'src/entry.ts': [
         `import { isStaticPath } from '@qwik-city-static-paths';`,
         `import entries from '@qwik-city-entries';`,
@@ -132,7 +142,7 @@ describe('runV2Migration', () => {
 
   test('renames the rollup plugin to rolldown', async () => {
     project = createTmpProject({
-      'package.json': '{}',
+      'package.json': V1_PACKAGE_JSON,
       'rollup.config.ts': `import { qwikRollup, type QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';\nconst opts: QwikRollupPluginOptions = {};\nexport default { plugins: [qwikRollup(opts)] };`,
     });
     await migrate();
@@ -143,7 +153,7 @@ describe('runV2Migration', () => {
 
   test('renames the vercel edge function directory', async () => {
     project = createTmpProject({
-      'package.json': '{}',
+      'package.json': V1_PACKAGE_JSON,
       'adapters/vercel-edge/vite.config.ts': `export default { build: { outDir: '.vercel/output/functions/_qwik-city.func' } };`,
     });
     await migrate();
@@ -154,7 +164,7 @@ describe('runV2Migration', () => {
 
   test('reports mentions of v1 internals and the v2 behavior changes', async () => {
     project = createTmpProject({
-      'package.json': '{}',
+      'package.json': V1_PACKAGE_JSON,
       'src/app.css': `.⭐️abc { color: red }`,
       'netlify.toml': `[[headers]]\n  for = "/*/q-data.json"`,
       'tests/e2e.spec.ts': `page.locator('[on:click]');`,
@@ -176,7 +186,7 @@ describe('runV2Migration', () => {
 
   test('keeps the jsx-runtime subpath and jsxs', async () => {
     project = createTmpProject({
-      'package.json': '{}',
+      'package.json': V1_PACKAGE_JSON,
       'tsconfig.json': JSON.stringify({ compilerOptions: { jsxImportSource: '@builder.io/qwik' } }),
       'src/a.ts': `import { jsx, jsxs } from '@builder.io/qwik/jsx-runtime';\njsxs('div', {});`,
     });
@@ -187,5 +197,52 @@ describe('runV2Migration', () => {
     expect(JSON.parse(project.read('tsconfig.json')).compilerOptions.jsxImportSource).toBe(
       '@qwik.dev/core'
     );
+  });
+
+  test('changes nothing when run again on the migrated app', async () => {
+    const files = {
+      'package.json': V1_PACKAGE_JSON,
+      'vite.config.ts': [
+        `import { qwikCity } from '@builder.io/qwik-city/vite';`,
+        `import { qwikVite } from '@builder.io/qwik/optimizer';`,
+        `export default { plugins: [qwikCity(), qwikVite()] };`,
+      ].join('\n'),
+      'src/root.tsx': [
+        `import { component$ } from '@builder.io/qwik';`,
+        `import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';`,
+        `export default component$(() => <QwikCityProvider><RouterOutlet /></QwikCityProvider>);`,
+      ].join('\n'),
+      'src/routes/index.tsx': `export default () => <div>home</div>;`,
+      'src/routes/error.tsx': `export const Error = () => null;`,
+    };
+    project = createTmpProject(files);
+    await migrate();
+    const paths = [...Object.keys(files), 'src/routes/_error.tsx'];
+    const migrated = readFiles(project, paths);
+    await migrate();
+    expect(readFiles(project, paths)).toEqual(migrated);
+  });
+
+  test('only updates the dependencies of an app already on v2', async () => {
+    const files = {
+      'package.json': JSON.stringify({
+        devDependencies: { '@qwik.dev/core': '2.0.0-rc.1', '@qwik.dev/router': '2.0.0-rc.1' },
+        overrides: { '@builder.io/qwik': 'npm:@qwik.dev/core@2.0.0-rc.1' },
+        type: 'module',
+      }),
+      'vite.config.ts': [
+        `import { qwikRouter } from '@qwik.dev/router/vite';`,
+        `import { qwikVite } from '@qwik.dev/core/optimizer';`,
+        `export default { plugins: [qwikRouter(), qwikVite()] };`,
+      ].join('\n'),
+      'src/routes/layout.tsx': `export default () => <div />;`,
+      'src/routes/error.tsx': `export default () => <p>error</p>;`,
+    };
+    project = createTmpProject(files);
+    vi.mocked(updateDependencies).mockClear();
+    await migrate();
+    expect(readFiles(project, Object.keys(files))).toEqual(files);
+    expect(project.exists('src/routes/plugin@000-v1-errors.ts')).toBe(false);
+    expect(updateDependencies).toHaveBeenCalled();
   });
 });

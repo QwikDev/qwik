@@ -1,5 +1,6 @@
 import { readFileSync, realpathSync } from 'fs';
-import { dirname, join, resolve } from 'path';
+import { basename, dirname, join, resolve } from 'path';
+import { visitNotIgnoredFiles } from './visit-not-ignored-files';
 
 type PackageJson = Record<string, Record<string, string> | undefined>;
 
@@ -62,4 +63,13 @@ export const findV1Libraries = (dir: string) => {
     }
     return false;
   });
+};
+
+/** Whether a package of the project depends on a library built with Qwik 1. */
+export const hasV1Libraries = () => {
+  let found = false;
+  visitNotIgnoredFiles('.', (path) => {
+    found ||= basename(path) === 'package.json' && findV1Libraries(dirname(path)).length > 0;
+  });
+  return found;
 };

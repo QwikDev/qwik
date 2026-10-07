@@ -139,6 +139,50 @@ describe('update-dependencies', () => {
     });
   });
 
+  describe('overriding the v1 packages', () => {
+    const userAgent = process.env.npm_config_user_agent;
+    afterEach(() => {
+      process.env.npm_config_user_agent = userAgent;
+    });
+
+    const update = async (pm: string, json: object, redirectV1Packages = true) => {
+      execSync.mockReturnValue('latest: 2.0.0\n');
+      process.env.npm_config_user_agent = `${pm}/1.0.0 node/v22`;
+      project = createTmpProject({ 'package.json': JSON.stringify(json) });
+      await updateDependencies({ redirectV1Packages });
+      return pkg();
+    };
+    const OVERRIDES = {
+      '@builder.io/qwik': 'npm:@qwik.dev/core@2.0.0',
+      '@builder.io/qwik-city': 'npm:@qwik.dev/router@2.0.0',
+    };
+
+    test.each([
+      ['npm', (json: any) => json.overrides],
+      ['bun', (json: any) => json.overrides],
+      ['yarn', (json: any) => json.resolutions],
+      ['pnpm', (json: any) => json.pnpm.overrides],
+    ])('redirects them to v2 for libraries built with Qwik 1 with %s', async (pm, overrides) => {
+      expect(overrides(await update(pm, { overrides: {}, resolutions: { a: '1' } }))).toEqual(
+        expect.objectContaining(OVERRIDES)
+      );
+    });
+
+    test('updates its own overrides without libraries built with Qwik 1', async () => {
+      const json = await update(
+        'npm',
+        { overrides: { '@builder.io/qwik': 'npm:@qwik.dev/core@2.0.0-rc.1', a: '1' } },
+        false
+      );
+      expect(json.overrides).toEqual({ '@builder.io/qwik': 'npm:@qwik.dev/core@2.0.0', a: '1' });
+    });
+
+    test('leaves other projects alone', async () => {
+      const json = { overrides: { '@builder.io/qwik': '1.19.0' } };
+      expect(await update('npm', json, false)).toEqual(json);
+    });
+  });
+
   describe('ts-morph', () => {
     test('installTsMorph adds ts-morph to devDependencies and installs', async () => {
       project = createTmpProject({ 'package.json': JSON.stringify({ devDependencies: {} }) });

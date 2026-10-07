@@ -4,6 +4,7 @@ import { bgMagenta, bgRed, bold, green } from 'kleur/colors';
 import { bye } from '../utils/utils';
 import { removePackage, replacePackage, updatePackageJsons } from './replace-package';
 import { nextSteps, takeWarnings, V2_BEHAVIOR_CHANGES, warnMentions } from './report';
+import { hasV1Libraries } from './tools/v1-libraries';
 import { updateConfigurations } from './update-configurations';
 import {
   installTsMorph,
@@ -49,7 +50,7 @@ export async function runV2Migration(app: AppCommand) {
 
     updateConfigurations();
 
-    await updateDependencies();
+    await updateDependencies({ redirectV1Packages: hasV1Libraries() });
     const warnings = takeWarnings();
     if (isV1App) {
       log.info(

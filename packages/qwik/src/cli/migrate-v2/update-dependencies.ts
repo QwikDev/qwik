@@ -1,46 +1,52 @@
 import { execSync } from 'node:child_process';
+import { updatePackageJsons } from './replace-package';
 import { installDeps } from '../utils/install-deps';
 import { getPackageManager, readPackageJson, writePackageJson } from './../utils/utils';
 import { packageNames, versionTagPriority } from './versions';
+import { major, minVersion, validRange } from 'semver';
 import { log, spinner } from '@clack/prompts';
 
 export async function updateDependencies() {
-  // TODO(migrate-v2): rely on workspaceRoot instead?
-  const packageJson = await readPackageJson(process.cwd());
+  const version = getPackageTag();
 
-  const version = await getPackageTag();
-
-  const dependencyNames = [
-    'dependencies',
-    'devDependencies',
-    'peerDependencies',
-    'optionalDependencies',
-  ] as const;
-
-  for (let i = 0; i < packageNames.length; i++) {
-    const name = packageNames[i];
-    for (let j = 0; j < dependencyNames.length; j++) {
-      const propName = dependencyNames[j];
-      const prop = packageJson[propName];
-      if (prop && prop[name]) {
-        prop[name] = version;
+  // workspace packages too, not only the root package.json
+  updatePackageJsons((deps) => {
+    let changed = false;
+    for (const name of Object.keys(deps)) {
+      const newVersion = packageNames.includes(name) ? version : toolingVersion(name, deps[name]);
+      if (newVersion && deps[name] !== newVersion) {
+        deps[name] = newVersion;
+        changed = true;
       }
     }
-  }
+    return changed;
+  });
 
-  await writePackageJson(process.cwd(), packageJson);
   const loading = spinner();
   loading.start(`Updating dependencies...`);
   await runInstall();
   loading.stop('Dependencies have been updated');
 }
 
+/** V2 requires Vite 8 (Rolldown), Vitest supports Vite 8 since v4. */
+function toolingVersion(name: string, range: string) {
+  const current = validRange(range) && minVersion(range);
+  if (!current) {
+    return;
+  }
+  if (name === 'vite' && major(current) < 8) {
+    return '^8.0.0';
+  }
+  if ((name === 'vitest' || name.startsWith('@vitest/')) && major(current) < 4) {
+    return '^4.0.0';
+  }
+}
+
 /**
  * Resolve the list of available package tags for the "@qwik.dev/core" and get the best match of
  * ^2.0.0 based on the "versionTagPriority"
  */
-async function getPackageTag() {
-  const { major } = await import('semver');
+function getPackageTag() {
   // we assume all migrated packages have the same set of tags
   const tags: [tag: string, version: string][] = execSync('npm dist-tag @qwik.dev/core', {
     encoding: 'utf-8',
@@ -65,8 +71,7 @@ async function getPackageTag() {
       return aIndex - bIndex;
     });
 
-  for (let i = 0; i < tags.length; i++) {
-    const [, version] = tags[i];
+  for (const [, version] of tags) {
     if (major(version) === 2) {
       return version;
     }

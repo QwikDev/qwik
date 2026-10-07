@@ -123,6 +123,8 @@ export default tseslint.config(
   },
   {
     files: ['packages/qwik/src/**/*.{ts,tsx}'],
+    // one-shot migration tool, not runtime code
+    ignores: ['packages/qwik/src/cli/migrate-v2/**'],
     languageOptions: {
       parserOptions: {
         projectService: true,

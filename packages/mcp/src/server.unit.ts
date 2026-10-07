@@ -23,6 +23,7 @@ test('advertises read-only tools and workflow instructions', async () => {
       'list_routes',
       'get_dev_errors',
       'inspect_page',
+      'locate_element',
       'search_docs',
       'get_doc',
       'get_best_practices',

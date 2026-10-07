@@ -8,7 +8,7 @@ import useCollectHooks from '../../devtools/plugin/src/virtualmodules/useCollect
 import { createHookRuntime } from '../../devtools/plugin/src/runtime/create-hook-runtime';
 import { createVNodeRuntime } from '../../devtools/plugin/src/runtime/create-vnode-runtime';
 import { VIRTUAL_QWIK_DEVTOOLS_KEY } from '../../devtools/kit/src/protocol/hooks';
-import { inspectInput, type ToolName } from './protocol';
+import { inspectInput, locateInput, type ToolName } from './protocol';
 import { isLoopback } from './access';
 
 const bridgeId = 'virtual:qwik-mcp';
@@ -50,6 +50,11 @@ export function qwikMcp(): Plugin {
           }[];
         }
       | undefined;
+  const pageToolInputs = {
+    get_dev_errors: inspectInput,
+    inspect_page: inspectInput,
+    locate_element: locateInput,
+  };
   const call = async (name: ToolName, args: Record<string, unknown>) => {
     if (name === 'get_project_info') {
       return {
@@ -73,10 +78,10 @@ export function qwikMcp(): Plugin {
             })) ?? [],
       };
     }
-    if (name !== 'inspect_page' && name !== 'get_dev_errors') {
+    if (!Object.hasOwn(pageToolInputs, name)) {
       throw new Error('Unknown MCP tool.');
     }
-    args = inspectInput.parse(args);
+    args = pageToolInputs[name as keyof typeof pageToolInputs].parse(args);
     const matches = [...pages.values()].filter((page) => !args.url || page.url === args.url);
     if (!matches.length) {
       throw new Error('No connected page. Open the requested Qwik URL in a local browser.');

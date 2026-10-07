@@ -184,6 +184,15 @@ for (const mode of ['csr', 'ssr']) {
       await expect
         .poll(async () => (await call('inspect_page')).structuredContent?.tree)
         .toEqual(expect.arrayContaining([expect.objectContaining({ id: expect.any(String) })]));
+      expect((await call('locate_element', { selector: '#counter' })).structuredContent).toEqual({
+        url,
+        selector: '#counter',
+        matches: 1,
+        source:
+          mode === 'ssr'
+            ? { file: '/src/routes/index.tsx', line: 5, column: 5, tag: 'button', exact: true }
+            : null,
+      });
       if (mode === 'csr') {
         await expect
           .poll(

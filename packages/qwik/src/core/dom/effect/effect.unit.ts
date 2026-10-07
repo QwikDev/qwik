@@ -32,10 +32,73 @@ import {
 } from './text-effect';
 import { applyDomProps, patchAttrValue, renderDomPropsToString, setRef } from './dom-props';
 import { _chk, _val } from '../../runtime/bind-handlers';
-import { setCaptures } from '../../shared/qrl/qrl-class';
+import { _capturesObj, setCaptures } from '../../shared/qrl/qrl-class';
+import type { Signal } from '../../reactive/signal';
+import type { DomEffect } from './dom-effect';
 import { createCapturedEvent } from '../event/event';
 
 describe('DOM effects', () => {
+  it.each(['text', 'attribute', 'props', 'event'])(
+    'invokes %s expressions with captures and their effect receiver',
+    async (kind) => {
+      const scheduler = new Scheduler(noopSchedule);
+      const count = useSignal(1);
+      const args: [Signal<number>] = [count];
+      const { element } = createPropsTarget();
+      const text = createText();
+      const seen: { captures: readonly unknown[] | null; receiver: unknown; value: number }[] = [];
+      const read = function (this: unknown, source: Signal<number>) {
+        const value = source.value;
+        seen.push({ captures: _capturesObj._, receiver: this, value });
+        return value;
+      };
+
+      const effect: DomEffect = createOwned(() => {
+        if (kind === 'text') {
+          return createTextExpressionEffect(text, args, read, scheduler);
+        }
+        if (kind === 'attribute') {
+          return createAttrExpressionEffect(element, 'title', args, read, scheduler);
+        }
+        if (kind === 'props') {
+          return createPropsEffect(
+            element,
+            args,
+            function (this: unknown, source) {
+              return { title: String(read.call(this, source)) };
+            },
+            scheduler
+          );
+        }
+        return createEventEffect(
+          element,
+          'q-e:click',
+          args,
+          function (this: unknown, source) {
+            read.call(this, source);
+            return null;
+          },
+          scheduler
+        );
+      });
+
+      setCaptures(['unrelated']);
+      scheduler.notify(effect);
+      await scheduler.flushInteraction();
+      expect(toArray(count.subs)).toContain(effect);
+
+      setCaptures(['another expression']);
+      count.value = 2;
+      await scheduler.flushInteraction();
+      expect(seen.map((read) => read.value)).toEqual([1, 2]);
+      for (let index = 0; index < seen.length; index++) {
+        const read = seen[index];
+        expect(read.captures).toBe(args);
+        expect(read.receiver).toBe(effect);
+      }
+    }
+  );
+
   it('patches text expression data', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = useSignal(7);

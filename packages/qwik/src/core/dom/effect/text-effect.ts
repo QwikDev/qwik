@@ -6,6 +6,7 @@ import { isPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { commitDomPromise, DomEffect, registerDomEffect } from './dom-effect';
 import { isSource } from '../../component/props';
+import { invokeCaptured } from '../../shared/qrl/qrl-captures';
 
 export type TextExpressionValue = string | number | boolean | bigint | null | undefined;
 export type TextExpressionFn<TArgs extends unknown[] = unknown[]> = (
@@ -23,7 +24,7 @@ export class TextExpressionEffect<TArgs extends unknown[] = unknown[]> extends D
   }
 
   execute(): ValueOrPromise<void> {
-    return patchTextValue(this.text, this.fn(...this.args));
+    return patchTextValue(this.text, invokeCaptured(this.fn, this.args, this, this.args));
   }
 }
 

@@ -100,7 +100,6 @@ import { readTrackedSourceValue } from '../../dom/effect/text-effect';
 import type { QRL } from '../qrl/qrl.public';
 import { assertDefined, assertNumber } from '../error/assert';
 import { qError, QError } from '../error/error';
-import { withCaptures } from '../qrl/qrl-captures';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isPromise, maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
@@ -1103,7 +1102,7 @@ async function populateDomEffect(
       }
       const qrl = parts[target.depsIndex + 2] as QRLInternal<TextExpressionFn>;
       const args = parts[target.depsIndex + 1] as unknown[];
-      const fn = withCaptures(await qrl.resolve(), args);
+      const fn = await qrl.resolve();
       const textEffect = effect as Writeable<TextExpressionEffect>;
       textEffect.text = text;
       textEffect.args = args;
@@ -1136,7 +1135,7 @@ async function populateDomEffect(
       const args = parts[target.depsIndex + 2] as unknown[];
       const qrl = parts[target.depsIndex + 3] as QRLInternal<AttrExpressionFn>;
       const styleScopedId = parts[target.depsIndex + 4] as string | null;
-      const fn = withCaptures(await qrl.resolve(), args);
+      const fn = await qrl.resolve();
       const attrEffect = effect as Writeable<AttrExpressionEffect>;
       attrEffect.element = element;
       attrEffect.name = name;
@@ -1156,7 +1155,7 @@ async function populateDomEffect(
       >;
       const args = parts[target.depsIndex + 1] as unknown[];
       const styleScopedId = parts[target.depsIndex + 3] as string | null;
-      const fn = withCaptures(await qrl.resolve(), args);
+      const fn = await qrl.resolve();
       const propsEffect = effect as Writeable<PropsEffect>;
       propsEffect.element = element;
       propsEffect.args = args;
@@ -1175,7 +1174,7 @@ async function populateDomEffect(
       const qrl = parts[target.depsIndex + 3] as QRLInternal<(...args: unknown[]) => unknown>;
       const before = parts[target.depsIndex + 4] as QDispatchHandler[];
       const after = parts[target.depsIndex + 5] as QDispatchHandler[];
-      const fn = withCaptures(await qrl.resolve(), args);
+      const fn = await qrl.resolve();
       const eventEffect = effect as Writeable<EventEffect>;
       eventEffect.element = element;
       eventEffect.name = name;

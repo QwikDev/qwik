@@ -12,9 +12,18 @@ export const setCaptures = (captures: Readonly<unknown[]> | null) => {
   _captures = _capturesObj._ = captures;
 };
 
-const setQrlCaptures = (captures: Readonly<unknown[]> | null | undefined) => {
-  setCaptures(captures ?? null);
-};
+/** @internal */
+export function invokeCaptured<T, TArgs extends unknown[]>(
+  fn: (...args: TArgs) => T,
+  captures: Readonly<unknown[]> | null | undefined,
+  receiver: unknown,
+  args: TArgs
+): T {
+  if (captures) {
+    setCaptures(captures);
+  }
+  return fn.apply(receiver, args);
+}
 
 /** @internal */
 export const withCaptures = <TYPE>(
@@ -25,7 +34,6 @@ export const withCaptures = <TYPE>(
     return ref;
   }
   return function boundCaptures(this: unknown, ...args: unknown[]) {
-    setQrlCaptures(captures);
-    return (ref as Function).apply(this, args);
+    return invokeCaptured(ref as (...args: unknown[]) => unknown, captures, this, args);
   } as TYPE;
 };

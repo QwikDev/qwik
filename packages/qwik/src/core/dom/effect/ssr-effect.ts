@@ -13,7 +13,7 @@ import type { SsrEventAttrChunk } from '../../ssr/output';
 import { readSourceValue, type Source } from '../../reactive/source';
 import { runWithCollector, track } from '../../reactive/tracking';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
-import { withCaptures } from '../../shared/qrl/qrl-captures';
+import { invokeCaptured } from '../../shared/qrl/qrl-captures';
 import { registerSubscriberToOwner } from '../../runtime/owner';
 import type { Owner } from '../../runtime/owner';
 import type { QDispatchHandler } from '../../shared/types';
@@ -111,7 +111,7 @@ export abstract class SsrDomEffectBase implements SsrDomSubscriber {
         if (fn === undefined) {
           throw this.qrl.resolve();
         }
-        return runWithCollector(this, withCaptures(fn, this.args), ...this.args);
+        return runWithCollector(this, invokeCaptured, fn, this.args, undefined, this.args);
       });
     const commit = (resolved: unknown) => {
       this.patch = [
@@ -356,7 +356,7 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
     }
 
     return maybeThen(
-      runWithCollector(subscriber, withCaptures(fn, args), ...args) as ValueOrPromise<unknown>,
+      runWithCollector(subscriber, invokeCaptured, fn, args, undefined, args),
       _textValue
     );
   });
@@ -404,7 +404,7 @@ export function renderSsrAttrExpression<TArgs extends unknown[]>(
       throw qrl.resolve();
     }
 
-    return runWithCollector(subscriber, withCaptures(fn, args), ...args);
+    return runWithCollector(subscriber, invokeCaptured, fn, args, undefined, args);
   });
   return serializeOrScheduleAttr(subscriber, name, value, styleScopedId);
 }
@@ -430,7 +430,7 @@ export function renderSsrProps<TArgs extends unknown[]>(
     }
 
     return runWithCollector(subscriber, () => {
-      const props = withCaptures(fn, args)(...args);
+      const props = invokeCaptured(fn, args, undefined, args);
       if (isPromise(props)) {
         throw new Error('Promise values are not supported for JSX DOM props.');
       }
@@ -459,7 +459,7 @@ export function renderSsrEvent<TArgs extends unknown[]>(
     if (fn === undefined) {
       throw qrl.resolve();
     }
-    const value = runWithCollector(subscriber, withCaptures(fn, args), ...args);
+    const value = runWithCollector(subscriber, invokeCaptured, fn, args, undefined, args);
     if (isPromise(value)) {
       throw new Error('Promise values are not supported for JSX DOM events.');
     }

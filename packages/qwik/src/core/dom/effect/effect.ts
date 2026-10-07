@@ -12,6 +12,7 @@ import { readTrackedValue } from './text-effect';
 import { removeEvent, setEvent } from '../event/event';
 import type { CapturedEventHandler, QDispatchHandler } from '../../shared/types';
 import { EMPTY_ARRAY } from '../../utils/consts';
+import { invokeCaptured } from '../../shared/qrl/qrl-captures';
 
 export type AttrExpressionFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
@@ -56,7 +57,12 @@ export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> extends D
   }
 
   execute(): ValueOrPromise<void> {
-    return patchAttrValue(this.element, this.name, this.fn(...this.args), this.styleScopedId);
+    return patchAttrValue(
+      this.element,
+      this.name,
+      invokeCaptured(this.fn, this.args, this, this.args),
+      this.styleScopedId
+    );
   }
 }
 
@@ -78,7 +84,7 @@ export class PropsEffect<TArgs extends unknown[] = unknown[]> extends DomEffect 
     this.prevProps ??= ownedDomProps(this.element);
     this.prevProps = applyDomProps(
       this.element,
-      this.fn(...this.args),
+      invokeCaptured(this.fn, this.args, this, this.args),
       this.prevProps,
       this.styleScopedId
     );
@@ -99,7 +105,11 @@ export class EventEffect<TArgs extends unknown[] = unknown[]> extends DomEffect 
   }
 
   execute(): void {
-    const handlers = resolveEventHandlers(this.fn(...this.args), this.before, this.after);
+    const handlers = resolveEventHandlers(
+      invokeCaptured(this.fn, this.args, this, this.args),
+      this.before,
+      this.after
+    );
     if (handlers === null) {
       removeEvent(this.element, this.name);
     } else {

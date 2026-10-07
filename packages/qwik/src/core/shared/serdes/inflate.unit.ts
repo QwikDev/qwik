@@ -23,6 +23,7 @@ import type { Subscriber } from '../../runtime/subscriber';
 import { allocateDomEffect } from './allocate';
 import { toArray } from '../../test-utils';
 import type { QElement } from '../../shared/types';
+import { _capturesObj, setCaptures } from '../qrl/qrl-captures';
 
 const encodeObjectData = (entries: Array<[unknown, unknown]>): unknown[] => {
   const out: unknown[] = [];
@@ -369,6 +370,55 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     ]);
 
     expect(subscription.fn).toBeTypeOf('function');
+  });
+
+  it.each([
+    EffectKind.TextExpression,
+    EffectKind.AttrExpression,
+    EffectKind.Props,
+    EffectKind.Event,
+  ])('restores expression kind %s without binding another function', async (kind) => {
+    const context = createContext('<button q:id="10">1</button>');
+    const count = useSignal(1);
+    const effect = allocateDomEffect(context, kind) as AttrExpressionEffect;
+    const fn = function (this: unknown, source: Signal<number>) {
+      expect(this).toBe(effect);
+      expect(_capturesObj._).toBe(effect.args);
+      const value = source.value;
+      if (kind === EffectKind.Props) {
+        return { title: String(value) };
+      }
+      return kind === EffectKind.Event ? null : value;
+    };
+    const qrl = { resolve: vi.fn(async () => fn) };
+    const payload: unknown[] = [TypeIds.Plain, kind];
+    if (kind === EffectKind.TextExpression) {
+      payload.push(TypeIds.Plain, EffectTargetKind.ElementText);
+    }
+    payload.push(TypeIds.Plain, 10, TypeIds.Array, [TypeIds.Plain, count]);
+    if (kind === EffectKind.AttrExpression || kind === EffectKind.Event) {
+      payload.push(TypeIds.Plain, kind === EffectKind.Event ? 'q-e:click' : 'title');
+    }
+    payload.push(TypeIds.Array, [TypeIds.Plain, count], TypeIds.Plain, qrl);
+    if (kind === EffectKind.Event) {
+      payload.push(TypeIds.Array, [], TypeIds.Array, []);
+    } else if (kind !== EffectKind.TextExpression) {
+      payload.push(TypeIds.Plain, null);
+    }
+
+    await inflate(context, effect, TypeIds.EffectSubscription, payload);
+    expect(effect.fn).toBe(fn);
+    expect(qrl.resolve).toHaveBeenCalledTimes(1);
+    setCaptures(['unrelated']);
+    count.value = 2;
+    await context.scheduler.flushInteraction();
+    expect(effect.deps).toEqual([count]);
+    const element = context.element.querySelector('button')!;
+    if (kind === EffectKind.TextExpression) {
+      expect(element.textContent).toBe('2');
+    } else if (kind !== EffectKind.Event) {
+      expect(element.getAttribute('title')).toBe('2');
+    }
   });
 
   it('restores event effects and updates handlers', async () => {

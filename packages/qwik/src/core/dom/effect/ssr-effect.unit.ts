@@ -26,8 +26,57 @@ import { createOwner, runWithOwner } from '../../runtime/owner';
 import { toArray } from '../../test-utils';
 import { renderSsrDynamicTag } from '../slot/slot';
 import { createSsrNodeId, createSsrOpenTag } from '../../ssr/output';
+import { _capturesObj, setCaptures } from '../../shared/qrl/qrl-captures';
 
 describe('SSR DOM effect helpers', () => {
+  it('keeps concurrent async expression captures local to each invocation', async () => {
+    const first = useSignal('first');
+    const second = useSignal('second');
+    const qrl = createQRL<TextExpressionFn<[Signal<string>]>>(
+      './captures.text.js',
+      'capturedText',
+      async function (this: unknown, source) {
+        expect(this).toBeUndefined();
+        expect(_capturesObj._?.[0]).toBe(source);
+        const value = source.value;
+        await Promise.resolve();
+        return value;
+      },
+      null,
+      null
+    );
+
+    const firstRender = createOwned(() => renderSsrTextExpression(1, null, [first], qrl));
+    const secondRender = createOwned(() => renderSsrTextExpression(2, null, [second], qrl));
+    expect(await Promise.all([firstRender, secondRender])).toEqual(['first', 'second']);
+    expect(toArray(first.subs)).toHaveLength(1);
+    expect(toArray(second.subs)).toHaveLength(1);
+  });
+
+  it('sets captures on attribute reruns while preserving the SSR receiver', () => {
+    const count = useSignal(1);
+    const args: [Signal<number>] = [count];
+    const qrl = createQRL<AttrExpressionFn<[Signal<number>]>>(
+      './captures.attr.js',
+      'capturedAttr',
+      function (this: unknown, source) {
+        expect(this).toBeUndefined();
+        expect(_capturesObj._).toBe(args);
+        return source.value;
+      },
+      null,
+      null
+    );
+
+    expect(createOwned(() => renderSsrAttrExpression(3, 'title', args, qrl))).toBe('1');
+    const effect = toArray(count.subs)[0] as SsrAttrExpressionEffect;
+    setCaptures(['unrelated']);
+    count.value = 2;
+    effect.run();
+    expect(effect.patch).toEqual([3, 'title', '2']);
+    expect(effect.deps).toEqual([count]);
+  });
+
   it('creates a text node subscriber and collects the source dependency', () => {
     const count = useSignal(1);
     const value = createOwned(() => renderSsrTextNode(0, 0, count));

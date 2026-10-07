@@ -35,7 +35,6 @@ export const V2_BEHAVIOR_CHANGES = [
   'Event handlers on the bubbling path run synchronously, so a parent `sync$` handler can call `preventDefault()`.',
   'Build output: chunks and hashes differ (Rolldown), route data is fetched from `q-loader-*.json` instead of `q-data.json` and actions POST to `?qaction=`. Update CDN and cache rules.',
   'The v2 qwikloader does not handle v1 containers on the same page.',
-  'Third-party libraries that depend on "@builder.io/qwik" are aliased to v2 by the Vite plugin, but still install v1 for TypeScript and tests. Add package manager overrides if needed.',
 ];
 
 /** Steps to move from the v1 compatible settings the migration added to the v2 defaults. */

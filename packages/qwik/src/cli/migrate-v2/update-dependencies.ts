@@ -3,17 +3,19 @@ import { updatePackageJsons } from './replace-package';
 import { installDeps } from '../utils/install-deps';
 import { getPackageManager, readPackageJson, writePackageJson } from './../utils/utils';
 import { packageNames, versionTagPriority } from './versions';
-import { major, minVersion, validRange } from 'semver';
+import { gt, major, minVersion, validRange } from 'semver';
 import { log, spinner } from '@clack/prompts';
 
-export async function updateDependencies() {
+export async function updateDependencies({ redirectV1Packages = false } = {}) {
   const version = getPackageTag();
 
   // workspace packages too, not only the root package.json
   updatePackageJsons((deps) => {
     let changed = false;
     for (const name of Object.keys(deps)) {
-      const newVersion = packageNames.includes(name) ? version : toolingVersion(name, deps[name]);
+      const newVersion = packageNames.includes(name)
+        ? qwikVersion(deps[name], version)
+        : toolingVersion(name, deps[name]);
       if (newVersion && deps[name] !== newVersion) {
         deps[name] = newVersion;
         changed = true;
@@ -22,10 +24,53 @@ export async function updateDependencies() {
     return changed;
   });
 
+  await overrideV1Packages(version, redirectV1Packages);
+
   const loading = spinner();
   loading.start(`Updating dependencies...`);
   await runInstall();
   loading.stop('Dependencies have been updated');
+}
+
+const V1_REDIRECTS = [
+  ['@builder.io/qwik', '@qwik.dev/core'],
+  ['@builder.io/qwik-city', '@qwik.dev/router'],
+];
+
+/**
+ * Libraries built with Qwik 1 would install v1 next to v2, and npm fails on their peer
+ * dependencies, unless the root package.json overrides the v1 packages.
+ */
+async function overrideV1Packages(version: string, hasV1Libraries: boolean) {
+  const packageJson = await readPackageJson(process.cwd());
+  const fields: Record<string, any> = packageJson;
+  const pm = getPackageManager();
+  const parent = pm === 'pnpm' ? (fields.pnpm ?? {}) : fields;
+  const field = pm === 'yarn' ? 'resolutions' : 'overrides';
+  const overrides = { ...parent[field] };
+  let changed = false;
+  for (const [v1, v2] of V1_REDIRECTS) {
+    const redirect = `npm:${v2}@${version}`;
+    const isOwnOverride = String(overrides[v1]).startsWith(`npm:${v2}@`);
+    if (overrides[v1] !== redirect && (hasV1Libraries || isOwnOverride)) {
+      overrides[v1] = redirect;
+      changed = true;
+    }
+  }
+  if (!changed) {
+    return;
+  }
+  parent[field] = overrides;
+  if (pm === 'pnpm') {
+    fields.pnpm = parent;
+  }
+  await writePackageJson(process.cwd(), packageJson);
+}
+
+/** Keeps a newer version, so running the migration again never downgrades Qwik. */
+function qwikVersion(range: string, version: string) {
+  const current = validRange(range) && minVersion(range);
+  return current && gt(current, version) ? range : version;
 }
 
 /** V2 requires Vite 8 (Rolldown), Vitest supports Vite 8 since v4. */

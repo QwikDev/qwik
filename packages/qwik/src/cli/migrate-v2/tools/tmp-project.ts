@@ -15,6 +15,7 @@ export function createTmpProject(files: Record<string, string>) {
     dir,
     read: (path: string) => readFileSync(join(dir, path), 'utf-8'),
     exists: (path: string) => existsSync(join(dir, path)),
+    write: (path: string, content: string) => writeFileSync(join(dir, path), content),
     cleanup: () => {
       process.chdir(prevCwd);
       rmSync(dir, { recursive: true, force: true });

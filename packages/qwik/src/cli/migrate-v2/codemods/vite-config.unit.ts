@@ -1,7 +1,11 @@
+import { mkdirSync, symlinkSync } from 'fs';
+import { join } from 'path';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
+import { createTmpProject } from '../tools/tmp-project';
 import { createProject, type Codemod } from './run-codemods';
 import {
+  bundleV1Libraries,
   keepAssetsDir,
   keepBaseOutDir,
   removeDevInput,
@@ -181,5 +185,93 @@ describe('warnManualChunks', () => {
   test('does not warn without manualChunks', () => {
     run(warnManualChunks, `export default { build: {} };`);
     expect(takeWarnings()).toEqual([]);
+  });
+});
+
+describe('bundleV1Libraries', () => {
+  let project: ReturnType<typeof createTmpProject>;
+  afterEach(() => {
+    project.cleanup();
+    takeWarnings();
+  });
+
+  const pkg = (json: object) => JSON.stringify(json);
+  const V2_IMPORT = `import { qwikVite } from '@qwik.dev/core/optimizer';\n`;
+  const LIBRARIES = {
+    'package.json': pkg({
+      dependencies: { 'v1-lib': '1', 'v2-lib': '1', 'not-installed': '1' },
+      devDependencies: { '@builder.io/qwik-city': '1', '@scope/v1-dev-lib': '1', plain: '1' },
+    }),
+    'node_modules/v1-lib/package.json': pkg({ peerDependencies: { '@builder.io/qwik': '^1' } }),
+    'node_modules/v2-lib/package.json': pkg({ peerDependencies: { '@qwik.dev/core': '^2' } }),
+    'node_modules/@builder.io/qwik-city/package.json': pkg({
+      peerDependencies: { '@builder.io/qwik': '^1' },
+    }),
+    'node_modules/@scope/v1-dev-lib/package.json': pkg({
+      dependencies: { '@builder.io/qwik': '^1' },
+    }),
+    'node_modules/plain/package.json': pkg({}),
+  };
+
+  /** Runs the codemod on the project's vite.config.ts, from disk. */
+  const runOnConfig = () => {
+    const file = createProject().addSourceFileAtPath(join(project.dir, 'vite.config.ts'));
+    const changed = bundleV1Libraries(file);
+    return { changed, text: file.getFullText() };
+  };
+
+  test('adds the installed v1 libraries to resolve.noExternal once', () => {
+    project = createTmpProject({
+      ...LIBRARIES,
+      'vite.config.ts': `${V2_IMPORT}export default defineConfig(() => {\n  return {\n    plugins: [qwikVite()],\n  };\n});`,
+    });
+    const expected = `${V2_IMPORT}export default defineConfig(() => {\n  return {\n    plugins: [qwikVite()],\n    resolve: { noExternal: ['v1-lib', '@scope/v1-dev-lib'] },\n  };\n});`;
+    expect(runOnConfig()).toEqual({ changed: true, text: expected });
+    expect(takeWarnings()).toEqual([
+      expect.stringContaining('added "v1-lib", "@scope/v1-dev-lib" to `resolve.noExternal`'),
+    ]);
+    project.write('vite.config.ts', expected);
+    expect(runOnConfig()).toEqual({ changed: false, text: expected });
+  });
+
+  test('adds the missing libraries to an existing resolve.noExternal', () => {
+    project = createTmpProject({
+      ...LIBRARIES,
+      'vite.config.ts': `${IMPORT}export default { plugins: [qwikVite()], resolve: { alias: {}, noExternal: ['v1-lib'] } };`,
+    });
+    expect(runOnConfig().text).toBe(
+      `${IMPORT}export default { plugins: [qwikVite()], resolve: { alias: {}, noExternal: ['v1-lib', '@scope/v1-dev-lib'] } };`
+    );
+  });
+
+  test('keeps resolve.noExternal: true', () => {
+    const code = `${IMPORT}export default { plugins: [qwikVite()], resolve: { noExternal: true } };`;
+    project = createTmpProject({ ...LIBRARIES, 'vite.config.ts': code });
+    expect(runOnConfig()).toEqual({ changed: false, text: code });
+  });
+
+  test('warns when it cannot edit resolve.noExternal', () => {
+    const code = `${IMPORT}const plugins = [qwikVite()];\nexport default { plugins };`;
+    project = createTmpProject({ ...LIBRARIES, 'vite.config.ts': code });
+    expect(runOnConfig()).toEqual({ changed: false, text: code });
+    expect(takeWarnings()).toEqual([
+      expect.stringContaining('add "v1-lib", "@scope/v1-dev-lib" to `resolve.noExternal`'),
+    ]);
+  });
+
+  test('skips workspace packages, the migration updates them too', () => {
+    const code = `${IMPORT}export default { plugins: [qwikVite()] };`;
+    project = createTmpProject({
+      'package.json': pkg({ dependencies: { 'workspace-lib': '*' } }),
+      'packages/workspace-lib/package.json': pkg({ dependencies: { '@builder.io/qwik': '1' } }),
+      'vite.config.ts': code,
+    });
+    mkdirSync(join(project.dir, 'node_modules'));
+    symlinkSync(
+      join(project.dir, 'packages/workspace-lib'),
+      join(project.dir, 'node_modules/workspace-lib'),
+      'junction'
+    );
+    expect(runOnConfig()).toEqual({ changed: false, text: code });
   });
 });

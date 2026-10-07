@@ -1,5 +1,6 @@
 /** `generateJsCsr(browserLinkedPlan, options)` — browser modules from the browser LinkedPlan. */
 import {
+  ArgPass,
   BoundaryKind,
   Environment,
   HandlerKind,
@@ -138,6 +139,11 @@ async function generateModule(
 
 /** Everything one render pass carries — created in renderProgram, threaded explicitly. */
 interface RenderPass {
+  row?: {
+    outer: Set<number>;
+    collection: string;
+    handlers: { name: string; value: string }[];
+  };
   batches: Map<number, { remaining: number; patches: string[] }>;
   names: GeneratedNames;
   next: (prefix: string) => string;
@@ -467,6 +473,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         `const ${effect} = ${QwikWord.CreatePropsEffect}(${el}, [${args.join(', ')}], ${this.chunkSymbol(qrl)}, ${pass.names.ctx}.scheduler${scope});`,
         `${pass.names.ctx}.scheduler.waitFor(${effect}.run());`
       );
+    }
+    if (op.eventParams !== undefined) {
+      const params = op.eventParams.map((binding) => this.module.bindings[binding].name);
+      statements.push(`${el}._qEventParam = ${params[0]};`);
     }
     for (const prop of op.props) {
       switch (prop.k) {
@@ -949,15 +959,25 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const elementRoot = body.ops.length === 1 && root.op === OpKind.Element;
     // A fresh emitter keeps the row's imports/chunk references out of the main module.
     const emitter = new CsrModuleEmitter(this.module, this.options);
+    const next = createNameAllocator(this.module);
     const pass: RenderPass = {
       batches: new Map(
         [...effectCounts(body.ops)].map(([id, remaining]) => [id, { remaining, patches: [] }])
       ),
+      ...(elementRoot && program.params.length > 0
+        ? {
+            row: {
+              outer: new Set<number>(),
+              collection: next(QwikGenWord.Collection),
+              handlers: [],
+            },
+          }
+        : {}),
       names: {
         props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
         ctx: allocateGeneratedNames(this.module).ctx,
       },
-      next: createNameAllocator(this.module),
+      next,
       propSources: new Map(),
       revealGroups: new Map(),
     };
@@ -977,6 +997,25 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (captures.length > 0) {
       emitter.imports.add(QwikWord.Captures);
     }
+    const row = pass.row;
+    const eventSetup: string[] = [];
+    if (row !== undefined && row.handlers.length > 0) {
+      const factory = next('createRowEvents');
+      const outer = [...row.outer].map((binding) => this.module.bindings[binding].name);
+      const names = row.handlers.map((handler) => handler.name).join(', ');
+      const values = row.handlers.map((handler) => handler.value).join(', ');
+      const single = row.handlers.length === 1;
+      emitter.hoists.push(
+        `function ${factory}(${outer.join(', ')}) { return ${single ? values : `[${values}]`}; }`
+      );
+      eventSetup.push(
+        `const ${single ? names : `[${names}]`} = ${row.collection}.rowEvents ??= ${factory}(${outer.join(', ')});`
+      );
+      while (loopParams.length < 2) {
+        loopParams.push(next('rowIndex'));
+      }
+      emission.params = [pass.names.ctx, ...loopParams, row.collection];
+    }
     emission.statements = [
       ...capturePrelude(this.module, qrl),
       ...functionPrelude(this.module, qrl, (use) =>
@@ -985,6 +1024,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       ...emitJsSetup(this.module, program, emitter.imports, (use) =>
         emitter.lazyRenderReference(use, pass.names.props)
       ),
+      ...eventSetup,
       ...statements,
     ];
     emission.value = value;
@@ -1307,15 +1347,37 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     });
     const symbolOf = (use: (typeof uses)[number]) =>
       'symbol' in use ? use.symbol : this.chunkSymbol(use.qrl);
-    this.imports.add(QwikWord.SetEvent);
     if (uses.length === 1) {
       const args = uses[0].args;
+      const row = pass.row;
+      const use = values[0]?.value;
+      if (row !== undefined && use?.v === ValueKind.Qrl) {
+        const { qrl } = this.resolveQrlUse(use.use, pass.names.props);
+        if (qrl.params.event !== undefined) {
+          for (const arg of use.use.args) {
+            if (arg.pass === ArgPass.Binding) {
+              row.outer.add(arg.binding);
+            }
+          }
+          this.imports.add(QwikWord.CreateCapturedEvent);
+          this.imports.add(QwikWord.SetEvent);
+          const name = pass.next('rowEvent');
+          row.handlers.push({
+            name,
+            value: `${QwikWord.CreateCapturedEvent}(${symbolOf(uses[0])}, [${args.join(', ')}], 1)`,
+          });
+          statements.push(`${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${name});`);
+          return;
+        }
+      }
+      this.imports.add(QwikWord.SetEvent);
       statements.push(
         `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${symbolOf(uses[0])}${args.length === 0 ? '' : `, [${args.join(', ')}]`});`
       );
       return;
     }
     // Each handler carries its own captures; the runtime dispatches the list in order.
+    this.imports.add(QwikWord.SetEvent);
     const entries = uses.map((use) => {
       if (use.args.length === 0) {
         return symbolOf(use);

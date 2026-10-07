@@ -734,6 +734,14 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         pushMergedStatic(openTag, '"');
       }
     }
+    if (op.eventParams !== undefined) {
+      this.imports.add(QwikWord.CreateSsrRootRef);
+      const value = this.module.bindings[op.eventParams[0]].name;
+      pushMergedStatic(openTag, ' q:p="');
+      openTag.push(`${QwikWord.CreateSsrRootRef}(${pass.names.ctx}.addRoot(${value}))`);
+      pushMergedStatic(openTag, '"');
+      pass.usedCtx = true;
+    }
     for (const prop of op.props) {
       if (prop !== innerHtml) {
         this.prop(
@@ -1320,9 +1328,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       if (handler.h === HandlerKind.Bind) {
         return bindHandlerJs(this.module, handler, this.imports);
       }
-      return handler.value.v === ValueKind.Qrl
-        ? this.useQrl(pass, handler.value.use, false).ref
-        : inlineValueJs(this.module, handler.value);
+      if (handler.value.v !== ValueKind.Qrl) {
+        return inlineValueJs(this.module, handler.value);
+      }
+      const { qrl, ref } = this.useQrl(pass, handler.value.use, false);
+      return qrl.params.event === undefined ? ref : `${ref}.m()`;
     });
     return values.length === 1 ? values[0] : `[${values.join(', ')}]`;
   }

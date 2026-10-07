@@ -43,6 +43,7 @@ import {
   _first,
   _last,
   createAttrExpressionEffect,
+  createCapturedEvent,
   setEvent,
   _createElementTemplate,
 } from '@qwik.dev/core';
@@ -52,10 +53,15 @@ import { component_q_e_click_segment_4_2xwyeh830jenv } from './component.tsx_com
 const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate(
   '<li><button>save</button><button>optional</button></li>'
 );
+function createRowEvents0() {
+  return createCapturedEvent(component_q_e_click_segment_3_2xwygfdmkpoqi, [], 1);
+}
 
-export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
+export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, rowIndex0, collection0) => {
+  const rowEvent0 = (collection0.rowEvents ??= createRowEvents0());
   const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
   const el1 = _first(el0);
+  el1._qEventParam = item;
   const effect0 = createAttrExpressionEffect(
     el1,
     'title',
@@ -64,7 +70,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
     ctx.scheduler
   );
   ctx.scheduler.notify(effect0);
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [item]);
+  setEvent(el1, 'q-e:click', rowEvent0);
   const el2 = _last(el0);
   setEvent(el2, 'q-e:click', component_q_e_click_segment_4_2xwyeh830jenv, [item]);
   return el0;
@@ -148,10 +154,7 @@ export const component_title_segment_2_2f0r05go51flv = (item) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _capturesObj } from '@qwik.dev/core';
-
-export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
-  const [item] = _capturesObj._;
+export const component_q_e_click_segment_3_2xwygfdmkpoqi = (event0, element0, item) => {
   return (0, item.save)();
 };
 /*
@@ -166,13 +169,14 @@ export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
   "parent": null,
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
-  "captures": true,
+  "captures": false,
   "loc": [
     190,
     213
   ],
-  "paramNames": [],
-  "captureNames": [
+  "paramNames": [
+    "event0",
+    "element0",
     "item"
   ]
 }

@@ -18,8 +18,8 @@ export const enum PlanFormat {
 }
 
 // Library artifacts require the complete dependency and invocation facts.
-export const MODULE_PLAN_VERSION = 3;
-export const LINKED_PLAN_VERSION = 3;
+export const MODULE_PLAN_VERSION = 4;
+export const LINKED_PLAN_VERSION = 4;
 
 export const enum Environment {
   Server = 'server',

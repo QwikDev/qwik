@@ -783,6 +783,7 @@ import {
   _last,
   _prev,
   patchTextValue,
+  createCapturedEvent,
   setEvent,
   createDomBatchEffect,
   _createElementTemplate,
@@ -796,13 +797,21 @@ import { root_q_e_click_segment_19_1exo9sxclr3jp } from './root.tsx_root_q_e_cli
 const root_for_render_segment_13_xl6e5erok1z7_tmpl0 = _createElementTemplate(
   '<tr><td class="col-md-1"> </td><td class="col-md-4"><a> </a></td><td class="col-md-1"><a><span class="glyphicon glyphicon-remove" aria-hidden="true">x</span></a></td><td class="col-md-6"></td></tr>'
 );
+function createRowEvents0(selectedItem, data) {
+  return [
+    createCapturedEvent(root_q_e_click_segment_17_1exoakzkff7kr, [selectedItem], 1),
+    createCapturedEvent(root_q_e_click_segment_19_1exo9sxclr3jp, [data], 1),
+  ];
+}
 
-export const root_for_render_segment_13_xl6e5erok1z7 = (ctx, row) => {
+export const root_for_render_segment_13_xl6e5erok1z7 = (ctx, row, rowIndex0, collection0) => {
   const [selectedItem, data] = _capturesObj._;
+  const [rowEvent0, rowEvent1] = (collection0.rowEvents ??= createRowEvents0(selectedItem, data));
   const el0 = root_for_render_segment_13_xl6e5erok1z7_tmpl0(ctx.document);
   const text0 = _first(_first(el0));
   const el1 = _first(_next(_first(el0)));
-  setEvent(el1, 'q-e:click', root_q_e_click_segment_17_1exoakzkff7kr, [selectedItem, row]);
+  el1._qEventParam = row;
+  setEvent(el1, 'q-e:click', rowEvent0);
   const text1 = _first(el1);
   createDomBatchEffect(() => {
     patchAttrValue(el0, 'class', root_class_segment_15_2xl0i26jedthh(row));
@@ -810,7 +819,8 @@ export const root_for_render_segment_13_xl6e5erok1z7 = (ctx, row) => {
     patchTextValue(text1, root_text_segment_18_3hdg2eq0meojb(row));
   }, ctx.scheduler);
   const el2 = _first(_prev(_last(el0)));
-  setEvent(el2, 'q-e:click', root_q_e_click_segment_19_1exo9sxclr3jp, [data, row]);
+  el2._qEventParam = row;
+  setEvent(el2, 'q-e:click', rowEvent1);
   return el0;
 };
 /*
@@ -926,8 +936,8 @@ export const root_text_segment_16_3hdfyiexi24e1 = (row) => {
 
 import { _capturesObj } from '@qwik.dev/core';
 
-export const root_q_e_click_segment_17_1exoakzkff7kr = () => {
-  const [selectedItem, row] = _capturesObj._;
+export const root_q_e_click_segment_17_1exoakzkff7kr = (event0, element0, row) => {
+  const [selectedItem] = _capturesObj._;
   if (selectedItem.value) {
     selectedItem.value.selected.value = false;
   }
@@ -951,10 +961,13 @@ export const root_q_e_click_segment_17_1exoakzkff7kr = () => {
     3147,
     3375
   ],
-  "paramNames": [],
-  "captureNames": [
-    "selectedItem",
+  "paramNames": [
+    "event0",
+    "element0",
     "row"
+  ],
+  "captureNames": [
+    "selectedItem"
   ]
 }
 */
@@ -990,8 +1003,8 @@ export const root_text_segment_18_3hdg2eq0meojb = (row) => {
 
 import { _capturesObj } from '@qwik.dev/core';
 
-export const root_q_e_click_segment_19_1exo9sxclr3jp = () => {
-  const [data, row] = _capturesObj._;
+export const root_q_e_click_segment_19_1exo9sxclr3jp = (event0, element0, row) => {
+  const [data] = _capturesObj._;
   const dataValue = data.value;
   data.value = dataValue.toSpliced(
     dataValue.findIndex((d) => d.id === row.id),
@@ -1015,10 +1028,13 @@ export const root_q_e_click_segment_19_1exo9sxclr3jp = () => {
     3606,
     3771
   ],
-  "paramNames": [],
-  "captureNames": [
-    "data",
+  "paramNames": [
+    "event0",
+    "element0",
     "row"
+  ],
+  "captureNames": [
+    "data"
   ]
 }
 */

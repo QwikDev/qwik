@@ -119,6 +119,7 @@ export type Op =
       styleScopedId: string | null;
       runtimeScope: boolean;
       props: Prop[];
+      eventParams?: LocalId[];
       propsEffect: QrlUse | null;
       children: Op[];
     }

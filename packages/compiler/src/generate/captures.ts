@@ -122,3 +122,14 @@ export function usedParamPrefix(module: LinkedModule, qrl: LinkedQrl): string[] 
   });
   return params.slice(0, lastUsed + 1).map((binding) => module.bindings[binding].name);
 }
+
+export function eventParamNames(module: LinkedModule, qrl: LinkedQrl, params: string[]): string[] {
+  if (qrl.params.event === undefined) {
+    return params;
+  }
+  const next = createNameAllocator(module);
+  while (params.length < 2) {
+    params.push(next(params.length === 0 ? 'event' : 'element'));
+  }
+  return [...params, ...qrl.params.event.map((binding) => module.bindings[binding].name)];
+}

@@ -6,10 +6,75 @@ import {
 } from '../../runtime/invoke-context';
 import { _captures } from '../../shared/qrl/qrl-captures';
 import type { CapturedEventHandler, qWindow, QElement } from '../../shared/types';
-import { removeEvent, setEvent } from './event';
+import { createCapturedEvent, removeEvent, setEvent } from './event';
 import { Scheduler } from '../../runtime/scheduler';
 
 describe('setEvent', () => {
+  test('shares captures while passing the clicked row as an argument', () => {
+    const shared = { value: 0 };
+    const rows = [{ id: 1 }, { id: 2 }];
+    const links = rows.map((row) => Object.assign(createElementTarget(), { _qEventParam: row }));
+    const seen: unknown[] = [];
+    const sharedEvent = createCapturedEvent(
+      (event, element, row) => {
+        seen.push([_captures![0], row]);
+      },
+      [shared],
+      1
+    );
+    links.forEach((link) => setEvent(link, 'q-e:click', sharedEvent));
+    const dispatch = links.map(
+      (link) => (link as QElement)._qDispatch!['e:click'] as CapturedEventHandler
+    );
+    expect(dispatch[0]).toBe(dispatch[1]);
+    expect(dispatch[0]).toHaveLength(1);
+    for (const index of [1, 0])
+      dispatch[index]._qRun(dispatch[index], new Event('click'), links[index]);
+    expect(seen).toEqual([
+      [shared, rows[1]],
+      [shared, rows[0]],
+    ]);
+  });
+
+  test('preserves row arguments when a shared handler retries overlapping clicks', async () => {
+    const links = [0, 1].map((row) => Object.assign(createElementTarget(), { _qEventParam: row }));
+    const waiting = new Set<unknown>();
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const seen: unknown[] = [];
+    const sharedEvent = createCapturedEvent(
+      (_event, _element, row) => {
+        if (!waiting.has(row)) {
+          waiting.add(row);
+          throw gate;
+        }
+        seen.push(row);
+      },
+      [],
+      1
+    );
+    links.forEach((link) => setEvent(link, 'q-e:click', sharedEvent));
+    const pending = links.map((link) => {
+      const dispatch = (link as QElement)._qDispatch!['e:click'] as CapturedEventHandler;
+      return dispatch._qRun(dispatch, new Event('click'), link);
+    });
+    release();
+    await Promise.all(pending);
+    expect(seen).toEqual([0, 1]);
+  });
+
+  test('passes multiple element parameters without changing shared captures', () => {
+    const element = Object.assign(createElementTarget(), { _qEventParams: [undefined, 7] });
+    const calls: unknown[][] = [];
+    const handler = createCapturedEvent((...args) => calls.push(args), ['shared'], 2);
+    setEvent(element, 'q-e:click', handler);
+    const captured = (element as QElement)._qDispatch!['e:click'] as CapturedEventHandler;
+    const event = new Event('click');
+    captured._qRun(captured, event, element);
+    expect(calls).toEqual([[event, element, undefined, 7]]);
+    expect([...captured]).toEqual(['shared']);
+  });
+
   test('wraps plain handlers so bare dispatch still calls them', () => {
     const element = createElementTarget();
     const handler = vi.fn();

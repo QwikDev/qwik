@@ -15,6 +15,7 @@ import { UnsupportedError } from '../errors';
 import { QwikWord, SegmentContext } from '../words';
 import {
   captureNames,
+  eventParamNames,
   capturePrelude,
   functionPrelude,
   staticFunctionReference,
@@ -100,6 +101,7 @@ export function sourceFunctionEmission(
   }
   emission.params =
     qrl.payloadKind === QrlPayloadKind.Value ? captures : qrl.origin.paramRanges.map(readSource);
+  emission.params = eventParamNames(module, qrl, emission.params);
   emission.async = qrl.authoredAsync;
   if (qrl.origin.bodyKind === FnBodyKind.Block) {
     const [start, end] = qrl.origin.bodyRange;

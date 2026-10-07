@@ -197,6 +197,7 @@ import {
   createSsrDomBatchEffect,
   renderSsrAttrExpression,
   renderSsrTextExpression,
+  createSsrRootRef,
 } from '@qwik.dev/core';
 const root_onClickqrl_segment_0_37h438c21ydkt = (props) => {
   return props.onClick$;
@@ -308,15 +309,19 @@ const root_for_render_segment_13_xl6e5erok1z7 = (ctx, __rangeId, __rowId, row) =
         escapeHTML(text0),
         '</td><td class="col-md-4"><a q:id="',
         createSsrNodeId(id2),
+        '" q:p="',
+        createSsrRootRef(ctx.addRoot(row)),
         '"',
         ctx.eventAttrParts(
           'q-e:click',
-          q_root_q_e_click_segment_17_1exoakzkff7kr.w([selectedItem, row])
+          q_root_q_e_click_segment_17_1exoakzkff7kr.w([selectedItem]).m()
         ),
         '>',
         escapeHTML(text1),
-        '</a></td><td class="col-md-1"><a',
-        ctx.eventAttrParts('q-e:click', q_root_q_e_click_segment_19_1exo9sxclr3jp.w([data, row])),
+        '</a></td><td class="col-md-1"><a q:p="',
+        createSsrRootRef(ctx.addRoot(row)),
+        '"',
+        ctx.eventAttrParts('q-e:click', q_root_q_e_click_segment_19_1exo9sxclr3jp.w([data]).m()),
         '><span class="glyphicon glyphicon-remove" aria-hidden="true">x</span></a></td><td class="col-md-6"></td></tr>',
       ])
     )
@@ -902,6 +907,7 @@ import {
   createSsrDomBatchEffect,
   renderSsrAttrExpression,
   renderSsrTextExpression,
+  createSsrRootRef,
   maybeThen,
 } from '@qwik.dev/core';
 import { root_class_segment_15_2xl0i26jedthh } from './root.tsx_root_class_segment_15_2xl0i26jedthh';
@@ -969,15 +975,19 @@ export const root_for_render_segment_13_xl6e5erok1z7 = (ctx, __rangeId, __rowId,
         escapeHTML(text0),
         '</td><td class="col-md-4"><a q:id="',
         createSsrNodeId(id2),
+        '" q:p="',
+        createSsrRootRef(ctx.addRoot(row)),
         '"',
         ctx.eventAttrParts(
           'q-e:click',
-          q_root_q_e_click_segment_17_1exoakzkff7kr.w([selectedItem, row])
+          q_root_q_e_click_segment_17_1exoakzkff7kr.w([selectedItem]).m()
         ),
         '>',
         escapeHTML(text1),
-        '</a></td><td class="col-md-1"><a',
-        ctx.eventAttrParts('q-e:click', q_root_q_e_click_segment_19_1exo9sxclr3jp.w([data, row])),
+        '</a></td><td class="col-md-1"><a q:p="',
+        createSsrRootRef(ctx.addRoot(row)),
+        '"',
+        ctx.eventAttrParts('q-e:click', q_root_q_e_click_segment_19_1exo9sxclr3jp.w([data]).m()),
         '><span class="glyphicon glyphicon-remove" aria-hidden="true">x</span></a></td><td class="col-md-6"></td></tr>',
       ])
     )
@@ -1096,8 +1106,8 @@ export const root_text_segment_16_3hdfyiexi24e1 = (row) => {
 
 import { _capturesObj } from '@qwik.dev/core';
 
-export const root_q_e_click_segment_17_1exoakzkff7kr = () => {
-  const [selectedItem, row] = _capturesObj._;
+export const root_q_e_click_segment_17_1exoakzkff7kr = (event0, element0, row) => {
+  const [selectedItem] = _capturesObj._;
   if (selectedItem.value) {
     selectedItem.value.selected.value = false;
   }
@@ -1121,10 +1131,13 @@ export const root_q_e_click_segment_17_1exoakzkff7kr = () => {
     3147,
     3375
   ],
-  "paramNames": [],
-  "captureNames": [
-    "selectedItem",
+  "paramNames": [
+    "event0",
+    "element0",
     "row"
+  ],
+  "captureNames": [
+    "selectedItem"
   ]
 }
 */
@@ -1160,8 +1173,8 @@ export const root_text_segment_18_3hdg2eq0meojb = (row) => {
 
 import { _capturesObj } from '@qwik.dev/core';
 
-export const root_q_e_click_segment_19_1exo9sxclr3jp = () => {
-  const [data, row] = _capturesObj._;
+export const root_q_e_click_segment_19_1exo9sxclr3jp = (event0, element0, row) => {
+  const [data] = _capturesObj._;
   const dataValue = data.value;
   data.value = dataValue.toSpliced(
     dataValue.findIndex((d) => d.id === row.id),
@@ -1185,10 +1198,13 @@ export const root_q_e_click_segment_19_1exo9sxclr3jp = () => {
     3606,
     3771
   ],
-  "paramNames": [],
-  "captureNames": [
-    "data",
+  "paramNames": [
+    "event0",
+    "element0",
     "row"
+  ],
+  "captureNames": [
+    "data"
   ]
 }
 */

@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createWindow } from '../testing/document';
 import { _run } from './handlers';
+import { createContainerContext } from './runtime/container-context';
 import { setCaptures } from './shared/qrl/qrl-captures';
 import { createQRL } from './shared/qrl/qrl-class';
 
@@ -20,6 +21,42 @@ describe('_run', () => {
 
     expect(await start()).toBe('done');
     expect(calls).toEqual([[event, button]]);
+  });
+
+  it.each(['q:p', 'q:ps'])('restores %s before starting the lazy handler', async (name) => {
+    const { button, event } = createButton();
+    const context = createContainerContext(button.closest('[q\\:container]')!);
+    const row = { id: 1 };
+    const values = name === 'q:p' ? row : [row, 7];
+    vi.spyOn(context, 'getRoot').mockResolvedValue(values);
+    button.setAttribute(name, '42');
+    const calls: unknown[][] = [];
+    const handler = createLazyHandler('row', (...args) => calls.push(args));
+    const start = (await runWith(handler, event, button)) as () => unknown;
+    expect(calls).toEqual([]);
+    await start();
+    expect(calls).toEqual([[event, button, ...(name === 'q:p' ? [row] : [row, 7])]]);
+    expect(context.getRoot).toHaveBeenCalledWith('42');
+  });
+
+  it.each(['q:p', 'q:ps'])('waits for an inflating %s parameter', async (name) => {
+    const { button, event } = createButton();
+    const context = createContainerContext(button.closest('[q\\:container]')!);
+    const row = { id: 1 };
+    const values = name === 'q:p' ? row : [row, 7];
+    let finish!: () => void;
+    const inflation = new Promise<void>((resolve) => (finish = resolve));
+    context.state.inflatingRoots = new WeakMap([[values, inflation]]);
+    vi.spyOn(context, 'getRoot').mockResolvedValue(values);
+    button.setAttribute(name, '42');
+    const handler = createLazyHandler('row', () => {});
+    let ready = false;
+    const loading = Promise.resolve(runWith(handler, event, button)).then(() => (ready = true));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(ready).toBe(false);
+    finish();
+    await loading;
+    expect(ready).toBe(true);
   });
 
   it('reports a chunk that fails to load before any start', async () => {

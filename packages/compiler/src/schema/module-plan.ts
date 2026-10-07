@@ -104,6 +104,8 @@ export interface Qrl {
   /** Invocation ABI. */
   params: {
     authored: number;
+    hasRest?: true;
+    event?: LocalId[];
     used: LocalId[];
     sources: PayloadId[];
     /** Parameter expressions need the enclosing capture scope. */

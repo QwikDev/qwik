@@ -9,6 +9,9 @@ import type {
   VariableDeclarator,
 } from 'oxc-parser';
 import {
+  ArgPass,
+  HandlerKind,
+  PropKind,
   ResultKind,
   type Result,
   BoundaryKind,
@@ -319,6 +322,8 @@ function lowerEach(
       setupReads.locals.some(({ local }) => local.kind === LocalKind.RowIndex)
   );
 
+  promoteRowEventParams(program, paramBindings[0], rowCaptures.captures, ctx);
+
   return {
     op: OpKind.Each,
     source,
@@ -329,6 +334,69 @@ function lowerEach(
     lifetime,
     shape: deriveRowShape(program, ctx),
   };
+}
+
+function promoteRowEventParams(
+  program: number,
+  row: LocalId,
+  captures: Qrl['captures'],
+  ctx: LowerContext
+): void {
+  const body = ctx.plan.programs[program].body;
+  if (
+    body.kind !== ProgramBodyKind.Ops ||
+    body.ops.length !== 1 ||
+    body.ops[0].op !== OpKind.Element
+  ) {
+    return;
+  }
+  const outer = new Set(captures.map((capture) => capture.binding));
+  const visit = (element: Extract<Op, { op: OpKind.Element }>) => {
+    const candidates = element.props
+      .filter((prop) => prop.k === PropKind.Event)
+      .map((prop) => {
+        if (prop.handlers.length !== 1) {
+          return null;
+        }
+        const handler = prop.handlers[0];
+        if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
+          return null;
+        }
+        const use = handler.value.use;
+        const qrl = ctx.plan.qrls.find((qrl) => qrl.id === use.qrl)!;
+        const position = qrl.captures.findIndex((capture) => capture.binding === row);
+        if (
+          position === -1 ||
+          qrl.boundary.kind !== BoundaryKind.Implicit ||
+          qrl.boundary.role !== 'event' ||
+          qrl.params.hasRest ||
+          (qrl.body.b !== QrlBodyKind.Js && qrl.body.b !== QrlBodyKind.Expr) ||
+          (qrl.body.b === QrlBodyKind.Js && qrl.body.functionName !== undefined) ||
+          qrl.params.authored > 2 ||
+          qrl.params.capturesBeforeParams ||
+          !use.args.every(
+            (arg) => arg.pass === ArgPass.Binding && (arg.binding === row || outer.has(arg.binding))
+          )
+        ) {
+          return null;
+        }
+        return { use, qrl, position };
+      });
+    if (element.propsEffect === null && candidates.every((candidate) => candidate !== null)) {
+      for (const { qrl, use, position } of candidates) {
+        qrl.params.event = [row];
+        qrl.captures.splice(position, 1);
+        use.args.splice(position, 1);
+        element.eventParams = [row];
+      }
+    }
+    for (const child of element.children) {
+      if (child.op === OpKind.Element) {
+        visit(child);
+      }
+    }
+  };
+  visit(body.ops[0]);
 }
 
 /** The runtime always supplies the index, making its default unreachable. */

@@ -4,9 +4,15 @@ import { _captures, _capturesObj, setCaptures, withCaptures } from './shared/qrl
 import { assertQrl } from './shared/qrl/qrl-utils';
 import { isPromise, retryOnPromise } from './shared/utils/promises';
 import type { ValueOrPromise } from './shared/utils/types';
-import { getOrCreateContainerContext, type ContainerContext } from './runtime/container-context';
+import {
+  getOrCreateContainerContext,
+  whenRootInflated,
+  type ContainerContext,
+} from './runtime/container-context';
+import type { QElement } from './shared/types';
 import type { VisibleTaskSubscription } from './runtime/task';
 import { SubscriberFlags } from './reactive/flags';
+import { EMPTY_ARRAY } from './utils/consts';
 import { invoke, newInvokeContext } from './runtime/invoke-context';
 
 export { _captures, _capturesObj };
@@ -21,9 +27,29 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
   }
   const context = getOrCreateContainerContext(element);
   const invokeContext = newInvokeContext({ container: context });
-  return loadEventQrl(this, context).then(
-    (qrl) => () => retryOnPromise(() => invoke(invokeContext, qrl.resolved!, event, element))
-  );
+  return loadEventQrl(this, context).then((qrl) => {
+    const single = element.getAttribute('q:p');
+    const multiple = element.getAttribute('q:ps');
+    const start = (params: readonly unknown[]) => () =>
+      retryOnPromise(() => invoke(invokeContext, qrl.resolved!, event, element, ...params));
+    const paramId = single ?? multiple;
+    if (paramId === null) {
+      return start(EMPTY_ARRAY);
+    }
+    return context
+      .getRoot(paramId)
+      .then((value) => whenRootInflated(context, value))
+      .then((value) => {
+        if (single !== null) {
+          (element as QElement)._qEventParam = value;
+          return start([value]);
+        } else {
+          const params = value as readonly unknown[];
+          (element as QElement)._qEventParams = params;
+          return start(params);
+        }
+      });
+  });
 }
 
 function loadEventQrl(thisValue: unknown, context: ContainerContext): Promise<EventQrl> {

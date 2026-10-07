@@ -832,7 +832,8 @@ describe('ForBlock reorder', () => {
     block.reconcile(
       new ForBlockSubscription(block),
       (item) => item,
-      (_ctx, item) => {
+      (_ctx, item, _index, collection) => {
+        expect(collection).toBe(block);
         createTextNodeEffect(createText(), text);
         return [createElementNode(String(item))];
       }

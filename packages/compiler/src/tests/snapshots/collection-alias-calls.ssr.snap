@@ -17,6 +17,7 @@ import {
   renderSsrCollection,
   createSsrNodeId,
   escapeHTML,
+  createSsrRootRef,
   renderSsrAttrExpression,
   maybeThen,
   _noopQrl,
@@ -36,9 +37,11 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, it
     escapeHTML(__rowId),
     '"><button q:id="',
     createSsrNodeId(id0),
+    '" q:p="',
+    createSsrRootRef(ctx.addRoot(item)),
     '"',
     attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([item])),
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.m()),
     '>save</button><button',
     ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([item])),
     '>optional</button></li>',
@@ -97,6 +100,7 @@ import {
   _noopQrl,
   escapeHTML,
   createSsrNodeId,
+  createSsrRootRef,
   renderSsrAttrExpression,
   maybeThen,
 } from '@qwik.dev/core';
@@ -126,9 +130,11 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
     escapeHTML(__rowId),
     '"><button q:id="',
     createSsrNodeId(id0),
+    '" q:p="',
+    createSsrRootRef(ctx.addRoot(item)),
     '"',
     attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([item])),
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.m()),
     '>save</button><button',
     ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([item])),
     '>optional</button></li>',
@@ -213,10 +219,7 @@ export const component_title_segment_2_2f0r05go51flv = (item) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _capturesObj } from '@qwik.dev/core';
-
-export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
-  const [item] = _capturesObj._;
+export const component_q_e_click_segment_3_2xwygfdmkpoqi = (event0, element0, item) => {
   return (0, item.save)();
 };
 /*
@@ -231,13 +234,14 @@ export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
   "parent": null,
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
-  "captures": true,
+  "captures": false,
   "loc": [
     190,
     213
   ],
-  "paramNames": [],
-  "captureNames": [
+  "paramNames": [
+    "event0",
+    "element0",
     "item"
   ]
 }

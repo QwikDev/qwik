@@ -414,12 +414,19 @@ export default () => {
     }
     const row = { name: 'row', save, api: { name: 'api', save } };
     const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
-    expect(chunk.segment!.captureNames).toEqual(['item']);
-    expect(loadChunkFunction(chunk, [row])(), handler).toEqual(expected);
+    const promoted = handler !== '(value = save()) => value';
+    expect(chunk.segment!.captureNames ?? []).toEqual(promoted ? [] : ['item']);
+    expect(
+      loadChunkFunction(
+        chunk,
+        promoted ? [] : [row]
+      )(...(promoted ? [undefined, undefined, row] : [])),
+      handler
+    ).toEqual(expected);
     const title = output.modules.find((module) => module.segment?.ctxName === 'title')!;
     expect(loadChunkFunction(title)(row)).toBe('bare');
     if (handler === '() => save?.()') {
-      expect(loadChunkFunction(chunk, [{ save: null }])()).toBeUndefined();
+      expect(loadChunkFunction(chunk)(undefined, undefined, { save: null })).toBeUndefined();
     }
   }
 });

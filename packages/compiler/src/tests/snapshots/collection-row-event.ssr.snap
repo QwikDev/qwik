@@ -23,6 +23,7 @@ import {
   renderSsrCollection,
   createSsrNodeId,
   escapeHTML,
+  createSsrRootRef,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
@@ -30,8 +31,10 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, it
   return [
     '<li q:row="',
     escapeHTML(__rowId),
-    '"><button',
-    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([item])),
+    '"><button q:p="',
+    createSsrRootRef(ctx.addRoot(item)),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.m()),
     '>x</button></li>',
   ];
 };
@@ -74,7 +77,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
-import { _noopQrl, escapeHTML } from '@qwik.dev/core';
+import { _noopQrl, escapeHTML, createSsrRootRef } from '@qwik.dev/core';
 const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
@@ -83,8 +86,10 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   return [
     '<li q:row="',
     escapeHTML(__rowId),
-    '"><button',
-    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([item])),
+    '"><button q:p="',
+    createSsrRootRef(ctx.addRoot(item)),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.m()),
     '>x</button></li>',
   ];
 };
@@ -139,10 +144,7 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _capturesObj } from '@qwik.dev/core';
-
-export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [item] = _capturesObj._;
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = (event0, element0, item) => {
   return console.log(item.id);
 };
 /*
@@ -157,13 +159,14 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "parent": null,
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
-  "captures": true,
+  "captures": false,
   "loc": [
     209,
     246
   ],
-  "paramNames": [],
-  "captureNames": [
+  "paramNames": [
+    "event0",
+    "element0",
     "item"
   ]
 }

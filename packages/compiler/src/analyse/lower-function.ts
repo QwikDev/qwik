@@ -137,6 +137,9 @@ export function lowerFunctionQrl(
       functions,
       params: {
         authored: fn.params.length,
+        ...(fn.params.some((param) => param.type === 'RestElement')
+          ? { hasRest: true as const }
+          : {}),
         used: [],
         sources: [],
         ...(capturesBeforeParams ? { capturesBeforeParams: true } : {}),

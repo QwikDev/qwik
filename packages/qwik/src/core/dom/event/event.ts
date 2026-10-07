@@ -9,7 +9,7 @@ import type { CapturedEventHandler, qWindow, QDispatchHandler, QElement } from '
 import { retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
 
-type EventHandler = (event: Event, element: Element) => unknown;
+type EventHandler = (event: Event, element: Element, ...params: unknown[]) => unknown;
 const scopedEventNames = Object.create(null) as Record<string, string | undefined>;
 
 // Qwikloader calls _qDispatch entries bare, so the invoke context is established here.
@@ -27,7 +27,15 @@ function invokeDispatchHandler(
     if (captures) {
       setCaptures(captures);
     }
-    return invokeApply(context, handler, [event, element]);
+    const paramCount = captures?._qParamCount ?? 0;
+    const target = element as QElement;
+    const args: Parameters<EventHandler> = [event, element];
+    if (paramCount === 1) {
+      args.push(target._qEventParam);
+    } else if (paramCount > 1) {
+      args.push(...target._qEventParams!);
+    }
+    return invokeApply(context, handler, args);
   });
 }
 
@@ -53,13 +61,17 @@ function wrapDispatch(
 /** @internal */
 export function createCapturedEvent(
   handler: EventHandler,
-  captures?: readonly unknown[] | null
+  captures?: readonly unknown[] | null,
+  paramCount = 0
 ): QDispatchHandler {
-  if (!captures || captures.length === 0) {
+  if (!captures) {
     return wrapDispatch(handler) as QDispatchHandler;
   }
 
   const captured = captures as CapturedEventHandler;
+  if (paramCount !== 0) {
+    captured._qParamCount = paramCount;
+  }
   captured._qHandler = handler;
   captured._qRun = runCapturedEvent;
   return captured;

@@ -163,7 +163,7 @@ test('await edits compose with destructured row reads without changing the recei
     receiver = this;
     return Promise.resolve(42);
   };
-  const fn = loadChunkFunction(chunk, [{ read }], { _await: core._await });
-  expect(await fn()).toBe(42);
+  const fn = loadChunkFunction(chunk, [], { _await: core._await });
+  expect(await fn(undefined, undefined, { read })).toBe(42);
   expect(receiver).toBeUndefined();
 });

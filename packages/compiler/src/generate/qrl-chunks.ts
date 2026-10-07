@@ -18,7 +18,7 @@ import { minifySync } from 'oxc-minify';
 import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 import { emitBindingImports } from './emit-import';
 import { functionText } from './print-js';
-import { captureNames } from './captures';
+import { captureNames, eventParamNames } from './captures';
 import type { FunctionEmission } from './emit-function';
 /**
  * One chunk module per QRL. The emitter supplies each QRL's function; this owns only the file
@@ -92,7 +92,11 @@ export function getSegmentAnalysis(
     ctxName: qrl.ctxName,
     captures: qrl.captures.length > 0,
     loc: mapRange(qrl.origin.range),
-    paramNames: qrl.origin.paramRanges.map(([start, end]) => module.source.code.slice(start, end)),
+    paramNames: eventParamNames(
+      module,
+      qrl,
+      qrl.origin.paramRanges.map(([start, end]) => module.source.code.slice(start, end))
+    ),
     ...(qrl.captures.length > 0 ? { captureNames: captureNames(module, qrl) } : {}),
   };
 }

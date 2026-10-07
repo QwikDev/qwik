@@ -32,6 +32,7 @@ import { getFunctionOrResolve } from '../../utils/qrl';
 import { getRangeParent, replaceRange } from '../range/range';
 import { EMPTY_ARRAY, EMPTY_NODES, NodeType } from '../../utils/consts';
 import type { SsrOutput } from '../../ssr/output';
+import type { QDispatchHandler } from '../../shared/types';
 
 function readCollectionItems<T>(source: Source<readonly T[]>): readonly T[] {
   track(source);
@@ -65,7 +66,12 @@ export const enum RowOutputShape {
 type ForKeyFn<T> = (item: T, index: number) => AuthoredForKey;
 type ForRenderIndex = number | Signal<number> | undefined;
 type SsrForContext = ContainerContext & { nextId(): number };
-type ForRenderFn<T> = (ctx: ContainerContext, item: T, index: ForRenderIndex) => MaybeNodeOutput;
+type ForRenderFn<T> = (
+  ctx: ContainerContext,
+  item: T,
+  index: ForRenderIndex,
+  collection: ForBlock<T>
+) => MaybeNodeOutput;
 type SsrForRenderFn<T> = (
   ctx: SsrForContext,
   rangeId: number,
@@ -116,6 +122,7 @@ export class ForBlock<T = unknown> {
   resumed = true;
   resumeOwners: Array<Owner | null> | null = null;
   readonly rowInvokeContext: RuntimeInvokeContext;
+  rowEvents?: QDispatchHandler | QDispatchHandler[];
 
   constructor(
     readonly range: ForRange,
@@ -585,7 +592,8 @@ export class ForBlock<T = unknown> {
         renderFn,
         this.container,
         item,
-        indexSignal ?? index
+        indexSignal ?? index,
+        this
       );
     } catch (error) {
       disposeInvokeOwner(this.rowInvokeContext);

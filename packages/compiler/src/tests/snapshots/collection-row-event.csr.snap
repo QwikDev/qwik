@@ -45,16 +45,21 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
-import { _first, setEvent, _createElementTemplate } from '@qwik.dev/core';
+import { _first, createCapturedEvent, setEvent, _createElementTemplate } from '@qwik.dev/core';
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate(
   '<li><button>x</button></li>'
 );
+function createRowEvents0() {
+  return createCapturedEvent(component_q_e_click_segment_2_2xwygteqhjqr1, [], 1);
+}
 
-export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
+export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, rowIndex0, collection0) => {
+  const rowEvent0 = (collection0.rowEvents ??= createRowEvents0());
   const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
   const el1 = _first(el0);
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [item]);
+  el1._qEventParam = item;
+  setEvent(el1, 'q-e:click', rowEvent0);
   return el0;
 };
 /*
@@ -108,10 +113,7 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
 
-import { _capturesObj } from '@qwik.dev/core';
-
-export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
-  const [item] = _capturesObj._;
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = (event0, element0, item) => {
   return console.log(item.id);
 };
 /*
@@ -126,13 +128,14 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "parent": null,
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
-  "captures": true,
+  "captures": false,
   "loc": [
     209,
     246
   ],
-  "paramNames": [],
-  "captureNames": [
+  "paramNames": [
+    "event0",
+    "element0",
     "item"
   ]
 }

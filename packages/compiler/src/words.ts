@@ -69,6 +69,7 @@ export const enum QwikWord {
   CreateDynamicContent = 'createDynamicContent',
   RenderSsrDynamicContent = 'renderSsrDynamicContent',
   // ssr
+  CreateSsrRootRef = 'createSsrRootRef',
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrSlotMarker = '_createSsrSlotMarker',
   CreateSsrMarkup = 'createSsrMarkup',

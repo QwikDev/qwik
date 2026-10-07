@@ -3,10 +3,13 @@ import type { EventHandler } from './jsx/types/jsx-qwik-attributes';
 export interface QElement extends Element {
   _qDispatch?: Record<string, QDispatchHandler | QDispatchHandler[]>;
   _qSegment?: string;
+  _qEventParam?: unknown;
+  _qEventParams?: readonly unknown[];
 }
 
 export type CapturedEventHandler = unknown[] & {
   _qHandler: EventHandler;
+  _qParamCount?: number;
   _qRun: (captures: CapturedEventHandler, event: Event, element: Element) => unknown;
 };
 

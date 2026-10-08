@@ -1987,6 +1987,9 @@ describe('qerror (client event channel)', () => {
       const listener = (e: Event) => seen.push((e as CustomEvent).detail);
       doc.addEventListener('qerror', listener);
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      // Use the mock document's event implementation, not Node's.
+      const originalCustomEvent = globalThis.CustomEvent;
+      vi.stubGlobal('CustomEvent', doc.createEvent('CustomEvent').constructor);
       try {
         await trigger(container.element, '#target', 'click');
         await waitForDrain(container).catch(() => {});
@@ -1994,12 +1997,15 @@ describe('qerror (client event channel)', () => {
       } finally {
         doc.removeEventListener('qerror', listener);
         errorSpy.mockRestore();
+        vi.stubGlobal('CustomEvent', originalCustomEvent);
       }
 
       expect(container.element.querySelector('#fb')).toBeFalsy();
       expect(seen).toHaveLength(1);
       expect(seen[0].importError).toBe('async');
       expect(seen[0].error).toBe(importFailure);
+      expect(seen[0].element).toBe(container.element.querySelector('#target'));
+      expect(seen[0].symbol).toBe('s_failingHandler');
     });
 
     it('a handler that resolves but throws in core dispatch still reaches the boundary', async () => {

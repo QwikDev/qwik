@@ -10,6 +10,7 @@ import {
 } from './loop-hoisting.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
+import { isDirectEventHandler } from '../rewrite/rewrite-calls.js';
 import { getWholeWordPattern } from '../segment/post-process.js';
 
 interface BuildExtractionLoopMapEnterContext {
@@ -133,10 +134,10 @@ export interface EventCaptureContext {
   repairedCode: string;
   isInlineStrategy: boolean;
   /**
-   * Raw-JSX output (no transpile) can't deliver positional params to parent-level handlers, so
-   * their captures stay on the `.w()` path instead of lifting.
+   * Raw-JSX output (no transpile) can't carry `q:p`, so handler captures stay on the `.w()` path
+   * instead of lifting.
    */
-  liftParentLevelHandlers: boolean;
+  isJsxTranspiled: boolean;
   /** All module-top-level binding names — captures of these resolve by import, never lifting. */
   moduleTopLevelNames?: ReadonlySet<string>;
 }
@@ -432,8 +433,8 @@ function collectVisibleScopeBindings(
 }
 
 /**
- * Not in a loop. Under the default/segment strategy all captured vars become alphabetically-sorted
- * paramNames. Under inline/hoist they stay in `captureNames` for `_capturesObj._[N]` unpacking.
+ * Not in a loop. Captured vars become alphabetically-sorted paramNames, unless `keepInlineCaptures`
+ * keeps them in `captureNames` for `_capturesObj._[N]` unpacking.
  */
 function promoteNonLoopCaptures(
   extraction: ExtractionResult,
@@ -527,7 +528,7 @@ export function promoteEventHandlerCaptures(
     if (extraction.isWorkerEventWrapper) {
       continue;
     }
-    if (!ctx.liftParentLevelHandlers && !ctx.enclosingExtMap.has(extraction.symbolName)) {
+    if (!ctx.isJsxTranspiled && !ctx.enclosingExtMap.has(extraction.symbolName)) {
       continue;
     }
 
@@ -589,8 +590,10 @@ export function promoteEventHandlerCaptures(
         enclosingExt !== undefined && !enclosingExt.isBare && !enclosingExt.isInlinedQrl;
       const keepsWCall = extraction.isBare && hasSerializingScope;
       if (!keepsWCall || extraction.isWorkerEventHandler) {
-        // Rust lifts inline document handlers through q:p.
-        const keepInlineCaptures = isInlineStrategy && !extraction.ctxName.startsWith('document:');
+        const movesCapturesToElement =
+          ctx.isJsxTranspiled &&
+          (isDirectEventHandler(extraction) || extraction.isWorkerEventHandler);
+        const keepInlineCaptures = isInlineStrategy && !movesCapturesToElement;
         promoteNonLoopCaptures(extraction, uniqueCaptures, keepInlineCaptures);
       } else {
         extraction.captureNames = [...uniqueCaptures].sort();

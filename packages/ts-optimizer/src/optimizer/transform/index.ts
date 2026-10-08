@@ -818,9 +818,6 @@ function analyzeModuleCaptures(
   }
 
   const globalDeclPositions = new Map<string, number>();
-  // Only `inline` (not `hoist`) skips captures→paramNames promotion: `hoist`
-  // still needs the `(_, _1, capture)` param-padding form, while `inline`
-  // keeps captures in `captureNames` for the `_capturesObj._[N]` unpacking path.
   const isInlineOnlyStrategy = entryStrategy.type === 'inline';
   const eventCaptureCtx: EventCaptureContext = {
     extractions,
@@ -835,7 +832,7 @@ function analyzeModuleCaptures(
     loopBodyVarDecls,
     repairedCode,
     isInlineStrategy: isInlineOnlyStrategy,
-    liftParentLevelHandlers: shouldTranspileJsx,
+    isJsxTranspiled: shouldTranspileJsx,
     moduleTopLevelNames: new Set(collectModuleLevelDecls(program, repairedCode).map((d) => d.name)),
   };
 

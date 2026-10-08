@@ -10,7 +10,7 @@ import { registerSingleton, qwikSymbol } from '../singletons';
 import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
-import { isFunction, type ValueOrPromise } from '../utils/types';
+import { isFunction, isObject, type ValueOrPromise } from '../utils/types';
 import { requestPreload } from '../../preloader/bridge';
 import type { QRLDev } from './qrl';
 import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
@@ -27,25 +27,18 @@ interface SyncQRLSymbol {
 
 export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
 
-/**
- * Errors produced by a failed QRL chunk/symbol import (e.g. a chunk 404 after a deploy). These are
- * a version-skew problem, not an application error, so callers can route them like qwikloader's
- * `importError` instead of feeding them to an `<ErrorBoundary>` (#8795, #8962).
- */
-const qrlImportErrors: WeakSet<object> = /*#__PURE__*/ new WeakSet();
+// Share import errors across core copies without mutating potentially frozen rejection values.
+const qrlImportErrors = registerSingleton('qrlImportErrors', () => new WeakSet<object>());
 
 const tagImportError = (err: unknown): never => {
-  if (err !== null && (typeof err === 'object' || typeof err === 'function')) {
+  if (isObject(err) || isFunction(err)) {
     qrlImportErrors.add(err);
   }
   throw err;
 };
 
 /** @internal Whether `err` came from a failed QRL import rather than from running user code. */
-export const isQrlImportError = (err: unknown): boolean =>
-  err !== null && (typeof err === 'object' || typeof err === 'function')
-    ? qrlImportErrors.has(err)
-    : false;
+export const isQrlImportError = (err: unknown): boolean => qrlImportErrors.has(err as object);
 
 export type QrlCaptures = Readonly<unknown[]> | string | null;
 

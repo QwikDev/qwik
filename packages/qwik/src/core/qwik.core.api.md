@@ -2353,6 +2353,9 @@ export const enum _VNodeFlags {
 export type _VNodeJournal = Array<VNodeOperation>;
 
 // @internal (undocumented)
+export const _waitOn: (promise: Promise<unknown>) => void;
+
+// @internal (undocumented)
 export const _waitUntilRendered: (container: _Container) => Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "SSRRenderJSXOptions" needs to be exported by the entry point index.d.ts

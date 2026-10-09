@@ -373,7 +373,7 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
           varPropsCopied = true;
         }
         delete varProps[k];
-      } else if (varProps[k] === null) {
+      } else if (varProps[k] === null && typeof type === 'string') {
         if (!varPropsCopied) {
           varProps = { ...varProps };
           varPropsCopied = true;

@@ -2259,6 +2259,73 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
+  it('should resume a segment that receives a signal holding undefined', async () => {
+    let resolveData!: (value: string) => void;
+    const dataPromise = new Promise<string>((resolve) => {
+      resolveData = resolve;
+    });
+    const Reader = component$(
+      (props: { data: { value: string }; extra?: { value: number | undefined }; id: string }) => (
+        <p id={props.id}>
+          {props.data.value}:{String(props.extra?.value ?? 'none')}
+        </p>
+      )
+    );
+    const App = component$(() => {
+      const count = useSignal(0);
+      const extra = useSignal<number | undefined>(undefined);
+      const data = useComputed$(() => dataPromise);
+      return (
+        <main>
+          <button
+            id="ooos-undefined-signal-button"
+            onClick$={() => (extra.value = count.value += 1)}
+          >
+            {count.value}
+          </button>
+          <Pending fallback$={() => <p>Waiting first</p>}>
+            <Reader data={data} id="ooos-undefined-signal-first" />
+          </Pending>
+          <Pending fallback$={() => <p>Waiting second</p>}>
+            <Reader data={data} extra={extra} id="ooos-undefined-signal-second" />
+          </Pending>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second'));
+    await delay(50);
+    resolveData('loaded');
+    const { document, container } = await renderPromise;
+    // Each state patch must continue where the previous one ended, and reference only roots it sent.
+    const rootState = JSON.parse(
+      document.querySelector('script[type="qwik/state"]:not([q\\:patch])')!.textContent!
+    ) as unknown[];
+    let rootCount = rootState.length / 2;
+    const patchScripts = document.querySelectorAll('script[type="qwik/state"][q\\:patch]');
+    for (let i = 0; i < patchScripts.length; i++) {
+      const [rootStart, roots, , subscriptionPatchRootId] = JSON.parse(
+        patchScripts[i].textContent!
+      ) as [number, unknown[], unknown, number | undefined];
+      expect(rootStart).toBe(rootCount);
+      rootCount += roots.length / 2;
+      if (typeof subscriptionPatchRootId === 'number') {
+        expect(subscriptionPatchRootId).toBeLessThan(rootCount);
+      }
+    }
+    expect(document.querySelector('#ooos-undefined-signal-second')?.textContent).toBe(
+      'loaded:none'
+    );
+
+    await trigger(container.element, '#ooos-undefined-signal-button', 'click');
+    await waitForDrain(container);
+    await vi.waitFor(() =>
+      expect(document.querySelector('#ooos-undefined-signal-second')?.textContent).toBe('loaded:1')
+    );
+  });
+
   it('should coordinate out-of-order segments inside reverse Reveal', async () => {
     let resolveFirst!: (value: JSXOutput) => void;
     let resolveSecond!: (value: JSXOutput) => void;

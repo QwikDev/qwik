@@ -43,6 +43,23 @@ test.describe('out-of-order streaming with <Pending>', () => {
     await page.waitForLoadState('load');
   });
 
+  test('resumes segments sharing a computed when one also receives a signal holding undefined', async ({
+    page,
+    browserName,
+  }) => {
+    await page.goto(
+      getOutOfOrderPendingUrl(browserName, new URLSearchParams({ scenario: 'undefined-signal' }))
+    );
+
+    await expect(page.locator('#ooos-undefined-signal-first')).toHaveText('loaded:none', {
+      timeout: 10000,
+    });
+    await expect(page.locator('#ooos-undefined-signal-second')).toHaveText('loaded:none');
+
+    await page.locator('#ooos-undefined-signal-button').click();
+    await expect(page.locator('#ooos-undefined-signal-second')).toHaveText('loaded:1');
+  });
+
   test('renders with ssr when out-of-order streaming is disabled', async ({
     page,
     browserName,

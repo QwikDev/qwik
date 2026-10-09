@@ -3932,4 +3932,16 @@ describe.each([
       expect(document.querySelector('i')!.textContent).toBe('child');
     });
   });
+  it('should keep null-valued props spread into a component', async () => {
+    const Child = component$((props: { a: number; s: { p: number } | null }) => (
+      <span>{`${'s' in props}:${props.s === null}`}</span>
+    ));
+    const Parent = component$(() => {
+      const data = { a: 1, s: null };
+      return <Child {...data} />;
+    });
+
+    const { container } = await render(<Parent />, { debug });
+    expect(container.element.querySelector('span')!.textContent).toBe('true:true');
+  });
 });

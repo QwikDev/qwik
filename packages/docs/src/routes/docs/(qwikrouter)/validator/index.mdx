@@ -3,7 +3,7 @@ title: Validators | Qwik Router
 contributors:
   - wtlin1228
   - harishkrishnan24
-updated_at: '2023-09-15T18:19:48Z'
+updated_at: '2026-06-08T00:00:00Z'
 created_at: '2023-09-15T18:19:48Z'
 ---
 
@@ -161,6 +161,76 @@ export const useAction = routeAction$(
       errorObject,
     };
   }),
+);
+```
+
+## Standard Schema validators
+
+Use `schema$()` to validate actions with any schema library that implements [Standard Schema](https://standardschema.dev/), such as Zod, Valibot, or ArkType. The validator infers the submitted input type, passes the validated output type to the action callback, and returns failed field errors in the same shape as other Qwik validators.
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import { Form, routeAction$, schema$ } from '@qwik.dev/router';
+import { z } from 'zod';
+
+const userSchema = z.object({
+  name: z.string().min(1),
+  contacts: z.array(
+    z.object({
+      email: z.string().email(),
+    })
+  ),
+});
+
+export const useUserAction = routeAction$(
+  async (user) => {
+    user satisfies z.output<typeof userSchema>;
+    return { saved: true };
+  },
+  schema$(userSchema)
+);
+
+export default component$(() => {
+  const action = useUserAction();
+
+  return (
+    <Form action={action}>
+      <input name="name" />
+      <input name="contacts.0.email" />
+      {action.value?.failed && action.value.fieldErrors['contacts[].email']?.[0]}
+      <button type="submit">Save</button>
+    </Form>
+  );
+});
+```
+
+Array field errors use Qwik validator paths, for example `contacts[].email`. Root-level issues are returned in `formErrors`, and the raw Standard Schema issues are available from `issues` when you need the original `message` and `path` data.
+
+```tsx
+if (action.value?.failed) {
+  const firstIssue = action.value.issues[0];
+  firstIssue?.path;
+}
+```
+
+When a Standard Schema-compatible library needs request-scoped options such as the current locale, create the schema from the `RequestEvent` passed to `schema$()`. Unlike `zod$()`, `schema$()` does not apply Zod localization automatically because Standard Schema does not define a portable locale option.
+
+```tsx
+import { routeAction$, schema$ } from '@qwik.dev/router';
+import { z } from 'zod';
+
+const createUserSchema = (locale: string) =>
+  z.object({
+    name: z.string().min(1, {
+      message: locale === 'es' ? 'El nombre es obligatorio' : 'Name is required',
+    }),
+  });
+
+export const useLocalizedUserAction = routeAction$(
+  async (user) => {
+    return { saved: true };
+  },
+  schema$((ev) => createUserSchema(ev.locale()))
 );
 ```
 

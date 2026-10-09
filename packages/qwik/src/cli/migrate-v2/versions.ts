@@ -5,3 +5,4 @@ export const packageNames = [
   '@qwik.dev/react',
   'eslint-plugin-qwik',
 ];
+export const zodVersion = '^3.25.48';

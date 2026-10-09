@@ -256,14 +256,14 @@ In this example, `onSubmitCompleted$` is used to reset the editingIdSignal value
 
 ## Validation and type safety
 
-Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `zod$()` function.
+Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first schema validation that can be used directly with actions, using the `zod$()` function. Install `zod` in your app to use it, or use `schema$()` with any [Standard Schema](https://standardschema.dev/) library such as Valibot or ArkType.
 
 Actions + [Zod](https://zod.dev/) allows to create type safe forms, where the data is validated server side before the action is executed.
 
 ```tsx {16-20} /firstName/#a /lastName/#b title="src/routes/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, Form } from '@qwik.dev/router';
-import { zod$, z } from '@qwik.dev/utils';
+import { routeAction$, Form, zod$ } from '@qwik.dev/router';
+import { z } from 'zod';
 
 export const useAddUser = routeAction$(
   async (user) => {
@@ -371,8 +371,8 @@ export const useProductRecommendations = routeAction$(
 In order to return non-success values, the action must use the `fail()` method.
 
 ```tsx /fail/
-import { routeAction$ } from '@qwik.dev/router';
-import { zod$, z } from '@qwik.dev/utils';
+import { routeAction$, zod$ } from '@qwik.dev/router';
+import { z } from 'zod';
 
 export const useAddUser = routeAction$(
   async (user, { fail }) => {
@@ -422,8 +422,8 @@ When an action is triggered, the previous state is stored in the `action.formDat
 
 ```tsx {12} /action.formData/
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, Form } from '@qwik.dev/router';
-import { zod$, z } from '@qwik.dev/utils';
+import { routeAction$, Form, zod$ } from '@qwik.dev/router';
+import { z } from 'zod';
 
 export const useAddUser = routeAction$(async (user) => {
   // handle action...
@@ -482,7 +482,8 @@ A native browser form submission always includes `text/html` in the `Accept` hea
 
 ```tsx title="src/routes/index.tsx" // ⚠️ without PRG
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, zod$, z } from '@qwik.dev/router';
+import { routeAction$, zod$ } from '@qwik.dev/router';
+import { z } from 'zod';
 
 export const useCreatePost = routeAction$(
   async (data) => {
@@ -508,7 +509,8 @@ To fix this, detect the submission type using the `Accept` header and `throw red
 
 ```tsx title="src/routes/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, routeLoader$, Form, zod$, z } from '@qwik.dev/router';
+import { routeAction$, routeLoader$, Form, zod$ } from '@qwik.dev/router';
+import { z } from 'zod';
 
 export const useCreatePost = routeAction$(
   async (data, { request, redirect }) => {

@@ -1001,9 +1001,6 @@ importers:
       unist-util-visit:
         specifier: ^5.0.0
         version: 5.1.0
-      valibot:
-        specifier: '>=0.36.0 <2'
-        version: 1.4.2(typescript@5.9.3)
       vfile:
         specifier: 6.0.3
         version: 6.0.3
@@ -1013,9 +1010,6 @@ importers:
       yaml:
         specifier: ^2.8.2
         version: 2.9.0
-      zod:
-        specifier: ^3.25.48
-        version: 3.25.48
     devDependencies:
       '@microsoft/api-extractor':
         specifier: 7.57.6
@@ -1047,6 +1041,9 @@ importers:
       vite:
         specifier: 8.2.1
         version: 8.2.1(@types/node@25.6.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
+      zod:
+        specifier: 3.25.48
+        version: 3.25.48
 
   packages/qwik-utils:
     devDependencies:

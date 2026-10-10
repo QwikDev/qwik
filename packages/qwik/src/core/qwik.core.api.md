@@ -2136,10 +2136,10 @@ export const useSerializer$: typeof createSerializer$;
 // @internal (undocumented)
 export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => SerializerSignalImpl<T, S>;
 
-// @public (undocumented)
+// @public
 export function useServerData<T>(key: string): T | undefined;
 
-// @public (undocumented)
+// @public
 export function useServerData<T, B = T>(key: string, defaultValue: B): T | B;
 
 // @public (undocumented)

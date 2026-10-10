@@ -1,5 +1,20 @@
 # @qwik.dev/city
 
+## 2.0.0-rc.3
+
+### Patch Changes
+
+- 🐞🩹 the router serializes less state into every page (by [@maiieul](https://github.com/maiieul) in [#9090](https://github.com/QwikDev/qwik/pull/9090))
+
+- 🐞🩹 exclude /manifest.json (not /mainifest.json) from the Netlify Edge function by default (by [@musatoktas](https://github.com/musatoktas) in [#9187](https://github.com/QwikDev/qwik/pull/9187))
+
+- 🐞🩹 SPA navigation no longer needs serialized router tasks in every page (by [@maiieul](https://github.com/maiieul) in [#9091](https://github.com/QwikDev/qwik/pull/9091))
+
+- 🐞🩹 `cacheControl` with zero values no longer drops directives or sets an empty header (by [@intellix](https://github.com/intellix) in [#9173](https://github.com/QwikDev/qwik/pull/9173))
+
+- Updated dependencies [[`b1b6348`](https://github.com/QwikDev/qwik/commit/b1b634884225ab5264da90b620a7429058c39959), [`db38699`](https://github.com/QwikDev/qwik/commit/db3869989e9fb9a3e73d837ff5a7b6cb5116ce94), [`4fc6e66`](https://github.com/QwikDev/qwik/commit/4fc6e660a7529be2414eb1298418395e65801dd0)]:
+  - @qwik.dev/core@2.0.0-rc.3
+
 ## 2.0.0-rc.2
 
 ### Patch Changes

@@ -51,7 +51,7 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
             '/build/*',
             '/favicon.ico',
             '/robots.txt',
-            '/mainifest.json',
+            '/manifest.json',
             '/~partytown/*',
             '/service-worker.js',
             '/sitemap.xml'
@@ -118,7 +118,7 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
    * - /build/*
    * - /favicon.ico
    * - /robots.txt
-   * - /mainifest.json
+   * - /manifest.json
    * - /~partytown/*
    * - /service-worker.js
    * - /sitemap.xml

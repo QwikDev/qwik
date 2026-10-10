@@ -1,4 +1,11 @@
-import { component$, Pending, useSignal, useTask$, type JSXOutput } from '@qwik.dev/core';
+import {
+  component$,
+  Pending,
+  useSignal,
+  useTask$,
+  type JSXOutput,
+  type Signal,
+} from '@qwik.dev/core';
 
 interface BlockingUpdateProps {
   id: string;
@@ -27,6 +34,7 @@ export const PendingChildren = component$(() => {
       <SingleBoundary />
       <NestedBoundaries />
       <MountedAsyncBoundary />
+      <OwnerSignalBoundary />
     </>
   );
 });
@@ -86,6 +94,27 @@ export const MountedAsyncBoundary = component$(() => {
     </div>
   );
 });
+
+export const OwnerSignalBoundary = component$(() => {
+  const isOn = useSignal(false);
+  const text = useSignal('hello');
+
+  return (
+    <>
+      <button id="owner-signal-toggle" onClick$={() => (isOn.value = !isOn.value)}>
+        Toggle owner
+      </button>
+      {isOn.value && <b id="owner-signal-on">on</b>}
+      <Pending fallback$={() => <span id="owner-signal-fallback">Loading owner signal</span>}>
+        <OwnerSignalReader value={text} />
+      </Pending>
+    </>
+  );
+});
+
+export const OwnerSignalReader = component$<{ value: Signal<string> }>(({ value }) => (
+  <p class="owner-signal-value">{value.value}</p>
+));
 
 export const MountedAsyncChild = component$((props: { resolveName: string }) => {
   const content = new Promise<JSXOutput>((resolve) => {

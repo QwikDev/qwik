@@ -68,6 +68,16 @@ test.describe('<Pending>', () => {
       await expect(page.locator('#mounted-async-value')).toHaveText('Async content');
       await expect(page.locator('#mounted-async-fallback')).toBeHidden();
     });
+
+    test('should keep a child reading an owner signal intact when the owner re-renders', async ({
+      page,
+    }) => {
+      await page.locator('#owner-signal-toggle').click();
+
+      await expect(page.locator('#owner-signal-on')).toHaveText('on');
+      await expect(page.locator('.owner-signal-value')).toHaveCount(1);
+      await expect(page.locator('#owner-signal-fallback')).toBeHidden();
+    });
   }
 
   tests();

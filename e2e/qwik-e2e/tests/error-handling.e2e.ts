@@ -251,11 +251,6 @@ test.describe('Catch + fallback$', () => {
       page,
       browserName,
     }) => {
-      // https://github.com/QwikDev/qwik/issues/8891
-      test.skip(
-        browserName === 'webkit',
-        'webkit may defer async-module loader evaluation while the stream is held'
-      );
       // The loader module is fetched while the stream is held; loaded runners need headroom.
       test.slow();
       assertNoBrowserErrors(page);

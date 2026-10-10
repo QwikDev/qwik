@@ -147,6 +147,8 @@ interface ExtractionPhaseFields {
   /** Dynamic prop defaults keyed by their original local binding. */
   propsFieldDynamicDefaults?: Map<string, string>;
   constLiterals?: Map<string, string>;
+  freeBindingStarts?: ReadonlyMap<string, number>;
+  propsBindingStarts?: ReadonlyMap<string, number>;
 }
 
 /**

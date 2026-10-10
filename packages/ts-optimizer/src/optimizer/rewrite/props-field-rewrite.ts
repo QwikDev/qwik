@@ -1,4 +1,5 @@
-import { isReferenceIdentifier } from 'oxc-walker';
+import { isReferenceIdentifier, ScopeTracker, walk } from 'oxc-walker';
+import type { AstMaybeNode, AstNode } from '../../ast-types.js';
 import { buildPropertyAccessor, isSimpleIdentifierName } from '../ast/identifier-name.js';
 import {
   applyReplacements,
@@ -32,9 +33,13 @@ function propsFieldIdentifierCollector(
   dynamicDefaults: ReadonlyMap<string, string> | undefined,
   memberPropertyMode: 'all' | 'nonComputed' | undefined,
   propsName: string,
-  deferredTagFields: Map<string, string>
+  deferredTagFields: Map<string, string>,
+  shadowedStarts: ReadonlySet<number>
 ): RangeReplacementCollector {
   return (node, ctx) => {
+    if (shadowedStarts.has(node.start)) {
+      return null;
+    }
     if (node.type === 'JSXIdentifier') {
       const tagKey = fieldMap.get(node.name);
       if (tagKey === undefined || !isReferenceIdentifier(node, ctx.parentNode ?? null)) {
@@ -146,7 +151,8 @@ export function rewritePropsFieldReferences(
     options.dynamicDefaults,
     options.memberPropertyMode,
     propsName,
-    deferredTagFields
+    deferredTagFields,
+    collectShadowedIdentifierStarts(program, fieldMap)
   );
 
   // Ranges are relative to `wrappedSource`; slicing off the wrapper prefix
@@ -170,4 +176,38 @@ export function rewritePropsFieldReferences(
     code: edited.slice(offset, edited.length - session.wrapperSuffix.length),
     deferredTagReads,
   };
+}
+
+export function collectShadowedIdentifierStarts(
+  root: AstNode,
+  names: ReadonlyMap<string, string>,
+  bindingScopeNode: AstMaybeNode = root
+): Set<number> {
+  const tracker = new ScopeTracker({ preserveExitedScopes: true });
+  walk(root, { scopeTracker: tracker });
+  tracker.freeze();
+
+  const shadowedStarts = new Set<number>();
+  let bindingScope: string | undefined;
+  walk(root, {
+    scopeTracker: tracker,
+    enter(node) {
+      if (node === bindingScopeNode) {
+        bindingScope = tracker.getCurrentScope();
+      }
+      const name = (node as { name?: unknown }).name;
+      if (bindingScope === undefined || typeof name !== 'string' || !names.has(name)) {
+        return;
+      }
+      const declarationScope = tracker.getDeclaration(name)?.scope;
+      if (declarationScope !== undefined && isNestedScope(declarationScope, bindingScope)) {
+        shadowedStarts.add(node.start);
+      }
+    },
+  });
+  return shadowedStarts;
+}
+
+function isNestedScope(scope: string, ancestorScope: string): boolean {
+  return ancestorScope === '' ? scope !== '' : scope.startsWith(`${ancestorScope}-`);
 }

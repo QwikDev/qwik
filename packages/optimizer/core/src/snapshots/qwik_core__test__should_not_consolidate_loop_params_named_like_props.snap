@@ -1,0 +1,306 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const List = component$(({ item, items }: any) => {
+	return <ul>{items.map((item: any) => <li onClick$={() => console.log(item)} />)}</ul>;
+});
+
+export const Tabs = component$(({ tab, tabs }: any) => {
+	const selected = useSignal('');
+	return <div>{tabs.map((tab: string) => <button onClick$={() => (selected.value = tab)} />)}</div>;
+});
+
+export const Rows = component$(({ item, items }: any) => {
+	return (
+		<ul>
+			{items.map((item: any, idx: number) => (
+				<li onClick$={() => console.log(item)} onDblClick$={() => console.log(idx)} />
+			))}
+		</ul>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_List_component_HpIwcodkEXk = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_HpIwcodkEXk"), "List_component_HpIwcodkEXk");
+const q_Rows_component_EJthQcqLf8A = /*#__PURE__*/ qrl(()=>import("./test.tsx_Rows_component_EJthQcqLf8A"), "Rows_component_EJthQcqLf8A");
+const q_Tabs_component_q6Z9a0xO7TY = /*#__PURE__*/ qrl(()=>import("./test.tsx_Tabs_component_q6Z9a0xO7TY"), "Tabs_component_q6Z9a0xO7TY");
+//
+export const List = /*#__PURE__*/ componentQrl(q_List_component_HpIwcodkEXk);
+export const Tabs = /*#__PURE__*/ componentQrl(q_Tabs_component_q6Z9a0xO7TY);
+export const Rows = /*#__PURE__*/ componentQrl(q_Rows_component_EJthQcqLf8A);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAGA,OAAO,MAAM,qBAAO,2CAEjB;AAEH,OAAO,MAAM,qBAAO,2CAGjB;AAEH,OAAO,MAAM,qBAAO,2CAQjB\"}")
+============================= test.tsx_Rows_component_ul_li_q_e_click_pzVdC6M27DQ.js (ENTRY POINT)==
+
+export const Rows_component_ul_li_q_e_click_pzVdC6M27DQ = (_, _1, item)=>console.log(item);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAgBkB,QADH,OACS,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Rows_component_ul_li_q_e_click_pzVdC6M27DQ",
+  "entry": null,
+  "displayName": "test.tsx_Rows_component_ul_li_q_e_click",
+  "hash": "pzVdC6M27DQ",
+  "canonicalFilename": "test.tsx_Rows_component_ul_li_q_e_click_pzVdC6M27DQ",
+  "path": "",
+  "extension": "js",
+  "parent": "Rows_component_EJthQcqLf8A",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    544,
+    567
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "item"
+  ]
+}
+*/
+============================= test.tsx_Tabs_component_q6Z9a0xO7TY.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+const q_Tabs_component_div_button_q_e_click_4NmMvALLork = /*#__PURE__*/ qrl(()=>import("./test.tsx_Tabs_component_div_button_q_e_click_4NmMvALLork"), "Tabs_component_div_button_q_e_click_4NmMvALLork").m();
+//
+export const Tabs_component_q6Z9a0xO7TY = (_rawProps)=>{
+    const selected = useSignal('');
+    const Tabs_component_div_button_q_e_click_4NmMvALLork = q_Tabs_component_div_button_q_e_click_4NmMvALLork.w([
+        selected
+    ]);
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _rawProps.tabs.map((tab)=>/*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": Tabs_component_div_button_q_e_click_4NmMvALLork,
+            "q:p": tab
+        }, null, null, 6, "u6_2")), 1, "u6_3");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAO+B;IAC9B,MAAM,WAAW,UAAU;;;;IAC3B,qBAAO,WAAC,mBAAK,UAFyB,KAEpB,GAAG,CAAC,CAAC,oBAAgB,WAAC;YAAO,WAAQ;mBAAhC;;AACxB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Tabs_component_q6Z9a0xO7TY",
+  "entry": null,
+  "displayName": "test.tsx_Tabs_component",
+  "hash": "q6Z9a0xO7TY",
+  "canonicalFilename": "test.tsx_Tabs_component_q6Z9a0xO7TY",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    242,
+    402
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_List_component_HpIwcodkEXk.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_List_component_ul_li_q_e_click_7DhcqJDaP4Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_ul_li_q_e_click_7DhcqJDaP4Q"), "List_component_ul_li_q_e_click_7DhcqJDaP4Q").m();
+//
+export const List_component_HpIwcodkEXk = (_rawProps)=>{
+    return /*#__PURE__*/ _jsxSorted("ul", null, null, _rawProps.items.map((item)=>/*#__PURE__*/ _jsxSorted("li", {
+            "q-e:click": q_List_component_ul_li_q_e_click_7DhcqJDaP4Q,
+            "q:p": item
+        }, null, null, 6, "u6_0")), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG+B;IAC9B,qBAAO,WAAC,kBAAI,UAD2B,MACrB,GAAG,CAAC,CAAC,qBAAc,WAAC;YAAG,WAAQ;mBAA1B;;AACxB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_HpIwcodkEXk",
+  "entry": null,
+  "displayName": "test.tsx_List_component",
+  "hash": "HpIwcodkEXk",
+  "canonicalFilename": "test.tsx_List_component_HpIwcodkEXk",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    207
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_List_component_ul_li_q_e_click_7DhcqJDaP4Q.js (ENTRY POINT)==
+
+export const List_component_ul_li_q_e_click_7DhcqJDaP4Q = (_, _1, item)=>console.log(item);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAIoD,QAA5B,OAAkC,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_ul_li_q_e_click_7DhcqJDaP4Q",
+  "entry": null,
+  "displayName": "test.tsx_List_component_ul_li_q_e_click",
+  "hash": "7DhcqJDaP4Q",
+  "canonicalFilename": "test.tsx_List_component_ul_li_q_e_click_7DhcqJDaP4Q",
+  "path": "",
+  "extension": "js",
+  "parent": "List_component_HpIwcodkEXk",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    170,
+    193
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "item"
+  ]
+}
+*/
+============================= test.tsx_Tabs_component_div_button_q_e_click_4NmMvALLork.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const Tabs_component_div_button_q_e_click_4NmMvALLork = (_, _1, tab)=>{
+    let selected = _capturesObj._[0];
+    return selected.value = tab;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;+DAS0D,QAAlC;;WAAyC,SAAS,KAAK,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Tabs_component_div_button_q_e_click_4NmMvALLork",
+  "entry": null,
+  "displayName": "test.tsx_Tabs_component_div_button_q_e_click",
+  "hash": "4NmMvALLork",
+  "canonicalFilename": "test.tsx_Tabs_component_div_button_q_e_click_4NmMvALLork",
+  "path": "",
+  "extension": "js",
+  "parent": "Tabs_component_q6Z9a0xO7TY",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    359,
+    387
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "tab"
+  ],
+  "captureNames": [
+    "selected"
+  ]
+}
+*/
+============================= test.tsx_Rows_component_EJthQcqLf8A.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Rows_component_ul_li_q_e_click_pzVdC6M27DQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Rows_component_ul_li_q_e_click_pzVdC6M27DQ"), "Rows_component_ul_li_q_e_click_pzVdC6M27DQ").m();
+const q_Rows_component_ul_li_q_e_dblclick_sDKhfoz1H0I = /*#__PURE__*/ qrl(()=>import("./test.tsx_Rows_component_ul_li_q_e_dblclick_sDKhfoz1H0I"), "Rows_component_ul_li_q_e_dblclick_sDKhfoz1H0I").m();
+//
+export const Rows_component_EJthQcqLf8A = (_rawProps)=>{
+    return /*#__PURE__*/ _jsxSorted("ul", null, null, _rawProps.items.map((item, idx)=>/*#__PURE__*/ _jsxSorted("li", {
+            "q-e:click": q_Rows_component_ul_li_q_e_click_pzVdC6M27DQ,
+            "q-e:dblclick": q_Rows_component_ul_li_q_e_dblclick_sDKhfoz1H0I,
+            "q:ps": [
+                item,
+                idx
+            ]
+        }, null, null, 6, "u6_4")), 1, "u6_5");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAY+B;IAC9B,qBACC,WAAC,kBACC,UAHoC,MAG9B,GAAG,CAAC,CAAC,MAAW,oBACtB,WAAC;YAAG,WAAQ;YAA2B,cAAW;;gBADvC;gBAAW;;;AAK1B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Rows_component_EJthQcqLf8A",
+  "entry": null,
+  "displayName": "test.tsx_Rows_component",
+  "hash": "EJthQcqLf8A",
+  "canonicalFilename": "test.tsx_Rows_component_EJthQcqLf8A",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    437,
+    629
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Rows_component_ul_li_q_e_dblclick_sDKhfoz1H0I.js (ENTRY POINT)==
+
+export const Rows_component_ul_li_q_e_dblclick_sDKhfoz1H0I = (_, _1, _2, idx)=>console.log(idx);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6DAgBwD,YAD9B,MACoC,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Rows_component_ul_li_q_e_dblclick_sDKhfoz1H0I",
+  "entry": null,
+  "displayName": "test.tsx_Rows_component_ul_li_q_e_dblclick",
+  "hash": "sDKhfoz1H0I",
+  "canonicalFilename": "test.tsx_Rows_component_ul_li_q_e_dblclick_sDKhfoz1H0I",
+  "path": "",
+  "extension": "js",
+  "parent": "Rows_component_EJthQcqLf8A",
+  "ctxKind": "eventHandler",
+  "ctxName": "onDblClick$",
+  "captures": false,
+  "loc": [
+    582,
+    604
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_2",
+    "idx"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

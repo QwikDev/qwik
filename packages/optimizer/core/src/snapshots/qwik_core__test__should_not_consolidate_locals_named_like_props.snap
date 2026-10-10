@@ -1,0 +1,305 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+import { render } from './x';
+
+export const Nested = component$(({ Model }: { Model: any }) => {
+	return <button onClick$={() => render(Model, [1].map((Model) => $(() => render(Model))))} />;
+});
+
+export const Block = component$(({ item, other }: { item: string; other: string }) => {
+	if (other) {
+		const item = other.toUpperCase();
+		return <button onClick$={() => console.log(item)} />;
+	}
+	return <p>{item}</p>;
+});
+
+export const Helper = component$(({ label }: { label: string }) => {
+	const renderButton = (label: string) => <button onClick$={() => console.log(label)} />;
+	return <div>{renderButton(label + '!')}</div>;
+});
+
+============================= test.tsx_Nested_component_button_q_e_click_mDhj0jacBQU.js (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+import { render } from "./x";
+//
+const q_Nested_component_button_q_e_click_render_ttjEr9PF2yI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Nested_component_button_q_e_click_render_ttjEr9PF2yI"), "Nested_component_button_q_e_click_render_ttjEr9PF2yI");
+//
+export const Nested_component_button_q_e_click_mDhj0jacBQU = (_, _1, _rawProps)=>render(_rawProps.Model, [
+        1
+    ].map((Model)=>q_Nested_component_button_q_e_click_render_ttjEr9PF2yI.w([
+            Model
+        ])));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;6DAK0B,oBAAM,iBADI,OACU;QAAC;KAAE,CAAC,GAAG,CAAC,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Nested_component_button_q_e_click_mDhj0jacBQU",
+  "entry": null,
+  "displayName": "test.tsx_Nested_component_button_q_e_click",
+  "hash": "mDhj0jacBQU",
+  "canonicalFilename": "test.tsx_Nested_component_button_q_e_click_mDhj0jacBQU",
+  "path": "",
+  "extension": "js",
+  "parent": "Nested_component_8cqIQQSPqhE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    173,
+    236
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Nested_component_8cqIQQSPqhE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Nested_component_button_q_e_click_mDhj0jacBQU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Nested_component_button_q_e_click_mDhj0jacBQU"), "Nested_component_button_q_e_click_mDhj0jacBQU").m();
+//
+export const Nested_component_8cqIQQSPqhE = (_rawProps)=>{
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q-e:click": q_Nested_component_button_q_e_click_mDhj0jacBQU,
+        "q:p": _rawProps
+    }, null, null, 6, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAIiC;IAChC,qBAAO,WAAC;QAAO,WAAQ;;;AACxB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Nested_component_8cqIQQSPqhE",
+  "entry": null,
+  "displayName": "test.tsx_Nested_component",
+  "hash": "8cqIQQSPqhE",
+  "canonicalFilename": "test.tsx_Nested_component_8cqIQQSPqhE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    114,
+    243
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Block_component_K10onJ6JV70 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Block_component_K10onJ6JV70"), "Block_component_K10onJ6JV70");
+const q_Helper_component_r5WajgRpNdA = /*#__PURE__*/ qrl(()=>import("./test.tsx_Helper_component_r5WajgRpNdA"), "Helper_component_r5WajgRpNdA");
+const q_Nested_component_8cqIQQSPqhE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Nested_component_8cqIQQSPqhE"), "Nested_component_8cqIQQSPqhE");
+//
+export const Nested = /*#__PURE__*/ componentQrl(q_Nested_component_8cqIQQSPqhE);
+export const Block = /*#__PURE__*/ componentQrl(q_Block_component_K10onJ6JV70);
+export const Helper = /*#__PURE__*/ componentQrl(q_Helper_component_r5WajgRpNdA);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAIA,OAAO,MAAM,uBAAS,6CAEnB;AAEH,OAAO,MAAM,sBAAQ,4CAMlB;AAEH,OAAO,MAAM,uBAAS,6CAGnB\"}")
+============================= test.tsx_Nested_component_button_q_e_click_render_ttjEr9PF2yI.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+import { render } from "./x";
+//
+export const Nested_component_button_q_e_click_render_ttjEr9PF2yI = ()=>{
+    let Model = _capturesObj._[0];
+    return render(Model);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;oEAKmE;;WAAM,OAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Nested_component_button_q_e_click_render_ttjEr9PF2yI",
+  "entry": null,
+  "displayName": "test.tsx_Nested_component_button_q_e_click_render",
+  "hash": "ttjEr9PF2yI",
+  "canonicalFilename": "test.tsx_Nested_component_button_q_e_click_render_ttjEr9PF2yI",
+  "path": "",
+  "extension": "js",
+  "parent": "Nested_component_button_q_e_click_mDhj0jacBQU",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    214,
+    233
+  ],
+  "captureNames": [
+    "Model"
+  ]
+}
+*/
+============================= test.tsx_Helper_component_renderButton_button_q_e_click_0600b4dfSjA.js (ENTRY POINT)==
+
+export const Helper_component_renderButton_button_q_e_click_0600b4dfSjA = (_, _1, label)=>console.log(label);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0EAiB2D,gBAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Helper_component_renderButton_button_q_e_click_0600b4dfSjA",
+  "entry": null,
+  "displayName": "test.tsx_Helper_component_renderButton_button_q_e_click",
+  "hash": "0600b4dfSjA",
+  "canonicalFilename": "test.tsx_Helper_component_renderButton_button_q_e_click_0600b4dfSjA",
+  "path": "",
+  "extension": "js",
+  "parent": "Helper_component_r5WajgRpNdA",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    600,
+    624
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "label"
+  ]
+}
+*/
+============================= test.tsx_Block_component_K10onJ6JV70.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Block_component_button_q_e_click_YJMfhX0oWeQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Block_component_button_q_e_click_YJMfhX0oWeQ"), "Block_component_button_q_e_click_YJMfhX0oWeQ").m();
+//
+export const Block_component_K10onJ6JV70 = (_rawProps)=>{
+    if (_rawProps.other) {
+        const item = _rawProps.other.toUpperCase();
+        return /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": q_Block_component_button_q_e_click_YJMfhX0oWeQ,
+            "q:p": item
+        }, null, null, 6, "u6_1");
+    }
+    return /*#__PURE__*/ _jsxSorted("p", null, null, _wrapProp(_rawProps, "item"), 1, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;2CAQgC;IAC/B,cADwC,OAC7B;QACV,MAAM,OAAO,UAF0B,MAEpB,WAAW;QAC9B,qBAAO,WAAC;YAAO,WAAQ;;;IACxB;IACA,qBAAO,WAAC;AACT\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Block_component_K10onJ6JV70",
+  "entry": null,
+  "displayName": "test.tsx_Block_component",
+  "hash": "K10onJ6JV70",
+  "canonicalFilename": "test.tsx_Block_component_K10onJ6JV70",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    279,
+    468
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Helper_component_r5WajgRpNdA.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Helper_component_renderButton_button_q_e_click_0600b4dfSjA = /*#__PURE__*/ qrl(()=>import("./test.tsx_Helper_component_renderButton_button_q_e_click_0600b4dfSjA"), "Helper_component_renderButton_button_q_e_click_0600b4dfSjA").m();
+//
+export const Helper_component_r5WajgRpNdA = (_rawProps)=>{
+    const renderButton = (label)=>/*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": q_Helper_component_renderButton_button_q_e_click_0600b4dfSjA,
+            "q:p": label
+        }, null, null, 6, "u6_3");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, renderButton(_rawProps.label + '!'), 1, "u6_4");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAgBiC;IAChC,MAAM,eAAe,CAAC,sBAAkB,WAAC;YAAO,WAAQ;;;IACxD,qBAAO,WAAC,mBAAK,aAAa,UAFS,QAED;AACnC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Helper_component_r5WajgRpNdA",
+  "entry": null,
+  "displayName": "test.tsx_Helper_component",
+  "hash": "r5WajgRpNdA",
+  "canonicalFilename": "test.tsx_Helper_component_r5WajgRpNdA",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    505,
+    679
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Block_component_button_q_e_click_YJMfhX0oWeQ.js (ENTRY POINT)==
+
+export const Block_component_button_q_e_click_YJMfhX0oWeQ = (_, _1, item)=>console.log(item);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"4DAW2B,eAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Block_component_button_q_e_click_YJMfhX0oWeQ",
+  "entry": null,
+  "displayName": "test.tsx_Block_component_button_q_e_click",
+  "hash": "YJMfhX0oWeQ",
+  "canonicalFilename": "test.tsx_Block_component_button_q_e_click_YJMfhX0oWeQ",
+  "path": "",
+  "extension": "js",
+  "parent": "Block_component_K10onJ6JV70",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    412,
+    435
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "item"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

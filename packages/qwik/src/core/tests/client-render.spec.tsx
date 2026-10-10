@@ -6,6 +6,7 @@ import {
   Fragment as Signal,
   Slot,
   component$,
+  useComputed$,
   useSignal,
   useTask$,
   type JSXOutput,
@@ -22,6 +23,16 @@ describe('v2 client render', () => {
   it('should render jsx', async () => {
     const { vNode } = await clientRender(<span>Hello World!</span>);
     expect(vnode_getFirstChild(vNode)).toMatchVDOM(<span>Hello World!</span>);
+  });
+  it('should insert dangerouslySetInnerHTML from an async computed', async () => {
+    const Cmp = component$(() => {
+      const html = useComputed$(async () => '<b>async</b>');
+      return <span id="async" dangerouslySetInnerHTML={html.value} />;
+    });
+    const { container } = await clientRender(<Cmp />);
+    const span = container.element.querySelector('#async')!;
+    expect(span.innerHTML).toBe('<b>async</b>');
+    expect(span.hasAttribute('dangerouslySetInnerHTML')).toBe(false);
   });
   it('should render void element correctly', async () => {
     const { vNode, container } = await clientRender(

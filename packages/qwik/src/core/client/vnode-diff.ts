@@ -948,12 +948,14 @@ function queueConstAttributePromise(
 ) {
   const scopedStyleIdPrefix = diffContext.$scopedStyleIdPrefix$;
   const attributePromise = value.then((resolvedValue) =>
-    directSetAttribute(
-      element,
-      key,
-      serializeAttribute(key, resolvedValue, scopedStyleIdPrefix),
-      isSvg
-    )
+    key === dangerouslySetInnerHTML
+      ? applyConstInnerHtml(element, resolvedValue)
+      : directSetAttribute(
+          element,
+          key,
+          serializeAttribute(key, resolvedValue, scopedStyleIdPrefix),
+          isSvg
+        )
   );
   diffContext.$asyncAttributePromises$.push(attributePromise);
 }

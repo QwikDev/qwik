@@ -87,6 +87,10 @@ starting with `[a-z]` is an intrinsic element, while `<Foo>`, `<_Foo>` and the o
 (or `isNonReferenceIdentifier`) whether a `JSXIdentifier` reads a binding, and `isHtmlElement`
 whether a tag is intrinsic.
 
+A pass that rewrites reads of a binding must rewrite its JSX tag reads too. A tag holds only a
+member chain, so a read with a default, a quoted key or a conditional waits for the JSX transform:
+return it as `DeferredTagReads` and apply `resolveDeferredTagReads` (`rewrite/raw-props.ts`) after it.
+
 ## Worker pool changes
 
 The transform worker pool (`packages/ts-optimizer/src/worker-pool.ts`) never starts real workers

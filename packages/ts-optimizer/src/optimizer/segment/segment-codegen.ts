@@ -9,7 +9,10 @@ import {
   groupPropsFieldsByBinding,
   inlineConstCaptures,
   rawPropsBindingNames,
+  resolveDeferredTagReads,
   resolveRawPropsSlots,
+  type DeferredTagReads,
+  type RawPropsTransformResult,
 } from '../rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
 import type { ConsolidatedSegment } from '../extraction/extract.js';
@@ -146,7 +149,7 @@ function replacePropsFieldReferences(
   propsName: string,
   defaultValues?: ReadonlyMap<string, string>,
   dynamicDefaults?: ReadonlyMap<string, string>
-): string {
+): RawPropsTransformResult {
   return rewritePropsFieldReferences(bodyText, fieldMap, {
     memberPropertyMode: 'all',
     propsName,
@@ -669,7 +672,11 @@ function applyBodyTransforms(
   nestedCallSites: NestedCallSiteInfo[] | undefined,
   enumValueMap: Map<string, Map<string, string>> | undefined,
   preserveOffsets: boolean
-): { bodyText: string; captureInfo: SegmentCaptureInfo | undefined } {
+): {
+  bodyText: string;
+  captureInfo: SegmentCaptureInfo | undefined;
+  deferredTagReads: DeferredTagReads[];
+} {
   // Internal helpers work on plain string; the BodyText brand applies only at
   // the ExtractionResult boundary.
   let bodyText: string = extraction.bodyText;
@@ -699,8 +706,17 @@ function applyBodyTransforms(
   // `_rawProps`. Doing so renamed the param while the body still referenced the
   // original binding and dropped the closing brace, producing an unbalanced,
   // unparseable segment.
+  const deferredTagReads: DeferredTagReads[] = [];
   if (!extraction.isInlinedQrl) {
-    bodyText = applyRawPropsToSegmentBody(bodyText, parts, rawPropsInfo?.fieldDynamicDefaults);
+    const rawProps = applyRawPropsToSegmentBody(
+      bodyText,
+      parts,
+      rawPropsInfo?.fieldDynamicDefaults
+    );
+    bodyText = rawProps.code;
+    if (rawProps.deferredTagReads) {
+      deferredTagReads.push(rawProps.deferredTagReads);
+    }
   }
   bodyText = stripDiagnosticsAndDirectives(bodyText);
 
@@ -712,13 +728,17 @@ function applyBodyTransforms(
       bindingNames
     );
     for (const [propsName, fields] of groups) {
-      bodyText = replacePropsFieldReferences(
+      const rewritten = replacePropsFieldReferences(
         bodyText,
         fields,
         propsName,
         captureInfo?.propsFieldDefaults,
         captureInfo?.propsFieldDynamicDefaults
       );
+      bodyText = rewritten.code;
+      if (rewritten.deferredTagReads) {
+        deferredTagReads.push(rewritten.deferredTagReads);
+      }
     }
   }
 
@@ -746,7 +766,7 @@ function applyBodyTransforms(
     bodyText = injectCapturesUnpacking(bodyText, liveCaptureInfo.captureNames);
   }
 
-  return { bodyText, captureInfo: liveCaptureInfo };
+  return { bodyText, captureInfo: liveCaptureInfo, deferredTagReads };
 }
 
 export function generateSegmentCode(
@@ -789,7 +809,7 @@ export function generateSegmentCode(
       nestedCallSites,
       liveCaptureInfo
     );
-    bodyText = jsxResult.bodyText;
+    bodyText = resolveDeferredTagReads(jsxResult.bodyText, transformed.deferredTagReads);
     segmentKeyCounterValue = jsxResult.keyCounterValue;
   }
 

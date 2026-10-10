@@ -1982,25 +1982,35 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
         rootReadyAtSegment,
         segmentSerializationCtx
       );
+      let serializedLocalRootCount = 0;
       if (
         rootReadyAtSegment &&
         (commit.newRootLocalIds.length > 0 || subscriptionPatchRootId !== undefined)
       ) {
-        segmentSerializationCtx.$forwardRefOffset$ =
-          rootContainer.serializationCtx.$serializedForwardRefCount$;
-        await this.emitStatePatchData(
+        await this.emitSegmentStatePatch(
+          rootContainer,
+          segmentSerializationCtx,
           segmentId,
           commit.newRootStart,
           commit.newRootLocalIds,
           subscriptionPatchRootId
         );
-        rootContainer.serializationCtx.$serializedRootCount$ =
-          rootContainer.serializationCtx.$roots$.length +
-          (rootContainer.serializationCtx.$hasRootStateForwardRefs$ ? 1 : 0);
-        rootContainer.serializationCtx.$serializedForwardRefCount$ +=
-          segmentSerializationCtx.$serializedForwardRefCount$;
+        serializedLocalRootCount = commit.newRootLocalIds.length;
       }
       this.emitPendingVNodeDataPatches();
+      // Late vnode data patches can commit roots after the state patch was written; send them too.
+      while (rootReadyAtSegment && commit.newRootLocalIds.length > serializedLocalRootCount) {
+        const lateRootLocalIds = commit.newRootLocalIds.slice(serializedLocalRootCount);
+        serializedLocalRootCount = commit.newRootLocalIds.length;
+        await this.emitSegmentStatePatch(
+          rootContainer,
+          segmentSerializationCtx,
+          segmentId,
+          rootContainer.serializationCtx.$serializedRootCount$,
+          lateRootLocalIds
+        );
+        this.emitPendingVNodeDataPatches();
+      }
       if (rootReadyAtSegment) {
         this.$noMoreRoots$ = true;
         this.emitVNodeData(segmentId);
@@ -2228,6 +2238,22 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       this.subscriptionPatchRecords,
       rootLimit
     );
+  }
+
+  private async emitSegmentStatePatch(
+    rootContainer: SSRContainer,
+    segmentSerializationCtx: SerializationContext,
+    segmentId: string,
+    rootStart: number,
+    rootLocalIds: number[],
+    subscriptionPatchRootId?: number
+  ): Promise<void> {
+    const rootCtx = rootContainer.serializationCtx;
+    segmentSerializationCtx.$forwardRefOffset$ = rootCtx.$serializedForwardRefCount$;
+    await this.emitStatePatchData(segmentId, rootStart, rootLocalIds, subscriptionPatchRootId);
+    rootCtx.$serializedRootCount$ =
+      rootCtx.$roots$.length + (rootCtx.$hasRootStateForwardRefs$ ? 1 : 0);
+    rootCtx.$serializedForwardRefCount$ += segmentSerializationCtx.$serializedForwardRefCount$;
   }
 
   private emitStatePatchData(

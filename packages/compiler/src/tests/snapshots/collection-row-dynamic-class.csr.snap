@@ -47,20 +47,35 @@ import {
   patchAttrValue,
   _first,
   patchTextValue,
-  createDomBatchEffect,
+  _textValue,
+  createLazyDomBatchEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_class_segment_2_3htuz8wkv4ypl } from './component.tsx_component_class_segment_2_3htuz8wkv4ypl';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
-const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate('<li> </li>');
+function locateTextParent0(root) {
+  return root;
+}
+function updateRow0(effect0, initialParent0) {
+  const item = effect0.source;
+  patchAttrValue(effect0.root, 'class', component_class_segment_2_3htuz8wkv4ypl(item));
+  const nextValue0 = component_text_segment_3_1fh11lewq6qgx(item);
+  if (initialParent0 !== undefined && (nextValue0 === null || typeof nextValue0 !== 'object')) {
+    const cachedValue0 =
+      typeof nextValue0 === 'number' || typeof nextValue0 === 'bigint'
+        ? nextValue0
+        : _textValue(nextValue0);
+    initialParent0.textContent = cachedValue0;
+    effect0.value0 = cachedValue0;
+  } else if (nextValue0 !== effect0.value0) {
+    effect0.patchText('text0', 'value0', locateTextParent0, nextValue0, false, initialParent0);
+  }
+}
+const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate('<li></li>');
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
   const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  createDomBatchEffect(() => {
-    patchAttrValue(el0, 'class', component_class_segment_2_3htuz8wkv4ypl(item));
-    patchTextValue(text0, component_text_segment_3_1fh11lewq6qgx(item));
-  }, ctx.scheduler);
+  createLazyDomBatchEffect(el0, item, updateRow0, ctx.scheduler, el0);
   return el0;
 };
 /*

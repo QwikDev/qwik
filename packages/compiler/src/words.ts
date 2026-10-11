@@ -42,6 +42,7 @@ export const enum QwikWord {
   CreateTextExpressionEffect = 'createTextExpressionEffect',
   CreateTextNodeEffect = 'createTextNodeEffect',
   CreateDomBatchEffect = 'createDomBatchEffect',
+  CreateLazyDomBatchEffect = 'createLazyDomBatchEffect',
   PatchTextValue = 'patchTextValue',
   CreateSsrDomBatchEffect = 'createSsrDomBatchEffect',
   CreateAttrEffect = 'createAttrEffect',

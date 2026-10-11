@@ -785,7 +785,8 @@ import {
   patchTextValue,
   createCapturedEvent,
   setEvent,
-  createDomBatchEffect,
+  _textValue,
+  createLazyDomBatchEffect,
   _createElementTemplate,
   _capturesObj,
 } from '@qwik.dev/core';
@@ -794,8 +795,40 @@ import { root_text_segment_16_3hdfyiexi24e1 } from './root.tsx_root_text_segment
 import { root_q_e_click_segment_17_1exoakzkff7kr } from './root.tsx_root_q_e_click_segment_17_1exoakzkff7kr';
 import { root_text_segment_18_3hdg2eq0meojb } from './root.tsx_root_text_segment_18_3hdg2eq0meojb';
 import { root_q_e_click_segment_19_1exo9sxclr3jp } from './root.tsx_root_q_e_click_segment_19_1exo9sxclr3jp';
+function locateTextParent0(root) {
+  return _first(root);
+}
+function locateTextParent1(root) {
+  return _first(_next(_first(root)));
+}
+function updateRow0(effect0, initialParent0, initialParent1) {
+  const row = effect0.source;
+  patchAttrValue(effect0.root, 'class', root_class_segment_15_2xl0i26jedthh(row));
+  const nextValue0 = root_text_segment_16_3hdfyiexi24e1(row);
+  if (initialParent0 !== undefined && (nextValue0 === null || typeof nextValue0 !== 'object')) {
+    const cachedValue0 =
+      typeof nextValue0 === 'number' || typeof nextValue0 === 'bigint'
+        ? nextValue0
+        : _textValue(nextValue0);
+    initialParent0.textContent = cachedValue0;
+    effect0.value0 = cachedValue0;
+  } else if (nextValue0 !== effect0.value0) {
+    effect0.patchText('text0', 'value0', locateTextParent0, nextValue0, false, initialParent0);
+  }
+  const nextValue1 = root_text_segment_18_3hdg2eq0meojb(row);
+  if (initialParent1 !== undefined && (nextValue1 === null || typeof nextValue1 !== 'object')) {
+    const cachedValue1 =
+      typeof nextValue1 === 'number' || typeof nextValue1 === 'bigint'
+        ? nextValue1
+        : _textValue(nextValue1);
+    initialParent1.textContent = cachedValue1;
+    effect0.value1 = cachedValue1;
+  } else if (nextValue1 !== effect0.value1) {
+    effect0.patchText('text1', 'value1', locateTextParent1, nextValue1, false, initialParent1);
+  }
+}
 const root_for_render_segment_13_xl6e5erok1z7_tmpl0 = _createElementTemplate(
-  '<tr><td class="col-md-1"> </td><td class="col-md-4"><a> </a></td><td class="col-md-1"><a><span class="glyphicon glyphicon-remove" aria-hidden="true">x</span></a></td><td class="col-md-6"></td></tr>'
+  '<tr><td class="col-md-1"></td><td class="col-md-4"><a></a></td><td class="col-md-1"><a><span class="glyphicon glyphicon-remove" aria-hidden="true">x</span></a></td><td class="col-md-6"></td></tr>'
 );
 function createRowEvents0(selectedItem, data) {
   return [
@@ -808,16 +841,10 @@ export const root_for_render_segment_13_xl6e5erok1z7 = (ctx, row, rowIndex0, col
   const [selectedItem, data] = _capturesObj._;
   const [rowEvent0, rowEvent1] = (collection0.rowEvents ??= createRowEvents0(selectedItem, data));
   const el0 = root_for_render_segment_13_xl6e5erok1z7_tmpl0(ctx.document);
-  const text0 = _first(_first(el0));
   const el1 = _first(_next(_first(el0)));
   el1._qEventParam = row;
   setEvent(el1, 'q-e:click', rowEvent0);
-  const text1 = _first(el1);
-  createDomBatchEffect(() => {
-    patchAttrValue(el0, 'class', root_class_segment_15_2xl0i26jedthh(row));
-    patchTextValue(text0, root_text_segment_16_3hdfyiexi24e1(row));
-    patchTextValue(text1, root_text_segment_18_3hdg2eq0meojb(row));
-  }, ctx.scheduler);
+  createLazyDomBatchEffect(el0, row, updateRow0, ctx.scheduler, _first(el0), el1);
   const el2 = _first(_prev(_last(el0)));
   el2._qEventParam = row;
   setEvent(el2, 'q-e:click', rowEvent1);

@@ -3,12 +3,14 @@ import { SubscriberFlags } from '../../reactive/flags';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import { SubscriberKind, type ForBlockSubscriber } from '../../runtime/subscriber';
 import type { Source } from '../../reactive/source';
-import { runWithCollector0 } from '../../reactive/tracking';
+import { runWithCollector, runWithCollector0 } from '../../reactive/tracking';
 import type { Owner } from '../../runtime/owner';
 import type { ForBlock } from '../for/for';
 import { applyDomProps, ownedDomProps, patchAttrValue } from './dom-props';
 import { DomEffect, registerDomEffect } from './dom-effect';
-import { readTrackedValue } from './text-effect';
+import { readTrackedValue, type TextExpressionValue } from './text-effect';
+import { fastFirstChild } from '../../runtime/fast-getters';
+import { _textValue } from '../../shared/utils/character-escaping';
 import { removeEvent, setEvent } from '../event/event';
 import type { CapturedEventHandler, QDispatchHandler } from '../../shared/types';
 import { EMPTY_ARRAY } from '../../utils/consts';
@@ -135,17 +137,97 @@ export class ForBlockSubscription<T = unknown> implements ForBlockSubscriber {
   }
 }
 
-export class DomBatchEffect extends DomEffect {
+export class DomBatchEffect<T = unknown> extends DomEffect {
+  declare readonly root: Element;
+  declare readonly source: T;
+  [key: `text${number}`]: Text | undefined;
+  [key: `value${number}`]: string | number | bigint | undefined;
+
   constructor(
-    readonly fn: DomBatchFn,
-    scheduler?: Scheduler
+    readonly fn: (effect: DomBatchEffect<T>, ...initialParents: Element[]) => ValueOrPromise<void>,
+    scheduler?: Scheduler,
+    root?: Element,
+    source?: T
   ) {
     super(scheduler);
+    if (root !== undefined) {
+      this.root = root;
+      this.source = source!;
+    }
   }
 
   execute(): ValueOrPromise<void> {
-    return this.fn();
+    if (this.root === undefined) {
+      return (this.fn as DomBatchFn)();
+    }
+    return this.fn(this);
   }
+
+  patchText(
+    target: `text${number}`,
+    previous: `value${number}`,
+    locate: (root: Element) => Element,
+    value: ValueOrPromise<TextExpressionValue>,
+    stringify = false,
+    initialParent?: Element
+  ): ValueOrPromise<void> {
+    if (isPromise(value)) {
+      return this.trackPromise(value, (resolved) => {
+        this.patchText(target, previous, locate, resolved, stringify, initialParent);
+      });
+    }
+    const nextValue = stringify
+      ? String(value)
+      : typeof value === 'number' || typeof value === 'bigint'
+        ? value
+        : _textValue(value);
+    if (initialParent !== undefined) {
+      initialParent.textContent = String(nextValue);
+      this[previous] = nextValue;
+      return;
+    }
+    const oldValue = this[previous];
+    if (nextValue === oldValue) {
+      return;
+    }
+    const normalized = String(nextValue);
+    if (oldValue !== undefined && normalized === String(oldValue)) {
+      this[previous] = nextValue;
+      return;
+    }
+    if (oldValue === undefined) {
+      locate(this.root).textContent = normalized;
+      this[previous] = nextValue;
+      return;
+    }
+    let text = this[target];
+    if (text === undefined) {
+      const element = locate(this.root);
+      text = (fastFirstChild(element) as Text | null) ?? undefined;
+      if (text === undefined) {
+        text = element.ownerDocument.createTextNode(normalized);
+        element.appendChild(text);
+      } else {
+        text.data = normalized;
+      }
+      this[target] = text;
+    } else {
+      text.data = normalized;
+    }
+    this[previous] = nextValue;
+  }
+}
+
+export function createLazyDomBatchEffect<T>(
+  root: Element,
+  source: T,
+  fn: (effect: DomBatchEffect<T>, ...initialParents: Element[]) => ValueOrPromise<void>,
+  scheduler?: Scheduler,
+  ...initialParents: Element[]
+): DomBatchEffect<T> {
+  const effect = registerDomEffect(new DomBatchEffect(fn, scheduler, root, source));
+  runWithCollector(effect, fn, effect, ...initialParents);
+  return effect;
 }
 
 export class ResumedDomBatchEffect extends DomEffect {

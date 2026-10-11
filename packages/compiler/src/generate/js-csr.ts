@@ -137,14 +137,26 @@ async function generateModule(
   }
 }
 
+interface SharedBatch {
+  source: string;
+  effect: string;
+  eligible: boolean;
+  patches: string[];
+  hoists: string[];
+  declarations: string[];
+  targets: { argument: string; parameter: string }[];
+}
+
 /** Everything one render pass carries — created in renderProgram, threaded explicitly. */
 interface RenderPass {
   row?: {
     outer: Set<number>;
     collection: string;
     handlers: { name: string; value: string }[];
+    root?: string;
+    paths: Map<string, string>;
   };
-  batches: Map<number, { remaining: number; patches: string[] }>;
+  batches: Map<number, { remaining: number; patches: string[]; shared?: SharedBatch }>;
   names: GeneratedNames;
   next: (prefix: string) => string;
   propSources: Map<string, string>;
@@ -445,11 +457,22 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     pass: RenderPass
   ): string {
     const mounted = this.mountElementTemplate(ownerName, statements, pass, op.namespace);
+    if (pass.row !== undefined) {
+      pass.row.root ??= mounted.el;
+    }
     this.elementProps(op, mounted.el, statements, pass);
     this.walkChildren(elementChildren(op), mounted.el, statements, pass);
+    const lazyTextEffects = new Set(
+      [...pass.batches]
+        .filter(
+          ([, batch]) =>
+            batch.remaining === 0 && batch.shared?.eligible && batch.shared.targets.length > 0
+        )
+        .map(([id]) => id)
+    );
     this.hoistTemplate(
       mounted.template,
-      foldStaticOp(templateOp(op)),
+      foldStaticOp(templateOp(op, lazyTextEffects)),
       QwikWord.CreateElementTemplate,
       op.namespace
     );
@@ -557,7 +580,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     for (const { child, path } of dynamicChildren) {
       switch (child.op) {
         case OpKind.Hole: {
-          this.textHole(child, path, statements, pass, nodeCount);
+          this.textHole(child, path, statements, pass, nodeCount, elementExpr);
           break;
         }
         case OpKind.Element: {
@@ -608,6 +631,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
     const name = pass.next(word);
     statements.push(`const ${name} = ${path};`);
+    pass.row?.paths.set(name, path);
     return name;
   }
 
@@ -962,7 +986,26 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const next = createNameAllocator(this.module);
     const pass: RenderPass = {
       batches: new Map(
-        [...effectCounts(body.ops)].map(([id, remaining]) => [id, { remaining, patches: [] }])
+        [...effectCounts(body.ops)].map(([id, remaining]) => [
+          id,
+          {
+            remaining,
+            patches: [],
+            ...(elementRoot && program.params.length > 0 && hasFixedRowLayout(root)
+              ? {
+                  shared: {
+                    source: this.module.bindings[program.params[0]].name,
+                    effect: next(QwikGenWord.Effect),
+                    eligible: true,
+                    patches: [],
+                    hoists: [],
+                    declarations: [],
+                    targets: [],
+                  },
+                }
+              : {}),
+          },
+        ])
       ),
       ...(elementRoot && program.params.length > 0
         ? {
@@ -970,6 +1013,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
               outer: new Set<number>(),
               collection: next(QwikGenWord.Collection),
               handlers: [],
+              paths: new Map<string, string>(),
             },
           }
         : {}),
@@ -1086,13 +1130,16 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     styleScope: string | null
   ): void {
     if (prop.effect !== null) {
-      const value = this.batchValue(prop.value, statements, pass);
+      const value = this.batchValue(prop.value, statements, pass, prop.effect);
       this.imports.add(QwikWord.PatchAttrValue);
       this.batchPatch(
         prop.effect,
         `${QwikWord.PatchAttrValue}(${el}, ${JSON.stringify(prop.name)}, ${value}${styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`});`,
         statements,
-        pass
+        pass,
+        pass.row?.root === undefined
+          ? undefined
+          : `${QwikWord.PatchAttrValue}(${rowPath(el, pass, prop.effect)}, ${JSON.stringify(prop.name)}, ${value}${styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`});`
       );
       return;
     }
@@ -1147,7 +1194,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     path: string,
     statements: string[],
     pass: RenderPass,
-    nodeCount: number
+    nodeCount: number,
+    parentPath?: string
   ): void {
     if (op.value.v === ValueKind.Computed && op.value.resume.r === ResumeKind.Inline) {
       // Lexical inline value: the text is fixed for the row's lifetime — no effect.
@@ -1174,23 +1222,58 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       statements.push(`${marker}.replaceWith(${target});`);
     }
 
-    this.bindTextHole(op, target, statements, pass);
+    this.bindTextHole(
+      op,
+      target,
+      statements,
+      pass,
+      nodeCount === 1 ? path : undefined,
+      nodeCount === 1 ? parentPath : undefined
+    );
   }
 
   private bindTextHole(
     op: Extract<LinkedOp, { op: OpKind.Hole }>,
     target: string,
     statements: string[],
-    pass: RenderPass
+    pass: RenderPass,
+    path?: string,
+    parentPath?: string
   ): void {
     if (op.effect !== null) {
-      const value = this.batchValue(op.value, statements, pass);
+      const value = this.batchValue(op.value, statements, pass, op.effect);
+      const shared = pass.batches.get(op.effect)!.shared;
+      let sharedPatch: string | undefined;
+      if (shared !== undefined && path !== undefined) {
+        const locate = pass.next('locateTextParent');
+        const index = shared.targets.length;
+        const initialParent = pass.next('initialParent');
+        shared.targets.push({ argument: parentPath!, parameter: initialParent });
+        shared.hoists.push(
+          `function ${locate}(root) { return ${rowPath(parentPath!, pass, op.effect).replaceAll(`${shared.effect}.root`, 'root')}; }`
+        );
+        shared.declarations.push(`const ${target} = ${path};`);
+        const nextValue = pass.next('nextValue');
+        const cachedValue = pass.next('cachedValue');
+        const normalized = op.stringify
+          ? `String(${nextValue})`
+          : `typeof ${nextValue} === "number" || typeof ${nextValue} === "bigint" ? ${nextValue} : ${QwikWord.TextValue}(${nextValue})`;
+        sharedPatch = `const ${nextValue} = ${value};
+if (${initialParent} !== undefined && (${nextValue} === null || typeof ${nextValue} !== "object")) {
+  const ${cachedValue} = ${normalized};
+  ${initialParent}.textContent = ${cachedValue};
+  ${shared.effect}.value${index} = ${cachedValue};
+} else if (${nextValue} !== ${shared.effect}.value${index}) {
+  ${shared.effect}.patchText("text${index}", "value${index}", ${locate}, ${nextValue}, ${!!op.stringify}, ${initialParent});
+}`;
+      }
       this.imports.add(QwikWord.PatchTextValue);
       this.batchPatch(
         op.effect,
         `${QwikWord.PatchTextValue}(${target}, ${value}${op.stringify ? ', true' : ''});`,
         statements,
-        pass
+        pass,
+        sharedPatch
       );
       return;
     }
@@ -1230,24 +1313,65 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   private batchValue(
     value: import('../schema').Value,
     statements: string[],
-    pass: RenderPass
+    pass: RenderPass,
+    id?: number
   ): string {
+    const shared = id === undefined ? undefined : pass.batches.get(id)!.shared;
     if (value.v === ValueKind.Read) {
+      if (shared !== undefined) {
+        shared.eligible = false;
+      }
       const source = readSource(this.module, value.expr, pass, statements, this.imports, null);
       this.imports.add(QwikWord.ReadTrackedValue);
       return `${QwikWord.ReadTrackedValue}(${source})`;
     }
     if (value.v === ValueKind.Computed && value.resume.r === ResumeKind.Qrl) {
       const resolved = this.resolveQrlUse(value.resume.qrl, pass.names.props);
+      if (shared !== undefined && resolved.args.some((arg) => arg !== shared.source)) {
+        shared.eligible = false;
+      }
       return `${this.chunkSymbol(resolved.qrl)}(${resolved.args.join(', ')})`;
     }
     throw new UnsupportedError('a non-reactive batch value');
   }
 
-  private batchPatch(id: number, patch: string, statements: string[], pass: RenderPass): void {
+  private batchPatch(
+    id: number,
+    patch: string,
+    statements: string[],
+    pass: RenderPass,
+    sharedPatch?: string
+  ): void {
     const batch = pass.batches.get(id)!;
     batch.patches.push(patch);
+    const shared = batch.shared;
+    if (shared !== undefined) {
+      if (sharedPatch === undefined) {
+        shared.eligible = false;
+      } else {
+        shared.patches.push(sharedPatch);
+      }
+    }
     if (--batch.remaining !== 0) {
+      return;
+    }
+    if (shared?.eligible && shared.targets.length > 0) {
+      this.imports.add(QwikWord.TextValue);
+      for (const declaration of shared.declarations) {
+        const index = statements.indexOf(declaration);
+        if (index !== -1) {
+          statements.splice(index, 1);
+        }
+      }
+      const updater = pass.next('updateRow');
+      this.hoists.push(
+        ...shared.hoists,
+        `function ${updater}(${shared.effect}, ${shared.targets.map((target) => target.parameter).join(', ')}) {\nconst ${shared.source} = ${shared.effect}.source;\n${shared.patches.join('\n')}\n}`
+      );
+      this.imports.add(QwikWord.CreateLazyDomBatchEffect);
+      statements.push(
+        `${QwikWord.CreateLazyDomBatchEffect}(${pass.row!.root}, ${shared.source}, ${updater}, ${pass.names.ctx}.scheduler, ${shared.targets.map((target) => target.argument).join(', ')});`
+      );
       return;
     }
     this.imports.add(QwikWord.CreateDomBatchEffect);
@@ -1410,7 +1534,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
  * siblings an empty comment (adjacent text would merge with a text placeholder). Text is
  * pre-escaped HERE so the raw comment placeholder survives the fold.
  */
-function templateOp(op: Extract<LinkedOp, { op: OpKind.Element }>): LinkedOp {
+function templateOp(
+  op: Extract<LinkedOp, { op: OpKind.Element }>,
+  lazyTextEffects?: ReadonlySet<number>
+): LinkedOp {
   return {
     ...op,
     // Literal innerHTML stays: the static fold prints it as the template's raw content.
@@ -1420,7 +1547,7 @@ function templateOp(op: Extract<LinkedOp, { op: OpKind.Element }>): LinkedOp {
         (prop.k === PropKind.InnerHtml && inlineStringValue(prop.value) !== null)
     ),
     propsEffect: null,
-    children: templateChildren(elementChildren(op)),
+    children: templateChildren(elementChildren(op), lazyTextEffects),
   };
 }
 
@@ -1430,14 +1557,23 @@ function elementChildren(op: Extract<LinkedOp, { op: OpKind.Element }>): readonl
 }
 
 /** Template form of a child list — holes and boundaries become locator placeholders. */
-function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
+function templateChildren(
+  children: readonly LinkedOp[],
+  lazyTextEffects?: ReadonlySet<number>
+): LinkedOp[] {
   const placeholder = children.length > 1 ? '<!>' : ' ';
   return children.map((child) => {
     switch (child.op) {
       case OpKind.Hole:
-        return { op: OpKind.Static as const, html: placeholder };
+        return {
+          op: OpKind.Static as const,
+          html:
+            children.length === 1 && child.effect !== null && lazyTextEffects?.has(child.effect)
+              ? ''
+              : placeholder,
+        };
       case OpKind.Element:
-        return templateOp(child);
+        return templateOp(child, lazyTextEffects);
       case OpKind.Static:
         return child;
       case OpKind.Branch:
@@ -1494,4 +1630,24 @@ export function childPathExpression(
     path = `${QwikWord.NextSibling}(${path})`;
   }
   return path;
+}
+
+function hasFixedRowLayout(op: LinkedOp): boolean {
+  if (op.op === OpKind.Element) {
+    return (
+      op.propsEffect === null &&
+      !op.props.some((prop) => prop.k === PropKind.Spread || prop.k === PropKind.InnerHtml) &&
+      elementChildren(op).every(hasFixedRowLayout)
+    );
+  }
+  return op.op === OpKind.Hole || op.op === OpKind.Static;
+}
+
+function rowPath(path: string, pass: RenderPass, id: number): string {
+  const row = pass.row!;
+  for (const [name, expression] of [...row.paths].reverse()) {
+    path = path.replaceAll(new RegExp(`\\b${name}\\b`, 'g'), expression);
+  }
+  const effect = pass.batches.get(id)!.shared?.effect;
+  return path.replaceAll(new RegExp(`\\b${row.root}\\b`, 'g'), `${effect}.root`);
 }

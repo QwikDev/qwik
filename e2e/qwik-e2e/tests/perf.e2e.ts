@@ -28,8 +28,14 @@ test.describe('performance counter', () => {
       }
       await rows.first().locator('td').nth(1).locator('a').click();
       await expect(rows.first()).toHaveClass(/danger/);
+      const firstLabel = rows.first().locator('td').nth(1).locator('a');
+      const labelText = await firstLabel.evaluateHandle((element) => element.firstChild);
       await page.locator('#update').click();
       await expect(rows.first().locator('td').nth(1)).toContainText('!!!');
+      expect(
+        await firstLabel.evaluate((element, text) => element.firstChild === text, labelText)
+      ).toBe(true);
+      await labelText.dispose();
       await page.locator('#clear').click();
       await expect(rows).toHaveCount(0);
 

@@ -386,6 +386,7 @@ export {
   AttrEffect,
   AttrExpressionEffect,
   DomBatchEffect,
+  createLazyDomBatchEffect,
   EventEffect,
   ForBlockSubscription,
   PropsEffect,

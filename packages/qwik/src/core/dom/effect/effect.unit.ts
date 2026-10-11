@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { createDocument } from '../../../testing/document';
 import {
   createAttrTarget,
   createOrderTextExpressionEffect,
@@ -16,6 +17,7 @@ import {
   createAttrEffect,
   createAttrExpressionEffect,
   createDomBatchEffect,
+  createLazyDomBatchEffect,
   createEventEffect,
   createPropsEffect,
   DomBatchEffect,
@@ -30,6 +32,7 @@ import {
   patchTextValue,
   TextExpressionEffect,
   TextNodeEffect,
+  type TextExpressionValue,
 } from './text-effect';
 import { applyDomProps, patchAttrValue, renderDomPropsToString, setRef } from './dom-props';
 import { _chk, _val } from '../../runtime/bind-handlers';
@@ -784,6 +787,168 @@ describe('DOM effects', () => {
     expect(text.data).toBe('1');
     expect(attrs.has('class')).toBe(false);
   });
+
+  it('keeps closure batches free of lazy state and updater arguments', () => {
+    const update = vi.fn(() => {});
+    const effect = createOwned(() => createDomBatchEffect(update, new Scheduler(noopSchedule)));
+
+    effect.execute();
+
+    expect(update.mock.calls).toEqual([[], []]);
+    expect(effect).not.toHaveProperty('root');
+    expect(effect).not.toHaveProperty('source');
+    expect(effect).not.toHaveProperty('text0');
+    expect(effect).not.toHaveProperty('value0');
+  });
+
+  it.each([undefined, 'initial'])('caches text only after changing %s', async (initial) => {
+    const scheduler = new Scheduler(noopSchedule);
+    const value = useSignal<TextExpressionValue>(initial);
+    const root = createDocument().createElement('p');
+    const locate = vi.fn((root: Element) => root);
+    const update = (effect: DomBatchEffect<typeof value>) => {
+      effect.patchText('text0', 'value0', locate, effect.source.value);
+    };
+    const effect = createOwned(() => createLazyDomBatchEffect(root, value, update, scheduler));
+    const initialText = root.firstChild;
+    expect(effect).toBeInstanceOf(DomBatchEffect);
+    expect(effect.fn).toBe(update);
+    expect(effect.deps).toEqual([value]);
+    expect(root.textContent).toBe(initial ?? '');
+    expect(effect.text0).toBeUndefined();
+    expect(effect.value0).toBe(initial ?? '');
+    expect(locate).toHaveBeenCalledTimes(1);
+    value.value = initial ?? false;
+    await scheduler.flushInteraction();
+    expect(locate).toHaveBeenCalledTimes(1);
+    value.value = 'first';
+    await scheduler.flushInteraction();
+    expect(locate).toHaveBeenCalledTimes(2);
+    const text = root.firstChild as Text;
+    expect(effect.text0).toBe(text);
+    if (initialText !== null) {
+      expect(text).toBe(initialText);
+    }
+    value.value = '';
+    await scheduler.flushInteraction();
+    expect(locate).toHaveBeenCalledTimes(2);
+    expect(root.textContent).toBe('');
+    expect(root.firstChild).toBe(text);
+    expect(effect.text0).toBe(text);
+    const otherRoot = root.ownerDocument.createElement('p');
+    const other = createOwned(() =>
+      createLazyDomBatchEffect(
+        otherRoot,
+        useSignal<TextExpressionValue>('other'),
+        update,
+        scheduler
+      )
+    );
+    expect(other.fn).toBe(effect.fn);
+    expect(other.value0).toBe('other');
+    expect(effect.value0).toBe('');
+    expect(root.textContent).toBe('');
+  });
+
+  it('uses initial parents without retaining them or traversing the row', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const value = useSignal('initial');
+    const root = createDocument().createElement('p');
+    const locate = vi.fn((root: Element) => root);
+    const update = (effect: DomBatchEffect<typeof value>, parent?: Element) => {
+      effect.patchText('text0', 'value0', locate, effect.source.value, false, parent);
+    };
+    const effect = createOwned(() =>
+      createLazyDomBatchEffect(root, value, update, scheduler, root)
+    );
+    expect(locate).not.toHaveBeenCalled();
+    expect(root.textContent).toBe('initial');
+    expect(effect.text0).toBeUndefined();
+    expect(effect.deps).toEqual([value]);
+    const text = root.firstChild;
+    value.value = 'updated';
+    await scheduler.flushInteraction();
+    expect(locate).toHaveBeenCalledTimes(1);
+    expect(root.firstChild).toBe(text);
+    expect(effect.text0).toBe(text);
+    expect(root.textContent).toBe('updated');
+  });
+
+  it('retains numeric values without retaining their rendered strings', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const value = useSignal<TextExpressionValue>(1);
+    const root = createDocument().createElement('p');
+    const locate = vi.fn((root: Element) => root);
+    const update = (effect: DomBatchEffect<typeof value>, parent?: Element) => {
+      effect.patchText('text0', 'value0', locate, effect.source.value, false, parent);
+    };
+    const effect = createOwned(() =>
+      createLazyDomBatchEffect(root, value, update, scheduler, root)
+    );
+    expect(effect.value0).toBe(1);
+    const text = root.firstChild;
+    value.value = '1';
+    await scheduler.flushInteraction();
+    expect(locate).not.toHaveBeenCalled();
+    expect(root.firstChild).toBe(text);
+    value.value = 2n;
+    await scheduler.flushInteraction();
+    expect(root.textContent).toBe('2');
+    expect(effect.value0).toBe(2n);
+    expect(effect.text0).toBe(text);
+    value.value = 2;
+    await scheduler.flushInteraction();
+    expect(root.firstChild).toBe(text);
+    expect(locate).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps stringify coercion and independent binding caches', () => {
+    const document = createDocument();
+    const parents = [document.createElement('p'), document.createElement('p')];
+    const effect = createOwned(() =>
+      createLazyDomBatchEffect(
+        document.createElement('div'),
+        false,
+        (effect) => {
+          effect.patchText('text0', 'value0', () => parents[0], effect.source);
+          effect.patchText('text1', 'value1', () => parents[1], effect.source, true);
+        },
+        new Scheduler(noopSchedule)
+      )
+    );
+    expect(parents.map((node) => node.textContent)).toEqual(['', 'false']);
+    expect([effect.value0, effect.value1]).toEqual(['', 'false']);
+  });
+
+  it.each(['repeat', 'supersede', 'dispose'])(
+    'preserves lazy text promise commits after %s',
+    async (action) => {
+      const scheduler = new Scheduler(noopSchedule);
+      const pending = deferred<string>();
+      const value = useSignal<string | Promise<string>>('');
+      const root = createDocument().createElement('p');
+      const update = (effect: DomBatchEffect<typeof value>) => {
+        effect.patchText('text0', 'value0', (root) => root, effect.source.value);
+      };
+      const effect = createOwned(() => createLazyDomBatchEffect(root, value, update, scheduler));
+      value.value = pending.promise;
+      const running = effect.run();
+      if (action === 'repeat') {
+        effect.run();
+      } else if (action === 'supersede') {
+        value.value = 'newer';
+        effect.run();
+      } else {
+        disposeSubscriber(effect);
+      }
+      pending.resolve('resolved');
+      await running;
+      await scheduler.flushInteraction();
+      expect(root.textContent).toBe(
+        action === 'repeat' ? 'resolved' : action === 'supersede' ? 'newer' : ''
+      );
+    }
+  );
 
   it('collects resumed scalar dependencies and awaits every patch in the batch', async () => {
     const scheduler = new Scheduler(noopSchedule);

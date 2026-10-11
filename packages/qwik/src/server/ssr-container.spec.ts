@@ -570,3 +570,72 @@ describe('SSR Container', () => {
     expect(vnodeContent).toContain('|||\\-1A|');
   });
 });
+
+it.each(['empty props', 'structure-only child', 'retained child'])(
+  'writes one state patch per segment (%s)',
+  async (scenario) => {
+    const hasChild = scenario !== 'empty props';
+    const { root, first } = createVNodeIdContexts();
+    Reflect.set(root, 'outOfOrderStreaming', true);
+    Reflect.set(first, 'outOfOrderStreaming', true);
+    const { ELEMENT_PROPS, ELEMENT_SEQ } = await import('../core/shared/utils/markers');
+    const { createSignal } = await import('../core/reactive-primitives/signal-api');
+    const { createPropsProxy } = await import('../core/shared/jsx/props-proxy');
+    const { JSXNodeImpl } = await import('../core/shared/jsx/jsx-node');
+    const { Fragment } = await import('../core/shared/jsx/jsx-runtime');
+    const props = createPropsProxy(new JSXNodeImpl(Fragment, {}, null, null, 0, null));
+    Reflect.get(root, 'markVNodeDataOwnerEmitted').call(root);
+    await root.serializationCtx.$serialize$();
+    Reflect.get(root, '$markRootContainerReady$').call(root);
+    const initialRootCount = root.serializationCtx.$serializedRootCount$;
+    const vnodeData: VNodeData = [
+      VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+      hasChild ? {} : { [ELEMENT_PROPS]: props },
+      OPEN_FRAGMENT,
+      CLOSE_FRAGMENT,
+    ];
+    const parent = new SsrNode(null, '0', 1, [], vnodeData, null);
+    const sequence = [createSignal(Promise.resolve('loaded'))];
+    if (hasChild) {
+      new SsrNode(
+        parent,
+        '1',
+        1,
+        [],
+        [VNodeDataFlag.VIRTUAL_NODE, { [ELEMENT_SEQ]: sequence }, OPEN_FRAGMENT, CLOSE_FRAGMENT],
+        null
+      );
+    }
+    first.serializationCtx.$onAddRoot$ = undefined;
+    const sequenceRootId =
+      scenario === 'retained child' ? first.serializationCtx.$addRoot$(sequence) : undefined;
+    first.serializationCtx.$addRoot$(parent);
+    const result = await first.$finalizeOutOfOrderSegment$('1', {
+      container: first,
+      htmlChunks: [],
+      writer: first.writer,
+    } as any);
+    const document = createDocument({ html: '<div>' + result.scripts + '</div>' });
+    const patches = Array.from(document.querySelectorAll('script[type="qwik/state"]'));
+    expect(patches).toHaveLength(1);
+    let receivedRootCount = initialRootCount;
+    for (let i = 0; i < patches.length; i++) {
+      const script = patches[i];
+      const [rootStart, roots] = JSON.parse(script.textContent!);
+      expect(rootStart).toBe(receivedRootCount);
+      receivedRootCount += roots.length / 2;
+    }
+    expect(receivedRootCount).toBe(root.serializationCtx.$roots$.length);
+    const vnodePatch = document.querySelector('script[type="qwik/vnode"]')!.textContent!;
+    if (sequenceRootId !== undefined) {
+      expect(vnodePatch).toContain(
+        VNodeDataChar.SEQ_CHAR +
+          Reflect.get(first, 'getSegmentRootIdMap').call(first)[sequenceRootId]
+      );
+      expect(patches[0].textContent).toContain('loaded');
+    } else {
+      expect(vnodePatch).not.toContain(VNodeDataChar.SEQ_CHAR);
+      expect(vnodePatch).not.toContain(VNodeDataChar.PROPS_CHAR);
+    }
+  }
+);

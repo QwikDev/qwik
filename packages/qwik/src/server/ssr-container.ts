@@ -2000,9 +2000,11 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
         rootContainer.serializationCtx.$serializedForwardRefCount$ +=
           segmentSerializationCtx.$serializedForwardRefCount$;
       }
-      this.emitPendingVNodeDataPatches();
       if (rootReadyAtSegment) {
         this.$noMoreRoots$ = true;
+      }
+      this.emitPendingVNodeDataPatches();
+      if (rootReadyAtSegment) {
         this.emitVNodeData(segmentId);
         const segmentCtx = this.serializationCtx;
         this.serializationCtx = rootContainer.serializationCtx;

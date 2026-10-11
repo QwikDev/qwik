@@ -342,6 +342,35 @@ export class ForBlock<T = unknown> {
       return;
     }
 
+    if (
+      oldLength === nextLength &&
+      firstChanged < oldLast &&
+      oldKeys[firstChanged] === nextKeys[oldLast] &&
+      oldKeys[oldLast] === nextKeys[firstChanged]
+    ) {
+      let index = firstChanged + 1;
+      while (index < oldLast && oldKeys[index] === nextKeys[index]) {
+        index++;
+      }
+
+      if (index === oldLast) {
+        for (let i = firstChanged + 1; i < oldLast; i++) {
+          this.retainRow(nextRows, nextOwners, nextIndexSignals, i, i);
+        }
+        this.retainRow(nextRows, nextOwners, nextIndexSignals, firstChanged, oldLast);
+        this.retainRow(nextRows, nextOwners, nextIndexSignals, oldLast, firstChanged);
+
+        const parent = getRangeParent(this.range.start, this.range.end);
+        const reference =
+          oldLast + 1 < nextLength ? firstRowNode(nextRows[oldLast + 1]) : this.range.end;
+        insertOrMoveRow(parent, nextRows[oldLast], reference);
+        insertOrMoveRow(parent, nextRows[firstChanged], firstRowNode(nextRows[firstChanged + 1]));
+
+        this.commitRows(nextKeys, nextRows, nextOwners, nextIndexSignals);
+        return;
+      }
+    }
+
     const oldMiddleLength = oldLast - firstChanged + 1;
     const newMiddleLength = newLast - firstChanged + 1;
     const useLinearLookup = nextLength < 4 || (oldMiddleLength | newMiddleLength) < 32;

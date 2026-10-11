@@ -14,6 +14,39 @@ test.describe('performance counter', () => {
       page.locator('tbody > tr > td:first-child').filter({ hasText: new RegExp(`^${id}$`) })
     ).toHaveCount(0);
   });
+  test('swaps SSR rows without recreating them', async ({ page }) => {
+    await page.goto('/perf.prod/');
+    const rows = page.locator('tbody > tr');
+    await expect(rows).toHaveCount(1_000);
+    const secondId = await rows.nth(1).locator('td').first().textContent();
+    const replacementId = await rows.nth(998).locator('td').first().textContent();
+    const originalRows = await page.evaluateHandle(() =>
+      Array.from(document.querySelector('tbody')!.children)
+    );
+    try {
+      await page.locator('#swaprows').click();
+      await expect(rows.nth(1).locator('td').first()).toHaveText(replacementId!);
+      await expect(rows.nth(998).locator('td').first()).toHaveText(secondId!);
+      expect(
+        await page.evaluate(
+          (before) =>
+            Array.from(document.querySelector('tbody')!.children).every(
+              (row, index) => row === before[index === 1 ? 998 : index === 998 ? 1 : index]
+            ),
+          originalRows
+        )
+      ).toBe(true);
+      await rows.nth(1).locator('td').nth(1).locator('a').click();
+      await expect(rows.nth(1)).toHaveClass(/danger/);
+      await rows.nth(998).locator('td').nth(1).locator('a').click();
+      await expect(rows.nth(998)).toHaveClass(/danger/);
+      await expect(rows.nth(1)).not.toHaveClass(/danger/);
+      await rows.nth(998).locator('td').nth(2).locator('span').click();
+      await expect(rows).toHaveCount(999);
+    } finally {
+      await originalRows.dispose();
+    }
+  });
   for (const mode of ['csr', 'resume']) {
     test(`preserves keyed row behavior in ${mode}`, async ({ page }) => {
       await page.goto(`/perf.prod/${mode === 'csr' ? '?csr=1' : ''}`);

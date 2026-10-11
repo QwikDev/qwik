@@ -105,6 +105,57 @@ describe('ForBlock reorder', () => {
     expect(insertCount()).toBe(2);
   });
 
+  it('swaps keyed endpoints without allocating lookup or LIS buffers', () => {
+    const oldIds = Array.from({ length: 1_000 }, (_, index) => index + 1);
+    const nextIds = oldIds.slice();
+    [nextIds[1], nextIds[998]] = [nextIds[998], nextIds[1]];
+    const { block } = createKeyedBlock(oldIds, nextIds);
+    const subscription = new ForBlockSubscription(block);
+    const map = vi.spyOn(globalThis, 'Map');
+    const buffers = vi.spyOn(globalThis, 'Int32Array');
+    try {
+      block.reconcile(
+        subscription,
+        (item) => item.id,
+        () => []
+      );
+
+      expect(map).not.toHaveBeenCalled();
+      expect(buffers).not.toHaveBeenCalled();
+    } finally {
+      map.mockRestore();
+      buffers.mockRestore();
+    }
+  });
+
+  it.each([
+    { nextIds: [2, 1, 3, 4, 5] },
+    { nextIds: [5, 2, 3, 4, 1] },
+    { nextIds: [1, 4, 3, 2, 5] },
+    { nextIds: [1, 5, 3, 4, 2] },
+    { nextIds: [1, 4, 2, 3, 5] },
+    { nextIds: [1, 4, 6, 2, 5] },
+  ])('preserves keyed row owners when reordering to $nextIds', ({ nextIds }) => {
+    const { block, parent } = createKeyedBlock([1, 2, 3, 4, 5], nextIds);
+    const oldRows = block.rows.slice();
+    const oldOwners = block.owners.slice();
+
+    block.reconcile(
+      new ForBlockSubscription(block),
+      (item) => item.id,
+      (_ctx, item) => [createElementNode(String(item.id))]
+    );
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', ...nextIds.map(String), 'end']);
+    for (let i = 0; i < nextIds.length; i++) {
+      if (nextIds[i] <= 5) {
+        expect(block.rows[i]).toBe(oldRows[nextIds[i] - 1]);
+        expect(block.owners[i]).toBe(oldOwners[nextIds[i] - 1]);
+        expect(block.owners[i]!.flags & OwnerFlags.Disposed).toBe(0);
+      }
+    }
+  });
+
   it('moves the last keyed row to the front once', () => {
     const { block, insertCount, parent } = createMeasuredBlock([5, 1, 2, 3, 4]);
 
@@ -117,6 +168,58 @@ describe('ForBlock reorder', () => {
     expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'e', 'a', 'b', 'c', 'd', 'end']);
     expect(insertCount()).toBe(1);
   });
+
+  it.each([IndexMode.Effects, IndexMode.Escapes])(
+    'retains multi-node rows and index signals across swaps in mode %s',
+    (indexMode) => {
+      const start = createTestDomNode('start');
+      const end = createTestDomNode('end');
+      const parent = createTestParentNode([start, end]);
+      const items = useSignal([1, 2, 3, 4, 5]);
+      const renderRow = vi.fn((_ctx: ContainerContext, id: number) => {
+        createTextNodeEffect(createText(), useSignal(String(id)));
+        return [createTestDomNode(`a${id}`), createTestDomNode(`b${id}`)];
+      });
+      const block = new ForBlock(
+        new ForRange(start.ownerDocument!, start as unknown as Comment, end as unknown as Comment),
+        items,
+        (id) => id,
+        renderRow,
+        indexMode,
+        createOwner(null),
+        null,
+        { document: start.ownerDocument! } as ContainerContext
+      );
+      const subscription = new ForBlockSubscription(block);
+      block.reconcile(subscription, (id) => id, renderRow);
+      const rows = block.rows.slice();
+      const owners = block.owners.slice();
+      const indices = block.indexSignals!.slice();
+
+      for (const nextIds of [
+        [5, 2, 3, 4, 1],
+        [5, 3, 2, 4, 1],
+        [1, 3, 2, 4, 5],
+      ]) {
+        items.value = nextIds;
+        block.reconcile(subscription, (id) => id, renderRow);
+
+        expect(renderRow).toHaveBeenCalledTimes(5);
+        expect(block.rows).toEqual(nextIds.map((id) => rows[id - 1]));
+        expect(block.owners).toEqual(nextIds.map((id) => owners[id - 1]));
+        expect(block.indexSignals).toEqual(nextIds.map((id) => indices[id - 1]));
+        expect(block.indexSignals!.map((index) => index!.value)).toEqual([0, 1, 2, 3, 4]);
+        expect(parent.nodes.map(getNodeLabel)).toEqual([
+          'start',
+          ...nextIds.flatMap((id) => ['r', `a${id}`, `b${id}`, '/r']),
+          'end',
+        ]);
+      }
+      block.dispose();
+      expect(owners.every((owner) => owner!.flags & OwnerFlags.Disposed)).toBe(true);
+      expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'end']);
+    }
+  );
 
   it('clears the range when the next rows are empty', () => {
     const { block, parent } = createMeasuredBlock([]);

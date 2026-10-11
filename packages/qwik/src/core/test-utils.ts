@@ -154,7 +154,7 @@ function createTestDocumentFragment(): TestDocumentFragment {
       }
 
       const child = node as TestDomNode;
-      const beforeIndex =
+      let beforeIndex =
         before === null ? fragment.nodes.length : fragment.nodes.indexOf(before as TestDomNode);
       if (beforeIndex === -1) {
         throw new Error('Missing reference child');
@@ -162,6 +162,9 @@ function createTestDocumentFragment(): TestDocumentFragment {
 
       const currentParent = child.parent;
       if (currentParent !== null) {
+        if (currentParent === fragment && fragment.nodes.indexOf(child) < beforeIndex) {
+          beforeIndex--;
+        }
         currentParent.removeChild(child);
       }
 
@@ -297,7 +300,7 @@ export function createTestParentNode(nodes: TestDomNode[]): TestParentNode {
       }
 
       const child = node as TestDomNode;
-      const beforeIndex =
+      let beforeIndex =
         before === null ? parent.nodes.length : parent.nodes.indexOf(before as TestDomNode);
       if (beforeIndex === -1) {
         throw new Error('Missing reference child');
@@ -305,6 +308,9 @@ export function createTestParentNode(nodes: TestDomNode[]): TestParentNode {
 
       const currentParent = child.parent;
       if (currentParent !== null) {
+        if (currentParent === parent && parent.nodes.indexOf(child) < beforeIndex) {
+          beforeIndex--;
+        }
         currentParent.removeChild(child);
       }
 

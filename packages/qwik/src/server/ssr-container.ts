@@ -1320,7 +1320,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
         value = String(globalId);
       } else if (typeof rawValue !== 'string') {
-        rootId = this.serializationCtx.$hasRootId$(rawValue);
+        rootId = this.addRoot(rawValue);
         if (rootId === undefined) {
           if (key === OnRenderProp) {
             this.write(VNodeDataChar.RENDER_FN_CHAR);
@@ -2000,9 +2000,11 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
         rootContainer.serializationCtx.$serializedForwardRefCount$ +=
           segmentSerializationCtx.$serializedForwardRefCount$;
       }
-      this.emitPendingVNodeDataPatches();
       if (rootReadyAtSegment) {
         this.$noMoreRoots$ = true;
+      }
+      this.emitPendingVNodeDataPatches();
+      if (rootReadyAtSegment) {
         this.emitVNodeData(segmentId);
         const segmentCtx = this.serializationCtx;
         this.serializationCtx = rootContainer.serializationCtx;

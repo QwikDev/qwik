@@ -2305,6 +2305,8 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     ) as unknown[];
     let rootCount = rootState.length / 2;
     const patchScripts = document.querySelectorAll('script[type="qwik/state"][q\\:patch]');
+    const segmentIds = Array.from(patchScripts, (script) => script.getAttribute('q:r'));
+    expect(new Set(segmentIds).size).toBe(patchScripts.length);
     for (let i = 0; i < patchScripts.length; i++) {
       const [rootStart, roots, , subscriptionPatchRootId] = JSON.parse(
         patchScripts[i].textContent!

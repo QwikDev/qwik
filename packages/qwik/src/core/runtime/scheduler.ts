@@ -104,7 +104,10 @@ export class Scheduler {
     if (root === null) {
       return;
     }
-    if (root.items instanceof Owner || Array.isArray(root.items)) {
+    if (
+      root.items instanceof Owner ||
+      (Array.isArray(root.items) && root.items.some((item) => item instanceof Owner))
+    ) {
       this.removeQueuedDescendants(root);
     }
     root.flags |= OwnerFlags.Queued;

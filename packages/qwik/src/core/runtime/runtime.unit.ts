@@ -50,6 +50,31 @@ import type { ContainerContext } from './container-context';
 import { LazySerialized } from '../reactive/lazy-serialized';
 
 describe('runtime scheduler and owner lifecycle', () => {
+  it('queues sibling leaf owners with linear parent traversal', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const parent = createOwner(null);
+    const selected = useSignal(0);
+    const rowCount = 64;
+    const texts: Text[] = [];
+    const readParent = vi.fn(() => parent);
+
+    for (let index = 0; index < rowCount; index++) {
+      const owner = createOwner(parent);
+      const text = createText();
+      runWithOwner(owner, () => {
+        createTextNodeEffect(text, selected, scheduler).run();
+        createTextNodeEffect(createText(), 'label', scheduler);
+      });
+      Object.defineProperty(owner, 'parent', { get: readParent });
+      texts.push(text);
+    }
+
+    selected.value = 1;
+    expect(readParent.mock.calls.length).toBeLessThanOrEqual(rowCount * 2);
+    await scheduler.flushInteraction();
+    expect(texts.map((text) => text.data)).toEqual(Array(rowCount).fill('1'));
+  });
+
   it('runs scheduled tasks under their creation invoke context', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const container = createCaptureContainer({}, scheduler);

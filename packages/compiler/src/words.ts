@@ -102,6 +102,7 @@ export const enum QwikWord {
   MergeProps = 'mergeProps',
   Props = '_props',
   NoopQrl = '_noopQrl',
+  NoopQrlDev = '_noopQrlDEV',
   RegSymbol = '_regSymbol',
   Captures = '_capturesObj',
   Await = '_await',

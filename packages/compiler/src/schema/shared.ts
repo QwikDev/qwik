@@ -165,6 +165,8 @@ export interface ModuleSource {
   code: string;
   originalPath: string;
   normalizationMap: JsonSourceMap | null;
+  /** Dev-server URL of the authored module; dev server QRL stand-ins name it as their parent. */
+  devPath?: string;
 }
 
 export const enum DiagnosticCategory {

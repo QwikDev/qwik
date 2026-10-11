@@ -14,7 +14,7 @@ export default component$(() => {
 
 import {
   useSignal,
-  _noopQrl,
+  _noopQrlDEV,
   setEvent,
   _first,
   createTextNodeEffect,
@@ -31,7 +31,13 @@ import { server$ } from '@qwik.dev/router';
 export const default_component_tv8h7w8tm3v2 = (props, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(0);
-  const read = serverQrl(_noopQrl('index_read_segment_0_gkv5256dxvxo', [count]));
+  const read = serverQrl(
+    _noopQrlDEV(
+      'index_read_segment_0_gkv5256dxvxo',
+      { file: '/src/routes/index.tsx', lo: 177, hi: 203 },
+      [count]
+    )
+  );
   return maybeThen(invokeCtx0.pendingSetup, () =>
     invoke(invokeCtx0, () => {
       const el0 = default_tmpl0(ctx.document);

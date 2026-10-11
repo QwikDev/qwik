@@ -27,6 +27,7 @@ import { expressionJs, extractPayloadJs, inlineValueJs, valueIrJs, type EmitQrl 
 import { namedSpecifier, requestBindingImport } from './emit-import';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { captureNames } from './captures';
+import { noopQrlJs } from './noop-qrl';
 import { allocateGeneratedName } from '../names';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 
@@ -303,11 +304,9 @@ function strippedQrlJs(module: LinkedModule, use: QrlUse, imports: Set<string>):
   if (qrl === undefined || qrl.delivery.d !== DeliveryKind.Stripped) {
     return null;
   }
-  imports.add(QwikWord.NoopQrl);
-  const captures = captureNames(module, qrl);
-  return `${QwikWord.NoopQrl}(${JSON.stringify(qrl.name)}${
-    captures.length === 0 ? '' : `, [${captures.join(', ')}]`
-  })`;
+  const standIn = noopQrlJs(module, qrl, captureNames(module, qrl));
+  imports.add(standIn.word);
+  return standIn.code;
 }
 
 function markerTwinJs(

@@ -28,6 +28,7 @@ import { QwikAttr, QwikDirective, QwikGenWord, QwikWord, SegmentContext } from '
 import { escapeAttr, NEWLINE_EATING_ELEMENTS, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
+import { noopQrlJs } from './noop-qrl';
 import {
   captureNames,
   boundReference,
@@ -579,16 +580,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (emission.uses.length === 0) {
       return emission;
     }
-    // Registration requests `_noopQrl` ahead of the body's own imports.
-    emission.imports = new Set([QwikWord.NoopQrl, ...emission.imports]);
     for (const usage of emission.uses) {
       const nested = usage.qrl;
       if (this.hoistSyncQrl(nested, emission)) {
         continue;
       }
-      emission.hoists.push(
-        `const q_${nested.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(nested.name)});`
-      );
+      const standIn = noopQrlJs(this.module, nested);
+      // Registration requests the stand-in helper ahead of the body's own imports.
+      emission.imports = new Set([standIn.word, ...emission.imports]);
+      emission.hoists.push(`const q_${nested.name} = /*#__PURE__*/ ${standIn.code};`);
       // Only invoked uses need the function itself; references stay name-only.
       if (usage.invoked && nested.delivery.d !== DeliveryKind.Stripped) {
         emission.chunkImports.push(
@@ -1430,6 +1430,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** A `sync$` QRL is its inline function; nothing to load. */
+  private hoistNoopQrl(qrl: LinkedQrl) {
+    const standIn = noopQrlJs(this.module, qrl);
+    this.imports.add(standIn.word);
+    this.hoists.push(`const q_${qrl.name} = /*#__PURE__*/ ${standIn.code};`);
+  }
+
   private hoistSyncQrl(qrl: LinkedQrl, target: Pick<FunctionEmission, 'imports' | 'hoists'>) {
     if (qrl.boundary.kind !== BoundaryKind.Sync) {
       return false;
@@ -1484,16 +1490,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           ? `/*#__PURE__*/ ${QwikWord.RegSymbol}(${functionText(emission)}, ${JSON.stringify(getSegmentSymbolHash(qrl.name))})`
           : functionText(emission);
         this.hoists.push(`const ${qrl.name} = ${mirror};`);
-        this.imports.add(QwikWord.NoopQrl);
-        this.hoists.push(
-          `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(qrl.name)});`
-        );
+        this.hoistNoopQrl(qrl);
         this.hoists.push(`q_${qrl.name}.s(${qrl.name});`);
       } else {
-        this.imports.add(QwikWord.NoopQrl);
-        this.hoists.push(
-          `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(qrl.name)});`
-        );
+        this.hoistNoopQrl(qrl);
       }
     }
     this.usedQrls.clear();

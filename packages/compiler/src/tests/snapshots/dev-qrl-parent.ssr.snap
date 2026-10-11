@@ -22,16 +22,18 @@ import {
   maybeThen,
   getActiveInvokeContextOrNull,
   invoke,
-  _noopQrl,
+  _noopQrlDEV,
   _markComponent,
 } from '@qwik.dev/core';
 import { serverQrl } from '@qwik.dev/router';
 import { server$ } from '@qwik.dev/router';
-const q_index_read_segment_0_gkv5256dxvxo = /*#__PURE__*/ _noopQrl(
-  'index_read_segment_0_gkv5256dxvxo'
+const q_index_read_segment_0_gkv5256dxvxo = /*#__PURE__*/ _noopQrlDEV(
+  'index_read_segment_0_gkv5256dxvxo',
+  { file: '/src/routes/index.tsx', lo: 177, hi: 203 }
 );
-const q_index_q_e_click_segment_1_1h3g2urbi46jt = /*#__PURE__*/ _noopQrl(
-  'index_q_e_click_segment_1_1h3g2urbi46jt'
+const q_index_q_e_click_segment_1_1h3g2urbi46jt = /*#__PURE__*/ _noopQrlDEV(
+  'index_q_e_click_segment_1_1h3g2urbi46jt',
+  { file: '/src/routes/index.tsx', lo: 221, hi: 251 }
 );
 export const default_component_tv8h7w8tm3v2 = _markComponent(
   (props, ctx) => {

@@ -53,6 +53,9 @@ export async function analyseModule(
   options: AnalyseOptions
 ): Promise<ModulePlan> {
   const plan = emptyPlan(input.path, input.code);
+  if (input.devPath !== undefined) {
+    plan.source.devPath = input.devPath;
+  }
   const normalized = await normalizeSource(input.path, input.code, options);
   plan.source.normalizationMap = normalized.map as ModulePlan['source']['normalizationMap'];
   const finish = () => finishPlan(plan, normalized.code, input.code);

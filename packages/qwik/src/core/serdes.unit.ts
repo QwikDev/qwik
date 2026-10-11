@@ -28,10 +28,10 @@ import { IndexMode, RowOutputShape, renderSsrForBlock } from './dom/for/for';
 import { ForBlockSubscription } from './dom/effect/effect';
 import {
   createSsrDomBatchEffect,
-  createSsrAttrEffect,
-  createSsrAttrExpressionEffect,
-  createSsrTextExpressionEffect,
-  createSsrTextNodeEffect,
+  SsrAttrEffect,
+  SsrAttrExpressionEffect,
+  SsrTextExpressionEffect,
+  SsrTextNodeEffect,
   EffectTargetKind,
   renderSsrAttr,
   renderSsrEvent,
@@ -689,7 +689,9 @@ describe('serdes emit-only', () => {
 
   it.each([null, 0, 2])('serializes an SSR text node with marker index %s', async (markerIndex) => {
     const count = useSignal(0);
-    const effect = createOwned(() => createSsrTextNodeEffect(7, markerIndex));
+    const effect = createOwned(() =>
+      registerSubscriberToOwner(new SsrTextNodeEffect(7, markerIndex))
+    );
 
     runWithCollector(effect, () => count.value);
 
@@ -724,7 +726,9 @@ describe('serdes emit-only', () => {
       null,
       null
     );
-    const effect = createOwned(() => createSsrTextExpressionEffect(7, null, [state], qrl));
+    const effect = createOwned(() =>
+      registerSubscriberToOwner(new SsrTextExpressionEffect(7, null, [state], qrl))
+    );
 
     runWithCollector(effect, () => state.deep.count);
 
@@ -750,7 +754,9 @@ describe('serdes emit-only', () => {
       null,
       null
     );
-    const effect = createOwned(() => createSsrTextExpressionEffect(7, null, [state], qrl));
+    const effect = createOwned(() =>
+      registerSubscriberToOwner(new SsrTextExpressionEffect(7, null, [state], qrl))
+    );
     runWithCollector(effect, () => state.nested.count);
 
     const serialized = await serialize(state);
@@ -799,7 +805,7 @@ describe('serdes emit-only', () => {
       return 6;
     });
     const signal = createOwned(() => useAsyncQrl(qrl, { initial: 5 }));
-    const effect = createOwned(() => createSsrTextNodeEffect(7, null));
+    const effect = createOwned(() => registerSubscriberToOwner(new SsrTextNodeEffect(7, null)));
 
     runWithCollector(effect, () => signal.value);
     await signal.promise();
@@ -988,7 +994,9 @@ describe('serdes emit-only', () => {
       '0',
       container
     );
-    const effect = createOwned(() => createSsrTextExpressionEffect(3, 2, [count], qrl));
+    const effect = createOwned(() =>
+      registerSubscriberToOwner(new SsrTextExpressionEffect(3, 2, [count], qrl))
+    );
 
     await qrl.resolve(container);
     runWithCollector(effect, () => qrl.resolved!(count));
@@ -1013,7 +1021,11 @@ describe('serdes emit-only', () => {
     const classSource = useSignal('active');
     const styleSource = useSignal('color:red');
     const [classEffect, styleEffect] = createOwned(
-      () => [createSsrAttrEffect(2, 'class'), createSsrAttrEffect(2, 'style')] as const
+      () =>
+        [
+          registerSubscriberToOwner(new SsrAttrEffect(2, 'class')),
+          registerSubscriberToOwner(new SsrAttrEffect(2, 'style')),
+        ] as const
     );
 
     runWithCollector(classEffect, () => classSource.value);
@@ -1043,7 +1055,9 @@ describe('serdes emit-only', () => {
       '0',
       container
     );
-    const effect = createOwned(() => createSsrAttrExpressionEffect(2, 'style', [count], qrl));
+    const effect = createOwned(() =>
+      registerSubscriberToOwner(new SsrAttrExpressionEffect(2, 'style', [count], qrl))
+    );
 
     await qrl.resolve(container);
     runWithCollector(effect, () => qrl.resolved!(count));
@@ -1518,7 +1532,11 @@ describe('serdes emit-only', () => {
     );
     await qrl.resolve(container);
     const [doubled, effect] = createOwned(
-      () => [useComputedQrl(qrl, undefined, container), createSsrTextNodeEffect(4, null)] as const
+      () =>
+        [
+          useComputedQrl(qrl, undefined, container),
+          registerSubscriberToOwner(new SsrTextNodeEffect(4, null)),
+        ] as const
     );
 
     runWithCollector(effect, () => doubled.value);

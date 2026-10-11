@@ -1,0 +1,80 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
+export default component$(() => {
+  const count = useSignal(0);
+  const read = server$(() => count.value);
+  return <button onClick$={() => count.value++}>{count.value}</button>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/routes/index.tsx ==
+
+import {
+  useSignal,
+  _noopQrl,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { serverQrl } from '@qwik.dev/router';
+import { index_q_e_click_segment_1_1h3g2urbi46jt } from './index.tsx_index_q_e_click_segment_1_1h3g2urbi46jt';
+
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+import { server$ } from '@qwik.dev/router';
+export const default_component_tv8h7w8tm3v2 = (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(0);
+  const read = serverQrl(_noopQrl('index_read_segment_0_gkv5256dxvxo', [count]));
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', index_q_e_click_segment_1_1h3g2urbi46jt, [count]);
+      const text0 = _first(el0);
+      const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
+  );
+};
+export default default_component_tv8h7w8tm3v2;
+============================= src/routes/index.tsx_index_q_e_click_segment_1_1h3g2urbi46jt.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const index_q_e_click_segment_1_1h3g2urbi46jt = () => {
+  const [count] = _capturesObj._;
+  return count.value++;
+};
+/*
+{
+  "origin": "index.tsx",
+  "name": "index_q_e_click_segment_1_1h3g2urbi46jt",
+  "entry": null,
+  "displayName": "index_q_e_click_segment_1",
+  "hash": "1h3g2urbi46jt",
+  "canonicalFilename": "index.tsx_index_q_e_click_segment_1_1h3g2urbi46jt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    224,
+    254
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

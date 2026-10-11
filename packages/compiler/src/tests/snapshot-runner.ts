@@ -10,6 +10,8 @@ import { snapshotResult } from './snapshot-format';
 export interface TestInput {
   code: string;
   path?: string;
+  /** The dev-server URL of the module, as the Vite plugin passes it in `vite dev`. */
+  devPath?: string;
 }
 
 /** Per-environment knobs a golden may pin; each maps straight onto `transformModules`. */
@@ -17,6 +19,7 @@ export interface TestOptions {
   stripCtxName?: string[];
   stripExports?: string[];
   explicitExtensions?: boolean;
+  mode?: 'dev' | 'lib';
 }
 
 export async function testInput(
@@ -44,6 +47,7 @@ export async function testInputs(
     input: inputs.map((input) => ({
       path: input.path ?? 'src/component.tsx',
       code: input.code,
+      ...(input.devPath === undefined ? {} : { devPath: input.devPath }),
     })),
   });
   const source =

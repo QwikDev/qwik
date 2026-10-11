@@ -1265,11 +1265,10 @@ function serializeProjection(projection: Projection): unknown[] {
 
 function serializeDomSubscription(subscription: SsrDomEffectBase | SsrDomSubscription): unknown[] {
   if (subscription instanceof SsrDomSubscription) {
-    const effect = subscription.effect;
     return [
-      effect.effectKind,
+      subscription.effectKind,
       serializeDeps(subscription.deps),
-      effect.effects.map((scalarEffect) => serializeSsrScalarDomEffect(scalarEffect)),
+      subscription.effects.map((scalarEffect) => serializeSsrScalarDomEffect(scalarEffect)),
     ];
   }
 

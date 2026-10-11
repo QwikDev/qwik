@@ -265,8 +265,9 @@ describe('SSR DOM effect helpers', () => {
     expect(count.subs).toBe(batch.subscriber);
     expect(active.subs).toBe(batch.subscriber);
     expect(batch.subscriber.deps).toEqual([count, active]);
-    expect(batch.subscriber.effect.effectKind).toBe(EffectKind.DomBatch);
-    expect((batch.subscriber.effect as any).effects).toHaveLength(2);
+    expect(batch.subscriber.effectKind).toBe(EffectKind.DomBatch);
+    expect(batch.subscriber.effects).toHaveLength(2);
+    expect(batch.subscriber).not.toHaveProperty('effect');
   });
 
   it('awaits Promise attributes in an SSR DOM batch', async () => {

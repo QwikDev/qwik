@@ -23,13 +23,12 @@ export const enum Brand {
   VisibleTaskSubscription = 1 << 12,
   SsrDomEffect = 1 << 13,
   SsrDomSubscription = 1 << 14,
-  SsrDomBatchEffect = 1 << 15,
-  SsrBranchSubscription = 1 << 16,
-  SsrForBlockSubscription = 1 << 17,
-  SsrContentSubscription = 1 << 18,
-  SsrSuspenseContentSubscription = 1 << 19,
-  SerializationBackRef = 1 << 20,
-  SsrProjectionSubscription = 1 << 21,
+  SsrBranchSubscription = 1 << 15,
+  SsrForBlockSubscription = 1 << 16,
+  SsrContentSubscription = 1 << 17,
+  SsrSuspenseContentSubscription = 1 << 18,
+  SerializationBackRef = 1 << 19,
+  SsrProjectionSubscription = 1 << 20,
 }
 
 export const hasBrand = (value: unknown, brand: Brand): boolean =>

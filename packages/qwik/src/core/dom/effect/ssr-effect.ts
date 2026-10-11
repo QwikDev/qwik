@@ -47,7 +47,7 @@ export type SsrScalarDomEffect =
   | SsrAttrExpressionEffect<any[]>
   | SsrEventEffect<any[]>
   | SsrPropsEffect<any[]>;
-export type SsrDomEffect = SsrScalarDomEffect | SsrDomBatchEffect;
+export type SsrDomEffect = SsrScalarDomEffect | SsrDomSubscription;
 export type SsrAttributePatch = readonly [targetId: number, name: string, value: string | null];
 
 export const enum EffectTargetKind {
@@ -226,19 +226,15 @@ export class SsrEventEffect<TArgs extends unknown[] = unknown[]> extends SsrDomE
   }
 }
 
-export class SsrDomBatchEffect {
-  readonly effectKind = EffectKind.DomBatch;
-  readonly effects: SsrScalarDomEffect[] = [];
-}
-
 export class SsrDomSubscription implements SsrDomSubscriber {
   readonly kind = SubscriberKind.Dom;
+  readonly effectKind = EffectKind.DomBatch;
+  readonly effects: SsrScalarDomEffect[] = [];
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
   deps: Source[] | null = null;
 
   constructor(
-    readonly effect: SsrDomBatchEffect,
     readonly scheduler: TaskScheduler = getActiveInvokeContextOrNull()?.container?.scheduler ??
       defaultScheduler
   ) {}
@@ -310,7 +306,7 @@ export function createSsrPropsEffect<TArgs extends unknown[]>(
 }
 
 export function createSsrDomBatchEffect(): SsrDomSubscriber {
-  return registerSubscriberToOwner(new SsrDomSubscription(new SsrDomBatchEffect()));
+  return registerSubscriberToOwner(new SsrDomSubscription());
 }
 
 export function renderSsrTextNode(
@@ -480,11 +476,10 @@ function createSsrDomEffect(
 }
 
 function addSsrBatchEffect(batch: SsrDomSubscriber, effect: SsrScalarDomEffect): void {
-  const batchEffect = (batch as SsrDomSubscription).effect;
-  if (isDev && !(batchEffect instanceof SsrDomBatchEffect)) {
+  if (isDev && !(batch instanceof SsrDomSubscription)) {
     throw new Error('Expected SSR DOM batch effect.');
   }
-  (batchEffect as SsrDomBatchEffect).effects.push(effect);
+  (batch as SsrDomSubscription).effects.push(effect);
 }
 
 function readTrackedSourceValue<T>(source: Source<T>): T {
@@ -518,5 +513,4 @@ function isSsrAttributeEffect(
 
 isServer && brandClass(SsrDomEffectBase, Brand.SsrDomEffect);
 isServer && brandClass(SsrDomSubscription, Brand.SsrDomSubscription);
-isServer && brandClass(SsrDomBatchEffect, Brand.SsrDomBatchEffect);
 isServer && brandClass(SSRForBlockSubscription, Brand.SsrForBlockSubscription);

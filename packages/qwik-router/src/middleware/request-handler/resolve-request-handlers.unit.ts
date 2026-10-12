@@ -3,6 +3,7 @@ import {
   getPathname,
   fixStaticTrailingSlash,
   fixTrailingSlash,
+  isLastModulePageRoute,
   resolveRequestHandlers,
   streamServerFunctionResult,
 } from './resolve-request-handlers-core';
@@ -108,6 +109,26 @@ describe('resolve-request-handler', () => {
         'content-type': 'application/x-www-form-urlencoded, bypass',
       });
       expect(isContentType(headers, 'application/x-www-form-urlencoded')).toBe(true);
+    });
+  });
+
+  describe('isLastModulePageRoute', () => {
+    const loader = () => {};
+    loader.__brand = 'server_loader';
+
+    it('treats a route with a default component as a page', () => {
+      expect(isLastModulePageRoute([{}, { default: () => null }] as any)).toBe(true);
+    });
+
+    it('treats a route that only exports a loader as a page, so the loader can redirect', () => {
+      expect(isLastModulePageRoute([{}, { useRedirect: loader }] as any)).toBe(true);
+    });
+
+    it('does not treat an endpoint as a page', () => {
+      expect(isLastModulePageRoute([{}, { onGet: () => {} }] as any)).toBe(false);
+      expect(isLastModulePageRoute([{ useLayoutData: loader }, { onGet: () => {} }] as any)).toBe(
+        false
+      );
     });
   });
 

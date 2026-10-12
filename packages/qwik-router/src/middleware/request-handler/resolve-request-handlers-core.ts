@@ -659,7 +659,14 @@ function createResolveRequestHandlers() {
 
   function isLastModulePageRoute(routeModules: RouteModule[]) {
     const lastRouteModule = routeModules[routeModules.length - 1];
-    return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
+    return (
+      lastRouteModule &&
+      (typeof (lastRouteModule as PageModule).default === 'function' ||
+        // A route that only redirects from a loader has no component, but its loaders must still run
+        Object.values(lastRouteModule).some(
+          (value) => typeof value === 'function' && value.__brand === 'server_loader'
+        ))
+    );
   }
 
   function getPathname(url: URL) {

@@ -36,7 +36,6 @@ if (isServer) {
     show: __EXPERIMENTAL__.show,
     pendingBoundary: __EXPERIMENTAL__.pendingBoundary,
     catchBoundary: __EXPERIMENTAL__.catchBoundary,
-    valibot: __EXPERIMENTAL__.valibot,
     noSPA: __EXPERIMENTAL__.noSPA,
     insights: __EXPERIMENTAL__.insights,
     blockSSR: __EXPERIMENTAL__.blockSSR,

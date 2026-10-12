@@ -56,6 +56,14 @@ export type {
   StaticGenerateHandler,
   ValidatorErrorKeyDotNotation,
   ValidatorErrorType,
+  GetValidatorErrorType,
+  StandardSchemaConstructor,
+  StandardSchemaConstructorQRL,
+  StandardSchemaDataValidator,
+  StandardSchemaV1,
+  StandardTypedV1,
+  StandardSchemaValidatorErrorKeyDotNotation,
+  StandardSchemaValidatorErrorType,
   ZodConstructor,
 } from './types';
 
@@ -80,6 +88,8 @@ export {
   globalActionQrl,
   routeAction$,
   routeActionQrl,
+  schema$,
+  schemaQrl,
   server$,
   serverQrl,
   valibot$,
@@ -108,8 +118,6 @@ export {
   usePreventNavigate$,
   usePreventNavigateQrl,
 } from './use-functions';
-
-export { z } from 'zod';
 
 export { Form } from './form-component';
 export type { FormProps } from './form-component';

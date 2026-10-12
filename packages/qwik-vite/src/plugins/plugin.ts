@@ -54,6 +54,8 @@ const SERVER_STRIP_CTX_NAME = [
   'action$',
   'loader$',
   'zod$',
+  'schema$',
+  'valibot$',
   'validator$',
   'globalAction$',
 ];
@@ -88,8 +90,6 @@ export enum ExperimentalFeatures {
   pendingBoundary = 'pendingBoundary',
   /** Enable the Catch primitive */
   catchBoundary = 'catchBoundary',
-  /** Enable the Valibot form validation */
-  valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */

@@ -134,8 +134,8 @@ We will use `routeAction$` and `Form` to create a progressive form to add a new 
 
 ```tsx {7-9} /PrismaClient/ title="src/routes/create/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, Form } from '@qwik.dev/router';
-import { zod$, z } from '@qwik.dev/utils';
+import { routeAction$, Form, zod$ } from '@qwik.dev/router';
+import { z } from 'zod';
 import { PrismaClient } from '@prisma/client'
 
 export const useCreateUser = routeAction$(async (data) => {

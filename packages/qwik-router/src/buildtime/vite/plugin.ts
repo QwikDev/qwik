@@ -45,6 +45,7 @@ import type {
   QwikRouterVitePluginOptions,
 } from './types';
 import { validatePlugin } from './validate-plugin';
+import { moveRouterZodImport } from './zod-import-shim';
 import {
   getRouterIndexTags,
   makeRouterDevMiddleware,
@@ -621,6 +622,10 @@ function qwikRouterPlugin(
       const isVirtualId = id.startsWith('\0');
       if (isVirtualId) {
         return;
+      }
+      const shimmedCode = id.includes('/node_modules/') ? moveRouterZodImport(code) : null;
+      if (shimmedCode !== null) {
+        return { code: shimmedCode, map: null };
       }
       const ext = extname(id).toLowerCase();
       const isMD = ext === '.md' || ext === '.mdx';

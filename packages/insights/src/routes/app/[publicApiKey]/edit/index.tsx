@@ -4,10 +4,10 @@ import {
   routeAction$,
   routeLoader$,
   useLocation,
-  z,
   zod$,
   type DocumentHead,
 } from '@qwik.dev/router';
+import { z } from 'zod';
 import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-forms/qwik';
 import { eq } from 'drizzle-orm';
 import AppCard from '~/components/app-card';

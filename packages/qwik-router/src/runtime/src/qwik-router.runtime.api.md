@@ -32,11 +32,10 @@ import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handl
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import type { Signal } from '@qwik.dev/core';
-import * as v from 'valibot';
 import { ValueOrPromise } from '@qwik.dev/core';
 import { ValueOrPromise as ValueOrPromise_2 } from '@qwik.dev/core/internal';
-import { z } from 'zod';
-import * as z_2 from 'zod';
+import type * as z from 'zod';
+import { z as z_2 } from 'zod';
 
 // @public (undocumented)
 export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {
@@ -47,15 +46,15 @@ export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boo
 export type ActionConstructor = {
     <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: ActionOptions & {
         readonly validation: [VALIDATOR, ...REST];
-    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;
+    }): Action<StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;
     <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: ActionOptions & {
         readonly validation: [VALIDATOR];
-    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;
+    }): Action<StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>>>, GetValidatorInputType<VALIDATOR>, false>;
     <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: ActionOptions & {
         readonly validation: REST;
     }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
-    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;
-    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;
+    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;
+    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<GetValidatorErrorType<VALIDATOR>>>, GetValidatorInputType<VALIDATOR>, false>;
     <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
     <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: ActionOptions): Action<StrictUnion<OBJ>>;
 };
@@ -248,14 +247,16 @@ export const _getServiceWorkerScript: (serviceWorkerUrl: string | undefined) => 
 // @public
 export const getTrailingSlash: () => boolean;
 
-// Warning: (ae-forgotten-export) The symbol "ValibotDataValidator" needs to be exported by the entry point index.d.ts
+// @public (undocumented)
+export type GetValidatorErrorType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaValidatorErrorType<StandardSchemaV1.InferInput<TYPE>> : ValidatorErrorType<GetValidatorInputType<VALIDATOR>>;
+
 // Warning: (ae-forgotten-export) The symbol "ZodDataValidator" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z_2.input<TYPE> : never;
+export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaV1.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.input<TYPE> : never;
 
 // @public (undocumented)
-export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z_2.output<TYPE> : never;
+export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaV1.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.output<TYPE> : never;
 
 // @public (undocumented)
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> = GetValidatorOutputType<VALIDATOR>;
@@ -572,6 +573,12 @@ export type RouteNavigate = QRL<(path?: string | number | URL, options?: {
 // @public (undocumented)
 export const RouterOutlet: Component<unknown>;
 
+// @public (undocumented)
+export const schema$: StandardSchemaConstructor;
+
+// @public (undocumented)
+export const schemaQrl: StandardSchemaConstructorQRL;
+
 // Warning: (ae-forgotten-export) The symbol "ServerConfig" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -613,6 +620,108 @@ export const ServiceWorkerRegister: (props: {
 export const _setRouterConfig: (config: QwikRouterConfig) => void;
 
 // @public (undocumented)
+export type StandardSchemaConstructor = {
+    <T extends StandardSchemaV1>(schema: T): StandardSchemaDataValidator<T>;
+    <T extends StandardSchemaV1>(schema: (ev: RequestEvent) => T): StandardSchemaDataValidator<T>;
+};
+
+// @public (undocumented)
+export type StandardSchemaConstructorQRL = {
+    <T extends StandardSchemaV1>(schema: QRL<T>): StandardSchemaDataValidator<T>;
+    <T extends StandardSchemaV1>(schema: QRL<(ev: RequestEvent) => T>): StandardSchemaDataValidator<T>;
+};
+
+// @public (undocumented)
+export type StandardSchemaDataValidator<T extends StandardSchemaV1 = StandardSchemaV1> = {
+    readonly __brand: 'standard-schema';
+    validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<StandardSchemaValidatorErrorType<StandardSchemaV1.InferInput<T>>>>;
+};
+
+// @public
+export interface StandardSchemaV1<Input = unknown, Output = Input> {
+    readonly '~standard': StandardSchemaV1.Props<Input, Output>;
+}
+
+// @public (undocumented)
+export namespace StandardSchemaV1 {
+    export interface FailureResult {
+        readonly issues: ReadonlyArray<Issue>;
+    }
+    export type InferInput<Schema extends StandardTypedV1> = StandardTypedV1.InferInput<Schema>;
+    export type InferOutput<Schema extends StandardTypedV1> = StandardTypedV1.InferOutput<Schema>;
+    export interface Issue {
+        readonly message: string;
+        readonly path?: ReadonlyArray<PropertyKey | PathSegment> | undefined;
+    }
+    export interface Options {
+        readonly libraryOptions?: Record<string, unknown> | undefined;
+    }
+    export interface PathSegment {
+        readonly key: PropertyKey;
+    }
+    export interface Props<Input = unknown, Output = Input> extends StandardTypedV1.Props<Input, Output> {
+        readonly validate: (value: unknown, options?: Options | undefined) => Result<Output> | Promise<Result<Output>>;
+    }
+    export type Result<Output> = SuccessResult<Output> | FailureResult;
+    export interface SuccessResult<Output> {
+        readonly issues?: undefined;
+        readonly value: Output;
+    }
+    export interface Types<Input = unknown, Output = Input> extends StandardTypedV1.Types<Input, Output> {
+    }
+}
+
+// Warning: (ae-forgotten-export) The symbol "IsAny" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type StandardSchemaValidatorErrorKeyDotNotation<T, Prefix extends string = '', Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 5> = T extends unknown ? IsAny<T> extends true ? never : NonNullable<T> extends object ? {
+    [K in keyof NonNullable<T> & string]: IsAny<NonNullable<NonNullable<T>[K]>> extends true ? never : NonNullable<NonNullable<T>[K]> extends readonly (infer U)[] ? `${Prefix}${K}` | `${Prefix}${K}[]` | (IsAny<U> extends true ? never : U extends object ? Depth extends 0 ? never : StandardSchemaValidatorErrorKeyDotNotation<U, `${Prefix}${K}[].`, [
+    never,
+    0,
+    1,
+    2,
+    3,
+    4
+    ][Depth]> : never) : NonNullable<NonNullable<T>[K]> extends object ? `${Prefix}${K}` | (Depth extends 0 ? never : StandardSchemaValidatorErrorKeyDotNotation<NonNullable<NonNullable<T>[K]>, `${Prefix}${K}.`, [
+    never,
+    0,
+    1,
+    2,
+    3,
+    4
+    ][Depth]>) : `${Prefix}${K}`;
+}[keyof NonNullable<T> & string] : never : never;
+
+// @public (undocumented)
+export type StandardSchemaValidatorErrorType<T, U = string> = {
+    formErrors: U[];
+    fieldErrors: Partial<{
+        [K in StandardSchemaValidatorErrorKeyDotNotation<T>]: K extends `${infer _Prefix}[]${infer _Suffix}` ? U[] : U;
+    }>;
+    issues: ReadonlyArray<StandardSchemaV1.Issue>;
+};
+
+// @public
+export interface StandardTypedV1<Input = unknown, Output = Input> {
+    readonly '~standard': StandardTypedV1.Props<Input, Output>;
+}
+
+// @public (undocumented)
+export namespace StandardTypedV1 {
+    export type InferInput<Schema extends StandardTypedV1> = NonNullable<Schema['~standard']['types']>['input'];
+    export type InferOutput<Schema extends StandardTypedV1> = NonNullable<Schema['~standard']['types']>['output'];
+    export interface Props<Input = unknown, Output = Input> {
+        readonly types?: Types<Input, Output> | undefined;
+        readonly vendor: string;
+        readonly version: 1;
+    }
+    export interface Types<Input = unknown, Output = Input> {
+        readonly input: Input;
+        readonly output: Output;
+    }
+}
+
+// @public (undocumented)
 export interface StaticGenerate {
     // (undocumented)
     params?: PathParams[];
@@ -630,7 +739,7 @@ export type StaticGenerateHandler = (input: {
 export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 // @public (undocumented)
-export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
+export type TypedDataValidator = StandardSchemaDataValidator | ZodDataValidator;
 
 // @beta (undocumented)
 export const untypedAppUrl: (route: string, params?: Record<string, string>, paramsPrefix?: string) => string;
@@ -663,23 +772,19 @@ export const usePreventNavigateQrl: (fn: QRL<PreventNavigateCallback>) => void;
 // @public
 export const useQwikRouter: (props?: QwikRouterProps) => void;
 
-// Warning: (ae-forgotten-export) The symbol "ValibotConstructor" needs to be exported by the entry point index.d.ts
-//
-// @beta (undocumented)
-export const valibot$: ValibotConstructor;
+// @public (undocumented)
+export const valibot$: StandardSchemaConstructor;
 
 // Warning: (ae-internal-missing-underscore) The name "valibotQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export function valibotQrl(qrl: QRL<v.GenericSchema | v.GenericSchemaAsync | ((ev: RequestEvent) => v.GenericSchema | v.GenericSchemaAsync)>): ValibotDataValidator;
+export const valibotQrl: StandardSchemaConstructorQRL;
 
 // Warning: (ae-forgotten-export) The symbol "ValidatorConstructor" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export const validator$: ValidatorConstructor;
 
-// Warning: (ae-forgotten-export) The symbol "IsAny" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = IsAny<T> extends true ? never : T extends object ? {
     [K in keyof T & string]: IsAny<T[K]> extends true ? never : T[K] extends (infer U)[] ? IsAny<U> extends true ? never : U extends object ? `${Prefix}${K}[]` | ValidatorErrorKeyDotNotation<U, `${Prefix}${K}[].`> : `${Prefix}${K}[]` : T[K] extends object ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`> : `${Prefix}${K}`;
@@ -704,23 +809,21 @@ export function validatorQrl(validator: QRL<(ev: RequestEvent, data: unknown) =>
 // @public (undocumented)
 export type ValidatorReturn<T extends Record<string, any> = {}> = ValidatorReturnSuccess | ValidatorReturnFail<T>;
 
-export { z }
-
 // @public (undocumented)
 export const zod$: ZodConstructor;
 
 // @public (undocumented)
 export type ZodConstructor = {
-    <T extends z_2.ZodRawShape>(schema: T): ZodDataValidator<z_2.ZodObject<T>>;
-    <T extends z_2.ZodRawShape>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<z_2.ZodObject<T>>;
-    <T extends z_2.ZodType>(schema: T): ZodDataValidator<T>;
-    <T extends z_2.ZodType>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<T>;
+    <T extends z.ZodRawShape>(schema: T): ZodDataValidator<z.ZodObject<T>>;
+    <T extends z.ZodRawShape>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<z.ZodObject<T>>;
+    <T extends z.ZodType>(schema: T): ZodDataValidator<T>;
+    <T extends z.ZodType>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "zodQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export function zodQrl(qrl: QRL<z_2.ZodRawShape | z_2.ZodType | ((z: z, ev: RequestEvent) => z_2.ZodRawShape)>): ZodDataValidator;
+export function zodQrl(qrl: QRL<z.ZodRawShape | z.ZodType | ((z: z_2, ev: RequestEvent) => z.ZodRawShape)>): ZodDataValidator;
 
 // (No @packageDocumentation comment for this package)
 

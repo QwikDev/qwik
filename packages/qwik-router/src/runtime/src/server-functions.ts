@@ -16,8 +16,7 @@ import {
   _regInlinedQrl,
   _serialize,
 } from '@qwik.dev/core/internal';
-import * as v from 'valibot';
-import * as z from 'zod';
+import type * as z from 'zod';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
 import { RouteActionRunnerContext } from './contexts';
 import type { FormSubmitCompletedDetail } from './form-component';
@@ -40,9 +39,10 @@ import type {
   ServerConfig,
   ServerFunction,
   ServerQRL,
-  ValibotConstructor,
-  ValibotConstructorQRL,
-  ValibotDataValidator,
+  StandardSchemaConstructor,
+  StandardSchemaConstructorQRL,
+  StandardSchemaDataValidator,
+  StandardSchemaV1,
   ValidatorConstructor,
   ValidatorConstructorQRL,
   ValidatorReturn,
@@ -246,80 +246,88 @@ export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(
   validatorQrl as ValidatorConstructorQRL
 );
 
-const flattenValibotIssues = (issues: v.GenericIssue[]) => {
-  return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
-    if (issue.path) {
-      const hasArrayType = issue.path.some((path) => path.type === 'array');
-      if (hasArrayType) {
-        const keySuffix = issue.expected === 'Array' ? '[]' : '';
-        const key =
-          issue.path
-            .map((item) => (item.type === 'array' ? '*' : item.key))
-            .join('.')
-            .replace(/\.\*/g, '[]') + keySuffix;
-        acc[key] = acc[key] || [];
-        if (Array.isArray(acc[key])) {
-          (acc[key] as string[]).push(issue.message);
+// Valibot and Zod flag array-level issues; key them like nested array issues.
+const isArrayIssue = (issue: StandardSchemaV1.Issue) =>
+  String((issue as { expected?: unknown }).expected).toLowerCase() === 'array';
+
+const flattenStandardSchemaIssues = (issues: ReadonlyArray<StandardSchemaV1.Issue>) => {
+  const formErrors: string[] = [];
+  const fieldErrors: Record<string, string | string[]> = {};
+  const standardIssues: StandardSchemaV1.Issue[] = [];
+
+  for (const issue of issues) {
+    standardIssues.push(
+      issue.path ? { message: issue.message, path: issue.path } : { message: issue.message }
+    );
+    const issuePath = issue.path
+      ?.map((item) => (typeof item === 'object' ? item.key : item))
+      .reduce<string>((path, segment) => {
+        if (typeof segment === 'number') {
+          return `${path}[]`;
         }
-        return acc;
+        return path ? `${path}.${String(segment)}` : String(segment);
+      }, '');
+    const fieldPath = issuePath && isArrayIssue(issue) ? `${issuePath}[]` : issuePath;
+    if (fieldPath) {
+      if (fieldPath.includes('[]')) {
+        const messages = fieldErrors[fieldPath];
+        if (Array.isArray(messages)) {
+          messages.push(issue.message);
+        } else {
+          fieldErrors[fieldPath] = [issue.message];
+        }
       } else {
-        acc[issue.path.map((item) => item.key).join('.')] = issue.message;
+        fieldErrors[fieldPath] = issue.message;
       }
+    } else {
+      formErrors.push(issue.message);
     }
-    return acc;
-  }, {});
+  }
+
+  return { formErrors, fieldErrors, issues: standardIssues };
 };
 
-/** @internal */
-export function valibotQrl(
-  qrl: QRL<
-    | v.GenericSchema
-    | v.GenericSchemaAsync
-    | ((ev: RequestEvent) => v.GenericSchema | v.GenericSchemaAsync)
-  >
-): ValibotDataValidator {
-  if (!__EXPERIMENTAL__.valibot) {
-    throw new Error(
-      'Valibot is an experimental feature and is not enabled. Please enable the feature flag by adding `experimental: ["valibot"]` to your qwikVite plugin options.'
-    );
-  }
+/** @public */
+export const schemaQrl: StandardSchemaConstructorQRL = (
+  qrl: QRL<StandardSchemaV1 | ((ev: RequestEvent) => StandardSchemaV1)>
+): StandardSchemaDataValidator => {
   if (isServer) {
     return {
-      __brand: 'valibot',
+      __brand: 'standard-schema',
       async validate(ev, inputData) {
-        const schema: v.GenericSchema | v.GenericSchemaAsync = await qrl
-          .resolve()
-          .then((obj) => (typeof obj === 'function' ? obj(ev) : obj));
+        const schema: StandardSchemaV1 = await qrl.resolve().then((obj) => {
+          return '~standard' in obj ? obj : obj(ev);
+        });
         const data = inputData ?? (await ev.parseBody());
-        const result = await v.safeParseAsync(schema, data);
-        if (result.success) {
+        const result = await schema['~standard'].validate(data);
+        if (!result.issues) {
           return {
             success: true,
-            data: result.output,
-          };
-        } else {
-          if (isDev) {
-            console.error('ERROR: Valibot validation failed', result.issues);
-          }
-          return {
-            success: false,
-            status: 400,
-            error: {
-              formErrors: v.flatten(result.issues).root ?? [],
-              fieldErrors: flattenValibotIssues(result.issues),
-            },
+            data: result.value,
           };
         }
+        if (isDev) {
+          console.error('ERROR: Standard Schema validation failed', result.issues);
+        }
+        return {
+          success: false,
+          status: 400,
+          error: flattenStandardSchemaIssues(result.issues),
+        };
       },
     };
   }
   return undefined as never;
-}
+};
 
-/** @beta */
-export const valibot$: ValibotConstructor = /*#__PURE__*/ implicit$FirstArg(
-  valibotQrl as ValibotConstructorQRL
-);
+/** @public */
+export const schema$: StandardSchemaConstructor = /*#__PURE__*/ implicit$FirstArg(schemaQrl);
+
+/** @internal */
+export const valibotQrl: StandardSchemaConstructorQRL = schemaQrl;
+
+/** @public */
+export const valibot$: StandardSchemaConstructor = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
 
 const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
   issues = Array.isArray(issues) ? issues : [issues];
@@ -345,6 +353,13 @@ const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
   }, {});
 };
 
+const importZod = () =>
+  import('zod').catch((error) => {
+    throw new Error('zod$() requires the "zod" package. Install it with `npm install zod`.', {
+      cause: error,
+    });
+  });
+
 /** @internal */
 export function zodQrl(
   qrl: QRL<
@@ -355,15 +370,12 @@ export function zodQrl(
     return {
       __brand: 'zod',
       async validate(ev, inputData) {
+        const { z: zod } = await importZod();
         const schema: z.ZodType = await qrl.resolve().then((obj) => {
           if (typeof obj === 'function') {
-            obj = obj(z, ev);
+            obj = obj(zod, ev);
           }
-          if (obj instanceof z.ZodType) {
-            return obj;
-          } else {
-            return z.object(obj);
-          }
+          return '~standard' in obj ? (obj as z.ZodType) : zod.object(obj as z.ZodRawShape);
         });
         const data = inputData ?? (await ev.parseBody());
         const result = await withLocale(ev.locale(), () => schema.safeParseAsync(data));

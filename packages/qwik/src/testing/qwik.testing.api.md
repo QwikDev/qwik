@@ -146,7 +146,7 @@ export function vnode_fromJSX(jsx: JSXOutput): {
 // Warning: (ae-forgotten-export) The symbol "Container" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function waitForDrain(container: Container): Promise<void>;
+export function waitForDrain(container: Container, timeout?: number): Promise<void>;
 
 // @public (undocumented)
 export function walkJSX(jsx: JSXOutput, apply: {

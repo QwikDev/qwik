@@ -143,4 +143,35 @@ describe.each([
       </Component>
     );
   });
+  it('should not rewrite unchanged style and class objects when their component re-renders', async () => {
+    const TestCmp = component$(() => {
+      const count = useSignal(0);
+      // A body read re-renders the component on every click.
+      const n = count.value;
+      return (
+        <>
+          <button onClick$={() => count.value++}>{n}</button>
+          {/* Render-dependent, so not hoisted to const props. */}
+          <div
+            id="bg"
+            class={{ bg: n >= 0 }}
+            style={{ backgroundPositionY: n >= 0 ? 'center' : 'top' }}
+          />
+        </>
+      );
+    });
+
+    const { container } = await render(<TestCmp />, { debug });
+    // Resumed elements read their previous props from the DOM.
+    await trigger(container.element, 'button', 'click');
+    const bg = container.element.querySelector('#bg')!;
+    // Simulates imperative writes, e.g. from an animation loop.
+    bg.setAttribute('style', 'background-position: -10px center');
+    bg.setAttribute('class', 'bg moving');
+
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('2');
+    expect(bg.getAttribute('style')).toBe('background-position: -10px center');
+    expect(bg.getAttribute('class')).toBe('bg moving');
+  });
 });

@@ -30,6 +30,7 @@ export interface QwikRouterBunMiddleware {
 export interface QwikRouterBunOptions extends ServerRenderOptions {
     getClientConn?: (request: Request) => ClientConn;
     getOrigin?: (request: Request) => string | null;
+    requestBodyLimit?: number;
     static?: {
         root?: string;
         cacheControl?: string;

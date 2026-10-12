@@ -948,12 +948,14 @@ function queueConstAttributePromise(
 ) {
   const scopedStyleIdPrefix = diffContext.$scopedStyleIdPrefix$;
   const attributePromise = value.then((resolvedValue) =>
-    directSetAttribute(
-      element,
-      key,
-      serializeAttribute(key, resolvedValue, scopedStyleIdPrefix),
-      isSvg
-    )
+    key === dangerouslySetInnerHTML
+      ? applyConstInnerHtml(element, resolvedValue)
+      : directSetAttribute(
+          element,
+          key,
+          serializeAttribute(key, resolvedValue, scopedStyleIdPrefix),
+          isSvg
+        )
   );
   diffContext.$asyncAttributePromises$.push(attributePromise);
 }
@@ -1198,7 +1200,11 @@ function diffProps(
         vnode_setProp(vnode, oldKey, null);
         vnode_setProp(vnode, key, oldValue);
       }
-      if (!areDiffValuesEqual(newValue, oldValue)) {
+      if (
+        !areDiffValuesEqual(newValue, oldValue) &&
+        !(key === 'style' && areStyleValuesEqual(newValue, oldValue)) &&
+        !(key === 'class' && areClassValuesEqual(newValue, oldValue))
+      ) {
         patchProperty(diffContext, vnode, key, newValue, currentFile);
       }
     } else if (newValue != null) {
@@ -2155,12 +2161,18 @@ function areStyleValuesEqual(newValue: any, oldValue: any): boolean {
   if (newValue === oldValue) {
     return true;
   }
+  if (isSignal(newValue) || isSignal(oldValue)) {
+    return false;
+  }
   return stringifyStyle(newValue) === stringifyStyle(oldValue);
 }
 
 function areClassValuesEqual(newValue: any, oldValue: any): boolean {
   if (newValue === oldValue) {
     return true;
+  }
+  if (isSignal(newValue) || isSignal(oldValue)) {
+    return false;
   }
   return serializeClass(newValue) === serializeClass(oldValue);
 }

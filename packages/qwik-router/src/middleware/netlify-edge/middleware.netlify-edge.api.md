@@ -22,6 +22,7 @@ export type QwikCityNetlifyOptions = QwikRouterNetlifyOptions;
 
 // @public (undocumented)
 export interface QwikRouterNetlifyOptions extends ServerRenderOptions {
+    requestBodyLimit?: number;
 }
 
 // (No @packageDocumentation comment for this package)

@@ -62,8 +62,10 @@ test.describe('router ssg snapshot', () => {
     );
 
     expect(normalizedState).not.toMatch(
-      /\{string\} "(?:client|routeLoaderIds|committed|navigationKey)"/
+      /\{string\} "(?:client|routeLoaderIds|committed|navigationKey|statusMessage|formData)"/
     );
+
+    expect(normalizedState).not.toMatch(/\{string\} "(?:initial|OK|qr--p)"/);
 
     let expectedHtml = (await readFile(expectedHtmlPath, 'utf-8').catch(() => '')).replace(
       /\r\n/g,

@@ -1,5 +1,7 @@
+import { CatchContentSubscription } from '../../dom/content/catch';
 import { isDev } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive/constants';
+import { registerCatchBoundary } from '../../dom/content/catch-boundary';
 import type { AsyncSignalOptions } from '../../reactive/public-types';
 import { Branch, BranchRange, BranchSubscription } from '../../dom/branch/branch';
 import {
@@ -179,6 +181,7 @@ const isSafeObjectKV = (key: unknown, value: unknown): key is string | number =>
 const ownedTypes = new Set([
   TypeIds.EffectSubscription,
   TypeIds.SuspenseSubscription,
+  TypeIds.CatchSubscription,
   TypeIds.Task,
   TypeIds.ComputedSignal,
   TypeIds.AsyncSignal,
@@ -624,11 +627,12 @@ const inflateResolved = (
       }
       break;
     case TypeIds.EffectSubscription:
-    case TypeIds.SuspenseSubscription: {
+    case TypeIds.SuspenseSubscription:
+    case TypeIds.CatchSubscription: {
       const parts = data as unknown[];
       const kind = parts[0] as EffectKind;
       const restoreUnderBoundary = (restore: () => Promise<void>, boundaryId: unknown) =>
-        maybeThen(restorePendingBoundary(container, boundaryId), () => {
+        maybeThen(restoreContentBoundary(container, boundaryId), () => {
           return restore();
         });
       switch (kind) {
@@ -665,12 +669,12 @@ const inflateResolved = (
         case EffectKind.AttrExpression:
         case EffectKind.Props:
         case EffectKind.Event: {
-          return maybeThen(restorePendingBoundary(container, getPendingRootId(parts)), () =>
+          return maybeThen(restoreContentBoundary(container, getPendingRootId(parts)), () =>
             restoreDomEffect(container, target as Writeable<DomEffect>, parts)
           );
         }
         case EffectKind.DomBatch: {
-          return maybeThen(restorePendingBoundary(container, getPendingRootId(parts)), () =>
+          return maybeThen(restoreContentBoundary(container, getPendingRootId(parts)), () =>
             restoreDomBatchEffect(container, target as Writeable<ResumedDomBatchEffect>, parts)
           );
         }
@@ -681,7 +685,7 @@ const inflateResolved = (
     }
     case TypeIds.Task: {
       const parts = data as unknown[];
-      return maybeThen(restorePendingBoundary(container, getPendingRootId(parts)), () => {
+      return maybeThen(restoreContentBoundary(container, getPendingRootId(parts)), () => {
         const phase = parts[0];
         const qrl = parts[1] as TaskQrlRef;
         const deps = parts[2] as Source[];
@@ -779,7 +783,8 @@ async function restoreForBlockSubscription(
     if (!Array.isArray(rowOwners)) {
       throw new Error('Invalid serialized row owners');
     }
-    for (const rowOwner of rowOwners) {
+    for (let i = 0; i < rowOwners.length; i++) {
+      const rowOwner = rowOwners[i];
       readOwner(rowOwner);
     }
   }
@@ -838,10 +843,10 @@ async function restoreContentSubscription(
   const slotScope = (parts[qrlIndex + 2] as SlotScope | null | undefined) ?? null;
   const useOnScopes = isProjection ? null : (parts[7] as UseOnMap[] | null | undefined);
   const contextArg = isProjection || parts[8] === true;
-  const suspense = (parts[0] === EffectKind.Projection ? undefined : parts[9]) as
-    | [Parameters<typeof attachSuspense>[4] | null, number]
-    | null
-    | undefined;
+  const catchState = subscription instanceof CatchContentSubscription ? parts[9] : undefined;
+  const suspense = (
+    parts[0] === EffectKind.Projection || catchState !== undefined ? undefined : parts[9]
+  ) as [Parameters<typeof attachSuspense>[4] | null, number] | null | undefined;
   const markerRange = findContainerNode(container, (root) =>
     isProjection ? findProjectionRange(root, rangeId) : findContentRange(root, rangeId)
   );
@@ -866,6 +871,23 @@ async function restoreContentSubscription(
     contextArg,
     true
   );
+  if (subscription instanceof CatchContentSubscription) {
+    if (
+      !Array.isArray(catchState) ||
+      catchState.length !== 2 ||
+      !isQrl(catchState[0]) ||
+      (catchState[1] !== null && !(catchState[1] instanceof Error))
+    ) {
+      throw new Error('Invalid serialized Catch state.');
+    }
+    Object.assign(subscription, { fallbackQrl: catchState[0], error: catchState[1] ?? undefined });
+    if (owner === null) {
+      throw new Error('Catch requires a content owner.');
+    }
+    if (subscription.error === undefined) {
+      registerCatchBoundary(owner, subscription);
+    }
+  }
   restoreDependencies(subscription, deps);
 
   if (owner !== null) {
@@ -1014,15 +1036,19 @@ function getPendingRootId(parts: unknown[]): number | undefined {
     : undefined;
 }
 
-function restorePendingBoundary(
+function restoreContentBoundary(
   container: ContainerContext,
   boundaryId: unknown
 ): ValueOrPromise<void> {
   return maybeThen(
     typeof boundaryId === 'number' ? container.getRoot(boundaryId) : undefined,
     (boundary) => {
-      if (boundaryId !== undefined && !(boundary instanceof SuspenseContentSubscription)) {
-        throw new Error('Pending owner requires a suspense subscription.');
+      if (
+        boundaryId !== undefined &&
+        !(boundary instanceof SuspenseContentSubscription) &&
+        !(boundary instanceof CatchContentSubscription)
+      ) {
+        throw new Error('Content owner requires a boundary subscription.');
       }
     }
   );

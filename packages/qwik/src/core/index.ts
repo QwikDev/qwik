@@ -360,6 +360,7 @@ export {
   renderSsrContent,
   type PendingProps,
 } from './dom/content/content';
+export { Catch, createCatch, createSsrCatch, type CatchProps } from './dom/content/catch';
 export {
   createSsrSuspense,
   type SsrRangeHost,

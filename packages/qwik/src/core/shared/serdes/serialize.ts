@@ -1,3 +1,4 @@
+import { SSRCatchContentSubscription } from '../../dom/content/catch';
 import { isDev, isServer } from '@qwik.dev/core/build';
 import { IndexMode } from '../../dom/for/for';
 import { NEEDS_COMPUTATION } from '../../reactive/constants';
@@ -7,7 +8,7 @@ import {
   SSRContentSubscription as SsrContentSubscription,
   SSRSuspenseContentSubscription as SsrSuspenseContentSubscription,
 } from '../../dom/content/content';
-import { findSuspenseBoundary } from '../../dom/content/suspense-boundary';
+import { findContentBoundary } from '../../dom/content/catch-boundary';
 import { SSRForBlockSubscription as SsrForBlockSubscription } from '../../dom/effect/ssr-effect';
 import {
   EffectTargetKind,
@@ -611,9 +612,11 @@ export class Serializer {
       value instanceof SsrContentSubscription
     ) {
       this.output(
-        value instanceof SsrSuspenseContentSubscription
-          ? TypeIds.SuspenseSubscription
-          : TypeIds.EffectSubscription,
+        value instanceof SSRCatchContentSubscription
+          ? TypeIds.CatchSubscription
+          : value instanceof SsrSuspenseContentSubscription
+            ? TypeIds.SuspenseSubscription
+            : TypeIds.EffectSubscription,
         this.withOwner(serializeEffectSubscription(value, this.$serializationContext$), value)
       );
     } else if (value instanceof TaskSubscription || value instanceof VisibleTaskSubscription) {
@@ -1148,15 +1151,18 @@ function serializePendingSubscriber(
   owner: Owner | null,
   context: SerializationContext
 ): unknown[] {
-  const boundaryId = getSuspenseRootId(owner, context);
+  const boundaryId = getContentBoundaryRootId(owner, context);
   if (boundaryId !== undefined) {
     parts.push(null, boundaryId);
   }
   return parts;
 }
 
-function getSuspenseRootId(owner: Owner | null, context: SerializationContext): number | undefined {
-  const boundary = findSuspenseBoundary(owner);
+function getContentBoundaryRootId(
+  owner: Owner | null,
+  context: SerializationContext
+): number | undefined {
+  const boundary = findContentBoundary(owner);
   return boundary === undefined ? undefined : context.$addRoot$(boundary);
 }
 
@@ -1165,7 +1171,7 @@ function serializeBranchSubscription(
   context: SerializationContext
 ): unknown[] {
   const effect = subscription.effect;
-  const suspenseRoot = getSuspenseRootId(subscription.owner, context);
+  const suspenseRoot = getContentBoundaryRootId(subscription.owner, context);
 
   return [
     EffectKind.Branch,
@@ -1191,7 +1197,7 @@ function serializeContentSubscription(
     subscription instanceof SsrSuspenseContentSubscription
       ? [subscription.fallbackQrl, subscription.delay]
       : undefined;
-  const suspenseRoot = getSuspenseRootId(subscription.owner, context);
+  const suspenseRoot = getContentBoundaryRootId(subscription.owner, context);
   if (subscription instanceof SSRProjectionSubscription) {
     return [
       EffectKind.Projection,
@@ -1214,7 +1220,11 @@ function serializeContentSubscription(
     content.invokeContext?.slotScope ?? null,
     content.useOnRoot ? serializeUseOnScopes(content.invokeContext) : null,
     content.contextArg,
-    ...(suspense === undefined && suspenseRoot === undefined ? [] : [suspense ?? null]),
+    ...(subscription instanceof SSRCatchContentSubscription
+      ? [[subscription.fallbackQrl, subscription.error ?? null]]
+      : suspense === undefined && suspenseRoot === undefined
+        ? []
+        : [suspense ?? null]),
     ...(suspenseRoot === undefined ? [] : [suspenseRoot]),
   ];
 }
@@ -1224,7 +1234,7 @@ function serializeForBlockSubscription(
   context: SerializationContext
 ): unknown[] {
   const effect = subscription.effect;
-  const suspenseRoot = getSuspenseRootId(subscription.owner, context);
+  const suspenseRoot = getContentBoundaryRootId(subscription.owner, context);
 
   return [
     EffectKind.ForBlock,

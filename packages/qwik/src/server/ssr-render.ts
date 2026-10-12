@@ -95,6 +95,8 @@ export interface SsrRenderContext extends ServerDataContext {
   defer(range: SsrDeferredRange, content: Promise<SsrOutput>): void;
   reparentRanges(): void;
   canDefer: boolean;
+  cancel?(): void;
+  markCaughtError(): void;
   inOrder(): SsrRenderContext;
   styleIds: Map<string, string>;
 }
@@ -199,6 +201,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
       }
     };
     /** A child range: its work runs on its own lane and ranges opened inside it nest under it. */
+    let hasCaughtError = false;
     const createRangeScope = (
       parent: SsrRenderContext,
       parentRangeId: number | null,
@@ -209,6 +212,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
       scope.scheduler = lane;
       scope.createRangeScope = (childId) => createRangeScope(scope, rangeId, childId);
       scope.flush = () => lane.flush();
+      scope.cancel = () => scheduler.cancel(lane);
       scope.reparentRanges = () => reparentChildren(rangeId, parentRangeId);
       scope.defer = (range, content) => {
         const record = range as DeferredRange;
@@ -304,6 +308,9 @@ export const renderToStreamCompiled = async <Props = undefined>(
       },
       reparentRanges() {},
       canDefer: outOfOrder,
+      markCaughtError() {
+        hasCaughtError = true;
+      },
       inOrder() {
         const inOrderCtx = Object.create(this) as SsrRenderContext;
         inOrderCtx.inOrder = () => inOrderCtx;
@@ -597,6 +604,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
     return {
       flushes: 0,
       size,
+      hasCaughtError,
       isStatic: serializationCtx.$roots$.length === 0 && serializationCtx.$eventQrls$.size === 0,
       manifest: resolvedManifest?.manifest,
       snapshotResult: {

@@ -51,6 +51,7 @@ export const enum TypeIds {
   Owner,
   PropSource,
   SuspenseSubscription,
+  CatchSubscription,
 }
 
 /** Debug names for `_dumpState`; the length check in `dump-state.unit.ts` keeps them in sync. */
@@ -106,4 +107,5 @@ export const _typeIdNames = [
   'Owner',
   'PropSource',
   'SuspenseSubscription',
+  'CatchSubscription',
 ] as const;

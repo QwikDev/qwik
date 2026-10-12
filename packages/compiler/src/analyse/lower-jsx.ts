@@ -43,7 +43,8 @@ import {
   scopeStaticClass,
 } from './lower-element';
 import { lowerSlotMarker } from './lower-projection';
-import { lowerRangeProgram } from './lower-render-qrl';
+import { qrlAttributeExpression } from './lower-event';
+import { lowerCatchFallback, lowerRangeProgram } from './lower-render-qrl';
 /**
  * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
  * with its own escaping (SSR streams raw, CSR templates escape). Dynamic arms land per example.
@@ -69,6 +70,8 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
   if (!/^[a-z]/.test(nameNode.name)) {
     const binding = requireComponentBinding(nameNode, ctx);
     switch (ctx.coreBindings.get(binding)) {
+      case 'Catch':
+        return [lowerCatch(element, attributes, ctx)];
       case 'Pending':
         return [lowerSuspense(element, attributes, ctx)];
       case 'Reveal':
@@ -248,6 +251,53 @@ function lowerReveal(
   } finally {
     ctx.reveal = outer;
   }
+}
+
+function lowerCatch(
+  element: JSXElement,
+  attributes: readonly JSXAttributeItem[],
+  ctx: LowerContext
+): Op {
+  let fallback: QrlUse | null = null;
+  for (const attribute of attributes) {
+    if (attribute.type !== 'JSXAttribute' || jsxAttributeName(attribute) !== 'fallback$') {
+      throw new InvalidModuleError('catch-attribute', 'Catch takes only fallback$.', [
+        attribute.start,
+        attribute.end,
+      ]);
+    }
+    const expression = qrlAttributeExpression(attribute);
+    if (fallback !== null || expression === null || expression.type === 'ArrayExpression') {
+      throw new InvalidModuleError(
+        'catch-fallback',
+        'A Catch fallback$ is one function returning JSX.',
+        [attribute.start, attribute.end]
+      );
+    }
+    fallback = lowerCatchFallback(expression, ctx);
+  }
+  if (fallback === null) {
+    throw new InvalidModuleError('catch-fallback', 'Catch requires fallback$.', [
+      element.start,
+      element.end,
+    ]);
+  }
+  const { use, lifetime } = lowerRangeProgram(
+    [element.start, element.end],
+    [...element.children],
+    ctx,
+    'a catch boundary',
+    SegmentContext.CatchContent,
+    LifetimeOwner.Catch,
+    () => lowerJsxChildren(element.children, ctx)
+  );
+  return {
+    op: OpKind.Catch,
+    content: use,
+    fallback,
+    id: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
+    lifetime,
+  };
 }
 
 /**

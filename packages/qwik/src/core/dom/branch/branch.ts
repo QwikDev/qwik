@@ -34,6 +34,7 @@ import { prepareProjectionRanges, parkProjections, replaceRange } from '../range
 import type { SsrOutput } from '../../ssr/output';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
+import { handleRenderError } from '../content/catch-boundary';
 
 type BranchConditionFn = () => ValueOrPromise<boolean>;
 type BranchHandlerFn = (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
@@ -123,14 +124,19 @@ export class BranchSubscription implements BranchSubscriber {
     if (isSubscriberDisposed(this)) {
       return;
     }
-    return maybeThen(
-      prepareProjectionRanges(
-        this.branch.container,
-        this.branch.range.start,
-        this.branch.range.end,
-        this.branch.currentOwner
-      ),
-      () => this.runPrepared()
+    return safeCall(
+      () =>
+        maybeThen(
+          prepareProjectionRanges(
+            this.branch.container,
+            this.branch.range.start,
+            this.branch.range.end,
+            this.branch.currentOwner
+          ),
+          () => this.runPrepared()
+        ),
+      () => {},
+      (error) => handleRenderError(this.owner, error)
     );
   }
 

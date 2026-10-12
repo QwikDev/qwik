@@ -647,6 +647,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Content:
         this.content(pass, op, parts);
         return;
+      case OpKind.Catch:
+        this.catchBoundary(pass, op, parts);
+        return;
       case OpKind.Suspense:
         this.suspense(pass, op, parts);
         return;
@@ -844,6 +847,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           this.content(pass, child, children);
           break;
         }
+        case OpKind.Catch: {
+          this.catchBoundary(pass, child, children);
+          break;
+        }
         case OpKind.Suspense: {
           this.suspense(pass, child, children);
           break;
@@ -1006,6 +1013,28 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     pushMergedStatic(parts, '>');
     parts.push(content);
     pushMergedStatic(parts, '<!/d>');
+  }
+
+  private catchBoundary(
+    pass: RenderPass,
+    op: Extract<LinkedOp, { op: OpKind.Catch }>,
+    parts: string[]
+  ): void {
+    const id = pass.next(QwikGenWord.Id);
+    pass.statements.push(`const ${id} = ${pass.names.ctx}.nextId();`);
+    const content = this.useQrl(pass, op.content, true);
+    const fallback = this.useQrl(pass, op.fallback, true).ref;
+    const step = pass.next(QwikGenWord.Content);
+    this.imports.add(QwikWord.CreateSsrCatch);
+    this.pushStep(
+      pass,
+      step,
+      rootArgs(content.qrl, content.args),
+      `${QwikWord.CreateSsrCatch}(${pass.names.ctx}, ${id}, ${content.ref}, ${fallback})`,
+      [],
+      true
+    );
+    parts.push(step);
   }
 
   /** The runtime races content against the fallback on its own lane and wraps the range itself. */

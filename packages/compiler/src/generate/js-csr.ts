@@ -89,7 +89,7 @@ import {
 type TextOp = Extract<LinkedOp, { op: OpKind.Static | OpKind.Hole }>;
 type RangeOp = Extract<
   LinkedOp,
-  { op: OpKind.Branch | OpKind.Each | OpKind.Content | OpKind.Suspense }
+  { op: OpKind.Branch | OpKind.Each | OpKind.Content | OpKind.Suspense | OpKind.Catch }
 >;
 
 export async function generateJsCsr(
@@ -395,6 +395,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Branch:
       case OpKind.Each:
       case OpKind.Content:
+      case OpKind.Catch:
       case OpKind.Suspense:
         return this.rangeRoot(op, ownerName, statements, pass);
       default:
@@ -599,6 +600,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         case OpKind.Branch:
         case OpKind.Each:
         case OpKind.Content:
+        case OpKind.Catch:
         case OpKind.Suspense: {
           const { start, end } = this.locateRange(path, statements, pass);
           this.mountRange(child, start, end, statements, pass);
@@ -703,7 +705,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const { fragment, start, end } = this.createRangeRoot(ownerName, statements, pass);
     this.mountRange(op, start, end, statements, pass);
     // Rows and a fallback are already between the comments before the root mounts.
-    return op.op === OpKind.Each || op.op === OpKind.Suspense
+    return op.op === OpKind.Each || op.op === OpKind.Suspense || op.op === OpKind.Catch
       ? `[...${fragment}.childNodes]`
       : `[${start}, ${end}]`;
   }
@@ -722,9 +724,27 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.createCollectionBlock(op, start, end, statements, pass);
       case OpKind.Content:
         return this.createContentBlock(op, start, end, statements, pass);
+      case OpKind.Catch:
+        return this.createCatchBlock(op, start, end, statements, pass);
       case OpKind.Suspense:
         return this.createSuspenseBlock(op, start, end, statements, pass);
     }
+  }
+
+  private createCatchBlock(
+    op: Extract<RangeOp, { op: OpKind.Catch }>,
+    start: string,
+    end: string,
+    statements: string[],
+    pass: RenderPass
+  ): void {
+    this.imports.add(QwikWord.BranchRange);
+    this.imports.add(QwikWord.CreateCatch);
+    const content = this.capturedChunkReference(op.content, pass.names.props);
+    const fallback = this.capturedChunkReference(op.fallback, pass.names.props);
+    statements.push(
+      `${QwikWord.CreateCatch}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${content}, ${fallback});`
+    );
   }
 
   /** Content and fallback are lazy render chunks; the runtime races them inside the range. */
@@ -1579,6 +1599,7 @@ function templateChildren(
       case OpKind.Branch:
       case OpKind.Each:
       case OpKind.Content:
+      case OpKind.Catch:
       case OpKind.Suspense:
         // A dynamic range's start/end comment pair.
         return { op: OpKind.Static as const, html: '<!><!>' };
@@ -1596,6 +1617,7 @@ function templateNodeCount(op: LinkedOp): number {
     case OpKind.Branch:
     case OpKind.Each:
     case OpKind.Content:
+    case OpKind.Catch:
     case OpKind.Suspense:
       return 2;
     default:

@@ -174,6 +174,13 @@ export function contentFunctionEmission(
     emission.params = [ctx];
     emission.imports.add(helper);
     emission.value = `${helper}(${emission.value}, ${ctx})`;
+  } else if (qrl.ctxName === SegmentContext.CatchFallback) {
+    const allocateName = createNameAllocator(module);
+    const ctx = allocateName('ctx');
+    const error = allocateName('error');
+    emission.params = [ctx, error];
+    emission.imports.add(helper);
+    emission.value = `${helper}((0, ${emission.value})(${error}), ${ctx})`;
   }
   return emission;
 }
@@ -259,6 +266,7 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
         SegmentContext.DynamicSlot,
         SegmentContext.DynamicTag,
         SegmentContext.SuspenseContent,
+        SegmentContext.CatchContent,
         SegmentContext.SuspenseFallback,
         'jsx-value',
       ].includes(qrl.boundary.role)

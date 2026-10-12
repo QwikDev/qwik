@@ -18,6 +18,7 @@ import {
   useOnDocument,
   renderSsrDynamicContent,
   createSsrSuspense,
+  createSsrCatch,
   createRevealGroup,
   _await,
   renderSsrAttr,
@@ -728,6 +729,34 @@ describe('SSR context markers', () => {
     );
 
     expect(result.html).toContain('<p>hi</p><p>hi</p>a &lt;b&gt; c');
+  });
+
+  test.each([false, true])('reports whether a buffered Catch caught: %s', async (failed) => {
+    const chunks: string[] = [];
+    const result = await renderToStream(
+      (_props, ctx) =>
+        createSsrCatch(
+          ctx,
+          ctx.nextId(),
+          createQRL('', 'content', () => {
+            if (failed) {
+              throw new Error('render failed');
+            }
+            return '<p>ready</p>';
+          }),
+          createQRL('', 'fallback', (_ctx, error) => (error as Error).message)
+        ),
+      {
+        stream: {
+          write: (chunk) => {
+            chunks.push(String(chunk));
+          },
+        },
+      }
+    );
+    expect(result.hasCaughtError).toBe(failed);
+    expect(chunks.join('')).toContain(failed ? 'render failed' : '<p>ready</p>');
+    expect(chunks.join('')).not.toContain('qErr(');
   });
 
   test('keeps synchronous Pending content inline', async () => {

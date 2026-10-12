@@ -51,6 +51,7 @@ export const enum OpKind {
   Slot = 'slot',
   Content = 'content',
   Suspense = 'suspense',
+  Catch = 'catch',
 }
 
 export const enum ComponentTargetKind {
@@ -182,6 +183,13 @@ export type Op =
       /** Result resolved by application linking. */
       shape?: Shape;
       render: QrlUse;
+      id: Seed;
+      lifetime: LifetimeId;
+    }
+  | {
+      op: OpKind.Catch;
+      content: QrlUse;
+      fallback: QrlUse;
       id: Seed;
       lifetime: LifetimeId;
     }

@@ -1,3 +1,4 @@
+import { CatchContentSubscription } from '../../dom/content/catch';
 import {
   AttrEffect,
   AttrExpressionEffect,
@@ -196,15 +197,8 @@ export const allocate = (
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
     }
-    case TypeIds.EffectSubscription:
-    case TypeIds.SuspenseSubscription: {
+    case TypeIds.EffectSubscription: {
       const effectKind = Array.isArray(value) ? value[1] : undefined;
-      if (typeId === TypeIds.SuspenseSubscription) {
-        if (effectKind !== EffectKind.Content) {
-          throw qError(QError.serializeErrorCannotAllocate, [typeId]);
-        }
-        return new SuspenseContentSubscription(null!, context.scheduler);
-      }
       if (effectKind === EffectKind.Branch) {
         return new BranchSubscription(null!, context.scheduler);
       }
@@ -218,6 +212,20 @@ export const allocate = (
         return new ContentSubscription(null!, context.scheduler);
       }
       return allocateDomEffect(context, effectKind);
+    }
+    case TypeIds.SuspenseSubscription: {
+      const effectKind = Array.isArray(value) ? value[1] : undefined;
+      if (effectKind !== EffectKind.Content) {
+        throw qError(QError.serializeErrorCannotAllocate, [typeId]);
+      }
+      return new SuspenseContentSubscription(null!, context.scheduler);
+    }
+    case TypeIds.CatchSubscription: {
+      const effectKind = Array.isArray(value) ? value[1] : undefined;
+      if (effectKind !== EffectKind.Content) {
+        throw qError(QError.serializeErrorCannotAllocate, [typeId]);
+      }
+      return new CatchContentSubscription(null!, null!, context.scheduler);
     }
     case TypeIds.Task: {
       const phase = Array.isArray(value) ? value[1] : undefined;

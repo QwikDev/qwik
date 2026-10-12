@@ -1,3 +1,5 @@
+import { CatchContentSubscription, SSRCatchContentSubscription } from '../dom/content/catch';
+import { findCatchBoundary, registerCatchBoundary } from '../dom/content/catch-boundary';
 import { describe, expect, it, vi } from 'vitest';
 import { createDocument } from '../../testing/document';
 import { Constants, TypeIds } from '../shared/serdes/constants';
@@ -147,6 +149,103 @@ describe('ContainerContext', () => {
       expect(findSuspenseBoundary(restoredChild.owner)).toBe(
         context.state.liveRoots.get(boundaryId)
       );
+    }
+  );
+
+  it('restores a Catch boundary before its lazy child root', async () => {
+    const qrl = createQRL('chunk', 'render', () => '');
+    const hostOwner = createOwner(null);
+    const boundaryContent = new SSRContent(0, [], qrl, null);
+    const boundary = registerSubscriberToOwner(
+      new SSRCatchContentSubscription(
+        boundaryContent,
+        createQRL('chunk', 'fallback', () => 'failed')
+      ),
+      hostOwner
+    );
+    const contentOwner = createOwner(hostOwner);
+    boundaryContent.currentOwner = contentOwner;
+    registerCatchBoundary(contentOwner, boundary);
+    const child = registerSubscriberToOwner(
+      new SSRContentSubscription(new SSRContent(1, [], qrl, null)),
+      contentOwner
+    );
+    const serialization = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    const childId = serialization.$addRoot$(child);
+    const boundaryId = serialization.$addRoot$(boundary);
+    await serialization.$serialize$();
+    const state = serialization.$writer$.toString();
+    const encoded = JSON.parse(state) as unknown[];
+    expect(encoded[childId * 2]).toBe(TypeIds.EffectSubscription);
+    expect(encoded[boundaryId * 2]).toBe(TypeIds.CatchSubscription);
+    const container = createContainer(`
+      <!--d=0--><!--d=1--><!--/d--><!--/d-->
+      <script type="qwik/state" q:base="0" q:len="${serialization.$roots$.length}">${state}</script>
+    `);
+    const context = createContainerContext(container);
+
+    expect(childId).not.toBe(boundaryId);
+    expect(context.state.liveRoots.has(boundaryId)).toBe(false);
+    const restoredChild = (await context.getRoot(childId)) as Subscriber;
+    expect(restoredChild).toBeInstanceOf(ContentSubscription);
+    expect(restoredChild).not.toBeInstanceOf(CatchContentSubscription);
+    expect(context.state.liveRoots.has(boundaryId)).toBe(true);
+    const restoredBoundary = context.state.liveRoots.get(boundaryId);
+    expect(restoredBoundary).toBeInstanceOf(CatchContentSubscription);
+    expect(findCatchBoundary(restoredChild.owner)).toBe(restoredBoundary);
+  });
+
+  it.each(['text', 'task'] as const)(
+    'restores a Catch boundary before its lazy %s subscriber',
+    async (kind) => {
+      const qrl = createQRL('chunk', 'render', () => '');
+      const hostOwner = createOwner(null);
+      const boundaryContent = new SSRContent(0, [], qrl, null);
+      const boundary = registerSubscriberToOwner(
+        new SSRCatchContentSubscription(
+          boundaryContent,
+          createQRL('chunk', 'fallback', () => 'failed')
+        ),
+        hostOwner
+      );
+      const contentOwner = createOwner(hostOwner);
+      boundaryContent.currentOwner = contentOwner;
+      registerCatchBoundary(contentOwner, boundary);
+      const signal = runWithOwner(contentOwner, () => useSignal('ready'));
+      let child: Subscriber;
+      if (kind === 'text') {
+        runWithOwner(contentOwner, () => renderSsrTextNode(1, null, signal));
+        child = toArray(signal.subs)[0] as Subscriber;
+      } else {
+        child = registerSubscriberToOwner(
+          new TaskSubscription(new Task(undefined, Phase.BlockingTask, qrl)),
+          contentOwner
+        );
+      }
+      const serialization = createSerializationContext(
+        null,
+        () => '',
+        () => {},
+        new WeakMap()
+      );
+      const childId = serialization.$addRoot$(child);
+      const boundaryId = serialization.$addRoot$(boundary);
+      await serialization.$serialize$();
+      const container = createContainer(`
+        <!--d=0--><p q:id="1">ready</p><!--/d-->
+        <script type="qwik/state" q:base="0" q:len="${serialization.$roots$.length}">${serialization.$writer$.toString()}</script>
+      `);
+      const context = createContainerContext(container);
+
+      expect(context.state.liveRoots.has(boundaryId)).toBe(false);
+      const restoredChild = (await context.getRoot(childId)) as Subscriber;
+      expect(context.state.liveRoots.has(boundaryId)).toBe(true);
+      expect(findCatchBoundary(restoredChild.owner)).toBe(context.state.liveRoots.get(boundaryId));
     }
   );
 

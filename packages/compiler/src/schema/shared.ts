@@ -264,6 +264,7 @@ export const enum LifetimeOwner {
   ComponentCall = 'component-call',
   Branch = 'branch',
   Suspense = 'suspense',
+  Catch = 'catch',
   Slot = 'slot',
   Collection = 'collection',
   Effect = 'effect',

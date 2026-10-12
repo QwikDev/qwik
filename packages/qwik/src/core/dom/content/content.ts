@@ -29,6 +29,7 @@ import {
 } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import { registerSuspenseBoundary } from './suspense-boundary';
+import { handleRenderError } from './catch-boundary';
 import {
   SubscriberKind,
   type ContentSubscriber,
@@ -146,6 +147,7 @@ function normalizeContentOutput(document: Document, output: ContentOutput): Mayb
 export class ContentBlock<TArgs extends unknown[] = unknown[]> {
   currentOwner: Owner | null = null;
   private committed: boolean;
+  private generation = 0;
   private pendingContext: RuntimeInvokeContext | null = null;
 
   constructor(
@@ -164,9 +166,10 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
   }
 
   run(subscription: ContentSubscription<TArgs>): ValueOrPromise<readonly Node[]> {
+    const generation = this.generation;
     return maybeThen(
       prepareProjectionRanges(this.container, this.start, this.end, this.currentOwner),
-      () => this.runPrepared(subscription)
+      () => (generation === this.generation ? this.runPrepared(subscription) : EMPTY_NODES)
     );
   }
 
@@ -182,6 +185,8 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
       if (subscription instanceof SuspenseContentSubscription) {
         registerSuspenseBoundary(getOrCreateContextOwner(invokeContext)!, subscription);
       }
+      subscription.registerRenderBoundary(invokeContext);
+      const generation = ++this.generation;
       this.pendingContext = invokeContext;
       return safeCall(
         () =>
@@ -198,7 +203,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
           if (this.pendingContext === invokeContext) {
             this.pendingContext = null;
           }
-          if (isSubscriberDisposed(subscription)) {
+          if (isSubscriberDisposed(subscription) || generation !== this.generation) {
             if (invokeContext.owner !== null) {
               disposeOwner(invokeContext.owner);
               invokeContext.owner = null;
@@ -222,6 +227,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
   }
 
   dispose(): void {
+    this.generation++;
     const owner = this.currentOwner;
     this.currentOwner = null;
     parkProjections(owner);
@@ -265,12 +271,21 @@ export class ContentSubscription<TArgs extends unknown[] = unknown[]> implements
   deps: Source[] | null = null;
 
   constructor(
-    readonly block: ContentBlock<TArgs>,
+    public block: ContentBlock<TArgs>,
     readonly scheduler: Scheduler = defaultScheduler
   ) {}
 
+  registerRenderBoundary(_invokeContext: RuntimeInvokeContext): void {}
+
   run(): ValueOrPromise<readonly Node[]> {
-    return isSubscriberDisposed(this) ? EMPTY_NODES : this.block.run(this);
+    if (isSubscriberDisposed(this)) {
+      return EMPTY_NODES;
+    }
+    return safeCall(
+      () => this.block.run(this),
+      (nodes) => nodes,
+      (error) => maybeThen(handleRenderError(this.owner, error), () => EMPTY_NODES)
+    );
   }
 
   dispose(): void {
@@ -533,6 +548,7 @@ export class SSRContent<TArgs extends unknown[] = unknown[]> {
         ownerHost: subscription.owner,
         container: this.container,
       });
+      subscription.registerRenderBoundary(invokeContext);
       return safeCall(
         () =>
           retryOnPromise(() =>
@@ -578,7 +594,9 @@ export class SSRContentSubscription<
   flags = SubscriberFlags.None;
   deps: Source[] | null = null;
 
-  constructor(readonly content: SSRContent<TArgs>) {}
+  constructor(public content: SSRContent<TArgs>) {}
+
+  registerRenderBoundary(_invokeContext: RuntimeInvokeContext): void {}
 
   dispose(): void {
     this.content.isPending = false;

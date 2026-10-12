@@ -22,3 +22,7 @@ export function findSuspenseBoundary(owner: Owner | null): SuspenseBoundary | un
   }
   return undefined;
 }
+
+export function getOwnSuspenseBoundary(owner: Owner): SuspenseBoundary | undefined {
+  return suspenseBoundaries.get(owner);
+}

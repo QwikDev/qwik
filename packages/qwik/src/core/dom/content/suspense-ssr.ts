@@ -19,7 +19,7 @@ export interface SsrRangeHost {
   /** A child scope: its work runs on its own lane and its ranges nest under `rangeId`. */
   createRangeScope(rangeId: number): SsrRangeScope;
   /** False under in-order rendering: the owner must await its content instead of deferring. */
-  readonly canDefer: boolean;
+  canDefer: boolean;
 }
 
 export interface SsrRangeScope extends SsrRangeHost {
@@ -29,6 +29,7 @@ export interface SsrRangeScope extends SsrRangeHost {
   defer(range: SsrDeferredRange, content: Promise<SsrOutput>): void;
   /** Lifts ranges nested in this scope up to its parent, for a scope that never defers. */
   reparentRanges(): void;
+  cancel?(): void;
 }
 
 type SsrSuspenseRenderFn = (host: SsrRangeHost) => ValueOrPromise<SsrOutput>;

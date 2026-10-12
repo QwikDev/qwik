@@ -1,7 +1,8 @@
 /** Render QRLs and content ranges: a program plus the QRL its generators chunk. */
-import type { JSXChild, JSXElement, Node } from 'oxc-parser';
+import type { Expression, JSXChild, JSXElement, Node } from 'oxc-parser';
 import {
   BoundaryKind,
+  ExprKind,
   FnBodyKind,
   LifetimeCommit,
   LifetimeOwner,
@@ -14,9 +15,12 @@ import {
   type QrlUse,
 } from '../schema';
 import type { LowerContext } from './lower-context';
-import { pushQrl, QrlIdentityKind } from './lower-context';
+import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { createCapturedContext, lowerCaptures, type LoweredCaptures } from './ast/capture-analysis';
 import { SegmentContext } from '../words';
+import { isFunctionLike } from './ast/utils';
+import { lowerFunctionQrl } from './lower-function';
+import { recordPayloadJsx, recordPayloadReads } from './lower-expr';
 export function lowerRenderQrl(
   children: JSXChild[],
   ctx: LowerContext,
@@ -148,4 +152,49 @@ export function lowerRangeProgram(
     ctx.reveal = outerReveal;
   }
   return { use, program, lifetime };
+}
+
+/** A fallback keeps its public callback separate from its render contract. */
+export function lowerCatchFallback(expression: Expression, ctx: LowerContext): QrlUse {
+  const lowered = lowerCaptures(expression, ctx, 'a catch fallback');
+  ctx = createCapturedContext(ctx, lowered.captures);
+  const range: [number, number] = [expression.start, expression.end];
+  const payload = pushPayload(ctx, range);
+  recordPayloadReads(ctx, payload, lowered.refs);
+  if (isFunctionLike(expression)) {
+    const use = lowerFunctionQrl(expression, ctx, {
+      nameCtx: 'catch:callback',
+      subject: 'a catch fallback',
+      ctxName: 'fallback$',
+      boundary: { kind: BoundaryKind.Implicit, role: 'callback' },
+      origin: { range, calleeRange: null, argumentRanges: [] },
+    });
+    ctx.plan.payloads[payload].qrls.push({ range, use });
+  } else {
+    recordPayloadJsx(ctx, payload, expression);
+  }
+  return pushQrl(
+    ctx,
+    {
+      identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.CatchFallback },
+      ctxName: SegmentContext.CatchFallback,
+      boundary: { kind: BoundaryKind.Implicit, role: SegmentContext.CatchFallback },
+      payloadKind: QrlPayloadKind.Function,
+      authoredAsync: false,
+      body: { b: QrlBodyKind.Expr, expr: { kind: ExprKind.Js, payload }, initialOnly: false },
+      captures: lowered.captures,
+      functions: lowered.functions,
+      params: { authored: 0, used: [], sources: [] },
+      origin: {
+        range,
+        functionRange: range,
+        calleeRange: null,
+        argumentRanges: [],
+        paramRanges: [],
+        bodyRange: range,
+        bodyKind: FnBodyKind.Expression,
+      },
+    },
+    lowered.args
+  ).use;
 }

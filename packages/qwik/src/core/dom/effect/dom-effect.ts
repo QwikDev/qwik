@@ -7,6 +7,7 @@ import { registerSubscriberToOwner, type Owner } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import { SubscriberKind, type DomSubscriber } from '../../runtime/subscriber';
 import { retryOnPromise } from '../../shared/utils/promises';
+import { handleRenderError } from '../content/catch-boundary';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
 
@@ -37,12 +38,15 @@ export abstract class DomEffect implements DomSubscriber {
       return;
     }
     this.invalidate();
-    return retryOnPromise(() => {
-      cleanupDeps(this);
-      return isSubscriberDisposed(this)
-        ? undefined
-        : runWithCollector1(this, executeDomEffect, this);
-    });
+    return retryOnPromise(
+      () => {
+        cleanupDeps(this);
+        return isSubscriberDisposed(this)
+          ? undefined
+          : runWithCollector1(this, executeDomEffect, this);
+      },
+      (error) => handleRenderError(this.owner, error)
+    );
   }
 
   trackPromise<T>(promise: Promise<T>, commit: (value: T) => void): Promise<void> {
@@ -51,11 +55,13 @@ export abstract class DomEffect implements DomSubscriber {
       this.invalidateAsync = resolve;
     }));
     const pending = Promise.race([
-      promise.then((value) => {
-        if (!isSubscriberDisposed(this) && generation === this.asyncGeneration) {
-          commit(value);
-        }
-      }),
+      promise
+        .then((value) => {
+          if (!isSubscriberDisposed(this) && generation === this.asyncGeneration) {
+            commit(value);
+          }
+        })
+        .catch((error) => handleRenderError(this.owner, error)),
       invalidation,
     ]);
     this.scheduler.waitFor(pending, this.owner);

@@ -1,0 +1,8 @@
+{
+  "name": "catch-render.prod",
+  "private": true,
+  "type": "module",
+  "__qwik__": {
+    "qwikRouter": true
+  }
+}

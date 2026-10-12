@@ -208,6 +208,58 @@ export type AsyncSignalOptions<T = unknown> = ComputedOptions<T>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts)
 
+<h2 id="catch">Catch</h2>
+
+Compiler marker for a render error boundary.
+
+```typescript
+Catch: Component<CatchProps>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts)
+
+<h2 id="catchprops">CatchProps</h2>
+
+```typescript
+export interface CatchProps
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+fallback$
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+[QRL](#qrl)&lt;(error: Error &amp; \{ digest?: string; }) =&gt; [JSXOutput](#jsxoutput)&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts)
+
 <h2 id="classlist">ClassList</h2>
 
 A class list can be a string, a boolean, an array, or an object.

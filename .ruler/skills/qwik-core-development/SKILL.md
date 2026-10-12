@@ -43,6 +43,7 @@ Do not load the reference for simple docs, package metadata, formatting, or unre
   from `core/index.ts` shifts the chunk graph and can break an unrelated `resume` spec that passes
   when run alone and only fails under the full `pnpm test.unit`. If a new module is unavoidable, run
   the full suite before and after, and compare — the failure will not name your change.
+- Export public core APIs from both `core/index.ts` and `core/public.ts`; API Extractor reads `public.ts`.
 - If the change affects public API, run `pnpm api.update` after the focused tests pass.
 - If this skill or `references/core-notes.md` is stale after your source inspection, update it before
   finishing or record why guidance edits were out of scope.

@@ -23,6 +23,17 @@ export type AsyncSignal<T = unknown> = ComputedSignal<T>;
 export type AsyncSignalOptions<T = unknown> = ComputedOptions<T>;
 
 // @public
+export const Catch: Component<CatchProps>;
+
+// @public (undocumented)
+export interface CatchProps {
+    // (undocumented)
+    readonly fallback$: QRL<(error: Error & {
+        digest?: string;
+    }) => JSXOutput>;
+}
+
+// @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
 
 // @public

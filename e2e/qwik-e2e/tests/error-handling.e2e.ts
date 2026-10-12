@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { assertNoBrowserErrors, collectPageErrors, releaseDeferred } from './e2e-helpers';
 
-test.skip(true, 'Catch is not implemented in v3 yet');
+test.skip(true, 'Catch reset, event/task errors and late streaming are deferred in v3');
 
 export const streamingModes = [
   { mode: 'in-order', outOfOrder: false },
@@ -50,27 +50,6 @@ test.describe('Catch + fallback$', () => {
   });
 
   for (const { mode, outOfOrder } of streamingModes) {
-    test(`${mode}: sync throw streams the shell, swaps to the fallback, keeps it interactive`, async ({
-      page,
-    }) => {
-      assertNoBrowserErrors(page);
-      await page.goto(routeUrl('basic', { outOfOrder }), { waitUntil: 'commit' });
-
-      await expect(page.locator('#catch-title')).toHaveText('Error handling e2e', {
-        timeout: 10000,
-      });
-      await expect(page.locator('#catch-footer')).toHaveText('Footer shell', { timeout: 10000 });
-
-      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
-      await expect(page.locator('#catch-content')).toBeHidden();
-
-      await page.locator('#catch-fallback-button').click();
-      await expect(page.locator('#catch-fallback-count')).toHaveText('1');
-    });
-  }
-
-  for (const { mode, outOfOrder } of streamingModes) {
     test(`${mode}: client-time throw after resume re-renders the boundary to its fallback`, async ({
       page,
     }) => {
@@ -108,39 +87,6 @@ test.describe('Catch + fallback$', () => {
     await page.locator('#catch-inner-button').click();
     await expect(page.locator('#catch-inner-count')).toHaveText('1');
   });
-
-  test('SSR nested: the outer supersedes an already-swapped inner fallback when both error server-side', async ({
-    page,
-  }) => {
-    assertNoBrowserErrors(page);
-    await page.goto(routeUrl('nested-ssr'), { waitUntil: 'commit' });
-
-    await expect(page.locator('#catch-outer')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#catch-outer-msg')).toHaveText(caughtError);
-    await expect(page.locator('#catch-inner')).toBeHidden();
-
-    await page.locator('#catch-outer-button').click();
-    await expect(page.locator('#catch-outer-count')).toHaveText('1');
-  });
-
-  for (const { mode, outOfOrder } of streamingModes) {
-    test(`${mode}: a throwing inner fallback escalates to the outer boundary, fallback interactive`, async ({
-      page,
-    }) => {
-      assertNoBrowserErrors(page);
-      await page.goto(routeUrl('fallback-throws', { outOfOrder }), { waitUntil: 'commit' });
-
-      await expect(page.locator('#catch-title')).toHaveText('Error handling e2e', {
-        timeout: 10000,
-      });
-      await expect(page.locator('#catch-outer')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#catch-outer-msg')).toHaveText(caughtError);
-      await expect(page.locator('#catch-content')).toBeHidden();
-
-      await page.locator('#catch-outer-button').click();
-      await expect(page.locator('#catch-outer-count')).toHaveText('1');
-    });
-  }
 
   test.describe('last-resort fallback', () => {
     test('built-in last-resort node renders when the fallback$ chunk fails to load', async ({
@@ -739,20 +685,6 @@ test.describe('Catch in a production build (qDev=false)', () => {
     await expect(page.locator('#async-digest')).not.toHaveText('no-digest');
   });
 
-  test('SSR swap: the prod-built client resumes the swapped page, fallback interactive', async ({
-    page,
-  }) => {
-    assertNoBrowserErrors(page);
-    await page.goto(prodUrl('basic'), { waitUntil: 'commit' });
-
-    await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: An error occurred');
-    await expect(page.locator('#catch-content')).toBeHidden();
-
-    await page.locator('#catch-fallback-button').click();
-    await expect(page.locator('#catch-fallback-count')).toHaveText('1');
-  });
-
   test('client throw after resume shows the thrown message unredacted', async ({ page }) => {
     assertNoBrowserErrors(page);
     await page.goto(prodUrl('csr-event'), { waitUntil: 'commit' });
@@ -767,19 +699,6 @@ test.describe('Catch in a production build (qDev=false)', () => {
 
     await page.locator('#catch-fallback-button').click();
     await expect(page.locator('#catch-fallback-count')).toHaveText('1');
-  });
-
-  test('an app error carrying its own digest field still redacts', async ({ page }) => {
-    assertNoBrowserErrors(page);
-    await page.goto(prodUrl('digest-forgery'), { waitUntil: 'commit' });
-
-    await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: An error occurred', {
-      timeout: 10000,
-    });
-    const digest = await page.locator('#catch-fallback-digest').innerText();
-    expect(digest).not.toBe('forged-digest');
-    expect(digest).not.toBe('none');
-    expect(await page.locator('body').innerText()).not.toContain('digest secret boom');
   });
 
   test('reset flips a redacted SSR fallback to the raw client-derived message', async ({

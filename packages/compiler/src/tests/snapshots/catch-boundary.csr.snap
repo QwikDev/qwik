@@ -1,0 +1,147 @@
+==INPUT==
+
+import { component$, Catch, useSignal } from '@qwik.dev/core';
+import { fallback } from './fallback';
+export default component$(() => {
+  const count = useSignal(0);
+  return <section><Catch fallback$={fallback}><button onClick$={() => count.value++}>{count.value}</button></Catch></section>;
+});
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  BranchRange,
+  createCatch,
+  _withCaptures,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_catch_content_segment_1_nkto614tyy25 } from './component.tsx_component_catch_content_segment_1_nkto614tyy25';
+import { component_catch_fallback_segment_0_3ik9bd623jcyx } from './component.tsx_component_catch_fallback_segment_0_3ik9bd623jcyx';
+
+const default_tmpl0 = _createElementTemplate('<section><!><!></section>');
+import { fallback } from './fallback';
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const count = useSignal(0);
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  createCatch(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    _withCaptures(component_catch_content_segment_1_nkto614tyy25, [count]),
+    component_catch_fallback_segment_0_3ik9bd623jcyx
+  );
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_catch_fallback_segment_0_3ik9bd623jcyx.js (ENTRY POINT)==
+
+import { createDynamicContent } from '@qwik.dev/core';
+import { fallback } from './fallback';
+
+export const component_catch_fallback_segment_0_3ik9bd623jcyx = (ctx0, error0) => {
+  return createDynamicContent((0, fallback)(error0), ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_catch_fallback_segment_0_3ik9bd623jcyx",
+  "entry": null,
+  "displayName": "component_catch_fallback_segment_0",
+  "hash": "3ik9bd623jcyx",
+  "canonicalFilename": "component.tsx_component_catch_fallback_segment_0_3ik9bd623jcyx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "catch:fallback",
+  "captures": false,
+  "loc": [
+    202,
+    210
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_catch_content_segment_1_nkto614tyy25.js (ENTRY POINT)==
+
+import {
+  _capturesObj,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const component_catch_content_segment_1_nkto614tyy25_tmpl0 =
+  _createElementTemplate('<button> </button>');
+
+export const component_catch_content_segment_1_nkto614tyy25 = (ctx) => {
+  const [count] = _capturesObj._;
+  const el0 = component_catch_content_segment_1_nkto614tyy25_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_catch_content_segment_1_nkto614tyy25",
+  "entry": null,
+  "displayName": "component_catch_content_segment_1",
+  "hash": "nkto614tyy25",
+  "canonicalFilename": "component.tsx_component_catch_content_segment_1_nkto614tyy25",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "catch:content",
+  "captures": true,
+  "loc": [
+    184,
+    281
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _capturesObj } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [count] = _capturesObj._;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    220,
+    250
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

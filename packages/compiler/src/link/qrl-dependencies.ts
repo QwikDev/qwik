@@ -271,6 +271,10 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
       case OpKind.Content:
         visitQrlUse(entry.render);
         break;
+      case OpKind.Catch:
+        visitQrlUse(entry.content);
+        visitQrlUse(entry.fallback);
+        break;
       case OpKind.Suspense:
         visitQrlUse(entry.content);
         if (entry.fallback !== null) {

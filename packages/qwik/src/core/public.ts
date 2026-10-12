@@ -53,6 +53,7 @@ export { render } from './csr-render';
 export type { RenderOptions, RenderResult, RenderRoot } from './render-types';
 export { Slot } from './dom/slot/slot';
 export { Pending, type PendingProps } from './dom/content/content';
+export { Catch, type CatchProps } from './dom/content/catch';
 
 export { useAsync$, useComputed$, useConstant, useSerializer$ } from './reactive/public-api';
 /** @public */

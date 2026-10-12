@@ -15,7 +15,8 @@ import { removeEvent, setEvent } from '../event/event';
 import type { CapturedEventHandler, QDispatchHandler } from '../../shared/types';
 import { EMPTY_ARRAY } from '../../utils/consts';
 import { invokeCaptured } from '../../shared/qrl/qrl-captures';
-import { isPromise } from '../../shared/utils/promises';
+import { isPromise, safeCall } from '../../shared/utils/promises';
+import { handleRenderError } from '../content/catch-boundary';
 
 export type AttrExpressionFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
@@ -133,7 +134,11 @@ export class ForBlockSubscription<T = unknown> implements ForBlockSubscriber {
   ) {}
 
   run(): ValueOrPromise<void> {
-    return this.block.run(this);
+    return safeCall(
+      () => this.block.run(this),
+      () => {},
+      (error) => handleRenderError(this.owner, error)
+    );
   }
 }
 

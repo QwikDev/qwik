@@ -1,5 +1,5 @@
 import { isServer } from '@qwik.dev/core/build';
-import { isPromise, MAX_RETRY_ON_PROMISE_COUNT } from '../shared/utils/promises';
+import { isPromise, maybeThen, MAX_RETRY_ON_PROMISE_COUNT } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import {
   getActiveInvokeContextOrNull,
@@ -19,6 +19,8 @@ import { isServerPlatform } from '../shared/platform/platform';
 import { applyUseOnToSsrOutput } from '../ssr/use-on';
 import type { SsrEventAttrChunk, SsrOutput } from '../ssr/output';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
+import { OwnerFlags } from '../reactive/flags';
+import { findCatchBoundary, handleRenderError } from '../dom/content/catch-boundary';
 
 export type ComponentOutput = NodeOutput | string;
 export type ComponentRenderFn<TProps = unknown> = (
@@ -141,7 +143,23 @@ function createComponentAttempt<TProps, TRenderContext>(
     return retryOnPending(error);
   }
   if (isPromise(nodes)) {
-    return nodes.then((nodes) => finalizeOutput(nodes, invokeContext), retryOnPending);
+    const pending = nodes.then((nodes) => {
+      if (ownerHost !== null && ownerHost.flags & OwnerFlags.Disposed) {
+        if (invokeContext.owner !== null) {
+          disposeOwner(invokeContext.owner);
+        }
+        return EMPTY_NODES;
+      }
+      return finalizeOutput(nodes, invokeContext);
+    }, retryOnPending);
+    if ((qTest ? !isServerPlatform() : !isServer) && findCatchBoundary(ownerHost) !== undefined) {
+      const handled = pending.catch((error) =>
+        maybeThen(handleRenderError(ownerHost, error), () => EMPTY_NODES)
+      );
+      invokeContext.container?.scheduler.waitFor(handled, ownerHost);
+      return handled;
+    }
+    return pending;
   }
 
   return finalizeOutput(nodes, invokeContext);

@@ -297,6 +297,7 @@ async function loadStateRoot(context: ContainerContext, id: number): Promise<unk
     if (
       type === TypeIds.EffectSubscription ||
       type === TypeIds.SuspenseSubscription ||
+      type === TypeIds.CatchSubscription ||
       type === TypeIds.Task ||
       type === TypeIds.ComputedSignal ||
       type === TypeIds.AsyncSignal ||

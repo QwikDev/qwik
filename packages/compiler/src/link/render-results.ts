@@ -244,6 +244,10 @@ export function linkRenderResults(
       case OpKind.Content:
         visitQrl(module, op.render.qrl);
         break;
+      case OpKind.Catch:
+        visitQrl(module, op.content.qrl);
+        visitQrl(module, op.fallback.qrl);
+        break;
       case OpKind.Suspense:
         visitQrl(module, op.content.qrl);
         if (op.fallback !== null) {

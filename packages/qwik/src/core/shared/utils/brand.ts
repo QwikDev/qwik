@@ -29,6 +29,7 @@ export const enum Brand {
   SsrSuspenseContentSubscription = 1 << 18,
   SerializationBackRef = 1 << 19,
   SsrProjectionSubscription = 1 << 20,
+  SsrCatchContentSubscription = 1 << 21,
 }
 
 export const hasBrand = (value: unknown, brand: Brand): boolean =>

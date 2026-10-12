@@ -43,6 +43,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
 
   invalidate() {
     this.$flags$ |= ComputedSignalFlags.INVALID;
+    this.$flags$ &= ~ComputedSignalFlags.MAYBE_INVALID;
     // we are trying to run computation without creating a chore, which can be expensive
     // for many signals. If it fails, we schedule a chore to run the computation.
     try {

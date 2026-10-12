@@ -30,10 +30,12 @@ import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  isWrappedSignal,
   scheduleEffects,
   throwIfQRLNotResolved,
 } from '../utils';
 import { SignalImpl } from './signal-impl';
+import type { WrappedSignalImpl } from './wrapped-signal-impl';
 import { Brand, brandClass } from '../../shared/utils/brand';
 
 const DEBUG = false;
@@ -442,6 +444,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   /** Run the computation if needed */
   $computeIfNeeded$(): void {
+    if (!(this.$flags$ & (ComputedSignalFlags.INVALID | ComputedSignalFlags.MAYBE_INVALID))) {
+      return;
+    }
+    this.$resolveMaybeInvalidSources$();
     if (this.$disposed$ || !(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
@@ -472,14 +478,14 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       if (running.$infoVersion$ === this.$infoVersion$) {
         this.$info$ = undefined;
       }
-      this.$flags$ &= ~ComputedSignalFlags.INVALID;
+      this.$flags$ &= ~(ComputedSignalFlags.INVALID | ComputedSignalFlags.MAYBE_INVALID);
       this.$setError$(running, err as Error);
       return;
     }
     if (isPromise(result)) {
       // The compute fn is async: hand the in-flight computation to the async engine
       this.$flags$ |= AsyncSignalFlags.ASYNC_MODE;
-      this.$flags$ &= ~ComputedSignalFlags.INVALID;
+      this.$flags$ &= ~(ComputedSignalFlags.INVALID | ComputedSignalFlags.MAYBE_INVALID);
       // Consume the in-flight promise first; retries re-invoke the compute fn
       let first: Promise<T> | undefined = result;
       const compute = () => {
@@ -496,9 +502,22 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (running.$infoVersion$ === this.$infoVersion$) {
       this.$info$ = undefined;
     }
-    this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    this.$flags$ &= ~(ComputedSignalFlags.INVALID | ComputedSignalFlags.MAYBE_INVALID);
     this.untrackedError = undefined;
     super.value = result;
+  }
+
+  $resolveMaybeInvalidSources$(): void {
+    if (this.$flags$ & ComputedSignalFlags.INVALID) {
+      return;
+    }
+    this.$flags$ &= ~ComputedSignalFlags.MAYBE_INVALID;
+    try {
+      resolveMaybeInvalidSources(this, this);
+    } catch (err) {
+      this.$flags$ |= ComputedSignalFlags.INVALID;
+      throw err;
+    }
   }
 
   /**
@@ -785,3 +804,35 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 }
 brandClass(ComputedSignalImpl, Brand.ComputedSignal);
+
+const resolveMaybeInvalidSources = (
+  consumer: ComputedSignalImpl<unknown, any> | WrappedSignalImpl<unknown>,
+  dependent: ComputedSignalImpl<unknown, any>
+) => {
+  const subscriptions = consumer[_EFFECT_BACK_REF];
+  if (!subscriptions) {
+    return;
+  }
+  for (const subscription of subscriptions.values()) {
+    const sources = subscription.backRef;
+    if (!sources) {
+      continue;
+    }
+    for (const source of sources) {
+      if (dependent.$flags$ & ComputedSignalFlags.INVALID) {
+        return;
+      }
+      if (source instanceof ComputedSignalImpl) {
+        if (source.$flags$ & ComputedSignalFlags.MAYBE_INVALID) {
+          source.$computeIfNeeded$();
+        }
+      } else if (isWrappedSignal(source)) {
+        if (source.$flags$ & ComputedSignalFlags.MAYBE_INVALID) {
+          source.invalidate();
+        } else {
+          resolveMaybeInvalidSources(source, dependent);
+        }
+      }
+    }
+  }
+};

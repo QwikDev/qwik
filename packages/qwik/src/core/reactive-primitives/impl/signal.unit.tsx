@@ -265,6 +265,175 @@ describe('signal', () => {
         expect(log).toEqual([1, 2]);
       });
     });
+
+    it('should recompute once per write when reading a signal directly and through a computed', async () => {
+      await withContainer(async () => {
+        const runs: string[] = [];
+        const price = createSignal(10);
+        const tax = createComputed$(() => price.value * 0.2);
+        const total = createComputed$(() => {
+          const p = price.value;
+          const t = tax.value;
+          runs.push(`${p} + ${t}`);
+          return p + t;
+        });
+        effect$(() => log.push(total.value));
+        price.value = 20;
+        await flushSignals();
+        expect(runs).toEqual(['10 + 2', '20 + 4']);
+        expect(log).toEqual([12, 24]);
+      });
+    });
+
+    it('should not read a stale computed two levels upstream', async () => {
+      await withContainer(async () => {
+        const runs: string[] = [];
+        const price = createSignal(10);
+        const tax = createComputed$(() => price.value * 0.2);
+        const roundedTax = createComputed$(() => Math.round(tax.value));
+        const total = createComputed$(() => {
+          const p = price.value;
+          const t = roundedTax.value;
+          runs.push(`${p} + ${t}`);
+          return p + t;
+        });
+        effect$(() => log.push(total.value));
+        price.value = 20;
+        await flushSignals();
+        expect(runs).toEqual(['10 + 2', '20 + 4']);
+        expect(log).toEqual([12, 24]);
+      });
+    });
+
+    it('should not recompute when an upstream computed keeps its value', async () => {
+      await withContainer(async () => {
+        const runs: string[] = [];
+        const price = createSignal(10);
+        const isExpensive = createComputed$(() => price.value > 100);
+        const label = createComputed$(() => {
+          const expensive = isExpensive.value;
+          runs.push(`expensive: ${expensive}`);
+          return expensive ? 'expensive' : 'cheap';
+        });
+        effect$(() => log.push(label.value));
+        price.value = 20;
+        await flushSignals();
+        expect(label.value).toBe('cheap');
+        expect(runs).toEqual(['expensive: false']);
+        expect(log).toEqual(['cheap']);
+      });
+    });
+
+    it('should not read a stale computed after retrying a suspended recompute', async () => {
+      await withContainer(async () => {
+        const runs: string[] = [];
+        const suspense: { promise?: Promise<void> } = {};
+        const price = createSignal(10);
+        const tax = createComputed$(() => {
+          const t = price.value * 0.2;
+          if (suspense.promise) {
+            throw suspense.promise;
+          }
+          return t;
+        });
+        const roundedTax = createComputed$(() => Math.round(tax.value));
+        const total = createComputed$(() => {
+          const p = price.value;
+          if (suspense.promise) {
+            throw suspense.promise;
+          }
+          const t = roundedTax.value;
+          runs.push(`${p} + ${t}`);
+          return p + t;
+        });
+        effect$(() => log.push(total.value));
+        const suspended = Promise.resolve();
+        suspense.promise = suspended;
+        price.value = 20;
+        suspense.promise = undefined;
+        await suspended;
+        await flushSignals();
+        expect(runs).toEqual(['10 + 2', '20 + 4']);
+        expect(log).toEqual([12, 24]);
+      });
+    });
+
+    it('should not read a stale computed after a source suspends while resolving it', async () => {
+      await withContainer(async () => {
+        const runs: string[] = [];
+        const suspense: { promise?: Promise<void> } = {};
+        const price = createSignal(10);
+        const tax = createComputed$(() => {
+          const t = price.value * 0.2;
+          if (suspense.promise) {
+            throw suspense.promise;
+          }
+          return t;
+        });
+        const roundedTax = createComputed$(() => Math.round(tax.value));
+        const total = createComputed$(() => {
+          const p = price.value;
+          const t = roundedTax.value;
+          runs.push(`${p} + ${t}`);
+          return p + t;
+        });
+        effect$(() => log.push(total.value));
+        const suspended = Promise.resolve();
+        suspense.promise = suspended;
+        price.value = 20;
+        suspense.promise = undefined;
+        await suspended;
+        await flushSignals();
+        expect(runs).toEqual(['10 + 2', '20 + 4']);
+        expect(log).toEqual([12, 24]);
+      });
+    });
+
+    it('should not read a stale computed derived from a wrapped signal', async () => {
+      await withContainer(async () => {
+        const runs: string[] = [];
+        const price = createSignal(10);
+        const wrappedPrice = _wrapProp(price);
+        const tax = createComputed$(() => wrappedPrice.value * 0.2);
+        const total = createComputed$(() => {
+          const p = price.value;
+          const t = tax.value;
+          runs.push(`${p} + ${t}`);
+          return p + t;
+        });
+        effect$(() => log.push(total.value));
+        price.value = 20;
+        await flushSignals();
+        expect(runs).toEqual(['10 + 2', '20 + 4']);
+        expect(log).toEqual([12, 24]);
+      });
+    });
+
+    it('should not read a stale computed derived from another computed error', async () => {
+      await withContainer(async () => {
+        const runs: string[] = [];
+        const input = createSignal('1');
+        const parsed = createComputed$(() => {
+          const parsedInput = Number(input.value);
+          if (Number.isNaN(parsedInput)) {
+            throw new Error('not a number');
+          }
+          return parsedInput;
+        });
+        const message = createComputed$(() => parsed.error?.message ?? 'ok');
+        const summary = createComputed$(() => {
+          const line = `${input.value}: ${message.value}`;
+          runs.push(line);
+          return line;
+        });
+        effect$(() => log.push(summary.value));
+        input.value = 'x';
+        await flushSignals();
+        expect(runs).toEqual(['1: ok', 'x: not a number']);
+        expect(log).toEqual(['1: ok', 'x: not a number']);
+      });
+    });
+
     describe('wrapped', () => {
       it('should not re-wrap wrapped signal', () => {
         const signal = createSignal(1);

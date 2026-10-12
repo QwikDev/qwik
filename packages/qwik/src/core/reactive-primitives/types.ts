@@ -100,6 +100,7 @@ export const enum ComputedSignalFlags {
   INVALID = 1,
   RUN_EFFECTS = 2,
   PRESERVE_ON_SEQ_CLEANUP = 4,
+  MAYBE_INVALID = 128,
 }
 
 export const enum SerializationSignalFlags {

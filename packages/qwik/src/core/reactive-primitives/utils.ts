@@ -16,6 +16,7 @@ import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import type { ComputedSignal, Signal } from './signal.public';
 import { SubscriptionData, type NodeProp } from './subscription-data';
 import {
+  AsyncSignalFlags,
   SerializationSignalFlags,
   EffectProperty,
   ComputedSignalFlags,
@@ -52,6 +53,9 @@ export const throwIfQRLNotResolved = (qrl: QRL) => {
 export const isSignal = (value: any): value is Signal<unknown> => {
   return hasBrand(value, Brand.Signal);
 };
+
+export const isWrappedSignal = (value: unknown): value is WrappedSignalImpl<unknown> =>
+  hasBrand(value, Brand.WrappedSignal);
 
 export const ensureContainsSubscription = (
   array: Set<EffectSubscription>,
@@ -108,6 +112,7 @@ export const scheduleEffects = (
 ) => {
   const isRunningOnBrowser = qTest ? !isServerPlatform() : isBrowser;
   if (effects) {
+    const hasSiblings = effects.size > 1;
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription.consumer;
       const property = effectSubscription.property;
@@ -116,7 +121,13 @@ export const scheduleEffects = (
         consumer.$flags$ |= TaskFlags.DIRTY;
         markVNodeDirty(container!, consumer.$el$, ChoreBits.TASKS);
       } else if (consumer instanceof SignalImpl) {
-        (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate();
+        const computed = consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>;
+        if (
+          !hasSiblings ||
+          computed.$flags$ & (AsyncSignalFlags.ASYNC_MODE | ComputedSignalFlags.MAYBE_INVALID)
+        ) {
+          computed.invalidate();
+        }
       } else if (property === EffectProperty.COMPONENT) {
         markVNodeDirty(container!, consumer, ChoreBits.COMPONENT);
       } else if (property === EffectProperty.VNODE) {
@@ -150,12 +161,62 @@ export const scheduleEffects = (
     };
 
     const effectsSnapshot = Array.from(effects);
+    if (hasSiblings) {
+      markComputedsMaybeInvalid(effectsSnapshot);
+    }
     for (let i = 0; i < effectsSnapshot.length; i++) {
       scheduleEffect(effectsSnapshot[i]);
     }
   }
 
   DEBUG && log('done scheduling');
+};
+
+const markComputedsMaybeInvalid = (effects: EffectSubscription[]) => {
+  for (let i = 0; i < effects.length; i++) {
+    const consumer = effects[i].consumer;
+    if (!(consumer instanceof SignalImpl)) {
+      continue;
+    }
+    if (consumer instanceof ComputedSignalImpl) {
+      if (consumer.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
+        continue;
+      }
+      consumer.$flags$ |= ComputedSignalFlags.INVALID;
+    }
+    markMaybeInvalid(consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>);
+  }
+};
+
+const markMaybeInvalid = (computed: ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>) => {
+  if (!(computed.$flags$ & ComputedSignalFlags.MAYBE_INVALID)) {
+    computed.$flags$ |= ComputedSignalFlags.MAYBE_INVALID;
+    markConsumersMaybeInvalid(computed);
+  }
+};
+
+const markConsumersMaybeInvalid = (
+  producer: ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>
+) => {
+  markEffectsMaybeInvalid(producer.$effects$);
+  markEffectsMaybeInvalid((producer as ComputedSignalImpl<unknown>).$errorEffects$);
+};
+
+const markEffectsMaybeInvalid = (effects: Set<EffectSubscription> | undefined) => {
+  if (effects) {
+    for (const effect of effects) {
+      const consumer = effect.consumer;
+      if (!(consumer instanceof SignalImpl)) {
+        continue;
+      }
+      if (!(consumer instanceof ComputedSignalImpl)) {
+        // Wrapped signals recompute on read, so only flag computeds behind them
+        markConsumersMaybeInvalid(consumer as WrappedSignalImpl<unknown>);
+      } else if (!(consumer.$flags$ & AsyncSignalFlags.ASYNC_MODE)) {
+        markMaybeInvalid(consumer);
+      }
+    }
+  }
 };
 
 /** @internal */

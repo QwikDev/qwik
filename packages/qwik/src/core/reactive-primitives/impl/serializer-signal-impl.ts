@@ -35,6 +35,9 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
   $didInitialize$: boolean = false;
 
   $computeIfNeeded$() {
+    if (this.$flags$ & ComputedSignalFlags.MAYBE_INVALID) {
+      this.$resolveMaybeInvalidSources$();
+    }
     if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
@@ -59,7 +62,7 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
     this.$didInitialize$ = true;
 
     // Needs to invalidate only after all possible Promise throws happened
-    this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    this.$flags$ &= ~(ComputedSignalFlags.INVALID | ComputedSignalFlags.MAYBE_INVALID);
 
     DEBUG && log('SerializerSignal.$compute$', untrackedValue);
     // We allow forcing the update of the signal without changing the value, for example when the deserialized value is the same reference as the old value but its internals have changed. In that case we want to trigger effects that depend on this signal, even though the value is the same.

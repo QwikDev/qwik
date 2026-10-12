@@ -198,7 +198,7 @@ type Op =
       )[];
       id: Seed;
       lifetime: LifetimeId;
-      blockingSuspense: boolean;
+      blockingPending: boolean;
     }
   | {
       op: 'branch';

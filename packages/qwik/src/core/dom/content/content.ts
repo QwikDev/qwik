@@ -28,7 +28,7 @@ import {
   type Owner,
 } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
-import { registerSuspenseBoundary } from './suspense-boundary';
+import { registerPendingBoundary } from './pending-boundary';
 import { handleRenderError } from './catch-boundary';
 import {
   SubscriberKind,
@@ -54,7 +54,7 @@ export type ContentFn<TArgs extends unknown[] = unknown[]> = (
 export type SsrContentFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => ValueOrPromise<SsrOutput>;
-type SuspenseContentFn = (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
+type PendingContentFn = (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
 
 /** @public */
 export interface PendingProps {
@@ -182,8 +182,8 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
         ownerHost: subscription.owner,
         container: this.container,
       });
-      if (subscription instanceof SuspenseContentSubscription) {
-        registerSuspenseBoundary(getOrCreateContextOwner(invokeContext)!, subscription);
+      if (subscription instanceof PendingContentSubscription) {
+        registerPendingBoundary(getOrCreateContextOwner(invokeContext)!, subscription);
       }
       subscription.registerRenderBoundary(invokeContext);
       const generation = ++this.generation;
@@ -294,7 +294,7 @@ export class ContentSubscription<TArgs extends unknown[] = unknown[]> implements
   }
 }
 
-export class SuspenseContentSubscription<
+export class PendingContentSubscription<
   TArgs extends unknown[] = unknown[],
 > extends ContentSubscription<TArgs> {
   pendingWork: Promise<unknown>[] | null = null;
@@ -326,15 +326,15 @@ export function createContentBlock<TArgs extends unknown[]>(
   return registerSubscriberToOwner(new ContentSubscription(block, ctx.scheduler));
 }
 
-export function createSuspense(
+export function createPending(
   ctx: ContainerContext,
   range: BranchRange,
-  contentQrl: QRL<SuspenseContentFn>,
-  fallbackQrl?: QRL<SuspenseContentFn>,
+  contentQrl: QRL<PendingContentFn>,
+  fallbackQrl?: QRL<PendingContentFn>,
   delay = 0,
   group?: RevealGroup,
   index = 0
-): SuspenseContentSubscription<[]> {
+): PendingContentSubscription<[]> {
   const block = new ContentBlock(
     ctx.document,
     range.start,
@@ -347,18 +347,18 @@ export function createSuspense(
     true
   );
   const subscription = registerSubscriberToOwner(
-    new SuspenseContentSubscription(block, ctx.scheduler)
+    new PendingContentSubscription(block, ctx.scheduler)
   );
-  attachSuspense(ctx, range, subscription, subscription.run(), fallbackQrl, delay, group, index);
+  attachPending(ctx, range, subscription, subscription.run(), fallbackQrl, delay, group, index);
   return subscription;
 }
 
-export function attachSuspense(
+export function attachPending(
   ctx: ContainerContext,
   range: BranchRange,
-  subscription: SuspenseContentSubscription,
+  subscription: PendingContentSubscription,
   content: ValueOrPromise<readonly Node[]>,
-  fallbackQrl?: QRL<SuspenseContentFn>,
+  fallbackQrl?: QRL<PendingContentFn>,
   delay = 0,
   group?: RevealGroup,
   index = 0
@@ -493,7 +493,7 @@ export function attachSuspense(
 
   if (!isPromise(content)) {
     if (subscription.block.currentOwner !== null) {
-      registerSuspenseBoundary(subscription.block.currentOwner, subscription);
+      registerPendingBoundary(subscription.block.currentOwner, subscription);
     }
     return;
   }
@@ -508,7 +508,7 @@ export function attachSuspense(
       finish();
       holdForReveal(nodes);
       if (subscription.block.currentOwner !== null) {
-        registerSuspenseBoundary(subscription.block.currentOwner, subscription);
+        registerPendingBoundary(subscription.block.currentOwner, subscription);
       }
     },
     (error) => {
@@ -608,7 +608,7 @@ export class SSRContentSubscription<
   }
 }
 
-export class SSRSuspenseContentSubscription extends SSRContentSubscription<[]> {
+export class SSRPendingContentSubscription extends SSRContentSubscription<[]> {
   constructor(
     content: SSRContent<[]>,
     readonly fallbackQrl: unknown,
@@ -639,4 +639,4 @@ export function renderSsrContent<TArgs extends unknown[]>(
 }
 
 isServer && brandClass(SSRContentSubscription, Brand.SsrContentSubscription);
-isServer && brandClass(SSRSuspenseContentSubscription, Brand.SsrSuspenseContentSubscription);
+isServer && brandClass(SSRPendingContentSubscription, Brand.SsrPendingContentSubscription);

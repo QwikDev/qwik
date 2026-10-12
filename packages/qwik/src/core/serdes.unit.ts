@@ -74,7 +74,7 @@ import {
 
 const subscriberTypes = [
   TypeIds.EffectSubscription,
-  TypeIds.SuspenseSubscription,
+  TypeIds.PendingSubscription,
   TypeIds.Task,
   TypeIds.ComputedSignal,
   TypeIds.AsyncSignal,

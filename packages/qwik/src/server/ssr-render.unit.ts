@@ -17,7 +17,7 @@ import {
   useSignal,
   useOnDocument,
   renderSsrDynamicContent,
-  createSsrSuspense,
+  createSsrPending,
   createSsrCatch,
   createRevealGroup,
   _await,
@@ -763,7 +763,7 @@ describe('SSR context markers', () => {
     const fallback = vi.fn(() => '<p>fallback</p>');
 
     const result = await renderToString((_props, ctx) =>
-      createSsrSuspense(
+      createSsrPending(
         ctx,
         ctx.nextId(),
         createQRL('', 'content', () => '<p>content</p>', null, null),
@@ -787,7 +787,7 @@ describe('SSR context markers', () => {
       ((_props: undefined, ctx: Parameters<SsrRenderRoot>[1]) => {
         const group = createRevealGroup('sequential', true, 2);
         return [
-          createSsrSuspense(
+          createSsrPending(
             ctx,
             ctx.nextId(),
             createQRL('', 'content1', () => first, null, null),
@@ -796,7 +796,7 @@ describe('SSR context markers', () => {
             group,
             0
           ),
-          createSsrSuspense(
+          createSsrPending(
             ctx,
             ctx.nextId(),
             createQRL('', 'content2', () => second, null, null),
@@ -845,7 +845,7 @@ describe('SSR context markers', () => {
 
     const rendering = renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL('', 'content', () => content, null, null),
@@ -892,7 +892,7 @@ describe('SSR context markers', () => {
 
     const rendering = renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL(
@@ -939,7 +939,7 @@ describe('SSR context markers', () => {
 
     const rendering = renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL(
@@ -983,7 +983,7 @@ describe('SSR context markers', () => {
 
     const rendering = renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL(
@@ -1042,7 +1042,7 @@ describe('SSR context markers', () => {
 
     const rendering = renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL(
@@ -1110,7 +1110,7 @@ describe('SSR context markers', () => {
             createSsrNodeId(targetId),
             value === null ? '">' : `" title="${value}">`
           ),
-          createSsrSuspense(
+          createSsrPending(
             ctx,
             ctx.nextId(),
             createQRL('', 'content', () => content, null, null),
@@ -1152,7 +1152,7 @@ describe('SSR context markers', () => {
         );
         return [
           createSsrOpenTag('<input q:id="', createSsrNodeId(targetId), '">'),
-          createSsrSuspense(
+          createSsrPending(
             ctx,
             ctx.nextId(),
             createQRL('', 'content', () => content, null, null),
@@ -1191,7 +1191,7 @@ describe('SSR context markers', () => {
 
     const rendering = renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL(
@@ -1242,7 +1242,7 @@ describe('SSR context markers', () => {
       (_props, ctx) => {
         const count = useSignal(0);
         ctx.addRoot(count);
-        return createSsrSuspense(
+        return createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL(
@@ -1296,13 +1296,13 @@ describe('SSR context markers', () => {
 
     const rendering = renderToStream(
       (_props, ctx) => [
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL('', 'first', () => first, null, null),
           createQRL('', 'firstFallback', () => 'first fallback', null, null)
         ) as SsrOutput,
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL('', 'second', () => second, null, null),
@@ -1338,7 +1338,7 @@ describe('SSR context markers', () => {
     const chunks: string[] = [];
     const rendering = renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL('', 'content', () => content, null, null),
@@ -1359,7 +1359,7 @@ describe('SSR context markers', () => {
   test('renders final content without OOOS protocol for strings', async () => {
     const fallback = vi.fn(() => 'fallback');
     const result = await renderToString((_props, ctx) =>
-      createSsrSuspense(
+      createSsrPending(
         ctx,
         ctx.nextId(),
         createQRL('', 'content', () => Promise.resolve('content'), null, null),
@@ -1378,7 +1378,7 @@ describe('SSR context markers', () => {
 
     await renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx.inOrder(),
           ctx.nextId(),
           createQRL('', 'content', () => Promise.resolve('content'), null, null),
@@ -1401,14 +1401,14 @@ describe('SSR context markers', () => {
 
     const rendering = renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL(
             '',
             'outer',
             (contentCtx) => {
-              const child = createSsrSuspense(
+              const child = createSsrPending(
                 contentCtx,
                 contentCtx.nextId(),
                 createQRL('', 'inner', () => Promise.resolve('inner content'), null, null),
@@ -1455,7 +1455,7 @@ describe('SSR context markers', () => {
 
     const rendering = renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL('', 'content', () => content, null, null),
@@ -1536,7 +1536,7 @@ describe('SSR context markers', () => {
 
     const rendering = renderToStream(
       (_props, ctx) =>
-        createSsrSuspense(
+        createSsrPending(
           ctx,
           ctx.nextId(),
           createQRL('', 'outer', () => outer, null, null),
@@ -1545,7 +1545,7 @@ describe('SSR context markers', () => {
             'outerFallback',
             (fallbackCtx) => [
               'outer fallback',
-              createSsrSuspense(
+              createSsrPending(
                 fallbackCtx,
                 fallbackCtx.nextId(),
                 createQRL(

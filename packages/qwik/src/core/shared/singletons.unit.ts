@@ -124,7 +124,7 @@ describe('duplicate core copies', async () => {
       'SSRBranchSubscription',
       'SSRForBlockSubscription',
       'SSRContentSubscription',
-      'SSRSuspenseContentSubscription',
+      'SSRPendingContentSubscription',
     ] as const;
     for (let i = 0; i < classes.length; i++) {
       const name = classes[i];

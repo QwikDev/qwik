@@ -506,7 +506,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
     }
     const emittedEvents = hasDeferred ? new Set(serializationCtx.$eventNames$) : undefined;
     if (hasDeferred) {
-      shellTail.push(scripts.emitSuspenseRuntime(instanceHash));
+      shellTail.push(scripts.emitPendingRuntime(instanceHash));
     } else {
       shellTail.push(containerClose);
     }

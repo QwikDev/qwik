@@ -5,10 +5,10 @@ import { registerCatchBoundary } from '../../dom/content/catch-boundary';
 import type { AsyncSignalOptions } from '../../reactive/public-types';
 import { Branch, BranchRange, BranchSubscription } from '../../dom/branch/branch';
 import {
-  attachSuspense,
+  attachPending,
   ContentBlock,
   ContentSubscription,
-  SuspenseContentSubscription,
+  PendingContentSubscription,
   type ContentOutput,
 } from '../../dom/content/content';
 import { ForBlock, ForRange, IndexMode } from '../../dom/for/for';
@@ -180,7 +180,7 @@ const isSafeObjectKV = (key: unknown, value: unknown): key is string | number =>
 
 const ownedTypes = new Set([
   TypeIds.EffectSubscription,
-  TypeIds.SuspenseSubscription,
+  TypeIds.PendingSubscription,
   TypeIds.CatchSubscription,
   TypeIds.Task,
   TypeIds.ComputedSignal,
@@ -627,7 +627,7 @@ const inflateResolved = (
       }
       break;
     case TypeIds.EffectSubscription:
-    case TypeIds.SuspenseSubscription:
+    case TypeIds.PendingSubscription:
     case TypeIds.CatchSubscription: {
       const parts = data as unknown[];
       const kind = parts[0] as EffectKind;
@@ -844,9 +844,9 @@ async function restoreContentSubscription(
   const useOnScopes = isProjection ? null : (parts[7] as UseOnMap[] | null | undefined);
   const contextArg = isProjection || parts[8] === true;
   const catchState = subscription instanceof CatchContentSubscription ? parts[9] : undefined;
-  const suspense = (
+  const pending = (
     parts[0] === EffectKind.Projection || catchState !== undefined ? undefined : parts[9]
-  ) as [Parameters<typeof attachSuspense>[4] | null, number] | null | undefined;
+  ) as [Parameters<typeof attachPending>[4] | null, number] | null | undefined;
   const markerRange = findContainerNode(container, (root) =>
     isProjection ? findProjectionRange(root, rangeId) : findContentRange(root, rangeId)
   );
@@ -892,7 +892,7 @@ async function restoreContentSubscription(
 
   if (owner !== null) {
     subscription.block.currentOwner = owner;
-  } else if (suspense != null) {
+  } else if (pending != null) {
     subscription.block.currentOwner = createOwner(subscription.owner);
   }
   if (isProjection) {
@@ -900,19 +900,19 @@ async function restoreContentSubscription(
     block.host = subscription.owner;
     block.setRenderOwner(readOwner(parts[6]));
   }
-  if (suspense != null) {
-    if (!(subscription instanceof SuspenseContentSubscription)) {
+  if (pending != null) {
+    if (!(subscription instanceof PendingContentSubscription)) {
       throw new Error('Suspense data requires a suspense subscription.');
     }
-    attachSuspense(
+    attachPending(
       container,
       new BranchRange(container.document, markerRange[0], markerRange[1]),
       subscription,
       EMPTY_NODES,
-      suspense[0] ?? undefined,
-      suspense[1]
+      pending[0] ?? undefined,
+      pending[1]
     );
-  } else if (subscription instanceof SuspenseContentSubscription) {
+  } else if (subscription instanceof PendingContentSubscription) {
     throw new Error('Suspense subscription requires suspense data.');
   }
 }
@@ -1045,7 +1045,7 @@ function restoreContentBoundary(
     (boundary) => {
       if (
         boundaryId !== undefined &&
-        !(boundary instanceof SuspenseContentSubscription) &&
+        !(boundary instanceof PendingContentSubscription) &&
         !(boundary instanceof CatchContentSubscription)
       ) {
         throw new Error('Content owner requires a boundary subscription.');

@@ -28,7 +28,7 @@ import {
   type SsrContentFn,
 } from './content';
 import { registerCatchBoundary } from './catch-boundary';
-import type { SsrRangeHost } from './suspense-ssr';
+import type { SsrRangeHost } from './pending-ssr';
 
 /** @public */
 export interface CatchProps {

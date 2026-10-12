@@ -17,7 +17,7 @@ export default component$(() => (
 
 import {
   createRevealGroup,
-  createSsrSuspense,
+  createSsrPending,
   _noopQrl,
   createComponent,
   _markComponent,
@@ -26,7 +26,7 @@ import { Slow } from './slow';
 const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   const id0 = ctx.nextId();
   const content0 = ctx.observeError(
-    createSsrSuspense(
+    createSsrPending(
       ctx,
       id0,
       q_component_suspense_content_segment_3_oznypvg8wygo,
@@ -75,7 +75,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const id0 = ctx.nextId();
     const reveal0 = createRevealGroup('together', undefined, 1);
     const content0 = ctx.observeError(
-      createSsrSuspense(
+      createSsrPending(
         ctx,
         id0,
         q_component_suspense_content_segment_1_oznzhxo2l2hq,
@@ -118,7 +118,7 @@ export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
 */
 ============================= src/component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq.js (ENTRY POINT)==
 
-import { _noopQrl, createSsrSuspense } from '@qwik.dev/core';
+import { _noopQrl, createSsrPending } from '@qwik.dev/core';
 import { component_suspense_content_segment_3_oznypvg8wygo } from './component.tsx_component_suspense_content_segment_3_oznypvg8wygo';
 import { component_suspense_fallback_segment_2_1i2rrxydec1vq } from './component.tsx_component_suspense_fallback_segment_2_1i2rrxydec1vq';
 const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _noopQrl(
@@ -137,7 +137,7 @@ q_component_suspense_fallback_segment_2_1i2rrxydec1vq.s(
 export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   const id0 = ctx.nextId();
   const content0 = ctx.observeError(
-    createSsrSuspense(
+    createSsrPending(
       ctx,
       id0,
       q_component_suspense_content_segment_3_oznypvg8wygo,

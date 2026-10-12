@@ -162,7 +162,7 @@ export function lowerComponentOp(
       : {}),
     id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
     lifetime: 0,
-    blockingSuspense: false,
+    blockingPending: false,
   };
 }
 

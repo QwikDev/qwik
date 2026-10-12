@@ -265,9 +265,9 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
       [
         SegmentContext.DynamicSlot,
         SegmentContext.DynamicTag,
-        SegmentContext.SuspenseContent,
+        SegmentContext.PendingContent,
         SegmentContext.CatchContent,
-        SegmentContext.SuspenseFallback,
+        SegmentContext.PendingFallback,
         'jsx-value',
       ].includes(qrl.boundary.role)
     ) {

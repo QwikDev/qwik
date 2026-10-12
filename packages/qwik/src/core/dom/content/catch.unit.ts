@@ -11,7 +11,7 @@ import { BranchRange } from '../branch/branch';
 import { createTextNodeEffect } from '../effect/text-effect';
 import { createCatch, createSsrCatch, CatchContentSubscription } from './catch';
 import type { ContentFn } from './content';
-import type { SsrRangeScope } from './suspense-ssr';
+import type { SsrRangeScope } from './pending-ssr';
 import { allocate } from '../../shared/serdes/allocate';
 import { inflate } from '../../shared/serdes/inflate';
 import { TypeIds } from '../../shared/serdes/type-id';

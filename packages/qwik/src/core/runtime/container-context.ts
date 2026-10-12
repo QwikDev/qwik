@@ -296,7 +296,7 @@ async function loadStateRoot(context: ContainerContext, id: number): Promise<unk
     // An uninflated subscriber cannot run its cleanup.
     if (
       type === TypeIds.EffectSubscription ||
-      type === TypeIds.SuspenseSubscription ||
+      type === TypeIds.PendingSubscription ||
       type === TypeIds.CatchSubscription ||
       type === TypeIds.Task ||
       type === TypeIds.ComputedSignal ||

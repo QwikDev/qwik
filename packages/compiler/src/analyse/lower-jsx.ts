@@ -73,7 +73,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op[] {
       case 'Catch':
         return [lowerCatch(element, attributes, ctx)];
       case 'Pending':
-        return [lowerSuspense(element, attributes, ctx)];
+        return [lowerPending(element, attributes, ctx)];
       case 'Reveal':
         return lowerReveal(element, attributes, ctx);
       case 'Slot':
@@ -304,7 +304,7 @@ function lowerCatch(
  * `<Pending fallback$={() => <F />} delay={n}>…</Pending>`: the marker is erased; children and the
  * fallback body each become a range program the runtime races (MULTI_HEAD_SSR.md).
  */
-function lowerSuspense(
+function lowerPending(
   element: JSXElement,
   attributes: readonly JSXAttributeItem[],
   ctx: LowerContext
@@ -334,8 +334,8 @@ function lowerSuspense(
         [fallbackBody],
         ctx,
         'a suspense fallback',
-        SegmentContext.SuspenseFallback,
-        LifetimeOwner.Suspense,
+        SegmentContext.PendingFallback,
+        LifetimeOwner.Pending,
         () => lowerRenderExpression(fallbackBody, ctx)
       ).use;
       continue;
@@ -368,12 +368,12 @@ function lowerSuspense(
     [...children],
     ctx,
     'a suspense boundary',
-    SegmentContext.SuspenseContent,
-    LifetimeOwner.Suspense,
+    SegmentContext.PendingContent,
+    LifetimeOwner.Pending,
     () => lowerJsxChildren(children, ctx)
   );
-  const op: Extract<Op, { op: OpKind.Suspense }> = {
-    op: OpKind.Suspense,
+  const op: Extract<Op, { op: OpKind.Pending }> = {
+    op: OpKind.Pending,
     content: use,
     contentId: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
     fallback,

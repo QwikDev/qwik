@@ -608,9 +608,9 @@ than reimplementing each hook.
 - [ ] Thrown-promise retry without duplicate initialization or projection.
 - [~] Lower `<Suspense>` and `<Reveal>` markers to existing runtime mechanisms. Suspense is done:
   recognized by binding identity, the marker erased, children and the `fallback$` body each a
-  range program, `delay` an inline value, emitted as `createSsrSuspense` / `createSuspense` with
+  range program, `delay` an inline value, emitted as `createSsrPending` / `createPending` with
   both chunks imported statically on the client so the fallback shows synchronously
-  (`suspense-boundary` snapshots, `task.spec.tsx` "renders fallback while initial task work is
+  (`pending-boundary` snapshots, `task.spec.tsx` "renders fallback while initial task work is
   pending" in CSR). Reveal groups follow with ErrorBoundary (cutover plan step 11).
 - [ ] Fallback QRLs, delay, nested boundaries and preservation of previous content.
 - [ ] `ErrorBoundary` with `fallback$` and `useErrorBoundary`: a throw or a rejected promise in a
@@ -714,7 +714,7 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   the schema); `linked-build.ts` and `test-resume.ts` import them by name; the legacy-import eslint
   guard is retired with the tree it guarded. Verification: compiler and vite suites unchanged,
   corpus in CSR and resume green after the rebuild, `tsc.check` clean.
-- 2026-09-17: Cutover plan step 3, the Suspense port (group 13 above). `lowerSuspense` in
+- 2026-09-17: Cutover plan step 3, the Suspense port (group 13 above). `lowerPending` in
   `lower-jsx.ts` shares `lowerRangeProgram` with content ranges; the op carries QRL uses like
   `Content` does. A root Suspense returns the fragment's children like a collection, since the
   fallback is placed before the root mounts. The `imports/hoists without a component` error now

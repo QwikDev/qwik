@@ -50,7 +50,7 @@ export const enum OpKind {
   Each = 'each',
   Slot = 'slot',
   Content = 'content',
-  Suspense = 'suspense',
+  Pending = 'suspense',
   Catch = 'catch',
 }
 
@@ -152,7 +152,7 @@ export type Op =
       dynamicSlot?: QrlUse;
       id: Seed;
       lifetime: LifetimeId;
-      blockingSuspense: boolean;
+      blockingPending: boolean;
     }
   | {
       op: OpKind.Branch;
@@ -194,7 +194,7 @@ export type Op =
       lifetime: LifetimeId;
     }
   | {
-      op: OpKind.Suspense;
+      op: OpKind.Pending;
       content: QrlUse;
       contentId: Seed;
       /** A Program-bodied QRL rendering the `fallback$` body, or none. */

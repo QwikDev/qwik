@@ -275,7 +275,7 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
         visitQrlUse(entry.content);
         visitQrlUse(entry.fallback);
         break;
-      case OpKind.Suspense:
+      case OpKind.Pending:
         visitQrlUse(entry.content);
         if (entry.fallback !== null) {
           visitQrlUse(entry.fallback);

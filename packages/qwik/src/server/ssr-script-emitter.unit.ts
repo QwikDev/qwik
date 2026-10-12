@@ -123,7 +123,7 @@ describe('SsrScriptEmitter', () => {
     expect(packet[3]).toBe(
       '<script nonce="packet">window._qwikS(document.currentScript,7,8,9)</script>'
     );
-    const runtime = emitter.emitSuspenseRuntime('abc123');
+    const runtime = emitter.emitPendingRuntime('abc123');
     expect(runtime).toContain('<script nonce="packet">');
     expect(runtime).toContain("v==='d='+i");
     expect(runtime).toContain('prepareRoot(u)');
@@ -156,7 +156,7 @@ describe('SsrScriptEmitter', () => {
       prepareRoot: async () => void calls.push('prepare'),
     };
     const window = { _qwikEv: [] as unknown[] } as any;
-    const runtime = emitter.emitSuspenseRuntime('instance');
+    const runtime = emitter.emitPendingRuntime('instance');
     Function('window', 'document', readScriptBody(runtime))(window, document);
 
     window._qwikS(document.querySelector('#packet'), 7, 8, 9);
@@ -254,7 +254,7 @@ describe('SsrScriptEmitter', () => {
     Function(
       'window',
       'document',
-      readScriptBody(emitter.emitSuspenseRuntime('instance'))
+      readScriptBody(emitter.emitPendingRuntime('instance'))
     )(window, document);
     window._qwikS(document.querySelector('#packet'), 7, 1, -1);
     Object.defineProperty(document, 'currentScript', { value: executor });

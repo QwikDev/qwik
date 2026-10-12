@@ -3,8 +3,8 @@ import { isPromise, maybeThen } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { getActiveInvokeContextOrNull, invoke } from '../../runtime/invoke-context';
 import { resolveSsrOutput, type SsrDeferredRange, type SsrOutput } from '../../ssr/output';
-import { renderSsrContent, SSRContent, SSRSuspenseContentSubscription } from './content';
-import { registerSuspenseBoundary } from './suspense-boundary';
+import { renderSsrContent, SSRContent, SSRPendingContentSubscription } from './content';
+import { registerPendingBoundary } from './pending-boundary';
 import type { RevealGroup } from './reveal';
 
 /**
@@ -32,23 +32,23 @@ export interface SsrRangeScope extends SsrRangeHost {
   cancel?(): void;
 }
 
-type SsrSuspenseRenderFn = (host: SsrRangeHost) => ValueOrPromise<SsrOutput>;
+type SsrPendingRenderFn = (host: SsrRangeHost) => ValueOrPromise<SsrOutput>;
 
 /**
  * Renders a Suspense boundary on the server: the content takes its own lane, and if it has not
  * settled by `delay` the fallback streams in its place until a later packet swaps it out.
  */
-export function createSsrSuspense(
+export function createSsrPending(
   host: SsrRangeHost,
   rangeId: number,
-  contentQrl: QRL<SsrSuspenseRenderFn>,
-  fallbackQrl?: QRL<SsrSuspenseRenderFn>,
+  contentQrl: QRL<SsrPendingRenderFn>,
+  fallbackQrl?: QRL<SsrPendingRenderFn>,
   delay = 0,
   group?: RevealGroup,
   index = 0
 ): ValueOrPromise<SsrOutput> {
   const scope = host.createRangeScope(rangeId);
-  const suspenseContent = new SSRContent<[]>(
+  const pendingContent = new SSRContent<[]>(
     rangeId,
     [],
     contentQrl as never,
@@ -57,18 +57,14 @@ export function createSsrSuspense(
     false,
     true
   );
-  const contentRoot = new SSRSuspenseContentSubscription(
-    suspenseContent,
-    fallbackQrl ?? null,
-    delay
-  );
-  const rendered = maybeThen(suspenseContent.run(undefined, contentRoot), resolveSsrOutput);
+  const contentRoot = new SSRPendingContentSubscription(pendingContent, fallbackQrl ?? null, delay);
+  const rendered = maybeThen(pendingContent.run(undefined, contentRoot), resolveSsrOutput);
   const initialTasks = scope.flush();
   const drain = (output: SsrOutput) =>
     maybeThen(scope.flush(), () => {
       const owner = contentRoot.content.currentOwner;
       if (owner !== null) {
-        registerSuspenseBoundary(owner, contentRoot);
+        registerPendingBoundary(owner, contentRoot);
       }
       return output;
     });

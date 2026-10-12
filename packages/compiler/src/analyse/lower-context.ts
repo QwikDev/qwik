@@ -15,7 +15,7 @@ export interface RevealScope {
   group: number;
   order: Value | null;
   collapsed: Value | null;
-  boundaries: Extract<Op, { op: OpKind.Suspense }>[];
+  boundaries: Extract<Op, { op: OpKind.Pending }>[];
 }
 
 /** Module-wide lowering state: segment ordinals are authored-order across all components. */

@@ -248,7 +248,7 @@ export function linkRenderResults(
         visitQrl(module, op.content.qrl);
         visitQrl(module, op.fallback.qrl);
         break;
-      case OpKind.Suspense:
+      case OpKind.Pending:
         visitQrl(module, op.content.qrl);
         if (op.fallback !== null) {
           visitQrl(module, op.fallback.qrl);

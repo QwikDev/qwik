@@ -20,7 +20,7 @@ import {
   _next,
   createTemplate,
   BranchRange,
-  createSuspense,
+  createPending,
   createRevealGroup,
 } from '@qwik.dev/core';
 import { component_suspense_content_segment_1_oznzhxo2l2hq } from './component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq';
@@ -33,7 +33,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const start0 = _first(fragment0);
   const end0 = _next(start0);
   const reveal0 = createRevealGroup('together', undefined, 1);
-  createSuspense(
+  createPending(
     ctx,
     new BranchRange(ctx.document, start0, end0),
     component_suspense_content_segment_1_oznzhxo2l2hq,
@@ -77,7 +77,7 @@ export const component_suspense_fallback_segment_0_1i2rr5w5knxuo = (ctx) => {
 */
 ============================= src/component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq.js (ENTRY POINT)==
 
-import { _first, _next, createTemplate, BranchRange, createSuspense } from '@qwik.dev/core';
+import { _first, _next, createTemplate, BranchRange, createPending } from '@qwik.dev/core';
 import { component_suspense_content_segment_3_oznypvg8wygo } from './component.tsx_component_suspense_content_segment_3_oznypvg8wygo';
 import { component_suspense_fallback_segment_2_1i2rrxydec1vq } from './component.tsx_component_suspense_fallback_segment_2_1i2rrxydec1vq';
 const component_suspense_content_segment_1_oznzhxo2l2hq_tmpl0 = createTemplate('<!><!>');
@@ -86,7 +86,7 @@ export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   const fragment0 = component_suspense_content_segment_1_oznzhxo2l2hq_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
-  createSuspense(
+  createPending(
     ctx,
     new BranchRange(ctx.document, start0, end0),
     component_suspense_content_segment_3_oznypvg8wygo,

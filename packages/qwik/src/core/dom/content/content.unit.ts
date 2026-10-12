@@ -9,15 +9,15 @@ import { invoke, newInvokeContext } from '../../runtime/invoke-context';
 import { createOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import { useTask } from '../../runtime/task';
-import { findSuspenseBoundary } from './suspense-boundary';
+import { findPendingBoundary } from './pending-boundary';
 import { BranchRange } from '../branch/branch';
 import { createTextExpressionEffect, createTextNodeEffect } from '../effect/text-effect';
 import { toArray } from '../../test-utils';
 import {
   createContentBlock,
   createDynamicContent,
-  createSuspense,
-  SuspenseContentSubscription,
+  createPending,
+  PendingContentSubscription,
   type ContentOutput,
 } from './content';
 
@@ -215,12 +215,12 @@ describe('ContentBlock', () => {
   });
 });
 
-describe('createSuspense', () => {
+describe('createPending', () => {
   it('runs loader scans after a Pending lane commits asynchronously', async () => {
     const imported = deferred<{ child: RenderFn }>();
     const childQrl = createQRL<RenderFn>('chunk', 'child', null, () => imported.promise);
     const scans: string[] = [];
-    const { ctx, host, scheduler } = setupSuspense(
+    const { ctx, host, scheduler } = setupPending(
       renderQrl((ctx) => {
         const start = ctx!.document.createComment('child-start');
         const end = ctx!.document.createComment('child-end');
@@ -245,7 +245,7 @@ describe('createSuspense', () => {
     const source = useSignal(false);
     const siblingSource = useSignal('sibling');
     const pending = deferred<void>();
-    const { content, ctx, host, scheduler } = setupSuspense(
+    const { content, ctx, host, scheduler } = setupPending(
       renderQrl((ctx) => {
         useTask(() => (source.value ? pending.promise : undefined));
         const node = ctx!.document.createTextNode('');
@@ -282,7 +282,7 @@ describe('createSuspense', () => {
       const source = useSignal(false);
       let hasResolved = false;
       let effect!: ReturnType<typeof createTextExpressionEffect>;
-      const { ctx, document, host, scheduler } = setupSuspense(
+      const { ctx, document, host, scheduler } = setupPending(
         renderQrl((ctx) => {
           const node = ctx!.document.createTextNode('');
           effect = createTextExpressionEffect(
@@ -333,7 +333,7 @@ describe('createSuspense', () => {
     async (viaSlot) => {
       const pending = deferred<Node>();
       const projectionOwner = createOwner(null);
-      const { content, ctx, document, host, scheduler } = setupSuspense(
+      const { content, ctx, document, host, scheduler } = setupPending(
         renderQrl((ctx) => {
           const start = ctx!.document.createComment('child-start');
           const end = ctx!.document.createComment('child-end');
@@ -373,25 +373,25 @@ describe('createSuspense', () => {
   );
 
   it('finds a boundary through a projection render parent', () => {
-    const { content } = setupSuspense(renderQrl((ctx) => ctx!.document.createTextNode('ready')));
-    expect(content).toBeInstanceOf(SuspenseContentSubscription);
+    const { content } = setupPending(renderQrl((ctx) => ctx!.document.createTextNode('ready')));
+    expect(content).toBeInstanceOf(PendingContentSubscription);
     const boundaryOwner = content.block.currentOwner!;
     const lifetimeOwner = createOwner(null);
     const projectionOwner = createOwner(lifetimeOwner);
 
-    expect(findSuspenseBoundary(projectionOwner)).toBeUndefined();
+    expect(findPendingBoundary(projectionOwner)).toBeUndefined();
     projectionOwner.renderParent = boundaryOwner;
-    expect(findSuspenseBoundary(projectionOwner)).toBe(content);
+    expect(findPendingBoundary(projectionOwner)).toBe(content);
     expect(projectionOwner.parent).toBe(lifetimeOwner);
     projectionOwner.renderParent = null;
-    expect(findSuspenseBoundary(projectionOwner)).toBeUndefined();
+    expect(findPendingBoundary(projectionOwner)).toBeUndefined();
   });
 
   it('passes the container context to content and fallback renders', () => {
     const pending = deferred<Node>();
     let contentContext: ContainerContext | undefined;
     let fallbackContext: ContainerContext | undefined;
-    const { host } = setupSuspense(
+    const { host } = setupPending(
       renderQrl((ctx) => {
         contentContext = ctx;
         return pending.promise;
@@ -412,7 +412,7 @@ describe('createSuspense', () => {
       fallbackImports++;
       return Promise.resolve({ fallback: () => null });
     });
-    const { host } = setupSuspense(
+    const { host } = setupPending(
       renderQrl(() => textNode('ready')),
       fallback
     );
@@ -427,7 +427,7 @@ describe('createSuspense', () => {
     let fallbackRuns = 0;
     const fallbackNode = textNode('loading');
     const readyNode = textNode('ready');
-    const { content, host, start, end } = setupSuspense(
+    const { content, host, start, end } = setupPending(
       renderQrl(() => {
         contentRuns++;
         return pending.promise;
@@ -447,7 +447,7 @@ describe('createSuspense', () => {
 
     expect(Array.from(host.childNodes)).toEqual([start, readyNode, end]);
     expect(fallbackRuns).toBe(1);
-    expect(findSuspenseBoundary(content.block.currentOwner)).toBe(content);
+    expect(findPendingBoundary(content.block.currentOwner)).toBe(content);
   });
 
   it('skips a delayed fallback when content wins', async () => {
@@ -455,7 +455,7 @@ describe('createSuspense', () => {
     try {
       const pending = deferred<Node>();
       let fallbackRuns = 0;
-      const { host } = setupSuspense(
+      const { host } = setupPending(
         renderQrl(() => pending.promise),
         renderQrl(() => {
           fallbackRuns++;
@@ -480,7 +480,7 @@ describe('createSuspense', () => {
     try {
       const pending = deferred<Node>();
       const fallback = vi.fn(() => textNode('loading'));
-      const setup = setupSuspense(
+      const setup = setupPending(
         renderQrl(() => pending.promise),
         renderQrl(fallback),
         20
@@ -500,7 +500,7 @@ describe('createSuspense', () => {
     const pending = deferred<Node>();
     const nested = useSignal('nested');
     let effect!: ReturnType<typeof createTextNodeEffect>;
-    const { content } = setupSuspense(
+    const { content } = setupPending(
       renderQrl(() => pending.promise),
       renderQrl(() => {
         effect = createTextNodeEffect(textNode(''), nested);
@@ -521,7 +521,7 @@ describe('createSuspense', () => {
     const pending = deferred<Node>();
     const nested = useSignal('nested');
     let effect!: ReturnType<typeof createTextNodeEffect>;
-    const setup = setupSuspense(
+    const setup = setupPending(
       renderQrl(() => pending.promise),
       renderQrl(() => {
         effect = createTextNodeEffect(textNode(''), nested);
@@ -541,7 +541,7 @@ describe('createSuspense', () => {
     const fallback = deferred<Node>();
     const nested = useSignal('nested');
     let effect!: ReturnType<typeof createTextNodeEffect>;
-    const setup = setupSuspense(
+    const setup = setupPending(
       renderQrl(() => content.promise),
       renderQrl(() => {
         effect = createTextNodeEffect(textNode(''), nested);
@@ -560,7 +560,7 @@ describe('createSuspense', () => {
     const fallback = deferred<Node>();
     const nested = useSignal('nested');
     let effect!: ReturnType<typeof createTextNodeEffect>;
-    const setup = setupSuspense(
+    const setup = setupPending(
       renderQrl(() => content.promise),
       renderQrl(() => {
         effect = createTextNodeEffect(textNode(''), nested);
@@ -580,7 +580,7 @@ describe('createSuspense', () => {
 
   it('disposes rejected content and rethrows through the scheduler', async () => {
     const pending = deferred<Node>();
-    const { content, host, start, end, scheduler } = setupSuspense(
+    const { content, host, start, end, scheduler } = setupPending(
       renderQrl(() => pending.promise),
       renderQrl(() => textNode('loading'))
     );
@@ -600,7 +600,7 @@ describe('createSuspense', () => {
     const initial = deferred<Node>();
     const update = deferred<Node>();
     let fallbackRuns = 0;
-    const setup = setupSuspense(
+    const setup = setupPending(
       renderQrl(() => (source.value === 0 ? initial.promise : update.promise)),
       renderQrl(() => {
         fallbackRuns++;
@@ -666,7 +666,7 @@ function textNode(value: string): Text {
   return createDocument().createTextNode(value);
 }
 
-function setupSuspense(contentQrl: QRL<RenderFn>, fallbackQrl?: QRL<RenderFn>, delay = 0) {
+function setupPending(contentQrl: QRL<RenderFn>, fallbackQrl?: QRL<RenderFn>, delay = 0) {
   const document = createDocument({ html: '<div></div>' });
   const host = document.querySelector('div')!;
   const start = document.createComment('start');
@@ -677,7 +677,7 @@ function setupSuspense(contentQrl: QRL<RenderFn>, fallbackQrl?: QRL<RenderFn>, d
   const ctx = createContainerContext(host, scheduler);
   const context = newInvokeContext({ owner: createOwner(null), container: ctx });
   const content = invoke(context, () =>
-    createSuspense(ctx, new BranchRange(document, start, end), contentQrl, fallbackQrl, delay)
+    createPending(ctx, new BranchRange(document, start, end), contentQrl, fallbackQrl, delay)
   );
   return { content, ctx, document, host, start, end, scheduler };
 }

@@ -650,8 +650,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Catch:
         this.catchBoundary(pass, op, parts);
         return;
-      case OpKind.Suspense:
-        this.suspense(pass, op, parts);
+      case OpKind.Pending:
+        this.pending(pass, op, parts);
         return;
       case OpKind.Branch:
         this.branch(pass, op, parts);
@@ -851,8 +851,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           this.catchBoundary(pass, child, children);
           break;
         }
-        case OpKind.Suspense: {
-          this.suspense(pass, child, children);
+        case OpKind.Pending: {
+          this.pending(pass, child, children);
           break;
         }
         default: {
@@ -1038,9 +1038,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** The runtime races content against the fallback on its own lane and wraps the range itself. */
-  private suspense(
+  private pending(
     pass: RenderPass,
-    op: Extract<LinkedOp, { op: OpKind.Suspense }>,
+    op: Extract<LinkedOp, { op: OpKind.Pending }>,
     parts: string[]
   ): void {
     const id = pass.next(QwikGenWord.Id);
@@ -1050,7 +1050,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const delay = op.delay === null ? '0' : inlineValueJs(this.module, op.delay);
     const reveal = revealArgsJs(this.module, op.reveal, pass, this.imports);
     const step = pass.next(QwikGenWord.Content);
-    this.imports.add(QwikWord.CreateSsrSuspense);
+    this.imports.add(QwikWord.CreateSsrPending);
     this.pushStep(
       pass,
       step,
@@ -1058,7 +1058,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         ...rootArgs(content.qrl, content.args),
         ...(fallback === null ? [] : rootArgs(fallback.qrl, fallback.args)),
       ],
-      `${QwikWord.CreateSsrSuspense}(${pass.names.ctx}, ${id}, ${content.ref}, ${fallback === null ? 'undefined' : fallback.ref}, ${delay}${reveal})`,
+      `${QwikWord.CreateSsrPending}(${pass.names.ctx}, ${id}, ${content.ref}, ${fallback === null ? 'undefined' : fallback.ref}, ${delay}${reveal})`,
       [],
       true
     );

@@ -6,7 +6,7 @@ describe('_dumpState', () => {
   it('names every wire type id', () => {
     // A TypeIds member without a name dumps as `Unknown(n)` and rots every state snapshot.
     expect(_typeIdNames.length).toBe(TypeIds.CatchSubscription + 1);
-    expect(_typeIdNames[TypeIds.SuspenseSubscription]).toBe('SuspenseSubscription');
+    expect(_typeIdNames[TypeIds.PendingSubscription]).toBe('PendingSubscription');
     expect(_typeIdNames[TypeIds.CatchSubscription]).toBe('CatchSubscription');
   });
 

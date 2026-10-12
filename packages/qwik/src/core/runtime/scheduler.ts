@@ -1,6 +1,6 @@
 import { cleanupDeps } from '../reactive/cleanup';
-import { SuspenseContentSubscription } from '../dom/content/content';
-import { findSuspenseBoundary } from '../dom/content/suspense-boundary';
+import { PendingContentSubscription } from '../dom/content/content';
+import { findPendingBoundary } from '../dom/content/pending-boundary';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
 import { logError } from '../shared/utils/log';
 import { isPromise, maybeThen } from '../shared/utils/promises';
@@ -158,8 +158,8 @@ export class Scheduler {
       };
       pendingValue.then(finish, finish);
     }
-    const boundary = findSuspenseBoundary(scope);
-    if (boundary instanceof SuspenseContentSubscription) {
+    const boundary = findPendingBoundary(scope);
+    if (boundary instanceof PendingContentSubscription) {
       boundary.suspend(pendingValue);
       return;
     }
@@ -243,20 +243,20 @@ export class Scheduler {
         try {
           const pending = this.flushOwner(owner);
           if (isPromise(pending)) {
-            const boundary = findSuspenseBoundary(owner);
+            const boundary = findPendingBoundary(owner);
             const finished = pending.then(
               () => {
                 this.finishOwner(owner);
               },
               (error) => {
                 this.finishOwner(owner);
-                if (boundary instanceof SuspenseContentSubscription) {
+                if (boundary instanceof PendingContentSubscription) {
                   throw error;
                 }
                 logError(error);
               }
             );
-            if (boundary instanceof SuspenseContentSubscription) {
+            if (boundary instanceof PendingContentSubscription) {
               // Blocking tasks retain content until DOM actually suspends.
               boundary.suspend(finished, false);
               finished.then(
@@ -536,8 +536,8 @@ export class Scheduler {
   }
 
   private suspendDomWork(owner: Owner | null, pending: Promise<unknown>): void {
-    const boundary = findSuspenseBoundary(owner);
-    if (boundary instanceof SuspenseContentSubscription) {
+    const boundary = findPendingBoundary(owner);
+    if (boundary instanceof PendingContentSubscription) {
       boundary.suspend(pending);
     }
   }

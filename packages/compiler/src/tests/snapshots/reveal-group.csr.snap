@@ -31,7 +31,7 @@ import {
   _last,
   _prev,
   BranchRange,
-  createSuspense,
+  createPending,
   createRevealGroup,
   _createElementTemplate,
 } from '@qwik.dev/core';
@@ -49,7 +49,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const start0 = _first(el0);
   const end0 = _next(start0);
   const reveal0 = createRevealGroup('sequential', true, 2);
-  createSuspense(
+  createPending(
     ctx,
     new BranchRange(ctx.document, start0, end0),
     component_suspense_content_segment_1_oznzhxo2l2hq,
@@ -60,7 +60,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   );
   const start1 = _first(_next(_next(_first(el0))));
   const end1 = _next(start1);
-  createSuspense(
+  createPending(
     ctx,
     new BranchRange(ctx.document, start1, end1),
     component_suspense_content_segment_3_oznypvg8wygo,
@@ -72,7 +72,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const start2 = _prev(_last(el0));
   const end2 = _next(start2);
   const reveal1 = createRevealGroup(undefined, undefined, 1);
-  createSuspense(
+  createPending(
     ctx,
     new BranchRange(ctx.document, start2, end2),
     component_suspense_content_segment_5_ozo1223pxaju,

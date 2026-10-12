@@ -263,7 +263,7 @@ export const enum LifetimeOwner {
   DynamicValue = 'dynamic-value',
   ComponentCall = 'component-call',
   Branch = 'branch',
-  Suspense = 'suspense',
+  Pending = 'suspense',
   Catch = 'catch',
   Slot = 'slot',
   Collection = 'collection',

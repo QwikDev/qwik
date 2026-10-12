@@ -78,7 +78,7 @@ snapshots byte-unchanged, `source-maps.unit.ts`, `schema.unit.ts`.
 
 Recognize `Suspense` by binding identity like `Slot`, erase the marker, children → content
 `Program`, `fallback$` → an ordinary render QRL, `delay` → `Value`, into the existing
-`OpKind.Suspense`; both generators emit `createSuspense` / `createSsrSuspense` as the legacy
+`OpKind.Pending`; both generators emit `createPending` / `createSsrPending` as the legacy
 generators did. No Suspense-specific QRL role, no host element. Gate: the known Suspense red in
 `task.spec.tsx` goes green; the 16 suspense e2e tests stay green. This step precedes the flip so
 `suspense.tsx` compiles under step 1's diagnostics.

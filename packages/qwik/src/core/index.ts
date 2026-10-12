@@ -354,18 +354,14 @@ export {
   Pending,
   createContentBlock,
   createDynamicContent,
-  createSuspense,
+  createPending,
   escapeSsrContent,
   renderSsrDynamicContent,
   renderSsrContent,
   type PendingProps,
 } from './dom/content/content';
 export { Catch, createCatch, createSsrCatch, type CatchProps } from './dom/content/catch';
-export {
-  createSsrSuspense,
-  type SsrRangeHost,
-  type SsrRangeScope,
-} from './dom/content/suspense-ssr';
+export { createSsrPending, type SsrRangeHost, type SsrRangeScope } from './dom/content/pending-ssr';
 export {
   Reveal,
   RevealGroup,

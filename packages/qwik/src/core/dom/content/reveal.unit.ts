@@ -7,7 +7,7 @@ import { invoke, newInvokeContext } from '../../runtime/invoke-context';
 import { createOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import { BranchRange } from '../branch/branch';
-import { createSuspense } from './content';
+import { createPending } from './content';
 import { createRevealGroup, type RevealOrder } from './reveal';
 
 type RenderFn = (
@@ -56,7 +56,7 @@ function mount(
   const group = createRevealGroup(order, collapsed, pendings.length);
   invoke(context, () => {
     pendings.forEach((pending, index) => {
-      createSuspense(
+      createPending(
         ctx,
         ranges[index],
         renderQrl(() => pending.promise),

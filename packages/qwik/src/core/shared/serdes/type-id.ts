@@ -50,7 +50,7 @@ export const enum TypeIds {
   StoreProp,
   Owner,
   PropSource,
-  SuspenseSubscription,
+  PendingSubscription,
   CatchSubscription,
 }
 
@@ -106,6 +106,6 @@ export const _typeIdNames = [
   'StoreProp',
   'Owner',
   'PropSource',
-  'SuspenseSubscription',
+  'PendingSubscription',
   'CatchSubscription',
 ] as const;

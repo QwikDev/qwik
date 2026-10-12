@@ -232,10 +232,10 @@ identify fallback rendering by `fallback$`, a generated symbol name, or a Suspen
 Compiler output uses the existing comment range and one thin wrapper:
 
 ```ts
-createSuspense(ctx, new BranchRange(ctx.document, start, end), contentQrl, fallbackQrl, delay);
+createPending(ctx, new BranchRange(ctx.document, start, end), contentQrl, fallbackQrl, delay);
 ```
 
-`createSuspense()` lives beside `ContentBlock`; it is not a standalone runtime subsystem. Its initial
+`createPending()` lives beside `ContentBlock`; it is not a standalone runtime subsystem. Its initial
 algorithm is:
 
 1. Create a normal `ContentBlock` from `range.start` and `range.end`.
@@ -256,10 +256,10 @@ source invalidations already notify the normal content subscription.
 Compiler output uses one readable wrapper rather than exposing request internals:
 
 ```ts
-createSsrSuspense(ctx, rangeId, contentQrl, fallbackQrl, delay);
+createSsrPending(ctx, rangeId, contentQrl, fallbackQrl, delay);
 ```
 
-`createSsrSuspense()` returns `ValueOrPromise<SsrOutput>` and delegates to a private
+`createSsrPending()` returns `ValueOrPromise<SsrOutput>` and delegates to a private
 `ctx.deferSuspense()` request callback. The request path owns the logical start/end range markers;
 generated code never calls `ctx.deferSuspense()` directly.
 

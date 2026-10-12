@@ -89,7 +89,7 @@ import {
 type TextOp = Extract<LinkedOp, { op: OpKind.Static | OpKind.Hole }>;
 type RangeOp = Extract<
   LinkedOp,
-  { op: OpKind.Branch | OpKind.Each | OpKind.Content | OpKind.Suspense | OpKind.Catch }
+  { op: OpKind.Branch | OpKind.Each | OpKind.Content | OpKind.Pending | OpKind.Catch }
 >;
 
 export async function generateJsCsr(
@@ -396,7 +396,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Each:
       case OpKind.Content:
       case OpKind.Catch:
-      case OpKind.Suspense:
+      case OpKind.Pending:
         return this.rangeRoot(op, ownerName, statements, pass);
       default:
         throw new Error(`pipeline.generateJsCsr: op "${(op as LinkedOp).op}" not implemented yet`);
@@ -601,7 +601,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         case OpKind.Each:
         case OpKind.Content:
         case OpKind.Catch:
-        case OpKind.Suspense: {
+        case OpKind.Pending: {
           const { start, end } = this.locateRange(path, statements, pass);
           this.mountRange(child, start, end, statements, pass);
           break;
@@ -705,7 +705,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const { fragment, start, end } = this.createRangeRoot(ownerName, statements, pass);
     this.mountRange(op, start, end, statements, pass);
     // Rows and a fallback are already between the comments before the root mounts.
-    return op.op === OpKind.Each || op.op === OpKind.Suspense || op.op === OpKind.Catch
+    return op.op === OpKind.Each || op.op === OpKind.Pending || op.op === OpKind.Catch
       ? `[...${fragment}.childNodes]`
       : `[${start}, ${end}]`;
   }
@@ -726,8 +726,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.createContentBlock(op, start, end, statements, pass);
       case OpKind.Catch:
         return this.createCatchBlock(op, start, end, statements, pass);
-      case OpKind.Suspense:
-        return this.createSuspenseBlock(op, start, end, statements, pass);
+      case OpKind.Pending:
+        return this.createPendingBlock(op, start, end, statements, pass);
     }
   }
 
@@ -748,15 +748,15 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** Content and fallback are lazy render chunks; the runtime races them inside the range. */
-  private createSuspenseBlock(
-    op: Extract<RangeOp, { op: OpKind.Suspense }>,
+  private createPendingBlock(
+    op: Extract<RangeOp, { op: OpKind.Pending }>,
     start: string,
     end: string,
     statements: string[],
     pass: RenderPass
   ): void {
     this.imports.add(QwikWord.BranchRange);
-    this.imports.add(QwikWord.CreateSuspense);
+    this.imports.add(QwikWord.CreatePending);
     // Both sides import statically: the fallback must show synchronously while content is pending.
     const content = this.capturedChunkReference(op.content, pass.names.props);
     const fallback =
@@ -766,7 +766,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const delay = op.delay === null ? '0' : inlineValueJs(this.module, op.delay);
     const reveal = revealArgsJs(this.module, op.reveal, { ...pass, statements }, this.imports);
     statements.push(
-      `${QwikWord.CreateSuspense}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${content}, ${fallback}, ${delay}${reveal});`
+      `${QwikWord.CreatePending}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${content}, ${fallback}, ${delay}${reveal});`
     );
   }
 
@@ -1600,7 +1600,7 @@ function templateChildren(
       case OpKind.Each:
       case OpKind.Content:
       case OpKind.Catch:
-      case OpKind.Suspense:
+      case OpKind.Pending:
         // A dynamic range's start/end comment pair.
         return { op: OpKind.Static as const, html: '<!><!>' };
       case OpKind.Slot:
@@ -1618,7 +1618,7 @@ function templateNodeCount(op: LinkedOp): number {
     case OpKind.Each:
     case OpKind.Content:
     case OpKind.Catch:
-    case OpKind.Suspense:
+    case OpKind.Pending:
       return 2;
     default:
       return 1;

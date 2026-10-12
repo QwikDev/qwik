@@ -3,7 +3,7 @@ import type { ValueOrPromise } from '../../shared/utils/types';
 import { OwnerFlags } from '../../reactive/flags';
 import type { Owner } from '../../runtime/owner';
 import type { CatchContentSubscription, SSRCatchContentSubscription } from './catch';
-import { getOwnSuspenseBoundary, type SuspenseBoundary } from './suspense-boundary';
+import { getOwnPendingBoundary, type PendingBoundary } from './pending-boundary';
 
 export type CatchBoundary = CatchContentSubscription | SSRCatchContentSubscription;
 const catchBoundaries = new WeakMap<Owner, CatchBoundary>();
@@ -25,9 +25,9 @@ export function findCatchBoundary(owner: Owner | null): CatchBoundary | undefine
 
 export function findContentBoundary(
   owner: Owner | null
-): SuspenseBoundary | CatchBoundary | undefined {
+): PendingBoundary | CatchBoundary | undefined {
   while (owner !== null) {
-    const boundary = catchBoundaries.get(owner) ?? getOwnSuspenseBoundary(owner);
+    const boundary = catchBoundaries.get(owner) ?? getOwnPendingBoundary(owner);
     if (boundary !== undefined) {
       return boundary;
     }

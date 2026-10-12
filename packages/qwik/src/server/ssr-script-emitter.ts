@@ -194,7 +194,7 @@ export class SsrScriptEmitter {
     );
   }
 
-  emitSuspenseRuntime(instanceHash: string): string {
+  emitPendingRuntime(instanceHash: string): string {
     return this.writeScript(
       { nonce: this.getNonce() },
       `((w)=>{w._qwikS=(s,i,u,o)=>w._qwikSP=Promise.resolve(w._qwikSP).then(async()=>{const t=s.previousElementSibling,c=t.closest('[q\\\\:container]'),x=c&&c._ctx,z=n=>{let p=n.parentElement;while(p&&!p.hasAttribute('q:container'))p=p.parentElement;return p===c},h=async(r,m)=>{if(r<0)return;const e=[...c.querySelectorAll('script[type="qwik/state"]')].filter(z);for(let j=0;j<e.length;j++){const b=+e[j].getAttribute('q:base'),l=+e[j].getAttribute('q:len');if(r>=b&&r<b+l){const q=e[j].getAttribute('q:dispose');e[j].setAttribute('q:dispose',q?q+' '+r:''+r);break}}if(x)m?x.discardRoot(r):await x.disposeRoot(r)},e=[...c.querySelectorAll('script[type="qwik/state"][q\\\\:s="'+i+'"]')].filter(z);if(x)x.registerStateScripts(e);await h(o,0);const k=document.createTreeWalker(c,128);let a,n,d=0;while(n=k.nextNode()){if(!z(n))continue;const v=n.data;if(!a){if(v==='d='+i)a=n}else if(v.startsWith('d='))d++;else if(v==='/d'){if(d)d--;else break}}if(!a||!n){await h(u,1);t.remove();s.remove();return}const r=document.createRange();r.setStartAfter(a);r.setEndBefore(n);r.deleteContents();r.insertNode(t.content);if(x&&u>=0)await x.prepareRoot(u);t.remove();s.remove()});(w._qwikEv||(w._qwikEv=[])).push(0,${JSON.stringify(instanceHash)})})(window)`

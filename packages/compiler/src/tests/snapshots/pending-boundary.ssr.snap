@@ -19,7 +19,7 @@ export default component$(() => {
 import {
   useSignal,
   _capturesObj,
-  createSsrSuspense,
+  createSsrPending,
   createComponent,
   _noopQrl,
   createSsrNodeId,
@@ -64,7 +64,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     const id0 = ctx.nextId();
     ctx.addRoot(label);
     const content0 = ctx.observeError(
-      createSsrSuspense(
+      createSsrPending(
         ctx,
         id0,
         q_component_suspense_content_segment_1_oznzhxo2l2hq,

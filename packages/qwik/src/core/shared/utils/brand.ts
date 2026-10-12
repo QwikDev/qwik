@@ -26,7 +26,7 @@ export const enum Brand {
   SsrBranchSubscription = 1 << 15,
   SsrForBlockSubscription = 1 << 16,
   SsrContentSubscription = 1 << 17,
-  SsrSuspenseContentSubscription = 1 << 18,
+  SsrPendingContentSubscription = 1 << 18,
   SerializationBackRef = 1 << 19,
   SsrProjectionSubscription = 1 << 20,
   SsrCatchContentSubscription = 1 << 21,

@@ -10,7 +10,7 @@ import {
 import { DomEffect } from '../../dom/effect/dom-effect';
 import { TextExpressionEffect, TextNodeEffect } from '../../dom/effect/text-effect';
 import { BranchSubscription } from '../../dom/branch/branch';
-import { ContentSubscription, SuspenseContentSubscription } from '../../dom/content/content';
+import { ContentSubscription, PendingContentSubscription } from '../../dom/content/content';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
 import { ComputedQrl } from '../../reactive/computed-qrl';
 import { AsyncSignal } from '../../reactive/async-signal';
@@ -213,12 +213,12 @@ export const allocate = (
       }
       return allocateDomEffect(context, effectKind);
     }
-    case TypeIds.SuspenseSubscription: {
+    case TypeIds.PendingSubscription: {
       const effectKind = Array.isArray(value) ? value[1] : undefined;
       if (effectKind !== EffectKind.Content) {
         throw qError(QError.serializeErrorCannotAllocate, [typeId]);
       }
-      return new SuspenseContentSubscription(null!, context.scheduler);
+      return new PendingContentSubscription(null!, context.scheduler);
     }
     case TypeIds.CatchSubscription: {
       const effectKind = Array.isArray(value) ? value[1] : undefined;

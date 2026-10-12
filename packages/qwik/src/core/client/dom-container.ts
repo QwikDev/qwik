@@ -82,7 +82,11 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode-utils';
-import { ContainerDataProcessState, processContainerStateData } from './process-state-data';
+import {
+  ContainerDataProcessState,
+  onContainerDataReady,
+  processContainerStateData,
+} from './process-state-data';
 import { Brand, brandClass } from '../shared/utils/brand';
 export { onContainerDataReady, whenContainerDataReady } from './process-state-data';
 
@@ -132,7 +136,8 @@ function* processSwappedSegmentIterator(
   contentHost: Element
 ): Generator<void, void, void> {
   yield* processSegmentStateScriptsIterator(qContainer, segmentId);
-  markPendingContentSwapped(qContainer, contentHost);
+  // Reading the Pending host's props mid-processing would cache them from unfinished state.
+  onContainerDataReady(qContainer, () => markPendingContentSwapped(qContainer, contentHost));
 }
 
 /** @internal */
@@ -216,8 +221,14 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
     if (__EXPERIMENTAL__.pendingBoundary) {
       yield* processSegmentStateScriptsIterator(this);
-      for (const contentHost of getSwappedPendingContentHosts(element)) {
-        markPendingContentSwapped(this, contentHost);
+      const swappedContentHosts = getSwappedPendingContentHosts(element);
+      if (swappedContentHosts.length) {
+        // Reading the Pending hosts' props mid-processing would cache them from unfinished state.
+        onContainerDataReady(this, () => {
+          for (let i = 0; i < swappedContentHosts.length; i++) {
+            markPendingContentSwapped(this, swappedContentHosts[i]);
+          }
+        });
       }
     }
     this.$hoistStyles$();

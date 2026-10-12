@@ -33,6 +33,16 @@ packages/qwik/src/core/
 
 Closest tests are usually in the same subtree and named `*.unit.ts(x)` or `*.spec.ts(x)`.
 
+## Computed Propagation
+
+- `scheduleEffects` flags downstream sync computeds `MAYBE_INVALID` before it runs any effect.
+  Every `$computeIfNeeded$` override must call `$resolveMaybeInvalidSources$()` before checking
+  `INVALID`, or it can compute from stale computeds.
+- Clear `MAYBE_INVALID` only with `INVALID` after a successful compute, or once the sources resolve
+  clean.
+- Wrapped signals keep `MAYBE_INVALID` only while their own `invalidate()` is pending; their flags
+  are serialized.
+
 ## AsyncSignal Current Model
 
 Current API and implementation facts:

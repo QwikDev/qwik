@@ -1019,10 +1019,9 @@ export type FailReturn<T> = T & Failed;
 export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
 
 /** @public */
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR>
-  ? Signal<ValueOrPromise<VALIDATOR>>
-  : Signal<TYPE>) &
-  Pick<ComputedSignal<any>, 'promise'>;
+export interface LoaderSignal<TYPE> extends ComputedSignal<
+  TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ValueOrPromise<VALIDATOR> : TYPE
+> {}
 
 /** @public */
 export type Loader<RETURN> = {

@@ -1574,7 +1574,7 @@ export const isDev = ${JSON.stringify(isDev)};
       {
         name: 'qwik-core',
         // Production ships one module per file under dist/core/; dev splits into core-*.mjs
-        test: /[/\\](core|qwik)[/\\]dist[/\\]core((\.prod|\.min)?\.[cm]js$|[/\\]|-[^/\\]+\.[cm]js$)/,
+        test: /[/\\](core|qwik)[/\\]dist[/\\](core((\.prod|\.min)?\.[cm]js$|[/\\]|-[^/\\]+\.[cm]js$)|async-local-storage\.[cm]js$)/,
         includeDependenciesRecursively: false,
       },
       {

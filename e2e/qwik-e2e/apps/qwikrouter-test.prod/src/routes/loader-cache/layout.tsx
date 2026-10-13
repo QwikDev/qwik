@@ -49,14 +49,12 @@ export default component$(() => {
           snapshot.value = JSON.stringify({
             snapshotId: ++probe.snapshots,
             signals: Object.fromEntries(
-              Object.entries(state)
-                .filter(([id]) => !id.startsWith('__qwik_route_loader_value__'))
-                .map(([id, signal]) => {
-                  if (!probe.ids.has(signal)) {
-                    probe.ids.set(signal, probe.next++);
-                  }
-                  return [id, probe.ids.get(signal)];
-                })
+              Object.entries(state).map(([id, signal]) => {
+                if (!probe.ids.has(signal)) {
+                  probe.ids.set(signal, probe.next++);
+                }
+                return [id, probe.ids.get(signal)];
+              })
             ),
           });
         }}

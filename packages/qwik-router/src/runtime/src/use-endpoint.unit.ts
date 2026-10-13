@@ -443,6 +443,33 @@ describe('fetchRouteLoaderData', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
+  it('lets a loader signal use each cached fetch once, so invalidate refetches', async () => {
+    const body = await _serialize({ d: 'cached' });
+    const fetchSpy = vi.fn().mockImplementation(() => Promise.resolve(new Response(body)));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const url = new URL('http://localhost/products/123/?view=full');
+    const fetchFor = (signal?: AbortSignal) =>
+      fetchRouteLoaderData('signal-refetch', '/products/123/', 'manifest-hash', {
+        pageUrl: url,
+        signal,
+      });
+    await fetchFor();
+    await fetchFor(new AbortController().signal);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    await fetchFor(new AbortController().signal);
+    await fetchFor(new AbortController().signal);
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+    expect(fetchSpy).toHaveBeenLastCalledWith(
+      expect.any(String),
+      expect.objectContaining({ cache: 'default' })
+    );
+
+    await fetchFor();
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+  });
+
   it('reuses a completed abortable loader request', async () => {
     const body = await _serialize({ d: 'cached' });
     const fetchSpy = vi.fn().mockImplementation(() => Promise.resolve(new Response(body)));

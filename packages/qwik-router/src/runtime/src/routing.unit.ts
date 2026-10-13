@@ -876,6 +876,96 @@ test('loadRoute — a catchall without a page does not match', async () => {
   assert.deepEqual(result.$params$, { a: 'x', b: 'y' });
 });
 
+// ─── Rest params followed by more segments ───────────────────────────────────────
+
+describe('loadRoute — [...rest] followed by more segments', () => {
+  // routes/[...path]/index.tsx and routes/[...path]/product/[id]/index.tsx: category pages for
+  // any path, with product pages below each of them.
+  const makeRoutes = (): RouteData => ({
+    _A: {
+      _P: 'path',
+      _I: makeLoader(),
+      product: { _W: { _P: 'id', _I: makeLoader() } },
+    },
+  });
+
+  test('the segments after the rest match the route below it', async () => {
+    const result = await loadRoute(makeRoutes(), false, '/sports/balls/product/123');
+    assert.isFalse(result.$notFound$);
+    assert.deepEqual(result.$params$, { path: 'sports/balls', id: '123' });
+    assert.equal(result.$routeName$, '/[...path]/product/[id]');
+  });
+
+  test('the rest can be empty', async () => {
+    const result = await loadRoute(makeRoutes(), false, '/product/123');
+    assert.isFalse(result.$notFound$);
+    assert.deepEqual(result.$params$, { path: '', id: '123' });
+    assert.equal(result.$routeName$, '/[...path]/product/[id]');
+  });
+
+  test('the rest takes the longest span that still leaves a match', async () => {
+    const result = await loadRoute(makeRoutes(), false, '/a/product/1/product/2');
+    assert.deepEqual(result.$params$, { path: 'a/product/1', id: '2' });
+  });
+
+  test('paths that do not fit the route below fall back to the rest page', async () => {
+    const routes = makeRoutes();
+    for (const [pathname, path] of [
+      ['/sports/balls', 'sports/balls'],
+      ['/sports/product', 'sports/product'],
+      ['/sports/product/1/extra', 'sports/product/1/extra'],
+      ['/', ''],
+    ]) {
+      const result = await loadRoute(routes, false, pathname);
+      assert.isFalse(result.$notFound$, pathname);
+      assert.deepEqual(result.$params$, { path }, pathname);
+      assert.equal(result.$routeName$, '/[...path]', pathname);
+    }
+  });
+
+  test('a static route still outranks the rest', async () => {
+    const routes = makeRoutes();
+    routes.about = { _I: makeLoader() };
+    const result = await loadRoute(routes, false, '/about');
+    assert.deepEqual(result.$params$, {});
+    assert.equal(result.$routeName$, '/about');
+  });
+
+  test('segments below the rest without a page do not match', async () => {
+    const routes: RouteData = {
+      _A: { _P: 'path', product: { _W: { _P: 'id', _L: makeLoader() } } },
+    };
+    const result = await loadRoute(routes, false, '/a/product/1');
+    assert.isTrue(result.$notFound$);
+  });
+
+  test('layouts and loaders along the way get the paths they were matched at', async () => {
+    const routes: RouteData = {
+      _A: {
+        _P: 'path',
+        _L: makeLoader(),
+        _R: ['rest-layout-loader'],
+        _I: makeLoader(),
+        product: { _W: { _P: 'id', _I: makeLoader(), _D: ['product-loader'] } },
+      },
+    };
+    for (const [pathname, restPath] of [
+      ['/sports/balls/product/7/', '/sports/balls/'],
+      ['/product/7/', '/'],
+    ]) {
+      const result = await loadRoute(routes, false, pathname);
+      assert.isFalse(result.$notFound$, pathname);
+      // the rest layout and the product page
+      assert.equal(result.$mods$.length, 2, pathname);
+      assert.deepEqual(
+        result.$loaderPaths$,
+        { 'rest-layout-loader': restPath, 'product-loader': pathname },
+        pathname
+      );
+    }
+  });
+});
+
 test('loadRoute — underscore-prefixed static segments use escaped trie keys', async () => {
   const routes: RouteData = {
     _4: makeLoader(),

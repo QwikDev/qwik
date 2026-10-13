@@ -3,9 +3,11 @@ import {
   isServer,
   Reveal,
   Pending,
+  useComputed$,
   useServerData,
   useSignal,
   type JSXOutput,
+  type ReadonlySignal,
   type Signal,
 } from '@qwik.dev/core';
 import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
@@ -62,6 +64,8 @@ export const OutOfOrderPendingRoot = component$(() => {
           <OutOfOrderPendingContainerFragment />
         ) : scenario === 'rerender' ? (
           <OutOfOrderPendingRerender />
+        ) : scenario === 'undefined-signal' ? (
+          <UndefinedSignalOutOfOrderPending />
         ) : (
           <Pending key={render.value} fallback$={() => <FallbackOutOfOrderContent />}>
             <SlowOutOfOrderContent />
@@ -483,3 +487,39 @@ export const CrossStateResolved = component$((props: { shared: Signal<number> })
     </section>
   );
 });
+
+export const UndefinedSignalOutOfOrderPending = component$(() => {
+  const extra = useSignal<number | undefined>(undefined);
+  const data = useComputed$(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return 'loaded';
+  });
+  return (
+    <>
+      <button
+        id="ooos-undefined-signal-button"
+        onClick$={() => (extra.value = (extra.value ?? 0) + 1)}
+      >
+        Set extra
+      </button>
+      <Pending fallback$={() => <p>Waiting first</p>}>
+        <UndefinedSignalReader data={data} id="ooos-undefined-signal-first" />
+      </Pending>
+      <Pending fallback$={() => <p>Waiting second</p>}>
+        <UndefinedSignalReader data={data} extra={extra} id="ooos-undefined-signal-second" />
+      </Pending>
+    </>
+  );
+});
+
+export const UndefinedSignalReader = component$(
+  (props: {
+    data: ReadonlySignal<string>;
+    extra?: ReadonlySignal<number | undefined>;
+    id: string;
+  }) => (
+    <p id={props.id}>
+      {props.data.value}:{String(props.extra?.value ?? 'none')}
+    </p>
+  )
+);

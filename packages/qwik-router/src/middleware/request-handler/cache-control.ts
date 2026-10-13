@@ -37,10 +37,10 @@ export function createCacheControl(cacheControl: CacheControl) {
   if (cacheControl.immutable) {
     controls.push('immutable');
   }
-  if (cacheControl.maxAge) {
+  if (cacheControl.maxAge !== undefined) {
     controls.push(`max-age=${cacheControl.maxAge}`);
   }
-  if (cacheControl.sMaxAge) {
+  if (cacheControl.sMaxAge !== undefined) {
     controls.push(`s-maxage=${cacheControl.sMaxAge}`);
   }
   if (cacheControl.noStore) {
@@ -55,10 +55,10 @@ export function createCacheControl(cacheControl: CacheControl) {
   if (cacheControl.public) {
     controls.push('public');
   }
-  if (cacheControl.staleWhileRevalidate) {
+  if (cacheControl.staleWhileRevalidate !== undefined) {
     controls.push(`stale-while-revalidate=${cacheControl.staleWhileRevalidate}`);
   }
-  if (cacheControl.staleIfError) {
+  if (cacheControl.staleIfError !== undefined) {
     controls.push(`stale-if-error=${cacheControl.staleIfError}`);
   }
   return controls.join(', ');

@@ -31,7 +31,6 @@ import { RequestHandler } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handler';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type { ServerError } from '@qwik.dev/router/middleware/request-handler';
-import type { Signal } from '@qwik.dev/core';
 import * as v from 'valibot';
 import { ValueOrPromise } from '@qwik.dev/core';
 import { ValueOrPromise as ValueOrPromise_2 } from '@qwik.dev/core/internal';
@@ -319,7 +318,8 @@ type Loader_2<RETURN> = {
 export { Loader_2 as Loader }
 
 // @public (undocumented)
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<ComputedSignal<any>, 'promise'>;
+export interface LoaderSignal<TYPE> extends ComputedSignal<TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ValueOrPromise<VALIDATOR> : TYPE> {
+}
 
 // @public (undocumented)
 type NavigationType_2 = 'initial' | 'form' | 'link' | 'popstate';

@@ -10,7 +10,7 @@ import { registerSingleton, qwikSymbol } from '../singletons';
 import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qTest } from '../utils/qdev';
-import { isFunction, type ValueOrPromise } from '../utils/types';
+import { isFunction, isObject, type ValueOrPromise } from '../utils/types';
 import { requestPreload } from '../../preloader/bridge';
 import type { QRLDev } from './qrl';
 import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
@@ -26,6 +26,19 @@ interface SyncQRLSymbol {
 }
 
 export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
+
+// Share import errors across core copies without mutating potentially frozen rejection values.
+const qrlImportErrors = registerSingleton('qrlImportErrors', () => new WeakSet<object>());
+
+const tagImportError = (err: unknown): never => {
+  if (isObject(err) || isFunction(err)) {
+    qrlImportErrors.add(err);
+  }
+  throw err;
+};
+
+/** @internal Whether `err` came from a failed QRL import rather than from running user code. */
+export const isQrlImportError = (err: unknown): boolean => qrlImportErrors.has(err as object);
 
 export type QrlCaptures = Readonly<unknown[]> | string | null;
 
@@ -196,13 +209,16 @@ export class LazyRef<TYPE = unknown> {
     }
 
     const symbol = this.$symbol$;
-    const importP: Promise<TYPE> = this.$symbolFn$
+    let importP: ValueOrPromise<TYPE> = this.$symbolFn$
       ? this.$symbolFn$().then((module) => module[symbol] as TYPE)
       : (getPlatform().importSymbol(
           (this.$container$ as DomContainer | null)?.element,
           this.$chunk$,
           symbol
-        ) as Promise<TYPE>);
+        ) as ValueOrPromise<TYPE>);
+    if (isPromise(importP)) {
+      importP = importP.then(undefined, tagImportError);
+    }
 
     this.$setRef$(importP);
 

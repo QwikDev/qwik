@@ -1,6 +1,11 @@
-import { component$ } from '@qwik.dev/core';
+import { component$, untrack } from '@qwik.dev/core';
 import { useDocumentHead } from '.';
 import type { DocumentHeadValue } from './types';
+
+const trackWholeStore = <T extends object>(store: T): T => {
+  Object.keys(store);
+  return untrack(() => ({ ...store }));
+};
 
 /**
  * This renders all the tags collected from `head`.
@@ -25,10 +30,14 @@ import type { DocumentHeadValue } from './types';
  * @public
  */
 export const DocumentHeadTags = component$((props: DocumentHeadValue) => {
-  let head = useDocumentHead();
-  if (props) {
-    head = { ...head, ...props };
-  }
+  const documentHead = trackWholeStore(useDocumentHead());
+  const head = {
+    title: props.title ?? documentHead.title,
+    meta: props.meta ?? documentHead.meta,
+    links: props.links ?? documentHead.links,
+    styles: props.styles ?? documentHead.styles,
+    scripts: props.scripts ?? documentHead.scripts,
+  };
 
   return (
     <>

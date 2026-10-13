@@ -403,6 +403,24 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  destructured_props_as_jsx_tags: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  destructured_props_as_jsx_tags_inline: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
+  captured_props_as_jsx_tags: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  captured_props_as_jsx_tags_inline: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
   nested_segments_number_captured_raw_props: {
     transpileTs: true,
     transpileJsx: true,

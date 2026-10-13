@@ -10,7 +10,7 @@ import type {
   AstMaybeNode,
   AstNode,
 } from '../../ast-types.js';
-import { buildPropertyAccessor } from '../ast/identifier-name.js';
+import { buildPropertyAccessor, isSimpleIdentifierName } from '../ast/identifier-name.js';
 import { rewritePropsFieldReferences } from './props-field-rewrite.js';
 import {
   forEachAstChild,
@@ -94,6 +94,19 @@ interface IdentifierReplacement {
   local: string;
   isShorthand?: boolean;
   needsParens?: boolean;
+  isJsxTagName?: boolean;
+}
+
+export interface DeferredTagReads {
+  readonly baseName: string;
+  readonly fieldLocalToKey: Map<string, string>;
+  readonly fieldLocalToDefault: ReadonlyMap<string, string>;
+  readonly fieldLocalToDynamicDefault: ReadonlyMap<string, string>;
+}
+
+export interface RawPropsTransformResult {
+  readonly code: string;
+  readonly deferredTagReads?: DeferredTagReads;
 }
 
 interface RawPropsField {
@@ -717,6 +730,7 @@ function buildIdentifierReplacementsCollector(
           local: node.name,
           // JSX tag position does not need parens around a MemberExpression.
           needsParens: false,
+          isJsxTagName: true,
         });
       }
       return { replacements: [] };
@@ -812,11 +826,20 @@ function applyIdentifierReplacements(
   baseName: string,
   defaultValues: ReadonlyMap<string, string>,
   dynamicDefaults: ReadonlyMap<string, string>
-): void {
+): Map<string, string> {
+  const deferredTagFields = new Map<string, string>();
   for (const replacement of replacements) {
     const baseAccessor = buildPropertyAccessor(baseName, replacement.key);
     const defaultValue = defaultValues?.get(replacement.local);
     const dynamicDefaultName = dynamicDefaults.get(replacement.local);
+    const isMemberChain =
+      defaultValue === undefined &&
+      dynamicDefaultName === undefined &&
+      isSimpleIdentifierName(replacement.key);
+    if (replacement.isJsxTagName && !isMemberChain) {
+      deferredTagFields.set(replacement.local, replacement.key);
+      continue;
+    }
     // Parens only when parent precedence requires them (via `replacement.needsParens`).
     let accessor: string;
     if (dynamicDefaultName !== undefined) {
@@ -838,6 +861,30 @@ function applyIdentifierReplacements(
       session.edits.overwrite(start, end, accessor);
     }
   }
+  return deferredTagFields;
+}
+
+export function resolveDeferredTagReads(
+  body: string,
+  deferredReads: readonly DeferredTagReads[]
+): string {
+  let resolved = body;
+  for (const reads of deferredReads) {
+    const session = createFunctionTransformSession(resolved);
+    if (!session) {
+      return resolved;
+    }
+    const replacements = collectIdentifierReplacements(session, reads.fieldLocalToKey);
+    applyIdentifierReplacements(
+      session,
+      replacements,
+      reads.baseName,
+      reads.fieldLocalToDefault,
+      reads.fieldLocalToDynamicDefault
+    );
+    resolved = session.toSource();
+  }
+  return resolved;
 }
 
 function formatConsolidatedWItems(items: string[]): string {
@@ -935,15 +982,15 @@ export function applyRawPropsTransform(
   body: string,
   preferredDynamicDefaultNames?: ReadonlyMap<string, string>,
   propsName = '_rawProps'
-): string {
+): RawPropsTransformResult {
   const session = createFunctionTransformSession(body);
   if (!session) {
-    return body;
+    return { code: body };
   }
 
   const plan = analyzeRawPropsTransform(session, body, preferredDynamicDefaultNames, propsName);
   if (!plan) {
-    return body;
+    return { code: body };
   }
 
   if (plan.replacementParamRange) {
@@ -964,31 +1011,40 @@ export function applyRawPropsTransform(
   } else if (plan.restLine) {
     prologueLines.push(plan.restLine);
   }
+  let deferredTagReads: DeferredTagReads | undefined;
   if (plan.fieldLocalToKey.size > 0) {
     const replacements = collectIdentifierReplacements(
       session,
       plan.fieldLocalToKey,
       plan.excludedRanges
     );
-    applyIdentifierReplacements(
+    const deferredTagFields = applyIdentifierReplacements(
       session,
       replacements,
       plan.replacementBaseName,
       plan.fieldLocalToDefault,
       plan.fieldLocalToDynamicDefault
     );
+    if (deferredTagFields.size > 0) {
+      deferredTagReads = {
+        baseName: plan.replacementBaseName,
+        fieldLocalToKey: deferredTagFields,
+        fieldLocalToDefault: plan.fieldLocalToDefault,
+        fieldLocalToDynamicDefault: plan.fieldLocalToDynamicDefault,
+      };
+    }
   }
 
   const transformed = session.toSource();
   if (prologueLines.length === 0) {
-    return transformed;
+    return { code: transformed, deferredTagReads };
   }
   const prologueSession = createFunctionTransformSession(transformed);
   if (!prologueSession) {
-    return transformed;
+    return { code: transformed, deferredTagReads };
   }
   insertFunctionBodyPrologue(prologueSession, prologueSession.fn, prologueLines.join('\n'));
-  return prologueSession.toSource();
+  return { code: prologueSession.toSource(), deferredTagReads };
 }
 
 export function bodyConsolidatesToRawProps(body: string): boolean {
@@ -1184,7 +1240,7 @@ export function replacePropsFieldReferencesInBody(
   propsName: string,
   defaultValues?: ReadonlyMap<string, string>,
   dynamicDefaults?: ReadonlyMap<string, string>
-): string {
+): RawPropsTransformResult {
   return rewritePropsFieldReferences(body, fieldMap, {
     memberPropertyMode: 'nonComputed',
     propsName,

@@ -13,6 +13,7 @@ import { CookieOptions } from '@qwik.dev/router/middleware/request-handler';
 import { CookieValue } from '@qwik.dev/router/middleware/request-handler';
 import { DeferReturn } from '@qwik.dev/router/middleware/request-handler';
 import type { EnvGetter } from '@qwik.dev/router/middleware/request-handler';
+import { EventHandler } from '@qwik.dev/core';
 import { InternalRequest } from '@qwik.dev/router/middleware/request-handler';
 import { JSXOutput } from '@qwik.dev/core';
 import { NoSerialize } from '@qwik.dev/core';
@@ -216,7 +217,7 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
     action?: ActionStore<O, I, true | false>;
     // (undocumented)
     key?: string | number | null;
-    onSubmitCompleted$?: QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
+    onSubmitCompleted$?: QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | EventHandler<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
     reloadDocument?: boolean;
     spaReset?: boolean;
 }

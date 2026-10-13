@@ -36,6 +36,7 @@ import {
   rawPropsBindingNames,
   resolveDeferredTagReads,
   resolveRawPropsSlots,
+  collectElementBindingStarts,
   consolidateQpCaptureValues,
   extractDestructuredFieldInfo,
   type DeferredTagReads,
@@ -109,8 +110,15 @@ export function transformInlineSegmentBody(
     ? extractDestructuredFieldInfo(ext.bodyText)
     : undefined;
   const rawPropsFieldMap = rawPropsInfo?.fieldMap;
-  const qpValues = (params: string[]): string[] =>
-    rawPropsFieldMap === undefined ? params : consolidateQpCaptureValues(params, rawPropsFieldMap);
+  const qpValues = (params: string[], child: ExtractionResult): string[] =>
+    rawPropsFieldMap === undefined
+      ? params
+      : consolidateQpCaptureValues(
+          params,
+          rawPropsFieldMap,
+          ext.propsBindingStarts,
+          collectElementBindingStarts(child, nested, elementQpParamsMap)
+        );
 
   if (nested.length > 0) {
     const bodyOffset = ext.argStart;
@@ -462,7 +470,7 @@ export function transformInlineSegmentBody(
               if (params.length > 0) {
                 qpByQrl.set(
                   qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`,
-                  qpValues(params)
+                  qpValues(params, child)
                 );
               }
             }
@@ -539,7 +547,7 @@ export function transformInlineSegmentBody(
             continue;
           }
           const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
-          const consolidated = qpValues(captureParams);
+          const consolidated = qpValues(captureParams, child);
           qrlParamMap.set(childVarName, consolidated);
           qrlParamMap.set(child.symbolName, consolidated);
         }
@@ -568,7 +576,7 @@ export function transformInlineSegmentBody(
             // The unified element array carries the client build's slot order;
             // per-child capture order would scramble multi-handler elements.
             const unified = elementQpParamsMap?.get(child.symbolName);
-            const consolidated = qpValues(unified ? [...unified] : [...child.captureNames]);
+            const consolidated = qpValues(unified ? [...unified] : [...child.captureNames], child);
             qrlParamMap.set(childVarName, consolidated);
             qrlParamMap.set(child.symbolName, consolidated);
           }

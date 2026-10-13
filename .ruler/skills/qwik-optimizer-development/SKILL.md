@@ -115,8 +115,10 @@ Neither gets a scope-correct rename for free, so name uniqueness is the transfor
   carries a duplicate declaration hygiene never revisits. Number generated names at creation.
 - TypeScript: there is no hygiene pass at all, and the rewrite matches identifiers by name. Number
   every generated binding, skip names inside destructuring patterns, and resolve references through
-  oxc-walker's `ScopeTracker` so names re-bound in a nested scope keep their declaration. Do not
-  bail out of the rewrite on shadowing — Rust still consolidates, and the snapshot diverges.
+  oxc-walker's `ScopeTracker` (`collectShadowedIdentifierStarts` in `rewrite/props-field-rewrite.ts`)
+  so names re-bound in a nested scope keep their declaration. Do not bail out of the rewrite on
+  shadowing — Rust still consolidates, and the snapshot diverges. Match captures to prop fields
+  and imports by binding (`isShadowedBinding`), never by name.
 - Props objects (`_rawProps`) follow Rust hygiene: each takes the lowest `_rawProps{n}` not held by
   a props object bound beside it, in emission order. A segment file is its own module; inline `.s()`
   bodies share one, so never hardcode a suffix — go through `rawPropsBindingNames`.

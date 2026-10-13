@@ -84,6 +84,10 @@ export function createQwikRouter(
       if (handled) {
         const err = await handled.completion;
         if (handled.requestEv.headersSent) {
+          if (err) {
+            // Headers sent already: can't forward, so log the error.
+            console.error(err);
+          }
           return;
         }
         if (err) {

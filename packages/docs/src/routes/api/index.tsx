@@ -19,6 +19,7 @@ import qwikRouterViteNetlifyEdgeApiData from './qwik-router-vite-netlify-edge/ap
 import qwikRouterViteNodeServerApiData from './qwik-router-vite-node-server/api.json';
 import qwikRouterViteSsgApiData from './qwik-router-vite-ssg/api.json';
 import qwikRouterViteVercelApiData from './qwik-router-vite-vercel/api.json';
+import qwikRouterViteApiData from './qwik-router-vite/api.json';
 import qwikRouterApiData from './qwik-router/api.json';
 import qwikServerApiData from './qwik-server/api.json';
 import qwikTestingApiData from './qwik-testing/api.json';
@@ -29,6 +30,7 @@ const _KINDS = new Set<string>();
 const apiData = {
   qwik: qwikApiData,
   'qwik-router': qwikRouterApiData,
+  'qwik-router-vite': qwikRouterViteApiData,
   'qwik-router-middleware-azure-swa': qwikRouterMiddlewareAzureSwaApiData,
   'qwik-router-middleware-cloudflare-pages': qwikRouterMiddlewareCloudflarePagesApiData,
   'qwik-router-middleware-netlify-edge': qwikRouterMiddlewareNetlifyEdgeApiData,

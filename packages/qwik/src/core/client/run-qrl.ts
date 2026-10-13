@@ -2,6 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import {
   _capturesObj,
   deserializeCaptureDeltas,
+  isQrlImportError,
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
@@ -72,7 +73,26 @@ export function runEventHandlerQRL(
         return invokeApply(ctx, realHandler, [event, element]);
       }
     },
-    (err) => container.handleError(err, hostElement, CatchPhase.Event)
+    (err) => {
+      if (isQrlImportError(err)) {
+        // Import failures bypass error boundaries, matching qwikloader (#8962).
+        const doc = element.ownerDocument;
+        if (doc) {
+          doc.dispatchEvent(
+            new CustomEvent('qerror', {
+              detail: {
+                importError: 'async',
+                error: err,
+                element,
+                symbol: (handler as QRLInternal).getSymbol(),
+              },
+            })
+          );
+        }
+        return;
+      }
+      return container.handleError(err, hostElement, CatchPhase.Event);
+    }
   );
 }
 

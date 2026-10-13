@@ -1,21 +1,23 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createDocument } from '@qwik.dev/core/testing';
 import { _createQRL } from '@qwik.dev/core/internal';
-import { ssrCreateContainer } from './ssr-container';
+import { SSRSegmentContainer, ssrCreateContainer } from './ssr-container';
 import {
   QDefaultSlot,
   QError,
   OnRenderProp,
   QSlot,
   QStyle,
+  ELEMENT_ID,
   VNodeDataChar,
   encodeVNodeDataKey,
   encodeVNodeDataString,
 } from './qwik-copy';
 import { VNodeDataFlag, type RenderToStreamOptions } from './types';
-import { OPEN_FRAGMENT, CLOSE_FRAGMENT } from './vnode-data';
+import { OPEN_FRAGMENT, CLOSE_FRAGMENT, type VNodeData } from './vnode-data';
+import { SsrNode } from './ssr-node';
 import { StreamHandler } from './ssr-stream-handler';
-import { StringSSRWriter } from './ssr-stream-writer';
+import { StringBufferSegmentWriter, StringSSRWriter } from './ssr-stream-writer';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -47,7 +49,192 @@ const getNoScriptHereCount = (container: ReturnType<typeof ssrCreateContainer>) 
   return Reflect.get(container, '$noScriptHere$') as number;
 };
 
+const createVNodeIdContexts = () => {
+  const { container } = createTestContainer();
+  const root = container as ConstructorParameters<typeof SSRSegmentContainer>[1];
+  const createSegment = (id: string) => {
+    const segment = new SSRSegmentContainer(
+      {
+        tagName: root.tag,
+        writer: new StringBufferSegmentWriter(),
+        streamHandler: root.streamHandler as StreamHandler,
+        locale: root.$locale$,
+        timing: root.timing,
+        buildBase: '/build/',
+        resolvedManifest: root.resolvedManifest,
+        renderOptions: root.renderOptions,
+      },
+      root
+    );
+    Reflect.set(segment, 'vnodeSegment', id);
+    root.outOfOrderSegments.push(segment);
+    return segment;
+  };
+  const first = createSegment('1');
+  const second = createSegment('2');
+  const createNode = () => {
+    const vnodeData: VNodeData = [
+      VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+      {},
+      OPEN_FRAGMENT,
+      CLOSE_FRAGMENT,
+    ];
+    return new SsrNode(null, '0', 1, [], vnodeData, null);
+  };
+  const firstNode = createNode();
+  const secondNode = createNode();
+  const shellNode = createNode();
+  for (let i = 0; i < 3; i++) {
+    root.serializationCtx.$addRoot$({});
+    first.serializationCtx.$addRoot$({});
+    second.serializationCtx.$addRoot$({});
+  }
+  Reflect.get(first, '$commitRoots$').call(first, root, first.serializationCtx);
+  Reflect.get(second, '$commitRoots$').call(second, root, second.serializationCtx);
+  const maps = Reflect.get(root, 'segmentRootIdMaps') as number[][];
+  expect(maps[1][2]).toBe(5);
+  expect(maps[2][2]).toBe(8);
+  first.setHostProp(firstNode, ELEMENT_ID, 2);
+  second.setHostProp(secondNode, ELEMENT_ID, 2);
+  root.setHostProp(shellNode, ELEMENT_ID, 2);
+  const entries: [number, VNodeData][] = [
+    [0, firstNode.vnodeData],
+    [1, secondNode.vnodeData],
+    [2, shellNode.vnodeData],
+  ];
+  return { root, first, second, firstNode, secondNode, shellNode, entries, maps };
+};
+
+const getIds = (html: string) =>
+  Array.from(
+    createDocument({ html })
+      .querySelector('script[type="qwik/vnode"]')!
+      .textContent!.matchAll(/=(\d+)/g),
+    (match) => Number(match[1])
+  );
+
 describe('SSR Container', () => {
+  const contexts = ['root', 'first', 'second'] as const;
+  const vnodeIdCases = contexts.flatMap((source) =>
+    contexts.flatMap((writer) => [false, true].map((patch) => ({ source, writer, patch })))
+  );
+
+  it.each(vnodeIdCases)(
+    'writes q:id from $source through $writer (patch=$patch)',
+    ({ source, writer, patch }) => {
+      const { root, first, second, shellNode, firstNode, secondNode } = createVNodeIdContexts();
+      const emittingContext = { root, first, second }[writer];
+      const node = { root: shellNode, first: firstNode, second: secondNode }[source];
+      const expectedId = { root: 2, first: 5, second: 8 }[source];
+      Reflect.get(emittingContext, 'emitVNodeDataScript').call(
+        emittingContext,
+        undefined,
+        [[0, node.vnodeData]],
+        patch
+      );
+      const output = emittingContext.writer.toString([100, 101, 102]);
+      expect(getIds(output)).toEqual([expectedId]);
+      expect(node.getProp(ELEMENT_ID)).toBe({ root: 2, first: -6, second: -9 }[source]);
+    }
+  );
+
+  it('uses the assigning context when another segment writes vnode ids', () => {
+    const { root, first, second, firstNode, secondNode, entries, maps } = createVNodeIdContexts();
+    Reflect.get(second, 'emitVNodeDataScript').call(second, '1', entries, true);
+    const output = second.writer.toString([100, 101, 102]);
+    expect(getIds(output)).toEqual([5, 8, 2]);
+    expect(firstNode.getProp(ELEMENT_ID)).toBe(-6);
+    expect(secondNode.getProp(ELEMENT_ID)).toBe(-9);
+
+    const lateLocalId = first.serializationCtx.$addRoot$({});
+    first.setHostProp(firstNode, ELEMENT_ID, lateLocalId);
+    expect(Reflect.get(root, 'segmentRootIdMaps')).toBe(maps);
+    expect(maps[1][lateLocalId]).toBe(9);
+    Reflect.set(first, '$outOfOrderState$', 2);
+    root.removeOutOfOrderSegment(first);
+    expect(root.outOfOrderSegments).toEqual([second]);
+    (second.writer as StringBufferSegmentWriter).clear();
+    Reflect.get(second, 'emitVNodeDataScript').call(second, '1', entries, true);
+    expect(getIds(second.writer.toString())).toEqual([9, 8, 2]);
+
+    first.setHostProp(firstNode, ELEMENT_ID, 134_217_726);
+    const encoded = firstNode.getProp(ELEMENT_ID);
+    expect(Reflect.get(first, 'getVNodeDataOwnerFromNodeId').call(first, String(encoded))).toEqual({
+      owner: '1',
+      localIndex: 134_217_726,
+    });
+    expect(() => first.setHostProp(firstNode, ELEMENT_ID, 134_217_727)).toThrow(
+      'Invalid segment root id'
+    );
+    const invalidLocalIds = [-1, 0.5, NaN, Infinity];
+    for (let i = 0; i < invalidLocalIds.length; i++) {
+      const localId = invalidLocalIds[i];
+      expect(() => first.setHostProp(firstNode, ELEMENT_ID, localId)).toThrow(
+        'Invalid segment root id'
+      );
+    }
+    first.setHostProp(firstNode, ELEMENT_ID, first.serializationCtx.$roots$.length);
+    expect(() =>
+      Reflect.get(second, 'emitVNodeDataScript').call(second, '1', entries, true)
+    ).toThrow('Code(Q19): Serialization Error: Missing root id for segment 1 root');
+    firstNode.setProp(ELEMENT_ID, -1);
+    maps[1] = undefined as unknown as number[];
+    expect(() =>
+      Reflect.get(second, 'emitVNodeDataScript').call(second, '1', entries, true)
+    ).toThrow('Code(Q19): Serialization Error: Missing root id for segment 1');
+  });
+
+  it.each([false, true])(
+    'releases segment maps after render completion or failure (%s)',
+    async (fails) => {
+      const { container } = createTestContainer();
+      const maps = [[1]];
+      Reflect.set(container, 'segmentRootIdMaps', maps);
+      vi.spyOn(container, 'renderJSX').mockResolvedValue(undefined);
+      let finish!: () => void;
+      const completion = new Promise<void>((resolve) => {
+        finish = resolve;
+      });
+      vi.spyOn(container, 'closeContainer').mockImplementation(async () => {
+        await completion;
+        if (fails) {
+          throw new Error('Render failed');
+        }
+      });
+      const rendering = container.render(null);
+      expect(Reflect.get(container, 'segmentRootIdMaps')).toBe(maps);
+      finish();
+      if (fails) {
+        await expect(rendering).rejects.toThrow('Render failed');
+      } else {
+        await rendering;
+      }
+      expect(Reflect.get(container, 'segmentRootIdMaps')).toBeNull();
+    }
+  );
+
+  it('decodes segment refs around large diagonal boundaries', () => {
+    const { container } = createTestContainer();
+    const decode = Reflect.get(container, 'getVNodeDataOwnerFromNodeId').bind(container);
+    const diagonals = [0, 1, 2, 65_536, 134_217_726];
+    for (let i = 0; i < diagonals.length; i++) {
+      const diagonal = diagonals[i];
+      const start = (diagonal * (diagonal + 1)) / 2;
+      const localIndices = [0, Math.floor(diagonal / 2), diagonal];
+      for (let j = 0; j < localIndices.length; j++) {
+        const localIndex = localIndices[j];
+        expect(decode(String(-(start + localIndex + 1)))).toEqual({
+          owner: String(diagonal - localIndex + 1),
+          localIndex,
+        });
+      }
+    }
+    expect(decode(String(-Number.MAX_SAFE_INTEGER))).toEqual({
+      owner: '67108866',
+      localIndex: 67108862,
+    });
+  });
+
   it('should reject unsafe element names before writing markup', async () => {
     const validElementNames = ['div', 'my-widget', 'svg:path', 'foreignObject'];
     for (let i = 0; i < validElementNames.length; i++) {
@@ -82,6 +269,29 @@ describe('SSR Container', () => {
         `Code(Q${QError.invalidElementName})`
       );
       expect(writer.toString()).toBe('');
+    }
+  });
+
+  it('should reject unsafe attribute names before writing markup', () => {
+    const unsafeAttrNames = [
+      'x onmouseover',
+      'x\tonmouseover',
+      'x\nonmouseover',
+      'x\fonmouseover',
+      'x\ronmouseover',
+      'x/onmouseover',
+      'x>onmouseover',
+      'x=onmouseover',
+      'x"onmouseover',
+      "x'onmouseover",
+    ];
+    for (let i = 0; i < unsafeAttrNames.length; i++) {
+      const { container, writer } = createTestContainer();
+
+      expect(() =>
+        container.openElement('div', null, { [unsafeAttrNames[i]]: 'value' }, null, null, null)
+      ).toThrow(`Code(Q${QError.unsafeAttr})`);
+      expect(writer.toString()).not.toContain('onmouseover');
     }
   });
 
@@ -360,3 +570,72 @@ describe('SSR Container', () => {
     expect(vnodeContent).toContain('|||\\-1A|');
   });
 });
+
+it.each(['empty props', 'structure-only child', 'retained child'])(
+  'writes one state patch per segment (%s)',
+  async (scenario) => {
+    const hasChild = scenario !== 'empty props';
+    const { root, first } = createVNodeIdContexts();
+    Reflect.set(root, 'outOfOrderStreaming', true);
+    Reflect.set(first, 'outOfOrderStreaming', true);
+    const { ELEMENT_PROPS, ELEMENT_SEQ } = await import('../core/shared/utils/markers');
+    const { createSignal } = await import('../core/reactive-primitives/signal-api');
+    const { createPropsProxy } = await import('../core/shared/jsx/props-proxy');
+    const { JSXNodeImpl } = await import('../core/shared/jsx/jsx-node');
+    const { Fragment } = await import('../core/shared/jsx/jsx-runtime');
+    const props = createPropsProxy(new JSXNodeImpl(Fragment, {}, null, null, 0, null));
+    Reflect.get(root, 'markVNodeDataOwnerEmitted').call(root);
+    await root.serializationCtx.$serialize$();
+    Reflect.get(root, '$markRootContainerReady$').call(root);
+    const initialRootCount = root.serializationCtx.$serializedRootCount$;
+    const vnodeData: VNodeData = [
+      VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+      hasChild ? {} : { [ELEMENT_PROPS]: props },
+      OPEN_FRAGMENT,
+      CLOSE_FRAGMENT,
+    ];
+    const parent = new SsrNode(null, '0', 1, [], vnodeData, null);
+    const sequence = [createSignal(Promise.resolve('loaded'))];
+    if (hasChild) {
+      new SsrNode(
+        parent,
+        '1',
+        1,
+        [],
+        [VNodeDataFlag.VIRTUAL_NODE, { [ELEMENT_SEQ]: sequence }, OPEN_FRAGMENT, CLOSE_FRAGMENT],
+        null
+      );
+    }
+    first.serializationCtx.$onAddRoot$ = undefined;
+    const sequenceRootId =
+      scenario === 'retained child' ? first.serializationCtx.$addRoot$(sequence) : undefined;
+    first.serializationCtx.$addRoot$(parent);
+    const result = await first.$finalizeOutOfOrderSegment$('1', {
+      container: first,
+      htmlChunks: [],
+      writer: first.writer,
+    } as any);
+    const document = createDocument({ html: '<div>' + result.scripts + '</div>' });
+    const patches = Array.from(document.querySelectorAll('script[type="qwik/state"]'));
+    expect(patches).toHaveLength(1);
+    let receivedRootCount = initialRootCount;
+    for (let i = 0; i < patches.length; i++) {
+      const script = patches[i];
+      const [rootStart, roots] = JSON.parse(script.textContent!);
+      expect(rootStart).toBe(receivedRootCount);
+      receivedRootCount += roots.length / 2;
+    }
+    expect(receivedRootCount).toBe(root.serializationCtx.$roots$.length);
+    const vnodePatch = document.querySelector('script[type="qwik/vnode"]')!.textContent!;
+    if (sequenceRootId !== undefined) {
+      expect(vnodePatch).toContain(
+        VNodeDataChar.SEQ_CHAR +
+          Reflect.get(first, 'getSegmentRootIdMap').call(first)[sequenceRootId]
+      );
+      expect(patches[0].textContent).toContain('loaded');
+    } else {
+      expect(vnodePatch).not.toContain(VNodeDataChar.SEQ_CHAR);
+      expect(vnodePatch).not.toContain(VNodeDataChar.PROPS_CHAR);
+    }
+  }
+);

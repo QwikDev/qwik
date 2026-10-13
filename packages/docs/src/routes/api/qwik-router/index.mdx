@@ -1382,13 +1382,10 @@ export type Loader<RETURN> = {
 <h2 id="loadersignal">LoaderSignal</h2>
 
 ```typescript
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
-  infer VALIDATOR
->
-  ? Signal<ValueOrPromise<VALIDATOR>>
-  : Signal<TYPE>) &
-  Pick<ComputedSignal<any>, "promise">;
+export interface LoaderSignal<TYPE> extends ComputedSignal<TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ValueOrPromise<VALIDATOR> : TYPE>
 ```
+
+**Extends:** ComputedSignal&lt;TYPE extends () =&gt; ValueOrPromise&lt;infer VALIDATOR&gt; ? ValueOrPromise&lt;VALIDATOR&gt; : TYPE&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -3079,12 +3076,12 @@ Required&lt;[ResolvedDocumentHead](#resolveddocumenthead)&lt;FrontMatter&gt;&gt;
 <h2 id="usehttpstatus">useHttpStatus</h2>
 
 ```typescript
-useHttpStatus: () => import("./types").HttpStatus;
+useHttpStatus: () => HttpStatus;
 ```
 
 **Returns:**
 
-import("./types").[HttpStatus](#httperrorprops)
+[HttpStatus](#httperrorprops)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
 

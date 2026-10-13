@@ -599,8 +599,8 @@
           "id": "loadersignal"
         }
       ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<ComputedSignal<any>, 'promise'>;\n```",
+      "kind": "Interface",
+      "content": "```typescript\nexport interface LoaderSignal<TYPE> extends ComputedSignal<TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ValueOrPromise<VALIDATOR> : TYPE> \n```\n**Extends:** ComputedSignal&lt;TYPE extends () =&gt; ValueOrPromise&lt;infer VALIDATOR&gt; ? ValueOrPromise&lt;VALIDATOR&gt; : TYPE&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loadersignal.md"
     },
@@ -1244,7 +1244,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nuseHttpStatus: () => import(\"./types\").HttpStatus\n```\n**Returns:**\n\nimport(\"./types\").[HttpStatus](#httperrorprops)",
+      "content": "```typescript\nuseHttpStatus: () => HttpStatus\n```\n**Returns:**\n\n[HttpStatus](#httperrorprops)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts",
       "mdFile": "router.usehttpstatus.md"
     },

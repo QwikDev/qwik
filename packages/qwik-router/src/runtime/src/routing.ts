@@ -1,6 +1,10 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { ensureSlash } from '../../utils/pathname';
-import { escapeStaticTrieKey, unescapeStaticTrieKey } from '../../utils/route-trie-key';
+import {
+  escapeStaticTrieKey,
+  isStaticTrieKey,
+  unescapeStaticTrieKey,
+} from '../../utils/route-trie-key';
 import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
@@ -277,6 +281,11 @@ interface ChildMatch {
   kind: ChildMatchKind;
   paramName?: string;
   paramValue?: string;
+  /**
+   * How many URL segments this match consumes when it is not `done`. Defaults to 1; a `[...rest]`
+   * that is followed by more route segments can consume any number, including 0.
+   */
+  span?: number;
 }
 
 /** The static child for a segment; inherited object properties (`constructor`, …) are not routes. */
@@ -418,6 +427,44 @@ function matchRestNode(
   return undefined;
 }
 
+/** Whether a `[...rest]` node has route segments below it, e.g. `[...path]/product/[id]`. */
+function hasChildSegments(node: RouteData): boolean {
+  for (const key in node) {
+    if (key === '_W' || key === '_A' || key === '_M' || isStaticTrieKey(key)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Partial matches of a node's `[...rest]` child that leave segments for the routes below it, so
+ * `[...path]/product/[id]` matches `/a/b/product/1` (path `a/b`) and `/product/1` (path empty). The
+ * longest rest comes first, like a greedy `(.*)`. Without child segments there is nothing to leave
+ * room for and `matchRestNode` alone applies.
+ */
+function matchRestSpans(node: RouteData, parts: string[], partIndex: number): ChildMatch[] {
+  const next = node._A as RouteData | undefined;
+  if (!next || !hasChildSegments(next)) {
+    return [];
+  }
+  const paramName = next._P!;
+  const spans: ChildMatch[] = [];
+  for (let span = parts.length - partIndex - 1; span >= 0; span--) {
+    spans.push({
+      next,
+      groups: [],
+      routePart: `[...${paramName}]`,
+      done: false,
+      kind: ChildMatchKind.Rest,
+      paramName,
+      paramValue: parts.slice(partIndex, partIndex + span).join('/'),
+      span,
+    });
+  }
+  return spans;
+}
+
 /**
  * Every child of `node` that could match `partLower`, in the same priority order `findChild` walks:
  * exact match → `_M` groups (recursively) → `_W` wildcard → `_A` rest wildcard.
@@ -461,6 +508,10 @@ function findChildAll(
     candidates.push({ ...wildcard, groups: [] });
   }
 
+  // Partial rest spans before the full one: when both reach a route, the deeper route is the more
+  // specific one, and the stable sort in `findMatchChain` keeps this order within the Rest kind.
+  candidates.push(...matchRestSpans(node, parts, partIndex));
+
   const rest = matchRestNode(node, parts, partIndex);
   if (rest) {
     candidates.push({ ...rest, groups: [] });
@@ -487,6 +538,10 @@ function findMatchChain(
     // Reaching the end with a bound means an equally specific chain already exists.
     return !toBeat && (findIndexNode(node) || findRestNode(node)) ? [] : undefined;
   }
+  if (toBeat && toBeat.length === 0) {
+    // The rival chain already ended here, so nothing that still consumes segments can beat it.
+    return undefined;
+  }
 
   const part = parts[i];
   const candidates = findChildAll(node, part, part.toLowerCase(), parts, i).sort(
@@ -503,7 +558,7 @@ function findMatchChain(
     const tailToBeat = bound && found.kind === bound[0].kind ? bound.slice(1) : undefined;
     const tail = found.done
       ? matchRestTail(found.next, tailToBeat)
-      : findMatchChain(found.next, parts, i + 1, tailToBeat);
+      : findMatchChain(found.next, parts, i + (found.span ?? 1), tailToBeat);
     if (tail) {
       best = [found, ...tail];
     }
@@ -511,7 +566,7 @@ function findMatchChain(
   return best;
 }
 
-/** A `[...rest]` match ends the chain; it only counts when it has a page and beats the bound. */
+/** A full `[...rest]` match ends the chain; it only counts when it has a page and beats the bound. */
 function matchRestTail(restNode: RouteData, toBeat?: ChildMatch[]): ChildMatch[] | undefined {
   return !toBeat && isRouteNode(restNode) ? [] : undefined;
 }
@@ -676,11 +731,14 @@ function matchRouteTree(
   // greedy one dead-ends. Undefined when no route matches at all — the walk is then unchanged, and
   // still produces the routeParts/params/boundaries the 404 path reports.
   const chain = findMatchChain(root, parts, 0);
-  for (; !done && i < len; i++) {
+  // A chain entry can consume more or less than one segment (a `[...rest]` followed by more route
+  // segments), so the chain is walked by its own index while `i` tracks the consumed segments.
+  let chainIndex = 0;
+  while (!done && i < len) {
     const part = parts[i];
     const partLower = part.toLowerCase();
 
-    const found = chain ? chain[i] : findChild(node, part, partLower, parts, i);
+    const found = chain ? chain[chainIndex++] : findChild(node, part, partLower, parts, i);
     if (!found) {
       matched = false;
       break;
@@ -715,7 +773,9 @@ function matchRouteTree(
     routeParts.push(found.routePart);
     done = found.done;
     node = found.next;
-    const matchedPathname = `/${parts.slice(0, found.done ? len : i + 1).join('/')}/`;
+    const span = found.span ?? 1;
+    const matchedParts = parts.slice(0, found.done ? len : i + span);
+    const matchedPathname = matchedParts.length ? `/${matchedParts.join('/')}/` : '/';
     collectNodeMeta(
       node,
       found.groups,
@@ -731,6 +791,7 @@ function matchRouteTree(
     if (node._M) {
       groupNodes.push({ node, depth: layouts.length });
     }
+    i += span;
   }
 
   // If we consumed all parts but the current node has no _I,

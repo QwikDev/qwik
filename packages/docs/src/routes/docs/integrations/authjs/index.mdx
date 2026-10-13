@@ -234,7 +234,7 @@ Displays the built-in/unbranded sign-in page.
 
 **POST /auth/signin/:provider**
 
-Starts a provider-specific sign-in flow. In the case of an OAuth provider, calling this endpoint will initiate the Authorization Request to your Identity Provider.  This endpoint is also used by the [useSignIn](#useSignIn) action internally.
+Starts a provider-specific sign-in flow. In the case of an OAuth provider, calling this endpoint will initiate the Authorization Request to your Identity Provider.  This endpoint is also used by the [useSignIn](#usesignin) action internally.
 
 ### callback
 
@@ -254,7 +254,7 @@ Handles signing the user out - this is a POST submission to prevent malicious li
 
 **GET /auth/session**
 
-Returns client-safe session object - or an empty object if there is no session. The contents of the session object that is returned are configurable with the session callback. Session data can also be retrieved using the [useSession](#useSession) routerLoader.
+Returns client-safe session object - or an empty object if there is no session. The contents of the session object that is returned are configurable with the session callback. Session data can also be retrieved using the [useSession](#usesession) routerLoader.
 
 ### csrf
 

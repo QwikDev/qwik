@@ -1,16 +1,16 @@
-import { component$, ErrorBoundary } from '@qwik.dev/core';
-import { EbContent, resetFallback } from '../../components/error-boundary/error-boundary';
+import { component$, Catch } from '@qwik.dev/core';
+import { CatchContent, resetFallback } from '../../components/catch/catch';
 
 export default component$(() => (
-  <ErrorBoundary fallback$={resetFallback}>
-    <EbContent />
+  <Catch fallback$={resetFallback}>
+    <CatchContent />
     <button
-      id="eb-csr-throw"
+      id="catch-csr-throw"
       onClick$={() => {
         throw new Error('csr reset boom');
       }}
     >
       throw on click
     </button>
-  </ErrorBoundary>
+  </Catch>
 ));

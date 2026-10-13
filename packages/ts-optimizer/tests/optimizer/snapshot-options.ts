@@ -316,6 +316,11 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     entryStrategy: { type: 'hoist' },
   },
+  example_issue_6920_hoisted_alias_capture: {
+    transpileJsx: true,
+    transpileTs: true,
+    entryStrategy: { type: 'hoist' },
+  },
 
   example_drop_side_effects: {
     transpileTs: true,
@@ -361,6 +366,36 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
   },
   local_shadowing_destructured_prop: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  destructured_prop_named_like_jsx_tag: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  jsx_tag_names_are_not_segment_uses: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  jsx_lowercase_tag_outside_segments: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  jsx_member_tag_object_is_captured: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  destructured_prop_used_as_member_tag: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  jsx_tag_named_like_inlined_const: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
+  jsx_tag_names_without_jsx_transpile: {},
+  jsx_underscore_component_tag: {
     transpileTs: true,
     transpileJsx: true,
   },

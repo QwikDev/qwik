@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Locator } from '@playwright/test';
 
 test.describe('Docs site smoke tests', () => {
   test('home page loads', async ({ page }) => {
@@ -8,17 +8,405 @@ test.describe('Docs site smoke tests', () => {
     await expect(page).toHaveTitle(/Qwik/);
   });
 
+  test('home page LCP is the hero heading rather than its decoration', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 823 });
+    await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
+    await page.goto('/');
+    const maskImage = await page.locator('main').evaluate((element) => {
+      return getComputedStyle(element, '::before').maskImage;
+    });
+    expect(maskImage).toBe('none');
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      );
+    });
+
+    const lcpTag = await page.evaluate(
+      () =>
+        new Promise<string | undefined>((resolve) => {
+          const observer = new PerformanceObserver((list) => {
+            const entries = list.getEntries() as (PerformanceEntry & { element?: Element })[];
+            resolve(entries.at(-1)?.element?.tagName);
+            observer.disconnect();
+          });
+          observer.observe({ type: 'largest-contentful-paint', buffered: true });
+        })
+    );
+    expect(lcpTag).toBe('H1');
+  });
+
+  for (const { path, fonts } of [
+    { path: '/', fonts: ['Tomorrow 600', 'Ubuntu Sans 600'] },
+    { path: '/docs/core/overview/', fonts: ['Tomorrow 600', 'Ubuntu Sans 600', 'Ubuntu Sans 700'] },
+  ]) {
+    test(`${path} renders its web fonts without requesting font files`, async ({ page }) => {
+      const fontRequests: string[] = [];
+      page.on('request', (request) => {
+        if (request.frame() === page.mainFrame() && request.url().endsWith('.woff2')) {
+          fontRequests.push(request.url());
+        }
+      });
+
+      await page.goto(path);
+      const loadedFonts = await page.evaluate(async () => {
+        await document.fonts.ready;
+        return [...document.fonts]
+          .filter((font) => font.status === 'loaded')
+          .map((font) => `${font.family.replaceAll('"', '')} ${font.weight}`);
+      });
+
+      expect(loadedFonts).toEqual(expect.arrayContaining(fonts));
+      expect(fontRequests).toEqual([]);
+    });
+  }
+
+  test('demo iframes link the shared font files instead of inlining them', async ({ request }) => {
+    const demoHtml = await (await request.get('/demo/component/simple/')).text();
+
+    expect(demoHtml).not.toContain('data:font/woff2');
+    expect(demoHtml).toContain('ubuntu-sans-latin-600-normal');
+  });
+
+  test('shared grid decoration covers the blog and 404 page', async ({ page }) => {
+    for (const path of ['/blog/', '/missing-grid-page/']) {
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+      const container = page.locator('.bg-grid-stars');
+      const grid = container.locator(':scope > svg');
+      await expect(grid).toHaveAttribute('aria-hidden', 'true');
+      expect(await grid.boundingBox()).toEqual(await container.boundingBox());
+    }
+  });
+
+  test('desktop menu content slides in the direction of navigation', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/');
+
+    const section = (name: string) =>
+      page.locator('[ui-qds-popover-root]').filter({ has: page.getByRole('button', { name }) });
+
+    await section('Core').locator('[ui-qds-popover-trigger]').hover();
+    await expect(section('Core')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Core').locator('[ui-qds-popover-content]')).not.toHaveAttribute(
+      'data-nav-slide',
+      /.+/
+    );
+
+    await section('Ecosystem').locator('[ui-qds-popover-trigger]').hover();
+    await expect(section('Ecosystem')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveAttribute(
+      'data-nav-slide',
+      'right'
+    );
+    await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveCSS(
+      'animation-name',
+      'nav-slide'
+    );
+    await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveCSS(
+      '--nav-slide-from',
+      '-24px'
+    );
+
+    await section('Router').locator('[ui-qds-popover-trigger]').hover();
+    await expect(section('Router')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveAttribute(
+      'data-nav-slide',
+      'left'
+    );
+    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveCSS(
+      'animation-name',
+      'nav-slide'
+    );
+    await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveCSS(
+      '--nav-slide-from',
+      '24px'
+    );
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await section('Resources').locator('[ui-qds-popover-trigger]').hover();
+    await expect(section('Resources')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Resources').locator('[ui-qds-popover-content]')).toHaveCSS(
+      'animation-name',
+      'none'
+    );
+  });
+
+  test('tutorial starts directly below the header', async ({ page }) => {
+    await page.goto('/tutorial/welcome/overview/');
+
+    for (const width of [1600, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const nav = await page.locator('[ui-qds-navbar-root]').boundingBox();
+      const main = await page.locator('.tutorial main').boundingBox();
+      expect(nav).not.toBeNull();
+      expect(main).not.toBeNull();
+      expect(main!.y - (nav!.y + nav!.height)).toBeGreaterThanOrEqual(16);
+      expect(main!.y - (nav!.y + nav!.height)).toBeLessThanOrEqual(32);
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const panelToggle = await page.locator('.tutorial .panel-toggle').boundingBox();
+    const main = await page.locator('.tutorial main').boundingBox();
+    expect(panelToggle).not.toBeNull();
+    expect(main).not.toBeNull();
+    expect(main!.y).toBe(panelToggle!.y + panelToggle!.height);
+  });
+
+  test('search suggestion points to the getting started page', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/');
+    await page.locator('button:has(svg.size-6.text-foreground-base):visible').first().click();
+    await expect(page.locator('.search-modal:visible a[href]').first()).toHaveAttribute(
+      'href',
+      '/docs/getting-started/'
+    );
+  });
+
+  test('search loads its index after opening the modal', async ({ page }) => {
+    await page.route('**/pagefind/pagefind.js', (route) => route.abort());
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/');
+    await page.locator('button:has(svg.size-6.text-foreground-base):visible').first().click();
+    await page.getByPlaceholder('Search docs').filter({ visible: true }).fill('qwik');
+    await expect(
+      page.getByText(/Search index unavailable/).filter({ visible: true })
+    ).toBeVisible();
+  });
+
+  test('media controls play and pause through button events', async ({ page }) => {
+    await page.goto('/demo/cookbook/mediaController/');
+    await page.locator('video, audio').evaluateAll((elements) => {
+      for (const element of elements) {
+        const media = element as HTMLMediaElement;
+        media.play = () => {
+          media.dataset.action = 'play';
+          media.dispatchEvent(new Event('play'));
+          return Promise.resolve();
+        };
+        media.pause = () => {
+          media.dataset.action = 'pause';
+          media.dispatchEvent(new Event('pause'));
+        };
+      }
+    });
+
+    await page.getByRole('button', { name: 'Play Video' }).click();
+    await expect(page.locator('video')).toHaveAttribute('data-action', 'play');
+    await page.getByRole('button', { name: 'Pause Video' }).click();
+    await expect(page.locator('video')).toHaveAttribute('data-action', 'pause');
+
+    await page.getByRole('button', { name: 'Play Audio' }).click();
+    await expect(page.locator('audio')).toHaveAttribute('data-action', 'play');
+    await page.getByRole('button', { name: 'Pause Audio' }).click();
+    await expect(page.locator('audio')).toHaveAttribute('data-action', 'pause');
+  });
+
+  test('html dark class applies semantic colors', async ({ page }) => {
+    await page.goto('/docs/');
+    await page.locator('html').evaluate((html) => html.classList.add('dark'));
+    await expect(page.locator('html')).toHaveClass(/\bdark\b/);
+    await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(12, 7, 20)');
+  });
+
+  test('theme switch starts dark for first-time visitors and remembers every choice', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('/');
+
+    const html = page.locator('html');
+    const themeSwitch = page.getByRole('button', { name: 'Change color theme' });
+    const storedTheme = () => page.evaluate(() => localStorage.getItem('theme'));
+    await expect(themeSwitch).toBeVisible();
+    await expect(html).toHaveClass(/\bdark\b/);
+    await expect(html).toHaveAttribute('data-theme', 'dark');
+    await expect(html).not.toHaveAttribute('data-theme-auto');
+    await expect(themeSwitch.locator('.themeIcon.dark')).toHaveCSS('opacity', '1');
+    await expect(themeSwitch.locator('.themeIcon.dark')).toHaveCSS(
+      'transition-duration',
+      '0.42s, 0.18s'
+    );
+    expect(await storedTheme()).toBeNull();
+
+    await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
+    await expect(themeSwitch.locator('.themeIcon.dark')).toHaveCSS('transition-duration', '0s');
+    await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'no-preference' });
+
+    await themeSwitch.click();
+    await expect(html).toHaveAttribute('data-theme-auto', '');
+    await expect(html).toHaveAttribute('data-theme', 'light');
+    await expect(themeSwitch.locator('.themeIcon.auto')).toHaveCSS('opacity', '1');
+    expect(await storedTheme()).toBe('auto');
+
+    await page.reload();
+    await expect(html).toHaveAttribute('data-theme-auto', '');
+    await expect(html).toHaveAttribute('data-theme', 'light');
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await expect(html).toHaveClass(/\bdark\b/);
+
+    await themeSwitch.click();
+    await expect(html).not.toHaveClass(/\bdark\b/);
+    await expect(html).toHaveAttribute('data-theme', 'light');
+    await expect(themeSwitch.locator('.themeIcon.light')).toHaveCSS('opacity', '1');
+    expect(await storedTheme()).toBe('light');
+
+    await page.reload();
+    await expect(html).not.toHaveClass(/\bdark\b/);
+    await expect(html).toHaveAttribute('data-theme', 'light');
+
+    await themeSwitch.click();
+    await expect(html).toHaveClass(/\bdark\b/);
+    expect(await storedTheme()).toBe('dark');
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await themeSwitch.click();
+    await expect(html).toHaveAttribute('data-theme-auto', '');
+    expect(await storedTheme()).toBe('auto');
+
+    await page.getByRole('button', { name: 'Open menu' }).click();
+    const menuThemeSwitch = page
+      .getByRole('dialog')
+      .getByRole('button', { name: 'Change color theme' });
+    await menuThemeSwitch.click();
+    await expect(html).toHaveAttribute('data-theme', 'light');
+    await expect(menuThemeSwitch).toBeVisible();
+    expect(await storedTheme()).toBe('light');
+  });
+
+  test('code examples and previews follow the docs theme', async ({ page }) => {
+    await page.goto('/docs/core/state/');
+    const code = page.locator('article pre.shiki').first();
+    const token = code.locator('span[style*="--shiki-dark"]').first();
+    const highlightedLine = code.locator('.highlighted').first();
+    const highlightedWord = code.locator('.highlighted-word').first();
+    const preview = page.frameLocator('iframe[src*="/demo/state/counter-signal/"]');
+
+    await page.locator('html').evaluate((html) => {
+      html.classList.remove('dark');
+      html.setAttribute('data-theme', 'light');
+    });
+    await expect(code).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(token).toHaveCSS('color', 'rgb(215, 58, 73)');
+    await expect(preview.locator('html')).not.toHaveClass(/\bdark\b/);
+    await expect(preview.locator('html')).toHaveAttribute('data-theme', 'light');
+
+    await page.locator('html').evaluate((html) => {
+      html.classList.add('dark');
+      html.setAttribute('data-theme', 'dark');
+    });
+    await expect(code).toHaveCSS('background-color', 'rgb(12, 7, 20)');
+    await expect(token).toHaveCSS('color', 'rgb(249, 117, 131)');
+    await expect(highlightedLine).toHaveCSS(
+      'background-color',
+      'color(srgb 0.0352941 0.118627 0.191176)'
+    );
+    await expect(highlightedWord).toHaveCSS(
+      'background-color',
+      'color(srgb 0.0305882 0.137255 0.212941)'
+    );
+    await expect(preview.locator('html')).toHaveClass(/\bdark\b/);
+    await expect(preview.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await expect(preview.locator('body')).toHaveCSS('background-color', 'rgb(12, 7, 20)');
+  });
+
+  test('playground editor follows the docs theme', async ({ page }) => {
+    await page.goto('/playground/');
+    const editor = page.locator('.monaco-editor .monaco-editor-background').first();
+
+    await page.locator('html').evaluate((html) => {
+      html.classList.remove('dark');
+      html.setAttribute('data-theme', 'light');
+    });
+    await expect(editor).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+
+    await page.locator('html').evaluate((html) => {
+      html.classList.add('dark');
+      html.setAttribute('data-theme', 'dark');
+    });
+    await expect(editor).toHaveCSS('background-color', 'rgb(30, 30, 30)');
+  });
+
   test('docs overview page loads with sidebar', async ({ page }) => {
     await page.goto('/docs/');
     await expect(page).toHaveTitle(/Qwik/);
 
-    // The sidebar is an <aside> containing a <nav> with links
-    const sidebar = page.locator('aside nav');
-    await expect(sidebar.first()).toBeVisible();
-
-    // Verify sidebar has multiple link groups
+    const sidebar = page.locator('[data-docs-sidebar]');
+    await expect(sidebar).toBeVisible();
     const links = sidebar.locator('a[href]');
     expect(await links.count()).toBeGreaterThanOrEqual(5);
+    await expect(sidebar.locator('a[href^="/"]:not([q\\:link])')).toHaveCount(0);
+    expect(await sidebar.locator('svg.vanilla-icon').count()).toBeGreaterThanOrEqual(5);
+    await expect(sidebar.locator('details').first()).toBeVisible();
+    await expect(sidebar.locator('a[aria-current="page"]')).toHaveCount(1);
+    await expect(page.locator('.docs-shell ~ [data-docs-sidebar]')).toHaveCount(1);
+  });
+
+  test('docs content keeps its position before the sidebar streams in', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/core/overview/');
+    const main = page.locator('.docs-main');
+    const leftWithSidebar = (await main.boundingBox())!.x;
+
+    await page.locator('[data-docs-sidebar]').evaluate((sidebar) => sidebar.remove());
+
+    expect((await main.boundingBox())!.x).toBe(leftWithSidebar);
+  });
+
+  for (const viewport of [
+    { name: 'mobile', width: 390, height: 844 },
+    { name: 'tablet', width: 1024, height: 768 },
+  ]) {
+    test(`${viewport.name} docs sidebar closes manually and after SPA navigation`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await page.goto('/docs/');
+
+      const sidebar = page.locator('[data-docs-sidebar] nav');
+      await expect(sidebar).not.toBeInViewport();
+      await page.getByRole('button', { name: 'Open sidebar' }).click();
+      await expect(page.getByRole('button', { name: 'Close sidebar' })).toBeVisible();
+      await expect(sidebar).toBeInViewport();
+      await page.getByRole('button', { name: 'Close sidebar' }).click();
+      await expect(sidebar).not.toBeInViewport();
+
+      await page.getByRole('button', { name: 'Open sidebar' }).click();
+      await sidebar.getByRole('link', { name: 'Getting Started', exact: true }).click();
+      await expect(page).toHaveURL(/\/docs\/getting-started\/$/);
+      await expect(page.getByRole('button', { name: 'Open sidebar' })).toBeVisible();
+      await expect(sidebar).not.toBeInViewport();
+    });
+  }
+
+  test('mobile docs sidebar opens above the navbar and closes on Escape or outside click', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/docs/');
+
+    const sidebar = page.locator('[data-docs-sidebar] nav');
+    const navbarLogo = page.getByRole('link', { name: 'Logo' }).filter({ visible: true });
+    const isCoveredBySidebar = (locator: Locator) =>
+      locator.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const topElement = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+        return !!topElement?.closest('[data-docs-sidebar]');
+      });
+
+    await page.getByRole('button', { name: 'Open sidebar' }).click();
+    await expect(sidebar).toBeInViewport();
+    expect(await isCoveredBySidebar(navbarLogo)).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(sidebar).not.toBeInViewport();
+
+    await page.getByRole('button', { name: 'Open sidebar' }).click();
+    await expect(sidebar).toBeInViewport();
+    await page.mouse.click(370, 600);
+    await expect(sidebar).not.toBeInViewport();
+    await expect(page).toHaveURL(/\/docs\/$/);
   });
 
   test('getting started page loads', async ({ page }) => {

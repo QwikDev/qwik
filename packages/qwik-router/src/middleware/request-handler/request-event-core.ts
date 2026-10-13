@@ -5,10 +5,12 @@ import type {
   JSONValue,
   LoadedRoute,
   LoaderInternal,
+  QwikRouterConfig,
 } from '../../runtime/src/types';
 import { getRouteLoaderValues, loadRouteLoader } from '../../runtime/src/route-loaders';
 import { QACTION_KEY, QDATA_KEY } from '../../runtime/src/constants';
 import { isPromise } from '../../runtime/src/utils';
+import { RequestEvRouterConfig } from './async-request-store';
 import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
 import {
@@ -43,7 +45,7 @@ export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
 export const RequestEvETagCacheKey = '@eTagCacheKey';
-export const RequestEvErrorBoundaryCaught = '@errorBoundaryCaught';
+export const RequestEvCaughtError = '@caughtError';
 export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 
 export function createRequestEvent(
@@ -51,7 +53,8 @@ export function createRequestEvent(
   loadedRoute: LoadedRoute,
   requestHandlers: RequestHandler<any>[],
   basePathname: string,
-  resolved: (response: any) => void
+  resolved: (response: any) => void,
+  routerConfig?: QwikRouterConfig
 ) {
   const { request, platform, env } = serverRequestEv;
 
@@ -161,6 +164,7 @@ export function createRequestEvent(
 
   const requestEv: RequestEventInternal = {
     [RequestEvMode]: serverRequestEv.mode,
+    [RequestEvRouterConfig]: routerConfig,
     get [RequestEvRoute]() {
       return loadedRoute;
     },
@@ -203,7 +207,12 @@ export function createRequestEvent(
 
     cacheControl: (cacheControl: CacheControl, target: CacheControlTarget = 'Cache-Control') => {
       check();
-      headers.set(target, createCacheControl(cacheControl));
+      const directives = createCacheControl(cacheControl);
+      // An empty header would block the loader's default cache policy.
+      if (!directives) {
+        return;
+      }
+      headers.set(target, directives);
     },
 
     resolveValue: (async (loaderOrAction: LoaderInternal | ActionInternal) => {
@@ -252,13 +261,15 @@ export function createRequestEvent(
       check();
       status = statusCode;
       if (url) {
+        // browsers strip ASCII tab/LF/CR before parsing a URL, so /<TAB>/test.com is //test.com
+        url = url.replace(/[\t\n\r]/g, '');
         if (
           // //test.com
-          /^\/\//.test(url) ||
+          /^[/\\]{2,}/.test(url) ||
           // /test//path
-          /([^:])\/\/+/.test(url)
+          /([^:])[/\\]{2,}/.test(url)
         ) {
-          const fixedURL = url.replace(/^\/\/+/, '/').replace(/([^:])\/\/+/g, '$1/');
+          const fixedURL = url.replace(/^[/\\]{2,}/, '/').replace(/([^:])[/\\]{2,}/g, '$1/');
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
           url = fixedURL;
         }
@@ -358,6 +369,7 @@ export function createRequestEvent(
 export interface RequestEventInternal extends Readonly<RequestEvent>, Readonly<RequestEventLoader> {
   readonly [RequestEvMode]: ServerRequestMode;
   readonly [RequestEvRoute]: LoadedRoute;
+  readonly [RequestEvRouterConfig]: QwikRouterConfig | undefined;
 
   /**
    * Check if this request is already written to.

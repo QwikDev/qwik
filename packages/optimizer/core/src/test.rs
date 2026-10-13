@@ -747,6 +747,174 @@ export const Cmp = component$(({ value }: { value?: string }) => {
 }
 
 #[test]
+fn destructured_prop_named_like_jsx_tag() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { title: string; _Item: any }) => {
+	const { title, _Item } = props;
+	return <_Item><title>{title}</title></_Item>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn jsx_tag_names_are_not_segment_uses() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { icons } from './icons';
+
+const div = Math.random();
+const title = Math.random();
+const Home = Math.random();
+console.log(div, title, Home);
+
+export const Cmp = component$(() => {
+	return <div title="hello"><icons.Home /></div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn jsx_lowercase_tag_outside_segments() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+const div = { size: 1 };
+const span = { size: 2 };
+console.log(span, <div />);
+
+const Label = () => <span>label</span>;
+
+export const Cmp = component$(() => {
+	console.log(div);
+	return <Label />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn jsx_member_tag_object_is_captured() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { Home } from './icons';
+
+export const Cmp = component$(() => {
+	const ui = { Home };
+	const render = $(() => <ui.Home />);
+	return <button onClick$={render} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructured_prop_used_as_member_tag() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { Model: any }) => {
+	const { Model } = props;
+	return <Model.Item />;
+});
+
+export const Other = component$(({ ui }: { ui: any }) => <ui.Home />);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn jsx_tag_named_like_inlined_const() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(() => {
+	const title = 'Hello';
+	return <title>{title}</title>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn jsx_tag_names_without_jsx_transpile() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { title } from './i18n';
+
+export const Logo = <svg title="logo" />;
+
+export const Cmp = component$(() => {
+	const div = 1;
+	return <div />;
+});
+"#
+		.to_string(),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn jsx_underscore_component_tag() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { _Item } from './item';
+import { useRow } from './row';
+
+export const Cmp = component$(() => {
+	const _Row = useRow();
+	const renderRow = $(() => <_Row />);
+	return (
+		<div onClick$={renderRow}>
+			<_Item onClick$={() => console.log('click')} />
+		</div>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_props_wrapping() {
 	test_input!(TestInput {
 		code: r#"
@@ -3326,6 +3494,25 @@ export const Issue3742 = component$(({description = '', other}: any) => {
 	)
 	});
 	"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+}
+#[test]
+fn example_issue_6920_hoisted_alias_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useStore } from '@qwik.dev/core';
+
+export const App = component$(() => {
+	const store = useStore({ counter: { count: 1 }, largeData: { data: 'BIG' } });
+	const counter = store.counter;
+	return <button onClick$={() => counter.count++}>+1</button>;
+});
+"#
 		.to_string(),
 		transpile_jsx: true,
 		transpile_ts: true,
@@ -7379,10 +7566,10 @@ export const App = component$(() => {
 		"Expected inlinedQrl first arg to be an inline function expression in lib mode.\nGenerated code:\n{}",
 		combined_code
 	);
-	// No _captures should be used
+	// No _capturesObj(Obj) should be used
 	assert!(
-		!compact_code.contains("_captures"),
-		"Expected no _captures in lib mode output.\nGenerated code:\n{}",
+		!compact_code.contains("_capturesObj"),
+		"Expected no _capturesObj.* in lib mode output.\nGenerated code:\n{}",
 		combined_code
 	);
 }
@@ -7391,19 +7578,19 @@ export const App = component$(() => {
 fn inlined_qrl_preserves_captures() {
 	// Simulates lib-preprocessed code being processed by the app optimizer.
 	// The inner inlinedQrl has 5 captures, including variables defined via
-	// the outer function's _captures destructuring.
+	// the outer function's _capturesObj reads.
 	let res = test_input!(TestInput {
 		code: r#"
-import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _captures } from '@qwik.dev/core';
+import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _capturesObj } from '@qwik.dev/core';
 
 export function qwikifyQrl(reactCmp$, opts) {
 	return componentQrl(inlinedQrl((props) => {
-		const opts2 = _captures[0], reactCmp$2 = _captures[1];
+		const opts2 = _capturesObj._[0], reactCmp$2 = _capturesObj._[1];
 		const hostRef = useSignal();
 		const signal = useSignal();
 		const text = 'hello';
 		useTaskQrl(inlinedQrl(async ({ track }) => {
-			const hostRef2 = _captures[0], reactCmp$3 = _captures[1], opts3 = _captures[2], signal2 = _captures[3], text2 = _captures[4];
+			const hostRef2 = _capturesObj._[0], reactCmp$3 = _capturesObj._[1], opts3 = _capturesObj._[2], signal2 = _capturesObj._[3], text2 = _capturesObj._[4];
 			track(signal2);
 			console.log(hostRef2, reactCmp$3, opts3, text2);
 		}, "s_inner123", [hostRef, reactCmp$2, opts2, signal, text]));
@@ -7516,6 +7703,88 @@ fn inlined_qrl_preserves_destructured_captures() {
 	// the destructuring because it would break the explicit captures.
 	let res = test_input!(TestInput {
 		code: r#"
+import { componentQrl, inlinedQrl, useComputedQrl, useSignal, useTaskQrl, _capturesObj, _jsxSorted } from '@qwik.dev/core';
+import { useCustomSignal } from './use-custom-signal.qwik.mjs';
+
+const MyComponent = componentQrl(inlinedQrl((props) => {
+    const count = useSignal(0);
+    const { openSig: isOpen } = useCustomSignal(props, { open: false });
+    const label = useComputedQrl(inlinedQrl(() => {
+        const count2 = _capturesObj._[0], isOpen2 = _capturesObj._[1];
+        return count2.value + isOpen2.value;
+    }, "MyComponent_component_label_useComputed_ABC123", [count, isOpen]));
+    useTaskQrl(inlinedQrl(({ track }) => {
+        const isOpen3 = _capturesObj._[0];
+        track(() => isOpen3.value);
+        console.log("isOpen changed:", isOpen3.value);
+    }, "MyComponent_component_useTask_DEF456", [isOpen]));
+    return _jsxSorted("div", null, {}, label.value, 0, null);
+}, "MyComponent_component_MNO345"));
+
+export { MyComponent };
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Hoist,
+		minify: MinifyMode::None,
+		transpile_ts: false,
+		transpile_jsx: false,
+		snapshot: false,
+		mode: EmitMode::Dev,
+		is_server: Some(true),
+		..TestInput::default()
+	});
+
+	assert!(res.is_ok(), "Transform should succeed: {:?}", res.err());
+	let output = res.unwrap();
+
+	let combined_code = output
+		.modules
+		.iter()
+		.map(|module| module.code.as_str())
+		.collect::<Vec<_>>()
+		.join("\n");
+
+	// Verify isOpen survives transform_props_destructuring
+	assert!(
+		combined_code.contains("isOpen"),
+		"isOpen should be present — transform_props_destructuring must not collapse destructured bindings in inlinedQrl function bodies.\nGenerated code:\n{}",
+		combined_code
+	);
+
+	// Verify computed captures include both count and isOpen
+	let computed_captures = combined_code
+		.find("q_MyComponent_component_label_useComputed_ABC123.w(")
+		.expect(&format!(
+			"Should find computed QRL .w() call.\nGenerated code:\n{}",
+			combined_code
+		));
+	let after = &combined_code[computed_captures..];
+	let bracket_end = after.find("])").expect("Should find end of captures array");
+	let captures_str = &after[..bracket_end + 1];
+	assert!(
+		captures_str.contains("count") && captures_str.contains("isOpen"),
+		"Computed captures should include both count and isOpen.\nCaptures: '{}'\nFull code:\n{}",
+		captures_str,
+		combined_code
+	);
+
+	// Verify task captures include isOpen
+	assert!(
+		combined_code.contains("q_MyComponent_component_useTask_DEF456.w("),
+		"Task QRL should have .w() captures with isOpen.\nGenerated code:\n{}",
+		combined_code
+	);
+}
+
+#[test]
+fn inlined_qrl_preserves_legacy_destructured_captures() {
+	// A library built before `_capturesObj` reads `_captures[N]`; the same guard must hold.
+	// Simulates a library .qwik.mjs file being processed by the app optimizer in SSR dev mode.
+	// The library has destructured useCustomSignal() return value, and inner inlinedQrl captures
+	// reference the destructured bindings. transform_props_destructuring must not collapse
+	// the destructuring because it would break the explicit captures.
+	let res = test_input!(TestInput {
+		code: r#"
 import { componentQrl, inlinedQrl, useComputedQrl, useSignal, useTaskQrl, _captures, _jsxSorted } from '@qwik.dev/core';
 import { useCustomSignal } from './use-custom-signal.qwik.mjs';
 
@@ -7595,12 +7864,12 @@ fn lib_full_names_shortened_in_prod() {
 	// When a prod build consumes this lib, names should be shortened to "s_hash".
 	let res = test_input!(TestInput {
 		code: r#"
-import { componentQrl, inlinedQrl, useTaskQrl, _captures } from '@qwik.dev/core';
+import { componentQrl, inlinedQrl, useTaskQrl, _capturesObj } from '@qwik.dev/core';
 
 export const Works = componentQrl(inlinedQrl((props) => {
 	const text = 'hola';
 	useTaskQrl(inlinedQrl(() => {
-		const text = _captures[0];
+		const text = _capturesObj._[0];
 		console.log(text);
 	}, "Works_component_useTask_pjo5U5Ikll0", [text]));
 }, "Works_component_t45qL4vNGv0"));
@@ -8129,15 +8398,15 @@ impl TestInput {
 fn should_preserve_non_ident_explicit_captures() {
 	let res = test_input!(TestInput {
 		code: r#"
-import { _captures, inlinedQrl } from '@qwik.dev/core';
+import { _capturesObj, inlinedQrl } from '@qwik.dev/core';
 
 const left = 1;
 const right = 2;
 
 export const task = inlinedQrl(() => {
-	const left = _captures[0];
-	const middle = _captures[1];
-	const right = _captures[2];
+	const left = _capturesObj._[0];
+	const middle = _capturesObj._[1];
+	const right = _capturesObj._[2];
 	return middle ? left : right;
 }, 'task', [left, true, right]);
 "#

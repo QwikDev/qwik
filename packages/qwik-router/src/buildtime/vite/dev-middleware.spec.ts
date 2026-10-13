@@ -70,20 +70,21 @@ describe('sendRouterCssHotUpdate', () => {
 });
 
 describe('getRouterIndexTags', () => {
-  it('prefixes CSS URLs with the Vite base', () => {
+  it('prefixes CSS URLs with the Vite base and watches their files', () => {
     const cssModule = {
       url: '/@fs/app/src/routes/admin.css',
       file: '/app/src/routes/admin.css',
       importers: new Set(),
     };
     const moduleGraph = { idToModuleMap: new Map([[cssModule.url, cssModule]]) };
+    const watcherAdd = vi.fn();
     const server = {
       config: { base: '/admin/' },
       environments: {
         client: { moduleGraph: { idToModuleMap: new Map() } },
         ssr: { moduleGraph },
       },
-      watcher: { add: vi.fn() },
+      watcher: { add: watcherAdd },
     } as unknown as ViteDevServer;
 
     expect(getRouterIndexTags(server)).toEqual([
@@ -92,5 +93,48 @@ describe('getRouterIndexTags', () => {
         attrs: { rel: 'stylesheet', href: '/admin/@fs/app/src/routes/admin.css' },
       },
     ]);
+    expect(watcherAdd).toHaveBeenCalledWith('/app/src/routes/admin.css');
+  });
+
+  it('links virtual CSS modules under /@id/ and does not watch them', () => {
+    // A plugin's virtual module has its id as url and file, and Vite serves it under `/@id/`
+    const route = { url: '/src/routes/index.tsx' };
+    const nullByteModule = {
+      url: '\0virtual:theme.css',
+      file: '\0virtual:theme.css',
+      importers: new Set([route]),
+    };
+    const bareModule = {
+      url: 'virtual:plain.css',
+      file: 'virtual:plain.css',
+      importers: new Set([route]),
+    };
+    const moduleGraph = {
+      idToModuleMap: new Map([
+        [nullByteModule.url, nullByteModule],
+        [bareModule.url, bareModule],
+      ]),
+    };
+    const watcherAdd = vi.fn();
+    const server = {
+      config: { base: '/admin/' },
+      environments: {
+        client: { moduleGraph: { idToModuleMap: new Map() } },
+        ssr: { moduleGraph },
+      },
+      watcher: { add: watcherAdd },
+    } as unknown as ViteDevServer;
+
+    expect(getRouterIndexTags(server)).toEqual([
+      {
+        tag: 'link',
+        attrs: { rel: 'stylesheet', href: '/admin/@id/__x00__virtual:theme.css' },
+      },
+      {
+        tag: 'link',
+        attrs: { rel: 'stylesheet', href: '/admin/@id/virtual:plain.css' },
+      },
+    ]);
+    expect(watcherAdd).not.toHaveBeenCalled();
   });
 });

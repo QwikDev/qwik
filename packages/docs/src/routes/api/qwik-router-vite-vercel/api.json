@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-vite-vercel",
-  "package": "@qwik.dev/qwik-router/vite/vercel",
+  "package": "@qwik.dev/router/vite/vercel",
   "members": [
     {
       "name": "vercelEdgeAdapter",

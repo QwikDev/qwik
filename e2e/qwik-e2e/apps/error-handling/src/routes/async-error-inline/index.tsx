@@ -1,6 +1,6 @@
-import { component$, ErrorBoundary, useComputed$ } from '@qwik.dev/core';
+import { component$, Catch, useComputed$ } from '@qwik.dev/core';
 import type { _ComputedSignalInternal } from '@qwik.dev/core/internal';
-import { defaultFallback } from '../../components/error-boundary/error-boundary';
+import { defaultFallback } from '../../components/catch/catch';
 
 const AsyncErrorInline = component$(() => {
   const data = useComputed$(async () => {
@@ -13,7 +13,7 @@ const AsyncErrorInline = component$(() => {
 });
 
 export default component$(() => (
-  <ErrorBoundary fallback$={defaultFallback}>
+  <Catch fallback$={defaultFallback}>
     <AsyncErrorInline />
-  </ErrorBoundary>
+  </Catch>
 ));

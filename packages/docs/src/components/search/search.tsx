@@ -5,7 +5,6 @@ import {
   useSignal,
   useStyles$,
   useTask$,
-  useVisibleTask$,
   type NoSerialize,
 } from '@qwik.dev/core';
 import { Link, useLocation } from '@qwik.dev/router';
@@ -52,7 +51,7 @@ export const SearchModal = component$(() => {
     isOpen.value = false;
   });
 
-  useVisibleTask$(async ({ track }) => {
+  useTask$(async ({ track }) => {
     const open = track(isOpen);
 
     if (!open || pagefind.value || initState.value === 'loading') {
@@ -156,7 +155,7 @@ export const SearchModal = component$(() => {
 
   return (
     <modal.root bind:open={isOpen}>
-      <modal.trigger class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 2xl:h-[76px] 2xl:px-5 cursor-pointer">
+      <modal.trigger class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 lg:h-[76px] lg:px-5 cursor-pointer">
         <lucide.search class="size-6 text-foreground-base" />
       </modal.trigger>
 
@@ -213,7 +212,7 @@ const SearchIdle = component$(() => {
       {
         title: 'Getting Started',
         subtitle: 'Learn how to get started with Qwik',
-        href: '/docs/getting-started/overview',
+        href: '/docs/getting-started/',
         excerpt: 'This section provides an overview of getting started with Qwik.',
         group: 'Docs',
       },

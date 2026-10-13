@@ -11,8 +11,8 @@ function findParent(result: { modules: readonly TransformModule[] }): TransformM
   return parent;
 }
 
-describe('Fix A: skip _captures injection on inlinedQrl bodies under inline', () => {
-  it('does NOT inject _captures unpacking when body destructures via useLexicalScope()', () => {
+describe('Fix A: skip _capturesObj injection on inlinedQrl bodies under inline', () => {
+  it('does NOT inject _capturesObj unpacking when body destructures via useLexicalScope()', () => {
     const input = `
 import { componentQrl, inlinedQrl, useLexicalScope } from '@qwik.dev/core';
 
@@ -34,12 +34,12 @@ function makeIt(propA, propB) {
     const code = parent.code;
 
     expect(code).toContain('const [propA, propB] = useLexicalScope()');
-    expect(code).not.toMatch(/propA\s*=\s*_captures\[0\]/);
-    expect(code).not.toMatch(/propB\s*=\s*_captures\[1\]/);
-    expect(code).not.toContain('import { _captures }');
+    expect(code).not.toMatch(/propA\s*=\s*_capturesObj\._\[0\]/);
+    expect(code).not.toMatch(/propB\s*=\s*_capturesObj\._\[1\]/);
+    expect(code).not.toContain('import { _capturesObj }');
   });
 
-  it('STILL injects _captures unpacking on regular $() captures under inline strategy', () => {
+  it('STILL injects _capturesObj unpacking on regular $() captures under inline strategy', () => {
     const input = `
 import { component$ } from '@qwik.dev/core';
 
@@ -59,7 +59,7 @@ export const Foo = component$(({ ctx, atom }) => {
     const parent = findParent(result);
     const code = parent.code;
 
-    expect(code).toContain('_captures[0]');
+    expect(code).toContain('_capturesObj._[0]');
   });
 });
 
@@ -207,6 +207,6 @@ export const fn = server$(async () => {
     expect(code).toMatch(/const\s+cache\s*=\s*makeCache\(\)/);
     expect(code).toMatch(/cache\.get\(/);
     expect(code).not.toMatch(/\.w\(\[\s*cache/);
-    expect(code).not.toMatch(/cache\s*=\s*_captures\[/);
+    expect(code).not.toMatch(/cache\s*=\s*_capturesObj\._\[/);
   });
 });

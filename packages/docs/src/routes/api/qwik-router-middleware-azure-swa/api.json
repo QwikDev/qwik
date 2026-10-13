@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-middleware-azure-swa",
-  "package": "@qwik.dev/qwik-router/middleware/azure-swa",
+  "package": "@qwik.dev/router/middleware/azure-swa",
   "members": [
     {
       "name": "createQwikCity",

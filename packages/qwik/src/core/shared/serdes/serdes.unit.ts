@@ -44,6 +44,9 @@ import { qrlToString } from './qrl-to-string';
 import { preprocessState } from './preprocess-state';
 import { _createDeserializeContainer, getObjectById } from './serdes.public';
 import { createSerializationContext } from './serialization-context';
+import { SsrNode } from '../../../server/ssr-node';
+import { VNodeDataFlag } from '../../../server/types';
+import { OPEN_FRAGMENT, type VNodeData } from '../../../server/vnode-data';
 import { _serializationWeakRef, shouldSkipComponentProps } from './serialize';
 import { SubscriptionPatch } from './subscription-patch';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
@@ -2286,6 +2289,29 @@ describe('serializer - internal', () => {
     ) as QRLInternal;
 
     expect(qrlToString(sCtx, qrl)).toBe('/build/worker-entry.js#workerSymbol');
+  });
+
+  it('discovers values of shared vnode data only once per serialization', async () => {
+    const nodeCount = 10;
+    const sharedValue = { shared: true };
+    const vNodeData: VNodeData = [VNodeDataFlag.NONE];
+    const sCtx = createSerializationContext(
+      SsrNode,
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    for (let i = 0; i < nodeCount; i++) {
+      vNodeData.push({ value: sharedValue }, OPEN_FRAGMENT);
+      sCtx.$addRoot$(new SsrNode(null, String(i), vNodeData.length - 2, [], vNodeData, null));
+    }
+    const addRootSpy = vi.spyOn(sCtx, '$addRoot$');
+
+    await sCtx.$serialize$();
+
+    const sharedValueDiscoveries = addRootSpy.mock.calls.filter(([obj]) => obj === sharedValue);
+    expect(sharedValueDiscoveries).toHaveLength(nodeCount);
   });
 
   it('_serialize', async () => {

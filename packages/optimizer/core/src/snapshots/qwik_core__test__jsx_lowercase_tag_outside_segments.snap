@@ -1,0 +1,74 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+const div = { size: 1 };
+const span = { size: 2 };
+console.log(span, <div />);
+
+const Label = () => <span>label</span>;
+
+export const Cmp = component$(() => {
+	console.log(div);
+	return <Label />;
+});
+
+============================= test.js ==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+const span = {
+    size: 2
+};
+console.log(span, /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_0"));
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAIA,MAAM,OAAO;IAAE,MAAM;AAAE;AACvB,QAAQ,GAAG,CAAC,oBAAM,WAAC;AAInB,OAAO,MAAM,oBAAM,0CAGhB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+//
+const div = {
+    size: 1
+};
+const Label = ()=>/*#__PURE__*/ _jsxSorted("span", null, null, "label", 3, "u6_1");
+export const Cmp_component_4ryKJTOKjWE = ()=>{
+    console.log(div);
+    return /*#__PURE__*/ _jsxSorted(Label, null, null, null, 3, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;MAGM,MAAM;IAAE,MAAM;AAAE;MAIhB,QAAQ,kBAAM,WAAC,oBAAK;yCAEI;IAC7B,QAAQ,GAAG,CAAC;IACZ,qBAAO,WAAC;AACT\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    199,
+    246
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

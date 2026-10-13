@@ -1,6 +1,6 @@
 {
   "id": "qwik-worker",
-  "package": "@qwik.dev/qwik/worker",
+  "package": "@qwik.dev/core/worker",
   "members": [
     {
       "name": "worker$",

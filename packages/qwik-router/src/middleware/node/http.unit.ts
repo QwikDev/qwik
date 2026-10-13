@@ -355,6 +355,51 @@ describe('fromNodeHttp()', () => {
     expect(res.end).not.toHaveBeenCalled();
   });
 
+  test('should catch synchronous ERR_HTTP2_INVALID_STREAM throws from aborted HTTP/2 clients', async () => {
+    const req = new EventEmitter() as IncomingMessage & EventEmitter;
+    req.method = 'GET';
+    req.url = '/';
+    req.headers = { host: 'localhost' };
+    (req as any).socket = {};
+
+    // Node's Http2ServerResponse.write() throws this *synchronously* once the client has
+    // reset/closed the stream mid-response. Regression of #6238: the message->code rewrite of
+    // isClientAbortWriteError dropped the HTTP/2 case, so this used to reject the write sink and
+    // crash the process with an unhandledRejection during streaming SSR.
+    const error = Object.assign(new Error('The stream has been destroyed'), {
+      code: 'ERR_HTTP2_INVALID_STREAM',
+    });
+    const res = new EventEmitter() as ServerResponse & EventEmitter;
+    Object.defineProperty(res, 'closed', { value: false, configurable: true });
+    Object.defineProperty(res, 'destroyed', { value: false, configurable: true });
+    res.setHeader = vi.fn();
+    res.write = vi.fn(() => {
+      throw error;
+    }) as any;
+    res.end = vi.fn((cb?: () => void) => {
+      cb?.();
+      return res;
+    }) as any;
+
+    const requestEv = await fromNodeHttp(new URL('http://localhost/'), req, res, 'server');
+    const writableStream = requestEv.getWritableStream(
+      200,
+      new Headers([['Content-Type', 'text/html; charset=utf-8']]),
+      { headers: () => [] } as any,
+      () => {},
+      undefined as any
+    );
+    const writer = writableStream.getWriter();
+
+    // Must settle, not reject — a reject here surfaces as an unhandledRejection that kills the
+    // Node process.
+    await expect(writer.write(new Uint8Array([1, 2, 3]))).resolves.toBeUndefined();
+    await writer.close();
+
+    expect(res.write).toHaveBeenCalledTimes(1);
+    expect(res.end).not.toHaveBeenCalled();
+  });
+
   test('should reject non-abort write errors', async () => {
     const req = new EventEmitter() as IncomingMessage & EventEmitter;
     req.method = 'GET';

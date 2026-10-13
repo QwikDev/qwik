@@ -24,10 +24,10 @@ export interface PreloaderOptions {
    * bundles before the preloader script is active. This most likely includes the core and the
    * preloader script itself. Setting this to 0 will disable all preload links.
    *
-   * Preload links can delay LCP, which is a Core Web Vital, but it can increase TTI, which is not a
-   * Core Web Vital but more noticeable to the user.
+   * Preload links can delay LCP, which is a Core Web Vital, but they can improve TTI, which is not
+   * a Core Web Vital but more noticeable to the user.
    *
-   * Defaults to `5`
+   * Defaults to `0`, so speculative preloading starts once the page is loaded.
    */
   ssrPreloads?: number;
   /**
@@ -55,11 +55,11 @@ export interface RenderToStreamResult extends RenderResult {
   flushes: number;
   size: number;
   /**
-   * True when an `<ErrorBoundary>` caught during the render, no matter where in the stream.
+   * True when a `<Catch>` caught during the render, no matter where in the stream.
    *
    * @experimental
    */
-  errorBoundaryCaught?: boolean;
+  hasCaughtError?: boolean;
   timing: {
     firstFlush: number;
     render: number;
@@ -165,9 +165,9 @@ export interface RenderOptions extends SerializeDocumentOptions {
   serverData?: Record<string, any>;
 
   /**
-   * Server-only. Projects a thrown error into the `Error` an `<ErrorBoundary>` fallback displays
-   * during SSR; `onError$` still receives the original. It never runs on the client, where a
-   * re-derived fallback shows the error as thrown.
+   * Server-only. Projects a thrown error into the `Error` a `<Catch>` fallback displays during SSR;
+   * `onError$` still receives the original. It never runs on the client, where a re-derived
+   * fallback shows the error as thrown.
    *
    * Return an `Error` to project it, or `undefined`/`null` to decline; any other return, or a
    * throw, redacts to the generic error.
@@ -215,12 +215,12 @@ export interface RenderToStreamOptions extends RenderOptions {
   streaming?: StreamingOptions;
   /**
    * Called synchronously just before the first chunk is written — the last moment response headers
-   * can still change. `errorBoundaryCaught` is true when an `<ErrorBoundary>` already swapped in
-   * its fallback during SSR.
+   * can still change. `hasCaughtError` is true when a `<Catch>` already swapped in its fallback
+   * during SSR.
    *
    * @experimental
    */
-  onBeforeFirstFlush?: (info: { errorBoundaryCaught: boolean }) => void;
+  onBeforeFirstFlush?: (info: { hasCaughtError: boolean }) => void;
 }
 
 /** @public */
@@ -250,7 +250,7 @@ export const enum VNodeDataFlag {
   REFERENCE = 8,
   /// Should be output during serialization.
   SERIALIZE = 16,
-  /// Swapped out by an ErrorBoundary; resumes as inert DOM.
+  /// Swapped out by a Catch; resumes as inert DOM.
   INERT = 32,
 }
 

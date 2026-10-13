@@ -1,4 +1,4 @@
-import { walk } from 'oxc-walker';
+import { isReferenceIdentifier, walk } from 'oxc-walker';
 import type {
   AstFunction,
   AstMaybeNode,
@@ -59,8 +59,11 @@ export function excludeNestedExtractionCaptures(
 
   const usedOutsideAnyChild = new Set<string>();
   walk(closureNode, {
-    enter(node: AstNode) {
+    enter(node: AstNode, parent) {
       if (node.type !== 'Identifier' && node.type !== 'JSXIdentifier') {
+        return;
+      }
+      if (node.type === 'JSXIdentifier' && !isReferenceIdentifier(node, parent)) {
         return;
       }
       const name = node.name;

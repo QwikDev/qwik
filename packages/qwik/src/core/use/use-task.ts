@@ -1,10 +1,10 @@
 import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import { BackRef } from '../reactive-primitives/backref';
-import { ErrorBoundaryPhase, tagErrorPhase } from '../shared/error/error-handling';
+import { CatchPhase, tagErrorPhase } from '../shared/error/error-handling';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import {
-  _captures,
+  _capturesObj,
   deserializeCaptureDeltas,
   setCaptures,
   type QRLInternal,
@@ -21,6 +21,7 @@ import { newInvokeContext } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 import { cleanupAsyncDestroyable } from './utils/destroyable';
 import { cleanupFn, trackFn } from './utils/tracker';
+import { Brand, brandClass, hasBrand } from '../shared/utils/brand';
 
 /** @internal */
 export const enum TaskFlags {
@@ -183,14 +184,16 @@ export const runTask = (
     return pendingTask;
   }
 
-  task.$flags$ = (task.$flags$ & ~TaskFlags.DIRTY) | TaskFlags.EXECUTED;
   const handleError = (reason: unknown) => {
-    tagErrorPhase(reason, ErrorBoundaryPhase.Hook);
-    container.handleError(reason, host, ErrorBoundaryPhase.Hook);
+    tagErrorPhase(reason, CatchPhase.Hook);
+    container.handleError(reason, host, CatchPhase.Hook);
   };
 
   let taskPromise: Promise<void> | null = null;
   const result = maybeThen(cleanupAsyncDestroyable(task, handleError), () => {
+    // Clear DIRTY here, not before awaiting cleanup, so only invalidations
+    // raised by this very run trigger a reschedule.
+    task.$flags$ = (task.$flags$ & ~TaskFlags.DIRTY) | TaskFlags.EXECUTED;
     const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
     iCtx.$container$ = container;
     const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
@@ -222,6 +225,10 @@ export const runTask = (
     taskPromise = result.finally(() => {
       if (task.$taskPromise$ === taskPromise) {
         task.$taskPromise$ = null;
+        if (task.$flags$ & TaskFlags.DIRTY) {
+          // The task invalidated itself while it was still running, reschedule it.
+          markVNodeDirty(container, host, ChoreBits.TASKS);
+        }
       }
     });
     task.$taskPromise$ = taskPromise;
@@ -246,9 +253,10 @@ export class Task<T = unknown, B = T> extends BackRef {
     super();
   }
 }
+brandClass(Task, Brand.Task);
 /** @internal */
 export const isTask = (value: any): value is Task => {
-  return value instanceof Task;
+  return hasBrand(value, Brand.Task);
 };
 
 /**
@@ -263,9 +271,9 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
     if (typeof this === 'string') {
       setCaptures(deserializeCaptureDeltas(container, this));
     }
-    const task = _captures![0] as Task;
+    const task = _capturesObj._![0] as Task;
     if (!task.$el$) {
-      // An ErrorBoundary tore the host down; the task has nothing left to run against.
+      // A Catch tore the host down; the task has nothing left to run against.
       return;
     }
     if (task.$flags$ & (TaskFlags.DIRTY | TaskFlags.EXECUTED)) {

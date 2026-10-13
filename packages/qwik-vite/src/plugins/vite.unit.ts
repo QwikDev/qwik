@@ -1005,3 +1005,146 @@ describe('worker core chunk rewrites', () => {
     );
   });
 });
+
+describe('qwik libraries as server externals', () => {
+  const writeInstalledPackage = async (
+    fs: typeof import('node:fs'),
+    root: string,
+    name: string,
+    pkg: Record<string, unknown>
+  ) => {
+    const dir = path.join(root, 'node_modules', name);
+    await fs.promises.mkdir(dir, { recursive: true });
+    await fs.promises.writeFile(
+      path.join(dir, 'package.json'),
+      JSON.stringify({ name, qwik: './index.qwik.mjs', ...pkg })
+    );
+  };
+
+  const createExternalsPlugin = async () =>
+    (qwikVite({ optimizerOptions: mockOptimizerOptions() }) as any)[2];
+
+  const runConfigHook = async (
+    root: string,
+    command: 'build' | 'serve',
+    nodeEnv: string,
+    externalsPlugin?: any
+  ) => {
+    externalsPlugin ||= await createExternalsPlugin();
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = nodeEnv;
+    try {
+      return await externalsPlugin.config.handler({ root }, { command });
+    } finally {
+      process.env.NODE_ENV = previousNodeEnv;
+    }
+  };
+
+  test('only builds that bundle the development core bundle the libraries', async () => {
+    const fs = await import('node:fs');
+    const os = await import('node:os');
+    const root = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'qwik-vite-externals-'));
+    try {
+      await fs.promises.writeFile(
+        path.join(root, 'package.json'),
+        JSON.stringify({
+          name: 'app',
+          dependencies: { 'core-lib': '*', 'plain-dep': '*' },
+          devDependencies: { 'dev-lib': '*' },
+        })
+      );
+      await writeInstalledPackage(fs, root, 'core-lib', {
+        peerDependencies: { '@qwik.dev/core': '*' },
+      });
+      await writeInstalledPackage(fs, root, 'dev-lib', {
+        devDependencies: { '@qwik.dev/core': '*' },
+      });
+      await writeInstalledPackage(fs, root, 'plain-dep', { qwik: undefined });
+      const libraries = ['core-lib', 'dev-lib'];
+
+      // A production build leaves externals to Vite's defaults and the user's config
+      const production = await runConfigHook(root, 'build', 'production');
+      assert.deepEqual([...production.optimizeDeps.exclude].sort(), libraries);
+      assert.deepEqual(production.ssr.noExternal, []);
+
+      // The dev server and development builds bundle the development core, so every library too
+      const devServer = await runConfigHook(root, 'serve', 'development');
+      assert.deepEqual([...devServer.ssr.noExternal].sort(), libraries);
+      const devBuild = await runConfigHook(root, 'build', 'development');
+      assert.deepEqual([...devBuild.ssr.noExternal].sort(), libraries);
+    } finally {
+      await fs.promises.rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test('warns when a production server could not load an external library', async () => {
+    const fs = await import('node:fs');
+    const os = await import('node:os');
+    const root = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'qwik-vite-externals-'));
+    try {
+      await fs.promises.writeFile(
+        path.join(root, 'package.json'),
+        JSON.stringify({
+          name: 'app',
+          dependencies: {
+            '@qwik.dev/core': '*',
+            'ok-lib': '*',
+            'nested-lib': '*',
+            'v1-lib': '*',
+            'v1-dev-lib': '*',
+          },
+          devDependencies: { 'dev-lib': '*' },
+        })
+      );
+      await writeInstalledPackage(fs, root, '@qwik.dev/core', { version: '2.0.0' });
+      const qwik2Peer = { peerDependencies: { '@qwik.dev/core': '*' } };
+      await writeInstalledPackage(fs, root, 'ok-lib', qwik2Peer);
+      await writeInstalledPackage(fs, root, 'dev-lib', qwik2Peer);
+      await writeInstalledPackage(fs, root, 'nested-lib', qwik2Peer);
+      await writeInstalledPackage(
+        fs,
+        path.join(root, 'node_modules', 'nested-lib'),
+        '@qwik.dev/core',
+        {
+          version: '2.0.0-beta.1',
+        }
+      );
+      await writeInstalledPackage(fs, root, 'v1-lib', {
+        peerDependencies: { '@builder.io/qwik': '*' },
+      });
+      // Like @auth/qwik, which only lists Qwik 1 as a devDependency
+      await writeInstalledPackage(fs, root, 'v1-dev-lib', {
+        devDependencies: { '@builder.io/qwik': '*' },
+      });
+
+      const externalsPlugin = await createExternalsPlugin();
+      await runConfigHook(root, 'build', 'production', externalsPlugin);
+      externalsPlugin.configResolved({ root });
+      const warningsFor = async (library: string, environmentName = 'ssr') => {
+        const warnings: string[] = [];
+        const context = {
+          environment: { name: environmentName, config: { consumer: 'server' } },
+          resolve: async (id: string) => ({ id, external: true }),
+          warn: (message: string) => warnings.push(message),
+        };
+        const importer = path.join(root, 'src', 'entry.ssr.tsx');
+        await externalsPlugin.resolveId.handler.call(context, library, importer, {});
+        return warnings;
+      };
+
+      assert.deepEqual(await warningsFor('ok-lib'), []);
+      const [devWarning] = await warningsFor('dev-lib');
+      assert.match(devWarning, /imports dev-lib at runtime.*"devDependencies"/);
+      const [nestedWarning] = await warningsFor('nested-lib');
+      assert.match(nestedWarning, /@qwik\.dev\/core 2\.0\.0-beta\.1, while the app uses 2\.0\.0/);
+      const [v1Warning] = await warningsFor('v1-lib');
+      assert.match(v1Warning, /built with Qwik 1/);
+      const [v1DevWarning] = await warningsFor('v1-dev-lib');
+      assert.match(v1DevWarning, /built with Qwik 1/);
+      // Static site generation runs during the build, with devDependencies installed
+      assert.deepEqual(await warningsFor('dev-lib', 'ssg'), []);
+    } finally {
+      await fs.promises.rm(root, { recursive: true, force: true });
+    }
+  });
+});

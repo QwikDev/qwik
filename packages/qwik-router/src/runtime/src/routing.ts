@@ -1,5 +1,10 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { ensureSlash } from '../../utils/pathname';
+import {
+  escapeStaticTrieKey,
+  isStaticTrieKey,
+  unescapeStaticTrieKey,
+} from '../../utils/route-trie-key';
 import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
@@ -30,6 +35,7 @@ export const loadRoute = async (
     notFound,
     routeBundleNames,
     loaderPathsByHash,
+    loaderParamsByHash,
     menuLoader,
     errorLoader,
   } = result;
@@ -71,28 +77,39 @@ export const loadRoute = async (
     $errorLoader$: errorLoader,
     $loaders$: loaderPathsByHash && Object.keys(loaderPathsByHash),
     $loaderPaths$: loaderPathsByHash,
+    $loaderParams$: loaderParamsByHash,
   };
 };
 
 /** Built-in fallback error component loader */
 const httpErrorLoader = (() => import('./http-error')) as ContentModuleLoader;
 
-/** Collect the rewrite target's layouts and loader endpoint paths. */
+/** Collect the rewrite target's layouts, loader endpoint paths, and params at those paths. */
 function walkTrieKeys(
   root: RouteData,
   keys: string[],
   params: PathParams
-): { node: RouteData; layouts: ModuleLoader[]; loaderPaths: Record<string, string> } | undefined {
+):
+  | {
+      node: RouteData;
+      layouts: ModuleLoader[];
+      loaderPaths: Record<string, string>;
+      loaderParams: Record<string, PathParams>;
+    }
+  | undefined {
   let node = root;
   let pathname = '/';
+  let pathParams: PathParams = {};
   const layouts: ModuleLoader[] = [];
   const loaderPaths: Record<string, string> = {};
+  const loaderParams: Record<string, PathParams> = {};
   const collect = (node: RouteData) => {
     if (node._L) {
       layouts.push(node._L);
     }
     for (const hash of node._R ?? []) {
       loaderPaths[hash] = pathname;
+      loaderParams[hash] = pathParams;
     }
   };
   collect(root);
@@ -105,9 +122,14 @@ function walkTrieKeys(
       collect(group);
     }
     node = match.value;
-    const segment = node._P ? `${node._0 ?? ''}${params[node._P] ?? ''}${node._9 ?? ''}` : key;
+    const segment = node._P
+      ? `${node._0 ?? ''}${params[node._P] ?? ''}${node._9 ?? ''}`
+      : unescapeStaticTrieKey(key);
     const segments = key === '_A' ? segment.split('/') : [segment];
     pathname = ensureSlash(pathname + segments.map(encodeURIComponent).join('/'));
+    if (node._P) {
+      pathParams = { ...pathParams, [node._P]: params[node._P] ?? '' };
+    }
     collect(node);
   }
   if (!node._I && node._G == null) {
@@ -120,13 +142,14 @@ function walkTrieKeys(
       collect(node);
     }
   }
-  return { node, layouts, loaderPaths };
+  return { node, layouts, loaderPaths, loaderParams };
 }
 
 type ResolvedIndex = {
   loaders: ModuleLoader[];
   node: RouteData;
   loaderPaths?: Record<string, string>;
+  loaderParams?: Record<string, PathParams>;
 };
 
 /** Resolve the page and its modules, following rewrite targets. */
@@ -144,8 +167,9 @@ function resolveLoaders(
       return undefined;
     }
     const resolved = resolveLoaders(root, target.node, target.layouts, params);
-    if (resolved) {
-      resolved.loaderPaths ??= target.loaderPaths;
+    if (resolved && !resolved.loaderPaths) {
+      resolved.loaderPaths = target.loaderPaths;
+      resolved.loaderParams = target.loaderParams;
     }
     return resolved;
   }
@@ -190,7 +214,9 @@ function collectNodeMeta(
   notFoundLoaderRef: BoundaryRef,
   menuLoaderRef: { v: MenuModuleLoader | undefined },
   loaderPathsByHash?: Record<string, string>,
-  matchedPathname = '/'
+  matchedPathname = '/',
+  loaderParamsByHash?: Record<string, PathParams>,
+  matchedParams: PathParams = {}
 ) {
   for (let j = 0; j < groups.length; j++) {
     const g = groups[j];
@@ -200,6 +226,9 @@ function collectNodeMeta(
     if (g._R && loaderPathsByHash) {
       for (const hash of g._R) {
         loaderPathsByHash[hash] = matchedPathname;
+        if (loaderParamsByHash) {
+          loaderParamsByHash[hash] = matchedParams;
+        }
       }
     }
     if (g._E) {
@@ -220,6 +249,9 @@ function collectNodeMeta(
   if (node._R && loaderPathsByHash) {
     for (const hash of node._R) {
       loaderPathsByHash[hash] = matchedPathname;
+      if (loaderParamsByHash) {
+        loaderParamsByHash[hash] = matchedParams;
+      }
     }
   }
   if (node._E) {
@@ -249,6 +281,20 @@ interface ChildMatch {
   kind: ChildMatchKind;
   paramName?: string;
   paramValue?: string;
+  /**
+   * How many URL segments this match consumes when it is not `done`. Defaults to 1; a `[...rest]`
+   * that is followed by more route segments can consume any number, including 0.
+   */
+  span?: number;
+}
+
+/** The static child for a segment; inherited object properties (`constructor`, …) are not routes. */
+function getStaticChild(node: RouteData, partLower: string): RouteData | undefined {
+  const key = escapeStaticTrieKey(partLower);
+  if (!Object.prototype.hasOwnProperty.call(node, key)) {
+    return undefined;
+  }
+  return node[key] as RouteData;
 }
 
 /**
@@ -267,7 +313,7 @@ function findChild(
   partIndex: number
 ): ChildMatch | undefined {
   // 1. Try exact match on this node's direct children
-  const exact = node[partLower] as RouteData | undefined;
+  const exact = getStaticChild(node, partLower);
   if (exact) {
     return {
       next: exact,
@@ -310,8 +356,16 @@ function tryWildcardMatch(
   parts: string[],
   partIndex: number
 ): Omit<ChildMatch, 'groups'> | undefined {
-  // Wildcard [param]
-  let next = node._W as RouteData | undefined;
+  return matchWildcardNode(node, part, partLower) ?? matchRestNode(node, parts, partIndex);
+}
+
+/** Try to match a segment against a node's `[param]` wildcard child (`_W`). */
+function matchWildcardNode(
+  node: RouteData,
+  part: string,
+  partLower: string
+): Omit<ChildMatch, 'groups'> | undefined {
+  const next = node._W as RouteData | undefined;
   if (next) {
     const prefix = next._0;
     const suffix = next._9;
@@ -347,8 +401,16 @@ function tryWildcardMatch(
     }
   }
 
-  // Rest wildcard [...param]
-  next = node._A as RouteData | undefined;
+  return undefined;
+}
+
+/** Try to match the remaining segments against a node's `[...param]` rest child (`_A`). */
+function matchRestNode(
+  node: RouteData,
+  parts: string[],
+  partIndex: number
+): Omit<ChildMatch, 'groups'> | undefined {
+  const next = node._A as RouteData | undefined;
   if (next) {
     const paramName = next._P!;
     const restValue = parts.slice(partIndex).join('/');
@@ -363,6 +425,155 @@ function tryWildcardMatch(
   }
 
   return undefined;
+}
+
+/** Whether a `[...rest]` node has route segments below it, e.g. `[...path]/product/[id]`. */
+function hasChildSegments(node: RouteData): boolean {
+  for (const key in node) {
+    if (key === '_W' || key === '_A' || key === '_M' || isStaticTrieKey(key)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Partial matches of a node's `[...rest]` child that leave segments for the routes below it, so
+ * `[...path]/product/[id]` matches `/a/b/product/1` (path `a/b`) and `/product/1` (path empty). The
+ * longest rest comes first, like a greedy `(.*)`. Without child segments there is nothing to leave
+ * room for and `matchRestNode` alone applies.
+ */
+function matchRestSpans(node: RouteData, parts: string[], partIndex: number): ChildMatch[] {
+  const next = node._A as RouteData | undefined;
+  if (!next || !hasChildSegments(next)) {
+    return [];
+  }
+  const paramName = next._P!;
+  const spans: ChildMatch[] = [];
+  for (let span = parts.length - partIndex - 1; span >= 0; span--) {
+    spans.push({
+      next,
+      groups: [],
+      routePart: `[...${paramName}]`,
+      done: false,
+      kind: ChildMatchKind.Rest,
+      paramName,
+      paramValue: parts.slice(partIndex, partIndex + span).join('/'),
+      span,
+    });
+  }
+  return spans;
+}
+
+/**
+ * Every child of `node` that could match `partLower`, in the same priority order `findChild` walks:
+ * exact match → `_M` groups (recursively) → `_W` wildcard → `_A` rest wildcard.
+ *
+ * `findChild` stops at the first of these; this returns them all so the matcher can backtrack when
+ * the highest-priority one dead-ends deeper in the trie.
+ */
+function findChildAll(
+  node: RouteData,
+  part: string,
+  partLower: string,
+  parts: string[],
+  partIndex: number
+): ChildMatch[] {
+  const candidates: ChildMatch[] = [];
+
+  const exact = getStaticChild(node, partLower);
+  if (exact) {
+    candidates.push({
+      next: exact,
+      groups: [],
+      routePart: part,
+      done: false,
+      kind: ChildMatchKind.Exact,
+    });
+  }
+
+  if (node._M) {
+    for (let j = 0; j < node._M.length; j++) {
+      const group = node._M[j];
+      const groupCandidates = findChildAll(group, part, partLower, parts, partIndex);
+      for (let k = 0; k < groupCandidates.length; k++) {
+        const candidate = groupCandidates[k];
+        candidates.push({ ...candidate, groups: [group, ...candidate.groups] });
+      }
+    }
+  }
+
+  const wildcard = matchWildcardNode(node, part, partLower);
+  if (wildcard) {
+    candidates.push({ ...wildcard, groups: [] });
+  }
+
+  // Partial rest spans before the full one: when both reach a route, the deeper route is the more
+  // specific one, and the stable sort in `findMatchChain` keeps this order within the Rest kind.
+  candidates.push(...matchRestSpans(node, parts, partIndex));
+
+  const rest = matchRestNode(node, parts, partIndex);
+  if (rest) {
+    candidates.push({ ...rest, groups: [] });
+  }
+
+  return candidates;
+}
+
+/**
+ * Search for the most specific chain of child matches that consumes `parts` from `i` and lands on a
+ * route. Chains rank segment by segment: a static segment beats a `[param]`, which beats a
+ * `[...rest]`; ties go to the first in `findChild` order.
+ *
+ * Only chains strictly more specific than `toBeat` (the best tail found so far) are returned, so
+ * branches that can no longer win are pruned. Returns undefined when nothing matches.
+ */
+function findMatchChain(
+  node: RouteData,
+  parts: string[],
+  i: number,
+  toBeat?: ChildMatch[]
+): ChildMatch[] | undefined {
+  if (i === parts.length) {
+    // Reaching the end with a bound means an equally specific chain already exists.
+    return !toBeat && (findIndexNode(node) || findRestNode(node)) ? [] : undefined;
+  }
+  if (toBeat && toBeat.length === 0) {
+    // The rival chain already ended here, so nothing that still consumes segments can beat it.
+    return undefined;
+  }
+
+  const part = parts[i];
+  const candidates = findChildAll(node, part, part.toLowerCase(), parts, i).sort(
+    (a, b) => a.kind - b.kind
+  );
+
+  let best: ChildMatch[] | undefined;
+  for (let c = 0; c < candidates.length; c++) {
+    const found = candidates[c];
+    const bound = best ?? toBeat;
+    if (bound && found.kind > bound[0].kind) {
+      break;
+    }
+    const tailToBeat = bound && found.kind === bound[0].kind ? bound.slice(1) : undefined;
+    const tail = found.done
+      ? matchRestTail(found.next, tailToBeat)
+      : findMatchChain(found.next, parts, i + (found.span ?? 1), tailToBeat);
+    if (tail) {
+      best = [found, ...tail];
+    }
+  }
+  return best;
+}
+
+/** A full `[...rest]` match ends the chain; it only counts when it has a page and beats the bound. */
+function matchRestTail(restNode: RouteData, toBeat?: ChildMatch[]): ChildMatch[] | undefined {
+  return !toBeat && isRouteNode(restNode) ? [] : undefined;
+}
+
+/** Whether a node renders something: a page (`_I`) or a rewrite (`_G`). */
+function isRouteNode(node: RouteData): boolean {
+  return !!node._I || node._G != null;
 }
 
 /**
@@ -397,7 +608,7 @@ function descendGroups<T>(
  * isn't double-counted).
  */
 function findIndexNode(node: RouteData): { target: RouteData; groups: RouteData[] } | undefined {
-  const r = descendGroups(node, (n) => (n._I || n._G != null ? n : undefined));
+  const r = descendGroups(node, (n) => (isRouteNode(n) ? n : undefined));
   return r ? { target: r.node, groups: r.groups.filter((g) => g !== r.node) } : undefined;
 }
 
@@ -452,6 +663,7 @@ function matchRouteTree(
   notFound: boolean;
   routeBundleNames: string[] | undefined;
   loaderPathsByHash: Record<string, string> | undefined;
+  loaderParamsByHash: Record<string, PathParams> | undefined;
   menuLoader: MenuModuleLoader | undefined;
   /** The nearest _E (error.tsx) boundary's chain to render on a thrown error (in its layouts). */
   errorLoader: ModuleLoader[] | undefined;
@@ -461,6 +673,7 @@ function matchRouteTree(
   const routeParts: string[] = [];
   const layouts: ModuleLoader[] = [];
   const loaderPathsByHash: Record<string, string> = {};
+  const loaderParamsByHash: Record<string, PathParams> = {};
   const errorLoaderRef: BoundaryRef = { v: undefined, layouts: [] };
   const notFoundLoaderRef: BoundaryRef = { v: undefined, layouts: [] };
   const menuLoaderRef: { v: MenuModuleLoader | undefined } = { v: undefined };
@@ -476,7 +689,9 @@ function matchRouteTree(
     errorLoaderRef,
     notFoundLoaderRef,
     menuLoaderRef,
-    loaderPathsByHash
+    loaderPathsByHash,
+    '/',
+    loaderParamsByHash
   );
   if (root._M) {
     groupNodes.push({ node: root, depth: layouts.length });
@@ -501,6 +716,7 @@ function matchRouteTree(
         params: PathParams;
         layouts: ModuleLoader[];
         loaderPathsByHash: Record<string, string>;
+        loaderParamsByHash: Record<string, PathParams>;
         errorLoader: ContentModuleLoader | ModuleLoader[] | undefined;
         errorLayouts: ModuleLoader[];
         notFoundLoader: ContentModuleLoader | ModuleLoader[] | undefined;
@@ -511,11 +727,18 @@ function matchRouteTree(
 
   let i = 0;
   const len = parts.length;
-  for (; !done && i < len; i++) {
+  // The best complete match, found up front so the walk can take a less obvious branch when the
+  // greedy one dead-ends. Undefined when no route matches at all — the walk is then unchanged, and
+  // still produces the routeParts/params/boundaries the 404 path reports.
+  const chain = findMatchChain(root, parts, 0);
+  // A chain entry can consume more or less than one segment (a `[...rest]` followed by more route
+  // segments), so the chain is walked by its own index while `i` tracks the consumed segments.
+  let chainIndex = 0;
+  while (!done && i < len) {
     const part = parts[i];
     const partLower = part.toLowerCase();
 
-    const found = findChild(node, part, partLower, parts, i);
+    const found = chain ? chain[chainIndex++] : findChild(node, part, partLower, parts, i);
     if (!found) {
       matched = false;
       break;
@@ -534,6 +757,7 @@ function matchRouteTree(
         params: { ...params },
         layouts: [...layouts],
         loaderPathsByHash: { ...loaderPathsByHash },
+        loaderParamsByHash: { ...loaderParamsByHash },
         errorLoader: errorLoaderRef.v,
         errorLayouts: errorLoaderRef.layouts,
         notFoundLoader: notFoundLoaderRef.v,
@@ -549,7 +773,9 @@ function matchRouteTree(
     routeParts.push(found.routePart);
     done = found.done;
     node = found.next;
-    const matchedPathname = `/${parts.slice(0, found.done ? len : i + 1).join('/')}/`;
+    const span = found.span ?? 1;
+    const matchedParts = parts.slice(0, found.done ? len : i + span);
+    const matchedPathname = matchedParts.length ? `/${matchedParts.join('/')}/` : '/';
     collectNodeMeta(
       node,
       found.groups,
@@ -558,11 +784,14 @@ function matchRouteTree(
       notFoundLoaderRef,
       menuLoaderRef,
       loaderPathsByHash,
-      matchedPathname
+      matchedPathname,
+      loaderParamsByHash,
+      { ...params }
     );
     if (node._M) {
       groupNodes.push({ node, depth: layouts.length });
     }
+    i += span;
   }
 
   // If we consumed all parts but the current node has no _I,
@@ -582,7 +811,9 @@ function matchRouteTree(
           notFoundLoaderRef,
           menuLoaderRef,
           loaderPathsByHash,
-          pathname
+          pathname,
+          loaderParamsByHash,
+          { ...params }
         );
         node = indexResult.target;
       }
@@ -605,7 +836,9 @@ function matchRouteTree(
           notFoundLoaderRef,
           menuLoaderRef,
           loaderPathsByHash,
-          pathname
+          pathname,
+          loaderParamsByHash,
+          { ...params }
         );
         node = next;
       }
@@ -626,6 +859,7 @@ function matchRouteTree(
     const fbRouteParts = [...fb.routeParts, `[...${fb.paramName}]`];
     const fbLayouts = [...fb.layouts];
     const fbLoaderPathsByHash = { ...fb.loaderPathsByHash };
+    const fbLoaderParamsByHash = { ...fb.loaderParamsByHash };
     const fbErrorRef: BoundaryRef = { v: fb.errorLoader, layouts: fb.errorLayouts };
     const fbNotFoundRef: BoundaryRef = { v: fb.notFoundLoader, layouts: fb.notFoundLayouts };
     const fbMenuRef: { v: MenuModuleLoader | undefined } = { v: fb.menuLoader };
@@ -638,12 +872,14 @@ function matchRouteTree(
       fbNotFoundRef,
       fbMenuRef,
       fbLoaderPathsByHash,
-      pathname
+      pathname,
+      fbLoaderParamsByHash,
+      fbParams
     );
 
     const fallback = resolveLoaders(root, fb.aNode, fbLayouts, fbParams);
     if (fallback) {
-      collectPageLoaders(fallback, fbLoaderPathsByHash, pathname);
+      collectPageLoaders(fallback, fbLoaderPathsByHash, fbLoaderParamsByHash, pathname, fbParams);
       return {
         loaders: fallback.loaders,
         params: fbParams,
@@ -652,6 +888,8 @@ function matchRouteTree(
         routeBundleNames: fb.aNode._B as string[] | undefined,
         loaderPathsByHash:
           Object.keys(fbLoaderPathsByHash).length > 0 ? fbLoaderPathsByHash : undefined,
+        loaderParamsByHash:
+          Object.keys(fbLoaderParamsByHash).length > 0 ? fbLoaderParamsByHash : undefined,
         menuLoader: fbMenuRef.v,
         errorLoader: boundaryChain(fbErrorRef),
       };
@@ -706,12 +944,13 @@ function matchRouteTree(
       notFound: true,
       routeBundleNames: undefined,
       loaderPathsByHash: undefined,
+      loaderParamsByHash: undefined,
       menuLoader: menuLoaderRef.v,
       errorLoader: boundaryChain(errorLoaderRef),
     };
   }
 
-  collectPageLoaders(resolved!, loaderPathsByHash, pathname);
+  collectPageLoaders(resolved!, loaderPathsByHash, loaderParamsByHash, pathname, params);
 
   return {
     loaders,
@@ -720,6 +959,7 @@ function matchRouteTree(
     notFound: false,
     routeBundleNames: node._B as string[] | undefined,
     loaderPathsByHash: Object.keys(loaderPathsByHash).length > 0 ? loaderPathsByHash : undefined,
+    loaderParamsByHash: Object.keys(loaderParamsByHash).length > 0 ? loaderParamsByHash : undefined,
     menuLoader: menuLoaderRef.v,
     errorLoader: boundaryChain(errorLoaderRef),
   };
@@ -754,25 +994,33 @@ const loadModule = <T>(
 };
 
 function collectPageLoaders(
-  { node, loaderPaths }: ResolvedIndex,
+  { node, loaderPaths, loaderParams }: ResolvedIndex,
   paths: Record<string, string>,
-  pathname: string
+  pathParams: Record<string, PathParams>,
+  pathname: string,
+  params: PathParams
 ) {
   if (loaderPaths) {
     for (const hash in paths) {
       delete paths[hash];
+      delete pathParams[hash];
     }
     Object.assign(paths, loaderPaths);
+    Object.assign(pathParams, loaderParams);
   }
   const pageHashes = node._D ?? [];
   if (Array.isArray(node._I)) {
     for (const hash in paths) {
       if (!pageHashes.includes(hash)) {
         delete paths[hash];
+        delete pathParams[hash];
       }
     }
   }
   for (const hash of pageHashes) {
-    paths[hash] ||= ensureSlash(pathname);
+    if (!paths[hash]) {
+      paths[hash] = ensureSlash(pathname);
+      pathParams[hash] = { ...params };
+    }
   }
 }

@@ -3,6 +3,7 @@ import { bold, dim, green, magenta, red } from 'kleur/colors';
 import { relative } from 'node:path';
 import { msToString } from '../utils/format';
 import { ensureSlash, getPathnameForDynamicRoute } from '../utils/pathname';
+import { isStaticTrieKey, unescapeStaticTrieKey } from '../utils/route-trie-key';
 import { createRouteTester } from './routes';
 import type { SsgGenerateOptions, SsgResult, SsgRoute, System } from './types';
 
@@ -281,13 +282,18 @@ export async function mainThread(sys: System) {
           );
         }
 
-        // Recurse into regular child nodes (skip metadata keys starting with '_')
+        // Recurse into static child nodes
         for (const [key, child] of Object.entries(node)) {
-          if (key.charCodeAt(0) === 95 /* '_' */) {
+          if (!isStaticTrieKey(key)) {
             continue;
           }
           const childNode = child as RouteData;
-          await traverseRouteTree(childNode, [...pathParts, key], basePathname, currentLoaders);
+          await traverseRouteTree(
+            childNode,
+            [...pathParts, unescapeStaticTrieKey(key)],
+            basePathname,
+            currentLoaders
+          );
         }
       };
 

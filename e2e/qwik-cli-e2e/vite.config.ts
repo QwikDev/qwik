@@ -14,7 +14,7 @@ if (process.env.CI) {
   }
 
   // Create subdirectories for each template type
-  const templateTypes = ['empty', 'playground'];
+  const templateTypes = ['empty', 'library', 'playground'];
   for (const type of templateTypes) {
     const templatePath = resolve(testPath, type);
     if (!existsSync(templatePath)) {

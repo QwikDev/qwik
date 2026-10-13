@@ -4,6 +4,7 @@ import type { Props } from '../jsx/jsx-runtime';
 import { ChoreBits } from './enums/chore-bits.enum';
 import { BackRef, _EFFECT_BACK_REF } from '../../reactive-primitives/backref';
 import { isDev } from '@qwik.dev/core/build';
+import { Brand, brandClass } from '../utils/brand';
 
 /** @internal */
 export abstract class VNode implements BackRef {
@@ -30,3 +31,4 @@ export abstract class VNode implements BackRef {
     return Object.prototype.toString.call(this);
   }
 }
+brandClass(VNode, Brand.VNode);

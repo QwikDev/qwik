@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { afterEach, assert, test, vi } from 'vitest';
-import { walkRoutes } from './walk-routes-dir';
+import { parseDirName, walkRoutes } from './walk-routes-dir';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -24,4 +24,20 @@ test('route files are ordered by name, not by readdir or stat completion order',
     root._files.map((file) => file.fileName),
     ['404.tsx', 'index.tsx', 'layout.tsx']
   );
+});
+
+test('param directory names may contain dashes', () => {
+  assert.deepEqual(parseDirName('[user-id]'), {
+    key: '_W',
+    paramName: 'user-id',
+    prefix: undefined,
+    suffix: undefined,
+  });
+  assert.deepEqual(parseDirName('pre[user-id]post'), {
+    key: '_W',
+    paramName: 'user-id',
+    prefix: 'pre',
+    suffix: 'post',
+  });
+  assert.deepEqual(parseDirName('[...rest-path]'), { key: '_A', paramName: 'rest-path' });
 });

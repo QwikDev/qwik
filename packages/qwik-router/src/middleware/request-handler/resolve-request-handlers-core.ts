@@ -16,17 +16,15 @@ import type {
 } from '../../runtime/src/types';
 import {
   clearRouteLoaderData,
-  getRouteLoaderCtx,
   getRouteLoaderValues,
   loadRouteLoader,
   matchesRouteLoaderId,
-  setRouteLoaders,
 } from '../../runtime/src/route-loaders';
 import { ensureSlash } from '../../utils/pathname';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
 import {
   getRequestMode,
-  RequestEvErrorBoundaryCaught,
+  RequestEvCaughtError,
   RequestEvETagCacheKey,
   RequestEvHttpStatusMessage,
   RequestEvShareServerTiming,
@@ -35,7 +33,7 @@ import {
   RequestRouteName,
   type RequestEventInternal,
 } from './request-event-core';
-import { loaderHandler } from './handlers/loader-handler';
+import { loaderHandler, setRouteLoaderData } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
 import { actionHandler } from './handlers/action-handler';
 import { IsQLoader, QLoaderId } from './request-path';
@@ -121,7 +119,7 @@ function createResolveRequestHandlers() {
 
     if (isPageRoute) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
-      requestHandlers.push(loaderHandler(routeLoaders, route.$loaderPaths$));
+      requestHandlers.push(loaderHandler(routeLoaders, route));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
       requestHandlers.push(route.$notFound$ ? fixStaticTrailingSlash : fixTrailingSlash);
@@ -325,7 +323,7 @@ function createResolveRequestHandlers() {
       if (routeLoaders.length === 0) {
         return;
       }
-      setLoaderData(requestEv, routeLoaders, route);
+      setRouteLoaderData(requestEv, routeLoaders, route);
 
       // Start every loader concurrently. `blockSSR` loaders (the default) are awaited before SSR so
       // a redirect/error short-circuits the response; the first one in route order wins. Loaders
@@ -347,25 +345,6 @@ function createResolveRequestHandlers() {
       }
       return allBlockSSRLoaders;
     };
-  }
-
-  function setLoaderData(
-    requestEv: RequestEventInternal,
-    routeLoaders: LoaderInternal[],
-    route: LoadedRoute
-  ) {
-    if (routeLoaders.length === 0) {
-      return;
-    }
-
-    // Set up the RouteLoaderCtx with loader paths from the route.
-    const routeLoaderCtx = getRouteLoaderCtx(requestEv);
-    if (route.$loaderPaths$) {
-      Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
-    }
-
-    // Store loader internals so SSG can check __cacheControl.
-    setRouteLoaders(requestEv, routeLoaders);
   }
 
   function eTagMiddleware(route: LoadedRoute): RequestHandler {
@@ -741,7 +720,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
     }
   }
 
-  function renderQwikMiddleware(render: Render) {
+  function renderQwikMiddleware(render: Render, trustForwardedHeaders = false) {
     return async (requestEv: RequestEvent) => {
       if (requestEv.headersSent) {
         return;
@@ -790,7 +769,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       const stream = writable.getWriter();
       try {
         const isStatic = getRequestMode(requestEv) === 'static';
-        const serverData = getQwikRouterServerData(requestEv);
+        const serverData = getQwikRouterServerData(requestEv, trustForwardedHeaders);
         const result = await render({
           base: requestEv.basePathname + 'build/',
           stream,
@@ -804,8 +783,8 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
             ['q:render']: isStatic ? 'static' : '',
             ...serverData.containerAttributes,
           },
-          onBeforeFirstFlush: (info: { errorBoundaryCaught: boolean }) => {
-            if (info.errorBoundaryCaught) {
+          onBeforeFirstFlush: (info: { hasCaughtError: boolean }) => {
+            if (info.hasCaughtError) {
               boundaryErrored = true;
               noStoreSent = true;
               overrodeCacheControl = responseHeaders.has('Cache-Control');
@@ -816,9 +795,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
         }
-        boundaryErrored ||= (result as RenderToStreamResult).errorBoundaryCaught === true;
+        boundaryErrored ||= (result as RenderToStreamResult).hasCaughtError === true;
         if (boundaryErrored) {
-          requestEv.sharedMap.set(RequestEvErrorBoundaryCaught, true);
+          requestEv.sharedMap.set(RequestEvCaughtError, true);
         }
       } finally {
         try {
@@ -836,7 +815,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       // Only worth a log when the developer configured caching and the error disabled it.
       if (boundaryErrored && (noStoreSent ? cachePlan || overrodeCacheControl : !!cachePlan)) {
         console.warn(
-          `An <ErrorBoundary> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
+          `A <Catch> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
             (noStoreSent
               ? 'the response was sent with Cache-Control: no-store.'
               : 'the SSR cache was skipped (response headers were already sent).')

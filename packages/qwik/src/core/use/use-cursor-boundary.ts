@@ -10,16 +10,16 @@ export type CursorBoundary = Signal<number>;
 
 /** @internal */
 export const useCursorBoundary = (): CursorBoundary => {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     throw new Error(
-      'useCursorBoundary is experimental and must be enabled with `experimental: ["suspense"]` in the `qwikVite` plugin.'
+      'useCursorBoundary is experimental and must be enabled with `experimental: ["pendingBoundary"]` in the `qwikVite` plugin.'
     );
   }
   return useSignal(0);
 };
 
 export function addCursorBoundary(cursorData: CursorData, vNode: VNode): void {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     return;
   }
   let boundary: CursorBoundary | null = null;
@@ -39,7 +39,7 @@ export function addCursorBoundary(cursorData: CursorData, vNode: VNode): void {
 }
 
 export function resolveCursorBoundaries(cursorData: CursorData): void {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     return;
   }
   const boundaries = cursorData.boundaries;
@@ -54,7 +54,7 @@ export function resolveCursorBoundaries(cursorData: CursorData): void {
 }
 
 export function getOwnCursorBoundary(vNode: VNode): CursorBoundary | null {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     return null;
   }
   return (vnode_getProp(vNode, QCursorBoundary, null) as CursorBoundary | null | undefined) || null;
@@ -65,7 +65,7 @@ export function clearNearestCursorBoundary(vNode: VNode): void {
 }
 
 export function getNearestCursorBoundary(vNode: VNode): CursorBoundary | null {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     return null;
   }
   return (
@@ -75,11 +75,11 @@ export function getNearestCursorBoundary(vNode: VNode): CursorBoundary | null {
 }
 
 export function setNearestCursorBoundary(vNode: VNode, boundary: CursorBoundary | null): void {
-  __EXPERIMENTAL__.suspense && vnode_setProp(vNode, NEAREST_CURSOR_BOUNDARY, boundary);
+  __EXPERIMENTAL__.pendingBoundary && vnode_setProp(vNode, NEAREST_CURSOR_BOUNDARY, boundary);
 }
 
 export function clearCursorBoundary(vNode: VNode): void {
-  if (__EXPERIMENTAL__.suspense && vNode.props && QCursorBoundary in vNode.props) {
+  if (__EXPERIMENTAL__.pendingBoundary && vNode.props && QCursorBoundary in vNode.props) {
     vnode_setProp(vNode, QCursorBoundary, null);
   }
 }
@@ -89,7 +89,7 @@ export function updateDirtySubtreeCursorBoundary(
   vNode: VNode,
   boundary: CursorBoundary | null
 ): void {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     return;
   }
   setNearestCursorBoundary(vNode, boundary);

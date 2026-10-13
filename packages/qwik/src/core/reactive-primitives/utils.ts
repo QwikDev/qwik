@@ -29,6 +29,7 @@ import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-exec
 import type { VNode } from '../shared/vnode/vnode';
 import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
 import { isBrowser, isDev } from '@qwik.dev/core/build';
+import { Brand, hasBrand } from '../shared/utils/brand';
 
 const DEBUG = false;
 
@@ -49,7 +50,7 @@ export const throwIfQRLNotResolved = (qrl: QRL) => {
 
 /** @public */
 export const isSignal = (value: any): value is Signal<unknown> => {
-  return value instanceof SignalImpl;
+  return hasBrand(value, Brand.Signal);
 };
 
 export const ensureContainsSubscription = (

@@ -69,6 +69,12 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
     const mainTasks = new Map<string, WorkerMainTask>();
     let terminateTimeout: number | null = null;
 
+    let markWorkerReady!: () => void;
+    // Bun drops messages posted before the worker listens, so wait for its ready signal.
+    const workerReady = new Promise<void>((resolve) => {
+      markWorkerReady = resolve;
+    });
+
     const nodeWorker = new Worker(workerFilePath, { workerData });
     nodeWorker.unref();
 
@@ -78,16 +84,16 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
 
       render: (staticRoute) => {
         return new Promise((resolve, reject) => {
-          try {
-            ssgWorker.activeTasks++;
-            ssgWorker.totalTasks++;
-            mainTasks.set(staticRoute.pathname, resolve);
-            nodeWorker.postMessage(staticRoute);
-          } catch (e) {
-            ssgWorker.activeTasks--;
-            mainTasks.delete(staticRoute.pathname);
-            reject(e);
-          }
+          ssgWorker.activeTasks++;
+          ssgWorker.totalTasks++;
+          mainTasks.set(staticRoute.pathname, resolve);
+          workerReady
+            .then(() => nodeWorker.postMessage(staticRoute))
+            .catch((e) => {
+              ssgWorker.activeTasks--;
+              mainTasks.delete(staticRoute.pathname);
+              reject(e);
+            });
         });
       },
 
@@ -106,7 +112,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
             await nodeWorker.terminate();
             resolve();
           }, 1000) as unknown as number;
-          nodeWorker.postMessage(msg);
+          workerReady.then(() => nodeWorker.postMessage(msg));
         });
         // If worker responded gracefully, cancel the force-terminate
         if (terminateTimeout) {
@@ -118,6 +124,10 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
 
     nodeWorker.on('message', (msg: WorkerOutputMessage) => {
       switch (msg.type) {
+        case 'ready': {
+          markWorkerReady();
+          break;
+        }
         case 'render': {
           const mainTask = mainTasks.get(msg.pathname);
           if (mainTask) {

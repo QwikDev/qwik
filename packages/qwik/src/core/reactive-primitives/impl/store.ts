@@ -24,6 +24,7 @@ import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy
 import { isDev, isServer } from '@qwik.dev/core/build';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { SSRSegmentContainer } from '../../ssr/ssr-types';
+import { Brand, brandClass } from '../../shared/utils/brand';
 
 const DEBUG = false;
 
@@ -263,6 +264,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     };
   }
 }
+brandClass(StoreHandler, Brand.StoreHandler);
 
 export function addStoreEffect(
   target: StoreTarget | PropsProxy,
@@ -282,7 +284,7 @@ export function addStoreEffect(
   // changes we know who to notify.
   const isOnServer = qTest ? isServerPlatform() : isServer;
   const shouldRecordExternalRootEffect =
-    __EXPERIMENTAL__.suspense && store instanceof StoreHandler && isOnServer;
+    __EXPERIMENTAL__.pendingBoundary && store instanceof StoreHandler && isOnServer;
   ensureContainsSubscription(effects, effectSubscription);
   // But when effect is scheduled in needs to be able to know which signals
   // to unsubscribe from. So we need to store the reference from the effect back

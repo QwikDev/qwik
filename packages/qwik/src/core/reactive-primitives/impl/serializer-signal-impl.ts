@@ -12,6 +12,7 @@ import {
 } from '../types';
 import { scheduleEffects, throwIfQRLNotResolved } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
+import { Brand, brandClass } from '../../shared/utils/brand';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -71,3 +72,4 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
     }
   }
 }
+brandClass(SerializerSignalImpl, Brand.SerializerSignal);

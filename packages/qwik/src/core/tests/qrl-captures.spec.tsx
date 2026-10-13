@@ -145,3 +145,19 @@ describe.each([
     });
   });
 });
+
+describe('QRL captures serialization', () => {
+  it('should serialize only the aliased store branch an event handler captures', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ counter: { count: 1 }, largeData: { data: 'LARGE DATASET' } });
+      const counter = store.counter;
+      return <button onClick$={() => counter.count++}>{counter.count}</button>;
+    });
+    const { document } = await ssrRenderToDom(<Cmp />, { debug });
+    const state = document.querySelector('script[type="qwik/state"]')!.textContent;
+    expect(state).not.toContain('LARGE DATASET');
+
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('button')!.textContent).toBe('2');
+  });
+});

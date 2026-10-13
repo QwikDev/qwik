@@ -74,7 +74,7 @@ export const Works = component$(() => {
 });
 
 describe('Fix B: filter migrated names from body-side capture unpacking', () => {
-  it('does NOT inject `const X = _captures[0]` for a migrated module-level decl', () => {
+  it('does NOT inject `let X = _capturesObj._[0]` for a migrated module-level decl', () => {
     const input = `
 import { component$, useStyle$ } from '@qwik.dev/core';
 
@@ -96,12 +96,12 @@ const STYLES = '.class {}';
     const parent = findParent(result);
     const code = parent.code;
 
-    expect(code).not.toMatch(/const\s+STYLES\s*=\s*_captures\[0\]/);
+    expect(code).not.toMatch(/\bSTYLES\s*=\s*_capturesObj\._\[0\]/);
     expect(code).toMatch(/export\s*\{\s*STYLES\s+as\s+_auto_STYLES\s*\}/);
-    expect(code).not.toContain('import { _captures }');
+    expect(code).not.toContain('import { _capturesObj }');
   });
 
-  it('STILL injects `_captures[N]` for non-migrated closure captures (Inline strategy)', () => {
+  it('STILL injects `_capturesObj._[N]` for non-migrated closure captures (Inline strategy)', () => {
     const input = `
 import { component$ } from '@qwik.dev/core';
 
@@ -121,7 +121,7 @@ export const Foo = component$(({ atom }) => {
     const parent = findParent(result);
     const code = parent.code;
 
-    expect(code).toContain('_captures[0]');
+    expect(code).toContain('_capturesObj._[0]');
   });
 });
 

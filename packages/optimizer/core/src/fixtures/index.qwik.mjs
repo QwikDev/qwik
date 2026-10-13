@@ -3,7 +3,7 @@ import {
   inlinedQrl,
   useErrorBoundary,
   useOnWindow,
-  _captures,
+  _capturesObj,
   _jsxSorted,
   Slot,
   isBrowser,
@@ -105,7 +105,7 @@ const ErrorBoundary = /* @__PURE__ */ componentQrl(
       'qerror',
       /* @__PURE__ */ inlinedQrl(
         (e) => {
-          const store2 = _captures[0];
+          const store2 = _capturesObj._[0];
           store2.error = e.detail.error;
         },
         'ErrorBoundary_component_useOnWindow_G0jFRpoNY0M',
@@ -200,7 +200,7 @@ const Link = /* @__PURE__ */ componentQrl(
     const handlePrefetch = prefetch
       ? /* @__PURE__ */ inlinedQrl(
           (_, elm) => {
-            const head2 = _captures[0];
+            const head2 = _capturesObj._[0];
             if (navigator.connection?.saveData) {
               return;
             }
@@ -223,10 +223,10 @@ const Link = /* @__PURE__ */ componentQrl(
     const handleClientSideNavigation = clientNavPath
       ? /* @__PURE__ */ inlinedQrl(
           (event, elm) => {
-            const nav2 = _captures[0],
-              reload2 = _captures[1],
-              replaceState2 = _captures[2],
-              scroll2 = _captures[3];
+            const nav2 = _capturesObj._[0],
+              reload2 = _capturesObj._[1],
+              replaceState2 = _capturesObj._[2],
+              scroll2 = _capturesObj._[3];
             if (event.defaultPrevented) {
               if (elm.href) {
                 elm.setAttribute('aria-pressed', 'true');
@@ -251,10 +251,10 @@ const Link = /* @__PURE__ */ componentQrl(
     useVisibleTaskQrl(
       /* @__PURE__ */ inlinedQrl(
         ({ track }) => {
-          const anchorRef2 = _captures[0],
-            handlePrefetch2 = _captures[1],
-            linkProps2 = _captures[2],
-            loc2 = _captures[3];
+          const anchorRef2 = _capturesObj._[0],
+            handlePrefetch2 = _capturesObj._[1],
+            linkProps2 = _capturesObj._[2],
+            loc2 = _capturesObj._[3];
           track(() => loc2.url.pathname);
           const handler = linkProps2.onQVisible$;
           if (handler) {
@@ -730,12 +730,12 @@ const useQwikRouter = (props) => {
   }, 'useQwikRouter_getScroller_0UhDFwlxeFQ');
   const goto = /* @__PURE__ */ inlinedQrl(
     async (path, opt) => {
-      const actionState2 = _captures[0],
-        getScroller2 = _captures[1],
-        manifestHash2 = _captures[2],
-        navResolver2 = _captures[3],
-        routeInternal2 = _captures[4],
-        routeLocation2 = _captures[5];
+      const actionState2 = _capturesObj._[0],
+        getScroller2 = _capturesObj._[1],
+        manifestHash2 = _capturesObj._[2],
+        navResolver2 = _capturesObj._[3],
+        routeInternal2 = _capturesObj._[4],
+        routeLocation2 = _capturesObj._[5];
       const {
         type = 'link',
         forceReload = path === void 0,
@@ -849,22 +849,22 @@ const useQwikRouter = (props) => {
   useTaskQrl(
     /* @__PURE__ */ inlinedQrl(
       async ({ track }) => {
-        const actionState2 = _captures[0],
-          content2 = _captures[1],
-          contentInternal2 = _captures[2],
-          documentHead2 = _captures[3],
-          env2 = _captures[4],
-          getScroller2 = _captures[5],
-          goto2 = _captures[6],
-          httpStatus2 = _captures[7],
-          loaderState2 = _captures[8],
-          navResolver2 = _captures[9],
-          props2 = _captures[10],
-          routeInternal2 = _captures[11],
-          routeLoaderCtx2 = _captures[12],
-          routeLocation2 = _captures[13],
-          routeLocationTarget2 = _captures[14],
-          serverHead2 = _captures[15];
+        const actionState2 = _capturesObj._[0],
+          content2 = _capturesObj._[1],
+          contentInternal2 = _capturesObj._[2],
+          documentHead2 = _capturesObj._[3],
+          env2 = _capturesObj._[4],
+          getScroller2 = _capturesObj._[5],
+          goto2 = _capturesObj._[6],
+          httpStatus2 = _capturesObj._[7],
+          loaderState2 = _capturesObj._[8],
+          navResolver2 = _capturesObj._[9],
+          props2 = _capturesObj._[10],
+          routeInternal2 = _capturesObj._[11],
+          routeLoaderCtx2 = _capturesObj._[12],
+          routeLocation2 = _capturesObj._[13],
+          routeLocationTarget2 = _capturesObj._[14],
+          serverHead2 = _capturesObj._[15];
         const container = _getContextContainer();
         const navigation = track(routeInternal2);
         const action = track(actionState2);
@@ -1275,7 +1275,7 @@ const useQwikMockRouter = (props) => {
     loaderState[loaderId] ||= createAsyncQrl(
       /* @__PURE__ */ inlinedQrl(
         async () => {
-          const data2 = _captures[0];
+          const data2 = _capturesObj._[0];
           return data2;
         },
         'useQwikMockRouter_createAsync_clbxpuXqpEU',
@@ -1324,8 +1324,8 @@ const useQwikMockRouter = (props) => {
   useTaskQrl(
     /* @__PURE__ */ inlinedQrl(
       async ({ track }) => {
-        const actionState2 = _captures[0],
-          actionsMocks2 = _captures[1];
+        const actionState2 = _capturesObj._[0],
+          actionsMocks2 = _capturesObj._[1];
         const action = track(actionState2);
         if (!action?.resolve) {
           return;
@@ -1604,10 +1604,10 @@ const routeActionQrl = (actionQrl, ...rest) => {
     });
     const submit = /* @__PURE__ */ inlinedQrl(
       (input = {}) => {
-        const currentAction2 = _captures[0],
-          id2 = _captures[1],
-          loc2 = _captures[2],
-          state2 = _captures[3];
+        const currentAction2 = _capturesObj._[0],
+          id2 = _capturesObj._[1],
+          loc2 = _capturesObj._[2],
+          state2 = _capturesObj._[3];
         if (isServer) {
           throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
@@ -1731,11 +1731,11 @@ const serverQrl = (qrl, options) => {
   const fetchOptions = options?.fetchOptions || {};
   return /* @__PURE__ */ inlinedQrl(
     async function (...args) {
-      const fetchOptions2 = _captures[0],
-        headers2 = _captures[1],
-        method2 = _captures[2],
-        origin2 = _captures[3],
-        qrl2 = _captures[4];
+      const fetchOptions2 = _capturesObj._[0],
+        headers2 = _capturesObj._[1],
+        method2 = _capturesObj._[2],
+        origin2 = _capturesObj._[3],
+        qrl2 = _capturesObj._[4];
       const abortSignal = args.length > 0 && args[0] instanceof AbortSignal ? args.shift() : void 0;
       if (isServer) {
         return qrl2.apply(getRequestEvent(this), args);
@@ -1857,7 +1857,7 @@ const GetForm = /* @__PURE__ */ componentQrl(
           ...(Array.isArray(_rawProps.onSubmit$) ? _rawProps.onSubmit$ : [_rawProps.onSubmit$]),
           /* @__PURE__ */ inlinedQrl(
             async (_evt, form) => {
-              const nav2 = _captures[0];
+              const nav2 = _capturesObj._[0];
               const formData = new FormData(form);
               const params = new URLSearchParams();
               formData.forEach((value, key) => {
@@ -1914,7 +1914,7 @@ const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => 
             !reloadDocument
               ? /* @__PURE__ */ inlinedQrl(
                   (evt) => {
-                    const action2 = _captures[0];
+                    const action2 = _capturesObj._[0];
                     if (!action2.submitted) {
                       return action2.submit(evt);
                     }

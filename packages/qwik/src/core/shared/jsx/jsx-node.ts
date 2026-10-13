@@ -9,6 +9,7 @@ import { type Props } from './jsx-runtime';
 import { createPropsProxy, isPropsProxy } from './props-proxy';
 import type { DevJSX, FunctionComponent, JSXNodeFlags, JSXNodeInternal } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
+import { Brand, brandClass } from '../utils/brand';
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -50,6 +51,7 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
     return (this._proxy ||= createPropsProxy(this)) as any;
   }
 }
+brandClass(JSXNodeImpl, Brand.JSXNode);
 
 /** @returns `true` if the event is new to the object */
 export const mergeHandlers = (obj: Props, event: string, handler: QRL) => {

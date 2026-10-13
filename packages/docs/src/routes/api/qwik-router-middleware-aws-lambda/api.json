@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-middleware-aws-lambda",
-  "package": "@qwik.dev/qwik-router/middleware/aws-lambda",
+  "package": "@qwik.dev/router/middleware/aws-lambda",
   "members": [
     {
       "name": "createQwikCity",

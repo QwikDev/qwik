@@ -30,6 +30,7 @@ export type {
 } from './create-optimizer.js';
 
 export type {
+  DecoratorOptions,
   Diagnostic,
   DiagnosticHighlightFlat,
   EmitMode,

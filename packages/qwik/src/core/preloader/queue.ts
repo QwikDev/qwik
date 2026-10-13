@@ -1,3 +1,5 @@
+import type { QwikSymbolEvent } from '../shared/jsx/types/jsx-qwik-events';
+import { createMacroTask } from '../shared/platform/next-tick';
 import { base, getBundle } from './bundle-graph';
 import { config, doc, isBrowser, rel, yieldInterval } from './constants';
 import type { BundleImport, BundleImports, ImportProbability } from './types';
@@ -7,8 +9,7 @@ import {
   BundleImportState_Preload,
   BundleImportState_Queued,
 } from './types';
-import type { QwikSymbolEvent } from '../shared/jsx/types/jsx-qwik-events';
-import { createMacroTask } from '../shared/platform/next-tick';
+import { setPreloader } from './bridge';
 
 export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
@@ -284,6 +285,8 @@ export const preload = (item: string | string[], probability?: number) => {
 };
 
 if (isBrowser) {
+  setPreloader(preload);
+
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;

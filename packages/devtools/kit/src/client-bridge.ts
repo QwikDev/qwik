@@ -76,6 +76,7 @@ export interface QwikDevtoolsHookExtended extends QwikDevtoolsHook {
   setSignalValue(name: string, chunk: string | undefined, varName: string, val: unknown): boolean;
   // Added by the vnode bridge once it loads, so optional on the base hook.
   getVNodeTree?(): DevtoolsVNodeTreeNode[] | null;
+  refreshVNodeTree?(): void;
   getNodeProps?(nodeId: string): Record<string, unknown> | null;
   resolveElementToComponent?(el: Element | null): string | null;
   getElementRect?(

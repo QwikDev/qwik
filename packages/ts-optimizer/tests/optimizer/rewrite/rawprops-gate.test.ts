@@ -259,7 +259,7 @@ export const C = component$(({ api }) => {
     const seg = findSegment(result, 'useTask');
     expect(seg.code).toMatch(/\(\{\s*track\s*\}\)\s*=>/);
     expect(seg.code).not.toMatch(/\(_rawProps\)\s*=>/);
-    expect(seg.code).toContain('_captures[0]');
+    expect(seg.code).toContain('_capturesObj._[0]');
     expect(seg.code).toContain('_rawProps.api');
     const rawPropsDecls = seg.code.match(/(?<![\w$.])_rawProps\s*=/g) ?? [];
     expect(rawPropsDecls).toHaveLength(1);

@@ -20,7 +20,9 @@ export const routes = {
     _4: ()=>import("<app>/src/routes/sub/404"),
   },
 };
-export const trailingSlash = true;
+export const trailingSlash = !globalThis.__NO_TRAILING_SLASH__;
 export const basePathname = "/";
 export const cacheModules = !isDev;
-export default { routes, serverPlugins, trailingSlash, basePathname, cacheModules };
+export const serviceWorkerUrl = undefined;
+const config = { routes, serverPlugins, trailingSlash, basePathname, cacheModules, serviceWorkerUrl };
+export default config;

@@ -3,7 +3,7 @@
  * segment, re-exported as `_auto_<name>`, or kept at root.
  */
 
-import { walk } from 'oxc-walker';
+import { isReferenceIdentifier, walk } from 'oxc-walker';
 import type { AstMaybeNode, AstNode, AstProgram } from '../../ast-types.js';
 import {
   addBindingNamesFromPatternToSet,
@@ -337,7 +337,8 @@ export const DECLARATION_TYPES = new Set([
  * Usage attribution is reference-semantic and must skip these — counting them fabricates phantom
  * usage for any module-level decl whose name collides with a property name (e.g. a root
  * `startViewTransition` vs `document.startViewTransition`), which wrongly demotes a single-segment
- * MOVE to a dual-use REEXPORT. Shared with the gather walk's segment-usage projection.
+ * MOVE to a dual-use REEXPORT. Shared with the gather walk's segment-usage projection. A JSX name
+ * reads a binding only as a component tag (`<Foo>`) or a member tag's object (`<ui.Home>`).
  */
 export function isNonReferenceIdentifier(
   node: AstNode,
@@ -345,6 +346,9 @@ export function isNonReferenceIdentifier(
 ): boolean {
   if (!parent) {
     return false;
+  }
+  if (node.type === 'JSXIdentifier') {
+    return !isReferenceIdentifier(node, parent);
   }
   if (parent.type === 'MemberExpression') {
     return !parent.computed && parent.property === node;
@@ -595,14 +599,12 @@ export function collectDeclIdentifiers(
       ) {
         names.add(node.name);
       }
-      // JSX tag names (`<TwoListeners />`) reference bindings too — only
-      // opening/closing tag positions, not attribute names.
+      // JSX tag names (`<TwoListeners />`) reference bindings too.
       if (
         node.type === 'JSXIdentifier' &&
         node.start >= decl.declStart &&
         node.end <= decl.declEnd &&
-        (parent as { type?: string; name?: unknown } | null)?.type !== 'JSXAttribute' &&
-        (parent as { type?: string } | null)?.type !== 'JSXNamespacedName'
+        isReferenceIdentifier(node, parent)
       ) {
         names.add(node.name);
       }

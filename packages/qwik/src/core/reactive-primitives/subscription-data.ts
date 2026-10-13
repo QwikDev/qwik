@@ -1,4 +1,5 @@
 import type { Signal } from './signal.public';
+import { Brand, brandClass } from '../shared/utils/brand';
 
 export interface NodePropData {
   $scopedStyleIdPrefix$: string | null;
@@ -17,6 +18,7 @@ export class SubscriptionData {
     this.data = data;
   }
 }
+brandClass(SubscriptionData, Brand.SubscriptionData);
 
 export interface NodeProp {
   isConst: boolean;

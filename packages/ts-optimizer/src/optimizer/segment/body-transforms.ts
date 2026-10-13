@@ -290,7 +290,7 @@ export function rewriteNestedCallSitesInline(
       const relEnd = site.callEnd - bodyOffset;
       let qrlRef = site.qrlVarName;
       // Full inlinedQrl captures win over identifier-only captureNames here:
-      // dropping a non-identifier capture leaves `_captures[i]` undefined.
+      // dropping a non-identifier capture leaves `_capturesObj._[i]` undefined.
       const liveExplicitCaptures =
         site.explicitCaptureStart !== undefined && site.explicitCaptureEnd !== undefined
           ? bodyText.slice(
@@ -827,8 +827,9 @@ export function injectCapturesUnpacking(bodyText: string, captureNames: string[]
     return bodyText;
   }
 
-  const unpackParts = captureNames.map((name, i) => `${name} = _captures[${i}]`);
-  const unpackLine = `const ${unpackParts.join(', ')};`;
+  const unpackParts = captureNames.map((name, i) => `${name} = _capturesObj._[${i}]`);
+  // `let` matches the Rust optimizer's `read_captures` output.
+  const unpackLine = `let ${unpackParts.join(', ')};`;
 
   const session = createFunctionTransformSession(bodyText);
   if (!session) {

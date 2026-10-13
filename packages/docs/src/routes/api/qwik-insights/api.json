@@ -1,6 +1,6 @@
 {
   "id": "qwik-insights",
-  "package": "@qwik.dev/qwik/insights",
+  "package": "@qwik.dev/core/insights",
   "members": [
     {
       "name": "Insights",

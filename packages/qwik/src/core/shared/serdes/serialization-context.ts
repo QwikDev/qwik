@@ -4,6 +4,7 @@ import type { QRL } from '../qrl/qrl.public';
 import type { ObjToProxyMap } from '../types';
 import type { ValueOrPromise } from '../utils/types';
 import { Serializer } from './serialize';
+import { Brand, brandClass } from '../utils/brand';
 
 type DomRef = {
   $ssrNode$: ISsrNode;
@@ -27,6 +28,7 @@ export class SerializationBackRef {
     public $path$: number[]
   ) {}
 }
+brandClass(SerializationBackRef, Brand.SerializationBackRef);
 
 interface AddRootFn {
   (obj: unknown, returnRef?: never): number;
@@ -88,7 +90,7 @@ export interface SerializationContext {
 
   $isSsrNode$: (obj: unknown) => obj is ISsrNode;
   $isDomRef$: (obj: unknown) => obj is DomRef;
-  $markSsrNodeForSerialization$: (node: ISsrNode, flags: number) => void;
+  $markSsrNodeForSerialization$: (node: ISsrNode, flags: number, isStateRoot?: boolean) => void;
 
   $writer$: SSRInternalStreamWriter;
   $setWriter$(writer: SSRInternalStreamWriter): void;

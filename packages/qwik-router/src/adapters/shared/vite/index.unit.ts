@@ -35,4 +35,24 @@ describe('viteAdapter ssg environment', () => {
     // buildApp must still run so postBuild and the adapter generate() produce the deploy output.
     expect(config.builder).toBeDefined();
   });
+
+  it('keeps ssg.maxWorkers when the top-level maxWorkers is not set', () => {
+    const [plugin] = viteAdapter({
+      name: 'test',
+      origin: 'https://example.com',
+      ssg: { include: ['/*'], maxWorkers: 1 },
+    }) as any[];
+    plugin.configResolved({
+      command: 'build',
+      plugins: [
+        { name: 'vite-plugin-qwik-router', api: { getBasePathname: () => '/' } },
+        {
+          name: 'vite-plugin-qwik',
+          api: { getClientPublicOutDir: () => '/app/dist', getRootDir: () => '/app' },
+        },
+      ],
+    });
+    const runSsgSource: string = plugin.load.call({ warn() {} }, '\0@qwik-ssg-entry');
+    expect(runSsgSource).toContain('"maxWorkers":1');
+  });
 });

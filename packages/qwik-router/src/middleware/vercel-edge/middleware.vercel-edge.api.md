@@ -21,6 +21,7 @@ export type QwikCityVercelEdgeOptions = QwikRouterVercelEdgeOptions;
 
 // @public (undocumented)
 export interface QwikRouterVercelEdgeOptions extends ServerRenderOptions {
+    requestBodyLimit?: number;
 }
 
 // (No @packageDocumentation comment for this package)

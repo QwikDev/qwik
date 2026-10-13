@@ -24,6 +24,12 @@ export interface ComponentEntryStrategy {
 export const createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
 
 // @public (undocumented)
+export interface DecoratorOptions {
+    emitDecoratorMetadata?: boolean;
+    legacy?: boolean;
+}
+
+// @public (undocumented)
 export interface Diagnostic {
     // (undocumented)
     category: DiagnosticCategory;
@@ -53,12 +59,12 @@ export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEnt
 // @public
 export enum ExperimentalFeatures {
     blockSSR = "blockSSR",
+    catchBoundary = "catchBoundary",
     each = "each",
-    errorBoundary = "errorBoundary",
     insights = "insights",
     noSPA = "noSPA",
+    pendingBoundary = "pendingBoundary",
     show = "show",
-    suspense = "suspense",
     valibot = "valibot"
 }
 
@@ -461,6 +467,7 @@ export interface TransformModulesOptions extends TransformOptions {
 
 // @public (undocumented)
 export interface TransformOptions {
+    decorator?: DecoratorOptions;
     // (undocumented)
     entryStrategy?: EntryStrategy;
     // (undocumented)

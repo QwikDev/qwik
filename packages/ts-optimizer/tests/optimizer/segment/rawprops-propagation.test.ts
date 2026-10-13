@@ -12,7 +12,7 @@ function findParent(result: { modules: readonly TransformModule[] }): TransformM
 }
 
 describe('Inline strategy keeps captureNames intact for non-loop nested handlers', () => {
-  it('emits inline-style body with _captures[N] unpacking + _rawProps.X rewriting', () => {
+  it('emits inline-style body with _capturesObj._[N] unpacking + _rawProps.X rewriting', () => {
     const input = `
 import { component$ } from '@qwik.dev/core';
 
@@ -32,8 +32,8 @@ export const AtomStatus = component$(({ctx, atom}) => {
     const parent = findParent(result);
     const code = parent.code;
 
-    expect(code).toContain('_captures');
-    expect(code).toContain('_rawProps = _captures[0]');
+    expect(code).toContain('_capturesObj');
+    expect(code).toContain('_rawProps = _capturesObj._[0]');
     expect(code).toContain('_rawProps.atom');
     expect(code).toContain('_rawProps.ctx');
     expect(code).toMatch(/q_\w+\.w\(\[\s*_rawProps\s*\]\)/);
@@ -65,7 +65,7 @@ export const Foo = component$(({description = '', other}: any) => {
     const code = parent.code;
 
     expect(code).toMatch(/=\s*\(_,\s*_1,\s*counter\)\s*=>\s*counter\.value\+\+/);
-    expect(code).not.toContain('_captures[0]');
+    expect(code).not.toContain('_capturesObj._[0]');
   });
 
   it('default (smart) strategy keeps captureNames empty after promotion (segment-file path)', () => {

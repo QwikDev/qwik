@@ -1,8 +1,10 @@
+import { mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, createQwikPlugin } from './plugin';
+import { ExperimentalFeatures, QWIK_PRELOADER_ID, createQwikPlugin } from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
@@ -30,6 +32,29 @@ test('defaults', async () => {
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
+});
+
+test('emits the client loader and preloader runtime entries once', async () => {
+  const plugin = await mockPlugin();
+  await plugin.normalizeOptions({ target: 'client' });
+
+  const emittedIds: string[] = [];
+  const context = {
+    resolve: async (id: string) => ({ id: `/resolved/${id}` }),
+    emitFile: (file: { id?: string }) => {
+      emittedIds.push(file.id!);
+      return `ref-${emittedIds.length}`;
+    },
+  } as any;
+
+  await plugin.buildStart(context);
+  expect(emittedIds).toEqual([
+    '/resolved/@qwik.dev/core/qwikloader.js',
+    `/resolved/${QWIK_PRELOADER_ID}`,
+  ]);
+
+  await plugin.resolveId(context, QWIK_PRELOADER_ID);
+  expect(emittedIds).toHaveLength(2);
 });
 
 test('defaults (buildMode: production)', async () => {
@@ -681,6 +706,49 @@ export default component$(() => <button onClick$={() => 'hello'}>hi</button>);
   );
 });
 
+describe('decorators follow tsconfig', () => {
+  const decoratedComponent = `import { component$ } from '@qwik.dev/core';
+const Entity = (): ClassDecorator => (target) => target;
+const Inject = (): ParameterDecorator => () => {};
+export default component$(() => {
+  @Entity()
+  class User {
+    greet(@Inject() name: string) {
+      return name;
+    }
+  }
+  return <p>{new User().greet('hi')}</p>;
+});
+`;
+
+  async function loadDecoratedSegment(compilerOptions: Record<string, unknown>) {
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'qwik-decorators-'));
+    await writeFile(path.join(rootDir, 'tsconfig.json'), JSON.stringify({ compilerOptions }));
+    const plugin = await mockPlugin(process.platform, true, true);
+    await plugin.normalizeOptions({ rootDir });
+    const result = await plugin.transform(
+      { addWatchFile: () => undefined, emitFile: () => undefined } as any,
+      decoratedComponent,
+      path.join(rootDir, 'src/routes/index.tsx')
+    );
+    const segmentId = result!.meta!.qwikdeps.find((dep: string) => dep.includes('_component_'));
+    const loaded = await plugin.load({} as any, segmentId!);
+    return (loaded as { code: string }).code;
+  }
+
+  test('lowers legacy decorators with experimentalDecorators', async () => {
+    const code = await loadDecoratedSegment({ experimentalDecorators: true });
+    expect(code).not.toContain('@Entity');
+    expect(code).not.toContain('@Inject');
+    expect(code).toContain('_decorate(');
+  });
+
+  test('keeps standard decorators without experimentalDecorators', async () => {
+    const code = await loadDecoratedSegment({});
+    expect(code).toContain('@Entity()');
+  });
+});
+
 test('transform omits sourcemaps for public virtual modules', async () => {
   const plugin = await mockPlugin(process.platform, true);
   await plugin.normalizeOptions({ rootDir: '/root', srcDir: '/root/src' });
@@ -754,8 +822,9 @@ export const Cold = component$(() => <div>hi</div>);
   expect((loaded as { code: string })?.code).toBeTypeOf('string');
 });
 
-async function mockPlugin(os = process.platform, useRealOptimizer = false) {
+async function mockPlugin(os = process.platform, useRealOptimizer = false, tsOptimizer = false) {
   const plugin = createQwikPlugin({
+    tsOptimizer,
     sys: {
       cwd: () => process.cwd(),
       env: 'node',

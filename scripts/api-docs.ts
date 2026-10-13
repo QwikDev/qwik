@@ -49,15 +49,12 @@ async function generateApiMarkdownSubPackageDocs(
     return;
   }
 
-  const subPkgName = ['@qwik.dev', ...names].filter((n) => n !== 'core').join('/');
+  const subPkgPath = names.filter((n) => n !== 'core');
+  const subPkgName = getNpmPackageName(subPkgPath);
+  const apiId = subPkgPath.join('-');
   console.log('📚', `Generate API ${subPkgName} markdown docs`);
 
-  const apiOutputDir = join(
-    config.rootDir,
-    'dist-dev',
-    'api-docs',
-    names.filter((n) => n !== 'core').join('-')
-  );
+  const apiOutputDir = join(config.rootDir, 'dist-dev', 'api-docs', apiId);
   mkdirSync(apiOutputDir, { recursive: true });
   console.log(apiOutputDir);
 
@@ -70,20 +67,33 @@ async function generateApiMarkdownSubPackageDocs(
     }
   );
 
-  await createApiData(config, docsApiJsonPath, apiOutputDir, subPkgName);
+  await createApiData(config, docsApiJsonPath, apiOutputDir, apiId, subPkgName);
+}
+
+// Package directory names differ from their published npm names.
+const npmPackageNamesByDir: Record<string, string> = {
+  qwik: 'core',
+  'qwik-router': 'router',
+  'qwik-react': 'react',
+};
+
+function getNpmPackageName([pkgDirName, ...subPaths]: string[]) {
+  const npmName = npmPackageNamesByDir[pkgDirName] ?? pkgDirName;
+  return ['@qwik.dev', npmName, ...subPaths].join('/');
 }
 
 async function createApiData(
   config: BuildConfig,
   docsApiJsonPath: string,
   apiOuputDir: string,
+  apiId: string,
   subPkgName: string
 ) {
   const apiExtractedJson = JSON.parse(readFileSync(docsApiJsonPath, 'utf-8'));
   const mdPrefix = getMdPrefix(apiExtractedJson, subPkgName);
 
   const apiData: ApiData = {
-    id: subPkgName.replace('@qwik.dev/', '').replace(/\//g, '-'),
+    id: apiId,
     package: subPkgName,
     members: [],
   };

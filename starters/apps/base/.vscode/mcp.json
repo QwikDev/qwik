@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "qwik": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@qwik.dev/mcp", "${workspaceFolder}"]
+    }
+  }
+}

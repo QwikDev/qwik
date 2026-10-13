@@ -21,6 +21,9 @@ vi.mock('./utils.ts', async (importOriginal) => {
   };
 });
 
+const onPointerEnterMock = vi.fn();
+const onMouseOverMock = vi.fn();
+
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
@@ -76,6 +79,8 @@ describe.each([
     getClientNavPathMock.mockClear();
     getClientNavPathMock.mockReturnValue('http://localhost/test');
     prefetchRouteMock.mockClear();
+    onPointerEnterMock.mockClear();
+    onMouseOverMock.mockClear();
   });
 
   it('prefetches bundles by default and prefetches route data on intent by default', async () => {
@@ -122,6 +127,62 @@ describe.each([
     expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
     expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
     expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false);
+  });
+
+  it('prefetches route bundles on intent', async () => {
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'intent',
+      prefetchData: 'off',
+    });
+    prefetchRouteMock.mockClear();
+
+    await trigger(document.body, anchor, 'pointerdown');
+    await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
+
+    await trigger(document.body, anchor, 'pointerenter');
+    await trigger(document.body, anchor, 'focus');
+
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
+    expectPrefetchRouteCall(0, '/test', false, 0.8);
+    expectPrefetchRouteCall(1, '/test', false, 0.8);
+  });
+
+  it('prefetches route bundles on commit', async () => {
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'commit',
+      prefetchData: 'off',
+    });
+    prefetchRouteMock.mockClear();
+
+    await trigger(document.body, anchor, 'pointerenter');
+    await trigger(document.body, anchor, 'focus');
+    await trigger(document.body, anchor, 'keydown', { key: 'Space' });
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
+
+    await trigger(document.body, anchor, 'pointerdown');
+    await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
+
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
+    expectPrefetchRouteCall(0, '/test', false, 0.8);
+    expectPrefetchRouteCall(1, '/test', false, 0.8);
+  });
+
+  it('prefetches route bundles and data on commit', async () => {
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'commit',
+      prefetchData: 'commit',
+    });
+    prefetchRouteMock.mockClear();
+
+    await trigger(document.body, anchor, 'pointerdown');
+    await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
+
+    expect(prefetchRouteMock).toHaveBeenCalledTimes(4);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(1, '/test', false, 0.8);
+    expectPrefetchRouteCall(2, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(3, '/test', false, 0.8);
   });
 
   it('prefetches route data when visible strategy is enabled', async () => {
@@ -180,6 +241,21 @@ describe.each([
     expect(prefetchRouteMock).not.toHaveBeenCalled();
   });
 
+  it('does not prefetch route bundles when bundle prefetching is off', async () => {
+    const { document, anchor } = await renderLink(render, {
+      prefetchBundles: 'off',
+      prefetchData: 'off',
+    });
+    prefetchRouteMock.mockClear();
+
+    await trigger(document.body, anchor, 'pointerenter');
+    await trigger(document.body, anchor, 'focus');
+    await trigger(document.body, anchor, 'pointerdown');
+    await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
+
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
+  });
+
   it('does not prefetch route data or bundles when deprecated prefetch is false', async () => {
     const DeprecatedRoot = component$(() => {
       return (
@@ -217,5 +293,30 @@ describe.each([
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/test', false, 1);
+  });
+
+  it('calls onPointerEnter$ on pointerenter, not onMouseOver$', async () => {
+    const HandlersRoot = component$(() => {
+      return (
+        <QwikRouterMockProvider>
+          <Link
+            href="/test"
+            onPointerEnter$={() => onPointerEnterMock()}
+            onMouseOver$={() => onMouseOverMock()}
+          >
+            Test Link
+          </Link>
+        </QwikRouterMockProvider>
+      );
+    });
+    const { document } = await render(<HandlersRoot />, {
+      debug,
+    });
+    const anchor = document.querySelector('a');
+
+    await trigger(document.body, anchor, 'pointerenter');
+
+    expect(onPointerEnterMock).toHaveBeenCalledTimes(1);
+    expect(onMouseOverMock).not.toHaveBeenCalled();
   });
 });

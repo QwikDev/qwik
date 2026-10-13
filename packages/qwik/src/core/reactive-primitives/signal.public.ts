@@ -50,6 +50,19 @@ export interface Signal<T = any> {
  * @public
  */
 export interface ComputedSignal<T> extends Signal<T> {
+  /**
+   * Whether the signal is currently loading. Reading it starts a lazy computation if needed.
+   *
+   * @experimental
+   */
+  pending: boolean;
+  /**
+   * The computation error, if any. Reading it starts a lazy computation if needed. While set,
+   * reading `.value` throws the error.
+   *
+   * @experimental
+   */
+  error: Error | undefined;
   /** @deprecated Use `trigger()` instead */
   force(): void;
   /** Use this to force recalculation. */
@@ -77,16 +90,6 @@ export interface ComputedSignal<T> extends Signal<T> {
  */
 export interface ComputedSignalInternal<T> extends ComputedSignal<T> {
   /**
-   * Whether the signal is currently loading. This will trigger lazy computation of the signal, so
-   * you can use it like this:
-   *
-   * ```tsx
-   * signal.pending ? <Loading /> : signal.error ? <Error /> : <Component
-   * value={signal.value} />
-   * ```
-   */
-  pending: boolean;
-  /**
    * Lets you read the pending state without subscribing to `.pending` updates. It also triggers
    * lazy computation of the signal.
    *
@@ -97,12 +100,6 @@ export interface ComputedSignalInternal<T> extends ComputedSignal<T> {
   loading: boolean;
   /** @deprecated Use `untrackedPending` instead */
   untrackedLoading: boolean;
-  /**
-   * The error that occurred while computing the signal, if any, including synchronous throws. This
-   * will be cleared when the signal is successfully computed. It also triggers lazy computation of
-   * the signal. While the error is set, reading `.value` throws it.
-   */
-  error: Error | undefined;
   /**
    * Lets you read the error state without subscribing to `.error` updates. It also triggers lazy
    * computation of the signal.

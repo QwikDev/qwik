@@ -50,14 +50,14 @@ function createSystem() {
 
 const createRender = ({ earlyCatch = false, lateCatch = false } = {}) =>
   vi.fn(async (renderOpts: any) => {
-    renderOpts.onBeforeFirstFlush?.({ errorBoundaryCaught: earlyCatch });
+    renderOpts.onBeforeFirstFlush?.({ hasCaughtError: earlyCatch });
     await renderOpts.stream.write('<!DOCTYPE html><html q:container="paused">fallback</html>');
     return {
       flushes: 1,
       size: 10,
       isStatic: false,
       timing: {},
-      errorBoundaryCaught: earlyCatch || lateCatch,
+      hasCaughtError: earlyCatch || lateCatch,
     };
   });
 
@@ -102,7 +102,7 @@ describe('SSG worker error boundary handling', () => {
     const result = await renderRoute(sys, createRender({ earlyCatch: true }));
 
     expect(result.ok).toBe(false);
-    expect(result.error?.message).toContain('ErrorBoundary');
+    expect(result.error?.message).toContain('Catch');
     expect(result.filePath).toBeNull();
   });
 
@@ -112,7 +112,7 @@ describe('SSG worker error boundary handling', () => {
     const result = await renderRoute(sys, createRender({ lateCatch: true }));
 
     expect(result.ok).toBe(false);
-    expect(result.error?.message).toContain('ErrorBoundary');
+    expect(result.error?.message).toContain('Catch');
     expect(result.filePath).toBeNull();
   });
 });

@@ -138,7 +138,7 @@ export const App = component$(() => {
     });
 
     const code = findSegmentByCtx(result, 'useTask$').code;
-    expect(code.indexOf('import { _captures }')).toBeLessThan(code.indexOf('import mongo'));
+    expect(code.indexOf('import { _capturesObj }')).toBeLessThan(code.indexOf('import mongo'));
     expect(code.indexOf('import mongo')).toBeLessThan(code.indexOf('import redis'));
   });
 });

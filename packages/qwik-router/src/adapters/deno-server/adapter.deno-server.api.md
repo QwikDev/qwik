@@ -5,7 +5,7 @@
 ```ts
 
 import { ServerAdapterOptions } from '../../shared/vite';
-import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
+import type { SsgRenderOptions } from '../../../ssg';
 
 // @beta (undocumented)
 export function denoServerAdapter(opts?: DenoServerAdapterOptions): any;

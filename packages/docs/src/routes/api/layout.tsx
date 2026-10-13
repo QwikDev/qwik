@@ -1,11 +1,11 @@
-import { component$, Slot, useStyles$ } from '@qwik.dev/core'; 
+import { component$, Slot, useStyles$ } from '@qwik.dev/core';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import apiStyles from './api.css?inline';
 import docsStyles from '../docs/docs.css?inline';
 
-export default component$(() => { 
+export default component$(() => {
   useStyles$(docsStyles);
   useStyles$(apiStyles);
 
@@ -18,9 +18,9 @@ export default component$(() => {
             <Slot />
           </article>
           <ContentNav />
-          <Footer />
-        </div> 
+        </div>
       </main>
+      <Footer />
     </div>
   );
 });

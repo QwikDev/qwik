@@ -73,6 +73,10 @@ function replacePackagesWithLocalOnes(tmpDir: string) {
   for (const { name, absolutePath } of tarballConfig) {
     patchPackageJsonForPlugin(tmpDir, name, absolutePath);
   }
+  writeFileSync(
+    join(tmpDir, 'pnpm-workspace.yaml'),
+    "packages:\n  - .\nallowBuilds:\n  '@parcel/watcher': true\n  sharp: true\n"
+  );
   execSync('pnpm i', {
     cwd: tmpDir,
     // only output errors
@@ -99,11 +103,13 @@ export function registerExecutedChildProcess(process: ChildProcess) {
 export function runCommandUntil(
   command: string,
   tmpDir: string,
-  criteria: (output: string) => boolean
+  criteria: (output: string) => boolean,
+  env?: Record<string, string>
 ): Promise<ChildProcess> {
   const p = exec(command, {
     cwd: tmpDir,
     encoding: 'utf-8',
+    env: env && { ...process.env, ...env },
   });
   registerExecutedChildProcess(p);
   return new Promise<ChildProcess>((res, rej) => {

@@ -87,8 +87,7 @@ export const makeRouterDevMiddleware =
       return;
     }
 
-    // We'll be reloading the Qwik module, that's fine, don't let it warn
-    (globalThis as any).__qwik = undefined;
+    // Reloading the Qwik module is fine: same-version re-imports share the singleton registry.
     // Now we can stream the render
     const { createQwikRouter } = (await server.ssrLoadModule(
       '@qwik.dev/router/middleware/node'
@@ -195,6 +194,16 @@ const JS_EXTENSIONS = /\.[mc]?[tj]sx?$/;
 const isCssPath = (url: string) => CSS_EXTENSIONS.some((ext) => url.endsWith(ext));
 
 /**
+ * The URL the Vite dev server serves a module under. For a file, the module graph URL is already
+ * one (`/src/a.css`, `/@fs/...`). A virtual module from a plugin has its id as URL, and Vite serves
+ * it under `/@id/` with the `\0` written as `__x00__`, the same as Vite's own `wrapId`.
+ *
+ * `\0virtual:theme.css` -> `/@id/__x00__virtual:theme.css`
+ */
+const toDevServerUrl = (url: string) =>
+  url.startsWith('/') ? url : `/@id/${url.replace('\0', '__x00__')}`;
+
+/**
  * Qwik handles CSS imports itself, meaning vite doesn't get to see them, so we need to manually
  * inject the CSS URLs.
  *
@@ -232,9 +241,13 @@ const getCssUrls = (server: ViteDevServer) => {
         });
 
         if ((isEntryCSS || hasJSImporter) && !hasCSSImporter && !cssImportedByCSS.has(mod.url)) {
-          cssModules.add(`${mod.url}${mod.lastHMRTimestamp ? `?t=${mod.lastHMRTimestamp}` : ''}`);
+          cssModules.add(
+            `${toDevServerUrl(mod.url)}${mod.lastHMRTimestamp ? `?t=${mod.lastHMRTimestamp}` : ''}`
+          );
           // SSR-only CSS isn't watched by Vite; watch it so edits fire handleHotUpdate.
-          if (mod.file) {
+          // Only a URL that starts with `/` is a file path. A virtual module's file is its id, and a
+          // `\0` in it makes the watcher throw
+          if (mod.file && mod.url.startsWith('/')) {
             server.watcher.add(mod.file);
           }
         }

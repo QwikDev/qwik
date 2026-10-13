@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createDocument } from '@qwik.dev/core/testing';
 
+const importAndResetState = async () => {
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+  return { initPreloader, preload };
+};
+
 const originalWindow = globalThis.window;
 const originalDocument = globalThis.document;
 const originalHTMLElement = globalThis.HTMLElement;
@@ -72,8 +78,7 @@ test('appends preloads directly to head within a trigger slice', async () => {
   await installTestPlatform();
 
   const headAppend = vi.spyOn(document.head, 'appendChild');
-  const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
+  const { initPreloader, preload } = await importAndResetState();
 
   initPreloader(['entry-a.js', 'entry-b.js']);
   preload(['entry-a.js', 'entry-b.js'], 1);
@@ -86,6 +91,27 @@ test('appends preloads directly to head within a trigger slice', async () => {
   expect(headAppend).toHaveBeenCalledTimes(2);
   expect(headAppend.mock.calls[0][0].nodeName).toBe('LINK');
   expect(document.head.querySelectorAll('link').length).toBe(2);
+});
+
+test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+
+  const bundles = Array.from({ length: 30 }, (_, index) => `entry-${index}.js`);
+  initPreloader(bundles);
+  preload(bundles, 0.8);
+  vi.runAllTimers();
+
+  // Links never load in the test document, so the limit stays saturated.
+  expect(document.head.querySelectorAll('link').length).toBe(25);
 });
 
 test('yields after the frame budget and resumes later', async () => {
@@ -103,8 +129,7 @@ test('yields after the frame budget and resumes later', async () => {
 
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-  const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
+  const { initPreloader, preload } = await importAndResetState();
 
   initPreloader(['entry-a.js', 'entry-b.js', 'entry-c.js']);
   preload(['entry-a.js', 'entry-b.js', 'entry-c.js'], 1);
@@ -155,8 +180,7 @@ test('yields during dependency propagation and resumes later', async () => {
 
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-  const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
+  const { initPreloader, preload } = await importAndResetState();
 
   initPreloader(createLinearGraph(4));
   preload('entry-a.js', 1);
@@ -196,8 +220,7 @@ test('can yield more than once while propagating dependencies', async () => {
 
   const headAppend = vi.spyOn(document.head, 'appendChild');
   const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-  const { initPreloader } = await import('./bundle-graph');
-  const { preload } = await import('./queue');
+  const { initPreloader, preload } = await importAndResetState();
 
   initPreloader(createLinearGraph(7));
   preload('entry-a.js', 1);

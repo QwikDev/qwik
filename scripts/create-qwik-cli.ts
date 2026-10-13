@@ -127,6 +127,16 @@ async function updateBaseVersions(config: BuildConfig, version: string) {
 
   console.log(distCliBaseAppDir, JSON.stringify(baseAppPkg, null, 2));
   await writePackageJson(distCliBaseAppDir, baseAppPkg);
+
+  // A library built with this version's optimizer needs a core at least as new.
+  const distCliLibraryAppDir = join(srcCliDir, 'dist', 'starters', 'apps', 'library');
+  const libraryAppPkg = await readPackageJson(distCliLibraryAppDir);
+  const semverQwikPeer = `^${version}`;
+  for (const name of ['@qwik.dev/core', '@qwik.dev/router']) {
+    console.log(`   update library peerDependencies["${name}"] = "${semverQwikPeer}"`);
+    libraryAppPkg.peerDependencies = { ...libraryAppPkg.peerDependencies, [name]: semverQwikPeer };
+  }
+  await writePackageJson(distCliLibraryAppDir, libraryAppPkg);
 }
 
 export async function copyStartersDir(

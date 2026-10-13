@@ -23,10 +23,10 @@ expression: output
 		
 ============================= test.tsx_Cmp_component_handleClick_WawHV3HwS1A.ts (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Cmp_component_handleClick_WawHV3HwS1A = ()=>{
-    const toggleSig = _captures[0];
+    let toggleSig = _capturesObj._[0];
     toggleSig.value = !toggleSig.value;
 };
 

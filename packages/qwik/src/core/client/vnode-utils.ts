@@ -154,8 +154,8 @@ import {
   QScopedStyle,
   QSlot,
   QStyle,
-  QSuspenseResolved,
-  QSuspenseResultParent,
+  QPendingResolved,
+  QPendingResultParent,
   QTargetElement,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
@@ -815,12 +815,6 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     if (cachedVNode) {
       return cachedVNode;
     }
-    if (__EXPERIMENTAL__.suspense && qElement._qSegment) {
-      vNode = vnode_newUnMaterializedElement(refElement);
-      vnode_ensureElementKeyInflated(vNode as ElementVNode);
-      qElement.vNode = vNode;
-      return vNode;
-    }
   }
   isDev &&
     assertDefined(
@@ -833,24 +827,19 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
         containerElement.contains(refElement),
         `Couldn't find the element inside the container while locating the VNode.`
       );
-    if (__EXPERIMENTAL__.suspense && (refElement as QElement)._qSegment) {
-      vNode = (refElement as QElement).vNode || vnode_newUnMaterializedElement(refElement);
-      vnode_ensureElementKeyInflated(vNode as ElementVNode);
-    } else {
-      // We need to find the vnode.
-      let parent = refElement;
-      const elementPath: Element[] = [refElement];
-      while (parent && parent !== containerElement && !(parent as QElement).vNode) {
-        parent = parent.parentElement!;
-        elementPath.push(parent);
-      }
-      if ((parent as QElement).vNode) {
-        vNode = (parent as QElement).vNode as ElementVNode;
-      }
-      // Start at rootVNode and follow the `elementPath` to find the vnode.
-      for (let i = elementPath.length - 2; i >= 0; i--) {
-        vNode = vnode_getVNodeForChildNode(vNode as ElementVNode, elementPath[i]);
-      }
+    // We need to find the vnode.
+    let parent = refElement;
+    const elementPath: Element[] = [refElement];
+    while (parent && parent !== containerElement && !(parent as QElement).vNode) {
+      parent = parent.parentElement!;
+      elementPath.push(parent);
+    }
+    if ((parent as QElement).vNode) {
+      vNode = (parent as QElement).vNode as ElementVNode;
+    }
+    // Start at rootVNode and follow the `elementPath` to find the vnode.
+    for (let i = elementPath.length - 2; i >= 0; i--) {
+      vNode = vnode_getVNodeForChildNode(vNode as ElementVNode, elementPath[i]);
     }
 
     if (elementOffset != -1) {
@@ -1520,10 +1509,10 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
   }
   let vFirstChild = (vnode as ElementVNode | VirtualVNode).firstChild;
   if (
-    __EXPERIMENTAL__.suspense &&
+    __EXPERIMENTAL__.pendingBoundary &&
     vFirstChild === undefined &&
     vnode_isElementVNode(vnode) &&
-    hasOnlySuspensePlaceholder(vnode.node)
+    hasOnlyPendingPlaceholder(vnode.node)
   ) {
     return null;
   }
@@ -1557,7 +1546,9 @@ const materialize = (
   vNodeData?: string
 ): VNode | null => {
   vnode_ensureElementKeyInflated(vNode);
-  const segmentId = __EXPERIMENTAL__.suspense ? (element as QElement)._qSegment || null : null;
+  const segmentId = __EXPERIMENTAL__.pendingBoundary
+    ? (element as QElement)._qSegment || null
+    : null;
   if (vNodeData) {
     if (
       vNodeData.charCodeAt(0) === VNodeDataChar.SEPARATOR &&
@@ -2088,8 +2079,8 @@ function shouldSkipElement(element: Element) {
   );
 }
 
-function hasOnlySuspensePlaceholder(element: Element) {
-  const segmentId = element.getAttribute(QSuspenseResultParent);
+function hasOnlyPendingPlaceholder(element: Element) {
+  const segmentId = element.getAttribute(QPendingResultParent);
   if (segmentId === null) {
     return false;
   }
@@ -2097,7 +2088,7 @@ function hasOnlySuspensePlaceholder(element: Element) {
   return (
     isElement(firstChild) &&
     firstChild.localName === 'template' &&
-    firstChild.getAttribute(QSuspenseResolved) === segmentId &&
+    firstChild.getAttribute(QPendingResolved) === segmentId &&
     fastNextSibling(firstChild) === null
   );
 }

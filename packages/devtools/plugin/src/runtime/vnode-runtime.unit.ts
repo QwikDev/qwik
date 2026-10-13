@@ -3,7 +3,7 @@ import {
   QWIK_DEVTOOLS_GLOBAL,
   QWIK_VNODE_PROTOCOL,
 } from '@qwik.dev/devtools/kit';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import {
   __qwik_install_vnode_runtime__,
   type VNodeRuntimeInternals,
@@ -94,13 +94,18 @@ function componentVNode(symbol: string, opts: ComponentOptions = {}): FakeVNode 
 let posted: AnyRecord[];
 
 /** Installs the bridge against a fixture root VNode and returns the augmented hook. */
-function installBridge(rootVNode: FakeVNode | null): AnyRecord {
+function installBridge(rootVNode: FakeVNode | null, expectedElement?: object): AnyRecord {
   const container: AnyRecord = {
     rootVNode,
     getHostProp: (vnode: FakeVNode, prop: string) => vnode.host?.[prop],
   };
   const internals: VNodeRuntimeInternals = {
-    _getDomContainer: () => container,
+    _getDomContainer: (element) => {
+      if (expectedElement && element !== expectedElement) {
+        throw new Error('No container');
+      }
+      return container;
+    },
     _vnode_getFirstChild: (vnode: any) => vnode.firstChild ?? null,
     _vnode_isVirtualVNode: (vnode: any) => !!vnode.virtual,
     _vnode_isMaterialized: (vnode: any) => !!vnode.materialized,
@@ -121,6 +126,9 @@ describe('__qwik_install_vnode_runtime__', () => {
     (globalThis as any).document = {
       readyState: 'complete',
       documentElement: {},
+      querySelectorAll() {
+        return [this.documentElement];
+      },
       addEventListener() {},
       getElementById: (id: string) => created.find((el) => el.id === id) ?? null,
       createElement: () => {
@@ -137,9 +145,26 @@ describe('__qwik_install_vnode_runtime__', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     delete (globalThis as any).window;
     delete (globalThis as any).document;
     delete (globalThis as any).MutationObserver;
+  });
+
+  test('finds a CSR container below the document element', () => {
+    const containerElement = {};
+    (globalThis as any).document.querySelectorAll = () => [containerElement];
+    const hook = installBridge(componentVNode('Counter_component', { qId: '1' }), containerElement);
+    expect(hook.getVNodeTree()).toMatchObject([{ name: 'Counter', id: 'q-1' }]);
+  });
+
+  test('reuses the bridge when MCP and DevTools both install it', () => {
+    const hook = installBridge(componentVNode('Counter_component', { qId: '1' }));
+    const readTree = hook.getVNodeTree;
+    const messageCount = posted.length;
+    installBridge(componentVNode('Counter_component', { qId: '1' }));
+    expect(hook.getVNodeTree).toBe(readTree);
+    expect(posted).toHaveLength(messageCount);
   });
 
   test('getVNodeTree builds a nested tree with normalized names, ids, and QRL metadata', () => {
@@ -168,6 +193,36 @@ describe('__qwik_install_vnode_runtime__', () => {
       id: 'q-1',
       props: { [OPTIONS.qId]: '1', __qrlChunk: 'src/counter' },
     });
+  });
+
+  test('uses authored names for anonymous default exports and preserves identifier casing', () => {
+    const child = componentVNode('SomeInternalCmp_component_hash', { qId: '2' });
+    const hook = installBridge(
+      componentVNode('some_fancy_route_component_hash', { qId: '1', child })
+    );
+    hook.getComponentTreeSnapshot = () => [
+      {
+        symbol: 'some_fancy_route_component_hash',
+        name: 'default',
+        path: '/src/routes/some-fancy-route/index.tsx_default',
+      },
+      {
+        symbol: 'SomeInternalCmp_component_hash',
+        name: 'SomeInternalCmp',
+        path: '/src/routes/some-fancy-route/index.tsx_SomeInternalCmp',
+      },
+    ];
+    const tree = hook.getVNodeTree();
+    expect(tree[0]).toMatchObject({
+      name: 'default',
+      source: { file: '/src/routes/some-fancy-route/index.tsx' },
+    });
+    expect(tree[0].children[0].name).toBe('SomeInternalCmp');
+    expect(tree[0].props.__qrlChunk).toBe('/src/routes/some-fancy-route/index.tsx_default');
+    vi.useFakeTimers();
+    hook.refreshVNodeTree();
+    vi.advanceTimersByTime(100);
+    expect(posted.at(-1)?.tree[0].name).toBe('default');
   });
 
   test('getVNodeTree assigns synthetic ids to components without a q:id', () => {

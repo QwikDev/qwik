@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+  <head>
+    <title>MCP fixture</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import '@qwik.dev/core/qwikloader.js';
+      import { render, jsx } from '@qwik.dev/core';
+      import Root from './src/root';
+      render(document.querySelector('#root'), jsx(Root));
+    </script>
+  </body>
+</html>

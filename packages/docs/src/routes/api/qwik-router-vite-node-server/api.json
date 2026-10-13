@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-vite-node-server",
-  "package": "@qwik.dev/qwik-router/vite/node-server",
+  "package": "@qwik.dev/router/vite/node-server",
   "members": [
     {
       "name": "nodeServerAdapter",

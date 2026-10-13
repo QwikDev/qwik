@@ -2,6 +2,7 @@ import { decodeHTMLStrict } from 'entities';
 import { analyzeSignalExpression } from './signal-analysis.js';
 import {
   classifyConstness,
+  isHtmlElement,
   sliceTransformed,
   type JsxTransformContext,
   type ProcessChildrenOptions,
@@ -157,12 +158,7 @@ function classifyNestedJsxChild(
     if (tagName.type === 'JSXMemberExpression') {
       return 'dynamic';
     }
-    const tagStr = tagName.type === 'JSXIdentifier' ? tagName.name : '';
-    const isComponent =
-      tagStr.length > 0 &&
-      tagStr[0] === tagStr[0].toUpperCase() &&
-      tagStr[0] !== tagStr[0].toLowerCase();
-    if (isComponent) {
+    if (tagName.type === 'JSXIdentifier' && !isHtmlElement(tagName.name)) {
       return 'dynamic';
     }
   }

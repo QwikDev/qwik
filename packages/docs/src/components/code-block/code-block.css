@@ -1,6 +1,6 @@
 /* === PrismJS Theme === */
 :root {
-  --p-background: #ffffff;
+  --p-background: var(--color-background-base);
   --p-text: #2e3440;
   --p-comment: #6a737d;
   --p-keyword: #d73a49;
@@ -15,12 +15,13 @@
   --p-number: #005cc5;
   --p-property: #005cc5;
   --p-selector: #22863a;
-  --p-code-block-bg: #f6f8fa;
-  --p-code-block-border: #e1e4e8;
+  --p-code-block-bg: var(--color-background-accent);
+  --p-code-block-border: var(--color-border-base);
 }
 
+html.dark,
 html[data-theme='dark'] {
-  --p-background: #0d1117;
+  --p-background: var(--color-background-base);
   --p-text: #c9d1d9;
   --p-comment: #8b949e;
   --p-keyword: #ff7b72;
@@ -35,8 +36,8 @@ html[data-theme='dark'] {
   --p-number: #79c0ff;
   --p-property: #79c0ff;
   --p-selector: #7ee787;
-  --p-code-block-bg: #161b22;
-  --p-code-block-border: #30363d;
+  --p-code-block-bg: var(--color-background-accent);
+  --p-code-block-border: var(--color-border-base);
 }
 
 code[class*='language-'],
@@ -194,10 +195,10 @@ pre[class*='language-'] {
 }
 
 .prettier-toggle span.checked {
-  background: #264f78;
-  color: #ffffff;
+  background: var(--color-primary-background-base);
+  color: var(--color-primary-foreground-base);
   font-weight: bold;
 }
 .prettier-toggle span.checked.error {
-  background: #db4c69;
+  background: var(--color-alert-background-base);
 }

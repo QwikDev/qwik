@@ -10,7 +10,8 @@
       "create-qwik",
       "@qwik.dev/react",
       "@qwik.dev/utils",
-      "@qwik.dev/devtools"
+      "@qwik.dev/devtools",
+      "@qwik.dev/mcp"
     ]
   ],
   "linked": [],

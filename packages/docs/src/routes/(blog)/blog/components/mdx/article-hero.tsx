@@ -1,10 +1,10 @@
-import { component$ } from '@qwik.dev/core';
+import { component$, type Component } from '@qwik.dev/core';
 import { Link, useDocumentHead } from '@qwik.dev/router';
 import { Image } from 'qwik-image';
 
-type Props = { image: string; authorLinks: string[] | undefined };
+type Props = { image: string; hero?: Component; authorLinks: string[] | undefined };
 
-export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
+export const ArticleHero = component$<Props>(({ image, hero: Hero, authorLinks }) => {
   const { title, frontmatter } = useDocumentHead();
 
   if (
@@ -42,7 +42,9 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
               <span class="pr-2">{tag}</span>
             ))}
           </h4>
-          <h1 class="text-[48px] font-bold text-center tracking-wide pt-6">{title}</h1>
+          <h1 class="text-[48px] max-sm:text-h5 font-bold text-center tracking-wide pt-6">
+            {title}
+          </h1>
           <div class="flex justify-center pt-8 pb-10 text-xl">
             <h4 class="font-semibold uppercase text-center">{frontmatter.date}</h4>
             <div class="border mx-4"></div>
@@ -61,8 +63,8 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
           </div>
         </div>
       </div>
-      <div class="relative max-w-[1280px] pb-4">
-        <Image alt={title} src={image} layout="fullWidth" priority />
+      <div class="relative max-w-[1104px] pb-4 mx-auto">
+        {Hero ? <Hero /> : <Image alt={title} src={image} layout="fullWidth" priority />}
       </div>
     </>
   );

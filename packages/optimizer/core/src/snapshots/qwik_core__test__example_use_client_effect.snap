@@ -33,10 +33,10 @@ export const Child = component$(() => {
 
 ============================= test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.js (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Child_component_useBrowserVisibleTask_0IGFPOyJmQA = ()=>{
-    const state = _captures[0];
+    let state = _capturesObj._[0];
     const timer = setInterval(()=>{
         state.count++;
     }, 1000);

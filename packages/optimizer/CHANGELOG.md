@@ -1,5 +1,13 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-beta.9
+
+### Patch Changes
+
+- 🐞🩹 preserve nested QRLs captured by library components (by [@Varixo](https://github.com/Varixo) in [#8996](https://github.com/QwikDev/qwik/pull/8996))
+
+- 🐞🩹 duplicate `_defaultValue` const when defaulted props are read in separate QRLs (by [@Varixo](https://github.com/Varixo) in [#9016](https://github.com/QwikDev/qwik/pull/9016))
+
 ## 2.1.0-beta.8
 
 ### Patch Changes

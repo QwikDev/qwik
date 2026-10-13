@@ -3,6 +3,7 @@ import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer 
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import type {
+  DecoratorOptions,
   Diagnostic,
   EntryStrategy,
   GlobalInjections,
@@ -83,10 +84,10 @@ export enum ExperimentalFeatures {
   each = 'each',
   /** Enable the Show conditional primitive */
   show = 'show',
-  /** Enable the Suspense fallback primitive */
-  suspense = 'suspense',
-  /** Enable the ErrorBoundary primitive */
-  errorBoundary = 'errorBoundary',
+  /** Enable the Pending fallback primitive */
+  pendingBoundary = 'pendingBoundary',
+  /** Enable the Catch primitive */
+  catchBoundary = 'catchBoundary',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
@@ -481,6 +482,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           preserveSignature: 'allow-extension',
         });
       }
+      // Emit explicitly because raw-source imports can share its chunk group.
+      // The manifest must reference this entry, not an asset URL wrapper.
+      const preloader = await _ctx.resolve(QWIK_PRELOADER_ID, undefined, {
+        skipSelf: true,
+      });
+      if (preloader) {
+        preloaderChunkRef = _ctx.emitFile({
+          id: preloader.id,
+          type: 'chunk',
+          preserveSignature: 'allow-extension',
+        });
+      }
     }
   };
 
@@ -760,11 +773,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         skipSelf: true,
       });
       if (preloader) {
-        preloaderChunkRef = ctx.emitFile({
-          id: preloader.id,
-          type: 'chunk',
-          preserveSignature: 'allow-extension',
-        });
+        if (!preloaderChunkRef) {
+          preloaderChunkRef = ctx.emitFile({
+            id: preloader.id,
+            type: 'chunk',
+            preserveSignature: 'allow-extension',
+          });
+        }
         return preloader;
       }
     } else if (pathId.endsWith(QWIK_HANDLERS_ID)) {
@@ -842,6 +857,29 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     debug(`resolveId(${count}) end`, (result as any)?.id || result);
     return result;
+  };
+
+  /**
+   * The optimizer can't read tsconfig, so let Vite resolve it for this file and report which
+   * decorator lowering it enables.
+   */
+  const resolveDecoratorOptions = async (
+    ctx: Rolldown.PluginContext,
+    pathId: string
+  ): Promise<DecoratorOptions | undefined> => {
+    const { transformWithOxc }: typeof import('vite') = await getSys().dynamicImport('vite');
+    const probe = await transformWithOxc(
+      '@probe class C { @probe p: string }',
+      pathId,
+      { lang: 'ts', sourcemap: false },
+      undefined,
+      (ctx.environment as DevEnvironment | undefined)?.config
+    );
+    const isLegacy = !probe.code.includes('@probe');
+    if (!isLegacy) {
+      return undefined;
+    }
+    return { legacy: true, emitDecoratorMetadata: probe.code.includes('design:type') };
   };
 
   let loadCount = 0;
@@ -1059,6 +1097,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         mode,
         scope: opts.scope || undefined,
         isServer,
+        decorator: mightContainDecorators(code)
+          ? await resolveDecoratorOptions(ctx, pathId)
+          : undefined,
       };
 
       if (strip) {
@@ -1552,6 +1593,9 @@ function isAdditionalFile(mod: TransformModule) {
 }
 
 const isPublicVirtualId = (id: string) => id.startsWith('virtual:');
+
+/** Cheap pre-check; a false positive only costs an extra transform. */
+const mightContainDecorators = (code: string) => /(?:^|[\s(,])@[\p{ID_Start}$_]/mu.test(code);
 
 const TRANSFORM_EXTS = {
   '.jsx': true,

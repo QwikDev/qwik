@@ -109,7 +109,7 @@ export const renderToStream: (jsx: JSXOutput, opts: RenderToStreamOptions) => Pr
 // @public (undocumented)
 export interface RenderToStreamOptions extends RenderOptions {
     onBeforeFirstFlush?: (info: {
-        errorBoundaryCaught: boolean;
+        hasCaughtError: boolean;
     }) => void;
     // (undocumented)
     stream: StreamWriter;
@@ -119,9 +119,9 @@ export interface RenderToStreamOptions extends RenderOptions {
 
 // @public (undocumented)
 export interface RenderToStreamResult extends RenderResult {
-    errorBoundaryCaught?: boolean;
     // (undocumented)
     flushes: number;
+    hasCaughtError?: boolean;
     // (undocumented)
     size: number;
     // (undocumented)

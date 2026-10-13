@@ -15,4 +15,4 @@ export {
   RenderToString,
   RenderToStream,
   versions,
-} from './dist/server';
+} from './dist/server.js';

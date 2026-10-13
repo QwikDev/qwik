@@ -3,6 +3,7 @@ export {
   _noopQrlDEV,
   _qrlWithChunk,
   _qrlWithChunkDEV,
+  _regInlinedQrl,
   _regSymbol,
 } from './shared/qrl/qrl';
 export type { QRLInternal as _QRLInternal } from './shared/qrl/qrl-class';
@@ -14,6 +15,7 @@ export {
   DomContainer as _DomContainer,
   getDomContainer as _getDomContainer,
 } from './client/dom-container';
+export { whenContainerDataReady as _whenContainerDataReady } from './client/process-state-data';
 export { _run } from './client/run-qrl';
 export type {
   ContainerElement as _ContainerElement,
@@ -75,22 +77,28 @@ export { _SharedContainer } from './shared/shared-container';
 export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
 export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
 export { ELEMENT_SEQ as _ELEMENT_SEQ } from './shared/utils/markers';
-export { _restProps } from './shared/utils/prop';
+export { hasSlotProps as _hasSlotProps, _restProps } from './shared/utils/prop';
 export { _walkJSX } from './ssr/ssr-render-jsx';
-export { handleSSRError as _handleSSRError } from './ssr/error-boundary-ssr';
+export { handleSSRError as _handleSSRError } from './ssr/catch-ssr';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {
   _getContextContainer,
   _getContextEvent,
   _getContextHostElement,
   _jsxBranch,
+  _waitOn,
   _waitUntilRendered,
   invoke as _invoke,
   newInvokeContext as _newInvokeContext,
 } from './use/use-core';
 export { useLexicalScope } from './use/use-lexical-scope.public';
 export { isTask as _isTask, scheduleTask as _task, Task as _Task } from './use/use-task';
-export { _captures } from './shared/qrl/qrl-class';
+export { _captures, _capturesObj } from './shared/qrl/qrl-class';
+export {
+  getSingleton as _getSingleton,
+  qwikSymbol as _qwikSymbol,
+  registerSingleton as _registerSingleton,
+} from './shared/singletons';
 export { _rsc } from './use/use-resource';
 export type { AsyncSignalImpl as _AsyncSignalImpl } from './reactive-primitives/impl/async-signal-impl';
 export type { ComputedSignalInternal as _ComputedSignalInternal } from './reactive-primitives/signal.public';
@@ -110,6 +118,7 @@ export {
 } from './shared/projection/external-projection';
 export { delay as _delay, retryOnPromise as _retryOnPromise } from './shared/utils/promises';
 export { _createDeserializeContainer } from './shared/serdes/serdes.public';
+export { requestPreload as _requestPreload } from './preloader/bridge';
 
 /** TESTING */
 export {

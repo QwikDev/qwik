@@ -132,20 +132,21 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 	};
 
 	let has_scoped_idents = ctx.need_transform && !ctx.scoped_idents.is_empty();
-	let _captures = if has_scoped_idents {
-		let new_local = id!(private_ident!(&*_CAPTURES.clone()));
-		module
-			.body
-			.push(create_synthetic_named_import(&new_local, ctx.core_module));
-		Some(new_local)
+	let captures_obj = if has_scoped_idents {
+		let captures_obj = id!(private_ident!(&*_CAPTURES_OBJ.clone()));
+		module.body.push(create_synthetic_named_import(
+			&captures_obj,
+			ctx.core_module,
+		));
+		Some(captures_obj)
 	} else {
 		None
 	};
 
-	let expr = if let Some(_captures) = _captures {
+	let expr = if let Some(captures_obj) = &captures_obj {
 		Box::new(transform_function_expr(
 			*ctx.expr,
-			&_captures,
+			captures_obj,
 			ctx.scoped_idents,
 		))
 	} else {
@@ -1110,25 +1111,29 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 	}))
 }
 
-pub fn transform_function_expr(expr: ast::Expr, _captures: &Id, scoped_idents: &[Id]) -> ast::Expr {
+pub fn transform_function_expr(
+	expr: ast::Expr,
+	captures_obj: &Id,
+	scoped_idents: &[Id],
+) -> ast::Expr {
 	match expr {
 		ast::Expr::Arrow(node) => {
-			ast::Expr::Arrow(transform_arrow_fn(node, _captures, scoped_idents))
+			ast::Expr::Arrow(transform_arrow_fn(node, captures_obj, scoped_idents))
 		}
-		ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(node, _captures, scoped_idents)),
+		ast::Expr::Fn(node) => ast::Expr::Fn(transform_fn(node, captures_obj, scoped_idents)),
 		_ => expr,
 	}
 }
 
 fn transform_arrow_fn(
 	arrow: ast::ArrowExpr,
-	_captures: &Id,
+	captures_obj: &Id,
 	scoped_idents: &[Id],
 ) -> ast::ArrowExpr {
 	match arrow.body {
 		box ast::BlockStmtOrExpr::BlockStmt(mut block) => {
 			let mut stmts = Vec::with_capacity(1 + block.stmts.len());
-			stmts.push(read_captures(_captures, scoped_idents));
+			stmts.push(read_captures(captures_obj, scoped_idents));
 			stmts.append(&mut block.stmts);
 			ast::ArrowExpr {
 				body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
@@ -1142,7 +1147,7 @@ fn transform_arrow_fn(
 		box ast::BlockStmtOrExpr::Expr(expr) => {
 			let mut stmts = Vec::with_capacity(2);
 			if !scoped_idents.is_empty() {
-				stmts.push(read_captures(_captures, scoped_idents));
+				stmts.push(read_captures(captures_obj, scoped_idents));
 			}
 			stmts.push(create_return_stmt(expr));
 			ast::ArrowExpr {
@@ -1157,7 +1162,7 @@ fn transform_arrow_fn(
 	}
 }
 
-fn transform_fn(node: ast::FnExpr, _captures: &Id, scoped_idents: &[Id]) -> ast::FnExpr {
+fn transform_fn(node: ast::FnExpr, captures_obj: &Id, scoped_idents: &[Id]) -> ast::FnExpr {
 	let mut stmts = Vec::with_capacity(
 		1 + node
 			.function
@@ -1166,7 +1171,7 @@ fn transform_fn(node: ast::FnExpr, _captures: &Id, scoped_idents: &[Id]) -> ast:
 			.map_or(0, |body| body.stmts.len()),
 	);
 	if !scoped_idents.is_empty() {
-		stmts.push(read_captures(_captures, scoped_idents));
+		stmts.push(read_captures(captures_obj, scoped_idents));
 	}
 	if let Some(mut body) = node.function.body {
 		stmts.append(&mut body.stmts);
@@ -1191,12 +1196,12 @@ pub const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
 	})
 }
 
-fn read_captures(_captures: &Id, scoped_idents: &[Id]) -> ast::Stmt {
+fn read_captures(captures_obj: &Id, scoped_idents: &[Id]) -> ast::Stmt {
 	ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
 		span: DUMMY_SP,
 		ctxt: Default::default(),
 		declare: false,
-		kind: ast::VarDeclKind::Const,
+		kind: ast::VarDeclKind::Let,
 		decls: scoped_idents
 			.iter()
 			.enumerate()
@@ -1205,7 +1210,11 @@ fn read_captures(_captures: &Id, scoped_idents: &[Id]) -> ast::Stmt {
 				span: DUMMY_SP,
 				init: Some(Box::new(ast::Expr::Member(ast::MemberExpr {
 					span: DUMMY_SP,
-					obj: Box::new(ast::Expr::Ident(new_ident_from_id(_captures))),
+					obj: Box::new(ast::Expr::Member(ast::MemberExpr {
+						span: DUMMY_SP,
+						obj: Box::new(ast::Expr::Ident(new_ident_from_id(captures_obj))),
+						prop: ast::MemberProp::Ident(ast::IdentName::new("_".into(), DUMMY_SP)),
+					})),
 					prop: ast::MemberProp::Computed(ast::ComputedPropName {
 						span: DUMMY_SP,
 						expr: Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {

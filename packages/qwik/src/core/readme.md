@@ -236,7 +236,7 @@ This method should not be present in the application source code.
 
 NOTE: `useLexicalScope` method can only be used in the synchronous portion of the callback (before any `await` statements.)
 
-@deprecated Use `_captures` instead.
+@deprecated Use `_capturesObj._` instead.
 @internal
 
 # `QRL`

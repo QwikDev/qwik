@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { _deserialize } from '@qwik.dev/core/internal';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
+import { createCacheControl } from '../cache-control';
 import { RedirectMessage } from '../redirect-handler';
 import { IsQLoader } from '../request-path';
+import type { CacheControl } from '../types';
 import { jsonRequestWrapper } from './json-request-wrapper';
 
 describe('jsonRequestWrapper', () => {
@@ -44,12 +46,14 @@ describe('jsonRequestWrapper', () => {
 
     const [, body] = requestEv.send.mock.calls[0];
     expect(requestEv.headers.get('Location')).toBeNull();
+    expect(requestEv.headers.get('Cache-Control')).toBe('no-cache, private');
     const result = await _deserialize(body);
     expect(result).toEqual({ r: '/login/' });
   });
 });
 
 function createLoaderRequestEvent(loaderPathname: string, fullPathname: string) {
+  const headers = new Headers();
   return {
     sharedMap: new Map([[IsQLoader, true]]),
     internalRequest: 'loader',
@@ -59,8 +63,11 @@ function createLoaderRequestEvent(loaderPathname: string, fullPathname: string) 
       },
     }),
     url: new URL(`http://localhost${loaderPathname}`),
-    headers: new Headers(),
+    headers,
     headersSent: false,
+    cacheControl: vi.fn((value: CacheControl) => {
+      headers.set('Cache-Control', createCacheControl(value));
+    }),
     next: vi.fn(async () => {}),
     send: vi.fn(),
   };

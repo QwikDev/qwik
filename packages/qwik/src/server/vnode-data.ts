@@ -80,6 +80,15 @@ export function vNodeData_openElement(vNodeData: VNodeData) {
   vNodeData[0] |= VNodeDataFlag.ELEMENT_NODE;
 }
 
+interface VNodeDataScanCursor {
+  index: number;
+  stack: number[];
+  attributesIndex: number;
+  firstEntry: Props | number;
+}
+
+const vnodeDataCursors = new WeakMap<VNodeData, VNodeDataScanCursor>();
+
 export function vNodeData_createSsrNodeReference(
   currentComponentNode: ISsrNode | null,
   vNodeData: VNodeData,
@@ -88,10 +97,24 @@ export function vNodeData_createSsrNodeReference(
   currentFile: string | null
 ): ISsrNode {
   vNodeData[0] |= VNodeDataFlag.REFERENCE;
-  const stack: number[] = [-1];
+  const shouldTrack = vNodeData.length >= 16;
+  const cursor = shouldTrack ? vnodeDataCursors.get(vNodeData) : undefined;
+  const saved = cursor && cursor.firstEntry === vNodeData[1] ? cursor : undefined;
+  const stack = saved ? saved.stack.slice() : [-1];
   // We are referring to a virtual node. We need to descend into the tree to find the path to the node.
-  let attributesIndex = -1;
-  for (let i = 1; i < vNodeData.length; i++) {
+  let attributesIndex = saved ? saved.attributesIndex : -1;
+  let hasSavedCursor = false;
+  for (let i = saved ? saved.index : 1; i < vNodeData.length; i++) {
+    if (shouldTrack && i === vNodeData.length - 1) {
+      // cache the current position of the cursor for future reference
+      vnodeDataCursors.set(vNodeData, {
+        index: i,
+        stack: stack.slice(),
+        attributesIndex,
+        firstEntry: vNodeData[1],
+      });
+      hasSavedCursor = true;
+    }
     const value = vNodeData[i];
     if (typeof value === 'object' && value !== null) {
       attributesIndex = i;
@@ -113,6 +136,15 @@ export function vNodeData_createSsrNodeReference(
       // For each positive number we need to increment the count.
       stack[stack.length - 1]++;
     }
+  }
+  if (shouldTrack && !hasSavedCursor) {
+    // cache the current position of the cursor for future reference
+    vnodeDataCursors.set(vNodeData, {
+      index: vNodeData.length,
+      stack: stack.slice(),
+      attributesIndex,
+      firstEntry: vNodeData[1],
+    });
   }
   let refId = String(depthFirstElementIdx);
   if (vNodeData[0] & (VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.TEXT_DATA)) {

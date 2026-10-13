@@ -14,6 +14,7 @@ import { qTest } from './utils/qdev';
 import { assertQrl } from './qrl/qrl-utils';
 import { isDev } from '@qwik.dev/core/build';
 import type { QRLInternal } from './qrl/qrl-class';
+import { qwikSymbol } from './singletons';
 
 // TS way to check for any
 type IsAny<T> = 0 extends T & 1 ? true : false;
@@ -149,7 +150,7 @@ export const componentQrl = <PROPS extends Record<any, any>>(
 };
 
 /** @internal */
-export const SERIALIZABLE_STATE = Symbol('serializable-data');
+export const SERIALIZABLE_STATE: unique symbol = /*#__PURE__*/ qwikSymbol('serializable-data');
 
 export const isQwikComponent = <T extends Component<any>>(component: unknown): component is T => {
   return typeof component == 'function' && (component as any)[SERIALIZABLE_STATE] !== undefined;

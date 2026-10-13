@@ -26,6 +26,7 @@ export const QWIK_VNODE_PROTOCOL = {
 export interface DevtoolsVNodeTreeNode {
   name?: string;
   id: string;
+  source?: { file: string };
   label?: string;
   props?: Record<string, unknown>;
   children?: DevtoolsVNodeTreeNode[];

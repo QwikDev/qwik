@@ -92,13 +92,28 @@ Next, set up a route that will use the sitemap function to generate the sitemap 
 ```tsx
 // src/routes/dynamic-sitemap.xml/index.tsx
 
-import type { RequestHandler } from "@qwik.dev/router";
-import { routes } from "@qwik-router-config";
+import { getRoutes, type RequestHandler, type RouteData } from "@qwik.dev/router";
 import { createSitemap } from "./create-sitemap";
 
-export const onGet: RequestHandler = (ev) => {
-  const siteRoutes = routes
-    .map(([route]) => route as string)
+// Collects the static page paths of the route trie; dynamic routes need your own data.
+const collectPaths = (node: RouteData, path = "/"): string[] => {
+  const paths = node._I ? [path] : [];
+  for (const group of node._M ?? []) {
+    paths.push(...collectPaths(group, path));
+  }
+  for (const [key, child] of Object.entries(node)) {
+    // A single `_` marks metadata; `__x` stores the static segment `_x`.
+    if (key.startsWith("_") && !key.startsWith("__")) {
+      continue;
+    }
+    const segment = key.startsWith("__") ? key.slice(1) : key;
+    paths.push(...collectPaths(child as RouteData, `${path}${segment}/`));
+  }
+  return paths;
+};
+
+export const onGet: RequestHandler = async (ev) => {
+  const siteRoutes = collectPaths(await getRoutes())
     .filter(route => route !== "/");  // Exclude the '/' route
 
   const sitemap = createSitemap([

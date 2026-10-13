@@ -15,8 +15,8 @@ export const ArticleBlock = component$<Props>(({ authorLink }) => {
 
   return (
     <div class="docs">
-      <ArticleHero image={article?.image || ''} authorLinks={authorLinks} />
-      <article class="max-w-[1280px] mx-auto">
+      <ArticleHero image={article?.image || ''} hero={article?.hero} authorLinks={authorLinks} />
+      <article class="max-w-[896px] mx-auto">
         <Slot />
       </article>
     </div>

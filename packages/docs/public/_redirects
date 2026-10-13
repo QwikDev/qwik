@@ -72,6 +72,8 @@
 /docs/components/projection/ /docs/core/slots/ 308
 /docs/components/resource/ /docs/core/state/ 308
 /docs/cookbook/re-exporting-loaders/ /docs/re-exporting-loaders/ 308
+/docs/labs/error-boundary/ /docs/labs/catch/ 308
+/docs/labs/suspense/ /docs/labs/pending/ 308
 /docs/labs/usePreventNavigate /docs/advanced/prevent-navigation/ 308
 /docs/labs/usePreventNavigate/ /docs/advanced/prevent-navigation/ 308
 

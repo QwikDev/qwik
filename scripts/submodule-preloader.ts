@@ -21,7 +21,12 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
       minify: true,
       outDir: config.distQwikPkgDir,
     },
-    define: { 'globalThis.qTest': 'false' }, // In vitest environments, `qTest` is `true` which allows test-only code to run, but in production builds it should be `false` to allow dead code elimination.
+    define: {
+      // In vitest, `qTest` is `true` to allow test-only code; production builds eliminate it.
+      'globalThis.qTest': 'false',
+      // The preloader embeds the singleton registry, which is keyed by version on the client.
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+    },
   });
 
   const preloaderSize = await fileSize(join(config.distQwikPkgDir, 'preloader.mjs'));

@@ -4,7 +4,7 @@ import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js
 
 it('stripped loop handlers keep their lexical captures via .w()', () => {
   // The noop body never runs on the server, but the serialized QRL must
-  // still carry [sort] so the client segment's _captures resolve on resume.
+  // still carry [sort] so the client segment's _capturesObj resolve on resume.
   const code = `
 import { component$, useSignal } from '@qwik.dev/core';
 export const Cmp = component$(() => {

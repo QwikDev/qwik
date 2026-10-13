@@ -34,6 +34,7 @@ import {
   throwIfQRLNotResolved,
 } from '../utils';
 import { SignalImpl } from './signal-impl';
+import { Brand, brandClass } from '../../shared/utils/brand';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -783,3 +784,4 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     }
   }
 }
+brandClass(ComputedSignalImpl, Brand.ComputedSignal);

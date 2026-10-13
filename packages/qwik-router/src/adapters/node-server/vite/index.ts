@@ -1,4 +1,4 @@
-import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
+import type { SsgRenderOptions } from '../../../ssg';
 import { viteAdapter, type ServerAdapterOptions } from '../../shared/vite';
 
 /** @beta */

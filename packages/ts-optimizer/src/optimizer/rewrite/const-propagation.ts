@@ -1,5 +1,6 @@
 /** Const literal propagation and inlining utilities. */
 
+import { isReferenceIdentifier } from 'oxc-walker';
 import { forEachAstChild } from '../ast/guards.js';
 import { applyReplacements, isReplaceableIdentifierPosition } from '../edit/range-replace.js';
 import { isShorthandPropertyValue } from '../prepare/flatten-destructures.js';
@@ -282,7 +283,11 @@ function bodyHasAwaitBetween(body: string, from: number, to: number): boolean {
   return /\b(await|yield)\b/.test(body.slice(from, to));
 }
 
-export function propagateConstLiteralsInBody(body: string): string {
+/** `elementCaptureNames` feed a later-emitted `q:p` prop, so they must keep their decls. */
+export function propagateConstLiteralsInBody(
+  body: string,
+  elementCaptureNames: ReadonlySet<string> = new Set()
+): string {
   const session = createTransformSession(body);
   if (!session) {
     return body;
@@ -295,8 +300,8 @@ export function propagateConstLiteralsInBody(body: string): string {
   const mutableVars = new Set<string>();
   const mutatedObjects = new Set<string>();
   // Identifiers inside `q_X.w([...])` capture arrays — serialization
-  // contracts aligned with `_captures[N]` reads; never inline or remove.
-  const protectedNames = new Set<string>();
+  // contracts aligned with `_capturesObj._[N]` reads; never inline or remove.
+  const protectedNames = new Set<string>(elementCaptureNames);
 
   let currentDeclName: string | null = null;
 
@@ -325,7 +330,7 @@ export function propagateConstLiteralsInBody(body: string): string {
     }
 
     // A `q_X.w([...])` capture array is a serialization contract aligned with
-    // the segment's `_captures[N]` reads — its identifiers must stay verbatim.
+    // the segment's `_capturesObj._[N]` reads — its identifiers must stay verbatim.
     if (
       node.type === 'CallExpression' &&
       (node.callee as { type?: string; property?: { type?: string; name?: string } })?.type ===
@@ -383,7 +388,7 @@ export function propagateConstLiteralsInBody(body: string): string {
 
     // A JSX tag reference (`<Test />`) can't take an inlined expression —
     // any const it names must keep its declaration.
-    if (node.type === 'JSXIdentifier' && typeof node.name === 'string') {
+    if (node.type === 'JSXIdentifier' && isReferenceIdentifier(node, parentNode ?? null)) {
       protectedNames.add(node.name);
     }
 

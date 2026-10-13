@@ -231,7 +231,22 @@ export interface FormSubmitSuccessDetail<T> {
 }
 
 // @public
+export const getBasePathname: () => string;
+
+// @public
 export const getRequestEvent: (thisArg?: unknown) => RequestEvent | undefined;
+
+// @public
+export const getRouterConfig: () => Promise<QwikRouterConfig>;
+
+// @public
+export const getRoutes: () => Promise<RouteData>;
+
+// @internal (undocumented)
+export const _getServiceWorkerScript: (serviceWorkerUrl: string | undefined) => string;
+
+// @public
+export const getTrailingSlash: () => boolean;
 
 // Warning: (ae-forgotten-export) The symbol "ValibotDataValidator" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ZodDataValidator" needs to be exported by the entry point index.d.ts
@@ -384,6 +399,7 @@ export interface QwikRouterConfig {
     readonly routes: RouteData;
     // (undocumented)
     readonly serverPlugins?: RouteModule[];
+    readonly serviceWorkerUrl?: string;
     // (undocumented)
     readonly trailingSlash?: boolean;
 }
@@ -592,6 +608,9 @@ export function serverQrl<T extends ServerFunction>(qrl: QRL<T>, options?: Serve
 export const ServiceWorkerRegister: (props: {
     nonce?: string;
 }) => JSXOutput;
+
+// @internal
+export const _setRouterConfig: (config: QwikRouterConfig) => void;
 
 // @public (undocumented)
 export interface StaticGenerate {

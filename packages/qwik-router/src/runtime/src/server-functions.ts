@@ -4,16 +4,24 @@ import {
   isDev,
   isServer,
   noSerialize,
+  useContext,
   useStore,
   withLocale,
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
-import { _deserialize, _getContextHostElement, _serialize } from '@qwik.dev/core/internal';
+import {
+  _deserialize,
+  _getContextHostElement,
+  _regInlinedQrl,
+  _serialize,
+} from '@qwik.dev/core/internal';
 import * as v from 'valibot';
 import * as z from 'zod';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
+import { RouteActionRunnerContext } from './contexts';
 import type { FormSubmitCompletedDetail } from './form-component';
+import { RUN_PENDING_ACTION } from './navigation-state';
 import { getRequestEvent } from './route-loaders';
 import type {
   ActionConstructor,
@@ -47,9 +55,9 @@ import { _asyncRequestStore } from '../../middleware/request-handler';
 export { getRequestEvent } from './route-loaders';
 
 /**
- * Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`: generated route
- * modules call these factories back during their own evaluation via the `@qwik-router-config`
- * cycle, where a `const` binding would throw a TDZ ReferenceError.
+ * Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`: the app's route
+ * modules call these factories during their own evaluation, which a bundle may run before this
+ * module, where a `const` binding would throw a TDZ ReferenceError.
  *
  * @public
  */
@@ -61,6 +69,7 @@ export function routeActionQrl(
   function action() {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
+    const runAction = useContext(RouteActionRunnerContext, null);
     const initialState: Editable<Partial<ActionStore<unknown, unknown>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
       submitted: false,
@@ -110,19 +119,32 @@ Action.run() can only be called on the browser, for example when a user clicks a
       }
       const submission = {};
       latestSubmission.current = submission;
-      return new Promise<RouteActionResolver>((resolve) => {
-        if (data instanceof FormData) {
-          state.formData = data;
-        }
-        state.submitted = true;
-        state.isRunning = true;
-        loc.isNavigating = true;
-        currentAction.value = {
-          data: data as Record<string, unknown>,
-          id,
-          resolve: noSerialize(resolve),
-        };
-      }).then(({ result, status }) => {
+      const previousDispatch = currentAction.pendingDispatch ?? Promise.resolve();
+      let resolveDispatch!: () => void;
+      currentAction.pendingDispatch = noSerialize(
+        new Promise<void>((resolve) => {
+          resolveDispatch = resolve;
+        })
+      );
+      const run = previousDispatch.then(
+        () =>
+          new Promise<RouteActionResolver>((resolve) => {
+            if (data instanceof FormData) {
+              state.formData = data;
+            }
+            state.submitted = true;
+            state.isRunning = true;
+            loc.isNavigating = true;
+            currentAction.value = {
+              data: data as Record<string, unknown>,
+              id,
+              resolve: noSerialize(resolve),
+              resolveDispatch: noSerialize(resolveDispatch),
+            };
+            runAction?.(RUN_PENDING_ACTION as unknown as string);
+          })
+      );
+      return run.then(({ result, status }) => {
         const isLatestSubmission = latestSubmission.current === submission;
         if (isLatestSubmission) {
           state.isRunning = false;
@@ -375,6 +397,8 @@ export function serverQrl<T extends ServerFunction>(
   options?: ServerConfig
 ): ServerQRL<T> {
   if (isServer) {
+    // A library kept external on the server inlines its QRLs, so no segment registers this one.
+    _regInlinedQrl(qrl);
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextHostElement()) {
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');

@@ -3,4 +3,4 @@
  * internal types can not be accidentally used by external code.
  */
 
-export * from './dist/core-internal';
+export * from './dist/core-internal.js';

@@ -1,5 +1,5 @@
 /**
- * Qwik Out-of-Order Suspense Executor
+ * Qwik Out-of-Order Streaming Executor
  *
  * This is the inline script entry. The actual logic lives in out-of-order-executor-shared.ts so
  * source tests can install the same executor.

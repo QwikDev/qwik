@@ -10,8 +10,6 @@ import {
   getVariableIdentifierName,
   isKnownHook,
   normalizeQrlHookName,
-  findLineStart,
-  readIndent,
   buildCollecthookPayload,
   hasCollecthookAfterByVariableId,
   hasCollecthookAfterByVariableName,
@@ -19,7 +17,7 @@ import {
   isCustomHook,
 } from './helpers';
 import { INNER_USE_HOOK } from '@qwik.dev/devtools/kit';
-import type { InjectionTask } from './types';
+import type { InjectionTask, InsertTask } from './types';
 import { applySourceEdits } from './sourceEdits';
 
 // ============================================================================
@@ -86,7 +84,7 @@ function processVariableDeclarator(
     return null;
   }
 
-  const { declEnd, indent } = getPositionInfo(code, range);
+  const [, declEnd] = range;
 
   // Custom hook
   if (isCustomHook(normalizedName)) {
@@ -94,13 +92,12 @@ function processVariableDeclarator(
       return null;
     }
     const payload = buildCollecthookPayload(
-      indent,
       variableId,
       'customhook',
       'VariableDeclarator',
       variableId
     );
-    return { kind: 'insert', pos: declEnd, text: '\n' + payload };
+    return insertAfterStatement(code, declEnd, payload);
   }
 
   // Known hook
@@ -112,13 +109,12 @@ function processVariableDeclarator(
   }
 
   const payload = buildCollecthookPayload(
-    indent,
     variableId,
     normalizedName,
     'VariableDeclarator',
     variableId
   );
-  return { kind: 'insert', pos: declEnd, text: '\n' + payload };
+  return insertAfterStatement(code, declEnd, payload);
 }
 
 // ============================================================================
@@ -147,8 +143,6 @@ function processExpressionStatement(
   }
 
   const [stmtStart, stmtEnd] = stmtRange;
-  const lineStart = findLineStart(code, stmtStart);
-  const indent = readIndent(code, lineStart);
 
   // Known hook (expression form)
   if (isKnownHook(normalizedName)) {
@@ -156,21 +150,20 @@ function processExpressionStatement(
       return null;
     }
     const payload = buildCollecthookPayload(
-      indent,
       normalizedName,
       normalizedName,
       'expressionStatement',
       'undefined'
     );
     return {
-      task: { kind: 'insert', pos: stmtEnd, text: '\n' + payload },
+      task: insertAfterStatement(code, stmtEnd, payload),
       newIndex: currentIndex,
     };
   }
 
   // Custom hook (expression form) - convert to variable declaration
   if (isCustomHook(normalizedName)) {
-    return convertToVariableDeclaration(code, stmtStart, stmtEnd, indent, currentIndex);
+    return convertToVariableDeclaration(code, stmtStart, stmtEnd, currentIndex);
   }
 
   return null;
@@ -181,14 +174,11 @@ function convertToVariableDeclaration(
   code: string,
   stmtStart: number,
   stmtEnd: number,
-  indent: string,
   currentIndex: number
 ): { task: InjectionTask; newIndex: number } {
   const callSource = code.slice(stmtStart, stmtEnd);
   const variableName = `_customhook_${currentIndex}`;
-  const declLine = `${indent}let ${variableName} = ${trimStatementSemicolon(callSource)};\n`;
   const payload = buildCollecthookPayload(
-    indent,
     variableName,
     'customhook',
     'VariableDeclarator',
@@ -200,7 +190,7 @@ function convertToVariableDeclaration(
       kind: 'replace',
       start: stmtStart,
       end: stmtEnd,
-      text: declLine + payload,
+      text: `let ${variableName} = ${trimStatementSemicolon(callSource)}; ${payload}`,
     },
     newIndex: currentIndex + 1,
   };
@@ -255,20 +245,16 @@ function extractHookCall(node: unknown): { hookName: string; normalizedName: str
 // Position Helpers
 // ============================================================================
 
+/** Inserts on the statement's own line, adding the `;` it may lack because of ASI */
+function insertAfterStatement(code: string, statementEnd: number, statement: string): InsertTask {
+  const separator = code[statementEnd - 1] === ';' ? ' ' : '; ';
+  return { kind: 'insert', pos: statementEnd, text: separator + statement };
+}
+
 function getParentRange(parent: any): [number, number] | null {
   const range = parent?.range as number[] | undefined;
   if (!range) {
     return null;
   }
   return [range[0], range[1]];
-}
-
-function getPositionInfo(
-  code: string,
-  range: [number, number]
-): { declStart: number; declEnd: number; indent: string } {
-  const [declStart, declEnd] = range;
-  const lineStart = findLineStart(code, declStart);
-  const indent = readIndent(code, lineStart);
-  return { declStart, declEnd, indent };
 }

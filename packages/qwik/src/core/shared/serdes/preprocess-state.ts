@@ -1,5 +1,3 @@
-// @ts-expect-error we don't have types for the preloader
-import { p as preload } from '@qwik.dev/core/preloader';
 import type { DeserializeContainer } from '../types';
 import { TypeIds } from './constants';
 

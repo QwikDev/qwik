@@ -5,7 +5,7 @@ import {
   Fragment,
   Fragment as Signal,
   Slot,
-  _captures,
+  _capturesObj,
   _markSignalAsExternallyOwned,
   _jsxSorted,
   _wrapProp,
@@ -30,7 +30,7 @@ import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty, NEEDS_COMPUTATION } from '../reactive-primitives/types';
 import { delay } from '../shared/utils/promises';
 import { useConstant } from '../use/use-signal';
-import { useErrorBoundaryStore } from '../use/use-error-boundary-store';
+import { useCatchStore } from '../use/use-catch-store';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -50,7 +50,7 @@ describe.each([
           () =>
             Promise.resolve({
               lazy: () => {
-                const [count] = _captures as any;
+                const [count] = _capturesObj._ as any;
                 return count.value * 2;
               },
             }),
@@ -446,8 +446,8 @@ describe.each([
 
     it('should throw error on value if promise is rejected', async () => {
       (globalThis as any).log = [];
-      const ErrorBoundary = component$(() => {
-        const store = useErrorBoundaryStore();
+      const Catch = component$(() => {
+        const store = useCatchStore();
         (globalThis as any).log.push(`rendering error boundary, ${store.error || 'no error'}`);
         return store.error ? <div>{JSON.stringify(store.error)}</div> : <Slot />;
       });
@@ -459,9 +459,9 @@ describe.each([
       let threw = false;
       try {
         await render(
-          <ErrorBoundary>
+          <Catch>
             <Counter />,
-          </ErrorBoundary>,
+          </Catch>,
           { debug }
         );
       } catch (e) {

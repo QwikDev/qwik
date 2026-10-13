@@ -1,6 +1,6 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 3326
+assertion_line: 3588
 expression: output
 ---
 ==INPUT==
@@ -10,7 +10,7 @@ import {
   inlinedQrl,
   useErrorBoundary,
   useOnWindow,
-  _captures,
+  _capturesObj,
   _jsxSorted,
   Slot,
   isBrowser,
@@ -112,7 +112,7 @@ const ErrorBoundary = /* @__PURE__ */ componentQrl(
       'qerror',
       /* @__PURE__ */ inlinedQrl(
         (e) => {
-          const store2 = _captures[0];
+          const store2 = _capturesObj._[0];
           store2.error = e.detail.error;
         },
         'ErrorBoundary_component_useOnWindow_G0jFRpoNY0M',
@@ -207,7 +207,7 @@ const Link = /* @__PURE__ */ componentQrl(
     const handlePrefetch = prefetch
       ? /* @__PURE__ */ inlinedQrl(
           (_, elm) => {
-            const head2 = _captures[0];
+            const head2 = _capturesObj._[0];
             if (navigator.connection?.saveData) {
               return;
             }
@@ -230,10 +230,10 @@ const Link = /* @__PURE__ */ componentQrl(
     const handleClientSideNavigation = clientNavPath
       ? /* @__PURE__ */ inlinedQrl(
           (event, elm) => {
-            const nav2 = _captures[0],
-              reload2 = _captures[1],
-              replaceState2 = _captures[2],
-              scroll2 = _captures[3];
+            const nav2 = _capturesObj._[0],
+              reload2 = _capturesObj._[1],
+              replaceState2 = _capturesObj._[2],
+              scroll2 = _capturesObj._[3];
             if (event.defaultPrevented) {
               if (elm.href) {
                 elm.setAttribute('aria-pressed', 'true');
@@ -258,10 +258,10 @@ const Link = /* @__PURE__ */ componentQrl(
     useVisibleTaskQrl(
       /* @__PURE__ */ inlinedQrl(
         ({ track }) => {
-          const anchorRef2 = _captures[0],
-            handlePrefetch2 = _captures[1],
-            linkProps2 = _captures[2],
-            loc2 = _captures[3];
+          const anchorRef2 = _capturesObj._[0],
+            handlePrefetch2 = _capturesObj._[1],
+            linkProps2 = _capturesObj._[2],
+            loc2 = _capturesObj._[3];
           track(() => loc2.url.pathname);
           const handler = linkProps2.onQVisible$;
           if (handler) {
@@ -737,12 +737,12 @@ const useQwikRouter = (props) => {
   }, 'useQwikRouter_getScroller_0UhDFwlxeFQ');
   const goto = /* @__PURE__ */ inlinedQrl(
     async (path, opt) => {
-      const actionState2 = _captures[0],
-        getScroller2 = _captures[1],
-        manifestHash2 = _captures[2],
-        navResolver2 = _captures[3],
-        routeInternal2 = _captures[4],
-        routeLocation2 = _captures[5];
+      const actionState2 = _capturesObj._[0],
+        getScroller2 = _capturesObj._[1],
+        manifestHash2 = _capturesObj._[2],
+        navResolver2 = _capturesObj._[3],
+        routeInternal2 = _capturesObj._[4],
+        routeLocation2 = _capturesObj._[5];
       const {
         type = 'link',
         forceReload = path === void 0,
@@ -856,22 +856,22 @@ const useQwikRouter = (props) => {
   useTaskQrl(
     /* @__PURE__ */ inlinedQrl(
       async ({ track }) => {
-        const actionState2 = _captures[0],
-          content2 = _captures[1],
-          contentInternal2 = _captures[2],
-          documentHead2 = _captures[3],
-          env2 = _captures[4],
-          getScroller2 = _captures[5],
-          goto2 = _captures[6],
-          httpStatus2 = _captures[7],
-          loaderState2 = _captures[8],
-          navResolver2 = _captures[9],
-          props2 = _captures[10],
-          routeInternal2 = _captures[11],
-          routeLoaderCtx2 = _captures[12],
-          routeLocation2 = _captures[13],
-          routeLocationTarget2 = _captures[14],
-          serverHead2 = _captures[15];
+        const actionState2 = _capturesObj._[0],
+          content2 = _capturesObj._[1],
+          contentInternal2 = _capturesObj._[2],
+          documentHead2 = _capturesObj._[3],
+          env2 = _capturesObj._[4],
+          getScroller2 = _capturesObj._[5],
+          goto2 = _capturesObj._[6],
+          httpStatus2 = _capturesObj._[7],
+          loaderState2 = _capturesObj._[8],
+          navResolver2 = _capturesObj._[9],
+          props2 = _capturesObj._[10],
+          routeInternal2 = _capturesObj._[11],
+          routeLoaderCtx2 = _capturesObj._[12],
+          routeLocation2 = _capturesObj._[13],
+          routeLocationTarget2 = _capturesObj._[14],
+          serverHead2 = _capturesObj._[15];
         const container = _getContextContainer();
         const navigation = track(routeInternal2);
         const action = track(actionState2);
@@ -1282,7 +1282,7 @@ const useQwikMockRouter = (props) => {
     loaderState[loaderId] ||= createAsyncQrl(
       /* @__PURE__ */ inlinedQrl(
         async () => {
-          const data2 = _captures[0];
+          const data2 = _capturesObj._[0];
           return data2;
         },
         'useQwikMockRouter_createAsync_clbxpuXqpEU',
@@ -1331,8 +1331,8 @@ const useQwikMockRouter = (props) => {
   useTaskQrl(
     /* @__PURE__ */ inlinedQrl(
       async ({ track }) => {
-        const actionState2 = _captures[0],
-          actionsMocks2 = _captures[1];
+        const actionState2 = _capturesObj._[0],
+          actionsMocks2 = _capturesObj._[1];
         const action = track(actionState2);
         if (!action?.resolve) {
           return;
@@ -1611,10 +1611,10 @@ const routeActionQrl = (actionQrl, ...rest) => {
     });
     const submit = /* @__PURE__ */ inlinedQrl(
       (input = {}) => {
-        const currentAction2 = _captures[0],
-          id2 = _captures[1],
-          loc2 = _captures[2],
-          state2 = _captures[3];
+        const currentAction2 = _capturesObj._[0],
+          id2 = _capturesObj._[1],
+          loc2 = _capturesObj._[2],
+          state2 = _capturesObj._[3];
         if (isServer) {
           throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
@@ -1738,11 +1738,11 @@ const serverQrl = (qrl, options) => {
   const fetchOptions = options?.fetchOptions || {};
   return /* @__PURE__ */ inlinedQrl(
     async function (...args) {
-      const fetchOptions2 = _captures[0],
-        headers2 = _captures[1],
-        method2 = _captures[2],
-        origin2 = _captures[3],
-        qrl2 = _captures[4];
+      const fetchOptions2 = _capturesObj._[0],
+        headers2 = _capturesObj._[1],
+        method2 = _capturesObj._[2],
+        origin2 = _capturesObj._[3],
+        qrl2 = _capturesObj._[4];
       const abortSignal = args.length > 0 && args[0] instanceof AbortSignal ? args.shift() : void 0;
       if (isServer) {
         return qrl2.apply(getRequestEvent(this), args);
@@ -1864,7 +1864,7 @@ const GetForm = /* @__PURE__ */ componentQrl(
           ...(Array.isArray(_rawProps.onSubmit$) ? _rawProps.onSubmit$ : [_rawProps.onSubmit$]),
           /* @__PURE__ */ inlinedQrl(
             async (_evt, form) => {
-              const nav2 = _captures[0];
+              const nav2 = _capturesObj._[0];
               const formData = new FormData(form);
               const params = new URLSearchParams();
               formData.forEach((value, key) => {
@@ -1921,7 +1921,7 @@ const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => 
             !reloadDocument
               ? /* @__PURE__ */ inlinedQrl(
                   (evt) => {
-                    const action2 = _captures[0];
+                    const action2 = _capturesObj._[0];
                     if (!action2.submitted) {
                       return action2.submit(evt);
                     }
@@ -2122,15 +2122,15 @@ export {
 
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_ErrorBoundary_component_useOnWindow_G0jFRpoNY0M.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const ErrorBoundary_component_useOnWindow_G0jFRpoNY0M = (e)=>{
-    const store2 = _captures[0];
+    const store2 = _capturesObj._[0];
     store2.error = e.detail.error;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;+DA0GQ,CAAC;IACC,MAAM,SAAS,SAAS,CAAC,EAAE;IAC3B,OAAO,KAAK,GAAG,EAAE,MAAM,CAAC,KAAK;AAC/B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;+DA0GQ,CAAC;IACC,MAAM,SAAS,aAAa,CAAC,CAAC,EAAE;IAChC,OAAO,KAAK,GAAG,EAAE,MAAM,CAAC,KAAK;AAC/B\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -2146,8 +2146,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "useOnWindow",
   "captures": true,
   "loc": [
-    2433,
-    2531
+    2436,
+    2539
   ],
   "paramNames": [
     "e"
@@ -2194,8 +2194,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    2307,
-    2908
+    2310,
+    2916
   ],
   "paramNames": [
     "props"
@@ -2205,10 +2205,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_Link_component_handlePrefetch_AGvVXzXKbms.mjs (ENTRY POINT)==
 
 import { _auto_prefetchRoute as prefetchRoute } from "./index.qwik.mjs";
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Link_component_handlePrefetch_AGvVXzXKbms = (_, elm)=>{
-    const head2 = _captures[0];
+    const head2 = _capturesObj._[0];
     if (navigator.connection?.saveData) return;
     if (elm && elm.href) {
         const url = new URL(elm.href);
@@ -2217,7 +2217,7 @@ export const Link_component_handlePrefetch_AGvVXzXKbms = (_, elm)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;yDAyMU,CAAC,GAAG;IACF,MAAM,QAAQ,SAAS,CAAC,EAAE;IAC1B,IAAI,UAAU,UAAU,EAAE,UACxB;IAEF,IAAI,OAAO,IAAI,IAAI,EAAE;QACnB,MAAM,MAAM,IAAI,IAAI,IAAI,IAAI;QAC5B,cAAc,KAAK,IAAI,YAAY,CAAC,kBAAkB,KAAK,MAAM,YAAY;IAC/E;AACF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;yDAyMU,CAAC,GAAG;IACF,MAAM,QAAQ,aAAa,CAAC,CAAC,EAAE;IAC/B,IAAI,UAAU,UAAU,EAAE,UACxB;IAEF,IAAI,OAAO,IAAI,IAAI,EAAE;QACnB,MAAM,MAAM,IAAI,IAAI,IAAI,IAAI;QAC5B,cAAc,KAAK,IAAI,YAAY,CAAC,kBAAkB,KAAK,MAAM,YAAY;IAC/E;AACF\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -2233,8 +2233,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "handlePrefetch",
   "captures": true,
   "loc": [
-    5216,
-    5555
+    5224,
+    5568
   ],
   "paramNames": [
     "_",
@@ -2247,10 +2247,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_Link_component_handleClientSideNavigation_h3qenoGeI6M.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Link_component_handleClientSideNavigation_h3qenoGeI6M = (event, elm)=>{
-    const nav2 = _captures[0], reload2 = _captures[1], replaceState2 = _captures[2], scroll2 = _captures[3];
+    const nav2 = _capturesObj._[0], reload2 = _capturesObj._[1], replaceState2 = _capturesObj._[2], scroll2 = _capturesObj._[3];
     if (event.defaultPrevented) {
         if (elm.href) {
             elm.setAttribute('aria-pressed', 'true');
@@ -2266,7 +2266,7 @@ export const Link_component_handleClientSideNavigation_h3qenoGeI6M = (event, elm
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;qEAgOU,CAAC,OAAO;IACN,MAAM,OAAO,SAAS,CAAC,EAAE,EACvB,UAAU,SAAS,CAAC,EAAE,EACtB,gBAAgB,SAAS,CAAC,EAAE,EAC5B,UAAU,SAAS,CAAC,EAAE;IACxB,IAAI,MAAM,gBAAgB,EACxB;QAAA,IAAI,IAAI,IAAI,EAAE;YACZ,IAAI,YAAY,CAAC,gBAAgB;YACjC,KAAK,IAAI,IAAI,EAAE;gBACb,aAAa;gBACb,cAAc;gBACd,QAAQ;YACV,GAAG,IAAI,CAAC;gBACN,IAAI,eAAe,CAAC;YACtB;QACF;IAAA;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;qEAgOU,CAAC,OAAO;IACN,MAAM,OAAO,aAAa,CAAC,CAAC,EAAE,EAC5B,UAAU,aAAa,CAAC,CAAC,EAAE,EAC3B,gBAAgB,aAAa,CAAC,CAAC,EAAE,EACjC,UAAU,aAAa,CAAC,CAAC,EAAE;IAC7B,IAAI,MAAM,gBAAgB,EACxB;QAAA,IAAI,IAAI,IAAI,EAAE;YACZ,IAAI,YAAY,CAAC,gBAAgB;YACjC,KAAK,IAAI,IAAI,EAAE;gBACb,aAAa;gBACb,cAAc;gBACd,QAAQ;YACV,GAAG,IAAI,CAAC;gBACN,IAAI,eAAe,CAAC;YACtB;QACF;IAAA;AAEJ\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -2282,8 +2282,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "handleClientSideNavigation",
   "captures": true,
   "loc": [
-    6088,
-    6698
+    6101,
+    6731
   ],
   "paramNames": [
     "event",
@@ -2323,8 +2323,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "handlePreload",
   "captures": false,
   "loc": [
-    6892,
-    6993
+    6925,
+    7026
   ],
   "paramNames": [
     "_",
@@ -2334,11 +2334,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_Link_component_useVisibleTask_xKeuRmnoNSA.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { isDev } from "@qwik.dev/core";
 //
 export const Link_component_useVisibleTask_xKeuRmnoNSA = ({ track })=>{
-    const anchorRef2 = _captures[0], handlePrefetch2 = _captures[1], linkProps2 = _captures[2], loc2 = _captures[3];
+    const anchorRef2 = _capturesObj._[0], handlePrefetch2 = _capturesObj._[1], linkProps2 = _capturesObj._[2], loc2 = _capturesObj._[3];
     track(()=>loc2.url.pathname);
     const handler = linkProps2.onQVisible$;
     if (handler) {
@@ -2350,7 +2350,7 @@ export const Link_component_useVisibleTask_xKeuRmnoNSA = ({ track })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;yDA4PQ,CAAC,EAAE,KAAK,EAAE;IACR,MAAM,aAAa,SAAS,CAAC,EAAE,EAC7B,kBAAkB,SAAS,CAAC,EAAE,EAC9B,aAAa,SAAS,CAAC,EAAE,EACzB,OAAO,SAAS,CAAC,EAAE;IACrB,MAAM,IAAM,KAAK,GAAG,CAAC,QAAQ;IAC7B,MAAM,UAAU,WAAW,WAAW;IACtC,IAAI,SAAS;QACX,MAAM,QAAQ,IAAI,YAAY;QAC9B,IAAI,MAAM,OAAO,CAAC,UAChB,QAAQ,IAAI,CAAC,IAAI,OAAO,CAAC,CAAC,WAAa,WAAW,OAAO,WAAW,KAAK;aAEzE,UAAU,OAAO,WAAW,KAAK;IAErC;IACA,IAAI,CAAC,SAAS,WAAW,KAAK,EAC5B,kBAAkB,KAAK,GAAG,WAAW,KAAK;AAE9C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;yDA4PQ,CAAC,EAAE,KAAK,EAAE;IACR,MAAM,aAAa,aAAa,CAAC,CAAC,EAAE,EAClC,kBAAkB,aAAa,CAAC,CAAC,EAAE,EACnC,aAAa,aAAa,CAAC,CAAC,EAAE,EAC9B,OAAO,aAAa,CAAC,CAAC,EAAE;IAC1B,MAAM,IAAM,KAAK,GAAG,CAAC,QAAQ;IAC7B,MAAM,UAAU,WAAW,WAAW;IACtC,IAAI,SAAS;QACX,MAAM,QAAQ,IAAI,YAAY;QAC9B,IAAI,MAAM,OAAO,CAAC,UAChB,QAAQ,IAAI,CAAC,IAAI,OAAO,CAAC,CAAC,WAAa,WAAW,OAAO,WAAW,KAAK;aAEzE,UAAU,OAAO,WAAW,KAAK;IAErC;IACA,IAAI,CAAC,SAAS,WAAW,KAAK,EAC5B,kBAAkB,KAAK,GAAG,WAAW,KAAK;AAE9C\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -2366,8 +2366,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "useVisibleTask$",
   "captures": true,
   "loc": [
-    7105,
-    7805
+    7138,
+    7858
   ],
   "paramNames": [
     "{track}"
@@ -2479,8 +2479,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    4351,
-    8639
+    4359,
+    8692
   ],
   "paramNames": [
     "props"
@@ -2632,8 +2632,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "event$",
   "captures": false,
   "loc": [
-    10838,
-    16625
+    10891,
+    16678
   ],
   "paramNames": [
     "_",
@@ -2662,8 +2662,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    18986,
-    18999
+    19039,
+    19052
   ]
 }
 */
@@ -2717,8 +2717,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "registerPreventNav",
   "captures": false,
   "loc": [
-    21540,
-    22372
+    21593,
+    22425
   ],
   "paramNames": [
     "fn$"
@@ -2757,8 +2757,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "getScroller",
   "captures": false,
   "loc": [
-    22472,
-    22898
+    22525,
+    22951
   ]
 }
 */
@@ -2772,14 +2772,14 @@ import { _auto_prefetchRoute as prefetchRoute } from "./index.qwik.mjs";
 import { _auto_preventNav as preventNav } from "./index.qwik.mjs";
 import { _auto_restoreScroll as restoreScroll } from "./index.qwik.mjs";
 import { _auto_saveScrollHistory as saveScrollHistory } from "./index.qwik.mjs";
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { isBrowser } from "@qwik.dev/core";
 import { a as isSameOrigin } from "./chunks/head.qwik.mjs";
 import { i as isSamePath } from "./chunks/head.qwik.mjs";
 import { b as toUrl } from "./chunks/head.qwik.mjs";
 //
 export const useQwikRouter_goto_8j8Vrz2yUIM = async (path, opt)=>{
-    const actionState2 = _captures[0], getScroller2 = _captures[1], manifestHash2 = _captures[2], navResolver2 = _captures[3], routeInternal2 = _captures[4], routeLocation2 = _captures[5];
+    const actionState2 = _capturesObj._[0], getScroller2 = _capturesObj._[1], manifestHash2 = _capturesObj._[2], navResolver2 = _capturesObj._[3], routeInternal2 = _capturesObj._[4], routeLocation2 = _capturesObj._[5];
     const { type = 'link', forceReload = path === void 0, replaceState = false, scroll = true } = typeof opt === 'object' ? opt : {
         forceReload: opt
     };
@@ -2850,7 +2850,7 @@ export const useQwikRouter_goto_8j8Vrz2yUIM = async (path, opt)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;8CA2tBI,OAAO,MAAM;IACX,MAAM,eAAe,SAAS,CAAC,EAAE,EAC/B,eAAe,SAAS,CAAC,EAAE,EAC3B,gBAAgB,SAAS,CAAC,EAAE,EAC5B,eAAe,SAAS,CAAC,EAAE,EAC3B,iBAAiB,SAAS,CAAC,EAAE,EAC7B,iBAAiB,SAAS,CAAC,EAAE;IAC/B,MAAM,EACJ,OAAO,MAAM,EACb,cAAc,SAAS,KAAK,CAAC,EAC7B,eAAe,KAAK,EACpB,SAAS,IAAI,EACd,GAAG,OAAO,QAAQ,WACf,MACA;QACE,aAAa;IACf;IACJ,cAAc,QAAQ;IACtB,IAAI,aAAa,SAAS,UAAU,eAAe,KAAK,CAAC,IAAI,KAAK,WAAW;QAC3E,MAAM,OAAO,IAAI,IAAI,OAAO,QAAQ,CAAC,IAAI;QACzC,eAAe,KAAK,CAAC,IAAI,GAAG;QAC5B,eAAe,GAAG,GAAG;IACvB;IACA,MAAM,WAAW,eAAe,KAAK,CAAC,IAAI;IAC1C,MAAM,OACJ,SAAS,KAAK,IACV,WACA,OAAO,SAAS,WACd,OACA,MAAM,MAAM,eAAe,GAAG;IACtC,IACE,WAAW,KAAK,IAChB,CAAC,eACC,OAAO,SAAS,YAChB,CAAC,WAAW,MAAM,aAClB,CAAC,aAAa,MAAM,SAAS,GAC/B;QACA,MAAM,WAAW,cAAc,QAAQ;QACvC,MAAM,WAAW,MAAM,QAAQ,GAAG,CAAC;eAAI,WAAW,KAAK,CAAC,MAAM;SAAG,CAAC,GAAG,CAAC,CAAC,KAAO,GAAG;QACjF,IAAI,aAAa,cAAc,QAAQ,IAAI,SAAS,IAAI,CAAC,UAAU;YACjE,IAAI,aAAa,cAAc,QAAQ,IAAI,SAAS,YAClD,QAAQ,SAAS,CAAC,MAAM,IAAI;YAE9B;QACF;IACF;IACA,IAAI,OAAO,SAAS,UAAU;QAC5B,IAAI,WACF,QAAQ,EAAE,CAAC;QAEb;IACF;IACA,IAAI,CAAC,aAAa,MAAM,WAAW;QACjC,IAAI,WACF,SAAS,IAAI,GAAG,KAAK,IAAI;QAE3B;IACF;IACA,IAAI,CAAC,eAAe,WAAW,MAAM,WAAW;QAC9C,IAAI,WAAW;YACb,IAAI,SAAS,UAAU,KAAK,IAAI,KAAK,SAAS,IAAI,EAChD,QAAQ,SAAS,CAAC,MAAM,IAAI;YAE9B,MAAM,WAAW,MAAM;YACvB,cAAc,MAAM,MAAM,IAAI,IAAI,SAAS,IAAI,GAAG,UAAU;YAC5D,IAAI,SAAS,YACX,OAAO,qBAAqB,GAAG;QAEnC;QACA,IAAI,KAAK,IAAI,KAAK,eAAe,GAAG,CAAC,IAAI,EAAE;YACzC,MAAM,SAAS,IAAI,IAAI,KAAK,IAAI;YAChC,eAAe,KAAK,CAAC,IAAI,GAAG;YAC5B,eAAe,GAAG,GAAG;QACvB;QACA;IACF;IACA,IAAI,iBAAiB;IACrB,IAAI,aAAa,SAAS,UAAU,CAAC,aAAa;QAChD,MAAM,WAAW,MAAM;QACvB,OAAO,qBAAqB,GAAG;QAC/B,aAAa,OAAO,sBAAsB;QAC1C,MAAM,cAAc,mBAAmB;QACvC,kBAAkB;QAClB,eAAe,QAAQ,MAAM,IAAI,IAAI,SAAS,IAAI,GAAG,MAAM;QAC3D,iBAAiB;IACnB;IACA,eAAe,KAAK,GAAG;QACrB;QACA;QACA;QACA;QACA;QACA;IACF;IACA,IAAI,WACF,cAAc,MAAM,MAAM,KAAK;IAEjC,aAAa,KAAK,GAAG,KAAK;IAC1B,eAAe,YAAY,GAAG;IAC9B,OAAO,IAAI,QAAQ,CAAC;QAClB,aAAa,CAAC,GAAG;IACnB;AACF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;8CA2tBI,OAAO,MAAM;IACX,MAAM,eAAe,aAAa,CAAC,CAAC,EAAE,EACpC,eAAe,aAAa,CAAC,CAAC,EAAE,EAChC,gBAAgB,aAAa,CAAC,CAAC,EAAE,EACjC,eAAe,aAAa,CAAC,CAAC,EAAE,EAChC,iBAAiB,aAAa,CAAC,CAAC,EAAE,EAClC,iBAAiB,aAAa,CAAC,CAAC,EAAE;IACpC,MAAM,EACJ,OAAO,MAAM,EACb,cAAc,SAAS,KAAK,CAAC,EAC7B,eAAe,KAAK,EACpB,SAAS,IAAI,EACd,GAAG,OAAO,QAAQ,WACf,MACA;QACE,aAAa;IACf;IACJ,cAAc,QAAQ;IACtB,IAAI,aAAa,SAAS,UAAU,eAAe,KAAK,CAAC,IAAI,KAAK,WAAW;QAC3E,MAAM,OAAO,IAAI,IAAI,OAAO,QAAQ,CAAC,IAAI;QACzC,eAAe,KAAK,CAAC,IAAI,GAAG;QAC5B,eAAe,GAAG,GAAG;IACvB;IACA,MAAM,WAAW,eAAe,KAAK,CAAC,IAAI;IAC1C,MAAM,OACJ,SAAS,KAAK,IACV,WACA,OAAO,SAAS,WACd,OACA,MAAM,MAAM,eAAe,GAAG;IACtC,IACE,WAAW,KAAK,IAChB,CAAC,eACC,OAAO,SAAS,YAChB,CAAC,WAAW,MAAM,aAClB,CAAC,aAAa,MAAM,SAAS,GAC/B;QACA,MAAM,WAAW,cAAc,QAAQ;QACvC,MAAM,WAAW,MAAM,QAAQ,GAAG,CAAC;eAAI,WAAW,KAAK,CAAC,MAAM;SAAG,CAAC,GAAG,CAAC,CAAC,KAAO,GAAG;QACjF,IAAI,aAAa,cAAc,QAAQ,IAAI,SAAS,IAAI,CAAC,UAAU;YACjE,IAAI,aAAa,cAAc,QAAQ,IAAI,SAAS,YAClD,QAAQ,SAAS,CAAC,MAAM,IAAI;YAE9B;QACF;IACF;IACA,IAAI,OAAO,SAAS,UAAU;QAC5B,IAAI,WACF,QAAQ,EAAE,CAAC;QAEb;IACF;IACA,IAAI,CAAC,aAAa,MAAM,WAAW;QACjC,IAAI,WACF,SAAS,IAAI,GAAG,KAAK,IAAI;QAE3B;IACF;IACA,IAAI,CAAC,eAAe,WAAW,MAAM,WAAW;QAC9C,IAAI,WAAW;YACb,IAAI,SAAS,UAAU,KAAK,IAAI,KAAK,SAAS,IAAI,EAChD,QAAQ,SAAS,CAAC,MAAM,IAAI;YAE9B,MAAM,WAAW,MAAM;YACvB,cAAc,MAAM,MAAM,IAAI,IAAI,SAAS,IAAI,GAAG,UAAU;YAC5D,IAAI,SAAS,YACX,OAAO,qBAAqB,GAAG;QAEnC;QACA,IAAI,KAAK,IAAI,KAAK,eAAe,GAAG,CAAC,IAAI,EAAE;YACzC,MAAM,SAAS,IAAI,IAAI,KAAK,IAAI;YAChC,eAAe,KAAK,CAAC,IAAI,GAAG;YAC5B,eAAe,GAAG,GAAG;QACvB;QACA;IACF;IACA,IAAI,iBAAiB;IACrB,IAAI,aAAa,SAAS,UAAU,CAAC,aAAa;QAChD,MAAM,WAAW,MAAM;QACvB,OAAO,qBAAqB,GAAG;QAC/B,aAAa,OAAO,sBAAsB;QAC1C,MAAM,cAAc,mBAAmB;QACvC,kBAAkB;QAClB,eAAe,QAAQ,MAAM,IAAI,IAAI,SAAS,IAAI,GAAG,MAAM;QAC3D,iBAAiB;IACnB;IACA,eAAe,KAAK,GAAG;QACrB;QACA;QACA;QACA;QACA;QACA;IACF;IACA,IAAI,WACF,cAAc,MAAM,MAAM,KAAK;IAEjC,aAAa,KAAK,GAAG,KAAK;IAC1B,eAAe,YAAY,GAAG;IAC9B,OAAO,IAAI,QAAQ,CAAC;QAClB,aAAa,CAAC,GAAG;IACnB;AACF\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -2866,8 +2866,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "goto",
   "captures": true,
   "loc": [
-    22989,
-    26331
+    23042,
+    26414
   ],
   "paramNames": [
     "path",
@@ -2894,7 +2894,7 @@ import { _auto_saveScrollHistory as saveScrollHistory } from "./index.qwik.mjs";
 import { _auto_spaInit as spaInit } from "./index.qwik.mjs";
 import { Q as QACTION_KEY } from "./chunks/route-loaders.qwik.mjs";
 import { h as Q_ROUTE } from "./chunks/route-loaders.qwik.mjs";
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { _deserialize } from "@qwik.dev/core/internal";
 import { _getContextContainer } from "@qwik.dev/core/internal";
 import { _hasStoreEffects } from "@qwik.dev/core/internal";
@@ -2981,7 +2981,7 @@ const startViewTransition = (params)=>{
     } else params.update?.();
 };
 export const useQwikRouter_useTask_XpalYii770E = async ({ track })=>{
-    const actionState2 = _captures[0], content2 = _captures[1], contentInternal2 = _captures[2], documentHead2 = _captures[3], env2 = _captures[4], getScroller2 = _captures[5], goto2 = _captures[6], httpStatus2 = _captures[7], loaderState2 = _captures[8], navResolver2 = _captures[9], props2 = _captures[10], routeInternal2 = _captures[11], routeLoaderCtx2 = _captures[12], routeLocation2 = _captures[13], routeLocationTarget2 = _captures[14], serverHead2 = _captures[15];
+    const actionState2 = _capturesObj._[0], content2 = _capturesObj._[1], contentInternal2 = _capturesObj._[2], documentHead2 = _capturesObj._[3], env2 = _capturesObj._[4], getScroller2 = _capturesObj._[5], goto2 = _capturesObj._[6], httpStatus2 = _capturesObj._[7], loaderState2 = _capturesObj._[8], navResolver2 = _capturesObj._[9], props2 = _capturesObj._[10], routeInternal2 = _capturesObj._[11], routeLoaderCtx2 = _capturesObj._[12], routeLocation2 = _capturesObj._[13], routeLocationTarget2 = _capturesObj._[14], serverHead2 = _capturesObj._[15];
     const container = _getContextContainer();
     const navigation = track(routeInternal2);
     const action = track(actionState2);
@@ -3243,7 +3243,7 @@ export const useQwikRouter_useTask_XpalYii770E = async ({ track })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\"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\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\"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\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -3259,8 +3259,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    27116,
-    41631
+    27199,
+    41794
   ],
   "paramNames": [
     "{track}"
@@ -3313,8 +3313,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    42232,
-    42348
+    42395,
+    42511
   ],
   "paramNames": [
     "props"
@@ -3323,15 +3323,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_useQwikMockRouter_createAsync_clbxpuXqpEU.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const useQwikMockRouter_createAsync_clbxpuXqpEU = async ()=>{
-    const data2 = _captures[0];
+    const data2 = _capturesObj._[0];
     return data2;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;yDA4vCQ;IACE,MAAM,QAAQ,SAAS,CAAC,EAAE;IAC1B,OAAO;AACT\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;yDA4vCQ;IACE,MAAM,QAAQ,aAAa,CAAC,CAAC,EAAE;IAC/B,OAAO;AACT\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -3347,8 +3347,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "createAsync$",
   "captures": true,
   "loc": [
-    43103,
-    43188
+    43266,
+    43356
   ],
   "captureNames": [
     "data"
@@ -3378,17 +3378,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "goto",
   "captures": false,
   "loc": [
-    43381,
-    43465
+    43549,
+    43633
   ]
 }
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_useQwikMockRouter_useTask_tXTLR4tzCy0.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const useQwikMockRouter_useTask_tXTLR4tzCy0 = async ({ track })=>{
-    const actionState2 = _captures[0], actionsMocks2 = _captures[1];
+    const actionState2 = _capturesObj._[0], actionsMocks2 = _capturesObj._[1];
     const action = track(actionState2);
     if (!action?.resolve) return;
     const mock = actionsMocks2?.[action.id];
@@ -3399,7 +3399,7 @@ export const useQwikMockRouter_useTask_tXTLR4tzCy0 = async ({ track })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;qDA6yCM,OAAO,EAAE,KAAK,EAAE;IACd,MAAM,eAAe,SAAS,CAAC,EAAE,EAC/B,gBAAgB,SAAS,CAAC,EAAE;IAC9B,MAAM,SAAS,MAAM;IACrB,IAAI,CAAC,QAAQ,SACX;IAEF,MAAM,OAAO,eAAe,CAAC,OAAO,EAAE,CAAC;IACvC,IAAI,MAAM;QACR,MAAM,eAAe,MAAM,KAAK,OAAO,IAAI;QAC3C,OAAO,OAAO,CAAC;IACjB;AACF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;qDA6yCM,OAAO,EAAE,KAAK,EAAE;IACd,MAAM,eAAe,aAAa,CAAC,CAAC,EAAE,EACpC,gBAAgB,aAAa,CAAC,CAAC,EAAE;IACnC,MAAM,SAAS,MAAM;IACrB,IAAI,CAAC,QAAQ,SACX;IAEF,MAAM,OAAO,eAAe,CAAC,OAAO,EAAE,CAAC;IACvC,IAAI,MAAM;QACR,MAAM,eAAe,MAAM,KAAK,OAAO,IAAI;QAC3C,OAAO,OAAO,CAAC;IACjB;AACF\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -3415,8 +3415,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    44476,
-    44868
+    44644,
+    45046
   ],
   "paramNames": [
     "{track}"
@@ -3529,8 +3529,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    45055,
-    45175
+    45233,
+    45353
   ],
   "paramNames": [
     "props"
@@ -3595,19 +3595,19 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    45362,
-    47103
+    45540,
+    47281
   ]
 }
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_routeActionQrl_action_submit_YuS5bpdQ360.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { isServer } from "@qwik.dev/core";
 import { noSerialize } from "@qwik.dev/core";
 //
 export const routeActionQrl_action_submit_YuS5bpdQ360 = (input = {})=>{
-    const currentAction2 = _captures[0], id2 = _captures[1], loc2 = _captures[2], state2 = _captures[3];
+    const currentAction2 = _capturesObj._[0], id2 = _capturesObj._[1], loc2 = _capturesObj._[2], state2 = _capturesObj._[3];
     if (isServer) throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
     let data;
@@ -3654,7 +3654,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;wDAqkDM,CAAC,QAAQ,CAAC,CAAC;IACT,MAAM,iBAAiB,SAAS,CAAC,EAAE,EACjC,MAAM,SAAS,CAAC,EAAE,EAClB,OAAO,SAAS,CAAC,EAAE,EACnB,SAAS,SAAS,CAAC,EAAE;IACvB,IAAI,UACF,MAAM,IAAI,MAAM,CAAC;2GACgF,CAAC;IAEpG,IAAI;IACJ,IAAI;IACJ,IAAI,iBAAiB,aAAa;QAChC,OAAO,MAAM,MAAM;QACnB,OAAO,IAAI,SAAS;QACpB,IACE,CAAC,MAAM,SAAS,YAAY,oBAC1B,MAAM,SAAS,YAAY,iBAAiB,KAC9C,MAAM,SAAS,CAAC,IAAI,EAEpB;YAAA,IAAI,MAAM,SAAS,CAAC,IAAI,EACtB,KAAK,MAAM,CAAC,MAAM,SAAS,CAAC,IAAI,EAAE,MAAM,SAAS,CAAC,KAAK;QACzD;IAEJ,OACE,OAAO;IAET,OAAO,IAAI,QAAQ,CAAC;QAClB,IAAI,gBAAgB,UAClB,OAAO,QAAQ,GAAG;QAEpB,OAAO,SAAS,GAAG;QACnB,OAAO,SAAS,GAAG;QACnB,KAAK,YAAY,GAAG;QACpB,eAAe,KAAK,GAAG;YACrB;YACA,IAAI;YACJ,SAAS,YAAY;QACvB;IACF,GAAG,IAAI,CAAC,CAAC;QACP,OAAO,SAAS,GAAG;QACnB,OAAO,MAAM,GAAG,UAAU,MAAM;QAChC,OAAO,KAAK,GAAG,UAAU,MAAM;QAC/B,IAAI,MAAM;YACR,IAAI,KAAK,YAAY,CAAC,sBAAsB,QAC1C,KAAK,KAAK;YAEZ,MAAM,SAAS;gBACb,QAAQ,UAAU,MAAM;gBACxB,OAAO,UAAU,MAAM;YACzB;YACA,KAAK,aAAa,CAChB,IAAI,YAAY,mBAAmB;gBACjC,SAAS;gBACT,YAAY;gBACZ,UAAU;gBACV;YACF;QAEJ;QACA,OAAO;YACL,QAAQ,UAAU,MAAM;YACxB,OAAO,UAAU,MAAM;QACzB;IACF;AACF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;wDAqkDM,CAAC,QAAQ,CAAC,CAAC;IACT,MAAM,iBAAiB,aAAa,CAAC,CAAC,EAAE,EACtC,MAAM,aAAa,CAAC,CAAC,EAAE,EACvB,OAAO,aAAa,CAAC,CAAC,EAAE,EACxB,SAAS,aAAa,CAAC,CAAC,EAAE;IAC5B,IAAI,UACF,MAAM,IAAI,MAAM,CAAC;2GACgF,CAAC;IAEpG,IAAI;IACJ,IAAI;IACJ,IAAI,iBAAiB,aAAa;QAChC,OAAO,MAAM,MAAM;QACnB,OAAO,IAAI,SAAS;QACpB,IACE,CAAC,MAAM,SAAS,YAAY,oBAC1B,MAAM,SAAS,YAAY,iBAAiB,KAC9C,MAAM,SAAS,CAAC,IAAI,EAEpB;YAAA,IAAI,MAAM,SAAS,CAAC,IAAI,EACtB,KAAK,MAAM,CAAC,MAAM,SAAS,CAAC,IAAI,EAAE,MAAM,SAAS,CAAC,KAAK;QACzD;IAEJ,OACE,OAAO;IAET,OAAO,IAAI,QAAQ,CAAC;QAClB,IAAI,gBAAgB,UAClB,OAAO,QAAQ,GAAG;QAEpB,OAAO,SAAS,GAAG;QACnB,OAAO,SAAS,GAAG;QACnB,KAAK,YAAY,GAAG;QACpB,eAAe,KAAK,GAAG;YACrB;YACA,IAAI;YACJ,SAAS,YAAY;QACvB;IACF,GAAG,IAAI,CAAC,CAAC;QACP,OAAO,SAAS,GAAG;QACnB,OAAO,MAAM,GAAG,UAAU,MAAM;QAChC,OAAO,KAAK,GAAG,UAAU,MAAM;QAC/B,IAAI,MAAM;YACR,IAAI,KAAK,YAAY,CAAC,sBAAsB,QAC1C,KAAK,KAAK;YAEZ,MAAM,SAAS;gBACb,QAAQ,UAAU,MAAM;gBACxB,OAAO,UAAU,MAAM;YACzB;YACA,KAAK,aAAa,CAChB,IAAI,YAAY,mBAAmB;gBACjC,SAAS;gBACT,YAAY;gBACZ,UAAU;gBACV;YACF;QAEJ;QACA,OAAO;YACL,QAAQ,UAAU,MAAM;YACxB,OAAO,UAAU,MAAM;QACzB;IACF;AACF\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -3670,8 +3670,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "submit",
   "captures": true,
   "loc": [
-    53055,
-    55117
+    53233,
+    55315
   ],
   "captureNames": [
     "currentAction",
@@ -3685,7 +3685,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 
 import { k as QDATA_KEY } from "./chunks/route-loaders.qwik.mjs";
 import { j as QFN_KEY } from "./chunks/route-loaders.qwik.mjs";
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 import { _deserialize } from "@qwik.dev/core/internal";
 import { _serialize } from "@qwik.dev/core/internal";
 import { i as getRequestEvent } from "./chunks/route-loaders.qwik.mjs";
@@ -3714,7 +3714,7 @@ const deserializeStream = async function*(stream, abortSignal) {
     }
 };
 export const serverQrl_w03grD0Ag68 = async function(...args) {
-    const fetchOptions2 = _captures[0], headers2 = _captures[1], method2 = _captures[2], origin2 = _captures[3], qrl2 = _captures[4];
+    const fetchOptions2 = _capturesObj._[0], headers2 = _capturesObj._[1], method2 = _capturesObj._[2], origin2 = _capturesObj._[3], qrl2 = _capturesObj._[4];
     const abortSignal = args.length > 0 && args[0] instanceof AbortSignal ? args.shift() : void 0;
     if (isServer) return qrl2.apply(getRequestEvent(this), args);
     else {
@@ -3780,7 +3780,7 @@ export const serverQrl_w03grD0Ag68 = async function(...args) {
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\"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\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\"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\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -3796,8 +3796,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "server$",
   "captures": true,
   "loc": [
-    57087,
-    60068
+    57285,
+    60291
   ],
   "paramNames": [
     "...args"
@@ -3813,10 +3813,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_GetForm_component_form_q_e_submit_r3dkP9d2cF8.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const GetForm_component_form_q_e_submit_r3dkP9d2cF8 = async (_evt, form)=>{
-    const nav2 = _captures[0];
+    const nav2 = _capturesObj._[0];
     const formData = new FormData(form);
     const params = new URLSearchParams();
     formData.forEach((value, key)=>{
@@ -3829,7 +3829,7 @@ export const GetForm_component_form_q_e_submit_r3dkP9d2cF8 = async (_evt, form)=
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;6DAk0DY,OAAO,MAAM;IACX,MAAM,OAAO,SAAS,CAAC,EAAE;IACzB,MAAM,WAAW,IAAI,SAAS;IAC9B,MAAM,SAAS,IAAI;IACnB,SAAS,OAAO,CAAC,CAAC,OAAO;QACvB,IAAI,OAAO,UAAU,UACnB,OAAO,MAAM,CAAC,KAAK;IAEvB;IACA,MAAM,KAAK,MAAM,OAAO,QAAQ,IAAI;QAClC,MAAM;QACN,aAAa;IACf;AACF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;6DAk0DY,OAAO,MAAM;IACX,MAAM,OAAO,aAAa,CAAC,CAAC,EAAE;IAC9B,MAAM,WAAW,IAAI,SAAS;IAC9B,MAAM,SAAS,IAAI;IACnB,SAAS,OAAO,CAAC,CAAC,OAAO;QACvB,IAAI,OAAO,UAAU,UACnB,OAAO,MAAM,CAAC,KAAK;IAEvB;IACA,MAAM,KAAK,MAAM,OAAO,QAAQ,IAAI;QAClC,MAAM;QACN,aAAa;IACf;AACF\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -3845,8 +3845,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "_jsxSplit",
   "captures": true,
   "loc": [
-    61327,
-    61822
+    61550,
+    62050
   ],
   "paramNames": [
     "_evt",
@@ -3888,8 +3888,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "_jsxSplit",
   "captures": false,
   "loc": [
-    61953,
-    62381
+    62181,
+    62609
   ],
   "paramNames": [
     "_evt",
@@ -3964,8 +3964,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    60727,
-    62568
+    60950,
+    62796
   ],
   "paramNames": [
     "_rawProps"
@@ -3974,15 +3974,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_Form_form_q_e_submit_6i0Jq5q8JFg.mjs (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Form_form_q_e_submit_6i0Jq5q8JFg = (evt)=>{
-    const action2 = _captures[0];
+    const action2 = _capturesObj._[0];
     if (!action2.submitted) return action2.submit(evt);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;gDA23DkB,CAAC;IACC,MAAM,UAAU,SAAS,CAAC,EAAE;IAC5B,IAAI,CAAC,QAAQ,SAAS,EACpB,OAAO,QAAQ,MAAM,CAAC;AAE1B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;gDA23DkB,CAAC;IACC,MAAM,UAAU,aAAa,CAAC,CAAC,EAAE;IACjC,IAAI,CAAC,QAAQ,SAAS,EACpB,OAAO,QAAQ,MAAM,CAAC;AAE1B\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",
@@ -3998,8 +3998,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "_jsxSplit",
   "captures": true,
   "loc": [
-    63221,
-    63419
+    63449,
+    63652
   ],
   "paramNames": [
     "evt"
@@ -4069,8 +4069,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    65890,
-    67321
+    66123,
+    67554
   ],
   "paramNames": [
     "props"

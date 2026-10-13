@@ -1,6 +1,6 @@
-import { component$, ErrorBoundary } from '@qwik.dev/core';
+import { component$, Catch } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
-import { defaultFallback } from '../../components/error-boundary/error-boundary';
+import { defaultFallback } from '../../components/catch/catch';
 
 export const useLoader500 = routeLoader$(({ error }) => {
   throw error(500, 'loader-500-boom');
@@ -12,7 +12,7 @@ const LoaderConsumer = component$(() => {
 });
 
 export default component$(() => (
-  <ErrorBoundary fallback$={defaultFallback}>
+  <Catch fallback$={defaultFallback}>
     <LoaderConsumer />
-  </ErrorBoundary>
+  </Catch>
 ));

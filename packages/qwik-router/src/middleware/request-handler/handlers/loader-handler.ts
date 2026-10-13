@@ -2,12 +2,18 @@ import { _serialize } from '@qwik.dev/core/internal';
 import {
   FULLPATH_HEADER,
   getRouteLoaderCtx,
+  getRouteLoaderParams,
   getRouteLoaderResponse,
   loadRouteLoader,
   resolveRouteLoaderByHash,
   setRouteLoaders,
 } from '../../../runtime/src/route-loaders';
-import type { LoaderInternal, RequestEvent, RequestHandler } from '../../../runtime/src/types';
+import type {
+  LoadedRoute,
+  LoaderInternal,
+  RequestEvent,
+  RequestHandler,
+} from '../../../runtime/src/types';
 import type { CacheControl } from '../types';
 import { defaultLoaderCacheKey, getCachedLoader, resolveCacheKey, setCachedLoader } from '../etag';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from '../etag-hash';
@@ -23,7 +29,7 @@ import { createLoaderRequestEventFactory } from './loader-request-event';
  */
 export function loaderHandler(
   routeLoaders: LoaderInternal[],
-  loaderPaths?: Record<string, string>
+  route?: RouteLoaderData
 ): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
@@ -44,17 +50,22 @@ export function loaderHandler(
       return;
     }
 
-    setLoaderData(requestEv, routeLoaders, loaderPaths);
+    setRouteLoaderData(requestEv, routeLoaders, route);
     await runBlockingLoadersBeforeTarget(routeLoaders, loader, requestEv);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
     const cacheControl = resolveLoaderCacheControl(loader.__cacheControl, loaderRequestEv);
+    const applyCacheControl = () => {
+      if (cacheControl !== null && !requestEv.headers.has('Cache-Control')) {
+        requestEv.cacheControl(cacheControl);
+      }
+    };
 
     // Pre-loader eTag: when an explicit string/function eTag is configured, set the ETag header and
     // short-circuit with 304 if If-None-Match already matches — saves running the loader.
     const normalizedETag =
       loader.__eTag !== undefined ? resolvePreETag(loader.__eTag, loaderRequestEv) : '';
-    if (normalizedETag && performETagMatch(loaderRequestEv, normalizedETag)) {
+    if (normalizedETag && performETagMatch(loaderRequestEv, normalizedETag, applyCacheControl)) {
       return;
     }
 
@@ -78,7 +89,7 @@ export function loaderHandler(
         // On hit, surface the cached eTag (auto-hashed from the original body) so a conditional
         // request can 304. The explicit-eTag path already 304'd above if applicable.
         if (!normalizedETag) {
-          if (performETagMatch(loaderRequestEv, cached.eTag)) {
+          if (performETagMatch(loaderRequestEv, cached.eTag, applyCacheControl)) {
             return;
           }
         } else {
@@ -111,7 +122,11 @@ export function loaderHandler(
     }
 
     // If we auto-hashed, check if the request matches
-    if (!normalizedETag && finalETag && performETagMatch(loaderRequestEv, finalETag)) {
+    if (
+      !normalizedETag &&
+      finalETag &&
+      performETagMatch(loaderRequestEv, finalETag, applyCacheControl)
+    ) {
       return;
     }
 
@@ -120,16 +135,15 @@ export function loaderHandler(
 }
 
 /**
- * Resolve the loader's cacheControl option. Loaders default to `no-cache` so the browser always
- * revalidates; pair with `eTag` for cheap 304s. A function form may return `null` to skip the
- * header entirely.
+ * Resolve the loader's cacheControl option. Loaders default to private revalidation; pair with
+ * `eTag` for cheap 304s. A function form may return `null` to skip the header entirely.
  */
 function resolveLoaderCacheControl(
   option: LoaderInternal['__cacheControl'],
   requestEv: RequestEvent
 ): CacheControl | null {
   const value = typeof option === 'function' ? option(requestEv) : option;
-  return value === undefined ? 'no-cache' : value;
+  return value === undefined ? 'private' : value;
 }
 
 async function runBlockingLoadersBeforeTarget(
@@ -147,13 +161,18 @@ async function runBlockingLoadersBeforeTarget(
   }
 }
 
-function setLoaderData(
+type RouteLoaderData = Pick<LoadedRoute, '$loaderPaths$' | '$loaderParams$'>;
+
+export function setRouteLoaderData(
   requestEv: RequestEventInternal,
   routeLoaders: LoaderInternal[],
-  loaderPaths: Record<string, string> | undefined
+  route: RouteLoaderData | undefined
 ) {
-  if (loaderPaths) {
-    Object.assign(getRouteLoaderCtx(requestEv).loaderPaths, loaderPaths);
+  if (route?.$loaderPaths$) {
+    Object.assign(getRouteLoaderCtx(requestEv).loaderPaths, route.$loaderPaths$);
+  }
+  if (route?.$loaderParams$) {
+    Object.assign(getRouteLoaderParams(requestEv), route.$loaderParams$);
   }
   setRouteLoaders(requestEv, routeLoaders);
 }
@@ -204,6 +223,9 @@ export async function sendJsonResponse(
 ) {
   const data = await _serialize(responseData);
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
+  if (!requestEv.headers.has('Cache-Control')) {
+    requestEv.cacheControl('private');
+  }
   requestEv.send(status, data);
 }
 

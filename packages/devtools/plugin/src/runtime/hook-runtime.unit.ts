@@ -15,6 +15,13 @@ describe('__qwik_derive_component_name__', () => {
     expect(__qwik_derive_component_name__('a/b/chunk_Button_Widget')).toBe('Widget');
   });
 
+  test('preserves source identifiers and anonymous default exports', () => {
+    expect(__qwik_derive_component_name__('src/routes/index.tsx_default')).toBe('default');
+    expect(__qwik_derive_component_name__('src/routes/index.tsx_Button_Widget')).toBe(
+      'Button_Widget'
+    );
+  });
+
   test('falls back to the last path segment when there is no underscore', () => {
     expect(__qwik_derive_component_name__('src/routes/Plain')).toBe('Plain');
     expect(__qwik_derive_component_name__('Bare')).toBe('Bare');

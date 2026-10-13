@@ -1,6 +1,6 @@
 {
   "id": "qwik-router-vite-ssg",
-  "package": "@qwik.dev/qwik-router/vite/ssg",
+  "package": "@qwik.dev/router/vite/ssg",
   "members": [
     {
       "name": "ssgAdapter",

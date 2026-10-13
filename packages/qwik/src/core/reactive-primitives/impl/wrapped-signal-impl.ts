@@ -12,6 +12,7 @@ import { markVNodeDirty } from '../../shared/vnode/vnode-dirty';
 import { _EFFECT_BACK_REF } from '../backref';
 import { HOST_SIGNAL } from '../../shared/cursor/cursor-props';
 import { isDev } from '@qwik.dev/core/build';
+import { Brand, brandClass } from '../../shared/utils/brand';
 
 export class WrappedSignalImpl<T> extends SignalImpl<T> {
   $args$: any[];
@@ -51,6 +52,8 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
         this.$container$.setHostProp(this.$hostElement$ as HostElement, HOST_SIGNAL, this);
         markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
       }
+      // RUN_EFFECTS may be stale from an earlier compute
+      return;
     }
     // if the computation not failed, we can run the effects directly
     if (this.$flags$ & ComputedSignalFlags.RUN_EFFECTS) {
@@ -106,3 +109,4 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
     return super.value;
   }
 }
+brandClass(WrappedSignalImpl, Brand.WrappedSignal);

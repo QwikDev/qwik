@@ -1,13 +1,24 @@
-import { component$, useContextProvider, useStore, useStyles$ } from '@qwik.dev/core';
+import {
+  component$,
+  useContextProvider,
+  useServerData,
+  useStore,
+  useStyles$,
+} from '@qwik.dev/core';
 import { Insights } from '@qwik.dev/core/insights';
 import { RouterOutlet, useQwikRouter } from '@qwik.dev/router';
 import { RouterHead } from './components/router-head/router-head';
+import { InjectThemeScript } from './components/theme-toggle';
 import { GlobalStore, type SiteStore } from './context';
-import karmaticArcadeFontUrl from './media/fonts/karmatic-arcade/karmatic-arcade.woff2?url';
+import { inlinedFontFaces, linkedFontFaces } from './font-faces';
 
 import styles from './global.css?inline';
 
 export default component$(() => {
+  const url = useServerData<string>('url');
+  const pathname = url && new URL(url).pathname;
+  const isDemoPath = pathname?.startsWith('/demo/');
+
   useQwikRouter();
 
   useStyles$(styles);
@@ -25,6 +36,7 @@ export default component$(() => {
     <>
       <head>
         <meta charset="utf-8" />
+        <InjectThemeScript />
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="apple-mobile-web-app-title" content="Qwik" />
@@ -36,14 +48,7 @@ export default component$(() => {
 
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
         <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
-        <link
-          rel="preload"
-          href={karmaticArcadeFontUrl}
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-          fetchPriority="high"
-        />
+        <style dangerouslySetInnerHTML={isDemoPath ? linkedFontFaces : inlinedFontFaces} />
 
         <RouterHead />
 

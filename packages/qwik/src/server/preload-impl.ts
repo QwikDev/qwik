@@ -20,15 +20,19 @@ const simplifyPath = (base: string, path: string | null | undefined) => {
   return simplified.join('/');
 };
 
-const getBase = (container: SSRContainer) => {
-  let base = container.$buildBase$!;
-  if (import.meta.env?.DEV && !qTest) {
-    // Vite dev server active
-    // in dev, all bundles are absolute paths from the base url, not /build
-    base = import.meta.env?.BASE_URL;
-  }
-  return base;
-};
+// Built bundles live under the build base even when DEV is set, e.g. a NODE_ENV=development build.
+// The Vite dev server has no built manifest, so it never preloads bundles from here.
+const getBase = (container: SSRContainer) => container.$buildBase$!;
+
+const afterPagePaint = (task: string) =>
+  `window.addEventListener('load',f=>{` +
+  `f=_=>${task};` +
+  `requestAnimationFrame(_=>requestAnimationFrame(_=>{` +
+  `typeof requestIdleCallback==='function'?` +
+  `requestIdleCallback(f,{timeout:1000}):` +
+  `requestAnimationFrame(_=>setTimeout(f))` +
+  `}))` +
+  `})`;
 
 export const preloaderPre = (
   container: SSRContainer,
@@ -60,10 +64,7 @@ export const preloaderPre = (
     }
     const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
 
-    /**
-     * We add modulepreloads even when the script is at the top because they already fire during
-     * html download
-     */
+    // Fetch early so the deferred start does not pay a request chain
     const preloaderLinkAttrs: Record<string, string> = {
       rel: 'modulepreload',
       href: preloaderBundle,
@@ -83,11 +84,12 @@ export const preloaderPre = (
     );
     container.closeElement();
 
-    const script =
-      `let b=fetch("${bundleGraphPath}");` +
-      `import("${preloaderBundle}").then(({l})=>` +
-      `l(${JSON.stringify(base)},b${optsStr})` +
-      `);`;
+    const script = afterPagePaint(
+      `{let b=fetch("${bundleGraphPath}");` +
+        `import("${preloaderBundle}").then(({l})=>` +
+        `l(${JSON.stringify(base)},b${optsStr})` +
+        `)}`
+    );
     const scriptAttrs: Record<string, string | boolean> = {
       type: 'module',
       async: true,
@@ -162,15 +164,9 @@ export const includePreloader = (
   // We are super careful not to interfere with the page loading.
   let script = insertLinks;
   if (preloaderBundle) {
-    // First we wait for the onload event
-    script +=
-      `window.addEventListener('load',f=>{` +
-      `f=_=>import("${preloaderBundle}").then(({p})=>p(${JSON.stringify(referencedBundles)}));` +
-      // then we ask for idle callback
-      `try{requestIdleCallback(f,{timeout:2000})}` +
-      // some browsers don't support requestIdleCallback
-      `catch(e){setTimeout(f,200)}` +
-      `})`;
+    script += afterPagePaint(
+      `import("${preloaderBundle}").then(({p})=>p(${JSON.stringify(referencedBundles)}))`
+    );
   }
   if (script) {
     /**
@@ -222,6 +218,6 @@ export const getBundles = (qrls: QRLInternal[]) => {
 };
 
 const preLoaderOptionsDefault: Required<PreloaderOptions> = {
-  ssrPreloads: 7,
+  ssrPreloads: 0,
   maxIdlePreloads: 25,
 };

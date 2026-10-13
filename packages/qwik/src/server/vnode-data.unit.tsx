@@ -4,7 +4,14 @@ import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { useSignal } from '../core/use/use-signal';
 import { ssrRenderToDom } from '../testing/rendering.unit-util';
 import { trigger } from '../testing/element-fixture';
-import { encodeAsAlphanumeric } from './vnode-data';
+import {
+  encodeAsAlphanumeric,
+  vNodeData_closeFragment,
+  vNodeData_createSsrNodeReference,
+  vNodeData_openFragment,
+  OPEN_FRAGMENT,
+  type VNodeData,
+} from './vnode-data';
 import {
   vnode_getProp,
   vnode_getVNodeForChildNode,
@@ -15,10 +22,47 @@ import { ELEMENT_PROPS, OnRenderProp, QComponentHash } from '../core/shared/util
 import { type QRLInternal } from '../core/shared/qrl/qrl-class';
 import type { DomContainer } from '../core/client/dom-container';
 import { createContextId, useContext, useContextProvider } from '@qwik.dev/core';
+import { VNodeDataFlag } from './types';
 
 const debug = false;
 
 describe('vnode data', () => {
+  it('scans sibling references without rereading the entire prefix', () => {
+    let reads = 0;
+    const vNodeData = new Proxy([VNodeDataFlag.NONE] as VNodeData, {
+      get(target, key, receiver) {
+        if (typeof key === 'string' && /^[1-9]\d*$/.test(key)) {
+          reads++;
+        }
+        return Reflect.get(target, key, receiver);
+      },
+    });
+
+    for (let i = 0; i < 100; i++) {
+      vNodeData_openFragment(vNodeData, {});
+      vNodeData_createSsrNodeReference(null, vNodeData, 1, [], null);
+      vNodeData_closeFragment(vNodeData);
+    }
+
+    expect(reads).toBeLessThan(1000);
+  });
+
+  it('recomputes references after inserting before the scanned prefix', () => {
+    const vNodeData: VNodeData = [VNodeDataFlag.NONE];
+    for (let i = 0; i < 20; i++) {
+      vNodeData_openFragment(vNodeData, {});
+      vNodeData_createSsrNodeReference(null, vNodeData, 1, [], null);
+      vNodeData_closeFragment(vNodeData);
+    }
+
+    vNodeData.splice(1, 0, {}, OPEN_FRAGMENT);
+    vNodeData_openFragment(vNodeData, {});
+    const cached = vNodeData_createSsrNodeReference(null, vNodeData, 1, [], null);
+    const fresh = vNodeData_createSsrNodeReference(null, [...vNodeData] as VNodeData, 1, [], null);
+
+    expect(cached.id).toBe(fresh.id);
+  });
+
   describe('encodeAsAlphanumeric', () => {
     it('should return A for 0', () => {
       expect(encodeAsAlphanumeric(0)).toEqual('A');

@@ -45,7 +45,7 @@ export function getQwikBackpatchExecutorScript(opts: { debug?: boolean } = {}) {
 }
 
 export function getQwikOutOfOrderExecutorScript(opts: { debug?: boolean } = {}) {
-  if (!__EXPERIMENTAL__.suspense) {
+  if (!__EXPERIMENTAL__.pendingBoundary) {
     return '';
   }
   const script = opts.debug

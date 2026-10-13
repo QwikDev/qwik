@@ -6,6 +6,7 @@ import { qwikRouter } from '@qwik.dev/router/vite';
 import { qds } from '@qds.dev/tools/vite';
 import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
 import shikiRehype from '@shikijs/rehype';
+import githubDark from '@shikijs/themes/github-dark';
 import githubLight from '@shikijs/themes/github-light';
 import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
 import type { ShikiTransformer } from '@shikijs/types';
@@ -169,10 +170,6 @@ export default defineConfig(({ mode }) => {
             'algoliasearch',
             '@algolia/autocomplete-core/dist/esm/reshape',
             'algoliasearch/dist/algoliasearch-lite.esm.browser',
-            'qwik-image',
-            '@modular-forms/qwik',
-            '@qds.dev/ui',
-            '@qds.dev/tools',
           ],
           conditions: ssrConditions,
         },
@@ -188,6 +185,9 @@ export default defineConfig(({ mode }) => {
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     },
     resolve: {
+      // Every server environment, including the adapter's `ssg`, bundles these Qwik libraries;
+      // @modular-forms/qwik is built with Qwik 1.
+      noExternal: ['qwik-image', '@modular-forms/qwik', '@qds.dev/ui', '@qds.dev/tools'],
       alias: [
         {
           find: '~',
@@ -234,7 +234,8 @@ export default defineConfig(({ mode }) => {
             [
               shikiRehype,
               {
-                theme: githubLight,
+                themes: { light: githubLight, dark: githubDark },
+                defaultColor: false,
                 transformers: [
                   transformerMetaHighlight(),
                   transformerMetaWordHighlight(),
@@ -250,7 +251,7 @@ export default defineConfig(({ mode }) => {
       qwikVite({
         debug: false,
         tsOptimizer: true,
-        experimental: ['each', 'show', 'suspense', 'errorBoundary', 'insights'],
+        experimental: ['each', 'show', 'pendingBoundary', 'catchBoundary', 'insights'],
         devTools: { hmr: false },
       }),
       partytownVite({

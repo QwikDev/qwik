@@ -54,7 +54,12 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
           (expectCh === NOT_IDENT && !isIdent(ch) && ch !== DOT) ||
           (expectCh === WHITESPACE && isWhiteSpace(ch))
         ) {
+          const lookAheadStart = idx;
           if (arc.length == 3 || lookAhead(arc)) {
+            if (mode === body && newMode === pseudoGlobal && !isNestedSelector()) {
+              idx = lookAheadStart;
+              continue;
+            }
             if (arc.length > 3) {
               // If matched on lookAhead than we we have to update current `ch`
               ch = css.charCodeAt(idx - 1);
@@ -160,6 +165,47 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
       // we found a match;
       idx += txt.length + prefix;
       return true;
+    }
+    return false;
+  }
+
+  function isNestedSelector(): boolean {
+    let scanIdx = idx;
+    let parentheses = 0;
+    let brackets = 0;
+    let quote = 0;
+    while (scanIdx < end) {
+      const ch = css.charCodeAt(scanIdx++);
+      if (quote) {
+        if (ch === BACKSLASH) {
+          scanIdx++;
+        } else if (ch === quote) {
+          quote = 0;
+        }
+      } else if (ch === SINGLE_QUOTE || ch === DOUBLE_QUOTE) {
+        quote = ch;
+      } else if (ch === FORWARD_SLASH && css.charCodeAt(scanIdx) === STAR) {
+        scanIdx = css.indexOf('*/', scanIdx + 1);
+        if (scanIdx === -1) {
+          return false;
+        }
+        scanIdx += 2;
+      } else if (ch === OPEN_PARENTHESIS) {
+        parentheses++;
+      } else if (ch === CLOSE_PARENTHESIS) {
+        parentheses--;
+      } else if (ch === OPEN_BRACKET) {
+        brackets++;
+      } else if (ch === CLOSE_BRACKET) {
+        brackets--;
+      } else if (parentheses === 0 && brackets === 0) {
+        if (ch === OPEN_BRACE) {
+          return true;
+        }
+        if (ch === SEMICOLON || ch === CLOSE_BRACE) {
+          return false;
+        }
+      }
     }
     return false;
   }
@@ -402,6 +448,7 @@ const STATE_MACHINE: StateArc[][] = /*@__PURE__*/ (() => [
     /// body
     [ANY, CLOSE_BRACE, EXIT],
     [ANY, OPEN_BRACE, body],
+    [ANY, COLON, pseudoGlobal, 'global'],
     [ANY, OPEN_PARENTHESIS, inertParenthesis],
     ...STRINGS_COMMENTS,
   ],

@@ -144,7 +144,9 @@ export type RouteNavigate = QRL<
   ) => Promise<void>
 >;
 
-export type RouteAction = Signal<RouteActionValue>;
+export type RouteAction = Signal<RouteActionValue> & {
+  pendingDispatch?: NoSerialize<Promise<void>>;
+};
 
 export type RouteActionResolver = { status: number; result: unknown };
 export type RouteActionValue =
@@ -153,6 +155,7 @@ export type RouteActionValue =
       data: FormData | Record<string, unknown> | undefined;
       output?: RouteActionResolver;
       resolve?: NoSerialize<(data: RouteActionResolver) => void>;
+      resolveDispatch?: NoSerialize<() => void>;
     }
   | undefined;
 
@@ -284,16 +287,18 @@ export type MenuModuleLoader = () => Promise<MenuModule>;
 /**
  * A nested route trie structure. The root represents `/` and each level represents a URL segment.
  *
- * Keys starting with `_` are metadata; all other keys are child route segments.
+ * Keys starting with a single `_` are metadata; all other keys are child route segments. A static
+ * segment that starts with `_` is stored with an extra `_` (`_drafts` → `__drafts`).
  *
  * - Use `_W` as the key for a single dynamic segment (param); `_P` on that node names the param.
  * - Use `_A` as the key for a rest/catch-all segment; `_P` on that node names the param.
  * - For infix params like `pre[slug]post`, use `_W` with `_0` (prefix) and `_9` (suffix).
  * - Use `_M` for an array of group (pathless layout) nodes, sorted by group name.
  *
- * When matching, exact segments are tried first (case-insensitive), then `_W` (with optional
- * prefix/suffix), then `_A`. When no route matches, the closest `_E` (error.tsx) or `_4` (404.tsx)
- * loader in the ancestor chain is used to render the error page.
+ * Exact segments match case-insensitively. When several routes match, the most specific wins,
+ * compared segment by segment: an exact segment beats `_W` (with optional prefix/suffix), which
+ * beats `_A`. When no route matches, the closest `_E` (error.tsx) or `_4` (404.tsx) loader in the
+ * ancestor chain is used to render the error page.
  *
  * @public
  */
@@ -330,7 +335,7 @@ export interface RouteData {
   _R?: string[];
   /** Page loader hashes; override pages include their selected layouts and plugins. */
   _D?: string[];
-  /** Child route segments (any key not starting with `_`) */
+  /** Child route segments (any key not starting with a single `_`) */
   [part: string]:
     | RouteData
     | RouteData[]
@@ -363,6 +368,8 @@ export interface QwikRouterConfig {
    * evaluates without touching the runtime (see the import-cycle notes in `route-loaders.ts`).
    */
   readonly importEagerModules?: () => Promise<unknown>;
+  /** URL of the app's service worker, when the routes define one. */
+  readonly serviceWorkerUrl?: string;
 }
 
 /** @public */
@@ -454,6 +461,8 @@ export interface LoadedRoute {
   $loaders$?: string[];
   /** Runtime-only mapping of routeLoader$ hashes to the matched pathname used for q-loader fetches */
   $loaderPaths$?: Record<string, string>;
+  /** Runtime-only mapping of routeLoader$ hashes to params matched at their loader path */
+  $loaderParams$?: Record<string, PathParams>;
 }
 
 export interface EndpointResponse {
@@ -809,7 +818,9 @@ export type LoaderOptions = {
    * object) or a function of the request event; the function may return `null` to skip the header.
    * A `Cache-Control` header set inside the loader function wins over this option.
    *
-   * Defaults to `no-cache` (always revalidate; combine with `eTag` for cheap 304s).
+   * Defaults to `private, no-cache` (browser revalidation without shared caching; combine with
+   * `eTag` for cheap 304s). Explicit `'no-cache'` and numeric values allow shared caching; numeric
+   * values include `s-maxage`.
    *
    * The literal value `'immutable'` also marks the loader's data as static, so SSG writes a
    * per-loader JSON file at build time.
@@ -840,7 +851,8 @@ export type LoaderOptions = {
    * - `true` — use the default key `${pathname}|${filteredSearch}|${loaderId}` (suffixed with
    *   `|${eTag}` when an eTag is set).
    * - Function `(requestEv, eTag) => string | null` — return a custom key, or `null` to skip caching
-   *   this request.
+   *   this request. For user-specific data, include user identity and relevant permissions in the
+   *   key or disable this cache.
    *
    * On cache miss the loader runs, the serialized response is stored alongside its eTag (computed
    * from the data when no `eTag` option is set), and the response is sent. On cache hit the stored

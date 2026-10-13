@@ -7,6 +7,7 @@ import { Cloud, Decor } from '~/components/home/hero';
 import { Spacer } from '~/components/spacer/spacer';
 import { Link } from '~/components/action/action';
 import { lucide } from '@qds.dev/ui';
+import GridStarBackground from '~/media/decor/grid-star-bg.svg?jsx';
 
 const Rocket = component$<PropsOf<'svg'>>((props) => {
   return (
@@ -78,6 +79,7 @@ export const Clouds = component$(() => {
 export default component$(() => {
   return (
     <div class="bg-grid-stars">
+      <GridStarBackground class="grid-star-background" />
       <Header />
       <main class="relative space-y-10 flex flex-col items-center overflow-x-clip mx-auto px-4 overflow-hidden">
         {/* Design spacer. TODO: adjust as needed for responsiveness */}
@@ -89,7 +91,7 @@ export default component$(() => {
         <div class="container max-w-[975px] relative">
           <Clouds />
           <div class=" text-foreground-base flex flex-col items-center justify-center">
-            <h1 class="text-h1 font-display">404</h1>
+            <h1 class="text-h1 font-heading">404</h1>
             <p class="text-h5 font-heading mt-4">Page not found</p>
             <p class="text-body-sm mt-10">Your rocket landed on the wrong planet.</p>
             <Link variant="primary" class="mt-10" href="/">

@@ -1,4 +1,5 @@
 import type { EffectSubscription } from '../../reactive-primitives/types';
+import { Brand, brandClass } from '../utils/brand';
 
 /** @internal */
 export class SubscriptionPatch {
@@ -9,3 +10,4 @@ export class SubscriptionPatch {
       | Map<string | symbol, Set<EffectSubscription>> = new Set()
   ) {}
 }
+brandClass(SubscriptionPatch, Brand.SubscriptionPatch);

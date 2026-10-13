@@ -1,3 +1,4 @@
+import { execa } from 'execa';
 import { rmSync } from 'fs';
 import { copyFile, watch } from 'fs/promises';
 import { join } from 'path';
@@ -130,6 +131,10 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikrouter) {
       await buildQwikRouter(config);
+    }
+
+    if (config.mcp) {
+      await execa('pnpm', ['build'], { cwd: join(config.packagesDir, 'mcp'), stdout: 'inherit' });
     }
 
     if (config.devtools) {

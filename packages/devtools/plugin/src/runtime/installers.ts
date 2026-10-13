@@ -1,4 +1,8 @@
-import type { QwikDevtoolsHookExtended } from '@qwik.dev/devtools/kit';
+import type {
+  DevtoolsVNodeTreeNode,
+  QwikDevtoolsComponentSnapshot,
+  QwikDevtoolsHookExtended,
+} from '@qwik.dev/devtools/kit';
 
 export interface HookRuntimeOptions {
   componentStateKey: string;
@@ -20,6 +24,10 @@ type RuntimeRecord = Record<string, any>;
  */
 export function __qwik_derive_component_name__(path: string): string {
   const lastSeg = path.split('/').pop() || path;
+  const sourceSuffix = lastSeg.match(/\.[jt]sx?_(.+)$/);
+  if (sourceSuffix) {
+    return sourceSuffix[1];
+  }
   const underIdx = lastSeg.lastIndexOf('_');
   return underIdx > 0 ? lastSeg.substring(underIdx + 1) : lastSeg;
 }
@@ -227,8 +235,8 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
         const hooks = comp.hooks || [];
         const name = __qwik_derive_component_name__(path);
 
-        const signals: RuntimeRecord[] = [];
-        const hookEntries: RuntimeRecord[] = [];
+        const signals: QwikDevtoolsComponentSnapshot['signals'] = [];
+        const hookEntries: QwikDevtoolsComponentSnapshot['hooks'] = [];
         for (const h of hooks) {
           hookEntries.push({
             variableName: h.variableName || '',
@@ -244,7 +252,13 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
           }
         }
 
-        return { path, name, signals, hooks: hookEntries };
+        return {
+          path,
+          name,
+          signals,
+          hooks: hookEntries,
+          ...(comp.symbol ? { symbol: comp.symbol } : {}),
+        };
       });
     },
 
@@ -258,12 +272,12 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
       };
     },
 
-    getComponentDetail(componentName: string, qrlChunk: string | null) {
+    getComponentDetail(componentName: string, qrlChunk?: string | null) {
       const state = getState();
       if (!state) {
         return null;
       }
-      const matchingKey = __qwik_find_component_key__(state, componentName, qrlChunk);
+      const matchingKey = __qwik_find_component_key__(state, componentName, qrlChunk ?? null);
       if (!matchingKey) {
         return null;
       }
@@ -273,8 +287,8 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
       }
 
       return comp.hooks
-        .filter((h) => h.data != null)
-        .map((h) => ({
+        .filter((h: RuntimeRecord) => h.data != null)
+        .map((h: RuntimeRecord) => ({
           hookType: h.hookType || 'unknown',
           variableName: h.variableName || h.hookType || 'unknown',
           data: serializeDeep(h.data, 0),
@@ -283,7 +297,7 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
 
     setSignalValue(
       componentName: string,
-      qrlChunk: string | null,
+      qrlChunk: string | null | undefined,
       variableName: string,
       newValue: any
     ) {
@@ -291,7 +305,7 @@ export function __qwik_install_hook_runtime__(options: HookRuntimeOptions) {
       if (!state) {
         return false;
       }
-      const matchingKey = __qwik_find_component_key__(state, componentName, qrlChunk);
+      const matchingKey = __qwik_find_component_key__(state, componentName, qrlChunk ?? null);
       if (!matchingKey) {
         return false;
       }
@@ -453,7 +467,7 @@ export function __qwik_install_perf_runtime__(options: PerfRuntimeOptions) {
   };
 
   const commitComponentQrl = (entry: RuntimeRecord) => {
-    const next = { ...entry, phase: options.ssrPhase };
+    const next: RuntimeRecord = { ...entry, phase: options.ssrPhase };
     if (isServer()) {
       commitSsr(getSsrStore(), next);
       return;
@@ -593,16 +607,17 @@ export function __qwik_install_vnode_runtime__(
   }
 
   function normalizeName(str: string) {
-    const parts = str.split('_');
-    const name = parts[0] || '';
-    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    return str.split('_component')[0];
   }
 
-  function buildTree(container: RuntimeRecord, vnode: RuntimeRecord | null): RuntimeRecord[] {
+  function buildTree(
+    container: RuntimeRecord,
+    vnode: RuntimeRecord | null
+  ): DevtoolsVNodeTreeNode[] {
     if (!vnode) {
       return [];
     }
-    const result: RuntimeRecord[] = [];
+    const result: DevtoolsVNodeTreeNode[] = [];
     let current = vnode;
 
     while (current) {
@@ -611,10 +626,14 @@ export function __qwik_install_vnode_runtime__(
       const isComponent = isVirtual && typeof renderFn === 'function';
 
       if (isComponent) {
+        let component: { name: string; path: string; file?: string } | undefined;
         let name = 'Component';
         let qId = '';
         let colonId = '';
         try {
+          const symbol = renderFn.getSymbol?.() || renderFn[SYMBOL_KEY] || '';
+          component = componentNames.get(symbol);
+          name = component?.name || normalizeName(symbol) || 'Component';
           const keys = internals._vnode_getAttrKeys(container, current);
           for (let i = 0; i < keys.length; i++) {
             if (keys[i] === QTYPE) {
@@ -627,11 +646,6 @@ export function __qwik_install_vnode_runtime__(
               colonId = String(container.getHostProp(current, QCOLON) || '');
             }
           }
-          if (renderFn.getSymbol) {
-            name = normalizeName(renderFn.getSymbol());
-          } else if (renderFn[SYMBOL_KEY]) {
-            name = normalizeName(renderFn[SYMBOL_KEY]);
-          }
         } catch (_) {
           // Keep the generic component name when vnode metadata is unreadable.
         }
@@ -642,13 +656,14 @@ export function __qwik_install_vnode_runtime__(
           const chunk = renderFn[CHUNK_KEY] || '';
           const splitPoint = '_component';
           const chunkIdx = chunk.indexOf(splitPoint);
-          qrlChunk = chunkIdx > 0 ? chunk.substring(0, chunkIdx) : chunk;
-          qrlPath = renderFn.dev && renderFn.dev.file ? renderFn.dev.file : qrlChunk;
+          qrlChunk = component?.path || (chunkIdx > 0 ? chunk.substring(0, chunkIdx) : chunk);
+          qrlPath =
+            component?.file || (renderFn.dev && renderFn.dev.file ? renderFn.dev.file : qrlChunk);
         } catch (_) {
           // Leave QRL metadata empty when it cannot be read from the render function.
         }
 
-        let children: RuntimeRecord[] = [];
+        let children: DevtoolsVNodeTreeNode[] = [];
         const firstChild = internals._vnode_getFirstChild(current);
         if (firstChild) {
           children = buildTree(container, firstChild);
@@ -672,6 +687,7 @@ export function __qwik_install_vnode_runtime__(
           name,
           id: nodeId,
           label: name,
+          ...(component?.file ? { source: { file: component.file } } : {}),
           props: nodeProps,
           children: children.length > 0 ? children : undefined,
         });
@@ -691,11 +707,14 @@ export function __qwik_install_vnode_runtime__(
     return result;
   }
 
-  function filterDevtools(nodes: RuntimeRecord[]): RuntimeRecord[] {
-    const result: RuntimeRecord[] = [];
+  function filterDevtools(nodes: DevtoolsVNodeTreeNode[]): DevtoolsVNodeTreeNode[] {
+    const result: DevtoolsVNodeTreeNode[] = [];
     for (let i = 0; i < nodes.length; i++) {
       let n = nodes[i];
-      if (n.name === 'Qwikdevtools' || n.name === 'Devtoolscontainer') {
+      if (
+        n.name?.toLowerCase() === 'qwikdevtools' ||
+        n.name?.toLowerCase() === 'devtoolscontainer'
+      ) {
         continue;
       }
       if (n.children) {
@@ -704,9 +723,10 @@ export function __qwik_install_vnode_runtime__(
           id: n.id,
           label: n.label,
           props: n.props,
+          ...(n.source ? { source: n.source } : {}),
           children: filterDevtools(n.children),
         };
-        if (n.children.length === 0) {
+        if (n.children?.length === 0) {
           delete n.children;
         }
       }
@@ -715,15 +735,35 @@ export function __qwik_install_vnode_runtime__(
     return result;
   }
 
+  const componentNames = new Map<string, { name: string; path: string; file?: string }>();
+
   function getTree() {
     try {
       idx = 0;
       vnodeMap = {};
-      const container = internals._getDomContainer(document.documentElement);
-      if (!container || !container.rootVNode) {
+      componentNames.clear();
+      const hook = (window as any)[options.devtoolsGlobalKey]?.[options.hookKey];
+      for (const component of hook?.getComponentTreeSnapshot?.() ?? []) {
+        if (component.symbol) {
+          componentNames.set(component.symbol, {
+            name: component.name,
+            path: component.path,
+            file: component.path.match(/^(.*\.[jt]sx?)_/)?.[1],
+          });
+        }
+      }
+      const elements = document.querySelectorAll('[q\\:container]');
+      if (!elements.length) {
         return null;
       }
-      const tree = buildTree(container, container.rootVNode);
+      const tree: DevtoolsVNodeTreeNode[] = [];
+      for (const element of elements) {
+        const container = internals._getDomContainer(element);
+        if (!container?.rootVNode) {
+          return null;
+        }
+        tree.push(...buildTree(container, container.rootVNode));
+      }
       return filterDevtools(tree);
     } catch (_) {
       return null;
@@ -737,7 +777,7 @@ export function __qwik_install_vnode_runtime__(
     const hook = (window as any)[options.devtoolsGlobalKey]?.[options.hookKey] as
       | QwikDevtoolsHookExtended
       | undefined;
-    if (!hook) {
+    if (!hook || hook.getVNodeTree) {
       return;
     }
 
@@ -907,12 +947,13 @@ export function __qwik_install_vnode_runtime__(
       );
     }
 
-    const observer = new MutationObserver(function () {
+    hook.refreshVNodeTree = function () {
       if (debounceTimer) {
         clearTimeout(debounceTimer);
       }
       debounceTimer = setTimeout(pushTree, DEBOUNCE_MS);
-    });
+    };
+    const observer = new MutationObserver(hook.refreshVNodeTree);
 
     observer.observe(document.documentElement, {
       childList: true,

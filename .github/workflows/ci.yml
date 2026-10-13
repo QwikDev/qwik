@@ -10,11 +10,9 @@
 
 name: Qwik CI
 
-# TODO fix e2e tests hanging and not cancelling
-# # We only need one instance of the workflow running at a time, per branch
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
-#   cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 on:
   pull_request:
@@ -42,6 +40,8 @@ env:
   CARGO_INCREMENTAL: 0
   CI_NODE_VERSION: 24.15.0
   CI_NODE_VERSION_E2E: 22.22.2
+  # Absolute docs URLs (canonical, social images) must match the host deploy-docs.yml publishes to.
+  QWIK_DOCS_ORIGIN: ${{ github.event_name == 'pull_request' && format('https://pr-{0}.qwik-8nx.pages.dev', github.event.pull_request.number) || 'https://next.qwik.dev' }}
 
 permissions:
   contents: read
@@ -155,7 +155,8 @@ jobs:
         with:
           lookup-only: true
           path: packages/optimizer/
-          key: ${{ hashfiles('Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs') }}
+          # The cache also holds dist/*.d.ts built from the TS bridge, so its sources must invalidate it.
+          key: ${{ hashfiles('Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', 'packages/optimizer/src/**', 'packages/optimizer/package.json', 'packages/optimizer/tsconfig.json', 'packages/optimizer/vite.config.ts', 'scripts/submodule-optimizer.ts') }}
       - run: 'echo ${{ steps.cache-rust.outputs.cache-primary-key }} > rust-key.txt'
       - name: 'check cache: others'
         id: cache-others
@@ -169,8 +170,9 @@ jobs:
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
             packages/devtools/dist
+            packages/mcp/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/qwik-utils/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'packages/devtools/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
+          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/qwik-utils/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'packages/devtools/**/*', 'packages/mcp/**/*', 'packages/docs/scripts/generate-llms.ts', 'packages/docs/src/routes/**/*', 'packages/docs/src/components/glossary/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs
@@ -308,7 +310,7 @@ jobs:
   ############ BUILD PACKAGE ############
   combined-optimizer:
     name: Prepare Optimizer binaries
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     needs:
       - build-bindings
@@ -383,7 +385,7 @@ jobs:
     needs:
       - changes
       - combined-optimizer
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - name: Verify prerequisites
@@ -423,7 +425,7 @@ jobs:
 
       - name: 'build: qwik and packages'
         if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.build-others == 'true'
-        run: pnpm build --qwik --optimizer --insights --tsc --api --qwikrouter --cli --qwikreact --qwikutils --eslint --devtools --set-dist-tag="${{ needs.changes.outputs.disttag }}"
+        run: pnpm build --qwik --optimizer --insights --tsc --api --qwikrouter --cli --qwikreact --qwikutils --eslint --devtools --mcp --set-dist-tag="${{ needs.changes.outputs.disttag }}"
 
       - name: 'build: qwik'
         if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.build-others != 'true'
@@ -459,7 +461,7 @@ jobs:
 
       - name: 'build: qwik-router & others'
         if: needs.changes.outputs.build-others == 'true' && needs.changes.outputs.build-qwik != 'true'
-        run: pnpm build --tsc --api --qwikrouter --cli --qwikreact --qwikutils --eslint --devtools --set-dist-tag="${{ needs.changes.outputs.disttag }}"
+        run: pnpm build --tsc --api --qwikrouter --cli --qwikreact --qwikutils --eslint --devtools --mcp --set-dist-tag="${{ needs.changes.outputs.disttag }}"
       - name: Save others cache
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/cache/save@v5
@@ -472,6 +474,7 @@ jobs:
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
             packages/devtools/dist
+            packages/mcp/dist
 
       - name: 'restore: qwik-router & others'
         if: needs.changes.outputs.build-others != 'true'
@@ -484,6 +487,7 @@ jobs:
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
             packages/devtools/dist
+            packages/mcp/dist
           key: ${{ needs.changes.outputs.hash-others }}
 
       - name: Print QwikRouter Lib Build
@@ -554,9 +558,16 @@ jobs:
           path: packages/devtools/dist/
           if-no-files-found: error
 
+      - name: Upload MCP Build Artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: artifact-mcp
+          path: packages/mcp/dist/
+          if-no-files-found: error
+
   ############ BUILD INSIGHTS ############
   build-insights:
-    if: always() && needs.changes.outputs.build-insights == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-insights == 'true' }}
     name: Build Insights
     needs:
       - changes
@@ -614,7 +625,7 @@ jobs:
 
   ############ BUILD DOCS ############
   build-docs:
-    if: always() && needs.changes.outputs.build-docs == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-docs == 'true' }}
     name: Build Docs
     needs:
       - changes
@@ -681,7 +692,7 @@ jobs:
   prepare-playwright:
     name: Prepare Playwright (${{ matrix.settings.host }}, ${{ matrix.settings.browser }})
     if: |
-      always() && (
+      !cancelled() && (
         needs.changes.outputs.build-e2e == 'true' ||
         needs.changes.outputs.build-cli-e2e == 'true' ||
         needs.changes.outputs.build-docs-e2e == 'true'
@@ -749,7 +760,7 @@ jobs:
   test-e2e-docs:
     timeout-minutes: 15
     name: Docs E2E Tests (shard ${{ matrix.shard.shard }}/${{ matrix.shard.shardTotal }})
-    if: always() && needs.build-docs.result == 'success' && needs.changes.outputs.build-docs-e2e == 'true'
+    if: ${{ !cancelled() && needs.build-docs.result == 'success' && needs.changes.outputs.build-docs-e2e == 'true' }}
     needs:
       - changes
       - build-docs
@@ -824,6 +835,7 @@ jobs:
 
       - name: Install Playwright System Dependencies
         if: runner.os == 'Linux'
+        timeout-minutes: 10
         run: pnpm exec playwright install-deps chromium
 
       - name: Install Playwright Browser
@@ -847,7 +859,7 @@ jobs:
     needs:
       - changes
       - test-e2e-docs
-    if: always() && needs.changes.outputs.build-docs-e2e == 'true' && needs.test-e2e-docs.result == 'success'
+    if: ${{ !cancelled() && needs.changes.outputs.build-docs-e2e == 'true' && needs.test-e2e-docs.result == 'success' }}
 
     steps:
       - name: Verify prerequisites
@@ -870,7 +882,7 @@ jobs:
   ############ UNIT TEST ############
   test-unit:
     name: Unit Tests
-    if: always() && needs.changes.outputs.build-unit == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-unit == 'true' }}
     strategy:
       matrix:
         settings:
@@ -924,13 +936,19 @@ jobs:
       - name: Unit Tests
         run: pnpm run test.unit
 
+      - name: MCP browser and stdio tests
+        if: matrix.settings.host == 'ubuntu-latest'
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm test.mcp
+
   save-unit-tests-cache:
     name: Save Unit Tests Cache
     runs-on: ubuntu-latest
     needs:
       - changes
       - test-unit
-    if: always() && needs.changes.outputs.build-unit == 'true' && needs.test-unit.result == 'success'
+    if: ${{ !cancelled() && needs.changes.outputs.build-unit == 'true' && needs.test-unit.result == 'success' }}
 
     steps:
       - name: Verify prerequisites
@@ -953,7 +971,7 @@ jobs:
   ############ BENCHMARK TEST ############
   test-bench:
     name: Benchmark Tests
-    if: always() && needs.changes.outputs.build-bench == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-bench == 'true' }}
     runs-on: ubuntu-latest
     needs:
       - changes
@@ -1010,7 +1028,7 @@ jobs:
     needs:
       - changes
       - test-bench
-    if: always() && needs.changes.outputs.build-bench == 'true' && needs.test-bench.result == 'success'
+    if: ${{ !cancelled() && needs.changes.outputs.build-bench == 'true' && needs.test-bench.result == 'success' }}
 
     steps:
       - name: Verify prerequisites
@@ -1035,7 +1053,7 @@ jobs:
     # Sometimes the tests just hang
     timeout-minutes: 20
     name: E2E Tests (${{ matrix.settings.optimizer }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
-    if: always() && needs.changes.outputs.build-e2e == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-e2e == 'true' }}
 
     needs:
       - build-other-packages
@@ -1070,22 +1088,12 @@ jobs:
             host: windows-latest
             browser: chromium
             shard: 1
-            shardTotal: 4
+            shardTotal: 2
           - optimizer: ts
             host: windows-latest
             browser: chromium
             shard: 2
-            shardTotal: 4
-          - optimizer: ts
-            host: windows-latest
-            browser: chromium
-            shard: 3
-            shardTotal: 4
-          - optimizer: ts
-            host: windows-latest
-            browser: chromium
-            shard: 4
-            shardTotal: 4
+            shardTotal: 2
           - optimizer: ts
             host: macos-latest
             browser: webkit
@@ -1180,6 +1188,7 @@ jobs:
 
       - name: Install Playwright System Dependencies
         if: runner.os == 'Linux'
+        timeout-minutes: 10
         run: pnpm exec playwright install-deps ${{ matrix.settings.browser }}
 
       - name: Install Playwright Browser
@@ -1204,8 +1213,9 @@ jobs:
         if: failure()
 
   test-cli-e2e:
+    timeout-minutes: 30
     name: E2E CLI Tests (${{ matrix.settings.optimizer }}, ${{ matrix.settings.runtime }}, ${{ matrix.settings.host }}, ${{ matrix.settings.browser }}, shard ${{ matrix.settings.shard }}/${{ matrix.settings.shardTotal }})
-    if: always() && needs.changes.outputs.build-cli-e2e == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.build-cli-e2e == 'true' }}
 
     needs:
       - build-other-packages
@@ -1282,20 +1292,9 @@ jobs:
             run-cli: true
             run-qwik-react: true
             shard: 1
-            shardTotal: 2
+            shardTotal: 1
             cliShard: 1
-            cliShardTotal: 2
-          - optimizer: ts
-            host: macos-latest
-            browser: webkit
-            runtime: node
-            integration-config: e2e/adapters-e2e/playwright.config.ts
-            run-cli: true
-            run-qwik-react: true
-            shard: 2
-            shardTotal: 2
-            cliShard: 2
-            cliShardTotal: 2
+            cliShardTotal: 1
           - optimizer: ts
             host: windows-latest
             browser: chromium
@@ -1420,6 +1419,7 @@ jobs:
 
       - name: Install Playwright System Dependencies
         if: runner.os == 'Linux'
+        timeout-minutes: 10
         run: pnpm exec playwright install-deps ${{ matrix.settings.browser }}
 
       - name: Install Playwright Browser
@@ -1448,7 +1448,7 @@ jobs:
     needs:
       - changes
       - test-e2e
-    if: always() && needs.changes.outputs.build-e2e == 'true' && needs.test-e2e.result == 'success'
+    if: ${{ !cancelled() && needs.changes.outputs.build-e2e == 'true' && needs.test-e2e.result == 'success' }}
 
     steps:
       - name: Verify prerequisites
@@ -1474,7 +1474,7 @@ jobs:
     needs:
       - changes
       - test-cli-e2e
-    if: always() && needs.changes.outputs.build-cli-e2e == 'true' && needs.test-cli-e2e.result == 'success'
+    if: ${{ !cancelled() && needs.changes.outputs.build-cli-e2e == 'true' && needs.test-cli-e2e.result == 'success' }}
 
     steps:
       - name: Verify prerequisites
@@ -1513,23 +1513,23 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: "Verify pnpm dedupe"
-        if: always()
+        if: ${{ !cancelled() }}
         run: NPM_CONFIG_USERCONFIG=/dev/null pnpm --config.platform=linux --config.arch=x64 dedupe --check
 
       - name: SyncPack Check
-        if: always()
+        if: ${{ !cancelled() }}
         run: pnpm run lint.syncpack
 
       - name: Prettier Check
-        if: always()
+        if: ${{ !cancelled() }}
         run: pnpm run lint.prettier
 
       - name: Build ESLint
-        if: always()
+        if: ${{ !cancelled() }}
         run: pnpm build --eslint
 
       - name: ESLint Check
-        if: always()
+        if: ${{ !cancelled() }}
         run: pnpm run lint.eslint
 
   ############ RELEASE ############
@@ -1550,7 +1550,7 @@ jobs:
     # on "upcoming", we always check if we have something to release
     # don't run on forks
     if: |
-      always() && 
+      !cancelled() && 
       github.event_name != 'pull_request' &&
       github.repository == 'QwikDev/qwik' && (
         github.ref == 'refs/heads/main' ||
@@ -1592,7 +1592,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik,devtools}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik,devtools,mcp}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -1606,6 +1606,7 @@ jobs:
           artifact-create-qwik
           artifact-eslint-plugin-qwik
           artifact-devtools
+          artifact-mcp
 
       - run: pnpm install --frozen-lockfile
 
@@ -1646,7 +1647,7 @@ jobs:
 
     # Publish previews as soon as the build is ready, regardless of test status.
     if: |
-      always() &&
+      !cancelled() &&
       github.repository == 'QwikDev/qwik' &&
       github.event_name != 'workflow_dispatch' &&
       (needs.combined-optimizer.result == 'success' || needs.combined-optimizer.result == 'skipped') &&
@@ -1667,7 +1668,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik,devtools}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik,devtools,mcp}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -1681,6 +1682,7 @@ jobs:
           artifact-create-qwik
           artifact-eslint-plugin-qwik
           artifact-devtools
+          artifact-mcp
 
       - run: pnpm install --frozen-lockfile
 

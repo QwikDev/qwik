@@ -1,24 +1,24 @@
-import { $, component$, ErrorBoundary, isServer } from '@qwik.dev/core';
-import { errMsg } from '../../components/error-boundary/error-boundary';
+import { $, component$, Catch, isServer } from '@qwik.dev/core';
+import { errMsg } from '../../components/catch/catch';
 
-const EbForgedDigestThrower = component$(() => {
+const CatchForgedDigestThrower = component$(() => {
   if (isServer) {
     const err = new Error('digest secret boom') as Error & { digest?: string };
     err.digest = 'forged-digest';
     throw err;
   }
-  return <span id="eb-thrower-client" />;
+  return <span id="catch-thrower-client" />;
 });
 
 const digestFallback = $((e: Error & { digest?: string }) => (
-  <section id="eb-fallback">
-    <p id="eb-fallback-msg">caught: {errMsg(e)}</p>
-    <span id="eb-fallback-digest">{e.digest ?? 'none'}</span>
+  <section id="catch-fallback">
+    <p id="catch-fallback-msg">caught: {errMsg(e)}</p>
+    <span id="catch-fallback-digest">{e.digest ?? 'none'}</span>
   </section>
 ));
 
 export default component$(() => (
-  <ErrorBoundary fallback$={digestFallback}>
-    <EbForgedDigestThrower />
-  </ErrorBoundary>
+  <Catch fallback$={digestFallback}>
+    <CatchForgedDigestThrower />
+  </Catch>
 ));

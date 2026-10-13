@@ -15,12 +15,12 @@ export function toTreeNodes(vnodes: VNodeTreeNode[]): TreeNode[] {
   }));
 }
 
-/** Quick structural fingerprint from node IDs. */
+/** Includes names so collected source metadata refreshes existing nodes. */
 export function treeIdFingerprint(nodes: VNodeTreeNode[]): string {
   const ids: string[] = [];
   const walk = (list: VNodeTreeNode[]) => {
     for (const n of list) {
-      ids.push(n.id);
+      ids.push(n.name ? `${n.id}:${n.name}` : n.id);
       if (n.children) {
         walk(n.children);
       }

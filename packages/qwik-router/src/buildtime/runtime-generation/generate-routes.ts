@@ -1,13 +1,14 @@
 import type { QwikManifest, QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import {
   createFileId,
-  errorBoundaryName,
+  caughtErrorName,
   isModuleExt,
   isPageExt,
   normalizePathKey,
   parseRouteIndexName,
   removeExtension,
 } from '../../utils/fs';
+import { escapeStaticTrieKey } from '../../utils/route-trie-key';
 import type { BuildTrieNode, BuiltRoute, RoutingContext, RouteSourceFile } from '../types';
 import { getImportPath } from './utils';
 
@@ -16,6 +17,16 @@ export type RouteLoaderSourceFiles = ReadonlyMap<string, readonly string[]>;
 /** Check if a build trie key is a group directory name like `(common)` */
 function isGroupKey(key: string) {
   return key.charCodeAt(0) === 40 /* '(' */;
+}
+
+/** The runtime trie key for a build trie key; `_W`/`_A` are the only non-static ones. */
+function toRuntimeTrieKey(key: string) {
+  return key === '_W' || key === '_A' ? key : escapeStaticTrieKey(key);
+}
+
+/** A rewrite target or base path with each segment converted to its runtime trie key. */
+function toRuntimeTriePath(path: string) {
+  return path.split('/').map(toRuntimeTrieKey).join('/');
 }
 
 /**
@@ -149,7 +160,7 @@ export function createRoutes(
   const baseSegments = ctx.opts.basePathname.split('/').filter((s) => s.length > 0);
   let routesExpr = trieStr;
   for (let j = baseSegments.length - 1; j >= 0; j--) {
-    routesExpr = `{ ${JSON.stringify(baseSegments[j])}: ${routesExpr} }`;
+    routesExpr = `{ ${JSON.stringify(escapeStaticTrieKey(baseSegments[j]))}: ${routesExpr} }`;
   }
 
   c.push(`export const routes = ${routesExpr};`);
@@ -196,7 +207,8 @@ function serializeBuildTrie(
 
   // _G rewrite target
   if (node._G != null) {
-    lines.push(`${nextIndent}_G: ${JSON.stringify(ctx.opts.basePathname + node._G)},`);
+    const target = toRuntimeTriePath(ctx.opts.basePathname + node._G);
+    lines.push(`${nextIndent}_G: ${JSON.stringify(target)},`);
   }
 
   // Process _files at this node
@@ -238,7 +250,7 @@ function serializeBuildTrie(
     const expr = buildLoaderChainExpr(file.extlessName, loaderExpr, route?.layouts ?? []);
 
     // error.tsx / 404.tsx (+ optional layout modifier) are boundaries, not navigable pages.
-    const boundary = errorBoundaryName(file.extlessName);
+    const boundary = caughtErrorName(file.extlessName);
     if (boundary === '404') {
       notFoundExpr = expr;
     } else if (boundary === 'error') {
@@ -370,7 +382,7 @@ function serializeBuildTrie(
       routeLoaderSourceFiles
     );
     if (childStr !== '{}') {
-      const keyStr = JSON.stringify(key);
+      const keyStr = JSON.stringify(toRuntimeTrieKey(key));
       lines.push(`${nextIndent}${keyStr}: ${childStr},`);
     }
   }

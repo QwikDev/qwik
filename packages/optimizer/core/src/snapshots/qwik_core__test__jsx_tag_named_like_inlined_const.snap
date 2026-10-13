@@ -1,0 +1,32 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$(() => {
+	const title = 'Hello';
+	return <title>{title}</title>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ _noopQrl("Cmp_component_4ryKJTOKjWE");
+//
+q_Cmp_component_4ryKJTOKjWE.s(()=>{
+    return /*#__PURE__*/ _jsxSorted("title", null, null, 'Hello', 3, "u6_0");
+});
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;8BAG8B;IAE7B,qBAAO,WAAC,qBADM;AAEf;AAHA,OAAO,MAAM,oBAAM,0CAGhB\"}")
+== DIAGNOSTICS ==
+
+[]

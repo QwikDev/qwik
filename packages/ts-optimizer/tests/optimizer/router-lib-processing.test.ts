@@ -135,11 +135,11 @@ describe('segment body cut off mid-expression', () => {
 });
 
 describe('no duplicate @qwik.dev/core import when a replaced const shares an import', () => {
-  const SOURCE = `import { createAsyncQrl, inlinedQrl, _captures, isBrowser, withLocale } from '@qwik.dev/core';
+  const SOURCE = `import { createAsyncQrl, inlinedQrl, _capturesObj, isBrowser, withLocale } from '@qwik.dev/core';
 const f = () => isBrowser ? 1 : 2;
 const g = (locale) => withLocale(locale, () => 42);
 const h = (a, b, c) => createAsyncQrl(/* @__PURE__ */ inlinedQrl(async () => {
-	const x = _captures[0];
+	let x = _capturesObj._[0];
 	return x;
 }, "h_createAsync_CFLMoh8rnzw", [a, b, c]));
 export { f, g, h };
@@ -271,13 +271,13 @@ describe('client strip config (stripEventHandlers unset) — full lib', () => {
   });
 });
 
-describe('inline/hoist strategy keeps the `_captures` import used by inlined bodies', () => {
-  const code = `import { useTaskQrl, inlinedQrl, _captures, useSignal } from '@qwik.dev/core';
+describe('inline/hoist strategy keeps the `_capturesObj` import used by inlined bodies', () => {
+  const code = `import { useTaskQrl, inlinedQrl, _capturesObj, useSignal } from '@qwik.dev/core';
 
 export const useThing = () => {
 	const dep = useSignal(0);
 	useTaskQrl(/* @__PURE__ */ inlinedQrl(({ track }) => {
-		const dep2 = _captures[0];
+		let dep2 = _capturesObj._[0];
 		track(dep2);
 	}, "useThing_useTask_XpalYii770E", [dep]));
 };
@@ -301,13 +301,13 @@ export const useThing = () => {
     });
   }
 
-  test('parent module that inlines a `_captures`-using body still imports `_captures`', () => {
+  test('parent module that inlines a `_capturesObj`-using body still imports `_capturesObj`', () => {
     const result = runServerHoist();
     const parent = result.modules.find((m) => m.kind === 'parent') ?? result.modules[0]!;
 
-    expect(parent.code).toMatch(/\b_captures\s*\[/);
+    expect(parent.code).toMatch(/\b_capturesObj\._\s*\[/);
     expect(parent.code).toMatch(
-      /import\s*\{[^}]*\b_captures\b[^}]*\}\s*from\s*["']@qwik\.dev\/core["']/
+      /import\s*\{[^}]*\b_capturesObj\b[^}]*\}\s*from\s*["']@qwik\.dev\/core["']/
     );
 
     for (const m of result.modules) {
@@ -315,5 +315,43 @@ export const useThing = () => {
       const parsed = parseSync(`mod.${ext}`, m.code);
       expect(parsed.errors, `module ${m.path} should parse`).toHaveLength(0);
     }
+  });
+});
+
+describe('a library built before `_capturesObj` still works', () => {
+  const LEGACY_SOURCE = `import { componentQrl, inlinedQrl, useTaskQrl, useSignal, _captures } from '@qwik.dev/core';
+export const Works = componentQrl(inlinedQrl((props) => {
+	const text = 'hola';
+	const count = useSignal(0);
+	useTaskQrl(inlinedQrl(() => {
+		const text2 = _captures[0], count2 = _captures[1];
+		console.log(text2, count2.value);
+	}, "Works_component_useTask_pjo5U5Ikll0", [text, count]));
+}, "Works_component_t45qL4vNGv0"));
+`;
+
+  test('keeps the legacy `_captures[N]` reads and their explicit captures', () => {
+    const result = transformModule({
+      srcDir: mkFilePath(SRC_DIR),
+      input: [
+        {
+          path: mkFilePath('/workspace/node_modules/legacy-lib/lib/index.qwik.mjs'),
+          code: mkSourceText(LEGACY_SOURCE),
+        },
+      ],
+      transpileTs: true,
+      transpileJsx: true,
+      explicitExtensions: true,
+      preserveFilenames: true,
+      mode: 'prod',
+      minify: 'simplify',
+      isServer: false,
+    });
+    const allCode = result.modules.map((m) => m.code).join('\n');
+    expect(allCode).toMatch(/\b_captures\s*\[0\]/);
+    expect(allCode).toMatch(
+      /import\s*\{[^}]*\b_captures\b[^}]*\}\s*from\s*["']@qwik\.dev\/core["']/
+    );
+    expect(result.modules.some((m) => /\[\s*text,\s*count\s*\]/.test(m.code))).toBe(true);
   });
 });

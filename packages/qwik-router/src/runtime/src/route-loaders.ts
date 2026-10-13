@@ -15,7 +15,6 @@ import {
   _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
-  _UNINITIALIZED,
   SerializerSymbol,
   type _AsyncSignalImpl,
   type _ComputedSignalInternal,
@@ -36,19 +35,21 @@ import {
 } from '../../middleware/request-handler/server-error';
 import { ensureSlash } from '../../utils/pathname';
 import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
-import { basePathname } from './qwik-router-config';
 import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
+import { REFRESH_HEAD } from './navigation-state';
+import { getBasePathname } from './router-config';
 import type {
   DataValidator,
   LoaderConstructor,
   LoaderConstructorQRL,
   LoaderInternal,
   LoaderOptions,
+  PathParams,
   QwikRouterEnvData,
   RequestEvent,
   RequestEventLoader,
-  RouteNavigate,
   RouteModule,
+  RouteNavigate,
   ValidatorReturn,
 } from './types';
 
@@ -61,11 +62,11 @@ import type {
 
 const REQUEST_ROUTE_LOADER_STATE = '@routeLoaderState';
 const REQUEST_LOADER_PATHS_STORE = '@loaderPathsStore';
+const REQUEST_LOADER_PARAMS_STORE = '@loaderParamsStore';
 const REQUEST_ROUTE_LOADERS = '@routeLoaders';
 const REQUEST_ROUTE_LOADER_PROMISES = '@routeLoaderPromises';
 const REQUEST_ROUTE_LOADER_EVENTS = '@routeLoaderEvents';
 const REQUEST_ROUTE_LOADER_ROOT_EVENT = '@routeLoaderRootEvent';
-const ROUTE_LOADER_VALUE_PREFIX = '__qwik_route_loader_value__';
 
 /** Header name sent by client to tell the server the actual page URL for loader requests. */
 export const FULLPATH_HEADER = 'X-Qwik-fullpath';
@@ -123,7 +124,9 @@ const wrapWithAbort = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> 
 export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
   /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
-  goto?: NoSerialize<RouteNavigate>;
+  goto?: NoSerialize<(path: string, options: { replaceState: boolean }) => unknown>;
+  /** Router callback that re-resolves the document head after a loader gets a new value. */
+  onValue?: RouteNavigate;
   /** Client manifest hash for q-loader fetch URLs. */
   manifestHash?: string;
 };
@@ -198,8 +201,6 @@ function assertCurrentLoaderRequest(
 }
 
 export type RouteLoaderState = Record<string, ComputedSignal<unknown>>;
-
-const getRouteLoaderValueStateKey = (loaderId: string) => `${ROUTE_LOADER_VALUE_PREFIX}${loaderId}`;
 
 class ServerRouteLoaderCapture {
   constructor(
@@ -354,8 +355,6 @@ const createRouteLoaderSignal = (
   requestEv?: RequestEvent
 ) => {
   const id = loader.__id;
-  const stateValues = state as Record<string, unknown>;
-  const resumeValueKey = getRouteLoaderValueStateKey(id);
   const capture = isServer
     ? new ServerRouteLoaderCapture(
         id,
@@ -374,13 +373,9 @@ const createRouteLoaderSignal = (
     async (ctx) => {
       const { info, previous, abortSignal } = ctx;
       const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
-      // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
-      // an action response).
+      // Pre-loaded value injection (from middleware via setLoaderSignalValue).
       if (hasInjectedValue) {
         const value = (info as { __v: unknown }).__v;
-        if (!isServer && resumeValueKey in stateValues) {
-          stateValues[resumeValueKey] = value;
-        }
         // The injected value may differ from the last fetched text; don't skip the next fetch
         lastFetch.raw = undefined;
         return value;
@@ -400,8 +395,7 @@ const createRouteLoaderSignal = (
       }
       const pageUrl = new URL(request.pageUrl);
       const mHash = untrack(() => routeLoaderCtx.manifestHash) || 'dev';
-      const basePath = basePathname;
-      const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
+      const basePath = getBasePathname();
       const fetchRoutePath = request.routePath;
 
       // Build a URL with only the allowed search params for the fetch
@@ -462,8 +456,11 @@ const createRouteLoaderSignal = (
         throw response.e;
       }
       lastFetch.raw = result.raw;
-      if (needsResumeFetch) {
-        stateValues[resumeValueKey] = response.d;
+      const onValue = routeLoaderCtx.onValue;
+      if (onValue) {
+        Promise.resolve()
+          .then(() => state[id].promise())
+          .then(() => onValue(REFRESH_HEAD as unknown as string));
       }
       return response.d;
     },
@@ -635,6 +632,18 @@ export function getRouteLoaderCtx(requestEv: RequestEventBase): RouteLoaderCtx {
   return ctx;
 }
 
+/** Server-only loader ID → params matched at its loader path; never serialized to the client. */
+export function getRouteLoaderParams(
+  requestEv: RequestEventBase
+): Record<string, PathParams | undefined> {
+  let params = requestEv.sharedMap.get(REQUEST_LOADER_PARAMS_STORE);
+  if (!params) {
+    params = {};
+    requestEv.sharedMap.set(REQUEST_LOADER_PARAMS_STORE, params);
+  }
+  return params;
+}
+
 export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]) => {
   const routeLoaders: LoaderInternal[] = [];
   const seen = new Map<string, LoaderInternal>();
@@ -711,9 +720,7 @@ export function prepareRouteLoaders(
   const previous = client.current;
   if (client.navCount === undefined) {
     for (const id in state) {
-      if (!id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
-        getLoaderRequest(ctx, state, id, id);
-      }
+      getLoaderRequest(ctx, state, id, id);
     }
   }
   client.navCount = navCount;
@@ -730,9 +737,6 @@ export function prepareRouteLoaders(
     current.paths[loader.__id] ||= current.paths[loader.__qrl.getHash()] || pageUrl.pathname;
   }
   for (const id in state) {
-    if (id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
-      continue;
-    }
     const signal = state[id];
     const old = previous.requests.get(signal);
     const loader = routeLoaders.get(id);
@@ -771,9 +775,6 @@ function pruneRouteLoaders(state: RouteLoaderState, ctx: RouteLoaderCtx) {
   const { requests } = clientRouteLoaders.get(ctx)!.current;
   const paths: Record<string, string> = {};
   for (const id in state) {
-    if (id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
-      continue;
-    }
     const signal = state[id];
     const request = requests.get(signal);
     if (request?.active) {
@@ -782,7 +783,6 @@ function pruneRouteLoaders(state: RouteLoaderState, ctx: RouteLoaderCtx) {
       (signal as _AsyncSignalImpl<unknown>).$dispose();
       requests.delete(signal);
       delete state[id];
-      delete (state as Record<string, unknown>)[getRouteLoaderValueStateKey(id)];
     }
   }
   ctx.loaderPaths = paths;
@@ -822,9 +822,6 @@ export const ensureRouteLoaderSignal = (
 ) => {
   if (loader.__cacheControl === 'immutable') {
     immutableLoaderIds.add(loader.__id);
-  }
-  if (isServer && loader.__serializationStrategy === 'never') {
-    (state as Record<string, unknown>)[getRouteLoaderValueStateKey(loader.__id)] = _UNINITIALIZED;
   }
   return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx, state, requestEv));
 };
@@ -942,6 +939,11 @@ export const getLoaderRequestEvent = (
   if (pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search) {
     return rootRequestEv;
   }
+  // An ancestor path only sees params matched up to it; fail closed if none were recorded.
+  const params =
+    pathname === rootRequestEv.url.pathname
+      ? rootRequestEv.params
+      : getRouteLoaderParams(rootRequestEv)[loader.__id] || {};
 
   let events: Map<string, RequestEvent> = rootRequestEv.sharedMap.get(REQUEST_ROUTE_LOADER_EVENTS);
   if (!events) {
@@ -961,7 +963,7 @@ export const getLoaderRequestEvent = (
         enumerable: true,
       },
       params: {
-        value: rootRequestEv.params,
+        value: params,
         enumerable: true,
       },
       pathname: {
@@ -1070,9 +1072,9 @@ export const getRouteLoaderResponse = async (
 };
 
 /**
- * A hoisted function declaration on purpose: this module imports `@qwik-router-config`, whose route
- * modules call `routeLoaderQrl` back at their own eval — in a bundle that cycle executes the routes
- * first, and a `const` binding would throw a TDZ ReferenceError.
+ * A hoisted function declaration on purpose: the app's route modules call `routeLoaderQrl` at their
+ * own eval, and a bundle may execute them before this module, where a `const` binding would throw a
+ * TDZ ReferenceError.
  *
  * @internal
  */

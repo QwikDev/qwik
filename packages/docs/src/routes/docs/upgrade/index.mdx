@@ -23,7 +23,7 @@ Qwik v2 is a ground-up rewrite of the framework. This guide covers what's new, h
 - **Smaller serialized state** — Up to 30% smaller HTML
 - **HMR** — Instant browser updates without losing state
 - **Async `useComputed$`** — Replaces `useResource$` with auto-tracking, polling, concurrency control, and abort
-- **`<Suspense>`** — Shows fallback UI while part of the page waits
+- **`<Pending>`** — Shows fallback UI while part of the page waits
 
 ## Quick Start
 
@@ -72,7 +72,7 @@ The CLI handles package renames, identifier changes, config updates, and depende
 | `@builder.io/qwik` | `@qwik.dev/core` |
 | `@builder.io/qwik-city` | `@qwik.dev/router` |
 | `@builder.io/qwik-react` | `@qwik.dev/react` |
-| `@qwik-city-plan` | `@qwik-router-config` |
+| `@qwik-city-plan` | `getRouterConfig()` from `@qwik.dev/router` (`@qwik-router-config` still works) |
 | `@builder.io/qwik/jsx-runtime` | `@qwik.dev/core/jsx-runtime` |
 
 **Identifiers**
@@ -145,21 +145,20 @@ Redirect the old package name so your package manager doesn't install v1 alongsi
 
 ### ssr.noExternal
 
-Qwik libraries must be bundled into the server build for the optimizer to process them:
+Qwik libraries no longer need to be bundled into the server build. The Vite plugin finds them in your dependencies and excludes them from dependency optimization. A production server build treats them like any other dependency, so your config decides whether they are external, and an external library shares Qwik's runtime state with your app, Qwik Router included. The dev server and builds with a `NODE_ENV` other than `production` always bundle them, because those builds contain the development version of Qwik, while Node loads the production version for an external library.
+
+A production server loads an external library from `node_modules` at runtime, and the library imports `@qwik.dev/core` (and often `@qwik.dev/router`) there too. Keep those packages in `dependencies` rather than `devDependencies` when you deploy with `npm install --omit=dev`, and make the library resolve the same `@qwik.dev/core` version as your app; the server refuses to load two Qwik versions. Otherwise add the library to `resolve.noExternal` to bundle it. The production build warns about each of these.
+
+Libraries built for Qwik v1 import `@builder.io/qwik`, which only the bundler resolves, so they must stay bundled. Add them to `resolve.noExternal`, which reaches every server environment, including the one static site generation adapters build in, together with the [package manager overrides](#package-manager-overrides):
 
 ```typescript
 // vite.config.ts
 export default defineConfig({
-  ssr: {
-    noExternal: ['some-qwik-library'],
-  },
-  optimizeDeps: {
-    exclude: ['some-qwik-library'],
+  resolve: {
+    noExternal: ['some-v1-qwik-library'],
   },
 });
 ```
-
-<Note>Without this, you'll see `Code(Q30)` duplicate runtime errors or "external dependency" warnings.</Note>
 
 ---
 
@@ -180,7 +179,7 @@ const data = useComputed$(async ({ abortSignal }) => {
 ```
 
 <Note title="READING COMPUTEDSIGNAL.VALUE">
-`.value` throws while unresolved, and re-throws the error if the computation failed. Read it inside [`<Suspense>`](/docs/labs/suspense/index.mdx) and [`<ErrorBoundary>`](/docs/labs/error-boundary/index.mdx), or provide an `initial` value.
+`.value` throws while unresolved, and re-throws the error if the computation failed. Read it inside [`<Pending>`](/docs/labs/pending/index.mdx) and [`<Catch>`](/docs/labs/catch/index.mdx), or provide an `initial` value.
 </Note>
 
 ```tsx
@@ -190,11 +189,11 @@ const DataView = component$((props: { data: Signal<unknown> }) => {
 
 // In the component that owns `data`:
 return (
-  <ErrorBoundary fallback$={$((error) => <p>Error: {error.message}</p>)}>
-    <Suspense fallback={<p>Loading...</p>}>
+  <Catch fallback$={$((error) => <p>Error: {error.message}</p>)}>
+    <Pending fallback$={() => <p>Loading...</p>}>
       <DataView data={data} />
-    </Suspense>
-  </ErrorBoundary>
+    </Pending>
+  </Catch>
 );
 ```
 
@@ -338,7 +337,7 @@ Still compile in v2, removed in v3.
 | Previous value | - | `ctx.previous` |
 | Polling | - | `usePoll(signal, ms)` from `@qwik.dev/utils` |
 | Initial value | - | `options.initial` |
-| Rendering | `<Resource onResolved={} />` | read `.value` inside `<Suspense>` / `<ErrorBoundary>` |
+| Rendering | `<Resource onResolved={} />` | read `.value` inside `<Pending>` / `<Catch>` |
 
 <LongNote title="Full before/after example">
 
@@ -377,7 +376,7 @@ const Cmp = component$(() => {
 v2:
 
 ```tsx
-import { $, ErrorBoundary, Suspense, useComputed$, type Signal } from '@qwik.dev/core';
+import { $, Catch, Pending, useComputed$, type Signal } from '@qwik.dev/core';
 
 const Temperature = component$((props: { weather: Signal<{ temp: number }> }) => {
   return <div>Temperature: {props.weather.value.temp}</div>;
@@ -397,11 +396,11 @@ const Cmp = component$(() => {
   return (
     <div>
       <input name="city" bind:value={city} />
-      <ErrorBoundary fallback$={$((error) => <div>Error: {error.message}</div>)}>
-        <Suspense fallback={<div>Loading...</div>}>
+      <Catch fallback$={$((error) => <div>Error: {error.message}</div>)}>
+        <Pending fallback$={() => <div>Loading...</div>}>
           <Temperature weather={weather} />
-        </Suspense>
-      </ErrorBoundary>
+        </Pending>
+      </Catch>
     </div>
   );
 });
@@ -409,13 +408,13 @@ const Cmp = component$(() => {
 
 </LongNote>
 
-`useComputed$()` owns the work that creates the value. [`<Suspense>`](/docs/labs/suspense/index.mdx) owns the fallback UI if you want to read `.value` directly while the value may still be pending.
+`useComputed$()` owns the work that creates the value. [`<Pending>`](/docs/labs/pending/index.mdx) owns the fallback UI if you want to read `.value` directly while the value may still be pending.
 
 What changed:
 
 - `track(() => signal.value)` → read `signal.value` directly before the first `await` (auto-tracked); after an `await`, keep using the provided `track()`
 - Manual `AbortController` + `cleanup()` → `ctx.abortSignal`
-- `<Resource onPending onRejected onResolved />` → `<Suspense>` and `<ErrorBoundary>`
+- `<Resource onPending onRejected onResolved />` → `<Pending>` and `<Catch>`
 - `.value` is `T` directly, not `Promise<T>`
 - `.error` is `Error | undefined`
 - For unlimited parallel fetches, pass `{ concurrency: 0 }`
@@ -521,7 +520,7 @@ A class instance or plain function in a store/signal/prop (error Q3). Wrap with 
 
 ### Qwik version X already imported while importing Y
 
-Two copies of Qwik loaded (error Q30). Add [package manager overrides](#package-manager-overrides) and [ssr.noExternal](#ssrnoexternal).
+Two different Qwik versions loaded on the server (error Q30). Add [package manager overrides](#package-manager-overrides) so every library resolves to the same `@qwik.dev/core`.
 
 ### IMPORTANT: This dependency was pre-bundled by Vite
 
@@ -529,7 +528,7 @@ Add the library to `optimizeDeps.exclude`. See [ssr.noExternal](#ssrnoexternal).
 
 ### [package] is being treated as an external dependency
 
-Add to both `ssr.noExternal` and `optimizeDeps.exclude`. See [ssr.noExternal](#ssrnoexternal).
+The dev server and development builds bundle every Qwik library, but this one is not listed in your `package.json`, for example because another library depends on it. Add it to your dependencies, or to both `resolve.noExternal` and `optimizeDeps.exclude`. See [ssr.noExternal](#ssrnoexternal).
 
 ### Cannot find module '@builder.io/qwik'
 
@@ -561,7 +560,7 @@ A module-level `let` mutated inside a `$`-extracted closure. The exact wording d
 
 ### Move qwik packages [...] to devDependencies
 
-Move all `@qwik.dev/*` to `devDependencies` in `package.json`.
+Older starters check this in `vite.config.ts`. Remove the check: a production server that loads Qwik libraries from `node_modules` needs `@qwik.dev/core` in `dependencies`. See [ssr.noExternal](#ssrnoexternal).
 
 ---
 
@@ -572,7 +571,7 @@ Every item should pass before your migration is done.
 <Checklist>
   <ChecklistItem label='tsconfig.json has moduleResolution: Bundler and jsxImportSource: @qwik.dev/core' />
   <ChecklistItem label='package.json has "type": "module"' />
-  <ChecklistItem label='All @qwik.dev/* packages are in devDependencies' />
+  <ChecklistItem label='@qwik.dev/* packages are in dependencies if a production server loads Qwik libraries from node_modules' />
   <ChecklistItem label='Dev server starts without Code(Q30) in the console' />
   <ChecklistItem label='npx tsc --noEmit passes' />
 </Checklist>

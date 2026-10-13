@@ -1,15 +1,20 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createPlatform, getSymbolHash } from './platform';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import { _regSymbol } from '../core/shared/qrl/qrl';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import { getSingleton } from '../core/shared/singletons';
+
+const symbolRegistry = () => getSingleton<Map<string, any>>('regSymbols');
 
 describe('server platform', () => {
   beforeEach(() => {
-    // Initialize a fresh Map for each test to avoid pollution
-    (globalThis as any).__qwik_reg_symbols = new Map<string, any>();
+    // Start each test with an empty symbol registry to avoid pollution
+    symbolRegistry()?.clear();
   });
 
   afterEach(() => {
-    // Clean up global state
-    delete (globalThis as any).__qwik_reg_symbols;
+    symbolRegistry()?.clear();
   });
 
   describe('importSymbol', () => {
@@ -20,7 +25,7 @@ describe('server platform', () => {
       const symbolName = 'myComponent_abc123';
       const hash = getSymbolHash(symbolName);
       const mockFunction = () => 'mock component';
-      (globalThis as any).__qwik_reg_symbols.set(hash, mockFunction);
+      _regSymbol(mockFunction, hash);
 
       // importSymbol should return the registered symbol synchronously
       const result = await platform.importSymbol(null as any, '', symbolName);
@@ -80,7 +85,7 @@ describe('server platform', () => {
       const symbolName = 'my_component_with_underscores_abc123';
       const hash = getSymbolHash(symbolName);
       const mockFunction = () => 'mock';
-      (globalThis as any).__qwik_reg_symbols.set(hash, mockFunction);
+      _regSymbol(mockFunction, hash);
 
       const result = await platform.importSymbol(null as any, '', symbolName);
 

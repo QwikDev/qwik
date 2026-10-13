@@ -119,10 +119,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Foo_component_1_DvU6FitWglY.jsx (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Foo_component_1_DvU6FitWglY = ()=>{
-    const _rawProps = _captures[0];
+    let _rawProps = _capturesObj._[0];
     const fn = ({ aaa })=>aaa;
     return <div>
 				{_rawProps.foo}{fn()}{20}
@@ -156,10 +156,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Bar_component_1_0xSyNSnVu3k.jsx (ENTRY POINT)==
 
-import { _captures } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
 //
 export const Bar_component_1_0xSyNSnVu3k = ()=>{
-    const _rawProps = _captures[0];
+    let _rawProps = _capturesObj._[0];
     return <div>
 				{_rawProps.bar}
 			</div>;

@@ -26,7 +26,12 @@ import {
   matchesRegCtxName,
 } from './predicates.js';
 import { transformEventPropName } from '../jsx/event-handlers.js';
-import { transformAllJsx, JsxKeyCounter, type ScopeAwareCollectResult } from '../jsx/jsx.js';
+import {
+  isHtmlElement,
+  transformAllJsx,
+  JsxKeyCounter,
+  type ScopeAwareCollectResult,
+} from '../jsx/jsx.js';
 import { computeKeyPrefix } from '../jsx/key-prefix.js';
 import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
 import {
@@ -34,7 +39,7 @@ import {
   transformJsxCalls,
 } from '../jsx/jsx-call-transform.js';
 import { stripExportDeclarations } from './strip-exports.js';
-import type { EmitMode } from '../types/types.js';
+import type { DecoratorOptions, EmitMode } from '../types/types.js';
 import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import type {
@@ -173,6 +178,7 @@ export function rewriteParentModule(
   isServer?: boolean,
   explicitExtensions?: boolean,
   transpileTs?: boolean,
+  decorator?: DecoratorOptions,
   minify?: string,
   outputExtension?: string,
   existingProgram?: AstProgram,
@@ -204,6 +210,7 @@ export function rewriteParentModule(
     isServer,
     explicitExtensions,
     transpileTs,
+    decorator,
     minify,
     outputExtension,
     extractedCalleeNames: new Set<string>(),
@@ -358,10 +365,11 @@ function collectExtractedCalleeNames(ctx: RewriteContext): void {
   for (const ext of ctx.extractions) {
     ctx.extractedCalleeNames.add(ext.calleeName);
     if (ext.isInlinedQrl) {
-      // `_captures` is a runtime helper used inside inlinedQrl bodies, not a
+      // `_capturesObj` is a runtime helper used inside inlinedQrl bodies, not a
       // marker callee. Stripping its import is only safe when bodies extract to
       // segment files; under inline/hoist they stay in the parent and still need it.
       if (!ctx.isInline) {
+        ctx.extractedCalleeNames.add('_capturesObj');
         ctx.extractedCalleeNames.add('_captures');
       }
       ctx.extractedCalleeNames.add('_inlinedQrl');
@@ -1205,8 +1213,7 @@ function renameUnextractedEventAttrs(ctx: RewriteContext): void {
       }
       const opening = node.openingElement;
       const tagName = opening?.name;
-      const isNative =
-        tagName?.type === 'JSXIdentifier' && /^[a-z]/.test((tagName as { name: string }).name);
+      const isNative = tagName?.type === 'JSXIdentifier' && isHtmlElement(tagName.name);
       if (isNative) {
         for (const attr of opening?.attributes ?? []) {
           if (attr.type !== 'JSXAttribute' || !attr.value) {

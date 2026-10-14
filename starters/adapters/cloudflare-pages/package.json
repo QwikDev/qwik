@@ -6,7 +6,7 @@
     "serve": "wrangler pages dev ./dist --compatibility-flags=nodejs_als"
   },
   "devDependencies": {
-    "wrangler": "^3.0.0"
+    "wrangler": "^4.0.0"
   },
   "__qwik__": {
     "priority": 40,

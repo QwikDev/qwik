@@ -6,7 +6,7 @@
   },
   "devDependencies": {
     "@netlify/edge-functions": "^3.0.6",
-    "netlify-cli": "^24.5.1"
+    "netlify-cli": "^27.1.2"
   },
   "__qwik__": {
     "priority": 30,

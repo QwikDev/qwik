@@ -1,11 +1,25 @@
-import { component$, useSignal } from '@qwik.dev/core';
+import { $, component$, useSignal } from '@qwik.dev/core';
 
 export function useCounter() {
   const count = useSignal(0);
   return count;
 }
 
+export function useLabel() {
+  return (name: string) => `Custom hook ${name}`;
+}
+
+export function useClickHandler() {
+  return $(() => {});
+}
+
 export default component$(() => {
   const counter = useCounter();
-  return <p id="custom-hooks">Custom hook count: {counter.value}</p>;
+  const label = useLabel();
+  const onClick = useClickHandler();
+  return (
+    <p id="custom-hooks" onClick$={onClick}>
+      {label('count')}: {counter.value}
+    </p>
+  );
 });

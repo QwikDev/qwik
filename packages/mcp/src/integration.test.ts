@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { createServer, build } from 'vite';
-import { chromium } from '@playwright/test';
+import { chromium, type Page } from '@playwright/test';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { qwikRouter } from '@qwik.dev/router/vite';
 import { Client } from '@modelcontextprotocol/client';
@@ -11,6 +11,25 @@ import { join } from 'node:path';
 import { request } from 'node:http';
 import { tmpdir } from 'node:os';
 import { qwikMcp } from '../dist/index.js';
+import { QWIK_DEVTOOLS_GLOBAL } from '../../devtools/kit/src/protocol/globals';
+
+/** Maps each hook recorded for the component in `file` to the `typeof` of its data. */
+const readHookDataTypes = (page: Page, file: string) =>
+  page.evaluate(
+    ({ key, componentState, file }) => {
+      const state: Record<string, { hooks: { variableName: string; data: unknown }[] }> =
+        (window as any)[key]?.[componentState] ?? {};
+      const component = Object.entries(state).find(([path]) => path.includes(file))?.[1];
+      return Object.fromEntries(
+        (component?.hooks ?? []).map((hook) => [hook.variableName, typeof hook.data])
+      );
+    },
+    {
+      key: QWIK_DEVTOOLS_GLOBAL.key,
+      componentState: QWIK_DEVTOOLS_GLOBAL.props.componentState,
+      file,
+    }
+  );
 
 test('bundled documentation works over stdio without Vite or a project directory', async () => {
   const client = new Client({ name: 'offline-docs', version: '1' });
@@ -194,7 +213,7 @@ for (const mode of ['csr', 'ssr']) {
         matches: 1,
         source: {
           file: mode === 'ssr' ? '/src/routes/index.tsx' : '/src/root.tsx',
-          line: 5,
+          line: mode === 'ssr' ? 5 : 11,
           column: 5,
           tag: 'button',
           exact: true,
@@ -210,6 +229,10 @@ for (const mode of ['csr', 'ssr']) {
             { timeout: 10000 }
           )
           .toEqual(expect.arrayContaining([expect.objectContaining({ name: 'count', value: 0 })]));
+        // Nothing is serialized on the client, so every custom hook value is kept.
+        await expect
+          .poll(() => readHookDataTypes(page, 'root.tsx'))
+          .toEqual({ count: 'object', label: 'function' });
       }
       await page.locator('#counter').click();
       await expect
@@ -321,8 +344,15 @@ for (const mode of ['csr', 'ssr']) {
           .toEqual(
             expect.arrayContaining([
               expect.objectContaining({ variableName: 'counter', hookType: 'customhook' }),
+              expect.objectContaining({ variableName: 'label', hookType: 'customhook' }),
             ])
           );
+        // SSR keeps serializable custom hook values and drops the rest.
+        expect(await readHookDataTypes(page, 'custom-hooks/')).toEqual({
+          counter: 'object',
+          label: 'undefined',
+          onClick: 'function',
+        });
         expect(pageErrors).toEqual([]);
         await page.goto(url);
         await page.locator('#counter').waitFor();

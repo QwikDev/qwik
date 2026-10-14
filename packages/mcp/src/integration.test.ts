@@ -188,10 +188,13 @@ for (const mode of ['csr', 'ssr']) {
         url,
         selector: '#counter',
         matches: 1,
-        source:
-          mode === 'ssr'
-            ? { file: '/src/routes/index.tsx', line: 5, column: 5, tag: 'button', exact: true }
-            : null,
+        source: {
+          file: mode === 'ssr' ? '/src/routes/index.tsx' : '/src/root.tsx',
+          line: 5,
+          column: 5,
+          tag: 'button',
+          exact: true,
+        },
       });
       if (mode === 'csr') {
         await expect

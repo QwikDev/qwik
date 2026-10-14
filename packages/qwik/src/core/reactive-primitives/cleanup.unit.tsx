@@ -7,7 +7,7 @@ import { SignalImpl } from './impl/signal-impl';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import { AsyncSignalImpl } from './impl/async-signal-impl';
 import { getOrCreateStore, getStoreHandler, getStoreTarget } from './impl/store';
-import { EffectProperty, EffectSubscription, StoreFlags } from './types';
+import { ComputedSignalFlags, EffectProperty, EffectSubscription, StoreFlags } from './types';
 import { _EFFECT_BACK_REF } from './backref';
 import { vnode_newVirtual, vnode_setProp } from '../client/vnode-utils';
 import { ELEMENT_SEQ } from '../shared/utils/markers';
@@ -126,6 +126,25 @@ describe('cleanup', () => {
         // Should clear hostElement and nested effects
         expect(wrappedSignal.$hostElement$).toBeUndefined();
         expect(wrappedSignal[_EFFECT_BACK_REF]?.size).toBe(0);
+      });
+
+      it('should invalidate the wrapped signal so the next read re-tracks its sources', () => {
+        const source = new SignalImpl(container, 'test');
+        const wrappedSignal = new WrappedSignalImpl(container, () => source.value, [], null);
+        wrappedSignal.$flags$ &= ~ComputedSignalFlags.INVALID;
+        const vnode = vnode_newVirtual();
+        const effect = new EffectSubscription(vnode, EffectProperty.VNODE);
+        wrappedSignal.$effects$ = new Set([effect]);
+        effect.backRef = new Set([wrappedSignal]);
+        const sourceEffect = new EffectSubscription(wrappedSignal, EffectProperty.VNODE);
+        sourceEffect.backRef = new Set([source]);
+        source.$effects$ = new Set([sourceEffect]);
+        wrappedSignal[_EFFECT_BACK_REF] = new Map([[EffectProperty.VNODE, sourceEffect]]);
+
+        clearEffectSubscription(container, effect);
+
+        expect(source.$effects$.size).toBe(0);
+        expect(wrappedSignal.$flags$ & ComputedSignalFlags.INVALID).toBeTruthy();
       });
 
       it('should not clear nested effects if other subscribers exist', () => {

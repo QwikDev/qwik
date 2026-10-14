@@ -167,25 +167,27 @@ export const SearchModal = component$(() => {
           document:onKeyDown$={[
             // preventDefault only works synchronously, before the handler chunk loads.
             sync$((event: SearchShortcutEvent, host: HTMLElement): void => {
-              const target = event.target as HTMLElement | null;
-              const isEditing =
-                !!target &&
-                (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
               const isCtrlK =
                 event.key.toLowerCase() === 'k' &&
                 (event.ctrlKey || event.metaKey) &&
                 !event.shiftKey &&
                 !event.altKey;
               const isSlash = event.key === '/' && !event.ctrlKey && !event.metaKey;
-              const trigger = host.closest('button');
-              // The header renders several search modals; only the usable one reacts.
-              const openModal = document.querySelector(':modal');
-              const isUsable =
-                !!trigger?.checkVisibility() && (!openModal || openModal.contains(trigger));
-              if ((isCtrlK || isSlash) && !isEditing && isUsable) {
-                event.preventDefault();
-                event.searchShortcutHost = host;
+              const target = event.target as HTMLElement | null;
+              const isEditing =
+                !!target &&
+                (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+              if ((!isCtrlK && !isSlash) || isEditing) {
+                return;
               }
+              // The header renders several search modals; only the usable one reacts.
+              const trigger = host.closest('button');
+              const openModal = document.querySelector(':modal');
+              if (!trigger?.checkVisibility() || (openModal && !openModal.contains(trigger))) {
+                return;
+              }
+              event.preventDefault();
+              event.searchShortcutHost = host;
             }),
             $((event: SearchShortcutEvent, host: HTMLElement) => {
               if (event.searchShortcutHost === host) {

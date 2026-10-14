@@ -747,6 +747,27 @@ export const Cmp = component$(({ value }: { value?: string }) => {
 }
 
 #[test]
+fn destructured_prop_as_computed_key_in_nested_closure() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useComputed$, untrack } from '@qwik.dev/core';
+
+export const Row = component$(({ index, row, runs }) => {
+	const label = useComputed$(() => {
+		untrack(() => (runs[index] = (runs[index] || 0) + 1));
+		return `row ${index}: ${row.value}`;
+	});
+	return <button onClick$={() => row.value++}>{label.value}</button>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn destructured_prop_named_like_jsx_tag() {
 	test_input!(TestInput {
 		code: r#"

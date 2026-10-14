@@ -148,7 +148,6 @@ function replacePropsFieldReferences(
   dynamicDefaults?: ReadonlyMap<string, string>
 ): string {
   return rewritePropsFieldReferences(bodyText, fieldMap, {
-    memberPropertyMode: 'all',
     propsName,
     defaultValues,
     dynamicDefaults,

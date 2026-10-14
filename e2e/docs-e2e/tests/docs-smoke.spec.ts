@@ -164,6 +164,18 @@ test.describe('Docs site smoke tests', () => {
     );
   });
 
+  test('/ opens the search modal and focuses its input', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto('/docs/');
+    await page.keyboard.press('/');
+    const input = page.getByPlaceholder('Search docs').filter({ visible: true });
+    await expect(input).toBeFocused();
+    await expect(page.locator('.search-modal:visible')).toHaveCount(1);
+
+    await page.keyboard.type('a/b');
+    await expect(input).toHaveValue('a/b');
+  });
+
   test('search loads its index after opening the modal', async ({ page }) => {
     await page.route('**/pagefind/pagefind.js', (route) => route.abort());
     await page.setViewportSize({ width: 1600, height: 900 });

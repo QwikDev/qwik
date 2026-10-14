@@ -1186,7 +1186,6 @@ export function replacePropsFieldReferencesInBody(
   dynamicDefaults?: ReadonlyMap<string, string>
 ): string {
   return rewritePropsFieldReferences(body, fieldMap, {
-    memberPropertyMode: 'nonComputed',
     propsName,
     defaultValues,
     dynamicDefaults,

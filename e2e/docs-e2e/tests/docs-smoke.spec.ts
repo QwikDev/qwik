@@ -193,6 +193,8 @@ test.describe('Docs site smoke tests', () => {
   test('ctrl+k opens search except while typing in a field', async ({ page }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
     await page.goto('/docs/');
+    // Ctrl+Shift+K opens the Firefox web console.
+    expect(await pressAndCheckPrevented(page, 'Control+Shift+K')).toBe('false');
     await page.keyboard.press('Control+k');
     await expect(page.getByPlaceholder('Search docs').filter({ visible: true })).toBeFocused();
     await page.keyboard.press('Escape');

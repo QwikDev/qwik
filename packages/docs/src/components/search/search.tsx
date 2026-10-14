@@ -171,7 +171,11 @@ export const SearchModal = component$(() => {
               const isEditing =
                 !!target &&
                 (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
-              const isCtrlK = event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey);
+              const isCtrlK =
+                event.key.toLowerCase() === 'k' &&
+                (event.ctrlKey || event.metaKey) &&
+                !event.shiftKey &&
+                !event.altKey;
               const isSlash = event.key === '/' && !event.ctrlKey && !event.metaKey;
               const trigger = host.closest('button');
               // The header renders several search modals; only the usable one reacts.

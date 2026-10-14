@@ -162,9 +162,13 @@ for (const mode of ['csr', 'ssr']) {
       const page = await browser.newPage();
       const pageErrors: string[] = [];
       page.on('pageerror', (error) => pageErrors.push(error.message));
-      page.on('requestfailed', (request) =>
-        pageErrors.push(request.url() + ': ' + request.failure()?.errorText)
-      );
+      page.on('requestfailed', (request) => {
+        const errorText = request.failure()?.errorText;
+        // Navigations abort in-flight requests; those are not page errors.
+        if (errorText !== 'net::ERR_ABORTED') {
+          pageErrors.push(request.url() + ': ' + errorText);
+        }
+      });
       page.on('console', (message) => {
         if (message.type() === 'error') {
           pageErrors.push(message.text());
@@ -306,6 +310,20 @@ for (const mode of ['csr', 'ssr']) {
             expect.objectContaining({ name: 'default' }),
             expect.objectContaining({ name: 'SomeInternalCmp' }),
           ]);
+        await page.goto(url + 'custom-hooks/');
+        await page.getByText('Custom hook count: 0').waitFor();
+        await expect
+          .poll(async () =>
+            (await call('inspect_page')).structuredContent?.components?.flatMap(
+              (component: any) => component.hooks
+            )
+          )
+          .toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({ variableName: 'counter', hookType: 'customhook' }),
+            ])
+          );
+        expect(pageErrors).toEqual([]);
         await page.goto(url);
         await page.locator('#counter').waitFor();
       } else {

@@ -155,4 +155,6 @@ pnpm api.update
 ```
 
 Use e2e only for behavior that depends on a real browser, streaming, navigation, or fixture wiring.
+If a production build removed declaration output, regenerate it with
+`pnpm exec tsc -p tsconfig.dts.json --incremental false`; incremental caches can skip missing files.
 Never use `pnpm test.unit` for agent verification in this repository.

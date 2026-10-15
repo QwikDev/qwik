@@ -11,6 +11,7 @@ Use this skill for Playwright e2e work in `e2e/**`. Keep the repo-wide rules fro
 ## Fast Path
 
 1. Identify the suite: Qwik core app, Qwik Router, adapters, docs, CLI, or Qwik React.
+   Use the Node version in `.nvmrc` for the runner and workers.
 2. Run the dev rebuild first when testing Qwik runtime/router behavior.
 3. Use the suite's Playwright config and the browser-selection style that config expects.
 4. Prefer one focused e2e file before broad suite commands.
@@ -34,6 +35,9 @@ Keep exact production-only assertions in those fixtures; regular fixtures must p
 ## Commands
 
 Main Qwik e2e config uses `--browser`, not Playwright projects:
+
+Playwright clears its configured output directory before a run. Store durable benchmark reports
+outside `test-results`; use `--output=/private/tmp/qwik-e2e-results` when preserving existing results.
 
 ```bash
 pnpm build.core.dev

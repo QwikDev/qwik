@@ -115,9 +115,7 @@ export function Root() {
                       );
                     }}
                   >
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true">
-                      x
-                    </span>
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                   </a>
                 </td>
                 <td class="col-md-6" />

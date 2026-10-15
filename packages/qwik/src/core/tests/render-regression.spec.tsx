@@ -3,6 +3,7 @@ import {
   Fragment as Component,
   component$,
   Fragment,
+  useComputed$,
   useSignal,
   useStore,
   useTask$,
@@ -144,6 +145,59 @@ describe.each([
 
       await trigger(container.element, '#close', 'click');
       expect(taskLog).toEqual([false, true, false]);
+    });
+  });
+
+  describe('props derived from render-local values', () => {
+    const Child = component$<{ open?: boolean }>((props) => {
+      const computedOpen = useComputed$(() => props.open === true);
+      const trackedOpen = useSignal(false);
+      useTask$(({ track }) => {
+        trackedOpen.value = track(() => props.open) === true;
+      });
+      return (
+        <p>
+          {String(props.open)} {String(computedOpen.value)} {String(trackedOpen.value)}
+        </p>
+      );
+    });
+
+    it('should update subscribers of an expression prop', async () => {
+      const Parent = component$(() => {
+        const items = useSignal<string[]>([]);
+        const visible = items.value.slice(0, 5);
+        return (
+          <>
+            <button onClick$={() => (items.value = [...items.value, 'item'])} />
+            <Child open={visible.length > 0} />
+          </>
+        );
+      });
+
+      const { container, document } = await render(<Parent />, { debug });
+      expect(document.querySelector('p')!.textContent).toBe('false false false');
+
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('p')!.textContent).toBe('true true true');
+    });
+
+    it('should update subscribers of a member prop', async () => {
+      const Parent = component$(() => {
+        const items = useSignal<string[]>([]);
+        const state = { open: items.value.length > 0 };
+        return (
+          <>
+            <button onClick$={() => (items.value = [...items.value, 'item'])} />
+            <Child open={state.open} />
+          </>
+        );
+      });
+
+      const { container, document } = await render(<Parent />, { debug });
+      expect(document.querySelector('p')!.textContent).toBe('false false false');
+
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('p')!.textContent).toBe('true true true');
     });
   });
 });

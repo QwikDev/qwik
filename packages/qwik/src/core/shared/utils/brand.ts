@@ -1,3 +1,4 @@
+import type { Subscriber } from '../../runtime/subscriber';
 import { qwikSymbol } from '../singletons';
 /**
  * Class identity that survives duplicated Qwik copies. Each copy has its own class objects, so
@@ -30,6 +31,7 @@ export const enum Brand {
   SerializationBackRef = 1 << 19,
   SsrProjectionSubscription = 1 << 20,
   SsrCatchContentSubscription = 1 << 21,
+  CatchContentSubscription = 1 << 22,
 }
 
 export const hasBrand = (value: unknown, brand: Brand): boolean =>
@@ -47,3 +49,17 @@ export const brandClass = (cls: BrandedClass, brand: Brand): void => {
     value: (value: unknown) => hasBrand(value, brand),
   });
 };
+
+export function isSsrSubscriber(value: unknown): value is Subscriber {
+  return hasBrand(
+    value,
+    Brand.Computed |
+      Brand.TaskSubscription |
+      Brand.VisibleTaskSubscription |
+      Brand.SsrDomEffect |
+      Brand.SsrDomSubscription |
+      Brand.SsrBranchSubscription |
+      Brand.SsrForBlockSubscription |
+      Brand.SsrContentSubscription
+  );
+}

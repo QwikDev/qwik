@@ -11,6 +11,8 @@ import { Scheduler } from '../../runtime/scheduler';
 import { useTask } from '../../runtime/task';
 import { findPendingBoundary } from './pending-boundary';
 import { BranchRange } from '../branch/branch';
+import { replaceContent } from '../range/range';
+import { OwnerFlags } from '../../reactive/flags';
 import { createTextExpressionEffect, createTextNodeEffect } from '../effect/text-effect';
 import { toArray } from '../../test-utils';
 import {
@@ -56,6 +58,19 @@ it('preserves nested array order when JSX QRL chunks resolve out of order', asyn
 });
 
 describe('ContentBlock', () => {
+  it.each([false, true])('replaces a range with disposePrevious=%s', (disposePrevious) => {
+    const document = createDocument({ html: '<div><!--start-->old<!--end--></div>' });
+    const host = document.querySelector('div')!;
+    const range = new BranchRange(document, host.firstChild as Comment, host.lastChild as Comment);
+    const owner = createOwner(null);
+    const child = createOwner(owner);
+    replaceContent(range, [document.createTextNode('next')], owner, disposePrevious);
+    expect(host.textContent).toBe('next');
+    expect(Boolean(owner.flags & OwnerFlags.Disposed)).toBe(disposePrevious);
+    expect(Boolean(child.flags & OwnerFlags.Disposed)).toBe(disposePrevious);
+    expect(owner.parent).toBeNull();
+  });
+
   it('renders initially and replaces content when a dependency changes', async () => {
     const value = useSignal('first');
     const { content, host } = setup([value], (document, _scheduler, signal) =>

@@ -1,7 +1,6 @@
-import { CatchContentSubscription } from '../../dom/content/catch';
 import { isDev } from '@qwik.dev/core/build';
 import { NEEDS_COMPUTATION } from '../../reactive/constants';
-import { registerCatchBoundary } from '../../dom/content/catch-boundary';
+import { registerCatchBoundary, isCatchBoundary } from '../../dom/content/catch-boundary';
 import type { AsyncSignalOptions } from '../../reactive/public-types';
 import { Branch, BranchRange, BranchSubscription } from '../../dom/branch/branch';
 import {
@@ -200,48 +199,52 @@ export const inflate = (
   if (!Array.isArray(data) || data.length < 4) {
     throw new Error('Missing serialized ownership');
   }
-  const payload = data.slice(0, -4);
-  return maybeThen(_eagerDeserializeArray(container, data.slice(-4)), ([owner, position]) => {
-    if (
-      (owner !== null && !(owner instanceof Owner)) ||
-      !Number.isSafeInteger(position) ||
-      (position as number) < 0
-    ) {
-      throw new Error('Invalid serialized ownership');
-    }
-    return maybeThen(owner === null ? null : whenRootInflated(container, owner), () => {
-      const subscriber = target as Subscriber;
-      if (isSubscriberDisposed(subscriber) || (owner !== null && isResumeOwnerClosed(owner))) {
-        subscriber.flags |= SubscriberFlags.Disposed;
-        return;
+  const payloadEnd = data.length - 4;
+  return maybeThen(
+    _eagerDeserializeArray(container, data, undefined, payloadEnd),
+    ([owner, position]) => {
+      if (
+        (owner !== null && !(owner instanceof Owner)) ||
+        !Number.isSafeInteger(position) ||
+        (position as number) < 0
+      ) {
+        throw new Error('Invalid serialized ownership');
       }
-      subscriber.owner = owner;
-      return maybeThen(inflatePayload(container, target, typeId, payload), () => {
-        if (owner !== null && isResumeOwnerClosed(owner)) {
-          disposeSubscriber(subscriber);
+      return maybeThen(owner === null ? null : whenRootInflated(container, owner), () => {
+        const subscriber = target as Subscriber;
+        if (isSubscriberDisposed(subscriber) || (owner !== null && isResumeOwnerClosed(owner))) {
+          subscriber.flags |= SubscriberFlags.Disposed;
           return;
         }
-        if (owner !== null && !isSubscriberDisposed(subscriber)) {
-          // Join the owner only after the shell is restored.
-          if (
-            owner.items !== subscriber &&
-            (!Array.isArray(owner.items) || !owner.items.includes(subscriber))
-          ) {
-            subscriber.owner = null;
-            registerSubscriberToOwner(subscriber, owner);
+        subscriber.owner = owner;
+        return maybeThen(inflatePayload(container, target, typeId, data, payloadEnd), () => {
+          if (owner !== null && isResumeOwnerClosed(owner)) {
+            disposeSubscriber(subscriber);
+            return;
           }
-          restoreOwnerItemOrder(subscriber, owner, position as number);
-        }
+          if (owner !== null && !isSubscriberDisposed(subscriber)) {
+            // Join the owner only after the shell is restored.
+            if (
+              owner.items !== subscriber &&
+              (!Array.isArray(owner.items) || !owner.items.includes(subscriber))
+            ) {
+              subscriber.owner = null;
+              registerSubscriberToOwner(subscriber, owner);
+            }
+            restoreOwnerItemOrder(subscriber, owner, position as number);
+          }
+        });
       });
-    });
-  });
+    }
+  );
 };
 
 const inflatePayload = (
   container: ContainerContext,
   target: unknown,
   typeId: TypeIds,
-  data: unknown
+  data: unknown,
+  end = Array.isArray(data) ? data.length : 0
 ): ValueOrPromise<void> => {
   if (typeId === TypeIds.Plain) {
     // Already processed
@@ -263,21 +266,22 @@ const inflatePayload = (
     typeId !== TypeIds.SerializerSignal &&
     Array.isArray(data)
   ) {
-    return maybeThen(_eagerDeserializeArray(container, data), (data) => {
+    return maybeThen(_eagerDeserializeArray(container, data, undefined, 0, end), (data) => {
       if (ownedTypes.has(typeId) && rejectDisposedInflation(target as Subscriber)) {
         return;
       }
-      return inflateResolved(container, target, typeId, data);
+      return inflateResolved(container, target, typeId, data, end);
     });
   }
-  return inflateResolved(container, target, typeId, data);
+  return inflateResolved(container, target, typeId, data, end);
 };
 
 const inflateResolved = (
   container: ContainerContext,
   target: unknown,
   typeId: TypeIds,
-  data: unknown
+  data: unknown,
+  end = Array.isArray(data) ? data.length : 0
 ): ValueOrPromise<void> => {
   switch (typeId) {
     case TypeIds.Array:
@@ -303,7 +307,7 @@ const inflateResolved = (
     case TypeIds.Signal: {
       const signal = target as ReactiveSignal<unknown>;
       const d = data as unknown[];
-      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (value) => {
+      return maybeThen(readSerializedSlot(container, d, 0), (value) => {
         signal.v = unwrapPromiseRoot(value);
         if (d.length > 2) {
           restoreSourceSubs(signal, container, d, 2);
@@ -370,9 +374,9 @@ const inflateResolved = (
     case TypeIds.ComputedSignal: {
       const computed = target as Writeable<ComputedQrl<unknown>>;
       const d = data as unknown[];
-      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
-        maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
-          maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) => {
+      return maybeThen(readSerializedSlot(container, d, 0), (qrl) =>
+        maybeThen(readSerializedSlot(container, d, 2), (deps) =>
+          maybeThen(readSerializedSlot(container, d, 4), (value) => {
             if (rejectDisposedInflation(computed)) {
               return;
             }
@@ -385,8 +389,8 @@ const inflateResolved = (
               computed.v = value;
               computed.flags = ComputedFlags.HasValue;
             }
-            if (d.length > 6) {
-              restoreSourceSubs(computed, container, d, 6);
+            if (end > 6) {
+              restoreSourceSubs(computed, container, d, 6, end);
             }
             if (value === NEEDS_COMPUTATION) {
               return maybeThen(
@@ -402,10 +406,10 @@ const inflateResolved = (
       const signal = target as AsyncSignal<unknown>;
       const d = data as unknown[];
       const subscriberOffset = 8;
-      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
-        maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
-          maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) =>
-            maybeThen(deserializeData(container, d[6] as TypeIds, d[7]), (options) => {
+      return maybeThen(readSerializedSlot(container, d, 0), (qrl) =>
+        maybeThen(readSerializedSlot(container, d, 2), (deps) =>
+          maybeThen(readSerializedSlot(container, d, 4), (value) =>
+            maybeThen(readSerializedSlot(container, d, 6), (options) => {
               if (rejectDisposedInflation(signal)) {
                 return;
               }
@@ -418,8 +422,8 @@ const inflateResolved = (
                 signal.v = value as unknown;
                 signal.flags = ComputedFlags.HasValue | ComputedFlags.Async;
               }
-              if (d.length > subscriberOffset) {
-                restoreSourceSubs(signal, container, d, subscriberOffset);
+              if (end > subscriberOffset) {
+                restoreSourceSubs(signal, container, d, subscriberOffset, end);
               }
               if (value === NEEDS_COMPUTATION) {
                 return maybeThen(
@@ -436,9 +440,9 @@ const inflateResolved = (
       const signal = target as SerializerSignal<unknown, unknown>;
       const d = data as unknown[];
       const subscriberOffset = 6;
-      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (qrl) =>
-        maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (deps) =>
-          maybeThen(deserializeData(container, d[4] as TypeIds, d[5]), (value) => {
+      return maybeThen(readSerializedSlot(container, d, 0), (qrl) =>
+        maybeThen(readSerializedSlot(container, d, 2), (deps) =>
+          maybeThen(readSerializedSlot(container, d, 4), (value) => {
             if (rejectDisposedInflation(signal)) {
               return;
             }
@@ -447,8 +451,8 @@ const inflateResolved = (
             signal.v = value;
             signal.flags = ComputedFlags.HasValue;
             signal.didInitialize = false;
-            if (d.length > subscriberOffset) {
-              restoreSourceSubs(signal, container, d, subscriberOffset);
+            if (end > subscriberOffset) {
+              restoreSourceSubs(signal, container, d, subscriberOffset, end);
             }
             return maybeThen(getFunctionOrResolve(signal.argQrl!, container), () => {});
           })
@@ -473,9 +477,9 @@ const inflateResolved = (
     case TypeIds.StoreProp: {
       const source = target as StorePropSource;
       const d = data as unknown[];
-      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (rootId) =>
+      return maybeThen(readSerializedSlot(container, d, 0), (rootId) =>
         maybeThen(container.getRoot(rootId as number | string), (target) =>
-          maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (prop) => {
+          maybeThen(readSerializedSlot(container, d, 2), (prop) => {
             bindStoreSource(source, target as object, prop as PropertyKey);
           })
         )
@@ -484,9 +488,9 @@ const inflateResolved = (
     case TypeIds.PropSource: {
       const source = target as PropSource;
       const d = data as unknown[];
-      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (rootId) =>
+      return maybeThen(readSerializedSlot(container, d, 0), (rootId) =>
         maybeThen(container.getRoot(rootId as number | string), (props) =>
-          maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (key) => {
+          maybeThen(readSerializedSlot(container, d, 2), (key) => {
             source.props = props as object;
             source.key = key as string;
           })
@@ -630,6 +634,10 @@ const inflateResolved = (
     case TypeIds.PendingSubscription:
     case TypeIds.CatchSubscription: {
       const parts = data as unknown[];
+      if (typeId === TypeIds.CatchSubscription) {
+        // The first field identifies the constructor QRL root.
+        parts.shift();
+      }
       const kind = parts[0] as EffectKind;
       const restoreUnderBoundary = (restore: () => Promise<void>, boundaryId: unknown) =>
         maybeThen(restoreContentBoundary(container, boundaryId), () => {
@@ -843,7 +851,7 @@ async function restoreContentSubscription(
   const slotScope = (parts[qrlIndex + 2] as SlotScope | null | undefined) ?? null;
   const useOnScopes = isProjection ? null : (parts[7] as UseOnMap[] | null | undefined);
   const contextArg = isProjection || parts[8] === true;
-  const catchState = subscription instanceof CatchContentSubscription ? parts[9] : undefined;
+  const catchState = isCatchBoundary(subscription) ? parts[9] : undefined;
   const pending = (
     parts[0] === EffectKind.Projection || catchState !== undefined ? undefined : parts[9]
   ) as [Parameters<typeof attachPending>[4] | null, number] | null | undefined;
@@ -871,7 +879,7 @@ async function restoreContentSubscription(
     contextArg,
     true
   );
-  if (subscription instanceof CatchContentSubscription) {
+  if (isCatchBoundary(subscription)) {
     if (
       !Array.isArray(catchState) ||
       catchState.length !== 2 ||
@@ -946,10 +954,11 @@ function restoreSourceSubs(
   source: Source,
   container: ContainerContext,
   data: unknown[],
-  start: number
+  start: number,
+  end = data.length
 ): void {
   const live = source.subs;
-  source.subs = createLazySourceSubscribers(source, container, data, start);
+  source.subs = createLazySourceSubscribers(source, container, data, start, end);
   if (live === null) {
     return;
   }
@@ -963,9 +972,10 @@ function createLazySourceSubscribers(
   source: Source,
   container: ContainerContext,
   data: unknown[],
-  start: number
+  start: number,
+  end = data.length
 ): SourceSub[] {
-  return createLazySourceSubs((data.length - start) / 2, (index) => {
+  return createLazySourceSubs((end - start) / 2, (index) => {
     const i = start + index * 2;
     const typeId = data[i] as TypeIds;
     const value = data[i + 1];
@@ -973,7 +983,7 @@ function createLazySourceSubscribers(
       return value as Subscriber;
     }
     return lazySubscriber(container, async () => {
-      const subscriber = (await deserializeData(container, typeId, value)) as Subscriber;
+      const subscriber = (await readSerializedSlot(container, data, i)) as Subscriber;
       data[i] = TypeIds.Plain;
       data[i + 1] = subscriber;
       return subscriber;
@@ -1001,28 +1011,25 @@ function restoreStoreSources(
         continue;
       }
       const start = record.length >= 4 && record[0] === TypeIds.Array ? 4 : 2;
-      const path = start === 4 ? deserializeData(container, record[0] as TypeIds, record[1]) : [];
+      const path = start === 4 ? readSerializedSlot(container, record, 0) : [];
       return maybeThen(path, (path) =>
-        maybeThen(
-          deserializeData(container, record[start - 2] as TypeIds, record[start - 1]),
-          (prop) => {
-            let target = raw as Record<PropertyKey, unknown>;
-            for (let j = 0; j < (path as unknown[]).length; j++) {
-              const nested = target[(path as unknown[])[j] as PropertyKey];
-              // Removed rows can disappear before their lazy sources inflate.
-              if (nested === null || typeof nested !== 'object') {
-                return restoreNext();
-              }
-              target = nested as Record<PropertyKey, unknown>;
+        maybeThen(readSerializedSlot(container, record, start - 2), (prop) => {
+          let target = raw as Record<PropertyKey, unknown>;
+          for (let j = 0; j < (path as unknown[]).length; j++) {
+            const nested = target[(path as unknown[])[j] as PropertyKey];
+            // Removed rows can disappear before their lazy sources inflate.
+            if (nested === null || typeof nested !== 'object') {
+              return restoreNext();
             }
-            const source = getStoreSource(
-              unwrapStore(target as object) as object,
-              prop as PropertyKey
-            );
-            restoreSourceSubs(source, container, record, start);
-            return restoreNext();
+            target = nested as Record<PropertyKey, unknown>;
           }
-        )
+          const source = getStoreSource(
+            unwrapStore(target as object) as object,
+            prop as PropertyKey
+          );
+          restoreSourceSubs(source, container, record, start);
+          return restoreNext();
+        })
       );
     }
   };
@@ -1046,7 +1053,7 @@ function restoreContentBoundary(
       if (
         boundaryId !== undefined &&
         !(boundary instanceof PendingContentSubscription) &&
-        !(boundary instanceof CatchContentSubscription)
+        !isCatchBoundary(boundary)
       ) {
         throw new Error('Content owner requires a boundary subscription.');
       }
@@ -1329,23 +1336,26 @@ function restoreDependencies(
 const _eagerDeserializeArray = (
   container: ContainerContext,
   data: unknown[],
-  output: unknown[] = Array(data.length / 2)
+  output: unknown[] | undefined = undefined,
+  start = 0,
+  end = data.length
 ): ValueOrPromise<unknown[]> => {
-  let i = 0;
+  const values = output ?? Array((end - start) / 2);
+  let i = start;
   const drain = (): ValueOrPromise<unknown[]> => {
-    while (i < data.length) {
+    while (i < end) {
       const index = i;
-      const value = deserializeData(container, data[index] as TypeIds, data[index + 1]);
+      const value = readSerializedSlot(container, data, index);
       i += 2;
       if (isPromise(value)) {
         return value.then((value) => {
-          output[index / 2] = unwrapPromiseRoot(value);
+          values[(index - start) / 2] = unwrapPromiseRoot(value);
           return drain();
         });
       }
-      output[index / 2] = unwrapPromiseRoot(value);
+      values[(index - start) / 2] = unwrapPromiseRoot(value);
     }
-    return output;
+    return values;
   };
   return drain();
 };
@@ -1364,4 +1374,55 @@ export function deserializeData(
     }
     return propValue;
   });
+}
+
+/** Cache encoded slots before inflation so later root promotions reuse their shells. */
+export function readSerializedSlot(
+  container: ContainerContext,
+  data: unknown[],
+  index: number,
+  beforeInflate?: (value: unknown) => boolean | void
+): ValueOrPromise<unknown> {
+  const type = data[index] as TypeIds;
+  const value = data[index + 1];
+  const slots = container.state?.allocatedSlots;
+  const existing = slots?.get(data)?.get(index);
+  if (existing !== undefined) {
+    return maybeThen(existing, (shell) => {
+      beforeInflate?.(shell);
+      if (isPromise(existing)) {
+        slots!.get(data)!.set(index, shell);
+      }
+      return whenRootInflated(container, shell);
+    });
+  }
+  if (type < TypeIds.Array || type === TypeIds.BigInt || type === TypeIds.ForwardRefs) {
+    return maybeThen(deserializeData(container, type, value), (value) => {
+      beforeInflate?.(value);
+      return value;
+    });
+  }
+  const cache = (container.state.allocatedSlots ??= new WeakMap());
+  let allocations = cache.get(data);
+  if (allocations === undefined) {
+    cache.set(data, (allocations = new Map()));
+  }
+  const allocated = allocate(container, type, value);
+  const read = maybeThen(allocated, (shell) => {
+    allocations.set(index, shell);
+    if (beforeInflate?.(shell) === false || !needsInflation(type)) {
+      return shell;
+    }
+    const inflation = inflate(container, shell, type, value);
+    if (!isPromise(inflation)) {
+      return shell;
+    }
+    const inflating = (container.state.inflatingRoots ??= new WeakMap());
+    inflating.set(shell, inflation);
+    return inflation.then(() => shell).finally(() => inflating.delete(shell));
+  });
+  if (isPromise(allocated)) {
+    allocations.set(index, read);
+  }
+  return read;
 }

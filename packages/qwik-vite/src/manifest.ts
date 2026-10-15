@@ -450,7 +450,7 @@ export function generateManifestFromBundles(
   }
   requireHandlerExports(qwikHandlersName, outputBundles, canonPath);
   // We need to find our QRL exports
-  const qrlNames = new Set(segments.map((h) => h.name));
+  const qrlNames = new Set([...segments.map((h) => h.name), '_catchError', '_Catch']);
   const bundleByModuleId = new Map<string, string>();
   for (const outputBundle of Object.values(outputBundles)) {
     if (outputBundle.type === 'chunk') {
@@ -545,7 +545,13 @@ export function generateManifestFromBundles(
     };
   }
   if (qwikHandlersName) {
-    for (const symbol of extraSymbols) {
+    const coreSymbols = [...extraSymbols];
+    for (const symbol of ['_catchError', '_Catch']) {
+      if (manifest.mapping[symbol] !== undefined) {
+        coreSymbols.push(symbol);
+      }
+    }
+    for (const symbol of coreSymbols) {
       manifest.symbols[symbol] = {
         origin: 'Qwik core',
         displayName: symbol,
@@ -557,7 +563,7 @@ export function generateManifestFromBundles(
         parent: null,
         loc: [0, 0],
       };
-      manifest.mapping[symbol] = qwikHandlersName;
+      manifest.mapping[symbol] ??= qwikHandlersName;
     }
   } else {
     console.error('Qwik core bundle not found, is Qwik actually used in this project?');

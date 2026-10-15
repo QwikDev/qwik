@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   createOwner,
+  createSerializationContext,
   disposeSubscriber,
   Phase,
   registerSubscriberToOwner,
@@ -12,15 +13,8 @@ import {
 } from '@qwik.dev/core';
 import { SsrScheduler, type SsrLane } from './ssr-scheduler';
 
-function createLane(): { lane: SsrLane; roots: unknown[] } {
-  const roots: unknown[] = [];
-  const serializationCtx = {
-    $addRoot$(value: unknown) {
-      roots.push(value);
-      return roots.length - 1;
-    },
-  };
-  return { lane: new SsrScheduler().createLane(serializationCtx), roots };
+function createLane(): { lane: SsrLane } {
+  return { lane: new SsrScheduler().createLane() };
 }
 
 function createTask(lane: SsrLane, run: TaskFn): TaskSubscription {
@@ -41,8 +35,70 @@ function createDom(lane: SsrLane, promise: Promise<string>): SsrAttrEffect {
 }
 
 describe('SsrScheduler', () => {
-  it('starts the first task eagerly and keeps the sync path promise-free', () => {
-    const { lane, roots } = createLane();
+  it('cancels descendants with a linear number of parent reads', () => {
+    const scheduler = new SsrScheduler();
+    const root = scheduler.createLane();
+    let parent = root;
+    let reads = 0;
+    for (let i = 0; i < 64; i++) {
+      const lane = scheduler.createLane(parent);
+      const parentId = lane.parentId;
+      Object.defineProperty(lane, 'parentId', {
+        get() {
+          reads++;
+          return parentId;
+        },
+      });
+      parent = lane;
+    }
+    const sibling = scheduler.createLane();
+    reads = 0;
+    scheduler.cancel(root);
+    expect(reads).toBeLessThan(64 * 4);
+    expect(scheduler.lanes.slice(0, -1).every((lane) => lane.isCancelled)).toBe(true);
+    expect(sibling.isCancelled).toBe(false);
+  });
+
+  it('does not start work created under an already cancelled parent', () => {
+    const scheduler = new SsrScheduler();
+    const root = scheduler.createLane();
+    scheduler.cancel(root);
+    const child = scheduler.createLane(root);
+    let runs = 0;
+    child.notify(
+      createTask(child, () => {
+        runs++;
+      })
+    );
+    expect(runs).toBe(0);
+    expect(child.isCancelled).toBe(true);
+  });
+
+  it.each([false, true])('rollback respects lane cancellation: %s', async (cancelled) => {
+    const { lane } = createLane();
+    createDom(lane, Promise.resolve('PRIVATE_DISCARDED_PATCH'));
+    await lane.settle();
+    const serialization = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    const transaction = serialization.$beginTransaction$();
+    expect(lane.takePatches(serialization.$journal$)).toEqual([
+      [0, 'title', 'PRIVATE_DISCARDED_PATCH'],
+    ]);
+    if (cancelled) {
+      lane.cancel();
+    }
+    transaction.rollback();
+    expect(lane.takePatches()).toEqual(
+      cancelled ? null : [[0, 'title', 'PRIVATE_DISCARDED_PATCH']]
+    );
+  });
+
+  it('starts tasks eagerly without registering serialization roots', () => {
+    const { lane } = createLane();
     const order: string[] = [];
     const task = createTask(lane, () => {
       order.push('task');
@@ -52,7 +108,6 @@ describe('SsrScheduler', () => {
 
     expect(order).toEqual(['task']);
     expect(lane.flush()).toBeUndefined();
-    expect(roots).toEqual([task]);
   });
 
   it('runs queued tasks in registration order while setup can continue', async () => {

@@ -7,12 +7,9 @@ import {
   type TaskScheduler,
   type TaskSubscriber,
   type ValueOrPromise,
+  type SerializationContext,
 } from '@qwik.dev/core';
 import { OwnerFlags, SubscriberFlags, SubscriberKind } from './qwik-copy';
-
-export interface SsrLaneSerializationContext {
-  $addRoot$(value: unknown): number;
-}
 
 const NO_ERROR = Symbol();
 const NOOP = () => {};
@@ -30,12 +27,12 @@ export class SsrScheduler {
     this.state = { error: NO_ERROR, notifyRenderer };
   }
 
-  createLane(
-    serializationCtx: SsrLaneSerializationContext,
-    parent: SsrLane | null = null
-  ): SsrLane {
-    const lane = new SsrLane(this.lanes.length, parent?.id ?? null, serializationCtx, this.state);
+  createLane(parent: SsrLane | null = null): SsrLane {
+    const lane = new SsrLane(this.lanes.length, parent?.id ?? null, this.state);
     this.lanes.push(lane);
+    if (parent?.isCancelled) {
+      lane.cancel();
+    }
     return lane;
   }
 
@@ -51,17 +48,17 @@ export class SsrScheduler {
   }
 
   cancel(lane: SsrLane): void {
-    for (let i = lane.id; i < this.lanes.length; i++) {
+    lane.cancel();
+    for (let i = lane.id + 1; i < this.lanes.length; i++) {
       const candidate = this.lanes[i];
-      let laneId: number | null = candidate.id;
-      while (laneId !== null) {
-        if (laneId === lane.id) {
-          candidate.cancel();
-          break;
-        }
-        laneId = this.lanes[laneId].parentId;
+      if (candidate.parentId !== null && this.lanes[candidate.parentId].isCancelled) {
+        candidate.cancel();
       }
     }
+  }
+
+  release(): void {
+    this.state.notifyRenderer = NOOP;
   }
 
   throwIfFailed(): void {
@@ -78,19 +75,19 @@ export class SsrLane implements TaskScheduler {
   private patches: SsrAttributePatch[] | null = null;
   private pending: Promise<void> | null = null;
   private running = false;
-  private cancelled = false;
+  isCancelled = false;
+  catchError?: (error: unknown) => void;
 
   constructor(
     readonly id: number,
     readonly parentId: number | null,
-    readonly serializationCtx: SsrLaneSerializationContext,
     private readonly state: SsrSchedulerState
   ) {}
 
   notify(subscriber: PhaseSubscriber): void {
     const owner = subscriber.owner;
     if (
-      this.cancelled ||
+      this.isCancelled ||
       owner === null ||
       owner.flags & OwnerFlags.Disposed ||
       this.state.error !== NO_ERROR
@@ -114,7 +111,6 @@ export class SsrLane implements TaskScheduler {
     }
 
     subscriber.flags |= SubscriberFlags.Dirty;
-    this.serializationCtx.$addRoot$(subscriber);
 
     if (this.running || this.pending !== null) {
       (this.queue ??= []).push(subscriber);
@@ -127,7 +123,7 @@ export class SsrLane implements TaskScheduler {
     if (this.state.error !== NO_ERROR) {
       throw this.state.error;
     }
-    if (this.cancelled) {
+    if (this.isCancelled) {
       return;
     }
     const pending = this.pending;
@@ -155,7 +151,8 @@ export class SsrLane implements TaskScheduler {
   }
 
   cancel(): void {
-    this.cancelled = true;
+    this.isCancelled = true;
+    this.catchError = undefined;
     this.queue = null;
     this.pending = null;
     this.pendingDom = null;
@@ -163,8 +160,15 @@ export class SsrLane implements TaskScheduler {
     this.state.notifyRenderer();
   }
 
-  takePatches(): SsrAttributePatch[] | null {
+  takePatches(journal?: SerializationContext['$journal$']): SsrAttributePatch[] | null {
     const patches = this.patches;
+    if (journal !== undefined && patches !== null) {
+      journal.record(() => {
+        if (!this.isCancelled) {
+          this.patches = this.patches === null ? patches : patches.concat(this.patches);
+        }
+      });
+    }
     this.patches = null;
     return patches;
   }
@@ -175,8 +179,10 @@ export class SsrLane implements TaskScheduler {
     try {
       result = this.drain(first);
     } catch (error) {
-      this.fail(error);
-      throw error;
+      if (!this.fail(error)) {
+        throw error;
+      }
+      return;
     } finally {
       this.running = false;
     }
@@ -184,7 +190,7 @@ export class SsrLane implements TaskScheduler {
     if (isPromise(result)) {
       this.pending = result.then(
         () => {
-          if (this.cancelled) {
+          if (this.isCancelled) {
             return;
           }
           this.pending = null;
@@ -194,7 +200,7 @@ export class SsrLane implements TaskScheduler {
           }
         },
         (error) => {
-          if (this.cancelled) {
+          if (this.isCancelled) {
             return;
           }
           this.pending = null;
@@ -234,12 +240,12 @@ export class SsrLane implements TaskScheduler {
     const pending = result
       .then(
         () => {
-          if (!this.cancelled) {
+          if (!this.isCancelled) {
             this.collectPatch(subscriber);
           }
         },
         (error) => {
-          if (!this.cancelled) {
+          if (!this.isCancelled) {
             this.fail(error);
           }
         }
@@ -284,11 +290,21 @@ export class SsrLane implements TaskScheduler {
     this.state.notifyRenderer();
   }
 
-  private fail(error: unknown): void {
+  private fail(error: unknown): boolean {
+    if (this.isCancelled) {
+      return true;
+    }
+    if (this.catchError !== undefined) {
+      this.catchError(error);
+      this.queue = null;
+      this.state.notifyRenderer();
+      return true;
+    }
     if (this.state.error === NO_ERROR) {
       this.state.error = error;
     }
     this.queue = null;
     this.state.notifyRenderer();
+    return false;
   }
 }

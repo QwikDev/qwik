@@ -1,8 +1,9 @@
 import { appendSourceSubscriber, type Source } from './source';
 import type { CollectorSubscriber } from '../runtime/subscriber';
 import { getActiveInvokeContextOrNull, setActiveInvokeContext } from '../runtime/invoke-context';
-import { isSubscriberDisposed } from '../runtime/subscriber';
+import { isSubscriberDisposed, SubscriberKind } from '../runtime/subscriber';
 import { registerSingleton } from '../shared/singletons';
+import type { Computed } from './computed';
 
 const trackingState = /*#__PURE__*/ registerSingleton('v3.tracking', () => ({
   current: null as CollectorSubscriber | null,
@@ -13,15 +14,20 @@ export function getActiveCollector(): CollectorSubscriber | null {
 }
 
 export function _await<T>(value: T | PromiseLike<T>): Promise<() => Awaited<T>> {
+  const context = getActiveInvokeContextOrNull();
   const collector = trackingState.current;
-  const invokeContext = getActiveInvokeContextOrNull();
-
+  const owner = collector?.owner ?? context?.owner ?? context?.ownerHost;
+  const job =
+    collector?.kind === SubscriberKind.Computed ? (collector as Computed<unknown>).current : null;
   const resume = (value: unknown, rejected: boolean) => () => {
-    const restored = collector !== null && isSubscriberDisposed(collector) ? null : collector;
+    const isCancelled =
+      owner?.isCancelled ||
+      job?.isCancelled ||
+      (collector !== null && isSubscriberDisposed(collector));
+    const restored = isCancelled ? null : collector;
+    const invokeContext = isCancelled ? null : context;
     trackingState.current = restored;
     setActiveInvokeContext(invokeContext);
-
-    // Keep tracking active through the current await continuation, then release the global state.
     queueMicrotask(() => {
       if (trackingState.current === restored) {
         trackingState.current = null;
@@ -30,13 +36,11 @@ export function _await<T>(value: T | PromiseLike<T>): Promise<() => Awaited<T>> 
         setActiveInvokeContext(null);
       }
     });
-
     if (rejected) {
       throw value;
     }
     return value as Awaited<T>;
   };
-
   return Promise.resolve(value).then(
     (value) => resume(value, false),
     (error) => resume(error, true)

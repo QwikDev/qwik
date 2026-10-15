@@ -226,7 +226,17 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   constructor(
     private readonly module: LinkedModule,
     private readonly options: PresentationOptions,
-    private readonly keyedRowQrls = keyedCollectionRows(module)
+    private readonly keyedRowQrls = keyedCollectionRows(module),
+    private readonly catchEventLifetimes = new Set(
+      module.programs
+        .filter(
+          (program) =>
+            program.body.kind === ProgramBodyKind.Ops &&
+            program.body.ops[0]?.op === OpKind.Catch &&
+            mayBe(program.facts.registersEvents)
+        )
+        .map((program) => program.lifetime)
+    )
   ) {
     this.resolveQrlUse = createQrlResolver(module);
   }
@@ -394,9 +404,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pushMergedStatic(parts, '>');
     }
     // The runtime splices `useOn*` registrations into the first open-tag record after the render.
-    const { registersEvents } = program.facts;
+    let lifetime: number | null = program.lifetime;
+    while (lifetime !== null && !this.catchEventLifetimes.has(lifetime)) {
+      lifetime = this.module.lifetimes[lifetime].parent;
+    }
     const hookEvents =
-      body.ops[0]?.op === OpKind.Element && (!registersEvents.ok || registersEvents.value);
+      body.ops[0]?.op === OpKind.Element &&
+      (mayBe(program.facts.registersEvents) || lifetime !== null);
     body.ops.forEach((op, index) =>
       this.op(pass, op, parts, rootRange, options.rootMarker ?? null, index === 0 && hookEvents)
     );
@@ -540,7 +554,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     qrl: LinkedQrl,
     options: SsrRenderOptions
   ): { emission: FunctionEmission; core: SsrProgramEmission; names: GeneratedNames } {
-    const emitter = new SsrModuleEmitter(this.module, this.options, this.keyedRowQrls);
+    const emitter = new SsrModuleEmitter(
+      this.module,
+      this.options,
+      this.keyedRowQrls,
+      this.catchEventLifetimes
+    );
     const names = {
       props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
       ctx: allocateGeneratedNames(this.module).ctx,
@@ -738,10 +757,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       }
     }
     if (op.eventParams !== undefined) {
-      this.imports.add(QwikWord.CreateSsrRootRef);
       const value = this.module.bindings[op.eventParams[0]].name;
       pushMergedStatic(openTag, ' q:p="');
-      openTag.push(`${QwikWord.CreateSsrRootRef}(${pass.names.ctx}.addRoot(${value}))`);
+      openTag.push(`${pass.names.ctx}.addRoot(${value})`);
       pushMergedStatic(openTag, '"');
       pass.usedCtx = true;
     }

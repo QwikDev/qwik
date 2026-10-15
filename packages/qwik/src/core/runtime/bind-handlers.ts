@@ -45,6 +45,7 @@ export function _res(this: string | undefined, _: unknown, element: Element) {
         const capture = captures[i];
         if (capture instanceof Computed) {
           capture.resume();
+          capture.trigger();
         }
       }
     }

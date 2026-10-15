@@ -1,4 +1,5 @@
-import { CatchContentSubscription } from '../../dom/content/catch';
+import { isCatchBoundary } from '../../dom/content/catch-boundary';
+import type { CatchContentSubscription } from '../../dom/content/catch';
 import {
   AttrEffect,
   AttrExpressionEffect,
@@ -35,6 +36,8 @@ import { findQwikElement } from '../../runtime/node-walker';
 import { findContainerNode } from '../../dom/range/range';
 import { allocatePropsProxy, PropSource } from '../../component/props';
 import { PromiseRoot } from './promise-root';
+import { getFunctionOrResolve } from '../../utils/qrl';
+import { isQrl } from '../qrl/qrl-utils';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 export const pendingStoreTargets = new WeakMap<object, { t: TypeIds; v: unknown }>();
@@ -221,11 +224,27 @@ export const allocate = (
       return new PendingContentSubscription(null!, context.scheduler);
     }
     case TypeIds.CatchSubscription: {
-      const effectKind = Array.isArray(value) ? value[1] : undefined;
-      if (effectKind !== EffectKind.Content) {
+      const constructorRoot = Array.isArray(value) ? value[1] : undefined;
+      if (
+        !Array.isArray(value) ||
+        value[0] !== TypeIds.Plain ||
+        !Number.isSafeInteger(constructorRoot) ||
+        constructorRoot < 0
+      ) {
         throw qError(QError.serializeErrorCannotAllocate, [typeId]);
       }
-      return new CatchContentSubscription(null!, null!, context.scheduler);
+      return maybeThen(context.getRoot(constructorRoot), (qrl) => {
+        if (!isQrl<typeof CatchContentSubscription>(qrl)) {
+          throw qError(QError.serializeErrorCannotAllocate, [typeId]);
+        }
+        return maybeThen(getFunctionOrResolve(qrl, context), (CatchSubscription) => {
+          const boundary = new CatchSubscription(null!, null!, context.scheduler);
+          if (!isCatchBoundary(boundary)) {
+            throw qError(QError.serializeErrorCannotAllocate, [typeId]);
+          }
+          return boundary;
+        });
+      });
     }
     case TypeIds.Task: {
       const phase = Array.isArray(value) ? value[1] : undefined;

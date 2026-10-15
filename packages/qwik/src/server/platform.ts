@@ -1,8 +1,7 @@
 import { _getSingleton, setPlatform } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
-import type { ResolvedManifest, SymbolMapperFn } from '@qwik.dev/core/optimizer';
+import type { ResolvedManifest, SymbolMapper, SymbolMapperFn } from '@qwik.dev/core/optimizer';
 import { QError, qError, SYNC_QRL, type CorePlatformServer } from './qwik-copy';
-import type { SymbolMapper } from '@qwik.dev/core/optimizer';
 import type { SerializeDocumentOptions } from './types';
 
 declare const require: (module: string) => Record<string, any>;
@@ -27,7 +26,11 @@ const getDevSegmentPath = (
   }
   if (!parent) {
     // Core symbols
-    if (symbolName.startsWith('_') && symbolName.length < 6) {
+    if (
+      (symbolName.startsWith('_') && symbolName.length < 6) ||
+      symbolName === '_catchError' ||
+      symbolName === '_Catch'
+    ) {
       return [symbolName, `${import.meta.env?.BASE_URL}@qwik-handlers`];
     }
     // library qrls bake their chunk in — never fabricate over it

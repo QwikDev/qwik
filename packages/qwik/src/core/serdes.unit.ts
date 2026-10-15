@@ -1,3 +1,4 @@
+import type { SsrContentContext } from './ssr/output';
 import { describe, expect, it } from 'vitest';
 import { _captures, createQRL, type QRLInternal } from './shared/qrl/qrl-class';
 import { _capturesObj } from './shared/qrl/qrl-captures';
@@ -107,7 +108,7 @@ function deserializeData(container: ContainerContext, type: TypeIds, payload: un
 }
 
 type BranchConditionFn = () => boolean;
-type BranchRenderFn = (ctx: ContainerContext) => ValueOrPromise<string>;
+type BranchRenderFn = (ctx: SsrContentContext) => ValueOrPromise<string>;
 
 const BRANCH_THEN = 0;
 
@@ -373,7 +374,12 @@ describe('serdes emit-only', () => {
   it('serializes rendered projections through their subscription only', async () => {
     const host = createOwner(null);
     const scope = createSlotScope();
-    const container = createCaptureContainer({});
+    const captures = createCaptureContainer({});
+    const container = {
+      scheduler: captures.scheduler,
+      nextId: captures.nextId,
+      addRoot: captures.addRoot,
+    };
     const context = newInvokeContext({ owner: host, container, slotScope: scope });
     const projection = invoke(context, () =>
       registerProjection(
@@ -1188,7 +1194,7 @@ describe('serdes emit-only', () => {
     const container = createCaptureContainer({});
 
     const html = await createOwned(() =>
-      renderSsrBranch(container, 3, conditionQrl, thenQrl, undefined)
+      renderSsrBranch({ scheduler: container.scheduler }, 3, conditionQrl, thenQrl, undefined)
     );
     const state = await serialize(visible, child);
     const signalPayload = state[1] as unknown[];
@@ -1223,7 +1229,7 @@ describe('serdes emit-only', () => {
     );
     const renderQrl = createQRL<
       (
-        ctx: ContainerContext,
+        ctx: SsrContentContext,
         rangeId: number,
         rowMarker: number | string,
         item: Row
@@ -1241,7 +1247,7 @@ describe('serdes emit-only', () => {
 
     const html = await createOwned(() =>
       renderSsrForBlock(
-        container,
+        { scheduler: container.scheduler, nextId: container.nextId },
         9,
         items,
         keyQrl,
@@ -1406,7 +1412,14 @@ describe('serdes emit-only', () => {
     );
     const container = createCaptureContainer({});
 
-    const html = await createOwned(() => renderSsrContent(container, 12, [value], renderQrl));
+    const html = await createOwned(() =>
+      renderSsrContent(
+        { scheduler: container.scheduler, ownOutput: (output) => output },
+        12,
+        [value],
+        renderQrl
+      )
+    );
     const state = await serialize(value);
     const signalPayload = state[1] as unknown[];
     const contentPayload = signalPayload[3] as unknown[];

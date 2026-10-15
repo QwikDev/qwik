@@ -3,7 +3,7 @@ import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { isPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
-import type { ContainerContext } from '../runtime/container-context';
+import type { RuntimeContainerContext } from '../runtime/invoke-context';
 import { getActiveInvokeContextOrNull } from '../runtime/invoke-context';
 import { registerSubscriberToOwner } from '../runtime/owner';
 import { AsyncSignal, type AsyncSignalFn, type AsyncSignalQrl } from './async-signal';
@@ -78,7 +78,7 @@ export function computedProp<T>(qrl: ComputedQrlRef<T>): ComputedQrl<T> {
 export function useComputedQrl<T>(
   computeQrl: ComputedQrlRef<T>,
   options?: ComputedOptions<T>,
-  container?: ContainerContext
+  container?: RuntimeContainerContext
 ): ComputedQrl<T> {
   const contextContainer = container ?? getActiveInvokeContextOrNull()?.container;
   const computed = new ComputedQrl(computeQrl, contextContainer, options);

@@ -1,7 +1,13 @@
 import { Brand, brandClass } from '../../shared/utils/brand';
 import { isServer } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
-import { maybeThen, retryOnPromise, safeCall } from '../../shared/utils/promises';
+import {
+  maybeThen,
+  retryOnPromise,
+  safeCall,
+  thenInLifetime,
+  retryInLifetime,
+} from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { SubscriberFlags } from '../../reactive/flags';
 import type { Source } from '../../reactive/source';
@@ -31,14 +37,14 @@ import { toNodes } from '../../utils/nodes';
 import type { MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import { prepareProjectionRanges, parkProjections, replaceRange } from '../range/range';
-import type { SsrOutput } from '../../ssr/output';
+import { ownSsrOutput, type SsrContentContext, type SsrOutput } from '../../ssr/output';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
-import { handleRenderError } from '../content/catch-boundary';
+import { handleError } from '../content/catch-boundary';
 
 type BranchConditionFn = () => ValueOrPromise<boolean>;
 type BranchHandlerFn = (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
-type SSRBranchHandlerFn = (ctx: ContainerContext, rangeId: number) => ValueOrPromise<SsrOutput>;
+type SSRBranchHandlerFn = (ctx: SsrContentContext, rangeId: number) => ValueOrPromise<SsrOutput>;
 
 /** BranchRange represents a range of nodes in the DOM that can be replaced with new nodes */
 export class BranchRange {
@@ -136,7 +142,7 @@ export class BranchSubscription implements BranchSubscriber {
           () => this.runPrepared()
         ),
       () => {},
-      (error) => handleRenderError(this.owner, error)
+      (error) => handleError(this.owner, error)
     );
   }
 
@@ -197,7 +203,7 @@ function renderBranchArm(
     () =>
       retryOnPromise(() =>
         runWithCollector(null, () =>
-          invoke(invokeContext, () => renderer(invokeContext.container!))
+          invoke(invokeContext, () => renderer(invokeContext.container as ContainerContext))
         )
       ),
     (nodes) => {
@@ -253,52 +259,64 @@ export class SSRBranch {
     readonly elseQrl: QRL<SSRBranchHandlerFn> | undefined,
     public currentBranch: BranchState | null,
     readonly invokeContext: RuntimeInvokeContext | null,
-    readonly container?: ContainerContext,
+    readonly container?: SsrContentContext,
     readonly useOnRoot = false
   ) {}
 
   run(): ValueOrPromise<SsrOutput> {
     const subscription = registerSubscriberToOwner(new SSRBranchSubscription(this));
 
-    return maybeThen(getFunctionOrResolve(this.conditionQrl, this.container), (conditionFn) => {
-      const trackedCondition = retryOnPromise(() => runWithCollector(subscription, conditionFn));
-      return maybeThen(trackedCondition, (trackedCondition) => {
-        const nextBranch = trackedCondition ? BranchState.Then : BranchState.Else;
-        const rendererQrl = trackedCondition ? this.thenQrl : this.elseQrl;
-
-        return maybeThen(
-          rendererQrl ? getFunctionOrResolve(rendererQrl, this.container) : undefined,
-          (renderer) => {
-            if (renderer === undefined) {
-              return '';
-            }
-
-            const invokeContext = newChildInvokeContext(this.invokeContext, {
-              ownerHost: subscription.owner,
-              container: this.container,
-            });
-            return safeCall(
-              () =>
-                runWithCollector(null, () =>
-                  invoke(invokeContext, () => renderer(invokeContext.container!, this.rangeId))
-                ),
-              (output) => {
-                subscription.branch.currentBranch = nextBranch;
-                subscription.branch.currentOwner = invokeContext.owner;
-                return output;
-              },
-              (error) => {
-                if (invokeContext.owner !== null) {
-                  disposeOwner(invokeContext.owner);
-                  invokeContext.owner = null;
-                }
-                throw error;
-              }
-            );
-          }
+    return thenInLifetime(
+      subscription.owner,
+      getFunctionOrResolve(this.conditionQrl, this.container),
+      (conditionFn) => {
+        const trackedCondition = retryInLifetime(subscription.owner, () =>
+          runWithCollector(subscription, conditionFn)
         );
-      });
-    });
+        return thenInLifetime(subscription.owner, trackedCondition, (trackedCondition) => {
+          const nextBranch = trackedCondition ? BranchState.Then : BranchState.Else;
+          const rendererQrl = trackedCondition ? this.thenQrl : this.elseQrl;
+
+          return thenInLifetime(
+            subscription.owner,
+            rendererQrl ? getFunctionOrResolve(rendererQrl, this.container) : undefined,
+            (renderer) => {
+              const invokeContext = newChildInvokeContext(this.invokeContext, {
+                ownerHost: subscription.owner,
+                container: this.container,
+              });
+              if (renderer === undefined) {
+                this.currentBranch = nextBranch;
+                return ownSsrOutput('', invokeContext, subscription);
+              }
+              return thenInLifetime(
+                subscription.owner,
+                retryInLifetime(subscription.owner, () =>
+                  runWithCollector(null, () =>
+                    invoke(invokeContext, () =>
+                      renderer(invokeContext.container as SsrContentContext, this.rangeId)
+                    )
+                  )
+                ),
+                (output) => {
+                  subscription.branch.currentBranch = nextBranch;
+                  subscription.branch.currentOwner = invokeContext.owner;
+                  return ownSsrOutput(output, invokeContext, subscription);
+                },
+                '',
+                (error) => {
+                  if (invokeContext.owner !== null) {
+                    disposeOwner(invokeContext.owner);
+                    invokeContext.owner = null;
+                  }
+                  throw error;
+                }
+              );
+            }
+          );
+        });
+      }
+    );
   }
 }
 
@@ -317,7 +335,7 @@ export class SSRBranchSubscription implements SsrBranchSubscriber {
 }
 
 export function renderSsrBranch(
-  ctx: ContainerContext,
+  ctx: SsrContentContext,
   rangeId: number,
   conditionQrl: QRL<BranchConditionFn>,
   thenQrl: QRL<SSRBranchHandlerFn>,

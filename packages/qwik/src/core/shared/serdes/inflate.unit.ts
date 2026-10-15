@@ -23,6 +23,7 @@ import { createContainerContext, type ContainerContext } from '../../runtime/con
 import { createContextScope, isContextScope } from '../../runtime/context-scope';
 import { createOwner, registerSubscriberToOwner } from '../../runtime/owner';
 import { Constants, TypeIds } from './constants';
+import { _res } from '../../runtime/bind-handlers';
 import { inflate as inflateState } from './inflate';
 import type { Subscriber } from '../../runtime/subscriber';
 import { allocateDomEffect } from './allocate';
@@ -358,6 +359,43 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     expect(toArray(computed.subs).some(isLazySerialized)).toBe(false);
     expect(toArray(computed.subs)[0]).toBeInstanceOf(TextNodeEffect);
     expect(context.element.querySelector('p')?.textContent).toBe('2');
+  });
+
+  it('updates restored subscribers when eager computed already has its value', async () => {
+    const context = createContext('<p q:id="10">1</p>');
+    const qrl = { resolve: async () => () => 17 };
+    const computed = new ComputedQrl(qrl as any);
+    await inflate(context, computed, TypeIds.ComputedSignal, [
+      TypeIds.Plain,
+      qrl,
+      TypeIds.Array,
+      [],
+      TypeIds.Plain,
+      17,
+      TypeIds.EffectSubscription,
+      [
+        TypeIds.Plain,
+        EffectKind.TextNode,
+        TypeIds.Plain,
+        EffectTargetKind.ElementText,
+        TypeIds.Plain,
+        10,
+        TypeIds.Array,
+        [TypeIds.Plain, computed],
+      ],
+    ]);
+    const previous = _capturesObj._;
+    try {
+      setCaptures([computed]);
+      await _res.call(undefined, undefined, context.element);
+      for (let i = 0; i < 10 && context.element.querySelector('p')?.textContent !== '17'; i++) {
+        await Promise.resolve();
+        await context.scheduler.flushInteraction();
+      }
+      expect(context.element.querySelector('p')?.textContent).toBe('17');
+    } finally {
+      _capturesObj._ = previous;
+    }
   });
 
   it('restores DOM batches with one shared executor', async () => {

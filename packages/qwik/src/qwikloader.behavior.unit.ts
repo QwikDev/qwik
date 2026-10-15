@@ -117,6 +117,34 @@ function getSingleListener(target: ReturnType<typeof createEventTarget>, eventNa
   return registrations![0]!;
 }
 
+test.each(['throw', 'missing'])(
+  'does not emit qerror recursively when its handler is %s',
+  (mode) => {
+    const { doc } = createLoaderEnvironment(['d:qerror']);
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const container = createMockElement(null, {
+      'q:container': '',
+      'q:base': './',
+      'q:instance': 'error',
+    });
+    const carrier = createMockElement(container, { 'q-d:qerror': '#0#' });
+    doc.qFuncs_error =
+      mode === 'missing'
+        ? []
+        : [
+            () => {
+              throw new Error('report failed');
+            },
+          ];
+    doc.querySelectorAll.mockReturnValue([carrier]);
+    doc.dispatchEvent.mockImplementation(() => true);
+    getSingleListener(doc, 'qerror').handler({ type: 'qerror' });
+    expect(doc.dispatchEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'qerror' }));
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
+  }
+);
+
 function getListeners(target: ReturnType<typeof createEventTarget>, eventName: string) {
   const registrations = target.listeners.get(eventName);
   expect(registrations).toBeDefined();

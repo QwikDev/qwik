@@ -1,4 +1,6 @@
 import type { ContainerContext } from './container-context';
+import type { SsrContentContext } from '../ssr/output';
+
 import type { ContextScope } from './context-scope';
 import type { Owner } from './owner';
 import type { VisibleTaskSubscription } from './task';
@@ -6,12 +8,14 @@ import type { SlotScope } from '../dom/slot/slot';
 import type { UseOnMap } from './use-on';
 import { registerSingleton } from '../shared/singletons';
 
-export interface RuntimeInvokeContext {
+export type RuntimeContainerContext = ContainerContext | SsrContentContext;
+
+export interface RuntimeInvokeContext<C extends RuntimeContainerContext = RuntimeContainerContext> {
   owner: Owner | null;
   // Parent owner for a lazy owner before it exists. Once materialized,
   // Owner.parent is the source of truth.
   ownerHost: Owner | null;
-  container: ContainerContext | undefined;
+  container: C | undefined;
   contextScope: ContextScope | null;
   localContextScope: ContextScope | null;
   slotScope: SlotScope | null;
@@ -22,14 +26,17 @@ export interface RuntimeInvokeContext {
   styleScopes?: string[];
   /** Work that hooks chain here, which a compiled render waits on before it commits. */
   pendingSetup?: Promise<void>;
+  hasCatchErrorHandler?: boolean;
   /** The server render's `useId` counter; a client render counts on its container instead. */
   ids?: { next: number };
 }
 
-export interface NewInvokeContextOptions {
+export interface NewInvokeContextOptions<
+  C extends RuntimeContainerContext = RuntimeContainerContext,
+> {
   owner?: Owner | null;
   ownerHost?: Owner | null;
-  container?: ContainerContext;
+  container?: C;
   ids?: { next: number };
   contextScope?: ContextScope | null;
   localContextScope?: ContextScope | null;
@@ -38,7 +45,7 @@ export interface NewInvokeContextOptions {
 
 export interface ChildInvokeContextOptions {
   ownerHost?: Owner | null;
-  container?: ContainerContext;
+  container?: RuntimeContainerContext;
   contextScope?: ContextScope | null;
   slotScope?: SlotScope | null;
 }
@@ -47,17 +54,21 @@ const invokeState = /*#__PURE__*/ registerSingleton('v3.invokeContext', () => ({
   current: null as RuntimeInvokeContext | null,
 }));
 
-export function getActiveInvokeContext(): RuntimeInvokeContext {
+export function getActiveInvokeContext<
+  C extends RuntimeContainerContext = RuntimeContainerContext,
+>(): RuntimeInvokeContext<C> {
   const context = invokeState.current;
   if (context === null) {
     throw new Error('Missing active invoke context');
   }
 
-  return context;
+  return context as RuntimeInvokeContext<C>;
 }
 
-export function getActiveInvokeContextOrNull(): RuntimeInvokeContext | null {
-  return invokeState.current;
+export function getActiveInvokeContextOrNull<
+  C extends RuntimeContainerContext = RuntimeContainerContext,
+>(): RuntimeInvokeContext<C> | null {
+  return invokeState.current as RuntimeInvokeContext<C> | null;
 }
 
 export function getActiveOwnerScope(): Owner | null {
@@ -68,7 +79,9 @@ export function setActiveInvokeContext(context: RuntimeInvokeContext | null): vo
   invokeState.current = context;
 }
 
-export function newInvokeContext(options?: NewInvokeContextOptions): RuntimeInvokeContext {
+export function newInvokeContext<C extends RuntimeContainerContext = RuntimeContainerContext>(
+  options?: NewInvokeContextOptions<C>
+): RuntimeInvokeContext<C> {
   return {
     owner: options?.owner ?? null,
     ownerHost: options?.ownerHost ?? null,

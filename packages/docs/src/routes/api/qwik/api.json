@@ -307,7 +307,7 @@
       ],
       "kind": "Variable",
       "content": "Compiler marker for a render error boundary.\n\n\n```typescript\nCatch: Component<CatchProps>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/catch.ts",
       "mdFile": "core.catch.md"
     },
     {
@@ -321,7 +321,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface CatchProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfallback$\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;(error: Error &amp; { digest?: string; }) =&gt; [JSXOutput](#jsxoutput)<!-- -->&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/content.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/dom/content/catch.ts",
       "mdFile": "core.catchprops.md"
     },
     {

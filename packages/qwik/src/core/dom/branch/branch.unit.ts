@@ -1,3 +1,4 @@
+import type { SsrContentContext } from '../../ssr/output';
 import { describe, expect, it } from 'vitest';
 import { _captures, createQRL } from '../../shared/qrl/qrl-class';
 import {
@@ -48,7 +49,7 @@ import {
 
 type BranchConditionFn = () => ValueOrPromise<boolean>;
 type BranchRenderFn = (ctx: ContainerContext) => ValueOrPromise<readonly Node[]>;
-type SsrBranchRenderFn = (ctx: ContainerContext) => ValueOrPromise<string>;
+type SsrBranchRenderFn = (ctx: SsrContentContext) => ValueOrPromise<string>;
 
 const BRANCH_THEN = 0;
 const BRANCH_ELSE = 1;
@@ -713,7 +714,7 @@ describe('branches', () => {
     const scheduler = new Scheduler(noopSchedule);
     const visible = useSignal(true);
     const child = useSignal('then');
-    const ctx = { scheduler } as ContainerContext;
+    const ctx = { scheduler };
     const conditionQrl = createQRL<BranchConditionFn>('chunk', 'condition', () => visible.value);
     const thenQrl = createQRL<SsrBranchRenderFn>('chunk', 'renderThen', () => {
       return renderSsrTextNode(11, null, child);
@@ -733,7 +734,7 @@ describe('branches', () => {
   it('resolves async SSR branch QRLs', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const visible = useSignal(false);
-    const ctx = { scheduler } as ContainerContext;
+    const ctx = { scheduler };
     let conditionResolved = false;
     let elseResolved = false;
     const conditionQrl = createQRL<BranchConditionFn>('chunk', 'condition', null, () => {

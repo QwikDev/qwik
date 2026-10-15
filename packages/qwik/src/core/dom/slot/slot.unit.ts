@@ -1,3 +1,4 @@
+import type { SsrReferenceChunk } from '../../ssr/output';
 import { describe, expect, it } from 'vitest';
 import { createWindow } from '../../../testing/document';
 import { createContainerContext } from '../../runtime/container-context';
@@ -203,14 +204,19 @@ describe('slots', () => {
 
   it('wraps SSR projection output in a resumable range', () => {
     const scheduler = new Scheduler(noopSchedule);
-    const container = createCaptureContainer({}, scheduler);
+    const captures = createCaptureContainer({}, scheduler);
+    const container = {
+      scheduler: captures.scheduler,
+      nextId: captures.nextId,
+      addRoot: captures.addRoot,
+    };
     const scope = createSlotScope();
     const output: SsrOutput = ['projected'];
-    registerProjection(scope, '', (_ctx: unknown, rangeId: number, rootId: number) => [
+    registerProjection(scope, '', (_ctx: unknown, rangeId: number, rootId: SsrReferenceChunk) => [
       '<!s=',
       { type: 'node-id', localId: rangeId },
       ',',
-      { type: 'root-ref', localId: rootId },
+      rootId,
       '>',
       ...output,
       '<!/s>',

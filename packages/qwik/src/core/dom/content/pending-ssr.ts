@@ -2,40 +2,15 @@ import type { QRL } from '../../shared/qrl/qrl.public';
 import { isPromise, maybeThen } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { getActiveInvokeContextOrNull, invoke } from '../../runtime/invoke-context';
-import { resolveSsrOutput, type SsrDeferredRange, type SsrOutput } from '../../ssr/output';
+import { type SsrDeferredRange, type SsrOutput, type SsrRangeHost } from '../../ssr/output';
 import { renderSsrContent, SSRContent, SSRPendingContentSubscription } from './content';
 import { registerPendingBoundary } from './pending-boundary';
 import type { RevealGroup } from './reveal';
 
-/**
- * What the SSR streaming engine offers whoever wants to hold part of the document open. The engine
- * streams ranges and schedules lanes; why a range defers is none of its business.
- */
-export interface SsrRangeHost {
-  nextId(): number;
-  addRoot(value: unknown): number;
-  /** Wraps content in a range's document markers. */
-  wrapRange(rangeId: number, content: SsrOutput): SsrOutput;
-  /** A child scope: its work runs on its own lane and its ranges nest under `rangeId`. */
-  createRangeScope(rangeId: number): SsrRangeScope;
-  /** False under in-order rendering: the owner must await its content instead of deferring. */
-  canDefer: boolean;
-}
-
-export interface SsrRangeScope extends SsrRangeHost {
-  /** Runs the work queued on this scope's lane. */
-  flush(): ValueOrPromise<void>;
-  /** Streams `range.output` in a later packet; the caller returns placeholder markup now. */
-  defer(range: SsrDeferredRange, content: Promise<SsrOutput>): void;
-  /** Lifts ranges nested in this scope up to its parent, for a scope that never defers. */
-  reparentRanges(): void;
-  cancel?(): void;
-}
-
 type SsrPendingRenderFn = (host: SsrRangeHost) => ValueOrPromise<SsrOutput>;
 
 /**
- * Renders a Suspense boundary on the server: the content takes its own lane, and if it has not
+ * Renders a Pending boundary on the server: the content takes its own lane, and if it has not
  * settled by `delay` the fallback streams in its place until a later packet swaps it out.
  */
 export function createSsrPending(
@@ -53,12 +28,12 @@ export function createSsrPending(
     [],
     contentQrl as never,
     getActiveInvokeContextOrNull(),
-    scope as never,
+    scope,
     false,
     true
   );
   const contentRoot = new SSRPendingContentSubscription(pendingContent, fallbackQrl ?? null, delay);
-  const rendered = maybeThen(pendingContent.run(undefined, contentRoot), resolveSsrOutput);
+  const rendered = pendingContent.run(undefined, contentRoot);
   const initialTasks = scope.flush();
   const drain = (output: SsrOutput) =>
     maybeThen(scope.flush(), () => {
@@ -107,7 +82,7 @@ export function createSsrPending(
     return invoke(invokeContext, () =>
       maybeThen(
         renderSsrContent(
-          host as never,
+          host,
           fallbackId,
           [],
           fallbackQrl as never,

@@ -1,11 +1,12 @@
 import { isServer } from '@qwik.dev/core/build';
-import { isPromise, maybeThen, MAX_RETRY_ON_PROMISE_COUNT } from '../shared/utils/promises';
+import { isPromise, maybeThen, thenInLifetime, retryAfterPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import {
   getActiveInvokeContextOrNull,
   invoke,
   newChildInvokeContext,
   type RuntimeInvokeContext,
+  type RuntimeContainerContext,
 } from '../runtime/invoke-context';
 import type { ContainerContext } from '../runtime/container-context';
 import type { SlotScope } from '../dom/slot/slot';
@@ -17,10 +18,10 @@ import { applyUseOnToCsrOutput } from '../runtime/use-on';
 import { qTest } from '../shared/utils/qdev';
 import { isServerPlatform } from '../shared/platform/platform';
 import { applyUseOnToSsrOutput } from '../ssr/use-on';
-import type { SsrEventAttrChunk, SsrOutput } from '../ssr/output';
+import { ownSsrOutput, type SsrContentContext, type SsrOutput } from '../ssr/output';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
+import { handleError } from '../dom/content/catch-boundary';
 import { OwnerFlags } from '../reactive/flags';
-import { findCatchBoundary, handleRenderError } from '../dom/content/catch-boundary';
 
 export type ComponentOutput = NodeOutput | string;
 export type ComponentRenderFn<TProps = unknown> = (
@@ -28,7 +29,7 @@ export type ComponentRenderFn<TProps = unknown> = (
 ) => ValueOrPromise<ComponentOutput | void>;
 
 export interface ComponentOptions {
-  container?: ContainerContext;
+  container?: RuntimeContainerContext;
   invokeContext?: RuntimeInvokeContext | null;
   slotScope?: SlotScope | null;
 }
@@ -69,24 +70,123 @@ export function createComponent(
   renderContext?: unknown,
   options?: ComponentOptions
 ): ValueOrPromise<ComponentOutput | void> {
-  return createComponentAttempt(props ?? EMPTY_OBJ, render, renderContext, options, 0);
+  const parentInvokeContext = options?.invokeContext ?? getActiveInvokeContextOrNull();
+  // Retries keep the first host when the ambient context changes.
+  const ownerHost = getOrCreateContextOwner(parentInvokeContext);
+  if (ownerHost?.isCancelled) {
+    return EMPTY_NODES;
+  }
+  const invokeContext = createComponentInvokeContext(parentInvokeContext, ownerHost, options);
+  let nodes: ValueOrPromise<ComponentOutput | void>;
+  try {
+    nodes = untrack(invoke, invokeContext, render, props ?? EMPTY_OBJ, renderContext);
+  } catch (error) {
+    if (!isPromise(error)) {
+      return handleComponentError(invokeContext, error);
+    }
+    return settleComponent(
+      error,
+      true,
+      invokeContext,
+      parentInvokeContext,
+      render,
+      props,
+      renderContext,
+      options
+    );
+  }
+  if (ownerHost?.isCancelled) {
+    if (isPromise(nodes)) {
+      nodes.catch(() => {});
+    }
+    if (invokeContext.owner !== null) {
+      disposeOwner(invokeContext.owner);
+    }
+    return EMPTY_NODES;
+  }
+  return isPromise(nodes)
+    ? settleComponent(
+        nodes,
+        false,
+        invokeContext,
+        parentInvokeContext,
+        render,
+        props,
+        renderContext,
+        options
+      )
+    : finalizeOutput(nodes, invokeContext);
 }
 
-function createComponentAttempt<TProps, TRenderContext>(
-  props: TProps,
-  render: (props: TProps, context: TRenderContext) => ValueOrPromise<ComponentOutput | void>,
-  renderContext: TRenderContext,
-  options: ComponentOptions | undefined,
-  retryCount: number,
-  retryOwnerHost?: Owner | null
+function settleComponent(
+  source: Promise<unknown>,
+  isPendingRead: boolean,
+  invokeContext: RuntimeInvokeContext,
+  parentInvokeContext: RuntimeInvokeContext | null,
+  render: (props: unknown, context: unknown) => ValueOrPromise<ComponentOutput | void>,
+  props: unknown,
+  renderContext: unknown,
+  options: ComponentOptions | undefined
 ): ValueOrPromise<ComponentOutput | void> {
-  const parentInvokeContext =
-    options !== undefined && options.invokeContext
-      ? options.invokeContext
-      : getActiveInvokeContextOrNull();
-  // A retry keeps the first attempt's host; list rows reset the shared context.
-  const ownerHost =
-    retryOwnerHost === undefined ? getOrCreateContextOwner(parentInvokeContext) : retryOwnerHost;
+  const ownerHost = invokeContext.ownerHost;
+  if (ownerHost?.isCancelled) {
+    source.catch(() => {});
+    if (invokeContext.owner !== null) {
+      disposeOwner(invokeContext.owner);
+    }
+    return EMPTY_NODES;
+  }
+  const finish = (nodes: ComponentOutput | void) => finalizeOutput(nodes, invokeContext);
+  const retry = (error: unknown): ValueOrPromise<ComponentOutput | void> => {
+    if (!isPromise(error)) {
+      return handleComponentError(invokeContext, error);
+    }
+    const result = retryAfterPromise(
+      ownerHost,
+      error,
+      () => {
+        invokeContext = createComponentInvokeContext(parentInvokeContext, ownerHost, options);
+        return thenInLifetime(
+          ownerHost,
+          untrack(invoke, invokeContext, render, props ?? EMPTY_OBJ, renderContext),
+          finish,
+          EMPTY_NODES
+        );
+      },
+      EMPTY_NODES
+    );
+    return isPromise(result)
+      ? result.catch((error) => handleComponentError(invokeContext, error))
+      : result;
+  };
+  const pending = isPendingRead
+    ? retry(source)
+    : thenInLifetime(
+        ownerHost,
+        source as Promise<ComponentOutput | void>,
+        finish,
+        EMPTY_NODES,
+        retry
+      );
+  if (
+    (qTest ? !isServerPlatform() : !isServer) &&
+    isPromise(pending) &&
+    ownerHost !== null &&
+    ownerHost.flags & OwnerFlags.HasCatch
+  ) {
+    (invokeContext.container as ContainerContext | undefined)?.scheduler.waitFor(
+      pending,
+      ownerHost
+    );
+  }
+  return pending;
+}
+
+function createComponentInvokeContext(
+  parentInvokeContext: RuntimeInvokeContext | null,
+  ownerHost: Owner | null,
+  options: ComponentOptions | undefined
+): RuntimeInvokeContext {
   const invokeContext = newChildInvokeContext(parentInvokeContext, {
     ownerHost,
     container: options?.container,
@@ -105,82 +205,45 @@ function createComponentAttempt<TProps, TRenderContext>(
           ? [parentInvokeContext.useOnEvents]
           : [parentInvokeContext.useOnEvents, ...inherited];
   }
+  return invokeContext;
+}
 
-  // A thrown promise is a pending read (e.g. an async value in the component body):
-  // wait for it and re-run the component, mirroring v2's promise-exception retry.
-  // The retry re-invokes with the parent context carried explicitly — the ambient
-  // invoke context is gone after the await. The failed attempt's owner is left
-  // undisposed: disposing would abort in-flight computeds before they publish.
-  const retryOnPending = (error: unknown): ValueOrPromise<ComponentOutput | void> => {
-    if (isPromise(error)) {
-      if (retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
-        const retryOptions: ComponentOptions = { ...options, invokeContext: parentInvokeContext };
-        return (error as Promise<unknown>).then(() =>
-          createComponentAttempt(
-            props,
-            render,
-            renderContext,
-            retryOptions,
-            retryCount + 1,
-            ownerHost
-          )
-        );
-      }
-      // never rethrow the promise itself: a thenable error is silently adopted upstream
-      error = new Error('Max retry count of component execution reached');
-    }
+function handleComponentError(
+  invokeContext: RuntimeInvokeContext,
+  error: unknown
+): ValueOrPromise<ComponentOutput> {
+  let handled: ValueOrPromise<void>;
+  try {
+    handled = handleError(invokeContext.ownerHost, error);
+  } finally {
     if (invokeContext.owner !== null) {
       disposeOwner(invokeContext.owner);
       invokeContext.owner = null;
     }
-    throw error;
-  };
-
-  let nodes: ValueOrPromise<ComponentOutput | void>;
-  try {
-    nodes = untrack(invoke, invokeContext, render, props, renderContext);
-  } catch (error) {
-    return retryOnPending(error);
   }
-  if (isPromise(nodes)) {
-    const pending = nodes.then((nodes) => {
-      if (ownerHost !== null && ownerHost.flags & OwnerFlags.Disposed) {
-        if (invokeContext.owner !== null) {
-          disposeOwner(invokeContext.owner);
-        }
-        return EMPTY_NODES;
-      }
-      return finalizeOutput(nodes, invokeContext);
-    }, retryOnPending);
-    if ((qTest ? !isServerPlatform() : !isServer) && findCatchBoundary(ownerHost) !== undefined) {
-      const handled = pending.catch((error) =>
-        maybeThen(handleRenderError(ownerHost, error), () => EMPTY_NODES)
-      );
-      invokeContext.container?.scheduler.waitFor(handled, ownerHost);
-      return handled;
-    }
-    return pending;
+  if ((qTest ? !isServerPlatform() : !isServer) && isPromise(handled)) {
+    (invokeContext.container as ContainerContext | undefined)?.scheduler.waitFor(
+      handled,
+      invokeContext.ownerHost
+    );
   }
-
-  return finalizeOutput(nodes, invokeContext);
+  return maybeThen(handled, () => EMPTY_NODES);
 }
 
 function finalizeOutput(
   output: ComponentOutput | void,
   invokeContext: RuntimeInvokeContext
 ): ComponentOutput {
-  const normalized = output ?? EMPTY_NODES;
+  const normalized = (qTest ? isServerPlatform() : isServer)
+    ? (ownSsrOutput((output ?? EMPTY_NODES) as SsrOutput, invokeContext) as ComponentOutput)
+    : (output ?? EMPTY_NODES);
   const useOnEvents = invokeContext.useOnEvents;
   const container = invokeContext.container;
   if (useOnEvents === undefined || container === undefined) {
     return normalized;
   }
   if (qTest ? isServerPlatform() : isServer) {
-    const eventAttr = (
-      container as unknown as {
-        eventAttr(name: string, value: unknown): SsrEventAttrChunk;
-      }
-    ).eventAttr;
+    const eventAttr = (container as SsrContentContext).eventAttr!;
     return applyUseOnToSsrOutput(
       normalized as SsrOutput,
       useOnEvents,
@@ -190,6 +253,6 @@ function finalizeOutput(
   return applyUseOnToCsrOutput(
     normalized as NodeOutput,
     useOnEvents,
-    container.document
+    container.document!
   ) as ComponentOutput;
 }

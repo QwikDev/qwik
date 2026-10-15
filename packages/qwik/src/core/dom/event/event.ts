@@ -1,4 +1,7 @@
-import { getOrCreateContainerContext } from '../../runtime/container-context';
+import {
+  getOrCreateContainerContext,
+  type ContainerContext,
+} from '../../runtime/container-context';
 import {
   getActiveInvokeContextOrNull,
   invokeApply,
@@ -8,6 +11,9 @@ import { setCaptures } from '../../shared/qrl/qrl-captures';
 import type { CapturedEventHandler, qWindow, QDispatchHandler, QElement } from '../../shared/types';
 import { retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
+import { OwnerFlags } from '../../reactive/flags';
+import { getActiveCollector } from '../../reactive/tracking';
+import { handleError } from '../content/catch-boundary';
 
 type EventHandler = (event: Event, element: Element, ...params: unknown[]) => unknown;
 const scopedEventNames = Object.create(null) as Record<string, string | undefined>;
@@ -22,21 +28,27 @@ function invokeDispatchHandler(
   if (!element.isConnected) {
     return;
   }
-  const context = newInvokeContext({ container: getOrCreateContainerContext(element) });
-  return retryOnPromise(() => {
-    if (captures) {
-      setCaptures(captures);
-    }
-    const paramCount = captures?._qParamCount ?? 0;
-    const target = element as QElement;
-    const args: Parameters<EventHandler> = [event, element];
-    if (paramCount === 1) {
-      args.push(target._qEventParam);
-    } else if (paramCount > 1) {
-      args.push(...target._qEventParams!);
-    }
-    return invokeApply(context, handler, args);
+  const context = newInvokeContext({
+    container: getOrCreateContainerContext(element),
+    ownerHost: (element as QElement)._qErrorOwner,
   });
+  return retryOnPromise(
+    () => {
+      if (captures) {
+        setCaptures(captures);
+      }
+      const paramCount = captures?._qParamCount ?? 0;
+      const target = element as QElement;
+      const args: Parameters<EventHandler> = [event, element];
+      if (paramCount === 1) {
+        args.push(target._qEventParam);
+      } else if (paramCount > 1) {
+        args.push(...target._qEventParams!);
+      }
+      return invokeApply(context, handler, args);
+    },
+    context.ownerHost === null ? undefined : (error) => handleError(context.ownerHost, error)
+  );
 }
 
 function wrapDispatch(
@@ -86,6 +98,11 @@ export function setEvent(
 ): void {
   const scopedKebabName = (scopedEventNames[key] ??= key.slice(2));
   const target = element as QElement;
+  const context = getActiveInvokeContextOrNull<ContainerContext>();
+  const owner = context?.owner ?? context?.ownerHost ?? getActiveCollector()?.owner;
+  if (owner !== null && owner !== undefined && owner.flags & OwnerFlags.HasCatch) {
+    target._qErrorOwner = owner;
+  }
   (target._qDispatch ||= {})[scopedKebabName] = captures
     ? createCapturedEvent(handler as EventHandler, captures)
     : wrapDispatch(handler);
@@ -122,7 +139,7 @@ function registerQwikLoaderEvent(element: Element, eventName: string) {
   }
   if (SCANNED_EVENTS.includes(eventName)) {
     // The loader scans the document, so the push waits until this flush has inserted the element.
-    const scheduler = getActiveInvokeContextOrNull()?.container?.scheduler;
+    const scheduler = getActiveInvokeContextOrNull<ContainerContext>()?.container?.scheduler;
     scheduler === undefined ? push() : scheduler.onFlushed(push);
   } else if (!loader.events.has(eventName)) {
     push();

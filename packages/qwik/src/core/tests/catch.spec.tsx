@@ -1,4 +1,13 @@
-import { $, Catch, component$, useComputed$, useSignal, Slot } from '@qwik.dev/core';
+import {
+  $,
+  Catch,
+  component$,
+  useComputed$,
+  useSignal,
+  Slot,
+  useTask$,
+  type Signal,
+} from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -19,6 +28,136 @@ const Thrower = component$(() => {
 });
 
 describe(`${name}: Catch`, () => {
+  it('catches an application error with plugin metadata', async () => {
+    const Broken = component$(() => {
+      throw Object.assign(new Error('application failed'), { plugin: 'application' });
+      return null;
+    });
+    const App = component$(() => (
+      <Catch fallback$={(error) => <p id="fallback">{error.message}</p>}>
+        <Broken />
+      </Catch>
+    ));
+    const result = await render(App);
+    try {
+      expect(result.container.querySelector('#fallback')?.textContent).toBe('application failed');
+    } finally {
+      result.cleanup();
+    }
+  });
+
+  it.each(['task-sync', 'task-async', 'computed-sync', 'computed-async'] as const)(
+    'catches %s cleanup errors when removing a branch',
+    async (kind) => {
+      const Child = component$<{ kind: string }>(({ kind }) => {
+        useTask$(({ cleanup }) => {
+          if (kind.startsWith('task')) {
+            cleanup(() => {
+              if (kind.endsWith('async')) {
+                return Promise.reject(new Error('cleanup failed'));
+              }
+              throw new Error('cleanup failed');
+            });
+          }
+        });
+        const value = useComputed$<string>(({ cleanup }) => {
+          if (kind.startsWith('computed')) {
+            cleanup(() => {
+              if (kind.endsWith('async')) {
+                return Promise.reject(new Error('cleanup failed'));
+              }
+              throw new Error('cleanup failed');
+            });
+          }
+          return 'child';
+        });
+        return <p id="child">{value.value}</p>;
+      });
+      const App = component$<{ kind: string }>(({ kind }) => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button
+              id="toggle"
+              onClick$={() => {
+                show.value = !show.value;
+              }}
+            >
+              toggle
+            </button>
+            <Catch fallback$={(error) => <p id="fallback">{error.message}</p>}>
+              {show.value ? <Child kind={kind} /> : null}
+            </Catch>
+          </>
+        );
+      });
+      const result = await render(App, { props: { kind } });
+      try {
+        await result.qwikLoader?.dispatch(result.container.querySelector('#toggle')!, 'click');
+        expect(result.container.querySelector('#child')?.textContent).toBe('child');
+        await result.qwikLoader?.dispatch(result.container.querySelector('#toggle')!, 'click');
+        expect(result.container.querySelector('#fallback')?.textContent).toBe('cleanup failed');
+        expect(result.container.querySelector('#child')).toBeFalsy();
+      } finally {
+        result.cleanup();
+      }
+    }
+  );
+
+  it.each(['event', 'task'] as const)(
+    'keeps shared state when a %s failure replaces its subtree',
+    async (mode) => {
+      const Content = component$<{ count: Signal<number>; mode: string }>(({ count, mode }) => {
+        useTask$(() => {
+          if (mode === 'task' && count.value > 0) {
+            throw new Error('task failed');
+          }
+        });
+        return (
+          <button
+            id="fail"
+            onClick$={() => {
+              count.value++;
+              if (mode === 'event') {
+                throw new Error('event failed');
+              }
+            }}
+          >
+            fail
+          </button>
+        );
+      });
+      const App = component$<{ mode: string }>(({ mode }) => {
+        const count = useSignal(0);
+        return (
+          <>
+            <Catch
+              fallback$={(error) => (
+                <button id="fallback" onClick$={() => count.value++}>
+                  {error.message}: {count.value}
+                </button>
+              )}
+            >
+              <Content count={count} mode={mode} />
+            </Catch>
+            <output>{count.value}</output>
+          </>
+        );
+      });
+      const result = await render(App, { props: { mode } });
+      try {
+        expect(result.container.querySelector('#fail'), result.container.innerHTML).toBeTruthy();
+        await result.qwikLoader?.dispatch(result.container.querySelector('#fail')!, 'click');
+        expect(result.container.querySelector('#fallback')?.textContent).toBe(`${mode} failed: 1`);
+        expect(result.container.querySelector('#fail')).toBeFalsy();
+        await result.qwikLoader?.dispatch(result.container.querySelector('#fallback')!, 'click');
+        expect(result.container.querySelector('output')?.textContent).toBe('2');
+      } finally {
+        result.cleanup();
+      }
+    }
+  );
+
   it('renders a local QRL fallback with captures and preserved callback arguments', async () => {
     const App = component$(() => {
       const label = useSignal('caught');

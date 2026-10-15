@@ -14,6 +14,7 @@ export const enum OwnerFlags {
   ShowsProjection = 1 << 10,
   ResumeProjection = 1 << 11,
   ResumeClosed = 1 << 12,
+  HasCatch = 1 << 13,
   DirtyMask = DirtyBlockingTask |
     DirtyStructuralDom |
     DirtyScalarDom |
@@ -30,6 +31,8 @@ export const enum SubscriberFlags {
   None = 0,
   Dirty = 1 << 0,
   Disposed = 1 << 4,
+  Published = 1 << 5,
+  Deferred = 1 << 6,
 }
 
 export const enum ComputedFlags {
@@ -39,4 +42,5 @@ export const enum ComputedFlags {
   HasValue = 1 << 2,
   Async = 1 << 3,
   Disposed = 1 << 4,
+  Published = 1 << 5,
 }

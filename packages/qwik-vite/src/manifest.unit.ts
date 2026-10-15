@@ -3,6 +3,14 @@ import { describe, expect, test } from 'vitest';
 import { generateManifestFromBundles } from './manifest';
 
 describe('generateManifestFromBundles', () => {
+  test('maps the Catch error handler from the handlers facade', () => {
+    const manifest = generate({
+      'q-core.js': chunk('qwik-core', 'q-core.js', [], [...HANDLERS, '_catchError', '_Catch']),
+    });
+    expect(manifest.mapping._catchError).toBe('q-core.js');
+    expect(manifest.mapping._Catch).toBe('q-core.js');
+  });
+
   const HANDLERS = ['_chk', '_res', '_run', '_tagProps', '_val', '_visibleTask'];
   const chunk = (
     name: string,

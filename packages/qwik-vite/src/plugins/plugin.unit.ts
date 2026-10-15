@@ -767,6 +767,24 @@ export function useCounter() {
   expect((await plugin.load({} as any, segmentId!)) as { code: string }).toHaveProperty('code');
 });
 
+test.each([false, true])('emits the Catch handler only when used: %s', async (hasCatch) => {
+  const plugin = await mockPlugin(process.platform, false);
+  await plugin.normalizeOptions({ rootDir: '/root', srcDir: '/root/src', buildMode: 'production' });
+  const entries: string[] = [];
+  await plugin.transform(
+    {
+      addWatchFile() {},
+      emitFile(entry: { id: string }) {
+        entries.push(entry.id);
+      },
+    } as any,
+    `import { Catch } from '@qwik.dev/core';
+export function App() { return ${hasCatch ? '<><Catch fallback$={() => <p>failed</p>}><p>content</p></Catch><Catch fallback$={() => <p>failed</p>}><p>content</p></Catch></>' : '<p>content</p>'}; }`,
+    '/root/src/app.tsx'
+  );
+  expect(entries.filter((id) => id === '@qwik-catch-handlers')).toHaveLength(hasCatch ? 1 : 0);
+});
+
 async function mockPlugin(os = process.platform, useMockBinding = true) {
   const plugin = createQwikPlugin({
     sys: {

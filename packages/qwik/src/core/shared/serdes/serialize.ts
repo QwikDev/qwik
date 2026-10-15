@@ -1,4 +1,3 @@
-import { SSRCatchContentSubscription } from '../../dom/content/catch';
 import { isDev, isServer } from '@qwik.dev/core/build';
 import { IndexMode } from '../../dom/for/for';
 import { NEEDS_COMPUTATION } from '../../reactive/constants';
@@ -8,7 +7,7 @@ import {
   SSRContentSubscription as SsrContentSubscription,
   SSRPendingContentSubscription as SsrPendingContentSubscription,
 } from '../../dom/content/content';
-import { findContentBoundary } from '../../dom/content/catch-boundary';
+import { findContentBoundary, isCatchBoundary } from '../../dom/content/catch-boundary';
 import { SSRForBlockSubscription as SsrForBlockSubscription } from '../../dom/effect/ssr-effect';
 import {
   EffectTargetKind,
@@ -17,7 +16,7 @@ import {
   type SsrScalarDomEffect,
   type SsrDomEffect,
 } from '../../dom/effect/ssr-effect';
-import { ComputedFlags, OwnerFlags } from '../../reactive/flags';
+import { ComputedFlags, OwnerFlags, SubscriberFlags } from '../../reactive/flags';
 import { AsyncSignal } from '../../reactive/async-signal';
 import { Computed, isAsyncComputed } from '../../reactive/computed';
 import { ComputedQrl } from '../../reactive/computed-qrl';
@@ -67,9 +66,38 @@ import { Constants, EMPTY_OBJECT_PAYLOAD, explicitUndefined, TypeIds } from './c
 import { qrlToString } from './qrl-to-string';
 import { SerializationBackRef } from './serialization-back-ref';
 import type { SeenRef, SerializationContext } from './serialization-context';
+import type { SerializationJournal } from './serialization-journal';
 import { fastSkipSerialize, SerializerSymbol } from './verify';
 
 const MAX_INLINE_ARRAY_ITEMS = 64;
+
+interface SerializationOperation {
+  serializer?: Serializer;
+  cancelled: boolean;
+  hasError?: boolean;
+  error?: unknown;
+  wake?: () => void;
+  cancel(): void;
+  observations: PromiseObservation[];
+}
+
+interface PromiseObservation {
+  operation?: SerializationOperation;
+  promise?: Promise<unknown>;
+  factory?: (didResolve: boolean, value: unknown) => PromiseResult;
+  id: number;
+  root: number;
+}
+
+function observeSerializedPromise(
+  promise: Promise<unknown>,
+  observation: PromiseObservation
+): void {
+  promise.then(
+    (value) => observation.operation?.serializer?.$acceptPromise$(observation, true, value),
+    (error) => observation.operation?.serializer?.$acceptPromise$(observation, false, error)
+  );
+}
 
 /**
  * Format:
@@ -85,6 +113,7 @@ export class Serializer {
     Owner,
     { positions: WeakMap<OwnerItem, number>; next: number }
   >();
+  private $operation$?: SerializationOperation;
   private $rootIdx$ = 0;
   private $forwardRefs$: Array<number | string | number[]> = [];
   private $forwardRefsId$ = 0;
@@ -109,17 +138,99 @@ export class Serializer {
     return this.serializeRoots(false);
   }
 
-  private async serializeRoots(includeForwardRefs: boolean) {
+  private serializeRoots(includeForwardRefs: boolean) {
+    return this.withOperation(() => this.outputRoots(includeForwardRefs));
+  }
+
+  private async withOperation<T>(write: () => Promise<T>): Promise<T> {
+    if (this.$operation$ !== undefined) {
+      throw new Error('Concurrent serialization is not supported');
+    }
+    const operation: SerializationOperation = {
+      serializer: this,
+      cancelled: false,
+      cancel() {
+        operation.cancelled = true;
+        operation.wake?.();
+      },
+      observations: [],
+    };
+    this.$operation$ = operation;
     const previousStreamedRootLimit = this.$streamedRootLimit$;
     this.$streamedRootLimit$ = 0;
     try {
-      return await this.outputRoots(includeForwardRefs);
+      return await write();
     } finally {
+      operation.serializer = undefined;
+      for (let i = 0; i < operation.observations.length; i++) {
+        const observation = operation.observations[i];
+        observation.operation = observation.promise = observation.factory = undefined;
+      }
+      operation.observations.length = 0;
+      this.$promises$.clear();
+      this.$operation$ = undefined;
       this.$streamedRootLimit$ = previousStreamedRootLimit;
     }
   }
 
+  $checkpoint$(journal: SerializationJournal): void {
+    if (!isServer) {
+      return;
+    }
+    const rootIdx = this.$rootIdx$;
+    const forwardRefsId = this.$forwardRefsId$;
+    const parent = this.$parent$;
+    journal.record(() => {
+      this.$rootIdx$ = rootIdx;
+      this.$forwardRefsId$ = forwardRefsId;
+      this.$parent$ = parent;
+    });
+    journal.assign(this.$forwardRefs$, 'length', this.$forwardRefs$.length);
+  }
+
+  $cancel$(): void {
+    if (isServer) {
+      this.$operation$?.cancel();
+    }
+  }
+
+  $assertSettled$(): void {
+    if (isServer && this.$operation$ !== undefined) {
+      throw new Error('Serialization must settle before rollback');
+    }
+  }
+
+  private checkCancellation(): void {
+    if (this.$operation$?.hasError) {
+      throw this.$operation$.error;
+    }
+    if (this.$operation$?.cancelled) {
+      throw new Error('Serialization cancelled');
+    }
+  }
+
+  private async waitForPromise(): Promise<void> {
+    const operation = this.$operation$!;
+    this.checkCancellation();
+    await new Promise<void>((resolve) => {
+      operation.wake = resolve;
+    });
+    operation.wake = undefined;
+    this.checkCancellation();
+  }
+
   async serializePatch(
+    rootStart: number,
+    rootIds: number[],
+    extraRootId?: number | string | number[],
+    streamedRootLimit = rootStart
+  ): Promise<void> {
+    await this.withOperation(() =>
+      this.serializePatchPayload(rootStart, rootIds, extraRootId, streamedRootLimit)
+    );
+  }
+
+  private async serializePatchPayload(
     rootStart: number,
     rootIds: number[],
     extraRootId?: number | string | number[],
@@ -376,10 +487,24 @@ export class Serializer {
       }
     }
 
+    if (isServer && (this.$parent$ || seen.$index$ !== index)) {
+      this.$serializationContext$.$onAddRoot$?.(
+        seen.$index$,
+        this.$serializationContext$.$roots$[seen.$index$],
+        value,
+        false
+      );
+    }
+
     // Check if there was a weakref to us
     if (typeof forwardRefIdx === 'number') {
-      this.$forwardRefs$[forwardRefIdx] = seen.$index$;
-      this.$s11nWeakRefs$.delete(value);
+      this.setForwardRef(forwardRefIdx, seen.$index$);
+      const journal = this.$serializationContext$.$journal$;
+      if (journal === undefined) {
+        this.$s11nWeakRefs$.delete(value);
+      } else {
+        journal.delete(this.$s11nWeakRefs$, value);
+      }
     }
 
     // Now we know it's a root and we should output a RootRef
@@ -491,7 +616,12 @@ export class Serializer {
                   this.output(TypeIds.RootRef, ref);
                   return;
                 } else {
-                  this.$qrlMap$.set(data, qrlValue);
+                  const journal = this.$serializationContext$.$journal$;
+                  if (journal === undefined) {
+                    this.$qrlMap$.set(data, qrlValue);
+                  } else {
+                    journal.set(this.$qrlMap$, data, qrlValue);
+                  }
                 }
               } else {
                 // sync QRL: '#' marks the compiler's table key, never a root-id pair
@@ -568,6 +698,22 @@ export class Serializer {
   }
 
   private writeObjectValue(value: {}, index: number) {
+    if (
+      isServer &&
+      this.$serializationContext$.$selectedSubscribers$ !== undefined &&
+      ((value as Subscriber).flags & SubscriberFlags.Disposed) !== 0 &&
+      (value instanceof Computed ||
+        value instanceof SsrDomEffectBase ||
+        value instanceof SsrDomSubscription ||
+        value instanceof SsrBranchSubscription ||
+        value instanceof SsrForBlockSubscription ||
+        value instanceof SsrContentSubscription ||
+        value instanceof TaskSubscription ||
+        value instanceof VisibleTaskSubscription)
+    ) {
+      this.output(TypeIds.Constant, Constants.Undefined);
+      return;
+    }
     let propsProxy: ReturnType<typeof getPropsProxyState>;
     let propsSources: Record<string, unknown> | undefined;
     if (value instanceof SerializerSignal) {
@@ -580,21 +726,29 @@ export class Serializer {
       } else {
         this.output(
           TypeIds.SerializerSignal,
-          this.withOwner(serializeSerializerSignal(value, maybeValue), value)
+          this.withOwner(
+            serializeSerializerSignal(value, maybeValue, this.$serializationContext$),
+            value
+          )
         );
       }
     } else if (value instanceof ComputedQrl) {
       this.output(
         isAsyncComputed(value) ? TypeIds.AsyncSignal : TypeIds.ComputedSignal,
         this.withOwner(
-          isAsyncComputed(value) ? serializeAsyncSignal(value) : serializeComputed(value),
+          isAsyncComputed(value)
+            ? serializeAsyncSignal(value, this.$serializationContext$)
+            : serializeComputed(value, this.$serializationContext$),
           value
         )
       );
     } else if (value instanceof AsyncSignal) {
-      this.output(TypeIds.AsyncSignal, this.withOwner(serializeAsyncSignal(value), value));
+      this.output(
+        TypeIds.AsyncSignal,
+        this.withOwner(serializeAsyncSignal(value, this.$serializationContext$), value)
+      );
     } else if (value instanceof Signal) {
-      this.output(TypeIds.Signal, serializeSignal(value));
+      this.output(TypeIds.Signal, serializeSignal(value, this.$serializationContext$));
     } else if (isStore(value)) {
       this.output(TypeIds.Store, this.serializeStore(value));
     } else if (value instanceof StorePropSource) {
@@ -605,14 +759,15 @@ export class Serializer {
         value.key,
       ]);
     } else if (
-      value instanceof SsrDomEffectBase ||
-      value instanceof SsrDomSubscription ||
-      value instanceof SsrBranchSubscription ||
-      value instanceof SsrForBlockSubscription ||
-      value instanceof SsrContentSubscription
+      isServer &&
+      (value instanceof SsrDomEffectBase ||
+        value instanceof SsrDomSubscription ||
+        value instanceof SsrBranchSubscription ||
+        value instanceof SsrForBlockSubscription ||
+        value instanceof SsrContentSubscription)
     ) {
       this.output(
-        value instanceof SSRCatchContentSubscription
+        isCatchBoundary(value)
           ? TypeIds.CatchSubscription
           : value instanceof SsrPendingContentSubscription
             ? TypeIds.PendingSubscription
@@ -638,9 +793,9 @@ export class Serializer {
         ...(value.flags & OwnerFlags.ShowsProjection ? [true] : []),
       ]);
     } else if (isSlotScope(value)) {
-      this.output(TypeIds.SlotScope, serializeSlotScope(value));
+      this.output(TypeIds.SlotScope, serializeSlotScope(value, this.$serializationContext$));
     } else if (isProjection(value)) {
-      this.output(TypeIds.Projection, serializeProjection(value));
+      this.output(TypeIds.Projection, serializeProjection(value, this.$serializationContext$));
     } else if (this.$serializationContext$.$isDomRef$(value)) {
       this.output(TypeIds.RefVNode, value.$nodeId$);
     } else if ((propsProxy = getPropsProxyState(value)) !== undefined) {
@@ -741,7 +896,10 @@ export class Serializer {
         }
         this.output(
           TypeIds.SerializerSignal,
-          this.withOwner(serializeSerializerSignal(value.$signal$!, value.$value$), value.$signal$!)
+          this.withOwner(
+            serializeSerializerSignal(value.$signal$!, value.$value$, this.$serializationContext$),
+            value.$signal$!
+          )
         );
       } else {
         this.output(TypeIds.Promise, [value.$resolved$, value.$value$]);
@@ -761,8 +919,13 @@ export class Serializer {
         let forwardRefId = this.$s11nWeakRefs$.get(obj);
         if (forwardRefId === undefined) {
           forwardRefId = this.$forwardRefsId$++;
-          this.$s11nWeakRefs$.set(obj, forwardRefId);
-          this.$forwardRefs$[forwardRefId] = -1;
+          const journal = this.$serializationContext$.$journal$;
+          if (journal === undefined) {
+            this.$s11nWeakRefs$.set(obj, forwardRefId);
+          } else {
+            journal.set(this.$s11nWeakRefs$, obj, forwardRefId);
+          }
+          this.setForwardRef(forwardRefId, -1);
         }
         this.output(TypeIds.ForwardRef, this.getForwardRefId(forwardRefId));
       }
@@ -785,7 +948,7 @@ export class Serializer {
     const raw = unwrapStore(store);
     const records: unknown[] = [];
     const deep = isDeepStore(store);
-    collectStoreSourceRecords(raw, records, [], deep);
+    collectStoreSourceRecords(raw, records, [], this.$serializationContext$, deep);
     if (!deep) {
       return [raw, records.length > 0 ? records : null, false];
     }
@@ -813,23 +976,47 @@ export class Serializer {
     classCreator: (didResolve: boolean, resolvedValue: unknown) => PromiseResult
   ) {
     const forwardRefId = this.$forwardRefsId$++;
-    promise
-      .then((resolvedValue) => {
-        this.$promises$.delete(promise);
-        this.$forwardRefs$[forwardRefId] = this.$serializationContext$.$addRoot$(
-          classCreator(true, resolvedValue)
-        );
-      })
-      .catch((err) => {
-        this.$promises$.delete(promise);
-        this.$forwardRefs$[forwardRefId] = this.$serializationContext$.$addRoot$(
-          classCreator(false, err)
-        );
-      });
-
+    const observation: PromiseObservation = {
+      operation: this.$operation$,
+      promise,
+      factory: classCreator,
+      id: forwardRefId,
+      root: this.$rootIdx$,
+    };
+    this.$operation$?.observations.push(observation);
     this.$promises$.add(promise);
-
+    observeSerializedPromise(promise, observation);
     return this.getForwardRefId(forwardRefId);
+  }
+
+  $acceptPromise$(observation: PromiseObservation, resolved: boolean, value: unknown): void {
+    if (observation.operation?.cancelled || observation.factory === undefined) {
+      return;
+    }
+    this.$promises$.delete(observation.promise!);
+    try {
+      this.$serializationContext$.$onSerializeRoot$?.(observation.root);
+      const id = this.$serializationContext$.$addRoot$(observation.factory(resolved, value));
+      this.setForwardRef(observation.id, id);
+    } catch (error) {
+      this.$serializationContext$.$onSerializationError$?.(error, observation.root);
+      const operation = observation.operation!;
+      operation.error = error;
+      operation.hasError = true;
+      operation.cancel();
+    } finally {
+      observation.promise = observation.factory = undefined;
+      observation.operation?.wake?.();
+    }
+  }
+
+  private setForwardRef(index: number, value: number | string | number[]): void {
+    const journal = this.$serializationContext$.$journal$;
+    if (journal === undefined) {
+      this.$forwardRefs$[index] = value;
+    } else {
+      journal.assign(this.$forwardRefs$, index, value);
+    }
   }
 
   private getForwardRefId(localId: number): number {
@@ -847,16 +1034,19 @@ export class Serializer {
         } else {
           separator = true;
         }
-        this.writeValue($roots$[this.$rootIdx$], this.$rootIdx$);
+        this.checkCancellation();
+        this.$serializationContext$.$onSerializeRoot$?.(this.$rootIdx$);
+        try {
+          this.writeValue($roots$[this.$rootIdx$], this.$rootIdx$);
+        } catch (error) {
+          this.$serializationContext$.$onSerializationError$?.(error, this.$rootIdx$);
+          throw error;
+        }
         rootsWritten++;
       }
 
       if (this.$promises$.size) {
-        try {
-          await Promise.race(this.$promises$);
-        } catch {
-          // ignore rejections, they will be serialized as rejected promises
-        }
+        await this.waitForPromise();
       }
     }
     return rootsWritten;
@@ -877,11 +1067,7 @@ export class Serializer {
         continue;
       }
 
-      try {
-        await Promise.race(this.$promises$);
-      } catch {
-        // ignore rejections, they will be serialized as rejected promises
-      }
+      await this.waitForPromise();
     }
   }
 
@@ -918,6 +1104,7 @@ export class Serializer {
     this.$writer$.write(BRACKET_OPEN);
     const rootsWritten = await this.outputPendingRoots();
 
+    this.checkCancellation();
     const forwardRefs = this.getForwardRefsPayload();
     this.$serializationContext$.$rootStateRootCount$ = this.$serializationContext$.$roots$.length;
     const forwardRefCount = forwardRefs?.length ?? 0;
@@ -946,10 +1133,10 @@ class PromiseResult {
   ) {}
 }
 
-function serializeSignal(signal: Signal<unknown>): unknown[] {
+function serializeSignal(signal: Signal<unknown>, context: SerializationContext): unknown[] {
   return [
     signal.v === undefined ? explicitUndefined : signal.v,
-    ...serializeSubscribers(signal.subs),
+    ...serializeSubscribers(signal.subs, context),
   ];
 }
 
@@ -957,6 +1144,7 @@ function collectStoreSourceRecords(
   raw: object,
   records: unknown[],
   path: Array<string | number>,
+  context: SerializationContext,
   recursive = true,
   seen = new WeakSet<object>()
 ) {
@@ -971,7 +1159,7 @@ function collectStoreSourceRecords(
       records.push([
         path.slice(),
         source.prop as string | number,
-        ...serializeSubscribers(source.subs),
+        ...serializeSubscribers(source.subs, context),
       ]);
     }
   }
@@ -989,13 +1177,16 @@ function collectStoreSourceRecords(
   for (const [key, value] of entries) {
     if (value !== null && typeof value === 'object') {
       path.push(key);
-      collectStoreSourceRecords(unwrapStore(value) as object, records, path, true, seen);
+      collectStoreSourceRecords(unwrapStore(value) as object, records, path, context, true, seen);
       path.pop();
     }
   }
 }
 
-function serializeComputed(computed: ComputedQrl<unknown>): unknown[] {
+function serializeComputed(
+  computed: ComputedQrl<unknown>,
+  context: SerializationContext
+): unknown[] {
   const hasCachedValue = !!(computed.flags & ComputedFlags.HasValue);
   const needsComputation =
     computed.options?.serializationStrategy === 'never' ||
@@ -1012,19 +1203,20 @@ function serializeComputed(computed: ComputedQrl<unknown>): unknown[] {
     computed.computeQrl,
     serializeDeps(computed.deps),
     value,
-    ...serializeSubscribers(computed.subs),
+    ...serializeSubscribers(computed.subs, context),
   ];
 }
 
 function serializeSerializerSignal(
   signal: SerializerSignal<unknown, unknown>,
-  value: unknown
+  value: unknown,
+  context: SerializationContext
 ): unknown[] {
   return [
     signal.argQrl,
     serializeDeps(signal.deps),
     value === undefined ? explicitUndefined : value,
-    ...serializeSubscribers(signal.subs),
+    ...serializeSubscribers(signal.subs, context),
   ];
 }
 
@@ -1065,7 +1257,7 @@ function getSerializedSerializerValue(arg: unknown, value: unknown): unknown {
   return maybeThen(data, (data) => (data === undefined ? NEEDS_COMPUTATION : data));
 }
 
-function serializeAsyncSignal(signal: Computed<unknown>): unknown[] {
+function serializeAsyncSignal(signal: Computed<unknown>, context: SerializationContext): unknown[] {
   const hasCachedValue = !!(signal.flags & ComputedFlags.HasValue);
   const needsComputation =
     signal.options?.serializationStrategy === 'never' ||
@@ -1083,7 +1275,7 @@ function serializeAsyncSignal(signal: Computed<unknown>): unknown[] {
     serializeDeps(signal.deps),
     value,
     serializeAsyncSignalOptions(signal),
-    ...serializeSubscribers(signal.subs),
+    ...serializeSubscribers(signal.subs, context),
   ];
 }
 
@@ -1193,6 +1385,7 @@ function serializeContentSubscription(
   context: SerializationContext
 ): unknown[] {
   const content = subscription.content;
+  const isCatch = isCatchBoundary(subscription);
   const pending =
     subscription instanceof SsrPendingContentSubscription
       ? [subscription.fallbackQrl, subscription.delay]
@@ -1211,6 +1404,7 @@ function serializeContentSubscription(
     ];
   }
   return [
+    ...(isCatch ? [context.$addRoot$(createQRL(null, '_Catch', null))] : []),
     EffectKind.Content,
     content.rangeId,
     serializeDeps(subscription.deps),
@@ -1220,7 +1414,7 @@ function serializeContentSubscription(
     content.invokeContext?.slotScope ?? null,
     content.useOnRoot ? serializeUseOnScopes(content.invokeContext) : null,
     content.contextArg,
-    ...(subscription instanceof SSRCatchContentSubscription
+    ...(isCatch
       ? [[subscription.fallbackQrl, subscription.error ?? null]]
       : pending === undefined && pendingRoot === undefined
         ? []
@@ -1263,12 +1457,17 @@ function serializeUseOnScopes(context: RuntimeInvokeContext | null): unknown {
   return scopes.length === 0 ? null : scopes;
 }
 
-function serializeSlotScope(scope: SlotScope): unknown[] {
-  return [scope.projections, scope.slotContentQrl, scope.children];
+function serializeSlotScope(scope: SlotScope, context: SerializationContext): unknown[] {
+  const projections = scope.projections.filter(
+    (projection) =>
+      projection.subscription === null || context.$isSubscriberSelected$(projection.subscription)
+  );
+  return [projections, scope.slotContentQrl, scope.children];
 }
 
-function serializeProjection(projection: Projection): unknown[] {
-  return projection.subscription === null
+function serializeProjection(projection: Projection, context: SerializationContext): unknown[] {
+  return projection.subscription === null ||
+    !context.$isSubscriberSelected$(projection.subscription)
     ? [projection.name, projection.renderQrl, projection.slotScope, projection.host]
     : [projection.name, projection.subscription];
 }
@@ -1392,7 +1591,10 @@ function serializeDeps(deps: Source[] | null): readonly Source[] {
   return deps ?? EMPTY_ARRAY;
 }
 
-function serializeSubscribers(subs: SourceSubs): readonly Subscriber[] {
+function serializeSubscribers(
+  subs: SourceSubs,
+  context: SerializationContext
+): readonly Subscriber[] {
   if (!isServer || subs === null) {
     return EMPTY_ARRAY;
   }
@@ -1400,6 +1602,7 @@ function serializeSubscribers(subs: SourceSubs): readonly Subscriber[] {
   if (!Array.isArray(subs)) {
     if (
       isLazySerialized(subs) ||
+      !context.$isSubscriberSelected$(subs) ||
       (subs instanceof SsrContentSubscription && subs.content.isPending)
     ) {
       return EMPTY_ARRAY;
@@ -1412,6 +1615,7 @@ function serializeSubscribers(subs: SourceSubs): readonly Subscriber[] {
     const subscriber = subs[i];
     if (
       isLazySerialized(subscriber) ||
+      !context.$isSubscriberSelected$(subscriber) ||
       (subscriber instanceof SsrContentSubscription && subscriber.content.isPending)
     ) {
       subscribers ??= subs.slice(0, i) as Subscriber[];

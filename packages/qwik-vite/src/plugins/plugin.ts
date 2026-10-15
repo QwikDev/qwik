@@ -455,10 +455,27 @@ export function createQwikPlugin(
   let qwikLoaderChunkRef: string | undefined;
   let preloaderChunkRef: string | undefined;
   let handlersChunkRef: string | undefined;
+  let hasCatchHandler = false;
+  const emitCatchHandler = (ctx: Rolldown.PluginContext, segment: SegmentAnalysis) => {
+    if (
+      !hasCatchHandler &&
+      !devServer &&
+      !getIsServer(ctx) &&
+      segment.ctxName === 'catch:content'
+    ) {
+      hasCatchHandler = true;
+      ctx.emitFile({
+        id: QWIK_CATCH_HANDLERS_ID,
+        type: 'chunk',
+        preserveSignature: 'allow-extension',
+      });
+    }
+  };
   const buildStart = async (_ctx: Rolldown.PluginContext) => {
     debug(`buildStart()`, opts.buildMode, opts.scope, opts.target, opts.rootDir, opts.srcDir);
     optimizer = getOptimizer();
     shouldAddHandlers = !devServer;
+    hasCatchHandler = false;
     if (optimizer.sys.env === 'node' && opts.target === 'ssr' && opts.lint) {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
@@ -491,6 +508,7 @@ export function createQwikPlugin(
               stripCtxName: [...SERVER_STRIP_CTX_NAME, ...(opts.strip.ctxName ?? [])],
             }),
         onSegment(parentId, segment) {
+          emitCatchHandler(_ctx, segment);
           for (const callback of segmentCallbacks) {
             callback(parentId, segment);
           }
@@ -835,10 +853,10 @@ export function createQwikPlugin(
         });
         return preloader;
       }
-    } else if (pathId.endsWith(QWIK_HANDLERS_ID)) {
+    } else if (pathId.endsWith(QWIK_HANDLERS_ID) || pathId === QWIK_CATCH_HANDLERS_ID) {
       debug(`resolveId(${count})`, 'Resolved', QWIK_HANDLERS_ID);
       result = {
-        id: QWIK_HANDLERS_ID,
+        id: pathId === QWIK_CATCH_HANDLERS_ID ? QWIK_CATCH_HANDLERS_ID : QWIK_HANDLERS_ID,
         moduleSideEffects: false,
       };
     } else {
@@ -1002,6 +1020,12 @@ export function createQwikPlugin(
      * re-exporting the core symbols, we let Vite provide the correct path to core and we prevent
      * duplicate Qwik instances.
      */
+    if (id === QWIK_CATCH_HANDLERS_ID) {
+      return {
+        moduleSideEffects: false,
+        code: `export { _catchError, _Catch } from '@qwik.dev/core';`,
+      };
+    }
     if (id === QWIK_HANDLERS_ID) {
       debug(`load(${count})`, QWIK_HANDLERS_ID, opts.buildMode);
       return {
@@ -1311,6 +1335,9 @@ export function createQwikPlugin(
           });
         }
         // Notify segment callbacks
+        if (mod.segment) {
+          emitCatchHandler(ctx, mod.segment);
+        }
         if (mod.segment && segmentCallbacks.size > 0) {
           for (const cb of segmentCallbacks) {
             cb(id, mod.segment);
@@ -1788,6 +1815,7 @@ export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 export const QWIK_PRELOADER_ID = '@qwik.dev/core/preloader';
 /** @internal virtual import to ensure the _run etc handlers are exported as-is */
 export const QWIK_HANDLERS_ID = '@qwik-handlers';
+const QWIK_CATCH_HANDLERS_ID = '@qwik-catch-handlers';
 
 export const SRC_DIR_DEFAULT = 'src';
 

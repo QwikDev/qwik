@@ -19,10 +19,16 @@ export function qrlToString(
   qrl: QRLInternal | SyncQRLInternal,
   raw: true
 ): [string, string, string | null];
+/** @internal */
 export function qrlToString(
   serializationContext: SerializationContext,
   qrl: QRLInternal | SyncQRLInternal,
-  raw?: true
+  raw: 'chunk'
+): string;
+export function qrlToString(
+  serializationContext: SerializationContext,
+  qrl: QRLInternal | SyncQRLInternal,
+  raw?: true | 'chunk'
 ): string | [string, string, string | null] {
   let symbol = qrl.$symbol$;
   let chunk = qrl.$chunk$;
@@ -69,6 +75,9 @@ export function qrlToString(
     serializationContext.$requireSyncFn$(symbol, fn.serialized ?? fn.toString());
   }
 
+  if (raw === 'chunk') {
+    return chunk;
+  }
   const captures = qrl.$captures$;
   if (typeof captures === 'string') {
     throw new Error('QRL captures must be restored before serialization.');

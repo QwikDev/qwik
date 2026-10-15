@@ -12,7 +12,9 @@ const resolveBundle = (base: string, path: string | null | undefined): string | 
     return null;
   }
   const segments: string[] = [];
-  for (const segment of `${base}${path}`.split('/')) {
+  const parts = `${base}${path}`.split('/');
+  for (let i = 0; i < parts.length; i++) {
+    const segment = parts[i];
     if (segment === '..' && segments.length > 0) {
       segments.pop();
     } else {
@@ -68,7 +70,7 @@ export function createPreloaderTail(
   const bundles = new Set<string>();
   for (const qrl of serializationCtx.$eventQrls$) {
     if (!isSyncQrl(qrl)) {
-      bundles.add(qrlToString(serializationCtx, qrl as never, true)[0]);
+      bundles.add(qrlToString(serializationCtx, qrl as never, 'chunk'));
     }
   }
   if (bundles.size === 0) {

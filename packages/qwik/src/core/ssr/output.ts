@@ -1,15 +1,73 @@
-import { isPromise } from '../shared/utils/promises';
+import { isPromise, maybeThen } from '../shared/utils/promises';
+import type { Subscriber } from '../runtime/subscriber';
+import type { Owner } from '../runtime/owner';
+import type { SerializationContext } from '../shared/serdes/serialization-context';
+import type { TaskScheduler } from '../runtime/scheduler';
+import type { ServerDataContext } from '../runtime/use-server-data';
+import type { RuntimeInvokeContext } from '../runtime/invoke-context';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { ValueOrPromise } from '../shared/utils/types';
+
+export interface SsrContentContext extends ServerDataContext {
+  readonly element?: never;
+  readonly document?: never;
+  readonly state?: never;
+  readonly locale?: never;
+  scheduler: TaskScheduler;
+  styleIds?: Map<string, string>;
+  serializationCtx?: SerializationContext;
+  markEagerResume?(value: object): void;
+  registerSsrStyle?(id: string, content: string): void;
+  eventAttr?(name: string, value: unknown): SsrEventAttrChunk;
+  ownOutput?(
+    output: SsrOutput,
+    context: RuntimeInvokeContext,
+    subscription?: Subscriber
+  ): SsrOutput;
+}
+
+/** Shared services for streaming content ranges. */
+export interface SsrRangeHost extends SsrContentContext {
+  nextId(): number;
+  addRoot(value: unknown): SsrReferenceChunk;
+  catchBoundary?: SsrCatchController;
+  /** Wraps content in a range's document markers. */
+  wrapRange(rangeId: number, content: SsrOutput): SsrOutput;
+  /** A child scope: its work runs on its own lane and its ranges nest under `rangeId`. */
+  createRangeScope(rangeId: number): SsrRangeScope;
+  /** False under in-order rendering: the owner must await its content instead of deferring. */
+  canDefer: boolean;
+}
+
+export interface SsrRangeScope extends SsrRangeHost {
+  /** Runs the work queued on this scope's lane. */
+  flush(): ValueOrPromise<void>;
+  /** Streams `range.output` in a later packet; the caller returns placeholder markup now. */
+  defer(range: SsrDeferredRange, content: Promise<SsrOutput>): void;
+  /** Lifts ranges nested in this scope up to its parent, for a scope that never defers. */
+  reparentRanges(): void;
+  cancel?(): void;
+}
 
 export type SsrReferenceChunk =
   | { readonly type: 'node-id'; readonly localId: number | string }
   | { readonly type: 'root-ref'; readonly localId: number }
+  | { readonly type: 'root-value'; readonly value: unknown; readonly boundary?: SsrCatchController }
+  | {
+      readonly type: 'event-value';
+      readonly name: string;
+      readonly value: unknown;
+      readonly needsInvokeContext: boolean;
+      readonly boundary?: SsrCatchController;
+    }
+  | { readonly type: 'sync-fn'; readonly qrl: QRLInternal }
   | { readonly type: 'root-ref-path'; readonly localPath: readonly number[] };
 
 export interface SsrEventAttrChunk {
   readonly type: 'event-attr';
   readonly name: string;
   readonly valueParts: readonly (string | SsrReferenceChunk)[];
+  readonly errorRoot?: SsrReferenceChunk;
 }
 
 export type SsrRecordPart = string | SsrReferenceChunk | SsrEventAttrChunk;
@@ -26,21 +84,81 @@ export interface SsrRecordChunk {
   readonly parts: readonly SsrRecordPart[];
 }
 
-export type SsrChunk = string | SsrReferenceChunk | SsrRecordChunk;
+export interface SsrPublicationChunk {
+  readonly type: 'publication';
+  readonly owner: Owner | null;
+  readonly roots: readonly unknown[];
+  readonly subscription?: Subscriber;
+  readonly boundary?: SsrCatchController;
+}
+
+export interface SsrCatchController {
+  owner?: Owner | null;
+  generation: number;
+  published: boolean;
+  isDocument?: boolean;
+  output: SsrOutput;
+  reapplyUseOn?: (output: SsrOutput) => SsrOutput;
+  readonly parent?: SsrCatchController;
+  catchError(error: unknown): ValueOrPromise<void>;
+}
+
+export interface SsrCatchChunk {
+  readonly type: 'catch';
+  readonly boundary: SsrCatchController;
+}
+
+export type SsrChunk =
+  | string
+  | SsrReferenceChunk
+  | SsrRecordChunk
+  | SsrEventAttrChunk
+  | SsrPublicationChunk
+  | SsrCatchChunk;
+
+export function ownSsrOutput(
+  output: SsrOutput,
+  context: RuntimeInvokeContext,
+  subscription?: Subscriber
+): SsrOutput {
+  const container = context.container as SsrContentContext | undefined;
+  return container?.ownOutput?.(output, context, subscription) ?? output;
+}
 
 export type SsrResolvedOutput = SsrChunk | readonly SsrOutput[];
 export type SsrOutput = SsrResolvedOutput | Promise<SsrResolvedOutput>;
 
-/** Suspense needs the whole subtree settled before it can reveal its content. */
-export function resolveSsrOutput(output: SsrOutput): ValueOrPromise<SsrResolvedOutput> {
+/** Pending resolves ordinary async output before revealing its content. */
+export function resolveSsrOutput(
+  output: SsrOutput,
+  observe?: typeof maybeThen
+): ValueOrPromise<SsrResolvedOutput> {
   if (isPromise(output)) {
-    return output.then(resolveSsrOutput);
+    return resolveSsrPromise(output, observe);
   }
   if (!Array.isArray(output)) {
     return output as SsrChunk;
   }
-  const children = output.map(resolveSsrOutput);
-  return children.some(isPromise) ? Promise.all(children) : output;
+  let children: SsrOutput[] | undefined;
+  for (let index = 0; index < output.length; index++) {
+    const resolved = resolveSsrOutput(output[index], observe);
+    if (resolved !== output[index]) {
+      children ??= output.slice(0, index);
+    }
+    children?.push(resolved);
+  }
+  return children === undefined
+    ? output
+    : children.some(isPromise)
+      ? Promise.all(children)
+      : (children as SsrResolvedOutput);
+}
+
+function resolveSsrPromise(
+  output: Promise<SsrResolvedOutput>,
+  observe: typeof maybeThen | undefined
+): ValueOrPromise<SsrResolvedOutput> {
+  return (observe ?? maybeThen)(output, (resolved) => resolveSsrOutput(resolved, observe));
 }
 
 /**
@@ -97,10 +215,13 @@ export function createSsrNodeId(localId: number | string): SsrReferenceChunk {
 }
 
 /** @internal */
-export function _createSsrSlotMarker(rangeId: number, projectionRootId?: number): SsrOutput[] {
+export function _createSsrSlotMarker(
+  rangeId: number,
+  projectionRootId?: SsrReferenceChunk
+): SsrOutput[] {
   return projectionRootId === undefined
     ? ['<!s=', createSsrNodeId(rangeId), '>']
-    : ['<!s=', createSsrNodeId(rangeId), ',', createSsrRootRef(projectionRootId), '>'];
+    : ['<!s=', createSsrNodeId(rangeId), ',', projectionRootId, '>'];
 }
 
 export function createSsrRootRef(localId: number): SsrReferenceChunk {
@@ -119,6 +240,6 @@ export function isSsrRecordChunk(value: SsrOutput): value is SsrRecordChunk {
   );
 }
 
-export function isSsrEventAttrChunk(value: SsrRecordPart): value is SsrEventAttrChunk {
-  return typeof value === 'object' && value.type === 'event-attr';
+export function isSsrEventAttrChunk(value: SsrOutput | SsrRecordPart): value is SsrEventAttrChunk {
+  return typeof value === 'object' && (value as SsrEventAttrChunk).type === 'event-attr';
 }

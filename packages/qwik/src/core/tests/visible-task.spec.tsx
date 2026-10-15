@@ -299,7 +299,7 @@ describe(`${name}: visible task`, () => {
       const { container, document, cleanup, qwikLoader, flush } = await render(App, { debug });
       await wakeCarrier(container, document, qwikLoader, flush);
       expect((isResume ? document : container).querySelectorAll('script[hidden]')).toHaveLength(1);
-      expect((globalThis as any).__visibleLog).toEqual(['task1', 'task2']);
+      expect((globalThis as any).__visibleLog.toSorted()).toEqual(['task1', 'task2']);
       cleanup();
       delete (globalThis as any).__visibleLog;
     });

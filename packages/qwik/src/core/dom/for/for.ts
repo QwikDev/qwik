@@ -1,7 +1,9 @@
+import type { SsrContentContext } from '../../ssr/output';
+import { OwnerFlags } from '../../reactive/flags';
 import { prepareProjectionRanges, parkProjections } from '../range/range';
 import { isDev } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
-import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
+import { isPromise, maybeThen, retryOnPromise, thenInLifetime } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { Signal } from '../../reactive/signal';
 import { readSourceValue, type Source } from '../../reactive/source';
@@ -14,6 +16,7 @@ import {
   invoke,
   newInvokeContext,
   type RuntimeInvokeContext,
+  type RuntimeContainerContext,
 } from '../../runtime/invoke-context';
 import {
   createOwner,
@@ -31,7 +34,7 @@ import { SSRForBlockSubscription } from '../effect/ssr-effect';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import { getRangeParent, replaceRange } from '../range/range';
 import { EMPTY_ARRAY, EMPTY_NODES, NodeType } from '../../utils/consts';
-import type { SsrOutput } from '../../ssr/output';
+import { ownSsrOutput, type SsrCatchController, type SsrOutput } from '../../ssr/output';
 import type { QDispatchHandler } from '../../shared/types';
 
 function readCollectionItems<T>(source: Source<readonly T[]>): readonly T[] {
@@ -65,7 +68,7 @@ export const enum RowOutputShape {
 }
 type ForKeyFn<T> = (item: T, index: number) => AuthoredForKey;
 type ForRenderIndex = number | Signal<number> | undefined;
-type SsrForContext = ContainerContext & { nextId(): number };
+type SsrForContext = SsrContentContext & { nextId(): number };
 type ForRenderFn<T> = (
   ctx: ContainerContext,
   item: T,
@@ -889,7 +892,7 @@ function longestIncreasingSubsequencePositions(values: Int32Array): number[] {
 function createRowInvokeContext(
   base: RuntimeInvokeContext | null,
   ownerHost: Owner | null,
-  container: ContainerContext | undefined
+  container: RuntimeContainerContext | undefined
 ): RuntimeInvokeContext {
   return newInvokeContext({
     owner: null,
@@ -937,12 +940,17 @@ export class SSRForBlock<T = unknown> {
     const listOwner = (this.listOwner = createOwner(subscription.owner));
     const keyFn =
       this.keyQrl == null ? indexKeyFn : getFunctionOrResolve(this.keyQrl, this.container);
-    return maybeThen(keyFn, (keyFn) => {
-      const renderFn = getFunctionOrResolve(this.renderQrl, this.container);
-      return maybeThen(renderFn, (renderFn) =>
-        this.renderRows(subscription, listOwner, keyFn, renderFn)
-      );
-    });
+    return thenInLifetime(
+      listOwner,
+      keyFn,
+      (keyFn) => {
+        const renderFn = getFunctionOrResolve(this.renderQrl, this.container);
+        return thenInLifetime(listOwner, renderFn, (renderFn) =>
+          this.renderRows(subscription, listOwner, keyFn, renderFn)
+        );
+      },
+      ''
+    );
   }
 
   private renderRows(
@@ -957,6 +965,9 @@ export class SSRForBlock<T = unknown> {
 
     const renderNext = (startIndex: number): ValueOrPromise<SsrOutput> => {
       for (let i = startIndex; i < items.length; i++) {
+        if (listOwner.flags & OwnerFlags.Disposed) {
+          return '';
+        }
         const item = items[i];
         const authored = keyFn(item, i);
         const key = typeof authored === 'string' ? authored : String(authored);
@@ -1006,12 +1017,15 @@ export class SSRForBlock<T = unknown> {
         }
 
         if (isPromise(rowOutput)) {
-          return Promise.resolve(rowOutput).then(
+          return thenInLifetime(
+            listOwner,
+            rowOutput,
             (rowOutput) => {
               this.rowOwners.push(invokeContext.owner);
-              output.push(rowOutput);
+              output.push(ownSsrOutput(rowOutput, invokeContext));
               return renderNext(i + 1);
             },
+            '',
             (error) => {
               disposeInvokeOwner(invokeContext);
               throw error;
@@ -1019,10 +1033,26 @@ export class SSRForBlock<T = unknown> {
           );
         }
         this.rowOwners.push(invokeContext.owner);
-        output.push(rowOutput);
+        output.push(ownSsrOutput(rowOutput, invokeContext));
       }
 
-      return finalizeSsrRows(output);
+      const rows = finalizeSsrRows(output);
+      const context = this.container as SsrForContext & {
+        ownOutput?: unknown;
+        catchBoundary?: SsrCatchController;
+      };
+      return context.ownOutput === undefined
+        ? rows
+        : [
+            {
+              type: 'publication',
+              owner: listOwner,
+              roots: [],
+              subscription,
+              boundary: context.catchBoundary,
+            },
+            rows,
+          ];
     };
 
     return renderNext(0);

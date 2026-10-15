@@ -1,8 +1,15 @@
+import { isPromise, thenInLifetime } from '../utils/promises';
+import { SerializationJournal } from './serialization-journal';
+import type { Subscriber } from '../../runtime/subscriber';
+import { isSubscriberDisposed } from '../../runtime/subscriber';
+import { SubscriberFlags } from '../../reactive/flags';
 import type { QRL } from '../qrl/qrl.public';
 import type { ValueOrPromise } from '../utils/types';
 import { Serializer } from './serialize';
 import { SerializationBackRef } from './serialization-back-ref';
+import { _UNINITIALIZED } from '../utils/constants';
 import { createStringSerdesWriter, type SerdesWriter } from './writer';
+import { isServer } from '@qwik.dev/core/build';
 
 type DomRef = { $nodeId$: string | number };
 type SymbolToChunkResolver = (symbol: string) => string;
@@ -32,7 +39,22 @@ interface AddRootFn {
   (obj: unknown, returnRef?: never): number;
   (obj: unknown, returnRef: true): SeenRef;
 }
+export interface SerializationTransaction {
+  readonly cancelled: Promise<void>;
+  readonly isCancelled: boolean;
+  cancel(): void;
+  waitFor<T>(value: ValueOrPromise<T>): ValueOrPromise<T | undefined>;
+  commit(): void;
+  rollback(): void;
+}
+
 export interface SerializationContext {
+  $journal$?: SerializationJournal;
+  $onSerializeRoot$?: (id: number) => void;
+  $onSerializationError$?: (error: unknown, id: number) => void;
+  $selectedSubscribers$?: ReadonlySet<Subscriber>;
+  $isSubscriberSelected$(subscriber: Subscriber): boolean;
+  $beginTransaction$(canRollback?: boolean): SerializationTransaction;
   $serialize$: () => ValueOrPromise<void>;
   $serializeNext$: () => ValueOrPromise<SerializedStateRange | null>;
   $serializePatch$: (
@@ -59,6 +81,7 @@ export interface SerializationContext {
 
   /** Returns the root index of the object, if it is a root. Otherwise returns undefined. */
   $hasRootId$: (obj: unknown) => number | undefined;
+  $retireRoot$(id: number): void;
 
   /**
    * Root objects which need to be serialized.
@@ -76,7 +99,7 @@ export interface SerializationContext {
 
   $roots$: unknown[];
   $rootObjs$: unknown[];
-  $onAddRoot$?: (id: number, root: unknown, obj: unknown) => void;
+  $onAddRoot$?: (id: number, root: unknown, obj: unknown, isNew: boolean) => void;
   $forwardRefOffset$: number;
   $serializedRootCount$: number;
   $serializedForwardRefCount$: number;
@@ -105,11 +128,121 @@ export interface SerializationContext {
 }
 
 class SerializationContextImpl implements SerializationContext {
+  public $journal$?: SerializationJournal;
+  private rootCheckpoint = 0;
+  private newSeenKeys?: unknown[];
+  private transactionOpen = false;
+  declare private hasRetiredRoots: boolean;
+  public $selectedSubscribers$?: ReadonlySet<Subscriber>;
+
+  $isSubscriberSelected$(subscriber: Subscriber): boolean {
+    return (
+      !isSubscriberDisposed(subscriber) &&
+      (this.$selectedSubscribers$ === undefined ||
+        (subscriber.flags & SubscriberFlags.Published) !== 0 ||
+        this.$selectedSubscribers$.has(subscriber))
+    );
+  }
+
+  $beginTransaction$(canRollback = true): SerializationTransaction {
+    if (!isServer) {
+      throw new Error('Serialization transactions require SSR');
+    }
+    if (this.transactionOpen) {
+      throw new Error('A serialization packet is already being prepared');
+    }
+    this.$serializer$.$assertSettled$();
+    this.transactionOpen = true;
+    const journal = (this.$journal$ = canRollback ? new SerializationJournal() : undefined);
+    if (journal !== undefined) {
+      this.rootCheckpoint = this.$roots$.length;
+      const keys = (this.newSeenKeys = []);
+      journal.record(() => {
+        for (let i = 0; i < keys.length; i++) {
+          this.$seenObjsMap$.delete(keys[i]);
+        }
+      });
+      journal.assign(this.$roots$, 'length', this.$roots$.length);
+      journal.assign(this.$rootObjs$, 'length', this.$rootObjs$.length);
+      const forwardRefOffset = this.$forwardRefOffset$;
+      const serializedRootCount = this.$serializedRootCount$;
+      const serializedForwardRefCount = this.$serializedForwardRefCount$;
+      const rootStateRootCount = this.$rootStateRootCount$;
+      const hasRetiredRoots = this.hasRetiredRoots;
+      journal.record(() => {
+        this.$forwardRefOffset$ = forwardRefOffset;
+        this.$serializedRootCount$ = serializedRootCount;
+        this.$serializedForwardRefCount$ = serializedForwardRefCount;
+        this.$rootStateRootCount$ = rootStateRootCount;
+        this.hasRetiredRoots = hasRetiredRoots;
+      });
+      this.$serializer$.$checkpoint$(journal);
+    }
+    let cancel!: () => void;
+    const cancelled = new Promise<void>((resolve) => {
+      cancel = resolve;
+    });
+    let isCancelled = false;
+    let isClosed = false;
+    const close = (rollback: boolean) => {
+      this.$serializer$.$assertSettled$();
+      if (isClosed) {
+        throw new Error('Serialization transaction is already closed');
+      }
+      if (rollback) {
+        journal?.rollback();
+      } else {
+        journal?.commit();
+      }
+      isClosed = true;
+      this.transactionOpen = false;
+      this.$journal$ = undefined;
+      this.newSeenKeys = undefined;
+    };
+    const transaction: SerializationTransaction = {
+      cancelled,
+      get isCancelled() {
+        return isCancelled;
+      },
+      cancel: () => {
+        if (isClosed) {
+          return;
+        }
+        isCancelled = true;
+        cancel();
+        this.$serializer$.$cancel$();
+      },
+      waitFor: (value) => {
+        if (!isPromise(value)) {
+          return value;
+        }
+        return thenInLifetime(transaction, value, (value) => value);
+      },
+      commit: () => close(false),
+      rollback: () => close(true),
+    };
+    return transaction;
+  }
+
+  private setSeen(obj: unknown, ref: SeenRef, canOverwrite = false): void {
+    if (isServer && this.$journal$ !== undefined && canOverwrite && this.$seenObjsMap$.has(obj)) {
+      this.$journal$.set(this.$seenObjsMap$, obj, ref);
+      return;
+    }
+    if (isServer) {
+      this.newSeenKeys?.push(obj);
+    }
+    this.$seenObjsMap$.set(obj, ref);
+  }
   private $seenObjsMap$ = new Map<unknown, SeenRef>();
   public $pendingSyncFns$ = new Map<string, string>();
   public $roots$: unknown[] = [];
   public $rootObjs$: unknown[] = [];
-  public $onAddRoot$: ((id: number, root: unknown, obj: unknown) => void) | undefined;
+  public $onSerializeRoot$?: (id: number) => void;
+  public $onSerializationError$?: (error: unknown, id: number) => void;
+  public $onAddRoot$:
+    | ((id: number, root: unknown, obj: unknown, isNew: boolean) => void)
+    | undefined;
   public $forwardRefOffset$ = 0;
   public $serializedRootCount$ = 0;
   public $serializedForwardRefCount$ = 0;
@@ -129,6 +262,9 @@ class SerializationContextImpl implements SerializationContext {
     public $storeProxyMap$: ObjToProxyMap,
     public $writer$: SerdesWriter
   ) {
+    if (isServer) {
+      this.hasRetiredRoots = false;
+    }
     this.$serializer$ = new Serializer(this);
   }
 
@@ -175,12 +311,37 @@ class SerializationContextImpl implements SerializationContext {
   }
 
   getSeenRef(obj: unknown) {
-    return this.$seenObjsMap$.get(obj);
+    const ref = this.$seenObjsMap$.get(obj);
+    if (!isServer || !this.hasRetiredRoots || ref === undefined) {
+      return ref;
+    }
+    let root = ref;
+    while (root.$parent$) {
+      root = root.$parent$;
+    }
+    return this.$rootObjs$[root.$index$] === _UNINITIALIZED &&
+      this.$roots$[root.$index$] === undefined
+      ? undefined
+      : ref;
+  }
+
+  $retireRoot$(id: number): void {
+    if (!isServer) {
+      throw new Error('Root retirement requires SSR');
+    }
+    this.hasRetiredRoots = true;
+    if (this.$journal$ === undefined) {
+      this.$roots$[id] = undefined;
+      this.$rootObjs$[id] = _UNINITIALIZED;
+    } else {
+      this.$journal$.assign(this.$roots$, id, undefined);
+      this.$journal$.assign(this.$rootObjs$, id, _UNINITIALIZED);
+    }
   }
 
   $markSeen$(obj: unknown, parent: SeenRef | undefined, index: number) {
     const ref = { $index$: index, $parent$: parent };
-    this.$seenObjsMap$.set(obj, ref);
+    this.setSeen(obj, ref);
     return ref;
   }
 
@@ -207,21 +368,37 @@ class SerializationContextImpl implements SerializationContext {
     if (index === undefined) {
       index = this.$roots$.length;
     }
-    this.$roots$[index] = new SerializationBackRef(path);
-    if (isNewRoot) {
-      this.$rootObjs$[index] = obj;
+    const backref = new SerializationBackRef(path);
+    if (isServer && this.$journal$ !== undefined) {
+      if (index < this.rootCheckpoint) {
+        this.$journal$.assign(this.$roots$, index, backref);
+      } else {
+        this.$roots$[index] = backref;
+      }
+      const parent = ref.$parent$;
+      const previousIndex = ref.$index$;
+      this.$journal$.record(() => {
+        ref.$parent$ = parent;
+        ref.$index$ = previousIndex;
+      });
+    } else {
+      this.$roots$[index] = backref;
     }
     ref.$parent$ = null;
     ref.$index$ = index;
     if (isNewRoot) {
-      this.$onAddRoot$?.(index, this.$roots$[index], obj);
+      this.$rootObjs$[index] = obj;
+    }
+    if (isServer && isNewRoot) {
+      this.$onAddRoot$?.(index, this.$roots$[index], obj, true);
     }
   }
 
   $addRoot$(obj: any, returnRef: true): SeenRef;
   $addRoot$(obj: any, returnRef?: never): number;
   $addRoot$(obj: any, returnRef: boolean = false): number | SeenRef {
-    let seen = this.$seenObjsMap$.get(obj);
+    let seen = this.getSeenRef(obj);
+    const isNew = seen === undefined;
     let index: number;
 
     if (!seen) {
@@ -231,15 +408,18 @@ class SerializationContextImpl implements SerializationContext {
         // TODO benchmark with and without $parent$
         // $parent$: undefined
       };
-      this.$seenObjsMap$.set(obj, seen);
+      this.setSeen(obj, seen, true);
       this.$roots$.push(obj);
       this.$rootObjs$.push(obj);
-      this.$onAddRoot$?.(index, obj, obj);
     } else {
       if (seen.$parent$) {
         this.$promoteToRoot$(seen, obj);
       }
       index = seen.$index$;
+    }
+
+    if (isServer) {
+      this.$onAddRoot$?.(index, this.$roots$[index], obj, isNew);
     }
 
     return returnRef ? seen : index;
@@ -248,17 +428,19 @@ class SerializationContextImpl implements SerializationContext {
   $addDuplicateRoot$(obj: unknown): SeenRef {
     const index = this.$roots$.length;
     const ref = { $index$: index };
-    this.$seenObjsMap$.set(obj, ref);
+    this.setSeen(obj, ref, true);
     this.$roots$.push(obj);
     this.$rootObjs$.push(obj);
-    this.$onAddRoot$?.(index, obj, obj);
+    if (isServer) {
+      this.$onAddRoot$?.(index, obj, obj, true);
+    }
     return ref;
   }
 
   $commitRoot$(root: unknown, obj: unknown): number {
     const index = this.$roots$.length;
     const ref = { $index$: index };
-    this.$seenObjsMap$.set(obj, ref);
+    this.setSeen(obj, ref, true);
     this.$roots$.push(root);
     this.$rootObjs$.push(obj);
     return index;
@@ -269,12 +451,16 @@ class SerializationContextImpl implements SerializationContext {
   }
 
   $hasRootId$(obj: any) {
-    const id = this.$seenObjsMap$.get(obj);
+    const id = this.getSeenRef(obj);
     return id && (id.$parent$ ? undefined : id.$index$);
   }
 
   $requireSyncFn$(key: string, source: string): void {
-    this.$pendingSyncFns$.set(key, source);
+    if (isServer && this.$journal$ !== undefined) {
+      this.$journal$.set(this.$pendingSyncFns$, key, source);
+    } else {
+      this.$pendingSyncFns$.set(key, source);
+    }
   }
 }
 

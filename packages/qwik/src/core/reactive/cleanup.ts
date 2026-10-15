@@ -1,10 +1,22 @@
+import type { ContainerContext } from '../runtime/container-context';
+import { isPromise } from '../shared/utils/promises';
+import { runTaskCleanups } from '../runtime/run-task';
 import { removeInOrder } from '../utils/array';
 import { getActiveCollector } from './tracking';
 import { ComputedFlags, SubscriberFlags } from './flags';
 import type { Source } from './source';
 import type { ValueOrPromise } from '../shared/utils/types';
-import { detachSubscriberFromOwner } from '../runtime/owner';
+import { detachSubscriberFromOwner, getLiveOwner } from '../runtime/owner';
 import { SubscriberKind, type Collector, type Subscriber } from '../runtime/subscriber';
+import { handleError } from '../dom/content/catch-boundary';
+import { isServerPlatform } from '../shared/platform/platform';
+
+export function runLateCleanup(callback: () => unknown): void {
+  const result = callback();
+  if (isPromise(result)) {
+    result.catch(() => {});
+  }
+}
 
 export function cleanupDeps(collector: Collector): void {
   const deps = collector.deps;
@@ -58,51 +70,54 @@ export function disposeSubscriber(subscriber: Subscriber): void {
   subscriber.flags |= SubscriberFlags.Disposed;
 
   const owner = subscriber.owner;
-  if (owner !== null) {
-    detachSubscriberFromOwner(subscriber, owner);
-  }
-
-  switch (subscriber.kind) {
-    case SubscriberKind.Computed:
-      (subscriber as { dispose?: () => void }).dispose?.();
-      subscriber.flags &= ComputedFlags.HasValue | ComputedFlags.Disposed;
-      cleanupDeps(subscriber);
-      // Only computed is both a subscriber and a source, so it can retain
-      // downstream subscribers after its upstream deps are cleaned.
-      subscriber.subs = null;
-      return;
-    case SubscriberKind.Task:
-    case SubscriberKind.VisibleTask:
-    case SubscriberKind.Dom:
-    case SubscriberKind.Branch:
-    case SubscriberKind.ForBlock:
-    case SubscriberKind.Content: {
-      cleanupDeps(subscriber);
-      if (subscriber.kind === SubscriberKind.Content) {
+  try {
+    switch (subscriber.kind) {
+      case SubscriberKind.Computed:
+        subscriber.flags &= ComputedFlags.HasValue | ComputedFlags.Disposed;
         subscriber.dispose();
         return;
-      }
-      if (subscriber.scheduler === null) {
+      case SubscriberKind.Task:
+      case SubscriberKind.VisibleTask:
+      case SubscriberKind.Dom:
+      case SubscriberKind.Branch:
+      case SubscriberKind.ForBlock:
+      case SubscriberKind.Content: {
+        cleanupDeps(subscriber);
+        if (subscriber.kind === SubscriberKind.Content) {
+          subscriber.dispose();
+          return;
+        }
+        if (subscriber.scheduler === null) {
+          return;
+        }
+        const scheduled = subscriber;
+        if (scheduled.kind === SubscriberKind.Dom) {
+          scheduled.invalidate();
+        }
+        scheduled.flags = SubscriberFlags.Disposed;
+        if (
+          scheduled.kind === SubscriberKind.Task ||
+          scheduled.kind === SubscriberKind.VisibleTask
+        ) {
+          scheduled.runPromise = null;
+          scheduled.task.disposed = true;
+          runSubscriberCleanups(scheduled);
+        } else if (scheduled.kind === SubscriberKind.Branch) {
+          scheduled.branch.dispose();
+        } else if (scheduled.kind === SubscriberKind.ForBlock) {
+          scheduled.block.dispose();
+        }
         return;
       }
-      const scheduled = subscriber;
-      if (scheduled.kind === SubscriberKind.Dom) {
-        scheduled.invalidate();
-      }
-      scheduled.flags = SubscriberFlags.Disposed;
-      if (scheduled.kind === SubscriberKind.Task || scheduled.kind === SubscriberKind.VisibleTask) {
-        scheduled.task.dispose();
-      } else if (scheduled.kind === SubscriberKind.Branch) {
-        scheduled.branch.dispose();
-      } else if (scheduled.kind === SubscriberKind.ForBlock) {
-        scheduled.block.dispose();
-      }
-      return;
+      case SubscriberKind.Idle:
+        subscriber.flags = SubscriberFlags.Disposed;
+        subscriber.job.dispose?.();
+        return;
     }
-    case SubscriberKind.Idle:
-      subscriber.flags = SubscriberFlags.Disposed;
-      subscriber.job.dispose?.();
-      return;
+  } finally {
+    if (owner !== null) {
+      detachSubscriberFromOwner(subscriber, owner);
+    }
   }
 }
 
@@ -114,8 +129,25 @@ export function runSubscriberCleanups(subscriber: Subscriber): ValueOrPromise<vo
         subscriber as unknown as { runUserCleanups(): ValueOrPromise<void> }
       ).runUserCleanups();
     case SubscriberKind.Task:
-    case SubscriberKind.VisibleTask:
-      return subscriber.task.dispose();
+    case SubscriberKind.VisibleTask: {
+      const owner = getLiveOwner(subscriber.owner);
+      let result: ValueOrPromise<void>;
+      try {
+        result = runTaskCleanups(subscriber.task);
+      } catch (error) {
+        return handleError(owner, error);
+      }
+      if (isPromise(result)) {
+        const pending = result.catch((error) => handleError(owner, error));
+        if (subscriber.flags & SubscriberFlags.Disposed && !isServerPlatform()) {
+          (subscriber.task.container as ContainerContext | undefined)?.scheduler.waitFor(
+            pending,
+            owner
+          );
+        }
+        return pending;
+      }
+    }
   }
 }
 

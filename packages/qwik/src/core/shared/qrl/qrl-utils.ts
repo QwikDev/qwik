@@ -5,6 +5,18 @@ import type { QRLInternal, SyncQRLInternal } from './qrl-class';
 import type { QRL } from './qrl.public';
 import { qwikSymbol } from '../singletons';
 
+let importErrors: WeakSet<object> | undefined;
+
+export function recordQrlImportError(error: unknown): void {
+  if (error !== null && (typeof error === 'object' || typeof error === 'function')) {
+    (importErrors ??= new WeakSet()).add(error);
+  }
+}
+
+export function isQrlImportError(error: unknown): boolean {
+  return importErrors?.has(error as object) === true;
+}
+
 /** @internal */
 export const SYNC_QRL = '<sync>';
 

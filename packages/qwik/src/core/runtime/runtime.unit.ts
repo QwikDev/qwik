@@ -48,8 +48,488 @@ import {
 } from './task';
 import type { ContainerContext } from './container-context';
 import { LazySerialized } from '../reactive/lazy-serialized';
+import { retryAfterPromise, thenInLifetime, retryInLifetime } from '../shared/utils/promises';
 
 describe('runtime scheduler and owner lifecycle', () => {
+  it('does not allocate await registries without Catch', async () => {
+    const owner = createOwner(null);
+    const NativeSet = Set;
+    let allocations = 0;
+    vi.stubGlobal(
+      'Set',
+      class extends NativeSet {
+        constructor() {
+          super();
+          allocations++;
+        }
+      }
+    );
+    let pending: ReturnType<typeof _await<number>>;
+    try {
+      pending = runWithOwner(owner, () => _await(Promise.resolve(1)));
+      expect(allocations).toBe(0);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    expect((await pending)()).toBe(1);
+    disposeOwner(owner);
+  });
+
+  it('cancels pending work before running a throwing cleanup', () => {
+    const owner = createOwner(null);
+    const calls: string[] = [];
+    const promise = Promise.resolve();
+    owner.pendingWork = new Map([[promise, { promise, cancel: () => calls.push('work') }]]);
+    owner.pendingPhases = { promise, cancel: () => calls.push('phases') };
+    const task = new Task(() => {}, Phase.BlockingTask);
+    task.cleanups = [
+      () => {
+        calls.push('cleanup');
+        throw new Error('cleanup failed');
+      },
+    ];
+    registerSubscriberToOwner(new TaskSubscription(task), owner);
+
+    expect(() => disposeOwner(owner)).toThrow('cleanup failed');
+    expect(calls).toEqual(['work', 'phases', 'cleanup']);
+  });
+
+  it('disposes every child when one task cleanup throws', () => {
+    const owner = createOwner(null);
+    const calls: string[] = [];
+    const names = ['first', 'second'];
+    for (let i = 0; i < names.length; i++) {
+      const name = names[i];
+      const task = new Task(() => {}, Phase.BlockingTask);
+      task.cleanups = [
+        () => {
+          calls.push(name);
+          if (name === 'second') {
+            throw new Error('cleanup failed');
+          }
+        },
+      ];
+      registerSubscriberToOwner(new TaskSubscription(task), owner);
+    }
+    expect(() => disposeOwner(owner)).toThrow('cleanup failed');
+    expect(calls).toEqual(['second', 'first']);
+    expect(owner.items).toBeNull();
+  });
+
+  it('finishes task cleanups after one cleanup throws', () => {
+    const calls: string[] = [];
+    const task = new Task(() => {}, Phase.BlockingTask);
+    task.cleanups = [
+      () => {
+        calls.push('first');
+        throw new Error('cleanup failed');
+      },
+      () => {
+        calls.push('second');
+      },
+    ];
+    expect(() => disposeSubscriber(new TaskSubscription(task))).toThrow('cleanup failed');
+    expect(calls).toEqual(['first', 'second']);
+  });
+
+  it('preserves the cancellation value while retryAfter waits for another Promise', async () => {
+    const cancelledValue = { cancelled: true };
+    const owner = createOwner(null);
+    let release!: () => void;
+    const source = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const run = vi.fn(() => {
+      throw source;
+    });
+    const pending = retryAfterPromise(owner, Promise.resolve(), run, cancelledValue, 2);
+    for (let tick = 0; tick < 4; tick++) {
+      await Promise.resolve();
+    }
+    expect(run).toHaveBeenCalledTimes(1);
+    disposeOwner(owner);
+    release();
+    expect(await pending).toBe(cancelledValue);
+    await source;
+    await Promise.resolve();
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves synchronous throws and consumes async rejection from late registered cleanup', async () => {
+    let register!: (callback: () => void | Promise<void>) => void;
+    const task = new Task(({ cleanup }) => {
+      register = cleanup;
+    }, Phase.BlockingTask);
+    const subscriber = new TaskSubscription(task, new Scheduler(noopSchedule));
+    subscriber.flags = SubscriberFlags.Dirty;
+    runTaskSubscriber(subscriber);
+    disposeSubscriber(subscriber);
+    const error = new Error('late cleanup failure');
+    expect(() =>
+      register(() => {
+        throw error;
+      })
+    ).toThrow(error);
+    const cleanup = vi.fn(() => Promise.reject(error));
+    register(cleanup);
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['run', 'retryAfter'] as const)('preserves thrown values through %s', (path) => {
+    const values: unknown[] = [new Error('ordinary failure'), undefined, 'failure', 17];
+    const revoked = Proxy.revocable({}, {});
+    revoked.revoke();
+    values.push(revoked.proxy);
+    for (let index = 0; index < values.length; index++) {
+      const value = values[index];
+      let caught = false;
+      try {
+        if (path === 'run') {
+          retryInLifetime(null, () => {
+            throw value;
+          });
+        } else {
+          retryAfterPromise(null, value, () => 1);
+        }
+      } catch (error) {
+        caught = true;
+        expect(error).toBe(value);
+      }
+      expect(caught).toBe(true);
+    }
+  });
+
+  it('runs a cleanup returned after task disposal without restoring its context', async () => {
+    let release!: (cleanup: () => void) => void;
+    const source = new Promise<() => void>((resolve) => {
+      release = resolve;
+    });
+    let cleanupContext: unknown;
+    let cleanupCollector: unknown;
+    const cleanup = vi.fn(() => {
+      cleanupContext = getActiveInvokeContextOrNull();
+      cleanupCollector = getActiveCollector();
+    });
+    const task = new Task(() => source, Phase.BlockingTask);
+    const subscriber = new TaskSubscription(task, new Scheduler(noopSchedule));
+    subscriber.flags = SubscriberFlags.Dirty;
+    const running = runTaskSubscriber(subscriber);
+    disposeSubscriber(subscriber);
+    release(cleanup);
+    await running;
+    await source;
+    for (let tick = 0; tick < 4; tick++) {
+      await Promise.resolve();
+    }
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(cleanupContext).toBeNull();
+    expect(cleanupCollector).toBeNull();
+  });
+
+  it('runs a cleanup returned by a task that disposes itself synchronously', () => {
+    const cleanup = vi.fn();
+    const task = new Task(() => {
+      disposeSubscriber(subscriber);
+      return cleanup;
+    }, Phase.BlockingTask);
+    const subscriber = new TaskSubscription(task, new Scheduler(noopSchedule));
+    subscriber.flags = SubscriberFlags.Dirty;
+    runTaskSubscriber(subscriber);
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs a returned cleanup once when disposal races task completion', async () => {
+    let release!: (cleanup: () => void) => void;
+    const source = new Promise<() => void>((resolve) => {
+      release = resolve;
+    });
+    const cleanup = vi.fn();
+    const task = new Task(() => source, Phase.BlockingTask);
+    const subscriber = new TaskSubscription(task, new Scheduler(noopSchedule));
+    subscriber.flags = SubscriberFlags.Dirty;
+    const running = runTaskSubscriber(subscriber);
+    source.then(() => disposeSubscriber(subscriber));
+    release(cleanup);
+    await running;
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not mistake a thrown Promise result for a returned cleanup', async () => {
+    let release!: (cleanup: () => void) => void;
+    const source = new Promise<() => void>((resolve) => {
+      release = resolve;
+    });
+    const cleanup = vi.fn();
+    const body = vi.fn(() => {
+      throw source;
+    });
+    const subscriber = new TaskSubscription(
+      new Task(body, Phase.BlockingTask),
+      new Scheduler(noopSchedule)
+    );
+    subscriber.flags = SubscriberFlags.Dirty;
+    const running = runTaskSubscriber(subscriber);
+    disposeSubscriber(subscriber);
+    release(cleanup);
+    await running;
+    await source;
+    await Promise.resolve();
+    expect(body).toHaveBeenCalledTimes(1);
+    expect(cleanup).not.toHaveBeenCalled();
+  });
+
+  it.each(['throw', 'reject'] as const)(
+    'consumes a late returned cleanup %s without reviving the task',
+    async (failure) => {
+      let release!: (cleanup: () => void | Promise<void>) => void;
+      const source = new Promise<() => void | Promise<void>>((resolve) => {
+        release = resolve;
+      });
+      const cleanup = vi.fn(() => {
+        if (failure === 'throw') {
+          throw new Error('late cleanup');
+        }
+        return Promise.reject(new Error('late cleanup'));
+      });
+      const subscriber = new TaskSubscription(
+        new Task(() => source, Phase.BlockingTask),
+        new Scheduler(noopSchedule)
+      );
+      subscriber.flags = SubscriberFlags.Dirty;
+      const running = runTaskSubscriber(subscriber);
+      disposeSubscriber(subscriber);
+      release(cleanup);
+      await running;
+      await source;
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(cleanup).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it.each(['qrl', 'cleanup'] as const)(
+    'does not start a disposed task after waiting for %s',
+    async (phase) => {
+      let release!: () => void;
+      const pending = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const body = vi.fn(() => {});
+      const task =
+        phase === 'qrl'
+          ? new Task(
+              undefined,
+              Phase.BlockingTask,
+              createQRL<typeof body>('lazy', 'task', null, () =>
+                pending.then(() => ({ task: body }))
+              )
+            )
+          : new Task(body, Phase.BlockingTask);
+      if (phase === 'cleanup') {
+        task.cleanups = [
+          () => {
+            return pending;
+          },
+        ];
+      }
+      const subscriber = new TaskSubscription(task, new Scheduler(noopSchedule));
+      subscriber.flags = SubscriberFlags.Dirty;
+      const waiting = runTaskSubscriber(subscriber);
+      disposeSubscriber(subscriber);
+      release();
+      await waiting;
+      await pending;
+      await Promise.resolve();
+      expect(body).not.toHaveBeenCalled();
+      expect(task.disposed).toBe(true);
+    }
+  );
+
+  it('runs task bodies and cleanups synchronously', () => {
+    const cleanup = vi.fn();
+    const task = new Task(({ cleanup: registerCleanup }) => {
+      registerCleanup(cleanup);
+    }, Phase.BlockingTask);
+    const subscriber = new TaskSubscription(task, new Scheduler(noopSchedule));
+    subscriber.flags = SubscriberFlags.Dirty;
+    expect(runTaskSubscriber(subscriber)).toBeUndefined();
+    subscriber.flags |= SubscriberFlags.Dirty;
+    expect(runTaskSubscriber(subscriber)).toBeUndefined();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    disposeSubscriber(subscriber);
+    expect(cleanup).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses the shared retry guard for an already disposed owner', () => {
+    const owner = createOwner(null);
+    disposeOwner(owner);
+    const run = vi.fn(() => 42);
+    expect(retryInLifetime(owner, run, -1)).toBe(-1);
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it('preserves the shared retry limit', async () => {
+    const pending = Promise.resolve();
+    const run = vi.fn(() => {
+      throw pending;
+    });
+    await expect(retryInLifetime(null, run, undefined, 2)).rejects.toThrow(
+      'Exceeded max retry count'
+    );
+    expect(run).toHaveBeenCalledTimes(3);
+  });
+
+  it('ignores an owner result after disposal', async () => {
+    const owner = createOwner(null);
+    let release!: (value: number) => void;
+    const source = new Promise<number>((resolve) => {
+      release = resolve;
+    });
+    const publish = vi.fn((value: number) => value);
+    const pending = thenInLifetime(owner, source, publish, -1);
+    expect(owner).not.toHaveProperty('disposalCallbacks');
+    disposeOwner(owner);
+    release(42);
+    expect(await pending).toBe(-1);
+    await source;
+    expect(publish).not.toHaveBeenCalled();
+    expect(owner).not.toHaveProperty('disposalCallbacks');
+  });
+
+  it('stops shared retries after owner disposal', async () => {
+    const owner = createOwner(null);
+    let release!: () => void;
+    const second = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const run = vi.fn(() => {
+      if (run.mock.calls.length === 1) {
+        throw Promise.resolve();
+      }
+      throw second;
+    });
+    const pending = retryInLifetime(owner, run, 'cancelled');
+    for (let tick = 0; tick < 4; tick++) {
+      await Promise.resolve();
+    }
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(owner).not.toHaveProperty('disposalCallbacks');
+    disposeOwner(owner);
+    release();
+    expect(await pending).toBe('cancelled');
+    await second;
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(owner).not.toHaveProperty('disposalCallbacks');
+  });
+
+  it('supports shared lifetime helpers without an owner', async () => {
+    expect(thenInLifetime(null, 1, (value) => value + 1)).toBe(2);
+    expect(await thenInLifetime(null, Promise.resolve(1), (value) => value + 1)).toBe(2);
+    let ready = false;
+    const source = Promise.resolve().then(() => {
+      ready = true;
+    });
+    expect(
+      await retryInLifetime(null, () => {
+        if (!ready) {
+          throw source;
+        }
+        return 42;
+      })
+    ).toBe(42);
+  });
+
+  it('returns synchronous owner work without registering observations', () => {
+    const owner = createOwner(null);
+    const value = {};
+    expect(retryInLifetime(owner, () => value)).toBe(value);
+    expect(thenInLifetime(owner, value, (value) => value)).toBe(value);
+    expect(owner).not.toHaveProperty('disposalCallbacks');
+  });
+
+  it('does not publish a returned Promise after disposal', async () => {
+    const owner = createOwner(null);
+    let resolve!: (value: number) => void;
+    const source = new Promise<number>((done) => {
+      resolve = done;
+    });
+    const publish = vi.fn((value: number) => value);
+    const pending = thenInLifetime(owner, source, publish, -1);
+    disposeOwner(owner);
+    resolve(42);
+    expect(await pending).toBe(-1);
+    await source;
+    expect(publish).not.toHaveBeenCalled();
+    expect(owner).not.toHaveProperty('disposalCallbacks');
+  });
+
+  it('observes a thrown rejection after reentrant disposal without retrying', async () => {
+    const owner = createOwner(null);
+    let reject!: (error: Error) => void;
+    const source = new Promise<void>((_resolve, fail) => {
+      reject = fail;
+    });
+    const run = vi.fn(() => {
+      disposeOwner(owner);
+      throw source;
+    });
+    expect(retryInLifetime(owner, run, -1)).toBe(-1);
+    reject(new Error('late rejection'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry thrown promises after disposal', async () => {
+    const owner = createOwner(null);
+    let resolve!: () => void;
+    const source = new Promise<void>((done) => {
+      resolve = done;
+    });
+    const run = vi.fn(() => {
+      throw source;
+    });
+    const pending = retryInLifetime(owner, run, -1);
+    disposeOwner(owner);
+    resolve();
+    expect(await pending).toBe(-1);
+    await source;
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries a settled thrown promise within a live owner', async () => {
+    const owner = createOwner(null);
+    let ready = false;
+    const source = Promise.resolve().then(() => {
+      ready = true;
+    });
+    const run = vi.fn(() => {
+      if (!ready) {
+        throw source;
+      }
+      return 42;
+    });
+    expect(await retryInLifetime(owner, run)).toBe(42);
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(owner).not.toHaveProperty('disposalCallbacks');
+  });
+
+  it('suppresses results when synchronous work disposes its owner', () => {
+    const owner = createOwner(null);
+    expect(
+      retryInLifetime(
+        owner,
+        () => {
+          disposeOwner(owner);
+          return 42;
+        },
+        -1
+      )
+    ).toBe(-1);
+    const publish = vi.fn(() => 42);
+    expect(thenInLifetime(owner, 42, publish, -1)).toBe(-1);
+    expect(publish).not.toHaveBeenCalled();
+  });
+
   it('queues sibling leaf owners with linear parent traversal', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const parent = createOwner(null);
@@ -1188,6 +1668,59 @@ describe('runtime scheduler and owner lifecycle', () => {
     await scheduler.flushInteraction();
 
     expect(seen).toEqual(['boom:0', 'boom:1']);
+  });
+
+  it.each(['thrown', 'returned'] as const)(
+    'disposes a task waiting for a %s Promise',
+    async (kind) => {
+      const scheduler = new Scheduler(noopSchedule);
+      let release!: () => void;
+      const pending = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      let runs = 0;
+      const subscriber = new TaskSubscription(
+        new Task(() => {
+          runs++;
+          if (kind === 'thrown' && runs === 1) {
+            throw pending;
+          }
+          return pending;
+        }, Phase.BlockingTask),
+        scheduler
+      );
+      subscriber.flags = SubscriberFlags.Dirty;
+      const run = runTaskSubscriber(subscriber);
+      disposeSubscriber(subscriber);
+      expect(subscriber.runPromise).toBeNull();
+      release();
+      await run;
+      await pending;
+      expect(runs).toBe(1);
+    }
+  );
+
+  it('does not restore a disposed task scope after _await', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let resumed = false;
+    let hadContext = true;
+    const run = async () => {
+      (await _await(pending))();
+      resumed = true;
+      hadContext = getActiveInvokeContextOrNull() !== null || getActiveCollector() !== null;
+    };
+    const subscriber = runWithTestContainer(scheduler, () => useTask(run));
+    disposeSubscriber(subscriber);
+    release();
+    for (let i = 0; i < 8 && !resumed; i++) {
+      await Promise.resolve();
+    }
+    expect(resumed).toBe(true);
+    expect(hadContext).toBe(false);
   });
 
   it('does not rerun a pending task unless it was marked dirty', async () => {

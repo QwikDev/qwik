@@ -219,7 +219,13 @@ export {
   createSsrRootRefPath,
   isSsrEventAttrChunk,
   isSsrRecordChunk,
+  type SsrContentContext,
+  type SsrRangeHost,
+  type SsrRangeScope,
   type SsrChunk,
+  type SsrPublicationChunk,
+  type SsrCatchChunk,
+  type SsrCatchController,
   type SsrDeferredRange,
   type SsrEventAttrChunk,
   type SsrOutput,
@@ -361,7 +367,8 @@ export {
   type PendingProps,
 } from './dom/content/content';
 export { Catch, createCatch, createSsrCatch, type CatchProps } from './dom/content/catch';
-export { createSsrPending, type SsrRangeHost, type SsrRangeScope } from './dom/content/pending-ssr';
+export { handleError } from './dom/content/catch-boundary';
+export { createSsrPending } from './dom/content/pending-ssr';
 export {
   Reveal,
   RevealGroup,
@@ -468,6 +475,8 @@ export {
   createVisibleTaskHandlerQrl,
 } from './handlers';
 export { _chk, _res, _val } from './runtime/bind-handlers';
+export { _catchError } from './dom/content/catch-event';
+export { CatchContentSubscription as _Catch } from './dom/content/catch';
 export type { ServerDataContext } from './runtime/use-server-data';
 export {
   createContainerContext,
@@ -482,3 +491,5 @@ export {
   fastFirstChild as _first,
   fastLastChild as _last,
 } from './runtime/fast-getters';
+
+export { isSsrSubscriber } from './shared/utils/brand';

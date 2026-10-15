@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createSerializationContext } from '@qwik.dev/core';
 import { TypeIds } from '../core/shared/serdes/constants';
 import { isSsrRecordChunk, type SsrOutput } from '../core/ssr/output';
 import { getQwikLoaderScript } from './scripts';
@@ -114,7 +115,7 @@ describe('SsrScriptEmitter', () => {
 
   it('emits one nonce-protected runtime and a small resolved packet call', () => {
     const emitter = new SsrScriptEmitter({ nonce: 'packet' });
-    const packet = emitter.emitResolved(7, '<p>content</p>', 8, 9);
+    const packet = emitter.emitResolved(7, '<p>content</p>', true, 8, 9);
 
     expect(packet[0]).toBe('<template q:s="7">');
     expect(packet[1]).toBe('<p>content</p>');
@@ -131,16 +132,22 @@ describe('SsrScriptEmitter', () => {
     expect(runtime).toContain('.push(0,"abc123")');
   });
 
+  it('preserves the previous root when a replacement does not dispose it', () => {
+    const emitter = new SsrScriptEmitter();
+    const packet = emitter.emitResolved(7, '<p>temporary</p>', false, 8, 9);
+    expect(packet[3]).toContain('document.currentScript,7,8,-1)');
+  });
+
   it('executes the emitted range swap and fallback disposal protocol', async () => {
     const emitter = new SsrScriptEmitter();
     const document = createDocument({
       html: `<div q:container>
         <div q:container><!--d=7--><span id="nested">nested</span><!--/d-->
-          <script type="qwik/state" q:s="7" q:base="8" q:len="1">[${TypeIds.Plain},null]</script>
+          <script type="qwik/state" q:s="7" q:base="8" q:len="1" q:idle="handlers#_res#8">[${TypeIds.Plain},null]</script>
         </div>
         <!--d=7--><span id="fallback">fallback</span><!--/d-->
         <script type="qwik/state" q:base="9" q:len="1">[${TypeIds.Plain},null]</script>
-        <script type="qwik/state" q:s="7" q:base="8" q:len="1">[${TypeIds.Plain},null]</script>
+        <script type="qwik/state" q:s="7" q:base="8" q:len="1" q:idle="handlers#_res#8">[${TypeIds.Plain},null]</script>
         <template q:s="7"><p id="content">content</p></template><script id="packet"></script>
       </div>`,
     });
@@ -148,18 +155,37 @@ describe('SsrScriptEmitter', () => {
       _ctx?: unknown;
     };
     const calls: string[] = [];
+    let releasePrepare!: () => void;
+    let startPrepare!: () => void;
+    const prepared = new Promise<void>((done) => {
+      releasePrepare = done;
+    });
+    const preparing = new Promise<void>((done) => {
+      startPrepare = done;
+    });
     const querySelectorAll = container.querySelectorAll.bind(container);
     container._ctx = {
       registerStateScripts: () => calls.push('register'),
       discardRoot: () => calls.push('discard'),
       disposeRoot: async () => void calls.push('dispose'),
-      prepareRoot: async () => void calls.push('prepare'),
+      prepareRoot: async () => {
+        calls.push('prepare');
+        startPrepare();
+        await prepared;
+      },
     };
     const window = { _qwikEv: [] as unknown[] } as any;
     const runtime = emitter.emitPendingRuntime('instance');
     Function('window', 'document', readScriptBody(runtime))(window, document);
 
     window._qwikS(document.querySelector('#packet'), 7, 8, 9);
+    await preparing;
+    expect(container.querySelector('#content')?.textContent).toBe('content');
+    expect(
+      Array.from(querySelectorAll('script')).some((script) => script.hasAttribute('q-d:qidle'))
+    ).toBe(false);
+    expect(window._qwikEv).toEqual([0, 'instance']);
+    releasePrepare();
     await window._qwikSP;
 
     expect(container.querySelector('#fallback')).toBeFalsy();
@@ -171,7 +197,17 @@ describe('SsrScriptEmitter', () => {
         (script) => script.getAttribute('q:dispose') === '9'
       )
     ).toBe(true);
-    expect(window._qwikEv).toEqual([0, 'instance']);
+    expect(window._qwikEv).toEqual([0, 'instance', 'd:qidle']);
+    const eager = Array.from(querySelectorAll('script')).find((script) =>
+      script.hasAttribute('q-d:qidle')
+    );
+    expect(eager?.getAttribute('q-d:qidle')).toBe('handlers#_res#8');
+    expect(
+      document
+        .querySelector('#nested')!
+        .parentElement!.querySelector('script')!
+        .hasAttribute('q:idle')
+    ).toBe(true);
 
     const missingTemplate = document.createElement('template');
     const missingScript = document.createElement('script');
@@ -263,6 +299,27 @@ describe('SsrScriptEmitter', () => {
     await window._qwikSP;
 
     expect(document.querySelector('input')?.getAttribute('title')).toBe('final');
+  });
+
+  it.each([false, true])('restores backpatch installation state %j after rollback', (installed) => {
+    const emitter = new SsrScriptEmitter();
+    const serializationCtx = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    const transaction = serializationCtx.$beginTransaction$();
+    const emitPatch = () => emitter.emitBackpatch([[0, 'title', 'final']]);
+    if (installed) {
+      emitPatch();
+    }
+
+    emitter.checkpoint(serializationCtx.$journal$!);
+    emitPatch();
+    transaction.rollback();
+
+    expect(emitPatch().includes('w._qwikB=')).toBe(!installed);
   });
 
   it('keeps backpatch state out of the container', () => {

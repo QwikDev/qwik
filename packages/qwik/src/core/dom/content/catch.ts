@@ -1,12 +1,13 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
+import { createQRL } from '../../shared/qrl/qrl-class';
 import type { Component } from '../../shared/component.public';
 import type { JSXOutput } from '../../shared/jsx/types/jsx-node';
 import { Brand, brandClass } from '../../shared/utils/brand';
 import { hashCode } from '../../shared/utils/hash_code';
 import { isPromise, maybeThen, safeCall } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
-import { cleanupDeps } from '../../reactive/cleanup';
+import { cleanupDeps, disposeSubscriber } from '../../reactive/cleanup';
 import type { ContainerContext } from '../../runtime/container-context';
 import {
   getActiveInvokeContextOrNull,
@@ -16,7 +17,7 @@ import {
 import { getOrCreateContextOwner, registerSubscriberToOwner } from '../../runtime/owner';
 import type { Scheduler } from '../../runtime/scheduler';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
-import { resolveSsrOutput, type SsrOutput } from '../../ssr/output';
+import type { SsrOutput, SsrCatchController } from '../../ssr/output';
 import { EMPTY_NODES } from '../../utils/consts';
 import type { BranchRange } from '../branch/branch';
 import {
@@ -27,8 +28,10 @@ import {
   type ContentFn,
   type SsrContentFn,
 } from './content';
-import { registerCatchBoundary } from './catch-boundary';
-import type { SsrRangeHost } from './pending-ssr';
+import { registerCatchBoundary, handleError } from './catch-boundary';
+import type { SsrRangeHost } from '../../ssr/output';
+import { useOnDocument } from '../../runtime/use-on';
+import { _catchError } from './catch-event';
 
 /** @public */
 export interface CatchProps {
@@ -55,38 +58,28 @@ export class CatchContentSubscription extends ContentSubscription {
     }
   }
 
-  run(): ValueOrPromise<readonly Node[]> {
-    if (this.error !== undefined) {
-      return super.run();
-    }
-    return isSubscriberDisposed(this)
-      ? EMPTY_NODES
-      : safeCall(
-          () => this.block.run(this),
-          (nodes) => nodes,
-          (error) => this.catchError(error)
-        );
-  }
-
   catchError(error: unknown): ValueOrPromise<readonly Node[]> {
     if (isSubscriberDisposed(this) || this.error !== undefined) {
       return EMPTY_NODES;
     }
     this.error = toCatchError(error);
     const previous = this.block;
-    previous.dispose();
-    cleanupDeps(this);
-    this.block = new ContentBlock<unknown[]>(
-      previous.document,
-      previous.start,
-      previous.end,
-      [this.error],
-      this.fallbackQrl,
-      previous.invokeContext,
-      previous.container,
-      false,
-      true
-    );
+    try {
+      previous.dispose();
+    } finally {
+      cleanupDeps(this);
+      this.block = new ContentBlock<unknown[]>(
+        previous.document,
+        previous.start,
+        previous.end,
+        [this.error],
+        this.fallbackQrl,
+        previous.invokeContext,
+        previous.container,
+        false,
+        true
+      );
+    }
     const output = this.run();
     if (isPromise(output)) {
       this.scheduler.waitFor(output, this.owner);
@@ -101,6 +94,7 @@ export function createCatch(
   contentQrl: QRL<ContentFn>,
   fallbackQrl: QRL<ContentFn>
 ): CatchContentSubscription {
+  registerCatchErrorHandler();
   const block = new ContentBlock<unknown[]>(
     ctx.document,
     range.start,
@@ -124,6 +118,7 @@ export function createCatch(
 
 export class SSRCatchContentSubscription extends SSRContentSubscription {
   error?: Error;
+  controller?: SsrCatchController;
 
   constructor(
     content: SSRContent,
@@ -134,12 +129,17 @@ export class SSRCatchContentSubscription extends SSRContentSubscription {
 
   registerRenderBoundary(invokeContext: RuntimeInvokeContext): void {
     if (this.error === undefined) {
-      registerCatchBoundary(getOrCreateContextOwner(invokeContext)!, this);
+      const owner = getOrCreateContextOwner(invokeContext)!;
+      registerCatchBoundary(owner, this);
+      this.controller!.owner = owner;
     }
   }
 
-  catchError(error: unknown): never {
-    throw error;
+  catchError(error: unknown): ValueOrPromise<void> {
+    if (this.controller === undefined) {
+      throw error;
+    }
+    return this.controller.catchError(error);
   }
 }
 
@@ -149,66 +149,105 @@ export function createSsrCatch(
   contentQrl: QRL<(ctx: SsrRangeHost) => ValueOrPromise<SsrOutput>>,
   fallbackQrl: QRL<SsrContentFn>
 ): ValueOrPromise<SsrOutput> {
-  let scope = host.createRangeScope(rangeId);
-  scope.canDefer = false;
+  registerCatchErrorHandler();
   const invokeContext = getActiveInvokeContextOrNull();
-  const boundary = new SSRCatchContentSubscription(
-    new SSRContent<unknown[]>(
-      rangeId,
-      [],
-      contentQrl as never,
-      invokeContext,
-      scope as never,
-      false,
-      true
-    ),
-    fallbackQrl
-  );
-  host.addRoot(boundary);
-  const render = () =>
-    invoke(invokeContext, () =>
-      maybeThen(boundary.content.run(undefined, boundary), resolveSsrOutput)
-    );
-  const rendered = safeCall(
-    render,
-    (output) => output,
-    (error) => {
-      if (error instanceof Error && 'plugin' in error) {
-        throw error;
+  let scope = host.createRangeScope(rangeId);
+  let boundary = createBoundary(contentQrl as QRL<SsrContentFn>, [], scope);
+  const controller: SsrCatchController = {
+    generation: 0,
+    published: false,
+    output: '',
+    parent: host.catchBoundary,
+    catchError(error) {
+      if (boundary.error !== undefined) {
+        return;
       }
-      boundary.dispose();
-      scope.cancel?.();
-      host.markCaughtError?.();
-      let displayed = toCatchError(error) as Error & { digest?: string };
-      if (!isDev) {
-        let source = 'unknown';
-        try {
-          source = `${displayed.name}: ${displayed.message}\n${displayed.stack ?? ''}`;
-        } catch {
-          // Error properties can be hostile getters.
-        }
-        displayed = new Error('An error occurred');
-        displayed.digest = hashCode(source);
-      }
+      const displayed = displayCatchError(error);
       boundary.error = displayed;
+      controller.generation++;
+      const previous = boundary;
+      try {
+        disposeSubscriber(previous);
+      } finally {
+        scope.cancel?.();
+      }
+      host.markCaughtError?.();
       scope = host.createRangeScope(rangeId);
-      scope.canDefer = false;
-      boundary.content = new SSRContent<unknown[]>(
-        rangeId,
-        [displayed],
-        fallbackQrl,
-        invokeContext,
-        scope as never,
-        false,
-        true
-      );
-      return render();
-    }
+      boundary = createBoundary(fallbackQrl, [displayed], scope);
+      boundary.error = displayed;
+      const fallback = render();
+      const wrapped = maybeThen(fallback, (output) => host.wrapRange(rangeId, output));
+      controller.output = isPromise(wrapped) ? Promise.resolve(wrapped) : wrapped;
+      if (isPromise(controller.output)) {
+        controller.output.catch(() => {});
+      }
+      if (controller.published) {
+        scope.defer(
+          {
+            id: rangeId,
+            parentId: null,
+            contentRoot: boundary,
+            placeholderRoot: previous,
+          },
+          Promise.resolve(fallback)
+        );
+      }
+      return maybeThen(fallback, () => {});
+    },
+  };
+  boundary.controller = controller;
+  scope.catchBoundary = controller;
+
+  function createBoundary(qrl: QRL<SsrContentFn>, args: unknown[], scope: typeof host) {
+    return new SSRCatchContentSubscription(
+      new SSRContent(rangeId, args, qrl, invokeContext, scope, false, true),
+      fallbackQrl
+    );
+  }
+
+  function render(): ValueOrPromise<SsrOutput> {
+    const current = boundary;
+    const currentScope = scope;
+    return invoke(invokeContext, () =>
+      maybeThen(current.content.run(undefined, current), (output) => {
+        currentScope.reparentRanges();
+        const result: SsrOutput = [
+          {
+            type: 'publication',
+            owner: null,
+            roots: [current],
+            subscription: current,
+            boundary: current.error === undefined ? controller : host.catchBoundary,
+          },
+          output,
+        ];
+        return controller.reapplyUseOn?.(result) ?? result;
+      })
+    );
+  }
+
+  const initialGeneration = controller.generation;
+  const initial = safeCall(
+    render,
+    (output) => {
+      if (controller.generation === initialGeneration) {
+        controller.output = host.wrapRange(rangeId, output);
+      }
+      return controller.output;
+    },
+    (error) => maybeThen(handleError(controller.owner ?? null, error), () => controller.output)
   );
-  return maybeThen(rendered, (output) => host.wrapRange(rangeId, output));
+  return maybeThen(initial, () => ({ type: 'catch', boundary: controller }));
 }
 
-/** A fallback always receives an Error, including nullish throws. */
+function registerCatchErrorHandler(): void {
+  const context = getActiveInvokeContextOrNull();
+  if (context !== null && !context.hasCatchErrorHandler) {
+    context.hasCatchErrorHandler = true;
+    useOnDocument('qerror', createQRL(null, '_catchError', isServer ? null : _catchError));
+  }
+}
+
 function toCatchError(error: unknown): Error {
   let message = 'An error occurred';
   try {
@@ -222,4 +261,20 @@ function toCatchError(error: unknown): Error {
   return new Error(message);
 }
 
+function displayCatchError(error: unknown): Error & { digest?: string } {
+  let displayed = toCatchError(error) as Error & { digest?: string };
+  if (!isDev) {
+    let source = 'unknown';
+    try {
+      source = `${displayed.name}: ${displayed.message}\n${displayed.stack ?? ''}`;
+    } catch {
+      /* Error properties can be hostile getters. */
+    }
+    displayed = new Error('An error occurred');
+    displayed.digest = hashCode(source);
+  }
+  return displayed;
+}
+
+brandClass(CatchContentSubscription, Brand.CatchContentSubscription);
 isServer && brandClass(SSRCatchContentSubscription, Brand.SsrCatchContentSubscription);

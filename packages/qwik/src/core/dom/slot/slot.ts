@@ -14,6 +14,7 @@ import {
   invoke,
   newChildInvokeContext,
   type RuntimeInvokeContext,
+  type RuntimeContainerContext,
 } from '../../runtime/invoke-context';
 import {
   disposeOwner,
@@ -45,7 +46,10 @@ import {
   createSsrSection,
   createSsrNodeId,
   type SsrEventAttrChunk,
+  ownSsrOutput,
   type SsrOutput,
+  type SsrReferenceChunk,
+  type SsrContentContext,
 } from '../../ssr/output';
 import { createPropsEffect } from '../effect/effect';
 import { renderSsrProps, type DomPropsQrl } from '../effect/ssr-effect';
@@ -57,7 +61,7 @@ type SlotRenderFn = (ctx: ContainerContext) => MaybeNodeOutput | Promise<MaybeNo
 type SsrSlotRenderFn = (
   ctx: SsrSlotContext,
   rangeId: number,
-  projectionRootId?: number
+  projectionRootId?: SsrReferenceChunk
 ) => ValueOrPromise<SsrOutput>;
 export type SlotName = string;
 /** A `q:slot` name: a string, or for `q:slot={expr}` a function the live slot reads tracked. */
@@ -104,9 +108,9 @@ export const useChildrenInfo = (): readonly ChildInfo[] => {
 /** The live-slot segment: the client tail on the client, the server tail on the server. */
 type SlotContentFn = ContentFn<[SlotScope, string, SlotRenderFn | null]>;
 
-export interface SsrSlotContext {
+export interface SsrSlotContext extends SsrContentContext {
   nextId(): number;
-  addRoot(value: unknown): number;
+  addRoot(value: unknown): SsrReferenceChunk;
 }
 
 /**
@@ -199,7 +203,7 @@ export function forwardSlot(
 export function resolveSlot(
   scope: SlotScope | null,
   name: string = EMPTY_STRING,
-  container?: ContainerContext
+  container?: RuntimeContainerContext
 ): readonly Projection[] {
   const slotName = name || EMPTY_STRING;
   return (
@@ -222,14 +226,14 @@ export function renderSlotContent(
   name: string,
   fallback: SlotRenderFn | null
 ): ValueOrPromise<readonly Node[]> {
-  const context = getActiveInvokeContext();
+  const context = getActiveInvokeContext<ContainerContext>();
   const host = { ...context, owner: context.ownerHost };
   return renderProjections(resolveSlot(scope, name, container), fallback ?? undefined, host);
 }
 
 /** The server tail of a live slot. */
 export function renderSsrSlotContent(
-  ctx: ContainerContext & SsrSlotContext,
+  ctx: SsrSlotContext,
   scope: SlotScope,
   name: string,
   fallback: QRL<SsrSlotRenderFn> | null
@@ -246,7 +250,7 @@ export function createSlot(
   name: string = EMPTY_STRING,
   fallback?: SlotRenderFn
 ): ValueOrPromise<readonly Node[]> {
-  const context = getActiveInvokeContext();
+  const context = getActiveInvokeContext<ContainerContext>();
   const scope = context.slotScope;
   if (scope?.slotContentQrl) {
     const container = context.container!;
@@ -271,7 +275,7 @@ export function createSlot(
 function renderProjections(
   projections: readonly Projection[],
   fallback: SlotRenderFn | undefined,
-  context: RuntimeInvokeContext
+  context: RuntimeInvokeContext<ContainerContext>
 ): ValueOrPromise<readonly Node[]> {
   if (projections.length === 0) {
     return fallback === undefined
@@ -407,7 +411,7 @@ export function renderSsrSlot(
   const context = invokeContext ?? getActiveInvokeContext();
   const scope = context.slotScope;
   if (scope?.slotContentQrl) {
-    const container = ctx as ContainerContext & SsrSlotContext;
+    const container = ctx;
     const id = ctx.nextId();
     const content = renderSsrContent(
       container,
@@ -460,16 +464,6 @@ function renderSsrProjections(
 export class ProjectionBlock extends ContentBlock<[]> {
   host: Owner | null = null;
   renderOwner: Owner | null = null;
-
-  run(subscription: ContentSubscription<[]>): ValueOrPromise<readonly Node[]> {
-    return maybeThen(super.run(subscription), (nodes) => {
-      if (this.currentOwner !== null) {
-        this.currentOwner.renderParent = this.renderOwner;
-        this.currentOwner.projection = this;
-      }
-      return nodes;
-    });
-  }
 
   setRenderOwner(owner: Owner | null): void {
     if (this.currentOwner !== null) {
@@ -611,6 +605,14 @@ function projectRestored(
 export class ProjectionSubscription extends ContentSubscription<[]> {
   declare readonly block: ProjectionBlock;
 
+  registerRenderBoundary(context: RuntimeInvokeContext): void {
+    const owner = getOrCreateContextOwner(context)!;
+    owner.renderParent = this.block.renderOwner;
+    owner.projection = this.block;
+    owner.flags |=
+      this.block.renderOwner === null ? 0 : this.block.renderOwner.flags & OwnerFlags.HasCatch;
+  }
+
   dispose(): void {
     if (this.block !== null) {
       this.block.setRenderOwner(null);
@@ -631,12 +633,18 @@ export class ProjectionSubscription extends ContentSubscription<[]> {
   }
 }
 
-export class SSRProjectionSubscription extends SSRContentSubscription<[number, number]> {
+export class SSRProjectionSubscription extends SSRContentSubscription<[number, SsrReferenceChunk]> {
   constructor(
-    content: SSRContent<[number, number]>,
+    content: SSRContent<[number, SsrReferenceChunk]>,
     readonly renderOwner: Owner | null
   ) {
     super(content);
+  }
+
+  registerRenderBoundary(context: RuntimeInvokeContext): void {
+    const owner = getOrCreateContextOwner(context)!;
+    owner.renderParent = this.renderOwner;
+    owner.flags |= this.renderOwner === null ? 0 : this.renderOwner.flags & OwnerFlags.HasCatch;
   }
 }
 
@@ -645,16 +653,16 @@ function renderRegisteredSsrProjection(
   projection: Projection,
   base: RuntimeInvokeContext
 ): ValueOrPromise<SsrOutput> {
-  const container = ctx as ContainerContext & SsrSlotContext;
+  const container = ctx;
   const rangeId = ctx.nextId();
   const consumer = getOrCreateContextOwner(base);
   markShowsProjection(consumer, projection.host);
   const context = newChildInvokeContext(base, { slotScope: projection.slotScope });
-  const args: [number, number] = [rangeId, -1];
-  const content = new SSRContent<[number, number]>(
+  const args: [number, SsrReferenceChunk] = [rangeId, { type: 'root-value', value: null }];
+  const content = new SSRContent<[number, SsrReferenceChunk]>(
     rangeId,
     args,
-    projection.renderQrl as QRL<SsrContentFn<[number, number]>>,
+    projection.renderQrl as QRL<SsrContentFn<[number, SsrReferenceChunk]>>,
     context,
     container,
     false,
@@ -666,15 +674,7 @@ function renderRegisteredSsrProjection(
     throw new Error('Missing SSR projection root registration');
   }
   args[1] = ctx.addRoot(subscription);
-  return maybeThen(
-    runWithOwner(projection.host ?? consumer, () => content.run(undefined, subscription)),
-    (output) => {
-      if (content.currentOwner !== null) {
-        content.currentOwner.renderParent = consumer;
-      }
-      return output;
-    }
-  );
+  return runWithOwner(projection.host ?? consumer, () => content.run(undefined, subscription));
 }
 
 function renderSsrProjection(
@@ -696,7 +696,7 @@ function renderSsrProjection(
     });
     return safeCall(
       () => runWithCollector(null, invoke, invokeContext, render, ctx, rangeId),
-      (output) => output,
+      (output) => ownSsrOutput(output, invokeContext),
       (error) => {
         if (invokeContext.owner !== null) {
           disposeOwner(invokeContext.owner);

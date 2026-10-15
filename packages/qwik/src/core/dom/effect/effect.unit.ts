@@ -1,3 +1,4 @@
+import { registerCatchBoundary } from '../content/catch-boundary';
 import { describe, expect, it, vi } from 'vitest';
 import { createDocument } from '../../../testing/document';
 import {
@@ -42,6 +43,27 @@ import { registerDomEffect, type DomEffect } from './dom-effect';
 import { createCapturedEvent } from '../event/event';
 
 describe('DOM effects', () => {
+  it('ignores a rejected promise from an invalidated generation', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const owner = createOwner(null);
+    const caught = vi.fn();
+    registerCatchBoundary(owner, { catchError: caught } as never);
+    const effect = runWithOwner(owner, () =>
+      createTextNodeEffect(createText(), useSignal('ready'), scheduler)
+    );
+    let reject!: (error: unknown) => void;
+    const stale = new Promise<string>((_done, fail) => {
+      reject = fail;
+    });
+    const pending = effect.trackPromise(stale, () => {});
+    effect.invalidate();
+    await pending;
+    reject(new Error('stale rejection'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(caught).not.toHaveBeenCalled();
+  });
+
   it.each(['text', 'attribute', 'props', 'event'])(
     'invokes %s expressions with captures and their effect receiver',
     async (kind) => {

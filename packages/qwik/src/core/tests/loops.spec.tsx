@@ -23,6 +23,39 @@ const List = component$((props: { tick: Signal<number> }) => {
 });
 
 describe(`${name}: loops`, () => {
+  it('resumes a row event directly from its serialized parameter', async () => {
+    const MyComp = () => {
+      const selected = useSignal('');
+      const rows = useSignal([{ id: 'row-a', label: 'Alpha', kind: 'business', flags: 0 }]);
+      return (
+        <section>
+          <ul>
+            {rows.value.map((row) => (
+              <li>
+                <button
+                  onClick$={(event, element) => {
+                    selected.value = row.label;
+                  }}
+                >
+                  {row.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <output>{selected.value}</output>
+        </section>
+      );
+    };
+    const { container, cleanup, qwikLoader } = await render(MyComp, { debug });
+    const button = container.querySelector('li button')!;
+    if (name === 'ssrRender') {
+      expect(button.getAttribute('q:p')).toMatch(/^\d+$/);
+    }
+    await qwikLoader?.dispatch(button, 'click');
+    expect(container.querySelector('output')?.textContent).toBe('Alpha');
+    cleanup();
+  });
+
   it('updates retained keyed rows and row event captures', async () => {
     const MyComp = () => {
       const items = useSignal([

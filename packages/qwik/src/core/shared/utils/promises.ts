@@ -68,6 +68,11 @@ const justThrow = (e: any) => {
   throw e;
 };
 
+function throwRetryError(error: unknown): never {
+  isDev && checkError(error as Error);
+  throw error;
+}
+
 /**
  * Retries a function that throws a promise. If you pass `onError`, you're responsible for handling
  * errors.
@@ -123,4 +128,138 @@ export function retryOnPromise<T>(
   };
 
   return ok ? result.catch(retry) : retry(result as Promise<void>);
+}
+
+function acceptCancelledValue(value: unknown, callback?: (value: unknown) => void): void {
+  try {
+    callback?.(value);
+  } catch {
+    /* Cancelled work has no error recipient. */
+  }
+}
+
+function observeCancelledValue(
+  promise: Promise<unknown>,
+  callback?: (value: unknown) => void
+): void {
+  if (callback === undefined) {
+    promise.catch(() => {});
+    return;
+  }
+  promise.then(
+    (value) => acceptCancelledValue(value, callback),
+    () => {}
+  );
+}
+
+interface CancellationState {
+  readonly isCancelled: boolean;
+}
+
+export function thenInLifetime<T, R>(
+  lifetime: CancellationState | null,
+  value: ValueOrPromise<T>,
+  fulfilled: (value: Awaited<T>) => ValueOrPromise<R>,
+  cancelledValue: unknown = undefined,
+  rejected?: (error: unknown) => ValueOrPromise<R>,
+  onCancelledValue?: (value: unknown) => void
+): ValueOrPromise<R> {
+  if (lifetime?.isCancelled) {
+    if (isPromise(value)) {
+      observeCancelledValue(value, onCancelledValue);
+    } else {
+      acceptCancelledValue(value, onCancelledValue);
+    }
+    return cancelledValue as R;
+  }
+  if (isPromise(value)) {
+    return value.then(
+      (value) => {
+        if (lifetime?.isCancelled) {
+          acceptCancelledValue(value, onCancelledValue);
+          return cancelledValue as R;
+        }
+        return fulfilled(value as Awaited<T>);
+      },
+      (error) => {
+        if (lifetime?.isCancelled) {
+          return cancelledValue as R;
+        }
+        if (rejected !== undefined) {
+          return rejected(error);
+        }
+        throw error;
+      }
+    );
+  }
+  const result = fulfilled(value as Awaited<T>);
+  if (lifetime?.isCancelled) {
+    if (isPromise(result)) {
+      result.catch(() => {});
+    }
+    return cancelledValue as R;
+  }
+  return result;
+}
+
+export function retryAfterPromise<T>(
+  lifetime: CancellationState | null,
+  error: unknown,
+  run: () => ValueOrPromise<T>,
+  cancelledValue: unknown = undefined,
+  remaining = MAX_RETRY_ON_PROMISE_COUNT
+): ValueOrPromise<T> {
+  if (!isPromise(error)) {
+    return throwRetryError(error);
+  }
+  if (remaining === 0) {
+    throw new Error('Exceeded max retry count in retryOnPromise');
+  }
+  return thenInLifetime(
+    lifetime,
+    error,
+    () => retryInLifetime(lifetime, run, cancelledValue, remaining - 1),
+    cancelledValue,
+    (error) => retryAfterPromise(lifetime, error, run, cancelledValue, remaining - 1)
+  );
+}
+
+export function retryInLifetime<T>(
+  lifetime: CancellationState | null,
+  run: () => ValueOrPromise<T>,
+  cancelledValue: unknown = undefined,
+  remaining = MAX_RETRY_ON_PROMISE_COUNT
+): ValueOrPromise<T> {
+  if (lifetime?.isCancelled) {
+    return cancelledValue as T;
+  }
+  let result: ValueOrPromise<T>;
+  try {
+    result = run();
+  } catch (error) {
+    if (!isPromise(error)) {
+      return throwRetryError(error);
+    }
+    if (lifetime?.isCancelled) {
+      error.catch(() => {});
+      return cancelledValue as T;
+    }
+    return retryAfterPromise(lifetime, error, run, cancelledValue, remaining);
+  }
+  if (lifetime?.isCancelled) {
+    if (isPromise(result)) {
+      result.catch(() => {});
+    }
+    return cancelledValue as T;
+  }
+  if (!isPromise(result)) {
+    return result;
+  }
+  return thenInLifetime(
+    lifetime,
+    result,
+    (value) => value as T,
+    cancelledValue,
+    (error) => retryAfterPromise(lifetime, error, run, cancelledValue, remaining)
+  );
 }

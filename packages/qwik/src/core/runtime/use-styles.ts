@@ -1,3 +1,6 @@
+import type { RuntimeContainerContext } from './invoke-context';
+import type { SsrContentContext } from '../ssr/output';
+type StylesContainer = RuntimeContainerContext & Pick<SsrContentContext, 'registerSsrStyle'>;
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { ComponentStylesPrefixContent, QStyle, QStyleSelector } from '../shared/utils/markers';
 import { getActiveInvokeContext } from './invoke-context';
@@ -10,7 +13,8 @@ export function useStyles(style: string, styleId: string): string {
 
 export function useStylesScoped(style: string, styleId: string, registerScope?: true): string {
   const styleIds = getStyleIds();
-  if (!styleIds.has(styleId)) {
+  const container = getActiveInvokeContext().container as StylesContainer | undefined;
+  if (container?.registerSsrStyle !== undefined || !styleIds.has(styleId)) {
     appendStyleContent(styleId, getScopedStyles(style, styleId), styleIds);
   }
   const scope = ComponentStylesPrefixContent + styleId;
@@ -53,7 +57,11 @@ function getStyleIds(): Map<string, string> {
 }
 
 function appendStyleContent(styleId: string, content: string, styleIds = getStyleIds()): void {
-  const container = getActiveInvokeContext().container;
+  const container = getActiveInvokeContext().container as StylesContainer | undefined;
+  if (container?.registerSsrStyle !== undefined) {
+    container.registerSsrStyle(styleId, content);
+    return;
+  }
   const document = container?.document ?? globalThis.document;
   if (styleIds.has(styleId)) {
     return;

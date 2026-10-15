@@ -2,7 +2,7 @@ import { Brand, brandClass } from '../shared/utils/brand';
 import { isServer } from '@qwik.dev/core/build';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { isPromise } from '../shared/utils/promises';
-import type { ContainerContext } from '../runtime/container-context';
+import type { RuntimeContainerContext } from '../runtime/invoke-context';
 import { Computed, readComputed, readComputedUntracked } from './computed';
 import { ComputedFlags } from './flags';
 import { markComputedDirty } from './notify';
@@ -27,7 +27,7 @@ export class SerializerSignal<T, S = unknown> extends Computed<T> {
 
   constructor(
     public argQrl: SerializerSignalQrl<T, S> | null,
-    public container?: ContainerContext,
+    public container?: RuntimeContainerContext,
     public arg: SerializerArg<T, S> | null = null
   ) {
     super(null, computeSerializerValue);

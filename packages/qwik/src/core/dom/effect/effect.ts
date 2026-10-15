@@ -16,7 +16,7 @@ import type { CapturedEventHandler, QDispatchHandler } from '../../shared/types'
 import { EMPTY_ARRAY } from '../../utils/consts';
 import { invokeCaptured } from '../../shared/qrl/qrl-captures';
 import { isPromise, safeCall } from '../../shared/utils/promises';
-import { handleRenderError } from '../content/catch-boundary';
+import { handleError } from '../content/catch-boundary';
 
 export type AttrExpressionFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
@@ -137,7 +137,7 @@ export class ForBlockSubscription<T = unknown> implements ForBlockSubscriber {
     return safeCall(
       () => this.block.run(this),
       () => {},
-      (error) => handleRenderError(this.owner, error)
+      (error) => handleError(this.owner, error)
     );
   }
 }

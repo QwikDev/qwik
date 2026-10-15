@@ -1,5 +1,7 @@
+import type { SsrContentContext } from '../../ssr/output';
+import { OwnerFlags } from '../../reactive/flags';
 import type { QRL } from '../../shared/qrl/qrl.public';
-import { isPromise, maybeThen } from '../../shared/utils/promises';
+import { isPromise, maybeThen, thenInLifetime } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { Signal } from '../../reactive/signal';
 import type { Source } from '../../reactive/source';
@@ -12,7 +14,7 @@ import {
 import { createOwner, disposeOwner, type Owner } from '../../runtime/owner';
 import type { MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
-import type { SsrOutput } from '../../ssr/output';
+import { ownSsrOutput, type SsrOutput } from '../../ssr/output';
 import {
   appendRowOutput,
   createForBlock,
@@ -31,7 +33,7 @@ type CollectionRenderFn<T> = (
   item: T,
   index: CollectionIndex
 ) => ValueOrPromise<MaybeNodeOutput>;
-type SsrCollectionContext = ContainerContext & { nextId(): number };
+type SsrCollectionContext = SsrContentContext & { nextId(): number };
 type SsrCollectionRenderFn<T> = (
   ctx: SsrCollectionContext,
   rangeId: number,
@@ -136,25 +138,33 @@ export function renderSsrCollection<T>(
   const base = getActiveInvokeContextOrNull();
   const owner = createOwner();
   return rollbackOwnerOnError(owner, () =>
-    maybeThen(getFunctionOrResolve(renderQrl, ctx), (render) => {
-      const output: SsrOutput[] = [];
-      const next = (start: number): ValueOrPromise<SsrOutput> => {
-        for (let i = start; i < collection.length; i++) {
-          const rowId = usesRowId ? ctx.nextId() : 0;
-          const context = newChildInvokeContext(base, { ownerHost: owner, container: ctx });
-          const row = invoke(context, render, ctx, rangeId!, rowId, collection[i], i);
-          if (isPromise(row)) {
-            return row.then((row) => {
-              output.push(row);
-              return next(i + 1);
-            });
+    thenInLifetime(
+      owner,
+      getFunctionOrResolve(renderQrl, ctx),
+      (render) => {
+        const output: SsrOutput[] = [];
+        const next = (start: number): ValueOrPromise<SsrOutput> => {
+          for (let i = start; i < collection.length; i++) {
+            if (owner.flags & OwnerFlags.Disposed) {
+              return '';
+            }
+            const rowId = usesRowId ? ctx.nextId() : 0;
+            const context = newChildInvokeContext(base, { ownerHost: owner, container: ctx });
+            const row = invoke(context, render, ctx, rangeId!, rowId, collection[i], i);
+            if (isPromise(row)) {
+              return thenInLifetime(owner, row, (row) => {
+                output.push(ownSsrOutput(row, context));
+                return next(i + 1);
+              });
+            }
+            output.push(ownSsrOutput(row, context));
           }
-          output.push(row);
-        }
-        return finalizeSsrRows(output);
-      };
-      return next(0);
-    })
+          return finalizeSsrRows(output);
+        };
+        return next(0);
+      },
+      ''
+    )
   );
 }
 

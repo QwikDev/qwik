@@ -1,20 +1,22 @@
+import type { SsrContentContext } from '../ssr/output';
+import type { ContainerContext } from '../runtime/container-context';
 import { Brand, brandClass } from '../shared/utils/brand';
 import { isServer } from '@qwik.dev/core/build';
 import { QError, qError } from '../shared/error/error';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { isPromise, maybeThen, retryOnPromise } from '../shared/utils/promises';
+import { isPromise, thenInLifetime, retryInLifetime } from '../shared/utils/promises';
 import { qTest } from '../shared/utils/qdev';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { isServerPlatform } from '../shared/platform/platform';
-import { cleanupDeps } from './cleanup';
-import { ComputedFlags } from './flags';
+import { cleanupDeps, runLateCleanup } from './cleanup';
+import { ComputedFlags, OwnerFlags } from './flags';
 import { notifySourceSubscribers } from './notify';
 import { Signal } from './signal';
 import type { Source, SourceSubs } from './source';
 import { isStore } from './store';
 import { getActiveCollector, runWithCollector, track } from './tracking';
-import type { ContainerContext } from '../runtime/container-context';
-import { getOrCreateContextOwner, type Owner } from '../runtime/owner';
+import type { RuntimeContainerContext } from '../runtime/invoke-context';
+import { getLiveOwner, getOrCreateContextOwner, type Owner } from '../runtime/owner';
 import { getActiveInvokeContextOrNull } from '../runtime/invoke-context';
 import { SubscriberKind, type ComputedSubscriber } from '../runtime/subscriber';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
@@ -22,6 +24,7 @@ import { getFunctionOrResolve } from '../utils/qrl';
 import { invokeCaptured } from '../shared/qrl/qrl-captures';
 import type { AsyncCtx, ComputedOptions, ComputedSignal, ComputeCtx } from './public-types';
 import { isSubscriberDisposed } from '../runtime/subscriber';
+import { handleError } from '../dom/content/catch-boundary';
 
 export type ComputeSignalFn<T> = (ctx: ComputeCtx<T>) => ValueOrPromise<T>;
 export type ComputeSignalQrl<T> = QRL<ComputeSignalFn<T>>;
@@ -37,14 +40,28 @@ class AsyncJob<T> implements AsyncCtx<T> {
     readonly info: unknown
   ) {}
 
+  get isCancelled(): boolean {
+    return (
+      !this.canWrite ||
+      this.signal.current !== this ||
+      isSubscriberDisposed(this.signal) ||
+      this.abortController?.signal.aborted === true
+    );
+  }
+
   get track(): AsyncCtx<T>['track'] {
     return this.signal.trackSource;
   }
 
   cleanup = (callback: () => ValueOrPromise<void>): void => {
-    if (typeof callback === 'function') {
-      (this.cleanups ??= []).push(callback);
+    if (typeof callback !== 'function') {
+      return;
     }
+    if (this.isCancelled) {
+      runLateCleanup(callback);
+      return;
+    }
+    (this.cleanups ??= []).push(callback);
   };
 
   get abortSignal(): AbortSignal {
@@ -68,12 +85,13 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   current: AsyncJob<T> | null = null;
   storedCleanups: Array<() => ValueOrPromise<void>> | null = null;
   cleanupPromise: Promise<void> | null = null;
+  declare private cleanupObservation?: { computed?: Computed<T> };
   info: unknown;
 
   constructor(
     public computeQrl: ComputeSignalQrl<T> | null,
     public computeFn: ComputeSignalFn<T> | null = null,
-    public container?: ContainerContext,
+    public container?: RuntimeContainerContext,
     public options?: ComputedOptions<T>
   ) {
     super(readInitialValue(options) as T);
@@ -195,7 +213,8 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
 
   /** Runs the user cleanups ahead of disposal, keeping the subscriptions in place. */
   runUserCleanups(): ValueOrPromise<void> {
-    return maybeThen(this.abort(), () => this.runStoredCleanups());
+    const pending = this.abort();
+    return this.runStoredCleanups() ?? pending;
   }
 
   async promise(): Promise<void> {
@@ -210,10 +229,17 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   dispose(): void {
-    this.abort();
-    cleanupDeps(this);
-    this.subs = null;
-    void this.runStoredCleanups();
+    try {
+      void this.runUserCleanups();
+    } finally {
+      cleanupDeps(this);
+      this.subs = null;
+      if (this.cleanupObservation !== undefined) {
+        this.cleanupObservation.computed = undefined;
+        this.cleanupObservation = undefined;
+      }
+      this.cleanupPromise = null;
+    }
   }
 
   resume(): void {
@@ -305,18 +331,18 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
 
     let result: ValueOrPromise<T>;
     try {
-      result = maybeThen(this.runStoredCleanups(), () => {
+      result = thenInLifetime(job, this.runStoredCleanups(), () => {
         cleanupDeps(this);
         const run = this.computeFn ?? getFunctionOrResolve(this.computeQrl!, this.container, false);
         if (isPromise(run) && !isServerEnv()) {
           // Importing the compute chunk is framework work: the flush must outlast it, or the
           // subscribers this computed then notifies land after the interaction has settled.
-          this.container?.scheduler.waitFor(
+          (this.container as ContainerContext | undefined)?.scheduler.waitFor(
             run,
             readerOwner ?? getOrCreateContextOwner(invokeContext)
           );
         }
-        return maybeThen(run, (run) => this.evaluate(job, run));
+        return thenInLifetime(job, run, (run) => this.evaluate(job, run));
       });
     } catch (error) {
       this.flags &= ~(ComputedFlags.Dirty | ComputedFlags.Computing);
@@ -404,7 +430,12 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       qrl?.resolved === run
         ? undefined
         : (qrl?.$captures$ as readonly unknown[] | null | undefined);
-    return retryOnPromise(() => runWithCollector(this, invokeCaptured, run, captures, this, [job]));
+    return retryInLifetime(job, () => {
+      if (!job.canWrite || isSubscriberDisposed(this)) {
+        return undefined as T;
+      }
+      return runWithCollector(this, invokeCaptured, run, captures, this, [job]);
+    });
   }
 
   private publishValue(value: T, notify = true): void {
@@ -442,9 +473,12 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   private addToEagerResume(): void {
-    (
-      this.container as { serializationCtx?: { $eagerResume$: Set<unknown> } } | undefined
-    )?.serializationCtx?.$eagerResume$.add(this);
+    const container = this.container as SsrContentContext | undefined;
+    if (container?.markEagerResume !== undefined) {
+      container.markEagerResume(this);
+    } else {
+      container?.serializationCtx?.$eagerResume$.add(this);
+    }
   }
 
   private runStoredCleanups(): ValueOrPromise<void> {
@@ -457,37 +491,74 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     if (cleanups === null || cleanups.length === 0) {
       return;
     }
-    if (this.cleanupPromise !== null) {
-      return this.cleanupPromise.then(() => this.runCleanups(cleanups));
+    const owner = getLiveOwner(this.owner);
+    const result = runComputedCleanups(cleanups, this.cleanupPromise, owner);
+    if (!isPromise(result)) {
+      return result;
     }
-
-    let index = 0;
-    const run = (): ValueOrPromise<void> => {
-      while (index < cleanups.length) {
-        try {
-          const result = cleanups[index++]();
-          if (isPromise(result)) {
-            return result.then(run, (error) => {
-              console.error('Error in computed cleanup', error);
-              return run();
-            });
-          }
-        } catch (error) {
-          console.error('Error in computed cleanup', error);
-        }
+    if (isSubscriberDisposed(this)) {
+      if (!isServerEnv()) {
+        (this.container as ContainerContext | undefined)?.scheduler.waitFor(result, owner);
       }
-    };
-    const result = run();
-    if (isPromise(result)) {
-      const pending = result.finally(() => {
-        if (this.cleanupPromise === pending) {
-          this.cleanupPromise = null;
-        }
-      });
-      this.cleanupPromise = pending;
-      return pending;
+      return result;
     }
+    this.cleanupPromise = result;
+    if (this.cleanupObservation !== undefined) {
+      this.cleanupObservation.computed = undefined;
+    }
+    const observation = (this.cleanupObservation = { computed: this });
+    observeComputedCleanup(result, observation);
+    return result;
   }
+}
+
+function observeComputedCleanup<T>(
+  promise: Promise<void>,
+  observation: { computed?: Computed<T> }
+): void {
+  const finish = () => {
+    const computed = observation.computed;
+    observation.computed = undefined;
+    if (computed?.cleanupPromise === promise) {
+      computed.cleanupPromise = null;
+    }
+  };
+  promise.then(finish, finish);
+}
+
+function runComputedCleanups(
+  cleanups: Array<() => ValueOrPromise<void>>,
+  pending: Promise<void> | null,
+  owner: Owner | null
+): ValueOrPromise<void> {
+  let index = 0;
+  let failure: { error: unknown } | undefined;
+  const onError = (error: unknown) => {
+    if (owner !== null && owner.flags & OwnerFlags.HasCatch) {
+      failure ??= { error };
+    } else {
+      console.error('Error in computed cleanup', error);
+    }
+  };
+  const run = (): ValueOrPromise<void> => {
+    while (index < cleanups.length) {
+      try {
+        const result = cleanups[index++]();
+        if (isPromise(result)) {
+          return result.then(run, (error) => {
+            onError(error);
+            return run();
+          });
+        }
+      } catch (error) {
+        onError(error);
+      }
+    }
+    if (failure !== undefined) {
+      return handleError(owner, failure.error);
+    }
+  };
+  return pending === null ? run() : pending.then(run);
 }
 
 function hasInitial<T>(options: ComputedOptions<T> | undefined): boolean {

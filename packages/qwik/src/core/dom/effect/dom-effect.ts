@@ -1,3 +1,4 @@
+import type { ContainerContext } from '../../runtime/container-context';
 import { cleanupDeps } from '../../reactive/cleanup';
 import { SubscriberFlags } from '../../reactive/flags';
 import type { Source } from '../../reactive/source';
@@ -7,7 +8,7 @@ import { registerSubscriberToOwner, type Owner } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import { SubscriberKind, type DomSubscriber } from '../../runtime/subscriber';
 import { retryOnPromise } from '../../shared/utils/promises';
-import { handleRenderError } from '../content/catch-boundary';
+import { handleError } from '../content/catch-boundary';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
 
@@ -45,7 +46,7 @@ export abstract class DomEffect implements DomSubscriber {
           ? undefined
           : runWithCollector1(this, executeDomEffect, this);
       },
-      (error) => handleRenderError(this.owner, error)
+      (error) => handleError(this.owner, error)
     );
   }
 
@@ -61,7 +62,11 @@ export abstract class DomEffect implements DomSubscriber {
             commit(value);
           }
         })
-        .catch((error) => handleRenderError(this.owner, error)),
+        .catch((error) => {
+          if (!isSubscriberDisposed(this) && generation === this.asyncGeneration) {
+            return handleError(this.owner, error);
+          }
+        }),
       invalidation,
     ]);
     this.scheduler.waitFor(pending, this.owner);
@@ -89,5 +94,5 @@ export function commitDomPromise<T>(
 }
 
 function getActiveScheduler(): Scheduler {
-  return getActiveInvokeContextOrNull()?.container?.scheduler ?? defaultScheduler;
+  return getActiveInvokeContextOrNull<ContainerContext>()?.container?.scheduler ?? defaultScheduler;
 }

@@ -1,3 +1,4 @@
+import { createSsrRootRef, type SsrReferenceChunk } from './ssr/output';
 import type { RenderRoot } from '@qwik.dev/core';
 import {
   Scheduler,
@@ -360,10 +361,13 @@ export function createAttrTarget(): { element: Element; attrs: Map<string, strin
 export function createCaptureContainer(
   captures: Record<string, unknown>,
   scheduler = new Scheduler(noopSchedule)
-): ContainerContext & { nextId(): number; addRoot(value: unknown): number } {
+): ContainerContext & { nextId(): number; addRoot(value: unknown): SsrReferenceChunk } {
   let nextId = 0;
   let nextRootId = Object.keys(captures).length;
-  const container: ContainerContext & { nextId(): number; addRoot(value: unknown): number } = {
+  const container: ContainerContext & {
+    nextId(): number;
+    addRoot(value: unknown): SsrReferenceChunk;
+  } = {
     element: {} as HTMLElement,
     document: null!,
     locale: null,
@@ -393,7 +397,7 @@ export function createCaptureContainer(
     addRoot(value) {
       const id = nextRootId++;
       captures[String(id)] = value;
-      return id;
+      return createSsrRootRef(id);
     },
   };
   return container;

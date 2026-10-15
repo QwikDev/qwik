@@ -1,10 +1,12 @@
 import type { EventHandler } from './jsx/types/jsx-qwik-attributes';
+import type { Owner } from '../runtime/owner';
 
 export interface QElement extends Element {
   _qDispatch?: Record<string, QDispatchHandler | QDispatchHandler[]>;
   _qSegment?: string;
   _qEventParam?: unknown;
   _qEventParams?: readonly unknown[];
+  _qErrorOwner?: Owner;
 }
 
 export type CapturedEventHandler = unknown[] & {

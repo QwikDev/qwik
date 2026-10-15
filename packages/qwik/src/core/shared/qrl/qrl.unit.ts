@@ -1,12 +1,12 @@
 import { $ } from '@qwik.dev/core';
-import { assert, assertType, describe, expectTypeOf, test, vi } from 'vitest';
+import { assert, assertType, describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { getPlatform, setPlatform } from '../platform/platform';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 import { _regSymbol, inlinedQrl, qrl } from './qrl';
 import { _captures, createQRL, withCaptures } from './qrl-class';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import { _qrlSync, type QRL } from './qrl.public';
-import { isSyncQrl } from './qrl-utils';
+import { isQrlImportError, isSyncQrl } from './qrl-utils';
 import { allocate } from '../serdes/allocate';
 import { TypeIds } from '../serdes/constants';
 
@@ -52,6 +52,15 @@ describe('types', () => {
 });
 
 describe('serialization', () => {
+  test('marks a synchronous module loading failure as an import error', async () => {
+    const error = new Error('module transform failed');
+    const qrl = createQRL('chunk', 'handler', null, () => {
+      throw error;
+    });
+    await expect(qrl.resolve()).rejects.toBe(error);
+    assert.isTrue(isQrlImportError(error));
+  });
+
   test.each(['#handler-key', 17])('resolves a resumed sync QRL with key %s', async (payload) => {
     const key = typeof payload === 'string' ? payload.slice(1) : String(payload);
     const handler = vi.fn(() => 'handled');
@@ -163,6 +172,19 @@ describe('serialization', () => {
       ),
       'src/routes/[...index]/a+b/c?foo#s1#2 1'
     );
+  });
+
+  test('resolves a preload chunk without registering captures', () => {
+    const context = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    context.$qrlMapper$ = (symbol) => [symbol, './mapped.js'];
+    const handler = createQRL('./original.js', 'preload', null, null, [{}]);
+    assert.equal(qrlToString(context, handler, 'chunk'), 'mapped.js');
+    assert.equal(context.$roots$.length, 0);
   });
 
   test('should store resolved value', async () => {

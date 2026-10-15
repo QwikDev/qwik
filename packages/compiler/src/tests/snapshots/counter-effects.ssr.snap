@@ -197,7 +197,6 @@ import {
   createSsrDomBatchEffect,
   renderSsrAttrExpression,
   renderSsrTextExpression,
-  createSsrRootRef,
 } from '@qwik.dev/core';
 const root_onClickqrl_segment_0_37h438c21ydkt = (props) => {
   return props.onClick$;
@@ -310,7 +309,7 @@ const root_for_render_segment_13_xl6e5erok1z7 = (ctx, __rangeId, __rowId, row) =
         '</td><td class="col-md-4"><a q:id="',
         createSsrNodeId(id2),
         '" q:p="',
-        createSsrRootRef(ctx.addRoot(row)),
+        ctx.addRoot(row),
         '"',
         ctx.eventAttrParts(
           'q-e:click',
@@ -319,7 +318,7 @@ const root_for_render_segment_13_xl6e5erok1z7 = (ctx, __rangeId, __rowId, row) =
         '>',
         escapeHTML(text1),
         '</a></td><td class="col-md-1"><a q:p="',
-        createSsrRootRef(ctx.addRoot(row)),
+        ctx.addRoot(row),
         '"',
         ctx.eventAttrParts('q-e:click', q_root_q_e_click_segment_19_1exo9sxclr3jp.w([data]).m()),
         '><span class="glyphicon glyphicon-remove" aria-hidden="true">x</span></a></td><td class="col-md-6"></td></tr>',
@@ -907,7 +906,6 @@ import {
   createSsrDomBatchEffect,
   renderSsrAttrExpression,
   renderSsrTextExpression,
-  createSsrRootRef,
   maybeThen,
 } from '@qwik.dev/core';
 import { root_class_segment_15_2xl0i26jedthh } from './root.tsx_root_class_segment_15_2xl0i26jedthh';
@@ -976,7 +974,7 @@ export const root_for_render_segment_13_xl6e5erok1z7 = (ctx, __rangeId, __rowId,
         '</td><td class="col-md-4"><a q:id="',
         createSsrNodeId(id2),
         '" q:p="',
-        createSsrRootRef(ctx.addRoot(row)),
+        ctx.addRoot(row),
         '"',
         ctx.eventAttrParts(
           'q-e:click',
@@ -985,7 +983,7 @@ export const root_for_render_segment_13_xl6e5erok1z7 = (ctx, __rangeId, __rowId,
         '>',
         escapeHTML(text1),
         '</a></td><td class="col-md-1"><a q:p="',
-        createSsrRootRef(ctx.addRoot(row)),
+        ctx.addRoot(row),
         '"',
         ctx.eventAttrParts('q-e:click', q_root_q_e_click_segment_19_1exo9sxclr3jp.w([data]).m()),
         '><span class="glyphicon glyphicon-remove" aria-hidden="true">x</span></a></td><td class="col-md-6"></td></tr>',

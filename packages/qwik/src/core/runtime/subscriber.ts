@@ -54,6 +54,7 @@ export interface ComputedSubscriber<T = unknown>
   readonly kind: SubscriberKind.Computed;
   flags: ComputedFlags;
   compute: () => T;
+  dispose(): void;
 }
 
 // TODO: replace with the real IdleJob runtime type.

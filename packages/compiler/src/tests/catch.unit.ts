@@ -60,3 +60,29 @@ export default component$(() => {
     );
   });
 });
+
+test('SSR keeps Catch content and fallback tags available for inherited useOn', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    transpileTs: true,
+    input: [
+      {
+        path: 'src/app.tsx',
+        code: `import { component$, Catch, useOn, $, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  useOn('click', $(() => count.value++));
+  return <Catch fallback$={() => <button id="fallback">{count.value}</button>}>
+    <button id="content">{count.value}</button>
+  </Catch>;
+});`,
+      },
+    ],
+  });
+  expect(output.diagnostics).toEqual([]);
+  const content = output.modules.find((module) => module.segment?.ctxName === 'catch:content')!;
+  expect(content.code).toContain('createSsrOpenTag(');
+  const fallback = output.modules.find((module) => module.segment?.ctxName === 'jsx')!;
+  expect(fallback.code).toContain('createSsrOpenTag(');
+});

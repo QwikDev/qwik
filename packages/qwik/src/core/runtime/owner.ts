@@ -16,6 +16,7 @@ import type { ValueOrPromise } from '../shared/utils/types';
 import { runWithCollector } from '../reactive/tracking';
 
 import type { ProjectionBlock } from '../dom/slot/slot';
+import type { CatchBoundary } from '../dom/content/catch-boundary';
 
 export type OwnerItem = Owner | Subscriber;
 export type OwnerItems = OwnerItem | OwnerItem[] | null;
@@ -50,12 +51,17 @@ export function restoreOwnerItemOrder(item: OwnerItem, owner: Owner, position: n
 export class Owner {
   parent: Owner | null = null;
   renderParent?: Owner | null;
+  declare catchBoundary?: CatchBoundary;
   declare projection?: ProjectionBlock;
   declare shownProjections?: ProjectionBlock | ProjectionBlock[];
   declare pendingPhases?: PendingWork;
   declare pendingWork?: Map<Promise<unknown>, PendingWork>;
   items: OwnerItems = null;
   flags = OwnerFlags.None;
+
+  get isCancelled(): boolean {
+    return (this.flags & OwnerFlags.Disposed) !== 0;
+  }
 }
 
 export function createOwner(parent?: Owner | null): Owner {
@@ -63,6 +69,13 @@ export function createOwner(parent?: Owner | null): Owner {
   const resolvedParent = arguments.length === 0 ? getOrCreateActiveOwnerOrNull() : (parent ?? null);
 
   registerOwnerToOwner(owner, resolvedParent);
+  return owner;
+}
+
+export function getLiveOwner(owner: Owner | null): Owner | null {
+  while (owner?.isCancelled) {
+    owner = owner.renderParent === undefined ? owner.parent : owner.renderParent;
+  }
   return owner;
 }
 
@@ -190,14 +203,17 @@ export function disposeOwner(owner: Owner): void {
   }
 
   owner.flags = (owner.flags | OwnerFlags.Disposed) & ~OwnerFlags.Queued & ~OwnerFlags.DirtyMask;
-  detachOwnerFromParent(owner);
-  disposeOwnerItems(owner);
   if (owner.pendingWork !== undefined) {
     for (const work of owner.pendingWork.values()) {
       work.cancel();
     }
   }
   owner.pendingPhases?.cancel();
+  try {
+    disposeOwnerItems(owner);
+  } finally {
+    detachOwnerFromParent(owner);
+  }
 }
 
 export function disposeOwnerItems(owner: Owner): void {
@@ -213,19 +229,32 @@ export function disposeOwnerItems(owner: Owner): void {
   }
 
   // LIFO: later items may read earlier ones (task cleanup reading a computed).
+  let failure: { error: unknown } | undefined;
   for (let i = items.length - 1; i >= 0; i--) {
-    disposeOwnerItem(items[i]);
+    try {
+      disposeOwnerItem(items[i]);
+    } catch (error) {
+      failure ??= { error };
+    }
+  }
+  if (failure !== undefined) {
+    throw failure.error;
   }
 }
 
-/** Runs the user cleanups under `root` ahead of disposal, leaving the `skip` subtrees alone. */
+/** Runs user cleanups, preserving child scopes selected by `skip`. */
 export function runOwnerCleanups(
   root: Owner,
-  skip: ReadonlySet<Owner> = new Set()
+  skip?: (subscriber: Subscriber) => Owner | null
 ): ValueOrPromise<void> {
   let pending: Promise<void>[] | null = null;
+  let failure: { error: unknown } | undefined;
+  let skipped: Set<Owner> | undefined;
   const owners = [root];
   for (let i = 0; i < owners.length; i++) {
+    if (isServer && skipped?.has(owners[i])) {
+      continue;
+    }
     const items = owners[i].items;
     if (items === null) {
       continue;
@@ -233,18 +262,31 @@ export function runOwnerCleanups(
     for (let j = 0; j < ownerItemsLength(items); j++) {
       const item = ownerItemAt(items, j)!;
       if (item instanceof Owner) {
-        if (!skip.has(item)) {
-          owners.push(item);
-        }
+        owners.push(item);
         continue;
       }
-      const result = runSubscriberCleanups(item);
-      if (isPromise(result)) {
-        (pending ??= []).push(result);
+      if (isServer) {
+        const child = skip?.(item);
+        if (child !== null && child !== undefined) {
+          (skipped ??= new Set()).add(child);
+        }
+      }
+      try {
+        const result = runSubscriberCleanups(item);
+        if (isPromise(result)) {
+          (pending ??= []).push(result);
+        }
+      } catch (error) {
+        failure ??= { error };
       }
     }
   }
-  return pending === null ? undefined : Promise.all(pending).then(() => {});
+  const finish = () => {
+    if (failure !== undefined) {
+      throw failure.error;
+    }
+  };
+  return pending === null ? finish() : Promise.all(pending).then(finish);
 }
 
 function getOrCreateActiveOwnerOrNull(): Owner | null {
@@ -283,6 +325,7 @@ export function registerOwnerToOwner(owner: Owner, parent: Owner | null): void {
   }
 
   owner.parent = parent;
+  owner.flags |= parent.flags & OwnerFlags.HasCatch;
   appendOwnerItem(parent, owner);
 }
 

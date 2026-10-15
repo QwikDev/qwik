@@ -53,7 +53,7 @@ export { Scheduler } from './runtime/scheduler';
  * @internal
  */
 export const _getContextContainer = (): ContainerContext | undefined =>
-  getActiveInvokeContextOrNull()?.container;
+  getActiveInvokeContextOrNull<ContainerContext>()?.container;
 
 /** @internal */
 export const _waitUntilRendered = (container: ContainerContext): Promise<void> =>

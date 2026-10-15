@@ -31,11 +31,7 @@ function appendCarrier(
   const parts: SsrRecordPart[] = ['<script hidden', '>'];
   let hasCarrier = false;
   for (const key in useOnEvents) {
-    if (
-      key !== 'q-e:qvisible' &&
-      !key.startsWith(EventNameHtmlScope.document) &&
-      !key.startsWith(EventNameHtmlScope.window)
-    ) {
+    if (!isCarrierEvent(key)) {
       if (isDev) {
         console.warn(`useOn('${key}') has no element carrier.`);
       }
@@ -84,6 +80,34 @@ function applyToFirstElement(
     };
     return scan(0);
   }
+  if (
+    typeof output === 'object' &&
+    output !== null &&
+    'type' in output &&
+    output.type === 'catch'
+  ) {
+    const boundary = output.boundary;
+    return maybeThen(applyToFirstElement(boundary.output, useOnEvents, eventAttr), (applied) => {
+      const fallbackEvents: UseOnMap = applied.found ? useOnEvents : {};
+      if (applied.found) {
+        boundary.output = applied.output;
+      } else {
+        for (const key in useOnEvents) {
+          if (!isCarrierEvent(key)) {
+            fallbackEvents[key] = useOnEvents[key];
+          }
+        }
+      }
+      const previous = boundary.reapplyUseOn;
+      boundary.reapplyUseOn = (output) =>
+        applyUseOnToSsrOutput(
+          previous === undefined ? output : previous(output),
+          fallbackEvents,
+          eventAttr
+        );
+      return { output, found: applied.found };
+    });
+  }
   if (!isSsrRecordChunk(output) || !output.openTag) {
     return { output, found: false };
   }
@@ -116,4 +140,12 @@ function appendEvent(parts: SsrRecordPart[], chunk: SsrEventAttrChunk, event: Us
   event.capture && parts.splice(parts.length - 1, 0, ` capture:${eventName}`);
   event.preventdefault && parts.splice(parts.length - 1, 0, ` preventdefault:${eventName}`);
   event.stoppropagation && parts.splice(parts.length - 1, 0, ` stoppropagation:${eventName}`);
+}
+
+function isCarrierEvent(key: string): boolean {
+  return (
+    key === 'q-e:qvisible' ||
+    key.startsWith(EventNameHtmlScope.document) ||
+    key.startsWith(EventNameHtmlScope.window)
+  );
 }

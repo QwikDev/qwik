@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createNode, createText, noopSchedule, runWithTestContainer } from '../test-utils';
 import { createTextNodeEffect } from '../dom/effect/text-effect';
 import { useSignal } from '../reactive/public-api';
@@ -27,6 +27,85 @@ import { useTask } from '../runtime/task';
 import { createComponent, type ComponentRenderFn } from './component';
 
 describe('components and invoke contexts', () => {
+  it('returns synchronous component output directly', () => {
+    const owner = createOwner(null);
+    expect(runWithOwner(owner, () => createComponent(() => 'ready', null))).toBe('ready');
+    expect(owner).not.toHaveProperty('disposalCallbacks');
+  });
+
+  it.each(['throw', 'reject'] as const)(
+    'creates fresh invoke contexts while preserving the host across %s retries',
+    async (mode) => {
+      const owner = createOwner(null);
+      const parent = newInvokeContext({ owner });
+      const contexts: RuntimeInvokeContext[] = [];
+      const render = () => {
+        contexts.push(getActiveInvokeContext());
+        if (contexts.length < 3) {
+          const pending = Promise.resolve();
+          if (mode === 'throw') {
+            throw pending;
+          }
+          return Promise.reject(pending);
+        }
+        return 'ready';
+      };
+      const output = invoke(parent, () => createComponent(render, null));
+      parent.owner = null;
+      await expect(output).resolves.toBe('ready');
+      expect(new Set(contexts).size).toBe(3);
+      expect(contexts.every((context) => context.ownerHost === owner)).toBe(true);
+      expect(owner).not.toHaveProperty('disposalCallbacks');
+    }
+  );
+
+  it('ignores a discarded component after its pending work settles', async () => {
+    const owner = createOwner(null);
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const render = vi.fn(() => {
+      throw render.mock.calls.length === 1 ? Promise.resolve() : pending;
+    });
+    const output = runWithOwner(owner, () => createComponent(render, null));
+    for (let tick = 0; tick < 12; tick++) {
+      await Promise.resolve();
+    }
+    expect(render).toHaveBeenCalledTimes(2);
+    let finished = false;
+    void Promise.resolve(output).then(() => {
+      finished = true;
+    });
+    disposeOwner(owner);
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(finished).toBe(false);
+    release();
+    await expect(output).resolves.toEqual([]);
+    await pending;
+    await Promise.resolve();
+    expect(render).toHaveBeenCalledTimes(2);
+    expect(owner).not.toHaveProperty('disposalCallbacks');
+  });
+
+  it('disposes the final failed attempt when the retry budget is exhausted', async () => {
+    const owner = createOwner(null);
+    const contexts: RuntimeInvokeContext[] = [];
+    const pending = Promise.resolve();
+    const output = runWithOwner(owner, () =>
+      createComponent(() => {
+        const context = getActiveInvokeContext();
+        contexts.push(context);
+        createTextNodeEffect(createText(), useSignal('failed'));
+        throw pending;
+      }, null)
+    );
+    await expect(output).rejects.toThrow(/retry count/);
+    expect(contexts).toHaveLength(101);
+    expect(contexts.at(-1)!.owner).toBeNull();
+    disposeOwner(owner);
+  });
+
   it('mounts components without collecting direct signal reads', () => {
     const count = useSignal(1);
     const node = createNode('component');

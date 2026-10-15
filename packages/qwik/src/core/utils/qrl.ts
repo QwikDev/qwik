@@ -2,11 +2,11 @@ import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { isQrl } from '../shared/qrl/qrl-utils';
 import { isPromise } from '../shared/utils/promises';
-import type { ContainerContext } from '../runtime/container-context';
+import type { RuntimeContainerContext } from '../runtime/invoke-context';
 
 export function getFunctionOrResolve<T>(
   fn: T | QRL<T>,
-  ctx?: ContainerContext,
+  ctx?: RuntimeContainerContext,
   bindCaptures = true
 ): T | Promise<T> {
   if (!isQrl(fn)) {
@@ -30,7 +30,7 @@ export function getFunctionOrResolve<T>(
  */
 export function readExpression<T>(
   qrl: QRL<(...captures: unknown[]) => T>,
-  ctx?: ContainerContext
+  ctx?: RuntimeContainerContext
 ): T {
   const fn = getFunctionOrResolve(qrl, ctx);
   if (isPromise(fn)) {

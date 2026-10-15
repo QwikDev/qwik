@@ -8,8 +8,8 @@ import { qTest } from '../shared/utils/qdev';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { SubscriberFlags } from '../reactive/flags';
 import { registerSubscriberToOwner } from './owner';
-import { defaultScheduler, Phase, type TaskScheduler } from './scheduler';
-import { runTaskCleanups, runTaskSubscriber } from './run-task';
+import { defaultScheduler, Phase, type TaskScheduler, type Scheduler } from './scheduler';
+import { runTaskSubscriber } from './run-task';
 import { useOn, useOnDocument } from './use-on';
 import { createVisibleTaskHandlerQrl, wakeVisibleTasks } from '../handlers';
 import { getActiveInvokeContext, getActiveInvokeContextOrNull } from './invoke-context';
@@ -20,7 +20,7 @@ import {
   type VisibleTaskSubscriber,
 } from './subscriber';
 import type { Source } from '../reactive/source';
-import type { ContainerContext } from './container-context';
+import type { RuntimeContainerContext } from './invoke-context';
 import type { RuntimeInvokeContext } from './invoke-context';
 import type { Owner } from './owner';
 
@@ -52,16 +52,17 @@ export interface VisibleTaskOptions {
 abstract class RunnableTaskRecord {
   cleanups: TaskCleanupFn[] | null = null;
   cleanupPromise: Promise<void> | null = null;
+  disposed = false;
 
   constructor(
     readonly runFn: TaskFn | undefined,
     readonly qrl?: TaskQrlRef,
-    readonly container?: ContainerContext,
+    readonly container?: RuntimeContainerContext,
     readonly invokeContext: RuntimeInvokeContext | null = null
   ) {}
 
-  dispose(): ValueOrPromise<void> {
-    return runTaskCleanups(this);
+  get isCancelled(): boolean {
+    return this.disposed;
   }
 }
 
@@ -70,7 +71,7 @@ export class Task extends RunnableTaskRecord {
     runFn: TaskFn | undefined,
     readonly phase: Phase.BlockingTask | Phase.DeferredTask,
     qrl?: TaskQrlRef,
-    container?: ContainerContext,
+    container?: RuntimeContainerContext,
     invokeContext: RuntimeInvokeContext | null = null
   ) {
     super(runFn, qrl, container, invokeContext);
@@ -148,7 +149,7 @@ export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
   const result = maybeThen(invokeContext.pendingSetup, () => subscriber.run());
   if (isPromise(result)) {
     invokeContext.pendingSetup = result;
-    scheduler.waitFor(result, subscriber.owner);
+    (scheduler as Scheduler).waitFor(result, subscriber.owner);
   }
   return subscriber;
 }

@@ -1,9 +1,12 @@
+import type { SsrContentContext } from '../../ssr/output';
 import { Brand, brandClass } from '../../shared/utils/brand';
 import { isServer } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import type { FunctionComponent, JSXOutput } from '../../shared/jsx/types/jsx-node';
 import {
   isPromise,
+  thenInLifetime,
+  retryInLifetime,
   maybeThen,
   promiseAll,
   retryOnPromise,
@@ -29,7 +32,7 @@ import {
 } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import { registerPendingBoundary } from './pending-boundary';
-import { handleRenderError } from './catch-boundary';
+import { handleError } from './catch-boundary';
 import {
   SubscriberKind,
   type ContentSubscriber,
@@ -41,8 +44,8 @@ import type { RevealGroup } from './reveal';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import { isQrl } from '../../shared/qrl/qrl-utils';
-import type { SsrOutput } from '../../ssr/output';
-import { replaceRange, prepareProjectionRanges, parkProjections } from '../range/range';
+import { ownSsrOutput, resolveSsrOutput, type SsrOutput } from '../../ssr/output';
+import { replaceContent, prepareProjectionRanges } from '../range/range';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
 import type { BranchRange } from '../branch/branch';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
@@ -71,7 +74,7 @@ export const Pending: FunctionComponent<PendingProps & { children?: JSXOutput }>
  */
 export const renderSsrDynamicContent = (
   value: unknown,
-  ctx?: ContainerContext,
+  ctx?: SsrContentContext,
   invokeContext = getActiveInvokeContextOrNull()
 ): ValueOrPromise<SsrOutput> =>
   maybeThen(value, (v) =>
@@ -80,7 +83,7 @@ export const renderSsrDynamicContent = (
       : typeof v === 'function'
         ? // a callback may hand back another compiled JSX value instead of output
           maybeThen(
-            invoke(invokeContext, v as (ctx?: ContainerContext) => unknown, ctx),
+            invoke(invokeContext, v as (ctx?: SsrContentContext) => unknown, ctx),
             (output) =>
               isQrl(output)
                 ? renderSsrDynamicContent(output, ctx, invokeContext)
@@ -174,8 +177,9 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
   }
 
   private runPrepared(subscription: ContentSubscription<TArgs>): ValueOrPromise<readonly Node[]> {
+    const requestedGeneration = this.generation;
     return maybeThen(getFunctionOrResolve(this.fn, this.container), (fn) => {
-      if (isSubscriberDisposed(subscription)) {
+      if (isSubscriberDisposed(subscription) || requestedGeneration !== this.generation) {
         return EMPTY_NODES;
       }
       const invokeContext = newChildInvokeContext(this.invokeContext, {
@@ -188,31 +192,14 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
       subscription.registerRenderBoundary(invokeContext);
       const generation = ++this.generation;
       this.pendingContext = invokeContext;
-      return safeCall(
-        () =>
-          retryOnPromise(() =>
-            runWithCollector(subscription, () =>
-              invokeApply(
-                invokeContext,
-                fn as (...args: unknown[]) => ValueOrPromise<ContentOutput>,
-                this.contextArg ? [this.container, ...this.args] : this.args
-              )
-            )
-          ),
-        (output) => {
-          if (this.pendingContext === invokeContext) {
-            this.pendingContext = null;
-          }
-          if (isSubscriberDisposed(subscription) || generation !== this.generation) {
-            if (invokeContext.owner !== null) {
-              disposeOwner(invokeContext.owner);
-              invokeContext.owner = null;
-            }
-            return EMPTY_NODES;
-          }
-          return this.commit(invokeContext, output);
-        },
-        (error) => {
+      const onError = (error: unknown) => {
+        if (isSubscriberDisposed(subscription) || generation !== this.generation) {
+          return EMPTY_NODES;
+        }
+        let handled: ValueOrPromise<void>;
+        try {
+          handled = handleError(invokeContext.owner ?? subscription.owner, error);
+        } finally {
           if (this.pendingContext === invokeContext) {
             this.pendingContext = null;
           }
@@ -220,8 +207,41 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
             disposeOwner(invokeContext.owner);
             invokeContext.owner = null;
           }
-          throw error;
         }
+        return maybeThen(handled, () => EMPTY_NODES);
+      };
+      return safeCall(
+        () =>
+          retryOnPromise(() => {
+            if (isSubscriberDisposed(subscription) || generation !== this.generation) {
+              return EMPTY_NODES;
+            }
+            return runWithCollector(subscription, () =>
+              invokeApply(
+                invokeContext,
+                fn as (...args: unknown[]) => ValueOrPromise<ContentOutput>,
+                this.contextArg ? [this.container, ...this.args] : this.args
+              )
+            );
+          }),
+        (output) => {
+          try {
+            if (this.pendingContext === invokeContext) {
+              this.pendingContext = null;
+            }
+            if (isSubscriberDisposed(subscription) || generation !== this.generation) {
+              if (invokeContext.owner !== null) {
+                disposeOwner(invokeContext.owner);
+                invokeContext.owner = null;
+              }
+              return EMPTY_NODES;
+            }
+            return this.commit(invokeContext, output);
+          } catch (error) {
+            return onError(error);
+          }
+        },
+        onError
       );
     });
   }
@@ -230,17 +250,16 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
     this.generation++;
     const owner = this.currentOwner;
     this.currentOwner = null;
-    parkProjections(owner);
-    if (owner !== null) {
-      disposeOwner(owner);
-    }
     const pendingContext = this.pendingContext;
     this.pendingContext = null;
-    if (pendingContext !== null && pendingContext.owner !== null) {
-      disposeOwner(pendingContext.owner);
-      pendingContext.owner = null;
+    try {
+      if (pendingContext !== null && pendingContext.owner !== null) {
+        disposeOwner(pendingContext.owner);
+        pendingContext.owner = null;
+      }
+    } finally {
+      replaceContent(this, EMPTY_NODES, owner, true);
     }
-    replaceRange(this.document, this.start, this.end, EMPTY_NODES);
   }
 
   private commit(invokeContext: RuntimeInvokeContext, output: ContentOutput): readonly Node[] {
@@ -252,14 +271,10 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
         ? reapplyUseOnContexts(output, this.invokeContext, this.document)
         : output
     );
-    parkProjections(previousOwner);
-    replaceRange(this.document, this.start, this.end, nodes);
+    replaceContent(this, nodes, previousOwner, true);
     this.committed = true;
     // Deferred content claims the owner after this commit, so materialize it now or lose the handle.
     this.currentOwner = getOrCreateContextOwner(invokeContext);
-    if (previousOwner !== null) {
-      disposeOwner(previousOwner);
-    }
     return nodes;
   }
 }
@@ -284,7 +299,7 @@ export class ContentSubscription<TArgs extends unknown[] = unknown[]> implements
     return safeCall(
       () => this.block.run(this),
       (nodes) => nodes,
-      (error) => maybeThen(handleRenderError(this.owner, error), () => EMPTY_NODES)
+      (error) => maybeThen(handleError(this.owner, error), () => EMPTY_NODES)
     );
   }
 
@@ -379,24 +394,39 @@ export function attachPending(
       }
     });
   };
-  const committedNodes = isPromise(content) ? null : content;
-  if (committedNodes !== null) {
-    holdForReveal(committedNodes);
+  let hasCommittedContent = false;
+  if (!isPromise(content)) {
+    hasCommittedContent = true;
+    holdForReveal(content);
   }
-  let isPending = isPromise(content);
+  let isPending = !hasCommittedContent;
   let nestedPending = 0;
   let preservedContent: DocumentFragment | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let fallbackContext: RuntimeInvokeContext | null = null;
   const disposeFallback = () => {
     const context = fallbackContext;
-    const owner = context?.owner;
-    if (owner) {
+    fallbackContext = null;
+    const owner = context?.owner ?? null;
+    if (context !== null) {
+      context.owner = null;
+    }
+    if (preservedContent !== null) {
+      const content = preservedContent;
+      preservedContent = null;
+      replaceContent(
+        range,
+        isSubscriberDisposed(subscription) ? EMPTY_NODES : [content],
+        owner,
+        true
+      );
+    } else if (owner !== null) {
       if (subscription.block.currentOwner === owner) {
         subscription.block.currentOwner = null;
+        replaceContent(range, EMPTY_NODES, owner, true);
+      } else {
+        disposeOwner(owner);
       }
-      disposeOwner(owner);
-      context.owner = null;
     }
   };
   const finish = () => {
@@ -421,34 +451,47 @@ export function attachPending(
     const work = safeCall(
       () =>
         maybeThen(getFunctionOrResolve(fallbackQrl, ctx), (fallback) => {
-          if (!isPending || isSubscriberDisposed(subscription)) {
+          if (fallbackContext !== invokeContext) {
+            return;
+          }
+          if (isSubscriberDisposed(subscription)) {
             finish();
             return;
           }
           const output = invoke(invokeContext, fallback, ctx);
           // The fallback may still be rendering, so materialize the owner instead of reading it.
-          if (committedNodes === null) {
+          if (!hasCommittedContent) {
             subscription.block.currentOwner = getOrCreateContextOwner(invokeContext);
           }
           return maybeThen(output, (output) => {
-            if (!isPending || isSubscriberDisposed(subscription)) {
+            if (fallbackContext !== invokeContext) {
+              return;
+            }
+            if (isSubscriberDisposed(subscription)) {
               finish();
               return;
             }
-            if (committedNodes !== null) {
+            if (hasCommittedContent) {
               const fragment = ctx.document.createDocumentFragment();
               while (range.start.nextSibling !== range.end) {
                 fragment.appendChild(range.start.nextSibling!);
               }
               preservedContent = fragment;
             }
-            range.replace(toNodes(output));
+            replaceContent(range, toNodes(output), subscription.block.currentOwner, false);
           });
         }),
       () => {},
       (error) => {
-        disposeFallback();
-        return Promise.reject(error);
+        if (fallbackContext !== invokeContext || isSubscriberDisposed(subscription)) {
+          return;
+        }
+        const owner = invokeContext.owner ?? subscription.owner;
+        try {
+          return handleError(owner, error);
+        } finally {
+          disposeFallback();
+        }
       }
     );
     ctx.scheduler.waitFor(work, subscription.owner);
@@ -468,10 +511,6 @@ export function attachPending(
       () => {
         if (--nestedPending === 0) {
           finish();
-          if (preservedContent !== null && !isSubscriberDisposed(subscription)) {
-            range.replace([preservedContent]);
-            preservedContent = null;
-          }
         }
       },
       (error) => {
@@ -506,6 +545,7 @@ export function attachPending(
   content.then(
     (nodes) => {
       finish();
+      hasCommittedContent = true;
       holdForReveal(nodes);
       if (subscription.block.currentOwner !== null) {
         registerPendingBoundary(subscription.block.currentOwner, subscription);
@@ -524,13 +564,24 @@ export function attachPending(
 export class SSRContent<TArgs extends unknown[] = unknown[]> {
   currentOwner: Owner | null = null;
   isPending = true;
+  private renderContext?: RuntimeInvokeContext;
+  declare currentSubscription?: SSRContentSubscription<TArgs>;
+  private isDisposed = false;
+
+  get isCancelled(): boolean {
+    return this.isDisposed;
+  }
+
+  get pendingOwner(): Owner | null {
+    return this.renderContext?.owner ?? null;
+  }
 
   constructor(
     readonly rangeId: number,
     readonly args: TArgs,
     readonly qrl: QRL<SsrContentFn<TArgs>>,
     readonly invokeContext: RuntimeInvokeContext | null,
-    readonly container?: ContainerContext,
+    readonly container?: SsrContentContext,
     readonly useOnRoot = false,
     readonly contextArg = false
   ) {}
@@ -542,46 +593,99 @@ export class SSRContent<TArgs extends unknown[] = unknown[]> {
     const subscription = registerSubscriberToOwner(
       suppliedSubscription ?? new SSRContentSubscription<TArgs>(this)
     );
+    this.isDisposed = false;
+    this.isPending = true;
+    this.currentSubscription = subscription;
     onSubscription?.(subscription);
-    return maybeThen(getFunctionOrResolve(this.qrl, this.container), (fn) => {
-      const invokeContext = newChildInvokeContext(this.invokeContext, {
-        ownerHost: subscription.owner,
-        container: this.container,
-      });
-      subscription.registerRenderBoundary(invokeContext);
-      return safeCall(
-        () =>
-          retryOnPromise(() =>
-            runWithCollector(subscription, () =>
-              invokeApply(
-                invokeContext,
-                fn as (...args: unknown[]) => ValueOrPromise<SsrOutput>,
-                this.contextArg ? [this.container, ...this.args] : this.args
-              )
-            )
-          ),
-        (output) => {
-          this.isPending = false;
-          if (isSubscriberDisposed(subscription)) {
-            if (invokeContext.owner !== null) {
-              disposeOwner(invokeContext.owner);
-              invokeContext.owner = null;
-            }
-            return output;
+    if (this.isDisposed || isSubscriberDisposed(subscription)) {
+      return '';
+    }
+    return thenInLifetime(
+      subscription,
+      getFunctionOrResolve(this.qrl, this.container),
+      (fn) => {
+        const invokeContext = newChildInvokeContext(this.invokeContext, {
+          ownerHost: subscription.owner,
+          container: this.container,
+        });
+        subscription.registerRenderBoundary(invokeContext);
+        this.renderContext = invokeContext;
+        const onError = (error: unknown): ValueOrPromise<string> => {
+          let handled: ValueOrPromise<void>;
+          try {
+            handled = handleError(invokeContext.owner ?? subscription.owner, error);
+          } finally {
+            this.dispose();
           }
-          this.currentOwner = invokeContext.owner;
-          return output;
-        },
-        (error) => {
-          this.isPending = false;
-          if (invokeContext.owner !== null) {
-            disposeOwner(invokeContext.owner);
-            invokeContext.owner = null;
-          }
-          throw error;
+          return maybeThen(handled, () => '');
+        };
+        let output: ValueOrPromise<SsrOutput>;
+        try {
+          output = retryInLifetime(
+            subscription,
+            () =>
+              runWithCollector(subscription, () =>
+                invokeApply(
+                  invokeContext,
+                  fn as (...args: unknown[]) => ValueOrPromise<SsrOutput>,
+                  this.contextArg ? [this.container, ...this.args] : this.args
+                )
+              ),
+            ''
+          );
+        } catch (error) {
+          return onError(error);
         }
-      );
-    });
+        const finish = (output: SsrOutput): SsrOutput => {
+          try {
+            this.isPending = false;
+            this.renderContext = undefined;
+            if (isSubscriberDisposed(subscription)) {
+              if (invokeContext.owner !== null) {
+                disposeOwner(invokeContext.owner);
+                invokeContext.owner = null;
+              }
+              return '';
+            }
+            this.currentOwner = invokeContext.owner;
+            return ownSsrOutput(output, invokeContext, subscription);
+          } catch (error) {
+            return onError(error);
+          }
+        };
+        return thenInLifetime(
+          subscription,
+          output,
+          (output) => {
+            let resolved: ValueOrPromise<SsrOutput>;
+            try {
+              resolved = resolveSsrOutput(output, (value, fulfilled) =>
+                thenInLifetime(subscription, value, fulfilled, '')
+              );
+            } catch (error) {
+              return onError(error);
+            }
+            return thenInLifetime(subscription, resolved, finish, '', onError);
+          },
+          '',
+          onError
+        );
+      },
+      ''
+    );
+  }
+  dispose(): void {
+    this.isDisposed = true;
+    this.isPending = false;
+    const owner = this.currentOwner ?? this.pendingOwner;
+    this.currentOwner = null;
+    if (this.renderContext !== undefined) {
+      this.renderContext.owner = null;
+    }
+    this.renderContext = undefined;
+    if (owner !== null) {
+      disposeOwner(owner);
+    }
   }
 }
 
@@ -596,15 +700,18 @@ export class SSRContentSubscription<
 
   constructor(public content: SSRContent<TArgs>) {}
 
+  get isCancelled(): boolean {
+    return (
+      isSubscriberDisposed(this) ||
+      this.content.isCancelled ||
+      this.content.currentSubscription !== this
+    );
+  }
+
   registerRenderBoundary(_invokeContext: RuntimeInvokeContext): void {}
 
   dispose(): void {
-    this.content.isPending = false;
-    const owner = this.content.currentOwner;
-    this.content.currentOwner = null;
-    if (owner !== null) {
-      disposeOwner(owner);
-    }
+    this.content.dispose();
   }
 }
 
@@ -619,7 +726,7 @@ export class SSRPendingContentSubscription extends SSRContentSubscription<[]> {
 }
 
 export function renderSsrContent<TArgs extends unknown[]>(
-  ctx: ContainerContext,
+  ctx: SsrContentContext,
   rangeId: number,
   args: TArgs,
   qrl: QRL<SsrContentFn<TArgs>>,

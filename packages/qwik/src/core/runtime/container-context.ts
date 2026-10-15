@@ -13,7 +13,6 @@ import type { Owner } from './owner';
 import type { ServerDataContext } from './use-server-data';
 import type { Subscriber } from './subscriber';
 import { deserializeCaptures } from '../shared/serdes/captures';
-import { isPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { qTest } from '../shared/utils/qdev';
 
@@ -29,6 +28,7 @@ export interface StateChunk {
 
 export interface ContainerState {
   detachedProjectionNodes?: DocumentFragment;
+  allocatedSlots?: WeakMap<unknown[], Map<number, unknown>>;
   rootToChunk: StateChunk[];
   forwardRefsChunk: StateChunk | null;
   liveRoots: Map<number, unknown>;
@@ -139,11 +139,16 @@ function createContainerContextRecord(
       }
     },
     async disposeRoot(id) {
-      const root = await whenRootInflated(
-        context,
-        (await getStateRoot(context, Number(id))) as Subscriber
-      );
-      disposeSubscriber(root);
+      const rootId = Number(id);
+      state.disposedRoots.add(rootId);
+      const root = await whenRootInflated(context, state.liveRoots.get(rootId));
+      if (
+        root !== null &&
+        typeof root === 'object' &&
+        typeof (root as Subscriber).kind === 'number'
+      ) {
+        disposeSubscriber(root as Subscriber);
+      }
     },
     async prepareRoot(id) {
       await getStateRoot(context, Number(id));
@@ -285,45 +290,37 @@ async function loadStateRoot(context: ContainerContext, id: number): Promise<unk
   const type = parsed[offset] as TypeIds;
   const value = parsed[offset + 1];
 
-  const { allocate, inflate, needsInflation } = await import('../shared/serdes/inflate');
-  const root = await allocate(context, type, value);
-  if (isContextScope(root)) {
-    root.id = String(id);
-  }
-  context.state.liveRoots.set(id, root);
-
-  if (context.state.disposedRoots.has(id)) {
-    // An uninflated subscriber cannot run its cleanup.
-    if (
-      type === TypeIds.EffectSubscription ||
-      type === TypeIds.PendingSubscription ||
-      type === TypeIds.CatchSubscription ||
-      type === TypeIds.Task ||
-      type === TypeIds.ComputedSignal ||
-      type === TypeIds.AsyncSignal ||
-      type === TypeIds.SerializerSignal
-    ) {
-      (root as Subscriber).flags |= SubscriberFlags.Disposed;
+  const { readSerializedSlot } = await import('../shared/serdes/inflate');
+  const root = await readSerializedSlot(context, parsed, offset, (root) => {
+    if (isContextScope(root)) {
+      root.id = String(id);
     }
-    return root;
-  } else if (type === TypeIds.ForwardRefs) {
-    context.forwardRefs = value as Array<number | string>;
-  } else if (needsInflation(type)) {
-    const inflation = inflate(context, root, type, value);
-    if (isPromise(inflation) && root !== null && typeof root === 'object') {
-      const inflating = (context.state.inflatingRoots ??= new WeakMap());
-      inflating.set(root, inflation);
-      try {
-        await inflation;
-      } finally {
-        inflating.delete(root);
+    context.state.liveRoots.set(id, root);
+    if (type === TypeIds.ForwardRefs) {
+      context.forwardRefs = value as Array<number | string>;
+    }
+    if (context.state.disposedRoots.has(id)) {
+      if (
+        type === TypeIds.EffectSubscription ||
+        type === TypeIds.PendingSubscription ||
+        type === TypeIds.CatchSubscription ||
+        type === TypeIds.Task ||
+        type === TypeIds.ComputedSignal ||
+        type === TypeIds.AsyncSignal ||
+        type === TypeIds.SerializerSignal
+      ) {
+        (root as Subscriber).flags |= SubscriberFlags.Disposed;
       }
-    } else {
-      await inflation;
+      return false;
     }
-  }
+  });
 
-  if (context.state.disposedRoots.has(id)) {
+  if (
+    context.state.disposedRoots.has(id) &&
+    root !== null &&
+    typeof root === 'object' &&
+    'kind' in root
+  ) {
     disposeSubscriber(root as Subscriber);
   }
 
@@ -437,6 +434,14 @@ function promoteDeepRootRef(
   path: string
 ): void {
   const root = resolveRootRef(context, path, chunk.base + rootTypeIndex / 2);
+  if (root.allocation !== undefined) {
+    const slots = context.state.allocatedSlots!;
+    let allocations = slots.get(parsed);
+    if (allocations === undefined) {
+      slots.set(parsed, (allocations = new Map()));
+    }
+    allocations.set(rootTypeIndex, root.allocation);
+  }
   parsed[rootTypeIndex] = root.type;
   parsed[rootTypeIndex + 1] = root.value;
 }
@@ -445,7 +450,7 @@ function resolveRootRef(
   context: ContainerContext,
   rootRef: number | string,
   promotedRoot?: number
-): { type: TypeIds; value: unknown } {
+): { type: TypeIds; value: unknown; allocation?: unknown } {
   const parts = String(rootRef).split(' ');
   const sourceRoot = Number(parts[0]);
   const sourceChunk = context.state.rootToChunk[sourceRoot];
@@ -473,6 +478,8 @@ function resolveRootRef(
     }
   }
 
+  const allocation =
+    parent === null ? undefined : context.state.allocatedSlots?.get(parent)?.get(typeIndex);
   if (promotedRoot !== undefined && parent !== null) {
     parent[typeIndex] = TypeIds.RootRef;
     parent[valueIndex] = promotedRoot;
@@ -481,5 +488,6 @@ function resolveRootRef(
   return {
     type: objectType,
     value: object,
+    allocation,
   };
 }

@@ -1,5 +1,6 @@
 import {
   createSsrMarkup,
+  type SerializationContext,
   type SerializedStateRange,
   type SsrAttributePatch,
   type SsrOutput,
@@ -70,11 +71,12 @@ export class SsrScriptEmitter {
 
   emitStateRange(
     range: SerializedStateRange,
-    boundaryId: number,
-    subscriptions?: readonly number[]
+    boundaryId?: number,
+    subscriptions?: readonly number[],
+    eventAttrs?: readonly (string | SsrReferenceChunk)[]
   ): SsrOutput {
     const output: SsrOutput[] = [
-      this.emitState(range.state, range.base, range.len, undefined, false, boundaryId),
+      this.emitState(range.state, range.base, range.len, eventAttrs, false, boundaryId),
     ];
     if (range.forwardRefs !== undefined) {
       const forwardRefs = range.forwardRefs.map((value) =>
@@ -184,6 +186,13 @@ export class SsrScriptEmitter {
     );
   }
 
+  checkpoint(journal: NonNullable<SerializationContext['$journal$']>): void {
+    const hadBackpatchRuntime = this.hasBackpatchRuntime;
+    journal.record(() => {
+      this.hasBackpatchRuntime = hadBackpatchRuntime;
+    });
+  }
+
   emitBackpatch(patches: readonly SsrAttributePatch[]): string {
     const apply = `const c=s.closest('[q\\\\:container]');if(!c)return;const z=e=>e.closest('[q\\\\:container]')===c;for(let i=0;i<d.length;i+=3){const e=[...c.querySelectorAll('[q\\\\:id="'+d[i]+'"]')].find(z),n=d[i+1],v=d[i+2];if(!e)continue;n==='value'&&e.value!==undefined?e.value=v??'':n==='checked'&&e.checked!==undefined?e.checked=v!==null:v==null?e.removeAttribute(n):e.setAttribute(n,v)}`;
     const install = this.hasBackpatchRuntime ? '' : `w._qwikB=(s,d)=>{${apply}};`;
@@ -197,13 +206,14 @@ export class SsrScriptEmitter {
   emitPendingRuntime(instanceHash: string): string {
     return this.writeScript(
       { nonce: this.getNonce() },
-      `((w)=>{w._qwikS=(s,i,u,o)=>w._qwikSP=Promise.resolve(w._qwikSP).then(async()=>{const t=s.previousElementSibling,c=t.closest('[q\\\\:container]'),x=c&&c._ctx,z=n=>{let p=n.parentElement;while(p&&!p.hasAttribute('q:container'))p=p.parentElement;return p===c},h=async(r,m)=>{if(r<0)return;const e=[...c.querySelectorAll('script[type="qwik/state"]')].filter(z);for(let j=0;j<e.length;j++){const b=+e[j].getAttribute('q:base'),l=+e[j].getAttribute('q:len');if(r>=b&&r<b+l){const q=e[j].getAttribute('q:dispose');e[j].setAttribute('q:dispose',q?q+' '+r:''+r);break}}if(x)m?x.discardRoot(r):await x.disposeRoot(r)},e=[...c.querySelectorAll('script[type="qwik/state"][q\\\\:s="'+i+'"]')].filter(z);if(x)x.registerStateScripts(e);await h(o,0);const k=document.createTreeWalker(c,128);let a,n,d=0;while(n=k.nextNode()){if(!z(n))continue;const v=n.data;if(!a){if(v==='d='+i)a=n}else if(v.startsWith('d='))d++;else if(v==='/d'){if(d)d--;else break}}if(!a||!n){await h(u,1);t.remove();s.remove();return}const r=document.createRange();r.setStartAfter(a);r.setEndBefore(n);r.deleteContents();r.insertNode(t.content);if(x&&u>=0)await x.prepareRoot(u);t.remove();s.remove()});(w._qwikEv||(w._qwikEv=[])).push(0,${JSON.stringify(instanceHash)})})(window)`
+      `((w)=>{w._qwikS=(s,i,u,o)=>w._qwikSP=Promise.resolve(w._qwikSP).then(async()=>{const t=s.previousElementSibling,c=t.closest('[q\\\\:container]'),x=c&&c._ctx,z=n=>{let p=n.parentElement;while(p&&!p.hasAttribute('q:container'))p=p.parentElement;return p===c},e=[...c.querySelectorAll('script[type="qwik/state"]')].filter(z),h=async(r,m)=>{if(r<0)return;for(let j=0;j<e.length;j++){const b=+e[j].getAttribute('q:base'),l=+e[j].getAttribute('q:len');if(r>=b&&r<b+l){const q=e[j].getAttribute('q:dispose');e[j].setAttribute('q:dispose',q?q+' '+r:''+r);break}}if(x)m?x.discardRoot(r):await x.disposeRoot(r)},p=e.filter(e=>e.getAttribute('q:s')===''+i);if(x)x.registerStateScripts(p);await h(o,0);const k=document.createTreeWalker(c,128);let a,n,d=0;while(n=k.nextNode()){if(!z(n))continue;const v=n.data;if(!a){if(v==='d='+i)a=n}else if(v.startsWith('d='))d++;else if(v==='/d'){if(d)d--;else break}}if(!a||!n){await h(u,1);t.remove();s.remove();return}const r=document.createRange();r.setStartAfter(a);r.setEndBefore(n);r.deleteContents();r.insertNode(t.content);if(x&&u>=0)await x.prepareRoot(u);let v=0;for(let j=0;j<p.length;j++){const q=p[j].getAttribute('q:idle');if(q!==null){p[j].setAttribute('q-d:qidle',q);p[j].removeAttribute('q:idle');v=1}}if(v)(w._qwikEv||(w._qwikEv=[])).push('d:qidle');t.remove();s.remove()});(w._qwikEv||(w._qwikEv=[])).push(0,${JSON.stringify(instanceHash)})})(window)`
     );
   }
 
   emitResolved(
     boundaryId: number,
     content: SsrOutput,
+    disposePrevious: boolean,
     contentRoot?: number,
     fallbackRoot?: number
   ): readonly [string, SsrOutput, string, string] {
@@ -213,7 +223,7 @@ export class SsrScriptEmitter {
       '</template>',
       this.writeScript(
         { nonce: this.getNonce() },
-        `window._qwikS(document.currentScript,${boundaryId},${contentRoot ?? -1},${fallbackRoot ?? -1})`
+        `window._qwikS(document.currentScript,${boundaryId},${contentRoot ?? -1},${disposePrevious ? (fallbackRoot ?? -1) : -1})`
       ),
     ];
   }

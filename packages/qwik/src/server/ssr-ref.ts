@@ -1,5 +1,5 @@
 interface RefSerializationContext {
-  $addRoot$(value: unknown): number;
+  $addRoot$(value: unknown): unknown;
 }
 
 export class SsrDomRef {

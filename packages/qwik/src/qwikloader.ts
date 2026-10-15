@@ -223,6 +223,7 @@ const resolveHandler = (
   chunk: string,
   symbol: string,
   reqTime: number,
+  onError: (error: unknown, importError?: QwikErrorEvent['detail']['importError']) => void,
   reportSyncError = true
 ) => {
   const eventData: QwikSymbolEvent['detail'] = {
@@ -235,11 +236,7 @@ const resolveHandler = (
     const handler = ((doc as any)['qFuncs_' + container.getAttribute('q:instance')] || {})[symbol];
     if (!handler && reportSyncError) {
       const error = new Error('sym:' + symbol);
-      emitEvent<QwikErrorEvent>('qerror', {
-        importError: 'sync',
-        error,
-        ...eventData,
-      });
+      onError(error, 'sync');
       console.error(error);
     }
     return handler as Handler | undefined;
@@ -259,11 +256,7 @@ const resolveHandler = (
       const handler = module[symbol] as Handler | undefined;
       if (!handler) {
         const error = new Error(`${symbol} not in ${href}`);
-        emitEvent<QwikErrorEvent>('qerror', {
-          importError: 'no-symbol',
-          error,
-          ...eventData,
-        });
+        onError(error, 'no-symbol');
         console.error(error);
       } else {
         symbols.set(key, handler);
@@ -272,11 +265,7 @@ const resolveHandler = (
       return handler;
     },
     (error) => {
-      emitEvent<QwikErrorEvent>('qerror', {
-        importError: 'async',
-        error,
-        ...eventData,
-      });
+      onError(error, 'async');
       console.error(error);
       return undefined;
     }
@@ -353,9 +342,16 @@ const dispatch = (
       const qrl = qrls[i];
       const reqTime = performance.now();
       const [chunk, symbol, capturedIds] = qrl.split('#');
-      const onError = (error: unknown) => {
+      const onError = (error: unknown, importError?: QwikErrorEvent['detail']['importError']) => {
+        if (ev.type === 'qerror') {
+          if (importError === undefined) {
+            console.error(error);
+          }
+          return;
+        }
         emitEvent<QwikErrorEvent>('qerror', {
           error,
+          importError,
           qBase,
           symbol,
           element,
@@ -367,7 +363,17 @@ const dispatch = (
           ? attempt(() => handler.call(capturedIds, ev, element), onError)
           : undefined;
       const resolve = (reportSyncError = true) =>
-        resolveHandler(container, element, qBase, base, chunk, symbol, reqTime, reportSyncError);
+        resolveHandler(
+          container,
+          element,
+          qBase,
+          base,
+          chunk,
+          symbol,
+          reqTime,
+          onError,
+          reportSyncError
+        );
       // An internal handler only loads when called and resolves to its start, so it may load early.
       const isInternal = symbol.charAt(0) === '_';
       const load = (handler: Handler | undefined) => {

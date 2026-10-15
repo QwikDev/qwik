@@ -5,7 +5,13 @@ import { EffectKind } from './effect-kind.enum';
 import { defaultScheduler, type TaskScheduler } from '../../runtime/scheduler';
 import { resolveEventHandlers, type AttrExpressionFn, type EventExpressionFn } from './effect';
 import type { TextExpressionValue } from './text-effect';
-import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
+import {
+  isPromise,
+  maybeThen,
+  retryOnPromise,
+  thenInLifetime,
+  retryInLifetime,
+} from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { SsrDomSubscriber, SsrForBlockSubscriber } from '../../runtime/subscriber';
 import { SubscriberKind, takeDirty } from '../../runtime/subscriber';
@@ -279,11 +285,15 @@ export function renderSsrTextNode(
     new SsrTextNodeEffect(targetId, markerIndex, batch ? source : undefined, stringify),
     batch
   );
-  return retryOnPromise(() =>
-    maybeThen(
-      runWithCollector(subscriber, readTrackedSourceValue, source) as ValueOrPromise<unknown>,
-      (value) => ssrText(value, stringify)
-    )
+  return retryInLifetime(
+    subscriber.owner,
+    () =>
+      thenInLifetime(
+        subscriber.owner,
+        runWithCollector(subscriber, readTrackedSourceValue, source) as ValueOrPromise<unknown>,
+        (value) => ssrText(value, stringify)
+      ),
+    ''
   );
 }
 
@@ -299,18 +309,23 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
     batch
   );
 
-  return retryOnPromise(() => {
-    const fn = qrl.resolved;
+  return retryInLifetime(
+    subscriber.owner,
+    () => {
+      const fn = qrl.resolved;
 
-    if (fn === undefined) {
-      throw qrl.resolve();
-    }
+      if (fn === undefined) {
+        throw qrl.resolve();
+      }
 
-    return maybeThen(
-      runWithCollector(subscriber, invokeCaptured, fn, args, undefined, args),
-      _textValue
-    );
-  });
+      return thenInLifetime(
+        subscriber.owner,
+        runWithCollector(subscriber, invokeCaptured, fn, args, undefined, args),
+        _textValue
+      );
+    },
+    ''
+  );
 }
 
 function ssrText(value: unknown, stringify: boolean): string {
@@ -331,7 +346,9 @@ export function renderSsrAttr(
     new SsrAttrEffect(targetId, name, source, styleScopedId),
     batch
   );
-  const value = retryOnPromise(() => runWithCollector(subscriber, readTrackedSourceValue, source));
+  const value = retryInLifetime(subscriber.owner, () =>
+    runWithCollector(subscriber, readTrackedSourceValue, source)
+  );
   return serializeOrScheduleAttr(subscriber, name, value, styleScopedId);
 }
 
@@ -348,7 +365,7 @@ export function renderSsrAttrExpression<TArgs extends unknown[]>(
     batch
   );
 
-  const value = retryOnPromise(() => {
+  const value = retryInLifetime(subscriber.owner, () => {
     const fn = qrl.resolved;
 
     if (fn === undefined) {
@@ -373,21 +390,25 @@ export function renderSsrProps<TArgs extends unknown[]>(
     batch
   );
 
-  return retryOnPromise(() => {
-    const fn = qrl.resolved;
+  return retryInLifetime(
+    subscriber.owner,
+    () => {
+      const fn = qrl.resolved;
 
-    if (fn === undefined) {
-      throw qrl.resolve();
-    }
-
-    return runWithCollector(subscriber, () => {
-      const props = invokeCaptured(fn, args, undefined, args);
-      if (isPromise(props)) {
-        throw new Error('Promise values are not supported for JSX DOM props.');
+      if (fn === undefined) {
+        throw qrl.resolve();
       }
-      return renderDomPropsToString(props, eventAttr, styleScopedId);
-    });
-  });
+
+      return runWithCollector(subscriber, () => {
+        const props = invokeCaptured(fn, args, undefined, args);
+        if (isPromise(props)) {
+          throw new Error('Promise values are not supported for JSX DOM props.');
+        }
+        return renderDomPropsToString(props, eventAttr, styleScopedId);
+      });
+    },
+    ''
+  );
 }
 
 export function renderSsrEvent<TArgs extends unknown[]>(
@@ -405,18 +426,22 @@ export function renderSsrEvent<TArgs extends unknown[]>(
     batch
   );
 
-  return retryOnPromise(() => {
-    const fn = qrl.resolved;
-    if (fn === undefined) {
-      throw qrl.resolve();
-    }
-    const value = runWithCollector(subscriber, invokeCaptured, fn, args, undefined, args);
-    if (isPromise(value)) {
-      throw new Error('Promise values are not supported for JSX DOM events.');
-    }
-    const handlers = resolveEventHandlers(value, before, after);
-    return handlers === null ? null : eventAttr(name, handlers);
-  });
+  return retryInLifetime(
+    subscriber.owner,
+    () => {
+      const fn = qrl.resolved;
+      if (fn === undefined) {
+        throw qrl.resolve();
+      }
+      const value = runWithCollector(subscriber, invokeCaptured, fn, args, undefined, args);
+      if (isPromise(value)) {
+        throw new Error('Promise values are not supported for JSX DOM events.');
+      }
+      const handlers = resolveEventHandlers(value, before, after);
+      return handlers === null ? null : eventAttr(name, handlers);
+    },
+    null
+  );
 }
 
 function createSsrDomEffect(

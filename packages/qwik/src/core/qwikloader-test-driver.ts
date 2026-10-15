@@ -39,20 +39,22 @@ export async function bootQwikLoader(
     async dispatch(target, type, init = {}) {
       ensureConnectedTarget(target);
       const dispatchType = parseDispatchType(type);
-      const errors: unknown[] = [];
+      const errors: (CustomEvent & { _qHandled?: boolean })[] = [];
       const onError = (event: Event) => {
-        errors.push((event as CustomEvent).detail);
+        errors.push(event as CustomEvent);
       };
       document.addEventListener('qerror', onError);
       const event = createTestEvent(target.ownerDocument, dispatchType.eventName, init);
       try {
         getDispatchTarget(document, win, target, dispatchType.scope).dispatchEvent(event);
         await flushQwikLoaderTasks(win, dispatchType.eventName);
+        await flushQwikLoaderTasks(win, 'qerror');
       } finally {
         document.removeEventListener('qerror', onError);
       }
-      if (errors.length > 0) {
-        throw new Error(formatQwikLoaderError(errors[0]));
+      const unhandled = errors.find((event) => !event._qHandled);
+      if (unhandled !== undefined) {
+        throw new Error(formatQwikLoaderError(unhandled.detail));
       }
       return event;
     },

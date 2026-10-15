@@ -65,7 +65,13 @@ export function serializeSsrEvent(
 function addEvent(serializationCtx: SerializationContext, key: string, qrl: QRL): void {
   const data = getEventDataFromHtmlAttribute(key);
   if (data) {
-    serializationCtx.$eventNames$.add(getScopedEventName(data[0], data[1]));
-    serializationCtx.$eventQrls$.add(qrl);
+    const journal = serializationCtx.$journal$;
+    if (journal === undefined) {
+      serializationCtx.$eventNames$.add(getScopedEventName(data[0], data[1]));
+      serializationCtx.$eventQrls$.add(qrl);
+    } else {
+      journal.add(serializationCtx.$eventNames$, getScopedEventName(data[0], data[1]));
+      journal.add(serializationCtx.$eventQrls$, qrl);
+    }
   }
 }

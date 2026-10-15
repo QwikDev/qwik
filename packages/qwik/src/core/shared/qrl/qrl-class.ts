@@ -17,10 +17,11 @@ import { isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
 import { withCaptures } from './qrl-captures';
 import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
-import { getSymbolHash, rememberQrlOfBody } from './qrl-utils';
+import { getSymbolHash, rememberQrlOfBody, recordQrlImportError } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
+import type { RuntimeContainerContext } from '../../runtime/invoke-context';
 import type { ContainerContext } from '../../runtime/container-context';
 import { qwikSymbol } from '../singletons';
 
@@ -41,7 +42,7 @@ export type QRLInternalMethods<TYPE> = {
   readonly $hasMovedCaptures$?: boolean;
   dev?: QRLDev | null;
 
-  resolve(container?: ContainerContext, bindCaptures?: boolean): Promise<TYPE>;
+  resolve(container?: RuntimeContainerContext, bindCaptures?: boolean): Promise<TYPE>;
   resolved: undefined | TYPE;
 
   getSymbol(): string;
@@ -79,20 +80,19 @@ export type QRLInternalMethods<TYPE> = {
    * Needed for deserialization and importing. We don't always have the container while creating
    * qrls in async sections of code
    */
-  readonly $container$?: ContainerContext | null;
+  readonly $container$?: RuntimeContainerContext | null;
 
   /** The shared lazy-loading reference */
   readonly $lazy$: LazyRef<TYPE>;
 };
 
-let reportedChunkFailures: WeakMap<ContainerContext, Set<string>> | undefined;
-
+let reportedChunkFailures: WeakMap<RuntimeContainerContext, Set<string>> | undefined;
 let getLazyRef: <TYPE>(
   chunk: string | null,
   symbol: string,
   symbolFn: null | (() => Promise<Record<string, TYPE>>),
   ref: ValueOrPromise<TYPE> | undefined,
-  container: ContainerContext | undefined
+  container: RuntimeContainerContext | undefined
 ) => LazyRef<TYPE> = (chunk, symbol, symbolFn, ref, container) => {
   return new LazyRef(chunk, symbol, symbolFn, ref, container);
 };
@@ -102,7 +102,7 @@ let getLazyRef: <TYPE>(
  * same chunk+symbol can share a single LazyRef, differing only in their captured scope.
  */
 export class LazyRef<TYPE = unknown> {
-  $container$: ContainerContext | undefined;
+  $container$: RuntimeContainerContext | undefined;
   declare $hasMovedCaptures$?: boolean;
   // Don't allocate dev property immediately so that in prod we don't have this property
   declare dev?: QRLDev | null | undefined;
@@ -115,7 +115,7 @@ export class LazyRef<TYPE = unknown> {
     readonly $symbol$: string,
     readonly $symbolFn$: undefined | null | (() => Promise<Record<string, TYPE>>),
     public $ref$?: null | ValueOrPromise<TYPE>,
-    container?: ContainerContext | null
+    container?: RuntimeContainerContext | null
   ) {
     if ($ref$) {
       this.$setRef$($ref$);
@@ -144,6 +144,7 @@ export class LazyRef<TYPE = unknown> {
       ref.then(
         (r) => (this.$ref$ = r),
         (err) => {
+          recordQrlImportError(err);
           const errorMessage = `qrl ${this.$symbol$} failed to load`;
 
           if (qTest ? isServerPlatform() : isServer) {
@@ -184,13 +185,19 @@ export class LazyRef<TYPE = unknown> {
     }
 
     const symbol = this.$symbol$;
-    const importP: Promise<TYPE> = this.$symbolFn$
-      ? this.$symbolFn$().then((module) => module[symbol] as TYPE)
-      : (getPlatform().importSymbol(
-          (this.$container$ as ContainerContext | null)?.element,
-          this.$chunk$,
-          symbol
-        ) as Promise<TYPE>);
+    let importP: ValueOrPromise<TYPE>;
+    try {
+      importP = this.$symbolFn$
+        ? this.$symbolFn$().then((module) => module[symbol] as TYPE)
+        : (getPlatform().importSymbol(
+            (this.$container$ as RuntimeContainerContext | null)?.element,
+            this.$chunk$,
+            symbol
+          ) as ValueOrPromise<TYPE>);
+    } catch (error) {
+      recordQrlImportError(error);
+      throw error;
+    }
 
     this.$setRef$(importP);
 
@@ -227,12 +234,12 @@ export class QRLClass<TYPE> {
   resolved: undefined | TYPE = undefined;
   // This is defined or undefined for the lifetime of the QRL, so we set it lazily
   $captures$?: QrlCaptures;
-  $container$?: ContainerContext | null;
+  $container$?: RuntimeContainerContext | null;
 
   constructor(
     readonly $lazy$: LazyRef<TYPE>,
     $captures$?: QrlCaptures,
-    container?: ContainerContext | null
+    container?: RuntimeContainerContext | null
   ) {
     if (qDev) {
       initQrlClassDev($lazy$, $captures$, this);
@@ -315,7 +322,7 @@ const qrlSetRef = function <TYPE>(
 
 const qrlResolve = async function <TYPE>(
   this: QRLClass<TYPE> | QRLCallable<TYPE>,
-  container?: ContainerContext,
+  container?: RuntimeContainerContext,
   bindCaptures = true
 ): Promise<TYPE> {
   const qrl = getInstance<TYPE>(this);
@@ -417,7 +424,7 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
     get(this: QRLCallable<any>) {
       return this[QRL_STATE].$container$;
     },
-    set(this: QRLCallable<any>, value: ContainerContext | null | undefined) {
+    set(this: QRLCallable<any>, value: RuntimeContainerContext | null | undefined) {
       this[QRL_STATE].$container$ = value;
     },
   },
@@ -486,7 +493,7 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
 
 export { _captures, _capturesObj, setCaptures, withCaptures } from './qrl-captures';
 
-const getQrlContainer = (qrl: QRLClass<unknown>, container?: ContainerContext | null) => {
+const getQrlContainer = (qrl: QRLClass<unknown>, container?: RuntimeContainerContext | null) => {
   if (qrl.$container$) {
     return qrl.$container$;
   }
@@ -498,7 +505,7 @@ const getQrlContainer = (qrl: QRLClass<unknown>, container?: ContainerContext | 
 
 const restoreQrlCaptures = (
   qrl: QRLClass<unknown>,
-  container?: ContainerContext | null
+  container?: RuntimeContainerContext | null
 ): ValueOrPromise<Readonly<unknown[]> | null | undefined> => {
   const captures = qrl.$captures$;
   if (typeof captures !== 'string') {
@@ -510,7 +517,7 @@ const restoreQrlCaptures = (
     throw qError(QError.qrlMissingContainer);
   }
 
-  return resolvedContainer.restoreCaptures(captures).then((refs) => {
+  return (resolvedContainer as ContainerContext).restoreCaptures(captures).then((refs) => {
     qrl.$captures$ = refs;
     return refs;
   });
@@ -548,7 +555,11 @@ function invokeQrlApply<T>(
 export class SyncLazyRef<TYPE = unknown> extends LazyRef<TYPE> {
   readonly $isSync$ = true;
 
-  constructor(key: string, ref?: null | ValueOrPromise<TYPE>, container?: ContainerContext | null) {
+  constructor(
+    key: string,
+    ref?: null | ValueOrPromise<TYPE>,
+    container?: RuntimeContainerContext | null
+  ) {
     super(null, key, null, ref);
     this.$container$ = container ?? undefined;
   }
@@ -568,7 +579,7 @@ export class SyncLazyRef<TYPE = unknown> extends LazyRef<TYPE> {
 export const createSyncQRL = <TYPE>(
   key: string,
   fn?: null | TYPE,
-  container?: ContainerContext
+  container?: RuntimeContainerContext
 ): QRLInternal<TYPE> =>
   makeQrlFn(new QRLClass<TYPE>(new SyncLazyRef<TYPE>(key, fn, container), undefined, container));
 
@@ -578,7 +589,7 @@ export const createQRL = <TYPE>(
   symbolRef?: null | ValueOrPromise<TYPE>,
   symbolFn?: null | (() => Promise<Record<string, TYPE>>),
   captures?: QrlCaptures,
-  container?: ContainerContext
+  container?: RuntimeContainerContext
 ): QRLInternal<TYPE> => {
   const lazy = getLazyRef<TYPE>(chunk, symbol, symbolFn!, symbolRef!, container);
   const qrl = new QRLClass<TYPE>(lazy, captures!, container);

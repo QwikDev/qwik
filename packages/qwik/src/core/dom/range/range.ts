@@ -2,7 +2,7 @@ import { OwnerFlags } from '../../reactive/flags';
 import { isDev } from '@qwik.dev/core/build';
 import type { ContainerContext } from '../../runtime/container-context';
 import { whenRootInflated } from '../../runtime/container-context';
-import { showsProjection, Owner } from '../../runtime/owner';
+import { showsProjection, disposeOwner, Owner } from '../../runtime/owner';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { createCommentWalker } from '../../runtime/node-walker';
 
@@ -124,6 +124,24 @@ export function getRangeParent(start: Comment, end: Comment): Node {
     throw new Error('Range markers must share a parent');
   }
   return parent!;
+}
+
+export function replaceContent(
+  range: { readonly document: Document; readonly start: Comment; readonly end: Comment },
+  nodes: readonly Node[],
+  previousOwner: Owner | null,
+  disposePrevious: boolean
+): void {
+  try {
+    if (disposePrevious) {
+      parkProjections(previousOwner);
+      if (previousOwner !== null) {
+        disposeOwner(previousOwner);
+      }
+    }
+  } finally {
+    replaceRange(range.document, range.start, range.end, nodes);
+  }
 }
 
 export function replaceRange(

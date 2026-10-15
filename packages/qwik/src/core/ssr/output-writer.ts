@@ -6,86 +6,204 @@ import {
   isSsrRecordChunk,
   isSsrEventAttrChunk,
   type SsrOutput,
+  type SsrChunk,
+  type SsrPublicationChunk,
+  type SsrCatchChunk,
+  type SsrCatchController,
   type SsrResolvedOutput,
   type SsrRecordChunk,
   type SsrReferenceChunk,
 } from './output';
 
+type WriteBoundary = (boundary: SsrCatchController) => ValueOrPromise<void>;
+
+type ResolveChunk = (chunk: SsrReferenceChunk | SsrPublicationChunk | SsrCatchChunk) => SsrOutput;
+
+interface OutputOperation {
+  sink?: Pick<StreamWriter, 'write'>;
+  writeResolved?: (output: SsrResolvedOutput) => ValueOrPromise<void>;
+  resolveChunk?: ResolveChunk;
+  writeBoundary?: WriteBoundary;
+  current?: SsrOutput;
+  stack: Array<readonly SsrOutput[]>;
+  indices: number[];
+}
+
 /** Writes structured SSR output to one sink in document order. */
 export class SsrOutputWriter {
   constructor(
     private readonly sink: Pick<StreamWriter, 'write'>,
-    private readonly writeResolved?: (output: SsrResolvedOutput) => ValueOrPromise<void>
+    private readonly writeResolved?: (output: SsrResolvedOutput) => ValueOrPromise<void>,
+    private readonly resolveChunk?: ResolveChunk,
+    private readonly writeBoundary?: WriteBoundary
   ) {}
 
-  finish(output: SsrOutput): ValueOrPromise<void> {
-    return writeOutput(this.sink, output, this.writeResolved);
+  finish(output: SsrOutput, cancellation?: Promise<void>): ValueOrPromise<void> {
+    const operation: OutputOperation = {
+      sink: this.sink,
+      writeResolved: this.writeResolved,
+      resolveChunk: this.resolveChunk,
+      writeBoundary: this.writeBoundary,
+      current: output,
+      stack: [],
+      indices: [],
+    };
+    const result = drainOutput(operation);
+    if (!isPromise(result)) {
+      detachOutput(operation);
+      return;
+    }
+    const pending =
+      cancellation === undefined
+        ? result
+        : Promise.race([result, cancellation.then(() => detachOutput(operation))]);
+    return pending.finally(() => detachOutput(operation));
   }
 }
 
-function writeOutput(
-  sink: Pick<StreamWriter, 'write'>,
-  output: SsrOutput,
-  writeResolved?: (output: SsrResolvedOutput) => ValueOrPromise<void>
-): ValueOrPromise<void> {
-  if (isPromise(output)) {
-    return output.then((resolved) =>
-      writeResolved ? writeResolved(resolved) : writeOutput(sink, resolved)
-    );
-  }
-  if (Array.isArray(output)) {
-    return writeArray(sink, output, 0, writeResolved);
-  }
-  const html =
-    typeof output === 'string'
-      ? output
-      : isSsrRecordChunk(output)
-        ? materializeRecord(output)
-        : materializeReference(output as SsrReferenceChunk);
-  return html === '' ? undefined : sink.write(html);
+function detachOutput(operation: OutputOperation): void {
+  operation.current = undefined;
+  operation.sink =
+    operation.resolveChunk =
+    operation.writeResolved =
+    operation.writeBoundary =
+      undefined;
+  operation.stack.length = operation.indices.length = 0;
 }
 
-function writeArray(
-  sink: Pick<StreamWriter, 'write'>,
-  output: readonly SsrOutput[],
-  start: number,
-  writeResolved?: (output: SsrResolvedOutput) => ValueOrPromise<void>
-): ValueOrPromise<void> {
-  for (let i = start; i < output.length; i++) {
-    const result = writeOutput(sink, output[i], writeResolved);
+function resumeOutput(operation: OutputOperation, output: SsrResolvedOutput): ValueOrPromise<void> {
+  if (operation.sink === undefined) {
+    return;
+  }
+  if (operation.writeResolved !== undefined) {
+    const result = operation.writeResolved(output);
+    return isPromise(result) ? result.then(() => drainOutput(operation)) : drainOutput(operation);
+  }
+  operation.current = output;
+  return drainOutput(operation);
+}
+
+function drainOutput(operation: OutputOperation): ValueOrPromise<void> {
+  while (operation.sink !== undefined) {
+    let output = operation.current;
+    operation.current = undefined;
+    if (output === undefined) {
+      const stack = operation.stack;
+      const indices = operation.indices;
+      while (stack.length > 0 && indices[stack.length - 1] === stack[stack.length - 1].length) {
+        stack.pop();
+        indices.pop();
+      }
+      if (stack.length === 0) {
+        return;
+      }
+      const depth = stack.length - 1;
+      output = stack[depth][indices[depth]++];
+    }
+    if (isPromise(output)) {
+      return output.then((output) => resumeOutput(operation, output));
+    }
+    if (Array.isArray(output)) {
+      operation.stack.push(output);
+      operation.indices.push(0);
+      continue;
+    }
+    if (typeof output === 'object' && !isSsrRecordChunk(output)) {
+      const chunk = output as Exclude<SsrChunk, string | SsrRecordChunk>;
+      if (chunk.type === 'catch' && operation.writeBoundary !== undefined) {
+        const result = operation.writeBoundary(chunk.boundary);
+        if (isPromise(result)) {
+          return result.then(() => drainOutput(operation));
+        }
+        continue;
+      }
+      if (
+        chunk.type === 'publication' ||
+        chunk.type === 'catch' ||
+        chunk.type === 'root-value' ||
+        chunk.type === 'event-value' ||
+        chunk.type === 'sync-fn'
+      ) {
+        if (operation.resolveChunk === undefined) {
+          throw new Error('Missing SSR publication writer');
+        }
+        operation.current = operation.resolveChunk(chunk);
+        continue;
+      }
+    }
+    const html =
+      typeof output === 'string'
+        ? output
+        : isSsrRecordChunk(output)
+          ? materializeRecord(output, operation.resolveChunk)
+          : isSsrEventAttrChunk(output)
+            ? materializeEventAttr(
+                output.name,
+                output.valueParts,
+                operation.resolveChunk,
+                output.errorRoot
+              )
+            : materializeReference(output as SsrReferenceChunk, operation.resolveChunk);
+    if (html === '') {
+      continue;
+    }
+    const result = operation.sink.write(html);
     if (isPromise(result)) {
-      return Promise.resolve(result).then(() => writeArray(sink, output, i + 1, writeResolved));
+      return Promise.resolve(result).then(() => drainOutput(operation));
     }
   }
 }
 
-function materializeRecord(record: SsrRecordChunk): string {
+function materializeRecord(record: SsrRecordChunk, resolveChunk?: ResolveChunk): string {
   let html = '';
+  let hasErrorRoot = false;
   for (let i = 0; i < record.parts.length; i++) {
     const part = record.parts[i];
-    html +=
-      typeof part === 'string'
-        ? part
-        : isSsrEventAttrChunk(part)
-          ? materializeEventAttr(part.name, part.valueParts)
-          : materializeReference(part);
+    if (typeof part === 'string') {
+      html += part;
+    } else if (isSsrEventAttrChunk(part)) {
+      html += materializeEventAttr(
+        part.name,
+        part.valueParts,
+        resolveChunk,
+        hasErrorRoot ? undefined : part.errorRoot
+      );
+      hasErrorRoot ||= part.errorRoot !== undefined;
+    } else {
+      html += materializeReference(part, resolveChunk);
+    }
   }
   return html;
 }
 
 function materializeEventAttr(
   name: string,
-  parts: readonly (string | SsrReferenceChunk)[]
+  parts: readonly (string | SsrReferenceChunk)[],
+  resolveChunk?: ResolveChunk,
+  errorRoot?: SsrReferenceChunk
 ): string {
   let value = '';
   for (let i = 0; i < parts.length; i++) {
     const part = parts[i];
-    value += typeof part === 'string' ? part : materializeReference(part);
+    value += typeof part === 'string' ? part : materializeReference(part, resolveChunk);
   }
-  return value === '' ? '' : ` ${name}="${value}"`;
+  return value === ''
+    ? ''
+    : ` ${name}="${value}"${errorRoot === undefined ? '' : ` q:catch="${materializeReference(errorRoot, resolveChunk)}"`}`;
 }
 
-function materializeReference(reference: SsrReferenceChunk): string {
+function materializeReference(reference: SsrReferenceChunk, resolveChunk?: ResolveChunk): string {
+  if (
+    reference.type === 'root-value' ||
+    reference.type === 'event-value' ||
+    reference.type === 'sync-fn'
+  ) {
+    const value = resolveChunk?.(reference);
+    if (typeof value !== 'string') {
+      throw new Error('An SSR attribute must resolve synchronously');
+    }
+    return value;
+  }
   if (reference.type !== 'root-ref-path') {
     return String(reference.localId);
   }

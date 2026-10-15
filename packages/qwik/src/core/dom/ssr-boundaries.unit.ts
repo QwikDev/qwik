@@ -5,7 +5,7 @@ import type { ValueOrPromise } from '../shared/utils/types';
 import { OwnerFlags } from '../reactive/flags';
 import { useSignal } from '../reactive/public-api';
 import type { Signal } from '../reactive/signal';
-import type { ContainerContext } from '../runtime/container-context';
+import type { SsrContentContext, SsrReferenceChunk } from '../ssr/output';
 import { getActiveInvokeContext, invoke, newInvokeContext } from '../runtime/invoke-context';
 import { createOwner, getOrCreateContextOwner, type Owner } from '../runtime/owner';
 import type { SsrOutput } from '../ssr/output';
@@ -22,8 +22,11 @@ import {
   type SsrSlotContext,
 } from './slot/slot';
 
-type SsrContext = ContainerContext & { nextId(): number; addRoot?(value: unknown): number };
-type SsrBranchRender = (ctx: ContainerContext, rangeId: number) => ValueOrPromise<SsrOutput>;
+type SsrContext = SsrContentContext & {
+  nextId(): number;
+  addRoot?(value: unknown): SsrReferenceChunk;
+};
+type SsrBranchRender = (ctx: SsrContentContext, rangeId: number) => ValueOrPromise<SsrOutput>;
 
 describe('structured SSR boundaries', () => {
   it('forwards the QRL without sharing mutable projection state', () => {
@@ -314,16 +317,17 @@ describe('structured SSR boundaries', () => {
   });
 });
 
-function createSsrContext(): ContainerContext & SsrSlotContext {
+function createSsrContext(): SsrSlotContext {
   let nextId = 0;
   return {
+    scheduler: { notify() {} },
     nextId: () => nextId++,
-    addRoot: () => 0,
-  } as unknown as ContainerContext & SsrSlotContext;
+    addRoot: () => ({ type: 'root-ref', localId: 0 }),
+  };
 }
 
 function invokeWithScope<T>(
-  container: ContainerContext,
+  container: SsrContentContext,
   slotScope: SlotScope | null,
   run: () => T
 ): T {

@@ -1,4 +1,4 @@
-import { $, component$, Slot, useTask$, useVisibleTask$ } from '@qwik.dev/core';
+import { $, component$, Slot, Catch, useTask$, useVisibleTask$ } from '@qwik.dev/core';
 import { useOn, useOnDocument, useOnWindow } from '@qwik.dev/core';
 import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
@@ -13,6 +13,65 @@ const debug = false;
 const { name, render } = testRenderer;
 
 describe(`${name}: useOn`, () => {
+  it('keeps element useOn on a component returning Catch content', async () => {
+    const App = component$(() => {
+      const count = useSignal(0);
+      useOn(
+        'click',
+        $(() => {
+          count.value++;
+        })
+      );
+      return (
+        <Catch fallback$={() => <button id="catch-click">{count.value}</button>}>
+          <button id="catch-click">{count.value}</button>
+        </Catch>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    try {
+      const button = container.querySelector('#catch-click')!;
+      expect(button.textContent).toBe('0');
+      await qwikLoader?.dispatch(button, 'click');
+      expect(button.textContent).toBe('1');
+    } finally {
+      cleanup();
+    }
+  });
+
+  it.runIf(name === 'ssrRender')(
+    'keeps element useOn on a component returning Catch fallback',
+    async () => {
+      const Throw = component$(() => {
+        throw new Error('failed');
+        return null;
+      });
+      const App = component$(() => {
+        const count = useSignal(0);
+        useOn(
+          'click',
+          $(() => {
+            count.value++;
+          })
+        );
+        return (
+          <Catch fallback$={() => <button id="catch-click">{count.value}</button>}>
+            <Throw />
+          </Catch>
+        );
+      });
+      const { container, cleanup, qwikLoader } = await render(App, { debug });
+      try {
+        const button = container.querySelector('#catch-click')!;
+        expect(button.textContent).toBe('0');
+        await qwikLoader?.dispatch(button, 'click');
+        expect(button.textContent).toBe('1');
+      } finally {
+        cleanup();
+      }
+    }
+  );
+
   it('attaches element events to the first rendered element', async () => {
     const App = component$(() => {
       const count = useSignal(0);

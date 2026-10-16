@@ -28,31 +28,7 @@
   RootRef [omitted]
   {number} 2
 ]
-3 ContextScope [
-  Constant null
-  {string} "qr--c"
-  RootRef [omitted]
-  {string} "qr--ic"
-  RootRef [omitted]
-  {string} "qr--rl"
-  RootRef [omitted]
-  {string} "qr--h"
-  RootRef [omitted]
-  {string} "qr--hs"
-  RootRef [omitted]
-  {string} "qr--l"
-  RootRef [omitted]
-  {string} "qr--n"
-  RootRef [omitted]
-  {string} "qr--s"
-  RootRef [omitted]
-  {string} "qr--lc"
-  RootRef [omitted]
-  {string} "qr--a"
-  RootRef [omitted]
-  ...
-]
-4 Store [
+3 Store [
   RootRef [omitted]
   Array [
     Array [
@@ -79,6 +55,30 @@
     ]
   ]
   Constant false
+]
+4 ContextScope [
+  Constant null
+  {string} "qr--c"
+  RootRef [omitted]
+  {string} "qr--ic"
+  RootRef [omitted]
+  {string} "qr--rl"
+  RootRef [omitted]
+  {string} "qr--h"
+  RootRef [omitted]
+  {string} "qr--hs"
+  RootRef [omitted]
+  {string} "qr--l"
+  RootRef [omitted]
+  {string} "qr--n"
+  RootRef [omitted]
+  {string} "qr--s"
+  RootRef [omitted]
+  {string} "qr--lc"
+  RootRef [omitted]
+  {string} "qr--a"
+  RootRef [omitted]
+  ...
 ]
 5 ComputedSignal [
   QRL "[omitted]"
@@ -428,27 +428,7 @@
   RootRef [omitted]
   {number} 3
 ]
-7 Store [
-  RootRef [omitted]
-  Array [
-    Array [
-      Array []
-      RootRef [omitted]
-      RootRef [omitted]
-    ]
-    Array [
-      Array []
-      RootRef [omitted]
-      RootRef [omitted]
-    ]
-    Array [
-      Array []
-      RootRef [omitted]
-      RootRef [omitted]
-    ]
-  ]
-]
-8 ComputedSignal [
+7 ComputedSignal [
   QRL "[omitted]"
   Array [
     RootRef [omitted]
@@ -458,7 +438,7 @@
   RootRef [omitted]
   {number} 6
 ]
-9 ComputedSignal [
+8 ComputedSignal [
   QRL "[omitted]"
   Array [
     RootRef [omitted]
@@ -468,7 +448,7 @@
   RootRef [omitted]
   {number} 9
 ]
-10 ComputedSignal [
+9 ComputedSignal [
   QRL "[omitted]"
   Array [
     RootRef [omitted]
@@ -478,7 +458,28 @@
   RootRef [omitted]
   {number} 12
 ]
-11 ComputedSignal [
+10 Store [
+  RootRef [omitted]
+  Array [
+    Array [
+      Array []
+      RootRef [omitted]
+      RootRef [omitted]
+    ]
+    Array [
+      Array []
+      RootRef [omitted]
+      RootRef [omitted]
+    ]
+    Array [
+      Array []
+      RootRef [omitted]
+      RootRef [omitted]
+    ]
+  ]
+]
+11 QRL "[omitted]"
+12 ComputedSignal [
   QRL "[omitted]"
   Array [
     RootRef [omitted]
@@ -507,12 +508,12 @@
   RootRef [omitted]
   {number} 0
 ]
-12 Object [
+13 Object [
   {string} "level"
   {number} 0
 ]
-13 Constant undefined
-14 SlotScope [
+14 Constant undefined
+15 SlotScope [
   Array [
     Projection [
       Constant ''
@@ -526,7 +527,7 @@
     Constant EMPTY_OBJ
   ]
 ]
-15 ComputedSignal [
+16 ComputedSignal [
   QRL "[omitted]"
   Constant EMPTY_ARRAY
   Constant NEEDS_COMPUTATION
@@ -580,16 +581,16 @@
   RootRef [omitted]
   {number} 0
 ]
-16 ComputedSignal [
+17 ComputedSignal [
   QRL "[omitted]"
   Array [
     RootRef [omitted]
     StoreProp [
-      {number} 143
+      {number} 145
       {string} "selected"
     ]
     StoreProp [
-      {number} 144
+      {number} 146
       RootRef [omitted]
     ]
     RootRef [omitted]
@@ -621,7 +622,7 @@
   RootRef [omitted]
   {number} 0
 ]
-17 AsyncSignal [
+18 AsyncSignal [
   QRL "[omitted]"
   Array [
     RootRef [omitted]
@@ -629,11 +630,11 @@
     RootRef [omitted]
     RootRef [omitted]
     StoreProp [
-      {number} 144
+      {number} 146
       {string} "0"
     ]
     StoreProp [
-      {number} 144
+      {number} 146
       {string} "1"
     ]
     RootRef [omitted]
@@ -691,7 +692,6 @@
   RootRef [omitted]
   {number} 1
 ]
-18 QRL "[omitted]"
 19 QRL "[omitted]"
 20 Signal [
   Object [
@@ -933,9 +933,9 @@
 41 {string} "q-xxxxxxxx.js"
 42 {string} "qwik_router_component_useTaskqrl_segment_4_2kcng0u9lpvpz"
 43 {string} "q-xxxxxxxx.js"
-44 {string} "qwik_router_component_registerPreventNav_segment_0_dgai78qp5iqi"
+44 {string} "root_href_segment_0_38hv0j89892b0"
 45 {string} "q-xxxxxxxx.js"
-46 {string} "root_href_segment_0_38hv0j89892b0"
+46 {string} "qwik_router_component_registerPreventNav_segment_0_dgai78qp5iqi"
 47 Constant EMPTY_OBJ
 48 {string} "q-xxxxxxxx.js"
 49 {string} "document_head_tags_component_head_segment_0_14qc7wf34r3ly"
@@ -1038,56 +1038,58 @@
 110 {string} "q-xxxxxxxx.js"
 111 {string} "document_head_tags_component_collection_source_segment_14_2jukqc9a5rbgb"
 112 RootRef [omitted]
-113 Signal [
+113 {string} "q-xxxxxxxx.js"
+114 {string} "qwik_router_component_goto_segment_1_6bz8ns83eu9c"
+115 Signal [
   Constant undefined
   RootRef [omitted]
 ]
-114 {string} "q-xxxxxxxx.js"
-115 {string} "router_outlet_component_collection_source_segment_0_4evdvyko5rfy"
 116 {string} "q-xxxxxxxx.js"
-117 {string} "router_outlet_component_for_render_segment_1_eiptfibs63mb"
-118 Owner [
-  RootRef [omitted]
-  {number} 0
-]
-119 Owner [
-  RootRef [omitted]
-  {number} 2
-]
+117 {string} "router_outlet_component_collection_source_segment_0_4evdvyko5rfy"
+118 {string} "q-xxxxxxxx.js"
+119 {string} "router_outlet_component_for_render_segment_1_eiptfibs63mb"
 120 Owner [
   RootRef [omitted]
   {number} 0
 ]
-121 {string} "q-xxxxxxxx.js"
-122 {string} "router_outlet_component_slot_render_segment_4_11ly7wa8p0qen"
-123 Owner [
+121 Owner [
+  RootRef [omitted]
+  {number} 2
+]
+122 Owner [
+  RootRef [omitted]
+  {number} 0
+]
+123 {string} "q-xxxxxxxx.js"
+124 {string} "router_outlet_component_slot_render_segment_4_11ly7wa8p0qen"
+125 Owner [
   RootRef [omitted]
   {number} 1
 ]
-124 {string} "__qwik_route_loader_value__ssg-snapshot-loader"
-125 Object [
+126 {string} "__qwik_route_loader_value__ssg-snapshot-loader"
+127 Object [
   {string} "raw"
 ]
-126 RootRef [omitted]
-127 {string} "ssg-snapshot-loader"
-128 Array []
-129 {string} "q-xxxxxxxx.js"
-130 {string} "route_loaders_useComputedqrl_segment_0_6byvyyoutcm3"
+128 RootRef [omitted]
+129 {string} "ssg-snapshot-loader"
+130 Array []
 131 {string} "q-xxxxxxxx.js"
-132 {string} "index_text_segment_3_1ipipo7fa3bh6"
-133 Owner [
+132 {string} "route_loaders_useComputedqrl_segment_0_6byvyyoutcm3"
+133 {string} "q-xxxxxxxx.js"
+134 {string} "index_text_segment_3_1ipipo7fa3bh6"
+135 Owner [
   RootRef [omitted]
   {number} 0
 ]
-134 {string} "q-xxxxxxxx.js"
-135 {string} "index_text_segment_4_1ipinq1vpx1ej"
 136 {string} "q-xxxxxxxx.js"
-137 {string} "index_text_segment_5_1ipinc0rt2ze0"
-138 Owner [
+137 {string} "index_text_segment_4_1ipinq1vpx1ej"
+138 {string} "q-xxxxxxxx.js"
+139 {string} "index_text_segment_5_1ipinc0rt2ze0"
+140 Owner [
   Constant null
   {number} 0
 ]
-139 Store [
+141 Store [
   RootRef [omitted]
   Array [
     Array [
@@ -1120,14 +1122,14 @@
     ]
   ]
 ]
-140 Signal [
+142 Signal [
   {number} 2
   RootRef [omitted]
   RootRef [omitted]
 ]
-141 {string} "q-xxxxxxxx.js"
-142 {string} "index_summary_segment_1_423pfnt4yf49"
-143 Object [
+143 {string} "q-xxxxxxxx.js"
+144 {string} "index_summary_segment_1_423pfnt4yf49"
+145 Object [
   {string} "expanded"
   Constant true
   RootRef [omitted]
@@ -1140,30 +1142,28 @@
     {string} "ssg"
   ]
 ]
-144 Array [
+146 Array [
   RootRef [omitted]
   RootRef [omitted]
 ]
-145 {string} "q-xxxxxxxx.js"
-146 {string} "index_text_segment_6_1ipioi43jl5fl"
 147 {string} "q-xxxxxxxx.js"
-148 {string} "index_asyncState_segment_2_3jp4gwv9v03yf"
-149 RootRef [omitted]
-150 RootRef [omitted]
+148 {string} "index_text_segment_6_1ipioi43jl5fl"
+149 {string} "q-xxxxxxxx.js"
+150 {string} "index_asyncState_segment_2_3jp4gwv9v03yf"
 151 RootRef [omitted]
 152 RootRef [omitted]
-153 {string} "q-xxxxxxxx.js"
-154 {string} "index_branch_condition_segment_7_11sfixme2z7d3"
+153 RootRef [omitted]
+154 RootRef [omitted]
 155 {string} "q-xxxxxxxx.js"
-156 {string} "index_branch_then_segment_8_3rgw1hir8l68"
-157 Owner [
+156 {string} "index_branch_condition_segment_7_11sfixme2z7d3"
+157 {string} "q-xxxxxxxx.js"
+158 {string} "index_branch_then_segment_8_3rgw1hir8l68"
+159 Owner [
   RootRef [omitted]
   {number} 7
 ]
-158 {string} "q-xxxxxxxx.js"
-159 {string} "index_text_segment_9_1ipilrwc5qrbw"
 160 {string} "q-xxxxxxxx.js"
-161 {string} "qwik_router_component_goto_segment_1_6bz8ns83eu9c"
+161 {string} "index_text_segment_9_1ipilrwc5qrbw"
 162 {string} "q-xxxxxxxx.js"
 163 {string} "router_outlet_component_q_d_qrouterpopstate_segment_8_3rkqclzffqhqj"
 164 RootRef [omitted]

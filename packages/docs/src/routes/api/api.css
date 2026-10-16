@@ -67,13 +67,6 @@
   background: var(--color-background-accent);
 }
 
-.docs.api .docs-container {
-  margin: 10px auto 0;
-  padding: 80px 30px 0;
-  max-width: 1060px;
-  overflow: hidden;
-}
-
 .docs.api .section-title {
   background: var(--color-background-accent);
   display: flex;

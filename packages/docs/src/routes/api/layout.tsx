@@ -1,26 +1,13 @@
 import { component$, Slot, useStyles$ } from '@qwik.dev/core';
-import { ContentNav } from '../../components/content-nav/content-nav';
-import { Footer } from '../../components/footer/footer';
-import { Header } from '../../components/header/header';
+import { DocsShell } from '../docs/layout';
 import apiStyles from './api.css?inline';
-import docsStyles from '../docs/docs.css?inline';
 
 export default component$(() => {
-  useStyles$(docsStyles);
   useStyles$(apiStyles);
 
   return (
-    <div class="docs api fixed-header">
-      <Header />
-      <main>
-        <div class="docs-container">
-          <article data-pagefind-body data-pagefind-weight="0.5">
-            <Slot />
-          </article>
-          <ContentNav />
-        </div>
-      </main>
-      <Footer />
-    </div>
+    <DocsShell class="api" pagefindWeight={0.5}>
+      <Slot />
+    </DocsShell>
   );
 });

@@ -26,23 +26,9 @@ export const PrefetchServiceWorker = (opts: {
     return _jsxSorted('script', null, props, null, 0, 'prefetch-service-worker');
   }
 
-  // if an MFE app has a custom BASE_URL then this will be the correct value
-  // if you're not using MFE from another codebase then you want to override this value to your custom setup
-  const baseUrl = import.meta.env?.BASE_URL || '/';
-  const resolvedOpts = {
-    path: 'qwik-prefetch-service-worker.js',
-    ...opts,
-  };
-  if (opts?.path?.startsWith?.('/')) {
-    // allow different path and base
-    resolvedOpts.path = opts.path;
-  } else {
-    // baseUrl: '/'
-    // path: 'qwik-prefetch-service-worker.js'
-    // the file 'qwik-prefetch-service-worker.js' is not located in /build/
-    resolvedOpts.path = baseUrl + resolvedOpts.path;
-  }
-  let code = PREFETCH_CODE.replace('"_URL_"', JSON.stringify(resolvedOpts.path.split('/').pop()));
+  // Only the file name is used, so the base URL doesn't matter.
+  const path = opts?.path ?? 'qwik-prefetch-service-worker.js';
+  let code = PREFETCH_CODE.replace('"_URL_"', JSON.stringify(path.split('/').pop()));
   if (!isDev) {
     // consecutive spaces are indentation
     code = code.replaceAll(/\s\s+/gm, '');
@@ -55,7 +41,7 @@ export const PrefetchServiceWorker = (opts: {
       ].join(','),
       ');',
     ].join(''),
-    nonce: resolvedOpts.nonce,
+    nonce: opts?.nonce,
   };
   return _jsxSorted('script', null, props, null, 0, 'prefetch-service-worker');
 };

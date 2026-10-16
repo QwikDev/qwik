@@ -8,6 +8,7 @@ import { ExperimentalFeatures, QWIK_PRELOADER_ID, createQwikPlugin } from './plu
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
+import { parseAst } from 'rolldown/parseAst';
 
 const cwd = process.cwd();
 
@@ -34,27 +35,46 @@ test('defaults', async () => {
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
 });
 
-test('emits the client loader and preloader runtime entries once', async () => {
+test('emits the client loader, preloader and core runtime entries once', async () => {
   const plugin = await mockPlugin();
   await plugin.normalizeOptions({ target: 'client' });
 
-  const emittedIds: string[] = [];
+  const emitted: { id?: string; preserveSignature?: string }[] = [];
   const context = {
     resolve: async (id: string) => ({ id: `/resolved/${id}` }),
-    emitFile: (file: { id?: string }) => {
-      emittedIds.push(file.id!);
-      return `ref-${emittedIds.length}`;
+    emitFile: (file: { id?: string; preserveSignature?: string }) => {
+      emitted.push(file);
+      return `ref-${emitted.length}`;
     },
   } as any;
 
   await plugin.buildStart(context);
-  expect(emittedIds).toEqual([
+  expect(emitted.map((file) => file.id)).toEqual([
     '/resolved/@qwik.dev/core/qwikloader.js',
     `/resolved/${QWIK_PRELOADER_ID}`,
+    '\0qwik-core-signature',
   ]);
+  // The fixed core signature keeps the core chunk identical across apps.
+  expect(emitted[2].preserveSignature).toBe('strict');
 
   await plugin.resolveId(context, QWIK_PRELOADER_ID);
-  expect(emittedIds).toHaveLength(2);
+  expect(emitted).toHaveLength(3);
+});
+
+test('core signature re-exports production core exports only', async () => {
+  const plugin = await mockPlugin();
+  await plugin.normalizeOptions({ target: 'client' });
+
+  const coreCode = `const a = 1;\nexport { a as component$, a as _run, a as qrlDEV, a as _dumpState, a as _hmr };`;
+  const context = {
+    resolve: async (id: string) => ({ id: `/resolved/${id}` }),
+    load: async () => ({ code: coreCode }),
+    parse: (code: string) => parseAst(code),
+  } as any;
+
+  expect(await plugin.loadCoreSignature(context)).toBe(
+    'export { component$, _run } from "/resolved/@qwik.dev/core";'
+  );
 });
 
 test('defaults (buildMode: production)', async () => {

@@ -494,6 +494,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           preserveSignature: 'allow-extension',
         });
       }
+      // A fixed core signature makes separately built apps emit the same core bytes.
+      _ctx.emitFile({ id: QWIK_CORE_SIGNATURE_ID, type: 'chunk', preserveSignature: 'strict' });
     }
   };
 
@@ -1437,13 +1439,35 @@ export const isDev = ${JSON.stringify(isDev)};
   // Eager contexts stay with their parent, not a segment chunk.
   const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
 
+  /** Re-exports every production core export, so the core chunk doesn't depend on app usage. */
+  const loadCoreSignature = async (ctx: Rolldown.PluginContext) => {
+    const core = await ctx.resolve(QWIK_CORE_ID, undefined, { skipSelf: true });
+    if (!core) {
+      throw new Error(`Failed to resolve ${QWIK_CORE_ID}`);
+    }
+    const { code } = await ctx.load({ id: core.id });
+    const names = new Set<string>();
+    for (const node of ctx.parse(code!).body) {
+      if (node.type === 'ExportNamedDeclaration') {
+        for (const specifier of node.specifiers) {
+          const exported = specifier.exported;
+          names.add(exported.type === 'Identifier' ? exported.name : String(exported.value));
+        }
+      }
+    }
+    const prodNames = [...names].filter(
+      (name) => !name.endsWith('DEV') && !DEV_ONLY_CORE_EXPORTS.has(name)
+    );
+    return `export { ${prodNames.join(', ')} } from ${JSON.stringify(core.id)};`;
+  };
+
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
     groups: [
       // core and handlers share a chunk: no import waterfall
       {
         name: 'qwik-core',
-        test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
+        test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$|^\0qwik-core-signature$/,
         includeDependenciesRecursively: false,
       },
       {
@@ -1562,6 +1586,7 @@ export const isDev = ${JSON.stringify(isDev)};
     configureServer,
     hotUpdate,
     codeSplitting,
+    loadCoreSignature,
     generateManifest,
   };
 }
@@ -1612,6 +1637,17 @@ const TRANSFORM_EXTS = {
 export const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
 export const QWIK_CORE_ID = '@qwik.dev/core';
+
+export const QWIK_CORE_SIGNATURE_ID = '\0qwik-core-signature';
+
+/** Dev and debug helpers that production builds never import. */
+const DEV_ONLY_CORE_EXPORTS = new Set([
+  '_dumpState',
+  '_hmr',
+  '_useHmr',
+  '_verifySerializable',
+  '_vnode_toString',
+]);
 
 export const QWIK_CORE_INTERNAL_ID = '@qwik.dev/core/internal';
 

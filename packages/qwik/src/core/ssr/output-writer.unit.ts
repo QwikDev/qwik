@@ -109,7 +109,7 @@ describe('SsrOutputWriter', () => {
     expect(chunks).toEqual([]);
   });
 
-  it('writes recursive output in order and materializes each record atomically', () => {
+  it('batches synchronous output into one sink write', () => {
     const chunks: string[] = [];
     const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
 
@@ -121,7 +121,7 @@ describe('SsrOutputWriter', () => {
     ]);
 
     expect(result).toBeUndefined();
-    expect(chunks).toEqual(['before', '<!r=3 7>', '4 2', 'after']);
+    expect(chunks).toEqual(['before<!r=3 7>4 2after']);
   });
 
   it('writes the prefix while a nested output promise is pending', async () => {
@@ -134,7 +134,7 @@ describe('SsrOutputWriter', () => {
     expect(chunks).toEqual(['prefix']);
     resolve('async');
     await writing;
-    expect(chunks).toEqual(['prefix', 'async', 'tail']);
+    expect(chunks).toEqual(['prefix', 'asynctail']);
   });
 
   it('waits for each sink write before starting the next one', async () => {
@@ -152,9 +152,13 @@ describe('SsrOutputWriter', () => {
       },
     });
 
-    await writer.finish(['first', createSsrMarkup('second-', createSsrNodeId(1)), 'third']);
+    await writer.finish([
+      'first',
+      Promise.resolve(createSsrMarkup('second-', createSsrNodeId(1))),
+      'third',
+    ]);
 
-    expect(chunks).toEqual(['first', 'second-1', 'third']);
+    expect(chunks).toEqual(['first', 'second-1third']);
     expect(maxWritesInFlight).toBe(1);
   });
 
@@ -183,7 +187,7 @@ describe('SsrOutputWriter', () => {
       },
     });
 
-    await expect(writer.finish(['first', 'second'])).rejects.toBe(error);
+    await expect(writer.finish(['first', Promise.resolve('second')])).rejects.toBe(error);
     expect(chunks).toEqual(['first']);
   });
 

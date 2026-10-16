@@ -2090,7 +2090,7 @@ describe('SSR context markers', () => {
       }
     );
 
-    expect(chunks.slice(1, -1)).toEqual(['before', '<span data-node="0">', 'after</span>']);
+    expect(chunks.join('')).toContain('before<span data-node="0">after</span>');
     expect(chunks[chunks.length - 1]).toBe('</div>');
   });
 

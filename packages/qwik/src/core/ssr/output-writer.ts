@@ -27,9 +27,11 @@ interface OutputOperation {
   current?: SsrOutput;
   stack: Array<readonly SsrOutput[]>;
   indices: number[];
+  /** Synchronous html waiting for one sink write; every sink write costs a web-stream hop. */
+  buffered: string[];
 }
 
-/** Writes structured SSR output to one sink in document order. */
+/** Writes structured SSR output to one sink in document order, one sink write per async boundary. */
 export class SsrOutputWriter {
   constructor(
     private readonly sink: Pick<StreamWriter, 'write'>,
@@ -47,6 +49,7 @@ export class SsrOutputWriter {
       current: output,
       stack: [],
       indices: [],
+      buffered: [],
     };
     const result = drainOutput(operation);
     if (!isPromise(result)) {
@@ -68,7 +71,27 @@ function detachOutput(operation: OutputOperation): void {
     operation.writeResolved =
     operation.writeBoundary =
       undefined;
-  operation.stack.length = operation.indices.length = 0;
+  operation.stack.length = operation.indices.length = operation.buffered.length = 0;
+}
+
+function flushOutput(operation: OutputOperation): ValueOrPromise<void> {
+  const buffered = operation.buffered;
+  if (buffered.length === 0 || operation.sink === undefined) {
+    return;
+  }
+  const html = buffered.length === 1 ? buffered[0] : buffered.join('');
+  buffered.length = 0;
+  return operation.sink.write(html);
+}
+
+/** Flushes before an async step; a pending flush re-drains with the step as the next output. */
+function flushBefore(operation: OutputOperation, output: SsrOutput): Promise<void> | undefined {
+  const flushed = flushOutput(operation);
+  if (!isPromise(flushed)) {
+    return;
+  }
+  operation.current = output;
+  return flushed.then(() => drainOutput(operation));
 }
 
 function resumeOutput(operation: OutputOperation, output: SsrResolvedOutput): ValueOrPromise<void> {
@@ -95,13 +118,15 @@ function drainOutput(operation: OutputOperation): ValueOrPromise<void> {
         indices.pop();
       }
       if (stack.length === 0) {
-        return;
+        return flushOutput(operation);
       }
       const depth = stack.length - 1;
       output = stack[depth][indices[depth]++];
     }
     if (isPromise(output)) {
-      return output.then((output) => resumeOutput(operation, output));
+      return (
+        flushBefore(operation, output) ?? output.then((output) => resumeOutput(operation, output))
+      );
     }
     if (Array.isArray(output)) {
       operation.stack.push(output);
@@ -111,6 +136,10 @@ function drainOutput(operation: OutputOperation): ValueOrPromise<void> {
     if (typeof output === 'object' && !isSsrRecordChunk(output)) {
       const chunk = output as Exclude<SsrChunk, string | SsrRecordChunk>;
       if (chunk.type === 'catch' && operation.writeBoundary !== undefined) {
+        const pendingFlush = flushBefore(operation, output);
+        if (pendingFlush !== undefined) {
+          return pendingFlush;
+        }
         const result = operation.writeBoundary(chunk.boundary);
         if (isPromise(result)) {
           return result.then(() => drainOutput(operation));
@@ -144,12 +173,8 @@ function drainOutput(operation: OutputOperation): ValueOrPromise<void> {
                 output.errorRoot
               )
             : materializeReference(output as SsrReferenceChunk, operation.resolveChunk);
-    if (html === '') {
-      continue;
-    }
-    const result = operation.sink.write(html);
-    if (isPromise(result)) {
-      return Promise.resolve(result).then(() => drainOutput(operation));
+    if (html !== '') {
+      operation.buffered.push(html);
     }
   }
 }

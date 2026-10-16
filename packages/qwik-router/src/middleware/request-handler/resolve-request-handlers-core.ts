@@ -756,7 +756,12 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         | { key: string; eTag: string }
         | undefined;
 
-      const { readable, writable } = new TextEncoderStream();
+      // Not TextEncoderStream: Node runs it as a per-character JS loop, ~30x slower than encode().
+      const { readable, writable } = new TransformStream<string, Uint8Array>({
+        transform(chunk, controller) {
+          controller.enqueue(encoder.encode(chunk));
+        },
+      });
       // Headers commit when the response stream is created, so defer it to the first rendered
       // chunk: until then a failed render or a caught boundary can still change the answer.
       let responseWriter: WritableStreamDefaultWriter<Uint8Array> | undefined;

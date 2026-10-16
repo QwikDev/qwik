@@ -1,23 +1,9 @@
-import type { QRL } from '@qwik.dev/core';
-import { useSignal, Slot } from '@qwik.dev/core';
+import { useSignal } from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core/build';
 import { buildData } from './build-data/build-data';
 
-const Button = ({ id, onClick$ }: { id: string; onClick$: QRL<() => any> }) => {
-  return (
-    <button
-      id={id}
-      class="btn btn-primary btn-block"
-      type="button"
-      stoppropagation:click
-      onClick$={onClick$}
-    >
-      <Slot />
-    </button>
-  );
-};
-
 export function Root() {
-  const data = useSignal(buildData(1_000));
+  const data = useSignal(isServer ? buildData(1_000) : []);
   const selectedItem = useSignal(null);
 
   return (
@@ -30,25 +16,43 @@ export function Root() {
           <div class="col-md-6">
             <div class="row">
               <div class="col-sm-6 smallpad">
-                <Button id="run" onClick$={() => (data.value = buildData(1_000))}>
+                <button
+                  class="btn btn-primary btn-block"
+                  type="button"
+                  stoppropagation:click
+                  id="run"
+                  onClick$={() => (data.value = buildData(1_000))}
+                >
                   Create 1,000 rows
-                </Button>
+                </button>
               </div>
               <div class="col-sm-6 smallpad">
-                <Button id="runlots" onClick$={() => (data.value = buildData(10_000))}>
+                <button
+                  class="btn btn-primary btn-block"
+                  type="button"
+                  stoppropagation:click
+                  id="runlots"
+                  onClick$={() => (data.value = buildData(10_000))}
+                >
                   Create 10,000 rows
-                </Button>
+                </button>
               </div>
               <div class="col-sm-6 smallpad">
-                <Button
+                <button
+                  class="btn btn-primary btn-block"
+                  type="button"
+                  stoppropagation:click
                   id="add"
                   onClick$={() => (data.value = [...data.value, ...buildData(1_000)])}
                 >
                   Append 1,000 rows
-                </Button>
+                </button>
               </div>
               <div class="col-sm-6 smallpad">
-                <Button
+                <button
+                  class="btn btn-primary btn-block"
+                  type="button"
+                  stoppropagation:click
                   id="update"
                   onClick$={() => {
                     const dataValue = data.value;
@@ -58,15 +62,24 @@ export function Root() {
                   }}
                 >
                   Update every 10th row
-                </Button>
+                </button>
               </div>
               <div class="col-sm-6 smallpad">
-                <Button id="clear" onClick$={() => (data.value = [])}>
+                <button
+                  class="btn btn-primary btn-block"
+                  type="button"
+                  stoppropagation:click
+                  id="clear"
+                  onClick$={() => (data.value = [])}
+                >
                   Clear
-                </Button>
+                </button>
               </div>
               <div class="col-sm-6 smallpad">
-                <Button
+                <button
+                  class="btn btn-primary btn-block"
+                  type="button"
+                  stoppropagation:click
                   id="swaprows"
                   onClick$={() => {
                     const list = data.value;
@@ -80,7 +93,7 @@ export function Root() {
                   }}
                 >
                   Swap Rows
-                </Button>
+                </button>
               </div>
             </div>
           </div>

@@ -1284,7 +1284,12 @@ if (${initialParent} !== undefined && (${nextValue} === null || typeof ${nextVal
   ${initialParent}.textContent = ${cachedValue};
   ${shared.effect}.value${index} = ${cachedValue};
 } else if (${nextValue} !== ${shared.effect}.value${index}) {
-  ${shared.effect}.patchText("text${index}", "value${index}", ${locate}, ${nextValue}, ${!!op.stringify}, ${initialParent});
+  if (${shared.effect}.text${index} !== undefined && typeof ${nextValue} === "string" && typeof ${shared.effect}.value${index} === "string") {
+    ${shared.effect}.text${index}.data = ${nextValue};
+    ${shared.effect}.value${index} = ${nextValue};
+  } else {
+    ${shared.effect}.patchText("text${index}", "value${index}", ${locate}, ${nextValue}, ${!!op.stringify}, ${initialParent});
+  }
 }`;
       }
       this.imports.add(QwikWord.PatchTextValue);

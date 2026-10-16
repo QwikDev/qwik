@@ -104,10 +104,7 @@ export class Scheduler {
     if (root === null) {
       return;
     }
-    if (
-      root.items instanceof Owner ||
-      (Array.isArray(root.items) && root.items.some((item) => item instanceof Owner))
-    ) {
+    if (hasChildOwners(root)) {
       this.removeQueuedDescendants(root);
     }
     root.flags |= OwnerFlags.Queued;
@@ -333,10 +330,30 @@ export class Scheduler {
   }
 
   private flushOwner(owner: Owner): ValueOrPromise<void> {
+    if (!hasChildOwners(owner) && !(owner.flags & OwnerFlags.WaitingForPhases)) {
+      const pending = this.flushOwnerPhases(owner);
+      return isPromise(pending)
+        ? this.waitForOwnerPhases(owner, pending).then(() => this.flushOwnerChildren(owner))
+        : this.flushOwnerChildren(owner);
+    }
     const stack: OwnerFrame[] = [];
-    const rendered: Owner[] = [];
     pushOwnerFrame(stack, owner);
-    // Visible tasks see the whole subtree's DOM, not just their own owner's
+    return this.flushOwnerStack(stack, []);
+  }
+
+  private flushOwnerChildren(owner: Owner): ValueOrPromise<void> {
+    if (!hasChildOwners(owner)) {
+      this.flushVisibleTasks(owner);
+      return;
+    }
+    const items = owner.items;
+    return this.flushOwnerStack(
+      [{ owner, items, index: 0, end: ownerItemsLength(items) }],
+      [owner]
+    );
+  }
+
+  private flushOwnerStack(stack: OwnerFrame[], rendered: Owner[]): ValueOrPromise<void> {
     return maybeThen(this.drainOwnerStack(stack, rendered), () => {
       for (let i = 0; i < rendered.length; i++) {
         this.flushVisibleTasks(rendered[i]);
@@ -419,6 +436,12 @@ export class Scheduler {
       return Promise.all(Array.from(owner.pendingWork!.values(), (work) => work.promise)).then(() =>
         this.flushOwnerPhases(owner)
       );
+    }
+    if ((owner.flags & OwnerFlags.DirtyMask) === OwnerFlags.DirtyScalarDom) {
+      const pending = this.flushScalarDom(owner);
+      return isPromise(pending)
+        ? pending.then(() => this.flushDeferredTasks(owner))
+        : this.flushDeferredTasks(owner);
     }
     return maybeThen(this.flushBlockingTasks(owner), () =>
       maybeThen(this.flushStructuralDom(owner), () =>
@@ -646,6 +669,21 @@ function markOwnerDirty(owner: Owner, phase: OwnerFlags): Owner | null {
     current = current.parent;
   }
   return queued ? null : root;
+}
+
+function hasChildOwners(owner: Owner): boolean {
+  const items = owner.items;
+  if (items instanceof Owner) {
+    return true;
+  }
+  if (Array.isArray(items)) {
+    for (let i = 0; i < items.length; i++) {
+      if (items[i] instanceof Owner) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 function pushOwnerFrame(stack: OwnerFrame[], owner: Owner): void {

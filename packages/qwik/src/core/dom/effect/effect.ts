@@ -13,7 +13,7 @@ import { fastFirstChild } from '../../runtime/fast-getters';
 import { _textValue } from '../../shared/utils/character-escaping';
 import { removeEvent, setEvent } from '../event/event';
 import type { CapturedEventHandler, QDispatchHandler } from '../../shared/types';
-import { EMPTY_ARRAY } from '../../utils/consts';
+import { CheckedAttr, DangerousInnerHTMLAttr, EMPTY_ARRAY, ValueAttr } from '../../utils/consts';
 import { invokeCaptured } from '../../shared/qrl/qrl-captures';
 import { isPromise, safeCall } from '../../shared/utils/promises';
 import { handleError } from '../content/catch-boundary';
@@ -27,7 +27,35 @@ type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
 export type EventExpressionFn<TArgs extends unknown[] = unknown[]> = (...args: TArgs) => unknown;
 export type DomBatchFn = () => ValueOrPromise<void>;
 
-export class AttrEffect extends DomEffect {
+const CACHED_UNDEFINED = Symbol();
+
+function getAttributeCacheValue(name: string, value: unknown): unknown {
+  if (
+    name === ValueAttr ||
+    name === CheckedAttr ||
+    name === DangerousInnerHTMLAttr ||
+    (value !== null && (typeof value === 'object' || typeof value === 'function'))
+  ) {
+    return undefined;
+  }
+  return value === undefined ? CACHED_UNDEFINED : value;
+}
+
+abstract class AttributeEffect extends DomEffect {
+  declare private previousValue: unknown;
+
+  protected patchAttribute(element: Element, name: string, value: unknown, styleScopedId?: string) {
+    const cachedValue = getAttributeCacheValue(name, value);
+    if (cachedValue !== undefined && Object.is(cachedValue, this.previousValue)) {
+      return;
+    }
+    const pending = patchAttrValue(element, name, value, styleScopedId);
+    this.previousValue = cachedValue;
+    return pending;
+  }
+}
+
+export class AttrEffect extends AttributeEffect {
   constructor(
     readonly element: Element,
     readonly name: string,
@@ -39,7 +67,7 @@ export class AttrEffect extends DomEffect {
   }
 
   execute(): ValueOrPromise<void> {
-    return patchAttrValue(
+    return this.patchAttribute(
       this.element,
       this.name,
       readTrackedValue(this.source),
@@ -48,7 +76,7 @@ export class AttrEffect extends DomEffect {
   }
 }
 
-export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> extends DomEffect {
+export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> extends AttributeEffect {
   constructor(
     readonly element: Element,
     readonly name: string,
@@ -61,7 +89,7 @@ export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> extends D
   }
 
   execute(): ValueOrPromise<void> {
-    return patchAttrValue(
+    return this.patchAttribute(
       this.element,
       this.name,
       invokeCaptured(this.fn, this.args, this, this.args),

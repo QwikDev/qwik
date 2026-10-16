@@ -51,6 +51,76 @@ import { LazySerialized } from '../reactive/lazy-serialized';
 import { retryAfterPromise, thenInLifetime, retryInLifetime } from '../shared/utils/promises';
 
 describe('runtime scheduler and owner lifecycle', () => {
+  it.each([false, true])('visits children created by a leaf scalar, async=%s', async (isAsync) => {
+    const scheduler = new Scheduler(noopSchedule);
+    const owner = createOwner(null);
+    const order: string[] = [];
+    const effect = runWithOwner(owner, () =>
+      createOrderTextExpressionEffect(scheduler, 'parent', order)
+    );
+    effect.execute = () => {
+      const createChild = () => {
+        const child = createOwner(owner);
+        const effect = runWithOwner(child, () =>
+          createOrderTextExpressionEffect(scheduler, 'child', order)
+        );
+        scheduler.notify(effect);
+      };
+      return isAsync ? Promise.resolve().then(createChild) : createChild();
+    };
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(order).toEqual(['child']);
+  });
+
+  it('runs deferred work scheduled by a scalar before the next owner', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const owner = createOwner(null);
+    const order: string[] = [];
+    let task!: TaskSubscriber;
+    const effect = runWithOwner(owner, () => {
+      task = useTaskSubscriber(scheduler, 'deferred', order, Phase.DeferredTask);
+      return createOrderTextExpressionEffect(scheduler, 'scalar', order);
+    });
+    effect.execute = () => {
+      order.push('scalar');
+      scheduler.notify(task);
+    };
+    scheduler.notify(effect);
+    scheduler.notify(createOrderTextExpressionEffect(scheduler, 'next', order));
+    await scheduler.flushInteraction();
+    expect(order).toEqual(['scalar', 'deferred', 'next']);
+  });
+
+  it('keeps leaf scalar updates ordered and waits for async completion', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const owner = createOwner(null);
+    const order: string[] = [];
+    const effect = runWithOwner(owner, () =>
+      createOrderTextExpressionEffect(scheduler, 'scalar', order)
+    );
+    let release!: () => void;
+    effect.execute = () =>
+      new Promise<void>((resolve) => {
+        release = () => {
+          order.push('committed');
+          resolve();
+        };
+      });
+    scheduler.notify(effect);
+    const flushing = scheduler.flushInteraction().then(() => order.push('flushed'));
+    expect(order).toEqual([]);
+    release();
+    await flushing;
+    expect(order).toEqual(['committed', 'flushed']);
+    effect.execute = () => {
+      order.push('updated');
+    };
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(order).toEqual(['committed', 'flushed', 'updated']);
+  });
+
   it('does not allocate await registries without Catch', async () => {
     const owner = createOwner(null);
     const NativeSet = Set;

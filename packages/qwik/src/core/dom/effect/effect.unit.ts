@@ -42,7 +42,209 @@ import type { Signal } from '../../reactive/signal';
 import { registerDomEffect, type DomEffect } from './dom-effect';
 import { createCapturedEvent } from '../event/event';
 
+type AttributeBindingKind = 'source' | 'expression';
+
+function createAttributeBinding(
+  kind: AttributeBindingKind,
+  element: Element,
+  name: string,
+  source: Signal<unknown>,
+  scheduler: Scheduler
+) {
+  return createOwned(() => {
+    if (kind === 'source') {
+      return createAttrEffect(element, name, source, scheduler);
+    }
+    return createAttrExpressionEffect(element, name, [source], (source) => source.value, scheduler);
+  });
+}
+
+describe.each(['source', 'expression'] as const)('%s attribute cache', (kind) => {
+  it.each([
+    ['title', 'label'],
+    ['data-count', 1],
+    ['data-count', 1n],
+    ['data-count', NaN],
+    ['data-token', Symbol('token')],
+    ['aria-hidden', false],
+    ['disabled', true],
+    ['style', 'color:red'],
+    ['title', null],
+    ['title', undefined],
+  ] as const)('skips repeated primitive writes for %s=%s', async (name, initial) => {
+    const scheduler = new Scheduler(noopSchedule);
+    const source = useSignal<unknown>(initial);
+    const { element, attrs } = createAttrTarget();
+    element.setAttribute(name, 'stale');
+    const set = vi.spyOn(element, 'setAttribute');
+    const remove = vi.spyOn(element, 'removeAttribute');
+    const effect = createAttributeBinding(kind, element, name, source, scheduler);
+    await effect.run();
+    expect(set.mock.calls.length + remove.mock.calls.length).toBe(1);
+    if (initial == null) {
+      expect(attrs.has(name)).toBe(false);
+    }
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(set.mock.calls.length + remove.mock.calls.length).toBe(1);
+    source.value = 'changed';
+    await scheduler.flushInteraction();
+    expect(set.mock.calls.length + remove.mock.calls.length).toBe(2);
+  });
+
+  it('reapplies inner HTML through the existing content path', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const source = useSignal<unknown>('<b>framework</b>');
+    const { element } = createPropsTarget();
+    const effect = createAttributeBinding(
+      kind,
+      element,
+      'dangerouslySetInnerHTML',
+      source,
+      scheduler
+    );
+    await effect.run();
+    element.innerHTML = 'edited';
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(element.innerHTML).toBe('<b>framework</b>');
+  });
+
+  it.each([
+    ['value', 'framework', 'edited'],
+    ['checked', true, false],
+  ] as const)('reapplies the live %s property', async (name, initial, edited) => {
+    const scheduler = new Scheduler(noopSchedule);
+    const source = useSignal<unknown>(initial);
+    const { element } = createPropsTarget();
+    const effect = createAttributeBinding(kind, element, name, source, scheduler);
+    await effect.run();
+    expect(element[name]).toBe(initial);
+    Object.assign(element, { [name]: edited });
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(element[name]).toBe(initial);
+  });
+
+  it('refreshes mutable style objects and clears stale primitive caches', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const source = useSignal<unknown>('color:red');
+    const { element, attrs } = createAttrTarget();
+    const set = vi.spyOn(element, 'setAttribute');
+    const effect = createAttributeBinding(kind, element, 'style', source, scheduler);
+    await effect.run();
+    const style = { color: 'blue' };
+    source.value = style;
+    await scheduler.flushInteraction();
+    expect(attrs.get('style')).toContain('blue');
+    style.color = 'green';
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(attrs.get('style')).toContain('green');
+    source.value = 'color:red';
+    await scheduler.flushInteraction();
+    expect(attrs.get('style')).toBe('color:red');
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(set).toHaveBeenCalledTimes(4);
+  });
+
+  it.each([false, true])(
+    'refreshes mutable coercions and async attributes, function=%s',
+    async (isFunction) => {
+      const scheduler = new Scheduler(noopSchedule);
+      let label = 'object';
+      const mutable = isFunction
+        ? Object.assign(() => {}, { toString: () => label })
+        : { toString: () => label };
+      const source = useSignal<unknown>('ready');
+      const { element, attrs } = createAttrTarget();
+      const set = vi.spyOn(element, 'setAttribute');
+      const effect = createAttributeBinding(kind, element, 'title', source, scheduler);
+      await effect.run();
+      source.value = mutable;
+      await scheduler.flushInteraction();
+      label = 'mutated';
+      scheduler.notify(effect);
+      await scheduler.flushInteraction();
+      expect(attrs.get('title')).toBe('mutated');
+      source.value = Promise.resolve('pending');
+      await scheduler.flushInteraction();
+      expect(attrs.get('title')).toBe('pending');
+      source.value = 'ready';
+      await scheduler.flushInteraction();
+      scheduler.notify(effect);
+      await scheduler.flushInteraction();
+      expect(attrs.get('title')).toBe('ready');
+      expect(set).toHaveBeenCalledTimes(5);
+    }
+  );
+
+  it('reapplies an unchanged promise instead of caching its identity', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const source = useSignal<unknown>(Promise.resolve('pending'));
+    const { element } = createAttrTarget();
+    const set = vi.spyOn(element, 'setAttribute');
+    const effect = createAttributeBinding(kind, element, 'title', source, scheduler);
+    await effect.run();
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(set).toHaveBeenCalledTimes(2);
+    source.value = 'pending';
+    await scheduler.flushInteraction();
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(set).toHaveBeenCalledTimes(3);
+  });
+});
+
 describe('DOM effects', () => {
+  it.each(['source', 'expression'])(
+    'caches string classes but refreshes mutable and async classes: %s',
+    async (kind) => {
+      const scheduler = new Scheduler(noopSchedule);
+      const classes = useSignal<unknown>('active');
+      let className = '';
+      let writes = 0;
+      const element = {
+        set className(value: string) {
+          className = value;
+          writes++;
+        },
+        removeAttribute() {
+          className = '';
+          writes++;
+        },
+      } as unknown as Element;
+      const effect = createAttributeBinding(kind, element, 'class', classes, scheduler);
+      await effect.run();
+      expect(writes).toBe(1);
+      scheduler.notify(effect);
+      await scheduler.flushInteraction();
+      expect(writes).toBe(1);
+      const mutable = { active: true };
+      classes.value = mutable;
+      await scheduler.flushInteraction();
+      expect(writes).toBe(2);
+      mutable.active = false;
+      scheduler.notify(effect);
+      await scheduler.flushInteraction();
+      expect(className).toBe('');
+      expect(writes).toBe(3);
+      classes.value = 'active';
+      await scheduler.flushInteraction();
+      classes.value = Promise.resolve('pending');
+      await scheduler.flushInteraction();
+      expect(className).toBe('pending');
+      classes.value = 'active';
+      await scheduler.flushInteraction();
+      expect(className).toBe('active');
+      scheduler.notify(effect);
+      await scheduler.flushInteraction();
+      expect(writes).toBe(6);
+    }
+  );
+
   it('ignores a rejected promise from an invalidated generation', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner(null);

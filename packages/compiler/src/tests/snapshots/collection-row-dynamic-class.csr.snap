@@ -68,7 +68,16 @@ function updateRow0(effect0, initialParent0) {
     initialParent0.textContent = cachedValue0;
     effect0.value0 = cachedValue0;
   } else if (nextValue0 !== effect0.value0) {
-    effect0.patchText('text0', 'value0', locateTextParent0, nextValue0, false, initialParent0);
+    if (
+      effect0.text0 !== undefined &&
+      typeof nextValue0 === 'string' &&
+      typeof effect0.value0 === 'string'
+    ) {
+      effect0.text0.data = nextValue0;
+      effect0.value0 = nextValue0;
+    } else {
+      effect0.patchText('text0', 'value0', locateTextParent0, nextValue0, false, initialParent0);
+    }
   }
 }
 const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate('<li></li>');

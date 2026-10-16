@@ -58,3 +58,5 @@ export const _getContextContainer = (): ContainerContext | undefined =>
 /** @internal */
 export const _waitUntilRendered = (container: ContainerContext): Promise<void> =>
   container.scheduler.flushInteraction();
+
+export { requestPreload as _requestPreload } from './preloader/bridge';

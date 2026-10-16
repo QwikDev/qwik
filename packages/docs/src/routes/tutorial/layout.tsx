@@ -55,7 +55,7 @@ export default component$(() => {
   });
 
   return (
-    <div class="tutorial full-width fixed-header repl-theme-docs">
+    <div class="tutorial full-width repl-theme-docs">
       <Header />
       <PanelToggle panelStore={panelStore} />
       <main

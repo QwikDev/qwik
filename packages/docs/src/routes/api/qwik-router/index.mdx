@@ -935,11 +935,11 @@ onSubmitCompleted$?
 
 </td><td>
 
-QRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| undefined
+QRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| EventHandler&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| undefined
 
 </td><td>
 
-_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.
+_(Optional)_ Event handler executed right after the action is executed successfully and returns some data. Like the native `on*$` events, it accepts an inline function as well as a QRL.
 
 </td></tr>
 <tr><td>
@@ -2337,7 +2337,7 @@ Keys starting with `_` are metadata; all other keys are child route segments.
 
 - Use `_W` as the key for a single dynamic segment (param); `_P` on that node names the param. - Use `_A` as the key for a rest/catch-all segment; `_P` on that node names the param. - For infix params like `pre[slug]post`, use `_W` with `_0` (prefix) and `_9` (suffix). - Use `_M` for an array of group (pathless layout) nodes, sorted by group name.
 
-When matching, exact segments are tried first (case-insensitive), then `_W` (with optional prefix/suffix), then `_A`. When no route matches, the closest `_E` (error.tsx) or `_4` (404.tsx) loader in the ancestor chain is used to render the error page.
+Exact segments match case-insensitively. When several routes match, the most specific wins, compared segment by segment: an exact segment beats `_W` (with optional prefix/suffix), which beats `_A`. When no route matches, the closest `_E` (error.tsx) or `_4` (404.tsx) loader in the ancestor chain is used to render the error page.
 
 ```typescript
 export interface RouteData

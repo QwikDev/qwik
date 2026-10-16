@@ -10,6 +10,7 @@ vi.mock('../../middleware/request-handler/async-request-store', () => ({
   },
 }));
 
+import type { ComputedSignal } from '@qwik.dev/core';
 import * as z from 'zod';
 import { _createQRL as createQRL } from '@qwik.dev/core/internal';
 import { routeLoader$ } from './route-loaders';
@@ -39,6 +40,12 @@ describe('types', () => {
     };
 
     expect(getRequestEvent()).toBe(requestEvent);
+  });
+
+  test('loader signals are computed signals', () => () => {
+    const data = routeLoader$(() => 1)();
+    expectTypeOf(data).toMatchTypeOf<ComputedSignal<number>>();
+    expectTypeOf(data.invalidate).toBeCallableWith({ reason: 'refresh' });
   });
 
   test('matching', () => () => {

@@ -730,7 +730,7 @@ export function reserveRegionKeys(
 }
 
 export function isHtmlElement(tagName: string): boolean {
-  return tagName.length > 0 && tagName[0] === tagName[0].toLowerCase();
+  return /^[a-z]/.test(tagName);
 }
 
 /** Text-only HTML elements whose children should NOT be signal-wrapped. */

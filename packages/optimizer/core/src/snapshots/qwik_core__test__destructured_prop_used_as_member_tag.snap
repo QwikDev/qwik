@@ -1,0 +1,96 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { Model: any }) => {
+	const { Model } = props;
+	return <Model.Item />;
+});
+
+export const Other = component$(({ ui }: { ui: any }) => <ui.Home />);
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+const q_Other_component_C1my3EIdP1k = /*#__PURE__*/ qrl(()=>import("./test.tsx_Other_component_C1my3EIdP1k"), "Other_component_C1my3EIdP1k");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+export const Other = /*#__PURE__*/ componentQrl(q_Other_component_C1my3EIdP1k);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,oBAAM,0CAGhB;AAEH,OAAO,MAAM,sBAAQ,4CAAiD\"}")
+============================= test.tsx_Other_component_C1my3EIdP1k.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const Other_component_C1my3EIdP1k = (_rawProps)=>/*#__PURE__*/ _jsxSorted(_rawProps.ui.Home, null, null, null, 3, "u6_1");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAQgC,2BAAyB,WAAC,UAAvB,GAA0B,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Other_component_C1my3EIdP1k",
+  "entry": null,
+  "displayName": "test.tsx_Other_component",
+  "hash": "C1my3EIdP1k",
+  "canonicalFilename": "test.tsx_Other_component_C1my3EIdP1k",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    194,
+    230
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const Cmp_component_4ryKJTOKjWE = (props)=>{
+    return /*#__PURE__*/ _jsxSorted(props.Model.Item, null, null, null, 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC;IAE9B,qBAAO,WAAC,AADU,MAAV,MACM,IAAI;AACnB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    158
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -4,7 +4,6 @@ import { rm } from 'node:fs/promises';
 const base = '/qwikrouter-test/loader-navigation/';
 type Snapshot = {
   signals: Record<string, number>;
-  values: string[];
   paths: string[];
 };
 
@@ -542,7 +541,6 @@ test.describe('loader lifecycle', () => {
       );
       expect(child.signals['lifecycle-layout']).toBe(first.signals['lifecycle-layout']);
       expect(child.paths).toEqual(Object.keys(child.signals).sort());
-      expect(child.values).not.toContain('__qwik_route_loader_value__navigation-parent');
 
       const requests: string[] = [];
       page.on('request', (request) => requests.push(request.url()));

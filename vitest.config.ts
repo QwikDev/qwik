@@ -95,6 +95,7 @@ export default defineConfig({
     include: ['**/*.spec.*', '**/*.unit.*'],
     exclude: [
       ...configDefaults.exclude,
+      '**/__snapshots__/**',
       '*/(lib|dist|build|server|target)/**',
       'qwik/src/core/tests/*.spec.tsx',
       'qwik/src/testing/testing.unit.tsx',

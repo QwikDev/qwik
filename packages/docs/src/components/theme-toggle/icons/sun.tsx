@@ -10,7 +10,7 @@ export const SunIcon = component$<SunIconProps>(({ class: className, ...props })
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      stroke-width="1.6"
       stroke="currentColor"
       class={className}
       {...props}
@@ -18,7 +18,7 @@ export const SunIcon = component$<SunIconProps>(({ class: className, ...props })
       <path
         stroke-linecap="round"
         stroke-linejoin="round"
-        d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+        d="M12 2V4M12 20V22M4.92993 4.92993L6.33993 6.33993M17.6599 17.6599L19.0699 19.0699M2 12H4M20 12H22M6.33993 17.6599L4.92993 19.0699M19.0699 4.92993L17.6599 6.33993M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z"
       />
     </svg>
   );

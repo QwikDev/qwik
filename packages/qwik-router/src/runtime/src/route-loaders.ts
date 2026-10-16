@@ -100,6 +100,8 @@ export type LoaderFetchResult = {
  * across navigations the browser HTTP cache is the freshness authority.
  */
 let navFetchCache = new Map<string, Promise<LoaderFetchResult | undefined>>();
+/** Entries a loader signal already used: they only dedupe prefetches, so `invalidate()` refetches. */
+const signalFetches = new WeakSet<Promise<LoaderFetchResult | undefined>>();
 
 export const clearNavFetchCache = () => {
   navFetchCache = new Map();
@@ -285,8 +287,13 @@ export const fetchRouteLoaderData = async (
   const cache = navFetchCache;
   if (!opts?.ignoreCache) {
     const entry = cache.get(cacheKey);
-    if (entry) {
-      return opts?.signal ? wrapWithAbort(entry, opts.signal) : entry;
+    const signal = opts?.signal;
+    if (entry && !signal) {
+      return entry;
+    }
+    if (entry && signal && !signalFetches.has(entry)) {
+      signalFetches.add(entry);
+      return wrapWithAbort(entry, signal);
     }
   }
 
@@ -325,7 +332,9 @@ export const fetchRouteLoaderData = async (
     return request().then((value) => {
       opts.signal!.throwIfAborted();
       if (value !== undefined && !cache.has(cacheKey)) {
-        cache.set(cacheKey, Promise.resolve(value));
+        const settled = Promise.resolve(value);
+        signalFetches.add(settled);
+        cache.set(cacheKey, settled);
       }
       return value;
     });

@@ -141,10 +141,13 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
 };
 
 export const getEditorTheme = (theme: EditorThemeName) => {
+  if (document.documentElement.matches('.dark, [data-theme="dark"]')) {
+    return 'vs-dark';
+  }
   if (theme === 'github-light') {
     return 'github-light';
   }
-  return theme === 'light' ? 'vs' : 'vs-dark';
+  return theme === 'dark' ? 'vs-dark' : 'vs';
 };
 
 const checkDiagnostics = async (

@@ -9,8 +9,6 @@ const { fetchRouteLoaderDataMock } = vi.hoisted(() => ({
 
 _setRouterConfig({ routes: {}, cacheModules: false, basePathname: '/' });
 
-vi.mock('@qwik.dev/core/preloader', () => ({ p: vi.fn() }));
-
 vi.mock('./route-loaders', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   fetchRouteLoaderData: fetchRouteLoaderDataMock,

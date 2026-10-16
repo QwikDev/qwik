@@ -136,6 +136,7 @@ export {
   _renderCompiled,
   _verifySerializable,
   _waitUntilRendered,
+  _requestPreload,
   QContainerSelector,
 } from './internal';
 export { Scheduler } from './runtime/scheduler';

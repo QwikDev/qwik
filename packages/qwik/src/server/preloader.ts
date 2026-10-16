@@ -3,7 +3,7 @@ import { isSyncQrl, qTest, qrlToString, type SerializationContext } from '@qwik.
 import { escapeHTML } from './qwik-copy';
 import type { PreloaderOptions, ServerQwikManifest } from './types';
 
-const DEFAULT_SSR_PRELOADS = 7;
+const DEFAULT_SSR_PRELOADS = 0;
 // The dev server serves modules unbundled, so there is nothing to preload
 const isDevServer = isDev && !qTest;
 
@@ -30,7 +30,17 @@ const nonceAttr = (nonce: string | undefined) =>
 const modulePreload = (href: string, nonce: string | undefined) =>
   `<link rel="modulepreload" href="${escapeHTML(href)}"${nonceAttr(nonce)}>`;
 
-/** Starts the preloader while the HTML still downloads, so it belongs at the top of `<head>`. */
+const afterPagePaint = (task: string) =>
+  `window.addEventListener('load',f=>{` +
+  `f=_=>${task};` +
+  `requestAnimationFrame(_=>requestAnimationFrame(_=>{` +
+  `typeof requestIdleCallback==='function'?` +
+  `requestIdleCallback(f,{timeout:1000}):` +
+  `requestAnimationFrame(_=>setTimeout(f))` +
+  `}))` +
+  `})`;
+
+/** Fetches preloader assets early and starts speculation after page paint. */
 export function createPreloaderHead(
   manifest: ServerQwikManifest | undefined,
   base: string,
@@ -48,8 +58,10 @@ export function createPreloaderHead(
       modulePreload(preloader, nonce) +
       `<link rel="preload" href="${escapeHTML(bundleGraph)}" as="fetch" crossorigin="anonymous">` +
       `<script type="module" async crossorigin="anonymous"${nonceAttr(nonce)}>` +
-      `let b=fetch(${JSON.stringify(bundleGraph)});` +
-      `import(${JSON.stringify(preloader)}).then(({l})=>l(${JSON.stringify(base)},b${idle}));` +
+      afterPagePaint(
+        `{let b=fetch(${JSON.stringify(bundleGraph)});` +
+          `import(${JSON.stringify(preloader)}).then(({l})=>l(${JSON.stringify(base)},b${idle}))}`
+      ) +
       `</script>`;
   }
   const core = options === false ? null : resolveBundle(base, manifest?.core);
@@ -86,10 +98,9 @@ export function createPreloaderTail(
     : '';
   const preloader = resolveBundle(base, manifest?.preloader);
   if (preloader) {
-    script +=
-      `window.addEventListener('load',f=>{` +
-      `f=_=>import(${JSON.stringify(preloader)}).then(({p})=>p(${JSON.stringify(referenced)}));` +
-      `try{requestIdleCallback(f,{timeout:2000})}catch(e){setTimeout(f,200)}})`;
+    script += afterPagePaint(
+      `import(${JSON.stringify(preloader)}).then(({p})=>p(${JSON.stringify(referenced)}))`
+    );
   }
   return script
     ? `<script type="module" async="true" q:type="preload"${nonceAttr(nonce)}>${script}</script>`

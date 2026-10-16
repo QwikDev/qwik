@@ -8,20 +8,16 @@ import {
 import { Insights } from '@qwik.dev/core/insights';
 import { RouterOutlet, useQwikRouter } from '@qwik.dev/router';
 import { RouterHead } from './components/router-head/router-head';
+import { InjectThemeScript } from './components/theme-toggle';
 import { GlobalStore, type SiteStore } from './context';
-import tomorrowFontUrl from './media/fonts/tomorrow/tomorrow-latin-600-normal.woff2?url';
-import ubuntuSans600FontUrl from './media/fonts/ubuntu-sans/ubuntu-sans-latin-600-normal.woff2?url';
-import ubuntuSans700FontUrl from './media/fonts/ubuntu-sans/ubuntu-sans-latin-700-normal.woff2?url';
+import { inlinedFontFaces, linkedFontFaces } from './font-faces';
 
 import styles from './global.css?inline';
 
 export default component$(() => {
   const url = useServerData<string>('url');
   const pathname = url && new URL(url).pathname;
-  const isDocsPath = pathname === '/docs' || pathname?.startsWith('/docs/');
-  const preloadedFontUrls = isDocsPath
-    ? [tomorrowFontUrl, ubuntuSans600FontUrl, ubuntuSans700FontUrl]
-    : [tomorrowFontUrl];
+  const isDemoPath = pathname?.startsWith('/demo/');
 
   useQwikRouter();
 
@@ -40,6 +36,7 @@ export default component$(() => {
     <>
       <head>
         <meta charset="utf-8" />
+        <InjectThemeScript />
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="apple-mobile-web-app-title" content="Qwik" />
@@ -51,17 +48,7 @@ export default component$(() => {
 
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
         <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
-        {preloadedFontUrls.map((fontUrl) => (
-          <link
-            key={fontUrl}
-            rel="preload"
-            href={fontUrl}
-            as="font"
-            type="font/woff2"
-            crossOrigin="anonymous"
-            fetchPriority="high"
-          />
-        ))}
+        <style dangerouslySetInnerHTML={isDemoPath ? linkedFontFaces : inlinedFontFaces} />
 
         <RouterHead />
 

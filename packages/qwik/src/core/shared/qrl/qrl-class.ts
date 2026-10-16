@@ -19,8 +19,7 @@ import { withCaptures } from './qrl-captures';
 import { initLazyRefDev, initQrlClassDev, setupHmr } from './qrl-class-dev';
 import { getSymbolHash, rememberQrlOfBody, recordQrlImportError } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
-// @ts-expect-error we don't have types for the preloader
-import { p as preload } from '@qwik.dev/core/preloader';
+import { requestPreload as preload } from '../../preloader/bridge';
 import type { RuntimeContainerContext } from '../../runtime/invoke-context';
 import type { ContainerContext } from '../../runtime/container-context';
 import { qwikSymbol } from '../singletons';

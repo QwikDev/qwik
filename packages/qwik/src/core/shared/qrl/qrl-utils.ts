@@ -3,18 +3,18 @@
 import { isDev } from '@qwik.dev/core/build';
 import type { QRLInternal, SyncQRLInternal } from './qrl-class';
 import type { QRL } from './qrl.public';
-import { qwikSymbol } from '../singletons';
+import { qwikSymbol, registerSingleton } from '../singletons';
 
-let importErrors: WeakSet<object> | undefined;
+const importErrors = registerSingleton('qrlImportErrors', () => new WeakSet<object>());
 
 export function recordQrlImportError(error: unknown): void {
   if (error !== null && (typeof error === 'object' || typeof error === 'function')) {
-    (importErrors ??= new WeakSet()).add(error);
+    importErrors.add(error);
   }
 }
 
 export function isQrlImportError(error: unknown): boolean {
-  return importErrors?.has(error as object) === true;
+  return importErrors.has(error as object);
 }
 
 /** @internal */

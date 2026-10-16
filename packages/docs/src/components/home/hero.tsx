@@ -3,6 +3,7 @@ import { Button, Link } from '~/components/action/action';
 import { lucide } from '@qds.dev/ui';
 import { Spacer } from '~/components/spacer/spacer';
 import { BuilderLogo } from '~/components/svgs/builder-logo';
+import HeroDarkStars from '~/media/home/hero-dark-stars.svg?jsx';
 
 const copyText = 'npm create qwik@beta';
 
@@ -61,6 +62,10 @@ export const Hero = component$(() => {
           {shimmerMarkup}
         </h1>
         <Clouds />
+        <HeroDarkStars
+          aria-hidden="true"
+          class="pointer-events-none absolute left-1/2 top-1/2 hidden h-auto w-[min(1281px,100vw)] max-w-none -translate-x-1/2 -translate-y-1/2 [html.dark_&]:block"
+        />
       </div>
 
       <p class="text-body-sm 2xl:text-body-md max-w-[50ch] text-center">
@@ -115,7 +120,7 @@ export const Decor = component$(() => {
 
 export const Cloud = component$((props: PropsOf<'div'>) => {
   return (
-    <div {...props}>
+    <div {...props} class={[props.class, '[html.dark_&]:hidden']}>
       <svg
         width="127"
         height="43"

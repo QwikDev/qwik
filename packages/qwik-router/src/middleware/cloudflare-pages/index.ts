@@ -11,6 +11,7 @@ import {
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
 import { isDev } from '@qwik.dev/core/build';
+import { limitRequestBody } from '../request-handler/request-body-limit';
 
 // @qwik.dev/router/middleware/cloudflare-pages
 
@@ -55,6 +56,9 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
           return cachedResponse;
         }
       }
+
+      // platform.request shares the limited body, the original stream is locked by the limiter
+      request = limitRequestBody(request, opts.requestBodyLimit);
 
       const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
@@ -155,7 +159,10 @@ const isSharedCacheable = (response: Response) => {
 export const createQwikCity = createQwikRouter;
 
 /** @public */
-export interface QwikRouterCloudflarePagesOptions extends ServerRenderOptions {}
+export interface QwikRouterCloudflarePagesOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+}
 
 /**
  * @deprecated Use `QwikRouterCloudflarePagesOptions` instead. Will be removed in V3

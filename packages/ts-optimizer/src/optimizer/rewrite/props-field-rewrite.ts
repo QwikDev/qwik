@@ -9,7 +9,6 @@ import {
 import { createTransformSession } from '../edit/transform-session.js';
 
 interface RewritePropsFieldReferencesOptions {
-  memberPropertyMode?: 'all' | 'nonComputed';
   propsName?: string;
   /**
    * LocalName → default expression source. When set, matching fields emit `(_rawProps.<key> ??
@@ -28,7 +27,6 @@ function propsFieldIdentifierCollector(
   fieldMap: ReadonlyMap<string, string>,
   defaultValues: ReadonlyMap<string, string> | undefined,
   dynamicDefaults: ReadonlyMap<string, string> | undefined,
-  memberPropertyMode: 'all' | 'nonComputed' | undefined,
   propsName: string
 ): RangeReplacementCollector {
   return (node, ctx) => {
@@ -50,8 +48,7 @@ function propsFieldIdentifierCollector(
       ctx.parentNode?.shorthand === true;
 
     const isReferencePosition =
-      isShorthandValue ||
-      isReplaceableIdentifierPosition(ctx.parentKey, ctx.parentNode, { memberPropertyMode });
+      isShorthandValue || isReplaceableIdentifierPosition(ctx.parentKey, ctx.parentNode);
     if (!isReferencePosition) {
       return null;
     }
@@ -116,7 +113,6 @@ export function rewritePropsFieldReferences(
     fieldMap,
     options.defaultValues,
     options.dynamicDefaults,
-    options.memberPropertyMode,
     options.propsName ?? '_rawProps'
   );
 

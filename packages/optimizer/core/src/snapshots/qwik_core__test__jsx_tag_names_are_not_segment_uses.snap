@@ -1,0 +1,70 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+import { icons } from './icons';
+
+const div = Math.random();
+const title = Math.random();
+const Home = Math.random();
+console.log(div, title, Home);
+
+export const Cmp = component$(() => {
+	return <div title="hello"><icons.Home /></div>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+const div = Math.random();
+const title = Math.random();
+const Home = Math.random();
+console.log(div, title, Home);
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,MAAM,MAAM,KAAK,MAAM;AACvB,MAAM,QAAQ,KAAK,MAAM;AACzB,MAAM,OAAO,KAAK,MAAM;AACxB,QAAQ,GAAG,CAAC,KAAK,OAAO;AAExB,OAAO,MAAM,oBAAM,0CAEhB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { icons } from "./icons";
+//
+export const Cmp_component_4ryKJTOKjWE = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, {
+        title: "hello"
+    }, /*#__PURE__*/ _jsxSorted(icons.Home, null, null, null, 3, "u6_0"), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAS8B;IAC7B,qBAAO,WAAC;QAAI,OAAM;qBAAQ,WAAC,MAAM,IAAI;AACtC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    227,
+    285
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

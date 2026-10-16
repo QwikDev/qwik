@@ -3,16 +3,10 @@
 .docs .panel {
   @apply rounded-md;
   @apply mt-4;
-  @apply bg-slate-50;
+  background: var(--color-background-accent);
   @apply border;
-  @apply border-slate-100;
+  border-color: var(--color-border-base);
   text-decoration: none;
-}
-
-[data-theme='dark'] .docs .panel {
-  background: #373737;
-  border-color: #575757;
-  color: var(--color-text);
 }
 
 .docs .ruleset-legend {
@@ -36,7 +30,7 @@
   }
   .docs .ruleset-legend > div.panel-border {
     @apply border-r;
-    @apply border-slate-200;
+    border-color: var(--color-border-base);
   }
 }
 
@@ -52,21 +46,14 @@
   margin: 0 !important;
 }
 
-[data-theme='dark'] .docs .panel .panel-border {
-  border-color: #575757;
-}
-
 .docs .rule-wrapper {
   @apply mb-14;
   @apply pb-14;
   @apply border-b;
+  border-color: var(--color-border-base);
 }
 .docs .rule-wrapper:last-child {
   @apply border-b-0;
-}
-
-[data-theme='dark'] .docs .rule-wrapper {
-  border-color: #575757;
 }
 
 .docs .rule-description {
@@ -86,7 +73,7 @@
   @apply flex;
   @apply rounded-full;
   @apply text-lg;
-  @apply text-white;
+  color: var(--color-primary-foreground-base);
   @apply top-0;
   @apply right-0;
   @apply items-center;
@@ -100,18 +87,10 @@
   @apply text-green-500;
   @apply bg-green-200;
 }
-[data-theme='dark'] .docs .badge.good {
-  @apply bg-green-900;
-}
-
 .docs .badge.bad {
   @apply text-red-500;
   @apply bg-red-200;
 }
-[data-theme='dark'] .docs .badge.bad {
-  @apply bg-red-900;
-}
-
 .docs .code-description {
   @apply text-sm;
   @apply px-4;
@@ -124,19 +103,14 @@
 }
 
 .docs .edit-examples-wrapper .edit-btn {
-  @apply bg-slate-50;
+  background: var(--color-background-accent);
   @apply border;
-  @apply border-slate-200;
-  @apply text-black;
+  border-color: var(--color-border-base);
+  color: var(--color-foreground-base);
   @apply no-underline;
   @apply px-2;
   @apply py-1;
   @apply rounded-md;
   @apply inline-block;
   @apply text-sm;
-}
-[data-theme='dark'] .docs .edit-examples-wrapper .edit-btn {
-  background: #373737;
-  border-color: #575757;
-  color: var(--color-text);
 }

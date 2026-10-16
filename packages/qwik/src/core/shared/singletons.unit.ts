@@ -77,6 +77,12 @@ describe('duplicate core copies', async () => {
     expect(second.getActiveInvokeContextOrNull()).toBeNull();
   });
 
+  test('share QRL import errors across copies', () => {
+    const error = Object.freeze(new Error('import failed'));
+    first.recordQrlImportError(error);
+    expect(second.isQrlImportError(error)).toBe(true);
+  });
+
   test('track reads and untrack writes across copies', () => {
     const source = new second.Signal(0);
     const collector = new first.Computed(null, () => source.value);

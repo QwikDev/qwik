@@ -9,8 +9,8 @@ import {
   setRouteLoaders,
 } from '../../../runtime/src/route-loaders';
 import type {
+  LoadedRoute,
   LoaderInternal,
-  PathParams,
   RequestEvent,
   RequestHandler,
 } from '../../../runtime/src/types';
@@ -29,8 +29,7 @@ import { createLoaderRequestEventFactory } from './loader-request-event';
  */
 export function loaderHandler(
   routeLoaders: LoaderInternal[],
-  loaderPaths?: Record<string, string>,
-  loaderParams?: Record<string, PathParams>
+  route?: RouteLoaderData
 ): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
@@ -51,7 +50,7 @@ export function loaderHandler(
       return;
     }
 
-    setLoaderData(requestEv, routeLoaders, loaderPaths, loaderParams);
+    setRouteLoaderData(requestEv, routeLoaders, route);
     await runBlockingLoadersBeforeTarget(routeLoaders, loader, requestEv);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
@@ -162,17 +161,18 @@ async function runBlockingLoadersBeforeTarget(
   }
 }
 
-function setLoaderData(
+type RouteLoaderData = Pick<LoadedRoute, '$loaderPaths$' | '$loaderParams$'>;
+
+export function setRouteLoaderData(
   requestEv: RequestEventInternal,
   routeLoaders: LoaderInternal[],
-  loaderPaths: Record<string, string> | undefined,
-  loaderParams: Record<string, PathParams> | undefined
+  route: RouteLoaderData | undefined
 ) {
-  if (loaderPaths) {
-    Object.assign(getRouteLoaderCtx(requestEv).loaderPaths, loaderPaths);
+  if (route?.$loaderPaths$) {
+    Object.assign(getRouteLoaderCtx(requestEv).loaderPaths, route.$loaderPaths$);
   }
-  if (loaderParams) {
-    Object.assign(getRouteLoaderParams(requestEv), loaderParams);
+  if (route?.$loaderParams$) {
+    Object.assign(getRouteLoaderParams(requestEv), route.$loaderParams$);
   }
   setRouteLoaders(requestEv, routeLoaders);
 }

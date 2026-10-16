@@ -1,4 +1,11 @@
-import { component$, Slot, $, type QRLEventHandlerMulti, type QwikJSX } from '@qwik.dev/core';
+import {
+  component$,
+  Slot,
+  $,
+  type EventHandler,
+  type QRLEventHandlerMulti,
+  type QwikJSX,
+} from '@qwik.dev/core';
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 
@@ -30,9 +37,13 @@ export interface FormProps<O, I> extends Omit<
    */
   spaReset?: boolean;
 
-  /** Event handler executed right after the action is executed successfully and returns some data. */
+  /**
+   * Event handler executed right after the action is executed successfully and returns some data.
+   * Like the native `on*$` events, it accepts an inline function as well as a QRL.
+   */
   onSubmitCompleted$?:
     | QRLEventHandlerMulti<CustomEvent<FormSubmitCompletedDetail<O>>, HTMLFormElement>
+    | EventHandler<CustomEvent<FormSubmitCompletedDetail<O>>, HTMLFormElement>
     | undefined;
 
   key?: string | number | null;

@@ -3460,6 +3460,19 @@ describe('preloader', () => {
     expect(tail).toMatch(/<script[^>]*q:type="preload"[^>]*>.*"q-handler\.js".*<\/script>/);
   });
 
+  test('defers speculative preloading until after page paint', async () => {
+    const { html } = await renderPage();
+    const head = html.slice(html.indexOf('<head>'), html.indexOf('</head>'));
+    const tail = html.slice(html.indexOf('</head>'));
+
+    for (const output of [head, tail]) {
+      expect(output).toContain("window.addEventListener('load'");
+      expect(output).toContain('requestAnimationFrame(_=>requestAnimationFrame(');
+      expect(output).toContain("typeof requestIdleCallback==='function'");
+    }
+    expect(tail).not.toContain("document.createElement('link')");
+  });
+
   test('emits no preloader assets when it is disabled', async () => {
     const { html } = await renderPage(false);
 

@@ -1,5 +1,6 @@
 /** Const literal propagation and inlining utilities. */
 
+import { isReferenceIdentifier } from 'oxc-walker';
 import { forEachAstChild } from '../ast/guards.js';
 import { applyReplacements, isReplaceableIdentifierPosition } from '../edit/range-replace.js';
 import { isShorthandPropertyValue } from '../prepare/flatten-destructures.js';
@@ -387,7 +388,7 @@ export function propagateConstLiteralsInBody(
 
     // A JSX tag reference (`<Test />`) can't take an inlined expression —
     // any const it names must keep its declaration.
-    if (node.type === 'JSXIdentifier' && typeof node.name === 'string') {
+    if (node.type === 'JSXIdentifier' && isReferenceIdentifier(node, parentNode ?? null)) {
       protectedNames.add(node.name);
     }
 

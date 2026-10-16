@@ -1,0 +1,62 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 751
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { title: string; _Item: any }) => {
+	const { title, _Item } = props;
+	return <_Item><title>{title}</title></_Item>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,0CAGhB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const Cmp_component_4ryKJTOKjWE = (props)=>{
+    return /*#__PURE__*/ _jsxSorted(props._Item, null, null, /*#__PURE__*/ _jsxSorted("title", null, null, props.title, 1, null), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC;IAE9B,qBAAO,WADkB,MAAV,iCACD,WAAC,qBADU,MAAjB;AAET\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    203
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

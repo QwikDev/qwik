@@ -63,11 +63,14 @@ describe('createQwikRouter().router', () => {
     });
 
     const next = vi.fn();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const middleware = createQwikRouter(createNodeOptions());
 
     await middleware.router({ url: '/', headers: {} } as any, {} as any, next);
 
     expect(next).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith(new Error('already handled'));
+    consoleError.mockRestore();
   });
 
   it('should forward completion errors when headers are not sent', async () => {

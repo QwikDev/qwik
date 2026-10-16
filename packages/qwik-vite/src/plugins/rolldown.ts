@@ -11,6 +11,7 @@ import type {
 } from '../types';
 import {
   createQwikPlugin,
+  QWIK_CORE_SIGNATURE_ID,
   type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
@@ -91,6 +92,9 @@ export function qwikRolldown(qwikRolldownOpts: QwikRolldownPluginOptions = {}): 
     },
 
     resolveId(id, importer) {
+      if (id === QWIK_CORE_SIGNATURE_ID) {
+        return id;
+      }
       if (isVirtualId(id)) {
         return null;
       }
@@ -98,6 +102,9 @@ export function qwikRolldown(qwikRolldownOpts: QwikRolldownPluginOptions = {}): 
     },
 
     load(id) {
+      if (id === QWIK_CORE_SIGNATURE_ID) {
+        return qwikPlugin.loadCoreSignature(this);
+      }
       if (isVirtualId(id)) {
         return null;
       }

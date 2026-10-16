@@ -22,6 +22,7 @@ import {
   QWIK_BUILD_ID,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_CORE_ID,
+  QWIK_CORE_SIGNATURE_ID,
   QWIK_CORE_INTERNAL_ID,
   QWIK_CORE_SERVER,
   QWIK_JSX_DEV_RUNTIME_ID,
@@ -52,6 +53,7 @@ import {
 
 const DEDUPE = [
   QWIK_CORE_ID,
+  QWIK_CORE_SIGNATURE_ID,
   QWIK_JSX_RUNTIME_ID,
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_CORE_INTERNAL_ID,
@@ -480,6 +482,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isQwikWorkerCoreId(id)) {
         return QWIK_WORKER_CORE_ID;
       }
+      if (id === QWIK_CORE_SIGNATURE_ID) {
+        return id;
+      }
       const shouldResolveFile = fileFilter(id, 'resolveId');
       if (isVirtualId(id) || !shouldResolveFile) {
         return null;
@@ -493,6 +498,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
       if (id === QWIK_WORKER_CORE_ID) {
         return loadQwikWorkerCore();
+      }
+      if (id === QWIK_CORE_SIGNATURE_ID) {
+        return qwikPlugin.loadCoreSignature(this);
       }
       const shouldLoadFile = fileFilter(id, 'load');
       if (isVirtualId(id) || !shouldLoadFile) {

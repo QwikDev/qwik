@@ -4,7 +4,9 @@
  */
 
 import { parseProgram, traverseProgram } from './traverse';
+import { findAllComponentBodyRangesFromProgram, isInsideComponentBody } from './componentBodies';
 import {
+  getNodeStart,
   isAstNodeLike,
   normalizeHookName,
   getVariableIdentifierName,
@@ -24,16 +26,18 @@ import { applySourceEdits } from './sourceEdits';
 // Main Entry
 // ============================================================================
 
-/** Injects collecthook calls after each hook usage */
+/** Injects collecthook calls after each hook usage inside component$ bodies */
 export function injectHookTrackers(code: string): string {
   const program = parseProgram(code);
+  // collecthook is declared only in component$ bodies; elsewhere it's unbound.
+  const componentBodies = findAllComponentBodyRangesFromProgram(program);
   const tasks: InjectionTask[] = [];
   let customHookIndex = 0;
 
   traverseProgram(program, {
     enter: (path) => {
       const node: any = path.node;
-      if (!node) {
+      if (!node || !isInsideComponentBody(componentBodies, getNodeStart(node))) {
         return;
       }
 

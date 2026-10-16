@@ -440,6 +440,34 @@ export const RouterHead = component$(() => {
     );
   });
 
+  it('leaves hook calls outside component$ bodies untouched, where collecthook is unbound', () => {
+    const customHooks = `import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+export function useCounter() {
+  const count = useSignal(0);
+  useTask$(() => {});
+  useLogger();
+  return count;
+}
+
+export const useDouble = () => {
+  const double = useSignal(2);
+  return double;
+};
+`;
+    const src = `${customHooks}
+export default component$(() => {
+  const counter = useCounter();
+  return <div>{counter.value}</div>;
+});
+`;
+    const output = parseQwikCode(src, { path: 'CUSTOM_PATH' });
+    expect(output.slice(0, customHooks.length)).toBe(customHooks);
+    expect(output).toContain(
+      "const counter = useCounter(); collecthook({ variableName: 'counter', hookType: 'customhook',"
+    );
+  });
+
   it('inserts init for every component$ with name-based args when named exports exist', () => {
     const src = `import { component$, useSignal } from '@qwik/dev';
 

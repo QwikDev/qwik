@@ -34,27 +34,30 @@ test('defaults', async () => {
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
 });
 
-test('emits the client loader and preloader runtime entries once', async () => {
+test('emits the client loader, preloader and core runtime entries once', async () => {
   const plugin = await mockPlugin();
   await plugin.normalizeOptions({ target: 'client' });
 
-  const emittedIds: string[] = [];
+  const emitted: { id?: string; preserveSignature?: string }[] = [];
   const context = {
     resolve: async (id: string) => ({ id: `/resolved/${id}` }),
-    emitFile: (file: { id?: string }) => {
-      emittedIds.push(file.id!);
-      return `ref-${emittedIds.length}`;
+    emitFile: (file: { id?: string; preserveSignature?: string }) => {
+      emitted.push(file);
+      return `ref-${emitted.length}`;
     },
   } as any;
 
   await plugin.buildStart(context);
-  expect(emittedIds).toEqual([
+  expect(emitted.map((file) => file.id)).toEqual([
     '/resolved/@qwik.dev/core/qwikloader.js',
     `/resolved/${QWIK_PRELOADER_ID}`,
+    '/resolved/@qwik.dev/core',
   ]);
+  // The full core signature keeps the core chunk identical across apps.
+  expect(emitted[2].preserveSignature).toBe('strict');
 
   await plugin.resolveId(context, QWIK_PRELOADER_ID);
-  expect(emittedIds).toHaveLength(2);
+  expect(emitted).toHaveLength(3);
 });
 
 test('defaults (buildMode: production)', async () => {

@@ -494,6 +494,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           preserveSignature: 'allow-extension',
         });
       }
+      // Keep all core exports so separately built apps emit the same core bytes.
+      const core = await _ctx.resolve(QWIK_CORE_ID, undefined, { skipSelf: true });
+      if (core) {
+        _ctx.emitFile({ id: core.id, type: 'chunk', preserveSignature: 'strict' });
+      }
     }
   };
 

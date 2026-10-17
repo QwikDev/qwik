@@ -97,9 +97,15 @@ export interface ComputedOptions<T = unknown> {
 export type AsyncSignalOptions<T> = ComputedOptions<T>;
 
 export const enum ComputedSignalFlags {
+  /** A direct source changed: must recompute on next read (DIRTY) */
   INVALID = 1,
-  RUN_EFFECTS = 2,
+  /** The next compute must notify even from NEEDS_COMPUTATION */
+  SOURCE_CHANGED = 2,
   PRESERVE_ON_SEQ_CLEANUP = 4,
+  /** A transitive source changed: pull sources before deciding to recompute (maybe dirty) */
+  CHECK = 128,
+  /** Runtime dirty state; never serialized */
+  DIRTY_FLAGS = INVALID | SOURCE_CHANGED | CHECK,
 }
 
 export const enum SerializationSignalFlags {

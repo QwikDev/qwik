@@ -12,6 +12,18 @@ test.describe('rewrite to a different route', () => {
     await expect(page.locator('#rewrite-spa-served')).toHaveText(target);
   });
 
+  test('q-route.json uses the cache headers the rewriting middleware set', async ({ request }) => {
+    const plain = await request.get(`${pretty}q-route.json`);
+    expect(await plain.json()).toEqual({ p: target });
+    expect(plain.headers()['cdn-cache-control']).toBeUndefined();
+    expect(plain.headers()['cache-tag']).toBeUndefined();
+
+    const cached = await request.get('/qwikrouter-test/rewrite-spa/pretty-cached/q-route.json');
+    expect(await cached.json()).toEqual({ p: target });
+    expect(cached.headers()['cdn-cache-control']).toContain('max-age=60');
+    expect(cached.headers()['cache-tag']).toBe('rewrite-spa-target');
+  });
+
   test('SPA navigation renders the target and keeps the URL, without a reload', async ({
     page,
   }) => {

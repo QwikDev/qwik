@@ -110,6 +110,9 @@ function normalizeOptions(
   if (opts.strictLoaders === undefined) {
     opts.strictLoaders = true;
   }
+  if (opts.serverRewrites === undefined) {
+    opts.serverRewrites = false;
+  }
 
   return opts;
 }

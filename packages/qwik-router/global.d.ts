@@ -39,5 +39,8 @@ declare var __SSR_CACHE_SIZE__: number;
  */
 declare var __STRICT_LOADERS__: boolean;
 
+/** Resolve server `rewrite()` targets on client navigation (`serverRewrites` plugin option). */
+declare var __SERVER_REWRITES__: boolean;
+
 declare var __QWIK_BUILD_DIR__: string;
 declare var __QWIK_ASSETS_DIR__: string;

@@ -46,6 +46,18 @@ Check `internalRequest` before applying broad rewrite rules. Qwik Router uses in
 requests for route loader fetches and fetch-based action submissions, and those requests must keep
 their internal routing behavior.
 
+## Rewrites and client navigation
+
+A `rewrite()` happens on the server, so on a client navigation the router can't know which route a rewritten URL renders. If the URL has no page of its own, or only matches a dynamic (`[param]`) or wildcard route, it would render the wrong thing or the 404 page.
+
+Enable `serverRewrites` in the Vite plugin to have the router ask the server where such a URL finally routes to (`q-route.json`), then render that route while keeping the original URL:
+
+```ts title="vite.config.ts"
+qwikRouter({ serverRewrites: true });
+```
+
+A static route that matches the URL exactly is always rendered as-is, so don't keep a page on a URL that your middleware rewrites.
+
 The `rewrite()` function, which was destructured in the RequestHandler function arguments, is invoked with a pathname string.
 
 ```tsx

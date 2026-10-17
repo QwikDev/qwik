@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   getLoaderName,
+  IsQRoute,
   recognizeRequest,
   resolveValidInternalFullPathname,
   trimInternalPathname,
@@ -47,6 +48,17 @@ describe('request path helpers', () => {
     expect(trimRecognizedInternalPathname(loaderPathname, recognized!)).toBe(
       '/q-loader-shared-map/two/nested/'
     );
+  });
+
+  it('recognizes q-route requests and trims them like any internal request', () => {
+    globalThis.__NO_TRAILING_SLASH__ = false;
+    const recognized = recognizeRequest('/articles/qwik-is-quick/q-route.json');
+
+    expect(recognized?.type).toBe(IsQRoute);
+    expect(
+      trimRecognizedInternalPathname('/articles/qwik-is-quick/q-route.json', recognized!)
+    ).toBe('/articles/qwik-is-quick/');
+    expect(recognizeRequest('/articles/q-route.json.map')).toBeNull();
   });
 
   it('accepts internal full pathnames below the loader pathname', () => {

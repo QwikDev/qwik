@@ -15,6 +15,7 @@ import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
 import {
   IsQAction,
+  IsQLoader,
   QActionId,
   QLoaderId,
   recognizeRequest,
@@ -68,7 +69,10 @@ export function createRequestEvent(
   if (recognized) {
     url.pathname = trimRecognizedInternalPathname(url.pathname, recognized);
     sharedMap.set(recognized.type, true);
-    internalRequest = 'loader';
+    // A route-resolve request is a navigation, so middleware (e.g. rewrites) must treat it as one.
+    if (recognized.type === IsQLoader) {
+      internalRequest = 'loader';
+    }
     if (recognized.data?.loaderId) {
       sharedMap.set(QLoaderId, recognized.data.loaderId);
     }

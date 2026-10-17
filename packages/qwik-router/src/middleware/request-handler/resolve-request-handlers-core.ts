@@ -36,6 +36,7 @@ import {
 import { loaderHandler, setRouteLoaderData } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
 import { actionHandler } from './handlers/action-handler';
+import { routeResolveHandler } from './handlers/route-resolve-handler';
 import { IsQLoader, QLoaderId } from './request-path';
 import { isStaticPath } from './static-paths';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
@@ -119,6 +120,7 @@ function createResolveRequestHandlers() {
 
     if (isPageRoute) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
+      requestHandlers.push(routeResolveHandler());
       requestHandlers.push(loaderHandler(routeLoaders, route));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));

@@ -60,6 +60,10 @@ import type { VNode } from '../shared/vnode/vnode';
 import type { ContextId } from '../use/use-context';
 import { processSegmentStateScriptsIterator } from './process-segment-state';
 import {
+  getSwappedPendingContentHosts,
+  markPendingContentSwapped,
+} from '../control-flow/pending-utils';
+import {
   onVNodeDataReady,
   processOutOfOrderSegmentVNodeData,
   processVNodeData,
@@ -78,7 +82,11 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
 } from './vnode-utils';
-import { ContainerDataProcessState, processContainerStateData } from './process-state-data';
+import {
+  ContainerDataProcessState,
+  onContainerDataReady,
+  processContainerStateData,
+} from './process-state-data';
 import { Brand, brandClass } from '../shared/utils/brand';
 export { onContainerDataReady, whenContainerDataReady } from './process-state-data';
 
@@ -116,10 +124,20 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
       qContainer.element.qContainer === qContainer &&
         processContainerStateData(
           qContainer,
-          processSegmentStateScriptsIterator(qContainer, segmentId)
+          processSwappedSegmentIterator(qContainer, segmentId, content!)
         );
     });
   }
+}
+
+function* processSwappedSegmentIterator(
+  qContainer: DomContainer,
+  segmentId: string,
+  contentHost: Element
+): Generator<void, void, void> {
+  yield* processSegmentStateScriptsIterator(qContainer, segmentId);
+  // Reading the Pending host's props mid-processing would cache them from unfinished state.
+  onContainerDataReady(qContainer, () => markPendingContentSwapped(qContainer, contentHost));
 }
 
 /** @internal */
@@ -203,6 +221,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
     if (__EXPERIMENTAL__.pendingBoundary) {
       yield* processSegmentStateScriptsIterator(this);
+      const swappedContentHosts = getSwappedPendingContentHosts(element);
+      if (swappedContentHosts.length) {
+        // Reading the Pending hosts' props mid-processing would cache them from unfinished state.
+        onContainerDataReady(this, () => {
+          for (let i = 0; i < swappedContentHosts.length; i++) {
+            markPendingContentSwapped(this, swappedContentHosts[i]);
+          }
+        });
+      }
     }
     this.$hoistStyles$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);

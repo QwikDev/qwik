@@ -12,7 +12,7 @@ type RouterConfigHolder = {
 const holder: RouterConfigHolder = {};
 
 /** The config this router copy holds, else the one of the app serving the current request. */
-const findRouterConfig = (): QwikRouterConfig | undefined =>
+export const findRouterConfig = (): QwikRouterConfig | undefined =>
   holder.config ?? getServingRouterConfig();
 
 /**

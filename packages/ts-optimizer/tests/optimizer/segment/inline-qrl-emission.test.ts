@@ -54,6 +54,7 @@ export const Foo = component$(({ ctx, atom }) => {
       input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
       srcDir: mkFilePath('.'),
       entryStrategy: { type: 'inline' },
+      transpileJsx: false,
     });
 
     const parent = findParent(result);

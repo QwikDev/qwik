@@ -267,7 +267,7 @@ export const useLanguage = routeLoader$(() => readLanguage());
     expect(parent.code).not.toMatch(/\.w\(\[(?:LANGUAGE|readLanguage)/);
   });
 
-  it('non-stripped inline handlers still receive .w([captures]) when needed (negative scope)', () => {
+  it('non-stripped inline handlers still receive their captures through q:p (negative scope)', () => {
     const input = `
 import { component$, useStore } from '@qwik.dev/core';
 export const Parent = component$(() => {
@@ -283,6 +283,6 @@ export const Parent = component$(() => {
       entryStrategy: { type: 'inline' },
     });
     const parent = findParent(result);
-    expect(parent.code).toMatch(/q_\w+\.w\(\[\s*state\s*\]\)/);
+    expect(parent.code).toContain('"q:p": state');
   });
 });

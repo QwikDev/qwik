@@ -349,6 +349,7 @@ function qwikRouterPlugin(
             viteEnv.command === 'serve' ? 0 : (userOpts?.ssrCacheSize ?? 50)
           ),
           'globalThis.__STRICT_LOADERS__': JSON.stringify(userOpts?.strictLoaders !== false),
+          'globalThis.__SERVER_REWRITES__': JSON.stringify(userOpts?.serverRewrites === true),
         },
         appType: 'custom',
         resolve: {

@@ -136,6 +136,10 @@ function isConstValueNode(valueNode: AstMaybeNode): boolean {
   }
 }
 
+function isConstEventHandlerValue(valueNode: AstMaybeNode): boolean {
+  return isConstValueNode(valueNode) && valueNode?.type !== 'CallExpression';
+}
+
 /**
  * Fold a string-literal JSX attribute value so a value spanning multiple physical lines (or
  * containing tabs) survives re-emission as a single-line JS string literal — raw newlines in an
@@ -217,6 +221,7 @@ export function processProps(
     signalHoister,
     qrlsWithCaptures,
     qrlsNonConst,
+    qrlOwnParams,
     paramNames,
     bindings,
     allDeclaredNames,
@@ -263,6 +268,12 @@ export function processProps(
   const pushSpread = (expr: string, sourceStart: number): void => {
     slotOrder.push({ kind: 'spread', expr, sourceStart });
   };
+  const ownCapturesVary = (qrlName: string, position: number): boolean =>
+    qrlOwnParams
+      ?.get(qrlName)
+      ?.some(
+        (param) => !importedNames.has(param) && bindings?.classify(param, position) !== 'const'
+      ) ?? false;
 
   const hasSpreadAttr = attributes.some((a) => a.type === 'JSXSpreadAttribute');
   const hasBindAttr = attributes.some(
@@ -411,8 +422,10 @@ export function processProps(
       if (renamedProp !== null) {
         const formattedName = formatPropName(renamedProp);
         // A rewritten inlinedQrl(...) value is a runtime call — not static.
-        const isNonConstQrl = qrlsNonConst?.has(valueText.trim()) === true;
-        if (isConstValueNode(valueNode) && !isNonConstQrl) {
+        const isNonConstQrl =
+          qrlsNonConst?.has(valueText.trim()) === true ||
+          ownCapturesVary(valueText.trim(), attr.start);
+        if (isConstEventHandlerValue(valueNode) && !isNonConstQrl) {
           pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
         } else {
           pushNamed(varEntries, `${formattedName}: ${valueText}`, 'var', attr.start);
@@ -465,15 +478,17 @@ export function processProps(
       } else {
         // A handler whose lifted captures include per-invocation values
         // re-renders with fresh values: entry is var, static_listeners clears.
-        const capturesVary = qrlsNonConst?.has(valueText.trim()) === true;
-        const isConst = isConstValueNode(valueNode) && !capturesVary;
-        if (capturesVary) {
+        const qrlName = valueText.trim();
+        const capturesVary =
+          qrlsNonConst?.has(qrlName) === true || ownCapturesVary(qrlName, attr.start);
+        const isConst = isConstEventHandlerValue(valueNode) && !capturesVary;
+        if (!isConst) {
           hasVarEventHandler = true;
         }
 
         if (hasSpreadAttr || hasBindAttr) {
           const existing = bindHandlers.get(propName);
-          if (capturesVary) {
+          if (!isConst) {
             varBindHandlers.add(propName);
           }
           if (existing) {
@@ -619,11 +634,13 @@ export function processProps(
   const eventTarget = hasSpread && tagIsHtml && !hasBindEntries ? varEntries : constEntries;
   for (const [eventName, handlerCode] of bindHandlers) {
     const quotedEventName = `"${eventName}"`;
-    const existingIdx = constEntries.findIndex((e) => e.startsWith(`${quotedEventName}: `));
+    const existingConstIdx = constEntries.findIndex((e) => e.startsWith(`${quotedEventName}: `));
+    const existingVarIdx = varEntries.findIndex((e) => e.startsWith(`${quotedEventName}: `));
+    const existingEntries = existingConstIdx >= 0 ? constEntries : varEntries;
+    const existingIdx = existingConstIdx >= 0 ? existingConstIdx : existingVarIdx;
     if (existingIdx >= 0) {
-      const existingEntry = constEntries[existingIdx];
-      const existingValue = existingEntry.slice(quotedEventName.length + 2);
-      constEntries[existingIdx] =
+      const existingValue = existingEntries[existingIdx].slice(quotedEventName.length + 2);
+      existingEntries[existingIdx] =
         `${quotedEventName}: ${mergeEventHandlers(existingValue, handlerCode)}`;
     } else {
       const target = varBindHandlers.has(eventName) ? varEntries : eventTarget;

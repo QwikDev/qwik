@@ -58,6 +58,20 @@ qwikRouter({ serverRewrites: true });
 
 A static route that matches the URL exactly is always rendered as-is, so don't keep a page on a URL that your middleware rewrites.
 
+The answer is sent with the response headers your middleware has set when it calls `rewrite()`, and `private` if it set no `Cache-Control`, like loaders. To cache it (browser, CDN, ...), set the headers before rewriting. If the rewrite depends on the user (cookies, auth), keep it private or `Vary` accordingly:
+
+```tsx
+export const onRequest: RequestHandler = async ({ url, rewrite, cacheControl, headers }) => {
+  const match = url.pathname.match(/^\/articles\/(.*)$/);
+  if (match) {
+    const { id } = await db.getArticleByName(match[1]);
+    cacheControl({ maxAge: 300, staleWhileRevalidate: 3600 }, 'CDN-Cache-Control');
+    headers.set('Cache-Tag', `article-${id}`);
+    throw rewrite(`/articles/${id}`);
+  }
+};
+```
+
 The `rewrite()` function, which was destructured in the RequestHandler function arguments, is invoked with a pathname string.
 
 ```tsx

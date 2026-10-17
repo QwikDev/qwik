@@ -114,6 +114,114 @@ test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(25);
 });
 
+test('holds speculative preloads while a needed bundle is loading', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader, preload } = await importAndResetState();
+
+  const speculative = Array.from({ length: 5 }, (_, index) => `spec-${index}.js`);
+  initPreloader(['needed.js', ...speculative]);
+  preload(speculative, 0.8);
+  preload('needed.js', 1);
+  vi.runAllTimers();
+
+  const links = () => Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
+  expect(links().map((link) => link.href.split('/').pop())).toEqual(['needed.js']);
+
+  links()[0].onload!(new Event('load'));
+  vi.runAllTimers();
+
+  expect(
+    links()
+      .map((link) => link.href.split('/').pop())
+      .sort()
+  ).toEqual(speculative);
+});
+
+test('holds speculative preloads once an in-flight preload becomes needed', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader, preload } = await importAndResetState();
+
+  const bundles = Array.from({ length: 30 }, (_, index) => `spec-${index}.js`);
+  initPreloader(bundles);
+  preload(bundles, 0.8);
+  vi.runAllTimers();
+  const links = () => Array.from(document.head.querySelectorAll('link')) as HTMLLinkElement[];
+  expect(links().length).toBe(25);
+
+  preload(links()[0].href.split('/').pop()!, 1);
+  vi.runAllTimers();
+  links()[1].onload!(new Event('load'));
+  vi.runAllTimers();
+
+  expect(links().length).toBe(24);
+});
+
+test('asks the browser for low priority on speculative preloads only', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader, preload } = await importAndResetState();
+
+  initPreloader(['needed.js', 'spec.js']);
+  preload('needed.js', 1);
+  vi.runAllTimers();
+  const needed = document.head.querySelector('link') as HTMLLinkElement;
+  needed.onload!(new Event('load'));
+  preload('spec.js', 0.8);
+  vi.runAllTimers();
+  const spec = document.head.querySelector('link') as HTMLLinkElement;
+
+  expect(needed.getAttribute('fetchpriority')).toBe(null);
+  expect(spec.href.split('/').pop()).toBe('spec.js');
+  expect(spec.getAttribute('fetchpriority')).toBe('low');
+});
+
+test('applies hints buffered before the preloader chunk loaded', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  // Buffered by core's copy of the bridge, e.g. the clicked handler's chunk
+  const g = globalThis as { qPreload?: unknown; qPreloadQueue?: unknown[] };
+  delete g.qPreload;
+  g.qPreloadQueue = [['entry-a.js', 1]];
+  // The chunk entry: evaluates bundle-graph and queue in the bundled order
+  await import('./index');
+  const { initPreloader } = await import('./bundle-graph');
+  initPreloader(['entry-a.js']);
+  await flushPromises();
+  vi.runAllTimers();
+
+  const names = Array.from(document.head.querySelectorAll('link')).map((link) =>
+    (link as HTMLLinkElement).href.split('/').pop()
+  );
+  expect(names).toEqual(['entry-a.js']);
+  delete g.qPreloadQueue;
+});
+
 test('yields after the frame budget and resumes later', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

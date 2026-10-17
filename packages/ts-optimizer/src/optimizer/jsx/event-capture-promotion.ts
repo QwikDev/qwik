@@ -10,6 +10,12 @@ import {
 } from './loop-hoisting.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
+import {
+  collectAncestorPropsSources,
+  consolidateRawPropsCaptures,
+  createPropsSourceLookup,
+  type RawPropsSource,
+} from '../rewrite/raw-props.js';
 import { getWholeWordPattern } from '../segment/post-process.js';
 
 interface BuildExtractionLoopMapEnterContext {
@@ -432,6 +438,26 @@ function collectVisibleScopeBindings(
 }
 
 /**
+ * Rust reads a body-destructured field (`const { a } = props`) through its props object, so a
+ * handler capturing the field lifts `props` itself and reads `props.a`. Fields of a destructured
+ * param still consolidate into `_rawProps` after the parent rewrite.
+ */
+function liftBodyDestructuredProps(
+  extraction: ExtractionResult,
+  captures: readonly string[],
+  ancestors: readonly RawPropsSource[]
+): readonly string[] {
+  const consolidation = consolidateRawPropsCaptures(captures, ancestors);
+  if (consolidation?.propsFieldBindings === undefined || consolidation.rawPropsSources.length > 0) {
+    return captures;
+  }
+  extraction.propsFieldCaptures = consolidation.propsFieldCaptures;
+  extraction.propsFieldBindings = consolidation.propsFieldBindings;
+  extraction.propsFieldDefaults = consolidation.propsFieldDefaults;
+  return consolidation.newCaptureNames;
+}
+
+/**
  * Not in a loop. Under the default/segment strategy all captured vars become alphabetically-sorted
  * paramNames. Under inline/hoist they stay in `captureNames` for `_capturesObj._[N]` unpacking.
  */
@@ -515,6 +541,8 @@ export function promoteEventHandlerCaptures(
     loopBodyVarDecls,
     isInlineStrategy,
   } = ctx;
+  const propsSourceOf = createPropsSourceLookup(extractions);
+  const parentOf = (symbolName: string) => ctx.enclosingExtMap.get(symbolName)?.symbolName ?? null;
 
   for (const extraction of extractions) {
     if (extraction.ctxKind !== 'eventHandler' && !extraction.isWorkerEventHandler) {
@@ -591,7 +619,14 @@ export function promoteEventHandlerCaptures(
       if (!keepsWCall || extraction.isWorkerEventHandler) {
         // Rust lifts inline document handlers through q:p.
         const keepInlineCaptures = isInlineStrategy && !extraction.ctxName.startsWith('document:');
-        promoteNonLoopCaptures(extraction, uniqueCaptures, keepInlineCaptures);
+        const liftedCaptures = keepInlineCaptures
+          ? uniqueCaptures
+          : liftBodyDestructuredProps(
+              extraction,
+              uniqueCaptures,
+              collectAncestorPropsSources(enclosingExt?.symbolName ?? null, parentOf, propsSourceOf)
+            );
+        promoteNonLoopCaptures(extraction, liftedCaptures, keepInlineCaptures);
       } else {
         extraction.captureNames = [...uniqueCaptures].sort();
         extraction.captures = extraction.captureNames.length > 0;

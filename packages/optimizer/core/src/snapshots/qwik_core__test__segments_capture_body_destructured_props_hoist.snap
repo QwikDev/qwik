@@ -1,0 +1,72 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+export const Cmp = component$((props: { a?: string; b?: number }) => {
+	const { a, b = 1 } = props;
+	const count = useSignal(0);
+	useTask$(() => console.log(a));
+	return (
+		<div>
+			<button onClick$={() => console.log(a)}>{a}</button>
+			<button onClick$={() => console.log(b, count.value)} />
+		</div>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+import { _capturesObj } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useSignal } from '@qwik.dev/core';
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ _noopQrl("Cmp_component_4ryKJTOKjWE");
+const q_Cmp_component_div_button_q_e_click_1_0qASlsb6g64 = /*#__PURE__*/ _noopQrl("Cmp_component_div_button_q_e_click_1_0qASlsb6g64").m();
+const q_Cmp_component_div_button_q_e_click_8Y30xbf9NRA = /*#__PURE__*/ _noopQrl("Cmp_component_div_button_q_e_click_8Y30xbf9NRA").m();
+const q_Cmp_component_useTask_bNlzGV2RmqM = /*#__PURE__*/ _noopQrl("Cmp_component_useTask_bNlzGV2RmqM");
+//
+const Cmp_component_useTask_bNlzGV2RmqM = ()=>{
+    let props = _capturesObj._[0];
+    return console.log(props.a);
+};
+q_Cmp_component_useTask_bNlzGV2RmqM.s(Cmp_component_useTask_bNlzGV2RmqM);
+const Cmp_component_div_button_q_e_click_8Y30xbf9NRA = (_, _1, props)=>console.log(props.a);
+q_Cmp_component_div_button_q_e_click_8Y30xbf9NRA.s(Cmp_component_div_button_q_e_click_8Y30xbf9NRA);
+const Cmp_component_div_button_q_e_click_1_0qASlsb6g64 = (_, _1, count, props)=>console.log(props.b ?? 1, count.value);
+q_Cmp_component_div_button_q_e_click_1_0qASlsb6g64.s(Cmp_component_div_button_q_e_click_1_0qASlsb6g64);
+const Cmp_component_4ryKJTOKjWE = (props)=>{
+    const count = useSignal(0);
+    useTaskQrl(q_Cmp_component_useTask_bNlzGV2RmqM.w([
+        props
+    ]));
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": q_Cmp_component_div_button_q_e_click_8Y30xbf9NRA,
+            "q:p": props
+        }, null, _wrapProp(props, "a"), 4, null),
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": q_Cmp_component_div_button_q_e_click_1_0qASlsb6g64,
+            "q:ps": [
+                count,
+                props
+            ]
+        }, null, null, 6, null)
+    ], 1, "u6_0");
+};
+q_Cmp_component_4ryKJTOKjWE.s(Cmp_component_4ryKJTOKjWE);
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,SAAS,QAAkB,iBAAiB;;;;;;;0CAKvD;;WAAM,QAAQ,GAAG,CAFL,MAAb;;;uDAKY,gBAAM,QAAQ,GAAG,CALhB,MAAb;;yDAMY,uBAAM,QAAQ,GAAG,CANhB,MAAV,KAAI,GAM0B,MAAM,KAAK;;kCAPvB,CAAC;IAE9B,MAAM,QAAQ,UAAU;IACxB;;;IACA,qBACC,WAAC;sBACA,WAAC;YAAO,WAAQ;;2BALG;sBAMnB,WAAC;YAAO,WAAQ;;;;;;;AAGnB;;AAVA,OAAO,MAAM,oBAAM,0CAUhB\"}")
+== DIAGNOSTICS ==
+
+[]

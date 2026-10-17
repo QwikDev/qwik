@@ -477,6 +477,9 @@ export function buildInlineStrategySegment(
     ext.propsFieldCaptures = rawProps.propsFieldCaptures;
     ext.propsFieldSources = rawProps.propsFieldSources;
     ext.rawPropsSources = rawProps.rawPropsSources;
+    if (rawProps.propsFieldBindings !== undefined) {
+      ext.propsFieldBindings = rawProps.propsFieldBindings;
+    }
     if (rawProps.propsFieldDefaults !== undefined) {
       ext.propsFieldDefaults = rawProps.propsFieldDefaults;
     }
@@ -1298,6 +1301,7 @@ export function buildDefaultStrategySegment(
     captureInfo.captureNames = rawProps.newCaptureNames;
     captureInfo.propsFieldCaptures = rawProps.propsFieldCaptures;
     captureInfo.propsFieldSources = rawProps.propsFieldSources;
+    captureInfo.propsFieldBindings = rawProps.propsFieldBindings;
     ext.rawPropsSources = rawProps.rawPropsSources;
     if (rawProps.propsFieldDefaults !== undefined) {
       captureInfo.propsFieldDefaults = rawProps.propsFieldDefaults;
@@ -1308,9 +1312,10 @@ export function buildDefaultStrategySegment(
     ext.captureNames = rawProps.newCaptureNames;
     ext.captures = rawProps.newCaptureNames.length > 0;
   } else if (ext.propsFieldCaptures && ext.propsFieldCaptures.size > 0) {
-    // Promoted-param handlers: the rewrite pre-pass consolidated the params
-    // to `_rawProps`; the body's field references must follow.
+    // Promoted-param handlers: the params already carry the props object;
+    // the body's field references must follow.
     captureInfo.propsFieldCaptures = ext.propsFieldCaptures;
+    captureInfo.propsFieldBindings = ext.propsFieldBindings;
     if (ext.propsFieldDefaults) {
       captureInfo.propsFieldDefaults = ext.propsFieldDefaults;
     }

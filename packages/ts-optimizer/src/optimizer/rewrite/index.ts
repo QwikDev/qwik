@@ -93,7 +93,7 @@ export {
 import {
   collectAncestorPropsSources,
   consolidateRawPropsCaptures,
-  extractDestructuredFieldInfo,
+  createPropsSourceLookup,
   type RawPropsSource,
 } from './raw-props.js';
 
@@ -565,19 +565,7 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
   // slot value and the handler segment's params stay paired.
   const isInline = ctx.inlineOptions?.inline === true;
   const extBySymbol = new Map(ctx.extractions.map((ext) => [ext.symbolName as string, ext]));
-  const propsSources = new Map<string, RawPropsSource>();
-  const propsSourceOf = (symbolName: string): RawPropsSource | undefined => {
-    const ext = extBySymbol.get(symbolName);
-    if (ext === undefined) {
-      return undefined;
-    }
-    let source = propsSources.get(symbolName);
-    if (source === undefined) {
-      source = { symbolName, ...extractDestructuredFieldInfo(ext.bodyText) };
-      propsSources.set(symbolName, source);
-    }
-    return source;
-  };
+  const propsSourceOf = createPropsSourceLookup(ctx.extractions);
   const parentOf = (symbolName: string) => extBySymbol.get(symbolName)?.parent ?? null;
 
   for (const ext of ctx.extractions) {
@@ -606,6 +594,9 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
     wip.propsFieldCaptures = rawProps.propsFieldCaptures;
     wip.propsFieldSources = rawProps.propsFieldSources;
     wip.rawPropsSources = rawProps.rawPropsSources;
+    if (rawProps.propsFieldBindings !== undefined) {
+      wip.propsFieldBindings = rawProps.propsFieldBindings;
+    }
     if (rawProps.propsFieldDefaults !== undefined) {
       wip.propsFieldDefaults = rawProps.propsFieldDefaults;
     }
@@ -619,12 +610,16 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
 
 /**
  * Promoted handler params (`(_, _1, field)`) carry the whole props proxy in their slot: a field
- * read would lose the proxy identity through serialization.
+ * read would lose the proxy identity through serialization. Body-destructured fields were already
+ * lifted as their props object during promotion.
  */
 function consolidatePromotedParams(
   ext: Mutable<ConsolidatedSegment>,
   parent: RawPropsSource
 ): void {
+  if (parent.propsName !== undefined) {
+    return;
+  }
   const rawProps = consolidateRawPropsCaptures(ext.paramNames.slice(2), [parent]);
   if (rawProps === null) {
     return;

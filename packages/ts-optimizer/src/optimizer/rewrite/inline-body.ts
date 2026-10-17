@@ -399,7 +399,8 @@ export function transformInlineSegmentBody(
     const groups = groupPropsFieldsByBinding(
       ext.propsFieldCaptures,
       ext.propsFieldSources,
-      bindingNames
+      bindingNames,
+      ext.propsFieldBindings
     );
     for (const [propsName, fields] of groups) {
       body = replacePropsFieldReferencesInBody(

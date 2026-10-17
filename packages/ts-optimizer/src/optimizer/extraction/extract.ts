@@ -133,8 +133,10 @@ interface ExtractionPhaseFields {
   liftedNonConst?: boolean;
   parent: SymbolName | null;
   propsFieldCaptures?: Map<string, string>;
-  /** Field local → symbol of the ancestor whose props object it reads. */
+  /** Field local → symbol of the ancestor whose `_rawProps` it reads. */
   propsFieldSources?: Map<string, string>;
+  /** Field local → the named props object a body destructure reads it from. */
+  propsFieldBindings?: Map<string, string>;
   /** One per `_rawProps` capture slot, outermost ancestor first. */
   rawPropsSources?: string[];
   /**

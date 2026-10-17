@@ -144,11 +144,13 @@ export interface DestructuredFieldInfo {
   readonly fieldDynamicDefaults: Map<string, string>;
   /** Module-scope names referenced by dynamic defaults. */
   readonly dynamicDefaultReferences: Set<string>;
+  /** The props object a body destructure reads (`props` in `const { a } = props`). */
+  readonly propsName?: string;
 }
 
 /**
- * Extract the field-key map and the defaults map from a destructured first parameter in a single
- * parse.
+ * Extract the field-key map and the defaults map from a destructured first parameter, or from the
+ * body destructure of a plain one, in a single parse.
  */
 export function extractDestructuredFieldInfo(body: string): DestructuredFieldInfo {
   const fieldMap = new Map<string, string>();
@@ -173,6 +175,18 @@ export function extractDestructuredFieldInfo(body: string): DestructuredFieldInf
   }
 
   const firstParam = params[0];
+  if (firstParam.type === 'Identifier') {
+    const plan = analyzeBodyDestructurePlan(firstParam.name, session.fn.body, body, session.offset);
+    if (!plan) {
+      return result;
+    }
+    return {
+      ...result,
+      fieldMap: plan.fieldLocalToKey,
+      fieldDefaults: plan.fieldLocalToDefault,
+      propsName: plan.replacementBaseName,
+    };
+  }
   if (firstParam.type !== 'ObjectPattern') {
     return result;
   }
@@ -1006,8 +1020,10 @@ export interface RawPropsSource extends DestructuredFieldInfo {
 
 export interface RawPropsConsolidation {
   propsFieldCaptures: Map<string, string>;
-  /** Field local → symbol of the ancestor whose props object it reads. */
+  /** Field local → symbol of the ancestor whose `_rawProps` it reads. */
   propsFieldSources: Map<string, string>;
+  /** Field local → the named props object a body destructure reads it from. */
+  propsFieldBindings?: Map<string, string>;
   /** One per `_rawProps` capture slot, outermost ancestor first. */
   rawPropsSources: string[];
   newCaptureNames: string[];
@@ -1016,8 +1032,9 @@ export interface RawPropsConsolidation {
 }
 
 /**
- * Replace captured prop fields with one `_rawProps` slot per ancestor props object they read.
- * `ancestors` runs nearest first; `null` when no capture is a prop field.
+ * Replace captured prop fields with one `_rawProps` slot per ancestor props object they read, or
+ * with the named props object a body destructure reads them from. `ancestors` runs nearest first;
+ * `null` when no capture is a prop field.
  */
 export function consolidateRawPropsCaptures(
   captureNames: readonly string[],
@@ -1025,6 +1042,7 @@ export function consolidateRawPropsCaptures(
 ): RawPropsConsolidation | null {
   const propsFieldCaptures = new Map<string, string>();
   const propsFieldSources = new Map<string, string>();
+  const propsFieldBindings = new Map<string, string>();
   const propsFieldDefaults = new Map<string, string>();
   const propsFieldDynamicDefaults = new Map<string, string>();
   const nonPropsCaptures: string[] = [];
@@ -1036,7 +1054,11 @@ export function consolidateRawPropsCaptures(
       continue;
     }
     propsFieldCaptures.set(name, source.fieldMap.get(name)!);
-    propsFieldSources.set(name, source.symbolName);
+    if (source.propsName === undefined) {
+      propsFieldSources.set(name, source.symbolName);
+    } else {
+      propsFieldBindings.set(name, source.propsName);
+    }
     const defaultExpr = source.fieldDefaults.get(name);
     if (defaultExpr !== undefined) {
       propsFieldDefaults.set(name, defaultExpr);
@@ -1055,15 +1077,37 @@ export function consolidateRawPropsCaptures(
     .map((ancestor) => ancestor.symbolName)
     .filter((symbolName) => usedSources.has(symbolName))
     .reverse();
+  const directCaptures = new Set([...nonPropsCaptures, ...propsFieldBindings.values()]);
   return {
     propsFieldCaptures,
     propsFieldSources,
+    propsFieldBindings: propsFieldBindings.size > 0 ? propsFieldBindings : undefined,
     rawPropsSources,
     // Stable sort keeps the `_rawProps` slots in `rawPropsSources` order.
-    newCaptureNames: [...nonPropsCaptures, ...rawPropsSources.map(() => '_rawProps')].sort(),
+    newCaptureNames: [...directCaptures, ...rawPropsSources.map(() => '_rawProps')].sort(),
     propsFieldDefaults: propsFieldDefaults.size > 0 ? propsFieldDefaults : undefined,
     propsFieldDynamicDefaults:
       propsFieldDynamicDefaults.size > 0 ? propsFieldDynamicDefaults : undefined,
+  };
+}
+
+/** Destructured props of each extraction, parsed once per symbol. */
+export function createPropsSourceLookup(
+  extractions: readonly { readonly symbolName: string; readonly bodyText: string }[]
+): (symbolName: string) => RawPropsSource | undefined {
+  const extBySymbol = new Map(extractions.map((ext) => [ext.symbolName, ext]));
+  const sources = new Map<string, RawPropsSource>();
+  return (symbolName) => {
+    const ext = extBySymbol.get(symbolName);
+    if (ext === undefined) {
+      return undefined;
+    }
+    let source = sources.get(symbolName);
+    if (source === undefined) {
+      source = { symbolName, ...extractDestructuredFieldInfo(ext.bodyText) };
+      sources.set(symbolName, source);
+    }
+    return source;
   };
 }
 
@@ -1142,12 +1186,15 @@ export function resolveRawPropsSlots(
 export function groupPropsFieldsByBinding(
   propsFieldCaptures: ReadonlyMap<string, string>,
   propsFieldSources: ReadonlyMap<string, string> | undefined,
-  bindingNames: ReadonlyMap<string, string>
+  bindingNames: ReadonlyMap<string, string>,
+  propsFieldBindings?: ReadonlyMap<string, string>
 ): Map<string, Map<string, string>> {
   const groups = new Map<string, Map<string, string>>();
   for (const [local, key] of propsFieldCaptures) {
     const source = propsFieldSources?.get(local);
-    const binding = (source !== undefined && bindingNames.get(source)) || '_rawProps';
+    const binding =
+      propsFieldBindings?.get(local) ??
+      ((source !== undefined && bindingNames.get(source)) || '_rawProps');
     const group = groups.get(binding) ?? new Map<string, string>();
     group.set(local, key);
     groups.set(binding, group);

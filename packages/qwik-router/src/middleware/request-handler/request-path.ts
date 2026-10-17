@@ -3,6 +3,7 @@ import { ensureSlash } from '../../utils/pathname';
 // New per-loader/per-action URL patterns
 export const IsQLoader = '@isQLoader';
 export const IsQAction = '@isQAction';
+export const IsQRoute = '@isQRoute';
 export const QLoaderId = '@loaderId';
 export const QActionId = '@actionId';
 
@@ -12,11 +13,16 @@ export const LOADER_REGEX = /\/(q-loader-([^/.]+)\.([^/.]+)\.json)$/;
 export const getLoaderName = (loaderId: string, manifestHash: string) =>
   `q-loader-${loaderId}.${manifestHash}.json`;
 
-export type RecognizedRequest = {
-  type: typeof IsQLoader;
-  trimLength: number;
-  data: { loaderId?: string; manifestHash?: string } | null;
-};
+/** Matches the final `/q-route.json` path segment: the client asks where a URL really routes to. */
+export const ROUTE_REGEX = /\/q-route\.json$/;
+
+export type RecognizedRequest =
+  | {
+      type: typeof IsQLoader;
+      trimLength: number;
+      data: { loaderId?: string; manifestHash?: string } | null;
+    }
+  | { type: typeof IsQRoute; trimLength: number; data: null };
 
 /**
  * Recognize internal request types from the URL pathname.
@@ -38,6 +44,10 @@ export function recognizeRequest(pathname: string): RecognizedRequest | null {
       trimLength: loaderMatch[1].length + 1, // +1 for the leading /
       data: { loaderId: loaderMatch[2], manifestHash: loaderMatch[3] },
     };
+  }
+
+  if (ROUTE_REGEX.test(pathname)) {
+    return { type: IsQRoute, trimLength: '/q-route.json'.length, data: null };
   }
 
   return null;

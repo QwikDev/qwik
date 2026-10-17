@@ -183,6 +183,21 @@ export interface PluginOptions {
    * Defaults to `true`.
    */
   strictLoaders?: boolean;
+  /**
+   * Resolve `rewrite()` targets on client navigation.
+   *
+   * A `rewrite()` made by middleware (e.g. a database lookup that maps `/articles/some-title` to
+   * `/articles/7777`) only happens on the server, so the client can't tell which route to render
+   * for the original URL. When true, a client navigation to a URL that has no page, or only matches
+   * a dynamic or wildcard route, first asks the server (`q-route.json`) where the URL finally
+   * routes to, then renders that route while keeping the original URL.
+   *
+   * A static route that matches the URL exactly is always rendered as-is. Costs one extra request
+   * for those navigations.
+   *
+   * Defaults to `false`.
+   */
+  serverRewrites?: boolean;
 }
 
 export interface MdxPlugins {

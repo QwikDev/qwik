@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import { type TransformOptions } from 'oxc-transform';
 import type { AstNode, AstProgram } from '../../ast-types.js';
-import type { ExtractionResult } from '../extraction/extract.js';
+import type { ConsolidatedSegment, ExtractionResult } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 import {
   autoExportedNames,
@@ -30,6 +30,7 @@ import {
   getSentinelCounter,
 } from '../segment/inline-strategy.js';
 import { rewriteFunctionSignature } from '../segment/segment-codegen.js';
+import { computeSegmentStartKeys } from '../segment/segment-generation.js';
 import { collapseToLibInlinedQrl } from './lib-mode-collapse.js';
 import { SignalHoister } from '../jsx/signal-analysis.js';
 import { transformInlineSegmentBody } from './inline-body.js';
@@ -515,7 +516,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
 
   const isHoist = inlineOptions?.entryType === 'hoist';
 
-  let inlineSegmentJsxOptions: InlineSegmentJsxOptions | undefined = jsxOptions?.enableJsx
+  const inlineSegmentJsxOptions: InlineSegmentJsxOptions | undefined = jsxOptions?.enableJsx
     ? {
         enableJsx: true,
         importedNames: jsxOptions.importedNames,
@@ -523,7 +524,6 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
         // otherwise falling back to `relPath` — not the composed `devFilePath`.
         devOptions: isDevMode ? { relPath: ctx.userDevPath ?? relPath } : undefined,
         source: isDevMode ? ctx.source : undefined,
-        keyCounterStart: isHoist ? ctx.jsxKeyCounterValue : undefined,
         relPath,
       }
     : undefined;
@@ -606,6 +606,12 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
   const rawPropsBindings = rawPropsBindingNames(
     emissionOrder.filter((ext) => emittedExts.has(ext))
   );
+  const bodyKeyStarts = computeSegmentStartKeys(
+    extractions as ConsolidatedSegment[],
+    ctx.jsxKeyCounterValue,
+    ctx.closureNodes ?? new Map(),
+    ctx.jsxCallSkipKeyBases
+  );
 
   const processExtraction = (ext: ExtractionResult) => {
     const varName = qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`;
@@ -613,7 +619,6 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       transformedBody: rawBody,
       additionalImports,
       hoistedDeclarations,
-      keyCounterValue,
     } = transformInlineSegmentBody(
       ext,
       extractions,
@@ -625,7 +630,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       ctx.source,
       ctx.originalImports,
       ctx.relPath,
-      ctx.jsxCallSkipKeyBases?.get(ext.argStart) ?? ctx.jsxKeyCounterValue,
+      bodyKeyStarts.get(ext.symbolName) ?? ctx.jsxKeyCounterValue,
       migratedNames,
       inlineOptions?.stripCtxName,
       inlineOptions?.stripEventHandlers,
@@ -654,19 +659,6 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       neededImports.set('_regSymbol', '@qwik.dev/core');
     }
 
-    // A body numbered from a reserved base must not rewind the shared counter.
-    const usedReservedBase = ctx.jsxCallSkipKeyBases?.has(ext.argStart) === true;
-    if (isHoist && keyCounterValue !== undefined && inlineSegmentJsxOptions && !usedReservedBase) {
-      ctx.jsxKeyCounterValue = keyCounterValue;
-      inlineSegmentJsxOptions = {
-        ...inlineSegmentJsxOptions,
-        keyCounterStart: ctx.jsxKeyCounterValue,
-      };
-    } else if (keyCounterValue !== undefined && !usedReservedBase) {
-      // The JSX key counter is shared across every `.s(body)` block; without
-      // threading it, the next body's keys would restart at 0.
-      ctx.jsxKeyCounterValue = keyCounterValue;
-    }
     ctx.inlineHoistedDeclarations.push(...hoistedDeclarations);
     for (const [sym, src] of additionalImports) {
       if (!alreadyImported.has(sym) && !neededImports.has(sym)) {

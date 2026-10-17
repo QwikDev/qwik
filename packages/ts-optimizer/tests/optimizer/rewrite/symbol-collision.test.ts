@@ -119,7 +119,7 @@ import { component$ } from '@qwik.dev/core';
 import { qrl } from '@qwik.dev/core/what';
 
 export const Foo = component$(() => {
-  const qrl = 23;
+  const qrl = [23];
   return qrl;
 });
 `;
@@ -132,6 +132,6 @@ export const Foo = component$(() => {
       throw new Error('expected segment');
     }
 
-    expect(fooSegment.code).toMatch(/const qrl\s*=\s*23/);
+    expect(fooSegment.code).toMatch(/const qrl\s*=\s*\[23\]/);
   });
 });

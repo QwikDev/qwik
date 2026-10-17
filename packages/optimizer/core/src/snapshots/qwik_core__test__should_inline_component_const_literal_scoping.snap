@@ -1,0 +1,209 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+
+export const Greeter = component$(() => {
+	const greeting = 'Hello';
+	const format = (greeting) => {
+		const suffix = '!';
+		return greeting + suffix;
+	};
+	return <p onClick$={() => console.log(greeting)}>{format('World')}</p>;
+});
+
+export const Counter = component$(() => {
+	let count = 0;
+	const label = 'Count';
+	return <p onClick$={() => count++}>{label}</p>;
+});
+
+export const read = $(() => {
+	const value = 'kept';
+	return value;
+});
+
+============================= test.tsx_Greeter_component_p_q_e_click_4sFcLC7ytws.js (ENTRY POINT)==
+
+export const Greeter_component_p_q_e_click_4sFcLC7ytws = ()=>console.log('Hello');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yDASqB,IAAM,QAAQ,GAAG,CALpB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_p_q_e_click_4sFcLC7ytws",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component_p_q_e_click",
+  "hash": "4sFcLC7ytws",
+  "canonicalFilename": "test.tsx_Greeter_component_p_q_e_click_4sFcLC7ytws",
+  "path": "",
+  "extension": "js",
+  "parent": "Greeter_component_n7HuG2hhU0Q",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    227,
+    254
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Counter_component_zTmRHlL09Gg = /*#__PURE__*/ qrl(()=>import("./test.tsx_Counter_component_zTmRHlL09Gg"), "Counter_component_zTmRHlL09Gg");
+const q_Greeter_component_n7HuG2hhU0Q = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q");
+const q_read_3emCmk1eqDE = /*#__PURE__*/ qrl(()=>import("./test.tsx_read_3emCmk1eqDE"), "read_3emCmk1eqDE");
+//
+export const Greeter = /*#__PURE__*/ componentQrl(q_Greeter_component_n7HuG2hhU0Q);
+export const Counter = /*#__PURE__*/ componentQrl(q_Counter_component_zTmRHlL09Gg);
+export const read = q_read_3emCmk1eqDE;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAGA,OAAO,MAAM,wBAAU,8CAOpB;AAEH,OAAO,MAAM,wBAAU,8CAIpB;AAEH,OAAO,MAAM,0BAGV\"}")
+============================= test.tsx_Counter_component_p_q_e_click_Xe1DPmxtgiU.js (ENTRY POINT)==
+
+export const Counter_component_p_q_e_click_Xe1DPmxtgiU = (_, _1, count)=>count++;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yDAeqB,gBAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Counter_component_p_q_e_click_Xe1DPmxtgiU",
+  "entry": null,
+  "displayName": "test.tsx_Counter_component_p_q_e_click",
+  "hash": "Xe1DPmxtgiU",
+  "canonicalFilename": "test.tsx_Counter_component_p_q_e_click_Xe1DPmxtgiU",
+  "path": "",
+  "extension": "js",
+  "parent": "Counter_component_zTmRHlL09Gg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    387,
+    400
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "count"
+  ]
+}
+*/
+============================= test.tsx_read_3emCmk1eqDE.js (ENTRY POINT)==
+
+export const read_3emCmk1eqDE = ()=>{
+    const value = 'kept';
+    return value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gCAkBsB;IACrB,MAAM,QAAQ;IACd,OAAO;AACR\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "read_3emCmk1eqDE",
+  "entry": null,
+  "displayName": "test.tsx_read",
+  "hash": "3emCmk1eqDE",
+  "canonicalFilename": "test.tsx_read_3emCmk1eqDE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    442,
+    489
+  ]
+}
+*/
+============================= test.tsx_Counter_component_zTmRHlL09Gg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Counter_component_p_q_e_click_Xe1DPmxtgiU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Counter_component_p_q_e_click_Xe1DPmxtgiU"), "Counter_component_p_q_e_click_Xe1DPmxtgiU").m();
+//
+export const Counter_component_zTmRHlL09Gg = ()=>{
+    let count = 0;
+    const label = 'Count';
+    return /*#__PURE__*/ _jsxSorted("p", {
+        "q-e:click": q_Counter_component_p_q_e_click_Xe1DPmxtgiU,
+        "q:p": count
+    }, null, label, 4, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;6CAYkC;IACjC,IAAI,QAAQ;IACZ,MAAM,QAAQ;IACd,qBAAO,WAAC;QAAE,WAAQ;;aAAkB;AACrC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Counter_component_zTmRHlL09Gg",
+  "entry": null,
+  "displayName": "test.tsx_Counter_component",
+  "hash": "zTmRHlL09Gg",
+  "canonicalFilename": "test.tsx_Counter_component_zTmRHlL09Gg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    318,
+    416
+  ]
+}
+*/
+============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Greeter_component_p_q_e_click_4sFcLC7ytws = /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_p_q_e_click_4sFcLC7ytws"), "Greeter_component_p_q_e_click_4sFcLC7ytws");
+//
+export const Greeter_component_n7HuG2hhU0Q = ()=>{
+    const format = (greeting)=>{
+        return greeting + '!';
+    };
+    return /*#__PURE__*/ _jsxSorted("p", null, {
+        "q-e:click": q_Greeter_component_p_q_e_click_4sFcLC7ytws
+    }, format('World'), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;6CAGkC;IAEjC,MAAM,SAAS,CAAC;QAEf,OAAO,WADQ;IAEhB;IACA,qBAAO,WAAC;QAAE,WAAQ;OAAgC,OAAO;AAC1D\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Greeter_component_n7HuG2hhU0Q",
+  "entry": null,
+  "displayName": "test.tsx_Greeter_component",
+  "hash": "n7HuG2hhU0Q",
+  "canonicalFilename": "test.tsx_Greeter_component_n7HuG2hhU0Q",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    85,
+    280
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

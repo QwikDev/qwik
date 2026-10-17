@@ -653,7 +653,7 @@ function findGroupBoundary(
  * `_L` layout to the chain. The matcher transparently enters groups when searching for a matching
  * child.
  */
-function matchRouteTree(
+export function matchRouteTree(
   root: RouteData = {},
   pathname: string
 ): {

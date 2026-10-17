@@ -1,5 +1,16 @@
 # @qwik.dev/mcp
 
+## 2.0.0-rc.4
+
+### Patch Changes
+
+- 🐞🩹 dev SSR no longer hangs when a component file declares a custom hook (by [@rapporian](https://github.com/rapporian) in [#9217](https://github.com/QwikDev/qwik/pull/9217))
+
+- 🐞🩹 dev SSR no longer fails when a custom hook returns a non-serializable value (by [@rapporian](https://github.com/rapporian) in [#9217](https://github.com/QwikDev/qwik/pull/9217))
+
+- Updated dependencies [[`399ead2`](https://github.com/QwikDev/qwik/commit/399ead29930f007e68f28e2f23ce112f7e8f0a44), [`37a7753`](https://github.com/QwikDev/qwik/commit/37a77538283faf8dab102cefe04c553b0b8c11c6), [`9ee6404`](https://github.com/QwikDev/qwik/commit/9ee6404f89f792a0f2520f87ef89970801ccfae3)]:
+  - @qwik.dev/core@2.0.0-rc.4
+
 ## 2.0.0-rc.3
 
 ### Minor Changes

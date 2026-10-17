@@ -1,5 +1,15 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.4
+
+### Patch Changes
+
+- 🐞🩹 click-to-source now finds elements created in the browser during dev (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#9210](https://github.com/QwikDev/qwik/pull/9210))
+
+- 🐞🩹 rewrite destructured props used as computed keys in nested closures (by [@Varixo](https://github.com/Varixo) in [#9215](https://github.com/QwikDev/qwik/pull/9215))
+
+- 🐞🩹 computed signals recompute once and without stale sources in diamond dependency graphs (by [@Varixo](https://github.com/Varixo) in [#9212](https://github.com/QwikDev/qwik/pull/9212))
+
 ## 2.0.0-rc.3
 
 ### Patch Changes

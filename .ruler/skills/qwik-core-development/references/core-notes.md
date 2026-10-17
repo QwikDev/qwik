@@ -205,6 +205,9 @@ Out-of-order (OOOS) invariants:
 - Use `$`-suffixed APIs and `$()` in tests when a QRL boundary is expected.
 - Avoid manual QRL construction unless nearby tests already use it for the same reason.
 - If runtime behavior relies on optimizer output, inspect the optimizer transform and snapshot too.
+- Const props are trusted to never change, so their reads never subscribe. A child computed or task
+  stuck on an old prop value while the render shows the new one usually means an optimizer put a
+  render-varying value in the const bag (see the optimizer skill's "Const prop bag").
 - For event or JSX attribute changes, keep `event-names`, JSX runtime, qwikloader, and optimizer
   behavior aligned.
 

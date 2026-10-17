@@ -10,7 +10,11 @@ import { walk } from 'oxc-walker';
 import type { AstNode, AstProgram } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { forEachAstChild } from '../ast/guards.js';
-import { isNonReferenceIdentifier } from '../analysis/variable-migration.js';
+import {
+  collectPureGlobals,
+  isNonReferenceIdentifier,
+  isPureCallee,
+} from '../analysis/variable-migration.js';
 
 interface RangedNode {
   readonly type: string;
@@ -78,7 +82,7 @@ function collectReferencedNames(program: AstProgram, dead: readonly RangedNode[]
   return referenced;
 }
 
-function isPureInit(init: unknown): boolean {
+function isPureInit(init: unknown, pureGlobals: ReadonlySet<string>): boolean {
   if (init == null) {
     return true;
   }
@@ -93,23 +97,34 @@ function isPureInit(init: unknown): boolean {
       return true;
     case 'TemplateLiteral':
       return (init.expressions as unknown[] | undefined)?.length === 0;
+    case 'MemberExpression':
+      return isPureCallee(init as unknown as AstNode, pureGlobals);
+    case 'CallExpression':
+      return (
+        isPureCallee(init.callee as AstNode, pureGlobals) &&
+        (init.arguments as unknown[]).every((arg) => isPureInit(arg, pureGlobals))
+      );
     case 'ObjectExpression':
       return ((init.properties as unknown[] | undefined) ?? []).every((property) => {
         if (!isRecordNode(property) || property.type !== 'Property' || property.computed) {
           return false;
         }
-        return isPureInit(property.value);
+        return isPureInit(property.value, pureGlobals);
       });
     case 'ArrayExpression':
       return ((init.elements as unknown[] | undefined) ?? []).every(
-        (element) => element == null || isPureInit(element)
+        (element) => element == null || isPureInit(element, pureGlobals)
       );
     default:
       return false;
   }
 }
 
-function isRemovableVarDecl(stmt: Record<string, unknown>, referenced: Set<string>): boolean {
+function isRemovableVarDecl(
+  stmt: Record<string, unknown>,
+  referenced: Set<string>,
+  pureGlobals: ReadonlySet<string>
+): boolean {
   const decls = stmt.declarations as Array<Record<string, unknown>> | undefined;
   if (!decls || decls.length === 0) {
     return false;
@@ -122,14 +137,17 @@ function isRemovableVarDecl(stmt: Record<string, unknown>, referenced: Set<strin
     if (referenced.has(id.name as string)) {
       return false;
     }
-    if (!isPureInit(decl.init)) {
+    if (!isPureInit(decl.init, pureGlobals)) {
       return false;
     }
   }
   return true;
 }
 
-function classHasSideEffects(stmt: Record<string, unknown>): boolean {
+function classHasSideEffects(
+  stmt: Record<string, unknown>,
+  pureGlobals: ReadonlySet<string>
+): boolean {
   const superClass = stmt.superClass as Record<string, unknown> | undefined | null;
   if (superClass && superClass.type !== 'Identifier') {
     return true;
@@ -140,20 +158,27 @@ function classHasSideEffects(stmt: Record<string, unknown>): boolean {
     if (member.type === 'StaticBlock') {
       return true;
     }
-    if (member.type === 'PropertyDefinition' && (!member.static || !isPureInit(member.value))) {
+    if (
+      member.type === 'PropertyDefinition' &&
+      (!member.static || !isPureInit(member.value, pureGlobals))
+    ) {
       return true;
     }
   }
   return false;
 }
 
-function isRemovableStatement(stmt: unknown, referenced: Set<string>): stmt is RangedNode {
+function isRemovableStatement(
+  stmt: unknown,
+  referenced: Set<string>,
+  pureGlobals: ReadonlySet<string>
+): stmt is RangedNode {
   if (!isRecordNode(stmt)) {
     return false;
   }
   switch (stmt.type) {
     case 'VariableDeclaration':
-      return isRemovableVarDecl(stmt, referenced);
+      return isRemovableVarDecl(stmt, referenced, pureGlobals);
     case 'FunctionDeclaration': {
       const id = stmt.id as Record<string, unknown> | undefined;
       return !!id && !referenced.has(id.name as string);
@@ -163,7 +188,7 @@ function isRemovableStatement(stmt: unknown, referenced: Set<string>): stmt is R
       if (!id || referenced.has(id.name as string)) {
         return false;
       }
-      return !classHasSideEffects(stmt);
+      return !classHasSideEffects(stmt, pureGlobals);
     }
     case 'TryStatement': {
       const block = stmt.block as Record<string, unknown> | undefined;
@@ -234,6 +259,7 @@ export function applyStatementDCE(
   }
 
   const bodies = collectBlockBodies(program);
+  const pureGlobals = collectPureGlobals(program, code);
   const dead: RangedNode[] = [];
   const isDead = (stmt: RangedNode): boolean =>
     dead.some((d) => stmt.start >= d.start && stmt.end <= d.end);
@@ -282,7 +308,7 @@ export function applyStatementDCE(
           changed = true;
           continue;
         }
-        if (isRemovableStatement(stmt, referenced)) {
+        if (isRemovableStatement(stmt, referenced, pureGlobals)) {
           dead.push(stmt);
           changed = true;
           continue;
@@ -342,7 +368,7 @@ export function applyStatementDCE(
       if (
         id?.type === 'Identifier' &&
         !referenced.has(id.name as string) &&
-        !isPureInit(init) &&
+        !isPureInit(init, pureGlobals) &&
         isRecordNode(init)
       ) {
         const binaryNames =

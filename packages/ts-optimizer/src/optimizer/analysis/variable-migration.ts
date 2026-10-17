@@ -64,8 +64,83 @@ function isRouterMarkerInit(init: AstMaybeNode): boolean {
   );
 }
 
+const PURE_GLOBALS = ['Date', 'Math'];
+
+const PURE_STRING_METHODS = new Set([
+  'charAt',
+  'charCodeAt',
+  'concat',
+  'endsWith',
+  'includes',
+  'indexOf',
+  'lastIndexOf',
+  'localeCompare',
+  'slice',
+  'split',
+  'startsWith',
+  'substr',
+  'substring',
+  'toLocaleLowerCase',
+  'toLocaleUpperCase',
+  'toLowerCase',
+  'toString',
+  'toUpperCase',
+  'trim',
+  'trimEnd',
+  'trimStart',
+]);
+
+/** The globals `isPureCallee` trusts, minus any the module binds in some scope. */
+export function collectPureGlobals(program: AstProgram, source: string): ReadonlySet<string> {
+  const boundNames = new Set<string>();
+  if (PURE_GLOBALS.some((name) => source.includes(name))) {
+    walk(program, {
+      enter(node: AstNode) {
+        if (node.type === 'ImportDeclaration') {
+          for (const specifier of node.specifiers) {
+            boundNames.add(specifier.local.name);
+          }
+        } else if (node.type === 'ClassExpression' && node.id) {
+          boundNames.add(node.id.name);
+        } else {
+          addDeclaredNamesFromNode(node, boundNames);
+        }
+      },
+    });
+  }
+  return new Set(PURE_GLOBALS.filter((name) => !boundNames.has(name)));
+}
+
+/** SWC's `is_pure_callee`: calls to these have no side effects beyond their arguments. */
+export function isPureCallee(callee: AstNode, pureGlobals: ReadonlySet<string>): boolean {
+  switch (callee.type) {
+    case 'Identifier':
+      return callee.name === 'Date' && pureGlobals.has('Date');
+    case 'MemberExpression': {
+      if (callee.computed || callee.property.type !== 'Identifier') {
+        return false;
+      }
+      const { object } = callee;
+      if (object.type === 'Identifier') {
+        return object.name === 'Math' && pureGlobals.has('Math');
+      }
+      const isStaticString =
+        (object.type === 'Literal' && typeof object.value === 'string') ||
+        (object.type === 'TemplateLiteral' && object.expressions.length === 0);
+      return isStaticString && PURE_STRING_METHODS.has(callee.property.name);
+    }
+    case 'FunctionExpression':
+      return (
+        callee.params.every((param) => param.type === 'Identifier') &&
+        callee.body?.body.length === 0
+      );
+    default:
+      return false;
+  }
+}
+
 /** Conservative purity check: true only for expressions that provably have no side effects. */
-function isInitializerSafe(node: AstMaybeNode): boolean {
+function isInitializerSafe(node: AstMaybeNode, pureGlobals: ReadonlySet<string>): boolean {
   if (!node) {
     return true;
   }
@@ -83,7 +158,7 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
       return true;
 
     case 'TemplateLiteral':
-      return (node.expressions ?? []).every((expr) => isInitializerSafe(expr));
+      return (node.expressions ?? []).every((expr) => isInitializerSafe(expr, pureGlobals));
 
     case 'ObjectExpression':
       for (const prop of node.properties ?? []) {
@@ -94,7 +169,7 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
           if (prop.computed) {
             return false;
           }
-          if (!isInitializerSafe(prop.value)) {
+          if (!isInitializerSafe(prop.value, pureGlobals)) {
             return false;
           }
         }
@@ -109,34 +184,39 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
         if (elem.type === 'SpreadElement') {
           return false;
         }
-        if (!isInitializerSafe(elem)) {
+        if (!isInitializerSafe(elem, pureGlobals)) {
           return false;
         }
       }
       return true;
 
     case 'UnaryExpression':
-      return isInitializerSafe(node.argument);
+      return isInitializerSafe(node.argument, pureGlobals);
 
     case 'BinaryExpression':
     case 'LogicalExpression':
-      return isInitializerSafe(node.left) && isInitializerSafe(node.right);
+      return (
+        isInitializerSafe(node.left, pureGlobals) && isInitializerSafe(node.right, pureGlobals)
+      );
 
     case 'ConditionalExpression':
       return (
-        isInitializerSafe(node.test) &&
-        isInitializerSafe(node.consequent) &&
-        isInitializerSafe(node.alternate)
+        isInitializerSafe(node.test, pureGlobals) &&
+        isInitializerSafe(node.consequent, pureGlobals) &&
+        isInitializerSafe(node.alternate, pureGlobals)
       );
 
     case 'MemberExpression':
       // Could trigger getters, but treated as safe for migration.
-      return !node.computed && isInitializerSafe(node.object);
+      return !node.computed && isInitializerSafe(node.object, pureGlobals);
 
     case 'MetaProperty':
       return true;
 
     case 'CallExpression': {
+      if (isPureCallee(node.callee, pureGlobals)) {
+        return node.arguments.every((arg) => isInitializerSafe(arg, pureGlobals));
+      }
       // Marker calls (`component$`, `useTask$`, the bare `$`, etc.) are pure for
       // migration: the parent rewrite replaces them with a non-mutating QRL
       // form. Treating them as safe lets a single-segment marker decl move
@@ -176,6 +256,7 @@ function unwrapExport(stmt: AstProgram['body'][number]): {
 
 export function collectModuleLevelDecls(program: AstProgram, source: string): ModuleLevelDecl[] {
   const decls: ModuleLevelDecl[] = [];
+  const pureGlobals = collectPureGlobals(program, source);
 
   for (const stmt of program.body ?? []) {
     const { declaration, isExported } = unwrapExport(stmt);
@@ -191,7 +272,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           continue;
         }
 
-        const hasSideEffects = !isInitializerSafe(declarator.init);
+        const hasSideEffects = !isInitializerSafe(declarator.init, pureGlobals);
         const isDestructuring = id.type === 'ObjectPattern' || id.type === 'ArrayPattern';
         const isShared = isDestructuring && countBindings(id) > 1;
         const hasRouterMarkerInit = isRouterMarkerInit(declarator.init);

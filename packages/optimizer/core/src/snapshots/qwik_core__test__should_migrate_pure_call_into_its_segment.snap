@@ -1,0 +1,53 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $ } from '@qwik.dev/core';
+
+const x = Math.random();
+
+export const readX = $(() => x);
+
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_readX_Z2BWBVnkn5g = /*#__PURE__*/ qrl(()=>import("./test.tsx_readX_Z2BWBVnkn5g"), "readX_Z2BWBVnkn5g");
+//
+export const readX = q_readX_Z2BWBVnkn5g;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAKA,OAAO,MAAM,4BAAmB\"}")
+============================= test.tsx_readX_Z2BWBVnkn5g.js (ENTRY POINT)==
+
+const x = Math.random();
+export const readX_Z2BWBVnkn5g = ()=>x;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"MAGM,IAAI,KAAK,MAAM;iCAEE,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "readX_Z2BWBVnkn5g",
+  "entry": null,
+  "displayName": "test.tsx_readX",
+  "hash": "Z2BWBVnkn5g",
+  "canonicalFilename": "test.tsx_readX_Z2BWBVnkn5g",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    88,
+    95
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

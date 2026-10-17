@@ -87,6 +87,13 @@ starting with `[a-z]` is an intrinsic element, while `<Foo>`, `<_Foo>` and the o
 (or `isNonReferenceIdentifier`) whether a `JSXIdentifier` reads a binding, and `isHtmlElement`
 whether a tag is intrinsic.
 
+## Pure calls
+
+SWC's DCE keeps an expression when `may_have_side_effects` says it may have one, and that check
+trusts only the callees of `is_pure_callee`: global `Date`, `Math.*`, a fixed list of string-literal
+methods, and empty function expressions. In the TypeScript optimizer, every pass that weighs side
+effects asks `isPureCallee`, passing the module's `collectPureGlobals`.
+
 ## Worker pool changes
 
 The transform worker pool (`packages/ts-optimizer/src/worker-pool.ts`) never starts real workers

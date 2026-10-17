@@ -1,0 +1,69 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+const div = Math.random();
+const date = Date();
+const upper = 'abc'.toUpperCase();
+const trimmed = `abc`.trim();
+const noop = function (a, b) {}(1, 2);
+const now = Date.now();
+const replaced = 'abc'.replace('a', 'b');
+
+export const Cmp = component$(() => {
+	const random = Math.random();
+	const pi = Math.PI;
+	return <p>hello</p>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+Date.now();
+'abc'.replace('a', 'b');
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAQY,KAAK,GAAG;AACH,MAAM,OAAO,CAAC,KAAK;AAEpC,OAAO,MAAM,oBAAM,0CAIhB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const Cmp_component_4ryKJTOKjWE = ()=>{
+    return /*#__PURE__*/ _jsxSorted("p", null, null, "hello", 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAW8B;IAG7B,qBAAO,WAAC,iBAAE;AACX\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    297,
+    380
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

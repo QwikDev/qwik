@@ -1,5 +1,13 @@
 # create-qwik
 
+## 2.0.0-rc.4
+
+### Patch Changes
+
+- 🛠 refresh adapter starter toolchain deps and drop EOL node 18 (by [@Yassen717](https://github.com/Yassen717) in [#9214](https://github.com/QwikDev/qwik/pull/9214))
+
+- 🐞🩹 point adapter and integration starter docs links at the right pages (by [@Yassen717](https://github.com/Yassen717) in [#9214](https://github.com/QwikDev/qwik/pull/9214))
+
 ## 2.0.0-rc.3
 
 ## 2.0.0-rc.2

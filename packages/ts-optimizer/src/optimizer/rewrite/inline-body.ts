@@ -8,7 +8,7 @@ import type { AstFunction } from '../../ast-types.js';
 import type { ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 import { eventHandlerPropName } from '../jsx/event-handlers.js';
-import { transformAllJsx, JsxKeyCounter } from '../jsx/jsx.js';
+import { collectScopeAwareBindings, transformAllJsx, JsxKeyCounter } from '../jsx/jsx.js';
 import {
   transformJsxCalls,
   collectJsxFunctionNamesFromIterable,
@@ -609,6 +609,10 @@ export function transformInlineSegmentBody(
           relPath: jsxBodyOptions.relPath,
           sharedSignalHoister,
           paramNames: ext.paramNames ? new Set(ext.paramNames) : undefined,
+          precomputedScopeBindings: collectScopeAwareBindings(
+            parseResult.program,
+            new Set(qrlVarNames.values())
+          ),
         }
       );
 

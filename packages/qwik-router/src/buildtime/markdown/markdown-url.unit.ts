@@ -81,6 +81,7 @@ const menuFilePath = join(routesDir, 'docs', 'menu.md');
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
       strictLoaders: true,
+      serverRewrites: false,
     };
     globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     assert.equal(getMarkdownRelativeUrl(opts, menuFilePath, t.href), t.expect);

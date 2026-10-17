@@ -73,6 +73,7 @@ function getRoutesExpr(
       rewriteRoutes: null!,
       defaultLoadersSerializationStrategy: 'never',
       strictLoaders: true,
+      serverRewrites: false,
     },
     routeTrie: trie,
     routes,

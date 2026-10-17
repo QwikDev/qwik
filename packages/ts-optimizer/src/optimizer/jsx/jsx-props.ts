@@ -221,7 +221,7 @@ export function processProps(
     bindings,
     allDeclaredNames,
   } = ctx;
-  const { tagIsHtml, passiveEvents, inLoop, skipSignalAnalysis, loopIterVars } = opts;
+  const { tagIsHtml, passiveEvents, inLoop, loopIterVars } = opts;
   const varEntries: string[] = [];
   const constEntries: string[] = [];
   const beforeSpreadEntries: string[] = [];
@@ -358,7 +358,7 @@ export function processProps(
 
     if (isBindProp(propName) && !tagIsHtml) {
       let bindValue = valueText;
-      if (valueNode && !skipSignalAnalysis) {
+      if (valueNode) {
         const bindSignal = analyzeSignalExpression(
           valueNode,
           source,
@@ -511,7 +511,7 @@ export function processProps(
       continue;
     }
 
-    if (valueNode && !skipSignalAnalysis) {
+    if (valueNode) {
       const signalResult = analyzeSignalExpression(
         valueNode,
         source,

@@ -87,6 +87,15 @@ starting with `[a-z]` is an intrinsic element, while `<Foo>`, `<_Foo>` and the o
 (or `isNonReferenceIdentifier`) whether a `JSXIdentifier` reads a binding, and `isHtmlElement`
 whether a tag is intrinsic.
 
+## Module-scope bindings
+
+Rust treats imports, exports and module-level declarations as globals: JSX that reads one is never
+signal-wrapped, and is const only when every name it reads is global. The TypeScript optimizer
+parses segment and inline bodies on their own, so module-level names are unbound there and an
+unbound name may also be a capture or a browser global. Resolve names through
+`ScopeAwareBindings.resolveScope` and the `moduleScopeNames` the body transform receives, as
+`classifyModuleScopeRead` does.
+
 ## Worker pool changes
 
 The transform worker pool (`packages/ts-optimizer/src/worker-pool.ts`) never starts real workers

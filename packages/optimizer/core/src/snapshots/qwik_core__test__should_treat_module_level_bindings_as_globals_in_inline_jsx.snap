@@ -1,0 +1,61 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+
+const label = 'Count';
+const classes = { root: 'root' };
+
+export const Counter = component$(() => {
+	const count = useSignal(0);
+	return (
+		<div class={classes.root} title={label}>
+			<p>{label}</p>
+			<p>{label + count.value}</p>
+		</div>
+	);
+});
+
+export const Badge = component$(() => <span class={classes.root}>{label}</span>);
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { useSignal } from '@qwik.dev/core';
+//
+const q_Badge_component_WfgKQIZWdn8 = /*#__PURE__*/ _noopQrl("Badge_component_WfgKQIZWdn8");
+const q_Counter_component_zTmRHlL09Gg = /*#__PURE__*/ _noopQrl("Counter_component_zTmRHlL09Gg");
+//
+const label = 'Count';
+const classes = {
+    root: 'root'
+};
+q_Counter_component_zTmRHlL09Gg.s(()=>{
+    const count = useSignal(0);
+    return /*#__PURE__*/ _jsxSorted("div", null, {
+        class: classes.root,
+        title: label
+    }, [
+        /*#__PURE__*/ _jsxSorted("p", null, null, label, 3, null),
+        /*#__PURE__*/ _jsxSorted("p", null, null, label + count.value, 1, null)
+    ], 1, "u6_0");
+});
+q_Badge_component_WfgKQIZWdn8.s(()=>/*#__PURE__*/ _jsxSorted("span", null, {
+        class: classes.root
+    }, label, 3, "u6_1"));
+export const Counter = /*#__PURE__*/ componentQrl(q_Counter_component_zTmRHlL09Gg);
+export const Badge = /*#__PURE__*/ componentQrl(q_Badge_component_WfgKQIZWdn8);
+export { classes as _auto_classes };
+export { label as _auto_label };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;;;;;AAEvD,MAAM,QAAQ;AACd,MAAM,UAAU;IAAE,MAAM;AAAO;kCAEG;IACjC,MAAM,QAAQ,UAAU;IACxB,qBACC,WAAC;QAAI,OAAO,QAAQ,IAAI;QAAE,OAAO;;sBAChC,WAAC,iBAAG;sBACJ,WAAC,iBAAG,QAAQ,MAAM,KAAK;;AAG1B;gCAEgC,kBAAM,WAAC;QAAK,OAAO,QAAQ,IAAI;OAAG;AAVlE,OAAO,MAAM,wBAAU,8CAQpB;AAEH,OAAO,MAAM,sBAAQ,4CAA4D\"}")
+== DIAGNOSTICS ==
+
+[]

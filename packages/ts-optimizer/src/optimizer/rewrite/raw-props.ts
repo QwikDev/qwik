@@ -81,6 +81,7 @@ function isWCallWithArrayArg(
 export interface InlineSegmentJsxOptions {
   enableJsx: boolean;
   importedNames: Set<string>;
+  moduleScopeNames?: ReadonlySet<string>;
   devOptions?: DevSuffixOptions;
   source?: string;
   keyCounterStart?: number;

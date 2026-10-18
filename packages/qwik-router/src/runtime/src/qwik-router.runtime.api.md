@@ -13,6 +13,7 @@ import { CookieOptions } from '@qwik.dev/router/middleware/request-handler';
 import { CookieValue } from '@qwik.dev/router/middleware/request-handler';
 import { DeferReturn } from '@qwik.dev/router/middleware/request-handler';
 import type { EnvGetter } from '@qwik.dev/router/middleware/request-handler';
+import { EventHandler } from '@qwik.dev/core';
 import { InternalRequest } from '@qwik.dev/router/middleware/request-handler';
 import { JSXOutput } from '@qwik.dev/core';
 import { NoSerialize } from '@qwik.dev/core';
@@ -31,7 +32,6 @@ import { RequestHandler } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handler';
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type { ServerError } from '@qwik.dev/router/middleware/request-handler';
-import type { Signal } from '@qwik.dev/core';
 import * as v from 'valibot';
 import { ValueOrPromise } from '@qwik.dev/core';
 import { ValueOrPromise as ValueOrPromise_2 } from '@qwik.dev/core/internal';
@@ -217,7 +217,7 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
     action?: ActionStore<O, I, true | false>;
     // (undocumented)
     key?: string | number | null;
-    onSubmitCompleted$?: QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
+    onSubmitCompleted$?: QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | EventHandler<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
     reloadDocument?: boolean;
     spaReset?: boolean;
 }
@@ -319,7 +319,8 @@ type Loader_2<RETURN> = {
 export { Loader_2 as Loader }
 
 // @public (undocumented)
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<ComputedSignal<any>, 'promise'>;
+export interface LoaderSignal<TYPE> extends ComputedSignal<TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ValueOrPromise<VALIDATOR> : TYPE> {
+}
 
 // @public (undocumented)
 type NavigationType_2 = 'initial' | 'form' | 'link' | 'popstate';

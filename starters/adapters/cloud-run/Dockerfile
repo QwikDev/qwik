@@ -1,4 +1,4 @@
-FROM node:18-bullseye-slim AS build-env
+FROM node:24-bookworm-slim AS build-env
 
 COPY . /app
 WORKDIR /app
@@ -10,7 +10,7 @@ RUN npm run build
 
 
 # A light-weight image for running the app
-FROM gcr.io/distroless/nodejs18-debian11
+FROM gcr.io/distroless/nodejs24-debian13
 
 WORKDIR /app
 COPY --from=build-env /app/node_modules ./node_modules

@@ -113,7 +113,10 @@ export const OnThisPage = component$(() => {
 
   const { url } = useLocation();
   const githubEditRoute = makeEditPageUrl(url.pathname);
-  const editUrl = `https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
+  // API pages are generated from source, so there is no page to edit.
+  const editUrl = url.pathname.startsWith('/api/')
+    ? undefined
+    : `https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
 
   const useActiveItem = (itemIds: string[]) => {
     const activeId = useSignal<string | null>(null);

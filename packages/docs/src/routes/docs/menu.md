@@ -1,4 +1,4 @@
-# Qwik Guide
+# Guides
 
 ## Introduction
 

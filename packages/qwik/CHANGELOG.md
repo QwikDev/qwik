@@ -1,5 +1,21 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.3
+
+### Patch Changes
+
+- 🐞🩹 dangerouslySetInnerHTML from an async value renders as content instead of an attribute (by [@intellix](https://github.com/intellix) in [#9194](https://github.com/QwikDev/qwik/pull/9194))
+
+- 🐞🩹 null-valued props spread into a component are no longer dropped (by [@intellix](https://github.com/intellix) in [#9193](https://github.com/QwikDev/qwik/pull/9193))
+
+- 🐞🩹 out-of-order Pending segments no longer break resume when a later segment shares their state (by [@Varixo](https://github.com/Varixo) in [#9197](https://github.com/QwikDev/qwik/pull/9197))
+
+- 🐞🩹 run nested visible task cleanups when removing parent components (by [@Varixo](https://github.com/Varixo) in [#9206](https://github.com/QwikDev/qwik/pull/9206))
+
+- 🐞🩹 a failed event-handler chunk import after resume is now reported as an `importError` `qerror` (like qwikloader) instead of rendering the raw "Failed to fetch dynamically imported module" message in the nearest `<ErrorBoundary>` (by [@akasakariko](https://github.com/akasakariko) in [#9180](https://github.com/QwikDev/qwik/pull/9180))
+
+- 🐞🩹 unchanged style and class objects no longer rewrite the attribute on re-render (by [@intellix](https://github.com/intellix) in [#9192](https://github.com/QwikDev/qwik/pull/9192))
+
 ## 2.0.0-rc.2
 
 ### Patch Changes

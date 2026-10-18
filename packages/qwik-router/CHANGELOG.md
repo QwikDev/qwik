@@ -1,5 +1,30 @@
 # @qwik.dev/city
 
+## 2.0.0-rc.3
+
+### Patch Changes
+
+- 🐞🩹 let `<Form onSubmitCompleted$>` accept an inline handler again, like native `on*$` events (by [@tzdesign](https://github.com/tzdesign) in [#9204](https://github.com/QwikDev/qwik/pull/9204))
+
+- 🐞🩹 the router serializes less state into every page (by [@maiieul](https://github.com/maiieul) in [#9090](https://github.com/QwikDev/qwik/pull/9090))
+
+- 🐞🩹 `routeLoader$` signal `invalidate()` and `usePoll` now re-fetch, honoring the loader's cache headers (by [@wmertens](https://github.com/wmertens) in [#9202](https://github.com/QwikDev/qwik/pull/9202))
+
+- 🐞🩹 type `routeLoader$` signals as computed signals so `invalidate()` and `usePoll` type-check (by [@wmertens](https://github.com/wmertens) in [#9202](https://github.com/QwikDev/qwik/pull/9202))
+
+- 🐞🩹 `useLocation().isNavigating` stays true until a navigation that reuses the current route component has rendered its new loader data (by [@intellix](https://github.com/intellix) in [#9201](https://github.com/QwikDev/qwik/pull/9201))
+
+- 🐞🩹 exclude /manifest.json (not /mainifest.json) from the Netlify Edge function by default (by [@musatoktas](https://github.com/musatoktas) in [#9187](https://github.com/QwikDev/qwik/pull/9187))
+
+- 🐞🩹 match routes that continue after a `[...rest]` segment, such as `[...path]/product/[id]` (by [@tzdesign](https://github.com/tzdesign) in [#9198](https://github.com/QwikDev/qwik/pull/9198))
+
+- 🐞🩹 SPA navigation no longer needs serialized router tasks in every page (by [@maiieul](https://github.com/maiieul) in [#9091](https://github.com/QwikDev/qwik/pull/9091))
+
+- 🐞🩹 `cacheControl` with zero values no longer drops directives or sets an empty header (by [@intellix](https://github.com/intellix) in [#9173](https://github.com/QwikDev/qwik/pull/9173))
+
+- Updated dependencies [[`1b6a280`](https://github.com/QwikDev/qwik/commit/1b6a280e18c23fa12fad674ed1d97ba0d5c1f8c5), [`b1b6348`](https://github.com/QwikDev/qwik/commit/b1b634884225ab5264da90b620a7429058c39959), [`1520d59`](https://github.com/QwikDev/qwik/commit/1520d594520e084dba41bdb113bf9ef80a6317f4), [`dc8f84e`](https://github.com/QwikDev/qwik/commit/dc8f84e6f646de7c6fc59f97dd28cf622181857c), [`db38699`](https://github.com/QwikDev/qwik/commit/db3869989e9fb9a3e73d837ff5a7b6cb5116ce94), [`4fc6e66`](https://github.com/QwikDev/qwik/commit/4fc6e660a7529be2414eb1298418395e65801dd0)]:
+  - @qwik.dev/core@2.0.0-rc.3
+
 ## 2.0.0-rc.2
 
 ### Patch Changes

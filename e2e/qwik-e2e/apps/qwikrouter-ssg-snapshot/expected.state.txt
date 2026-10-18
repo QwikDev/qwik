@@ -145,7 +145,7 @@
           Array [
             RootRef [omitted]
           ]
-          {number} 3
+          {number} 0
           VNode "13A"
           EffectSubscriptionNoData [
             RootRef [omitted]
@@ -190,7 +190,7 @@
           Array [
             RootRef [omitted]
           ]
-          {number} 3
+          {number} 0
           VNode "8"
           EffectSubscription [
             RootRef [omitted]

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { createServer, build } from 'vite';
-import { chromium } from '@playwright/test';
+import { chromium, type Page } from '@playwright/test';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { qwikRouter } from '@qwik.dev/router/vite';
 import { Client } from '@modelcontextprotocol/client';
@@ -11,6 +11,25 @@ import { join } from 'node:path';
 import { request } from 'node:http';
 import { tmpdir } from 'node:os';
 import { qwikMcp } from '../dist/index.js';
+import { QWIK_DEVTOOLS_GLOBAL } from '../../devtools/kit/src/protocol/globals';
+
+/** Maps each hook recorded for the component in `file` to the `typeof` of its data. */
+const readHookDataTypes = (page: Page, file: string) =>
+  page.evaluate(
+    ({ key, componentState, file }) => {
+      const state: Record<string, { hooks: { variableName: string; data: unknown }[] }> =
+        (window as any)[key]?.[componentState] ?? {};
+      const component = Object.entries(state).find(([path]) => path.includes(file))?.[1];
+      return Object.fromEntries(
+        (component?.hooks ?? []).map((hook) => [hook.variableName, typeof hook.data])
+      );
+    },
+    {
+      key: QWIK_DEVTOOLS_GLOBAL.key,
+      componentState: QWIK_DEVTOOLS_GLOBAL.props.componentState,
+      file,
+    }
+  );
 
 test('bundled documentation works over stdio without Vite or a project directory', async () => {
   const client = new Client({ name: 'offline-docs', version: '1' });
@@ -162,9 +181,13 @@ for (const mode of ['csr', 'ssr']) {
       const page = await browser.newPage();
       const pageErrors: string[] = [];
       page.on('pageerror', (error) => pageErrors.push(error.message));
-      page.on('requestfailed', (request) =>
-        pageErrors.push(request.url() + ': ' + request.failure()?.errorText)
-      );
+      page.on('requestfailed', (request) => {
+        const errorText = request.failure()?.errorText;
+        // Navigations abort in-flight requests; those are not page errors.
+        if (errorText !== 'net::ERR_ABORTED') {
+          pageErrors.push(request.url() + ': ' + errorText);
+        }
+      });
       page.on('console', (message) => {
         if (message.type() === 'error') {
           pageErrors.push(message.text());
@@ -188,10 +211,13 @@ for (const mode of ['csr', 'ssr']) {
         url,
         selector: '#counter',
         matches: 1,
-        source:
-          mode === 'ssr'
-            ? { file: '/src/routes/index.tsx', line: 5, column: 5, tag: 'button', exact: true }
-            : null,
+        source: {
+          file: mode === 'ssr' ? '/src/routes/index.tsx' : '/src/root.tsx',
+          line: mode === 'ssr' ? 5 : 11,
+          column: 5,
+          tag: 'button',
+          exact: true,
+        },
       });
       if (mode === 'csr') {
         await expect
@@ -203,6 +229,10 @@ for (const mode of ['csr', 'ssr']) {
             { timeout: 10000 }
           )
           .toEqual(expect.arrayContaining([expect.objectContaining({ name: 'count', value: 0 })]));
+        // Nothing is serialized on the client, so every custom hook value is kept.
+        await expect
+          .poll(() => readHookDataTypes(page, 'root.tsx'))
+          .toEqual({ count: 'object', label: 'function' });
       }
       await page.locator('#counter').click();
       await expect
@@ -303,6 +333,27 @@ for (const mode of ['csr', 'ssr']) {
             expect.objectContaining({ name: 'default' }),
             expect.objectContaining({ name: 'SomeInternalCmp' }),
           ]);
+        await page.goto(url + 'custom-hooks/');
+        await page.getByText('Custom hook count: 0').waitFor();
+        await expect
+          .poll(async () =>
+            (await call('inspect_page')).structuredContent?.components?.flatMap(
+              (component: any) => component.hooks
+            )
+          )
+          .toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({ variableName: 'counter', hookType: 'customhook' }),
+              expect.objectContaining({ variableName: 'label', hookType: 'customhook' }),
+            ])
+          );
+        // SSR keeps serializable custom hook values and drops the rest.
+        expect(await readHookDataTypes(page, 'custom-hooks/')).toEqual({
+          counter: 'object',
+          label: 'undefined',
+          onClick: 'function',
+        });
+        expect(pageErrors).toEqual([]);
         await page.goto(url);
         await page.locator('#counter').waitFor();
       } else {

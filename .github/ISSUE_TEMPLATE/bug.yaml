@@ -16,6 +16,7 @@ body:
         - Qwik Runtime
         - Qwik Rollup / Vite plugin
         - Qwik Optimizer (rust)
+        - Qwik Optimizer (typescript)
         - Qwik React
         - Qwik Router
         - Starters / CLI

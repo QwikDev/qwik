@@ -48,10 +48,13 @@ class MockIntersectionObserver {
   }
 }
 
-const createAnchor = (href: string, mode: string) => {
+const createAnchor = (href: string, mode: string, routeName?: string) => {
   const anchor = document.createElement('a') as HTMLAnchorElement;
   anchor.setAttribute('q:link', '');
   anchor.setAttribute('data-q-prefetch', mode);
+  if (routeName) {
+    anchor.setAttribute('data-q-route', routeName);
+  }
   anchor.setAttribute('href', href);
   anchor.href = href;
   document.body.appendChild(anchor);
@@ -103,21 +106,34 @@ describe('link prefetch observer', () => {
   });
 
   it('prefetches route bundles and visible route data according to the mode', () => {
-    const anchor = createAnchor('http://localhost/next/', 'bd');
+    const anchor = createAnchor('http://localhost/next/', 'bd', '/next');
 
     const cleanup = createObserver();
     const observer = MockIntersectionObserver.instances[0];
     observer.trigger(anchor);
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
-    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next/');
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next');
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false);
     cleanup();
   });
 
+  it('preloads bundles by the route name the link rendered', () => {
+    const dynamic = createAnchor('http://localhost/product/hoodie-01/', 'b', '/product/[id]');
+    const unmatched = createAnchor('http://localhost/missing/', 'b');
+
+    const cleanup = createObserver();
+    MockIntersectionObserver.instances[0].trigger(dynamic);
+    MockIntersectionObserver.instances[0].trigger(unmatched);
+
+    expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/product/[id]');
+    cleanup();
+  });
+
   it('does not prefetch the same anchor twice before reset', () => {
-    const anchor = createAnchor('http://localhost/next/', 'b');
+    const anchor = createAnchor('http://localhost/next/', 'b', '/next');
 
     const cleanup = createObserver();
     const observer = MockIntersectionObserver.instances[0];
@@ -130,7 +146,7 @@ describe('link prefetch observer', () => {
   });
 
   it('allows the same anchor to prefetch again after reset', () => {
-    const anchor = createAnchor('http://localhost/next/', 'b');
+    const anchor = createAnchor('http://localhost/next/', 'b', '/next');
 
     const cleanup = createObserver();
     MockIntersectionObserver.instances[0].trigger(anchor);

@@ -25,6 +25,7 @@ import {
 import { getSubscriber } from '../subscriber';
 import { EffectProperty, ComputedSignalFlags } from '../types';
 import type { ComputedSignalImpl } from './computed-signal-impl';
+import { WrappedSignalImpl } from './wrapped-signal-impl';
 
 class Foo {
   constructor(public val: number = 0) {}
@@ -265,6 +266,156 @@ describe('signal', () => {
         expect(log).toEqual([1, 2]);
       });
     });
+    describe('diamond', () => {
+      it('recomputes each node once and never with stale sources', async () => {
+        await withContainer(async () => {
+          const a = createSignal(1);
+          const computeLog: string[] = [];
+          const b = createComputed$(() => {
+            computeLog.push('b');
+            return a.value * 2;
+          });
+          const c = createComputed$(() => {
+            computeLog.push('c');
+            return a.value * 3;
+          });
+          const d = createComputed$(() => {
+            const sum = b.value + c.value;
+            computeLog.push('d=' + sum);
+            return sum;
+          });
+          effect$(() => log.push(d.value));
+          expect(log).toEqual([5]);
+          computeLog.length = 0;
+          a.value = 2;
+          expect(computeLog.sort()).toEqual(['b', 'c', 'd=10']);
+          await flushSignals();
+          expect(log).toEqual([5, 10]);
+        });
+      });
+
+      it('recomputes a deep chain with a shortcut edge once', async () => {
+        await withContainer(async () => {
+          const a = createSignal(1);
+          const computeLog: string[] = [];
+          const b = createComputed$(() => a.value + 1);
+          const c = createComputed$(() => b.value + 1);
+          const d = createComputed$(() => {
+            const sum = a.value + c.value;
+            computeLog.push('d=' + sum);
+            return sum;
+          });
+          effect$(() => log.push(d.value));
+          expect(log).toEqual([4]);
+          computeLog.length = 0;
+          a.value = 2;
+          expect(computeLog).toEqual(['d=6']);
+          await flushSignals();
+          expect(log).toEqual([4, 6]);
+        });
+      });
+
+      it('skips plain signal sources while resolving a maybe-dirty node', async () => {
+        await withContainer(async () => {
+          const a = createSignal(1);
+          const plain = createSignal(1);
+          const computeLog: string[] = [];
+          const c = createComputed$(() => a.value * 3);
+          const d = createComputed$(() => {
+            const sum = plain.value + c.value;
+            computeLog.push('d=' + sum);
+            return sum;
+          });
+          effect$(() => log.push(d.value));
+          expect(log).toEqual([4]);
+          computeLog.length = 0;
+          a.value = 2;
+          expect(computeLog).toEqual(['d=7']);
+          await flushSignals();
+          expect(log).toEqual([4, 7]);
+        });
+      });
+
+      it('does not run effects when the recomputed value is unchanged', async () => {
+        await withContainer(async () => {
+          const a = createSignal(1);
+          const computeLog: string[] = [];
+          const c = createComputed$(() => {
+            computeLog.push('c');
+            return a.value > 5;
+          });
+          effect$(() => log.push(c.value));
+          expect(log).toEqual([false]);
+          computeLog.length = 0;
+          a.value = 2;
+          expect(computeLog).toEqual(['c']);
+          await flushSignals();
+          expect(log).toEqual([false]);
+        });
+      });
+
+      it('recomputes a computed without subscribers lazily on read', async () => {
+        await withContainer(() => {
+          const a = createSignal(1);
+          const computeLog: string[] = [];
+          const b = createComputed$(() => {
+            computeLog.push('b');
+            return a.value * 2;
+          });
+          expect(b.value).toBe(2);
+          computeLog.length = 0;
+          a.value = 2;
+          expect(computeLog).toEqual([]);
+          expect(b.value).toBe(4);
+          expect(computeLog).toEqual(['b']);
+        });
+      });
+
+      it('recomputes once through two wrapped views of one signal', async () => {
+        await withContainer(async () => {
+          const a = createSignal(1);
+          const readValue = (signal: Signal<number>) => signal.value;
+          const left = new WrappedSignalImpl(container, readValue, [a], null);
+          const right = new WrappedSignalImpl(container, readValue, [a], null);
+          const computeLog: string[] = [];
+          const d = createComputed$(() => {
+            const sum = left.value + right.value;
+            computeLog.push('d=' + sum);
+            return sum;
+          });
+          effect$(() => log.push(d.value));
+          expect(log).toEqual([2]);
+          computeLog.length = 0;
+          a.value = 2;
+          expect(computeLog).toEqual(['d=4']);
+          await flushSignals();
+          expect(log).toEqual([2, 4]);
+        });
+      });
+
+      it('caches a wrapped signal between untracked reads', async () => {
+        await withContainer(() => {
+          const a = createSignal(1);
+          const reads = { count: 0 };
+          const wrapped = new WrappedSignalImpl(
+            container,
+            (signal: Signal<number>) => {
+              reads.count++;
+              return signal.value;
+            },
+            [a],
+            null
+          );
+          expect(wrapped.value).toBe(1);
+          expect(wrapped.value).toBe(1);
+          expect(reads.count).toBe(1);
+          a.value = 2;
+          expect(wrapped.value).toBe(2);
+          expect(reads.count).toBe(2);
+        });
+      });
+    });
+
     describe('wrapped', () => {
       it('should not re-wrap wrapped signal', () => {
         const signal = createSignal(1);

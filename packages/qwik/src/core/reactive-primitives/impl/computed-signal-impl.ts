@@ -30,6 +30,8 @@ import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  invalidateDerived,
+  pullSourcesIfCheck,
   scheduleEffects,
   throwIfQRLNotResolved,
 } from '../utils';
@@ -201,15 +203,19 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$info$ = info;
       this.$infoVersion$ = this.$infoVersion$ === undefined ? 1 : this.$infoVersion$ + 1;
     }
-    if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
-      this.$setInvalid$(true);
-      return;
-    }
-    this.$flags$ |= ComputedSignalFlags.INVALID;
+    invalidateDerived(this);
+  }
+
+  /** Recompute now; a thrown QRL promise retries. Async signals only resolve CHECK here. */
+  $pull$(): void {
     const ctx = newInvokeContext();
     ctx.$container$ = this.$container$ || undefined;
+    const compute =
+      this.$flags$ & AsyncSignalFlags.ASYNC_MODE
+        ? () => pullSourcesIfCheck(this)
+        : this.$computeIfNeeded$;
     // @ts-expect-error it's confused about args any[] vs []
-    const running = retryOnPromise(invokeApply.bind(this, ctx, this.$computeIfNeeded$));
+    const running = retryOnPromise(invokeApply.bind(this, ctx, compute));
     if (isPromise(running)) {
       running.catch((err: unknown) => {
         if (this.$container$) {
@@ -442,7 +448,13 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   /** Run the computation if needed */
   $computeIfNeeded$(): void {
-    if (this.$disposed$ || !(this.$flags$ & ComputedSignalFlags.INVALID)) {
+    if (this.$disposed$) {
+      return;
+    }
+    if (this.$flags$ & ComputedSignalFlags.CHECK) {
+      pullSourcesIfCheck(this);
+    }
+    if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
     if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
@@ -688,7 +700,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       return;
     }
     this.$disposed$ = true;
-    this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    this.$flags$ &= ~ComputedSignalFlags.DIRTY_FLAGS;
     clearTimeout(this.$computationTimeoutId$);
     if (this.$container$) {
       clearAllEffects(this.$container$, this);

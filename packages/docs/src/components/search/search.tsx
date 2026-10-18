@@ -1,6 +1,8 @@
 import {
+  $,
   component$,
   noSerialize,
+  sync$,
   useComputed$,
   useSignal,
   useStyles$,
@@ -155,8 +157,47 @@ export const SearchModal = component$(() => {
 
   return (
     <modal.root bind:open={isOpen}>
-      <modal.trigger class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 lg:h-[76px] lg:px-5 cursor-pointer">
-        <lucide.search class="size-6 text-foreground-base" />
+      <modal.trigger
+        aria-label="Search docs"
+        aria-keyshortcuts="/ Control+K Meta+K"
+        class="w-fit flex items-center gap-2 group ui-open:text-standalone-accent transition-colors duration-200 lg:h-[76px] lg:px-5 cursor-pointer"
+      >
+        <span
+          class="flex"
+          document:onKeyDown$={[
+            // preventDefault only works synchronously, before the handler chunk loads.
+            sync$((event: SearchShortcutEvent, host: HTMLElement): void => {
+              const isCtrlK =
+                event.key.toLowerCase() === 'k' &&
+                (event.ctrlKey || event.metaKey) &&
+                !event.shiftKey &&
+                !event.altKey;
+              const isSlash = event.key === '/' && !event.ctrlKey && !event.metaKey;
+              const target = event.target as HTMLElement | null;
+              const isEditing =
+                !!target &&
+                (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+              if ((!isCtrlK && !isSlash) || isEditing) {
+                return;
+              }
+              // The header renders several search modals; only the usable one reacts.
+              const trigger = host.closest('button');
+              const openModal = document.querySelector(':modal');
+              if (!trigger?.checkVisibility() || (openModal && !openModal.contains(trigger))) {
+                return;
+              }
+              event.preventDefault();
+              event.searchShortcutHost = host;
+            }),
+            $((event: SearchShortcutEvent, host: HTMLElement) => {
+              if (event.searchShortcutHost === host) {
+                isOpen.value = true;
+              }
+            }),
+          ]}
+        >
+          <lucide.search class="size-6 text-foreground-base" />
+        </span>
       </modal.trigger>
 
       <modal.content
@@ -204,6 +245,9 @@ export const SearchModal = component$(() => {
     </modal.root>
   );
 });
+
+// Set by the sync$ keydown handler so only the matching modal's lazy handler opens it.
+type SearchShortcutEvent = KeyboardEvent & { searchShortcutHost?: HTMLElement };
 
 const SearchIdle = component$(() => {
   const group: SearchResultGroup = {

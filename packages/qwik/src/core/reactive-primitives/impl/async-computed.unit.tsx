@@ -131,6 +131,92 @@ describe('async computed', () => {
     });
   });
 
+  it('keeps a sync computed consistent across an async source in a diamond', async () => {
+    await withContainer(async () => {
+      const a = createSignal(1);
+      const b = createComputed$(async () => {
+        const base = a.value;
+        await delay(1);
+        return base * 2;
+      });
+      const c = createComputed$(() => a.value * 3);
+      const d = createComputed$(() => b.value + c.value);
+
+      await retryOnPromise(() => {
+        effect$(() => log.push(d.value));
+      });
+      expect(log).toEqual([5]);
+
+      a.value = 2;
+      // the sync branch is applied right away while b still publishes its old value
+      expect(d.value).toBe(8);
+      expect(b.pending).toBe(true);
+      await container.$renderPromise$;
+      expect(log).toEqual([5, 8]);
+      await b.promise();
+      expect(b.pending).toBe(false);
+      expect(d.value).toBe(10);
+    });
+  });
+
+  it('restarts an async computed below sync computeds, once per tick', async () => {
+    await withContainer(async () => {
+      const a = createSignal(1);
+      const b = createComputed$(() => a.value * 2);
+      const c = createComputed$(() => a.value * 3);
+      const jobs = { count: 0 };
+      const d = createComputed$(async () => {
+        jobs.count++;
+        const sum = b.value + c.value;
+        await delay(1);
+        return sum;
+      });
+
+      await retryOnPromise(() => {
+        effect$(() => log.push(d.value));
+      });
+      expect(log).toEqual([5]);
+      expect(jobs.count).toBe(1);
+
+      a.value = 2;
+      a.value = 3;
+      // nothing reads d: the graph itself must restart the job
+      await delay(20);
+      await container.$renderPromise$;
+      expect(jobs.count).toBe(2);
+      expect(log).toEqual([5, 15]);
+    });
+  });
+
+  it('does not restart an async computed when its sync sources recompute unchanged', async () => {
+    await withContainer(async () => {
+      const a = createSignal(1);
+      const isBig = createComputed$(() => a.value > 5);
+      const jobs = { count: 0 };
+      const d = createComputed$(async () => {
+        jobs.count++;
+        const big = isBig.value;
+        await delay(1);
+        return big ? 'big' : 'small';
+      });
+
+      await retryOnPromise(() => {
+        effect$(() => log.push(d.value));
+      });
+      expect(log).toEqual(['small']);
+
+      a.value = 2;
+      await delay(20);
+      expect(jobs.count).toBe(1);
+
+      a.value = 6;
+      await delay(20);
+      await container.$renderPromise$;
+      expect(jobs.count).toBe(2);
+      expect(log).toEqual(['small', 'big']);
+    });
+  });
+
   it('should expose pending state and notify pending subscribers', async () => {
     await withContainer(async () => {
       const ref: { resolve?: (v: number) => void } = {};

@@ -1,0 +1,94 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { Child } from './child';
+
+export default component$((props: { label: string }) => {
+	const items = useSignal<string[]>([]);
+	const visible = items.value.slice(0, 5);
+	const state = { open: items.value.length > 0 };
+	return (
+		<Child
+			renderLocal={visible.length > 0}
+			renderLocalMember={state.open}
+			signal={items.value.length > 0}
+			param={props.label}
+		/>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,6BAAe,2CAYZ\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { Child } from "./child";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+const _hf0 = (p0)=>p0.length > 0;
+const _hf0_str = "p0.length>0";
+const _hf1 = (p0)=>p0.value.length > 0;
+const _hf1_str = "p0.value.length>0";
+export const test_component_LUXeXe0DQrg = (props)=>{
+    const items = useSignal([]);
+    const visible = items.value.slice(0, 5);
+    const state = {
+        open: items.value.length > 0
+    };
+    return /*#__PURE__*/ _jsxSorted(Child, {
+        renderLocal: _fnSignal(_hf0, [
+            visible
+        ], _hf0_str),
+        renderLocalMember: _wrapProp(state, "open")
+    }, {
+        signal: _fnSignal(_hf1, [
+            items
+        ], _hf1_str),
+        param: _wrapProp(props, "label")
+    }, null, 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;mBAUgB,GAAQ,MAAM,GAAG;;mBAEtB,GAAM,KAAK,CAAC,MAAM,GAAG;;0CARN,CAAC;IAC1B,MAAM,QAAQ,UAAoB,EAAE;IACpC,MAAM,UAAU,MAAM,KAAK,CAAC,KAAK,CAAC,GAAG;IACrC,MAAM,QAAQ;QAAE,MAAM,MAAM,KAAK,CAAC,MAAM,GAAG;IAAE;IAC7C,qBACC,WAAC;QACA,WAAW;;;QACX,iBAAiB,YAAE;;QACnB,MAAM;;;QACN,KAAK,YAAE;;AAGV\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    118,
+    438
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

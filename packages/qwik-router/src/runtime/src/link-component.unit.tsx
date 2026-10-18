@@ -13,6 +13,14 @@ vi.mock('./prefetch-route', () => ({
   prefetchRoute: prefetchRouteMock,
 }));
 
+const page = () => Promise.resolve({});
+vi.mock('./router-config', async (importOriginal) => ({
+  ...((await importOriginal()) as object),
+  findRouterConfig: () => ({
+    routes: { test: { _I: page }, product: { _W: { _P: 'id', _I: page } } },
+  }),
+}));
+
 vi.mock('./utils.ts', async (importOriginal) => {
   const mod = (await importOriginal()) as any;
   return {
@@ -94,6 +102,16 @@ describe.each([
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
+  });
+
+  it('renders the route name of the link target for bundle prefetch', async () => {
+    getClientNavPathMock.mockReturnValue('/product/hoodie-01/');
+    const dynamic = await renderLink(render);
+    expect(dynamic.anchor.getAttribute('data-q-route')).toBe('/product/[id]');
+
+    getClientNavPathMock.mockReturnValue('/missing/');
+    const unmatched = await renderLink(render);
+    expect(unmatched.anchor.hasAttribute('data-q-route')).toBe(false);
   });
 
   it('prefetches route data on intent', async () => {

@@ -17,7 +17,7 @@ import {
   getBuildAnalysisRpcGuardError,
   getBuildAnalysisRpcGuardHint,
   isBuildAnalysisRpcAllowed,
-} from './security';
+} from '../rpc/security';
 
 const BUILD_ANALYSIS_VIEW_PATH = '/__qwik_devtools/build-analysis/report';
 const BUILD_ANALYSIS_DIR = path.join('.qwik-devtools', 'build-analysis');
@@ -287,10 +287,9 @@ export function getBuildAnalysisFunctions(
 ): Pick<ServerFunctions, 'getBuildAnalysisStatus' | 'buildBuildAnalysisReport'> {
   return {
     async getBuildAnalysisStatus(): Promise<BuildAnalysisStatus> {
+      const canTriggerBuild = isBuildAnalysisRpcAllowed(getServerRpcRequestContext()?.client);
       const reportPath = resolveBuildAnalysisHtmlPath(ctx.config.root);
       const { command } = await resolveBuildScript(ctx.config.root);
-      const rpcClient = getServerRpcRequestContext()?.client;
-      const canTriggerBuild = isBuildAnalysisRpcAllowed(rpcClient);
 
       return {
         exists: await fileExists(reportPath),

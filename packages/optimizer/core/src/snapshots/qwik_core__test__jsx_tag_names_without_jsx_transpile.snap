@@ -1,0 +1,60 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+import { title } from './i18n';
+
+export const Logo = <svg title="logo" />;
+
+export const Cmp = component$(() => {
+	const div = 1;
+	return <div />;
+});
+
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.tsx (ENTRY POINT)==
+
+export const Cmp_component_4ryKJTOKjWE = ()=>{
+    return <div/>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yCAM8B;IAE7B,QAAQ;AACT\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    153,
+    195
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Logo = <svg title="logo"/>;
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIA,OAAO,MAAM,QAAQ,IAAI,MAAM,SAAU;AAEzC,OAAO,MAAM,oBAAM,0CAGhB\"}")
+== DIAGNOSTICS ==
+
+[]

@@ -655,6 +655,34 @@ describe.each([
       (globalThis as any).log = undefined;
     });
 
+    it('should run visible task once when invalidated by a signal and a ref it mounts', async () => {
+      (globalThis as any).log = [] as string[];
+      const Cmp = component$(() => {
+        const show = useSignal(false);
+        const el = useSignal<HTMLElement>();
+        useVisibleTask$(({ track }) => {
+          track(show);
+          track(el);
+          (globalThis as any).log.push(`visible task: ${show.value} ${!!el.value}`);
+          return () => (globalThis as any).log.push('cleanup');
+        });
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}>toggle</button>
+            {show.value && <div ref={el}>shown</div>}
+          </>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      await trigger(document.body, 'button', 'qvisible');
+      expect((globalThis as any).log).toEqual(['visible task: false false']);
+      (globalThis as any).log = [];
+      await trigger(document.body, 'button', 'click');
+      expect((globalThis as any).log).toEqual(['cleanup', 'visible task: true true']);
+      (globalThis as any).log = undefined;
+    });
+
     it('should execute cleanup visible task on unmount', async () => {
       (globalThis as any).log = [] as string[];
       const Child = component$(() => {
@@ -723,6 +751,63 @@ describe.each([
         </Component>
       );
       (globalThis as any).log = undefined;
+    });
+
+    it('#9203 - should run visible task cleanups for nested components', async () => {
+      (globalThis as any).log = [] as string[];
+      const Grandchild = component$(() => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('Grandchild mounted');
+          cleanup(() => (globalThis as any).log.push('Grandchild cleanup'));
+        });
+        return <p id="grandchild">Grandchild</p>;
+      });
+      const Child = component$(() => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('Child mounted');
+          cleanup(() => (globalThis as any).log.push('Child cleanup'));
+        });
+        return (
+          <div id="child">
+            <p>Child</p>
+            <Grandchild />
+          </div>
+        );
+      });
+      const Parent = component$(() => {
+        const show = useSignal(true);
+        return (
+          <main>
+            <button
+              onClick$={() => {
+                show.value = false;
+              }}
+            >
+              Remove
+            </button>
+            {show.value && <Child />}
+          </main>
+        );
+      });
+
+      try {
+        const { document, container } = await render(<Parent />, { debug });
+        await trigger(document.body, '#child', 'qvisible');
+        await trigger(document.body, '#grandchild', 'qvisible');
+        expect((globalThis as any).log).toEqual(['Child mounted', 'Grandchild mounted']);
+
+        await trigger(document.body, 'button', 'click');
+        await waitForDrain(container);
+        expect(document.querySelectorAll('#child').length).toBe(0);
+        expect((globalThis as any).log).toEqual([
+          'Child mounted',
+          'Grandchild mounted',
+          'Child cleanup',
+          'Grandchild cleanup',
+        ]);
+      } finally {
+        (globalThis as any).log = undefined;
+      }
     });
 
     it('should run cleanup with component rerender', async () => {

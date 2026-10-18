@@ -362,7 +362,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> \n```\n**Extends:** Omit&lt;QwikJSX.IntrinsicElements\\['form'\\], 'action' \\| 'method'&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\naction?\n\n\n</td><td>\n\n\n</td><td>\n\n[ActionStore](#actionstore)<!-- -->&lt;O, I, true \\| false&gt;\n\n\n</td><td>\n\n_(Optional)_ Reference to the action returned by `action()`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nkey?\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nonSubmitCompleted$?\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.\n\n\n</td></tr>\n<tr><td>\n\nreloadDocument?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.\n\n\n</td></tr>\n<tr><td>\n\nspaReset?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.\n\nDefaults to `false`\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> \n```\n**Extends:** Omit&lt;QwikJSX.IntrinsicElements\\['form'\\], 'action' \\| 'method'&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\naction?\n\n\n</td><td>\n\n\n</td><td>\n\n[ActionStore](#actionstore)<!-- -->&lt;O, I, true \\| false&gt;\n\n\n</td><td>\n\n_(Optional)_ Reference to the action returned by `action()`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\nkey?\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nonSubmitCompleted$?\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, HTMLFormElement&gt; \\| EventHandler&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right after the action is executed successfully and returns some data. Like the native `on*$` events, it accepts an inline function as well as a QRL.\n\n\n</td></tr>\n<tr><td>\n\nreloadDocument?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.\n\n\n</td></tr>\n<tr><td>\n\nspaReset?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.\n\nDefaults to `false`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx",
       "mdFile": "router.formprops.md"
     },
@@ -599,8 +599,8 @@
           "id": "loadersignal"
         }
       ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<ComputedSignal<any>, 'promise'>;\n```",
+      "kind": "Interface",
+      "content": "```typescript\nexport interface LoaderSignal<TYPE> extends ComputedSignal<TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ValueOrPromise<VALIDATOR> : TYPE> \n```\n**Extends:** ComputedSignal&lt;TYPE extends () =&gt; ValueOrPromise&lt;infer VALIDATOR&gt; ? ValueOrPromise&lt;VALIDATOR&gt; : TYPE&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loadersignal.md"
     },
@@ -1244,7 +1244,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nuseHttpStatus: () => import(\"./types\").HttpStatus\n```\n**Returns:**\n\nimport(\"./types\").[HttpStatus](#httperrorprops)",
+      "content": "```typescript\nuseHttpStatus: () => HttpStatus\n```\n**Returns:**\n\n[HttpStatus](#httperrorprops)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts",
       "mdFile": "router.usehttpstatus.md"
     },

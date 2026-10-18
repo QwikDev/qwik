@@ -24,6 +24,7 @@ import {
   render,
   setPlatform,
   useComputed$,
+  useContext,
   useContextProvider,
   Slot,
   useTask$,
@@ -33,6 +34,7 @@ import {
   Fragment as Signal,
   type Signal as SignalType,
 } from '@qwik.dev/core';
+import { _DomContainer } from '@qwik.dev/core/internal';
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
 import { useCatchStore } from '../use/use-catch-store';
 import { isServerPlatform } from '../shared/platform/platform';
@@ -1161,6 +1163,38 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
+  it('should keep a component after the segment parent element reactive', async () => {
+    const Slow = component$(() => {
+      const data = useComputed$(async () => {
+        await delay(10);
+        return 'resolved';
+      });
+      return <p>{data.value}</p>;
+    });
+    const Counter = component$(() => {
+      const count = useSignal(0);
+      return <button onClick$={() => count.value++}>count: {count.value}</button>;
+    });
+    const chunks: string[] = [];
+
+    const { document, container } = await ssrRenderPendingStream(
+      <>
+        <main>
+          <Pending fallback$={() => <p>loading…</p>}>
+            <Slow />
+          </Pending>
+        </main>
+        <Counter />
+      </>,
+      chunks
+    );
+
+    expect(chunks.join('')).toContain('qO(1)');
+    expect(getParagraphHost(document, 'resolved')).not.toBeUndefined();
+    await trigger(container.element, 'button', 'click');
+    expect(document.querySelector('button')!.textContent).toBe('count: 1');
+  });
+
   it('should preserve a slow root forward ref when a later segment has a faster forward ref', async () => {
     let resolveRootPromise!: (value: string) => void;
     let resolveSegment!: (value: JSXOutput) => void;
@@ -1791,6 +1825,71 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
+  it('should keep shell vnode ids when a resolved segment patches shell vnode data', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+
+    const ShellReader = component$((props: { state: { url: string } }) => {
+      const url = props.state.url;
+      const missing = url === '/' ? undefined : url;
+      return (
+        <button
+          id="ooos-shell-capture"
+          onClick$={() => {
+            (globalThis as any).__ooosShellCapture = [props.state.url, missing];
+          }}
+        >
+          {url}
+        </button>
+      );
+    });
+    const SegmentReader = component$((props: { other: SignalType<string> }) => {
+      const other = props.other.value;
+      return <span>{other}</span>;
+    });
+    const Slide = component$((props: { other: SignalType<string> }) => (
+      <>
+        {slow}
+        <b>{props.other.value}</b>
+      </>
+    ));
+    const App = component$(() => {
+      const state = useStore({ url: '/' });
+      const other = useSignal('other');
+      return (
+        <main>
+          <ShellReader state={state} />
+          <SegmentReader other={other} />
+          <Pending fallback$={() => <p>Waiting shell vnode ids</p>}>
+            <Slide other={other} />
+          </Pending>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
+
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting shell vnode ids'));
+    resolveSlow(<span>Ready shell vnode ids</span>);
+    const { document, container } = await renderPromise;
+
+    const getVNodeIds = (selector: string) =>
+      Array.from(document.querySelector(selector)!.textContent!.matchAll(/=(\d+)/g), (m) => m[1]);
+    const shellIds = getVNodeIds('script[type="qwik/vnode"]:not([q\\:patch]):not([q\\:r])');
+    const patchIds = getVNodeIds('script[type="qwik/vnode"][q\\:patch]');
+    expect(patchIds.length).toBeGreaterThan(0);
+    expect(shellIds).toEqual(expect.arrayContaining(patchIds));
+    try {
+      await trigger(container.element, '#ooos-shell-capture', 'click');
+      expect((globalThis as any).__ooosShellCapture).toEqual(['/', undefined]);
+    } finally {
+      delete (globalThis as any).__ooosShellCapture;
+    }
+  });
+
   it('should merge resolved segment effects for root-owned stores', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
@@ -1858,6 +1957,60 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     } finally {
       delete (globalThis as any).__ooosUnitStoreShellValue;
       delete (globalThis as any).__ooosUnitStoreResolvedValue;
+    }
+  });
+
+  it('should not report an error when a resolved segment attribute reads a root-owned store through a computed', async () => {
+    const storeContext = createContextId<{ count: number }>('ooos-unit-computed-attr');
+    const Slow = component$(() => {
+      const store = useContext(storeContext);
+      const text = useComputed$(async () => {
+        await delay(10);
+        return 'Ready computed attr';
+      });
+      const href = useComputed$(() => `/item/${store.count}/`);
+      return (
+        <a id="ooos-unit-computed-attr" href={href.value}>
+          {text.value}
+        </a>
+      );
+    });
+    const App = component$(() => {
+      const store = useStore({ count: 1 });
+      useContextProvider(storeContext, store);
+      return (
+        <>
+          <button id="ooos-unit-computed-attr-button" onClick$={() => store.count++}></button>
+          <Pending fallback$={() => <p>Waiting computed attr</p>}>
+            <Slow />
+          </Pending>
+        </>
+      );
+    });
+    const handleErrorSpy = vi
+      .spyOn(_DomContainer.prototype, 'handleError')
+      .mockImplementation(() => {});
+
+    try {
+      const { document, container } = await ssrRenderPendingStream(<App />, []);
+      await waitForDrain(container);
+
+      const link = document.querySelector('#ooos-unit-computed-attr')!;
+      expect(handleErrorSpy).not.toHaveBeenCalled();
+      expect(link.getAttribute('href')).toBe('/item/1/');
+      expect(link.textContent).toBe('Ready computed attr');
+
+      await trigger(container.element, '#ooos-unit-computed-attr-button', 'click');
+      await waitForDrain(container);
+      expect(handleErrorSpy).not.toHaveBeenCalled();
+      expect(link.getAttribute('href')).toBe('/item/2/');
+
+      await trigger(container.element, '#ooos-unit-computed-attr-button', 'click');
+      await waitForDrain(container);
+      expect(handleErrorSpy).not.toHaveBeenCalled();
+      expect(link.getAttribute('href')).toBe('/item/3/');
+    } finally {
+      handleErrorSpy.mockRestore();
     }
   });
 
@@ -2104,6 +2257,75 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     } finally {
       delete (globalThis as any).__ooosUnitCrossSignalSecondValue;
     }
+  });
+
+  it('should resume a segment that receives a signal holding undefined', async () => {
+    let resolveData!: (value: string) => void;
+    const dataPromise = new Promise<string>((resolve) => {
+      resolveData = resolve;
+    });
+    const Reader = component$(
+      (props: { data: { value: string }; extra?: { value: number | undefined }; id: string }) => (
+        <p id={props.id}>
+          {props.data.value}:{String(props.extra?.value ?? 'none')}
+        </p>
+      )
+    );
+    const App = component$(() => {
+      const count = useSignal(0);
+      const extra = useSignal<number | undefined>(undefined);
+      const data = useComputed$(() => dataPromise);
+      return (
+        <main>
+          <button
+            id="ooos-undefined-signal-button"
+            onClick$={() => (extra.value = count.value += 1)}
+          >
+            {count.value}
+          </button>
+          <Pending fallback$={() => <p>Waiting first</p>}>
+            <Reader data={data} id="ooos-undefined-signal-first" />
+          </Pending>
+          <Pending fallback$={() => <p>Waiting second</p>}>
+            <Reader data={data} extra={extra} id="ooos-undefined-signal-second" />
+          </Pending>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting second'));
+    await delay(50);
+    resolveData('loaded');
+    const { document, container } = await renderPromise;
+    // Each state patch must continue where the previous one ended, and reference only roots it sent.
+    const rootState = JSON.parse(
+      document.querySelector('script[type="qwik/state"]:not([q\\:patch])')!.textContent!
+    ) as unknown[];
+    let rootCount = rootState.length / 2;
+    const patchScripts = document.querySelectorAll('script[type="qwik/state"][q\\:patch]');
+    const segmentIds = Array.from(patchScripts, (script) => script.getAttribute('q:r'));
+    expect(new Set(segmentIds).size).toBe(patchScripts.length);
+    for (let i = 0; i < patchScripts.length; i++) {
+      const [rootStart, roots, , subscriptionPatchRootId] = JSON.parse(
+        patchScripts[i].textContent!
+      ) as [number, unknown[], unknown, number | undefined];
+      expect(rootStart).toBe(rootCount);
+      rootCount += roots.length / 2;
+      if (typeof subscriptionPatchRootId === 'number') {
+        expect(subscriptionPatchRootId).toBeLessThan(rootCount);
+      }
+    }
+    expect(document.querySelector('#ooos-undefined-signal-second')?.textContent).toBe(
+      'loaded:none'
+    );
+
+    await trigger(container.element, '#ooos-undefined-signal-button', 'click');
+    await waitForDrain(container);
+    await vi.waitFor(() =>
+      expect(document.querySelector('#ooos-undefined-signal-second')?.textContent).toBe('loaded:1')
+    );
   });
 
   it('should coordinate out-of-order segments inside reverse Reveal', async () => {

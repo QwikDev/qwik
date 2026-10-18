@@ -34,6 +34,7 @@ import { collectJsxFunctionNamesFromIterable } from '../jsx/jsx-call-transform.j
 import { getBasename, getDirectory, getExtension, getFileStem } from '../../paths.js';
 import { detectForeignJsxRuntime } from '../jsx/jsx-import-source.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
+import { isHtmlElement } from '../jsx/jsx.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import {
   type BodyText,
@@ -473,8 +474,7 @@ function collectSegmentImports(bodyNode: AstNode, imports: Map<string, ImportInf
 
 function isComponentTag(tagNode: JSXElementName | null | undefined): boolean {
   if (tagNode?.type === 'JSXIdentifier') {
-    const ch = tagNode.name[0];
-    return ch === ch.toUpperCase() && ch !== ch.toLowerCase();
+    return !isHtmlElement(tagNode.name);
   }
   // Member expressions like Foo.Bar are always components
   return tagNode?.type === 'JSXMemberExpression';

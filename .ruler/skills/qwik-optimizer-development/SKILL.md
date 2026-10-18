@@ -44,9 +44,10 @@ pnpm vitest run packages/qwik-vite/src/plugins/plugin.unit.ts
 
 `pnpm test.rust` maps to `make test`, which runs Cargo tests for
 `packages/optimizer/core/Cargo.toml`. Use `pnpm test.rust.update` only when snapshot updates are
-intentional. The repo's own scripts and tests run on the TypeScript optimizer, so exercising the
-Rust bindings end to end needs an app that uses the default optimizer (for example the starters via
-`pnpm test.e2e.cli`) after `pnpm build.rust`.
+intentional. The repo's own scripts and tests run on the TypeScript optimizer, and CI runs core
+specs only there. To run a focused spec on the Rust optimizer, rebuild the native binding
+(`pnpm build.rust.dev`; `scripts/index.ts --optimizer --platform-binding --dev` skips WASM) and
+rerun the spec with `QWIK_OPTIMIZER=rust`.
 
 ## Baselining a TypeScript optimizer failure
 
@@ -54,7 +55,7 @@ The repo's unit and e2e suites run on the TypeScript optimizer, so a parity bug 
 failing core test rather than a snapshot diff. To tell a TS-only bug from a pre-existing failure:
 
 1. `pnpm build.platform.copy` downloads the published Rust bindings (no toolchain needed).
-2. Flip `tsOptimizer` to `false` in `vitest.config.ts`, rerun the failing file, flip it back.
+2. Rerun the failing file with `QWIK_OPTIMIZER=rust`, which overrides `tsOptimizer` for the run.
 3. Transform the failing source with both `createOptimizer`s (`packages/optimizer/dist/index.mjs`
    and `packages/qwik/dist/ts-optimizer.mjs`) using the plugin's options (server: `hoist`,
    `minify: 'simplify'`, plus the client `stripCtxName`/`stripExports` and server
@@ -78,6 +79,25 @@ as TypeScript (parameter decorators) from those ASTs, so what it references look
 DCE'd. Lower such syntax inside `stripTypeScript` itself, threading the option to every call site
 (see `decorator`); lowering later in the Vite plugin is too late. Segments are served as `.js`, so
 Vite's own `vite:oxc` pass never touches them.
+
+## JSX tag names
+
+Rust transpiles JSX before its Qwik transform, so SWC's rule decides what a tag is: only a tag
+starting with `[a-z]` is an intrinsic element, while `<Foo>`, `<_Foo>` and the object of
+`<ui.Home>` read bindings. In the TypeScript optimizer, ask oxc-walker's `isReferenceIdentifier`
+(or `isNonReferenceIdentifier`) whether a `JSXIdentifier` reads a binding, and `isHtmlElement`
+whether a tag is intrinsic.
+
+## Const prop bag
+
+The runtime trusts a const prop to stay the same for the component's lifetime: reads never
+subscribe, `_wrapProp` returns const values unwrapped, and SSR skips serializing all-const props.
+If one changes anyway, the child only re-renders and its `useComputed$`/`useTask$` readers go stale.
+So either optimizer may put a prop, including a `_fnSignal`/`_wrapProp` wrapper, in the const bag
+only when every local it reads survives re-renders: imports, `const` bindings with a static
+initializer (`use*`, `*$`, `*Qrl` calls), or params. Render-computed locals and `_restProps` copies
+are recreated per render and belong in the var bag. Unit specs pass on the TS optimizer alone, so
+pin classification with a `test_input!` snapshot and check the runtime with `QWIK_OPTIMIZER=rust`.
 
 ## Worker pool changes
 

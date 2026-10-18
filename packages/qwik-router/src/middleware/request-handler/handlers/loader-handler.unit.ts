@@ -3,7 +3,7 @@ import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { createCacheControl } from '../cache-control';
 import { getLoaderName, IsQLoader, QLoaderId } from '../request-path';
 import { RedirectMessage } from '../redirect-handler';
-import type { CacheControl } from '../types';
+import type { CacheControl, RequestEvent } from '../types';
 import { loaderHandler } from './loader-handler';
 
 describe('loaderHandler', () => {
@@ -314,5 +314,35 @@ describe('loaderHandler', () => {
     expect(cacheKey).toHaveBeenCalledWith(expect.any(Object), '');
     expect(requestEv.headers.has('ETag')).toBe(false);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
+  it('passes route params to a strict loader whose path differs from the request path', async () => {
+    const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+    globalThis.__STRICT_LOADERS__ = true;
+    try {
+      const requestEv = createRequestEv();
+      requestEv.url = new URL('http://localhost/item/123');
+      const loaderFn = vi.fn(async () => 'loader-value');
+      const loader = {
+        __id: 'loader-id',
+        __qrl: { call: loaderFn },
+        __validators: undefined,
+        __eTag: undefined,
+        __cacheKey: undefined,
+        __search: undefined,
+      };
+
+      await loaderHandler([loader as any], {
+        $loaderPaths$: { 'loader-id': '/item/123/' },
+        $loaderParams$: { 'loader-id': { id: '123' } },
+      })(requestEv as any);
+
+      expect(loaderFn).toHaveBeenCalledOnce();
+      const loaderEv = (loaderFn.mock.calls[0] as unknown[])[1] as RequestEvent;
+      expect(loaderEv.pathname).toBe('/item/123/');
+      expect(loaderEv.params).toEqual({ id: '123' });
+    } finally {
+      globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+    }
   });
 });

@@ -1,5 +1,54 @@
 # @qwik.dev/city
 
+## 2.0.0-rc.3
+
+### Patch Changes
+
+- 🐞🩹 let `<Form onSubmitCompleted$>` accept an inline handler again, like native `on*$` events (by [@tzdesign](https://github.com/tzdesign) in [#9204](https://github.com/QwikDev/qwik/pull/9204))
+
+- 🐞🩹 the router serializes less state into every page (by [@maiieul](https://github.com/maiieul) in [#9090](https://github.com/QwikDev/qwik/pull/9090))
+
+- 🐞🩹 `routeLoader$` signal `invalidate()` and `usePoll` now re-fetch, honoring the loader's cache headers (by [@wmertens](https://github.com/wmertens) in [#9202](https://github.com/QwikDev/qwik/pull/9202))
+
+- 🐞🩹 type `routeLoader$` signals as computed signals so `invalidate()` and `usePoll` type-check (by [@wmertens](https://github.com/wmertens) in [#9202](https://github.com/QwikDev/qwik/pull/9202))
+
+- 🐞🩹 `useLocation().isNavigating` stays true until a navigation that reuses the current route component has rendered its new loader data (by [@intellix](https://github.com/intellix) in [#9201](https://github.com/QwikDev/qwik/pull/9201))
+
+- 🐞🩹 exclude /manifest.json (not /mainifest.json) from the Netlify Edge function by default (by [@musatoktas](https://github.com/musatoktas) in [#9187](https://github.com/QwikDev/qwik/pull/9187))
+
+- 🐞🩹 match routes that continue after a `[...rest]` segment, such as `[...path]/product/[id]` (by [@tzdesign](https://github.com/tzdesign) in [#9198](https://github.com/QwikDev/qwik/pull/9198))
+
+- 🐞🩹 SPA navigation no longer needs serialized router tasks in every page (by [@maiieul](https://github.com/maiieul) in [#9091](https://github.com/QwikDev/qwik/pull/9091))
+
+- 🐞🩹 `cacheControl` with zero values no longer drops directives or sets an empty header (by [@intellix](https://github.com/intellix) in [#9173](https://github.com/QwikDev/qwik/pull/9173))
+
+- Updated dependencies [[`1b6a280`](https://github.com/QwikDev/qwik/commit/1b6a280e18c23fa12fad674ed1d97ba0d5c1f8c5), [`b1b6348`](https://github.com/QwikDev/qwik/commit/b1b634884225ab5264da90b620a7429058c39959), [`1520d59`](https://github.com/QwikDev/qwik/commit/1520d594520e084dba41bdb113bf9ef80a6317f4), [`dc8f84e`](https://github.com/QwikDev/qwik/commit/dc8f84e6f646de7c6fc59f97dd28cf622181857c), [`db38699`](https://github.com/QwikDev/qwik/commit/db3869989e9fb9a3e73d837ff5a7b6cb5116ce94), [`4fc6e66`](https://github.com/QwikDev/qwik/commit/4fc6e660a7529be2414eb1298418395e65801dd0)]:
+  - @qwik.dev/core@2.0.0-rc.3
+
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- 🐞🩹 enforce the request body limit (`requestBodyLimit`, 10 MiB by default) in the Bun, Cloudflare Pages, Netlify Edge and Vercel Edge adapters (by [@Varixo](https://github.com/Varixo) in [`8327fb7`](https://github.com/QwikDev/qwik/commit/8327fb70604ba4e5b693ae74ade3c5f5196f49b4))
+
+- 🐞🩹 `redirect()` now strips ASCII tab/LF/CR from the URL, so targets like `/<TAB>/example.com` can no longer redirect to another origin (by [@Varixo](https://github.com/Varixo) in [`b15de41`](https://github.com/QwikDev/qwik/commit/b15de41e955f9e8cd04a2c307cb2c1322b6bf19f))
+
+- Updated dependencies [[`9ef4079`](https://github.com/QwikDev/qwik/commit/9ef40794be3ca6d0f7a6001d14b5afa3e69f07c5), [`ea4ebd4`](https://github.com/QwikDev/qwik/commit/ea4ebd4c950513c4104f1dbd2e578847256b9875)]:
+  - @qwik.dev/core@2.0.0-rc.2
+
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- 🐞🩹 route params with dashes, like `[user-id]`, match again (by [@intellix](https://github.com/intellix) in [#9148](https://github.com/QwikDev/qwik/pull/9148))
+
+- 🐞🩹 routeLoader$ params are empty when refetched with trailingSlash false (by [@intellix](https://github.com/intellix) in [#9169](https://github.com/QwikDev/qwik/pull/9169))
+
+- 🐞🩹 back/forward right after a reload no longer leaves the previous page under the new URL (by [@Varixo](https://github.com/Varixo) in [#9119](https://github.com/QwikDev/qwik/pull/9119))
+
+- Updated dependencies [[`07babad`](https://github.com/QwikDev/qwik/commit/07babad0ec9d9ba3dc9ef13da3312676380c8331), [`fd5584b`](https://github.com/QwikDev/qwik/commit/fd5584ba52b35825fc261ee040558af9998b7d1f), [`06af6bd`](https://github.com/QwikDev/qwik/commit/06af6bd25eb92943940344da4beacfd06de227c0), [`ccdf03d`](https://github.com/QwikDev/qwik/commit/ccdf03d743051e9e4a370d99b0bb46af5dea8775), [`33a6d7e`](https://github.com/QwikDev/qwik/commit/33a6d7e7f9a8f19b736468bc5150666d38e66f6d), [`3a38a40`](https://github.com/QwikDev/qwik/commit/3a38a4014b49002d9d03751560f3da3a9cd58a8e), [`37c720c`](https://github.com/QwikDev/qwik/commit/37c720cfcbad92117f6e59769f315bcc988da0d3), [`1e4e07f`](https://github.com/QwikDev/qwik/commit/1e4e07f1d3df0bab5f5dc0e303709848d3629c50), [`6e5ec7b`](https://github.com/QwikDev/qwik/commit/6e5ec7bbfc946850ec372ca4feda2716bb8d5daa), [`d001863`](https://github.com/QwikDev/qwik/commit/d001863a168fc0e55099b3619c3cbd3ebab81db5)]:
+  - @qwik.dev/core@2.0.0-rc.1
+
 ## 2.0.0-rc.0
 
 ### Major Changes

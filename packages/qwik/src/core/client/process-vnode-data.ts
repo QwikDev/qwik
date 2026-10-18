@@ -601,7 +601,7 @@ function* processVNodeDataImpl(
             node as Element,
             contentBoundaryId
           );
-          nextNode = nextSibling(node);
+          nextNode = nextNodeAfterSubtree(node);
           if (nextNode) {
             walker.currentNode = nextNode;
           }

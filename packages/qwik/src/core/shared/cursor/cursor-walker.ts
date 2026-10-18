@@ -155,7 +155,8 @@ export function walkCursor(cursor: Cursor, until: number): boolean | void {
       // if deleted, run cleanup if needed
       if (currentVNode.dirty & ChoreBits.CLEANUP) {
         executeCleanup(currentVNode, container);
-      } else if (currentVNode.dirty & ChoreBits.CHILDREN) {
+      }
+      if (currentVNode.dirty & ChoreBits.CHILDREN) {
         const next = tryDescendDirtyChildren(container, cursorData, currentVNode, cursor);
         if (next !== null) {
           currentVNode = next;

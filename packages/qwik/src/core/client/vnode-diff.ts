@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { qTest } from '../shared/utils/qdev';
+import { qInspector, qTest } from '../shared/utils/qdev';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
@@ -49,6 +49,7 @@ import {
   QwikLoaderScanEvent,
   dangerouslySetInnerHTML,
   debugStyleScopeIdPrefixAttr,
+  qwikInspectorAttr,
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { isSlotProp, resolveSlotName } from '../shared/utils/prop';
@@ -101,6 +102,7 @@ import {
   type VNodeJournal,
 } from './vnode-utils';
 import { isObjectEmpty } from '../shared/utils/objects';
+import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { setInlineComponentData } from '../shared/cursor/chore-execution';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 
@@ -947,12 +949,14 @@ function queueConstAttributePromise(
 ) {
   const scopedStyleIdPrefix = diffContext.$scopedStyleIdPrefix$;
   const attributePromise = value.then((resolvedValue) =>
-    directSetAttribute(
-      element,
-      key,
-      serializeAttribute(key, resolvedValue, scopedStyleIdPrefix),
-      isSvg
-    )
+    key === dangerouslySetInnerHTML
+      ? applyConstInnerHtml(element, resolvedValue)
+      : directSetAttribute(
+          element,
+          key,
+          serializeAttribute(key, resolvedValue, scopedStyleIdPrefix),
+          isSvg
+        )
   );
   diffContext.$asyncAttributePromises$.push(attributePromise);
 }
@@ -983,9 +987,12 @@ function createNewElement(
   diffContext: DiffContext,
   jsx: JSXNodeInternal,
   elementName: string,
-  currentFile?: string | null
+  currentFile: string | null
 ) {
   const element = createElementWithNamespace(diffContext, elementName) as QElement;
+  if (isDev && qInspector && currentFile && elementName !== 'head') {
+    element.setAttribute(qwikInspectorAttr, currentFile);
+  }
   const vHost = diffContext.$vNewNode$ as ElementVNode;
   const isSvg = (vHost.flags & VNodeFlags.NS_svg) !== 0;
   const { constProps } = jsx;
@@ -1132,8 +1139,9 @@ function createElementWithNamespace(diffContext: DiffContext, elementName: strin
 }
 
 function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementName: string) {
+  const currentFile = (isDev && getFileLocationFromJsx(jsx.dev)) || null;
   if (diffContext.$isCreationMode$) {
-    createNewElement(diffContext, jsx, elementName, null);
+    createNewElement(diffContext, jsx, elementName, currentFile);
   } else {
     const isElementVNode = diffContext.$vCurrent$ && vnode_isElementVNode(diffContext.$vCurrent$);
     const isSameElementName =
@@ -1152,7 +1160,7 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
           diffContext.$vParent$ as ElementVNode
         )
       ) {
-        createNewElement(diffContext, jsx, elementName, null);
+        createNewElement(diffContext, jsx, elementName, currentFile);
       }
     } else {
       // delete the key from the side buffer if it is the same element
@@ -1166,7 +1174,7 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
   const vNode = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as ElementVNode;
 
   if (jsxProps) {
-    diffProps(diffContext, vNode, jsxProps, (isDev && getFileLocationFromJsx(jsx.dev)) || null);
+    diffProps(diffContext, vNode, jsxProps, currentFile);
   }
 }
 
@@ -1197,7 +1205,11 @@ function diffProps(
         vnode_setProp(vnode, oldKey, null);
         vnode_setProp(vnode, key, oldValue);
       }
-      if (!areDiffValuesEqual(newValue, oldValue)) {
+      if (
+        !areDiffValuesEqual(newValue, oldValue) &&
+        !(key === 'style' && areStyleValuesEqual(newValue, oldValue)) &&
+        !(key === 'class' && areClassValuesEqual(newValue, oldValue))
+      ) {
         patchProperty(diffContext, vnode, key, newValue, currentFile);
       }
     } else if (newValue != null) {
@@ -1811,6 +1823,10 @@ function handleProps(
       false
     );
     shouldRender ||= constPropsDifferent;
+    if (vNodeProps[_VAR_PROPS] === EMPTY_OBJ && !isPropsEmpty(jsxProps[_VAR_PROPS])) {
+      // The shared empty var props object is frozen, so new props need their own.
+      vNodeProps[_VAR_PROPS] = {};
+    }
     const varPropsDifferent = handleChangedProps(
       jsxProps[_VAR_PROPS],
       vNodeProps[_VAR_PROPS],
@@ -2150,12 +2166,18 @@ function areStyleValuesEqual(newValue: any, oldValue: any): boolean {
   if (newValue === oldValue) {
     return true;
   }
+  if (isSignal(newValue) || isSignal(oldValue)) {
+    return false;
+  }
   return stringifyStyle(newValue) === stringifyStyle(oldValue);
 }
 
 function areClassValuesEqual(newValue: any, oldValue: any): boolean {
   if (newValue === oldValue) {
     return true;
+  }
+  if (isSignal(newValue) || isSignal(oldValue)) {
+    return false;
   }
   return serializeClass(newValue) === serializeClass(oldValue);
 }

@@ -77,35 +77,8 @@ export function isCustomHook(hookName: string): boolean {
 }
 
 // ============================================================================
-// Code Position Utilities
+// Statement Utilities
 // ============================================================================
-
-/** Finds the start position of the line containing the given index */
-export function findLineStart(code: string, index: number): number {
-  for (let i = index - 1; i >= 0; i--) {
-    const ch = code[i];
-    if (ch === '\n' || ch === '\r') {
-      return i + 1;
-    }
-  }
-  return 0;
-}
-
-/** Reads the indentation (spaces/tabs) starting from a given position */
-export function readIndent(code: string, indexFrom: number): string {
-  let indent = '';
-  let i = indexFrom;
-  while (i < code.length) {
-    const ch = code[i];
-    if (ch === ' ' || ch === '\t') {
-      indent += ch;
-      i++;
-    } else {
-      break;
-    }
-  }
-  return indent;
-}
 
 /** Removes trailing semicolon and whitespace from a code segment */
 export function trimStatementSemicolon(segment: string): string {
@@ -118,21 +91,14 @@ export function trimStatementSemicolon(segment: string): string {
 
 export type CollecthookCategory = 'VariableDeclarator' | 'expressionStatement';
 
-/** Builds the collecthook() call code with proper indentation */
+/** Builds a single-line collecthook() call so injected tracking never adds source lines */
 export function buildCollecthookPayload(
-  indent: string,
   variableName: string,
   hookType: string,
   category: CollecthookCategory,
   hookExpression: string | 'undefined'
 ): string {
-  const dataValue = hookExpression === 'undefined' ? 'undefined' : hookExpression;
-  return `${indent}collecthook({
-${indent}  variableName: '${variableName}',
-${indent}  hookType: '${hookType}',
-${indent}  category: '${category}',
-${indent}  data: ${dataValue}
-${indent}});\n`;
+  return `collecthook({ variableName: '${variableName}', hookType: '${hookType}', category: '${category}', data: ${hookExpression} });`;
 }
 
 /** Checks if a collecthook call already exists after the given position (by variable ID) */

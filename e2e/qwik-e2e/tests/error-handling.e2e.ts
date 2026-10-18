@@ -247,51 +247,75 @@ test.describe('Catch + fallback$', () => {
       await expect(page.locator('[q\\:rp] #catch-fallback')).toHaveCount(0);
     });
 
-    test('in-order mid-stream click on a swapped fallback is queued and replayed after resume', async ({
-      page,
-      browserName,
-    }) => {
-      // https://github.com/QwikDev/qwik/issues/8891
-      test.skip(
-        browserName === 'webkit',
-        'webkit may defer async-module loader evaluation while the stream is held'
-      );
-      // The loader module is fetched while the stream is held; loaded runners need headroom.
-      test.slow();
-      assertNoBrowserErrors(page);
-      const webkitFlush = browserName === 'webkit' ? { webkitFlush: '1' } : {};
-      await page.goto(
-        routeUrl('midstream', {
-          outOfOrder: false,
-          params: { release: 'catch', inOrderStrategy: 'direct', ...webkitFlush },
-        }),
-        { waitUntil: 'commit' }
-      );
+    for (const csp of [false, true]) {
+      test(`in-order mid-stream click on a swapped fallback is queued and replayed after resume${csp ? ' with nonce CSP' : ''}`, async ({
+        page,
+        browserName,
+      }) => {
+        // The loader module is fetched while the stream is held; loaded runners need headroom.
+        test.slow();
+        assertNoBrowserErrors(page);
+        const webkitFlush = browserName === 'webkit' ? { webkitFlush: '1' } : {};
+        if (csp) {
+          await page.addInitScript(() => {
+            (window as any).__cspViolations = [];
+            document.addEventListener('securitypolicyviolation', (event) => {
+              (window as any).__cspViolations.push({
+                directive: event.effectiveDirective,
+                blockedURI: event.blockedURI,
+                disposition: event.disposition,
+              });
+            });
+          });
+        }
+        const response = await page.goto(
+          routeUrl('midstream', {
+            outOfOrder: false,
+            params: {
+              release: 'catch',
+              inOrderStrategy: 'direct',
+              ...webkitFlush,
+              ...(csp ? { csp: 'nonce' } : {}),
+            },
+          }),
+          { waitUntil: 'commit' }
+        );
 
-      await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
-      await expect(page.locator('#catch-deferred-ok')).toHaveCount(0);
+        if (csp) {
+          expect(response!.headers()['content-security-policy']).toMatch(
+            /^script-src 'nonce-[^']+' 'strict-dynamic'$/
+          );
+          expect(response!.headers()['content-security-policy-report-only']).toBeUndefined();
+        }
 
-      // WebKit can starve rAF-based waitForFunction while the stream is held.
-      await expect
-        .poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots), { timeout: 30000 })
-        .toBe(true);
-      await expect(page.locator('html')).toHaveAttribute('q:container', 'paused');
+        await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('#catch-fallback-msg')).toHaveText(caughtError);
+        await expect(page.locator('#catch-deferred-ok')).toHaveCount(0);
 
-      await page.locator('#catch-reset').click();
-      await expect(page.locator('#catch-content')).toBeHidden();
-      await expect(page.locator('#catch-fallback')).toBeVisible();
-      await expect(page.locator('html')).toHaveAttribute('q:container', 'paused');
+        // WebKit can starve rAF-based waitForFunction while the stream is held.
+        await expect
+          .poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots), { timeout: 30000 })
+          .toBe(true);
+        await expect(page.locator('html')).toHaveAttribute('q:container', 'paused');
 
-      await releaseDeferred(page, '#catch-release');
-      await page.waitForLoadState('load');
+        await page.locator('#catch-reset').click();
+        await expect(page.locator('#catch-content')).toBeHidden();
+        await expect(page.locator('#catch-fallback')).toBeVisible();
+        await expect(page.locator('html')).toHaveAttribute('q:container', 'paused');
 
-      await expect(page.locator('#catch-content')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('#catch-thrower-client')).toBeAttached();
-      await expect(page.locator('#catch-fallback')).toHaveCount(0);
-      await expect(page.locator('#catch-deferred-ok')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('html')).toHaveAttribute('q:container', 'resumed');
-    });
+        await releaseDeferred(page, '#catch-release');
+        await page.waitForLoadState('load');
+
+        await expect(page.locator('#catch-content')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('#catch-thrower-client')).toBeAttached();
+        await expect(page.locator('#catch-fallback')).toHaveCount(0);
+        await expect(page.locator('#catch-deferred-ok')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('html')).toHaveAttribute('q:container', 'resumed');
+        if (csp) {
+          expect(await page.evaluate(() => (window as any).__cspViolations)).toEqual([]);
+        }
+      });
+    }
 
     test('an SSR error inside an embedded container swaps only that container boundary', async ({
       page,
@@ -476,8 +500,8 @@ test.describe('qerror (client event channel)', () => {
       await expect.poll(() => pageErrors, { timeout: 10000 }).toContain('no-boundary boom');
     });
 
-    // https://github.com/QwikDev/qwik/issues/8962 — resumed dispatch bypasses the importError skip
-    test.fixme('a failed qwikloader dynamic import (chunk 404) leaves the boundary inert', async ({
+    // https://github.com/QwikDev/qwik/issues/8962 — resumed core dispatch reports chunk failures as importError too
+    test('a failed qwikloader dynamic import (chunk 404) leaves the boundary inert', async ({
       page,
     }) => {
       const pageErrors = collectPageErrors(page);

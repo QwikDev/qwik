@@ -3278,6 +3278,29 @@ describe.each([
     (globalThis as any).count = undefined;
   });
 
+  it('should add var props to a child component created without var props', async () => {
+    const Child = component$((props: { klass?: string }) => <span class={props.klass}>child</span>);
+
+    const Cmp = component$(() => {
+      const show = useSignal(false);
+      const on = useSignal(false);
+      const extra = on.value ? { klass: 'added' } : {};
+      return (
+        <>
+          <button id="show" onClick$={() => (show.value = true)}></button>
+          <button id="add" onClick$={() => (on.value = true)}></button>
+          {show.value && <Child {...extra} />}
+        </>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, '#show', 'click');
+    expect(document.querySelector('span')!.className).toBe('');
+    await trigger(document.body, '#add', 'click');
+    expect(document.querySelector('span')!.className).toBe('added');
+  });
+
   it('should not duplicate siblings when toggling element with dangerouslySetInnerHTML', async () => {
     const Cmp = component$(() => {
       const toggle = useSignal(false);
@@ -3908,5 +3931,17 @@ describe.each([
       expect(document.querySelector('button')!.textContent).toBe('1');
       expect(document.querySelector('i')!.textContent).toBe('child');
     });
+  });
+  it('should keep null-valued props spread into a component', async () => {
+    const Child = component$((props: { a: number; s: { p: number } | null }) => (
+      <span>{`${'s' in props}:${props.s === null}`}</span>
+    ));
+    const Parent = component$(() => {
+      const data = { a: 1, s: null };
+      return <Child {...data} />;
+    });
+
+    const { container } = await render(<Parent />, { debug });
+    expect(container.element.querySelector('span')!.textContent).toBe('true:true');
   });
 });

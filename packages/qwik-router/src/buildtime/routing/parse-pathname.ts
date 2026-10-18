@@ -27,7 +27,7 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
         const segment = decodeURI(s);
 
         // special case — /[...rest]/ could contain zero segments
-        const catchAll = /^\[\.\.\.(\w+)?\]$/.exec(segment);
+        const catchAll = /^\[\.\.\.([\w-]+)?\]$/.exec(segment);
         if (catchAll) {
           paramNames.push(catchAll[1]);
           return '(?:/(.*))?';
@@ -93,5 +93,5 @@ export function parseRoutePathname(basePathname: string, pathname: string): Pars
   };
 }
 
-const PARAM_PATTERN = /^(\.\.\.)?(\w+)?$/;
+const PARAM_PATTERN = /^(\.\.\.)?([\w-]+)?$/;
 const DYNAMIC_SEGMENT = /\[(.+?)\]/;

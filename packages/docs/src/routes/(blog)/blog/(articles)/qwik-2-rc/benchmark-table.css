@@ -15,6 +15,12 @@
   font-family: 'Ubuntu Sans Regular', var(--font-body);
 }
 
+@media (min-width: 1024px) {
+  .benchmark-table {
+    margin-inline: -40px;
+  }
+}
+
 .benchmark-table-scroll {
   overflow-x: auto;
   contain: inline-size;

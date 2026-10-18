@@ -26,7 +26,12 @@ import {
   matchesRegCtxName,
 } from './predicates.js';
 import { transformEventPropName } from '../jsx/event-handlers.js';
-import { transformAllJsx, JsxKeyCounter, type ScopeAwareCollectResult } from '../jsx/jsx.js';
+import {
+  isHtmlElement,
+  transformAllJsx,
+  JsxKeyCounter,
+  type ScopeAwareCollectResult,
+} from '../jsx/jsx.js';
 import { computeKeyPrefix } from '../jsx/key-prefix.js';
 import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
 import {
@@ -1208,8 +1213,7 @@ function renameUnextractedEventAttrs(ctx: RewriteContext): void {
       }
       const opening = node.openingElement;
       const tagName = opening?.name;
-      const isNative =
-        tagName?.type === 'JSXIdentifier' && /^[a-z]/.test((tagName as { name: string }).name);
+      const isNative = tagName?.type === 'JSXIdentifier' && isHtmlElement(tagName.name);
       if (isNative) {
         for (const attr of opening?.attributes ?? []) {
           if (attr.type !== 'JSXAttribute' || !attr.value) {

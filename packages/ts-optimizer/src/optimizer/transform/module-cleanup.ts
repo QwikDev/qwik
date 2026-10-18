@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
 import { ScopeQueryTracker } from '../analysis/scope-query-tracker.js';
+import { isNonReferenceIdentifier } from '../analysis/variable-migration.js';
 import type {
   AstFunction,
   AstNode,
@@ -402,15 +403,7 @@ export function removeUnusedImports(
       }
 
       if ((node.type === 'Identifier' || node.type === 'JSXIdentifier') && node.name) {
-        if (
-          parent?.type === 'Property' &&
-          parent.key === node &&
-          !parent.shorthand &&
-          !parent.computed
-        ) {
-          return;
-        }
-        if (parent?.type === 'MemberExpression' && parent.property === node && !parent.computed) {
+        if (isNonReferenceIdentifier(node, parent)) {
           return;
         }
         const decl = scopeTracker.getDeclaration(node.name);

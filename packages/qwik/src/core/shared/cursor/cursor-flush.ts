@@ -4,7 +4,7 @@ import {
   vnode_journalToString,
   type VNodeJournal,
 } from '../../client/vnode-utils';
-import { runTask } from '../../use/use-task';
+import { runTask, TaskFlags } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { directSetAttribute } from '../utils/attribute';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
@@ -204,6 +204,10 @@ function executeAfterFlush(container: Container, cursorData: CursorData): void {
     );
   for (let i = 0; i < visibleTasks.length; i++) {
     const task = visibleTasks[i];
+    // A task invalidated twice in one pass is queued twice; run it only while dirty.
+    if (!(task.$flags$ & TaskFlags.DIRTY)) {
+      continue;
+    }
     runTask(task, container, task.$el$);
   }
   cursorData.afterFlushTasks = null;

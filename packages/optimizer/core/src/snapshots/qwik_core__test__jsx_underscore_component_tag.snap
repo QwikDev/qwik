@@ -1,0 +1,140 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@qwik.dev/core';
+import { _Item } from './item';
+import { useRow } from './row';
+
+export const Cmp = component$(() => {
+	const _Row = useRow();
+	const renderRow = $(() => <_Row />);
+	return (
+		<div onClick$={renderRow}>
+			<_Item onClick$={() => console.log('click')} />
+		</div>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAKA,OAAO,MAAM,oBAAM,0CAQhB\"}")
+============================= test.tsx_Cmp_component_renderRow_0poP1NATSUI.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const Cmp_component_renderRow_0poP1NATSUI = ()=>{
+    let _Row = _capturesObj._[0];
+    return /*#__PURE__*/ _jsxSorted(_Row, null, null, null, 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mDAOqB;;yBAAM,WAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_renderRow_0poP1NATSUI",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_renderRow",
+  "hash": "0poP1NATSUI",
+  "canonicalFilename": "test.tsx_Cmp_component_renderRow_0poP1NATSUI",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    198,
+    212
+  ],
+  "captureNames": [
+    "_Row"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _Item } from "./item";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useRow } from "./row";
+//
+const q_Cmp_component_div_Item_onClick_urxjTAgY4vM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_div_Item_onClick_urxjTAgY4vM"), "Cmp_component_div_Item_onClick_urxjTAgY4vM");
+const q_Cmp_component_renderRow_0poP1NATSUI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_renderRow_0poP1NATSUI"), "Cmp_component_renderRow_0poP1NATSUI");
+//
+export const Cmp_component_4ryKJTOKjWE = ()=>{
+    const _Row = useRow();
+    const renderRow = q_Cmp_component_renderRow_0poP1NATSUI.w([
+        _Row
+    ]);
+    return /*#__PURE__*/ _jsxSorted("div", null, {
+        "q-e:click": renderRow
+    }, /*#__PURE__*/ _jsxSorted(_Item, null, {
+        onClick$: q_Cmp_component_div_Item_onClick_urxjTAgY4vM
+    }, null, 3, "u6_1"), 1, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;yCAK8B;IAC7B,MAAM,OAAO;IACb,MAAM;;;IACN,qBACC,WAAC;QAAI,aAAU;qBACd,WAAC;QAAM,QAAQ;;AAGlB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    145,
+    319
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_div_Item_onClick_urxjTAgY4vM.js (ENTRY POINT)==
+
+export const Cmp_component_div_Item_onClick_urxjTAgY4vM = ()=>console.log('click');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAUoB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_div_Item_onClick_urxjTAgY4vM",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_div_Item_onClick",
+  "hash": "urxjTAgY4vM",
+  "canonicalFilename": "test.tsx_Cmp_component_div_Item_onClick_urxjTAgY4vM",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "jSXProp",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    274,
+    300
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

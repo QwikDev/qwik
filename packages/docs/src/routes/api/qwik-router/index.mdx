@@ -947,11 +947,11 @@ onSubmitCompleted$?
 
 </td><td>
 
-QRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| undefined
+QRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| EventHandler&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| undefined
 
 </td><td>
 
-_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.
+_(Optional)_ Event handler executed right after the action is executed successfully and returns some data. Like the native `on*$` events, it accepts an inline function as well as a QRL.
 
 </td></tr>
 <tr><td>
@@ -1382,13 +1382,10 @@ export type Loader<RETURN> = {
 <h2 id="loadersignal">LoaderSignal</h2>
 
 ```typescript
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
-  infer VALIDATOR
->
-  ? Signal<ValueOrPromise<VALIDATOR>>
-  : Signal<TYPE>) &
-  Pick<ComputedSignal<any>, "promise">;
+export interface LoaderSignal<TYPE> extends ComputedSignal<TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ValueOrPromise<VALIDATOR> : TYPE>
 ```
+
+**Extends:** ComputedSignal&lt;TYPE extends () =&gt; ValueOrPromise&lt;infer VALIDATOR&gt; ? ValueOrPromise&lt;VALIDATOR&gt; : TYPE&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -3079,12 +3076,12 @@ Required&lt;[ResolvedDocumentHead](#resolveddocumenthead)&lt;FrontMatter&gt;&gt;
 <h2 id="usehttpstatus">useHttpStatus</h2>
 
 ```typescript
-useHttpStatus: () => import("./types").HttpStatus;
+useHttpStatus: () => HttpStatus;
 ```
 
 **Returns:**
 
-import("./types").[HttpStatus](#httperrorprops)
+[HttpStatus](#httperrorprops)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
 

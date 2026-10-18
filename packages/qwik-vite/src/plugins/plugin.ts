@@ -1250,7 +1250,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
     qwikLoaderFileName?: string,
     preloaderFileName?: string,
-    handlersFileName?: string
+    handlersFileName?: string,
+    parse?: Rolldown.PluginContext['parse']
   ) => {
     const injections: GlobalInjections[] = [];
 
@@ -1283,7 +1284,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         getModuleInfo,
         qwikLoaderFileName,
         preloaderFileName,
-        handlersFileName
+        handlersFileName,
+        parse
       );
       if (extra) {
         Object.assign(manifest, extra);
@@ -1494,7 +1496,8 @@ export const isDev = ${JSON.stringify(isDev)};
       (id) => ctx.getModuleInfo(id),
       qwikLoaderFileName,
       preloaderFileName,
-      handlersFileName
+      handlersFileName,
+      (code, options) => ctx.parse(code, options)
     );
     const manifest = await outputAnalyzer.generateManifest(manifestExtra);
 

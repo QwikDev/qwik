@@ -1074,6 +1074,9 @@ importers:
       magic-string:
         specifier: 0.30.21
         version: 0.30.21
+      oxc-walker:
+        specifier: ^1.1.1
+        version: 1.1.1(@oxc-project/types@0.144.0)(oxc-parser@0.144.0)(rolldown@1.2.4)
       rolldown:
         specifier: 1.2.4
         version: 1.2.4

@@ -71,19 +71,140 @@ describe('convertManifestToBundleGraph', () => {
       14,
       'large-file.js', // 14
       'sym1', // 15
-      -7,
       5,
-      'sym2', // 18
-      -7,
+      'sym2', // 17
       11,
-      'sym3', // 21
-      -5,
+      'sym3', // 19
       14,
     ]);
   });
 
   test('empty', () => {
     expect(convertManifestToBundleGraph({} as any)).toEqual([]);
+  });
+
+  test('prepares transitive render dependencies without future handlers', () => {
+    const manifest = {
+      bundles: {
+        'route.js': {
+          size,
+          total,
+          qrlImports: ['render.js', 'click.js'],
+          renderImports: ['render.js'],
+        },
+        'render.js': {
+          size,
+          total,
+          qrlImports: ['child.js', 'submit.js'],
+          renderImports: ['child.js'],
+        },
+        'child.js': { size, total },
+        'click.js': { size, total, imports: ['lightbox.js'] },
+        'submit.js': { size, total },
+        'lightbox.js': { size, total },
+      },
+      mapping: { s_click: 'click.js' },
+    } as unknown as QwikManifest;
+    const graph = convertManifestToBundleGraph(manifest);
+    const dependencies = (name: string) => {
+      const start = graph.indexOf(name) + 1;
+      const result: string[] = [];
+      for (let i = start; typeof graph[i] === 'number'; i++) {
+        if ((graph[i] as number) >= 0) result.push(graph[graph[i] as number] as string);
+      }
+      return result;
+    };
+    expect(dependencies('route.js')).toEqual(['render.js']);
+    expect(graph[graph.indexOf('route.js') + 1]).toBe(-17);
+    expect(dependencies('render.js')).toEqual(['child.js']);
+    expect(dependencies('click')).toEqual(['click.js']);
+    expect(dependencies('click.js')).toEqual(['lightbox.js']);
+  });
+
+  test('records render-time QRL imports separately from event callbacks', () => {
+    const chunks = Object.fromEntries(
+      ['entry', 'render', 'click', 'task', 'computed', 'visible'].map((name) => [
+        `${name}.js`,
+        {
+          type: 'chunk',
+          fileName: `${name}.js`,
+          name,
+          code: '',
+          exports: [],
+          imports: [],
+          dynamicImports:
+            name === 'entry'
+              ? ['render.js', 'click.js', 'task.js', 'computed.js', 'visible.js']
+              : [],
+          modules: { [name]: {} },
+        },
+      ])
+    );
+    const contexts: Record<string, string> = {
+      render: 'component$',
+      click: '$',
+      task: 'useTask$',
+      computed: 'createComputed$',
+      visible: 'useVisibleTask$',
+    };
+    const manifest = generateManifestFromBundles(
+      path as any,
+      [],
+      [],
+      chunks as any,
+      { rootDir: '/', outDir: '/' } as any,
+      console.error,
+      (name) => name,
+      (id) =>
+        ({
+          dynamicallyImportedIds: id === 'entry' ? Object.keys(contexts) : [],
+          meta: contexts[id] ? { segment: { ctxKind: 'function', ctxName: contexts[id] } } : {},
+        }) as any
+    );
+    expect(manifest.bundles['entry.js'].qrlImports).toEqual([
+      'render.js',
+      'click.js',
+      'task.js',
+      'computed.js',
+      'visible.js',
+    ]);
+    expect((manifest.bundles['entry.js'] as any).renderImports).toEqual([
+      'render.js',
+      'task.js',
+      'computed.js',
+    ]);
+  });
+
+  test('preserves render order and repeated probability markers', () => {
+    const manifest = {
+      bundles: {
+        'root.js': { size, total, renderImports: ['first.js', 'second.js', 'last.js'] },
+        'first.js': { size, total },
+        'second.js': { size, total, interactivity: 3 },
+        'last.js': { size, total },
+      },
+      mapping: {},
+    } as unknown as QwikManifest;
+    expect(convertManifestToBundleGraph(manifest)).toEqual([
+      'root.js',
+      -17,
+      7,
+      -19,
+      8,
+      -17,
+      9,
+      'first.js',
+      'second.js',
+      'last.js',
+    ]);
+  });
+
+  test('symbol hints inherit priority without making their target speculative', () => {
+    const manifest = {
+      bundles: { 'handler.js': { size, total } },
+      mapping: { s_handler: 'handler.js' },
+    } as unknown as QwikManifest;
+    expect(convertManifestToBundleGraph(manifest)).toEqual(['handler.js', 'handler', 0]);
   });
 
   test('simple file set', () => {
@@ -104,6 +225,32 @@ describe('convertManifestToBundleGraph', () => {
       -7,
       7,
       'c.js', // 7
+    ]);
+  });
+
+  test('does not round speculative dynamic imports to guaranteed dependencies', () => {
+    const manifest = {
+      bundles: {
+        'app.js': {
+          size,
+          total,
+          imports: ['static.js'],
+          dynamicImports: ['interactive.js'],
+          qrlImports: ['interactive.js'],
+        },
+        'static.js': { size, total },
+        'interactive.js': { size, total, interactivity: 5 },
+      } as Record<string, QwikBundle>,
+      mapping: {},
+    } as QwikManifest;
+
+    expect(convertManifestToBundleGraph(manifest)).toEqual([
+      'app.js',
+      4,
+      -9,
+      5,
+      'static.js',
+      'interactive.js',
     ]);
   });
 
@@ -165,7 +312,49 @@ describe('convertManifestToBundleGraph', () => {
       symbols: {},
     } as unknown as QwikManifest;
     // widget.js stays reachable only through its symbol
-    expect(convertManifestToBundleGraph(manifest)).toEqual(['widget.js', 'sym1', -7, 0]);
+    expect(convertManifestToBundleGraph(manifest)).toEqual(['widget.js', 'sym1', 0]);
+  });
+
+  test('explicit adder imports override inferred render filtering', () => {
+    const manifest = {
+      bundles: {
+        'config.js': { size, total, dynamicImports: ['other.js', 'menu.js'], renderImports: [] },
+        'other.js': { size, total },
+        'menu.js': { size, total },
+      },
+      mapping: {},
+    } as unknown as QwikManifest;
+    expect(
+      convertManifestToBundleGraph(
+        manifest,
+        new Set([
+          (m) => ({
+            'config.js': { ...m.bundles['config.js'], dynamicImports: ['menu.js'] },
+          }),
+        ])
+      )
+    ).toEqual(['config.js', -7, 3, 'menu.js']);
+  });
+
+  test('static adder changes preserve inferred render filtering', () => {
+    const manifest = {
+      bundles: {
+        'config.js': { size, total, dynamicImports: ['unused.js'], renderImports: [] },
+        'helper.js': { size, total },
+        'unused.js': { size, total },
+      },
+      mapping: {},
+    } as unknown as QwikManifest;
+    expect(
+      convertManifestToBundleGraph(
+        manifest,
+        new Set([
+          (m) => ({
+            'config.js': { ...m.bundles['config.js'], imports: ['helper.js'] },
+          }),
+        ])
+      )
+    ).toEqual(['config.js', 2, 'helper.js']);
   });
 
   test('adder', () => {
@@ -205,15 +394,12 @@ describe('convertManifestToBundleGraph', () => {
       12,
       'large-file.js', // 12
       'sym1', // 13
-      -7,
       5,
-      'sym2', // 16
-      -7,
+      'sym2', // 15
       9,
-      'sym3', // 19
-      -5,
+      'sym3', // 17
       12,
-      'dashboard/', // 22
+      'dashboard/', // 19
       2,
       -7,
       8,
@@ -232,7 +418,18 @@ describe('convertManifestToBundleGraph', () => {
       (id) => {
         const info = (outputBundles.moduleInfo as Record<string, any>)[id];
         return (
-          info && ({ dynamicallyImportedIds: [], ...info, meta: { segment: info.segment } } as any)
+          info &&
+          ({
+            dynamicallyImportedIds: [],
+            ...info,
+            meta: {
+              segment:
+                info.segment &&
+                outputBundles.segments.find((segment) =>
+                  id.endsWith(`/${segment.canonicalFilename}.js`)
+                ),
+            },
+          } as any)
         );
       }
     );
@@ -278,7 +475,7 @@ describe('convertManifestToBundleGraph', () => {
     expect(convertManifestToBundleGraph(manifest)).toMatchInlineSnapshot(`
       [
         "index.js",
-        -9,
+        -19,
         18,
         "index.qwik.mjs_ErrorBoundary_component_6VMZkqoH00Q.js",
         "index.qwik.mjs_Form_form_onSubmit_5DbAsQLGGo4.js",
@@ -300,144 +497,100 @@ describe('convertManifestToBundleGraph', () => {
         27,
         "index.tsx_routes_component_vG0UuU4cNCg.js",
         "layout.js",
-        -9,
+        -19,
         25,
         "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
         27,
         "qwik-router.js",
-        -10,
-        4,
-        9,
-        17,
-        -9,
-        3,
+        -19,
         5,
+        9,
         12,
-        7,
-        16,
-        11,
-        14,
         "root.js",
-        -9,
-        43,
+        -19,
+        35,
         "root.tsx_root_component_9PcKHFjikV0.js",
         27,
-        -9,
-        47,
+        -19,
+        39,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
         27,
         "src-vendor-lib-helper.ts.js",
         "src-vendor-lib-libA.ts.js",
-        49,
+        41,
         "src-vendor-lib-libB.ts.js",
-        49,
+        41,
         "BjxcCeNQ9ak",
-        -9,
         21,
         "eevMxFvmCM8",
-        -7,
         25,
         "99K9SAWjPFQ",
-        -9,
         21,
         "LopIayqLfMo",
-        -8,
         9,
         "VjDx6RO4Kis",
-        -9,
         17,
         "HEFxKy9cwuk",
-        -9,
         21,
         "6VMZkqoH00Q",
-        -7,
         3,
         "9PcKHFjikV0",
-        -7,
-        43,
+        35,
         "9fcUDoGM9Wo",
-        -8,
         9,
         "SHtFir1Ia94",
-        -7,
         25,
         "cH9twROgaEg",
-        -7,
         7,
         "dAo05yeFq1I",
-        -7,
-        47,
+        39,
         "ds9jIPT1g9s",
-        -7,
         19,
         "lTNqDDf58lI",
-        -7,
         5,
         "m7u9ARcfDGU",
-        -7,
         18,
         "q56DrQcc9VE",
-        -7,
         12,
         "vG0UuU4cNCg",
-        -9,
         21,
         "vXTAPbOW0Ig",
-        -7,
         27,
         "0pasaG6nmEA",
-        -7,
         19,
         "BMutFDNOKhc",
-        -8,
         9,
         "Iyy38y0K3Hw",
-        -9,
         21,
         "MOLFIZOhXmE",
-        -7,
         25,
         "WOcPLNnm2is",
-        -7,
         18,
         "3mjmVvTlJqo",
-        -6,
         16,
         "5DbAsQLGGo4",
-        -8,
         4,
         "Nhj4Mq4ilm8",
-        -6,
         14,
         "rufUrhffR5k",
-        -6,
         11,
         "0xCNPioszTk",
-        -7,
         5,
         "1F0Ft5Y9bOI",
-        -7,
         3,
         "ANY7TPAnAd8",
-        -7,
         27,
         "BdwdOv10pp0",
-        -8,
         9,
         "YCi2vDzuhns",
-        -7,
         27,
         "dNtHVLGwESE",
-        -7,
         7,
         "ep3t0fF0SDA",
-        -9,
         21,
         "lWJp5Z4VtFs",
-        -7,
         5,
         "s3XioIi2Huw",
-        -8,
         9,
       ]
     `);

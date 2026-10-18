@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { parseAst } from 'vite';
 import { describe, expect, test } from 'vitest';
 import { generateManifestFromBundles } from './manifest';
 
@@ -127,6 +128,100 @@ describe('generateManifestFromBundles', () => {
     );
     expect(manifest.bundles['page.js'].dynamicImports).toEqual(['lib.js', 'seg.js']);
     expect(manifest.bundles['page.js'].qrlImports).toEqual(['seg.js']);
+  });
+
+  test('uses surviving QRL facades instead of implementation chunks or removed imports', () => {
+    const owner = {
+      ...chunk('page', 'page.js'),
+      modules: { '/page.tsx': {} },
+      dynamicImports: ['facade.js'],
+    };
+    const segment = {
+      name: 's_render',
+      ctxKind: 'function',
+      ctxName: 'component$',
+      origin: '/page.tsx',
+    };
+    const manifest = generateManifestFromBundles(
+      path as any,
+      [segment] as any,
+      [],
+      {
+        'page.js': owner,
+        'implementation.js': {
+          ...chunk('implementation', 'implementation.js'),
+          modules: { '/render.js': {} },
+        },
+        'facade.js': { ...chunk('facade', 'facade.js'), exports: ['s_render'] },
+        'removed.js': { ...chunk('removed', 'removed.js'), modules: { '/removed.js': {} } },
+      } as any,
+      { rootDir: '/', outDir: '/' } as any,
+      () => {},
+      (p) => p,
+      (id) =>
+        ({
+          dynamicallyImportedIds: id === '/page.tsx' ? ['/render.js', '/removed.js'] : [],
+          meta: {
+            segment:
+              id === '/render.js'
+                ? segment
+                : id === '/removed.js'
+                  ? { name: 's_removed', ctxKind: 'function', ctxName: 'component$' }
+                  : undefined,
+          },
+        }) as any
+    );
+    expect(manifest.bundles['page.js'].qrlImports).toEqual(['facade.js']);
+    expect(manifest.bundles['page.js'].renderImports).toEqual(['facade.js']);
+  });
+
+  test('does not follow discarded QRL definitions from shared modules', () => {
+    const page = {
+      ...chunk('page', 'page.js'),
+      modules: { '/shared.js': {} },
+      dynamicImports: ['kept.js', 'unused.js'],
+      exports: ['s_root'],
+      code: `const kept = qrl(() => import('./kept.js'), 's_kept');
+        qrl(() => import('./unused.js'), \`s_unused\`), qrl(() => import('./kept.js'), 's_kept');
+        const render=()=>kept;export {render as s_root};`,
+    };
+    const segments = ['root', 'kept', 'unused'].map((name) => ({
+      name: 's_' + name,
+      ctxKind: 'function',
+      ctxName: 'useTask$',
+      origin: '/shared.js',
+    }));
+    const manifest = generateManifestFromBundles(
+      path as any,
+      segments as any,
+      [],
+      {
+        'page.js': page,
+        'kept.js': {
+          ...chunk('kept', 'kept.js'),
+          exports: ['s_kept'],
+          modules: { '/kept.js': {} },
+        },
+        'unused.js': {
+          ...chunk('unused', 'unused.js'),
+          exports: ['s_unused'],
+          modules: { '/unused.js': {} },
+        },
+      } as any,
+      { rootDir: '/', outDir: '/' } as any,
+      () => {},
+      (p) => p,
+      (id) =>
+        ({
+          dynamicallyImportedIds: id === '/shared.js' ? ['/kept.js', '/unused.js'] : [],
+          meta: { segment: segments.find((s) => '/' + s.name.slice(2) + '.js' === id) },
+        }) as any,
+      undefined,
+      undefined,
+      undefined,
+      parseAst
+    );
+    expect(manifest.bundles['page.js'].renderImports).toEqual(['kept.js']);
   });
 
   test('leaves core handler symbols unmapped when no qwik-core chunk exists', () => {

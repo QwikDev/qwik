@@ -1,4 +1,5 @@
 import type { Rolldown } from 'vite';
+import { collectRenderImports } from './render-imports';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import { condenseImportGraph } from './plugins/bundle-graph';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
@@ -353,20 +354,36 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
 function getQrlImports(
   outputBundle: Rolldown.OutputChunk,
   bundleFileName: string,
+  dynamicImports: string[],
+  mapping: QwikManifest['mapping'],
   bundleByModuleId: Map<string, string>,
   getModuleInfo: Rolldown.PluginContext['getModuleInfo']
 ) {
   const qrlImports = new Set<string>();
+  const renderImports = new Set<string>();
   for (const moduleId of Object.keys(outputBundle.modules)) {
     for (const importedId of getModuleInfo(moduleId)?.dynamicallyImportedIds || []) {
-      const importedBundle = bundleByModuleId.get(importedId);
-      const isSegment = getModuleInfo(importedId)?.meta.segment;
-      if (importedBundle && importedBundle !== bundleFileName && isSegment) {
+      const segment = getModuleInfo(importedId)?.meta.segment as SegmentAnalysis | undefined;
+      const importedBundle = segment && (mapping[segment.name] || bundleByModuleId.get(importedId));
+      if (
+        segment &&
+        importedBundle &&
+        importedBundle !== bundleFileName &&
+        dynamicImports.includes(importedBundle)
+      ) {
         qrlImports.add(importedBundle);
+        if (
+          segment.ctxKind === 'function' &&
+          /^(component|useStyles|useStylesScoped|useTask|useComputed|createComputed|useResource)\$$/.test(
+            segment.ctxName
+          )
+        ) {
+          renderImports.add(importedBundle);
+        }
       }
     }
   }
-  return [...qrlImports];
+  return { qrlImports: [...qrlImports], renderImports: [...renderImports] };
 }
 
 /**
@@ -384,7 +401,8 @@ export function generateManifestFromBundles(
   getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
   qwikLoaderFileName?: string,
   preloaderFileName?: string,
-  handlersFileName?: string
+  handlersFileName?: string,
+  parse?: Rolldown.PluginContext['parse']
 ) {
   // Note that this will be the order of the JSON file
   const manifest: QwikManifest = {
@@ -449,6 +467,14 @@ export function generateManifestFromBundles(
   const bundleByModuleId = new Map<string, string>();
   for (const outputBundle of Object.values(outputBundles)) {
     if (outputBundle.type === 'chunk') {
+      for (const symbol of outputBundle.exports) {
+        if (
+          qrlNames.has(symbol) &&
+          (!manifest.mapping[symbol] || outputBundle.exports.length !== 1)
+        ) {
+          manifest.mapping[symbol] = getBundleName(outputBundle.fileName)!;
+        }
+      }
       for (const moduleId of Object.keys(outputBundle.modules)) {
         bundleByModuleId.set(moduleId, getBundleName(outputBundle.fileName)!);
       }
@@ -473,15 +499,6 @@ export function generateManifestFromBundles(
       total: -1,
     };
 
-    for (const symbol of outputBundle.exports) {
-      if (qrlNames.has(symbol)) {
-        // When not minifying we see both the entry and the segment file
-        // The segment file will only have 1 export, we want the entry
-        if (!manifest.mapping[symbol] || outputBundle.exports.length !== 1) {
-          manifest.mapping[symbol] = bundleFileName;
-        }
-      }
-    }
     const bundleImports = outputBundle.imports
       .map((i) => getBundleName(i))
       .filter((i) => i !== preloaderBundleName && i !== coreBundleName && i !== qwikHandlersName)
@@ -494,14 +511,17 @@ export function generateManifestFromBundles(
       .filter(Boolean) as string[];
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
-      const qrlImports = getQrlImports(
+      const { qrlImports, renderImports } = getQrlImports(
         outputBundle,
         bundleFileName,
+        bundleDynamicImports,
+        manifest.mapping,
         bundleByModuleId,
         getModuleInfo
       );
       if (qrlImports.length > 0) {
         bundle.qrlImports = qrlImports;
+        bundle.renderImports = renderImports;
       }
     }
 
@@ -537,6 +557,16 @@ export function generateManifestFromBundles(
       paramNames: segment.paramNames,
       captureNames: segment.captureNames,
     };
+  }
+  if (parse) {
+    const chunks = new Map(
+      Object.values(outputBundles)
+        .filter((bundle): bundle is Rolldown.OutputChunk => bundle.type === 'chunk')
+        .map((bundle) => [canonPath(bundle.fileName), bundle])
+    );
+    for (const [name, imports] of collectRenderImports(chunks, manifest, parse)) {
+      manifest.bundles[name].renderImports = imports;
+    }
   }
   if (qwikHandlersName) {
     for (const symbol of extraSymbols) {

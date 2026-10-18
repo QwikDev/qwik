@@ -203,6 +203,7 @@ export interface QwikBundle {
     interactivity?: number;
     origins?: string[];
     qrlImports?: string[];
+    renderImports?: string[];
     size: number;
     symbols?: string[];
     total: number;

@@ -29,6 +29,8 @@ const getSymbolHash = (symbolName: string) => {
  *   [...(bundleName: string, ...directImports: index[], ...dynamicImports: [-1, ...index[]] | [])]
  * ```
  *
+ * Render edges use probability markers -11 through -19.
+ *
  * (index is the position of the dependency in the bundleGraph array)
  *
  * This format allows any string to denote a set of dependencies, which is useful for symbols and
@@ -51,11 +53,7 @@ export function convertManifestToBundleGraph(
     }
     const hash = getSymbolHash(symbol);
     if (hash) {
-      /**
-       * We use dynamic imports so that we will get probabilities for the bundle when preloading the
-       * symbol. We still confirm load at 100% probability with the bundle name.
-       */
-      graph[hash] = { qrlImports: [bundleName] } as QwikBundle;
+      graph[hash] = { imports: [bundleName] } as QwikBundle;
     }
   }
   // Routes etc
@@ -66,7 +64,11 @@ export function convertManifestToBundleGraph(
       if (result) {
         // Adder edges are followed like qrl edges
         for (const [name, node] of Object.entries(result)) {
+          const previous = graph[name];
           graph[name] = { ...node, qrlImports: node.dynamicImports } as QwikBundle;
+          if (node.dynamicImports !== previous?.dynamicImports) {
+            graph[name].renderImports = undefined;
+          }
         }
       }
     }
@@ -76,7 +78,8 @@ export function convertManifestToBundleGraph(
   for (const bundleName of Object.keys(graph)) {
     const bundle = graph[bundleName];
     const imports = bundle.imports?.filter((dep) => graph[dep]) || [];
-    const qrlImports = bundle.qrlImports?.filter((dep) => graph[dep]) || [];
+    const qrlImports =
+      (bundle.renderImports ?? bundle.qrlImports)?.filter((dep) => graph[dep]) || [];
 
     /**
      * Overwrite so we don't mutate the given objects. Be sure to copy all properties we use during
@@ -107,7 +110,7 @@ export function convertManifestToBundleGraph(
   }
 
   const names = Object.keys(graph);
-  const map = new Map<string, { index: number; deps: Set<string> }>();
+  const map = new Map<string, { index: number; deps: (string | number)[] }>();
   const reduceDeps = createTransitiveReducer(graph);
 
   /**
@@ -155,27 +158,35 @@ export function convertManifestToBundleGraph(
       depProbability.set(depName, Math.min(probability, 0.99));
     }
 
+    const orderedDeps: (string | number)[] = [...deps];
     if (dynDeps.size > 0) {
-      const sorted = Array.from(dynDeps).sort(
-        (a, b) => depProbability.get(b)! - depProbability.get(a)!
-      );
-      let lastProbability = -1;
-      // We rely on the Set keeping the items in order, everything after this is dynamic
+      const sorted = bundle.renderImports
+        ? Array.from(dynDeps)
+        : Array.from(dynDeps).sort((a, b) => depProbability.get(b)! - depProbability.get(a)!);
+      let lastMarker = 0;
+      // Keep rendering order while compacting consecutive probability markers.
       for (const depName of sorted) {
-        if (depProbability.get(depName)! !== lastProbability) {
-          lastProbability = depProbability.get(depName)!;
-          deps.add(-Math.round(lastProbability * 10) as any as string);
+        if (deps.has(depName)) {
+          continue;
         }
-        deps.add(depName);
+        const marker = -(
+          Math.min(9, Math.round(depProbability.get(depName)! * 10)) +
+          (bundle.renderImports ? 10 : 0)
+        );
+        if (marker !== lastMarker) {
+          lastMarker = marker;
+          orderedDeps.push(marker);
+        }
+        orderedDeps.push(depName);
       }
     }
     const index = bundleGraph.length;
     bundleGraph.push(bundleName);
     // allocate space for the dependency indices
-    for (let i = 0; i < deps.size; i++) {
+    for (let i = 0; i < orderedDeps.length; i++) {
       bundleGraph.push(null!);
     }
-    map.set(bundleName, { index, deps });
+    map.set(bundleName, { index, deps: orderedDeps });
   }
 
   // Second pass to set the dependency indices

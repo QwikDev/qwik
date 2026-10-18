@@ -1,6 +1,7 @@
 #![allow(unused_must_use)]
 
 use super::*;
+use crate::transform::SegmentKind;
 use serde_json::to_string_pretty;
 use swc_atoms::Atom;
 
@@ -85,6 +86,53 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		is_server: input.is_server,
 		// filler to maintain line offsets
 	})
+}
+
+#[test]
+fn smart_lifted_event_captures() {
+	let code = include_str!("fixtures/smart-lifted-captures.tsx").to_string();
+	let result = test_input_fn(TestInput {
+		code: code.clone(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+	let output = result.as_ref().unwrap();
+	let handlers: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.filter(|segment| segment.ctx_kind == SegmentKind::EventHandler)
+		.collect();
+	assert_eq!(handlers.len(), 2);
+	let lifted = handlers
+		.iter()
+		.find(|segment| {
+			segment
+				.param_names
+				.as_ref()
+				.is_some_and(|params| params.len() > 2)
+		})
+		.unwrap();
+	assert!(!lifted.captures);
+	assert!(lifted.entry.is_none());
+	assert_eq!(
+		handlers
+			.iter()
+			.filter(|segment| segment.entry.is_none())
+			.count(),
+		2
+	);
+	let callback = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.ctx_name == "$")
+		.unwrap();
+	assert!(callback.entry.is_none());
+	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
 }
 
 #[test]

@@ -1,0 +1,180 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+import { $, component$, useSignal } from '@qwik.dev/core';
+import { openFeature } from './heavy-feature';
+
+export const App = component$(() => {
+  const count = useSignal(0);
+  const open$ = $(() => openFeature(count.value));
+  return (
+    <>
+      <button onClick$={() => count.value++}>increment</button>
+      <button onClick$={() => console.log('click')}>plain</button>
+      <button onClick$={open$}>open</button>
+    </>
+  );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_s_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "s_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(q_s_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,8BAUhB\"}")
+============================= test.tsx_App_component_open_mWMdhvo9hzU.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+import { openFeature } from "./heavy-feature";
+//
+export const s_mWMdhvo9hzU = ()=>{
+    let count = _capturesObj._[0];
+    return openFeature(count.value);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6BAKkB;;WAAM,YAAY,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_mWMdhvo9hzU",
+  "entry": null,
+  "displayName": "test.tsx_App_component_open",
+  "hash": "mWMdhvo9hzU",
+  "canonicalFilename": "test.tsx_App_component_open_mWMdhvo9hzU",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    194,
+    224
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.tsx_App_component_Fragment_button_q_e_click_1_MAgjEZcOmJg.js (ENTRY POINT)==
+
+export const s_MAgjEZcOmJg = ()=>console.log('click');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BASwB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_MAgjEZcOmJg",
+  "entry": null,
+  "displayName": "test.tsx_App_component_Fragment_button_q_e_click_1",
+  "hash": "MAgjEZcOmJg",
+  "canonicalFilename": "test.tsx_App_component_Fragment_button_q_e_click_1_MAgjEZcOmJg",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    333,
+    359
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js ==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+const q_s_MAgjEZcOmJg = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_button_q_e_click_1_MAgjEZcOmJg"), "s_MAgjEZcOmJg");
+const q_s_YRU7SJ8EHtY = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_button_q_e_click_YRU7SJ8EHtY"), "s_YRU7SJ8EHtY").m();
+const q_s_mWMdhvo9hzU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_open_mWMdhvo9hzU"), "s_mWMdhvo9hzU");
+//
+export const s_ckEPmXZlub0 = ()=>{
+    const count = useSignal(0);
+    const open$ = q_s_mWMdhvo9hzU.w([
+        count
+    ]);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("button", {
+            "q:p": count
+        }, {
+            "q-e:click": q_s_YRU7SJ8EHtY
+        }, "increment", 7, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": q_s_MAgjEZcOmJg
+        }, "plain", 3, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": open$
+        }, "open", 3, null)
+    ], 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;6BAG8B;IAC5B,MAAM,QAAQ,UAAU;IACxB,MAAM;;;IACN,qBACE;sBACE,WAAC;;;YAAO,WAAQ;WAAuB;sBACvC,WAAC;YAAO,WAAQ;WAA8B;sBAC9C,WAAC;YAAO,aAAU;WAAO;;AAG/B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_ckEPmXZlub0",
+  "entry": "test.tsx_entry_App",
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    138,
+    435
+  ]
+}
+*/
+============================= test.tsx_App_component_Fragment_button_q_e_click_YRU7SJ8EHtY.js (ENTRY POINT)==
+
+export const s_YRU7SJ8EHtY = (_, _1, count)=>count.value++;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAQwB,gBAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_YRU7SJ8EHtY",
+  "entry": null,
+  "displayName": "test.tsx_App_component_Fragment_button_q_e_click",
+  "hash": "YRU7SJ8EHtY",
+  "canonicalFilename": "test.tsx_App_component_Fragment_button_q_e_click_YRU7SJ8EHtY",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    269,
+    288
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "count"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

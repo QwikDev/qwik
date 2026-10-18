@@ -24,6 +24,7 @@ import { createSignal } from '../reactive-primitives/signal-api';
 import { StoreFlags } from '../reactive-primitives/types';
 import { QError, qError } from '../shared/error/error';
 import type { QElement } from '../shared/types';
+import { DeleteOperation, InsertOrMoveOperation } from '../shared/vnode/types/dom-vnode-operation';
 import { VNodeFlags } from './types';
 import {
   vnode_getFirstChild,
@@ -255,6 +256,107 @@ describe('vNode-diff', () => {
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
       await expect(container.document.querySelector('test')).toMatchDOM(test);
+    });
+    describe('keeping siblings in place', () => {
+      const touchedNodes = (journal: VNodeJournal) =>
+        journal.flatMap((op) =>
+          op instanceof InsertOrMoveOperation || op instanceof DeleteOperation ? [op.target] : []
+        );
+
+      it('should not move later siblings when an earlier element becomes an empty text', async () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          <test key="KA_0">
+            <p>Message</p>
+            <iframe />
+            <button />
+          </test>
+        );
+        const test = (
+          <test key="KA_0">
+            {false}
+            <iframe />
+            <button />
+          </test>
+        );
+        const iframe = container.document.querySelector('iframe')!;
+        const button = container.document.querySelector('button')!;
+        const journal: VNodeJournal = [];
+        vnode_diff(container, journal, test, vParent, vParent, null);
+        expect(touchedNodes(journal)).not.toContain(iframe);
+        expect(touchedNodes(journal)).not.toContain(button);
+        _flushJournal(journal);
+        expect(vNode).toMatchVDOM(
+          <test>
+            {''}
+            <iframe />
+            <button />
+          </test>
+        );
+        expect(container.document.querySelector('iframe')).toBe(iframe);
+        expect(container.document.querySelector('button')).toBe(button);
+      });
+
+      it('should not move later siblings when earlier elements are dropped', async () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          <test key="KA_0">
+            <p>Message</p>
+            <span>A</span>
+            <iframe />
+            <button />
+          </test>
+        );
+        const test = (
+          <test key="KA_0">
+            <iframe />
+            <button />
+          </test>
+        );
+        const iframe = container.document.querySelector('iframe')!;
+        const button = container.document.querySelector('button')!;
+        const journal: VNodeJournal = [];
+        vnode_diff(container, journal, test, vParent, vParent, null);
+        expect(touchedNodes(journal)).not.toContain(iframe);
+        expect(touchedNodes(journal)).not.toContain(button);
+        _flushJournal(journal);
+        expect(vNode).toMatchVDOM(test);
+        await expect(container.document.querySelector('test')).toMatchDOM(test);
+      });
+
+      it.each([false, true])('should move only the rotated element (keyed: %s)', async (keyed) => {
+        const key = (value: string) => (keyed ? value : null);
+        const original = (
+          <test key="KA_0">
+            <p key={key('p')}>Message</p>
+            <iframe key={key('iframe')} />
+            <button key={key('button')} />
+          </test>
+        );
+        const rotated = (
+          <test key="KA_0">
+            <button key={key('button')} />
+            <p key={key('p')}>Message</p>
+            <iframe key={key('iframe')} />
+          </test>
+        );
+        const { vNode, vParent, container } = vnode_fromJSX(original);
+        const p = container.document.querySelector('p')!;
+        const iframe = container.document.querySelector('iframe')!;
+        const button = container.document.querySelector('button')!;
+
+        const steps = [rotated, original];
+        for (let i = 0; i < steps.length; i++) {
+          const test = steps[i];
+          const journal: VNodeJournal = [];
+          vnode_diff(container, journal, test, vParent, vParent, null);
+          expect(touchedNodes(journal)).toEqual([button]);
+          _flushJournal(journal);
+          expect(vNode).toMatchVDOM(test);
+          await expect(container.document.querySelector('test')).toMatchDOM(test);
+          expect(container.document.querySelector('p')).toBe(p);
+          expect(container.document.querySelector('iframe')).toBe(iframe);
+          expect(container.document.querySelector('button')).toBe(button);
+        }
+      });
     });
   });
 

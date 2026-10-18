@@ -36,6 +36,7 @@ import type { RouteLoaderSourceFiles } from '../runtime-generation/generate-rout
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
 import { getServerExcludedRoutes } from '../runtime-generation/server-exclude';
 import type { RoutingContext } from '../types';
+import { bundleServiceWorkerChunks } from './bundle-service-worker';
 import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
 import { collectServerFnModuleIds } from './server-fns';
@@ -660,7 +661,7 @@ function qwikRouterPlugin(
       return null;
     },
 
-    generateBundle(_, bundles) {
+    async generateBundle(_, bundles) {
       // A separate server build skips onSegment, so recover routeLoader$ hashes from the manifest.
       const manifest = qwikPlugin!.api.getManifest();
       if (manifest) {
@@ -681,23 +682,20 @@ function qwikRouterPlugin(
       }
       // Turn entry and service worker chunks into entry points
       if (this.environment.config.consumer === 'client') {
-        const entries = [...ctx!.entries, ...ctx!.serviceWorkers].map((entry) => {
-          return {
-            chunkFileName: entry.chunkFileName,
-            extensionlessFilePath: removeExtension(entry.filePath),
-          };
-        });
+        const serviceWorkerChunks = ctx!.serviceWorkers
+          .map((sw) => findEntryChunk(bundles, sw.filePath))
+          .filter((c): c is Rolldown.OutputChunk => !!c);
+        // Before renaming, while chunk imports still resolve from the original file names.
+        await bundleServiceWorkerChunks(
+          bundles,
+          serviceWorkerChunks,
+          this.environment.config.build.minify
+        );
 
-        for (const entry of entries) {
-          for (const fileName in bundles) {
-            const c = bundles[fileName];
-            if (c.type === 'chunk' && c.isDynamicEntry && c.facadeModuleId) {
-              const extensionlessFilePath = removeExtension(normalizePath(c.facadeModuleId));
-              if (entry.extensionlessFilePath === extensionlessFilePath) {
-                c.fileName = entry.chunkFileName;
-                continue;
-              }
-            }
+        for (const entry of [...ctx!.entries, ...ctx!.serviceWorkers]) {
+          const c = findEntryChunk(bundles, entry.filePath);
+          if (c) {
+            c.fileName = entry.chunkFileName;
           }
         }
       }
@@ -714,6 +712,22 @@ function qwikRouterPlugin(
   };
 
   return plugin;
+}
+
+/** The dynamic entry chunk built from a route entry or service worker source file. */
+function findEntryChunk(bundles: Rolldown.OutputBundle, filePath: string) {
+  const extensionlessFilePath = removeExtension(filePath);
+  for (const output of Object.values(bundles)) {
+    if (
+      output.type === 'chunk' &&
+      output.isDynamicEntry &&
+      output.facadeModuleId &&
+      removeExtension(normalizePath(output.facadeModuleId)) === extensionlessFilePath
+    ) {
+      return output;
+    }
+  }
+  return undefined;
 }
 
 async function generateServerPackageJson(outDir: string) {

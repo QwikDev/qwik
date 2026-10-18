@@ -48,11 +48,12 @@ class MockIntersectionObserver {
   }
 }
 
-const createAnchor = (href: string, mode: string) => {
+const createAnchor = (href: string, mode: string, routeName = '/next/') => {
   const anchor = document.createElement('a') as HTMLAnchorElement;
   anchor.setAttribute('q:link', '');
   anchor.setAttribute('data-q-prefetch', mode);
   anchor.setAttribute('href', href);
+  anchor.setAttribute('data-q-route', routeName);
   anchor.href = href;
   document.body.appendChild(anchor);
   return anchor;
@@ -126,6 +127,15 @@ describe('link prefetch observer', () => {
 
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
     expect(observer.unobserve).toHaveBeenCalledWith(anchor);
+    cleanup();
+  });
+
+  it('uses the dynamic route name instead of the concrete pathname', () => {
+    const anchor = createAnchor('http://localhost/product/123/', 'b', '/product/[id]');
+    const cleanup = createObserver();
+    MockIntersectionObserver.instances[0].trigger(anchor);
+    expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/product/[id]');
+    expect(prefetchRouteMock).not.toHaveBeenCalled();
     cleanup();
   });
 

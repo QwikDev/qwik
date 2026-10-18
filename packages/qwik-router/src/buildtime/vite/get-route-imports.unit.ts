@@ -4,6 +4,71 @@ import type { BuiltLayout, BuiltRoute } from '../types';
 import { getRouteImports } from './get-route-imports';
 
 describe('modifyBundleGraph', () => {
+  test('prioritizes the destination page before shared layout render graphs', () => {
+    const manifest = {
+      bundles: {
+        'layout.js': { origins: ['src/routes/layout.tsx'] },
+        'page.js': { origins: ['src/routes/product/index.tsx'] },
+      },
+    } as unknown as QwikManifest;
+    const routes = [
+      {
+        routeName: 'product/',
+        filePath: '/app/src/routes/product/index.tsx',
+        layouts: [{ filePath: '/app/src/routes/layout.tsx' }],
+      },
+    ] as BuiltRoute[];
+    expect(getRouteImports(routes, manifest)['product/'].imports).toEqual(['page.js', 'layout.js']);
+  });
+  test('includes page and layout render roots before their predicted descendants', () => {
+    const manifest = {
+      mapping: { s_page: 'page-render.js', s_layout: 'layout-render.js' },
+      symbols: {
+        s_layout: { ctxName: 'component$', parent: null, origin: 'routes/layout.tsx' },
+        s_page: { ctxName: 'component$', parent: null, origin: 'routes/product/index.tsx' },
+      },
+      bundles: {
+        'page.js': { origins: ['src/routes/product/index.tsx'] },
+        'layout.js': { origins: ['src/routes/layout.tsx'] },
+        'page-render.js': {},
+        'layout-render.js': {},
+      },
+    } as unknown as QwikManifest;
+    const routes = [
+      {
+        routeName: 'product/',
+        filePath: '/app/src/routes/product/index.tsx',
+        layouts: [{ filePath: '/app/src/routes/layout.tsx' }],
+      },
+    ] as BuiltRoute[];
+    expect(getRouteImports(routes, manifest)['product/'].imports).toEqual([
+      'page.js',
+      'layout.js',
+      'page-render.js',
+      'layout-render.js',
+    ]);
+  });
+
+  test('preloads the router config without following unrelated routes', () => {
+    const manifest = {
+      bundles: {
+        'page.js': { origins: ['src/routes/index.tsx'] },
+        'other.js': { origins: ['src/routes/other/index.tsx'] },
+        'config.js': {
+          origins: ['@qwik-router-config'],
+          dynamicImports: ['page.js', 'other.js'],
+        },
+      },
+    } as unknown as QwikManifest;
+    const routes = [{ routeName: '/', filePath: '/app/src/routes/index.tsx' }] as BuiltRoute[];
+
+    const graph = getRouteImports(routes, manifest);
+
+    expect(graph['/'].imports).toEqual(['config.js', 'page.js']);
+    expect(graph['/'].dynamicImports).toBeUndefined();
+    expect(graph['config.js'].dynamicImports).toEqual([]);
+  });
+
   test(`GIVEN 2 routes, one with a layout
         AND a manifest with 3 bundles 
         THEN the bundle graph should contain the routes and their dependencies`, () => {
@@ -53,12 +118,14 @@ describe('modifyBundleGraph', () => {
     expect(actualResult).toMatchInlineSnapshot(`
       {
         "/": {
-          "dynamicImports": [
+          "imports": [
+            "q-router-config.js",
             "fake-bundle1.js",
           ],
         },
         "/subroute": {
-          "dynamicImports": [
+          "imports": [
+            "q-router-config.js",
             "fake-bundle-part-of-sub-route.js",
             "fake-bundle-part-of-layout.js",
           ],
@@ -99,7 +166,7 @@ describe('modifyBundleGraph', () => {
     expect(actualResult).toMatchInlineSnapshot(`
       {
         "/": {
-          "dynamicImports": [
+          "imports": [
             "fake-bundle1.js",
             "fake-bundle2.js",
           ],
@@ -135,7 +202,7 @@ describe('modifyBundleGraph', () => {
     expect(actualResult).toMatchInlineSnapshot(`
       {
         "/": {
-          "dynamicImports": [
+          "imports": [
             "fake-bundle1.js",
           ],
         },

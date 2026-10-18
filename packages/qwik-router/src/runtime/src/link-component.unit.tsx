@@ -3,6 +3,7 @@ import { component$ } from '@qwik.dev/core';
 import { QwikRouterMockProvider } from '@qwik.dev/router';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { Link, type PrefetchStrategy } from './link-component';
+import { _setRouterConfig } from './router-config';
 
 const { prefetchRouteMock, getClientNavPathMock } = vi.hoisted(() => ({
   prefetchRouteMock: vi.fn(),
@@ -76,6 +77,7 @@ describe.each([
   { render: domRender }, //
 ])('$render.name: link component', ({ render }) => {
   beforeEach(() => {
+    _setRouterConfig({ routes: {} });
     getClientNavPathMock.mockClear();
     getClientNavPathMock.mockReturnValue('http://localhost/test');
     prefetchRouteMock.mockClear();
@@ -94,6 +96,39 @@ describe.each([
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
+  });
+
+  it('emits the route name and synchronously reports navigation demand', async () => {
+    _setRouterConfig({ routes: { _I: () => ({}), _W: { _P: 'id', _I: () => ({}) } } });
+    const { anchor } = await renderLink(render);
+    expect(anchor.getAttribute('data-q-route')).toBe('/[id]');
+    const preload = vi.fn();
+    vi.stubGlobal('qPreload', preload);
+    try {
+      const dispatch = (anchor as any)._qDispatch?.['e:click'];
+      let prevent: Function;
+      if (dispatch) {
+        prevent = Array.isArray(dispatch) ? dispatch[0] : dispatch;
+      } else {
+        const document = anchor.ownerDocument as any;
+        const functions = Object.keys(document).find((key) => key.startsWith('qFuncs_'))!;
+        const index = Number(anchor.getAttribute('q-e:click')!.split('|')[0].slice(1));
+        prevent = document[functions][index];
+      }
+      const event = { preventDefault: vi.fn() };
+      await prevent(event, anchor);
+      expect(event.preventDefault).toHaveBeenCalledOnce();
+      const navigation = anchor.getAttribute('data-q-navigation')!.split(' ');
+      expect(navigation).toHaveLength(2);
+      expect(navigation.every((hash) => hash.length > 0)).toBe(true);
+      expect(preload).toHaveBeenCalledWith([...navigation, '[id]/'], 1);
+      expect(prefetchRouteMock).not.toHaveBeenCalled();
+      preload.mockClear();
+      await prevent({ metaKey: true, preventDefault: vi.fn() }, anchor);
+      expect(preload).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('prefetches route data on intent', async () => {

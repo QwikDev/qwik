@@ -1,5 +1,7 @@
 import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
 import { prefetchRoute } from './prefetch-route';
+import { findRouterConfig } from './router-config';
+import { matchRouteTree } from './routing';
 import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
 
@@ -25,6 +27,9 @@ export const Link = component$<LinkProps>((props) => {
   const isDepratedPrefetchDisabled = prefetchProp === false;
 
   const shouldPrefetch = untrack(shouldPreload, clientNavPath, loc);
+  const routes = clientNavPath && findRouterConfig()?.routes;
+  const route =
+    routes && untrack(() => matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname));
 
   const shouldVisiblePrefetchBundles =
     !!clientNavPath &&
@@ -79,9 +84,26 @@ export const Link = component$<LinkProps>((props) => {
     : null;
 
   const preventDefault = clientNavPath
-    ? sync$((event: MouseEvent) => {
+    ? sync$((event: MouseEvent, element: HTMLAnchorElement) => {
         if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
           event.preventDefault();
+          const route = element.getAttribute('data-q-route');
+          if (route) {
+            const runtime = globalThis as any;
+            let name = route.startsWith('/') ? route.slice(1) : route;
+            if (!name.endsWith('/')) {
+              name += '/';
+            }
+            const navigation = (element.getAttribute('data-q-navigation') || '')
+              .split(' ')
+              .filter(Boolean);
+            navigation.push(name);
+            if (runtime.qPreload) {
+              runtime.qPreload(navigation, 1);
+            } else {
+              (runtime.qPreloadQueue ||= []).push([navigation, 1]);
+            }
+          }
         }
       })
     : null;
@@ -135,9 +157,13 @@ export const Link = component$<LinkProps>((props) => {
               ? 'd'
               : null
       }
+      data-q-route={route && !route.notFound ? '/' + route.routeParts.join('/') : undefined}
+      data-q-navigation={
+        clientNavPath ? `${handleClientSideNavigation!.getHash()} ${nav.getHash()}` : undefined
+      }
       onClick$={[
         preventDefault,
-        handlePreload, // needs to be in between preventDefault and onClick$ to ensure it starts asap.
+        route && !route.notFound ? null : handlePreload,
         onClick$,
         handleClientSideNavigation,
       ]}

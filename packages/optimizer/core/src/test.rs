@@ -747,6 +747,27 @@ export const Cmp = component$(({ value }: { value?: string }) => {
 }
 
 #[test]
+fn destructured_prop_as_computed_key_in_nested_closure() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useComputed$, untrack } from '@qwik.dev/core';
+
+export const Row = component$(({ index, row, runs }) => {
+	const label = useComputed$(() => {
+		untrack(() => (runs[index] = (runs[index] || 0) + 1));
+		return `row ${index}: ${row.value}`;
+	});
+	return <button onClick$={() => row.value++}>{label.value}</button>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn destructured_prop_named_like_jsx_tag() {
 	test_input!(TestInput {
 		code: r#"
@@ -4785,6 +4806,34 @@ fn should_wrap_prop_from_destructured_array() {
 			);
 		});
 		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_render_local_component_props_var() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+import { Child } from './child';
+
+export default component$((props: { label: string }) => {
+	const items = useSignal<string[]>([]);
+	const visible = items.value.slice(0, 5);
+	const state = { open: items.value.length > 0 };
+	return (
+		<Child
+			renderLocal={visible.length > 0}
+			renderLocalMember={state.open}
+			signal={items.value.length > 0}
+			param={props.label}
+		/>
+	);
+});
+"#
 		.to_string(),
 		transpile_jsx: true,
 		transpile_ts: true,

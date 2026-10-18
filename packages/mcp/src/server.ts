@@ -127,7 +127,7 @@ export function createMcpServer(
     },
     locate_element: {
       description:
-        'Find the source file:line:column of the first element matching selector on a connected page. exact: false means the location is its nearest server-rendered ancestor (tag); source is null when none exists. Supply url when multiple pages are open.',
+        'Find the source file:line:column of the first element matching selector on a connected page. exact: false means the location is its nearest ancestor that has one (tag); source is null when none exists. Supply url when multiple pages are open.',
       inputSchema: locateInput,
       outputSchema: z.object({
         url: z.string(),

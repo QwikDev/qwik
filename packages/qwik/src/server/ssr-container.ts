@@ -1579,16 +1579,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
       this.openElement('link', null, linkAttrs);
       this.closeElement();
-      // browser must support modules for Qwik to work
-      const scriptAttrs: Record<string, string | boolean> = {
-        async: true,
-        type: 'module',
-        src: qwikLoaderBundle,
-      };
-      if (nonce) {
-        scriptAttrs['nonce'] = nonce;
-      }
-      this.writeScript(scriptAttrs);
+      // WebKit can defer async module scripts during a held stream.
+      this.emitInlineScript(
+        `import(new URL(${JSON.stringify(qwikLoaderBundle).replaceAll('<', '\\u003C')},document.baseURI).href)`
+      );
     }
   }
 

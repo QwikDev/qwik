@@ -947,11 +947,11 @@ onSubmitCompleted$?
 
 </td><td>
 
-QRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| undefined
+QRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| EventHandler&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| undefined
 
 </td><td>
 
-_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.
+_(Optional)_ Event handler executed right after the action is executed successfully and returns some data. Like the native `on*$` events, it accepts an inline function as well as a QRL.
 
 </td></tr>
 <tr><td>

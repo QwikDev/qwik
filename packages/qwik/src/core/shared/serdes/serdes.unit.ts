@@ -584,7 +584,7 @@ describe('shared-serialization', () => {
           Array [
             {number} 3
           ]
-          {number} 1
+          {number} 0
         ]
         1 WrappedSignal [
           {number} 1
@@ -598,9 +598,32 @@ describe('shared-serialization', () => {
             ]
             {string} "value"
           ]
-          {number} 3
+          {number} 0
         ]
         (72 chars)"
+      `);
+    });
+    it('ComputedSignal in CHECK state serializes as needing computation', async () => {
+      const foo = createSignal(0);
+      const maybeStale = createComputed$(() => foo.value + 1, { serializationStrategy: 'always' });
+      expect(maybeStale.value).toBe(1);
+      (maybeStale as ComputedSignalImpl<number>).$flags$ |= ComputedSignalFlags.CHECK;
+      const objs = await serialize(maybeStale);
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 ComputedSignal [
+          QRL "2#1#-2"
+        ]
+        1 Signal [
+          {number} 0
+          EffectSubscriptionNoData [
+            RootRef 0
+            Constant '.'
+          ]
+        ]
+        2 {string} "mock-chunk"
+        3 {string} "describe_describe_it_maybeStale_createComputed_ZKd2da8Q0ss"
+        (118 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {

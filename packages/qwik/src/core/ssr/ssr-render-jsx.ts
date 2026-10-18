@@ -257,7 +257,7 @@ function processJSXNode(
 
         if (type === 'head') {
           ssr.emitQwikLoaderAtTopIfNeeded();
-          ssr.emitPreloaderPre();
+          enqueue(ssr.emitPreloaderPre);
           enqueue(ssr.additionalHeadNodes);
         } else if (type === 'body') {
           enqueue(ssr.additionalBodyNodes);

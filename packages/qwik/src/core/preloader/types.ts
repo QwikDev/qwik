@@ -12,6 +12,10 @@ export type BundleInfo = {
 
 export type BundleImport = BundleInfo & {
   $name$: string;
+  /** Priority of the most recent needed ancestor. */
+  $priority$: number;
+  /** Priority of the active render that needs this dependency. */
+  $renderPriority$: number;
   $state$: number;
   $createdTs$: number;
   $waitedMs$: number;
@@ -25,6 +29,8 @@ export type ImportProbability = {
   $name$: string;
   /** Probability */
   $importProbability$: number;
+  /** Render dependency, rather than a prediction of a future interaction. */
+  $isRender$?: boolean;
   /** Probability adjust factor */
   $factor$: number;
 };

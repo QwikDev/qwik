@@ -66,6 +66,7 @@ const expectDeferredUntilAfterPaint = (
   // eslint-disable-next-line no-new-func
   const runScript = new Function(
     'window',
+    'globalThis',
     'requestAnimationFrame',
     'requestIdleCallback',
     'setTimeout',
@@ -75,6 +76,7 @@ const expectDeferredUntilAfterPaint = (
   );
 
   runScript(
+    window,
     window,
     requestAnimationFrame,
     supportsIdleCallback ? requestIdleCallback : undefined,
@@ -176,6 +178,35 @@ describe('preloader', () => {
     ]);
 
     expectDeferredUntilAfterPaint(getScriptContent(), true);
+  });
+
+  it('starts before load on demand while buffering speculative hints', async () => {
+    const { container, getScriptContent } = createContainer();
+    const { preloaderPre } = await import('./preload-impl');
+    preloaderPre(container, {});
+    const fetch = vi.fn();
+    const importModule = vi.fn(() => Promise.resolve({ l: vi.fn() }));
+    const scope = {
+      addEventListener: vi.fn(),
+      qPreload: undefined as any,
+      qPreloadQueue: [] as any[],
+    };
+    // eslint-disable-next-line no-new-func
+    new Function(
+      'window',
+      'globalThis',
+      'fetch',
+      'importModule',
+      getScriptContent().replaceAll('import(', 'importModule(')
+    )(scope, scope, fetch, importModule);
+    expect(scope.qPreload).toBeTypeOf('function');
+    scope.qPreload('other/', 0.8);
+    expect(fetch).not.toHaveBeenCalled();
+    scope.qPreload('product/[id]/', 1);
+    scope.qPreload('product/[id]/', 1);
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(importModule).toHaveBeenCalledOnce();
+    expect(scope.qPreloadQueue).toContainEqual(['product/[id]/', 1]);
   });
 
   it('falls back to the next paint without a fixed delay', async () => {

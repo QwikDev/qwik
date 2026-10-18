@@ -172,6 +172,8 @@ const NO_SCRIPT_HERE_ELEMENTS = new Set([
   'template',
   'svg',
   'math',
+  // the parser moves a script out of colgroup and splits it
+  'colgroup',
 ]);
 
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {

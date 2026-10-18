@@ -208,6 +208,93 @@ async function clientCodeSplitting(output: Rolldown.OutputOptions) {
   return outputOpts.codeSplitting as CodeSplitting;
 }
 
+test('smart preserves lazy segment boundaries for bundler helpers', async () => {
+  const plugin = qwikRolldown({
+    optimizerOptions: mockOptimizerOptions(),
+    entryStrategy: { type: 'smart' },
+  });
+  await plugin.options!({});
+  const output = (await plugin.outputOptions!({})) as Rolldown.OutputOptions;
+  const groups = (output.codeSplitting as CodeSplitting).groups!;
+  const name = groups[2].name as Rolldown.CodeSplittingNameFunction;
+  const ctx = {
+    getModuleInfo: () => ({
+      meta: {
+        segment: {
+          hash: 'click123',
+          ctxName: '$',
+          ctxKind: 'function',
+          entry: null,
+        },
+      },
+    }),
+  } as any;
+  assert.equal(name('/src/click.js', ctx), 'segment_click123');
+});
+
+test('smart rendering never imports a future interaction library through bundler helpers', async () => {
+  const plugin = qwikRolldown({
+    optimizerOptions: mockOptimizerOptions(),
+    entryStrategy: { type: 'smart' },
+  });
+  await plugin.options!({});
+  const output = (await plugin.outputOptions!({})) as Rolldown.OutputOptions;
+  const source: Record<string, string> = {
+    main: `import('render').then(console.log); import('click').then(console.log);`,
+    render: `export const value = 1; export const self = () => import('render');`,
+    click: `export { default } from 'heavy-library';`,
+    'heavy-library': `exports.feature = () => console.log('future interaction');`,
+  };
+  const { rolldown } = await import('rolldown');
+  const build = await rolldown({
+    input: 'main',
+    preserveEntrySignatures: 'allow-extension',
+    plugins: [
+      {
+        name: 'fixture',
+        resolveId: (id) => (id in source ? id : null),
+        load: (id) =>
+          id in source
+            ? {
+                code: source[id],
+                meta:
+                  id === 'render' || id === 'click'
+                    ? {
+                        segment: {
+                          hash: id,
+                          ctxName: id === 'render' ? 'component$' : '$',
+                          entry: id === 'render' ? 'entry_render' : null,
+                        },
+                      }
+                    : {},
+              }
+            : null,
+      },
+    ],
+  });
+  try {
+    const { output: chunks } = await build.generate({
+      format: 'es',
+      codeSplitting: output.codeSplitting,
+    });
+    const byName = new Map(
+      chunks.filter((chunk) => chunk.type === 'chunk').map((chunk) => [chunk.fileName, chunk])
+    );
+    const render = [...byName.values()].find((chunk) => 'render' in chunk.modules)!;
+    const visited = new Set<string>();
+    const visit = (name: string) => {
+      if (visited.has(name)) return;
+      visited.add(name);
+      const chunk = byName.get(name)!;
+      expect(Object.keys(chunk.modules)).not.toContain('heavy-library');
+      chunk.imports.forEach(visit);
+    };
+    visit(render.fileName);
+  } finally {
+    await build.close();
+  }
+});
+
 test('codeSplitting starts with the qwik groups and disables dependency recursion', async () => {
   const codeSplitting = await clientCodeSplitting({});
 

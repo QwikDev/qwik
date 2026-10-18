@@ -93,10 +93,12 @@ impl SmartStrategy {
 
 impl EntryPolicy for SmartStrategy {
 	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<Atom> {
-		// Event handlers without scope variables are put into a separate file
-		if segment.scoped_idents.is_empty()
-			&& (segment.ctx_kind != SegmentKind::Function || &segment.ctx_name == "event$")
-		{
+		// Future interactions must not add dependencies to component rendering.
+		if segment.ctx_kind != SegmentKind::Function
+			|| matches!(
+				segment.ctx_name.as_str(),
+				"$" | "event$" | "useVisibleTask$" | "useOn" | "useOnDocument" | "useOnWindow"
+			) {
 			return None;
 		}
 

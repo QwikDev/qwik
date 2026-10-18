@@ -93,6 +93,28 @@ test('appends preloads directly to head within a trigger slice', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(2);
 });
 
+test('replays early demand only after the standalone graph module initializes', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+    qPreload: undefined,
+    qPreloadQueue: [['route.js', 1]],
+  });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  try {
+    await import('./index');
+    const { initPreloader } = await import('./bundle-graph');
+    initPreloader(['route.js']);
+    vi.runAllTimers();
+    expect(document.head.querySelector('link[href$="route.js"]')).not.toBeNull();
+  } finally {
+    const { setPreloader } = await import('./bridge');
+    setPreloader(undefined);
+  }
+});
+
 test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

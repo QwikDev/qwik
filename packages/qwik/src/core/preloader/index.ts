@@ -6,6 +6,14 @@
  * Here we handle preloading of bundles. See @link{./preloading.md} for more details.
  */
 
+import { setPreloader } from './bridge';
+import { isBrowser } from './constants';
+import { preload } from './queue';
+
+if (isBrowser) {
+  setPreloader(preload);
+}
+
 // Short names for minification
 export { loadBundleGraph as l, parseBundleGraph as g } from './bundle-graph';
 export { preload as p } from './queue';

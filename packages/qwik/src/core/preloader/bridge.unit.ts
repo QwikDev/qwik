@@ -26,3 +26,15 @@ test('forwards preload requests after the preloader is installed', () => {
 
   expect(preload).toHaveBeenCalledWith('entry.js', 0.8);
 });
+
+test('delivers requests buffered by another bridge copy', async () => {
+  vi.resetModules();
+  const core = await import('./bridge');
+  vi.resetModules();
+  const standalone = await import('./bridge');
+  core.requestPreload('product/[id]/', 1);
+  const preload = vi.fn();
+  standalone.setPreloader(preload);
+  expect(preload).toHaveBeenCalledWith('product/[id]/', 1);
+  standalone.setPreloader(undefined);
+});

@@ -110,6 +110,7 @@ export interface SegmentJsxOptions {
   devOptions?: DevSuffixOptions;
   source?: string;
   bodyOriginOffset?: number;
+  jsxSourceStarts?: readonly number[];
 }
 
 export interface NestedCallSiteInfo {
@@ -453,6 +454,7 @@ function transformSegmentJsx(
           source: jsxOptions.source,
           bodyOriginOffset: jsxOptions.bodyOriginOffset,
           wrapperPrefixLen: session.offset,
+          jsxSourceStarts: jsxOptions.jsxSourceStarts,
         },
       };
     }

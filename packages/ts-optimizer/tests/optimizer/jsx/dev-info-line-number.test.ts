@@ -189,4 +189,79 @@ export const App = component$(() => {
     expect(segment).toBeDefined();
     expect(findDevInfo(segment!.code)).toContainEqual({ lineNumber: 10, columnNumber: 7 });
   });
+
+  describe('keeps JSX positions after body rewrites shift offsets', () => {
+    const cases = {
+      'an inline event handler': `import { component$, useSignal } from '@qwik.dev/core';
+export const App = component$(() => {
+  const count = useSignal(0);
+  return (
+    <div>
+      <h1 onClick$={() => (count.value = count.value + 1000000)}>Add</h1>
+      <p>{count.value}</p>
+    </div>
+  );
+});
+`,
+      'destructured props': `import { component$ } from '@qwik.dev/core';
+export const App = component$(({ title, count = 1 }: { title: string; count?: number }) => {
+  return (
+    <div>
+      <h1>{title}</h1>
+      <p>{count}</p>
+    </div>
+  );
+});
+`,
+      'a task before the JSX': `import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const count = useSignal(0);
+  useTask$(({ track }) => { track(() => count.value); });
+  return (
+    <div>
+      <h1>title</h1>
+      <p>{count.value}</p>
+    </div>
+  );
+});
+`,
+      'an event handler in a loop': `import { component$, useSignal } from '@qwik.dev/core';
+export const App = component$(() => {
+  const items = useSignal([1, 2]);
+  return (
+    <div>
+      {items.value.map((item) => <h1 key={item} onClick$={() => console.log(item)}>{item}</h1>)}
+      <p>after</p>
+    </div>
+  );
+});
+`,
+    };
+    const strategies = ['segment', 'hoist', 'inline'] as const;
+
+    for (const [name, code] of Object.entries(cases)) {
+      for (const type of strategies) {
+        it(`with ${name} (${type})`, async () => {
+          const result = await transformModule({
+            srcDir: mkFilePath('/p'),
+            input: [{ code: mkSourceText(code), path: mkFilePath('test.tsx') }],
+            transpileJsx: true,
+            entryStrategy: { type },
+            mode: 'dev',
+          });
+          const found = result.modules.flatMap((module) => findDevInfo(module.code));
+          const lines = code.split('\n');
+          const expectedAt = (tag: string) => {
+            const index = lines.findIndex((line) => line.includes(tag));
+            return { lineNumber: index + 1, columnNumber: lines[index].indexOf(tag) + 1 };
+          };
+
+          expect(found).toEqual(
+            expect.arrayContaining([expectedAt('<div>'), expectedAt('<h1'), expectedAt('<p>')])
+          );
+          expect(found).toHaveLength(3);
+        });
+      }
+    }
+  });
 });

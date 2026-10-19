@@ -105,11 +105,23 @@ describe('createLoaderRequestEventFactory', () => {
     expect(getLoaderRequestEvent(pageLoader)).toBe(getLoaderRequestEvent(samePageLoader));
   });
 
-  it('scopes strict loader events by loader pathname and filtered search', () => {
+  it('scopes strict loader events after an action consumes the request body', async () => {
     const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
     globalThis.__STRICT_LOADERS__ = true;
     try {
-      const requestEv = createRequestEv('http://localhost/products/123/view/?page=2&q=shoes');
+      const controller = new AbortController();
+      const requestEv = createRequestEv(
+        'http://localhost/products/123/view/?page=2&q=shoes',
+        { id: '123' },
+        {
+          method: 'POST',
+          headers: { accept: 'text/html', cookie: 'session=123' },
+          body: new URLSearchParams({ text: 'hello' }),
+          signal: controller.signal,
+        }
+      );
+      await requestEv.request.formData();
+      expect(requestEv.request.bodyUsed).toBe(true);
       const routeLoaderCtx = getRouteLoaderCtx(requestEv);
       routeLoaderCtx.loaderPaths['products-loader'] = '/products/';
       routeLoaderCtx.loaderPaths['details-loader'] = '/products/123/';
@@ -132,6 +144,13 @@ describe('createLoaderRequestEventFactory', () => {
       expect(productsEv.originalUrl.href).toBe('http://localhost/products/?page=2');
       expect(productsEv.params).toEqual({});
       expect(detailsEv.params).toEqual({ id: '123' });
+      expect(productsEv.request.method).toBe('POST');
+      expect(productsEv.request.headers.get('cookie')).toBe('session=123');
+      expect(productsEv.request.headers.get('accept')).toBe('text/html');
+      expect(productsEv.request.body).toBeNull();
+      expect(productsEv.request.signal.aborted).toBe(false);
+      controller.abort();
+      expect(productsEv.request.signal.aborted).toBe(true);
     } finally {
       globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
     }
@@ -173,13 +192,14 @@ describe('createLoaderRequestEventFactory', () => {
 
 function createRequestEv(
   href = 'http://localhost/products/?q=shoes&page=2&ignored=true',
-  params: Record<string, string> = { id: '123' }
+  params: Record<string, string> = { id: '123' },
+  init?: RequestInit
 ): RequestEventInternal {
   const url = new URL(href);
   const requestEv = {
     cookie: {},
     headers: new Headers(),
-    request: new Request(url),
+    request: new Request(url, init),
     url,
     params,
     sharedMap: new Map<string, unknown>(),

@@ -1,8 +1,12 @@
 import { describe, expect, test } from 'vitest';
+import { transformModule } from '../../../../../ts-optimizer/src';
+import { mkFilePath, mkSourceText } from '../../../../../ts-optimizer/src/optimizer/types/brands';
+import { statisticsPlugin } from '../statistics';
 import {
   findQwikLazyComponentExports,
   rewriteComponentQrlImport,
   shouldTransformStatisticsSource,
+  wrapHoistedComponentSegments,
   wrapQwikLazyComponentExports,
 } from './sourceTransforms';
 
@@ -34,6 +38,72 @@ export const Foo_component_abc123 = () => null;
       '__qwik_wrap__(__original_Foo_component_abc123__, "Foo_component_abc123"'
     );
     expect(result.code).not.toContain(`'${id}'`);
+  });
+
+  test('wraps render functions hoisted into their parent module, as SSR builds them', () => {
+    const source = `const Foo_component_abc123 = () => null;
+q_Foo_component_abc123.s(Foo_component_abc123);
+const onClick = () => null;
+q_onClick_abc123.s(onClick);
+`;
+
+    const result = wrapHoistedComponentSegments(source, '/src/routes/index.tsx');
+
+    expect(result.code).toContain(
+      'q_Foo_component_abc123.s(__qwik_wrap_render__(Foo_component_abc123, "Foo_component_abc123", q_Foo_component_abc123));'
+    );
+    expect(result.code).toContain('q_onClick_abc123.s(onClick);');
+    // User source keeps its line numbers for stack traces and breakpoints.
+    expect(result.code.split('\n')).toHaveLength(source.split('\n').length);
+    expect(result.code.split('\n')[1]).toContain('q_Foo_component_abc123.s(');
+  });
+
+  test('wraps the render functions of real SSR optimizer output', () => {
+    const { modules } = transformModule({
+      input: [
+        {
+          path: mkFilePath('cmp.tsx'),
+          code: mkSourceText(`import { component$, useTask$ } from '@qwik.dev/core';
+export const Cmp = component$(() => {
+  useTask$(() => {});
+  return <p onClick$={() => {}}>hi</p>;
+});`),
+        },
+      ],
+      srcDir: mkFilePath('/src'),
+      entryStrategy: { type: 'hoist' },
+      mode: 'dev',
+      isServer: true,
+      transpileTs: true,
+      transpileJsx: true,
+    });
+    const parent = modules.find((module) => module.kind === 'parent')!;
+
+    const result = wrapHoistedComponentSegments(parent.code, '/src/cmp.tsx');
+
+    expect(result.code.match(/__qwik_wrap_render__\(/g)).toHaveLength(3);
+    expect(result.code).toMatch(/\.s\(__qwik_wrap_render__\(Cmp_component_\w+, /);
+  });
+
+  test('wraps hoisted renders even when the file path contains _component_', () => {
+    const transform = statisticsPlugin().transform as (
+      code: string,
+      id: string
+    ) => { code: string } | null;
+    const source = 'q_Foo_component_abc123.s(Foo_component_abc123);';
+
+    expect(transform(source, '/src/date_component_v2.tsx')?.code).toContain(
+      '__qwik_wrap_render__(Foo_component_abc123'
+    );
+  });
+
+  test('leaves modules without hoisted render functions untouched', () => {
+    const source = 'const a = 1;\nexport const b = a.s(a);\nqrls[0].s(Foo_component_abc123);';
+
+    expect(wrapHoistedComponentSegments(source, '/src/a.tsx')).toEqual({
+      code: source,
+      changed: false,
+    });
   });
 
   test('finds lazy component exports from AST nodes and ignores matching strings', () => {

@@ -1,4 +1,6 @@
 import { walk } from 'oxc-walker';
+import { parseWithRawTransfer } from '../ast/parse.js';
+import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import type { AstNode } from '../../ast-types.js';
 import {
   createFunctionTransformSession,
@@ -26,6 +28,50 @@ function getNestedCallSiteStart(site: NestedCallSiteInfo): number {
     return site.callStart;
   }
   return site.attrStart ?? site.callStart;
+}
+
+/**
+ * Binding names declared by an arrow's parameter list. Parsed rather than split on `,` so typed
+ * (`facet: Facet`), defaulted and destructured parameters resolve to their binding names.
+ */
+function arrowParamNames(paramText: string): string[] {
+  const program = parseWithRawTransfer('__params__.tsx', `(${paramText}) => 0;`).program;
+  const stmt = program?.body?.[0];
+  const arrow = stmt?.type === 'ExpressionStatement' ? stmt.expression : undefined;
+  if (arrow?.type !== 'ArrowFunctionExpression') {
+    return paramText.split(',').map((p) => p.trim());
+  }
+  return arrow.params.flatMap((param) => collectBindingNamesFromPattern(param));
+}
+
+/**
+ * Names declared in a `for (…)` head whose closing paren is at `closeParen`, or `undefined` when
+ * the parens don't belong to a `for` statement.
+ */
+function forLoopHeadNames(text: string, closeParen: number): string[] | undefined {
+  const openParen = scanMatchingParenBackward(text, closeParen - 1);
+  const before = text.slice(Math.max(0, openParen - 16), openParen);
+  if (!/(?<![\w$])for(?:\s+await)?\s*$/.test(before)) {
+    return undefined;
+  }
+  const head = text.slice(openParen + 1, closeParen);
+  const program = parseWithRawTransfer('__for__.tsx', `async () => { for (${head}) {} }`).program;
+  const stmt = program?.body?.[0];
+  const fn = stmt?.type === 'ExpressionStatement' ? stmt.expression : undefined;
+  const loop =
+    fn?.type === 'ArrowFunctionExpression' && fn.body.type === 'BlockStatement'
+      ? fn.body.body[0]
+      : undefined;
+  const decl =
+    loop?.type === 'ForStatement'
+      ? loop.init
+      : loop?.type === 'ForOfStatement' || loop?.type === 'ForInStatement'
+        ? loop.left
+        : undefined;
+  if (decl?.type !== 'VariableDeclaration') {
+    return undefined;
+  }
+  return decl.declarations.flatMap((d) => collectBindingNamesFromPattern(d.id));
 }
 
 /**
@@ -64,6 +110,12 @@ function findEnclosingArrowBodyForCapture(
     while (j >= 0 && /\s/.test(text[j])) {
       j--;
     }
+    if (ch === '{' && text[j] === ')') {
+      const loopVarNames = forLoopHeadNames(text, j);
+      if (loopVarNames?.includes(capturedVarName)) {
+        return i + 1;
+      }
+    }
     if (!(j >= 1 && text[j] === '>' && text[j - 1] === '=')) {
       continue;
     }
@@ -85,8 +137,7 @@ function findEnclosingArrowBodyForCapture(
       paramText = text.slice(pStart, paramEnd + 1);
     }
 
-    const params = paramText.split(',').map((p) => p.trim());
-    if (params.includes(capturedVarName)) {
+    if (arrowParamNames(paramText).includes(capturedVarName)) {
       return i + 1;
     }
 
@@ -251,8 +302,15 @@ export function rewriteNestedCallSitesInline(
         site.hoistedCaptureNames &&
         site.hoistedCaptureNames.length > 0
       ) {
-        const capturedVar = site.hoistedCaptureNames[0];
-        const enclosingPos = findEnclosingArrowBodyForCapture(bodyText, relStart, capturedVar);
+        // The binding can only live where every capture is in scope: the innermost of the
+        // scopes that declare them (e.g. an outer loop callback whose param is captured).
+        let enclosingPos = -1;
+        for (const capturedVar of site.hoistedCaptureNames) {
+          enclosingPos = Math.max(
+            enclosingPos,
+            findEnclosingArrowBodyForCapture(bodyText, relStart, capturedVar)
+          );
+        }
         const isLoopCallback =
           enclosingPos >= 0 &&
           (outerBodyStart >= 0

@@ -14,6 +14,9 @@ import {
   collectJsxFunctionNamesFromIterable,
 } from '../jsx/jsx-call-transform.js';
 import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
+import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
+import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
+import type { AstNode } from '../../ast-types.js';
 import { computeKeyPrefix } from '../jsx/key-prefix.js';
 import { SignalHoister } from '../jsx/signal-analysis.js';
 import { foldBodySimplifiableExpressions } from '../jsx/simplify.js';
@@ -130,7 +133,7 @@ export function transformInlineSegmentBody(
         };
       })
       .sort((a, b) => b.callStart - a.callStart);
-    const strippedLoopWDecls: Array<{ decl: string; symbolName: string }> = [];
+    const strippedLoopWDecls: LoopWDecl[] = [];
     const replaceBodyRange = (start: number, end: number, replacement: string): void => {
       const offsetChange = replacement.length - (end - start);
       const absoluteEnd = end + bodyOffset;
@@ -213,6 +216,7 @@ export function transformInlineSegmentBody(
             strippedLoopWDecls.push({
               decl: `const ${child.symbolName} = ${wCall};`,
               symbolName: child.symbolName,
+              captureNames: childCaptureNames,
             });
             qrlRef = child.symbolName;
           } else if (hasLoopCrossCaptures && !childIsStripped) {
@@ -222,6 +226,7 @@ export function transformInlineSegmentBody(
             strippedLoopWDecls.push({
               decl: `const ${child.symbolName} = ${wCall};`,
               symbolName: child.symbolName,
+              captureNames: childCaptureNames,
             });
             qrlRef = child.symbolName;
           } else if (!isRegCtx && !childIsStripped && childCaptureNames.length > 0) {
@@ -282,43 +287,8 @@ export function transformInlineSegmentBody(
       }
     }
 
-    // Component-scope `.w([…])` bindings for stripped loop handlers, placed
-    // before the top-level statement that references them so their captures
-    // (declared earlier in the body) are in scope. Statement boundaries come
-    // from a parse — text scanning breaks on `;` inside type annotations.
     if (strippedLoopWDecls.length > 0) {
-      const wrapperPrefixText = 'const __w__ = ';
-      const wrapped = wrapperPrefixText + body + ';';
-      const parsed = parseWithRawTransfer('__w__.tsx', wrapped);
-      const init = parsed.program?.body?.[0];
-      const arrow = init?.type === 'VariableDeclaration' ? init.declarations?.[0]?.init : undefined;
-      const block =
-        arrow &&
-        (arrow.type === 'ArrowFunctionExpression' || arrow.type === 'FunctionExpression') &&
-        arrow.body?.type === 'BlockStatement'
-          ? arrow.body
-          : null;
-      if (block) {
-        const inserts: Array<{ at: number; decl: string }> = [];
-        for (const { decl, symbolName } of strippedLoopWDecls) {
-          const usePos = body.indexOf(symbolName);
-          if (usePos < 0) {
-            continue;
-          }
-          const stmt = block.body.find(
-            (st) =>
-              st.start - wrapperPrefixText.length <= usePos &&
-              usePos < st.end - wrapperPrefixText.length
-          );
-          if (stmt) {
-            inserts.push({ at: stmt.start - wrapperPrefixText.length, decl });
-          }
-        }
-        inserts.sort((a, b) => b.at - a.at);
-        for (const { at, decl } of inserts) {
-          body = body.slice(0, at) + `${decl}\n        ` + body.slice(at);
-        }
-      }
+      body = insertLoopWDecls(body, strippedLoopWDecls);
     }
   }
 
@@ -670,4 +640,187 @@ function collectElementCaptureNames(
     }
   }
   return names;
+}
+
+/** A loop handler's `.w([…])` binding, with the lexical captures it closes over. */
+interface LoopWDecl {
+  decl: string;
+  symbolName: string;
+  captureNames: readonly string[];
+}
+
+function isFunctionNode(node: AstNode): node is AstFunction {
+  return (
+    node.type === 'ArrowFunctionExpression' ||
+    node.type === 'FunctionExpression' ||
+    node.type === 'FunctionDeclaration'
+  );
+}
+
+/** The body of a function or loop statement, else `undefined`. */
+function scopeBodyOf(node: AstNode): AstNode | null | undefined {
+  switch (node.type) {
+    case 'ArrowFunctionExpression':
+    case 'FunctionExpression':
+    case 'FunctionDeclaration':
+    case 'ForStatement':
+    case 'ForInStatement':
+    case 'ForOfStatement':
+      return node.body;
+    default:
+      return undefined;
+  }
+}
+
+/** AST nodes from `root` down to the innermost node whose range contains `pos`. */
+function pathToPosition(root: AstNode, pos: number): AstNode[] {
+  const path: AstNode[] = [root];
+  let node: AstNode | undefined = root;
+  while (node) {
+    let next: AstNode | undefined;
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'parent' || !value || typeof value !== 'object') {
+        continue;
+      }
+      for (const candidate of Array.isArray(value) ? value : [value]) {
+        if (
+          candidate &&
+          typeof candidate.type === 'string' &&
+          typeof candidate.start === 'number' &&
+          candidate.start <= pos &&
+          pos < candidate.end
+        ) {
+          next = candidate as AstNode;
+          break;
+        }
+      }
+      if (next) {
+        break;
+      }
+    }
+    if (next) {
+      path.push(next);
+    }
+    node = next;
+  }
+  return path;
+}
+
+function declarationNames(stmt: AstNode | null | undefined): string[] {
+  if (!stmt) {
+    return [];
+  }
+  if (stmt.type === 'VariableDeclaration') {
+    return stmt.declarations.flatMap((d) => collectBindingNamesFromPattern(d.id));
+  }
+  if ((stmt.type === 'FunctionDeclaration' || stmt.type === 'ClassDeclaration') && stmt.id) {
+    return [stmt.id.name];
+  }
+  return [];
+}
+
+/** Whether `node` itself introduces a binding for one of `names` that is visible at `pos`. */
+function declaresAny(node: AstNode, names: ReadonlySet<string>, pos: number): boolean {
+  const hit = (bindings: string[]) => bindings.some((name) => names.has(name));
+  switch (node.type) {
+    case 'ArrowFunctionExpression':
+    case 'FunctionExpression':
+    case 'FunctionDeclaration':
+      return node.params.some((param) => hit(collectBindingNamesFromPattern(param)));
+    case 'BlockStatement':
+      return node.body.some((stmt) => stmt.start < pos && hit(declarationNames(stmt)));
+    case 'ForStatement':
+      return node.init?.type === 'VariableDeclaration' && hit(declarationNames(node.init));
+    case 'ForInStatement':
+    case 'ForOfStatement':
+      return node.left.type === 'VariableDeclaration' && hit(declarationNames(node.left));
+    default:
+      return false;
+  }
+}
+
+/**
+ * Places each loop handler's `.w([…])` binding in the innermost scope that declares one of its
+ * captures, before the statement that uses it. When every capture is component-scoped that is the
+ * component body; when a capture comes from an outer loop (`items.map((item) => …)` nested in
+ * `facets.map((facet) => …)` capturing `facet`), the binding goes inside the outer loop callback,
+ * which is turned into a block body if it was expression-bodied. Mirrors the Rust optimizer.
+ * Statement boundaries come from a parse — text scanning breaks on `;` inside type annotations.
+ */
+function insertLoopWDecls(body: string, decls: readonly LoopWDecl[]): string {
+  const wrapperPrefixText = 'const __w__ = ';
+  const offset = wrapperPrefixText.length;
+  const parsed = parseWithRawTransfer('__w__.tsx', wrapperPrefixText + body + ';');
+  const init = parsed.program?.body?.[0];
+  const root = init?.type === 'VariableDeclaration' ? init.declarations?.[0]?.init : undefined;
+  if (!root || !isFunctionNode(root) || root.body?.type !== 'BlockStatement') {
+    return body;
+  }
+
+  const s = new MagicString(body);
+  // Expression-bodied callbacks to rewrite as `{ <decls> return <expr>; }`, keyed by node start.
+  const expressionBodies = new Map<number, { node: AstNode; body: AstNode; decls: string[] }>();
+
+  for (const { decl, symbolName, captureNames } of decls) {
+    const useMatch = wholeIdentifierPattern(symbolName).exec(body);
+    if (!useMatch) {
+      continue;
+    }
+    const usePos = useMatch.index + offset;
+    const path = pathToPosition(root, usePos);
+    const names = new Set(captureNames);
+    let scopeIdx = 0;
+    for (let i = path.length - 2; i > 0; i--) {
+      if (declaresAny(path[i], names, usePos)) {
+        scopeIdx = i;
+        break;
+      }
+    }
+    let scope = path[scopeIdx];
+    let child = path[scopeIdx + 1];
+    const scopeBody = scopeBodyOf(scope);
+    if (scopeBody) {
+      if (scopeBody.type !== 'BlockStatement') {
+        if (scope.type === 'ArrowFunctionExpression') {
+          const entry = expressionBodies.get(scope.start) ?? {
+            node: scope,
+            body: scopeBody,
+            decls: [],
+          };
+          entry.decls.push(decl);
+          expressionBodies.set(scope.start, entry);
+          continue;
+        }
+        // `for (…) stmt;` — wrap the single statement in a block.
+        s.appendLeft(scopeBody.start - offset, `{\n        ${decl}\n        `);
+        s.appendRight(scopeBody.end - offset, '\n    }');
+        continue;
+      }
+      scope = scopeBody;
+      child = path[path.indexOf(scopeBody) + 1];
+    }
+    const stmt =
+      scope.type === 'BlockStatement' ? scope.body.find((st) => st === child) : undefined;
+    if (stmt) {
+      s.appendLeft(stmt.start - offset, `${decl}\n        `);
+    }
+  }
+
+  for (const { node, body: exprNode, decls: bodyDecls } of expressionBodies.values()) {
+    // Start at the `=>`'s first non-space character so a parenthesised body keeps its parens and
+    // `return` stays on the same line as its argument.
+    const arrowIdx = body.lastIndexOf('=>', exprNode.start - offset);
+    if (arrowIdx < 0) {
+      continue;
+    }
+    let exprStart = arrowIdx + 2;
+    while (exprStart < body.length && /\s/.test(body[exprStart])) {
+      exprStart++;
+    }
+    const indent = '\n        ';
+    s.appendRight(exprStart, `{${indent}${bodyDecls.join(indent)}${indent}return `);
+    s.appendLeft(node.end - offset, ';\n    }');
+  }
+
+  return s.toString();
 }

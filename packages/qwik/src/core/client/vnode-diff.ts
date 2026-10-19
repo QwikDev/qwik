@@ -1593,7 +1593,8 @@ function expectComponent(diffContext: DiffContext, component: Function) {
       }
     } else {
       if (moveOrCreateKeyedNode(diffContext, null, lookupKey, lookupKey, diffContext.$vParent$)) {
-        insertNewComponent(diffContext, host, componentQRL, jsxProps);
+        // `host` is an unrelated sibling here, so its effects must stay.
+        insertNewComponent(diffContext, null, componentQRL, jsxProps);
         shouldRender = true;
       }
       host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode;

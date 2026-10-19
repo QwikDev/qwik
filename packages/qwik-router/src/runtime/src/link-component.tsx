@@ -1,5 +1,7 @@
 import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
 import { prefetchRoute } from './prefetch-route';
+import { findRouterConfig } from './router-config';
+import { matchRouteTree } from './routing';
 import { useDocumentHead, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
 
@@ -42,6 +44,11 @@ export const Link = component$<LinkProps>((props) => {
     (prefetchDataProp === 'visible' ||
       // deprecated prop below, remove in favor of prefetchData
       prefetchProp === true);
+
+  // The bundle graph is keyed by route name (`product/[id]/`), which needs the route tree
+  const routes = shouldVisiblePrefetchBundles && findRouterConfig()?.routes;
+  const route =
+    routes && untrack(() => matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname));
 
   const shouldPrefetchBundles =
     !!clientNavPath &&
@@ -135,6 +142,7 @@ export const Link = component$<LinkProps>((props) => {
               ? 'd'
               : null
       }
+      data-q-route={route && !route.notFound ? '/' + route.routeParts.join('/') : undefined}
       onClick$={[
         preventDefault,
         handlePreload, // needs to be in between preventDefault and onClick$ to ensure it starts asap.

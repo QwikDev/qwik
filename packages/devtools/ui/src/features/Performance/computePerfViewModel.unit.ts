@@ -128,8 +128,8 @@ describe('describeSsrRenders', () => {
     );
   });
 
-  it('keeps the count alone when no server render was timed', () => {
-    expect(describeSsrRenders({ ...entry, duration: 0, ssrCount: 1 })).toBe('SSR: 1');
+  it('shows no count for components that were only set up, never rendered', () => {
+    expect(describeSsrRenders({ ...entry, duration: 0, ssrCount: 2 })).toBe('SSR: -');
     expect(describeSsrRenders(undefined)).toBe('SSR: -');
   });
 });

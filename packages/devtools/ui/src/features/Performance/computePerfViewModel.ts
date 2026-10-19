@@ -42,12 +42,12 @@ export interface PerfViewModel {
   components: PerfComponentVm[];
 }
 
-/** Card label for a component's server renders; only render entries carry a `renderCount`. */
+/** Card label for a component's server renders; setup-only entries have no `renderCount`. */
 export function describeSsrRenders(ssr: PerfSsrItem | undefined): string {
-  if (typeof ssr?.renderCount === 'number') {
-    return `SSR: ${formatMs(ssr.duration)} × ${ssr.renderCount}`;
+  if (typeof ssr?.renderCount !== 'number') {
+    return 'SSR: -';
   }
-  return `SSR: ${typeof ssr?.ssrCount === 'number' ? ssr.ssrCount : '-'}`;
+  return `SSR: ${formatMs(ssr.duration)} × ${ssr.renderCount}`;
 }
 
 function getCallsFromCsr(item: PerfGroupedCsrItem): number {

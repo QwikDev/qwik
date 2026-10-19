@@ -19,7 +19,7 @@ import type { Container, HostElement } from '../types';
 import type { VNode } from '../vnode/vnode';
 import { VNodeFlags, type ClientContainer } from '../../client/types';
 import type { NodeProp } from '../../reactive-primitives/subscription-data';
-import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
+import { isSignal } from '../../reactive-primitives/utils';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import type { ElementVNode } from '../vnode/element-vnode';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
@@ -35,7 +35,6 @@ import {
 } from './cursor-props';
 import { invoke, newInvokeContext, untrack } from '../../use/use-core';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
-import { ComputedSignalFlags } from '../../reactive-primitives/types';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import type { ISsrNode } from '../../ssr/ssr-types';
 import type { Cursor } from './cursor';
@@ -466,21 +465,11 @@ export function executeCompute(
   if (!target) {
     return;
   }
-  const effects = target.$effects$;
-
   const ctx = newInvokeContext();
   ctx.$container$ = container;
-  // needed for computed signals and throwing QRLs
-  return maybeThen(
-    retryOnPromise(() =>
-      invoke.call(target, ctx, (target as WrappedSignalImpl<unknown>).$computeIfNeeded$)
-    ),
-    () => {
-      if ((target as WrappedSignalImpl<unknown>).$flags$ & ComputedSignalFlags.RUN_EFFECTS) {
-        (target as WrappedSignalImpl<unknown>).$flags$ &= ~ComputedSignalFlags.RUN_EFFECTS;
-        return scheduleEffects(container, target, effects);
-      }
-    }
+  // needed for computed signals and throwing QRLs; a changed value notifies its effects itself
+  return retryOnPromise(() =>
+    invoke.call(target, ctx, (target as WrappedSignalImpl<unknown>).$computeIfNeeded$)
   );
 }
 

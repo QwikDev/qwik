@@ -638,7 +638,7 @@ export class Serializer {
       if (value instanceof WrappedSignalImpl) {
         this.output(TypeIds.WrappedSignal, [
           ...serializeWrappingFn(this.$serializationContext$, value),
-          value.$flags$,
+          value.$flags$ & ~ComputedSignalFlags.DIRTY_FLAGS,
           value.$hostElement$,
           ...(value.$effects$ || []),
         ]);
@@ -648,7 +648,7 @@ export class Serializer {
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
         const shouldNeverSerialize =
           value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
-        const isInvalid = value.$flags$ & ComputedSignalFlags.INVALID;
+        const isInvalid = value.$flags$ & (ComputedSignalFlags.INVALID | ComputedSignalFlags.CHECK);
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
         // async-mode computeds carry the same engine state and must round-trip like AsyncSignals
         const isAsync = !!(value.$flags$ & AsyncSignalFlags.ASYNC_MODE);
@@ -658,7 +658,11 @@ export class Serializer {
 
         // Send the flags but remove the serialization bits and default to 0 when undefined
         const asyncFlags =
-          (isAsync && value.$flags$ & ~SerializationSignalFlags.SERIALIZATION_ALL_STRATEGIES) ||
+          (isAsync &&
+            value.$flags$ &
+              ~(
+                SerializationSignalFlags.SERIALIZATION_ALL_STRATEGIES | ComputedSignalFlags.CHECK
+              )) ||
           undefined;
 
         if (isInvalid || isSkippable || isErrored) {

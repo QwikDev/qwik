@@ -3,6 +3,7 @@ import {
   Fragment as Component,
   component$,
   Fragment,
+  useComputed$,
   useSignal,
   useStore,
   useTask$,
@@ -144,6 +145,110 @@ describe.each([
 
       await trigger(container.element, '#close', 'click');
       expect(taskLog).toEqual([false, true, false]);
+    });
+  });
+
+  describe('issue #9189', () => {
+    it('should keep updating attributes of an element after a component is inserted before it', async () => {
+      const Alert = component$<{ message: string }>((props) => (
+        <div role="alert">{props.message}</div>
+      ));
+
+      const Issue9189 = component$(() => {
+        const error = useSignal('');
+        const busy = useSignal(false);
+        return (
+          <section>
+            {!!error.value && <Alert message={error.value} />}
+            <button
+              id="pay"
+              aria-busy={busy.value || undefined}
+              class={['pay', busy.value && 'busy']}
+              onClick$={() => {
+                error.value = '';
+                busy.value = true;
+              }}
+            />
+            <button
+              id="decline"
+              onClick$={() => {
+                error.value = 'Card declined';
+                busy.value = false;
+              }}
+            />
+          </section>
+        );
+      });
+
+      const { container, document } = await render(<Issue9189 />, { debug });
+      const pay = () => document.querySelector('#pay')!;
+
+      await trigger(container.element, '#pay', 'click');
+      expect(pay().getAttribute('class')).toBe('pay busy');
+      expect(pay().getAttribute('aria-busy')).toBe('true');
+
+      await trigger(container.element, '#decline', 'click');
+      expect(document.querySelector('[role=alert]')!.textContent).toBe('Card declined');
+      expect(pay().getAttribute('class')).toBe('pay');
+      expect(pay().hasAttribute('aria-busy')).toBe(false);
+
+      await trigger(container.element, '#pay', 'click');
+      expect(document.querySelectorAll('[role=alert]')).toHaveLength(0);
+      expect(pay().getAttribute('class')).toBe('pay busy');
+      expect(pay().getAttribute('aria-busy')).toBe('true');
+    });
+  });
+
+  describe('props derived from render-local values', () => {
+    const Child = component$<{ open?: boolean }>((props) => {
+      const computedOpen = useComputed$(() => props.open === true);
+      const trackedOpen = useSignal(false);
+      useTask$(({ track }) => {
+        trackedOpen.value = track(() => props.open) === true;
+      });
+      return (
+        <p>
+          {String(props.open)} {String(computedOpen.value)} {String(trackedOpen.value)}
+        </p>
+      );
+    });
+
+    it('should update subscribers of an expression prop', async () => {
+      const Parent = component$(() => {
+        const items = useSignal<string[]>([]);
+        const visible = items.value.slice(0, 5);
+        return (
+          <>
+            <button onClick$={() => (items.value = [...items.value, 'item'])} />
+            <Child open={visible.length > 0} />
+          </>
+        );
+      });
+
+      const { container, document } = await render(<Parent />, { debug });
+      expect(document.querySelector('p')!.textContent).toBe('false false false');
+
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('p')!.textContent).toBe('true true true');
+    });
+
+    it('should update subscribers of a member prop', async () => {
+      const Parent = component$(() => {
+        const items = useSignal<string[]>([]);
+        const state = { open: items.value.length > 0 };
+        return (
+          <>
+            <button onClick$={() => (items.value = [...items.value, 'item'])} />
+            <Child open={state.open} />
+          </>
+        );
+      });
+
+      const { container, document } = await render(<Parent />, { debug });
+      expect(document.querySelector('p')!.textContent).toBe('false false false');
+
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('p')!.textContent).toBe('true true true');
     });
   });
 });

@@ -1103,7 +1103,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(html).not.toContain('q:patch');
   });
 
-  it('should resume an early-finalized segment after delayed vnode data is emitted', async () => {
+  it('should resume tasks in an early-finalized segment after delayed vnode data is emitted', async () => {
     let resolveSegment!: (value: JSXOutput) => void;
     let resolveRoot!: (value: JSXOutput) => void;
     const segment = new Promise<JSXOutput>((resolve) => {
@@ -1114,19 +1114,20 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     (globalThis as any).__ooosUnitEarlySegmentClicks = 0;
 
-    const Slow = component$(() => (
-      <>
-        {segment}
-        <button
-          id="ooos-unit-early-segment-button"
-          onClick$={() => {
-            (globalThis as any).__ooosUnitEarlySegmentClicks += 1;
-          }}
-        >
-          Touch early segment
-        </button>
-      </>
-    ));
+    const Slow = component$(() => {
+      const count = useSignal(0);
+      useTask$(({ track }) => {
+        (globalThis as any).__ooosUnitEarlySegmentClicks = track(() => count.value);
+      });
+      return (
+        <>
+          {segment}
+          <button id="ooos-unit-early-segment-button" onClick$={() => count.value++}>
+            Touch early segment
+          </button>
+        </>
+      );
+    });
     const chunks: string[] = [];
 
     const renderPromise = ssrRenderPendingStream(

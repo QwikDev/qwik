@@ -1942,6 +1942,17 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     this.$rootContainer$.emitErrorSwapExecutorIfNeeded();
   }
 
+  override addRoot(obj: unknown) {
+    // Reuse roots discovered while serializing the shell.
+    if (
+      this.$outOfOrderState$ === OutOfOrderSegmentState.EarlyFinalized &&
+      this.$rootContainer$.serializationCtx.$hasRootId$(obj) !== undefined
+    ) {
+      return this.serializationCtx.$addRoot$(obj);
+    }
+    return super.addRoot(obj);
+  }
+
   $recordExternalRootEffect$(
     producer: unknown,
     effect: EffectSubscription,

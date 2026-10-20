@@ -1163,6 +1163,74 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
+  it('should resume early and late segments without shifting state roots', async () => {
+    let resolveRoot!: (value: JSXOutput) => void;
+    let resolveSlow!: (value: string) => void;
+    const root = new Promise<JSXOutput>((resolve) => {
+      resolveRoot = resolve;
+    });
+    const slow = new Promise<string>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Fast = component$(() => {
+      const value = useComputed$(async () => 'fast');
+      const count = useSignal(0);
+      return (
+        <button id="early-counter" onClick$={() => count.value++}>
+          {value.value} {count.value}
+        </button>
+      );
+    });
+    const Slow = component$(() => {
+      const value = useComputed$(() => slow);
+      const count = useSignal(0);
+      return (
+        <button id="late-counter" onClick$={() => count.value++}>
+          {value.value} {count.value}
+        </button>
+      );
+    });
+    const chunks: string[] = [];
+    const renderPromise = ssrRenderPendingStream(
+      <main>
+        <Pending fallback$={() => <p>Waiting fast</p>}>
+          <Fast />
+        </Pending>
+        <Pending fallback$={() => <p>Waiting slow</p>}>
+          <Slow />
+        </Pending>
+        {root}
+      </main>,
+      chunks
+    );
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('qO(1)'));
+      expect(chunks.join('')).not.toContain('type="qwik/state"');
+      resolveRoot(<footer>Root ready</footer>);
+      await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+      resolveSlow('slow');
+      const { document, container } = await renderPromise;
+
+      const counters = [
+        ['early-counter', 'fast'],
+        ['late-counter', 'slow'],
+      ];
+      for (let i = 0; i < counters.length; i++) {
+        const [id, label] = counters[i];
+        expect(document.querySelector(`#${id}`)?.textContent).toBe(`${label} 0`);
+        await trigger(container.element, `#${id}`, 'click');
+        await trigger(container.element, `#${id}`, 'click');
+        await waitForDrain(container);
+        expect(document.querySelector(`#${id}`)?.textContent).toBe(`${label} 2`);
+      }
+    } finally {
+      resolveRoot(<footer>Root ready</footer>);
+      resolveSlow('slow');
+      await renderPromise;
+    }
+  });
+
   it('should keep a component after the segment parent element reactive', async () => {
     const Slow = component$(() => {
       const data = useComputed$(async () => {

@@ -2031,6 +2031,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
 
   $emitDelayedOutOfOrderVNodeData$(): void {
     try {
+      this.$noMoreRoots$ = true;
       this.emitVNodeData(this.vnodeSegment!);
       this.emitPendingVNodeDataPatches();
       this.$rootContainer$.emitOutOfOrderSegmentScripts(

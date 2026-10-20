@@ -663,7 +663,7 @@ describe('render api', () => {
         expect(containerElement?.nodeName.toLowerCase()).toEqual(testTag);
         expect(containerElement?.lastChild?.textContent ?? '').toContain('window._qwikEv');
         const scripts = document.querySelectorAll('script');
-        expect(scripts[0]?.textContent).toEqual(
+        expect(document.querySelector('link[rel=modulepreload] + script')?.textContent).toEqual(
           'import(new URL("/build/qwik-loader.js",document.baseURI).href)'
         );
         for (let i = 0; i < scripts.length; i++) {

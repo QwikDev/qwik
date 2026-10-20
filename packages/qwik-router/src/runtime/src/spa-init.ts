@@ -32,6 +32,10 @@ export const dispatchRouterPopstate = (document: Document, href: string) => {
   );
 };
 
+// Modifier and non-primary clicks open a tab, window or download natively.
+export const isPlainPrimaryClick = (event: MouseEvent) =>
+  event.button === 0 && !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey);
+
 // TODO Dedupe handler code from here and QwikRouterProvider?
 // TODO Navigation API; check for support & simplify.
 
@@ -134,7 +138,7 @@ export default event$((_: Event, el: Element) => {
 
     // We need this handler in init because Firefox destroys states w/ anchor tags.
     window._qRouterInitAnchors = (event: MouseEvent) => {
-      if (window._qRouterSPA || event.defaultPrevented) {
+      if (window._qRouterSPA || event.defaultPrevented || !isPlainPrimaryClick(event)) {
         return;
       }
 

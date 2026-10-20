@@ -1964,6 +1964,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       this.serializationCtx,
       this.$rootContainer$.$storeProxyMap$,
       this.subscriptionPatchRecords,
+      this.$rootContainer$.rootContainerSerializedRootCount,
       producer,
       effect,
       prop,
@@ -2156,6 +2157,17 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     segmentSerializationCtx: SerializationContext,
     commit: SegmentRootCommit
   ): void {
+    const segments = rootContainer.outOfOrderSegments;
+    // Keep streamed producers as references to their original snapshots.
+    for (let i = 0; i < segments.length; i++) {
+      const records = segments[i].subscriptionPatchRecords;
+      for (let j = 0; j < records.length; j++) {
+        const record = records[j];
+        if (record.rootId !== undefined) {
+          segmentSerializationCtx.$addRoot$(record.rootObj);
+        }
+      }
+    }
     const segmentRoots = segmentSerializationCtx.$roots$;
     const segmentRootObjs = segmentSerializationCtx.$rootObjs$;
     for (let i = 0; i < segmentRootObjs.length; i++) {

@@ -2328,6 +2328,67 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
+  it.each(['child', 'inline'])(
+    'should resume late %s subscriptions when segments share an async signal',
+    async (variant) => {
+      let resolveData!: (value: string) => void;
+      const dataPromise = new Promise<string>((resolve) => {
+        resolveData = resolve;
+      });
+      const Count = component$((props: { count: SignalType<number> }) => (
+        <span id="shared-async-count">{props.count.value}</span>
+      ));
+      const Reader = component$(
+        (props: { data: { value: string }; count?: SignalType<number> }) => (
+          <p>
+            {props.data.value}
+            {props.count &&
+              (variant === 'child' ? (
+                <Count count={props.count} />
+              ) : (
+                <span id="shared-async-count">{props.count.value}</span>
+              ))}
+          </p>
+        )
+      );
+      const App = component$(() => {
+        const count = useSignal(0);
+        const data = useComputed$(() => dataPromise);
+        return (
+          <main>
+            <button id="shared-async-increment" onClick$={() => count.value++}>
+              {count.value}
+            </button>
+            <Pending fallback$={() => <p>Waiting first</p>}>
+              <Reader data={data} />
+            </Pending>
+            <Pending fallback$={() => <p>Waiting second</p>}>
+              <Reader data={data} count={count} />
+            </Pending>
+          </main>
+        );
+      });
+      const chunks: string[] = [];
+      const renderPromise = ssrRenderPendingStream(<App />, chunks);
+
+      try {
+        await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+        resolveData('data');
+        const { document, container } = await renderPromise;
+        expect(document.querySelector('#shared-async-count')?.textContent).toBe('0');
+
+        await trigger(container.element, '#shared-async-increment', 'click');
+        await trigger(container.element, '#shared-async-increment', 'click');
+        await waitForDrain(container);
+        expect(document.querySelector('#shared-async-increment')?.textContent).toBe('2');
+        expect(document.querySelector('#shared-async-count')?.textContent).toBe('2');
+      } finally {
+        resolveData('data');
+        await renderPromise;
+      }
+    }
+  );
+
   it('should resume a segment that receives a signal holding undefined', async () => {
     let resolveData!: (value: string) => void;
     const dataPromise = new Promise<string>((resolve) => {

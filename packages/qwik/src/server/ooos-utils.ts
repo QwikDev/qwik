@@ -5,6 +5,7 @@ export type SubscriptionPatchProp = string | symbol | null;
 
 export interface SubscriptionPatchRecord {
   rootObj: unknown;
+  /** Root already streamed before this subscription was recorded. */
   rootId: number | undefined;
   effect: EffectSubscription;
   prop: SubscriptionPatchProp;
@@ -17,6 +18,7 @@ export const recordExternalRootEffect = (
   segmentCtx: SerializationContext,
   storeProxyMap: ObjToProxyMap,
   records: SubscriptionPatchRecords | null,
+  streamedRootCount: number,
   producer: unknown,
   effect: EffectSubscription,
   prop: SubscriptionPatchProp,
@@ -41,7 +43,7 @@ export const recordExternalRootEffect = (
   }
   records.push({
     rootObj,
-    rootId,
+    rootId: rootId !== undefined && rootId < streamedRootCount ? rootId : undefined,
     effect,
     prop,
   });

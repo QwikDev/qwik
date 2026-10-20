@@ -139,6 +139,8 @@ export interface DiffContext {
   /// Side buffer to track the new order of the siblings once they are scanned out of order.
   /// Negative entries are not matched yet. The siblings are only moved after matching is done.
   $vSideBuffer$: Map<VNode, number> | null;
+  /// First sibling not matched yet, where the cursor resumes after a match.
+  $vUnmatched$: VNode | null;
   /// Current set of JSX children.
   $jsxChildren$: JSXChildren[] | null;
   // Current JSX child.
@@ -232,6 +234,7 @@ export function createDiffContext(
     $vSiblings$: null,
     $vSiblingsArray$: null,
     $vSideBuffer$: null,
+    $vUnmatched$: null,
     $jsxChildren$: null!,
     $jsxValue$: null,
     $jsxIdx$: 0,
@@ -523,6 +526,13 @@ function advance(diffContext: DiffContext) {
     // Re-insert to record the new order.
     diffContext.$vSideBuffer$.delete(vMatched);
     diffContext.$vSideBuffer$.set(vMatched, 0);
+    let vUnmatched = diffContext.$vUnmatched$;
+    if (vUnmatched && isMatchedSibling(diffContext, vUnmatched)) {
+      vUnmatched = peekNextSiblingWithinBoundary(diffContext, vUnmatched);
+    }
+    diffContext.$vCurrent$ = diffContext.$vUnmatched$ = vUnmatched;
+    diffContext.$vNewNode$ = null;
+    return;
   }
   if (diffContext.$vNewNode$ !== null) {
     // We have a new Node.
@@ -585,6 +595,7 @@ function descend(
 
     diffContext.$isCreationMode$ = creationMode;
     diffContext.$vSideBuffer$ = null;
+    diffContext.$vUnmatched$ = null;
     diffContext.$vSiblings$ = null;
     diffContext.$vSiblingsArray$ = null;
     diffContext.$vParent$ = (diffContext.$vNewNode$ || diffContext.$vCurrent$!) as
@@ -600,6 +611,7 @@ function ascend(diffContext: DiffContext) {
   const descendVNode = diffContext.$stack$.pop(); // boolean: descendVNode
   if (descendVNode) {
     diffContext.$isCreationMode$ = diffContext.$stack$.pop();
+    diffContext.$vUnmatched$ = diffContext.$stack$.pop();
     diffContext.$vSideBuffer$ = diffContext.$stack$.pop();
     diffContext.$vSiblings$ = diffContext.$stack$.pop();
     diffContext.$vSiblingsArray$ = diffContext.$stack$.pop();
@@ -629,6 +641,7 @@ function stackPush(diffContext: DiffContext, children: JSXChildren, descendVNode
       diffContext.$vSiblingsArray$,
       diffContext.$vSiblings$,
       diffContext.$vSideBuffer$,
+      diffContext.$vUnmatched$,
       diffContext.$isCreationMode$
     );
   }
@@ -966,6 +979,9 @@ function expectNoTextNode(diffContext: DiffContext) {
   if (diffContext.$vCurrent$ !== null && vnode_isTextVNode(diffContext.$vCurrent$)) {
     const toRemove = diffContext.$vCurrent$;
     diffContext.$vCurrent$ = peekNextSiblingWithinBoundary(diffContext, diffContext.$vCurrent$);
+    if (diffContext.$vUnmatched$ === toRemove) {
+      diffContext.$vUnmatched$ = diffContext.$vCurrent$;
+    }
     diffContext.$vSideBuffer$?.delete(toRemove);
     vnode_remove(diffContext.$journal$, diffContext.$vParent$, toRemove, true);
   }
@@ -1389,6 +1405,7 @@ function retrieveChildWithKey(
     diffContext.$vSiblings$ = new Map<string, VNode>();
     diffContext.$vSiblingsArray$ = [];
     diffContext.$vSideBuffer$ = new Map<VNode, number>();
+    diffContext.$vUnmatched$ = diffContext.$vCurrent$;
     const boundary = getLevelBoundary(diffContext);
     let vNode = diffContext.$vCurrent$;
     while (vNode && vNode !== boundary) {

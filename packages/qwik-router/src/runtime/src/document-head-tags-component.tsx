@@ -49,24 +49,26 @@ export const DocumentHeadTags = component$((props: DocumentHeadValue) => {
         <link {...l} />
       ))}
       {head.styles.map((s) => {
-        // Support for the old `props` property
-        const props = s.props || s;
+        // `style` and `key` are not attributes. `props` is the old way to set the attributes.
+        const { style, key, props: oldProps, ...rest } = s;
+        const props = oldProps || rest;
         return (
           <style
             {...props}
-            dangerouslySetInnerHTML={s.style || props.dangerouslySetInnerHTML}
-            key={s.key}
+            dangerouslySetInnerHTML={style || props.dangerouslySetInnerHTML}
+            key={key}
           />
         );
       })}
       {head.scripts.map((s) => {
-        // Support for the old `props` property
-        const props = s.props || s;
+        // `script` and `key` are not attributes. `props` is the old way to set the attributes.
+        const { script, key, props: oldProps, ...rest } = s;
+        const props = oldProps || rest;
         return (
           <script
             {...props}
-            dangerouslySetInnerHTML={s.script || props.dangerouslySetInnerHTML}
-            key={s.key}
+            dangerouslySetInnerHTML={script || props.dangerouslySetInnerHTML}
+            key={key}
           />
         );
       })}

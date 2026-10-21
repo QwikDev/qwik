@@ -9,6 +9,8 @@ import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { devPreloadedRouteLoaders } from '../request-handler/dev-preloaded-route-loader';
+import { AbortMessage } from '../request-handler/redirect-handler';
+import { ServerError } from '../request-handler/server-error';
 import { getStaticFilePath } from '../shared/static-file';
 import { computeOrigin, fromNodeHttp, getUrl } from './http';
 
@@ -84,9 +86,14 @@ export function createQwikRouter(
       if (handled) {
         const err = await handled.completion;
         if (handled.requestEv.headersSent) {
-          if (err) {
-            // Headers sent already: can't forward, so log the error.
-            console.error(err);
+          // Redirects and handled server errors are control-flow signals, not errors.
+          if (err && !(err instanceof AbortMessage) && !(err instanceof ServerError)) {
+            // Headers sent already: can't forward to next, so report the error.
+            if (opts.onError) {
+              opts.onError(err, req, res);
+            } else {
+              console.error(err);
+            }
           }
           return;
         }
@@ -195,6 +202,13 @@ export interface QwikRouterNodeRequestOptions extends ServerRenderOptions {
 
   /** Provide a function that returns a `ClientConn` for the given request. */
   getClientConn?: (req: IncomingMessage | Http2ServerRequest) => ClientConn;
+
+  /**
+   * Called with SSR render errors that resolve after headers were already sent, when they can
+   * no longer be forwarded to `next`. Without this, the error is logged with `console.error`.
+   * The callback only reports the error and must not write to the response.
+   */
+  onError?: (err: any, req: IncomingMessage | Http2ServerRequest, res: ServerResponse) => void;
 
   /** @deprecated Use `getOrigin` instead. Will be removed in V3 */
   origin?: string;

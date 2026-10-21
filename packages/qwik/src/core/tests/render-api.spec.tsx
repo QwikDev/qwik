@@ -581,11 +581,29 @@ describe('render api', () => {
           containerTagName: 'div',
           qwikLoader: 'module',
         });
-        expect(result.html).toMatch(
+        // Names are pushed as their elements render; the container-ready marker comes last
+        const pushed = Array.from(
+          result.html.matchAll(/\(window\._qwikEv\|\|\(window\._qwikEv=\[\]\)\)\.push\(([^)]*)\)/g),
+          (match) => match[1]
+        ).join(',');
+        expect(pushed).toMatch(
           new RegExp(
-            `\\(window\\._qwikEv\\|\\|\\(window\\._qwikEv=\\[\\]\\)\\)\\.push\\("e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click",${QwikEvContainerReady},"[^"]+"\\)`
+            `^"e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click",${QwikEvContainerReady},"[^"]+"$`
           )
         );
+      });
+      it('should push event names right after the element that uses them', async () => {
+        const result = await renderToStringAndSetPlatform(
+          <>
+            <Counter />
+            <div>{'hello world '.repeat(3000)}</div>
+          </>,
+          { containerTagName: 'div' }
+        );
+        const pushed = result.html.indexOf('.push("e:click");document.currentScript.remove()');
+        expect(pushed).toBeGreaterThan(result.html.indexOf('<button'));
+        expect(pushed).toBeLessThan(result.html.indexOf('hello world'));
+        expect(result.html.split('"e:click"')).toHaveLength(2);
       });
     });
     describe('qwikFuncs', () => {
@@ -645,7 +663,7 @@ describe('render api', () => {
         expect(containerElement?.nodeName.toLowerCase()).toEqual(testTag);
         expect(containerElement?.lastChild?.textContent ?? '').toContain('window._qwikEv');
         const scripts = document.querySelectorAll('script');
-        expect(scripts[0]?.textContent).toEqual(
+        expect(document.querySelector('link[rel=modulepreload] + script')?.textContent).toEqual(
           'import(new URL("/build/qwik-loader.js",document.baseURI).href)'
         );
         for (let i = 0; i < scripts.length; i++) {

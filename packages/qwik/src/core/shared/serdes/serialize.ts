@@ -553,7 +553,7 @@ export class Serializer {
         this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
       }
     } else if (value instanceof SubscriptionPatch) {
-      this.output(TypeIds.SubscriptionPatch, [value.rootId, value.subscriptions]);
+      this.output(TypeIds.SubscriptionPatch, [value.rootId, value.subscriptions, value.channel]);
     } else if (isStore(value)) {
       const storeHandler = getStoreHandler(value)!;
       const storeTarget = getStoreTarget(value);
@@ -640,7 +640,7 @@ export class Serializer {
           ...serializeWrappingFn(this.$serializationContext$, value),
           value.$flags$ & ~ComputedSignalFlags.DIRTY_FLAGS,
           value.$hostElement$,
-          ...(value.$effects$ || []),
+          ...this.getSubscriptions(value.$effects$),
         ]);
       } else if (value instanceof ComputedSignalImpl) {
         let v = value.$untrackedValue$;
@@ -702,7 +702,7 @@ export class Serializer {
         const v = value.$untrackedValue$;
         const out = [v === undefined ? explicitUndefined : v];
         if (value.$effects$) {
-          out.push(...value.$effects$);
+          out.push(...this.getSubscriptions(value.$effects$));
         }
         this.output(TypeIds.Signal, out);
       }
@@ -768,11 +768,14 @@ export class Serializer {
     } else if (value instanceof URLSearchParams) {
       this.output(TypeIds.URLSearchParams, value.toString());
     } else if (value instanceof Set) {
-      this.output(TypeIds.Set, [...value.values()]);
+      const entries = this.getSubscriptions(value);
+      this.output(TypeIds.Set, Array.isArray(entries) ? entries : [...entries]);
     } else if (value instanceof Map) {
       const combined = [];
       for (const [k, v] of value.entries()) {
-        combined.push(k, v);
+        if (this.isSubscriptionInScope(v)) {
+          combined.push(k, v);
+        }
       }
       this.output(TypeIds.Map, combined);
     } else if (isJSXNode(value)) {
@@ -946,6 +949,31 @@ export class Serializer {
     return lastIdx === this.$forwardRefs$.length - 1
       ? this.$forwardRefs$
       : this.$forwardRefs$.slice(0, lastIdx + 1);
+  }
+
+  private isSubscriptionInScope(value: unknown): boolean {
+    const scope = this.$serializationContext$.$scope$;
+    return (
+      !scope ||
+      !(value instanceof EffectSubscription) ||
+      scope.$includesSegment$(value.$ssrSegmentId$)
+    );
+  }
+
+  private getSubscriptions<T>(effects: Set<T> | undefined): Set<T> | T[] {
+    if (!effects) {
+      return EMPTY_ARRAY;
+    }
+    if (!this.$serializationContext$.$scope$) {
+      return effects;
+    }
+    const included = [];
+    for (const effect of effects) {
+      if (this.isSubscriptionInScope(effect)) {
+        included.push(effect);
+      }
+    }
+    return included;
   }
 
   private outputForwardRefsArray(forwardRefs: Array<number | string | number[]>): void {

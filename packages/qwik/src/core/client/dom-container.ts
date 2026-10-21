@@ -38,6 +38,7 @@ import {
   QScopedStyle,
   QStatePrewarmAttr,
   QStatePatchAttrSelector,
+  QStateStreamAttr,
   QStyle,
   QStyleSelector,
   QStylesAllSelector,
@@ -111,12 +112,14 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
   const qContainer = qContainerElement?.qContainer as DomContainer | undefined;
   if (qContainer) {
     const document = qContainer.element.ownerDocument;
-    processOutOfOrderSegmentVNodeData(document, segmentId, content);
+    if (boundaryId !== 0) {
+      processOutOfOrderSegmentVNodeData(document, segmentId, content);
+    }
     onVNodeDataReady(document, () => {
       qContainer.element.qContainer === qContainer &&
         processContainerStateData(
           qContainer,
-          processSegmentStateScriptsIterator(qContainer, segmentId)
+          processSegmentStateScriptsIterator(qContainer, boundaryId === 0 ? undefined : segmentId)
         );
     });
   }
@@ -137,6 +140,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $containerDataProcessState$ = ContainerDataProcessState.NotStarted;
   public $containerStateReadyCallbacks$: Array<() => void> | undefined = undefined;
   public $containerStateDataState$: unknown = undefined;
+  // Preserve unrooted references across shell mutations until streaming finishes.
+  public $streamingObjectRefs$: WeakMap<object, object[]> | undefined = undefined;
 
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
@@ -190,6 +195,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         `script[type="qwik/state"]:not([q\\:instance]):not(${QStatePatchAttrSelector})`
       );
     if (rootState) {
+      if (__EXPERIMENTAL__.pendingBoundary && rootState.hasAttribute(QStateStreamAttr)) {
+        this.$streamingObjectRefs$ = new WeakMap();
+        this.document.qProcessOOOS ||= getOutOfOrderStreamingScript;
+      }
       this.$rawStateData$ = JSON.parse(rootState.textContent!);
       yield* preprocessStateIterator(this.$rawStateData$, this);
       this.$rootForwardRefs$ = this.$forwardRefs$;
@@ -213,6 +222,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   /** Tear down this container so stale references fail gracefully. */
   $destroy$(): void {
+    this.$streamingObjectRefs$ = undefined;
     this.vNodeLocate = () => null as any;
     this.$rawStateData$.length = 0;
     this.$stateData$.length = 0;

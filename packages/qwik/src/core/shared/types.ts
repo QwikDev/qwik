@@ -5,10 +5,17 @@ import type { EventHandler } from './jsx/types/jsx-qwik-attributes';
 import type { SerializationContext } from './serdes/index';
 import type { VNode } from './vnode/vnode';
 
+/** @internal */
+export const enum EffectProperty {
+  COMPONENT = ':',
+  VNODE = '.',
+}
+
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
   $getForwardRef$: (id: number) => number | string | undefined;
   $pendingStoreTargets$?: Map<object, { t: number; v: unknown }>;
+  $streamingObjectRefs$?: WeakMap<object, object[]>;
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];

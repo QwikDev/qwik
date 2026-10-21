@@ -6,7 +6,6 @@ import { isObject, isSerializableObject } from '../../shared/utils/types';
 import type { Container } from '../../shared/types';
 import { isSameContainer } from '../../shared/utils/container';
 import {
-  addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
   getEffectSerializationContainer,
@@ -23,7 +22,6 @@ import {
 import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy';
 import { isDev, isServer } from '@qwik.dev/core/build';
 import { isServerPlatform } from '../../shared/platform/platform';
-import type { SSRSegmentContainer } from '../../ssr/ssr-types';
 import { Brand, brandClass } from '../../shared/utils/brand';
 
 const DEBUG = false;
@@ -282,29 +280,17 @@ export function addStoreEffect(
   // Let's make sure that we have a reference to this effect.
   // Adding reference is essentially adding a subscription, so if the signal
   // changes we know who to notify.
-  const isOnServer = qTest ? isServerPlatform() : isServer;
-  const shouldRecordExternalRootEffect =
-    __EXPERIMENTAL__.pendingBoundary && store instanceof StoreHandler && isOnServer;
   ensureContainsSubscription(effects, effectSubscription);
   // But when effect is scheduled in needs to be able to know which signals
   // to unsubscribe from. So we need to store the reference from the effect back
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
-  if (isOnServer) {
-    const serializationContainer = getEffectSerializationContainer(
-      renderContainer,
-      store.$container$
+  if (qTest ? isServerPlatform() : isServer) {
+    getEffectSerializationContainer(renderContainer, store.$container$)?.$recordEffect$?.(
+      target,
+      effectSubscription,
+      prop
     );
-    if (shouldRecordExternalRootEffect) {
-      (serializationContainer as SSRSegmentContainer | null)?.$recordExternalRootEffect$?.(
-        target,
-        effectSubscription,
-        prop,
-        effectsMap
-      );
-    }
-    // TODO is this needed with the preloader?
-    addQrlToSerializationCtx(effectSubscription, serializationContainer);
   }
 
   DEBUG &&

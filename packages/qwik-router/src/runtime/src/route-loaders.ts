@@ -965,7 +965,12 @@ export const getLoaderRequestEvent = (
   if (!loaderRequestEv) {
     url.pathname = pathname;
     url.search = filteredSearch;
-    const request = new Request(url, rootRequestEv.request);
+    // Actions may have already consumed the original request body.
+    const request = new Request(url, {
+      method: rootRequestEv.request.method,
+      headers: rootRequestEv.request.headers,
+      signal: rootRequestEv.request.signal,
+    });
     loaderRequestEv = Object.create(rootRequestEv, {
       originalUrl: {
         value: new URL(url),

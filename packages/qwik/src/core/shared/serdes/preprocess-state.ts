@@ -1,4 +1,5 @@
 import type { DeserializeContainer } from '../types';
+import { QError, qError } from '../error/error';
 import { TypeIds } from './constants';
 
 /**
@@ -77,13 +78,22 @@ export function* preprocessStateIterator(
   const processRootRef = (index: number) => {
     const rootRefPath = (data[index + 1] as string).split(' ');
     const firstRefIndex = parseInt(rootRefPath[0], 10);
-    let object: unknown[] | number | string = data;
+    let object: unknown = data;
     let objectType: TypeIds = TypeIds.RootRef;
     let typeIndex = 0;
     let valueIndex = 0;
     let parent: unknown[] | null = null;
 
     for (let i = 0; i < rootRefPath.length; i++) {
+      if (objectType === TypeIds.Plain) {
+        const references = container.$streamingObjectRefs$?.get(object as object);
+        if (!references) {
+          throw qError(QError.missingStreamingObjectRefs);
+        }
+        object = references[parseInt(rootRefPath[i], 10)];
+        parent = null;
+        continue;
+      }
       parent = object as unknown[];
 
       typeIndex = (i === 0 ? firstRefIndex : parseInt(rootRefPath[i], 10)) * 2;

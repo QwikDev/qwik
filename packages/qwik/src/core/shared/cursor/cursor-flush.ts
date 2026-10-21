@@ -8,6 +8,7 @@ import { runTask, TaskFlags } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { directSetAttribute } from '../utils/attribute';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
+import { isPromise } from '../utils/promises';
 import { serializeAttribute } from '../utils/styles';
 import {
   DeleteOperation,
@@ -208,7 +209,13 @@ function executeAfterFlush(container: Container, cursorData: CursorData): void {
     if (!(task.$flags$ & TaskFlags.DIRTY)) {
       continue;
     }
-    runTask(task, container, task.$el$);
+    const result = runTask(task, container, task.$el$);
+    // Keep the render promise pending while an async visible task (or one whose
+    // segment is still loading) runs, so `waitForDrain()` and `trigger()` resolve
+    // only after the task has run and its render has flushed.
+    if (isPromise(result)) {
+      (cursorData.extraPromises ||= []).push(result);
+    }
   }
   cursorData.afterFlushTasks = null;
 }

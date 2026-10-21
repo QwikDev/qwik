@@ -1390,6 +1390,30 @@ describe.each([
       ]);
     });
   });
+  it('should keep the render promise pending until an async visible task has run', async () => {
+    const Cmp = component$(() => {
+      const text = useSignal('initial');
+      useVisibleTask$(async () => {
+        // simulates a task whose segment is still loading or that awaits something
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        text.value = 'visible';
+      });
+      return <span>{text.value}</span>;
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    // trigger() waits for the drain, so the task and the render it causes must be done here
+    await trigger(document.body, 'span', 'qvisible');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <span>
+          <Signal ssr-required>visible</Signal>
+        </span>
+      </Component>
+    );
+  });
+
   it('should await returned async cleanup before rerun', async () => {
     vi.useFakeTimers();
     try {
@@ -1413,7 +1437,9 @@ describe.each([
       await waitForDrain(container);
       expect((globalThis as any).log).toEqual(['task:0']);
 
-      await trigger(document.body, 'button', 'click');
+      // The rerun now holds the render promise until the async cleanup settles,
+      // and the fake timers only move forward below, so don't wait for the drain here.
+      await trigger(document.body, 'button', 'click', {}, { waitForIdle: false });
       await vi.advanceTimersByTimeAsync(1);
       expect((globalThis as any).log).toEqual(['task:0', 'cleanup:0:start']);
       expect((globalThis as any).log).not.toContain('task:1');

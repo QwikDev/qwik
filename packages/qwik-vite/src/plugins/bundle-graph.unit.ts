@@ -1,6 +1,6 @@
 import { type QwikBundle, type QwikManifest } from '@qwik.dev/core/optimizer';
 import path from 'node:path';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { generateManifestFromBundles } from '../manifest';
 import { convertManifestToBundleGraph } from './bundle-graph';
 // Frozen sample from an old, smaller preloader-test build; kept as-is so the snapshots stay reviewable.
@@ -81,6 +81,52 @@ describe('convertManifestToBundleGraph', () => {
       14,
     ]);
   });
+
+  test.each([
+    { hasCycle: false, probability: 1 },
+    { hasCycle: true, probability: 1 },
+    { hasCycle: false, probability: 0.8 },
+    { hasCycle: true, probability: 0.8 },
+  ])(
+    'existing preloader follows chunk dependencies (cycle: $hasCycle, probability: $probability)',
+    async ({ hasCycle, probability }) => {
+      const manifest = {
+        bundles: {
+          'product.js': {
+            size,
+            total,
+            imports: ['bridge.js'],
+            qrlImports: ['load.js', 'event.js'],
+          },
+          'bridge.js': { size, total, qrlImports: ['load.js'] },
+          'load.js': { size, total, imports: ['shared.js', ...(hasCycle ? ['product.js'] : [])] },
+          'event.js': { size, total },
+          'shared.js': { size, total },
+        },
+        mapping: { s_product: 'product.js', s_load: 'load.js' },
+        symbols: { s_product: { dependencies: ['s_load'] }, s_load: {} },
+      } as unknown as QwikManifest;
+      const original = structuredClone(manifest);
+      const graph = convertManifestToBundleGraph(manifest);
+      expect(manifest).toEqual(original);
+      vi.resetModules();
+      vi.stubGlobal('document', undefined);
+      vi.stubGlobal('MessageChannel', undefined);
+      try {
+        const { initPreloader } = await import('../../../qwik/src/core/preloader/bundle-graph');
+        const { preload, bundles } = await import('../../../qwik/src/core/preloader/queue');
+        initPreloader(graph);
+        preload('product.js', probability);
+        const expectedInverse = 1 - probability;
+        expect(bundles.get('load.js')!.$inverseProbability$).toBeCloseTo(expectedInverse);
+        expect(bundles.get('shared.js')!.$inverseProbability$).toBeCloseTo(expectedInverse);
+        expect(bundles.get('event.js')!.$inverseProbability$).toBeGreaterThan(expectedInverse);
+      } finally {
+        vi.unstubAllGlobals();
+        vi.resetModules();
+      }
+    }
+  );
 
   test('empty', () => {
     expect(convertManifestToBundleGraph({} as any)).toEqual([]);

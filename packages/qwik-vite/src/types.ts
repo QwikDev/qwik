@@ -97,6 +97,8 @@ export interface QwikSymbol {
   paramNames?: string[];
   /** The transformed names of scoped variables, if any */
   captureNames?: string[];
+  /** QRL symbols needed while this symbol executes. */
+  dependencies?: string[];
 }
 
 /** @public */

@@ -49,6 +49,18 @@ export function convertManifestToBundleGraph(
       // internal QRLs are not included in the bundle graph
       continue;
     }
+    const dependencies = manifest.symbols[symbol]?.dependencies;
+    if (dependencies?.length && graph[bundleName]) {
+      const bundle = graph[bundleName];
+      const required = dependencies
+        .map((dependency) => manifest.mapping[dependency])
+        .filter((dependency) => dependency && dependency !== bundleName);
+      graph[bundleName] = {
+        ...bundle,
+        // Visit required calls before speculative paths through shared bundles.
+        imports: [...new Set([...required, ...(bundle.imports || [])])],
+      };
+    }
     const hash = getSymbolHash(symbol);
     if (hash) {
       /**

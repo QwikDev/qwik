@@ -284,6 +284,7 @@ export interface QwikSymbol {
     ctxKind: 'function' | 'eventHandler';
     // (undocumented)
     ctxName: string;
+    dependencies?: string[];
     // (undocumented)
     displayName: string;
     // (undocumented)

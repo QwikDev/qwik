@@ -387,6 +387,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $setRawState$(id: number, vParent: _VNode): void;
     // (undocumented)
     $storeProxyMap$: ObjToProxyMap;
+    // (undocumented)
+    $streamingObjectRefs$: WeakMap<object, object[]> | undefined;
     constructor(element: _ContainerElement);
     // (undocumented)
     document: _QDocument;
@@ -1449,7 +1451,11 @@ export class _SubscriptionData {
 
 // @internal (undocumented)
 export class _SubscriptionPatch {
-    constructor(rootId?: number, subscriptions?: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>);
+    constructor(rootId?: number, subscriptions?: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>, channel?: SubscriptionPatchChannel);
+    // Warning: (ae-forgotten-export) The symbol "SubscriptionPatchChannel" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    channel?: SubscriptionPatchChannel;
     // (undocumented)
     rootId: number;
     // (undocumented)

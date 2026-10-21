@@ -1,6 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createDocument } from '@qwik.dev/core/testing';
-import { _createQRL } from '@qwik.dev/core/internal';
+import {
+  _createQRL,
+  _getSubscriber,
+  _fnSignal,
+  _Task,
+  _EffectProperty,
+  _deserialize,
+} from '@qwik.dev/core/internal';
+import { createComputedQrl, createSignal } from '@qwik.dev/core';
+import type { EffectSubscription, SignalImpl } from './qwik-types';
+import { collectSubscriptionPatches } from './ooos-utils';
 import { SSRSegmentContainer, ssrCreateContainer } from './ssr-container';
 import {
   QDefaultSlot,
@@ -12,6 +22,8 @@ import {
   VNodeDataChar,
   encodeVNodeDataKey,
   encodeVNodeDataString,
+  getSegmentVNodeRefId,
+  SubscriptionPatchChannel,
 } from './qwik-copy';
 import { VNodeDataFlag, type RenderToStreamOptions } from './types';
 import { OPEN_FRAGMENT, CLOSE_FRAGMENT, type VNodeData } from './vnode-data';
@@ -114,6 +126,223 @@ const getIds = (html: string) =>
   );
 
 describe('SSR Container', () => {
+  it.each(['original </script> streamed string', 12345678901234567890n])(
+    'resends nested primitives in a late patch: %s',
+    async (value) => {
+      const { container: root } = createTestContainer();
+      root.openContainer();
+      Reflect.set(root, 'outOfOrderStreaming', true);
+      root.serializationCtx.$addRoot$({ value });
+      await root.serializationCtx.$serialize$();
+      const segment = Reflect.get(root, 'createSegmentContainer').call(
+        root,
+        '1',
+        new StringBufferSegmentWriter()
+      ) as SSRSegmentContainer;
+      Reflect.get(root, '$markRootContainerReady$').call(root);
+      segment.serializationCtx.$addRoot$(value);
+      const commit = Reflect.get(segment, '$commitRoots$').call(
+        segment,
+        root,
+        segment.serializationCtx
+      );
+      await Reflect.get(segment, 'emitStatePatchData').call(
+        segment,
+        '1',
+        commit.newRootStart,
+        commit.newRootLocalIds
+      );
+      const html = segment.writer.toString(
+        Reflect.get(segment, 'getSegmentRootIdMap').call(segment)
+      );
+      const script = createDocument({ html: `<div>${html}</div>` }).querySelector('script')!;
+      const [, patch] = JSON.parse(script.textContent!);
+      expect(await _deserialize(JSON.stringify(patch))).toBe(value);
+    }
+  );
+
+  it.each([false, true])(
+    'marks only active streams and emits completion last (streaming=%s)',
+    async (streaming) => {
+      const { container, writer } = createTestContainer();
+      Reflect.set(container, 'outOfOrderStreaming', streaming);
+      Reflect.set(container, 'outOfOrderUsed', true);
+      Reflect.get(container, 'renderOptions').serverData = { nonce: 'test-nonce' };
+      container.serializationCtx.$addRoot$({ count: 0 });
+      await Reflect.get(container, 'emitStateData').call(container);
+      expect(writer.toString().includes('q:stream')).toBe(streaming);
+      let release!: () => void;
+      container.queueOutOfOrderSegment(
+        new Promise<void>((resolve) => {
+          release = resolve;
+        })
+      );
+      const finished = Reflect.get(container, 'emitOutOfOrderSegmentsAndData').call(container);
+      expect(writer.toString()).not.toContain('q:stream="done"');
+      release();
+      await finished;
+      const scripts = createDocument({ html: `<div>${writer.toString()}</div>` }).querySelectorAll(
+        'script[q\\:stream="done"]'
+      );
+      expect(scripts.length).toBe(streaming ? 1 : 0);
+      if (streaming) {
+        expect(scripts[0].textContent).toBe('qO(0)');
+        expect(scripts[0].getAttribute('nonce')).toBe('test-nonce');
+        expect(scripts[0].getAttribute('q:instance')).toBe(container.$instanceHash$);
+      }
+    }
+  );
+
+  it.each(['root', 'segment'] as const)('records subscriber QRLs in the %s container', (scope) => {
+    const { root, first, shellNode } = createVNodeIdContexts();
+    const container = scope === 'root' ? root : first;
+    const qrl = _createQRL(null, 's_record_effect', () => 0);
+    root.setHostProp(shellNode, OnRenderProp, qrl);
+    const consumers = [
+      new _Task(2, 0, shellNode, qrl, null),
+      createComputedQrl(qrl) as SignalImpl,
+      shellNode,
+    ];
+    const producer = createSignal(0);
+
+    for (let i = 0; i < consumers.length; i++) {
+      container.serializationCtx.$eventQrls$.clear();
+      container.$recordEffect$(producer, _getSubscriber(consumers[i], _EffectProperty.COMPONENT));
+      expect(container.serializationCtx.$eventQrls$).toEqual(new Set([qrl]));
+    }
+
+    if (scope === 'segment') {
+      expect(root.serializationCtx.$eventQrls$.size).toBe(0);
+      expect(Reflect.get(first, 'subscriptionPatchRecords')).toHaveLength(consumers.length);
+    } else {
+      expect(first.serializationCtx.$eventQrls$.size).toBe(0);
+    }
+  });
+
+  it('includes only committed segments in the shell serialization scope', () => {
+    const { container: root } = createTestContainer();
+    expect(Object.hasOwn(root.serializationCtx, '$scope$')).toBe(false);
+    root.openContainer();
+    const first = Reflect.get(root, 'createSegmentContainer').call(
+      root,
+      '1',
+      new StringBufferSegmentWriter()
+    ) as SSRSegmentContainer;
+    const second = Reflect.get(root, 'createSegmentContainer').call(
+      root,
+      '2',
+      new StringBufferSegmentWriter()
+    ) as SSRSegmentContainer;
+    const shellScope = root.serializationCtx.$scope$!;
+    const firstScope = first.serializationCtx.$scope$!;
+    const secondScope = second.serializationCtx.$scope$!;
+
+    expect(shellScope.$includesSegment$(undefined)).toBe(true);
+    expect(shellScope.$includesSegment$(1)).toBe(false);
+    expect(shellScope.$includesSegment$(2)).toBe(false);
+    expect(firstScope.$includesSegment$(undefined)).toBe(true);
+    expect(firstScope.$includesSegment$(1)).toBe(true);
+    expect(firstScope.$includesSegment$(2)).toBe(false);
+    expect(secondScope.$includesSegment$(1)).toBe(false);
+    expect(secondScope.$includesSegment$(2)).toBe(true);
+
+    Reflect.get(first, '$commitRoots$').call(first, root, first.serializationCtx);
+    expect(shellScope.$includesSegment$(1)).toBe(true);
+    expect(shellScope.$includesSegment$(2)).toBe(false);
+    expect(secondScope.$includesSegment$(1)).toBe(false);
+  });
+
+  it.each([8, 32, 128])('keeps segment roots local with %i shared-state consumers', (count) => {
+    const { container } = createTestContainer();
+    container.openContainer();
+    const root = container as ConstructorParameters<typeof SSRSegmentContainer>[1];
+    const createSegment = Reflect.get(root, 'createSegmentContainer').bind(root);
+    const segments: SSRSegmentContainer[] = [];
+    const shared = createSignal(0);
+    root.serializationCtx.$addRoot$(shared);
+    for (let i = 0; i < count; i++) {
+      const segment = createSegment(String(i + 1), new StringBufferSegmentWriter());
+      segment.serializationCtx.$addRoot$({ index: i });
+      const consumer = createSignal(i) as SignalImpl;
+      consumer.$container$ = segment;
+      segment.$recordEffect$(shared, _getSubscriber(consumer, '.'), null);
+      segments.push(segment);
+      root.outOfOrderSegments.push(segment);
+    }
+    const initialRootCount = root.serializationCtx.$roots$.length;
+    for (let i = 0; i < count; i++) {
+      const segment = segments[i];
+      Reflect.get(segment, '$commitRoots$').call(segment, root, segment.serializationCtx);
+      expect(segment.serializationCtx.getSeenRef(shared)).toBeDefined();
+      expect(segment.serializationCtx.$roots$.length).toBe(3);
+    }
+    expect(
+      segments.reduce((total, segment) => total + segment.serializationCtx.$roots$.length, 0)
+    ).toBe(count * 3);
+    expect(root.serializationCtx.$roots$.length).toBe(initialRootCount + count * 2);
+  });
+
+  it('releases subscription records when a segment finishes or is discarded', () => {
+    const { root, first } = createVNodeIdContexts();
+    first.$recordEffect$(createSignal(0), _getSubscriber(createSignal(1) as SignalImpl, '.'), null);
+    expect(Reflect.get(first, 'subscriptionPatchRecords')).toHaveLength(1);
+    root.removeOutOfOrderSegment(first);
+    expect(Reflect.get(first, 'subscriptionPatchRecords')).toHaveLength(0);
+  });
+
+  it('uses consumer ownership for shared derived signals and segment nodes', () => {
+    const { root, first, second, firstNode, shellNode } = createVNodeIdContexts();
+    const shared = createSignal(0) as SignalImpl;
+    shared.$container$ = root;
+    const effect = _getSubscriber(shared, '.');
+    const owner = Reflect.get(first, 'getSubscriptionSegmentId').bind(first);
+    expect(owner(effect)).toBeUndefined();
+    firstNode.id = String(getSegmentVNodeRefId('2', 3));
+    expect(owner(_getSubscriber(firstNode, '.'))).toBe(2);
+    shared.$container$ = second;
+    expect(owner(effect)).toBe(2);
+    const wrapped = _fnSignal((value) => value, [0], '(value)=>value');
+    wrapped.$container$ = second;
+    wrapped.$hostElement$ = shellNode;
+    expect(owner(_getSubscriber(wrapped, '.'))).toBe(2);
+    expect(Object.hasOwn(effect, '$ssrSegmentId$')).toBe(false);
+  });
+
+  it('patches earlier segment roots with forward-ref offsets and separate channels', () => {
+    const { container } = createTestContainer();
+    const context = container.serializationCtx;
+    const shellProducer = createSignal(0);
+    const segmentProducer = createSignal(1);
+    const newProducer = createSignal(2);
+    context.$addRoot$(shellProducer);
+    context.$rootStateRootCount$ = 1;
+    context.$hasRootStateForwardRefs$ = true;
+    context.$addRoot$(segmentProducer);
+    const streamedRootCount = context.$roots$.length;
+    context.$addRoot$(newProducer);
+    const effect = _getSubscriber(createSignal(3) as SignalImpl, '.') as EffectSubscription;
+    const patches = collectSubscriptionPatches(
+      context,
+      [
+        { rootObj: shellProducer, effect, prop: null },
+        { rootObj: segmentProducer, effect, prop: null },
+        { rootObj: segmentProducer, effect, prop: null, channel: SubscriptionPatchChannel.Pending },
+        { rootObj: segmentProducer, effect, prop: null, channel: SubscriptionPatchChannel.Error },
+        { rootObj: newProducer, effect, prop: null },
+      ],
+      streamedRootCount
+    )!;
+    expect(patches.map((patch) => [patch.rootId, patch.channel])).toEqual([
+      [0, undefined],
+      [2, undefined],
+      [2, SubscriptionPatchChannel.Pending],
+      [2, SubscriptionPatchChannel.Error],
+    ]);
+    expect(
+      patches.every((patch) => (patch.subscriptions as Set<EffectSubscription>).has(effect))
+    ).toBe(true);
+  });
+
   const contexts = ['root', 'first', 'second'] as const;
   const vnodeIdCases = contexts.flatMap((source) =>
     contexts.flatMap((writer) => [false, true].map((patch) => ({ source, writer, patch })))

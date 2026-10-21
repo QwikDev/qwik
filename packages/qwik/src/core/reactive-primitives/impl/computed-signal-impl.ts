@@ -3,6 +3,7 @@ import { qwikDebugToString } from '../../debug';
 import { assertFalse, assertTrue } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import { isServerPlatform } from '../../shared/platform/platform';
+import { isSameContainer } from '../../shared/utils/container';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
@@ -30,6 +31,7 @@ import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  getEffectSerializationContainer,
   invalidateDerived,
   pullSourcesIfCheck,
   scheduleEffects,
@@ -311,7 +313,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
           'Do not use signals across containers'
         );
       const effectSubscriber = ctx.$effectSubscriber$;
@@ -372,7 +374,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
           'Do not use signals across containers'
         );
       const effectSubscriber = ctx.$effectSubscriber$;
@@ -531,13 +533,16 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       }
       return invokeApply(iCtx, computeFn, [job]);
     }
-    const container = (this.$container$ ||= tryGetInvokeContext()?.$container$ || null);
+    const ambientContainer = tryGetInvokeContext()?.$container$;
+    const container = (this.$container$ ||= ambientContainer || null);
     const subscriber = getSubscriber(this, EffectProperty.VNODE);
     if (container) {
       clearEffectSubscription(container, subscriber);
     }
     const ctx = newInvokeContext();
-    ctx.$container$ = container || undefined;
+    // Keep the container the compute was entered from, so reads performed here are recorded
+    // against the out-of-order segment and reach the client as a subscription patch.
+    ctx.$container$ = getEffectSerializationContainer(ambientContainer, container) || undefined;
     ctx.$effectSubscriber$ = subscriber;
     return invokeApply(ctx, computeFn, [job]);
   }

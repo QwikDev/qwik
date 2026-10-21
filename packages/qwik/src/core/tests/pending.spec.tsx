@@ -2397,6 +2397,59 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     );
   });
 
+  it('should update a shell computed first read in a late out-of-order segment', async () => {
+    let releaseSlow!: () => void;
+    const slow = new Promise<void>((resolve) => (releaseSlow = resolve));
+
+    const Late = component$((props: { double: { value: number } }) => (
+      <p id="ooos-shell-computed-late">slow {props.double.value}</p>
+    ));
+    const Slow = component$((props: { double: { value: number } }) => (
+      <>
+        {slow.then(() => (
+          <Late double={props.double} />
+        ))}
+      </>
+    ));
+    const App = component$(() => {
+      const count = useSignal(1);
+      // Not read by the shell: the first read happens inside the Pending segment.
+      const double = useComputed$(() => count.value * 2);
+      return (
+        <main>
+          <button id="ooos-shell-computed-button" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+          <Pending fallback$={() => <p>Waiting slow</p>}>
+            <Slow double={double} />
+          </Pending>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(<App />, chunks);
+    await vi.waitFor(() => expect(chunks.join('')).toContain('Waiting slow'));
+    // The segment must finalize after the root state went out, or it is early-finalized and
+    // emits no subscription patch at all.
+    await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+    await delay(50);
+    releaseSlow();
+    const { document, container } = await renderPromise;
+
+    expect(document.querySelector('#ooos-shell-computed-button')?.textContent).toBe('1');
+    expect(document.querySelector('#ooos-shell-computed-late')?.textContent).toBe('slow 2');
+    const patchScript = document.querySelector('script[type="qwik/state"][q\\:patch][q\\:r]');
+    expect(JSON.parse(patchScript!.textContent!)[3]).toBeDefined();
+
+    await trigger(container.element, '#ooos-shell-computed-button', 'click');
+    await waitForDrain(container);
+    expect(document.querySelector('#ooos-shell-computed-button')?.textContent).toBe('2');
+    await vi.waitFor(() =>
+      expect(document.querySelector('#ooos-shell-computed-late')?.textContent).toBe('slow 4')
+    );
+  });
+
   it('should coordinate out-of-order segments inside reverse Reveal', async () => {
     let resolveFirst!: (value: JSXOutput) => void;
     let resolveSecond!: (value: JSXOutput) => void;

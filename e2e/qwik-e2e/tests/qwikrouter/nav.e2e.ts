@@ -120,6 +120,11 @@ test.describe('nav', () => {
     });
 
     test('issue9247: keeps the Back entry during an in-flight same-page nav', async ({ page }) => {
+      await page.addInitScript(() => {
+        (window as any).__issue9247Popstates = 0;
+        addEventListener('popstate', () => (window as any).__issue9247Popstates++);
+      });
+
       // Hold the route module so the first navigation cannot commit before Back is pressed.
       let releaseModule!: () => void;
       const moduleHeld = new Promise<void>((resolve) => (releaseModule = resolve));
@@ -148,6 +153,8 @@ test.describe('nav', () => {
       await expect
         .poll(() => new URL(page.url()).pathname + new URL(page.url()).search)
         .toBe('/qwikrouter-test/issue9247/');
+      // Let the router handle the popstate before the parked navigation resumes.
+      await expect.poll(() => page.evaluate(() => (window as any).__issue9247Popstates)).toBe(1);
 
       releaseModule();
 
@@ -157,6 +164,11 @@ test.describe('nav', () => {
         '/qwikrouter-test/issue9247/'
       );
       await expect(page.locator('#list')).toContainText('Rossi');
+      // A stale navigation must not rewrite the entry after the router settles.
+      await page.waitForTimeout(300);
+      expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(
+        '/qwikrouter-test/issue9247/'
+      );
     });
 
     test.describe('scroll-restoration', () => {

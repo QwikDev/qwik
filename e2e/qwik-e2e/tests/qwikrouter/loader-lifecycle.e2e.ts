@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import { rm } from 'node:fs/promises';
 
 const base = '/qwikrouter-test/loader-navigation/';
@@ -711,17 +712,25 @@ test.describe('loader lifecycle', () => {
       page,
     }) => {
       const original = await snapshot(page);
+      const manifest: QwikManifest = await (
+        await page.request.get('/qwikrouter-test/q-manifest.json')
+      ).json();
+      const routeModule = Object.keys(manifest.bundles).find((file) =>
+        manifest.bundles[file].origins?.includes('src/routes/loader-navigation/[id]/index.tsx')
+      );
+      expect(routeModule).toBeDefined();
       let failedModule = false;
-      await page.route('**/build/*.js', async (route) => {
-        const response = await route.fetch();
-        const source = await response.text();
-        if (!failedModule && source.includes('navigation-dynamic-child')) {
+      await page.route(
+        `**/build/${routeModule}`,
+        async (route) => {
           failedModule = true;
-          await route.fulfill({ response, body: "throw new Error('test route module failure');" });
-        } else {
-          await route.fulfill({ response });
-        }
-      });
+          await route.fulfill({
+            contentType: 'text/javascript',
+            body: "throw new Error('test route module failure');",
+          });
+        },
+        { times: 1 }
+      );
       const child = await holdLoader(page, '**/q-loader-navigation-static-child.*');
       let record!: (value: Snapshot) => void;
       const restoredState = new Promise<Snapshot>((resolve) => (record = resolve));

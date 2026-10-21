@@ -85,7 +85,7 @@ export function* preprocessStateIterator(
     let parent: unknown[] | null = null;
 
     for (let i = 0; i < rootRefPath.length; i++) {
-      if (objectType === TypeIds.Plain) {
+      if (__EXPERIMENTAL__.pendingBoundary && objectType === TypeIds.Plain) {
         const references = container.$streamingObjectRefs$?.get(object as object);
         if (!references) {
           throw qError(QError.missingStreamingObjectRefs);

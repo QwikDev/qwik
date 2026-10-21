@@ -13,14 +13,15 @@ const segment = {
 
 describe('resolveEntryField', () => {
   describe('smart strategy', () => {
-    it('preserves explicit QRL boundaries without classifying context names', () => {
+    it.each([false, true])('groups ordinary QRLs with their root (captures: %s)', (captures) => {
+      expect(resolveEntryField('smart', { ...segment, ctxName: '$', captures }, undefined)).toBe(
+        'test.tsx_entry_App'
+      );
+    });
+    it('groups captured JSX prop callbacks with their root', () => {
       expect(
-        resolveEntryField(
-          'smart',
-          { ...segment, isBare: true, ctxName: 'customCallback' },
-          undefined
-        )
-      ).toBeNull();
+        resolveEntryField('smart', { ...segment, ctxKind: 'jSXProp', captures: true }, undefined)
+      ).toBe('test.tsx_entry_App');
     });
     it('keeps capture-free event handlers separate', () => {
       expect(
@@ -28,10 +29,10 @@ describe('resolveEntryField', () => {
       ).toBeNull();
     });
 
-    it('leaves function classification to the SSR stripping configuration', () => {
-      expect(resolveEntryField('smart', { ...segment, ctxName: 'event$' }, undefined)).toBe(
-        'test.tsx_entry_App'
-      );
+    it.each([false, true])('keeps explicit events separate (captures: %s)', (captures) => {
+      expect(
+        resolveEntryField('smart', { ...segment, ctxName: 'event$', captures }, undefined)
+      ).toBeNull();
     });
 
     it('keeps captured JSX handlers separate', () => {

@@ -131,7 +131,21 @@ fn smart_lifted_event_captures() {
 		.filter_map(|module| module.segment.as_ref())
 		.find(|segment| segment.ctx_name == "$")
 		.unwrap();
-	assert!(callback.entry.is_none());
+	let render = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.ctx_name == "component$")
+		.unwrap();
+	assert!(render.entry.is_some());
+	assert_eq!(callback.entry, render.entry);
+	let event = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.ctx_name == "event$")
+		.unwrap();
+	assert!(event.entry.is_none());
 	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
 }
 

@@ -3,7 +3,6 @@ import { getFileStem } from '../../paths.js';
 type EntryStrategyType = 'smart' | 'segment' | 'hook' | 'component' | 'single' | 'inline' | 'hoist';
 
 interface EntrySegment {
-  isBare?: boolean;
   symbolName: string;
   rootContext: string | null;
   origin: string;
@@ -50,8 +49,12 @@ export function resolveEntryField(
     case 'component':
       return getRootEntry(segment) ?? 'entry_segments';
     case 'smart':
-      // Explicit QRLs and JSX callbacks retain their lazy boundaries.
-      if (segment.isBare || segment.ctxKind !== 'function') {
+      // Known events stay separate even when they capture state.
+      if (
+        segment.ctxKind === 'eventHandler' ||
+        segment.ctxName === 'event$' ||
+        (!segment.captures && segment.ctxKind !== 'function')
+      ) {
         return null;
       }
       return getRootEntry(segment);

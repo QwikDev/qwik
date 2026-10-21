@@ -150,7 +150,7 @@ test.each([
   { tsOptimizer: false, compiled: true },
   { tsOptimizer: true, compiled: true },
 ])(
-  'smart uses SSR stripping inside custom hooks ($tsOptimizer, compiled: $compiled)',
+  'smart preserves optimizer entries and SSR stripping inside custom hooks ($tsOptimizer, compiled: $compiled)',
   async ({ tsOptimizer, compiled }) => {
     const hooks = compiled
       ? `useTaskQrl(inlinedQrl(() => { const [value] = useLexicalScope(); console.log('shared-task', value); }, 's_task', [value]));
@@ -211,13 +211,15 @@ test.each([
     const visible = client.find(({ segment }) => segment.ctxName === 'useVisibleTask$')!;
     const task = client.find(({ segment }) => segment.ctxName === 'useTask$')!;
     const callback = client.find(({ segment }) => segment.ctxName === '$')!;
-    expect(visible.segment.entry).toBeNull();
+    expect(visible.segment.entry).toBe(task.segment.entry);
     expect(visible.code).toContain('clientFeature(');
     expect(
       client.find(({ segment }) => segment.ctxName === 'useClientFeature$')!.segment.entry
-    ).toBeNull();
+    ).toBe(task.segment.entry);
     expect(task.segment.entry).toBe('example.tsx_entry_useCustomHook');
-    expect(callback.segment.entry).toBeNull();
+    expect(callback.segment.entry).toBe(
+      client.find(({ segment }) => segment.ctxName === 'component$')!.segment.entry
+    );
     expect(
       client.find(({ segment }) => segment.ctxKind === 'eventHandler')!.segment.entry
     ).toBeNull();

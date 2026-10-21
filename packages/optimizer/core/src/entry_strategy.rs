@@ -93,8 +93,11 @@ impl SmartStrategy {
 
 impl EntryPolicy for SmartStrategy {
 	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<Atom> {
-		// Explicit QRLs and JSX callbacks retain their lazy boundaries.
-		if segment.is_bare || segment.ctx_kind != SegmentKind::Function {
+		// Known events stay separate even when they capture state.
+		if segment.ctx_kind == SegmentKind::EventHandler
+			|| segment.ctx_name == "event$"
+			|| (segment.scoped_idents.is_empty() && segment.ctx_kind != SegmentKind::Function)
+		{
 			return None;
 		}
 

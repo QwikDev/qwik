@@ -1,4 +1,3 @@
-import { collectQrlDependencies } from './qrl-dependencies';
 import type { Rolldown } from 'vite';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import { condenseImportGraph } from './plugins/bundle-graph';
@@ -385,8 +384,7 @@ export function generateManifestFromBundles(
   getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
   qwikLoaderFileName?: string,
   preloaderFileName?: string,
-  handlersFileName?: string,
-  parse?: Rolldown.PluginContext['parse']
+  handlersFileName?: string
 ) {
   // Note that this will be the order of the JSON file
   const manifest: QwikManifest = {
@@ -557,19 +555,6 @@ export function generateManifestFromBundles(
     }
   } else {
     console.error('Qwik core bundle not found, is Qwik actually used in this project?');
-  }
-
-  if (parse) {
-    const chunks = new Map(
-      Object.values(outputBundles)
-        .filter((bundle): bundle is Rolldown.OutputChunk => bundle.type === 'chunk')
-        .map((chunk) => [canonPath(chunk.fileName), chunk])
-    );
-    for (const [symbol, dependencies] of collectQrlDependencies(chunks, manifest, parse)) {
-      if (dependencies.length) {
-        manifest.symbols[symbol].dependencies = dependencies;
-      }
-    }
   }
 
   for (const bundle of Object.values(manifest.bundles)) {

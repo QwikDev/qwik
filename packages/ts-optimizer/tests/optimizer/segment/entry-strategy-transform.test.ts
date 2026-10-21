@@ -81,7 +81,16 @@ describe('smart entry strategy', () => {
     const callback = result.modules.find(
       (mod) => mod.kind === 'segment' && mod.segment.ctxName === '$'
     );
-    expect(callback?.kind === 'segment' && callback.segment.entry).toBeNull();
+    const render = result.modules.find(
+      (mod) => mod.kind === 'segment' && mod.segment.ctxName === 'component$'
+    );
+    expect(callback?.kind === 'segment' && callback.segment.entry).toBe(
+      render?.kind === 'segment' && render.segment.entry
+    );
+    const event = result.modules.find(
+      (mod) => mod.kind === 'segment' && mod.segment.ctxName === 'event$'
+    );
+    expect(event?.kind === 'segment' && event.segment.entry).toBeNull();
   });
 
   it('groups segments by their root context in prod mode', () => {

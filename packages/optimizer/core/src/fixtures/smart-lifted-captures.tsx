@@ -1,9 +1,11 @@
-import { $, component$, useSignal } from '@qwik.dev/core';
+import { $, component$, event$, useSignal } from '@qwik.dev/core';
 import { openFeature } from './heavy-feature';
 
 export const App = component$(() => {
   const count = useSignal(0);
-  const open$ = $(() => openFeature(count.value));
+  const open$ = event$(() => openFeature(count.value));
+  const read = $(() => count.value);
+  read();
   return (
     <>
       <button onClick$={() => count.value++}>increment</button>

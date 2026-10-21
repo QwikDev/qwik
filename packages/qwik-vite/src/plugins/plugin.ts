@@ -1,4 +1,3 @@
-import { CLIENT_STRIP_CTX_NAME } from '../strip-contexts';
 import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
@@ -58,6 +57,14 @@ const SERVER_STRIP_CTX_NAME = [
   'zod$',
   'validator$',
   'globalAction$',
+];
+const CLIENT_STRIP_CTX_NAME = [
+  'useClient',
+  'useBrowser',
+  'useVisibleTask',
+  'client',
+  'browser',
+  'event$',
 ];
 
 type ViteResolveIdOptions = NonNullable<Parameters<Extract<Plugin['resolveId'], Function>>[2]>;
@@ -1109,17 +1116,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       const now = Date.now();
       const newOutput = await optimizer.transformModules(transformOpts);
-      if (!isServer && entryStrategy.type === 'smart') {
-        for (const output of newOutput.modules) {
-          const segment = output.segment;
-          if (
-            segment &&
-            isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true)
-          ) {
-            segment.entry = null;
-          }
-        }
-      }
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       if (devPath) {
         const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(devPath);
@@ -1255,8 +1251,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
     qwikLoaderFileName?: string,
     preloaderFileName?: string,
-    handlersFileName?: string,
-    parse?: Rolldown.PluginContext['parse']
+    handlersFileName?: string
   ) => {
     const injections: GlobalInjections[] = [];
 
@@ -1289,8 +1284,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         getModuleInfo,
         qwikLoaderFileName,
         preloaderFileName,
-        handlersFileName,
-        parse
+        handlersFileName
       );
       if (extra) {
         Object.assign(manifest, extra);
@@ -1441,6 +1435,9 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
+  // Eager contexts stay with their parent, not a segment chunk.
+  const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
+
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
     groups: [
@@ -1462,12 +1459,18 @@ export const isDev = ${JSON.stringify(isDev)};
           if (module) {
             const segment = module.meta.segment as SegmentAnalysis | undefined;
             if (segment) {
+              const isSmartClientOnly =
+                opts.entryStrategy.type === 'smart' &&
+                isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true);
+              // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
+              if (EAGER_CTX_NAMES.has(segment.ctxName) && !isSmartClientOnly) {
+                return null;
+              }
               const { hash } = segment;
               // Group segments by entry or Qwik Insights hash.
               const chunkName =
                 (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] ||
-                segment.entry ||
-                (opts.entryStrategy.type === 'smart' ? `segment_${hash}` : undefined);
+                (isSmartClientOnly ? `segment_${hash}` : segment.entry);
               if (chunkName) {
                 return sanitizeChunkGroupName(chunkName);
               }
@@ -1494,8 +1497,7 @@ export const isDev = ${JSON.stringify(isDev)};
       (id) => ctx.getModuleInfo(id),
       qwikLoaderFileName,
       preloaderFileName,
-      handlersFileName,
-      ctx.parse.bind(ctx)
+      handlersFileName
     );
     const manifest = await outputAnalyzer.generateManifest(manifestExtra);
 

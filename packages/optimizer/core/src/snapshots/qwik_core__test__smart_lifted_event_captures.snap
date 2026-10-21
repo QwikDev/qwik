@@ -4,12 +4,14 @@ expression: output
 ---
 ==INPUT==
 
-import { $, component$, useSignal } from '@qwik.dev/core';
+import { $, component$, event$, useSignal } from '@qwik.dev/core';
 import { openFeature } from './heavy-feature';
 
 export const App = component$(() => {
   const count = useSignal(0);
-  const open$ = $(() => openFeature(count.value));
+  const open$ = event$(() => openFeature(count.value));
+  const read = $(() => count.value);
+  read();
   return (
     <>
       <button onClick$={() => count.value++}>increment</button>
@@ -29,36 +31,36 @@ const q_s_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_c
 export const App = /*#__PURE__*/ componentQrl(q_s_ckEPmXZlub0);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,8BAUhB\"}")
-============================= test.tsx_App_component_open_mWMdhvo9hzU.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,8BAYhB\"}")
+============================= test.tsx_App_component_open_event_91f0czdL41I.js (ENTRY POINT)==
 
 import { _capturesObj } from "@qwik.dev/core";
 import { openFeature } from "./heavy-feature";
 //
-export const s_mWMdhvo9hzU = ()=>{
+export const s_91f0czdL41I = ()=>{
     let count = _capturesObj._[0];
     return openFeature(count.value);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6BAKkB;;WAAM,YAAY,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6BAKuB;;WAAM,YAAY,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "s_mWMdhvo9hzU",
+  "name": "s_91f0czdL41I",
   "entry": null,
-  "displayName": "test.tsx_App_component_open",
-  "hash": "mWMdhvo9hzU",
-  "canonicalFilename": "test.tsx_App_component_open_mWMdhvo9hzU",
+  "displayName": "test.tsx_App_component_open_event",
+  "hash": "91f0czdL41I",
+  "canonicalFilename": "test.tsx_App_component_open_event_91f0czdL41I",
   "path": "",
   "extension": "js",
   "parent": "s_ckEPmXZlub0",
   "ctxKind": "function",
-  "ctxName": "$",
+  "ctxName": "event$",
   "captures": true,
   "loc": [
-    194,
-    224
+    207,
+    237
   ],
   "captureNames": [
     "count"
@@ -70,7 +72,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_MAgjEZcOmJg = ()=>console.log('click');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BASwB,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAWwB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -86,8 +88,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    333,
-    359
+    393,
+    419
   ]
 }
 */
@@ -95,18 +97,24 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
+import { eventQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
+const q_s_91f0czdL41I = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_open_event_91f0czdL41I"), "s_91f0czdL41I");
+const q_s_L8uVMi11z9s = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_read_L8uVMi11z9s"), "s_L8uVMi11z9s");
 const q_s_MAgjEZcOmJg = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_button_q_e_click_1_MAgjEZcOmJg"), "s_MAgjEZcOmJg");
 const q_s_YRU7SJ8EHtY = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_button_q_e_click_YRU7SJ8EHtY"), "s_YRU7SJ8EHtY").m();
-const q_s_mWMdhvo9hzU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_open_mWMdhvo9hzU"), "s_mWMdhvo9hzU");
 //
 export const s_ckEPmXZlub0 = ()=>{
     const count = useSignal(0);
-    const open$ = q_s_mWMdhvo9hzU.w([
+    const open$ = eventQrl(q_s_91f0czdL41I.w([
+        count
+    ]));
+    const read = q_s_L8uVMi11z9s.w([
         count
     ]);
+    read();
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("button", {
             "q:p": count
@@ -123,7 +131,7 @@ export const s_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;6BAG8B;IAC5B,MAAM,QAAQ,UAAU;IACxB,MAAM;;;IACN,qBACE;sBACE,WAAC;;;YAAO,WAAQ;WAAuB;sBACvC,WAAC;YAAO,WAAQ;WAA8B;sBAC9C,WAAC;YAAO,aAAU;WAAO;;AAG/B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;6BAG8B;IAC5B,MAAM,QAAQ,UAAU;IACxB,MAAM,QAAQ;;;IACd,MAAM;;;IACN;IACA,qBACE;sBACE,WAAC;;;YAAO,WAAQ;WAAuB;sBACvC,WAAC;YAAO,WAAQ;WAA8B;sBAC9C,WAAC;YAAO,aAAU;WAAO;;AAG/B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -139,8 +147,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    138,
-    435
+    146,
+    495
   ]
 }
 */
@@ -149,7 +157,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_YRU7SJ8EHtY = (_, _1, count)=>count.value++;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAQwB,gBAAM,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAUwB,gBAAM,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -165,12 +173,46 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    269,
-    288
+    329,
+    348
   ],
   "paramNames": [
     "_",
     "_1",
+    "count"
+  ]
+}
+*/
+============================= test.tsx_App_component_read_L8uVMi11z9s.js ==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const s_L8uVMi11z9s = ()=>{
+    let count = _capturesObj._[0];
+    return count.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6BAMiB;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_L8uVMi11z9s",
+  "entry": "test.tsx_entry_App",
+  "displayName": "test.tsx_App_component_read",
+  "hash": "L8uVMi11z9s",
+  "canonicalFilename": "test.tsx_App_component_read_L8uVMi11z9s",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    257,
+    274
+  ],
+  "captureNames": [
     "count"
   ]
 }

@@ -208,33 +208,40 @@ async function clientCodeSplitting(output: Rolldown.OutputOptions) {
   return outputOpts.codeSplitting as CodeSplitting;
 }
 
-test('smart preserves lazy segment boundaries for bundler helpers', async () => {
-  const plugin = qwikRolldown({
-    optimizerOptions: mockOptimizerOptions(),
-    entryStrategy: { type: 'smart' },
-  });
-  await plugin.options!({});
-  const output = (await plugin.outputOptions!({})) as Rolldown.OutputOptions;
-  const groups = (output.codeSplitting as CodeSplitting).groups!;
-  const name = groups[2].name as Rolldown.CodeSplittingNameFunction;
-  const ctx = {
-    getModuleInfo: () => ({
-      meta: {
-        segment: {
-          hash: 'click123',
-          ctxName: '$',
-          ctxKind: 'function',
-          entry: null,
+test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }])(
+  'smart preserves lazy segment boundaries and manual groups (%s)',
+  async (manual) => {
+    const plugin = qwikRolldown({
+      optimizerOptions: mockOptimizerOptions(),
+      entryStrategy: { type: 'smart', manual },
+    });
+    await plugin.options!({});
+    const output = (await plugin.outputOptions!({})) as Rolldown.OutputOptions;
+    const groups = (output.codeSplitting as CodeSplitting).groups!;
+    const name = groups[2].name as Rolldown.CodeSplittingNameFunction;
+    const ctx = {
+      getModuleInfo: () => ({
+        meta: {
+          segment: {
+            hash: 'click123',
+            ctxName: 'event$',
+            ctxKind: 'function',
+            entry: 'entry_render',
+          },
         },
-      },
-    }),
-  } as any;
-  assert.equal(name('/src/click.js', ctx), 'segment_click123');
-  ctx.getModuleInfo = () => ({
-    meta: { segment: { hash: 'visible123', ctxName: 'useVisibleTask$', entry: null } },
-  });
-  assert.equal(name('/src/visible.js', ctx), 'segment_visible123');
-});
+      }),
+    } as any;
+    assert.equal(name('/src/click.js', ctx), manual?.click123 ?? 'segment_click123');
+    ctx.getModuleInfo = () => ({
+      meta: { segment: { hash: 'visible123', ctxName: 'useVisibleTask$', entry: 'entry_render' } },
+    });
+    assert.equal(name('/src/visible.js', ctx), manual?.visible123 ?? 'segment_visible123');
+    ctx.getModuleInfo = () => ({
+      meta: { segment: { hash: 'read123', ctxName: '$', ctxKind: 'function', entry: null } },
+    });
+    assert.equal(name('/src/read.js', ctx), null);
+  }
+);
 
 test('smart rendering never imports a future interaction library through bundler helpers', async () => {
   const plugin = qwikRolldown({
@@ -266,7 +273,7 @@ test('smart rendering never imports a future interaction library through bundler
                     ? {
                         segment: {
                           hash: id,
-                          ctxName: id === 'render' ? 'component$' : '$',
+                          ctxName: id === 'render' ? 'component$' : 'event$',
                           entry: id === 'render' ? 'entry_render' : null,
                         },
                       }
@@ -287,7 +294,9 @@ test('smart rendering never imports a future interaction library through bundler
     const render = [...byName.values()].find((chunk) => 'render' in chunk.modules)!;
     const visited = new Set<string>();
     const visit = (name: string) => {
-      if (visited.has(name)) return;
+      if (visited.has(name)) {
+        return;
+      }
       visited.add(name);
       const chunk = byName.get(name)!;
       expect(Object.keys(chunk.modules)).not.toContain('heavy-library');
@@ -299,94 +308,125 @@ test('smart rendering never imports a future interaction library through bundler
   }
 });
 
-test('smart custom hook rendering excludes client-only implementation dependencies', async () => {
-  const plugin = createQwikPlugin({ tsOptimizer: true });
-  await plugin.init();
-  await plugin.normalizeOptions({
-    target: 'client',
-    buildMode: 'production',
-    entryStrategy: { type: 'smart' },
-    rootDir: '/fixture',
-    srcDir: '/fixture/src',
-  });
-  const parent = '/fixture/src/app.tsx';
-  const transformed = await plugin.transform(
-    { addWatchFile() {}, emitFile() {} } as any,
-    `import { $, component$, useTask$, useVisibleTask$ as visible } from '@qwik.dev/core';
+test.each(
+  [
+    { tsOptimizer: true, minify: false },
+    { tsOptimizer: false, minify: false },
+    { tsOptimizer: true, minify: true },
+    { tsOptimizer: false, minify: true },
+  ].flatMap((options) =>
+    (['smart', 'component'] as const).map((strategy) => ({ ...options, strategy }))
+  )
+)(
+  '$strategy separates client-only code ($tsOptimizer, $minify)',
+  async ({ tsOptimizer, minify, strategy }) => {
+    const plugin = createQwikPlugin({ tsOptimizer });
+    await plugin.init();
+    await plugin.normalizeOptions({
+      target: 'client',
+      buildMode: 'production',
+      entryStrategy: { type: strategy },
+      rootDir: '/fixture',
+      srcDir: '/fixture/src',
+    });
+    const parent = '/fixture/src/app.tsx';
+    const transformed = await plugin.transform(
+      { addWatchFile() {}, emitFile() {} } as any,
+      strategy === 'component'
+        ? `import { $, component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+     import { clientFeature } from './client-feature';
+     export const App = component$(() => {
+       const state = useSignal(0);
+       const read = $(() => state.value);
+       read();
+       useVisibleTask$(() => clientFeature(state.value));
+       return <div>{state.value}</div>;
+     });`
+        : `import { $, component$, event$, useTask$, useVisibleTask$ as visible } from '@qwik.dev/core';
      import { clientFeature } from './client-feature';
      function useCustomHook() {
        const value = 1;
        useTask$(() => console.log('shared', value));
        visible(() => clientFeature(value));
-       return $(() => clientFeature(value));
+       return event$(() => clientFeature(value));
      }
      export const App = component$(() => {
+       const value = 1;
+       const read = $(() => value);
+       read();
        const click = useCustomHook();
-       return <button onClick$={click}>ready</button>;
+       return <>
+         <button onClick$={click}>ready</button>
+         <button onClick$={() => clientFeature(value)}>inline</button>
+       </>;
      });`,
-    parent
-  );
-  const modules = new Map<string, any>([[parent, transformed]]);
-  for (const id of transformed!.meta!.qwikdeps) {
-    modules.set(id, await plugin.load({} as any, id));
-  }
-  const { rolldown } = await import('rolldown');
-  const build = await rolldown({
-    input: [...modules.keys()],
-    external: (id) => id.startsWith('@qwik.dev/'),
-    preserveEntrySignatures: 'allow-extension',
-    plugins: [
-      {
-        name: 'custom-hook-fixture',
-        resolveId(id, importer) {
-          const resolved = id.startsWith('.') ? path.resolve(path.dirname(importer!), id) : id;
-          if (modules.has(resolved)) {
-            return resolved;
-          }
-          if (resolved === '/fixture/src/client-feature') {
-            return resolved;
-          }
-          return null;
+      parent
+    );
+    const modules = new Map<string, any>([[parent, transformed]]);
+    for (const id of transformed!.meta!.qwikdeps) {
+      modules.set(id, await plugin.load({} as any, id));
+    }
+    const { rolldown } = await import('rolldown');
+    const build = await rolldown({
+      input: [...modules.keys()],
+      external: (id) => id.startsWith('@qwik.dev/'),
+      preserveEntrySignatures: 'allow-extension',
+      plugins: [
+        {
+          name: 'custom-hook-fixture',
+          resolveId(id, importer) {
+            const resolved = id.startsWith('.') ? path.resolve(path.dirname(importer!), id) : id;
+            if (modules.has(resolved)) {
+              return resolved;
+            }
+            if (resolved === '/fixture/src/client-feature') {
+              return resolved;
+            }
+            return null;
+          },
+          load(id) {
+            if (id === '/fixture/src/client-feature') {
+              return 'exports.clientFeature = () => "CLIENT_ONLY_HEAVY";';
+            }
+            return modules.get(id);
+          },
         },
-        load(id) {
-          if (id === '/fixture/src/client-feature') {
-            return 'exports.clientFeature = () => "CLIENT_ONLY_HEAVY";';
-          }
-          return modules.get(id);
-        },
-      },
-    ],
-  });
-  try {
-    const { output } = await build.generate({
-      format: 'es',
-      codeSplitting: { ...plugin.codeSplitting(), includeDependenciesRecursively: false },
+      ],
     });
-    const chunks = output.filter((chunk) => chunk.type === 'chunk');
-    const byName = new Map(chunks.map((chunk) => [chunk.fileName, chunk]));
-    const componentId = [...modules].find(
-      ([, output]) => output?.meta?.segment?.ctxName === 'component$'
-    )![0];
-    const render = chunks.find((chunk) => componentId in chunk.modules)!;
-    const visited = new Set<string>();
-    const visit = (file: string) => {
-      if (visited.has(file)) {
-        return;
-      }
-      visited.add(file);
-      const chunk = byName.get(file);
-      if (!chunk) {
-        return;
-      }
-      expect(Object.keys(chunk.modules)).not.toContain('/fixture/src/client-feature');
-      chunk.imports.forEach(visit);
-    };
-    visit(render.fileName);
-    expect(chunks.some((chunk) => chunk.code.includes('CLIENT_ONLY_HEAVY'))).toBe(true);
-  } finally {
-    await build.close();
+    try {
+      const { output } = await build.generate({
+        format: 'es',
+        minify,
+        codeSplitting: { ...plugin.codeSplitting(), includeDependenciesRecursively: false },
+      });
+      const chunks = output.filter((chunk) => chunk.type === 'chunk');
+      const byName = new Map(chunks.map((chunk) => [chunk.fileName, chunk]));
+      const componentId = [...modules].find(
+        ([, output]) => output?.meta?.segment?.ctxName === 'component$'
+      )![0];
+      const render = chunks.find((chunk) => componentId in chunk.modules)!;
+      const readId = [...modules].find(([, output]) => output?.meta?.segment?.ctxName === '$')![0];
+      expect(readId in render.modules).toBe(true);
+      const visited = new Set<string>();
+      const visit = (file: string) => {
+        if (visited.has(file)) {
+          return;
+        }
+        visited.add(file);
+        const chunk = byName.get(file);
+        if (!chunk) {
+          return;
+        }
+        expect(Object.keys(chunk.modules)).not.toContain('/fixture/src/client-feature');
+        chunk.imports.forEach(visit);
+      };
+      visit(render.fileName);
+      expect(chunks.some((chunk) => chunk.code.includes('CLIENT_ONLY_HEAVY'))).toBe(true);
+    } finally {
+      await build.close();
+    }
   }
-});
+);
 
 test('codeSplitting starts with the qwik groups and disables dependency recursion', async () => {
   const codeSplitting = await clientCodeSplitting({});

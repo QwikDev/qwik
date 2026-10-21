@@ -33,6 +33,7 @@ import {
   useStore,
   Fragment as Signal,
   type Signal as SignalType,
+  type AsyncSignal,
 } from '@qwik.dev/core';
 import { _DomContainer } from '@qwik.dev/core/internal';
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
@@ -1894,7 +1895,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
-  it('should keep shell vnode ids when a resolved segment patches shell vnode data', async () => {
+  it('should keep shell vnode ids when a resolved segment references shell state', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
       resolveSlow = resolve;
@@ -1916,12 +1917,12 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     const SegmentReader = component$((props: { other: SignalType<string> }) => {
       const other = props.other.value;
-      return <span>{other}</span>;
+      return <span id="ooos-shell-other">{other}</span>;
     });
     const Slide = component$((props: { other: SignalType<string> }) => (
       <>
         {slow}
-        <b>{props.other.value}</b>
+        <b id="ooos-segment-other">{props.other.value}</b>
       </>
     ));
     const App = component$(() => {
@@ -1931,6 +1932,9 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
         <main>
           <ShellReader state={state} />
           <SegmentReader other={other} />
+          <button id="ooos-update-other" onClick$={() => (other.value = 'updated')}>
+            Update
+          </button>
           <Pending fallback$={() => <p>Waiting shell vnode ids</p>}>
             <Slide other={other} />
           </Pending>
@@ -1946,14 +1950,19 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     const { document, container } = await renderPromise;
 
     const getVNodeIds = (selector: string) =>
-      Array.from(document.querySelector(selector)!.textContent!.matchAll(/=(\d+)/g), (m) => m[1]);
+      Array.from(document.querySelectorAll(selector)).flatMap((script) =>
+        Array.from(script.textContent!.matchAll(/=(\d+)/g), (m) => m[1])
+      );
     const shellIds = getVNodeIds('script[type="qwik/vnode"]:not([q\\:patch]):not([q\\:r])');
     const patchIds = getVNodeIds('script[type="qwik/vnode"][q\\:patch]');
-    expect(patchIds.length).toBeGreaterThan(0);
     expect(shellIds).toEqual(expect.arrayContaining(patchIds));
     try {
       await trigger(container.element, '#ooos-shell-capture', 'click');
       expect((globalThis as any).__ooosShellCapture).toEqual(['/', undefined]);
+      await trigger(container.element, '#ooos-update-other', 'click');
+      await waitForDrain(container);
+      expect(document.querySelector('#ooos-shell-other')?.textContent).toBe('updated');
+      expect(document.querySelector('#ooos-segment-other')?.textContent).toBe('updated');
     } finally {
       delete (globalThis as any).__ooosShellCapture;
     }
@@ -2325,6 +2334,175 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       );
     } finally {
       delete (globalThis as any).__ooosUnitCrossSignalSecondValue;
+    }
+  });
+
+  it.each(['child', 'inline'])(
+    'should resume late %s subscriptions when segments share an async signal',
+    async (variant) => {
+      let resolveData!: (value: string) => void;
+      const dataPromise = new Promise<string>((resolve) => {
+        resolveData = resolve;
+      });
+      const Count = component$((props: { count: SignalType<number> }) => (
+        <span id="shared-async-count">{props.count.value}</span>
+      ));
+      const Reader = component$(
+        (props: { data: { value: string }; count?: SignalType<number> }) => (
+          <p>
+            {props.data.value}
+            {props.count &&
+              (variant === 'child' ? (
+                <Count count={props.count} />
+              ) : (
+                <span id="shared-async-count">{props.count.value}</span>
+              ))}
+          </p>
+        )
+      );
+      const App = component$(() => {
+        const count = useSignal(0);
+        const data = useComputed$(() => dataPromise);
+        return (
+          <main>
+            <button id="shared-async-increment" onClick$={() => count.value++}>
+              {count.value}
+            </button>
+            <Pending fallback$={() => <p>Waiting first</p>}>
+              <Reader data={data} />
+            </Pending>
+            <Pending fallback$={() => <p>Waiting second</p>}>
+              <Reader data={data} count={count} />
+            </Pending>
+          </main>
+        );
+      });
+      const chunks: string[] = [];
+      const renderPromise = ssrRenderPendingStream(<App />, chunks);
+
+      try {
+        await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+        resolveData('data');
+        const { document, container } = await renderPromise;
+        expect(document.querySelector('#shared-async-count')?.textContent).toBe('0');
+
+        await trigger(container.element, '#shared-async-increment', 'click');
+        await trigger(container.element, '#shared-async-increment', 'click');
+        await waitForDrain(container);
+        expect(document.querySelector('#shared-async-increment')?.textContent).toBe('2');
+        expect(document.querySelector('#shared-async-count')?.textContent).toBe('2');
+      } finally {
+        resolveData('data');
+        await renderPromise;
+      }
+    }
+  );
+
+  it.each(['pending', 'error'] as const)(
+    'resumes late %s subscriptions to shell state',
+    async (channel) => {
+      let release!: (value: JSXOutput) => void;
+      const gate = new Promise<JSXOutput>((resolve) => {
+        release = resolve;
+      });
+      const Status = component$((props: { data: AsyncSignal<number> }) => (
+        <span id="late-status">
+          {channel === 'pending'
+            ? String(props.data.pending)
+            : (props.data.error?.message ?? 'none')}
+        </span>
+      ));
+      const App = component$(() => {
+        const data = useComputed$(() => 0) as AsyncSignal<number>;
+        return (
+          <main>
+            <button
+              id="capture-status"
+              onClick$={() => {
+                (globalThis as any).__pendingStatusSignal = data;
+              }}
+            >
+              Capture
+            </button>
+            <Pending fallback$={() => <p>Waiting status</p>}>
+              {gate}
+              <Status data={data} />
+            </Pending>
+          </main>
+        );
+      });
+      const chunks: string[] = [];
+      const rendering = ssrRenderPendingStream(<App />, chunks);
+      try {
+        await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+        release(<span>Released status</span>);
+        const { document, container } = await rendering;
+        expect(document.querySelector('#late-status')?.textContent).toBe(
+          channel === 'pending' ? 'false' : 'none'
+        );
+        await trigger(container.element, '#capture-status', 'click');
+        const signal = (globalThis as any).__pendingStatusSignal;
+        if (channel === 'pending') {
+          signal.untrackedPending = true;
+        } else {
+          signal.untrackedError = new Error('late error');
+        }
+        await waitForDrain(container);
+        expect(document.querySelector('#late-status')?.textContent).toBe(
+          channel === 'pending' ? 'true' : 'late error'
+        );
+      } finally {
+        release(null);
+        await rendering;
+        delete (globalThis as any).__pendingStatusSignal;
+      }
+    }
+  );
+
+  it('tracks a root-owned computed first read by a late segment', async () => {
+    let release!: (value: JSXOutput) => void;
+    const gate = new Promise<JSXOutput>((resolve) => {
+      release = resolve;
+    });
+    const Reader = component$((props: { value: SignalType<number> }) => (
+      <span id="late-computed">{props.value.value}</span>
+    ));
+    const TaskReader = component$((props: { count: SignalType<number> }) => {
+      const observed = useSignal(0);
+      useTask$(({ track }) => {
+        observed.value = track(() => props.count.value);
+      });
+      return <span id="late-task">{observed.value}</span>;
+    });
+    const App = component$(() => {
+      const count = useSignal(0);
+      const doubled = useComputed$(() => count.value * 2);
+      return (
+        <main>
+          <button id="late-computed-increment" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+          <Pending fallback$={() => <p>Waiting computed</p>}>
+            {gate}
+            <Reader value={doubled} />
+            <TaskReader count={count} />
+          </Pending>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+    const rendering = ssrRenderPendingStream(<App />, chunks);
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+      release(<span>Released computed</span>);
+      const { document, container } = await rendering;
+      await trigger(container.element, '#late-computed-increment', 'click');
+      await waitForDrain(container);
+      expect(document.querySelector('#late-computed')?.textContent).toBe('2');
+      expect(document.querySelector('#late-task')?.textContent).toBe('1');
+    } finally {
+      release(null);
+      await rendering;
     }
   });
 

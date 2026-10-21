@@ -37,7 +37,7 @@ import { isServerPlatform } from '../platform/platform';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
-import { isString } from '../utils/types';
+import { isObject, isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 import { registerSingleton } from '../singletons';
 import { allocate, beginDeserialization, endDeserialization, resolvers } from './allocate';
@@ -177,6 +177,7 @@ function* inflateIterator(
   if (typeId === TypeIds.Object && data !== EMPTY_OBJECT_PAYLOAD && !Array.isArray(data)) {
     throw new Error('Invalid Object payload');
   }
+  const serializedPayload = container.$streamingObjectRefs$ ? data : undefined;
   // Restore the complex data, special case for Array
   if (typeId !== TypeIds.Array && Array.isArray(data)) {
     data = yield* eagerDeserializeArrayIterator(container, data);
@@ -429,9 +430,13 @@ function* inflateIterator(
       const d = data as [
         number,
         Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>,
+        SubscriptionPatch['channel']?,
       ];
       patch.rootId = d[0];
       patch.subscriptions = d[1];
+      if (d[2] !== undefined) {
+        patch.channel = d[2];
+      }
       break;
     }
     case TypeIds.EffectSubscriptionNoData: {
@@ -470,6 +475,27 @@ function* inflateIterator(
     }
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
+  }
+  if (
+    __EXPERIMENTAL__.pendingBoundary &&
+    container.$streamingObjectRefs$ &&
+    Array.isArray(serializedPayload)
+  ) {
+    // Late references need original positions after application mutations.
+    const payload = (typeId === TypeIds.Array ? target : data) as unknown[];
+    let references: object[] | undefined;
+    for (let i = 0; i < payload.length; i++) {
+      if (serializedPayload[i * 2] === TypeIds.RootRef) {
+        continue;
+      }
+      const value = payload[i];
+      if (isObject(value) || typeof value === 'function') {
+        (references ||= [])[i] = value;
+      }
+    }
+    if (references) {
+      container.$streamingObjectRefs$.set(target as object, references);
+    }
   }
 }
 

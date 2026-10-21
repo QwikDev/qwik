@@ -4,7 +4,6 @@ import { isServerPlatform } from '../shared/platform/platform';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container, SerializationStrategy } from '../shared/types';
 import { isOutOfOrderSegmentContainer } from '../shared/utils/container';
-import { OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/serdes/verify';
 import { isObject } from '../shared/utils/types';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
@@ -63,40 +62,19 @@ export const ensureContainsBackRef = (array: EffectSubscription, value: any) => 
   (array.backRef ||= new Set()).add(value);
 };
 
-export const addQrlToSerializationCtx = (
-  effectSubscriber: EffectSubscription,
-  container: Container | null
-) => {
-  if ((container as SSRContainer | null)?.serializationCtx) {
-    const effect = effectSubscriber.consumer;
-    const property = effectSubscriber.property;
-    let qrl: QRL | null = null;
-    if (isTask(effect)) {
-      qrl = effect.$qrl$;
-    } else if (effect instanceof ComputedSignalImpl) {
-      qrl = effect.$computeQrl$;
-    } else if (property === EffectProperty.COMPONENT) {
-      qrl = container!.getHostProp<QRL>(effect as VNode, OnRenderProp);
-    }
-    if (qrl) {
-      (container as SSRContainer).serializationCtx.$eventQrls$.add(qrl);
-    }
-  }
-};
-
 export const getEffectSerializationContainer = (
   renderContainer: Container | undefined,
   ownerContainer: Container | null
-): Container | null => {
+): SSRContainer | null => {
   if (
     renderContainer &&
     (!ownerContainer ||
       renderContainer === ownerContainer ||
       isOutOfOrderSegmentContainer(renderContainer))
   ) {
-    return renderContainer;
+    return renderContainer as SSRContainer;
   }
-  return ownerContainer;
+  return ownerContainer as SSRContainer | null;
 };
 
 export type DerivedSignal = ComputedSignalImpl<any, any> | WrappedSignalImpl<any>;

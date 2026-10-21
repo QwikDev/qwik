@@ -1,11 +1,15 @@
 import {
   component$,
+  createContextId,
   isServer,
   Reveal,
   Pending,
   useComputed$,
+  useContext,
+  useContextProvider,
   useServerData,
   useSignal,
+  untrack,
   type JSXOutput,
   type ReadonlySignal,
   type Signal,
@@ -66,6 +70,12 @@ export const OutOfOrderPendingRoot = component$(() => {
           <OutOfOrderPendingRerender />
         ) : scenario === 'undefined-signal' ? (
           <UndefinedSignalOutOfOrderPending />
+        ) : scenario === 'shared-signal' ? (
+          <SharedSignalOutOfOrderPending />
+        ) : scenario === 'nested-object' ? (
+          <NestedObjectOutOfOrderPending />
+        ) : scenario === 'customer-profile' ? (
+          <CustomerProfileOutOfOrderPending />
         ) : (
           <Pending key={render.value} fallback$={() => <FallbackOutOfOrderContent />}>
             <SlowOutOfOrderContent />
@@ -487,6 +497,247 @@ export const CrossStateResolved = component$((props: { shared: Signal<number> })
     </section>
   );
 });
+
+type NestedObjectState = { nested: { count: number }; text: string; amount: bigint };
+const nestedObjectContext = createContextId<Signal<NestedObjectState>>('ooos-nested-object');
+
+type CustomerProfile = { name: string };
+type CustomerProfileProps = {
+  customer: Signal<{ profile: CustomerProfile }>;
+  selected: Signal<Set<CustomerProfile>>;
+  message: Signal<string>;
+};
+
+export const CustomerProfileOutOfOrderPending = component$(() => {
+  const customer = useSignal({ profile: { name: 'Anna Kowalska' } });
+  const selected = useSignal(new Set<CustomerProfile>());
+  const message = useSignal('');
+  const shouldDefer = getSearchParam(useServerData<string>('url'), 'variant') !== 'immediate';
+  return (
+    <section>
+      <button
+        id="customer-preview"
+        onClick$={() => {
+          selected.value = new Set([...selected.value, customer.value.profile]);
+          message.value = `Selected in shell: ${customer.value.profile.name}`;
+        }}
+      >
+        Select customer
+      </button>
+      <output id="customer-message">{message.value}</output>
+      {shouldDefer ? (
+        <>
+          <Pending fallback$={() => <p id="customer-pending">Loading customer actions</p>}>
+            <DeferredCustomerActions customer={customer} selected={selected} message={message} />
+          </Pending>
+          <ManualOutOfOrderReleaseButton
+            id="customer-release"
+            label="Load customer actions"
+            releaseParam="customerRelease"
+          />
+        </>
+      ) : (
+        <CustomerActions customer={customer} selected={selected} message={message} />
+      )}
+    </section>
+  );
+});
+
+export const DeferredCustomerActions = component$((props: CustomerProfileProps) => {
+  const url = useServerData<string>('url');
+  const requestId = useServerData<string>('ooosRequestId')!;
+  if (isServer) {
+    return waitForOutOfOrderRelease(
+      requestId,
+      getSearchParam(url, 'customerRelease')!,
+      <CustomerActions
+        customer={props.customer}
+        selected={props.selected}
+        message={props.message}
+      />
+    ) as unknown as JSXOutput;
+  }
+  return (
+    <CustomerActions customer={props.customer} selected={props.selected} message={props.message} />
+  );
+});
+
+export const CustomerActions = component$((props: CustomerProfileProps) => {
+  const profile = props.customer.value.profile;
+  return (
+    <button
+      id="customer-select"
+      onClick$={() => {
+        const selected = props.selected.value;
+        props.message.value = selected.has(profile)
+          ? `Selection confirmed: ${profile.name} (${selected.size} selected)`
+          : `Selection lost: ${profile.name} (${selected.size} selected)`;
+      }}
+    >
+      Confirm {profile.name}
+    </button>
+  );
+});
+
+export const NestedObjectOutOfOrderPending = component$(() => {
+  const state = useSignal<NestedObjectState>({
+    nested: { count: 0 },
+    text: 'original streamed string',
+    amount: 12345678901234567890n,
+  });
+  useContextProvider(nestedObjectContext, state);
+  const count = useSignal(0);
+  const variant = getSearchParam(useServerData<string>('url'), 'variant');
+  return (
+    <section>
+      <button
+        id="nested-shell"
+        onClick$={() => {
+          count.value = ++state.value.nested.count;
+          state.value.text = 'changed';
+          state.value.amount = 0n;
+        }}
+      >
+        {count.value}
+      </button>
+      <Pending fallback$={() => <p id="nested-pending">Waiting nested object</p>}>
+        {variant === 'context' ? (
+          <DeferredNestedObjectContext />
+        ) : (
+          <NestedObjectContent state={state} />
+        )}
+      </Pending>
+      <ManualOutOfOrderReleaseButton
+        id="nested-release"
+        label="Resolve nested object"
+        releaseParam="nestedRelease"
+      />
+    </section>
+  );
+});
+
+export const DeferredNestedObjectContext = component$(() => {
+  const url = useServerData<string>('url');
+  const requestId = useServerData<string>('ooosRequestId')!;
+  if (isServer) {
+    return waitForOutOfOrderRelease(
+      requestId,
+      getSearchParam(url, 'nestedRelease')!,
+      <NestedObjectContextContent />
+    ) as unknown as JSXOutput;
+  }
+  return <NestedObjectContextContent />;
+});
+
+export const NestedObjectContextContent = component$(() => {
+  const state = useContext(nestedObjectContext);
+  return <NestedObjectResolved state={state} />;
+});
+
+export const NestedObjectContent = component$((props: { state: Signal<NestedObjectState> }) => {
+  const url = useServerData<string>('url');
+  const requestId = useServerData<string>('ooosRequestId')!;
+  if (isServer) {
+    return waitForOutOfOrderRelease(
+      requestId,
+      getSearchParam(url, 'nestedRelease')!,
+      <NestedObjectResolved state={props.state} />
+    ) as unknown as JSXOutput;
+  }
+  return <NestedObjectResolved state={props.state} />;
+});
+
+export const NestedObjectResolved = component$((props: { state: Signal<NestedObjectState> }) => {
+  // Capture snapshots without subscribing to shell mutations.
+  const [nested, text, amount] = untrack(
+    () => [props.state.value.nested, props.state.value.text, props.state.value.amount] as const
+  );
+  const result = useSignal('ready');
+  return (
+    <button
+      id="nested-resolved"
+      onClick$={() => {
+        result.value = `${nested === props.state.value.nested}:${++nested.count}:${Object.keys(nested).join(',')}:${text}:${amount}:${props.state.value.text}:${props.state.value.amount}`;
+      }}
+    >
+      {result.value}
+    </button>
+  );
+});
+
+export const SharedSignalOutOfOrderPending = component$(() => {
+  const count = useSignal(0);
+  const url = useServerData<string>('url');
+  const requestId = useServerData<string>('ooosRequestId')!;
+  const dataRelease = getSearchParam(url, 'dataRelease')!;
+  const held = getSearchParam(url, 'held') || 'second';
+  const variant = getSearchParam(url, 'variant') || 'child';
+  const data = useComputed$(async () => {
+    if (isServer) {
+      await waitForRelease(requestId, dataRelease);
+    }
+    return 'shared data';
+  });
+  return (
+    <section>
+      <button id="shared-increment" onClick$={() => count.value++}>
+        {count.value}
+      </button>
+      {['first', 'second'].map((id) => (
+        <Pending key={id} fallback$={() => <p id={`shared-pending-${id}`}>Waiting {id}</p>}>
+          <SharedSignalReader
+            id={id}
+            data={data}
+            count={id === 'second' ? count : undefined}
+            variant={variant}
+          />
+          {held === id && (
+            <ControlledOutOfOrderContent id="shared-gate" label="Gate" releaseParam="heldRelease" />
+          )}
+        </Pending>
+      ))}
+      <ManualOutOfOrderReleaseButton
+        id="shared-data-release"
+        label="Resolve shared signal"
+        releaseParam="dataRelease"
+      />
+      <ManualOutOfOrderReleaseButton
+        id="shared-held-release"
+        label="Resolve held segment"
+        releaseParam="heldRelease"
+      />
+    </section>
+  );
+});
+
+export const SharedSignalCount = component$((props: { count: Signal<number> }) => (
+  <span id="shared-count">{props.count.value}</span>
+));
+
+export const SharedSignalReader = component$(
+  (props: {
+    id: string;
+    data: ReadonlySignal<string>;
+    count?: Signal<number>;
+    variant: string;
+  }) => {
+    const local = useSignal(0);
+    return (
+      <div id={`shared-reader-${props.id}`}>
+        {props.data.value}
+        <button id={`shared-local-${props.id}`} onClick$={() => local.value++}>
+          {local.value}
+        </button>
+        {props.count &&
+          (props.variant === 'child' ? (
+            <SharedSignalCount count={props.count} />
+          ) : (
+            <span id="shared-count">{props.count.value}</span>
+          ))}
+      </div>
+    );
+  }
+);
 
 export const UndefinedSignalOutOfOrderPending = component$(() => {
   const extra = useSignal<number | undefined>(undefined);

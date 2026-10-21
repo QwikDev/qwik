@@ -1,41 +1,35 @@
 import { _SubscriptionPatch as SubscriptionPatch } from '@qwik.dev/core/internal';
-import type { EffectSubscription, ObjToProxyMap, SerializationContext } from './qwik-types';
+import type {
+  EffectSubscription,
+  ObjToProxyMap,
+  SerializationContext,
+  SubscriptionPatchChannel,
+} from './qwik-types';
 
 export type SubscriptionPatchProp = string | symbol | null;
 
 export interface SubscriptionPatchRecord {
   rootObj: unknown;
-  /** Root already streamed before this subscription was recorded. */
-  rootId: number | undefined;
   effect: EffectSubscription;
   prop: SubscriptionPatchProp;
+  channel?: SubscriptionPatchChannel;
 }
 
 export type SubscriptionPatchRecords = SubscriptionPatchRecord[];
 
 export const recordExternalRootEffect = (
-  rootCtx: SerializationContext,
   segmentCtx: SerializationContext,
   storeProxyMap: ObjToProxyMap,
-  records: SubscriptionPatchRecords | null,
-  streamedRootCount: number,
+  records: SubscriptionPatchRecords,
   producer: unknown,
   effect: EffectSubscription,
   prop: SubscriptionPatchProp,
-  sourceEffects?: Map<string | symbol, Set<EffectSubscription>>
+  channel?: SubscriptionPatchChannel
 ): void => {
-  if (!records || (prop !== null && !sourceEffects)) {
-    return;
-  }
   let rootObj = producer;
-  if (
-    prop !== null &&
-    producer &&
-    (typeof producer === 'object' || typeof producer === 'function')
-  ) {
-    rootObj = storeProxyMap.get(producer as object) || producer;
+  if (prop !== null) {
+    rootObj = storeProxyMap.get(producer) || producer;
   }
-  const rootId = rootCtx.$hasRootId$(rootObj);
   segmentCtx.$addRoot$(rootObj);
   segmentCtx.$addRoot$(effect);
   if (prop !== null && typeof prop !== 'string') {
@@ -43,35 +37,50 @@ export const recordExternalRootEffect = (
   }
   records.push({
     rootObj,
-    rootId: rootId !== undefined && rootId < streamedRootCount ? rootId : undefined,
     effect,
     prop,
+    channel,
   });
 };
 
 export const collectSubscriptionPatches = (
   rootCtx: SerializationContext,
-  records: SubscriptionPatchRecords | null,
-  rootLimit: number
+  records: SubscriptionPatchRecords,
+  rootLimit: number,
+  reusedRootIds?: Set<number>
 ): SubscriptionPatch[] | undefined => {
-  if (!records?.length) {
+  if (!records.length) {
     return;
   }
   const patches: SubscriptionPatch[] = [];
-  const patchesByRoot = new Map<number, SubscriptionPatch>();
+  const patchesByChannel = new Map<
+    SubscriptionPatchChannel | undefined,
+    Map<number, SubscriptionPatch>
+  >();
   for (let i = 0; i < records.length; i++) {
     const entry = records[i];
-    const rootId = entry.rootId === undefined ? rootCtx.$hasRootId$(entry.rootObj) : entry.rootId;
-    if (rootId === undefined || rootId >= rootLimit) {
+    const rootId = rootCtx.$hasRootId$(entry.rootObj);
+    if (rootId === undefined || (rootId >= rootLimit && !reusedRootIds?.has(rootId))) {
       continue;
     }
-    let patch = patchesByRoot.get(rootId);
+    let roots = patchesByChannel.get(entry.channel);
+    if (!roots) {
+      roots = new Map();
+      patchesByChannel.set(entry.channel, roots);
+    }
+    let patch = roots.get(rootId);
     if (!patch) {
       patch = new SubscriptionPatch(
         rootId,
-        entry.prop === null ? new Set() : new Map<string | symbol, Set<EffectSubscription>>()
+        entry.prop === null ? new Set() : new Map<string | symbol, Set<EffectSubscription>>(),
+        entry.channel
       );
-      patchesByRoot.set(rootId, patch);
+      const clientRootId =
+        rootId >= rootCtx.$rootStateRootCount$ && rootCtx.$hasRootStateForwardRefs$
+          ? rootId + 1
+          : rootId;
+      patch.rootId = clientRootId;
+      roots.set(rootId, patch);
       patches.push(patch);
     }
     const subscriptions = patch.subscriptions;

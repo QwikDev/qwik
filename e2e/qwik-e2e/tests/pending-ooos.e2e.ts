@@ -17,6 +17,124 @@ test.describe('out-of-order streaming with <Pending>', () => {
     assertNoBrowserErrors(page);
   });
 
+  for (const variant of ['immediate', 'deferred']) {
+    test(`preserves a customer selected in the shell (${variant})`, async ({
+      page,
+      browserName,
+    }, testInfo) => {
+      const releaseId = `customer-${testInfo.workerIndex}-${Date.now()}`;
+      await page.goto(
+        getOutOfOrderPendingUrl(
+          browserName,
+          new URLSearchParams({
+            scenario: 'customer-profile',
+            variant,
+            customerRelease: releaseId,
+          })
+        ),
+        { waitUntil: 'commit' }
+      );
+      if (variant === 'deferred') {
+        await expect(page.locator('#customer-pending')).toBeVisible();
+      } else {
+        await expect(page.locator('#customer-select')).toBeVisible();
+        await expect(page.locator('#customer-pending')).toHaveCount(0);
+      }
+      await page.locator('#customer-preview').click();
+      await expect(page.locator('#customer-message')).toHaveText(
+        'Selected in shell: Anna Kowalska'
+      );
+      if (variant === 'deferred') {
+        await expect(page.locator('#customer-select')).toHaveCount(0);
+        await releaseDeferred(page, '#customer-release');
+      }
+      await expect(page.locator('#customer-select')).toBeVisible();
+      await page.locator('#customer-select').click();
+      await expect(page.locator('#customer-message')).toHaveText(
+        'Selection confirmed: Anna Kowalska (1 selected)'
+      );
+    });
+  }
+
+  for (const variant of ['props', 'context']) {
+    test(`preserves references and resends primitives after shell mutations (${variant})`, async ({
+      page,
+      browserName,
+    }, testInfo) => {
+      const releaseId = `nested-${testInfo.workerIndex}-${Date.now()}`;
+      await page.goto(
+        getOutOfOrderPendingUrl(
+          browserName,
+          new URLSearchParams({ scenario: 'nested-object', variant, nestedRelease: releaseId })
+        ),
+        { waitUntil: 'commit' }
+      );
+      await expect(page.locator('#nested-pending')).toBeVisible();
+      await page.locator('#nested-shell').click();
+      await expect(page.locator('#nested-shell')).toHaveText('1');
+      await expect(page.locator('#nested-resolved')).toHaveCount(0);
+      const countContainerCaches = () =>
+        page.locator('#nested-shell').evaluate((button) => {
+          const container = (button.closest('[q\\:container]') as any).qContainer;
+          return Object.values(container).filter((value) => value instanceof WeakMap).length;
+        });
+      const streamingCaches = await countContainerCaches();
+
+      await releaseDeferred(page, '#nested-release');
+      await expect(page.locator('#nested-resolved')).toBeVisible();
+      await page.locator('#nested-resolved').click();
+      await expect(page.locator('#nested-resolved')).toHaveText(
+        'true:2:count:original streamed string:12345678901234567890:changed:0'
+      );
+      await page.locator('#nested-shell').click();
+      await expect(page.locator('#nested-shell')).toHaveText('3');
+      await page.waitForLoadState('load');
+      await expect.poll(countContainerCaches).toBe(streamingCaches - 1);
+    });
+  }
+
+  for (const variant of ['child', 'inline']) {
+    for (const held of ['first', 'second']) {
+      test(`isolates shared-signal subscriptions (${variant}, hold ${held})`, async ({
+        page,
+        browserName,
+      }, testInfo) => {
+        const releaseId = `shared-${variant}-${held}-${testInfo.workerIndex}-${Date.now()}`;
+        await page.goto(
+          getOutOfOrderPendingUrl(
+            browserName,
+            new URLSearchParams({
+              scenario: 'shared-signal',
+              variant,
+              held,
+              dataRelease: `${releaseId}-data`,
+              heldRelease: `${releaseId}-held`,
+            })
+          ),
+          { waitUntil: 'commit' }
+        );
+        await expect(page.locator('#shared-pending-first')).toBeVisible();
+        await expect(page.locator('#shared-pending-second')).toBeVisible();
+        await releaseDeferred(page, '#shared-data-release');
+        const revealed = held === 'first' ? 'second' : 'first';
+        await expect(page.locator(`#shared-reader-${revealed}`)).toBeVisible();
+        await expect(page.locator(`#shared-reader-${held}`)).toHaveCount(0);
+        const firstPatch = page.locator('script[type="qwik/state"][q\\:patch]').first();
+        await expect(firstPatch).not.toContainText(`shared-reader-${held}`);
+        await page.locator(`#shared-local-${revealed}`).click();
+        await expect(page.locator(`#shared-local-${revealed}`)).toHaveText('1');
+        await page.locator('#shared-increment').click();
+        await expect(page.locator('#shared-increment')).toHaveText('1');
+        await releaseDeferred(page, '#shared-held-release');
+        await expect(page.locator(`#shared-reader-${held}`)).toBeVisible();
+        await expect(page.locator('#shared-count')).toHaveText('1');
+        await page.locator('#shared-increment').click();
+        await expect(page.locator('#shared-count')).toHaveText('2');
+        await page.waitForLoadState('load');
+      });
+    }
+  }
+
   test('streams fallback, swaps resolved content, and keeps both interactive', async ({
     page,
     browserName,

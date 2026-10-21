@@ -4,7 +4,7 @@ import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializerSymbol } from '../shared/serdes/verify';
 import type { ComputedFn } from '../use/use-computed';
-import type { Container, SerializationStrategy } from '../shared/types';
+import { EffectProperty, type Container, type SerializationStrategy } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { PropsProxy } from '../shared/jsx/props-proxy';
@@ -97,9 +97,15 @@ export interface ComputedOptions<T = unknown> {
 export type AsyncSignalOptions<T> = ComputedOptions<T>;
 
 export const enum ComputedSignalFlags {
+  /** A direct source changed: must recompute on next read (DIRTY) */
   INVALID = 1,
-  RUN_EFFECTS = 2,
+  /** The next compute must notify even from NEEDS_COMPUTATION */
+  SOURCE_CHANGED = 2,
   PRESERVE_ON_SEQ_CLEANUP = 4,
+  /** A transitive source changed: pull sources before deciding to recompute (maybe dirty) */
+  CHECK = 128,
+  /** Runtime dirty state; never serialized */
+  DIRTY_FLAGS = INVALID | SOURCE_CHANGED | CHECK,
 }
 
 export const enum SerializationSignalFlags {
@@ -169,6 +175,8 @@ export type Consumer = Task | VNode | SignalImpl | ISsrNode;
  * - `EffectProperty.VNODE` if VNode
  */
 export class EffectSubscription {
+  declare $ssrSegmentId$?: number;
+
   constructor(
     public consumer: Consumer,
     public property: EffectProperty | string,
@@ -180,11 +188,7 @@ brandClass(EffectSubscription, Brand.EffectSubscription);
 
 export type EffectBackRef = SignalImpl | StoreTarget | PropsProxy;
 
-/** @internal */
-export const enum EffectProperty {
-  COMPONENT = ':',
-  VNODE = '.',
-}
+export { EffectProperty } from '../shared/types';
 
 /** @public */
 export type SerializerArgObject<T, S> = {

@@ -288,6 +288,34 @@ describe.each([
     );
   });
 
+  it('should update an attribute bound to a computed that reads another computed', async () => {
+    const Cmp = component$(() => {
+      const isToggled = useSignal(false);
+      const base = useComputed$(() => 3);
+      const derived = useComputed$(() => {
+        if (!isToggled.value) {
+          return;
+        }
+        return base.value + 2;
+      });
+      return (
+        <button
+          id="btn"
+          data-test={derived.value}
+          onClick$={() => (isToggled.value = !isToggled.value)}
+        >
+          Click me! {derived.value}
+        </button>
+      );
+    });
+    const { document } = await render(<Cmp />, { debug });
+    const button = document.querySelector('#btn')!;
+    expect(button.getAttribute('data-test')).toBe(null);
+    await trigger(document.body, '#btn', 'click');
+    expect(button.textContent).toBe('Click me! 5');
+    expect(button.getAttribute('data-test')).toBe('5');
+  });
+
   it('should track when recomputing computed signal', async () => {
     const Cmp = component$(() => {
       const boolean1 = useSignal(true);

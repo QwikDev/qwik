@@ -4,11 +4,13 @@ import { assertFalse, assertTrue } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
+import { SubscriptionPatchChannel } from '../../shared/serdes/subscription-patch';
 import type { Container } from '../../shared/types';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { SSRContainer } from '../../ssr/ssr-types';
+import { isSameContainer } from '../../shared/utils/container';
 import { invokeApply, newInvokeContext, tryGetInvokeContext } from '../../use/use-core';
 import type { Tracker } from '../../use/use-task';
 import { trackFn } from '../../use/utils/tracker';
@@ -27,9 +29,11 @@ import {
   type ComputedOptions,
 } from '../types';
 import {
-  addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  getEffectSerializationContainer,
+  invalidateDerived,
+  pullSourcesIfCheck,
   scheduleEffects,
   throwIfQRLNotResolved,
 } from '../utils';
@@ -201,15 +205,19 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$info$ = info;
       this.$infoVersion$ = this.$infoVersion$ === undefined ? 1 : this.$infoVersion$ + 1;
     }
-    if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
-      this.$setInvalid$(true);
-      return;
-    }
-    this.$flags$ |= ComputedSignalFlags.INVALID;
+    invalidateDerived(this);
+  }
+
+  /** Recompute now; a thrown QRL promise retries. Async signals only resolve CHECK here. */
+  $pull$(): void {
     const ctx = newInvokeContext();
     ctx.$container$ = this.$container$ || undefined;
+    const compute =
+      this.$flags$ & AsyncSignalFlags.ASYNC_MODE
+        ? () => pullSourcesIfCheck(this)
+        : this.$computeIfNeeded$;
     // @ts-expect-error it's confused about args any[] vs []
-    const running = retryOnPromise(invokeApply.bind(this, ctx, this.$computeIfNeeded$));
+    const running = retryOnPromise(invokeApply.bind(this, ctx, compute));
     if (isPromise(running)) {
       running.catch((err: unknown) => {
         if (this.$container$) {
@@ -305,14 +313,21 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
           'Do not use signals across containers'
         );
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
         ensureContainsSubscription((this.$loadingEffects$ ||= new Set()), effectSubscriber);
         ensureContainsBackRef(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
+        if (qTest ? isServerPlatform() : isServer) {
+          getEffectSerializationContainer(ctx.$container$, this.$container$)?.$recordEffect$?.(
+            this,
+            effectSubscriber,
+            null,
+            SubscriptionPatchChannel.Pending
+          );
+        }
       }
     }
     return val;
@@ -366,14 +381,21 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
           'Do not use signals across containers'
         );
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
         ensureContainsSubscription((this.$errorEffects$ ||= new Set()), effectSubscriber);
         ensureContainsBackRef(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
+        if (qTest ? isServerPlatform() : isServer) {
+          getEffectSerializationContainer(ctx.$container$, this.$container$)?.$recordEffect$?.(
+            this,
+            effectSubscriber,
+            null,
+            SubscriptionPatchChannel.Error
+          );
+        }
       }
     }
     return val;
@@ -442,7 +464,13 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   /** Run the computation if needed */
   $computeIfNeeded$(): void {
-    if (this.$disposed$ || !(this.$flags$ & ComputedSignalFlags.INVALID)) {
+    if (this.$disposed$) {
+      return;
+    }
+    if (this.$flags$ & ComputedSignalFlags.CHECK) {
+      pullSourcesIfCheck(this);
+    }
+    if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
     if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
@@ -525,7 +553,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       clearEffectSubscription(container, subscriber);
     }
     const ctx = newInvokeContext();
-    ctx.$container$ = container || undefined;
+    const isOnServer = qTest ? isServerPlatform() : isServer;
+    ctx.$container$ =
+      (isOnServer && __EXPERIMENTAL__.pendingBoundary
+        ? getEffectSerializationContainer(tryGetInvokeContext()?.$container$, container)
+        : container) || undefined;
     ctx.$effectSubscriber$ = subscriber;
     return invokeApply(ctx, computeFn, [job]);
   }
@@ -688,7 +720,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       return;
     }
     this.$disposed$ = true;
-    this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    this.$flags$ &= ~ComputedSignalFlags.DIRTY_FLAGS;
     clearTimeout(this.$computationTimeoutId$);
     if (this.$container$) {
       clearAllEffects(this.$container$, this);

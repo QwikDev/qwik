@@ -397,6 +397,63 @@ describe('render api', () => {
       });
     });
     describe('qwikLoader', () => {
+      it.each([undefined, 'module'] as const)(
+        'should eagerly import the module loader with a nonce (include: %s)',
+        async (qwikLoader) => {
+          const result = await renderToStringAndSetPlatform(
+            <>
+              <head />
+              <body>
+                <Counter />
+              </body>
+            </>,
+            {
+              manifest: manifestWithHelpers,
+              qwikLoader,
+              serverData: { nonce: 'test-nonce' },
+            }
+          );
+          const document = createDocument({ html: result.html });
+          const preload = document.head.querySelector('link[rel=modulepreload]')!;
+          expect(preload.getAttribute('href')).toEqual('/build/qwik-loader.js');
+          expect(preload.getAttribute('nonce')).toEqual('test-nonce');
+          const script = preload.nextElementSibling!;
+          expect(script.tagName.toLowerCase()).toEqual('script');
+          expect(script.textContent).toEqual(
+            'import(new URL("/build/qwik-loader.js",document.baseURI).href)'
+          );
+          expect(script.getAttribute('nonce')).toEqual('test-nonce');
+          expect(script.getAttribute('type')).toEqual('text/javascript');
+          expect(script.hasAttribute('src')).toBe(false);
+          expect(script.hasAttribute('async')).toBe(false);
+        }
+      );
+
+      it.each([
+        'build/',
+        'https://cdn.example.com/build/',
+        '/build/"\\</script><script>injected</script>/',
+      ])('should safely resolve the module URL against the document base (%s)', async (base) => {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+          manifest: manifestWithHelpers,
+          qwikLoader: 'module',
+          base,
+        });
+        const document = createDocument({ html: result.html });
+        const preload = document.querySelector('link[rel=modulepreload]')!;
+        const script = preload.nextElementSibling!;
+        const body = script.textContent!;
+        expect(preload.getAttribute('href')).toEqual(base + manifestWithHelpers.qwikLoader);
+        expect(body).toMatch(/^import\(new URL\(.*?,document\.baseURI\)\.href\)$/);
+        expect(body).not.toContain('<');
+        expect(
+          JSON.parse(body.slice('import(new URL('.length, -',document.baseURI).href)'.length))
+        ).toEqual(base + manifestWithHelpers.qwikLoader);
+        expect(preload.hasAttribute('nonce')).toBe(false);
+        expect(script.hasAttribute('nonce')).toBe(false);
+      });
+
       describe('inline', () => {
         it('should render at bottom as fallback', async () => {
           const result = await renderToStringAndSetPlatform(<Counter />, {
@@ -524,11 +581,29 @@ describe('render api', () => {
           containerTagName: 'div',
           qwikLoader: 'module',
         });
-        expect(result.html).toMatch(
+        // Names are pushed as their elements render; the container-ready marker comes last
+        const pushed = Array.from(
+          result.html.matchAll(/\(window\._qwikEv\|\|\(window\._qwikEv=\[\]\)\)\.push\(([^)]*)\)/g),
+          (match) => match[1]
+        ).join(',');
+        expect(pushed).toMatch(
           new RegExp(
-            `\\(window\\._qwikEv\\|\\|\\(window\\._qwikEv=\\[\\]\\)\\)\\.push\\("e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click",${QwikEvContainerReady},"[^"]+"\\)`
+            `^"e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click",${QwikEvContainerReady},"[^"]+"$`
           )
         );
+      });
+      it('should push event names right after the element that uses them', async () => {
+        const result = await renderToStringAndSetPlatform(
+          <>
+            <Counter />
+            <div>{'hello world '.repeat(3000)}</div>
+          </>,
+          { containerTagName: 'div' }
+        );
+        const pushed = result.html.indexOf('.push("e:click");document.currentScript.remove()');
+        expect(pushed).toBeGreaterThan(result.html.indexOf('<button'));
+        expect(pushed).toBeLessThan(result.html.indexOf('hello world'));
+        expect(result.html.split('"e:click"')).toHaveLength(2);
       });
     });
     describe('qwikFuncs', () => {
@@ -588,7 +663,9 @@ describe('render api', () => {
         expect(containerElement?.nodeName.toLowerCase()).toEqual(testTag);
         expect(containerElement?.lastChild?.textContent ?? '').toContain('window._qwikEv');
         const scripts = document.querySelectorAll('script');
-        expect(scripts[0]?.getAttribute('src')).toEqual('/build/qwik-loader.js');
+        expect(document.querySelector('link[rel=modulepreload] + script')?.textContent).toEqual(
+          'import(new URL("/build/qwik-loader.js",document.baseURI).href)'
+        );
         for (let i = 0; i < scripts.length; i++) {
           expect(scripts[i]?.innerHTML).not.toContain('/build/preloader.js');
         }

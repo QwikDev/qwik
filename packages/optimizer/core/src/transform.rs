@@ -136,6 +136,8 @@ pub struct QwikTransform<'a> {
 	extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
 	stack_ctxt: Vec<String>,
 	decl_stack: Vec<Vec<IdPlusType>>,
+	/// Function params, which component props treat as render-stable like static consts.
+	param_ids: HashSet<Id>,
 	marker_functions: HashMap<Id, Atom>,
 	jsx_functions: HashSet<Id>,
 	immutable_function_cmp: HashSet<Id>,
@@ -297,6 +299,7 @@ impl<'a> QwikTransform<'a> {
 			jsx_key_counter: 0,
 			stack_ctxt: Vec::with_capacity(16),
 			decl_stack: Vec::with_capacity(32),
+			param_ids: HashSet::new(),
 			segments: Vec::with_capacity(16),
 			segment_stack: Vec::with_capacity(16),
 			extra_top_items: BTreeMap::new(),
@@ -2710,10 +2713,14 @@ impl<'a> QwikTransform<'a> {
 												value: Box::new(getter),
 											})),
 										);
+										// Const props skip change tracking, so their deps must survive re-renders
+										let is_render_stable = is_const
+											|| (is_fn
+												&& self.reads_only_stable_locals(&node.value));
 										// If it captures iteration variables, it must go to var_props
 										if captures_iteration_var {
 											var_props.push(entry);
-										} else if is_fn || is_const {
+										} else if is_render_stable {
 											maybe_const_props.push(entry);
 										} else {
 											var_props.push(entry);
@@ -3063,6 +3070,21 @@ impl<'a> QwikTransform<'a> {
 			return Some((expr.clone(), true));
 		}
 		None
+	}
+
+	/// Whether `expr` reads only locals that survive re-renders: static consts and params.
+	fn reads_only_stable_locals(&self, expr: &ast::Expr) -> bool {
+		let mut collector = IdentCollector::new();
+		expr.visit_with(&mut collector);
+		collector.get_words().iter().all(|ident| {
+			self.param_ids.contains(ident)
+				|| self
+					.decl_stack
+					.iter()
+					.flatten()
+					.find(|(id, _)| id == ident)
+					.is_none_or(|(_, kind)| matches!(kind, IdentType::Var(true)))
+		})
 	}
 
 	fn convert_to_signal_item(
@@ -3712,7 +3734,10 @@ impl<'a> Fold for QwikTransform<'a> {
 			.expect("Declaration stack empty!");
 
 		for param in &node.params {
-			current_scope.extend(process_node_props(&param.pat));
+			let params = process_node_props(&param.pat);
+			self.param_ids
+				.extend(params.iter().map(|(id, _)| id.clone()));
+			current_scope.extend(params);
 		}
 
 		let mut o = node.fold_children_with(self);
@@ -3747,7 +3772,10 @@ impl<'a> Fold for QwikTransform<'a> {
 			.expect("Declaration stack empty!");
 
 		for param in &node.params {
-			current_scope.extend(process_node_props(param));
+			let params = process_node_props(param);
+			self.param_ids
+				.extend(params.iter().map(|(id, _)| id.clone()));
+			current_scope.extend(params);
 		}
 
 		let mut o = node.fold_children_with(self);

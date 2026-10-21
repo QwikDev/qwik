@@ -89,7 +89,7 @@ import {
   restoreScroll,
   saveScrollHistory,
 } from './scroll-restoration';
-import spaInit from './spa-init';
+import spaInit, { isPlainPrimaryClick } from './spa-init';
 import {
   clearNavFetchCache,
   abortRouteLoaderNavigation,
@@ -1264,7 +1264,7 @@ function initializeSPA(goto: Navigate, scroller: HTMLElement) {
     // Any <a> tags w/ #hash href will break SPA state in Firefox.
     // We patch these events and direct them to Link pipeline during SPA.
     document.addEventListener('click', (event) => {
-      if (event.defaultPrevented) {
+      if (event.defaultPrevented || !isPlainPrimaryClick(event)) {
         return;
       }
 

@@ -578,6 +578,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
   },
   should_work: { transpileTs: true, transpileJsx: true },
+  should_keep_render_local_component_props_var: { transpileTs: true, transpileJsx: true },
   should_wrap_inner_inline_component_prop: { transpileTs: true, transpileJsx: true },
   should_wrap_logical_expression_in_template: { transpileTs: true, transpileJsx: true },
   should_wrap_object_with_fn_signal: { transpileTs: true, transpileJsx: true },

@@ -4862,6 +4862,34 @@ fn should_wrap_prop_from_destructured_array() {
 }
 
 #[test]
+fn should_keep_render_local_component_props_var() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+import { Child } from './child';
+
+export default component$((props: { label: string }) => {
+	const items = useSignal<string[]>([]);
+	const visible = items.value.slice(0, 5);
+	const state = { open: items.value.length > 0 };
+	return (
+		<Child
+			renderLocal={visible.length > 0}
+			renderLocalMember={state.open}
+			signal={items.value.length > 0}
+			param={props.label}
+		/>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_wrap_object_with_fn_signal() {
 	test_input!(TestInput {
 		code: r#"

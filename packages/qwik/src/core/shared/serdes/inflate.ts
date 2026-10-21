@@ -177,7 +177,8 @@ function* inflateIterator(
   if (typeId === TypeIds.Object && data !== EMPTY_OBJECT_PAYLOAD && !Array.isArray(data)) {
     throw new Error('Invalid Object payload');
   }
-  const serializedPayload = container.$streamingObjectRefs$ ? data : undefined;
+  const serializedPayload =
+    __EXPERIMENTAL__.pendingBoundary && container.$streamingObjectRefs$ ? data : undefined;
   // Restore the complex data, special case for Array
   if (typeId !== TypeIds.Array && Array.isArray(data)) {
     data = yield* eagerDeserializeArrayIterator(container, data);
@@ -426,6 +427,9 @@ function* inflateIterator(
       break;
     }
     case TypeIds.SubscriptionPatch: {
+      if (!__EXPERIMENTAL__.pendingBoundary) {
+        throw qError(QError.serializeErrorNotImplemented, [typeId]);
+      }
       const patch = target as SubscriptionPatch;
       const d = data as [
         number,

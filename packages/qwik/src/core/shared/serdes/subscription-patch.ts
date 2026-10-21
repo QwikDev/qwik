@@ -17,7 +17,7 @@ export class SubscriptionPatch {
       | Map<string | symbol, Set<EffectSubscription>> = new Set(),
     channel?: SubscriptionPatchChannel
   ) {
-    if (channel !== undefined) {
+    if (__EXPERIMENTAL__.pendingBoundary && channel !== undefined) {
       this.channel = channel;
     }
   }

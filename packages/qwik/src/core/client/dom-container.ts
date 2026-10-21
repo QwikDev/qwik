@@ -141,7 +141,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $containerStateReadyCallbacks$: Array<() => void> | undefined = undefined;
   public $containerStateDataState$: unknown = undefined;
   // Preserve unrooted references across shell mutations until streaming finishes.
-  public $streamingObjectRefs$: WeakMap<object, object[]> | undefined = undefined;
+  declare $streamingObjectRefs$: WeakMap<object, object[]> | undefined;
 
   private $rawStateData$: unknown[];
   private $stateData$: unknown[];
@@ -222,7 +222,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   /** Tear down this container so stale references fail gracefully. */
   $destroy$(): void {
-    this.$streamingObjectRefs$ = undefined;
+    if (__EXPERIMENTAL__.pendingBoundary) {
+      this.$streamingObjectRefs$ = undefined;
+    }
     this.vNodeLocate = () => null as any;
     this.$rawStateData$.length = 0;
     this.$stateData$.length = 0;

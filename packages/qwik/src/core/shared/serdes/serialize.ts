@@ -552,7 +552,7 @@ export class Serializer {
       } else {
         this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
       }
-    } else if (value instanceof SubscriptionPatch) {
+    } else if (__EXPERIMENTAL__.pendingBoundary && value instanceof SubscriptionPatch) {
       this.output(TypeIds.SubscriptionPatch, [value.rootId, value.subscriptions, value.channel]);
     } else if (isStore(value)) {
       const storeHandler = getStoreHandler(value)!;

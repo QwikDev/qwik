@@ -244,3 +244,9 @@ A serialized Uint8Array contained malformed base64 data. Regenerate the state us
 **Computed signal was disposed**
 
 A computation tried to track a dependency or resume execution after its signal was disposed. Check `abortSignal` after asynchronous work before tracking more dependencies.
+
+## Q40
+
+**Missing streaming object references for a late patch**
+
+A late streamed state patch references an object whose original references are unavailable. This is an internal streaming error; please report it with a reproduction.

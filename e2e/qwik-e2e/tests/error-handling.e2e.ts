@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { assertNoBrowserErrors, collectPageErrors, releaseDeferred } from './e2e-helpers';
 
 export const streamingModes = [
@@ -744,13 +744,19 @@ test.describe('Catch reset', () => {
 });
 
 test.describe('Catch in a production build (qDev=false)', () => {
-  const prodUrl = (route: string) => routeUrl(route, { app: 'error-handling.prod' });
+  const openProductionRoute = async (page: Page, route: string) => {
+    const response = await page.goto(routeUrl(route, { app: 'error-handling.prod' }), {
+      waitUntil: 'commit',
+    });
+    await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
+    return response;
+  };
 
   test('an SSR-errored async signal serializes a redacted error, raw message nowhere in the page', async ({
     page,
   }) => {
     assertNoBrowserErrors(page);
-    const response = await page.goto(prodUrl('async-error-captured'), { waitUntil: 'commit' });
+    const response = await openProductionRoute(page, 'async-error-captured');
 
     await expect(page.locator('#async-errored')).toHaveText('errored', { timeout: 10000 });
     const html = await response!.text();
@@ -765,7 +771,7 @@ test.describe('Catch in a production build (qDev=false)', () => {
     page,
   }) => {
     assertNoBrowserErrors(page);
-    await page.goto(prodUrl('basic'), { waitUntil: 'commit' });
+    await openProductionRoute(page, 'basic');
 
     await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: An error occurred');
@@ -777,7 +783,7 @@ test.describe('Catch in a production build (qDev=false)', () => {
 
   test('client throw after resume shows the thrown message unredacted', async ({ page }) => {
     assertNoBrowserErrors(page);
-    await page.goto(prodUrl('csr-event'), { waitUntil: 'commit' });
+    await openProductionRoute(page, 'csr-event');
 
     await expect(page.locator('#catch-content')).toHaveText('content ok', { timeout: 10000 });
     await expect(page.locator('#catch-fallback')).toHaveCount(0);
@@ -793,7 +799,7 @@ test.describe('Catch in a production build (qDev=false)', () => {
 
   test('an app error carrying its own digest field still redacts', async ({ page }) => {
     assertNoBrowserErrors(page);
-    await page.goto(prodUrl('digest-forgery'), { waitUntil: 'commit' });
+    await openProductionRoute(page, 'digest-forgery');
 
     await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: An error occurred', {
       timeout: 10000,
@@ -808,7 +814,7 @@ test.describe('Catch in a production build (qDev=false)', () => {
     page,
   }) => {
     assertNoBrowserErrors(page);
-    await page.goto(prodUrl('rederive'), { waitUntil: 'commit' });
+    await openProductionRoute(page, 'rederive');
 
     await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#catch-fallback-msg')).toHaveText('caught: An error occurred');
@@ -825,7 +831,7 @@ test.describe('Catch in a production build (qDev=false)', () => {
     page,
   }) => {
     assertNoBrowserErrors(page);
-    await page.goto(prodUrl('reset'), { waitUntil: 'commit' });
+    await openProductionRoute(page, 'reset');
 
     await expect(page.locator('#catch-fallback')).toBeVisible({ timeout: 10000 });
 

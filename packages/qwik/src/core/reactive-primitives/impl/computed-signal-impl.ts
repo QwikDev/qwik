@@ -4,11 +4,13 @@ import { assertFalse, assertTrue } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
+import { SubscriptionPatchChannel } from '../../shared/serdes/subscription-patch';
 import type { Container } from '../../shared/types';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { SSRContainer } from '../../ssr/ssr-types';
+import { isSameContainer } from '../../shared/utils/container';
 import { invokeApply, newInvokeContext, tryGetInvokeContext } from '../../use/use-core';
 import type { Tracker } from '../../use/use-task';
 import { trackFn } from '../../use/utils/tracker';
@@ -27,9 +29,9 @@ import {
   type ComputedOptions,
 } from '../types';
 import {
-  addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  getEffectSerializationContainer,
   invalidateDerived,
   pullSourcesIfCheck,
   scheduleEffects,
@@ -311,14 +313,21 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
           'Do not use signals across containers'
         );
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
         ensureContainsSubscription((this.$loadingEffects$ ||= new Set()), effectSubscriber);
         ensureContainsBackRef(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
+        if (qTest ? isServerPlatform() : isServer) {
+          getEffectSerializationContainer(ctx.$container$, this.$container$)?.$recordEffect$?.(
+            this,
+            effectSubscriber,
+            null,
+            SubscriptionPatchChannel.Pending
+          );
+        }
       }
     }
     return val;
@@ -372,14 +381,21 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
           'Do not use signals across containers'
         );
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
         ensureContainsSubscription((this.$errorEffects$ ||= new Set()), effectSubscriber);
         ensureContainsBackRef(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
+        if (qTest ? isServerPlatform() : isServer) {
+          getEffectSerializationContainer(ctx.$container$, this.$container$)?.$recordEffect$?.(
+            this,
+            effectSubscriber,
+            null,
+            SubscriptionPatchChannel.Error
+          );
+        }
       }
     }
     return val;
@@ -537,7 +553,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       clearEffectSubscription(container, subscriber);
     }
     const ctx = newInvokeContext();
-    ctx.$container$ = container || undefined;
+    const isOnServer = qTest ? isServerPlatform() : isServer;
+    ctx.$container$ =
+      (isOnServer && __EXPERIMENTAL__.pendingBoundary
+        ? getEffectSerializationContainer(tryGetInvokeContext()?.$container$, container)
+        : container) || undefined;
     ctx.$effectSubscriber$ = subscriber;
     return invokeApply(ctx, computeFn, [job]);
   }

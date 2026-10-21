@@ -72,7 +72,7 @@
     "dom-table-10": 0,
     "dom-table-1k": 0,
     "serialize-state-1k": 94844,
-    "ssr-table-10": 2044,
-    "ssr-table-1k": 170338
+    "ssr-table-10": 2136,
+    "ssr-table-1k": 170430
   }
 }

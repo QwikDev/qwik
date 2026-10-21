@@ -2,6 +2,7 @@ import { assert, test } from 'vitest';
 import {
   createCurrentPathTracker,
   dispatchRouterPopstate,
+  isPlainPrimaryClick,
   Q_ROUTER_POPSTATE_EVENT,
 } from './spa-init';
 
@@ -35,4 +36,15 @@ test('dispatchRouterPopstate sends the current href through the recovery bridge'
   assert.deepEqual((dispatchedEvent as CustomEvent).detail, {
     href: 'http://localhost/scroll-restoration/page-short/',
   });
+});
+
+test('isPlainPrimaryClick rejects modifier keys and non-primary buttons', () => {
+  const click = (init: MouseEventInit = {}) => ({ button: 0, ...init }) as MouseEvent;
+
+  assert.isTrue(isPlainPrimaryClick(click()));
+  for (const modifier of ['metaKey', 'ctrlKey', 'shiftKey', 'altKey'] as const) {
+    assert.isFalse(isPlainPrimaryClick(click({ [modifier]: true })), modifier);
+  }
+  assert.isFalse(isPlainPrimaryClick(click({ button: 1 })), 'middle button');
+  assert.isFalse(isPlainPrimaryClick(click({ button: 2 })), 'secondary button');
 });

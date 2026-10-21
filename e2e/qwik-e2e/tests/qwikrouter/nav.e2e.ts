@@ -326,6 +326,64 @@ test.describe('nav', () => {
       });
     });
 
+    test.describe('modified clicks on same-page links', () => {
+      const modifiers = ['ControlOrMeta', 'Shift', 'Alt'] as const;
+
+      // Engines differ on the native tab, window or download, so suppress it and check only the router.
+      async function isClickTakenOver(link: Locator, modifier?: (typeof modifiers)[number]) {
+        const page = link.page();
+        await page.evaluate(() => {
+          // sessionStorage survives the reload the router runs for a same-path link.
+          sessionStorage.removeItem('clickTakenOver');
+          // Window listeners run after the router's document listeners.
+          window.addEventListener(
+            'click',
+            (event) => {
+              sessionStorage.setItem('clickTakenOver', String(event.defaultPrevented));
+              event.preventDefault();
+            },
+            { once: true }
+          );
+        });
+        await link.click({ modifiers: modifier ? [modifier] : [] });
+        return page.evaluate(() => JSON.parse(sessionStorage.getItem('clickTakenOver') ?? 'null'));
+      }
+
+      async function expectModifiedClicksLeftToBrowser(page: Page) {
+        for (const modifier of modifiers) {
+          for (const selector of ['#same-path', '#hash']) {
+            expect(
+              await isClickTakenOver(page.locator(selector), modifier),
+              `${modifier} click on ${selector}`
+            ).toBe(false);
+          }
+        }
+        await expect(page).toHaveURL('/qwikrouter-test/same-page-links/');
+
+        // A plain click is still the router's.
+        expect(await isClickTakenOver(page.locator('#hash'))).toBe(true);
+        await expect(page).toHaveURL('/qwikrouter-test/same-page-links/#target');
+      }
+
+      test('should stay with the browser before the router initializes', async ({ page }) => {
+        await page.goto('/qwikrouter-test/same-page-links/');
+        await page.waitForFunction(() => !!(window as any)._qRouterInitAnchors);
+
+        await expectModifiedClicksLeftToBrowser(page);
+      });
+
+      test('should stay with the browser after the router initializes', async ({ page }) => {
+        await page.goto('/qwikrouter-test/same-page-links/');
+        await page.locator('#to-other').click();
+        await expect(page.locator('h1')).toHaveText('Other Page');
+        await page.locator('#to-same-page-links').click();
+        await expect(page.locator('h1')).toHaveText('Same Page Links');
+        expect(await page.evaluate(() => (window as any)._qRouterSPA)).toBe(true);
+
+        await expectModifiedClicksLeftToBrowser(page);
+      });
+    });
+
     test('issue 6660 internal params should not trigger navigation', async ({ page }) => {
       await page.goto('/qwikrouter-test/issue6660/');
       await expect(page.locator('#status')).toBeHidden();

@@ -136,9 +136,11 @@ export interface DiffContext {
   $vSiblings$: Map<string, VNode> | null;
   /// The array even indices will contains keys and odd indices the non keyed siblings.
   $vSiblingsArray$: Array<string | VNode | null> | null;
-  /// Side buffer to store nodes that are moved out of order during key scanning.
-  /// This contains nodes that were found before the target key and need to be moved later.
-  $vSideBuffer$: Map<string, VNode> | null;
+  /// Side buffer to track the new order of the siblings once they are scanned out of order.
+  /// Negative entries are not matched yet. The siblings are only moved after matching is done.
+  $vSideBuffer$: Map<VNode, number> | null;
+  /// First sibling not matched yet, where the cursor resumes after a match.
+  $vUnmatched$: VNode | null;
   /// Current set of JSX children.
   $jsxChildren$: JSXChildren[] | null;
   // Current JSX child.
@@ -170,9 +172,17 @@ function peekNextSiblingWithinBoundary(
   diffContext: DiffContext,
   vCurrent: VNode | null
 ): VNode | null {
-  const nextSibling = peekNextSibling(vCurrent);
+  let nextSibling = peekNextSibling(vCurrent);
   const boundary = getLevelBoundary(diffContext);
+  // Siblings matched out of order were already diffed.
+  while (nextSibling && nextSibling !== boundary && isMatchedSibling(diffContext, nextSibling)) {
+    nextSibling = peekNextSibling(nextSibling);
+  }
   return nextSibling === boundary ? null : nextSibling;
+}
+
+function isMatchedSibling(diffContext: DiffContext, vNode: VNode): boolean {
+  return (diffContext.$vSideBuffer$?.get(vNode) ?? -1) >= 0;
 }
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -224,6 +234,7 @@ export function createDiffContext(
     $vSiblings$: null,
     $vSiblingsArray$: null,
     $vSideBuffer$: null,
+    $vUnmatched$: null,
     $jsxChildren$: null!,
     $jsxValue$: null,
     $jsxIdx$: 0,
@@ -510,6 +521,19 @@ function advance(diffContext: DiffContext) {
     // this was special `descendVNode === false` so pop and try again
     return ascend(diffContext);
   }
+  const vMatched = diffContext.$vNewNode$ || diffContext.$vCurrent$;
+  if (diffContext.$vSideBuffer$ && vMatched) {
+    // Re-insert to record the new order.
+    diffContext.$vSideBuffer$.delete(vMatched);
+    diffContext.$vSideBuffer$.set(vMatched, 0);
+    let vUnmatched = diffContext.$vUnmatched$;
+    if (vUnmatched && isMatchedSibling(diffContext, vUnmatched)) {
+      vUnmatched = peekNextSiblingWithinBoundary(diffContext, vUnmatched);
+    }
+    diffContext.$vCurrent$ = diffContext.$vUnmatched$ = vUnmatched;
+    diffContext.$vNewNode$ = null;
+    return;
+  }
   if (diffContext.$vNewNode$ !== null) {
     // We have a new Node.
     // This means that the `vCurrent` was deemed not useful and we inserted in front of it.
@@ -571,6 +595,7 @@ function descend(
 
     diffContext.$isCreationMode$ = creationMode;
     diffContext.$vSideBuffer$ = null;
+    diffContext.$vUnmatched$ = null;
     diffContext.$vSiblings$ = null;
     diffContext.$vSiblingsArray$ = null;
     diffContext.$vParent$ = (diffContext.$vNewNode$ || diffContext.$vCurrent$!) as
@@ -586,6 +611,7 @@ function ascend(diffContext: DiffContext) {
   const descendVNode = diffContext.$stack$.pop(); // boolean: descendVNode
   if (descendVNode) {
     diffContext.$isCreationMode$ = diffContext.$stack$.pop();
+    diffContext.$vUnmatched$ = diffContext.$stack$.pop();
     diffContext.$vSideBuffer$ = diffContext.$stack$.pop();
     diffContext.$vSiblings$ = diffContext.$stack$.pop();
     diffContext.$vSiblingsArray$ = diffContext.$stack$.pop();
@@ -615,6 +641,7 @@ function stackPush(diffContext: DiffContext, children: JSXChildren, descendVNode
       diffContext.$vSiblingsArray$,
       diffContext.$vSiblings$,
       diffContext.$vSideBuffer$,
+      diffContext.$vUnmatched$,
       diffContext.$isCreationMode$
     );
   }
@@ -813,19 +840,66 @@ function expectSlot(diffContext: DiffContext) {
 function cleanupSideBuffer(diffContext: DiffContext) {
   const sideBuffer = diffContext.$vSideBuffer$;
   if (sideBuffer) {
-    // Remove all nodes in the side buffer as they are no longer needed
-
-    for (const vNode of sideBuffer.values()) {
-      if (vNode.flags & VNodeFlags.Deleted) {
-        continue;
-      }
-      cleanup(diffContext.$container$, diffContext.$journal$, vNode, diffContext.$cursor$);
-      vnode_remove(diffContext.$journal$, diffContext.$vParent$, vNode, true);
-    }
-    sideBuffer.clear();
+    removeUnmatchedSiblings(diffContext, sideBuffer);
+    reorderMatchedSiblings(diffContext, sideBuffer);
     diffContext.$vSideBuffer$ = null;
   }
   diffContext.$vCurrent$ = null;
+}
+
+function removeUnmatchedSiblings(diffContext: DiffContext, sideBuffer: Map<VNode, number>) {
+  const vParent = diffContext.$vParent$;
+  for (const [vNode, matchState] of sideBuffer) {
+    // A projection can be moved to another parent while matching.
+    const isStillChild = vNode.parent === vParent;
+    if (matchState >= 0 && isStillChild) {
+      continue;
+    }
+    sideBuffer.delete(vNode);
+    if (isStillChild && !(vNode.flags & VNodeFlags.Deleted)) {
+      cleanup(diffContext.$container$, diffContext.$journal$, vNode, diffContext.$cursor$);
+      vnode_remove(diffContext.$journal$, vParent, vNode, true);
+    }
+  }
+}
+
+/** Moves the matched siblings into the new order, comparing both ends to keep moves minimal. */
+function reorderMatchedSiblings(diffContext: DiffContext, sideBuffer: Map<VNode, number>) {
+  const journal = diffContext.$journal$;
+  const vParent = diffContext.$vParent$;
+  const boundary = getLevelBoundary(diffContext);
+  const newOrder = Array.from(sideBuffer.keys());
+  let newFirstIdx = 0;
+  let newLastIdx = newOrder.length - 1;
+  let vOldLast = (boundary ? boundary.previousSibling : vParent.lastChild) as VNode | null;
+  let vOldFirst = vOldLast;
+  while (vOldFirst?.previousSibling && sideBuffer.has(vOldFirst.previousSibling)) {
+    vOldFirst = vOldFirst.previousSibling;
+  }
+  while (newFirstIdx <= newLastIdx) {
+    const vNewFirst = newOrder[newFirstIdx];
+    const vNewLast = newOrder[newLastIdx];
+    if (vOldFirst === vNewFirst) {
+      vOldFirst = vOldFirst.nextSibling as VNode | null;
+      newFirstIdx++;
+    } else if (vOldLast === vNewLast) {
+      vOldLast = vOldLast.previousSibling as VNode | null;
+      newLastIdx--;
+    } else if (vOldLast === vNewFirst) {
+      const vOldBeforeLast = vOldLast.previousSibling as VNode | null;
+      vnode_insertBefore(journal, vParent, vOldLast, vOldFirst);
+      vOldLast = vOldBeforeLast;
+      newFirstIdx++;
+    } else if (vOldFirst === vNewLast) {
+      const vOldAfterFirst = vOldFirst.nextSibling as VNode | null;
+      vnode_insertBefore(journal, vParent, vOldFirst, vOldLast!.nextSibling as VNode | null);
+      vOldFirst = vOldAfterFirst;
+      newLastIdx--;
+    } else {
+      vnode_insertBefore(journal, vParent, vNewFirst, vOldFirst);
+      newFirstIdx++;
+    }
+  }
 }
 
 function drainAsyncQueue(diffContext: DiffContext): ValueOrPromise<void> {
@@ -905,6 +979,10 @@ function expectNoTextNode(diffContext: DiffContext) {
   if (diffContext.$vCurrent$ !== null && vnode_isTextVNode(diffContext.$vCurrent$)) {
     const toRemove = diffContext.$vCurrent$;
     diffContext.$vCurrent$ = peekNextSiblingWithinBoundary(diffContext, diffContext.$vCurrent$);
+    if (diffContext.$vUnmatched$ === toRemove) {
+      diffContext.$vUnmatched$ = diffContext.$vCurrent$;
+    }
+    diffContext.$vSideBuffer$?.delete(toRemove);
     vnode_remove(diffContext.$journal$, diffContext.$vParent$, toRemove, true);
   }
 }
@@ -1149,22 +1227,11 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
       elementName === vnode_getElementName(diffContext.$vCurrent$ as ElementVNode);
     const jsxKey: string | null = jsx.key;
     const currentKey = isElementVNode && (diffContext.$vCurrent$ as ElementVNode).key;
-    if (!isSameElementName || jsxKey !== currentKey) {
-      const sideBufferKey = getSideBufferKey(elementName, jsxKey);
-      if (
-        moveOrCreateKeyedNode(
-          diffContext,
-          elementName,
-          jsxKey,
-          sideBufferKey,
-          diffContext.$vParent$ as ElementVNode
-        )
-      ) {
-        createNewElement(diffContext, jsx, elementName, currentFile);
-      }
-    } else {
-      // delete the key from the side buffer if it is the same element
-      deleteFromSideBuffer(diffContext, elementName, jsxKey);
+    if (
+      (!isSameElementName || jsxKey !== currentKey) &&
+      moveOrCreateKeyedNode(diffContext, elementName, jsxKey)
+    ) {
+      createNewElement(diffContext, jsx, elementName, currentFile);
     }
   }
 
@@ -1337,9 +1404,12 @@ function retrieveChildWithKey(
     // it is not materialized; so materialize it.
     diffContext.$vSiblings$ = new Map<string, VNode>();
     diffContext.$vSiblingsArray$ = [];
+    diffContext.$vSideBuffer$ = new Map<VNode, number>();
+    diffContext.$vUnmatched$ = diffContext.$vCurrent$;
     const boundary = getLevelBoundary(diffContext);
     let vNode = diffContext.$vCurrent$;
     while (vNode && vNode !== boundary) {
+      diffContext.$vSideBuffer$.set(vNode, -1);
       const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
       const vKey =
         getKey(vNode as VirtualVNode | ElementVNode | TextVNode | null) ||
@@ -1351,7 +1421,7 @@ function retrieveChildWithKey(
           diffContext.$vSiblingsArray$.push(name, vNode);
         } else {
           // we only add the elements which we did not find yet.
-          diffContext.$vSiblings$.set(getSideBufferKey(name, vKey), vNode);
+          diffContext.$vSiblings$.set(getSiblingKey(name, vKey), vNode);
         }
       }
       vNode = vNode.nextSibling as VNode | null;
@@ -1359,162 +1429,51 @@ function retrieveChildWithKey(
   } else {
     if (key === null) {
       for (let i = 0; i < diffContext.$vSiblingsArray$!.length; i += 2) {
-        if (diffContext.$vSiblingsArray$![i] === nodeName) {
-          vNodeWithKey = diffContext.$vSiblingsArray$![i + 1] as ElementVNode | VirtualVNode;
+        const sibling = diffContext.$vSiblingsArray$![i + 1] as ElementVNode | VirtualVNode;
+        if (
+          diffContext.$vSiblingsArray$![i] === nodeName &&
+          !isMatchedSibling(diffContext, sibling)
+        ) {
+          vNodeWithKey = sibling;
           diffContext.$vSiblingsArray$!.splice(i, 2);
           break;
         }
       }
     } else {
-      const siblingsKey = getSideBufferKey(nodeName, key);
+      const siblingsKey = getSiblingKey(nodeName, key);
       const sibling = diffContext.$vSiblings$.get(siblingsKey);
-      if (sibling) {
+      if (sibling && !isMatchedSibling(diffContext, sibling)) {
         vNodeWithKey = sibling as ElementVNode | VirtualVNode;
         diffContext.$vSiblings$.delete(siblingsKey);
       }
     }
   }
 
-  collectSideBufferSiblings(diffContext, vNodeWithKey);
-
   return vNodeWithKey;
 }
 
-function collectSideBufferSiblings(diffContext: DiffContext, targetNode: VNode | null): void {
-  if (!targetNode) {
-    if (diffContext.$vCurrent$) {
-      const name = vnode_isElementVNode(diffContext.$vCurrent$)
-        ? vnode_getElementName(diffContext.$vCurrent$)
-        : null;
-      const vKey =
-        getKey(diffContext.$vCurrent$ as VirtualVNode | ElementVNode | TextVNode | null) ||
-        getComponentHash(diffContext.$vCurrent$, diffContext.$container$.$getObjectById$);
-      if (vKey != null) {
-        const sideBufferKey = getSideBufferKey(name, vKey);
-        diffContext.$vSideBuffer$ ||= new Map();
-        diffContext.$vSideBuffer$.set(sideBufferKey, diffContext.$vCurrent$);
-        diffContext.$vSiblings$?.delete(sideBufferKey);
-      }
-    }
-
-    return;
-  }
-
-  // Walk from vCurrent up to the target node and collect all keyed siblings
-  const boundary = getLevelBoundary(diffContext);
-  let vNode = diffContext.$vCurrent$;
-  while (vNode && vNode !== targetNode && vNode !== boundary) {
-    const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
-    const vKey =
-      getKey(vNode as VirtualVNode | ElementVNode | TextVNode | null) ||
-      getComponentHash(vNode, diffContext.$container$.$getObjectById$);
-
-    if (vKey != null) {
-      const sideBufferKey = getSideBufferKey(name, vKey);
-      diffContext.$vSideBuffer$ ||= new Map();
-      diffContext.$vSideBuffer$.set(sideBufferKey, vNode);
-      diffContext.$vSiblings$?.delete(sideBufferKey);
-    }
-
-    vNode = vNode.nextSibling as VNode | null;
-  }
-}
-
-function getSideBufferKey(nodeName: string | null, key: string): string;
-function getSideBufferKey(nodeName: string | null, key: string | null): string | null;
-function getSideBufferKey(nodeName: string | null, key: string | null): string | null {
-  if (key == null) {
-    return null;
-  }
+function getSiblingKey(nodeName: string | null, key: string): string {
   return nodeName ? nodeName + ':' + key : key;
 }
 
-function deleteFromSideBuffer(
-  diffContext: DiffContext,
-  nodeName: string | null,
-  key: string | null
-): boolean {
-  const sbKey = getSideBufferKey(nodeName, key);
-  if (sbKey && diffContext.$vSideBuffer$?.has(sbKey)) {
-    diffContext.$vSideBuffer$.delete(sbKey);
-    return true;
-  }
-  return false;
-}
-
 /**
- * Shared utility to resolve a keyed node by:
+ * Looks up the keyed node among the upcoming siblings and makes it the current node. The node is
+ * left in place, `cleanupSideBuffer` moves it once the new order is known.
  *
- * 1. Scanning forward siblings via `retrieveChildWithKey`
- * 2. Falling back to the side buffer using the provided `sideBufferKey`
- * 3. Creating a new node via `createNew` when not found
- *
- * If a node is moved from the side buffer, it is inserted before `vCurrent` under
- * `parentForInsert`. The function updates `vCurrent`/`vNewNode` accordingly and returns the value
- * from `createNew` when a new node is created.
+ * @returns `true` when the node was not found and needs to be created.
  */
 function moveOrCreateKeyedNode(
   diffContext: DiffContext,
   nodeName: string | null,
-  lookupKey: string | null,
-  sideBufferKey: string | null,
-  parentForInsert: VNode,
-  addCurrentToSideBufferOnSideInsert?: boolean
+  lookupKey: string | null
 ): boolean {
-  // 1) Try to find the node among upcoming siblings
-  diffContext.$vNewNode$ = retrieveChildWithKey(diffContext, nodeName, lookupKey);
-
-  if (diffContext.$vNewNode$) {
-    if (!sideBufferKey) {
-      vnode_insertBefore(
-        diffContext.$journal$,
-        parentForInsert as ElementVNode | VirtualVNode,
-        diffContext.$vNewNode$,
-        getCurrentInsertBefore(diffContext)
-      );
-    }
-    diffContext.$vCurrent$ = diffContext.$vNewNode$;
-    diffContext.$vNewNode$ = null;
-    return false;
+  const vFound = retrieveChildWithKey(diffContext, nodeName, lookupKey);
+  if (!vFound) {
+    return true;
   }
-
-  // 2) Try side buffer
-  if (sideBufferKey != null) {
-    const buffered = diffContext.$vSideBuffer$?.get(sideBufferKey) || null;
-    if (buffered) {
-      diffContext.$vSideBuffer$!.delete(sideBufferKey);
-      if (addCurrentToSideBufferOnSideInsert && diffContext.$vCurrent$) {
-        const currentKey =
-          getKey(diffContext.$vCurrent$ as VirtualVNode | ElementVNode | TextVNode | null) ||
-          getComponentHash(diffContext.$vCurrent$, diffContext.$container$.$getObjectById$);
-        if (currentKey != null) {
-          const currentName = vnode_isElementVNode(diffContext.$vCurrent$)
-            ? vnode_getElementName(diffContext.$vCurrent$)
-            : null;
-          const currentSideKey = getSideBufferKey(currentName, currentKey);
-          if (currentSideKey != null) {
-            diffContext.$vSideBuffer$ ||= new Map();
-            diffContext.$vSideBuffer$.set(currentSideKey, diffContext.$vCurrent$);
-          }
-        }
-      }
-      // Only move if the node is not already in the correct position
-      if (buffered !== diffContext.$vCurrent$) {
-        vnode_insertBefore(
-          diffContext.$journal$,
-          parentForInsert as ElementVNode | VirtualVNode,
-          buffered,
-          getCurrentInsertBefore(diffContext)
-        );
-      }
-      diffContext.$vCurrent$ = buffered;
-      diffContext.$vNewNode$ = null;
-      return false;
-    }
-  }
-
-  // 3) Create new
-  return true;
+  diffContext.$vCurrent$ = vFound;
+  diffContext.$vNewNode$ = null;
+  return false;
 }
 
 function expectVirtual(diffContext: DiffContext, type: VirtualType, jsxKey: string | null) {
@@ -1527,7 +1486,6 @@ function expectVirtual(diffContext: DiffContext, type: VirtualType, jsxKey: stri
 
   if (isSameNode) {
     // All is good.
-    deleteFromSideBuffer(diffContext, null, currentKey);
     return;
   }
 
@@ -1543,16 +1501,7 @@ function expectVirtual(diffContext: DiffContext, type: VirtualType, jsxKey: stri
     isDev && vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, type);
     return;
   }
-  if (
-    moveOrCreateKeyedNode(
-      diffContext,
-      null,
-      jsxKey,
-      getSideBufferKey(null, jsxKey),
-      diffContext.$vParent$ as VirtualVNode,
-      true
-    )
-  ) {
+  if (moveOrCreateKeyedNode(diffContext, null, jsxKey)) {
     vnode_insertVirtualBefore(
       diffContext.$journal$,
       diffContext.$vParent$ as VirtualVNode,
@@ -1584,16 +1533,15 @@ function expectComponent(diffContext: DiffContext, component: Function) {
     const hashesAreEqual = componentHash === vNodeComponentHash;
 
     if (lookupKeysAreEqual) {
-      if (hashesAreEqual) {
-        deleteFromSideBuffer(diffContext, null, lookupKey);
-      } else {
+      if (!hashesAreEqual) {
         insertNewComponent(diffContext, host, componentQRL, jsxProps);
         host = diffContext.$vNewNode$ as VirtualVNode;
         shouldRender = true;
       }
     } else {
-      if (moveOrCreateKeyedNode(diffContext, null, lookupKey, lookupKey, diffContext.$vParent$)) {
-        insertNewComponent(diffContext, host, componentQRL, jsxProps);
+      if (moveOrCreateKeyedNode(diffContext, null, lookupKey)) {
+        // `host` is an unrelated sibling here, so its effects must stay.
+        insertNewComponent(diffContext, null, componentQRL, jsxProps);
         shouldRender = true;
       }
       host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode;
@@ -1646,22 +1594,11 @@ function expectComponent(diffContext: DiffContext, component: Function) {
       insertNewInlineComponent(diffContext);
       host = diffContext.$vNewNode$ as VirtualVNode;
     } else if (!lookupKeysAreEqual) {
-      if (
-        moveOrCreateKeyedNode(
-          diffContext,
-          null,
-          lookupKey,
-          lookupKey,
-          diffContext.$vParent$ as VirtualVNode
-        )
-      ) {
+      if (moveOrCreateKeyedNode(diffContext, null, lookupKey)) {
         // We did not find the inline component, create it.
         insertNewInlineComponent(diffContext);
       }
       host = (diffContext.$vNewNode$ || diffContext.$vCurrent$) as VirtualVNode;
-    } else {
-      // delete the key from the side buffer if it is the same component
-      deleteFromSideBuffer(diffContext, null, lookupKey);
     }
     if (host) {
       let componentHost: VNode | null = host;

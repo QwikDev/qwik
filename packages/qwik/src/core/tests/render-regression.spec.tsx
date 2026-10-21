@@ -148,6 +148,57 @@ describe.each([
     });
   });
 
+  describe('issue #9189', () => {
+    it('should keep updating attributes of an element after a component is inserted before it', async () => {
+      const Alert = component$<{ message: string }>((props) => (
+        <div role="alert">{props.message}</div>
+      ));
+
+      const Issue9189 = component$(() => {
+        const error = useSignal('');
+        const busy = useSignal(false);
+        return (
+          <section>
+            {!!error.value && <Alert message={error.value} />}
+            <button
+              id="pay"
+              aria-busy={busy.value || undefined}
+              class={['pay', busy.value && 'busy']}
+              onClick$={() => {
+                error.value = '';
+                busy.value = true;
+              }}
+            />
+            <button
+              id="decline"
+              onClick$={() => {
+                error.value = 'Card declined';
+                busy.value = false;
+              }}
+            />
+          </section>
+        );
+      });
+
+      const { container, document } = await render(<Issue9189 />, { debug });
+      const pay = () => document.querySelector('#pay')!;
+
+      await trigger(container.element, '#pay', 'click');
+      expect(pay().getAttribute('class')).toBe('pay busy');
+      expect(pay().getAttribute('aria-busy')).toBe('true');
+
+      await trigger(container.element, '#decline', 'click');
+      expect(document.querySelector('[role=alert]')!.textContent).toBe('Card declined');
+      expect(pay().getAttribute('class')).toBe('pay');
+      expect(pay().hasAttribute('aria-busy')).toBe(false);
+
+      await trigger(container.element, '#pay', 'click');
+      expect(document.querySelectorAll('[role=alert]')).toHaveLength(0);
+      expect(pay().getAttribute('class')).toBe('pay busy');
+      expect(pay().getAttribute('aria-busy')).toBe('true');
+    });
+  });
+
   describe('props derived from render-local values', () => {
     const Child = component$<{ open?: boolean }>((props) => {
       const computedOpen = useComputed$(() => props.open === true);

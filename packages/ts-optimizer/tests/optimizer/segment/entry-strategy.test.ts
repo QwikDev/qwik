@@ -13,24 +13,35 @@ const segment = {
 
 describe('resolveEntryField', () => {
   describe('smart strategy', () => {
+    it('preserves explicit QRL boundaries without classifying context names', () => {
+      expect(
+        resolveEntryField(
+          'smart',
+          { ...segment, isBare: true, ctxName: 'customCallback' },
+          undefined
+        )
+      ).toBeNull();
+    });
     it('keeps capture-free event handlers separate', () => {
       expect(
         resolveEntryField('smart', { ...segment, ctxKind: 'eventHandler' }, undefined)
       ).toBeNull();
     });
 
-    it('keeps capture-free event$ functions separate', () => {
-      expect(resolveEntryField('smart', { ...segment, ctxName: 'event$' }, undefined)).toBeNull();
+    it('leaves function classification to the SSR stripping configuration', () => {
+      expect(resolveEntryField('smart', { ...segment, ctxName: 'event$' }, undefined)).toBe(
+        'test.tsx_entry_App'
+      );
     });
 
-    it('groups event handlers that capture with their component', () => {
+    it('keeps captured JSX handlers separate', () => {
       expect(
         resolveEntryField(
           'smart',
           { ...segment, ctxKind: 'eventHandler', captures: true },
           undefined
         )
-      ).toBe('test.tsx_entry_App');
+      ).toBeNull();
     });
 
     it('returns null for segment strategy (alias of smart)', () => {

@@ -93,12 +93,8 @@ impl SmartStrategy {
 
 impl EntryPolicy for SmartStrategy {
 	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<Atom> {
-		// Future interactions must not add dependencies to component rendering.
-		if segment.ctx_kind != SegmentKind::Function
-			|| matches!(
-				segment.ctx_name.as_str(),
-				"$" | "event$" | "useVisibleTask$" | "useOn" | "useOnDocument" | "useOnWindow"
-			) {
+		// Explicit QRLs and JSX callbacks retain their lazy boundaries.
+		if segment.is_bare || segment.ctx_kind != SegmentKind::Function {
 			return None;
 		}
 

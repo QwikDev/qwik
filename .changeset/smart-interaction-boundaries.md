@@ -3,4 +3,4 @@
 '@qwik.dev/optimizer': patch
 ---
 
-fix: avoid loading future interaction libraries while rendering components
+fix: keep client-only callbacks outside smart render bundles

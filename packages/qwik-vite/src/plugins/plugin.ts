@@ -1,7 +1,9 @@
+import { CLIENT_STRIP_CTX_NAME } from '../strip-contexts';
 import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
+import { isStrippedSegment } from '../../../ts-optimizer/src/optimizer/rewrite/predicates';
 import type {
   DecoratorOptions,
   Diagnostic,
@@ -56,14 +58,6 @@ const SERVER_STRIP_CTX_NAME = [
   'zod$',
   'validator$',
   'globalAction$',
-];
-const CLIENT_STRIP_CTX_NAME = [
-  'useClient',
-  'useBrowser',
-  'useVisibleTask',
-  'client',
-  'browser',
-  'event$',
 ];
 
 type ViteResolveIdOptions = NonNullable<Parameters<Extract<Plugin['resolveId'], Function>>[2]>;
@@ -1115,6 +1109,17 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       const now = Date.now();
       const newOutput = await optimizer.transformModules(transformOpts);
+      if (!isServer && entryStrategy.type === 'smart') {
+        for (const output of newOutput.modules) {
+          const segment = output.segment;
+          if (
+            segment &&
+            isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true)
+          ) {
+            segment.entry = null;
+          }
+        }
+      }
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       if (devPath) {
         const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(devPath);
@@ -1434,9 +1439,6 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  // Eager contexts stay with their parent, not a segment chunk.
-  const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
-
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
     groups: [
@@ -1458,10 +1460,6 @@ export const isDev = ${JSON.stringify(isDev)};
           if (module) {
             const segment = module.meta.segment as SegmentAnalysis | undefined;
             if (segment) {
-              // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-              if (EAGER_CTX_NAMES.has(segment.ctxName)) {
-                return null;
-              }
               const { hash } = segment;
               // Group segments by entry or Qwik Insights hash.
               const chunkName =

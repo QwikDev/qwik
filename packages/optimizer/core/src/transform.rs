@@ -80,6 +80,7 @@ pub enum Captures {
 
 #[derive(Debug, Clone)]
 pub struct SegmentData {
+	pub is_bare: bool,
 	pub extension: Atom,
 	pub local_idents: Vec<Id>,
 	pub scoped_idents: Vec<Id>,
@@ -656,6 +657,7 @@ impl<'a> QwikTransform<'a> {
 		};
 		let local_idents = self.get_local_idents(&folded);
 		let segment_data = SegmentData {
+			is_bare: ctx_name == *QSEGMENT,
 			extension: self.options.extension.clone(),
 			local_idents,
 			scoped_idents,
@@ -723,12 +725,14 @@ impl<'a> QwikTransform<'a> {
 				.and_then(|name| convert_qrl_to_dollar_word(name))
 				.unwrap_or_else(|| QSEGMENT.clone());
 
-			self.create_synthetic_qsegment(
+			self._create_synthetic_qsegment(
 				*first_arg,
 				SegmentKind::Function,
 				ctx_name,
 				custom_symbol,
+				true,
 			)
+			.0
 		} else {
 			node
 		}
@@ -864,7 +868,7 @@ impl<'a> QwikTransform<'a> {
 		ctx_name: Atom,
 		custom_symbol: Option<Atom>,
 	) -> ast::CallExpr {
-		self._create_synthetic_qsegment(first_arg, ctx_kind, ctx_name, custom_symbol)
+		self._create_synthetic_qsegment(first_arg, ctx_kind, ctx_name, custom_symbol, false)
 			.0
 	}
 
@@ -874,6 +878,7 @@ impl<'a> QwikTransform<'a> {
 		ctx_kind: SegmentKind,
 		ctx_name: Atom,
 		custom_symbol: Option<Atom>,
+		is_bare: bool,
 	) -> (ast::CallExpr, bool) {
 		// Inline const initializer if first_arg is a simple ident referencing a local const.
 		// This fixes cases like `const style = \`${css1}${css2}\`; useStyles$(style);`
@@ -964,6 +969,7 @@ impl<'a> QwikTransform<'a> {
 
 			let captures = Captures::Auto(scoped_idents.clone());
 			let segment_data = SegmentData {
+				is_bare,
 				extension: self.options.extension.clone(),
 				local_idents: vec![],
 				scoped_idents,
@@ -1042,6 +1048,7 @@ impl<'a> QwikTransform<'a> {
 		}
 		let captures = Captures::Auto(scoped_idents.clone());
 		let segment_data = SegmentData {
+			is_bare,
 			extension: self.options.extension.clone(),
 			local_idents,
 			scoped_idents,
@@ -2572,6 +2579,7 @@ impl<'a> QwikTransform<'a> {
 												ctx_kind,
 												original_key_word.clone().unwrap_or_default(),
 												None,
+												false,
 											);
 
 										if !is_const {

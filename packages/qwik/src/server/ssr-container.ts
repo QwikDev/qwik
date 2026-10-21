@@ -734,14 +734,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.$noScriptHere$++;
     }
     if (
-      // don't append qwik loader before qwik style elements
+      // don't append scripts before qwik style elements
       // it will confuse the resuming, because styles are expected to be the first nodes in subtree
       !isQwikStyle &&
-      this.qlInclude === QwikLoaderInclude.Inline
+      this.$noScriptHere$ === 0 &&
+      elementName !== 'body'
     ) {
-      if (this.$noScriptHere$ === 0 && this.size > 30 * 1024 && elementName !== 'body') {
+      if (this.qlInclude === QwikLoaderInclude.Inline && this.size > 30 * 1024) {
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
+      }
+      if (this.emittedQwikEventNames.size !== this.serializationCtx.$eventNames$.size) {
+        // Lets qwikloader catch interactions while the rest of the page streams in
+        this.emitNewQwikEvents(false, true);
       }
     }
 
@@ -1612,7 +1617,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  protected emitNewQwikEvents(includeContainerReady = false) {
+  protected emitNewQwikEvents(includeContainerReady = false, removeScript = false) {
     const qwikEventItems: string[] = [];
     for (const eventName of this.serializationCtx.$eventNames$) {
       if (!this.emittedQwikEventNames.has(eventName)) {
@@ -1623,10 +1628,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (includeContainerReady) {
       qwikEventItems.push(`${QwikEvContainerReady}`, JSON.stringify(this.$instanceHash$));
     }
-    this.emitQwikEvents(qwikEventItems);
+    this.emitQwikEvents(qwikEventItems, removeScript);
   }
 
-  private emitQwikEvents(qwikEventItems: string[]) {
+  private emitQwikEvents(qwikEventItems: string[], removeScript = false) {
     if (qwikEventItems.length > 0) {
       // TODO fix qwikloader so it handles qvisible added after init
       // const scriptAttrs = ['async', true, 'type', 'module'];
@@ -1639,6 +1644,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write(`(window._qwikEv||(window._qwikEv=[])).push(`);
       this.writeArray(qwikEventItems, COMMA);
       this.write(PAREN_CLOSE);
+      if (removeScript) {
+        // Inside the app's elements, so it must not stay in their DOM
+        this.write(';document.currentScript.remove()');
+      }
       this.closeScript();
     }
   }

@@ -315,21 +315,27 @@ test.each(
     { tsOptimizer: true, minify: true },
     { tsOptimizer: false, minify: true },
   ].flatMap((options) =>
-    (['smart', 'component'] as const).map((strategy) => ({ ...options, strategy }))
+    (['smart', 'component'] as const).flatMap((strategy) =>
+      (['native', 'win32'] as const).map((pathStyle) => ({ ...options, strategy, pathStyle }))
+    )
   )
 )(
-  '$strategy separates client-only code ($tsOptimizer, $minify)',
-  async ({ tsOptimizer, minify, strategy }) => {
+  '$strategy separates client-only code ($tsOptimizer, $minify, $pathStyle)',
+  async ({ tsOptimizer, minify, strategy, pathStyle }) => {
+    const fixturePath = pathStyle === 'win32' ? path.win32 : path;
+    const rootDir = normalizePath(resolve(cwd, 'fixture'));
+    const srcDir = `${rootDir}/src`;
+    const clientFeatureId = `${srcDir}/client-feature`;
     const plugin = createQwikPlugin({ tsOptimizer });
     await plugin.init();
     await plugin.normalizeOptions({
       target: 'client',
       buildMode: 'production',
       entryStrategy: { type: strategy },
-      rootDir: '/fixture',
-      srcDir: '/fixture/src',
+      rootDir,
+      srcDir,
     });
-    const parent = '/fixture/src/app.tsx';
+    const parent = `${srcDir}/app.tsx`;
     const transformed = await plugin.transform(
       { addWatchFile() {}, emitFile() {} } as any,
       strategy === 'component'
@@ -375,17 +381,19 @@ test.each(
         {
           name: 'custom-hook-fixture',
           resolveId(id, importer) {
-            const resolved = id.startsWith('.') ? path.resolve(path.dirname(importer!), id) : id;
+            const resolved = normalizePath(
+              id.startsWith('.') ? fixturePath.resolve(fixturePath.dirname(importer!), id) : id
+            );
             if (modules.has(resolved)) {
               return resolved;
             }
-            if (resolved === '/fixture/src/client-feature') {
+            if (resolved === clientFeatureId) {
               return resolved;
             }
             return null;
           },
           load(id) {
-            if (id === '/fixture/src/client-feature') {
+            if (id === clientFeatureId) {
               return 'exports.clientFeature = () => "CLIENT_ONLY_HEAVY";';
             }
             return modules.get(id);
@@ -417,7 +425,7 @@ test.each(
         if (!chunk) {
           return;
         }
-        expect(Object.keys(chunk.modules)).not.toContain('/fixture/src/client-feature');
+        expect(Object.keys(chunk.modules)).not.toContain(clientFeatureId);
         chunk.imports.forEach(visit);
       };
       visit(render.fileName);

@@ -127,12 +127,17 @@ export default event$((_: Event, el: Element) => {
 
       history.pushState = (state, title, url) => {
         state = prepareState(state);
-        return pushState.call(history, state, title, url);
+        const result = pushState.call(history, state, title, url);
+        // Keep the init tracker in sync with the router's own history moves.
+        hasPathChanged(location.pathname + location.search);
+        return result;
       };
 
       history.replaceState = (state, title, url) => {
         state = prepareState(state);
-        return replaceState.call(history, state, title, url);
+        const result = replaceState.call(history, state, title, url);
+        hasPathChanged(location.pathname + location.search);
+        return result;
       };
     }
 

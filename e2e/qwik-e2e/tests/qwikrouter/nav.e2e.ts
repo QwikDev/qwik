@@ -119,6 +119,46 @@ test.describe('nav', () => {
       await expect(navigationStatus).toHaveText('idle');
     });
 
+    test('issue9247: keeps the Back entry during an in-flight same-page nav', async ({ page }) => {
+      // Hold the route module so the first navigation cannot commit before Back is pressed.
+      let releaseModule!: () => void;
+      const moduleHeld = new Promise<void>((resolve) => (releaseModule = resolve));
+      let moduleRequests = 0;
+      await page.route('**/build/issue9247.js*', async (route) => {
+        moduleRequests++;
+        if (moduleRequests === 1) {
+          await moduleHeld;
+        }
+        await route.continue().catch(() => {});
+      });
+
+      await page.goto('/qwikrouter-test/issue9247/');
+      await expect(page.locator('#filter')).toBeVisible();
+      await expect(page.locator('#list')).toContainText('Rossi');
+
+      await page.locator('#filter').click();
+      await expect.poll(() => new URL(page.url()).search).toBe('?q=Bianchi');
+      await expect.poll(() => moduleRequests).toBeGreaterThan(0);
+
+      // The commit has not started yet: init-mode popstate handling is still active.
+      expect(await page.evaluate(() => !!(window as any)._qRouterSPA)).toBe(false);
+      expect(await page.evaluate(() => !!(window as any)._qRouterInitPopstate)).toBe(true);
+
+      await page.goBack();
+      await expect
+        .poll(() => new URL(page.url()).pathname + new URL(page.url()).search)
+        .toBe('/qwikrouter-test/issue9247/');
+
+      releaseModule();
+
+      await expect(page.locator('#nav-status')).toHaveText('idle', { timeout: 15000 });
+      await expect(page.locator('#q')).toHaveValue('');
+      expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(
+        '/qwikrouter-test/issue9247/'
+      );
+      await expect(page.locator('#list')).toContainText('Rossi');
+    });
+
     test.describe('scroll-restoration', () => {
       test('should not refresh again on popstate after manual refresh', async ({
         page,

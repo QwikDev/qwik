@@ -118,6 +118,35 @@ test.describe('loaders', () => {
       await expect(token).not.toHaveAttribute('content', previous!);
     });
 
+    test('pathless group loaders avoid dynamic sibling routes', async ({ page }) => {
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      await page.goto('/qwikrouter-test.prod/group-loader/');
+      await page.evaluate(() => ((window as any).__groupLoaderNavigation = true));
+      await page.route('**/q-loader-group-layout.*', async (route) => {
+        const headers = { ...route.request().headers() };
+        // Exercise strict loaders despite the suite's legacy configuration.
+        delete headers['x-qwik-fullpath'];
+        delete headers['x-qwik-route-path'];
+        await route.continue({ headers });
+      });
+      const response = page.waitForResponse((response) =>
+        response.url().includes('/q-loader-group-layout.')
+      );
+      await page.getByRole('link', { name: 'Open group page' }).click();
+      const loaderResponse = await response;
+      expect(loaderResponse.status()).toBe(200);
+      expect(new URL(loaderResponse.url()).pathname).toContain('/group-loader/area/page/q-loader-');
+      await expect(page.getByRole('heading', { name: 'Group page' })).toBeVisible();
+      await expect(page.locator('#group-user')).toHaveText('group user: Ada');
+      expect(await page.evaluate(() => (window as any).__groupLoaderNavigation)).toBe(true);
+      expect(errors).toEqual([]);
+
+      await page.reload();
+      await expect(page.locator('#group-user')).toHaveText('group user: Ada');
+      await expect(page.getByRole('heading', { name: 'Group page' })).toBeVisible();
+    });
+
     test('catch-all q-loader requests run server plugins before route loaders', async ({
       page,
     }) => {

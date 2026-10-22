@@ -987,6 +987,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       });
     };
 
+    if (isBrowser && !window._qRouterSPA) {
+      // Init-mode popstate must not wait for another QRL once navigation has resumed.
+      window._qRouterInitNavigate = startNavigation;
+    }
     return startNavigation(path, opt);
   });
 
@@ -1194,6 +1198,8 @@ export interface ClientSPAWindow extends Window {
   /** @internal */
   _qRouterInitPopstate?: () => void;
   /** @internal */
+  _qRouterInitNavigate?: Navigate;
+  /** @internal */
   _qRouterInitAnchors?: (event: MouseEvent) => void;
   /** @internal */
   _qRouterInitVisibility?: () => void;
@@ -1224,6 +1230,7 @@ function initializeSPA(goto: Navigate, scroller: HTMLElement) {
 
     window.removeEventListener('popstate', window._qRouterInitPopstate!);
     window._qRouterInitPopstate = undefined;
+    window._qRouterInitNavigate = undefined;
 
     // Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
     // Devs could push their own states that we can't control.

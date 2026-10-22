@@ -119,56 +119,53 @@ test.describe('nav', () => {
       await expect(navigationStatus).toHaveText('idle');
     });
 
-    test('issue9247: keeps the Back entry during an in-flight same-page nav', async ({ page }) => {
-      await page.addInitScript(() => {
-        (window as any).__issue9247Popstates = 0;
-        addEventListener('popstate', () => (window as any).__issue9247Popstates++);
-      });
-
-      // Hold the route module so the first navigation cannot commit before Back is pressed.
-      let releaseModule!: () => void;
-      const moduleHeld = new Promise<void>((resolve) => (releaseModule = resolve));
-      let moduleRequests = 0;
-      await page.route('**/build/issue9247.js*', async (route) => {
-        moduleRequests++;
-        if (moduleRequests === 1) {
-          await moduleHeld;
-        }
-        await route.continue().catch(() => {});
+    test('issue9247: keeps Back while the init popstate handler is loading', async ({ page }) => {
+      let releasePopstate!: () => void;
+      const popstateHeld = new Promise<void>((resolve) => (releasePopstate = resolve));
+      await page.route('**/*qrouterpopstate*.js*', async (route) => {
+        await popstateHeld;
+        await route.continue();
       });
 
       await page.goto('/qwikrouter-test/issue9247/');
-      await expect(page.locator('#filter')).toBeVisible();
-      await expect(page.locator('#list')).toContainText('Rossi');
+      const filter = page.locator('#filter');
+      const list = page.locator('#list li');
+      await expect(list).toHaveText(['Bianchi', 'Rossi', 'Verdi']);
+      await page.waitForFunction(() => (window as any)._qRouterInitPopstate);
+      await page.evaluate(async () => {
+        // The route is cached; only the lazy popstate handler stays blocked
+        const routeUrl = new URL('/qwikrouter-test/build/issue9247.js', location.href);
+        await import(routeUrl.href);
+        (window as any).__issue9247Back = new Promise<void>((resolve) => {
+          addEventListener('popstate', () => resolve(), { once: true });
+        });
+        (window as any).__issue9247HoldRender = () =>
+          new Promise<void>((resolve) => {
+            (window as any).__issue9247ReleaseRender = resolve;
+          });
+      });
 
-      await page.locator('#filter').click();
-      await expect.poll(() => new URL(page.url()).search).toBe('?q=Bianchi');
-      await expect.poll(() => moduleRequests).toBeGreaterThan(0);
+      try {
+        await filter.click();
+        await page.waitForFunction(() => !!(window as any).__issue9247ReleaseRender);
+        await expect(page).toHaveURL('/qwikrouter-test/issue9247/?q=Bianchi');
+        expect(await page.evaluate(() => !!(window as any)._qRouterSPA)).toBe(false);
 
-      // The commit has not started yet: init-mode popstate handling is still active.
-      expect(await page.evaluate(() => !!(window as any)._qRouterSPA)).toBe(false);
-      expect(await page.evaluate(() => !!(window as any)._qRouterInitPopstate)).toBe(true);
-
-      await page.goBack();
-      await expect
-        .poll(() => new URL(page.url()).pathname + new URL(page.url()).search)
-        .toBe('/qwikrouter-test/issue9247/');
-      // Let the router handle the popstate before the parked navigation resumes.
-      await expect.poll(() => page.evaluate(() => (window as any).__issue9247Popstates)).toBe(1);
-
-      releaseModule();
-
-      await expect(page.locator('#nav-status')).toHaveText('idle', { timeout: 15000 });
-      await expect(page.locator('#q')).toHaveValue('');
-      expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(
-        '/qwikrouter-test/issue9247/'
-      );
-      await expect(page.locator('#list')).toContainText('Rossi');
-      // A stale navigation must not rewrite the entry after the router settles.
-      await page.waitForTimeout(300);
-      expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(
-        '/qwikrouter-test/issue9247/'
-      );
+        await page.goBack();
+        await page.evaluate(() => (window as any).__issue9247Back);
+        await page.evaluate(() => {
+          delete (window as any).__issue9247HoldRender;
+          (window as any).__issue9247ReleaseRender();
+        });
+        // Recovery must finish without waiting for the popstate QRL
+        await expect(filter).toHaveAttribute('data-completed-navigations', '1');
+        await expect(page.locator('#nav-status')).toHaveText('idle');
+        await expect(page).toHaveURL('/qwikrouter-test/issue9247/');
+        await expect(page.locator('#q')).toHaveValue('');
+        await expect(list).toHaveText(['Bianchi', 'Rossi', 'Verdi']);
+      } finally {
+        releasePopstate();
+      }
     });
 
     test('issue9247: keeps Back while the navigation render is held', async ({ page }) => {

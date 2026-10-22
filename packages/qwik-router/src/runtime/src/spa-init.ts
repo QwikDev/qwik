@@ -90,7 +90,11 @@ export default event$((_: Event, el: Element) => {
       clearTimeout(window._qRouterScrollDebounce);
 
       if (hasPathChanged(location.pathname + location.search)) {
-        dispatchRouterPopstate(document, location.href);
+        if (window._qRouterInitNavigate) {
+          window._qRouterInitNavigate(location.href, { type: 'popstate' });
+        } else {
+          dispatchRouterPopstate(document, location.href);
+        }
       } else {
         if (history.scrollRestoration === 'manual') {
           const scrollState = (history.state as ScrollHistoryState)?._qRouterScroll;

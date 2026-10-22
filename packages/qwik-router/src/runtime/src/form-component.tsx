@@ -99,6 +99,14 @@ export const Form = <O, I>(
                 }
               })
             : onSubmit$,
+          // The async handler never runs if its chunk fails to load.
+          !reloadDocument
+            ? sync$((event: SubmitEvent, form: ActionFormElement) => {
+                if (form._qSubmit === event) {
+                  delete form._qSubmit;
+                }
+              })
+            : undefined,
         ],
         method: 'post',
         ['data-spa-reset']: spaReset ? 'true' : undefined,

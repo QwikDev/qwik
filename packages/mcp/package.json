@@ -23,19 +23,19 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "^2.1.0",
+    "@modelcontextprotocol/server": "^2.3.0",
     "oxc-parser": "^0.144.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
-    "@modelcontextprotocol/client": "2.2.0",
+    "@modelcontextprotocol/client": "2.3.0",
     "@playwright/test": "1.61.1",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/router": "workspace:*",
     "@types/node": "25.6.0",
     "esbuild": "0.28.2",
     "typescript": "5.9.3",
-    "vite": "8.2.1",
+    "vite": "8.2.4",
     "vitest": "5.0.0"
   },
   "peerDependencies": {

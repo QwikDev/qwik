@@ -28,6 +28,7 @@ import {
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
+import { SERIALIZABLE_STATE } from '../component.public';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
@@ -1648,7 +1649,14 @@ describe('shared-serialization', () => {
       expect(task.$qrl$.$symbol$).toEqual(qrl.$symbol$);
       expect(task.$el$).toEqual(shared1);
     });
-    it.todo(title(TypeIds.Component));
+    it(title(TypeIds.Component), async () => {
+      const Cmp = componentQrl(inlinedQrl(() => 'hi', 'repeated_component'));
+      const objs = await serialize({ first: Cmp, second: Cmp });
+      const { first, second } = deserialize(objs)[0] as any;
+      const qrl = first[SERIALIZABLE_STATE][0] as QRLInternal;
+      expect(qrl.$symbol$).toBe('repeated_component');
+      expect(second[SERIALIZABLE_STATE][0]).toBe(qrl);
+    });
     it(title(TypeIds.Signal), async () => {
       const objs = await serialize(createSignal('hi'));
       const signal = deserialize(objs)[0] as SignalImpl;

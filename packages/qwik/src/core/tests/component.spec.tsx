@@ -2760,6 +2760,23 @@ describe.each([
     expect(toggle?.textContent).toBe('few');
   });
 
+  it('should render a component stored under two store keys after resume', async () => {
+    const Hello = component$(() => <p>hello</p>);
+    const Cmp = component$(() => {
+      const registry = useStore({ first: Hello, second: Hello });
+      const shown = useSignal<typeof Hello | null>(null);
+      return (
+        <>
+          <button onClick$={() => (shown.value = registry.second)}>show</button>
+          {shown.value && <shown.value />}
+        </>
+      );
+    });
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('p')?.textContent).toBe('hello');
+  });
+
   it("should update multiple signals from component's props", async () => {
     const TextContent = component$((props: { 'data-nu'?: string; class?: string }) => {
       return (

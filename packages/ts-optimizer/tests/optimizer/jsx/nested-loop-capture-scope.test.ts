@@ -74,6 +74,41 @@ export const List = component$((props: any) => {
 });
 `;
 
+const COMMENTED_ARROW_BODY = (comment: string) => `
+import { component$ } from '@qwik.dev/core';
+export const Facets = component$((props: any) => {
+  return props.facets.map((facet: any) => ${comment}
+    (
+      <div>
+        {facet.items.map((item: any) => (
+          <input onChange$={() => props.toggle$(facet.slug, item.slug)} />
+        ))}
+      </div>
+    )
+  );
+});
+`;
+
+const SIBLING_NESTED_LOOPS = `
+import { component$ } from '@qwik.dev/core';
+export const Filters = component$((props: any) => {
+  return (
+    <>
+      {props.facets.map((facet: any) => (
+        <div>{facet.items.map((item: any) => (
+          <input onChange$={() => props.toggle$(facet.slug, item.slug)} />
+        ))}</div>
+      ))}
+      {props.groups.map((group: any) => (
+        <div>{group.items.map((item: any) => (
+          <input onChange$={() => props.toggle$(group.slug, item.slug)} />
+        ))}</div>
+      ))}
+    </>
+  );
+});
+`;
+
 const ssrOptions: Partial<TransformModulesOptions> = {
   entryStrategy: { type: 'hoist' },
   isServer: true,
@@ -162,6 +197,35 @@ describe('loop handler .w() bindings capturing an outer loop item (#9190)', () =
       const binding = code.search(/const \w+ = q_\w+\.w\(\[ ?prefix, props ?\]\);/);
       expect(binding).toBeGreaterThan(code.indexOf('const prefix = props.prefix;'));
       expect(binding).toBeLessThan(code.indexOf('props.items.map('));
+    }
+  });
+
+  for (const comment of ['// some comment here', '/* => */']) {
+    it(`keeps the JSX of an outer callback with \`${comment}\` after its arrow`, () => {
+      for (const options of [ssrOptions, { entryStrategy: { type: 'smart' } } as const]) {
+        const code = componentCode(COMMENTED_ARROW_BODY(comment), options);
+        expect(code).not.toMatch(/return;/);
+        expect(code).toMatch(/return \/\*#__PURE__\*\/ _jsxSorted\("div"/);
+        expectBindingInsideOuterLoop(code, 'facet, props');
+      }
+    });
+  }
+
+  it('binds each sibling nested loop handler inside its own outer callback', () => {
+    for (const options of [ssrOptions, { entryStrategy: { type: 'smart' } } as const]) {
+      const code = componentCode(SIBLING_NESTED_LOOPS, options);
+      const facets = code.indexOf('props.facets.map((facet) => {');
+      const facetBinding = code.search(/const \w+ = q_\w+\.w\(\[ ?facet, props ?\]\);/);
+      const facetItems = code.indexOf('facet.items.map(');
+      const groups = code.indexOf('props.groups.map((group) => {');
+      const groupBinding = code.search(/const \w+ = q_\w+\.w\(\[ ?group, props ?\]\);/);
+      const groupItems = code.indexOf('group.items.map(');
+      expect(facets).toBeGreaterThan(-1);
+      expect(facetBinding).toBeGreaterThan(facets);
+      expect(facetItems).toBeGreaterThan(facetBinding);
+      expect(groups).toBeGreaterThan(facetItems);
+      expect(groupBinding).toBeGreaterThan(groups);
+      expect(groupItems).toBeGreaterThan(groupBinding);
     }
   });
 });

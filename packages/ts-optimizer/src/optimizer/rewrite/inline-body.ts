@@ -807,16 +807,9 @@ function insertLoopWDecls(body: string, decls: readonly LoopWDecl[]): string {
   }
 
   for (const { node, body: exprNode, decls: bodyDecls } of expressionBodies.values()) {
-    // Start at the `=>`'s first non-space character so a parenthesised body keeps its parens and
-    // `return` stays on the same line as its argument.
-    const arrowIdx = body.lastIndexOf('=>', exprNode.start - offset);
-    if (arrowIdx < 0) {
-      continue;
-    }
-    let exprStart = arrowIdx + 2;
-    while (exprStart < body.length && /\s/.test(body[exprStart])) {
-      exprStart++;
-    }
+    // The parsed body boundary (a parenthesised body is a ParenthesizedExpression, so its parens are
+    // kept): comments after `=>` stay ahead of the new block and can't swallow `return`.
+    const exprStart = exprNode.start - offset;
     const indent = '\n        ';
     s.appendRight(exprStart, `{${indent}${bodyDecls.join(indent)}${indent}return `);
     s.appendLeft(node.end - offset, ';\n    }');

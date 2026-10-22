@@ -228,7 +228,7 @@ export function rewriteNestedCallSitesInline(
   let componentScopeWDecls:
     | Array<{ declaration: string; captureNames: readonly string[] }>
     | undefined;
-  const hoistDeclarations: Array<{ position: number; declaration: string }> = [];
+  const hoistDeclarations: Array<{ position: number; declaration: string; scope: number }> = [];
   const replaceBodyRange = (start: number, end: number, replacement: string): void => {
     if (start < 0 || end > bodyText.length) {
       return;
@@ -331,6 +331,7 @@ export function rewriteNestedCallSitesInline(
           hoistDeclarations.push({
             position: latestDeclPos >= 0 ? latestDeclPos : enclosingPos,
             declaration: decl,
+            scope: enclosingPos,
           });
         } else {
           if (!componentScopeWDecls) {
@@ -393,18 +394,32 @@ export function rewriteNestedCallSitesInline(
 
 function injectHoistDeclarations(
   bodyText: string,
-  hoistDeclarations: Array<{ position: number; declaration: string }>
+  hoistDeclarations: Array<{ position: number; declaration: string; scope: number }>
 ): string {
   if (hoistDeclarations.length === 0) {
     return bodyText;
   }
 
-  // Group .w() declarations in the same scope together at the max position.
-  if (hoistDeclarations.length > 1) {
-    const maxPos = Math.max(...hoistDeclarations.map((h) => h.position));
-    const minPos = Math.min(...hoistDeclarations.map((h) => h.position));
+  // Group .w() declarations that share a lexical scope (the enclosing callback/loop body) at the
+  // latest position in that scope. Grouping by text distance alone could move a binding into a
+  // sibling loop's callback, leaving it undeclared (ReferenceError) where it is used.
+  const byScope = new Map<number, Array<{ position: number }>>();
+  for (const h of hoistDeclarations) {
+    const group = byScope.get(h.scope);
+    if (group) {
+      group.push(h);
+    } else {
+      byScope.set(h.scope, [h]);
+    }
+  }
+  for (const group of byScope.values()) {
+    if (group.length < 2) {
+      continue;
+    }
+    const maxPos = Math.max(...group.map((h) => h.position));
+    const minPos = Math.min(...group.map((h) => h.position));
     if (maxPos - minPos < 500) {
-      for (const h of hoistDeclarations) {
+      for (const h of group) {
         h.position = maxPos;
       }
     }

@@ -643,14 +643,20 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       // Submit action if one was triggered
       if (action) {
         const result = await Promise.race([
-          submitAction(action, trackUrl).then((result) => {
-            // Superseded actions still complete their caller's submit promise.
-            if (result && action.resolve) {
-              action.resolve({ status: result.status, result: result.result });
+          submitAction(action, trackUrl).then(
+            (result) => {
+              // Superseded actions still complete their caller's submit promise.
+              action.resolve?.({ status: result.status, result: result.result });
+              action.resolve = undefined;
+              action.reject = undefined;
+              return result;
+            },
+            (error) => {
+              action.reject?.(error);
+              action.reject = undefined;
               action.resolve = undefined;
             }
-            return result;
-          }),
+          ),
           canceled,
         ]);
 
@@ -660,6 +666,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         navResolver.cancel = undefined;
         if (!result) {
           routeInternal.untrackedValue = { type: navType, dest: trackUrl };
+          routeLocation.isNavigating = false;
+          navResolver.r?.();
           return;
         }
 

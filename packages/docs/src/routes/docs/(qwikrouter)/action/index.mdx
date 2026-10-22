@@ -27,7 +27,7 @@ contributors:
   - tzdesign
   - shairez
   - syrfmy
-updated_at: '2026-08-10T21:28:00Z'
+updated_at: '2026-10-22T00:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -107,11 +107,29 @@ export default component$(() => {
 
 Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so it will work without JavaScript.
 
-When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode. Allowing for a full SPA experience.
+When JavaScript is enabled, `<Form action={action}>` intercepts the submission and calls the action in SPA mode. Set `reloadDocument` to use a native submission with a full page reload instead.
 
-<Note>The server re-renders the whole page and re-executes everything, so if you have any [routeLoader$](/docs/route-loader/) they will be executed too.</Note>
+<Note>After an action completes, Qwik Router refreshes invalidated [route loaders](/docs/route-loader/). The action's `invalidate` option controls which loaders are refreshed.</Note>
 
 [Complex forms](/docs/advanced/complex-forms) can be created using dot notation.
+
+### Repeated submissions
+
+In SPA mode, `<Form action={action}>` handles one submission at a time. This starts as soon as the submit event is received, including time spent loading and awaiting `onSubmit$` handlers. Further submissions from the same form are ignored until the current submission finishes or throws. Their asynchronous handlers do not run, and their data is not queued, even if the user changes fields, files, or the submit button. Leading `sync$` handlers still run during each event so they can control propagation.
+
+After the current submission finishes or fails, the user can submit again. This behavior applies separately to each form. Forms using `reloadDocument` or running without JavaScript follow native browser submission behavior.
+
+Forms without an `action` and native `<form>` elements do not use this guard.
+
+Use `action.isRunning` to show progress or disable the submit button while the action runs:
+
+```tsx
+<button type="submit" disabled={action.isRunning}>
+  {action.isRunning ? 'Saving…' : 'Save'}
+</button>
+```
+
+`action.isRunning` becomes `true` when the action's submit implementation starts, before the request is queued. Loading its lazy code can happen first. It does not include time spent in an `onSubmit$` handler before calling the action; the form still ignores additional submissions during that time.
 
 ## Using actions programmatically
 
@@ -149,15 +167,17 @@ export default component$(() => {
 
 In the example above, the `addUser` action is triggered when the user clicks the button. The `action.submit()` method returns a `Promise` that resolves when the action is done.
 
+Calls to `action.submit()` outside a `<Form>` are not covered by the form's repeated-submission guard. Each call submits the action.
+
 ### Uploading files
 
-When using `<Form>` with a file input, the submission will be sent as a `multipart/form-data` request.
+In SPA mode, `<Form>` submits file inputs in a `multipart/form-data` request. To upload files with a native submission, including when JavaScript is disabled or `reloadDocument` is enabled, also set `encType="multipart/form-data"` on the form.
 
 But when using actions programmatically, you can still upload files by passing a `File` object to the `action.submit()` method by creating a `FormData` object and appending the file to it.
 
 ```tsx title="src/routes/index.tsx"
 
-import { component$ } from '@qwik.dev/core';
+import { component$, useSignal } from '@qwik.dev/core';
 import { routeAction$ } from '@qwik.dev/router';
 
 export const useUploadFile = routeAction$(async ({file}) => {
@@ -199,17 +219,70 @@ export default component$(() => {
 
 ## Actions with Event Handlers
 
-The `onSubmitCompleted$` event handler can be used after an action is successfully executed and returns some data. This is useful for performing tasks, such as resetting UI elements or updating the application state, once an action has been completed.
+In SPA mode, `<Form action={action}>` awaits its `onSubmit$` handlers before submitting the action automatically. If you pass an array of handlers, they run in order. Put `sync$` handlers before asynchronous handlers to run them synchronously during event dispatch. If an asynchronous handler throws, the automatic submission is skipped and the form accepts another submission.
+
+The automatic submission reads the form fields after these handlers finish. Returning `false` or calling `event.preventDefault()` in a handler does not disable the automatic action submission.
+
+Calling `action.submit()` in `onSubmit$` creates an additional submission. The form still submits its action automatically after the handler finishes, even if the handler already called `action.submit(event)` with the same event. Use `onSubmit$` for additional logic such as validation or updating the UI; it does not take over the form's automatic submission.
+
+For a fully manual flow, use a native `<form preventdefault:submit>` with an `onSubmit$` handler. Passing the submit event to `action.submit(event)` includes the form fields and the clicked submit button's name and value.
+
+### Handling request errors
+
+`action.submit()` rejects if the request fails or its response cannot be read, for example because a proxy returns HTML instead of JSON. Catch these errors to display feedback and let the user retry:
+
+```tsx title="src/components/add-user-form.tsx"
+import { component$, useSignal } from '@qwik.dev/core';
+import { useAddUser } from '../routes/layout';
+
+export default component$(() => {
+  const action = useAddUser();
+  const requestError = useSignal('');
+
+  return (
+    <form
+      action={action.actionPath}
+      method="post"
+      preventdefault:submit
+      onSubmit$={async (event) => {
+        requestError.value = '';
+        try {
+          await action.submit(event);
+        } catch {
+          requestError.value = 'Could not submit the form. Please try again.';
+        }
+      }}
+    >
+      <input name="firstName" />
+      <input name="lastName" />
+      <button type="submit" disabled={action.isRunning}>
+        Add user
+      </button>
+      {requestError.value && <p role="alert">{requestError.value}</p>}
+    </form>
+  );
+});
+```
+
+This native form submits the action once through its handler and catches request errors. It does not use the `<Form>` component's repeated-submission guard. After a rejected submission, `action.isRunning` returns to `false` and the user can retry. The same `try`/`catch` pattern works for programmatic calls outside a form.
+
+Validation failures and values returned with `fail()` resolve normally; inspect `action.value?.failed` to handle them. A rejected request does not fire `onSubmitCompleted$` or reset the form through `spaReset`.
+
+### After a response
+
+The `onSubmitCompleted$` event handler runs in SPA mode when an action submitted with a form event receives its result, including a result returned with `fail()`. Its `event.detail` contains the response `status` and action `value`. Check the result before treating the operation as successful.
+
+The `spaReset` prop defaults to `false`. When enabled, it resets the form controls to their default values before `onSubmitCompleted$` runs, including after a validation failure.
 
 Here's an example of the `onSubmitCompleted$` handler used to edit an item in a EditForm component of a todo app.
 
 ```tsx title="src/components/EditForm.tsx"
-import { component$, type Signal, useSignal } from '@qwik.dev/core';
+import { component$, type Signal } from '@qwik.dev/core';
 import { Form } from '@qwik.dev/router';
 import { type ListItem, useEditFromListAction } from '../../routes/index';
 
 export interface EditFormProps {
-  item: listItem;
+  item: ListItem;
   editingIdSignal: Signal<string>;
 }
 
@@ -252,7 +325,7 @@ const EditForm = component$(
 export default EditForm;
 ```
 
-In this example, `onSubmitCompleted$` is used to reset the editingIdSignal value to an empty string once the form submission is completed successfully. This allows the application to update its state and return to the default view.
+In this example, `onSubmitCompleted$` resets `editingIdSignal` to an empty string once the form receives an action result. This returns the application to its default view. If the action can return a failure, check `event.detail.value?.failed` before closing the editor.
 
 ## Validation and type safety
 
@@ -548,6 +621,6 @@ export default component$(() => {
 });
 ```
 
-When JS is enabled, Qwik intercepts the form submission as a fetch and the redirect is never triggered — `action.value` holds the result as usual. The redirect only fires for native browser submissions. However, `<Form/>` uses [progressive enhancement](https://developer.mozilla.org/en-US/docs/Glossary/Progressive_Enhancement) and falls back to a native form `POST` if JS has not yet loaded or fails to load, so the PRG pattern is still needed for these cases.
+In SPA mode, Qwik sends the action request with `Accept: application/json`, so the redirect in this example is not triggered and `action.value` holds the result. With JavaScript disabled or `reloadDocument` enabled, `<Form/>` performs a native form `POST`, so the PRG pattern prevents resubmission when the user reloads the result page.
 
 <Note>You can also pass state across a redirect using cookies instead of search params, which is useful for flash messages or session data. See the [cookie section in the middleware docs](/docs/(qwikrouter)/middleware/#cookie) for usage.</Note>

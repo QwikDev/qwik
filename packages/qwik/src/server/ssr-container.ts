@@ -11,6 +11,7 @@ import {
   _handleSSRError,
   _isTask as isTask,
   _createQRL as createQRL,
+  _getVarProps,
   isSignal,
   type Signal,
 } from '@qwik.dev/core/internal';
@@ -1396,6 +1397,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
             this.write(VNodeDataChar.RENDER_FN_CHAR);
             this.write(VNodeDataChar.RENDER_HASH_PREFIX_CHAR);
             this.write(encodeVNodeDataString(encodeVNodeDataKey((rawValue as QRLInternal).$hash$)));
+          } else if (key === ELEMENT_PROPS) {
+            const varProps = _getVarProps(rawValue as Props);
+            if (varProps && !isObjectEmpty(varProps)) {
+              // A `>` without a ref tells the client it can't diff the var props it gets next.
+              this.write(VNodeDataChar.PROPS_CHAR);
+            }
           }
           continue;
         }

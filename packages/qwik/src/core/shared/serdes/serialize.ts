@@ -496,7 +496,10 @@ export class Serializer {
           } else if (isQwikComponent(value)) {
             const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
             this.$serializationContext$.$renderSymbols$.add(qrl.$symbol$);
+            const oldParent = this.$parent$;
+            this.$parent$ = { $index$: index, $parent$: oldParent };
             this.output(TypeIds.Component, [qrl]);
+            this.$parent$ = oldParent;
           } else {
             throw qError(QError.serializeErrorCannotSerializeFunction, [value.toString()]);
           }

@@ -17,6 +17,7 @@ import type { SsrNodeFlags } from '../shared/types';
 import type { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { EffectProperty, EffectSubscription } from '../reactive-primitives/types';
 import type { ResourceReturnInternal } from '../use/use-resource';
+import type { SubscriptionPatchChannel } from '../shared/serdes/subscription-patch';
 
 /** @internal */
 export interface SSRRootRefPathChunk {
@@ -112,6 +113,12 @@ export interface SSRContainer extends Container {
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly resolvedManifest: ResolvedManifest;
   readonly outOfOrderStreaming: boolean;
+  $recordEffect$(
+    producer: unknown,
+    effect: EffectSubscription,
+    prop?: string | symbol | null,
+    channel?: SubscriptionPatchChannel
+  ): void;
   readonly $transformError$: ((error: unknown) => unknown) | undefined;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
@@ -199,12 +206,6 @@ export interface SSRContainer extends Container {
 export interface SSRSegmentContainer extends SSRContainer {
   $rootContainer$: SSRContainer;
   $errorSwapIds$: number[] | null;
-  $recordExternalRootEffect$(
-    producer: unknown,
-    effect: EffectSubscription,
-    prop: string | symbol | null,
-    sourceEffects?: Map<string | symbol, Set<EffectSubscription>>
-  ): void;
   $finalizeOutOfOrderSegment$(
     segmentId: string,
     segment: SSROutOfOrderSegment

@@ -45,6 +45,10 @@ For timing-sensitive regressions, prefix the command with `GITHUB_ACTIONS=true` 
 `--retries=0` to disable local `slowMo: 100` and expose races. Wait for a fresh completion marker
 after lazy handlers; a completed click or previously populated output does not prove completion.
 
+SSR content can appear before the dynamically imported qwikloader registers listeners. Before
+testing client handlers, wait for `window._qwikEv?.roots`; neither `commit` nor `load` guarantees
+that the dynamic import has finished.
+
 The brotli budget tests in `ssg-snapshot.e2e.ts` measure the built core chunk, so they need a
 production `pnpm build.core` — `build.core.dev` leaves core unminified and blows the budget by ~4%.
 Before believing a budget failure, rebuild with `build.core` and re-run `pnpm test.e2e.router.ssg`.

@@ -171,6 +171,54 @@ test.describe('nav', () => {
       );
     });
 
+    test('issue9247: keeps Back while the navigation render is held', async ({ page }) => {
+      await page.goto('/qwikrouter-test/issue9247/');
+      const filter = page.locator('#filter');
+      const list = page.locator('#list li');
+      const navigationStatus = page.locator('#nav-status');
+
+      // Initialize SPA handling before testing the goto render window
+      await filter.click();
+      await expect(filter).toHaveAttribute('data-completed-navigations', '1');
+      await expect(list).toHaveText(['Bianchi']);
+      await page.goBack();
+      await expect(list).toHaveText(['Bianchi', 'Rossi', 'Verdi']);
+      await expect(navigationStatus).toHaveText('idle');
+
+      await page.evaluate(() => {
+        const state = window as any;
+        state.__issue9247HoldRender = () =>
+          new Promise<void>((resolve) => {
+            state.__issue9247ReleaseRender = resolve;
+          });
+        // The warmed SPA handler receives Back before this listener
+        state.__issue9247BackHandled = new Promise<void>((resolve) => {
+          addEventListener('popstate', () => resolve(), { once: true });
+        });
+      });
+
+      await filter.click();
+      await page.waitForFunction(() => !!(window as any).__issue9247ReleaseRender);
+      try {
+        await expect(page).toHaveURL('/qwikrouter-test/issue9247/?q=Bianchi');
+        await expect(page.locator('#url-search')).toBeEmpty();
+        await page.goBack();
+        await page.evaluate(() => (window as any).__issue9247BackHandled);
+      } finally {
+        await page.evaluate(() => {
+          delete (window as any).__issue9247HoldRender;
+          (window as any).__issue9247ReleaseRender();
+        });
+      }
+
+      // Require fresh completion rather than the warm-up's stale idle state
+      await expect(filter).toHaveAttribute('data-completed-navigations', '2');
+      await expect(navigationStatus).toHaveText('idle');
+      await expect(page).toHaveURL('/qwikrouter-test/issue9247/');
+      await expect(page.locator('#q')).toHaveValue('');
+      await expect(list).toHaveText(['Bianchi', 'Rossi', 'Verdi']);
+    });
+
     test.describe('scroll-restoration', () => {
       test('should not refresh again on popstate after manual refresh', async ({
         page,

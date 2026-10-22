@@ -1,4 +1,4 @@
-import { component$, Pending, useSignal, useTask$ } from '@qwik.dev/core';
+import { component$, isBrowser, Pending, useSignal, useTask$ } from '@qwik.dev/core';
 import { routeLoader$, useLocation, useNavigate } from '@qwik.dev/router';
 
 export const useList = routeLoader$(
@@ -25,6 +25,13 @@ const List = component$(() => {
 export default component$(() => {
   const loc = useLocation();
   const nav = useNavigate();
+  const completedNavigations = useSignal(0);
+  // Hold goto's render wait before it updates routeInternal
+  useTask$(async ({ track }) => {
+    if (track(() => loc.isNavigating) && isBrowser) {
+      await (window as any).__issue9247HoldRender?.();
+    }
+  });
   // The field comes from the URL, and follows it on back/forward.
   const query = useSignal(loc.url.searchParams.get('q') ?? '');
   useTask$(({ track }) => {
@@ -34,7 +41,14 @@ export default component$(() => {
 
   return (
     <main>
-      <button id="filter" onClick$={() => nav('/qwikrouter-test/issue9247/?q=Bianchi')}>
+      <button
+        id="filter"
+        data-completed-navigations={completedNavigations.value}
+        onClick$={async () => {
+          await nav('/qwikrouter-test/issue9247/?q=Bianchi');
+          completedNavigations.value++;
+        }}
+      >
         Filter
       </button>
       <input id="q" bind:value={query} />

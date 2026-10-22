@@ -48,7 +48,7 @@ import { SsrNode } from '../../../server/ssr-node';
 import { VNodeDataFlag } from '../../../server/types';
 import { OPEN_FRAGMENT, type VNodeData } from '../../../server/vnode-data';
 import { _serializationWeakRef, shouldSkipComponentProps } from './serialize';
-import { SubscriptionPatch } from './subscription-patch';
+import { SubscriptionPatch, SubscriptionPatchChannel } from './subscription-patch';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import type { DeserializeContainer } from '../types';
 import { eagerDeserializeStateIterator } from './inflate';
@@ -61,6 +61,224 @@ const title = (typeId: TypeIds) => `${typeId} ${_typeIdNames[typeId]}`;
 describe('shared-serialization', () => {
   const shared1 = { shared: 1 };
   const shared2 = { shared: 2 };
+
+  it('reports missing streaming references with a Qwik error', async () => {
+    const raw = JSON.parse(await _serialize({ nested: { count: 0 } }));
+    const container = _createDeserializeContainer(raw);
+    container.$getObjectById$(0);
+    const start = raw.length;
+    raw.push(TypeIds.RootRef, '0 1');
+
+    expect(() => preprocessState(raw, container, undefined, start)).toThrow(
+      `Code(Q${QError.missingStreamingObjectRefs})`
+    );
+  });
+
+  it.each([false, true])('does not cache references with root IDs (eager=%s)', async (eager) => {
+    const shared = { nested: { count: 0 } };
+    const raw = JSON.parse(
+      await serializeRaw({ inline: { count: 1 }, shared, array: [shared] }, shared)
+    );
+    const container = _createDeserializeContainer(raw);
+    container.$streamingObjectRefs$ = new WeakMap();
+    if (eager) {
+      const iterator = eagerDeserializeStateIterator(container, raw);
+      while (!iterator.next().done) {
+        // Complete eager resume before the late patch arrives.
+      }
+    }
+    const shell = container.$getObjectById$(0) as {
+      inline: { count: number };
+      shared: { nested: { count: number } };
+      array: unknown[];
+    };
+    expect(Object.keys(container.$streamingObjectRefs$.get(shell)!)).toEqual(['1', '5']);
+    expect(container.$streamingObjectRefs$.has(shell.array)).toBe(false);
+    const original = shell.inline;
+    const nested = shell.shared.nested;
+    original.count++;
+    nested.count++;
+    shell.shared.nested = { count: 100 };
+    shell.array.length = 0;
+    const start = raw.length;
+    raw.push(TypeIds.RootRef, '0 1', TypeIds.RootRef, 1, TypeIds.RootRef, '1 1');
+    container.$state$!.length = raw.length / 2;
+    preprocessState(raw, container, undefined, start);
+    expect(container.$getObjectById$(start / 2)).toBe(original);
+    expect(original.count).toBe(2);
+    expect(container.$getObjectById$(start / 2 + 1)).toBe(shell.shared);
+    expect(container.$getObjectById$(start / 2 + 2)).toBe(nested);
+    expect(nested.count).toBe(1);
+  });
+
+  it.each([false, true])('caches only references at original indexes (eager=%s)', async (eager) => {
+    const callback = createQRL('/callback.js', 's_callback', () => 0);
+    const raw = JSON.parse(
+      await _serialize({
+        text: 'original text',
+        amount: 12345678901234567890n,
+        numbers: [1, 2, 3],
+        values: [0, false, null, 'text', { count: 0 }, callback],
+      })
+    );
+    const container = _createDeserializeContainer(raw);
+    container.$streamingObjectRefs$ = new WeakMap();
+    if (eager) {
+      const iterator = eagerDeserializeStateIterator(container, raw);
+      while (!iterator.next().done) {
+        // Complete eager resume before the late patch arrives.
+      }
+    }
+    const shell = container.$getObjectById$(0) as { numbers: number[]; values: unknown[] };
+    const object = shell.values[4];
+    const fn = shell.values[5];
+    expect(Object.keys(container.$streamingObjectRefs$.get(shell)!)).toEqual(['5', '7']);
+    expect(Object.keys(container.$streamingObjectRefs$.get(shell.values)!)).toEqual(['4', '5']);
+    expect(container.$streamingObjectRefs$.has(shell.numbers)).toBe(false);
+    expect(container.$streamingObjectRefs$.has(object as object)).toBe(false);
+    shell.values.unshift('inserted');
+    const start = raw.length;
+    raw.push(TypeIds.RootRef, '0 7 4', TypeIds.RootRef, '0 7 5');
+    container.$state$!.length = raw.length / 2;
+    preprocessState(raw, container, undefined, start);
+    expect(container.$getObjectById$(start / 2)).toBe(object);
+    expect(container.$getObjectById$(start / 2 + 1)).toBe(fn);
+  });
+
+  it.each([false, true])(
+    'resolves late nested refs after shell changes (eager=%s)',
+    async (eager) => {
+      const raw = JSON.parse(await _serialize({ nested: [{ count: 0 }] }));
+      const container = _createDeserializeContainer(raw);
+      container.$streamingObjectRefs$ = new WeakMap();
+      if (eager) {
+        const iterator = eagerDeserializeStateIterator(container, raw);
+        while (!iterator.next().done) {
+          // Complete eager resume before the late patch arrives.
+        }
+      }
+      const shell = container.$getObjectById$(0) as { nested: { count: number }[] };
+      const original = shell.nested[0];
+      original.count = 1;
+      shell.nested.unshift({ count: 100 });
+
+      raw.push(TypeIds.RootRef, '0 1 0');
+      container.$state$!.length = raw.length / 2;
+      preprocessState(raw, container, undefined, 2);
+
+      const restored = container.$getObjectById$(1);
+      expect(restored).toBe(original);
+      expect(restored).toEqual({ count: 1 });
+      expect(shell.nested).toEqual([{ count: 100 }, { count: 1 }]);
+      expect(Object.keys(shell)).toEqual(['nested']);
+    }
+  );
+
+  it('does not retain streaming object references outside streaming', async () => {
+    const container = _createDeserializeContainer(
+      JSON.parse(await _serialize({ nested: [{ count: 0 }] }))
+    );
+    expect(container.$getObjectById$(0)).toEqual({ nested: [{ count: 0 }] });
+    expect(container.$streamingObjectRefs$).toBeUndefined();
+  });
+
+  it('resolves shared references lazily while preserving local references', () => {
+    const context = createTestSerializationContext();
+    const shared = {};
+    const local = {};
+    const unknown = {};
+    context.$addRoot$(local);
+    const localRef = context.getSeenRef(local);
+    context.$scope$ = {
+      $includesSegment$() {
+        return true;
+      },
+      $getSharedRef$(obj) {
+        return obj === shared || obj === local ? { $index$: 42 } : undefined;
+      },
+    };
+
+    expect(context.$roots$).toEqual([local]);
+    expect(context.getSeenRef(unknown)).toBeUndefined();
+    expect(context.getSeenRef(local)).toBe(localRef);
+    const sharedRef = context.getSeenRef(shared);
+    expect(sharedRef).toEqual({ $index$: 1 });
+    expect(context.getSeenRef(shared)).toBe(sharedRef);
+    expect(context.$roots$).toEqual([local, shared]);
+  });
+
+  it.each([
+    { owner: undefined, active: true, expected: true },
+    { owner: 1, active: true, expected: true },
+    { owner: 2, active: true, expected: false },
+    { owner: 2, active: false, expected: true },
+  ])(
+    'serializes subscriptions according to segment ownership: %j',
+    async ({ owner, active, expected }) => {
+      const context = createTestSerializationContext();
+      if (active) {
+        context.$scope$ = {
+          $includesSegment$(ownerId) {
+            return ownerId === undefined || ownerId === 1;
+          },
+        };
+      } else {
+        expect(Object.hasOwn(context, '$scope$')).toBe(false);
+      }
+      const effect = new EffectSubscription(createSignal('owned') as SignalImpl, '.');
+      effect.$ssrSegmentId$ = owner;
+      context.$addRoot$(new Set([effect, 'ordinary value']));
+      await context.$serialize$();
+      const [restored] = deserialize(JSON.parse(context.$writer$.toString())) as [Set<unknown>];
+      expect(restored.size).toBe(expected ? 2 : 1);
+      expect(restored.has('ordinary value')).toBe(true);
+    }
+  );
+
+  it('does not traverse subscriptions belonging to another segment', async () => {
+    const rootEffect = new EffectSubscription(createSignal('root') as SignalImpl, '.');
+    const ownEffect = new EffectSubscription(createSignal('own') as SignalImpl, '.');
+    const foreignEffect = new EffectSubscription(
+      createSignal('foreign-segment') as SignalImpl,
+      '.'
+    );
+    Object.assign(ownEffect, { $ssrSegmentId$: 1 });
+    Object.assign(foreignEffect, { $ssrSegmentId$: 2 });
+    const effects = new Set([rootEffect, ownEffect, foreignEffect]);
+    const signal = createSignal(42) as SignalImpl;
+    signal.$effects$ = effects;
+    const backRefs = new Map([
+      ['root', rootEffect],
+      ['own', ownEffect],
+      ['foreign', foreignEffect],
+    ]);
+    const context = createTestSerializationContext();
+    context.$scope$ = {
+      $includesSegment$(ownerId) {
+        return ownerId !== 2;
+      },
+    };
+    context.$addRoot$(signal);
+    context.$addRoot$(effects);
+    context.$addRoot$(backRefs);
+    await context.$serialize$();
+    const text = context.$writer$.toString();
+
+    expect(text).not.toContain('foreign-segment');
+    const [restoredSignal, restoredEffects, restoredBackRefs] = deserialize(JSON.parse(text)) as [
+      SignalImpl,
+      Set<EffectSubscription>,
+      Map<string, EffectSubscription>,
+    ];
+    expect(restoredSignal.$effects$?.size).toBe(2);
+    expect(restoredEffects.size).toBe(2);
+    expect([...restoredBackRefs.keys()]).toEqual(['root', 'own']);
+    expect(restoredSignal.$effects$?.has([...restoredEffects][1])).toBe(true);
+    expect(effects.size).toBe(3);
+    expect(backRefs.size).toBe(3);
+    expect(Object.hasOwn(rootEffect, '$ssrSegmentId$')).toBe(false);
+    expect(Object.hasOwn([...restoredEffects][1], '$ssrSegmentId$')).toBe(false);
+  });
 
   describe('serialize types', () => {
     const dump = async (...value: any) =>
@@ -1507,36 +1725,45 @@ describe('shared-serialization', () => {
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: true, $scopedStyleIdPrefix$: null });
     });
-    it(title(TypeIds.SubscriptionPatch), async () => {
-      const qrl = inlinedQrl(0, 's_zero') as any;
-      const signalTask = new Task(TaskFlags.TASK, 0, {} as any, qrl, null);
-      const storeTask = new Task(TaskFlags.TASK, 0, {} as any, qrl, null);
-      const signalEffect = new EffectSubscription(signalTask, EffectProperty.COMPONENT, null, null);
-      const storeEffect = new EffectSubscription(storeTask, EffectProperty.COMPONENT, null, null);
-      const objs = await serialize([
-        new SubscriptionPatch(7, new Set([signalEffect])),
-        new SubscriptionPatch(8, new Map([['count', new Set([storeEffect])]])),
-      ]);
-      const [signalPatch, storePatch] = deserialize(objs)[0] as SubscriptionPatch[];
+    it.each([undefined, SubscriptionPatchChannel.Pending, SubscriptionPatchChannel.Error] as const)(
+      title(TypeIds.SubscriptionPatch) + ' %s',
+      async (channel) => {
+        const qrl = inlinedQrl(0, 's_zero') as any;
+        const signalTask = new Task(TaskFlags.TASK, 0, {} as any, qrl, null);
+        const storeTask = new Task(TaskFlags.TASK, 0, {} as any, qrl, null);
+        const signalEffect = new EffectSubscription(
+          signalTask,
+          EffectProperty.COMPONENT,
+          null,
+          null
+        );
+        const storeEffect = new EffectSubscription(storeTask, EffectProperty.COMPONENT, null, null);
+        const objs = await serialize([
+          new SubscriptionPatch(7, new Set([signalEffect]), channel),
+          new SubscriptionPatch(8, new Map([['count', new Set([storeEffect])]])),
+        ]);
+        const [signalPatch, storePatch] = deserialize(objs)[0] as SubscriptionPatch[];
 
-      expect(signalPatch).toBeInstanceOf(SubscriptionPatch);
-      expect(signalPatch.rootId).toBe(7);
-      expect(signalPatch.subscriptions).toBeInstanceOf(Set);
-      const restoredSignalEffect = [...(signalPatch.subscriptions as Set<EffectSubscription>)][0];
-      expect(restoredSignalEffect.consumer).toBeInstanceOf(Task);
-      expect(
-        (restoredSignalEffect.consumer as Task)[_EFFECT_BACK_REF]!.get(EffectProperty.COMPONENT)
-      ).toBe(restoredSignalEffect);
+        expect(signalPatch).toBeInstanceOf(SubscriptionPatch);
+        expect(signalPatch.rootId).toBe(7);
+        expect(signalPatch.channel).toBe(channel);
+        expect(signalPatch.subscriptions).toBeInstanceOf(Set);
+        const restoredSignalEffect = [...(signalPatch.subscriptions as Set<EffectSubscription>)][0];
+        expect(restoredSignalEffect.consumer).toBeInstanceOf(Task);
+        expect(
+          (restoredSignalEffect.consumer as Task)[_EFFECT_BACK_REF]!.get(EffectProperty.COMPONENT)
+        ).toBe(restoredSignalEffect);
 
-      expect(storePatch).toBeInstanceOf(SubscriptionPatch);
-      expect(storePatch.rootId).toBe(8);
-      expect(storePatch.subscriptions).toBeInstanceOf(Map);
-      const restoredStoreEffects = (
-        storePatch.subscriptions as Map<string, Set<EffectSubscription>>
-      ).get('count')!;
-      expect(restoredStoreEffects.size).toBe(1);
-      expect([...restoredStoreEffects][0].consumer).toBeInstanceOf(Task);
-    });
+        expect(storePatch).toBeInstanceOf(SubscriptionPatch);
+        expect(storePatch.rootId).toBe(8);
+        expect(storePatch.subscriptions).toBeInstanceOf(Map);
+        const restoredStoreEffects = (
+          storePatch.subscriptions as Map<string, Set<EffectSubscription>>
+        ).get('count')!;
+        expect(restoredStoreEffects.size).toBe(1);
+        expect([...restoredStoreEffects][0].consumer).toBeInstanceOf(Task);
+      }
+    );
     it(title(TypeIds.SubscriptionData) + ' const false', async () => {
       const objs = await serialize(
         new SubscriptionData({ $isConst$: false, $scopedStyleIdPrefix$: null })

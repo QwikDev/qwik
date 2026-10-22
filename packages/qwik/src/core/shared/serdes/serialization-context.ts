@@ -34,7 +34,13 @@ interface AddRootFn {
   (obj: unknown, returnRef?: never): number;
   (obj: unknown, returnRef: true): SeenRef;
 }
+export interface SerializationScope {
+  $includesSegment$(ownerId: number | undefined): boolean;
+  $getSharedRef$?(obj: unknown): SeenRef | undefined;
+}
+
 export interface SerializationContext {
+  $scope$?: SerializationScope;
   $serialize$: () => ValueOrPromise<void>;
   $serializePatch$: (
     rootStart: number,
@@ -106,6 +112,7 @@ export interface SerializationContext {
 }
 
 class SerializationContextImpl implements SerializationContext {
+  declare $scope$?: SerializationScope;
   private $seenObjsMap$ = new Map<unknown, SeenRef>();
   private $syncFnMap$ = new Map<string, number>();
   private $syncFnOffset$ = 0;
@@ -168,7 +175,11 @@ class SerializationContextImpl implements SerializationContext {
   }
 
   getSeenRef(obj: unknown) {
-    return this.$seenObjsMap$.get(obj);
+    const localRef = this.$seenObjsMap$.get(obj);
+    if (localRef || !this.$scope$?.$getSharedRef$?.(obj)) {
+      return localRef;
+    }
+    return this.$addRoot$(obj, true);
   }
 
   $markSeen$(obj: unknown, parent: SeenRef | undefined, index: number) {

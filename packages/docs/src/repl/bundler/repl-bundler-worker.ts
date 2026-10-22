@@ -184,7 +184,18 @@ async function loadOptimizer() {
     qwikOptimizerModule = await import(/* @vite-ignore */ optimizerDeps['/dist/index.mjs']);
   }
 
-  qwikViteModule = await import(/* @vite-ignore */ qwikDeps['/dist/optimizer.mjs']);
+  // The optimizer entry re-exports createOptimizer from @qwik.dev/optimizer
+  // (GH#9248). A worker has no import map, so point that specifier at the
+  // already-loaded optimizer module before importing the entry.
+  const optimizerEntryUrl = qwikDeps['/dist/optimizer.mjs'];
+  const entryResponse = await fetch(optimizerEntryUrl);
+  let entryCode = await entryResponse.text();
+  entryCode = entryCode.replaceAll(
+    new RegExp(`from\\s*(['"])@qwik\\.dev/optimizer\\1`, 'g'),
+    () => `from ${JSON.stringify(getDepShimUrl('@qwik.dev/optimizer', qwikOptimizerModule ?? {}))}`
+  );
+  const entryBlobUrl = URL.createObjectURL(new Blob([entryCode], { type: 'text/javascript' }));
+  qwikViteModule = await import(/* @vite-ignore */ entryBlobUrl);
   console.warn(
     `Bundler for ${qwikDeps.version} ready (${tsOptimizerLoaded ? 'ts-optimizer' : 'rust optimizer'})`
   );

@@ -4,7 +4,7 @@ import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializerSymbol } from '../shared/serdes/verify';
 import type { ComputedFn } from '../use/use-computed';
-import type { Container, SerializationStrategy } from '../shared/types';
+import { EffectProperty, type Container, type SerializationStrategy } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { PropsProxy } from '../shared/jsx/props-proxy';
@@ -175,6 +175,8 @@ export type Consumer = Task | VNode | SignalImpl | ISsrNode;
  * - `EffectProperty.VNODE` if VNode
  */
 export class EffectSubscription {
+  declare $ssrSegmentId$?: number;
+
   constructor(
     public consumer: Consumer,
     public property: EffectProperty | string,
@@ -186,11 +188,7 @@ brandClass(EffectSubscription, Brand.EffectSubscription);
 
 export type EffectBackRef = SignalImpl | StoreTarget | PropsProxy;
 
-/** @internal */
-export const enum EffectProperty {
-  COMPONENT = ':',
-  VNODE = '.',
-}
+export { EffectProperty } from '../shared/types';
 
 /** @public */
 export type SerializerArgObject<T, S> = {

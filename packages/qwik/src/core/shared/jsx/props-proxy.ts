@@ -10,6 +10,7 @@ import type { Props } from './jsx-runtime';
 import type { JSXNodeInternal } from './types/jsx-node';
 import type { Container } from '../types';
 import { assertTrue } from '../error/assert';
+import { isSameContainer } from '../utils/container';
 import { scheduleEffects } from '../../reactive-primitives/utils';
 import { isDev } from '@qwik.dev/core/build';
 
@@ -160,14 +161,14 @@ const addPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: string | symbo
     } else {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === propsProxy.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, propsProxy.$container$),
           'Do not use props across containers'
         );
     }
   }
   const effectSubscriber = ctx?.$effectSubscriber$;
   if (effectSubscriber) {
-    addStoreEffect(propsProxy.owner._proxy!, prop, propsProxy, effectSubscriber);
+    addStoreEffect(propsProxy.owner._proxy!, prop, propsProxy, effectSubscriber, ctx?.$container$);
   }
 };
 

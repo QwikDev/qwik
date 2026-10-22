@@ -251,10 +251,11 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.EffectSubscriptionNoData:
       return new EffectSubscription(null!, null!, null, null);
     case TypeIds.SubscriptionPatch:
-      return new SubscriptionPatch();
-    default:
-      throw qError(QError.serializeErrorCannotAllocate, [typeId]);
+      if (__EXPERIMENTAL__.pendingBoundary) {
+        return new SubscriptionPatch();
+      }
   }
+  throw qError(QError.serializeErrorCannotAllocate, [typeId]);
 };
 export function retrieveVNodeOrDocument(
   container: DeserializeContainer,

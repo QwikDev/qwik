@@ -57,6 +57,13 @@
             "dev"
           ],
           "pinVersion": "1.54.1"
+        },
+        {
+          "label": "jsx-ast-utils-x: pinned to audited fork version, do not bump without review",
+          "dependencies": [
+            "jsx-ast-utils-x"
+          ],
+          "pinVersion": "0.1.0"
         }
       ],
       "semverGroups": [

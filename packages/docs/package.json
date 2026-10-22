@@ -61,7 +61,7 @@
     "tsm": "2.3.0",
     "typescript": "5.9.3",
     "valibot": "1.4.2",
-    "vite": "8.2.1",
+    "vite": "8.2.4",
     "vite-tsconfig-paths": "6.1.1",
     "wrangler": "4.80.0"
   },

@@ -50,7 +50,7 @@ export const DocumentHeadTags = component$((props: DocumentHeadValue) => {
       ))}
       {head.styles.map((s) => {
         // `style` and `key` are not attributes. `props` is the old way to set the attributes.
-        const { style, key, props: oldProps, ...rest } = s;
+        const { style, key, props: oldProps, ...rest } = trackWholeStore(s);
         const props = oldProps || rest;
         return (
           <style
@@ -62,7 +62,7 @@ export const DocumentHeadTags = component$((props: DocumentHeadValue) => {
       })}
       {head.scripts.map((s) => {
         // `script` and `key` are not attributes. `props` is the old way to set the attributes.
-        const { script, key, props: oldProps, ...rest } = s;
+        const { script, key, props: oldProps, ...rest } = trackWholeStore(s);
         const props = oldProps || rest;
         return (
           <script

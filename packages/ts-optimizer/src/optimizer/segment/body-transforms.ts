@@ -1,4 +1,6 @@
 import { walk } from 'oxc-walker';
+import { parseWithRawTransfer } from '../ast/parse.js';
+import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import type { AstNode } from '../../ast-types.js';
 import {
   createFunctionTransformSession,
@@ -26,6 +28,50 @@ function getNestedCallSiteStart(site: NestedCallSiteInfo): number {
     return site.callStart;
   }
   return site.attrStart ?? site.callStart;
+}
+
+/**
+ * Binding names declared by an arrow's parameter list. Parsed rather than split on `,` so typed
+ * (`facet: Facet`), defaulted and destructured parameters resolve to their binding names.
+ */
+function arrowParamNames(paramText: string): string[] {
+  const program = parseWithRawTransfer('__params__.tsx', `(${paramText}) => 0;`).program;
+  const stmt = program?.body?.[0];
+  const arrow = stmt?.type === 'ExpressionStatement' ? stmt.expression : undefined;
+  if (arrow?.type !== 'ArrowFunctionExpression') {
+    return paramText.split(',').map((p) => p.trim());
+  }
+  return arrow.params.flatMap((param) => collectBindingNamesFromPattern(param));
+}
+
+/**
+ * Names declared in a `for (…)` head whose closing paren is at `closeParen`, or `undefined` when
+ * the parens don't belong to a `for` statement.
+ */
+function forLoopHeadNames(text: string, closeParen: number): string[] | undefined {
+  const openParen = scanMatchingParenBackward(text, closeParen - 1);
+  const before = text.slice(Math.max(0, openParen - 16), openParen);
+  if (!/(?<![\w$])for(?:\s+await)?\s*$/.test(before)) {
+    return undefined;
+  }
+  const head = text.slice(openParen + 1, closeParen);
+  const program = parseWithRawTransfer('__for__.tsx', `async () => { for (${head}) {} }`).program;
+  const stmt = program?.body?.[0];
+  const fn = stmt?.type === 'ExpressionStatement' ? stmt.expression : undefined;
+  const loop =
+    fn?.type === 'ArrowFunctionExpression' && fn.body.type === 'BlockStatement'
+      ? fn.body.body[0]
+      : undefined;
+  const decl =
+    loop?.type === 'ForStatement'
+      ? loop.init
+      : loop?.type === 'ForOfStatement' || loop?.type === 'ForInStatement'
+        ? loop.left
+        : undefined;
+  if (decl?.type !== 'VariableDeclaration') {
+    return undefined;
+  }
+  return decl.declarations.flatMap((d) => collectBindingNamesFromPattern(d.id));
 }
 
 /**
@@ -64,6 +110,12 @@ function findEnclosingArrowBodyForCapture(
     while (j >= 0 && /\s/.test(text[j])) {
       j--;
     }
+    if (ch === '{' && text[j] === ')') {
+      const loopVarNames = forLoopHeadNames(text, j);
+      if (loopVarNames?.includes(capturedVarName)) {
+        return i + 1;
+      }
+    }
     if (!(j >= 1 && text[j] === '>' && text[j - 1] === '=')) {
       continue;
     }
@@ -85,8 +137,7 @@ function findEnclosingArrowBodyForCapture(
       paramText = text.slice(pStart, paramEnd + 1);
     }
 
-    const params = paramText.split(',').map((p) => p.trim());
-    if (params.includes(capturedVarName)) {
+    if (arrowParamNames(paramText).includes(capturedVarName)) {
       return i + 1;
     }
 
@@ -177,7 +228,7 @@ export function rewriteNestedCallSitesInline(
   let componentScopeWDecls:
     | Array<{ declaration: string; captureNames: readonly string[] }>
     | undefined;
-  const hoistDeclarations: Array<{ position: number; declaration: string }> = [];
+  const hoistDeclarations: Array<{ position: number; declaration: string; scope: number }> = [];
   const replaceBodyRange = (start: number, end: number, replacement: string): void => {
     if (start < 0 || end > bodyText.length) {
       return;
@@ -251,8 +302,15 @@ export function rewriteNestedCallSitesInline(
         site.hoistedCaptureNames &&
         site.hoistedCaptureNames.length > 0
       ) {
-        const capturedVar = site.hoistedCaptureNames[0];
-        const enclosingPos = findEnclosingArrowBodyForCapture(bodyText, relStart, capturedVar);
+        // The binding can only live where every capture is in scope: the innermost of the
+        // scopes that declare them (e.g. an outer loop callback whose param is captured).
+        let enclosingPos = -1;
+        for (const capturedVar of site.hoistedCaptureNames) {
+          enclosingPos = Math.max(
+            enclosingPos,
+            findEnclosingArrowBodyForCapture(bodyText, relStart, capturedVar)
+          );
+        }
         const isLoopCallback =
           enclosingPos >= 0 &&
           (outerBodyStart >= 0
@@ -273,6 +331,7 @@ export function rewriteNestedCallSitesInline(
           hoistDeclarations.push({
             position: latestDeclPos >= 0 ? latestDeclPos : enclosingPos,
             declaration: decl,
+            scope: enclosingPos,
           });
         } else {
           if (!componentScopeWDecls) {
@@ -335,18 +394,32 @@ export function rewriteNestedCallSitesInline(
 
 function injectHoistDeclarations(
   bodyText: string,
-  hoistDeclarations: Array<{ position: number; declaration: string }>
+  hoistDeclarations: Array<{ position: number; declaration: string; scope: number }>
 ): string {
   if (hoistDeclarations.length === 0) {
     return bodyText;
   }
 
-  // Group .w() declarations in the same scope together at the max position.
-  if (hoistDeclarations.length > 1) {
-    const maxPos = Math.max(...hoistDeclarations.map((h) => h.position));
-    const minPos = Math.min(...hoistDeclarations.map((h) => h.position));
+  // Group .w() declarations that share a lexical scope (the enclosing callback/loop body) at the
+  // latest position in that scope. Grouping by text distance alone could move a binding into a
+  // sibling loop's callback, leaving it undeclared (ReferenceError) where it is used.
+  const byScope = new Map<number, Array<{ position: number }>>();
+  for (const h of hoistDeclarations) {
+    const group = byScope.get(h.scope);
+    if (group) {
+      group.push(h);
+    } else {
+      byScope.set(h.scope, [h]);
+    }
+  }
+  for (const group of byScope.values()) {
+    if (group.length < 2) {
+      continue;
+    }
+    const maxPos = Math.max(...group.map((h) => h.position));
+    const minPos = Math.min(...group.map((h) => h.position));
     if (maxPos - minPos < 500) {
-      for (const h of hoistDeclarations) {
+      for (const h of group) {
         h.position = maxPos;
       }
     }

@@ -110,4 +110,42 @@ describe.each([
 
     (globalThis as any).log = undefined;
   });
+  it('should capture the outer item in handlers of a nested expression-bodied loop', async () => {
+    (globalThis as any).log = [];
+    interface Facet {
+      slug: string;
+      items: { slug: string }[];
+    }
+    const Facets = component$((props: { facets: Facet[]; prefix: string }) => {
+      return (
+        <div>
+          {props.facets.map((facet: Facet) => (
+            <div key={facet.slug}>
+              {facet.items.map((item) => (
+                <button
+                  key={item.slug}
+                  id={`${facet.slug}-${item.slug}`}
+                  onClick$={() =>
+                    (globalThis as any).log.push(`${props.prefix}:${facet.slug}:${item.slug}`)
+                  }
+                ></button>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    });
+
+    const facetList: Facet[] = [
+      { slug: 'color', items: [{ slug: 'red' }, { slug: 'blue' }] },
+      { slug: 'size', items: [{ slug: 'xl' }] },
+    ];
+    const { document } = await render(<Facets facets={facetList} prefix="f" />, { debug });
+
+    await trigger(document.body, document.getElementById('color-blue'), 'click');
+    await trigger(document.body, document.getElementById('size-xl'), 'click');
+    expect((globalThis as any).log).toEqual(['f:color:blue', 'f:size:xl']);
+
+    (globalThis as any).log = undefined;
+  });
 });

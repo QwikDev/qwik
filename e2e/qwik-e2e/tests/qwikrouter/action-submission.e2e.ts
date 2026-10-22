@@ -331,3 +331,51 @@ for (const payload of ['event', 'form-data', 'object']) {
     }
   });
 }
+
+test('releases the form lock after its submit handler chunk fails to load', async ({ page }) => {
+  const submitChunk = /Form_form_q_e_submit/;
+  let blocked = 0;
+  await page.route(submitChunk, (route) => {
+    blocked++;
+    return route.abort('failed');
+  });
+  await page.goto('/qwikrouter-test/actions/issue9238/');
+  await page.locator('#bare-submit').click();
+  await expect.poll(() => blocked).toBeGreaterThan(0);
+
+  // Chromium caches failed imports, so a retry cannot prove the lock is released.
+  await expect
+    .poll(() =>
+      page
+        .locator('#bare-submit')
+        .evaluate((button: HTMLButtonElement) => '_qSubmit' in button.form!)
+    )
+    .toBe(false);
+});
+
+test('settles a submission superseded while the router config loads', async ({ page }) => {
+  const routerConfig = /qwik-router-config/;
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let configRequests = 0;
+  await page.route(routerConfig, async (route) => {
+    configRequests++;
+    await pending;
+    await route.continue();
+  });
+  await page.goto('/qwikrouter-test/actions/issue9238/');
+
+  try {
+    await page.locator('#programmatic-submit').click();
+    await expect(page.locator('#outcome')).toHaveText('pending');
+    await expect.poll(() => configRequests).toBeGreaterThan(0);
+    await page.locator('#reload').click();
+    release();
+    await expect(page.locator('#outcome')).toHaveText('rejected');
+    await expect(page.locator('#is-running')).toHaveText('false');
+  } finally {
+    release();
+  }
+});

@@ -602,6 +602,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const canceled = new Promise<undefined>((resolve) => {
         navResolver.cancel = () => resolve(undefined);
       });
+      // A navigation that bails before submitting must still settle the submit promise.
+      const abandonAction = () => {
+        action?.reject?.(new Error('Action submission was superseded by a navigation'));
+        if (action) {
+          action.resolve = undefined;
+          action.reject = undefined;
+        }
+      };
 
       // ensure correct trailing slash
       if (trackUrl.pathname.endsWith('/')) {
@@ -620,11 +628,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       try {
         const route = await Promise.race([loadRoutePromise, canceled]);
         if (!route) {
+          abandonAction();
           return;
         }
         loadedRoute = route;
       } catch (e) {
         if (internalState.navCount !== navCountBefore) {
+          abandonAction();
           return;
         }
         const preparedNavCount = getClientRouteLoaders(routeLoaderCtx).navCount;
@@ -637,6 +647,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
       // Bail if a second nav() was fired while we were loading route modules.
       if (internalState.navCount !== navCountBefore) {
+        abandonAction();
         return;
       }
 

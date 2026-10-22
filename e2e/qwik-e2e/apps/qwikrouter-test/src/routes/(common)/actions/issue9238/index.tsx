@@ -1,5 +1,5 @@
 import { $, component$, sync$, useSignal } from '@qwik.dev/core';
-import { Form, routeAction$, useLocation } from '@qwik.dev/router';
+import { Form, routeAction$, useLocation, useNavigate } from '@qwik.dev/router';
 
 export const useSave = routeAction$(
   async (payload) => ({
@@ -13,6 +13,7 @@ export const useSave = routeAction$(
 export default component$(() => {
   const save = useSave();
   const location = useLocation();
+  const nav = useNavigate();
   const outcome = useSignal('idle');
   const wasRunning = useSignal(false);
   const completed = useSignal(0);
@@ -50,6 +51,9 @@ export default component$(() => {
         }}
       >
         Submit
+      </button>
+      <button id="reload" onClick$={() => nav()}>
+        Reload
       </button>
       <button id="check-queue" onClick$={() => checked.value++}>
         Check queue

@@ -41,4 +41,22 @@ test.describe('rewrite to a different route', () => {
     expect(await page.evaluate(() => (window as any).__noReload)).toBe(true);
     expect(pageErrors).toEqual([]);
   });
+
+  test('the target route loader sees the visible URL of every rewritten navigation', async ({
+    page,
+  }) => {
+    const prettyCached = '/qwikrouter-test/rewrite-spa/pretty-cached/';
+    await page.goto('/qwikrouter-test/rewrite-spa/');
+
+    await page.locator('[data-test-link="rewrite-spa-pretty"]').click();
+    await expect(page.locator('#rewrite-spa-original')).toHaveText(pretty);
+
+    await page.goBack();
+    await expect(page.locator('#rewrite-spa-source')).toBeVisible();
+
+    await page.locator('[data-test-link="rewrite-spa-pretty-cached"]').click();
+    await expect(page).toHaveURL(new RegExp(`${prettyCached}$`));
+    await expect(page.locator('#rewrite-spa-original')).toHaveText(prettyCached);
+    await expect(page.locator('#rewrite-spa-served')).toHaveText(target);
+  });
 });

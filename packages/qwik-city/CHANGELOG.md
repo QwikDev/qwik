@@ -1,5 +1,11 @@
 # @builder.io/qwik-city
 
+## 1.20.3
+
+### Patch Changes
+
+- 🐞🩹 prevent shared function pollution when parsing conflicting form field paths (by [@Varixo](https://github.com/Varixo) in [`5e95c55`](https://github.com/QwikDev/qwik/commit/5e95c55e03c23efbf604118b8abe3a52554096ca))
+
 ## 1.20.2
 
 ### Patch Changes

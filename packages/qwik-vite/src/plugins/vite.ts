@@ -60,15 +60,24 @@ const DEDUPE = [
   '@builder.io/qwik/jsx-dev-runtime',
 ];
 
-const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
-const CSS_MODULE_RE = /\.module\.[^/]+$/;
+const STYLING = [
+  '.css',
+  '.scss',
+  '.sass',
+  '.less',
+  '.styl',
+  '.stylus',
+  '.pcss',
+  '.postcss',
+  '.sss',
+];
 
 /** Checks for .js, .jsx, .ts, .tsx, .mjs, .cjs, .mts, .cts, .md, .mdx ignoring the query string */
 const isSourceUrl = (url: string) => /^[^?]*\.([mc]?[jt]sx?|mdx?)(\?|$)/.test(url);
 
 /** Stylesheet imported without a query that is not a css module */
 const isPlainStylesheetUrl = (url: string) =>
-  STYLING.some((ext) => url.endsWith(ext)) && !CSS_MODULE_RE.test(url);
+  STYLING.some((ext) => url.endsWith(ext) && !url.endsWith(`.module${ext}`));
 
 const QWIK_HMR_BRIDGE_ID = '@qwik-hmr-bridge';
 /**

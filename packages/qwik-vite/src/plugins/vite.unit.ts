@@ -822,8 +822,15 @@ describe('hotUpdate', () => {
     ]);
   });
 
-  test('sends nothing for a plain stylesheet', () => {
-    assert.deepEqual(sentHmrFiles([{ url: '/src/a.css', importers: ['/src/a.tsx'] }]), []);
+  test.each([
+    '/src/a.css',
+    '/src/a.scss',
+    '/src/a.pcss',
+    '/src/a.postcss',
+    '/src/a.sss',
+    '/src/theme.module.dark.css',
+  ])('sends nothing for the plain stylesheet %s', (url) => {
+    assert.deepEqual(sentHmrFiles([{ url, importers: ['/src/a.tsx'] }]), []);
   });
 });
 

@@ -606,18 +606,12 @@ importers:
       domino:
         specifier: 2.1.6
         version: 2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d)
-      ignore:
-        specifier: 5.3.1
-        version: 5.3.1
       image-size:
         specifier: 1.2.1
         version: 1.2.1
       kleur:
         specifier: 4.1.5
         version: 4.1.5
-      ts-morph:
-        specifier: 23.0.0
-        version: 23.0.0
 
   packages/qwik-auth:
     dependencies:
@@ -3579,9 +3573,6 @@ packages:
   '@tokenizer/token@0.3.0':
     resolution: {integrity: sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A==}
 
-  '@ts-morph/common@0.24.0':
-    resolution: {integrity: sha512-c1xMmNHWpNselmpIqursHeOHHBTIsJLbB+NuovbTTRCNiTLEr/U9dbJ8qy0jd/O2x5pc3seWuOUN5R2IoOTp8A==}
-
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
 
@@ -4727,9 +4718,6 @@ packages:
   clsx@2.1.1:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
-
-  code-block-writer@13.0.3:
-    resolution: {integrity: sha512-Oofo0pq3IKnsFtuHqSF7TqBfr71aeyZDVJ0HpmqB7FBM2qEigL0iPONSCZSO9pE9dZTAxANe5XHG9Uy0YMv8cg==}
 
   code-point-at@1.1.0:
     resolution: {integrity: sha512-RpAVKQA5T63xEj6/giIbUEtZwJ4UFIc3ZtvEkiaUERylqe8xb5IvqcgOurZLahv93CLKfxcw5YI+DZcUBRyLXA==}
@@ -7661,11 +7649,6 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  mkdirp@3.0.1:
-    resolution: {integrity: sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==}
-    engines: {node: '>=10'}
-    hasBin: true
-
   mlly@1.8.0:
     resolution: {integrity: sha512-l8D9ODSRWLe2KHJSifWGwBqpTZXIXTeo8mlKjY+E2HAakaTeNpqAyBZ8GSqLzHgw4XmHmC8whvpjJNMbFZN7/g==}
 
@@ -9541,9 +9524,6 @@ packages:
     engines: {node: '>=18.12'}
     peerDependencies:
       typescript: 5.4.5
-
-  ts-morph@23.0.0:
-    resolution: {integrity: sha512-FcvFx7a9E8TUe6T3ShihXJLiJOiqyafzFKUO4aqIHDUCIvADdGNShcbc2W5PMr3LerXRv7mafvFZ9lRENxJmug==}
 
   ts-node@10.9.2:
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
@@ -13046,13 +13026,6 @@ snapshots:
 
   '@tokenizer/token@0.3.0': {}
 
-  '@ts-morph/common@0.24.0':
-    dependencies:
-      fast-glob: 3.3.3
-      minimatch: 9.0.5
-      mkdirp: 3.0.1
-      path-browserify: 1.0.1
-
   '@tsconfig/node10@1.0.11': {}
 
   '@tsconfig/node12@1.0.11': {}
@@ -14407,8 +14380,6 @@ snapshots:
   clone@1.0.4: {}
 
   clsx@2.1.1: {}
-
-  code-block-writer@13.0.3: {}
 
   code-point-at@1.1.0: {}
 
@@ -17862,8 +17833,6 @@ snapshots:
 
   mkdirp@1.0.4: {}
 
-  mkdirp@3.0.1: {}
-
   mlly@1.8.0:
     dependencies:
       acorn: 8.15.0
@@ -20043,11 +20012,6 @@ snapshots:
   ts-api-utils@2.4.0(typescript@5.4.5):
     dependencies:
       typescript: 5.4.5
-
-  ts-morph@23.0.0:
-    dependencies:
-      '@ts-morph/common': 0.24.0
-      code-block-writer: 13.0.3
 
   ts-node@10.9.2(@types/node@20.19.0)(typescript@5.4.5):
     dependencies:

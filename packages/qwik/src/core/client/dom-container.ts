@@ -311,10 +311,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       const store = getOwnCatchStore(this, boundaryHost);
       if (store && store.error === undefined) {
         store.error = storedError;
-        const boundaryProps = this.getHostProp<{
-          onError$?: (error: unknown, info: CatchInfo) => unknown;
-        }>(boundaryHost, ELEMENT_PROPS);
-        fireOnError(boundaryProps?.onError$, err, phase, store.boundaryId ?? '');
+        const boundaryProps = this.getHostProp<
+          { onError$?: (error: unknown, info: CatchInfo) => unknown } | false
+        >(boundaryHost, ELEMENT_PROPS);
+        fireOnError(
+          boundaryProps ? boundaryProps.onError$ : null,
+          err,
+          phase,
+          store.boundaryId ?? ''
+        );
         markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
         return;
       }

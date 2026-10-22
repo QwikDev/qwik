@@ -8,6 +8,12 @@ export default component$(() => {
       <Link href="/qwikrouter-test/rewrite-spa/pretty/" data-test-link="rewrite-spa-pretty">
         pretty URL, no route of its own, rewritten to a different route
       </Link>
+      <Link
+        href="/qwikrouter-test/rewrite-spa/pretty-cached/"
+        data-test-link="rewrite-spa-pretty-cached"
+      >
+        second pretty URL, same target
+      </Link>
     </>
   );
 });

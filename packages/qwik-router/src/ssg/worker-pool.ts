@@ -18,6 +18,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
   const ssgWorkers: SsgWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapStream: fs.WriteStream | null = null;
+  let isClosing = false;
 
   opts = { ...opts };
 
@@ -69,11 +70,19 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
     const mainTasks = new Map<string, WorkerMainTask>();
     let terminateTimeout: number | null = null;
 
+    let isReady = false;
+    let startupError: Error | undefined;
     let markWorkerReady!: () => void;
+    let failWorkerStart!: (error: Error) => void;
     // Bun drops messages posted before the worker listens, so wait for its ready signal.
-    const workerReady = new Promise<void>((resolve) => {
-      markWorkerReady = resolve;
+    const workerReady = new Promise<void>((resolve, reject) => {
+      markWorkerReady = () => {
+        isReady = true;
+        resolve();
+      };
+      failWorkerStart = reject;
     });
+    workerReady.catch(() => {});
 
     const nodeWorker = new Worker(workerFilePath, { workerData });
     nodeWorker.unref();
@@ -112,7 +121,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
             await nodeWorker.terminate();
             resolve();
           }, 1000) as unknown as number;
-          workerReady.then(() => nodeWorker.postMessage(msg));
+          workerReady.then(() => nodeWorker.postMessage(msg)).catch(() => {});
         });
         // If worker responded gracefully, cancel the force-terminate
         if (terminateTimeout) {
@@ -149,6 +158,9 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
 
     nodeWorker.on('error', (e) => {
       log.error(`worker error`, e);
+      if (!isReady) {
+        startupError = e instanceof Error ? e : new Error(String(e));
+      }
     });
 
     nodeWorker.on('exit', (code) => {
@@ -156,6 +168,13 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
       if (terminateTimeout) {
         clearTimeout(terminateTimeout);
         terminateTimeout = null;
+      }
+      if (!isReady && !isClosing) {
+        const cause = startupError ? `: ${startupError.message}` : '';
+        failWorkerStart(
+          new Error(`SSG worker exited with code ${code} before it was ready${cause}`)
+        );
+        return;
       }
       // Resolve any pending tasks so the main thread doesn't hang
       if (mainTasks.size > 0) {
@@ -182,9 +201,19 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
       if (code !== 0) {
         console.error(`worker exit ${code}`);
       }
+      if (!isClosing) {
+        replaceWorker(ssgWorker);
+      }
     });
 
     return ssgWorker;
+  };
+
+  const replaceWorker = (deadWorker: SsgWorker) => {
+    const index = ssgWorkers.indexOf(deadWorker);
+    if (index !== -1) {
+      ssgWorkers[index] = createWorker();
+    }
   };
 
   const getNextWorker = () => ssgWorkers.sort(ssgWorkerCompare)[0];
@@ -216,6 +245,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
   };
 
   const close = async () => {
+    isClosing = true;
     const promises: Promise<unknown>[] = [];
 
     if (sitemapStream) {

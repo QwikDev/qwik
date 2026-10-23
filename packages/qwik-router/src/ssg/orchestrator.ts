@@ -123,15 +123,23 @@ export async function mainThread(sys: System) {
 
           const result = await Promise.race([
             main.render({ type: 'render', ...staticRoute }),
-            new Promise<never>((_, reject) =>
-              setTimeout(
-                () => reject(new Error(`SSG render timed out after ${renderTimeout}ms`)),
-                renderTimeout
-              )
+            new Promise<undefined>((resolve) =>
+              setTimeout(() => resolve(undefined), renderTimeout)
             ),
           ]);
 
           log.debug(`render done: ${staticRoute.pathname}`);
+
+          if (!result) {
+            const timeoutMessage = `SSG render timed out after ${renderTimeout}ms`;
+            if (!hasRetriesLeft(staticRoute)) {
+              throw new Error(timeoutMessage);
+            }
+            await main.restartWorker(staticRoute.pathname);
+            retryLater(staticRoute, timeoutMessage);
+            flushQueue();
+            return;
+          }
 
           if (result.error && hasRetriesLeft(staticRoute)) {
             retryLater(staticRoute, result.error.message);

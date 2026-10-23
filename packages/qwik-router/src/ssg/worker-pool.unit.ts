@@ -22,7 +22,8 @@ class FakeWorker extends EventEmitter {
   }
   unref() {}
   async terminate() {
-    return 0;
+    this.emit('exit', 1);
+    return 1;
   }
   postMessage(msg: WorkerInputMessage) {
     if (this.isListening) {
@@ -209,5 +210,26 @@ describe('createWorkerPool', () => {
     } finally {
       await rm(outDir, { recursive: true, force: true });
     }
+  });
+
+  it('restarting a worker fails its in-flight renders and keeps the pool usable', async () => {
+    const pool = await createWorkerPool(sys, {
+      outDir: '/out',
+      sitemapOutFile: null,
+      maxWorkers: 1,
+      workerFilePath: '/run-ssg-worker.js',
+    } as any);
+    workers[0].attachListener();
+
+    const hung = pool.render({ type: 'render', pathname: '/hang', params: undefined });
+    const hungToo = pool.render({ type: 'render', pathname: '/hang-too', params: undefined });
+    await pool.restartWorker('/hang');
+    const next = pool.render({ type: 'render', pathname: '/fine', params: undefined });
+    workers[1].attachListener();
+    workers[1].emit('message', renderResult('/fine'));
+
+    expect((await hung).error?.message).toContain('/hang');
+    expect((await hungToo).error?.message).toContain('/hang');
+    expect((await next).ok).toBe(true);
   });
 });

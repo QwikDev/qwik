@@ -26,6 +26,7 @@ export interface StaticStreamWriter extends StreamWriter {
 export interface MainContext {
   hasAvailableWorker: () => boolean;
   render: (staticRoute: SsgRenderInput) => Promise<SsgWorkerRenderResult>;
+  restartWorker: (pathname: string) => Promise<void>;
   close: () => Promise<void>;
 }
 
@@ -61,9 +62,9 @@ export interface SsgRenderOptions extends RenderOptions {
   /** Maximum number of tasks to be running at one time per worker. Defaults to `20`. */
   maxTasksPerWorker?: number;
   /**
-   * Number of times to re-render a route whose render failed before the route is recorded as an
-   * error. Each retry waits 500ms, doubling up to 2s. Defaults to `0` (a failed render fails the
-   * route right away).
+   * Number of times to re-render a route whose render failed or timed out before the route is
+   * recorded as an error. Each retry waits 500ms, doubling up to 2s. Defaults to `0` (a failed
+   * render fails the route right away).
    */
   retries?: number;
   /**

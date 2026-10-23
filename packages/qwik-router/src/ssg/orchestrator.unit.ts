@@ -211,6 +211,73 @@ describe('retries', () => {
     assert.include(warnings[0], 'render blip');
   });
 
+  test('restarts the worker and retries a render that timed out', async () => {
+    const restarted: string[] = [];
+    let renderCount = 0;
+    const sys = createSystem({
+      routes: { _I: async () => ({ default: () => null as any }) },
+      render: ({ pathname }) => {
+        renderCount++;
+        return renderCount === 1
+          ? new Promise<never>(() => {})
+          : Promise.resolve(createRenderResult(pathname));
+      },
+      restartWorker: async (pathname) => {
+        restarted.push(pathname);
+      },
+      retries: 1,
+    });
+
+    const result = await runMainThread(sys);
+
+    assert.deepEqual(restarted, ['/']);
+    assert.equal(renderCount, 2);
+    assert.equal(result.rendered, 1);
+  });
+
+  test('stops the build when a render times out with no retries left', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const sys = createSystem({
+      routes: { _I: async () => ({ default: () => null as any }) },
+      render: () => new Promise<never>(() => {}),
+    });
+
+    const done = mainThread(sys).catch((error: Error) => error);
+    await vi.runAllTimersAsync();
+
+    assert.include(String(await done), 'timed out');
+  });
+
+  test('resumes the queue after a slow worker restart', async () => {
+    let busySlots = 0;
+    let renderCount = 0;
+    const sys = createSystem({
+      routes: { _I: async () => ({ default: () => null as any }) },
+      hasAvailableWorker: () => busySlots === 0,
+      render: ({ pathname }) => {
+        renderCount++;
+        if (renderCount === 1) {
+          busySlots++;
+          return new Promise<never>(() => {});
+        }
+        return Promise.resolve(createRenderResult(pathname));
+      },
+      restartWorker: () =>
+        new Promise<void>((resolve) =>
+          setTimeout(() => {
+            busySlots = 0;
+            resolve();
+          }, 1000)
+        ),
+      retries: 1,
+    });
+
+    const result = await runMainThread(sys);
+
+    assert.equal(renderCount, 2);
+    assert.equal(result.rendered, 1);
+  });
+
   test('waits 500ms, doubling up to 2s, before each retry', async () => {
     const renderTimes: number[] = [];
     const sys = createSystem({
@@ -267,17 +334,22 @@ function createSystem({
   basePathname = '/',
   retries,
   logger = noopLogger,
+  hasAvailableWorker = () => true,
+  restartWorker = async () => {},
 }: {
   routes: RouteData;
   render: MainContext['render'];
   basePathname?: string;
   retries?: number;
   logger?: Logger;
+  hasAvailableWorker?: MainContext['hasAvailableWorker'];
+  restartWorker?: MainContext['restartWorker'];
 }): System {
   return {
     createMainProcess: async () => ({
-      hasAvailableWorker: () => true,
+      hasAvailableWorker,
       render,
+      restartWorker,
       close: async () => {},
     }),
     createLogger: async () => logger,

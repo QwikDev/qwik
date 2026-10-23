@@ -685,7 +685,6 @@ function qwikRouterPlugin(
         const serviceWorkerChunks = ctx!.serviceWorkers
           .map((sw) => findEntryChunk(bundles, sw.filePath))
           .filter((c): c is Rolldown.OutputChunk => !!c);
-        // Before renaming, while chunk imports still resolve from the original file names.
         await bundleServiceWorkerChunks(
           bundles,
           serviceWorkerChunks,
@@ -714,7 +713,6 @@ function qwikRouterPlugin(
   return plugin;
 }
 
-/** The dynamic entry chunk built from a route entry or service worker source file. */
 function findEntryChunk(bundles: Rolldown.OutputBundle, filePath: string) {
   const extensionlessFilePath = removeExtension(filePath);
   for (const output of Object.values(bundles)) {

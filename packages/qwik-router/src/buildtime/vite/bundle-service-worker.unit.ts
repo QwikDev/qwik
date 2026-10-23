@@ -14,7 +14,6 @@ const chunk = (
 const toBundle = (...chunks: Rolldown.OutputChunk[]): Rolldown.OutputBundle =>
   Object.fromEntries(chunks.map((c) => [c.fileName, c]));
 
-/** Runs the code as a classic service worker script and returns what it put on `self`. */
 const runAsServiceWorker = (code: string) => {
   const self: Record<string, unknown> = {};
   runInNewContext(code, { self });

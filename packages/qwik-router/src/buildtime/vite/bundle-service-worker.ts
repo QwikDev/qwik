@@ -4,27 +4,16 @@ import { build, type BuildOptions, type Plugin, type Rolldown } from 'vite';
 const CHUNK_ID_PREFIX = '\0qwik-router-sw-chunk:';
 const PRELOAD_HELPER_PLUGIN_NAMES = ['vite:build-import-analysis', 'native:import-analysis-build'];
 
-/**
- * Inlines the chunks that service worker chunks import, because service workers are registered as
- * classic scripts and can't load ES modules.
- */
 export async function bundleServiceWorkerChunks(
   bundle: Rolldown.OutputBundle,
   serviceWorkerChunks: Rolldown.OutputChunk[],
   minify: BuildOptions['minify'] = false
 ) {
-  const chunksByFileName = new Map<string, Rolldown.OutputChunk>();
-  for (const output of Object.values(bundle)) {
-    if (output.type === 'chunk') {
-      chunksByFileName.set(output.fileName, output);
-    }
-  }
-
   for (const swChunk of serviceWorkerChunks) {
     if (!hasChunkImports(swChunk)) {
       continue;
     }
-    swChunk.code = await bundleAsClassicScript(swChunk.fileName, chunksByFileName, minify);
+    swChunk.code = await bundleAsClassicScript(swChunk.fileName, bundle, minify);
     swChunk.imports = [];
     swChunk.dynamicImports = [];
   }
@@ -34,10 +23,9 @@ function hasChunkImports(chunk: Rolldown.OutputChunk) {
   return chunk.imports.length > 0 || chunk.dynamicImports.length > 0;
 }
 
-/** Re-bundles already built chunks, starting at `entryFileName`, into a single IIFE script. */
 async function bundleAsClassicScript(
   entryFileName: string,
-  chunksByFileName: Map<string, Rolldown.OutputChunk>,
+  bundle: Rolldown.OutputBundle,
   minify: BuildOptions['minify']
 ) {
   const result = await build({
@@ -45,7 +33,7 @@ async function bundleAsClassicScript(
     envDir: false,
     publicDir: false,
     logLevel: 'silent',
-    plugins: [builtChunksPlugin(chunksByFileName)],
+    plugins: [builtChunksPlugin(bundle)],
     build: {
       write: false,
       minify,
@@ -61,8 +49,7 @@ async function bundleAsClassicScript(
   return outputs[0].output[0].code;
 }
 
-/** Serves the client build's chunks by file name, resolving imports between them. */
-function builtChunksPlugin(chunksByFileName: Map<string, Rolldown.OutputChunk>): Plugin {
+function builtChunksPlugin(bundle: Rolldown.OutputBundle): Plugin {
   return {
     name: 'vite-plugin-qwik-router-sw-chunks',
     configResolved(config) {
@@ -83,13 +70,14 @@ function builtChunksPlugin(chunksByFileName: Map<string, Rolldown.OutputChunk>):
       }
       const importerFileName = importer.slice(CHUNK_ID_PREFIX.length);
       const fileName = posix.join(posix.dirname(importerFileName), source);
-      return chunksByFileName.has(fileName) ? CHUNK_ID_PREFIX + fileName : null;
+      return bundle[fileName]?.type === 'chunk' ? CHUNK_ID_PREFIX + fileName : null;
     },
     load(id) {
       if (!id.startsWith(CHUNK_ID_PREFIX)) {
         return null;
       }
-      return chunksByFileName.get(id.slice(CHUNK_ID_PREFIX.length))?.code ?? null;
+      const output = bundle[id.slice(CHUNK_ID_PREFIX.length)];
+      return output?.type === 'chunk' ? output.code : null;
     },
   };
 }

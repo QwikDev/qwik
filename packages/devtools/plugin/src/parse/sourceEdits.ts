@@ -5,7 +5,14 @@ export function applySourceEdits(code: string, edits: SourceEdit[]): string {
     return code;
   }
 
-  const orderedEdits = [...edits].sort((left, right) => getEditStart(right) - getEditStart(left));
+  // Applied from the end; inserts sharing a position keep the order they were added in.
+  const orderedEdits = edits
+    .map((edit, index) => ({ edit, index }))
+    .sort(
+      (left, right) =>
+        getEditStart(right.edit) - getEditStart(left.edit) || right.index - left.index
+    )
+    .map(({ edit }) => edit);
   let result = code;
 
   for (const edit of orderedEdits) {

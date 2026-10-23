@@ -2,4 +2,4 @@
 '@qwik.dev/router': patch
 ---
 
-fix: bundle service workers that import modules into a single classic script
+fix: service workers that share modules with the app now register

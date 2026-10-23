@@ -5,6 +5,7 @@ import {
   resolveRequestHandlers,
 } from '../middleware/request-handler/resolve-request-handlers-core';
 import { trimInternalPathname } from '../middleware/request-handler/request-path';
+import type { ErrorCodes, RequestEvent } from '../middleware/request-handler/types';
 import { runQwikRouter } from '../middleware/request-handler/user-response';
 import { loadRoute } from '../runtime/src/routing';
 import type { SsgHandlerOptions, SsgWorkerRenderResult, System } from './types';
@@ -61,13 +62,20 @@ const createRender = ({ earlyCatch = false, lateCatch = false } = {}) =>
     };
   });
 
-function renderRoute(sys: System, render: any) {
+const throwOnGet = (status: ErrorCodes, message: string) => ({
+  default: () => null,
+  onGet: (ev: RequestEvent) => {
+    throw ev.error(status, message);
+  },
+});
+
+function renderRoute(sys: System, render: any, routeModule: object = { default: () => null }) {
   const opts: SsgHandlerOptions = {
     outDir: '/out',
     origin: 'https://example.com',
     render,
     qwikRouterConfig: {
-      routes: { _I: async () => ({ default: () => null }) },
+      routes: { _I: async () => routeModule },
       serverPlugins: undefined,
       cacheModules: false,
       basePathname: '/',
@@ -113,6 +121,31 @@ describe('SSG worker error boundary handling', () => {
 
     expect(result.ok).toBe(false);
     expect(result.error?.message).toContain('Catch');
+    expect(result.filePath).toBeNull();
+  });
+});
+
+describe('SSG worker status handling', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('fails the route when it renders a 5xx error page', async () => {
+    const { sys } = createSystem();
+    const result = await renderRoute(sys, createRender(), throwOnGet(503, 'upstream down'));
+
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('503');
+    expect(result.error?.message).toContain('upstream down');
+    expect(result.filePath).toBeNull();
+  });
+
+  it('still skips a route that renders a 404', async () => {
+    const { sys } = createSystem();
+    const result = await renderRoute(sys, createRender(), throwOnGet(404, 'missing'));
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBeNull();
     expect(result.filePath).toBeNull();
   });
 });

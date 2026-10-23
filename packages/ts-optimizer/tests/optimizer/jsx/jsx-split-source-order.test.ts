@@ -69,7 +69,7 @@ export const C = component$(({some = 1 + 2, ...rest}) => {
     expect(seg.code).toContain('_getConstProps');
   });
 
-  it('multi-spread + no real-const-after (only event handlers): falls through to wrappers', () => {
+  it('multi-spread + no real-const-after (only event handlers): spreads member expressions raw', () => {
     const source = `
 import { component$ } from '@qwik.dev/core';
 export default component$((props) => {
@@ -86,7 +86,7 @@ export default component$((props) => {
       throw new Error('expected segment');
     }
 
-    expect(seg.code).toMatch(/_getVarProps|_getConstProps/);
+    expect(seg.code).not.toMatch(/_getVarProps|_getConstProps/);
   });
 
   it('multi-spread + after-all-spreads literal const: works without an event-handler in const', () => {

@@ -60,6 +60,21 @@ describe('bundleServiceWorkerChunks', () => {
     expect(swChunk.dynamicImports).toEqual([]);
   });
 
+  test(`GIVEN a service worker chunk whose dynamically imported chunk throws
+        THEN the import rejects with that chunk's error`, async () => {
+    const lazyChunk = chunk('build/q-lazy.js', `throw new Error("lazy chunk failed");\n`);
+    const swChunk = chunk(
+      'build/q-sw.js',
+      `self.result = import("./q-lazy.js");\n`,
+      [],
+      ['build/q-lazy.js']
+    );
+
+    await bundleServiceWorkerChunks(toBundle(lazyChunk, swChunk), [swChunk]);
+
+    await expect(runAsServiceWorker(swChunk.code).result).rejects.toThrow('lazy chunk failed');
+  });
+
   test(`GIVEN a service worker chunk without imports
         THEN its code is left untouched`, async () => {
     const code = `self.addEventListener("install", () => self.skipWaiting());\n`;

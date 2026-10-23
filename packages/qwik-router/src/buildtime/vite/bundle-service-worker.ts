@@ -2,6 +2,7 @@ import { posix } from 'node:path';
 import { build, type BuildOptions, type Plugin, type Rolldown } from 'vite';
 
 const CHUNK_ID_PREFIX = '\0qwik-router-sw-chunk:';
+const PRELOAD_HELPER_PLUGIN_NAMES = ['vite:build-import-analysis', 'native:import-analysis-build'];
 
 /**
  * Inlines the chunks that service worker chunks import, because service workers are registered as
@@ -64,6 +65,15 @@ async function bundleAsClassicScript(
 function builtChunksPlugin(chunksByFileName: Map<string, Rolldown.OutputChunk>): Plugin {
   return {
     name: 'vite-plugin-qwik-router-sw-chunks',
+    configResolved(config) {
+      const plugins = config.plugins as Plugin[];
+      for (const name of PRELOAD_HELPER_PLUGIN_NAMES) {
+        const index = plugins.findIndex((p) => p.name === name);
+        if (index >= 0) {
+          plugins.splice(index, 1);
+        }
+      }
+    },
     resolveId(source, importer) {
       if (source.startsWith(CHUNK_ID_PREFIX)) {
         return source;

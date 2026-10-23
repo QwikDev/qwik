@@ -25,7 +25,7 @@
   "dependencies": {
     "@modelcontextprotocol/server": "^2.3.0",
     "oxc-parser": "^0.144.0",
-    "zod": "^4.2.0"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.3.0",

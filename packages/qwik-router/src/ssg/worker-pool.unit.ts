@@ -22,8 +22,15 @@ class FakeWorker extends EventEmitter {
     workers.push(this);
   }
   unref() {}
-  async terminate() {
-    return 0;
+  exited?: Promise<number>;
+  terminate() {
+    this.exited ??= new Promise((resolve) =>
+      setImmediate(() => {
+        this.emit('exit', 1);
+        resolve(1);
+      })
+    );
+    return this.exited;
   }
   postMessage(msg: WorkerInputMessage) {
     if (this.isListening) {
@@ -266,6 +273,104 @@ describe('createWorkerPool', () => {
       );
 
       expect((await failed).error?.message).toBe('caught');
+    });
+  });
+
+  describe('worker restarts', () => {
+    it('restarting a worker for a timed-out route stops its other routes and renders on a new worker', async () => {
+      const pool = await createWorkerPool(sys, {
+        outDir: '/out',
+        sitemapOutFile: null,
+        maxWorkers: 1,
+        workerFilePath: '/run-ssg-worker.js',
+      } as any);
+      workers[0].attachListener();
+
+      const hung = pool.render({ type: 'render', pathname: '/hang', params: undefined });
+      const hungToo = pool.render({ type: 'render', pathname: '/hang-too', params: undefined });
+      await pool.restartWorker('/hang');
+      const next = pool.render({ type: 'render', pathname: '/fine', params: undefined });
+      workers[1].attachListener();
+      workers[1].emit('message', renderResult('/fine'));
+
+      expect((await hung).error?.message).toContain('/hang');
+      expect((await hung).isInterrupted).toBeFalsy();
+      expect((await hungToo).isInterrupted).toBe(true);
+      expect((await next).ok).toBe(true);
+    });
+
+    it("finishes a worker restart only after the timed-out route's files are deleted", async () => {
+      const outDir = await mkdtemp(join(tmpdir(), 'qwik-router-ssg-pool-'));
+      try {
+        const indexPath = join(outDir, 'index.html');
+        const realRm = fs.promises.rm;
+        const heldRemovals: Array<() => Promise<void>> = [];
+        vi.spyOn(fs.promises, 'rm').mockImplementation(
+          (...args) =>
+            new Promise<void>((resolve, reject) => {
+              heldRemovals.push(() => realRm(...args).then(resolve, reject));
+            })
+        );
+        const pool = await createWorkerPool(sys, {
+          outDir,
+          sitemapOutFile: null,
+          maxWorkers: 1,
+          workerFilePath: '/run-ssg-worker.js',
+        } as any);
+        workers[0].attachListener();
+        pool.render({ type: 'render', pathname: '/hang', params: undefined });
+        workers[0].emit('message', { type: 'file', pathname: '/hang', filePath: indexPath });
+        await writeFile(indexPath, '<html>partial');
+
+        let isRestarted = false;
+        const restarted = pool.restartWorker('/hang').then(() => {
+          isRestarted = true;
+        });
+        await new Promise((resolve) => setImmediate(resolve));
+        expect(heldRemovals).toHaveLength(1);
+        expect(isRestarted).toBe(false);
+
+        await heldRemovals[0]();
+        await restarted;
+        await writeFile(indexPath, '<html>retried</html>');
+
+        expect(await readFile(indexPath, 'utf-8')).toBe('<html>retried</html>');
+      } finally {
+        await rm(outDir, { recursive: true, force: true });
+      }
+    });
+
+    it('restarts the worker once when two of its routes time out together', async () => {
+      const pool = await createWorkerPool(sys, {
+        outDir: '/out',
+        sitemapOutFile: null,
+        maxWorkers: 1,
+        workerFilePath: '/run-ssg-worker.js',
+      } as any);
+      workers[0].attachListener();
+      const first = pool.render({ type: 'render', pathname: '/slow-a', params: undefined });
+      const second = pool.render({ type: 'render', pathname: '/slow-b', params: undefined });
+
+      await Promise.all([pool.restartWorker('/slow-a'), pool.restartWorker('/slow-b')]);
+
+      expect(workers).toHaveLength(2);
+      expect((await first).error).not.toBeNull();
+      expect((await second).error).not.toBeNull();
+    });
+
+    it('restarts a worker that is still starting instead of reporting a startup crash', async () => {
+      const pool = await createWorkerPool(sys, {
+        outDir: '/out',
+        sitemapOutFile: null,
+        maxWorkers: 1,
+        workerFilePath: '/run-ssg-worker.js',
+      } as any);
+
+      const slow = pool.render({ type: 'render', pathname: '/slow', params: undefined });
+      await pool.restartWorker('/slow');
+
+      expect((await slow).error?.message).toContain('/slow');
+      expect(workers).toHaveLength(2);
     });
   });
 });

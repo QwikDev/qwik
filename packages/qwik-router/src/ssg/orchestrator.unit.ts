@@ -2,7 +2,7 @@ import type { QwikRouterConfig, RouteData } from '@qwik.dev/router';
 import { afterEach, assert, beforeEach, describe, test, vi } from 'vitest';
 import { getLoaderName } from '../middleware/request-handler/request-path';
 import { mainThread } from './orchestrator';
-import type { Logger, MainContext, System } from './types';
+import type { Logger, MainContext, SsgWorkerRenderResult, System } from './types';
 
 const noopLogger: Logger = {
   info: () => {},
@@ -392,6 +392,147 @@ describe('retries', () => {
       assert.equal(callCount, 3);
     });
   });
+
+  describe('timeouts', () => {
+    test('stops the build when a render times out with no retries left', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const sys = createSystem({
+        routes: { _I: async () => ({ default: () => null as any }) },
+        render: () => new Promise<never>(() => {}),
+      });
+
+      const done = mainThread(sys).catch((error: Error) => error);
+      await vi.runAllTimersAsync();
+
+      assert.include(String(await done), 'timed out');
+    });
+
+    test('restarts the worker and retries a route whose render timed out', async () => {
+      const restarted: string[] = [];
+      let renderCount = 0;
+      const sys = createSystem({
+        routes: { _I: async () => ({ default: () => null as any }) },
+        render: ({ pathname }) => {
+          renderCount++;
+          return renderCount === 1
+            ? new Promise<never>(() => {})
+            : Promise.resolve(createRenderResult(pathname));
+        },
+        restartWorker: async (pathname) => {
+          restarted.push(pathname);
+        },
+        retries: 1,
+      });
+
+      const result = await runMainThread(sys);
+
+      assert.deepEqual(restarted, ['/']);
+      assert.equal(renderCount, 2);
+      assert.equal(result.rendered, 1);
+    });
+
+    test('still retries a timed-out route when the worker restart is slow', async () => {
+      let busySlots = 0;
+      let renderCount = 0;
+      const sys = createSystem({
+        routes: { _I: async () => ({ default: () => null as any }) },
+        hasAvailableWorker: () => busySlots === 0,
+        render: ({ pathname }) => {
+          renderCount++;
+          if (renderCount === 1) {
+            busySlots++;
+            return new Promise<never>(() => {});
+          }
+          return Promise.resolve(createRenderResult(pathname));
+        },
+        restartWorker: () =>
+          new Promise<void>((resolve) =>
+            setTimeout(() => {
+              busySlots = 0;
+              resolve();
+            }, 1000)
+          ),
+        retries: 1,
+      });
+
+      const result = await runMainThread(sys);
+
+      assert.equal(renderCount, 2);
+      assert.equal(result.rendered, 1);
+    });
+
+    test("does not use a retry for a route stopped by another route's timeout", async () => {
+      let interruptAbout: (() => void) | undefined;
+      const aboutRenders = [
+        () =>
+          new Promise<SsgWorkerRenderResult>((resolve) => {
+            interruptAbout = () =>
+              resolve({ ...createFailedRenderResult('/about'), isInterrupted: true });
+          }),
+        () => Promise.resolve(createFailedRenderResult('/about')),
+        () => Promise.resolve(createRenderResult('/about')),
+      ];
+      let indexRenderCount = 0;
+      const sys = createSystem({
+        routes: {
+          _I: async () => ({ default: () => null as any }),
+          about: { _I: async () => ({ default: () => null as any }) },
+        },
+        render: ({ pathname }) => {
+          if (pathname === '/about') {
+            return aboutRenders.shift()!();
+          }
+          return indexRenderCount++ === 0
+            ? new Promise<never>(() => {})
+            : Promise.resolve(createRenderResult(pathname));
+        },
+        restartWorker: async () => {
+          interruptAbout?.();
+        },
+        retries: 1,
+      });
+
+      const result = await runMainThread(sys);
+
+      assert.equal(result.errors, 0);
+      assert.sameMembers(result.staticPaths, ['/', '/about']);
+    });
+
+    test('retries each route once when two routes on one worker time out together', async () => {
+      const renderCounts = new Map<string, number>();
+      const hungRenders = new Map<string, (result: SsgWorkerRenderResult) => void>();
+      const sys = createSystem({
+        routes: {
+          _I: async () => ({ default: () => null as any }),
+          about: { _I: async () => ({ default: () => null as any }) },
+        },
+        render: ({ pathname }) => {
+          const renderCount = (renderCounts.get(pathname) ?? 0) + 1;
+          renderCounts.set(pathname, renderCount);
+          if (renderCount === 1) {
+            return new Promise((resolve) => hungRenders.set(pathname, resolve));
+          }
+          return Promise.resolve(createRenderResult(pathname));
+        },
+        restartWorker: async (pathname) => {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          for (const [hungPathname, resolve] of hungRenders) {
+            resolve({
+              ...createFailedRenderResult(hungPathname),
+              isInterrupted: hungPathname !== pathname,
+            });
+          }
+          hungRenders.clear();
+        },
+        retries: 1,
+      });
+
+      const result = await runMainThread(sys);
+
+      assert.equal(result.errors, 0);
+      assert.deepEqual(Object.fromEntries(renderCounts), { '/': 2, '/about': 2 });
+    });
+  });
 });
 
 async function runMainThread(sys: System) {
@@ -410,17 +551,22 @@ function createSystem({
   basePathname = '/',
   retries,
   logger = noopLogger,
+  hasAvailableWorker = () => true,
+  restartWorker = async () => {},
 }: {
   routes: RouteData;
   render: MainContext['render'];
   basePathname?: string;
   retries?: number;
   logger?: Logger;
+  hasAvailableWorker?: MainContext['hasAvailableWorker'];
+  restartWorker?: MainContext['restartWorker'];
 }): System {
   return {
     createMainProcess: async () => ({
-      hasAvailableWorker: () => true,
+      hasAvailableWorker,
       render,
+      restartWorker,
       close: async () => {},
     }),
     createLogger: async () => logger,

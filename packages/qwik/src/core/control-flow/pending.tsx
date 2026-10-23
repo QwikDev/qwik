@@ -114,6 +114,10 @@ export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
   );
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
+  // Reconcile restored SSR state when no client work is pending.
+  if (!isServerEnv && untrack(() => cursorBoundary.value) === 0) {
+    state.value = 'content';
+  }
   const isServerOutOfOrder = isServerEnv && isOutOfOrderStreaming();
   const outOfOrderBoundaryId = isServerOutOfOrder ? nextOutOfOrderPendingId() : 0;
   const outOfOrderRevealBoundary = isServerOutOfOrder

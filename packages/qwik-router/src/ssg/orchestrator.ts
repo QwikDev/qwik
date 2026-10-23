@@ -17,6 +17,23 @@ export async function mainThread(sys: System) {
 
   const qwikRouterConfig = opts.qwikRouterConfig;
   const renderTimeout = 30_000;
+  const maxRetries = opts.retries ?? 0;
+  const failedAttempts = new Map<string, number>();
+
+  const callWithRetries = async <T>(label: string, call: () => Promise<T> | T): Promise<T> => {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await call();
+      } catch (e) {
+        if (attempt > maxRetries) {
+          throw e;
+        }
+        const reason = e instanceof Error ? e.message : String(e);
+        log.warn(`Retrying ${label} after it failed (${attempt} of ${maxRetries}): ${reason}`);
+        await new Promise((resolve) => setTimeout(resolve, getRetryDelay(attempt)));
+      }
+    }
+  };
 
   const queue: SsgRoute[] = [];
   const active = new Set<string>();
@@ -31,6 +48,7 @@ export async function mainThread(sys: System) {
         duration: 0,
         rendered: 0,
         errors: 0,
+        retried: 0,
         staticPaths: [],
       };
 
@@ -48,6 +66,13 @@ export async function mainThread(sys: System) {
             log.info(
               `- Generated: ${dim(
                 `${generatorResult.rendered} page${generatorResult.rendered === 1 ? '' : 's'}`
+              )}`
+            );
+          }
+          if (generatorResult.retried > 0) {
+            log.info(
+              `- Retried: ${dim(
+                `${generatorResult.retried} route${generatorResult.retried === 1 ? '' : 's'}`
               )}`
             );
           }
@@ -99,6 +124,24 @@ export async function mainThread(sys: System) {
         }
       };
 
+      const hasRetriesLeft = (staticRoute: SsgRoute) =>
+        (failedAttempts.get(staticRoute.pathname) ?? 0) < maxRetries;
+
+      const retryLater = (staticRoute: SsgRoute, reason: string) => {
+        const attempt = (failedAttempts.get(staticRoute.pathname) ?? 0) + 1;
+        failedAttempts.set(staticRoute.pathname, attempt);
+        if (attempt === 1) {
+          generatorResult.retried++;
+        }
+        log.warn(
+          `Retrying ${magenta(staticRoute.pathname)} after a failed render (${attempt} of ${maxRetries}): ${reason}`
+        );
+        setTimeout(() => {
+          queue.push(staticRoute);
+          next();
+        }, getRetryDelay(attempt));
+      };
+
       const render = async (staticRoute: SsgRoute) => {
         try {
           active.add(staticRoute.pathname);
@@ -114,8 +157,14 @@ export async function mainThread(sys: System) {
             ),
           ]);
 
-          active.delete(staticRoute.pathname);
           log.debug(`render done: ${staticRoute.pathname}`);
+
+          if (result.error && hasRetriesLeft(staticRoute)) {
+            retryLater(staticRoute, result.error.message);
+            return;
+          }
+
+          active.delete(staticRoute.pathname);
 
           if (result.error) {
             const err = new Error(result.error.message);
@@ -217,14 +266,19 @@ export async function mainThread(sys: System) {
             if (typeof pageLoader === 'function') {
               const pageModule: PageModule = await pageLoader();
 
-              if (typeof pageModule.onStaticGenerate === 'function') {
-                const staticGenerate = await pageModule.onStaticGenerate({
-                  env: {
-                    get(key: string) {
-                      return sys.getEnv(key);
-                    },
-                  },
-                });
+              const onStaticGenerate = pageModule.onStaticGenerate;
+              if (typeof onStaticGenerate === 'function') {
+                const staticGenerate = await callWithRetries(
+                  `onStaticGenerate for ${magenta(originalPathname)}`,
+                  () =>
+                    onStaticGenerate({
+                      env: {
+                        get(key: string) {
+                          return sys.getEnv(key);
+                        },
+                      },
+                    })
+                );
                 if (Array.isArray(staticGenerate.params)) {
                   for (const params of staticGenerate.params) {
                     const pathname = getPathnameForDynamicRoute(
@@ -316,6 +370,11 @@ export async function mainThread(sys: System) {
       reject(e);
     }
   });
+}
+
+function getRetryDelay(attempt: number) {
+  const delay = Math.min(500 * 2 ** (attempt - 1), 2000);
+  return delay * (1 + Math.random() * 0.3);
 }
 
 function validateOptions(opts: SsgGenerateOptions) {

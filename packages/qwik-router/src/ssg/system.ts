@@ -34,12 +34,14 @@ export async function createSystem(opts: SsgGenerateOptions, threadId?: number):
       return {
         debug: isDebug ? console.debug.bind(console, `[${threadId}]`) : noop,
         error: console.error.bind(console, `[${threadId}]`),
+        warn: console.warn.bind(console, `[${threadId}]`),
         info: isQuiet ? noop : console.info.bind(console, `[${threadId}]`),
       };
     }
     return {
       debug: isDebug ? console.debug.bind(console) : noop,
       error: console.error.bind(console),
+      warn: console.warn.bind(console),
       info: isQuiet ? noop : console.info.bind(console),
     };
   };

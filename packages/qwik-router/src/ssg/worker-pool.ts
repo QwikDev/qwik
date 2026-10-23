@@ -68,6 +68,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
   const createWorker = () => {
     let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
+    const taskFiles = new Map<string, string[]>();
     let terminateTimeout: number | null = null;
 
     let isReady = false;
@@ -131,10 +132,20 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
       },
     };
 
+    const takeTaskFiles = (pathname: string) => {
+      const files = taskFiles.get(pathname) ?? [];
+      taskFiles.delete(pathname);
+      return files;
+    };
+
     nodeWorker.on('message', (msg: WorkerOutputMessage) => {
       switch (msg.type) {
         case 'ready': {
           markWorkerReady();
+          break;
+        }
+        case 'file': {
+          taskFiles.set(msg.pathname, [...(taskFiles.get(msg.pathname) ?? []), msg.filePath]);
           break;
         }
         case 'render': {
@@ -142,7 +153,12 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
           if (mainTask) {
             mainTasks.delete(msg.pathname);
             ssgWorker.activeTasks--;
-            mainTask(msg);
+            const files = takeTaskFiles(msg.pathname);
+            if (msg.error) {
+              removeFiles(files).then(() => mainTask({ ...msg, filePath: null }));
+            } else {
+              mainTask(msg);
+            }
           }
           break;
         }
@@ -180,16 +196,18 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
       if (mainTasks.size > 0) {
         for (const [pathname, resolve] of mainTasks) {
           ssgWorker.activeTasks--;
-          resolve({
-            type: 'render',
-            pathname,
-            url: '',
-            ok: false,
-            error: { message: `Worker exited with code ${code}`, stack: undefined },
-            filePath: null,
-            contentType: null,
-            resourceType: null,
-          });
+          removeFiles(takeTaskFiles(pathname)).then(() =>
+            resolve({
+              type: 'render',
+              pathname,
+              url: '',
+              ok: false,
+              error: { message: `Worker exited with code ${code}`, stack: undefined },
+              filePath: null,
+              contentType: null,
+              resourceType: null,
+            })
+          );
         }
         mainTasks.clear();
       }
@@ -230,7 +248,8 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
 
     // The 404 page is a normal prerendered page; the sitemap just shouldn't list the not-found template.
     const isNotFoundPage = result.pathname.endsWith('/404.html');
-    if (sitemapOutFile && result.ok && result.resourceType === 'page' && !isNotFoundPage) {
+    const isRenderedPage = result.ok && !result.error && result.resourceType === 'page';
+    if (sitemapOutFile && isRenderedPage && !isNotFoundPage) {
       sitemapBuffer.push(`<url><loc>${result.url}</loc></url>`);
       if (sitemapBuffer.length > 50) {
         const siteMapUrls = sitemapBuffer.join('\n') + '\n';
@@ -316,6 +335,9 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
 
   return mainCtx;
 }
+
+const removeFiles = (filePaths: string[]) =>
+  Promise.allSettled(filePaths.map((filePath) => fs.promises.rm(filePath, { force: true })));
 
 function ssgWorkerCompare(a: SsgWorker, b: SsgWorker) {
   if (a.activeTasks < b.activeTasks) {

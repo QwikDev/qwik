@@ -1,5 +1,56 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.4
+
+### Minor Changes
+
+- ✨ `migrate-v2` now includes all v1 migrations and runs with `npx @qwik.dev/core@latest migrate-v2`. (by [@wmertens](https://github.com/wmertens) in [#9178](https://github.com/QwikDev/qwik/pull/9178))
+
+### Patch Changes
+
+- 🐞🩹 a resumed child component rerenders when its props change (by [@yiannis-psomadelis](https://github.com/yiannis-psomadelis) in [#9272](https://github.com/QwikDev/qwik/pull/9272))
+
+- 🐞🩹 click-to-source now finds elements created in the browser during dev (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#9210](https://github.com/QwikDev/qwik/pull/9210))
+
+- 🐞🩹 SSR subscribes qwikloader to event names as soon as their elements render, so interactions during streaming are not lost (by [@Varixo](https://github.com/Varixo) in [#9226](https://github.com/QwikDev/qwik/pull/9226))
+
+- 🐞🩹 preserve resumed state when pending segments finish before the shell (by [@Varixo](https://github.com/Varixo) in [#9254](https://github.com/QwikDev/qwik/pull/9254))
+
+- 🐞🩹 rewrite destructured props used as computed keys in nested closures (by [@Varixo](https://github.com/Varixo) in [#9215](https://github.com/QwikDev/qwik/pull/9215))
+
+- 🐞🩹 defer visible tasks inside unclaimed projections (by [@Varixo](https://github.com/Varixo) in [#9029](https://github.com/QwikDev/qwik/pull/9029))
+
+- 🐞🩹 computed signals recompute once and without stale sources in diamond dependency graphs (by [@Varixo](https://github.com/Varixo) in [#9212](https://github.com/QwikDev/qwik/pull/9212))
+
+- 🐞🩹 inserting a component no longer drops the next sibling's signal bindings (by [@ybai08](https://github.com/ybai08) in [#9230](https://github.com/QwikDev/qwik/pull/9230))
+
+- 🐞🩹 removing or reordering elements no longer re-inserts the siblings that stay in place (by [@ybai08](https://github.com/ybai08) in [#9229](https://github.com/QwikDev/qwik/pull/9229))
+
+- 🐞🩹 preserve shared objects without retaining completed streaming state (by [@Varixo](https://github.com/Varixo) in [#9258](https://github.com/QwikDev/qwik/pull/9258))
+
+- 🐞🩹 re-export `createOptimizer` from `@qwik.dev/core/optimizer` so the runtime exports match the published types (and the v1 contract where `@builder.io/qwik/optimizer` exported it). (by [@A-Raphie](https://github.com/A-Raphie) in [#9248](https://github.com/QwikDev/qwik/pull/9248))
+
+- 🐞🩹 the preloader applies hints sent before it loaded, and holds speculative preloads while needed bundles load (by [@Varixo](https://github.com/Varixo) in [#9223](https://github.com/QwikDev/qwik/pull/9223))
+
+- 🐞🩹 editing a plainly imported css file no longer reloads the page (by [@jantimon](https://github.com/jantimon) in [#9269](https://github.com/QwikDev/qwik/pull/9269))
+
+- 🐞🩹 a component serialized twice no longer resumes without its render function (by [@yiannis-psomadelis](https://github.com/yiannis-psomadelis) in [#9272](https://github.com/QwikDev/qwik/pull/9272))
+
+- 🐞🩹 preserve pre-resume interactions on WebKit while HTML streaming stalls. (by [@akasakariko](https://github.com/akasakariko) in [#9208](https://github.com/QwikDev/qwik/pull/9208))
+
+  The default `module` qwikloader strategy now starts the loader from a small inline bootstrap script instead of an external `<script type="module" src>` tag. The bootstrap receives the CSP nonce like other Qwik inline scripts, so nonce-based policies keep working. Deployments that allow inline scripts by hash instead (for example `script-src 'self'` plus a fixed list of `'sha256-...'` hashes) must add a hash for the new bootstrap script, otherwise the browser will block it.
+
+- 🐞🩹 isolate subscriptions between pending boundaries sharing reactive state (by [@Varixo](https://github.com/Varixo) in [#9258](https://github.com/QwikDev/qwik/pull/9258))
+
+- 🐞🩹 keep client-only callbacks outside smart render bundles (by [@Varixo](https://github.com/Varixo) in [#9263](https://github.com/QwikDev/qwik/pull/9263))
+
+- 🐞🩹 with the TypeScript optimizer, elements with spread props and a `key` no longer lose children or props, or throw `_createElement is not defined` (by [@maiieul](https://github.com/maiieul) in [#9107](https://github.com/QwikDev/qwik/pull/9107))
+
+- 🐞🩹 the TypeScript optimizer keeps outer loop items in scope for handlers in nested loops (by [@SahinurDEV](https://github.com/SahinurDEV) in [#9231](https://github.com/QwikDev/qwik/pull/9231))
+
+- Updated dependencies [[`51dc669`](https://github.com/QwikDev/qwik/commit/51dc6692c6b345caaf4767be4069ad6ddfa55225), [`42a901d`](https://github.com/QwikDev/qwik/commit/42a901d3667c0b9d96e6e78f6d05e13eee979b50)]:
+  - @qwik.dev/optimizer@2.1.0-rc.10
+
 ## 2.0.0-rc.3
 
 ### Patch Changes

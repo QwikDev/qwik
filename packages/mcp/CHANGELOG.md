@@ -1,5 +1,16 @@
 # @qwik.dev/mcp
 
+## 2.0.0-rc.4
+
+### Patch Changes
+
+- 🐞🩹 dev SSR no longer hangs when a component file declares a custom hook (by [@rapporian](https://github.com/rapporian) in [#9217](https://github.com/QwikDev/qwik/pull/9217))
+
+- 🐞🩹 dev SSR no longer fails when a custom hook returns a non-serializable value (by [@rapporian](https://github.com/rapporian) in [#9217](https://github.com/QwikDev/qwik/pull/9217))
+
+- Updated dependencies [[`f8ffdf3`](https://github.com/QwikDev/qwik/commit/f8ffdf3ee1a8e96b2481040bafc3f07a2ad05c50), [`399ead2`](https://github.com/QwikDev/qwik/commit/399ead29930f007e68f28e2f23ce112f7e8f0a44), [`de6ea1f`](https://github.com/QwikDev/qwik/commit/de6ea1fcdd99f2d17f70b272bbe64aad61c4ac11), [`b8dd34d`](https://github.com/QwikDev/qwik/commit/b8dd34df3ba6192ea3e47e4276b3bcd6c5c6265f), [`37a7753`](https://github.com/QwikDev/qwik/commit/37a77538283faf8dab102cefe04c553b0b8c11c6), [`4760c63`](https://github.com/QwikDev/qwik/commit/4760c63cf8625c43feea617063c67ca0be1ff2b6), [`9ee6404`](https://github.com/QwikDev/qwik/commit/9ee6404f89f792a0f2520f87ef89970801ccfae3), [`def81f4`](https://github.com/QwikDev/qwik/commit/def81f4f4fc5d4c3887ba138bbc04e7c9fab6395), [`51b7c19`](https://github.com/QwikDev/qwik/commit/51b7c19a18c48fbcc2ed19b76683a8221cd5b234), [`c447c30`](https://github.com/QwikDev/qwik/commit/c447c30823e730a186c46a655c39041f69ead8fd), [`5cecd98`](https://github.com/QwikDev/qwik/commit/5cecd98ee345ac00643199afc98f5db754292fb0), [`200bac0`](https://github.com/QwikDev/qwik/commit/200bac0901c3f00339a7e359906ee2f4b1cb1ff9), [`e0ffc00`](https://github.com/QwikDev/qwik/commit/e0ffc0050fad9d7c3b3402d2b14af90d454ff263), [`5fc6a5a`](https://github.com/QwikDev/qwik/commit/5fc6a5a02d5d772948b5a3f6d044d159adcc6bb4), [`2d32d87`](https://github.com/QwikDev/qwik/commit/2d32d87076baa25352e12667bc35519917e1b002), [`6bbbcc2`](https://github.com/QwikDev/qwik/commit/6bbbcc2303b2dce213be1b9d00039284f3e026d5), [`86d92ab`](https://github.com/QwikDev/qwik/commit/86d92ab74c27a30d9b509e494036c67cf50dfe91), [`42a901d`](https://github.com/QwikDev/qwik/commit/42a901d3667c0b9d96e6e78f6d05e13eee979b50), [`823236a`](https://github.com/QwikDev/qwik/commit/823236afac4ca8cc17466da29c6be5e39c9dd7d0), [`2eac456`](https://github.com/QwikDev/qwik/commit/2eac456c28dc0d19d951f0c4bf5904e65600a544)]:
+  - @qwik.dev/core@2.0.0-rc.4
+
 ## 2.0.0-rc.3
 
 ### Minor Changes

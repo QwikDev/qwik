@@ -1030,6 +1030,17 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(contentHost.style.display).toBe('contents');
   });
 
+  it.each([false, true])('should preserve zero content with outOfOrder=%s', async (outOfOrder) => {
+    const { document } = await ssrRenderToDom(
+      <main>
+        <Pending>{0}</Pending>
+      </main>,
+      { debug, streaming: { outOfOrder } }
+    );
+    const contentHost = document.querySelector('main > div:last-of-type')!;
+    expect(contentHost.firstChild?.nodeValue).toBe('0');
+  });
+
   it('should show a numeric zero fallback immediately during initial loading', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {

@@ -8,7 +8,6 @@ import { Fragment } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import { JSXNodeFlags, type JSXNodeInternal, type JSXOutput } from '../shared/jsx/types/jsx-node';
-import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import {
   SSRComment,
   SSRRaw,
@@ -24,11 +23,8 @@ import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
-  QDefaultSlot,
   QErrorContentHost,
   QScopedStyle,
-  QSlot,
-  QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
@@ -43,7 +39,7 @@ import {
 } from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
-import { resolveSlotName } from '../shared/utils/prop';
+import { openSlotProjection } from './ssr-render-slot';
 
 class MaybeAsyncSignal {}
 // we need to differentiate between JSX functions and ssr container functions for error boundary
@@ -290,40 +286,20 @@ function processJSXNode(
           const children = jsx.children as JSXOutput;
           children != null && enqueueJSX(enqueue, children);
         } else if (type === Slot) {
-          const componentFrame = options.parentComponentFrame;
-          if (componentFrame) {
-            const projectionAttrs: Record<string, string | null> = isDev
-              ? { [DEBUG_TYPE]: VirtualType.Projection }
-              : {};
-            ssr.openProjection(projectionAttrs);
-            const host = componentFrame.componentNode;
-            const node = ssr.getOrCreateLastNode();
-            const slotName = resolveSlotName(host, jsx, ssr);
-            projectionAttrs[QSlot] = slotName;
-
+          if (options.parentComponentFrame) {
+            const slot = openSlotProjection(ssr, jsx, options);
             enqueue(
               setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
             );
             enqueue(ssr.closeProjection);
-            const slotDefaultChildren: JSXChildren | null = jsx.children ?? null;
-            const projectedChildren = componentFrame.consumeChildrenForSlot(node, slotName);
-            const slotChildren = projectedChildren ?? slotDefaultChildren;
-            if (projectedChildren == null) {
-              node.removeProp(QSlotParent);
-            }
-            if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
-              ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
-            }
-            enqueueJSX(enqueue, slotChildren as JSXOutput);
-            if (projectedChildren != null) {
-              enqueue(
-                setParentOptions(
-                  options,
-                  componentFrame.projectionScopedStyle,
-                  componentFrame.projectionComponentFrame
-                )
-              );
-            }
+            enqueueJSX(enqueue, slot.children);
+            enqueue(
+              setParentOptions(
+                options,
+                slot.options.currentStyleScoped,
+                slot.options.parentComponentFrame
+              )
+            );
           } else {
             // Even thought we are not projecting we still need to leave a marker for the slot.
             let projectionAttrs = EMPTY_OBJ;

@@ -397,7 +397,7 @@ number
 
 </td><td>
 
-_(Optional)_ Number of times to retry a route whose render failed, or an `onStaticGenerate` call that threw, before recording the error. Each retry waits 500ms, doubling up to 2s, plus up to 30% at random. Defaults to `0` (the first failure is final).
+_(Optional)_ Number of times to retry a route whose render failed or timed out, or an `onStaticGenerate` call that threw, before recording the error. Each retry waits 500ms, doubling up to 2s, plus up to 30% at random. Defaults to `0` (the first failure is final).
 
 </td></tr>
 <tr><td>

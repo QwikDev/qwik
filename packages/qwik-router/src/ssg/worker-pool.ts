@@ -70,6 +70,8 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
     const mainTasks = new Map<string, WorkerMainTask>();
     const taskFiles = new Map<string, string[]>();
     let terminateTimeout: number | null = null;
+    let stoppedPathname: string | undefined;
+    let exitCleanup: Promise<unknown> = Promise.resolve();
 
     let isReady = false;
     let startupError: Error | undefined;
@@ -91,6 +93,14 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
     const ssgWorker: SsgWorker = {
       activeTasks: 0,
       totalTasks: 0,
+
+      isRendering: (pathname) => mainTasks.has(pathname),
+
+      restart: async (pathname) => {
+        stoppedPathname = pathname;
+        await nodeWorker.terminate();
+        await exitCleanup;
+      },
 
       render: (staticRoute) => {
         return new Promise((resolve, reject) => {
@@ -185,7 +195,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
         clearTimeout(terminateTimeout);
         terminateTimeout = null;
       }
-      if (!isReady && !isClosing) {
+      if (!isReady && !isClosing && !stoppedPathname) {
         const cause = startupError ? `: ${startupError.message}` : '';
         failWorkerStart(
           new Error(`SSG worker exited with code ${code} before it was ready${cause}`)
@@ -194,21 +204,30 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
       }
       // Resolve any pending tasks so the main thread doesn't hang
       if (mainTasks.size > 0) {
+        const cleanups: Promise<void>[] = [];
         for (const [pathname, resolve] of mainTasks) {
           ssgWorker.activeTasks--;
-          removeFiles(takeTaskFiles(pathname)).then(() =>
+          const cleanup = removeFiles(takeTaskFiles(pathname)).then(() =>
             resolve({
               type: 'render',
               pathname,
               url: '',
               ok: false,
-              error: { message: `Worker exited with code ${code}`, stack: undefined },
+              error: {
+                message: stoppedPathname
+                  ? `Worker restarted to stop the render of ${stoppedPathname}`
+                  : `Worker exited with code ${code}`,
+                stack: undefined,
+              },
+              isInterrupted: stoppedPathname !== undefined && pathname !== stoppedPathname,
               filePath: null,
               contentType: null,
               resourceType: null,
             })
           );
+          cleanups.push(cleanup);
         }
+        exitCleanup = Promise.all(cleanups);
         mainTasks.clear();
       }
       // Resolve terminate if it was waiting
@@ -216,7 +235,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
         terminateResolve();
         terminateResolve = null;
       }
-      if (code !== 0) {
+      if (code !== 0 && !stoppedPathname) {
         console.error(`worker exit ${code}`);
       }
       if (!isClosing) {
@@ -232,6 +251,11 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
     if (index !== -1) {
       ssgWorkers[index] = createWorker();
     }
+  };
+
+  const restartWorker = async (pathname: string) => {
+    const ssgWorker = ssgWorkers.find((worker) => worker.isRendering(pathname));
+    await ssgWorker?.restart(pathname);
   };
 
   const getNextWorker = () => ssgWorkers.sort(ssgWorkerCompare)[0];
@@ -330,6 +354,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
   const mainCtx: MainContext = {
     hasAvailableWorker,
     render,
+    restartWorker,
     close,
   };
 
@@ -354,6 +379,8 @@ type WorkerMainTask = (result: SsgWorkerRenderResult) => void;
 interface SsgWorker {
   activeTasks: number;
   totalTasks: number;
+  isRendering: (pathname: string) => boolean;
+  restart: (stoppedPathname: string) => Promise<void>;
   render: (staticRoute: SsgRoute) => Promise<SsgWorkerRenderResult>;
   terminate: () => Promise<void>;
 }

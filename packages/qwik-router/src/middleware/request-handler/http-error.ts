@@ -38,6 +38,23 @@ export type ServerError<T = any> = HttpError<T>;
 export const isCrash = (err: unknown): err is Error =>
   err instanceof Error && !(err instanceof HttpError);
 
+export const PRIVATE_NO_STORE = 'private, no-store';
+
+/** These statuses describe the URL itself, so caches may keep them like a 200. */
+const URL_SCOPED_FAILURE_STATUSES = new Set([404, 405, 410, 501]);
+
+export function setFailureCacheControl(
+  requestEv: { request: Request; headers: Headers },
+  status: number
+): void {
+  const method = requestEv.request.method;
+  const isReadRequest = method === 'GET' || method === 'HEAD';
+  if (isReadRequest && URL_SCOPED_FAILURE_STATUSES.has(status)) {
+    return;
+  }
+  requestEv.headers.set('Cache-Control', PRIVATE_NO_STORE);
+}
+
 /** A crash's message reaches the client only in dev. */
 export const getPublicCrashMessage = (err: Error): string =>
   isDev ? `${err.message}\n(this is only visible in dev mode)` : 'Internal Server Error';

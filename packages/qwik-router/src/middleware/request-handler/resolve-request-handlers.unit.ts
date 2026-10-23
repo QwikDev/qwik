@@ -1181,6 +1181,21 @@ describe('resolve-request-handler', () => {
       expect(renderHandler).toHaveBeenCalledOnce();
       expect(requestEv.status()).toBe(200);
     });
+
+    it("keeps the page's Cache-Control when a blockSSR loader throws a 404 HttpError", async () => {
+      const route = pageRouteWithLoaders(
+        makeLoader('product', () => {
+          throw new HttpError(404, 'No such product');
+        })
+      );
+      const requestEv = runPage(route, exitRender());
+      requestEv.cacheControl(60);
+
+      await requestEv.next();
+
+      expect(requestEv.status()).toBe(404);
+      expect(requestEv.headers.get('Cache-Control')).toBe('max-age=60, s-maxage=60');
+    });
   });
 
   describe('action result resolution', () => {

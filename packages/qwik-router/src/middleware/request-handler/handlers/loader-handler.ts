@@ -20,7 +20,7 @@ import { defaultLoaderCacheKey, getCachedLoader, resolveCacheKey, setCachedLoade
 import { performETagMatch, hash, normalizeETag, setETagHeader } from '../etag-hash';
 import type { RequestEventInternal } from '../request-event-core';
 import { IsQLoader, QLoaderId } from '../request-path';
-import { isCrash } from '../http-error';
+import { HttpError, isCrash, PRIVATE_NO_STORE, setFailureCacheControl } from '../http-error';
 import { placeFailure, toRouteSegment } from '../failure-segment';
 import { createLoaderRequestEventFactory } from './loader-request-event';
 
@@ -62,7 +62,7 @@ export function loaderHandler(
       requestEv
     );
     if (guardCrash) {
-      requestEv.headers.set('Cache-Control', 'no-store');
+      requestEv.headers.set('Cache-Control', PRIVATE_NO_STORE);
       await sendJsonResponse(requestEv, { e: guardCrash });
       return;
     }
@@ -147,8 +147,10 @@ export function loaderHandler(
       return;
     }
 
-    if (responseData.e || failed) {
-      requestEv.headers.set('Cache-Control', 'no-store');
+    if (responseData.e instanceof HttpError && responseData.p !== undefined) {
+      setFailureCacheControl(requestEv, responseData.e.status);
+    } else if (responseData.e || failed) {
+      requestEv.headers.set('Cache-Control', PRIVATE_NO_STORE);
     }
     await sendLoaderResponse(requestEv, data, cacheControl);
   };

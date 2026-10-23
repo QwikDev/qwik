@@ -100,14 +100,14 @@ describe('render cache control', () => {
     }
   });
 
-  it('a boundary error caught before the first flush responds with no-store', async () => {
+  it('a boundary error caught before the first flush responds with private, no-store', async () => {
     routeState.module = { default: () => null };
     const { ev, captured } = createServerRequestEvent();
     const run = await requestHandler(ev, { render: createRender(true) as any });
     await run!.completion;
 
     expect(captured.status).toBe(200);
-    expect(captured.headers?.get('Cache-Control')).toBe('no-store');
+    expect(captured.headers?.get('Cache-Control')).toBe('private, no-store');
     expect(captured.chunks.length).toBeGreaterThan(0);
   });
 
@@ -180,7 +180,7 @@ describe('render cache control', () => {
     }
   });
 
-  it('warns when no-store overrides an app-set Cache-Control', async () => {
+  it('warns when private, no-store overrides an app-set Cache-Control', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     try {
       routeState.module = {
@@ -193,11 +193,11 @@ describe('render cache control', () => {
       const run = await requestHandler(ev, { render: createRender(true) as any });
       await run!.completion;
 
-      expect(captured.headers?.get('Cache-Control')).toBe('no-store');
+      expect(captured.headers?.get('Cache-Control')).toBe('private, no-store');
       expect(warnSpy).toHaveBeenCalledTimes(1);
       const message = warnSpy.mock.calls[0].join(' ');
       expect(message).toContain('/');
-      expect(message).toContain('no-store');
+      expect(message).toContain('private, no-store');
     } finally {
       warnSpy.mockRestore();
     }
@@ -223,7 +223,7 @@ describe('render cache control', () => {
     }
   });
 
-  it('an error document responds with no-store', async () => {
+  it('an error document responds with private, no-store', async () => {
     routeState.module = {
       default: () => null,
       onGet: () => {
@@ -235,6 +235,22 @@ describe('render cache control', () => {
     await run!.completion;
 
     expect(captured.status).toBe(500);
-    expect(captured.headers?.get('Cache-Control')).toBe('no-store');
+    expect(captured.headers?.get('Cache-Control')).toBe('private, no-store');
+  });
+
+  it('a 404 error document keeps the Cache-Control set before the throw', async () => {
+    routeState.module = {
+      default: () => null,
+      onGet: (ev: any) => {
+        ev.cacheControl(60);
+        throw new HttpError(404, 'No such product');
+      },
+    };
+    const { ev, captured } = createServerRequestEvent();
+    const run = await requestHandler(ev, { render: createRender(false) as any });
+    await run!.completion;
+
+    expect(captured.status).toBe(404);
+    expect(captured.headers?.get('Cache-Control')).toBe('max-age=60, s-maxage=60');
   });
 });

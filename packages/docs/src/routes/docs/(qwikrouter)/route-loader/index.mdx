@@ -103,7 +103,7 @@ Loaders signal failure three ways:
 - **`throw new Error(message)`** — with no value yet, reading `.value` throws it to the nearest `<Catch>`. After a refresh, it goes into the loader's `.error` and the last value stays beside it. Outside development, the browser only sees "Internal Server Error". A crash in a blocking loader also fails the loaders after it, so their data never shows past a failed check.
 - **`return requestEvent.fail(status, data)`** — returns an inline failure. `signal.value.failed` is `true` and `signal.value` contains the rest of the data.
 
-In every case the result is not cacheable. An `HttpError` from a blocking loader also sets the HTTP response status; a `blockSSR: false` loader is isolated from the page response — see [Background loaders](#background-loaders-blockssr). See [Error handling](/docs/error-handling/) for the full rules.
+None of them is cached, except a 404, 405, 410 or 501 `HttpError` from a blocking loader, which keeps the loader's `cacheControl` like a successful result — see [Caching](/docs/error-handling/#caching). An `HttpError` from a blocking loader also sets the HTTP response status; a `blockSSR: false` loader is isolated from the page response — see [Background loaders](#background-loaders-blockssr). See [Error handling](/docs/error-handling/) for the full rules.
 
 ## Multiple `routeLoader$`s
 
@@ -183,7 +183,7 @@ Loader responses come from per-loader JSON endpoints, and the browser HTTP cache
 
 ### `cacheControl`
 
-Sets the `Cache-Control` header on the loader's JSON responses. It accepts everything the [`cacheControl()`](/docs/(qwikrouter)/caching/index.mdx) request method accepts — `'immutable'`, a max-age number in seconds, an options object — or a function of the request event (return `null` to skip the header). A `Cache-Control` header set inside the loader function wins over the option. A failed loader is always sent with `no-store`, so no cache ever reuses the failure.
+Sets the `Cache-Control` header on the loader's JSON responses. It accepts everything the [`cacheControl()`](/docs/(qwikrouter)/caching/index.mdx) request method accepts — `'immutable'`, a max-age number in seconds, an options object — or a function of the request event (return `null` to skip the header). A `Cache-Control` header set inside the loader function wins over the option. A failed loader is sent with `private, no-store`, so no cache reuses the failure, except a 404, 405, 410 or 501 `HttpError` from a blocking loader, which keeps this option.
 
 The default is `no-cache`: the browser always revalidates, which pairs well with `eTag` for cheap 304 responses.
 

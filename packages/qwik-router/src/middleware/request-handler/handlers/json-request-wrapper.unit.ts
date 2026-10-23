@@ -98,9 +98,10 @@ describe('jsonRequestWrapper', () => {
     ['loader', 'an HttpError', new HttpError(403, 'Members only')],
     ['loader', 'a plain Error', new Error('middleware boom')],
     ['action', 'an HttpError', new HttpError(403, 'Members only')],
+    ['action', 'a 404 HttpError', new HttpError(404, 'No such product')],
     ['action', 'a plain Error', new Error('middleware boom')],
   ] as const)(
-    'sends %s middleware failures from %s with Cache-Control: no-store',
+    'sends %s middleware failures from %s with Cache-Control: private, no-store',
     async (internalRequest, _label, failure) => {
       const requestEv = createLoaderRequestEvent('/products/123/', '/products/123/view/');
       requestEv.internalRequest = internalRequest;
@@ -116,9 +117,22 @@ describe('jsonRequestWrapper', () => {
       }
 
       expect(requestEv.send).toHaveBeenCalledOnce();
-      expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+      expect(requestEv.headers.get('Cache-Control')).toBe('private, no-store');
     }
   );
+
+  it('keeps the Cache-Control set before a 404 HttpError from middleware on a loader request', async () => {
+    const requestEv = createLoaderRequestEvent('/products/123/', '/products/123/view/');
+    requestEv.next = vi.fn(async () => {
+      requestEv.headers.set('Cache-Control', 'public, max-age=60');
+      throw new HttpError(404, 'No such product');
+    });
+
+    await jsonRequestWrapper(PAGE_SEGMENT)(requestEv as any);
+
+    expect(requestEv.send).toHaveBeenCalledOnce();
+    expect(requestEv.headers.get('Cache-Control')).toBe('public, max-age=60');
+  });
 });
 
 function createLoaderRequestEvent(loaderPathname: string, fullPathname: string) {

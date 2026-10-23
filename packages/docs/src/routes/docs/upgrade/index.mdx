@@ -41,27 +41,29 @@ Qwik v2 is a ground-up rewrite of the framework. This guide covers what's new, h
 <PackageManagerTabs>
 <span q:slot="pnpm">
 ```shell
-pnpm qwik migrate-v2
+pnpm dlx @qwik.dev/core@latest migrate-v2
 ```
 </span>
 <span q:slot="npm">
 ```shell
-npx qwik migrate-v2
+npx @qwik.dev/core@latest migrate-v2
 ```
 </span>
 <span q:slot="yarn">
 ```shell
-yarn qwik migrate-v2
+yarn dlx @qwik.dev/core@latest migrate-v2
 ```
 </span>
 <span q:slot="bun">
 ```shell
-bunx qwik migrate-v2
+bunx @qwik.dev/core@latest migrate-v2
 ```
 </span>
 </PackageManagerTabs>
 
-The CLI handles package renames, identifier changes, config updates, and dependency migration automatically.
+Yarn 1 has no `dlx`, so on Yarn 1 run `yarn qwik migrate-v2` instead.
+
+Run it in the root of your v1 project. The CLI handles package renames, identifier changes, config updates, and dependency migration automatically.
 
 <LongNote title="What the CLI renames">
 

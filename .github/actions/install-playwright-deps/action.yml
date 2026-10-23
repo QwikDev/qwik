@@ -14,13 +14,17 @@ runs:
       shell: bash
       env:
         BROWSER: ${{ inputs.browser }}
-      run: echo "key=playwright-apt-${ImageOS}-${BROWSER}-$(pnpm exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
+      run: |
+        prefix="playwright-apt-${ImageOS}-${BROWSER}-$(pnpm exec playwright --version | cut -d' ' -f2)-"
+        echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
+        echo "key=$prefix$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
 
     - name: Restore apt package cache
       id: apt-cache
       uses: actions/cache/restore@v5
       with:
         key: ${{ steps.apt-key.outputs.key }}
+        restore-keys: ${{ steps.apt-key.outputs.prefix }}
         path: ~/playwright-apt
 
     - name: Install system dependencies
@@ -31,6 +35,8 @@ runs:
         mkdir -p ~/playwright-apt
         sudo cp ~/playwright-apt/*.deb /var/cache/apt/archives/ 2>/dev/null || true
         pnpm exec playwright install-deps "$BROWSER"
+        sudo apt-get autoclean -qq
+        rm -f ~/playwright-apt/*.deb
         cp /var/cache/apt/archives/*.deb ~/playwright-apt/ 2>/dev/null || true
 
     - name: Save apt package cache

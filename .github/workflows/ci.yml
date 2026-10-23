@@ -836,7 +836,9 @@ jobs:
       - name: Install Playwright System Dependencies
         if: runner.os == 'Linux'
         timeout-minutes: 10
-        run: pnpm exec playwright install-deps chromium
+        uses: ./.github/actions/install-playwright-deps
+        with:
+          browser: chromium
 
       - name: Install Playwright Browser
         if: steps.playwright-cache.outputs.cache-hit != 'true'
@@ -1189,7 +1191,9 @@ jobs:
       - name: Install Playwright System Dependencies
         if: runner.os == 'Linux'
         timeout-minutes: 10
-        run: pnpm exec playwright install-deps ${{ matrix.settings.browser }}
+        uses: ./.github/actions/install-playwright-deps
+        with:
+          browser: ${{ matrix.settings.browser }}
 
       - name: Install Playwright Browser
         if: steps.playwright-cache.outputs.cache-hit != 'true'
@@ -1420,7 +1424,9 @@ jobs:
       - name: Install Playwright System Dependencies
         if: runner.os == 'Linux'
         timeout-minutes: 10
-        run: pnpm exec playwright install-deps ${{ matrix.settings.browser }}
+        uses: ./.github/actions/install-playwright-deps
+        with:
+          browser: ${{ matrix.settings.browser }}
 
       - name: Install Playwright Browser
         if: steps.playwright-cache.outputs.cache-hit != 'true'

@@ -2,7 +2,12 @@ import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { RedirectMessage } from '../redirect-handler';
 import type { RequestEventInternal } from '../request-event-core';
 import { resolveValidInternalFullPathname } from '../request-path';
-import { getPublicCrashMessage, HttpError } from '../http-error';
+import {
+  getPublicCrashMessage,
+  HttpError,
+  PRIVATE_NO_STORE,
+  setFailureCacheControl,
+} from '../http-error';
 import { getFailureSegment } from '../failure-segment';
 import type { RequestHandler, RequestEvent } from '../types';
 import { addVaryHeader, sendJsonResponse, sendActionResponse } from './loader-handler';
@@ -59,15 +64,16 @@ export function jsonRequestWrapper(pageSegment: number): RequestHandler {
           await sendActionResponse(requestEv, { redirect: location });
         }
       } else if (err instanceof HttpError) {
-        requestEv.headers.set('Cache-Control', 'no-store');
         if (isLoader) {
+          setFailureCacheControl(requestEv, err.status);
           await sendJsonResponse(requestEv, { e: err, p: failingSegment });
         } else {
+          requestEv.headers.set('Cache-Control', PRIVATE_NO_STORE);
           await sendActionResponse(requestEv, { e: err, s: err.status });
         }
       } else if (err instanceof Error) {
         console.error('JSON request error:', err);
-        requestEv.headers.set('Cache-Control', 'no-store');
+        requestEv.headers.set('Cache-Control', PRIVATE_NO_STORE);
         const se = new HttpError(500, getPublicCrashMessage(err));
         if (isLoader) {
           await sendJsonResponse(requestEv, { e: se, p: failingSegment });

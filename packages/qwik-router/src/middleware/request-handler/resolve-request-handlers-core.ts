@@ -59,7 +59,14 @@ import { HttpStatus } from './http-status-codes';
 import { getQwikRouterServerData } from './response-page';
 import { encoder, isContentType } from './request-utils';
 import { getFailureSegment, PLUGIN_SEGMENT, placeFailure, toRouteSegment } from './failure-segment';
-import { getPublicCrashMessage, HttpError, isCrash, throwIfControlFlowSignal } from './http-error';
+import {
+  getPublicCrashMessage,
+  HttpError,
+  isCrash,
+  PRIVATE_NO_STORE,
+  setFailureCacheControl,
+  throwIfControlFlowSignal,
+} from './http-error';
 
 const loadHttpError = () => import('../../runtime/src/http-error');
 
@@ -562,7 +569,7 @@ function createResolveRequestHandlers() {
         const e = isCrash(thrown) ? toPageCrash(thrown) : (thrown as HttpError);
         const status = e.status as number;
         requestEv.status(status);
-        requestEv.headers.set('Cache-Control', 'no-store');
+        setFailureCacheControl(requestEv, status);
 
         const errorLoaders = errorPageLoaders(route, failingSegment);
         route.$mods$ = errorLoaders
@@ -892,7 +899,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
               boundaryErrored = true;
               noStoreSent = true;
               overrodeCacheControl = responseHeaders.has('Cache-Control');
-              responseHeaders.set('Cache-Control', 'no-store');
+              responseHeaders.set('Cache-Control', PRIVATE_NO_STORE);
             }
           },
         });
@@ -921,7 +928,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         console.warn(
           `A <Catch> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
             (noStoreSent
-              ? 'the response was sent with Cache-Control: no-store.'
+              ? `the response was sent with Cache-Control: ${PRIVATE_NO_STORE}.`
               : 'the SSR cache was skipped (response headers were already sent).')
         );
       }

@@ -11,7 +11,7 @@ import { getErrorHtml } from './error-handler';
 import { createRequestEvent, type RequestEventInternal } from './request-event-core';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { RewriteMessage } from './rewrite-handler';
-import { HttpError } from './http-error';
+import { HttpError, PRIVATE_NO_STORE, setFailureCacheControl } from './http-error';
 import { encoder } from './request-utils';
 import type { ServerRequestEvent, StatusCodes } from './types';
 
@@ -105,7 +105,7 @@ async function runNext(
         return;
       } else if (e instanceof HttpError && !requestEv.headersSent) {
         const status = e.status as StatusCodes;
-        requestEv.headers.set('Cache-Control', 'no-store');
+        setFailureCacheControl(requestEv, status);
         const accept = requestEv.request.headers.get('Accept');
         if (accept && !accept.includes('text/html')) {
           requestEv.headers.set('Content-Type', 'application/qwik-json');
@@ -119,7 +119,7 @@ async function runNext(
         try {
           if (!requestEv.headersSent) {
             requestEv.headers.set('content-type', 'text/html; charset=utf-8');
-            requestEv.cacheControl({ noCache: true });
+            requestEv.headers.set('Cache-Control', PRIVATE_NO_STORE);
             requestEv.status(500);
           }
           const stream = requestEv.getWritableStream();

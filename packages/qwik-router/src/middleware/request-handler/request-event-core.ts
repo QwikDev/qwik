@@ -23,6 +23,7 @@ import {
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { RewriteMessage } from './rewrite-handler';
 import { HttpError, throwIfControlFlowSignal } from './http-error';
+import { markPassedThrough } from './failure-segment';
 import { encoder, getContentType } from './request-utils';
 import type {
   CacheControl,
@@ -94,11 +95,16 @@ export function createRequestEvent(
   const next = async () => {
     routeModuleIndex++;
 
-    while (routeModuleIndex < requestHandlers.length) {
-      const moduleRequestHandler = requestHandlers[routeModuleIndex];
-      const result = moduleRequestHandler(requestEv);
-      throwIfControlFlowSignal(isPromise(result) ? await result : result);
-      routeModuleIndex++;
+    try {
+      while (routeModuleIndex < requestHandlers.length) {
+        const moduleRequestHandler = requestHandlers[routeModuleIndex];
+        const result = moduleRequestHandler(requestEv);
+        throwIfControlFlowSignal(isPromise(result) ? await result : result);
+        routeModuleIndex++;
+      }
+    } catch (err) {
+      markPassedThrough(requestEv, err);
+      throw err;
     }
   };
 

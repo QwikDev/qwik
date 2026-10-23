@@ -9,6 +9,7 @@ import { deepFreeze } from './deepFreeze';
 import {
   type ContentMenu,
   type ContentModuleLoader,
+  type ErrorBoundary,
   type LoadedRoute,
   type MenuModule,
   type MenuModuleLoader,
@@ -37,7 +38,7 @@ export const loadRoute = async (
     loaderPathsByHash,
     loaderParamsByHash,
     menuLoader,
-    errorLoader,
+    segments,
   } = result;
 
   const loaderEndpoints = new Map<string, ReturnType<typeof matchRouteTree>>();
@@ -92,12 +93,94 @@ export const loadRoute = async (
     $menu$: deepFreeze(menu),
     $routeBundleNames$: routeBundleNames,
     $notFound$: notFound,
-    $errorLoader$: errorLoader,
+    $modSegs$: getModuleSegments(loaders, segments),
+    $modLoaders$: loaders,
+    $errorBoundaries$: getErrorBoundaries(segments),
     $loaders$: loaderPathsByHash && Object.keys(loaderPathsByHash),
     $loaderPaths$: loaderPathsByHash,
+    $loaderSegs$: loaderPathsByHash && getLoaderSegments(loaderPathsByHash, segments),
     $loaderParams$: loaderParamsByHash,
   };
 };
+
+type SegmentRecord = {
+  layout?: ContentModuleLoader;
+  errorBoundary?: ContentModuleLoader | ModuleLoader[];
+  loaderHashes?: string[];
+};
+
+const toSegmentRecord = (node: RouteData): SegmentRecord => ({
+  layout: node._L,
+  errorBoundary: node._E,
+  loaderHashes: node._R,
+});
+
+function getModuleSegments(loaders: ModuleLoader[], segments: SegmentRecord[]): number[] {
+  const leafSegment = segments.length - 1;
+  return loaders.map((loader, i) => {
+    const segment =
+      i < loaders.length - 1 ? segments.findIndex((record) => record.layout === loader) : -1;
+    return segment < 0 ? leafSegment : segment;
+  });
+}
+
+function getErrorBoundaries(segments: SegmentRecord[]): ErrorBoundary[] {
+  const boundaries: ErrorBoundary[] = [];
+  for (let segment = 0; segment < segments.length; segment++) {
+    const loader = segments[segment].errorBoundary;
+    if (loader) {
+      boundaries.push({ segment, loader });
+    }
+  }
+  return boundaries;
+}
+
+function getLoaderSegments(
+  loaderPathsByHash: Record<string, string>,
+  segments: SegmentRecord[]
+): Record<string, number> {
+  const loaderSegments: Record<string, number> = {};
+  for (const hash in loaderPathsByHash) {
+    const segment = segments.findIndex((record) => record.loaderHashes?.includes(hash));
+    loaderSegments[hash] = segment < 0 ? segments.length - 1 : segment;
+  }
+  return loaderSegments;
+}
+
+export const moduleSegment = (route: LoadedRoute, moduleIndex: number): number =>
+  route.$modSegs$?.[moduleIndex] ?? moduleIndex;
+
+export const leafSegment = (route: LoadedRoute): number =>
+  moduleSegment(route, route.$mods$.length - 1);
+
+export const clientFailingSegment = (
+  route: LoadedRoute,
+  failingSegment: number,
+  loaderId: string
+): number => Math.min(failingSegment, route.$loaderSegs$?.[loaderId] ?? leafSegment(route));
+
+export function errorPageLoaders(
+  route: LoadedRoute,
+  failingSegment = leafSegment(route)
+): ModuleLoader[] | undefined {
+  let boundary: ErrorBoundary['loader'] | undefined;
+  for (const { segment, loader } of route.$errorBoundaries$ ?? []) {
+    if (segment <= failingSegment) {
+      boundary = loader;
+    }
+  }
+  if (!boundary || Array.isArray(boundary)) {
+    return boundary;
+  }
+  const loaders = route.$modLoaders$ ?? [];
+  const layouts: ModuleLoader[] = [];
+  for (let i = 0; i < loaders.length - 1; i++) {
+    if (moduleSegment(route, i) < failingSegment) {
+      layouts.push(loaders[i]);
+    }
+  }
+  return [...layouts, boundary];
+}
 
 /** Built-in fallback error component loader */
 export const httpErrorLoader = (() => import('./http-error')) as ContentModuleLoader;
@@ -113,6 +196,7 @@ function walkTrieKeys(
       layouts: ModuleLoader[];
       loaderPaths: Record<string, string>;
       loaderParams: Record<string, PathParams>;
+      segments: SegmentRecord[];
     }
   | undefined {
   let node = root;
@@ -121,7 +205,9 @@ function walkTrieKeys(
   const layouts: ModuleLoader[] = [];
   const loaderPaths: Record<string, string> = {};
   const loaderParams: Record<string, PathParams> = {};
+  const segments: SegmentRecord[] = [];
   const collect = (node: RouteData) => {
+    segments.push(toSegmentRecord(node));
     if (node._L) {
       layouts.push(node._L);
     }
@@ -160,7 +246,7 @@ function walkTrieKeys(
       collect(node);
     }
   }
-  return { node, layouts, loaderPaths, loaderParams };
+  return { node, layouts, loaderPaths, loaderParams, segments };
 }
 
 type ResolvedIndex = {
@@ -168,6 +254,7 @@ type ResolvedIndex = {
   node: RouteData;
   loaderPaths?: Record<string, string>;
   loaderParams?: Record<string, PathParams>;
+  segments?: SegmentRecord[];
 };
 
 /** Resolve the page and its modules, following rewrite targets. */
@@ -188,6 +275,7 @@ function resolveLoaders(
     if (resolved && !resolved.loaderPaths) {
       resolved.loaderPaths = target.loaderPaths;
       resolved.loaderParams = target.loaderParams;
+      resolved.segments = target.segments;
     }
     return resolved;
   }
@@ -214,13 +302,6 @@ function resolveLoaders(
 type BoundaryRef = { v: ContentModuleLoader | ModuleLoader[] | undefined; layouts: ModuleLoader[] };
 
 /**
- * The full chain to render for a boundary: a bare loader in its snapshot layouts, an override
- * as-is.
- */
-const boundaryChain = (ref: BoundaryRef): ModuleLoader[] | undefined =>
-  ref.v ? (Array.isArray(ref.v) ? ref.v : [...ref.layouts, ref.v]) : undefined;
-
-/**
  * Collect layouts, the nearest error (`_E`) and not-found (`_4`) boundaries, and the menu from a
  * node and the group ancestors entered to reach it.
  */
@@ -228,6 +309,7 @@ function collectNodeMeta(
   node: RouteData,
   groups: RouteData[],
   layouts: ModuleLoader[],
+  segments: SegmentRecord[],
   errorLoaderRef: BoundaryRef,
   notFoundLoaderRef: BoundaryRef,
   menuLoaderRef: { v: MenuModuleLoader | undefined },
@@ -238,6 +320,7 @@ function collectNodeMeta(
 ) {
   for (let j = 0; j < groups.length; j++) {
     const g = groups[j];
+    segments.push(toSegmentRecord(g));
     if (g._L) {
       layouts.push(g._L);
     }
@@ -261,6 +344,7 @@ function collectNodeMeta(
       menuLoaderRef.v = g._N;
     }
   }
+  segments.push(toSegmentRecord(node));
   if (node._L) {
     layouts.push(node._L);
   }
@@ -683,13 +767,13 @@ export function matchRouteTree(
   loaderPathsByHash: Record<string, string> | undefined;
   loaderParamsByHash: Record<string, PathParams> | undefined;
   menuLoader: MenuModuleLoader | undefined;
-  /** The nearest _E (error.tsx) boundary's chain to render on a thrown error (in its layouts). */
-  errorLoader: ModuleLoader[] | undefined;
+  segments: SegmentRecord[];
 } {
   let node: RouteData = root;
   const params: PathParams = {};
   const routeParts: string[] = [];
   const layouts: ModuleLoader[] = [];
+  const segments: SegmentRecord[] = [];
   const loaderPathsByHash: Record<string, string> = {};
   const loaderParamsByHash: Record<string, PathParams> = {};
   const errorLoaderRef: BoundaryRef = { v: undefined, layouts: [] };
@@ -697,13 +781,14 @@ export function matchRouteTree(
   const menuLoaderRef: { v: MenuModuleLoader | undefined } = { v: undefined };
   // Nodes the walk passes that carry pathless `_M` groups (with the layout depth at each). On a miss,
   // a boundary in a group the walk never entered is recovered by searching these nearest-first.
-  const groupNodes: { node: RouteData; depth: number }[] = [];
+  const groupNodes: { node: RouteData; depth: number; segment: number }[] = [];
 
   // Collect the root's layout, error/404 boundaries, and menu (same logic as any node).
   collectNodeMeta(
     root,
     [],
     layouts,
+    segments,
     errorLoaderRef,
     notFoundLoaderRef,
     menuLoaderRef,
@@ -712,7 +797,7 @@ export function matchRouteTree(
     loaderParamsByHash
   );
   if (root._M) {
-    groupNodes.push({ node: root, depth: layouts.length });
+    groupNodes.push({ node: root, depth: layouts.length, segment: segments.length - 1 });
   }
 
   let done = false;
@@ -731,6 +816,7 @@ export function matchRouteTree(
         routeParts: string[];
         params: PathParams;
         layouts: ModuleLoader[];
+        segments: SegmentRecord[];
         loaderPathsByHash: Record<string, string>;
         loaderParamsByHash: Record<string, PathParams>;
         errorLoader: ContentModuleLoader | ModuleLoader[] | undefined;
@@ -772,6 +858,7 @@ export function matchRouteTree(
         routeParts: [...routeParts],
         params: { ...params },
         layouts: [...layouts],
+        segments: [...segments],
         loaderPathsByHash: { ...loaderPathsByHash },
         loaderParamsByHash: { ...loaderParamsByHash },
         errorLoader: errorLoaderRef.v,
@@ -796,6 +883,7 @@ export function matchRouteTree(
       node,
       found.groups,
       layouts,
+      segments,
       errorLoaderRef,
       notFoundLoaderRef,
       menuLoaderRef,
@@ -805,7 +893,7 @@ export function matchRouteTree(
       { ...params }
     );
     if (node._M) {
-      groupNodes.push({ node, depth: layouts.length });
+      groupNodes.push({ node, depth: layouts.length, segment: segments.length - 1 });
     }
     i += span;
   }
@@ -823,6 +911,7 @@ export function matchRouteTree(
           indexResult.target,
           indexResult.groups,
           layouts,
+          segments,
           errorLoaderRef,
           notFoundLoaderRef,
           menuLoaderRef,
@@ -848,6 +937,7 @@ export function matchRouteTree(
           next,
           restInfo.groups,
           layouts,
+          segments,
           errorLoaderRef,
           notFoundLoaderRef,
           menuLoaderRef,
@@ -874,6 +964,7 @@ export function matchRouteTree(
     const fbParams = { ...fb.params, [fb.paramName]: fb.restValue };
     const fbRouteParts = [...fb.routeParts, `[...${fb.paramName}]`];
     const fbLayouts = [...fb.layouts];
+    const fbSegments = [...fb.segments];
     const fbLoaderPathsByHash = { ...fb.loaderPathsByHash };
     const fbLoaderParamsByHash = { ...fb.loaderParamsByHash };
     const fbErrorRef: BoundaryRef = { v: fb.errorLoader, layouts: fb.errorLayouts };
@@ -884,6 +975,7 @@ export function matchRouteTree(
       fb.aNode,
       fb.groups,
       fbLayouts,
+      fbSegments,
       fbErrorRef,
       fbNotFoundRef,
       fbMenuRef,
@@ -907,7 +999,7 @@ export function matchRouteTree(
         loaderParamsByHash:
           Object.keys(fbLoaderParamsByHash).length > 0 ? fbLoaderParamsByHash : undefined,
         menuLoader: fbMenuRef.v,
-        errorLoader: boundaryChain(fbErrorRef),
+        segments: fallback.segments ?? fbSegments,
       };
     }
     // Update error/menu loaders (and their layout snapshots) from fallback for the not-found response
@@ -930,7 +1022,7 @@ export function matchRouteTree(
           kind
         );
         if (found) {
-          return found;
+          return { ...found, segment: groupNodes[k].segment };
         }
       }
       return undefined;
@@ -947,6 +1039,7 @@ export function matchRouteTree(
       if (g) {
         errorLoaderRef.v = g.v;
         errorLoaderRef.layouts = g.layouts;
+        segments[g.segment].errorBoundary = g.v;
       }
     }
     // A bare boundary uses its own (snapshotted) layouts; an override chain (404@layout / 404!) as-is.
@@ -962,7 +1055,7 @@ export function matchRouteTree(
       loaderPathsByHash: undefined,
       loaderParamsByHash: undefined,
       menuLoader: menuLoaderRef.v,
-      errorLoader: boundaryChain(errorLoaderRef),
+      segments,
     };
   }
 
@@ -977,7 +1070,7 @@ export function matchRouteTree(
     loaderPathsByHash: Object.keys(loaderPathsByHash).length > 0 ? loaderPathsByHash : undefined,
     loaderParamsByHash: Object.keys(loaderParamsByHash).length > 0 ? loaderParamsByHash : undefined,
     menuLoader: menuLoaderRef.v,
-    errorLoader: boundaryChain(errorLoaderRef),
+    segments: resolved!.segments ?? segments,
   };
 }
 

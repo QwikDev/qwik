@@ -17,6 +17,8 @@ export async function mainThread(sys: System) {
 
   const qwikRouterConfig = opts.qwikRouterConfig;
   const renderTimeout = 30_000;
+  const maxRetries = opts.retries ?? 0;
+  const failedAttempts = new Map<string, number>();
 
   const queue: SsgRoute[] = [];
   const active = new Set<string>();
@@ -99,6 +101,21 @@ export async function mainThread(sys: System) {
         }
       };
 
+      const hasRetriesLeft = (staticRoute: SsgRoute) =>
+        (failedAttempts.get(staticRoute.pathname) ?? 0) < maxRetries;
+
+      const retryLater = (staticRoute: SsgRoute, reason: string) => {
+        const attempt = (failedAttempts.get(staticRoute.pathname) ?? 0) + 1;
+        failedAttempts.set(staticRoute.pathname, attempt);
+        log.warn(
+          `Retrying ${magenta(staticRoute.pathname)} after a failed render (${attempt} of ${maxRetries}): ${reason}`
+        );
+        setTimeout(() => {
+          queue.push(staticRoute);
+          next();
+        }, getRetryDelay(attempt));
+      };
+
       const render = async (staticRoute: SsgRoute) => {
         try {
           active.add(staticRoute.pathname);
@@ -114,8 +131,14 @@ export async function mainThread(sys: System) {
             ),
           ]);
 
-          active.delete(staticRoute.pathname);
           log.debug(`render done: ${staticRoute.pathname}`);
+
+          if (result.error && hasRetriesLeft(staticRoute)) {
+            retryLater(staticRoute, result.error.message);
+            return;
+          }
+
+          active.delete(staticRoute.pathname);
 
           if (result.error) {
             const err = new Error(result.error.message);
@@ -316,6 +339,10 @@ export async function mainThread(sys: System) {
       reject(e);
     }
   });
+}
+
+function getRetryDelay(attempt: number) {
+  return Math.min(500 * 2 ** (attempt - 1), 2000);
 }
 
 function validateOptions(opts: SsgGenerateOptions) {

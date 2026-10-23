@@ -1,5 +1,5 @@
 import { _serialize } from '@qwik.dev/core/internal';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   renderQwikMiddleware,
   resolveRequestHandlers,
@@ -11,7 +11,12 @@ import { loadRoute } from '../runtime/src/routing';
 import type { SsgHandlerOptions, SsgWorkerRenderResult, System } from './types';
 import { workerRender } from './worker-thread';
 
+const fileEvents: string[] = [];
+
 const deps: Parameters<typeof workerRender>[5] = {
+  announceFile: (_pathname, filePath) => {
+    fileEvents.push(`announce ${filePath}`);
+  },
   loadRoute,
   renderQwikMiddleware,
   resolveRequestHandlers,
@@ -24,11 +29,17 @@ function createSystem() {
   const written = new Map<string, string[]>();
   const sys: System = {
     createMainProcess: null,
-    createLogger: async () => ({ info: () => {}, error: () => {}, debug: () => {} }),
+    createLogger: async () => ({
+      info: () => {},
+      warn: () => {},
+      error: () => {},
+      debug: () => {},
+    }),
     getOptions: () => ({}) as any,
     ensureDir: async () => {},
     access: async () => false,
     createWriteStream: (filePath) => {
+      fileEvents.push(`write ${filePath}`);
       const chunks: string[] = [];
       written.set(filePath, chunks);
       return {
@@ -147,5 +158,18 @@ describe('SSG worker status handling', () => {
     expect(result.ok).toBe(false);
     expect(result.error).toBeNull();
     expect(result.filePath).toBeNull();
+  });
+});
+
+describe('SSG worker output files', () => {
+  beforeEach(() => {
+    fileEvents.length = 0;
+  });
+
+  it('announces each file before writing it', async () => {
+    const { sys } = createSystem();
+    await renderRoute(sys, createRender());
+
+    expect(fileEvents).toEqual(['announce /out/index.html', 'write /out/index.html']);
   });
 });

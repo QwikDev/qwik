@@ -49,6 +49,32 @@ test.describe('loader failures', () => {
       await markDocument(page);
     });
 
+    test("a blocking loader's HttpError renders error.tsx in place", async ({ page }) => {
+      await page.click('#to-blocking-http-error');
+
+      await expect(page.locator('h1')).toHaveText('Custom Error Page');
+      await expect(page.locator('.error-status')).toHaveText('404');
+      await expect(page.locator('.error-message')).toHaveText('No such product');
+      await expect(page).toHaveURL(`${base}blocking-http-error/`);
+      expect(await isSameDocument(page)).toBe(true);
+
+      await page.goBack();
+
+      await expect(page.locator('#loader-failures-index')).toBeVisible();
+      expect(await isSameDocument(page)).toBe(true);
+    });
+
+    test('an HttpError from middleware on a route with only streamed loaders renders error.tsx', async ({
+      page,
+    }) => {
+      await page.click('#to-middleware-http-error');
+
+      await expect(page.locator('h1')).toHaveText('Custom Error Page');
+      await expect(page.locator('.error-status')).toHaveText('403');
+      await expect(page.locator('.error-message')).toHaveText('Members only');
+      expect(await isSameDocument(page)).toBe(true);
+    });
+
     test('a plain Error in a blocking loader shows the route Catch fallback', async ({ page }) => {
       await page.click('#to-blocking-crash');
 
@@ -83,6 +109,35 @@ test.describe('loader failures', () => {
       await expect(page.locator('#blocking-value')).toHaveText('blocking data');
       await expect(page.locator('#streamed-error')).toContainText(crashMessage('refresh boom'));
       await expect(page.locator('#streamed-value')).toHaveText('streamed data');
+    });
+
+    test("a blocking loader's HttpError renders error.tsx", async ({ page, context }) => {
+      await page.goto(`${base}refresh/`);
+      await expect(page.locator('#blocking-value')).toHaveText('blocking data');
+      await context.addCookies([{ name: 'loader-failure', value: 'http', url: page.url() }]);
+
+      await page.click('#refresh-blocking');
+
+      await expect(page.locator('h1')).toHaveText('Custom Error Page');
+      await expect(page.locator('.error-status')).toHaveText('404');
+      await expect(page.locator('.error-message')).toHaveText('gone');
+      await expect(page).toHaveURL(`${base}refresh/`);
+    });
+
+    test('a middleware HttpError renders error.tsx', async ({ page, context }) => {
+      await page.goto(base);
+      await markDocument(page);
+      await page.click('#to-middleware-refresh');
+      await expect(page.locator('#cart-value')).toHaveText('cart data');
+      await context.addCookies([{ name: 'middleware-failure', value: 'http', url: page.url() }]);
+
+      await page.click('#refresh-cart');
+
+      await expect(page.locator('h1')).toHaveText('Custom Error Page');
+      await expect(page.locator('.error-status')).toHaveText('401');
+      await expect(page.locator('.error-message')).toHaveText('Signed out');
+      await expect(page).toHaveURL(`${base}middleware-refresh/`);
+      expect(await isSameDocument(page)).toBe(true);
     });
   });
 });

@@ -18,6 +18,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
   const ssgWorkers: SsgWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapStream: fs.WriteStream | null = null;
+  let isClosing = false;
 
   opts = { ...opts };
 
@@ -182,9 +183,19 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
       if (code !== 0) {
         console.error(`worker exit ${code}`);
       }
+      if (!isClosing) {
+        replaceWorker(ssgWorker);
+      }
     });
 
     return ssgWorker;
+  };
+
+  const replaceWorker = (deadWorker: SsgWorker) => {
+    const index = ssgWorkers.indexOf(deadWorker);
+    if (index !== -1) {
+      ssgWorkers[index] = createWorker();
+    }
   };
 
   const getNextWorker = () => ssgWorkers.sort(ssgWorkerCompare)[0];
@@ -216,6 +227,7 @@ export async function createWorkerPool(sys: System, opts: SsgGenerateOptions) {
   };
 
   const close = async () => {
+    isClosing = true;
     const promises: Promise<unknown>[] = [];
 
     if (sitemapStream) {

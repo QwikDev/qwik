@@ -1,6 +1,11 @@
 import { EventEmitter } from 'node:events';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { System, WorkerInputMessage, WorkerOutputMessage } from './types';
+import type {
+  SsgWorkerRenderResult,
+  System,
+  WorkerInputMessage,
+  WorkerOutputMessage,
+} from './types';
 
 const workers = vi.hoisted(() => [] as InstanceType<typeof FakeWorker>[]);
 
@@ -35,9 +40,23 @@ const sys = {
   createLogger: async () => ({ debug() {}, error() {}, info() {} }),
 } as unknown as System;
 
+const renderResult = (pathname: string, overrides: Partial<SsgWorkerRenderResult> = {}) =>
+  ({
+    type: 'render',
+    pathname,
+    url: `https://qwik.dev${pathname}`,
+    ok: true,
+    error: null,
+    filePath: null,
+    contentType: 'text/html',
+    resourceType: 'page',
+    ...overrides,
+  }) satisfies WorkerOutputMessage;
+
 describe('createWorkerPool', () => {
   afterEach(() => {
     workers.length = 0;
+    vi.restoreAllMocks();
   });
 
   it('holds render messages until the worker is ready', async () => {
@@ -65,5 +84,25 @@ describe('createWorkerPool', () => {
       resourceType: null,
     } satisfies WorkerOutputMessage);
     await expect(rendered).resolves.toMatchObject({ pathname: '/', ok: true });
+  });
+
+  it('renders on a fresh worker after a worker crashes', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const pool = await createWorkerPool(sys, {
+      outDir: '/out',
+      sitemapOutFile: null,
+      maxWorkers: 1,
+      workerFilePath: '/run-ssg-worker.js',
+    } as any);
+    workers[0].attachListener();
+
+    const crashed = pool.render({ type: 'render', pathname: '/crash', params: undefined });
+    workers[0].emit('exit', 1);
+    const next = pool.render({ type: 'render', pathname: '/fine', params: undefined });
+    workers[1].attachListener();
+    workers[1].emit('message', renderResult('/fine'));
+
+    expect((await crashed).error?.message).toContain('Worker exited');
+    expect((await next).ok).toBe(true);
   });
 });

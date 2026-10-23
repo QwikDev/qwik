@@ -55,6 +55,7 @@ export enum ExperimentalFeatures {
     enableRequestRewrite = "enableRequestRewrite",
     noSPA = "noSPA",
     preventNavigate = "preventNavigate",
+    standardSchema = "standardSchema",
     valibot = "valibot"
 }
 

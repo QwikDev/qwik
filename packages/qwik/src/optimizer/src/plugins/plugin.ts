@@ -45,6 +45,8 @@ const SERVER_STRIP_CTX_NAME = [
   'action$',
   'loader$',
   'zod$',
+  'valibot$',
+  'standardSchema$',
   'validator$',
   'globalAction$',
 ];
@@ -70,6 +72,8 @@ export enum ExperimentalFeatures {
   preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
+  /** Enable form validation using Standard Schema */
+  standardSchema = 'standardSchema',
   /** Disable SPA navigation handler in Qwik City */
   noSPA = 'noSPA',
   /** Enable request.rewrite() */

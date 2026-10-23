@@ -3,7 +3,7 @@ import { _deserialize } from '@qwik.dev/core/internal';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { createCacheControl } from '../cache-control';
 import { RedirectMessage } from '../redirect-handler';
-import { ServerError } from '../server-error';
+import { HttpError } from '../http-error';
 import { IsQLoader } from '../request-path';
 import type { CacheControl } from '../types';
 import { jsonRequestWrapper } from './json-request-wrapper';
@@ -52,9 +52,9 @@ describe('jsonRequestWrapper', () => {
     expect(result).toEqual({ r: '/login/' });
   });
   it.each([
-    ['loader', 'a ServerError', new ServerError(403, 'Members only')],
+    ['loader', 'an HttpError', new HttpError(403, 'Members only')],
     ['loader', 'a plain Error', new Error('middleware boom')],
-    ['action', 'a ServerError', new ServerError(403, 'Members only')],
+    ['action', 'an HttpError', new HttpError(403, 'Members only')],
     ['action', 'a plain Error', new Error('middleware boom')],
   ] as const)(
     'sends %s middleware failures from %s with Cache-Control: no-store',

@@ -1,8 +1,8 @@
-import { ServerError } from './server-error';
+import { HttpError } from './http-error';
 
 export const DEFAULT_REQUEST_BODY_LIMIT = 10 * 1024 * 1024;
 
-export class RequestBodyLimitError extends ServerError<string> {
+export class RequestBodyLimitError extends HttpError<string> {
   code = 'QWIK_REQUEST_BODY_LIMIT';
   statusCode = 413;
 

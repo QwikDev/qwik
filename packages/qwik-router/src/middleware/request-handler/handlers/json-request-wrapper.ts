@@ -3,7 +3,7 @@ import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { RedirectMessage } from '../redirect-handler';
 import type { RequestEventInternal } from '../request-event-core';
 import { resolveValidInternalFullPathname } from '../request-path';
-import { ServerError } from '../server-error';
+import { HttpError } from '../http-error';
 import type { RequestHandler, RequestEvent } from '../types';
 import { addVaryHeader, sendJsonResponse, sendActionResponse } from './loader-handler';
 
@@ -57,7 +57,7 @@ export function jsonRequestWrapper(): RequestHandler {
           // 3xx would be auto-followed by fetch, turning the action POST into a GET of the target.
           await sendActionResponse(requestEv, { redirect: location });
         }
-      } else if (err instanceof ServerError) {
+      } else if (err instanceof HttpError) {
         requestEv.headers.set('Cache-Control', 'no-store');
         if (isLoader) {
           await sendJsonResponse(requestEv, { e: err });
@@ -70,7 +70,7 @@ export function jsonRequestWrapper(): RequestHandler {
         const message = isDev
           ? `${err.message}\n(this is only visible in dev mode)`
           : 'Internal Server Error';
-        const se = new ServerError(500, message);
+        const se = new HttpError(500, message);
         if (isLoader) {
           await sendJsonResponse(requestEv, { e: se });
         } else {

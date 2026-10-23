@@ -484,16 +484,16 @@ export const onGet: RequestHandler = async ({ redirect, url }) => {
 ```
 </CodeSandbox>
 
-### `error()`
+### `httpError()`
 
-Set an error response.
+Returns an `HttpError` to throw: the router renders the nearest `error.tsx` at its status. `throw new HttpError(status, message)` does the same. `error()` is its deprecated old name.
 
 <CodeSandbox src="/src/routes/demo/qwikrouter/middleware/error/index.tsx">
 ```tsx
 import { type RequestHandler } from '@qwik.dev/router';
 
-export const onGet: RequestHandler = async ({ error }) => {
-  throw error(500, 'ERROR: Demonstration of an error response.');
+export const onGet: RequestHandler = async ({ httpError }) => {
+  throw httpError(500, 'ERROR: Demonstration of an error response.');
 };
 ```
 </CodeSandbox>

@@ -6,6 +6,7 @@ import {
 } from '../middleware/request-handler/resolve-request-handlers-core';
 import {
   RequestEvCaughtError,
+  RequestEvHttpStatusMessage,
   RequestEvSentServerError,
 } from '../middleware/request-handler/request-event-core';
 import { trimInternalPathname } from '../middleware/request-handler/request-path';
@@ -171,6 +172,16 @@ export async function workerRender(
         // The not-found page renders with a 404 status but is still written as a static asset.
         const isNotFoundPage = url.pathname.endsWith('/404.html');
         result.ok = (status >= 200 && status < 300) || (isNotFoundPage && status === 404);
+
+        if (status >= 500) {
+          const statusMessage = requestEv.sharedMap.get(RequestEvHttpStatusMessage);
+          result.error = {
+            message: statusMessage
+              ? `Responded with ${status}: ${statusMessage}`
+              : `Responded with ${status}`,
+            stack: undefined,
+          };
+        }
 
         if (!result.ok) {
           // not ok, don't write anything

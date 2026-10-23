@@ -1,5 +1,5 @@
 import { _serialize } from '@qwik.dev/core/internal/serializer';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   renderQwikMiddleware,
   resolveRequestHandlers,
@@ -17,7 +17,12 @@ vi.mock('@qwik.dev/core/internal', async (importOriginal) => ({
   isDev: false,
 }));
 
+const fileEvents: string[] = [];
+
 const deps: Parameters<typeof workerRender>[5] = {
+  announceFile: (_pathname, filePath) => {
+    fileEvents.push(`announce ${filePath}`);
+  },
   loadRoute,
   renderQwikMiddleware,
   resolveRequestHandlers,
@@ -30,11 +35,17 @@ function createSystem() {
   const written = new Map<string, string[]>();
   const sys: System = {
     createMainProcess: null,
-    createLogger: async () => ({ info: () => {}, error: () => {}, debug: () => {} }),
+    createLogger: async () => ({
+      info: () => {},
+      warn: () => {},
+      error: () => {},
+      debug: () => {},
+    }),
     getOptions: () => ({}) as any,
     ensureDir: async () => {},
     access: async () => false,
     createWriteStream: (filePath) => {
+      fileEvents.push(`write ${filePath}`);
       const chunks: string[] = [];
       written.set(filePath, chunks);
       return {
@@ -175,5 +186,31 @@ describe('SSG worker status handling', () => {
     expect(result.ok).toBe(false);
     expect(result.error).toBeNull();
     expect(result.filePath).toBeNull();
+  });
+});
+
+describe('SSG worker output files', () => {
+  beforeEach(() => {
+    fileEvents.length = 0;
+  });
+
+  it('tells the pool about the page file before writing it', async () => {
+    const { sys } = createSystem();
+    await renderRoute(sys, createRender());
+
+    expect(fileEvents).toEqual(['announce /out/index.html', 'write /out/index.html']);
+  });
+
+  it('tells the pool about loader data files before writing them', async () => {
+    const { sys } = createSystem();
+    const useData = createLoader('data', () => 'value', { cacheControl: 'immutable' });
+    await renderRoute(sys, createRender(), { default: () => null, useData });
+
+    expect(fileEvents).toEqual([
+      'announce /out/index.html',
+      'write /out/index.html',
+      'announce /out/q-data-data.json',
+      'write /out/q-data-data.json',
+    ]);
   });
 });

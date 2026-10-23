@@ -1,4 +1,8 @@
 import { EventEmitter } from 'node:events';
+import fs from 'node:fs';
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type {
   SsgWorkerRenderResult,
@@ -24,6 +28,9 @@ class FakeWorker extends EventEmitter {
   postMessage(msg: WorkerInputMessage) {
     if (this.isListening) {
       this.received.push(msg);
+      if (msg.type === 'close') {
+        this.emit('message', { type: 'close' } satisfies WorkerOutputMessage);
+      }
     }
   }
   attachListener() {
@@ -37,7 +44,8 @@ vi.mock('node:worker_threads', () => ({ Worker: FakeWorker }));
 const { createWorkerPool } = await import('./worker-pool');
 
 const sys = {
-  createLogger: async () => ({ debug() {}, error() {}, info() {} }),
+  createLogger: async () => ({ debug() {}, error() {}, info() {}, warn() {} }),
+  ensureDir: (filePath: string) => mkdir(dirname(filePath), { recursive: true }),
 } as unknown as System;
 
 const renderResult = (pathname: string, overrides: Partial<SsgWorkerRenderResult> = {}) =>
@@ -138,6 +146,126 @@ describe('createWorkerPool', () => {
 
       expect((await crashed).error?.message).toContain('Worker exited');
       expect((await next).ok).toBe(true);
+    });
+
+    it('deletes the partial files of routes being rendered when their worker crashes', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const outDir = await mkdtemp(join(tmpdir(), 'qwik-router-ssg-pool-'));
+      try {
+        const pool = await createWorkerPool(sys, {
+          outDir,
+          sitemapOutFile: null,
+          maxWorkers: 1,
+          workerFilePath: '/run-ssg-worker.js',
+        } as any);
+        workers[0].attachListener();
+        const indexPath = join(outDir, 'index.html');
+
+        const crashed = pool.render({ type: 'render', pathname: '/', params: undefined });
+        workers[0].emit('message', { type: 'file', pathname: '/', filePath: indexPath });
+        await writeFile(indexPath, '<html>partial');
+        workers[0].emit('exit', 1);
+        await crashed;
+
+        await expect(access(indexPath)).rejects.toThrow();
+      } finally {
+        await rm(outDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  describe('failed renders', () => {
+    it('leaves a failed route out of the sitemap', async () => {
+      const outDir = await mkdtemp(join(tmpdir(), 'qwik-router-ssg-pool-'));
+      try {
+        const pool = await createWorkerPool(sys, {
+          outDir,
+          sitemapOutFile: join(outDir, 'sitemap.xml'),
+          maxWorkers: 1,
+          workerFilePath: '/run-ssg-worker.js',
+        } as any);
+        const [worker] = workers;
+        worker.attachListener();
+
+        const partial = pool.render({ type: 'render', pathname: '/partial', params: undefined });
+        worker.emit(
+          'message',
+          renderResult('/partial', { error: { message: 'failed after the 200', stack: undefined } })
+        );
+        await partial;
+        const fine = pool.render({ type: 'render', pathname: '/fine', params: undefined });
+        worker.emit('message', renderResult('/fine'));
+        await fine;
+        await pool.close();
+
+        const sitemap = await readFile(join(outDir, 'sitemap.xml'), 'utf-8');
+        expect(sitemap).toContain('<loc>https://qwik.dev/fine</loc>');
+        expect(sitemap).not.toContain('/partial');
+      } finally {
+        await rm(outDir, { recursive: true, force: true });
+      }
+    });
+
+    it("deletes a failed route's files so a retry that returns a 404 leaves no page behind", async () => {
+      const outDir = await mkdtemp(join(tmpdir(), 'qwik-router-ssg-pool-'));
+      try {
+        const pool = await createWorkerPool(sys, {
+          outDir,
+          sitemapOutFile: null,
+          maxWorkers: 1,
+          workerFilePath: '/run-ssg-worker.js',
+        } as any);
+        const [worker] = workers;
+        worker.attachListener();
+        const indexPath = join(outDir, 'index.html');
+        const aboutPath = join(outDir, 'about', 'index.html');
+        const faviconPath = join(outDir, 'favicon.ico');
+        await writeFile(faviconPath, 'icon');
+
+        const failed = pool.render({ type: 'render', pathname: '/', params: undefined });
+        worker.emit('message', { type: 'file', pathname: '/', filePath: indexPath });
+        await writeFile(indexPath, '<html>fallback</html>');
+        worker.emit(
+          'message',
+          renderResult('/', { ok: false, error: { message: 'caught', stack: undefined } })
+        );
+        await failed;
+        const retried = pool.render({ type: 'render', pathname: '/', params: undefined });
+        worker.emit('message', renderResult('/', { ok: false }));
+        await retried;
+        const about = pool.render({ type: 'render', pathname: '/about', params: undefined });
+        worker.emit('message', { type: 'file', pathname: '/about', filePath: aboutPath });
+        await mkdir(dirname(aboutPath), { recursive: true });
+        await writeFile(aboutPath, '<html>about</html>');
+        worker.emit('message', renderResult('/about', { filePath: aboutPath }));
+        await about;
+
+        await expect(access(indexPath)).rejects.toThrow();
+        await expect(access(aboutPath)).resolves.toBeUndefined();
+        await expect(access(faviconPath)).resolves.toBeUndefined();
+      } finally {
+        await rm(outDir, { recursive: true, force: true });
+      }
+    });
+
+    it('still reports a failed route when deleting its files fails', async () => {
+      vi.spyOn(fs.promises, 'rm').mockRejectedValue(new Error('EPERM'));
+      const pool = await createWorkerPool(sys, {
+        outDir: '/out',
+        sitemapOutFile: null,
+        maxWorkers: 1,
+        workerFilePath: '/run-ssg-worker.js',
+      } as any);
+      workers[0].attachListener();
+
+      const failed = pool.render({ type: 'render', pathname: '/', params: undefined });
+      workers[0].emit('message', { type: 'file', pathname: '/', filePath: '/out/index.html' });
+      workers[0].emit(
+        'message',
+        renderResult('/', { ok: false, error: { message: 'caught', stack: undefined } })
+      );
+
+      expect((await failed).error?.message).toBe('caught');
     });
   });
 });

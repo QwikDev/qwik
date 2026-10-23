@@ -41,6 +41,7 @@ export interface SsgRenderOptions extends RenderOptions {
     maxWorkers?: number;
     origin: string;
     outDir: string;
+    retries?: number;
     sitemapOutFile?: string | null;
 }
 
@@ -55,6 +56,8 @@ export interface StaticGenerateResult {
     errors: number;
     // (undocumented)
     rendered: number;
+    // (undocumented)
+    retried: number;
     // (undocumented)
     staticPaths: string[];
 }

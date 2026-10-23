@@ -208,6 +208,34 @@ export function collectNeededImports(ctx: RewriteContext): void {
   }
 }
 
+function orderExtractionsForEmission(extractions: ExtractionResult[]): ExtractionResult[] {
+  const childrenByParent = new Map<string, ExtractionResult[]>();
+  for (const extraction of extractions) {
+    if (extraction.parent === null) {
+      continue;
+    }
+    const children = childrenByParent.get(extraction.parent) ?? [];
+    children.push(extraction);
+    childrenByParent.set(extraction.parent, children);
+  }
+
+  const ordered: ExtractionResult[] = [];
+  const visit = (extraction: ExtractionResult): void => {
+    for (const child of (childrenByParent.get(extraction.symbolName) ?? []).sort(
+      (a, b) => a.callStart - b.callStart
+    )) {
+      visit(child);
+    }
+    ordered.push(extraction);
+  };
+  for (const extraction of extractions
+    .filter((item) => item.parent === null)
+    .sort((a, b) => a.callStart - b.callStart)) {
+    visit(extraction);
+  }
+  return ordered;
+}
+
 export function buildQrlDeclarations(ctx: RewriteContext): void {
   const {
     extractions,
@@ -261,6 +289,8 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   let inlineSentinelOffset = 0;
   const deferredStrippedQrlVars = new Set<string>();
 
+  const inlineEmissionOrder = orderExtractionsForEmission(allNonSync);
+
   const pushWorkerDeclaration = (ext: ExtractionResult, varName: string): void => {
     const devMeta =
       isDevMode && devFilePath
@@ -285,7 +315,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   };
 
   if (isInline) {
-    for (const ext of allNonSync) {
+    for (const ext of inlineEmissionOrder) {
       const isRegCtx = matchesRegCtxName(ext, inlineOptions?.regCtxName);
       const stripped =
         !isRegCtx &&
@@ -313,7 +343,11 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
           ctx.qrlDecls.push(markMovedCaptures(buildNoopQrlForVar(qrlVar, ext.symbolName), ext));
         }
         ctx.qrlVarNames.set(ext.symbolName, qrlVar);
-        if (ext.parent !== null) {
+        const hasRegisteredChild = allNonSync.some(
+          (child) =>
+            child.parent === ext.symbolName && matchesRegCtxName(child, inlineOptions?.regCtxName)
+        );
+        if (ext.parent !== null && !hasRegisteredChild) {
           deferredStrippedQrlVars.add(qrlVar);
         }
       } else {
@@ -574,32 +608,11 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     }
   }
 
-  const childrenByParent = new Map<string, ExtractionResult[]>();
-  for (const ext of allNonSync) {
-    if (ext.parent === null) {
-      continue;
-    }
-    const children = childrenByParent.get(ext.parent) ?? [];
-    children.push(ext);
-    childrenByParent.set(ext.parent, children);
-  }
   const callOrder = new Map<string, number>();
-  const emissionOrder: ExtractionResult[] = [];
-  const visit = (ext: ExtractionResult): void => {
-    for (const child of (childrenByParent.get(ext.symbolName) ?? []).sort(
-      (a, b) => a.callStart - b.callStart
-    )) {
-      visit(child);
-    }
-    const rank = emissionOrder.length;
-    emissionOrder.push(ext);
+  const emissionOrder = orderExtractionsForEmission(allNonSync);
+  for (const [rank, ext] of emissionOrder.entries()) {
     callOrder.set(ext.symbolName, rank);
     callOrder.set(qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`, rank);
-  };
-  for (const ext of allNonSync
-    .filter((ext) => ext.parent === null)
-    .sort((a, b) => a.callStart - b.callStart)) {
-    visit(ext);
   }
   // Inline bodies share one module scope, numbered in `.s()` emission order.
   const emittedExts = new Set([...nestedExts, ...topNonComponent, ...topComponent]);

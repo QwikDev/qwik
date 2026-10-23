@@ -89,6 +89,18 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 }
 
 #[test]
+fn smart_visible_task_heavy_library() {
+	test_input!(TestInput {
+		code: include_str!("fixtures/smart-visible-task-heavy-library.tsx").to_string(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn smart_lifted_event_captures() {
 	let code = include_str!("fixtures/smart-lifted-captures.tsx").to_string();
 	let result = test_input_fn(TestInput {

@@ -37,6 +37,12 @@ export const DEFAULT_OPTIONS: Required<
 };
 
 export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
+  smart_visible_task_heavy_library: {
+    entryStrategy: { type: 'smart' },
+    transpileTs: true,
+    transpileJsx: true,
+    mode: 'prod',
+  },
   smart_lifted_event_captures: {
     entryStrategy: { type: 'smart' },
     transpileTs: true,

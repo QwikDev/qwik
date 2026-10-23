@@ -155,6 +155,7 @@ export type RouteActionValue =
       data: FormData | Record<string, unknown> | undefined;
       output?: RouteActionResolver;
       resolve?: NoSerialize<(data: RouteActionResolver) => void>;
+      reject?: NoSerialize<(reason: unknown) => void>;
       resolveDispatch?: NoSerialize<() => void>;
     }
   | undefined;

@@ -602,6 +602,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const canceled = new Promise<undefined>((resolve) => {
         navResolver.cancel = () => resolve(undefined);
       });
+      // A navigation that bails before submitting must still settle the submit promise.
+      const abandonAction = () => {
+        action?.reject?.(new Error('Action submission was superseded by a navigation'));
+        if (action) {
+          action.resolve = undefined;
+          action.reject = undefined;
+        }
+      };
 
       // ensure correct trailing slash
       if (trackUrl.pathname.endsWith('/')) {
@@ -620,11 +628,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       try {
         const route = await Promise.race([loadRoutePromise, canceled]);
         if (!route) {
+          abandonAction();
           return;
         }
         loadedRoute = route;
       } catch (e) {
         if (internalState.navCount !== navCountBefore) {
+          abandonAction();
           return;
         }
         const preparedNavCount = getClientRouteLoaders(routeLoaderCtx).navCount;
@@ -637,20 +647,27 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
       // Bail if a second nav() was fired while we were loading route modules.
       if (internalState.navCount !== navCountBefore) {
+        abandonAction();
         return;
       }
 
       // Submit action if one was triggered
       if (action) {
         const result = await Promise.race([
-          submitAction(action, trackUrl).then((result) => {
-            // Superseded actions still complete their caller's submit promise.
-            if (result && action.resolve) {
-              action.resolve({ status: result.status, result: result.result });
+          submitAction(action, trackUrl).then(
+            (result) => {
+              // Superseded actions still complete their caller's submit promise.
+              action.resolve?.({ status: result.status, result: result.result });
+              action.resolve = undefined;
+              action.reject = undefined;
+              return result;
+            },
+            (error) => {
+              action.reject?.(error);
+              action.reject = undefined;
               action.resolve = undefined;
             }
-            return result;
-          }),
+          ),
           canceled,
         ]);
 
@@ -660,6 +677,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         navResolver.cancel = undefined;
         if (!result) {
           routeInternal.untrackedValue = { type: navType, dest: trackUrl };
+          routeLocation.isNavigating = false;
+          navResolver.r?.();
           return;
         }
 

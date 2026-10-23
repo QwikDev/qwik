@@ -130,6 +130,8 @@ test.describe('context', () => {
         await expect(value).toHaveText('Value: bar');
       }
 
+      // Wait for the visible task's layout shift before clicking.
+      await expect(page.locator('#issue1971-value')).toBeVisible();
       await btn.click();
 
       await expect(value).toHaveText('Value: bar');

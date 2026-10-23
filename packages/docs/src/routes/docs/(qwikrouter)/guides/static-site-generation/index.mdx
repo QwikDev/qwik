@@ -16,6 +16,7 @@ created_at: '2023-03-20T23:45:13Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import { Note } from '~/components/note/note';
 
 # Static Site Generation (SSG) Overview
 
@@ -122,6 +123,52 @@ The `outDir` is a file system output directory where the static files should be 
 SSG is designed to be run at build time, but it can also be re-run at any time after the initial build. This can be useful when you want to update the static HTML files without having to rebuild the entire application.
 
 To re-run SSG, you can run the `server/run-ssg.js` script. This script will re-run the SSG process and update the static HTML files in the `dist` folder. (or whatever `outDir` you have configured in your SSG config).
+
+## Failed renders
+
+SSG fails the build when a route fails to render, so a broken page never ships as static HTML. A render fails when:
+
+- the route throws an error that it doesn't handle,
+- a [`<Catch>`](../../../labs/catch/index.mdx) catches an error during the render,
+- the route renders a 5xx error page, for example when a `routeLoader$` throws `requestEvent.error(503, 'Service unavailable')`,
+- the render takes longer than 30 seconds.
+
+A route that redirects or responds with a 4xx status, such as a 404, is skipped instead: SSG writes no file for it, and the build goes on.
+
+### Retrying failed renders
+
+A data source can fail for a moment during a build, for example when an API rate-limits the prerender. Set the `retries` option to render a failed route again before SSG records the error:
+
+```ts title="adapters/ssg/vite.config.ts"
+import { ssgAdapter } from '@qwik.dev/router/adapters/ssg/vite';
+import { extendConfig } from '@qwik.dev/router/vite';
+import baseConfig from '../../vite.config.ts';
+
+export default extendConfig(baseConfig, () => {
+  return {
+    build: {
+      ssr: true,
+      rolldownOptions: {
+        input: ['@qwik-router-config'],
+      },
+    },
+    plugins: [
+      ssgAdapter({
+        origin: 'https://yoursite.qwik.dev',
+        retries: 2,
+      }),
+    ],
+  };
+});
+```
+
+With `retries: 2`, SSG renders a failed route up to 3 times. It waits 500ms before the first retry and doubles the wait for each retry after that, up to 2s. When a render times out, SSG restarts the worker that ran it before retrying. Each retry prints a warning with the error, even when `log` is `'quiet'`, so a build that only passed thanks to a retry still shows the flaky route.
+
+`retries` defaults to `0`. Once a route has used its retries, a failed render is recorded as an error, and a render that timed out stops the build at once.
+
+<Note>
+A retry can't fix a bug. A route that fails the same way every time renders `retries + 1` times before the build fails, so keep the value small.
+</Note>
 
 ## Dynamic SSG Routes
 

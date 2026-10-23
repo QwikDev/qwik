@@ -5,10 +5,17 @@ import {
   resolveRequestHandlers,
 } from '../middleware/request-handler/resolve-request-handlers-core';
 import { trimInternalPathname } from '../middleware/request-handler/request-path';
+import type { ErrorCodes, RequestEvent } from '../middleware/request-handler/types';
 import { runQwikRouter } from '../middleware/request-handler/user-response';
+import { routeLoaderQrl } from '../runtime/src/route-loaders';
 import { loadRoute } from '../runtime/src/routing';
 import type { SsgHandlerOptions, SsgWorkerRenderResult, System } from './types';
 import { workerRender } from './worker-thread';
+
+vi.mock('@qwik.dev/core/internal', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@qwik.dev/core/internal')>()),
+  isDev: false,
+}));
 
 const deps: Parameters<typeof workerRender>[5] = {
   loadRoute,
@@ -61,13 +68,30 @@ const createRender = ({ earlyCatch = false, lateCatch = false } = {}) =>
     };
   });
 
-function renderRoute(sys: System, render: any) {
+const createLoader = (
+  id: string,
+  load: () => unknown,
+  options: Parameters<typeof routeLoaderQrl>[1] = {}
+) =>
+  routeLoaderQrl(
+    { call: async () => load(), getHash: () => id, getSymbol: () => id } as any,
+    options
+  );
+
+const throwOnGet = (status: ErrorCodes, message: string) => ({
+  default: () => null,
+  onGet: (ev: RequestEvent) => {
+    throw ev.error(status, message);
+  },
+});
+
+function renderRoute(sys: System, render: any, routeModule: object = { default: () => null }) {
   const opts: SsgHandlerOptions = {
     outDir: '/out',
     origin: 'https://example.com',
     render,
     qwikRouterConfig: {
-      routes: { _I: async () => ({ default: () => null }) },
+      routes: { _I: async () => routeModule },
       serverPlugins: undefined,
       cacheModules: false,
       basePathname: '/',
@@ -113,6 +137,43 @@ describe('SSG worker error boundary handling', () => {
 
     expect(result.ok).toBe(false);
     expect(result.error?.message).toContain('Catch');
+    expect(result.filePath).toBeNull();
+  });
+});
+
+describe('SSG worker status handling', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('fails the route when it renders a 5xx error page', async () => {
+    const { sys } = createSystem();
+    const result = await renderRoute(sys, createRender(), throwOnGet(503, 'upstream down'));
+
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('503');
+    expect(result.error?.message).toContain('upstream down');
+    expect(result.filePath).toBeNull();
+  });
+
+  it("reports a loader's thrown error instead of its generic 500 status", async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { sys } = createSystem();
+    const useData = createLoader('data', () => {
+      throw new Error('db down');
+    });
+    const result = await renderRoute(sys, createRender(), { default: () => null, useData });
+
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toBe('db down');
+  });
+
+  it('skips a route that returns a 404 without failing it', async () => {
+    const { sys } = createSystem();
+    const result = await renderRoute(sys, createRender(), throwOnGet(404, 'missing'));
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBeNull();
     expect(result.filePath).toBeNull();
   });
 });

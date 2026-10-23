@@ -597,9 +597,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       elementName: '#segment',
       depthFirstElementIdx: -1,
       // OOOS inserts this synthetic root under the Pending content host on the client.
-      vNodeData: [VNodeDataFlag.SERIALIZE],
+      vNodeData: [VNodeDataFlag.SERIALIZE | VNodeDataFlag.TEXT_DATA],
       currentFile: null,
-      refBase: contentHostNode.id,
+      refBase:
+        contentHostNode.getProp(QSlot) != null
+          ? String(getSegmentVNodeRefId(segmentId, 0))
+          : contentHostNode.id,
     };
     const segmentContainer = new SSRSegmentContainer(
       {

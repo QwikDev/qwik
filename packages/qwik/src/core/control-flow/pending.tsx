@@ -16,12 +16,13 @@ import {
   QDefaultSlot,
   QPendingResolved,
   QPendingResultParent,
+  QSlot,
 } from '../shared/utils/markers';
 import { resolveSlotName } from '../shared/utils/prop';
 import { ERROR_CONTEXT, type CatchStore } from '../shared/error/error-handling';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
-import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
+import type { SSRContainer, SSROutOfOrderSegment } from '../ssr/ssr-types';
 import { useComputedQrl } from '../use/use-computed';
 import { tryGetInvokeContext, untrack } from '../use/use-core';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
@@ -257,12 +258,20 @@ const SSRDeferredSlot = /*#__PURE__*/ createInternalServerComponent<SSRDeferredS
             | CatchStore
             | undefined)
         : undefined;
-    const content = ssr.segment(
-      contentSegment,
-      createClaimedDeferredSlot(ssr, jsx, options),
-      options
-    );
-
+    const componentFrame = options.parentComponentFrame!;
+    const slotName = resolveSlotName(componentFrame.componentNode, jsx, ssr);
+    ssr.openProjection({ [QSlot]: slotName });
+    const slot = ssr.getOrCreateLastNode();
+    const defaultChildren = (jsx.children || null) as JSXChildren | null;
+    const children = componentFrame.consumeChildrenForSlot(slot, slotName) || defaultChildren;
+    if (defaultChildren && children !== defaultChildren) {
+      ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, defaultChildren);
+    }
+    const content = ssr.segment(contentSegment, children as JSXOutput, {
+      currentStyleScoped: componentFrame.projectionScopedStyle,
+      parentComponentFrame: componentFrame.projectionComponentFrame,
+    });
+    ssr.closeProjection();
     ssr.write(`<template ${QPendingResolved}="${boundaryId}"></template>`);
     ssr.emitOutOfOrderExecutorIfNeeded();
     ssr.queueOutOfOrderSegment(
@@ -289,41 +298,6 @@ const SSRDeferredSlot = /*#__PURE__*/ createInternalServerComponent<SSRDeferredS
     );
   }
 );
-
-function createClaimedDeferredSlot(
-  ssr: SSRContainer,
-  jsx: JSXNodeInternal,
-  options: SSRRenderJSXOptions
-): ReturnType<typeof _jsxSorted> {
-  const componentFrame = options.parentComponentFrame;
-  if (!componentFrame) {
-    return /*#__PURE__*/ _jsxSorted(
-      Slot,
-      jsx.varProps,
-      jsx.constProps,
-      jsx.children,
-      jsx.flags,
-      jsx.key
-    );
-  }
-  const slotName = resolveSlotName(componentFrame.componentNode, jsx, ssr);
-  const slotDefaultChildren = (jsx.children || null) as JSXChildren | null;
-  const slotChildren =
-    (
-      componentFrame as unknown as { claimChildrenForSlot(slotName: string): JSXChildren | null }
-    ).claimChildrenForSlot(slotName) || slotDefaultChildren;
-  if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
-    ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
-  }
-  return /*#__PURE__*/ _jsxSorted(
-    Slot,
-    jsx.varProps,
-    jsx.constProps,
-    slotChildren,
-    jsx.flags,
-    jsx.key
-  );
-}
 
 async function emitRenderedOutOfOrderSegment(
   ssr: SSRContainer,

@@ -268,9 +268,28 @@ test.describe('out-of-order streaming with <Pending>', () => {
     await expect(page.locator('#ooos-fallback')).toBeVisible();
     await expect(page.locator('#ooos-resolved')).toHaveCount(0);
 
+    const projection = await page.locator('[q\\:rp="1"]').evaluateHandle((host) => {
+      return (host as any).vNode.firstChild;
+    });
+    expect(await projection.evaluate((slot) => slot?.slotParent.props[''] === slot)).toBe(true);
+
     await releaseDeferred(page, '#ooos-default-release');
     await expect(page.locator('#ooos-resolved')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-fallback')).toBeHidden();
+    await expect
+      .poll(() =>
+        projection.evaluate((slot) => {
+          const host = document.querySelector('[q\\:rp="1"]') as any;
+          return (
+            host.vNode.firstChild === slot &&
+            slot.firstChild?.parent === slot &&
+            slot.slotParent.props[''] === slot
+          );
+        })
+      )
+      .toBe(true);
+    await page.locator('#ooos-resolved-button').click();
+    await expect(page.locator('#ooos-resolved-count')).toHaveText('1');
     await page.waitForLoadState('load');
   });
 

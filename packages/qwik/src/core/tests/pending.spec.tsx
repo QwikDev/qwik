@@ -20,6 +20,7 @@ import {
   Catch,
   $,
   getDomContainer,
+  getPlatform,
   type JSXOutput,
   render,
   setPlatform,
@@ -1484,6 +1485,9 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(html).not.toContain('type="qwik/vnode" q:r="1" q:o=');
     expect(html).not.toContain('q:segment');
     expect(html).not.toContain('q:pending');
+    const document = createDocument({ html });
+    const segment = document.querySelector('script[type="qwik/vnode"][q\\:r="1"]')!;
+    expect(segment.textContent).not.toMatch(/\?[^{}]*~/);
   });
 
   it('should replay projected Slot children when resolved content is rendered later', async () => {
@@ -2740,7 +2744,8 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     (globalThis as any).__ooosUnitFallbackClicks = 0;
     (globalThis as any).__ooosUnitShellClicks = 0;
-    const Slow = component$(() => <>{slow}</>);
+    (globalThis as any).__ooosUnitSlowContent = slow;
+    const Slow = component$(() => <>{(globalThis as any).__ooosUnitSlowContent}</>);
     const Fallback = component$(() => {
       const count = useSignal(0);
       return (
@@ -2762,9 +2767,11 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     const App = component$(() => {
       const count = useSignal(0);
+      const render = useSignal(0);
       return (
         <main>
-          <Pending fallback$={() => <Fallback />}>
+          <button onClick$={() => render.value++}>Rerender</button>
+          <Pending key={render.value} fallback$={() => <Fallback />}>
             <Slow />
           </Pending>
           <button
@@ -2785,12 +2792,14 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     const chunks: string[] = [];
 
     const renderPromise = ssrRenderPendingStream(<App />, chunks);
+    const platform = getPlatform();
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('ooos-unit-fallback-button'));
       await vi.waitFor(() => expect(chunks.join('')).toContain('ooos-unit-shell-button'));
       await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
       const html = chunks.join('');
+      setPlatform(getTestPlatform());
       const document = createDocument({ html });
       emulateExecutionOfQwikFuncs(document);
       emulateExecutionOfBackpatch(document);
@@ -2800,13 +2809,17 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       await trigger(container.element, '#ooos-unit-fallback-button', 'click');
       expect((globalThis as any).__ooosUnitFallbackClicks).toBe(1);
       expect((globalThis as any).__ooosUnitFallbackValue).toBe(1);
+      expect(document.querySelector('#ooos-unit-fallback-count')!.textContent).toBe('1');
 
       await trigger(container.element, '#ooos-unit-shell-button', 'click');
       expect((globalThis as any).__ooosUnitShellClicks).toBe(1);
       expect((globalThis as any).__ooosUnitShellValue).toBe(1);
+      expect(document.querySelector('#ooos-unit-shell-count')!.textContent).toBe('1');
     } finally {
+      setPlatform(platform);
       resolveSlow(<section>Done</section>);
       await renderPromise;
+      delete (globalThis as any).__ooosUnitSlowContent;
       delete (globalThis as any).__ooosUnitFallbackClicks;
       delete (globalThis as any).__ooosUnitShellClicks;
       delete (globalThis as any).__ooosUnitFallbackValue;

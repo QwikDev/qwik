@@ -2,7 +2,8 @@ import { assertFalse } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import type { Container, HostElement } from '../../shared/types';
 import { ChoreBits } from '../../shared/vnode/enums/chore-bits.enum';
-import { trackSignal } from '../../use/use-core';
+import { isPromise, retryOnPromise } from '../../shared/utils/promises';
+import { invokeApply, newInvokeContext, trackSignal } from '../../use/use-core';
 import { getValueProp } from '../internal-api';
 import type { AllSignalFlags, EffectSubscription } from '../types';
 import { EffectProperty, NEEDS_COMPUTATION, ComputedSignalFlags } from '../types';
@@ -45,14 +46,32 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
     invalidateDerived(this);
   }
 
-  /** Recompute now; when that throws (e.g. a lazy QRL), defer to a COMPUTE chore on the host. */
+  /**
+   * Recompute now; when that throws (e.g. a lazy QRL), defer to a COMPUTE chore on the host. A
+   * signal without a host (e.g. a component prop) retries once the promise settles instead, so it
+   * is not left in CHECK with its sources unsubscribed.
+   */
   $pull$(): void {
     try {
       this.$computeIfNeeded$();
-    } catch (_) {
+    } catch (err) {
       if (this.$container$ && this.$hostElement$) {
         this.$container$.setHostProp(this.$hostElement$ as HostElement, HOST_SIGNAL, this);
         markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
+      } else if (isPromise(err)) {
+        const ctx = newInvokeContext();
+        ctx.$container$ = this.$container$ || undefined;
+        // @ts-expect-error it's confused about args any[] vs []
+        const running = retryOnPromise(invokeApply.bind(this, ctx, this.$computeIfNeeded$));
+        if (isPromise(running)) {
+          running.catch((error: unknown) => {
+            if (this.$container$) {
+              this.$container$.handleError(error, null);
+            } else {
+              console.error('Error during computation', error);
+            }
+          });
+        }
       }
     }
   }

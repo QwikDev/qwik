@@ -82,7 +82,7 @@ import {
   vnode_isElementVNode,
   vnode_isProjection,
   vnode_isVirtualVNode,
-  vnode_projectPendingContent,
+  vnode_materializeSegment,
   vnode_locate,
   vnode_newUnMaterializedElement,
   vnode_setProp,
@@ -135,7 +135,7 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
           host.firstChild &&
           vnode_isProjection(host.firstChild)
         ) {
-          vnode_projectPendingContent(host, host.firstChild);
+          vnode_materializeSegment(host, host.firstChild);
         }
       }
       processContainerStateData(

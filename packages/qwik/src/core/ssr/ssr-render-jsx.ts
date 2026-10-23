@@ -292,11 +292,9 @@ function processJSXNode(
         } else if (type === Slot) {
           const componentFrame = options.parentComponentFrame;
           if (componentFrame) {
-            const compId = componentFrame.componentNode.id || '';
             const projectionAttrs: Record<string, string | null> = isDev
               ? { [DEBUG_TYPE]: VirtualType.Projection }
               : {};
-            projectionAttrs[QSlotParent] = compId;
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
             const node = ssr.getOrCreateLastNode();
@@ -307,20 +305,25 @@ function processJSXNode(
               setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
             );
             enqueue(ssr.closeProjection);
-            const slotDefaultChildren: JSXChildren | null = jsx.children || null;
-            const slotChildren =
-              componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
+            const slotDefaultChildren: JSXChildren | null = jsx.children ?? null;
+            const projectedChildren = componentFrame.consumeChildrenForSlot(node, slotName);
+            const slotChildren = projectedChildren ?? slotDefaultChildren;
+            if (projectedChildren == null) {
+              node.removeProp(QSlotParent);
+            }
             if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
               ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
             }
             enqueueJSX(enqueue, slotChildren as JSXOutput);
-            enqueue(
-              setParentOptions(
-                options,
-                componentFrame.projectionScopedStyle,
-                componentFrame.projectionComponentFrame
-              )
-            );
+            if (projectedChildren != null) {
+              enqueue(
+                setParentOptions(
+                  options,
+                  componentFrame.projectionScopedStyle,
+                  componentFrame.projectionComponentFrame
+                )
+              );
+            }
           } else {
             // Even thought we are not projecting we still need to leave a marker for the slot.
             let projectionAttrs = EMPTY_OBJ;
@@ -404,7 +407,7 @@ function processJSXNode(
           }
           ssr.openFragment(inlineComponentProps);
           enqueue(ssr.closeFragment);
-          const component = ssr.getParentComponentFrame();
+          const component = options.parentComponentFrame;
           const jsxOutput = applyInlineComponent(
             ssr,
             component && component.componentNode,

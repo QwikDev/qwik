@@ -14,6 +14,7 @@ import { _capturesObj, type QRLInternal } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
   QDefaultSlot,
+  QFallbackSlot,
   QPendingResolved,
   QPendingResultParent,
   QSlot,
@@ -131,7 +132,14 @@ export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
       : null;
   const contentStyle = /*#__PURE__*/ _fnSignal(_hf1, [state, canReveal], _hf1_str);
   const fallback = props.fallback$
-    ? (props.fallback$ as QRLInternal<() => JSXOutput>).getFn(tryGetInvokeContext())()
+    ? /*#__PURE__*/ _jsxSorted(
+        Slot,
+        null,
+        { name: QFallbackSlot },
+        (props.fallback$ as QRLInternal<() => JSXOutput>).getFn(tryGetInvokeContext())(),
+        1,
+        null
+      )
     : null;
 
   const fallbackHost = (

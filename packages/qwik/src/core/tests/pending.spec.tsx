@@ -109,7 +109,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <div {...fallbackAttrs}>
-          <span>Loading...</span>
+          <Projection ssr-required>
+            <span>Loading...</span>
+          </Projection>
         </div>
         <div {...contentAttrs()}>
           <Projection ssr-required>
@@ -133,7 +135,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <div {...fallbackAttrs}>
-          <span>Loading...</span>
+          <Projection ssr-required>
+            <span>Loading...</span>
+          </Projection>
         </div>
         <div {...contentAttrs()}>
           <Projection ssr-required>
@@ -164,7 +168,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <div {...fallbackAttrs}>
-          <span>Loading...</span>
+          <Projection ssr-required>
+            <span>Loading...</span>
+          </Projection>
         </div>
         <div {...contentAttrs()}>
           <Projection ssr-required>
@@ -240,7 +246,9 @@ describe.each([
       <div>
         <Component ssr-required>
           <div {...fallbackAttrs}>
-            <span>Loading 1...</span>
+            <Projection ssr-required>
+              <span>Loading 1...</span>
+            </Projection>
           </div>
           <div {...contentAttrs('1')}>
             <Projection ssr-required>
@@ -251,7 +259,9 @@ describe.each([
 
         <Component ssr-required>
           <div {...fallbackAttrs}>
-            <span>Loading 2...</span>
+            <Projection ssr-required>
+              <span>Loading 2...</span>
+            </Projection>
           </div>
           <div {...contentAttrs('2')}>
             <Projection ssr-required>
@@ -274,7 +284,9 @@ describe.each([
       <div>
         <Component ssr-required>
           <div {...fallbackAttrs}>
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div {...contentAttrs()}>
             <Projection ssr-required></Projection>
@@ -298,7 +310,9 @@ describe.each([
       <div>
         <Component ssr-required>
           <div {...fallbackAttrs}>
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div {...contentAttrs()}>
             <Projection ssr-required>
@@ -373,7 +387,9 @@ describe.each([
       <div>
         <Component ssr-required>
           <div {...fallbackAttrs}>
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div {...contentAttrs()}>
             <Projection ssr-required>
@@ -492,7 +508,9 @@ describe('domRender: Pending client-side pause delay', () => {
       <div>
         <Component>
           <div style="display:none">
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div style="display:contents">
             <Projection>
@@ -615,7 +633,9 @@ describe('domRender: Pending client-side pause delay', () => {
       <div>
         <Component ssr-required>
           <div style="display:none">
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div style="display:contents">
             <Projection ssr-required>
@@ -652,7 +672,9 @@ describe('domRender: Pending client-side pause delay', () => {
       <div>
         <Component ssr-required>
           <div style="display:none">
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div style="display:contents">
             <Projection ssr-required>
@@ -1326,7 +1348,9 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
             <button id="ooos-unit-slow-forward-ref-button">Read slow forward ref</button>
             <Component ssr-required>
               <div style="display: none;">
-                <p>Waiting forward refs</p>
+                <Projection ssr-required>
+                  <p>Waiting forward refs</p>
+                </Projection>
               </div>
               {/* @ts-ignore-next-line */}
               <div q:rp="1" style="display: contents;">

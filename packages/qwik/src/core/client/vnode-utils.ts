@@ -1552,7 +1552,7 @@ const vnode_materialize = (vNode: ElementVNode) => {
   return vFirstChild;
 };
 
-export const vnode_projectPendingContent = (host: ElementVNode, slot: VirtualVNode): void => {
+export const vnode_materializeSegment = (host: ElementVNode, slot: VirtualVNode): void => {
   const element = host.node as QElement;
   const data = element._qSegmentVNodeData;
   if (data === undefined) {
@@ -1639,7 +1639,7 @@ export const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
     }
   }
   if (__EXPERIMENTAL__.pendingBoundary && vFirstChild && vnode_isProjection(vFirstChild)) {
-    vnode_projectPendingContent(vParent, vFirstChild);
+    vnode_materializeSegment(vParent, vFirstChild);
   }
   isDev && assertTrue(vParent.firstChild !== undefined, 'Did not materialize.');
   isDev && assertTrue(vParent.lastChild !== undefined, 'Did not materialize.');

@@ -14,6 +14,7 @@ import {
   QWIK_WORKER_QRL_SENTINEL,
   rewriteWorkerCorePlaceholders,
   rewriteWorkerQrlChunkPlaceholders,
+  stubRemovedChunkImports,
 } from './worker-qrl-chunks';
 
 const cwd = process.cwd();
@@ -967,6 +968,44 @@ describe('worker qrl chunk rewrites', () => {
     const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
 
     assert.equal(rewritten, 'const chunk = "/app/assets/build/q-worker.js";');
+  });
+});
+
+describe('removed chunk import stubs', () => {
+  const createBundle = (code: string, dynamicImports: string[], emittedFiles: string[]) =>
+    Object.fromEntries([
+      [
+        'build/q-importer.js',
+        { type: 'chunk', fileName: 'build/q-importer.js', code, dynamicImports },
+      ],
+      ...emittedFiles.map((fileName) => [
+        fileName,
+        { type: 'chunk', fileName, code: '', dynamicImports: [] },
+      ]),
+    ]) as unknown as Rolldown.OutputBundle;
+
+  test('resolves the dynamic import of a chunk Vite removed', () => {
+    const bundle = createBundle(
+      'const css = () => import("./q-pure-css.js");',
+      ['build/q-pure-css.js'],
+      []
+    );
+
+    stubRemovedChunkImports(bundle);
+
+    assert.equal(
+      (bundle['build/q-importer.js'] as any).code,
+      'const css = () => Promise.resolve({});'
+    );
+  });
+
+  test('keeps dynamic imports of emitted chunks and externals', () => {
+    const code = 'const a = () => import("./q-kept.js"); const b = () => import("ext-pkg");';
+    const bundle = createBundle(code, ['build/q-kept.js', 'ext-pkg'], ['build/q-kept.js']);
+
+    stubRemovedChunkImports(bundle);
+
+    assert.equal((bundle['build/q-importer.js'] as any).code, code);
   });
 });
 

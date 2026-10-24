@@ -1,3 +1,4 @@
+import type { Rolldown } from 'vite';
 import type { QwikManifest } from '../types';
 
 const QWIK_WORKER_QRL_SENTINEL_NAME = '__QWIK_WORKER_QRL__';
@@ -135,6 +136,30 @@ const relativePosixPath = (fromDir: string, toFile: string) => {
   }
 
   return [...fromParts.slice(sharedParts).map(() => '..'), ...toParts.slice(sharedParts)].join('/');
+};
+
+const RELATIVE_DYNAMIC_IMPORT_RE = /\bimport\(\s*(["'`])(\.[^"'`]*)\1\s*\)/g;
+
+/** Vite deletes pure-CSS chunks and relies on its import analysis to stub out their imports. */
+export const stubRemovedChunkImports = (bundle: Rolldown.OutputBundle) => {
+  for (const output of Object.values(bundle)) {
+    if (output.type !== 'chunk') {
+      continue;
+    }
+    const chunkDir = posixDirname(output.fileName);
+    const removedSpecifiers = new Set(
+      output.dynamicImports
+        .filter((fileName) => !bundle[fileName])
+        .map((fileName) => ensureRelativeImportPath(relativePosixPath(chunkDir, fileName)))
+    );
+    if (removedSpecifiers.size) {
+      output.code = output.code.replace(
+        RELATIVE_DYNAMIC_IMPORT_RE,
+        (expression, _quote, specifier) =>
+          removedSpecifiers.has(specifier) ? 'Promise.resolve({})' : expression
+      );
+    }
+  }
 };
 
 export const createBuildWorkerCoreChunkResolver = (workerCoreChunkFileName: string) => {

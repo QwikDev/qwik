@@ -1,5 +1,5 @@
 import path, { resolve } from 'node:path';
-import type { Rolldown } from 'vite';
+import { parseAst, type Rolldown } from 'vite';
 import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
@@ -972,40 +972,144 @@ describe('worker qrl chunk rewrites', () => {
 });
 
 describe('removed chunk import stubs', () => {
-  const createBundle = (code: string, dynamicImports: string[], emittedFiles: string[]) =>
-    Object.fromEntries([
-      [
-        'build/q-importer.js',
-        { type: 'chunk', fileName: 'build/q-importer.js', code, dynamicImports },
-      ],
-      ...emittedFiles.map((fileName) => [
+  const importerFileName = 'build/q-importer.js';
+
+  // Vite leaves removed chunks listed in the importer's dynamicImports.
+  const stubImports = (
+    code: string,
+    dynamicImports: string[],
+    { removed = [], emitted = [] }: { removed?: string[]; emitted?: string[] } = {}
+  ) => {
+    const bundle = Object.fromEntries([
+      [importerFileName, { type: 'chunk', fileName: importerFileName, code, dynamicImports }],
+      ...emitted.map((fileName) => [
         fileName,
         { type: 'chunk', fileName, code: '', dynamicImports: [] },
       ]),
     ]) as unknown as Rolldown.OutputBundle;
+    const warnings: string[] = [];
 
-  test('resolves the dynamic import of a chunk Vite removed', () => {
-    const bundle = createBundle(
-      'const css = () => import("./q-pure-css.js");',
-      ['build/q-pure-css.js'],
-      []
+    stubRemovedChunkImports(
+      { parse: parseAst, warn: (message) => warnings.push(String(message)) },
+      bundle,
+      new Set([importerFileName, ...emitted, ...removed])
     );
 
-    stubRemovedChunkImports(bundle);
+    return { code: (bundle[importerFileName] as Rolldown.OutputChunk).code, warnings };
+  };
+
+  test('resolves the dynamic import of a chunk the CSS pass removed', () => {
+    const { code } = stubImports(
+      'const css = () => import("./q-pure-css.js");',
+      ['build/q-pure-css.js'],
+      { removed: ['build/q-pure-css.js'] }
+    );
+
+    assert.equal(code, 'const css = () => Promise.resolve({});');
+  });
+
+  test('stubs single-quoted and template-literal imports of a removed chunk', () => {
+    const { code } = stubImports(
+      "const a = () => import('./q-pure-css.js'); const b = () => import(`./q-pure-css.js`);",
+      ['build/q-pure-css.js'],
+      { removed: ['build/q-pure-css.js'] }
+    );
+
+    assert.equal(code, 'const a = () => Promise.resolve({}); const b = () => Promise.resolve({});');
+  });
+
+  test('resolves the specifier against the importing chunk directory', () => {
+    const { code } = stubImports(
+      'const a = () => import("../assets/q-pure-css.js"); const b = () => import("./q-pure-css.js");',
+      ['assets/q-pure-css.js', 'build/q-pure-css.js'],
+      { removed: ['assets/q-pure-css.js'], emitted: ['build/q-pure-css.js'] }
+    );
 
     assert.equal(
-      (bundle['build/q-importer.js'] as any).code,
-      'const css = () => Promise.resolve({});'
+      code,
+      'const a = () => Promise.resolve({}); const b = () => import("./q-pure-css.js");'
     );
   });
 
-  test('keeps dynamic imports of emitted chunks and externals', () => {
-    const code = 'const a = () => import("./q-kept.js"); const b = () => import("ext-pkg");';
-    const bundle = createBundle(code, ['build/q-kept.js', 'ext-pkg'], ['build/q-kept.js']);
+  test('replaces the whole expression when the import has attributes', () => {
+    const { code } = stubImports(
+      'const css = () => import("./q-pure-css.js", { with: { type: "css" } });',
+      ['build/q-pure-css.js'],
+      { removed: ['build/q-pure-css.js'] }
+    );
 
-    stubRemovedChunkImports(bundle);
+    assert.equal(code, 'const css = () => Promise.resolve({});');
+  });
 
-    assert.equal((bundle['build/q-importer.js'] as any).code, code);
+  test('keeps imports of modules that were never chunks next to a removed one', () => {
+    const { code } = stubImports(
+      [
+        'const css = () => import("./q-pure-css.js");',
+        'const external = () => import("./external.js");',
+        'const bare = () => import("ext-pkg");',
+      ].join('\n'),
+      ['build/q-pure-css.js', 'build/external.js', 'ext-pkg'],
+      { removed: ['build/q-pure-css.js'] }
+    );
+
+    assert.equal(
+      code,
+      [
+        'const css = () => Promise.resolve({});',
+        'const external = () => import("./external.js");',
+        'const bare = () => import("ext-pkg");',
+      ].join('\n')
+    );
+  });
+
+  test('only rewrites real import expressions of the removed chunk', () => {
+    const { code } = stubImports(
+      [
+        'const real = () => import("./q-pure-css.js");',
+        'loader.import("./q-pure-css.js");',
+        'const text = \'import("./q-pure-css.js")\';',
+        'const template = `import("./q-pure-css.js")`;',
+        '// import("./q-pure-css.js")',
+        'const dynamic = () => import(name);',
+        'const computed = () => import(`./q-${name}.js`);',
+      ].join('\n'),
+      ['build/q-pure-css.js'],
+      { removed: ['build/q-pure-css.js'] }
+    );
+
+    assert.equal(
+      code,
+      [
+        'const real = () => Promise.resolve({});',
+        'loader.import("./q-pure-css.js");',
+        'const text = \'import("./q-pure-css.js")\';',
+        'const template = `import("./q-pure-css.js")`;',
+        '// import("./q-pure-css.js")',
+        'const dynamic = () => import(name);',
+        'const computed = () => import(`./q-${name}.js`);',
+      ].join('\n')
+    );
+  });
+
+  test('leaves a chunk whose imports are all kept untouched and unparsed', () => {
+    const original = 'const a = () => import( "./q-kept.js" ) +;';
+    const { code, warnings } = stubImports(original, ['build/q-kept.js'], {
+      emitted: ['build/q-kept.js'],
+    });
+
+    assert.equal(code, original);
+    assert.deepEqual(warnings, []);
+  });
+
+  test('warns and leaves a chunk it cannot parse unchanged', () => {
+    const original = 'const css = () => import("./q-pure-css.js") +;';
+    const { code, warnings } = stubImports(original, ['build/q-pure-css.js'], {
+      removed: ['build/q-pure-css.js'],
+    });
+
+    assert.equal(code, original);
+    assert.equal(warnings.length, 1);
+    assert.include(warnings[0], importerFileName);
   });
 });
 

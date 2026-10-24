@@ -1,5 +1,6 @@
 import type {
   ConfigEnv,
+  Environment,
   EnvironmentOptions,
   UserConfig,
   ViteDevServer,
@@ -152,6 +153,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   });
 
   const bundleGraphAdders = new Set<BundleGraphAdder>();
+  const fileNamesBeforeCssPass = new WeakMap<Environment, Set<string>>();
 
   const api: QwikVitePluginApi = {
     getOptimizer: () => qwikPlugin.getOptimizer(),
@@ -550,6 +552,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       return qwikPlugin.transform(this, code, id, transformOpts);
     },
+
+    // Must run before Vite's CSS pass deletes pure-CSS chunks.
+    generateBundle: {
+      order: 'pre',
+      handler(_, rollupBundle) {
+        fileNamesBeforeCssPass.set(this.environment, new Set(Object.keys(rollupBundle)));
+      },
+    },
   } as const satisfies VitePlugin<QwikVitePluginApi>;
 
   const vitePluginPost: VitePlugin<never> = {
@@ -593,7 +603,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             }
           }
 
-          stubRemovedChunkImports(rollupBundle);
+          stubRemovedChunkImports(this, rollupBundle, fileNamesBeforeCssPass.get(this.environment));
 
           const manifest = await qwikPlugin.generateManifest(
             this,

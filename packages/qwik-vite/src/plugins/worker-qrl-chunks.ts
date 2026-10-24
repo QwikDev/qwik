@@ -138,27 +138,78 @@ const relativePosixPath = (fromDir: string, toFile: string) => {
   return [...fromParts.slice(sharedParts).map(() => '..'), ...toParts.slice(sharedParts)].join('/');
 };
 
-const RELATIVE_DYNAMIC_IMPORT_RE = /\bimport\(\s*(["'`])(\.[^"'`]*)\1\s*\)/g;
+const EMPTY_MODULE_EXPRESSION = 'Promise.resolve({})';
 
-/** Vite deletes pure-CSS chunks and relies on its import analysis to stub out their imports. */
-export const stubRemovedChunkImports = (bundle: Rolldown.OutputBundle) => {
+interface AstNode {
+  type?: string;
+  start: number;
+  end: number;
+  [key: string]: any;
+}
+
+const findImportExpressions = (node: unknown, found: AstNode[] = []): AstNode[] => {
+  if (Array.isArray(node)) {
+    node.forEach((child) => findImportExpressions(child, found));
+  } else if (node && typeof node === 'object') {
+    if ((node as AstNode).type === 'ImportExpression') {
+      found.push(node as AstNode);
+    } else {
+      Object.values(node).forEach((child) => findImportExpressions(child, found));
+    }
+  }
+  return found;
+};
+
+const getStaticImportSpecifier = ({ source }: AstNode): string | undefined => {
+  if (source.type === 'Literal' && typeof source.value === 'string') {
+    return source.value;
+  }
+  if (source.type === 'TemplateLiteral' && source.expressions.length === 0) {
+    return source.quasis[0].value.cooked;
+  }
+};
+
+const resolveRelativeImport = (importerFileName: string, node: AstNode) => {
+  const specifier = getStaticImportSpecifier(node);
+  if (!specifier || !(specifier.startsWith('./') || specifier.startsWith('../'))) {
+    return undefined;
+  }
+  return normalizePosixPathParts(`${posixDirname(importerFileName)}/${specifier}`).join('/');
+};
+
+/** Vite's CSS pass deletes pure-CSS chunks but leaves their dynamic imports dangling. */
+export const stubRemovedChunkImports = (
+  context: Pick<Rolldown.PluginContext, 'parse' | 'warn'>,
+  bundle: Rolldown.OutputBundle,
+  fileNamesBeforeCssPass: ReadonlySet<string> = new Set()
+) => {
+  const isRemoved = (fileName: string | undefined) =>
+    !!fileName && fileNamesBeforeCssPass.has(fileName) && !bundle[fileName];
+
   for (const output of Object.values(bundle)) {
-    if (output.type !== 'chunk') {
+    if (output.type !== 'chunk' || !output.dynamicImports.some(isRemoved)) {
       continue;
     }
-    const chunkDir = posixDirname(output.fileName);
-    const removedSpecifiers = new Set(
-      output.dynamicImports
-        .filter((fileName) => !bundle[fileName])
-        .map((fileName) => ensureRelativeImportPath(relativePosixPath(chunkDir, fileName)))
-    );
-    if (removedSpecifiers.size) {
-      output.code = output.code.replace(
-        RELATIVE_DYNAMIC_IMPORT_RE,
-        (expression, _quote, specifier) =>
-          removedSpecifiers.has(specifier) ? 'Promise.resolve({})' : expression
-      );
+    let ast;
+    try {
+      ast = context.parse(output.code);
+    } catch (error) {
+      context.warn(`Could not stub the imports of removed chunks in ${output.fileName}: ${error}`);
+      continue;
     }
+    // Import attributes go too: the module no longer exists.
+    const removedImports = findImportExpressions(ast).filter((node) =>
+      isRemoved(resolveRelativeImport(output.fileName, node))
+    );
+    if (!removedImports.length) {
+      continue;
+    }
+    let code = output.code;
+    // Edit back to front so earlier offsets stay valid.
+    for (const { start, end } of removedImports.sort((a, b) => b.start - a.start)) {
+      code = code.slice(0, start) + EMPTY_MODULE_EXPRESSION + code.slice(end);
+    }
+    output.code = code;
   }
 };
 

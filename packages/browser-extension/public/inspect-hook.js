@@ -8,9 +8,11 @@
  *
  * 1. Content script posts `__QWIK_DT_INSPECT_START` to activate.
  * 2. User clicks an element on the page.
- * 3. This script intercepts the click (window capture, before qwikloader), resolves the nearest Qwik
- *    component, and posts `__QWIK_DT_ELEMENT_PICKED` back to the content script.
- * 4. Content script forwards the result to the devtools panel.
+ * 3. This script intercepts the click (window capture, before qwikloader), resolves the owning
+ *    component's tree node ID, and posts `__QWIK_DT_ELEMENT_PICKED` back to the content script.
+ * 4. Content script forwards the result to the devtools panel. Any page script can post this message,
+ *    so the content script only accepts it after its own trusted pointerdown and takes the picked
+ *    element's DOM identity from that event, not from here.
  *
  * Why window capture? Qwik's qwikloader registers its click handler on `document` in capture.
  * Capture order is: window > document > html > body > ... > target. By listening on `window` we
@@ -30,23 +32,6 @@
     if (e.data && e.data.type === '__QWIK_DT_INSPECT_START') active = true;
     if (e.data && e.data.type === '__QWIK_DT_INSPECT_STOP') active = false;
   });
-
-  /**
-   * Walk up the DOM to find the nearest element with a Qwik binding attribute.
-   *
-   * @param {Element} el - Starting element.
-   * @returns {Element | null} Nearest Qwik-managed ancestor, or null.
-   */
-  function findQwikAncestor(el) {
-    let current = el;
-    while (current) {
-      if (current.getAttribute && (current.hasAttribute('q:id') || current.hasAttribute(':'))) {
-        return current;
-      }
-      current = current.parentElement;
-    }
-    return null;
-  }
 
   /**
    * Try to resolve a DOM element to its owning Qwik component's tree node ID using the devtools
@@ -75,20 +60,9 @@
       e.stopPropagation();
       active = false;
 
-      const qwikEl = findQwikAncestor(e.target);
-
-      /**
-       * @type {{
-       *   type: string;
-       *   qId: string | null;
-       *   colonId: string | null;
-       *   treeNodeId: string | null;
-       * }}
-       */
+      /** @type {{ type: string; treeNodeId: string | null }} */
       const msg = {
         type: '__QWIK_DT_ELEMENT_PICKED',
-        qId: qwikEl ? qwikEl.getAttribute('q:id') : null,
-        colonId: qwikEl ? qwikEl.getAttribute(':') : null,
         treeNodeId: resolveComponentId(e.target),
       };
       window.postMessage(msg, '*');

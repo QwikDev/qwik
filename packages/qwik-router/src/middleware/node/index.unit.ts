@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { Writable } from 'node:stream';
 import { finished } from 'node:stream/promises';
 import type { QwikRouterNodeRequestOptions } from '.';
+import { AbortMessage } from '../request-handler/redirect-handler';
+import { ServerError } from '../request-handler/server-error';
 import { staticPaths } from '../request-handler/static-paths';
 
 const { mockRequestHandler, mockFromNodeHttp, mockComputeOrigin, mockGetUrl } = vi.hoisted(() => ({
@@ -63,11 +65,68 @@ describe('createQwikRouter().router', () => {
     });
 
     const next = vi.fn();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const middleware = createQwikRouter(createNodeOptions());
 
     await middleware.router({ url: '/', headers: {} } as any, {} as any, next);
 
     expect(next).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith(new Error('already handled'));
+    consoleError.mockRestore();
+  });
+
+  it('should call onError instead of console.error when provided', async () => {
+    const requestEv = {
+      headersSent: true,
+    };
+    mockFromNodeHttp.mockResolvedValue({
+      platform: {},
+    });
+    const error = new Error('already handled');
+    mockRequestHandler.mockResolvedValue({
+      completion: Promise.resolve(error),
+      requestEv,
+    });
+
+    const next = vi.fn();
+    const onError = vi.fn();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const req = { url: '/', headers: {} } as any;
+    const res = {} as any;
+    const middleware = createQwikRouter({ ...createNodeOptions(), onError });
+
+    await middleware.router(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(error, req, res);
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it('should not log control-flow signals after headers are sent', async () => {
+    mockFromNodeHttp.mockResolvedValue({
+      platform: {},
+    });
+
+    const next = vi.fn();
+    const onError = vi.fn();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const middleware = createQwikRouter({ ...createNodeOptions(), onError });
+
+    for (const signal of [new AbortMessage(), new ServerError(500, 'boom')]) {
+      mockRequestHandler.mockResolvedValue({
+        completion: Promise.resolve(signal),
+        requestEv: {
+          headersSent: true,
+        },
+      });
+      await middleware.router({ url: '/', headers: {} } as any, {} as any, next);
+    }
+
+    expect(next).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 
   it('should forward completion errors when headers are not sent', async () => {

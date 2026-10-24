@@ -48,6 +48,7 @@ import {
 import {
   createBuildWorkerQrlChunkResolver,
   rewriteWorkerQrlChunkPlaceholders,
+  stubRemovedChunkImports,
 } from './worker-qrl-chunks';
 
 const DEDUPE = [
@@ -591,6 +592,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               }
             }
           }
+
+          stubRemovedChunkImports(rollupBundle);
 
           const manifest = await qwikPlugin.generateManifest(
             this,

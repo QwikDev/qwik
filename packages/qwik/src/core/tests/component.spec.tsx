@@ -87,6 +87,51 @@ const SpreadButton = component$(() => {
   );
 });
 
+type PropChange = 'same' | 'change' | 'remove' | 'add';
+
+const ResumedChildCounter = component$((props: { label?: string }) => {
+  (globalThis as any).resumedChildRenders++;
+  const count = useSignal(0);
+  return (
+    <button id="counter" onClick$={() => count.value++}>
+      {props.label}:{count.value}
+    </button>
+  );
+});
+
+const ResumedChildParent = component$((props: { mode: PropChange }) => {
+  const tick = useSignal(0);
+  const t = tick.value;
+  const childProps: { label?: string } = {};
+  if (props.mode === 'same' || (t === 0 && props.mode !== 'add')) {
+    childProps.label = 'one';
+  } else if (props.mode === 'change' || props.mode === 'add') {
+    childProps.label = 'big';
+  }
+  return (
+    <div>
+      <p>{t}</p>
+      <ResumedChildCounter {...childProps} />
+      <button id="tick" onClick$={() => tick.value++}>
+        tick
+      </button>
+    </div>
+  );
+});
+
+const UnserializedStaticBranch = component$(() => {
+  useSignal('unserialized-static-hook');
+  return <p>static</p>;
+});
+const ResumedChildPage = component$(() => (
+  <main>
+    <ResumedChildParent mode="change" />
+    <aside>
+      <UnserializedStaticBranch />
+    </aside>
+  </main>
+));
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -283,19 +328,19 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>
@@ -310,7 +355,7 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>
@@ -357,13 +402,13 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>
@@ -384,7 +429,7 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>
@@ -2760,6 +2805,23 @@ describe.each([
     expect(toggle?.textContent).toBe('few');
   });
 
+  it.each([
+    { mode: 'same', expected: 'one:2' },
+    { mode: 'change', expected: 'big:2' },
+    { mode: 'remove', expected: ':2' },
+    { mode: 'add', expected: 'big:2' },
+  ] as const)('preserves state and prop bindings when props $mode', async ({ mode, expected }) => {
+    (globalThis as any).resumedChildRenders = 0;
+    const { document } = await render(<ResumedChildParent mode={mode} />);
+    await trigger(document.body, '#counter', 'click');
+    await trigger(document.body, '#counter', 'click');
+    await trigger(document.body, '#tick', 'click');
+    expect(document.querySelector('#counter')!.textContent).toBe(expected);
+    if (mode !== 'add') {
+      expect((globalThis as any).resumedChildRenders).toBe(1);
+    }
+  });
+
   it('should render a component stored under two store keys after resume', async () => {
     const Hello = component$(() => <p>hello</p>);
     const Cmp = component$(() => {
@@ -4036,4 +4098,12 @@ describe.each([
     const { container } = await render(<Parent />, { debug });
     expect(container.element.querySelector('span')!.textContent).toBe('true:true');
   });
+});
+
+it('keeps unrelated static branch hooks out of serialized state', async () => {
+  const { document } = await ssrRenderToDom(<ResumedChildPage />, { resume: false });
+  const state = Array.from(document.querySelectorAll('script[type="qwik/state"]'))
+    .map((script) => script.textContent)
+    .join('');
+  expect(state).not.toContain('unserialized-static-hook');
 });

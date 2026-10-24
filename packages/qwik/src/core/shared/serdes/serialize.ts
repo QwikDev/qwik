@@ -752,10 +752,20 @@ export class Serializer {
         );
       }
       if (value.children) {
-        // Mark child vnode data for serialization (structure only, no value discovery needed)
+        // Preserve child bindings when the parent can rerender.
+        const canRerender = !!value.getProp(QBackRefs)?.get(EffectProperty.COMPONENT)?.backRef
+          ?.size;
         const childrenLength = value.children.length;
         for (let i = 0; i < childrenLength; i++) {
           const child = value.children[i];
+          if (
+            canRerender &&
+            child.getProp(OnRenderProp) &&
+            !this.$discoveredVNodeData$.has(child.vnodeData)
+          ) {
+            this.$discoveredVNodeData$.add(child.vnodeData);
+            discoverValuesForVNodeData(child.vnodeData, this.$serializationContext$);
+          }
           this.$serializationContext$.$markSsrNodeForSerialization$(child, VNodeDataFlag.SERIALIZE);
         }
       }

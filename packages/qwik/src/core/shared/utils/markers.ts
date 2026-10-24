@@ -87,6 +87,7 @@ export const enum QwikLoaderScanEvent {
 
 /** `<q:slot name="...">` */
 export const QDefaultSlot = '';
+export const QFallbackSlot = '_f';
 
 /**
  * Attribute to mark that this VNode has a pointer to itself from the `qwik/json` state.

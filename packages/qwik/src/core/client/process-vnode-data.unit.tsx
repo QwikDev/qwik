@@ -747,6 +747,83 @@ describe('processVnodeData', () => {
       </html>
     );
   });
+  it.each([false, true])(
+    'fills the shell Slot with segment children (resumed=%s)',
+    async (resumed) => {
+      const shell = `
+      <html q:container="paused" :>
+        <head :></head><body :>
+          <h1 :>Title</h1>
+          <div : q:rp="1"><template q:r="1"></template></div>
+          ${encodeVNode({ 4: '~{~}' })}
+        </body>
+      </html>`;
+      const [container] = await process(shell);
+      const host = container.element.querySelector('[q\\:rp="1"]')!;
+      const projection = resumed ? container.vNodeLocate('4A') : null;
+      if (projection) {
+        expect(vnode_getFirstChild(projection)).toBeNull();
+      }
+
+      host.querySelector('template')!.remove();
+      host.innerHTML = '<section :><button :>OK</button></section>';
+      container.element.insertAdjacentHTML(
+        'beforeend',
+        encodeVNode({ 0: '~1', 1: '~', 2: '~' }, '1')
+      );
+      (container.document as QDocument).qProcessOOOS!(1, host);
+      await whenVNodeDataReady(container.document, () => {});
+
+      const slot = container.vNodeLocate('4A');
+      expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 0)}`)).toBe(slot);
+      if (projection) {
+        expect(slot).toBe(projection);
+      }
+      expect(container.vNodeLocate('4AA').parent).toBe(slot);
+      expect(slot).toMatchVDOM(
+        <Fragment>
+          <section>
+            <button>OK</button>
+          </section>
+        </Fragment>
+      );
+
+      const child = container.vNodeLocate('4AA');
+      await appendVNodePatch(container.element, encodeVNode({ 0: '~1' }, '1', 0, true));
+
+      expect(container.vNodeLocate('4A')).toBe(slot);
+      expect(container.vNodeLocate('4AA')).toBe(child);
+      expect(container.vNodeLocate(`${getSegmentVNodeRefId('1', 0)}`)).toBe(slot);
+      expect(child.nextSibling).toBeNull();
+      expect(child.parent).toBe(slot);
+    }
+  );
+
+  it('materializes shared text nodes in the shell Slot', async () => {
+    const [container] = await process(`
+      <html q:container="paused" :><head :></head><body :>
+        <div : q:rp="1"><template q:r="1"></template></div>
+        ${encodeVNode({ 3: '~{~}' })}
+      </body></html>`);
+    const host = container.element.querySelector('[q\\:rp="1"]')!;
+    const slot = container.vNodeLocate('3A');
+    host.innerHTML = 'ab<span :>middle</span>c';
+    container.element.insertAdjacentHTML('beforeend', encodeVNode({ 0: '~BB1B' }, '1'));
+    (container.document as QDocument).qProcessOOOS!(1, host);
+    await whenVNodeDataReady(container.document, () => {});
+
+    expect(container.vNodeLocate('3A')).toBe(slot);
+    expect(host.textContent).toBe('abmiddlec');
+    expect(slot).toMatchVDOM(
+      <Fragment>
+        {'a'}
+        {'b'}
+        <span>middle</span>
+        {'c'}
+      </Fragment>
+    );
+  });
+
   it('should add Pending content segment elements to the root vnode table', async () => {
     const [container] = await process(`
       <html q:container="paused" :>

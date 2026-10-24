@@ -191,6 +191,29 @@ const ensureRouteInternal = (
 ): RouteStateInternal =>
   (routeInternal.untrackedValue ||= { type: 'initial', dest: routeLocation.url });
 
+/**
+ * A URL the client can't render itself (no matching page) may be a server `rewrite()`. Ask the
+ * server where it routes to. Returns the target pathname, `'reload'` if the server redirects, or
+ * `undefined` when the URL is not rewritten.
+ */
+const resolveServerRewrite = async (url: URL): Promise<string | undefined> => {
+  try {
+    const response = await fetch(`${ensureSlash(url.pathname)}q-route.json${url.search}`, {
+      redirect: 'manual',
+      headers: { accept: 'application/json' },
+    });
+    if (response.type === 'opaqueredirect' || (response.status >= 300 && response.status < 400)) {
+      return 'reload';
+    }
+    if (response.ok) {
+      const { p } = await response.json();
+      return typeof p === 'string' ? p : undefined;
+    }
+  } catch {
+    // Fall back to rendering what the client matched.
+  }
+};
+
 const getRouterContainer = () => _getDomContainer(document.documentElement);
 
 const getServerHttpStatus = (
@@ -640,6 +663,43 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         return;
       }
 
+      // A server `rewrite()` is invisible to the client's route table. If nothing, or only a
+      // dynamic route, matched, let the server resolve the URL and load that route, keeping the URL.
+      let rewrittenTo: string | undefined;
+      const lastModule = loadedRoute.$mods$[loadedRoute.$mods$.length - 1] as
+        | PageModule
+        | undefined;
+      if (
+        globalThis.__SERVER_REWRITES__ &&
+        !action &&
+        (loadedRoute.$notFound$ ||
+          typeof lastModule?.default !== 'function' ||
+          loadedRoute.$routeName$.includes('['))
+      ) {
+        const resolved = await Promise.race([resolveServerRewrite(trackUrl), canceled]);
+        if (internalState.navCount !== navCountBefore) {
+          return;
+        }
+        if (resolved === 'reload') {
+          window.location.href = trackUrl.href;
+          return;
+        }
+        if (resolved && resolved !== trackUrl.pathname) {
+          try {
+            const config = await getRouterConfig();
+            loadedRoute = await loadRoute(config.routes, config.cacheModules, resolved);
+            rewrittenTo = resolved;
+          } catch (e) {
+            console.error(`Could not load rewritten route ${resolved}, reloading:`, e);
+            window.location.href = trackUrl.href;
+            return;
+          }
+          if (internalState.navCount !== navCountBefore) {
+            return;
+          }
+        }
+      }
+
       // Submit action if one was triggered
       if (action) {
         const result = await Promise.race([
@@ -689,7 +749,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         contentModules,
         loaderState,
         routeLoaderCtx,
-        loadedRoute.$loaderPaths$,
+        // After a rewrite, loaders are fetched via the visible URL so the server re-applies it.
+        rewrittenTo ? undefined : loadedRoute.$loaderPaths$,
         trackUrl,
         prevUrl,
         navCountBefore,

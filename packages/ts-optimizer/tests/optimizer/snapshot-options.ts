@@ -420,6 +420,45 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  destructured_props_as_jsx_tags: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  destructured_props_as_jsx_tags_inline: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
+  captured_props_as_jsx_tags: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  captured_props_as_jsx_tags_inline: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
+  captured_props_shadowed_in_segment: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  captured_props_shadowed_in_segment_inline: {
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+  },
+  should_not_consolidate_loop_params_named_like_props: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_not_consolidate_locals_named_like_props: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_keep_loop_params_named_like_imports: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   nested_segments_number_captured_raw_props: {
     transpileTs: true,
     transpileJsx: true,

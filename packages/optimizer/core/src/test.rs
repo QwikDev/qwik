@@ -799,6 +799,269 @@ export const Cmp = component$((props: { flag?: boolean; className?: string }) =>
 }
 
 #[test]
+fn destructured_props_as_jsx_tags() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, getFallback } from './x';
+
+export const Cmp = component$((props: { Model?: any; ui?: any; icons: any; 'my-icon': any }) => {
+	const { Model = Fallback, ui = fallback, icons, 'my-icon': Icon } = props;
+	return (
+		<Model>
+			<ui.Home />
+			<icons.Star />
+			<Icon />
+		</Model>
+	);
+});
+
+export const Cmp2 = component$(({ Model = getFallback() }: { Model?: any }) => {
+	return <Model />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructured_props_as_jsx_tags_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, getFallback } from './x';
+
+export const Cmp = component$((props: { Model?: any; ui?: any; icons: any; 'my-icon': any }) => {
+	const { Model = Fallback, ui = fallback, icons, 'my-icon': Icon } = props;
+	return (
+		<Model>
+			<ui.Home />
+			<icons.Star />
+			<Icon />
+		</Model>
+	);
+});
+
+export const Cmp2 = component$(({ Model = getFallback() }: { Model?: any }) => {
+	return <Model />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_as_jsx_tags() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(<Model />)} />;
+});
+
+export const Cmp2 = component$(
+	({ Model, ui = fallback, icons, 'my-icon': Icon }: { Model: any; ui?: any; icons: any; 'my-icon': any }) => {
+		return (
+			<button
+				onClick$={() =>
+					render(
+						<Model>
+							<ui.Home />
+							<icons.Star />
+							<Icon />
+						</Model>
+					)
+				}
+			/>
+		);
+	}
+);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_as_jsx_tags_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Fallback, fallback, render } from './x';
+
+export const Cmp = component$(
+	({
+		Model = Fallback,
+		Layout,
+		ui = fallback,
+		icons,
+		'my-icon': Icon,
+	}: {
+		Model?: any;
+		Layout: any;
+		ui?: any;
+		icons: any;
+		'my-icon': any;
+	}) => {
+		const view = $(() =>
+			render(
+				<Layout>
+					<Model />
+					<ui.Home />
+					<icons.Star />
+					<Icon />
+				</Layout>
+			)
+		);
+		return <button onClick$={view} />;
+	}
+);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_shadowed_in_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(Model, [1].map((Model) => Model))} />;
+});
+
+export const Cmp2 = component$(({ Model }: { Model: any }) => {
+	return <button onClick$={() => render(<Model />, [1].map((Model) => <Model />))} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_shadowed_in_segment_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback, Layout }: { Model?: any; Layout: any }) => {
+	const read = $(() => render(Model, [1].map((Model) => Model)));
+	const view = $(() => render(<Layout />, [1].map((Layout) => <Layout />)));
+	return <button onClick$={read} onDblClick$={view} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_consolidate_loop_params_named_like_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const List = component$(({ item, items }: any) => {
+	return <ul>{items.map((item: any) => <li onClick$={() => console.log(item)} />)}</ul>;
+});
+
+export const Tabs = component$(({ tab, tabs }: any) => {
+	const selected = useSignal('');
+	return <div>{tabs.map((tab: string) => <button onClick$={() => (selected.value = tab)} />)}</div>;
+});
+
+export const Rows = component$(({ item, items }: any) => {
+	return (
+		<ul>
+			{items.map((item: any, idx: number) => (
+				<li onClick$={() => console.log(item)} onDblClick$={() => console.log(idx)} />
+			))}
+		</ul>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_consolidate_locals_named_like_props() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { render } from './x';
+
+export const Nested = component$(({ Model }: { Model: any }) => {
+	return <button onClick$={() => render(Model, [1].map((Model) => $(() => render(Model))))} />;
+});
+
+export const Block = component$(({ item, other }: { item: string; other: string }) => {
+	if (other) {
+		const item = other.toUpperCase();
+		return <button onClick$={() => console.log(item)} />;
+	}
+	return <p>{item}</p>;
+});
+
+export const Helper = component$(({ label }: { label: string }) => {
+	const renderButton = (label: string) => <button onClick$={() => console.log(label)} />;
+	return <div>{renderButton(label + '!')}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_loop_params_named_like_imports() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { item } from './x';
+
+export const List = component$(({ items }: { items: string[] }) => {
+	console.log(item);
+	return <ul>{items.map((item) => <li onClick$={() => console.log(item)} />)}</ul>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn local_shadowing_destructured_prop() {
 	test_input!(TestInput {
 		code: r#"

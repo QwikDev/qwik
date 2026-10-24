@@ -1,4 +1,6 @@
-import { buildPropertyAccessor } from '../ast/identifier-name.js';
+import { isReferenceIdentifier, ScopeTracker, walk } from 'oxc-walker';
+import type { AstMaybeNode, AstNode } from '../../ast-types.js';
+import { buildPropertyAccessor, isSimpleIdentifierName } from '../ast/identifier-name.js';
 import {
   applyReplacements,
   collectRangeReplacements,
@@ -7,6 +9,7 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import { createTransformSession } from '../edit/transform-session.js';
+import type { DeferredTagReads, RawPropsTransformResult } from './raw-props.js';
 
 interface RewritePropsFieldReferencesOptions {
   propsName?: string;
@@ -27,9 +30,37 @@ function propsFieldIdentifierCollector(
   fieldMap: ReadonlyMap<string, string>,
   defaultValues: ReadonlyMap<string, string> | undefined,
   dynamicDefaults: ReadonlyMap<string, string> | undefined,
-  propsName: string
+  propsName: string,
+  deferredTagFields: Map<string, string>,
+  shadowedStarts: ReadonlySet<number>
 ): RangeReplacementCollector {
   return (node, ctx) => {
+    if (shadowedStarts.has(node.start)) {
+      return null;
+    }
+    if (node.type === 'JSXIdentifier') {
+      const tagKey = fieldMap.get(node.name);
+      if (tagKey === undefined || !isReferenceIdentifier(node, ctx.parentNode ?? null)) {
+        return null;
+      }
+      const isMemberChain =
+        !defaultValues?.has(node.name) &&
+        !dynamicDefaults?.has(node.name) &&
+        isSimpleIdentifierName(tagKey);
+      if (!isMemberChain) {
+        deferredTagFields.set(node.name, tagKey);
+        return null;
+      }
+      return {
+        replacements: [
+          {
+            start: node.start - ctx.exprStart,
+            end: node.end - ctx.exprStart,
+            replacement: buildPropertyAccessor(propsName, tagKey),
+          },
+        ],
+      };
+    }
     if (node.type !== 'Identifier') {
       return null;
     }
@@ -92,37 +123,87 @@ export function rewritePropsFieldReferences(
   bodyText: string,
   fieldMap: Map<string, string>,
   options: RewritePropsFieldReferencesOptions
-): string {
+): RawPropsTransformResult {
   if (fieldMap.size === 0) {
-    return bodyText;
+    return { code: bodyText };
   }
 
   let session;
   try {
     session = createTransformSession(bodyText);
   } catch {
-    return bodyText;
+    return { code: bodyText };
   }
 
   if (!session) {
-    return bodyText;
+    return { code: bodyText };
   }
 
   const { offset, program, wrappedSource } = session;
+  const propsName = options.propsName ?? '_rawProps';
+  const deferredTagFields = new Map<string, string>();
   const collector = propsFieldIdentifierCollector(
     fieldMap,
     options.defaultValues,
     options.dynamicDefaults,
-    options.propsName ?? '_rawProps'
+    propsName,
+    deferredTagFields,
+    collectShadowedIdentifierStarts(program, fieldMap)
   );
 
   // Ranges are relative to `wrappedSource`; slicing off the wrapper prefix
   // yields the original body's edited form.
   const replacements = collectRangeReplacements(program, 0, wrappedSource, [collector]);
+  const deferredTagReads: DeferredTagReads | undefined =
+    deferredTagFields.size > 0
+      ? {
+          baseName: propsName,
+          fieldLocalToKey: deferredTagFields,
+          fieldLocalToDefault: options.defaultValues ?? new Map(),
+          fieldLocalToDynamicDefault: options.dynamicDefaults ?? new Map(),
+        }
+      : undefined;
   if (replacements.length === 0) {
-    return bodyText;
+    return { code: bodyText, deferredTagReads };
   }
 
   const edited = applyReplacements(wrappedSource, replacements);
-  return edited.slice(offset, edited.length - session.wrapperSuffix.length);
+  return {
+    code: edited.slice(offset, edited.length - session.wrapperSuffix.length),
+    deferredTagReads,
+  };
+}
+
+export function collectShadowedIdentifierStarts(
+  root: AstNode,
+  names: ReadonlyMap<string, string>,
+  bindingScopeNode: AstMaybeNode = root
+): Set<number> {
+  const tracker = new ScopeTracker({ preserveExitedScopes: true });
+  walk(root, { scopeTracker: tracker });
+  tracker.freeze();
+
+  const shadowedStarts = new Set<number>();
+  let bindingScope: string | undefined;
+  walk(root, {
+    scopeTracker: tracker,
+    enter(node) {
+      if (node === bindingScopeNode) {
+        bindingScope = tracker.getCurrentScope();
+      }
+      const name = (node as { name?: unknown }).name;
+      if (bindingScope === undefined || typeof name !== 'string' || !names.has(name)) {
+        return;
+      }
+      const declarationScope = tracker.getDeclaration(name)?.scope;
+      if (declarationScope !== undefined && isNestedScope(declarationScope, bindingScope)) {
+        shadowedStarts.add(node.start);
+      }
+    },
+  });
+  return shadowedStarts;
+}
+
+function isNestedScope(scope: string, ancestorScope: string): boolean {
+  return ancestorScope === '' ? scope !== '' : scope.startsWith(`${ancestorScope}-`);
 }

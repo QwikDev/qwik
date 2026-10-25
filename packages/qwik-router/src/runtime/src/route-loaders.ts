@@ -357,6 +357,16 @@ export const fetchRouteLoaderData = async (
   return promise;
 };
 
+const retainLoaderValue = (previous: unknown, abortSignal: AbortSignal) => {
+  if (previous !== undefined) {
+    return previous;
+  }
+  return new Promise<never>((_, reject) => {
+    abortSignal.throwIfAborted();
+    abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
+  });
+};
+
 const createRouteLoaderSignal = (
   loader: LoaderInternal,
   routeLoaderCtx: RouteLoaderCtx,
@@ -394,13 +404,7 @@ const createRouteLoaderSignal = (
       }
       const request = getLoaderRequest(routeLoaderCtx, state, id, loaderHash);
       if (!request.active) {
-        if (previous === undefined) {
-          return new Promise((_, reject) => {
-            abortSignal.throwIfAborted();
-            abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
-          });
-        }
-        return previous;
+        return retainLoaderValue(previous, abortSignal);
       }
       const pageUrl = new URL(request.pageUrl);
       const mHash = untrack(() => routeLoaderCtx.manifestHash) || 'dev';
@@ -455,10 +459,8 @@ const createRouteLoaderSignal = (
         } else {
           location.href = response.r;
         }
-        // Return `previous` (stale data) rather than throwing:  a ComputedSignal
-        // in error state can drop Resource subscriptions, which would prevent
-        // the redirect-target fetch from updating the UI once it arrives.
-        return previous;
+        // Keep unresolved loaders pending until the redirect replaces their request.
+        return retainLoaderValue(previous, abortSignal);
       }
       if (response.e) {
         // Error — throw so signal enters error state

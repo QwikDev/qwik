@@ -1,5 +1,5 @@
 import path, { resolve } from 'node:path';
-import { parseAst, type Rolldown } from 'vite';
+import type { Rolldown } from 'vite';
 import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
@@ -16,6 +16,7 @@ import {
   rewriteWorkerQrlChunkPlaceholders,
   stubRemovedChunkImports,
 } from './worker-qrl-chunks';
+import { parseAst } from 'vite';
 
 const cwd = process.cwd();
 

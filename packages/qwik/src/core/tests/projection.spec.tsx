@@ -22,7 +22,13 @@ import {
   $,
 } from '@qwik.dev/core';
 import { renderToString } from '@qwik.dev/core/server';
-import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import {
+  createDocument,
+  domRender,
+  ssrRenderToDom,
+  trigger,
+  waitForDrain,
+} from '@qwik.dev/core/testing';
 import { _useHmr } from '../internal';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -46,6 +52,8 @@ const ChildSlotInline = (props: { children: any }) => {
     </span>
   );
 };
+
+const InlineDefaultSlot = () => <Slot />;
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -123,6 +131,98 @@ describe.each([
       </Component>
     );
   });
+  it('should render nested Slots in the owner of default content', async () => {
+    const Child = component$(() => (
+      <section id="slot-default-owner">
+        <Slot name="fallback">
+          <InlineDefaultSlot />
+        </Slot>
+      </section>
+    ));
+    const Parent = component$(() => (
+      <Child>
+        <span id="slot-owned-content">owned</span>
+      </Child>
+    ));
+    const { document } = await render(<Parent />, { debug: DEBUG });
+    expect(document.querySelector('#slot-default-owner #slot-owned-content')?.textContent).toBe(
+      'owned'
+    );
+  });
+
+  it('should preserve default Slot content when its parent re-renders', async () => {
+    const Child = component$(() => (
+      <Slot name="fallback">
+        <span id="slot-fallback">fallback</span>
+      </Slot>
+    ));
+    const Parent = component$(() => {
+      const version = useSignal(0);
+      if (version.value > 1) {
+        return null;
+      }
+      return (
+        <main>
+          <button onClick$={() => version.value++} />
+          <Child />
+        </main>
+      );
+    });
+    const { document, container } = await render(<Parent />, { debug: DEBUG });
+    const fallback = document.querySelector('#slot-fallback');
+    expect(fallback?.textContent).toBe('fallback');
+
+    await trigger(document.body, 'button', 'click');
+    await waitForDrain(container);
+
+    expect(document.querySelector('#slot-fallback')).toBe(fallback);
+    expect(fallback?.textContent).toBe('fallback');
+  });
+
+  it('should clean up default Slot children when its element is removed', async () => {
+    const Content = component$(() => {
+      useTask$(({ cleanup }) => {
+        cleanup(() => {
+          (globalThis as any).defaultSlotCleanups++;
+        });
+      });
+      const count = useSignal(0);
+      return (
+        <button id="slot-default-counter" onClick$={() => count.value++}>
+          {count.value}
+        </button>
+      );
+    });
+    const Parent = component$(() => {
+      const show = useSignal(true);
+      return (
+        <>
+          <button id="slot-default-toggle" onClick$={() => (show.value = !show.value)} />
+          {show.value && (
+            <section>
+              <Slot name="fallback">
+                <Content />
+              </Slot>
+            </section>
+          )}
+        </>
+      );
+    });
+    (globalThis as any).defaultSlotCleanups = 0;
+    const { document } = await render(<Parent />, { debug: DEBUG });
+    (globalThis as any).defaultSlotCleanups = 0;
+
+    await trigger(document.body, '#slot-default-toggle', 'click');
+
+    expect(document.querySelector('section')).toBeFalsy();
+    expect((globalThis as any).defaultSlotCleanups).toBe(render === ssrRenderToDom ? 0 : 1);
+
+    await trigger(document.body, '#slot-default-toggle', 'click');
+    expect(document.querySelector('#slot-default-counter')?.textContent).toBe('0');
+    await trigger(document.body, '#slot-default-counter', 'click');
+    expect(document.querySelector('#slot-default-counter')?.textContent).toBe('1');
+  });
+
   it('should save default value in q:template if not used', async () => {
     const Child = component$(() => {
       return <Slot>default-value</Slot>;

@@ -159,7 +159,7 @@ import {
   QTargetElement,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
-import { VNodeDataChar } from '../shared/vnode-data-types';
+import { VNodeDataChar, getSegmentVNodeRefId } from '../shared/vnode-data-types';
 import {
   _getQContainerElement,
   getDomContainer,
@@ -842,9 +842,24 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
       vNode = vnode_getVNodeForChildNode(vNode as ElementVNode, elementPath[i]);
     }
 
+    // Materialization can replace a segment root with its Slot.
+    if (
+      __EXPERIMENTAL__.pendingBoundary &&
+      (refElement as QElement)._qSegmentVNodeData !== undefined
+    ) {
+      ensureMaterialized(vNode as ElementVNode);
+    }
     if (elementOffset != -1) {
       (refElement as QElement).vNode = vNode;
-      qVNodeRefs!.set(elementOffset, vNode as ElementVNode);
+      if (!vnode_isVNode(qVNodeRefs!.get(elementOffset))) {
+        qVNodeRefs!.set(elementOffset, vNode);
+      }
+    }
+    if (typeof id === 'string') {
+      const root = qVNodeRefs!.get(elementOffset);
+      if (vnode_isVNode(root)) {
+        vNode = root;
+      }
     }
   } else {
     vNode = refElement;
@@ -1512,7 +1527,10 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
     __EXPERIMENTAL__.pendingBoundary &&
     vFirstChild === undefined &&
     vnode_isElementVNode(vnode) &&
-    hasOnlyPendingPlaceholder(vnode.node)
+    hasOnlyPendingPlaceholder(vnode.node) &&
+    !(fastOwnerDocument(vnode.node) as QDocument).qVNodeData
+      ?.get(vnode.node)
+      ?.includes(VNodeDataChar.OPEN_CHAR)
   ) {
     return null;
   }
@@ -1525,10 +1543,30 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
 const vnode_materialize = (vNode: ElementVNode) => {
   const element = vNode.node;
   const firstChild = fastFirstChild(element);
-  const vNodeData = (fastOwnerDocument(element) as QDocument)?.qVNodeData?.get(element);
-
+  let vNodeData = (fastOwnerDocument(element) as QDocument)?.qVNodeData?.get(element);
+  if (__EXPERIMENTAL__.pendingBoundary && !vNodeData) {
+    vNodeData = (element as QElement)._qSegmentVNodeData;
+    delete (element as QElement)._qSegmentVNodeData;
+  }
   const vFirstChild = materialize(vNode, element, firstChild, vNodeData);
   return vFirstChild;
+};
+
+export const vnode_materializeSegment = (host: ElementVNode, slot: VirtualVNode): void => {
+  const element = host.node as QElement;
+  const data = element._qSegmentVNodeData;
+  if (data === undefined) {
+    return;
+  }
+  delete element._qSegmentVNodeData;
+  const container = getDomContainer(element);
+  const segmentId = element.getAttribute(QPendingResultParent)!;
+  const refId = getSegmentVNodeRefId(segmentId, 0);
+  container.element.qVNodeRefs!.set(refId, slot);
+  if (slot.firstChild) {
+    return;
+  }
+  materializeFromVNodeData(slot, data, element, fastFirstChild(element), segmentId);
 };
 
 export const splitVNodeData = (vNodeData: string) => {
@@ -1570,7 +1608,11 @@ const materialize = (
       // then also materialize virtual element from vNodeData
       const vFirstChild = materializeFromDOM(vNode, firstChild, elementVNodeData, segmentId);
       if (!vNodeData) {
-        //  If it is empty then we don't need to call the `materializeFromVNodeData`.
+        const segmentData = (element as QElement)._qSegmentVNodeData;
+        if (__EXPERIMENTAL__.pendingBoundary && segmentData !== undefined) {
+          delete (element as QElement)._qSegmentVNodeData;
+          return materializeFromVNodeData(vNode, segmentData, element, firstChild, segmentId);
+        }
         return vFirstChild;
       }
     }
@@ -1595,6 +1637,9 @@ export const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
     } else {
       vFirstChild = vnode_materialize(vParent);
     }
+  }
+  if (__EXPERIMENTAL__.pendingBoundary && vFirstChild && vnode_isProjection(vFirstChild)) {
+    vnode_materializeSegment(vParent, vFirstChild);
   }
   isDev && assertTrue(vParent.firstChild !== undefined, 'Did not materialize.');
   isDev && assertTrue(vParent.lastChild !== undefined, 'Did not materialize.');

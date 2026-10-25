@@ -54,7 +54,9 @@ export const OutOfOrderPendingRoot = component$(() => {
           Rerender
         </button>
         <span id="ooos-render-count">{render.value}</span>
-        {scenario === 'multiple' ? (
+        {scenario === 'before-segment' ? (
+          <BeforeSegmentPendingRerender />
+        ) : scenario === 'multiple' ? (
           <MultipleOutOfOrderPending />
         ) : scenario === 'cross-state' ? (
           <CrossStateOutOfOrderPending />
@@ -77,8 +79,17 @@ export const OutOfOrderPendingRoot = component$(() => {
         ) : scenario === 'customer-profile' ? (
           <CustomerProfileOutOfOrderPending />
         ) : (
-          <Pending key={render.value} fallback$={() => <FallbackOutOfOrderContent />}>
-            <SlowOutOfOrderContent />
+          <Pending
+            key={scenario === 'owner-update' ? null : render.value}
+            fallback$={() => <FallbackOutOfOrderContent />}
+          >
+            {scenario === 'owner-update' && getSearchParam(url, 'variant') === 'immediate' ? (
+              <ResolvedOutOfOrderContent shared={shellCount} />
+            ) : (
+              <SlowOutOfOrderContent
+                shared={scenario === 'owner-update' ? shellCount : undefined}
+              />
+            )}
           </Pending>
         )}
         <ManualOutOfOrderReleaseButton
@@ -181,7 +192,7 @@ export const FallbackOutOfOrderContent = component$(() => {
   );
 });
 
-export const SlowOutOfOrderContent = component$(() => {
+export const SlowOutOfOrderContent = component$((props: { shared?: Signal<number> }) => {
   const url = useServerData<string>('url');
   const requestId = useServerData<string>('ooosRequestId');
   if (isServer) {
@@ -190,24 +201,25 @@ export const SlowOutOfOrderContent = component$(() => {
       return waitForOutOfOrderRelease(
         requestId,
         releaseId,
-        <ResolvedOutOfOrderContent />
+        <ResolvedOutOfOrderContent shared={props.shared} />
       ) as unknown as JSXOutput;
     }
     const params = url ? new URL(url).searchParams : null;
     const delay = Number(params?.get('delay') || 1000);
     return new Promise<JSXOutput>((resolve) => {
-      setTimeout(() => resolve(<ResolvedOutOfOrderContent />), delay);
+      setTimeout(() => resolve(<ResolvedOutOfOrderContent shared={props.shared} />), delay);
     }) as unknown as JSXOutput;
   }
-  return <ResolvedOutOfOrderContent />;
+  return <ResolvedOutOfOrderContent shared={props.shared} />;
 });
 
-export const ResolvedOutOfOrderContent = component$(() => {
+export const ResolvedOutOfOrderContent = component$((props: { shared?: Signal<number> }) => {
   const count = useSignal(0);
 
   return (
     <section id="ooos-resolved">
       <p>Resolved streamed content</p>
+      {props.shared && <span id="ooos-owner-value">{props.shared.value}</span>}
       <button id="ooos-resolved-button" onClick$={() => count.value++}>
         Touch resolved
       </button>
@@ -774,3 +786,59 @@ export const UndefinedSignalReader = component$(
     </p>
   )
 );
+
+export const BeforeSegmentPendingRerender = component$(() => {
+  const revision = useSignal(0);
+  return (
+    <section key="before-owner" id="before-segment-owner">
+      <button key="before-update" id="before-segment-rerender" onClick$={() => revision.value++}>
+        Update parent
+      </button>
+      {revision.value > 0 && (
+        <b key="before-marker" id="before-segment-updated">
+          Updated
+        </b>
+      )}
+      <Pending
+        key="before-pending"
+        delay={revision.value}
+        fallback$={() => (
+          <p key="before-fallback" id="before-segment-fallback">
+            Waiting
+          </p>
+        )}
+      >
+        <BeforeSegmentPendingContent key="before-content" />
+      </Pending>
+      <ManualOutOfOrderReleaseButton
+        key="before-release"
+        id="before-segment-release"
+        label="Release SSR segment"
+        releaseParam="release"
+      />
+    </section>
+  );
+});
+
+export const BeforeSegmentPendingContent = component$(() => {
+  const url = useServerData<string>('url');
+  const requestId = useServerData<string>('ooosRequestId');
+  if (isServer) {
+    return waitForOutOfOrderRelease(
+      requestId!,
+      getSearchParam(url, 'release')!,
+      <p key="before-server-ready" id="before-segment-server-content">
+        Server ready
+      </p>
+    ) as unknown as JSXOutput;
+  }
+  (globalThis as any).__beforeSegmentClientStarted = true;
+  return new Promise<JSXOutput>((resolve) => {
+    (globalThis as any).__beforeSegmentResolveClient = () =>
+      resolve(
+        <p key="before-client-ready" id="before-segment-client-content">
+          Client ready
+        </p>
+      );
+  }) as unknown as JSXOutput;
+});

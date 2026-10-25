@@ -42,6 +42,8 @@ export default defineConfig(() => {
         output: [
           {
             format: 'es',
+            // A shortened export can be named `$`, which the optimizer renames.
+            minifyInternalExports: false,
             chunkFileNames: (chunkInfo) =>
               chunkInfo.moduleIds.some((id) => id.includes('runtime'))
                 ? 'chunks/[name].qwik.mjs'

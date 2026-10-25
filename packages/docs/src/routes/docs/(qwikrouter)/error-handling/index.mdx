@@ -39,6 +39,19 @@ A missing product answers with a 404, and the nearest `error.tsx` reads the stat
 
 <Note>Thrown anywhere else, such as a `blockSSR: false` loader, a computed or an event handler, an `HttpError` is an ordinary error, handled like the ones below.</Note>
 
+### Where the error page renders
+
+The nearest `error.tsx` at or above the folder that failed renders in place of that folder's layout and page, inside the layouts above it:
+
+```
+src/routes/layout.tsx          renders around the error page
+src/routes/admin/layout.tsx    its onRequest throws a 403, so it is left out
+src/routes/admin/error.tsx     renders inside src/routes/layout.tsx
+src/routes/admin/users/index.tsx
+```
+
+A layout whose own middleware or loader failed never renders on its error page, so its loaders never run for a visitor it turned away. A failure in a `plugin@` file, the root layout or the root page renders `src/routes/error.tsx` with no layout. An `error.tsx` inside a root group, such as `src/routes/(app)/error.tsx`, does not cover those failures.
+
 ## Other errors
 
 Any other error is a failure of the code that threw it:
@@ -88,7 +101,6 @@ Intercepting errors with middleware has a few usecases: you might want to add st
 // src/routes/plugin@errors.ts
 import { type RequestHandler } from '@qwik.dev/router'
 import { RedirectMessage, HttpError } from '@qwik.dev/router/middleware/request-handler'
-import { isDev } from '@qwik.dev/core/build'
 
 export const onRequest: RequestHandler = async ({ next }) => {
   try {
@@ -104,14 +116,9 @@ export const onRequest: RequestHandler = async ({ next }) => {
       throw err
     }
 
-    // Log unknown errors
+    // Log unknown errors; the router renders them at 500, without the details in production
     console.error('unknown error', err)
-
-    if (isDev) {
-      throw err
-    } else {
-      throw new HttpError(500, 'Internal server error');
-    }
+    throw err
   }
 };
 

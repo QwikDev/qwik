@@ -10,6 +10,12 @@ export default defineContentScript({
   main() {
     let inspectOverlay: HTMLDivElement | null = null;
     let inspectActive = false;
+    /**
+     * Element the user actually pressed while inspecting, captured from a trusted event in this
+     * isolated world. Page scripts can post `__QWIK_DT_ELEMENT_PICKED` too, so a pick is only
+     * forwarded when it follows a real user press, and its DOM identity comes from here.
+     */
+    let pendingPick: { qId?: string; colonId?: string } | null = null;
 
     /** Qwik detection */
     function detectQwik(): QwikContainerInfo {
@@ -147,6 +153,18 @@ export default defineContentScript({
       }
     }
 
+    // pointerdown, not click: inspect-hook swallows click/mousedown with stopImmediatePropagation
+    function handleInspectPointerDown(e: PointerEvent) {
+      if (!inspectActive || !e.isTrusted || !(e.target instanceof Element)) {
+        return;
+      }
+      const qwikEl = findQwikAncestor(e.target);
+      pendingPick = {
+        qId: qwikEl?.getAttribute(QWIK_ATTR.ID) ?? undefined,
+        colonId: qwikEl?.getAttribute(V2_BINDING_ATTR) ?? undefined,
+      };
+    }
+
     // Inject main-world inspect hook (blocks clicks in the same world as qwikloader)
     const inspectScript = document.createElement('script');
     inspectScript.src = chrome.runtime.getURL('/inspect-hook.js');
@@ -169,6 +187,9 @@ export default defineContentScript({
       }
       document.removeEventListener('mousemove', handleInspectMove, true);
       document.addEventListener('mousemove', handleInspectMove, true);
+      pendingPick = null;
+      window.removeEventListener('pointerdown', handleInspectPointerDown, true);
+      window.addEventListener('pointerdown', handleInspectPointerDown, true);
       document.body.style.cursor = 'crosshair';
       // Tell main-world hook to start intercepting clicks
       window.postMessage({ type: '__QWIK_DT_INSPECT_START' }, '*');
@@ -180,6 +201,8 @@ export default defineContentScript({
         inspectOverlay.style.display = 'none';
       }
       document.removeEventListener('mousemove', handleInspectMove, true);
+      pendingPick = null;
+      window.removeEventListener('pointerdown', handleInspectPointerDown, true);
       document.body.style.cursor = '';
       window.postMessage({ type: '__QWIK_DT_INSPECT_STOP' }, '*');
     }
@@ -273,16 +296,17 @@ export default defineContentScript({
         }
       }
 
-      // Forward element pick from main-world inspect hook
-      if (e.data.type === '__QWIK_DT_ELEMENT_PICKED') {
+      // Forward element pick from main-world inspect hook, only after a real user press.
+      // treeNodeId comes from the page's devtools hook, so it stays page-trusted data.
+      if (e.data.type === '__QWIK_DT_ELEMENT_PICKED' && pendingPick) {
+        const pick = pendingPick;
         stopInspect();
         try {
           browser.runtime.sendMessage({
             type: 'ELEMENT_PICKED',
             payload: {
-              qId: e.data.qId,
-              colonId: e.data.colonId,
-              treeNodeId: e.data.treeNodeId,
+              ...pick,
+              treeNodeId: typeof e.data.treeNodeId === 'string' ? e.data.treeNodeId : undefined,
             },
           });
         } catch {

@@ -250,3 +250,9 @@ A computation tried to track a dependency or resume execution after its signal w
 **Missing streaming object references for a late patch**
 
 A late streamed state patch references an object whose original references are unavailable. This is an internal streaming error; please report it with a reproduction.
+
+## Q41
+
+**Invalid serialized BigInt payload**
+
+A serialized BigInt was not a plain decimal integer of at most 1000 digits. Larger BigInt values cannot be serialized; store them in another form, such as a string.

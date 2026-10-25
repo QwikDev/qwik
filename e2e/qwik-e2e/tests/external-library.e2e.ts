@@ -42,7 +42,7 @@ test.describe('externalized qwik library', () => {
     await expect(page.locator('#lib-routes')).toHaveText('true');
   });
 
-  test('a ServerError thrown by the external library keeps its status', async ({ page }) => {
+  test('a HttpError thrown by the external library keeps its status', async ({ page }) => {
     // The browser logs the 403 response, so this test does not assert a clean console.
     await page.goto('/external-library/');
 

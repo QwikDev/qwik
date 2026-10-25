@@ -642,6 +642,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming) {
       return;
     }
+    // Promise.all observes the rejection only after the shell flush.
+    segment.catch(() => {});
     this.outOfOrderPendingSegments.push(segment);
   }
 

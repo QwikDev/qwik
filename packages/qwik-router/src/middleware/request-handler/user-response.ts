@@ -115,8 +115,6 @@ async function runNext(
         }
         return e;
       }
-      // A response that already started can't be replaced by the dev server error page, so in
-      // dev it would stay open forever. Log the error and finish the response like in production.
       if (!isDev || requestEv.headersSent) {
         if (isDev) {
           console.error(e);

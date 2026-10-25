@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SourceMapConsumer } from 'source-map';
 import { build, parseAst, type Plugin, type Rolldown } from 'vite';
 import { describe, expect, test } from 'vitest';
 import { qwikVite } from './vite';
@@ -27,11 +28,13 @@ const collectStaticDynamicImports = (node: any, specifiers: string[] = []): stri
 const buildClient = async ({
   taskBody,
   minify,
+  sourcemap = false,
   chunkFileNames,
   createPlugins = () => [],
 }: {
   taskBody: string[];
   minify: boolean;
+  sourcemap?: boolean | 'hidden' | 'inline';
   chunkFileNames?: string;
   createPlugins?: (appDir: string) => Plugin[];
 }) => {
@@ -63,6 +66,7 @@ const buildClient = async ({
       build: {
         write: false,
         minify,
+        sourcemap,
         rolldownOptions: {
           input: join(appDir, 'src', 'root.tsx'),
           ...(chunkFileNames && { output: { chunkFileNames } }),
@@ -74,30 +78,54 @@ const buildClient = async ({
       (o) => o.output
     );
     const chunks = outputs.filter((o): o is Rolldown.OutputChunk => o.type === 'chunk');
-    const taskCode = chunks.find((chunk) => chunk.code.includes(TASK_MARKER))!.code;
-    return { outputs, chunks, taskCode };
+    const taskChunk = chunks.find((chunk) => chunk.code.includes(TASK_MARKER))!;
+    const emittedFiles = new Set(outputs.map((o) => o.fileName));
+    const missingImportedFiles = chunks
+      .flatMap((chunk) =>
+        collectStaticDynamicImports(parseAst(chunk.code))
+          .filter((specifier) => specifier.startsWith('.'))
+          .map((specifier) => posix.join(posix.dirname(chunk.fileName), specifier))
+      )
+      .filter((file) => !emittedFiles.has(file));
+    return { outputs, taskChunk, taskCode: taskChunk.code, missingImportedFiles };
   } finally {
     await rm(appDir, { recursive: true, force: true });
   }
+};
+
+const expectMappedToOriginalSource = async (
+  { outputs, taskChunk: { code, fileName } }: Awaited<ReturnType<typeof buildClient>>,
+  marker: string
+) => {
+  const asset = outputs.find((o) => o.fileName === `${fileName}.map`) as Rolldown.OutputAsset;
+  const inlineMap = /sourceMappingURL=data:[^,]*,(\S+)$/.exec(code);
+  const lines = code.split('\n');
+  const line = lines.findIndex((text) => text.includes(marker));
+
+  const original = await SourceMapConsumer.with(
+    JSON.parse(asset ? String(asset.source) : atob(inlineMap![1])),
+    null,
+    (consumer) => {
+      const column = lines[line].indexOf(marker);
+      const position = consumer.originalPositionFor({ line: line + 1, column });
+      const originalLines = consumer.sourceContentFor(position.source!)!.split('\n');
+      return originalLines[position.line! - 1].slice(position.column!);
+    }
+  );
+
+  expect(original.slice(0, marker.length)).toBe(marker);
 };
 
 describe.each([false, true])(
   'client build with a dynamically imported stylesheet (minify: %s)',
   (minify) => {
     test('never references a chunk that was not emitted', async () => {
-      const { outputs, chunks } = await buildClient({
+      const { outputs, missingImportedFiles } = await buildClient({
         taskBody: [`await import('./probe.css');`],
         minify,
       });
 
-      const emittedFiles = new Set(outputs.map((o) => o.fileName));
-      const importedFiles = chunks.flatMap((chunk) =>
-        collectStaticDynamicImports(parseAst(chunk.code))
-          .filter((specifier) => specifier.startsWith('.'))
-          .map((specifier) => posix.join(posix.dirname(chunk.fileName), specifier))
-      );
-
-      expect(importedFiles.filter((file) => !emittedFiles.has(file))).toEqual([]);
+      expect(missingImportedFiles).toEqual([]);
       const stylesheet = outputs.find((o) => o.type === 'asset' && o.fileName.endsWith('.css'));
       expect(String((stylesheet as Rolldown.OutputAsset).source)).toContain('.probe');
     });
@@ -120,6 +148,40 @@ describe.each([false, true])(
       expect(taskCode).toContain(templateAssignment);
       expect(taskCode.split('Promise.resolve({})')).toHaveLength(2);
       expect(collectStaticDynamicImports(parseAst(taskCode))).toEqual([]);
+    });
+
+    test('stubs a stylesheet import nested in another dynamic import', async () => {
+      const { missingImportedFiles, taskCode } = await buildClient({
+        taskBody: [
+          `await import(/* @vite-ignore */ (await import('./probe.css'), globalThis.widgetModuleUrl));`,
+        ],
+        minify,
+      });
+
+      expect(missingImportedFiles).toEqual([]);
+      expect(taskCode.split('Promise.resolve({})')).toHaveLength(2);
+      expect(taskCode.match(/\bimport\(/g)).toHaveLength(1);
+    });
+
+    test.each([true, 'hidden', 'inline'] as const)(
+      'keeps the sourcemap valid after the stub (sourcemap: %s)',
+      async (sourcemap) => {
+        const result = await buildClient({
+          taskBody: [`await import('./probe.css');`, `globalThis.afterCss = 12345;`],
+          minify,
+          sourcemap,
+        });
+
+        expect(result.taskCode).toContain('Promise.resolve({})');
+        await expectMappedToOriginalSource(result, 'globalThis.afterCss');
+      }
+    );
+
+    test('maps code to the original source without a stylesheet import', async () => {
+      const taskBody = [`globalThis.afterCss = 12345;`];
+      const result = await buildClient({ taskBody, minify, sourcemap: true });
+
+      await expectMappedToOriginalSource(result, 'globalThis.afterCss');
     });
 
     test.each([true, 'relative'] as const)(

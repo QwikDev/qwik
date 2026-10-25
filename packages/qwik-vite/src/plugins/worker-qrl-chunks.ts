@@ -1,3 +1,4 @@
+import { SourceMap, type SourceMapSegment } from 'magic-string';
 import type { Rolldown } from 'vite';
 import type { QwikManifest } from '../types';
 
@@ -139,6 +140,8 @@ const relativePosixPath = (fromDir: string, toFile: string) => {
 };
 
 const EMPTY_MODULE_EXPRESSION = 'Promise.resolve({})';
+const BASE64_DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const INLINE_SOURCEMAP_URL = /(?<=\/\/# sourceMappingURL=)data:\S+$/;
 
 interface AstNode {
   type?: string;
@@ -147,14 +150,19 @@ interface AstNode {
   [key: string]: any;
 }
 
-const findImportExpressions = (node: unknown, found: AstNode[] = []): AstNode[] => {
+const findRemovedImports = (
+  node: unknown,
+  isRemovedImport: (node: AstNode) => boolean,
+  found: AstNode[] = []
+): AstNode[] => {
   if (Array.isArray(node)) {
-    node.forEach((child) => findImportExpressions(child, found));
+    node.forEach((child) => findRemovedImports(child, isRemovedImport, found));
   } else if (node && typeof node === 'object') {
-    if ((node as AstNode).type === 'ImportExpression') {
+    // Kept imports can still nest removed ones; replaced ones swallow theirs.
+    if ((node as AstNode).type === 'ImportExpression' && isRemovedImport(node as AstNode)) {
       found.push(node as AstNode);
     } else {
-      Object.values(node).forEach((child) => findImportExpressions(child, found));
+      Object.values(node).forEach((child) => findRemovedImports(child, isRemovedImport, found));
     }
   }
   return found;
@@ -175,6 +183,53 @@ const resolveRelativeImport = (importerFileName: string, node: AstNode) => {
     return undefined;
   }
   return normalizePosixPathParts(`${posixDirname(importerFileName)}/${specifier}`).join('/');
+};
+
+/** Decodes to absolute segments, the shape magic-string's SourceMap encodes. */
+const decodeMappings = (mappings: string) => {
+  const absolute = [0, 0, 0, 0, 0];
+  return mappings.split(';').map((line) => {
+    absolute[0] = 0;
+    return line
+      ? line.split(',').map((segment) => {
+          const deltas: number[] = [];
+          let value = 0;
+          let shift = 0;
+          for (const char of segment) {
+            const digit = BASE64_DIGITS.indexOf(char);
+            value += (digit & 31) << shift;
+            shift += 5;
+            if (!(digit & 32)) {
+              deltas.push(value & 1 ? -(value >> 1) : value >> 1);
+              value = shift = 0;
+            }
+          }
+          return deltas.map((delta, index) => (absolute[index] += delta));
+        })
+      : [];
+  });
+};
+
+const getLineAndColumn = (code: string, offset: number) => {
+  const lines = code.slice(0, offset).split('\n');
+  return [lines.length - 1, lines[lines.length - 1].length];
+};
+
+const stubMappedRange = (lines: number[][][], code: string, start: number, end: number) => {
+  const [startLine, startColumn] = getLineAndColumn(code, start);
+  const [endLine, endColumn] = getLineAndColumn(code, end);
+  if (startLine >= lines.length) {
+    return;
+  }
+  // The segment at the range start stays, so the stub maps to the removed import.
+  const before = lines[startLine].filter(([column]) => column <= startColumn);
+  const after = (lines[endLine] ?? [])
+    .filter(([column]) => column >= endColumn)
+    .map(([column, ...rest]) => [
+      column - endColumn + startColumn + EMPTY_MODULE_EXPRESSION.length,
+      ...rest,
+    ]);
+  lines.splice(startLine, endLine - startLine + 1, [...before, ...after]);
 };
 
 /** Vite's CSS pass deletes pure-CSS chunks but leaves their dynamic imports dangling. */
@@ -198,18 +253,32 @@ export const stubRemovedChunkImports = (
       continue;
     }
     // Import attributes go too: the module no longer exists.
-    const removedImports = findImportExpressions(ast).filter((node) =>
+    const removedImports = findRemovedImports(ast, (node) =>
       isRemoved(resolveRelativeImport(output.fileName, node))
     );
     if (!removedImports.length) {
       continue;
     }
+    // The bundler does not recompose the map for edits made in generateBundle.
+    const mappedLines = output.map && decodeMappings(output.map.mappings);
     let code = output.code;
     // Edit back to front so earlier offsets stay valid.
     for (const { start, end } of removedImports.sort((a, b) => b.start - a.start)) {
+      if (mappedLines) {
+        stubMappedRange(mappedLines, output.code, start, end);
+      }
       code = code.slice(0, start) + EMPTY_MODULE_EXPRESSION + code.slice(end);
     }
     output.code = code;
+    if (mappedLines) {
+      const map = new SourceMap({ ...output.map!, mappings: mappedLines as SourceMapSegment[][] });
+      output.map = map as typeof output.map;
+      const sourceMapAsset = bundle[`${output.fileName}.map`];
+      if (sourceMapAsset?.type === 'asset') {
+        sourceMapAsset.source = map.toString();
+      }
+      output.code = output.code.replace(INLINE_SOURCEMAP_URL, () => map.toUrl());
+    }
   }
 };
 

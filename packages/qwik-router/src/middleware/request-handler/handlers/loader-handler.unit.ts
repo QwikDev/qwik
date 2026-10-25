@@ -250,42 +250,50 @@ describe('loaderHandler', () => {
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
 
-  it('runs earlier blocking loaders before the requested q-loader', async () => {
-    const requestEv = createRequestEv();
-    const guardLoader = {
-      __id: 'guard-loader',
-      __qrl: {
-        call: vi.fn(async (_thisArg, ev) => ev.redirect(302, '/login')),
-        getHash: vi.fn(() => 'guard-loader'),
-      },
-      __validators: undefined,
-      __eTag: undefined,
-      __cacheKey: undefined,
-      __search: undefined,
-      __blockSSR: true,
-    };
-    const secretLoader = {
-      __id: 'loader-id',
-      __qrl: {
-        call: vi.fn(async () => 'secret'),
-        getHash: vi.fn(() => 'loader-id'),
-      },
-      __validators: undefined,
-      __eTag: undefined,
-      __cacheKey: undefined,
-      __search: undefined,
-      __blockSSR: true,
-    };
+  // Production route modules are namespaces with alphabetically sorted exports.
+  it.each(['guard first', 'guard last'])(
+    'runs blocking loaders before the requested q-loader (%s)',
+    async (order) => {
+      const requestEv = createRequestEv();
+      const guardLoader = {
+        __id: 'guard-loader',
+        __qrl: {
+          call: vi.fn(async (_thisArg, ev) => ev.redirect(302, '/login')),
+          getHash: vi.fn(() => 'guard-loader'),
+        },
+        __validators: undefined,
+        __eTag: undefined,
+        __cacheKey: undefined,
+        __search: undefined,
+        __blockSSR: true,
+      };
+      const secretLoader = {
+        __id: 'loader-id',
+        __qrl: {
+          call: vi.fn(async () => 'secret'),
+          getHash: vi.fn(() => 'loader-id'),
+        },
+        __validators: undefined,
+        __eTag: undefined,
+        __cacheKey: undefined,
+        __search: undefined,
+        __blockSSR: true,
+      };
 
-    await expect(
-      loaderHandler([guardLoader as any, secretLoader as any])(requestEv as any)
-    ).rejects.toBeInstanceOf(RedirectMessage);
+      await expect(
+        loaderHandler(
+          (order === 'guard first'
+            ? [guardLoader, secretLoader]
+            : [secretLoader, guardLoader]) as any
+        )(requestEv as any)
+      ).rejects.toBeInstanceOf(RedirectMessage);
 
-    expect(guardLoader.__qrl.call).toHaveBeenCalledTimes(1);
-    expect(secretLoader.__qrl.call).not.toHaveBeenCalled();
-    expect(requestEv.headers.get('Location')).toBe('/login');
-    expect(requestEv.send).not.toHaveBeenCalled();
-  });
+      expect(guardLoader.__qrl.call).toHaveBeenCalledTimes(1);
+      expect(secretLoader.__qrl.call).not.toHaveBeenCalled();
+      expect(requestEv.headers.get('Location')).toBe('/login');
+      expect(requestEv.send).not.toHaveBeenCalled();
+    }
+  );
 
   it('sends a ServerError from the loader with Cache-Control: no-store over the loader option', async () => {
     const requestEv = createRequestEv();

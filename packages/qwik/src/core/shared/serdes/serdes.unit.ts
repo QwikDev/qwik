@@ -2644,6 +2644,25 @@ describe('serializer - internal', () => {
       `Code(Q${QError.invalidUint8ArrayPayload})`
     );
   });
+  it.each([
+    ['non-string', 1],
+    ['empty', ''],
+    ['hex', '0x10'],
+    ['whitespace', ' 1'],
+    ['oversized', '9'.repeat(1001)],
+  ])('rejects %s BigInt payloads', async (_name, value) => {
+    await expect(_deserialize(JSON.stringify([TypeIds.BigInt, value]))).rejects.toThrow(
+      `Code(Q${QError.invalidBigIntPayload})`
+    );
+  });
+  it('round-trips BigInt values up to the digit limit', async () => {
+    const largest = 10n ** 1000n - 1n;
+    expect(await _deserialize(await _serialize(largest))).toBe(largest);
+    expect(await _deserialize(await _serialize(-largest))).toBe(-largest);
+  });
+  it('rejects serializing BigInt values over the digit limit', async () => {
+    await expect(_serialize(10n ** 1000n)).rejects.toThrow(`Code(Q${QError.invalidBigIntPayload})`);
+  });
   it('_serialize should emit short integer-like plain object keys as numbers', async () => {
     const ser = await _serialize({
       123: 'a',

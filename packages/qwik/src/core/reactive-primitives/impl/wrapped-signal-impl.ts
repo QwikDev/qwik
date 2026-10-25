@@ -61,8 +61,12 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
       } else if (isPromise(err)) {
         const ctx = newInvokeContext();
         ctx.$container$ = this.$container$ || undefined;
-        // @ts-expect-error it's confused about args any[] vs []
-        const running = retryOnPromise(invokeApply.bind(this, ctx, this.$computeIfNeeded$));
+        const running = retryOnPromise(() => {
+          // A consumer cleaned up while the QRL loaded must not be resubscribed
+          if (this.$effects$?.size) {
+            invokeApply.call(this, ctx, this.$computeIfNeeded$);
+          }
+        });
         if (isPromise(running)) {
           running.catch((error: unknown) => {
             if (this.$container$) {

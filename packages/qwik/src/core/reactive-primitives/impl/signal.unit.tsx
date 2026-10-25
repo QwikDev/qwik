@@ -22,6 +22,7 @@ import {
   type SerializerSignal,
   type Signal,
 } from '../signal.public';
+import { clearAllEffects } from '../cleanup';
 import { getSubscriber } from '../subscriber';
 import { EffectProperty, ComputedSignalFlags } from '../types';
 import type { ComputedSignalImpl } from './computed-signal-impl';
@@ -448,6 +449,33 @@ describe('signal', () => {
           error.value = false;
           await flushSignals();
           expect(log).toEqual([true, false]);
+        });
+      });
+
+      it('does not resubscribe a hostless pull whose consumer was cleaned up before its QRL resolved', async () => {
+        await withContainer(async () => {
+          const gate = createSignal(false);
+          const error = createSignal(true);
+          const isValid = createComputedQrl(delayQrl($(() => !error.value)));
+          const disabled = createComputed$(() => !gate.value || !isValid.value);
+          const wrapped = new WrappedSignalImpl(
+            container,
+            (signal: Signal<boolean>) => signal.value,
+            [disabled],
+            null
+          );
+          effect$(() => log.push(wrapped.value));
+
+          // the pull throws while isValid's QRL loads
+          gate.value = true;
+          // the consuming component is cleaned up before the QRL resolves
+          clearAllEffects(container, task!);
+          await delay(0);
+
+          const consumers = [...((disabled as ComputedSignalImpl<boolean>).$effects$ ?? [])].map(
+            (effect) => effect.consumer
+          );
+          expect(consumers).not.toContain(wrapped);
         });
       });
     });

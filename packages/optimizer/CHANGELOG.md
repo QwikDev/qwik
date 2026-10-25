@@ -1,5 +1,13 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-rc.10
+
+### Patch Changes
+
+- 🐞🩹 child computeds and tasks now update when a prop expression reads render-local values (by [@rapporian](https://github.com/rapporian) in [#9218](https://github.com/QwikDev/qwik/pull/9218))
+
+- 🐞🩹 keep client-only callbacks outside smart render bundles (by [@Varixo](https://github.com/Varixo) in [#9263](https://github.com/QwikDev/qwik/pull/9263))
+
 ## 2.1.0-beta.9
 
 ### Patch Changes

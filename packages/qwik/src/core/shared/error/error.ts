@@ -49,6 +49,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Invalid serialized Uint8Array payload', // 38
       'Computed signal was disposed', // 39
       'Missing streaming object references for a late patch', // 40
+      'Invalid serialized BigInt payload', // 41
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -108,6 +109,7 @@ export const enum QError {
   invalidUint8ArrayPayload = 38,
   computedSignalDisposed = 39,
   missingStreamingObjectRefs = 40,
+  invalidBigIntPayload = 41,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

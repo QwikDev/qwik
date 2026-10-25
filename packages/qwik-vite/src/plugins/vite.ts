@@ -558,7 +558,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     generateBundle: {
       order: 'post',
       async handler(_, rollupBundle) {
-        const isClient = this.environment.config.consumer === 'client';
+        // Libraries keep Qwik external, so there is no app manifest to build.
+        const isClient =
+          this.environment.config.consumer === 'client' && qwikPlugin.getOptions().target !== 'lib';
         const isSSR = this.environment.config.consumer === 'server';
 
         if (isClient) {

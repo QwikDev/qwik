@@ -1017,6 +1017,26 @@ describe('writeBundle entry facade', () => {
   });
 });
 
+describe('library build', () => {
+  const generateBundleFor = async (mode: string) => {
+    const [prePlugin, postPlugin] = qwikVite({ optimizerOptions: mockOptimizerOptions() }) as any[];
+    await prePlugin.config.call(configHookPluginContext, {}, { command: 'build', mode });
+    const emittedFiles: unknown[] = [];
+    const context = {
+      environment: { config: { consumer: 'client' } },
+      emitFile: (file: unknown) => (emittedFiles.push(file), 'ref'),
+      getFileName: () => 'file',
+      getModuleInfo: () => null,
+    };
+    await postPlugin.generateBundle.handler.call(context, {}, {});
+    return emittedFiles;
+  };
+
+  test('does not emit a client manifest for a library build', async () => {
+    assert.deepEqual(await generateBundleFor('lib'), []);
+  });
+});
+
 describe('worker core chunk rewrites', () => {
   const workerCorePlaceholderCode = () =>
     `import { setPlatform, _deserialize } from "${QWIK_WORKER_CORE_SENTINEL}";`;

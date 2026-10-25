@@ -52,6 +52,17 @@ src/routes/admin/users/index.tsx
 
 A layout whose own middleware or loader failed never renders on its error page, so its loaders never run for a visitor it turned away. A failure in a `plugin@` file, the root layout or the root page renders `src/routes/error.tsx` with no layout. An `error.tsx` inside a root group, such as `src/routes/(app)/error.tsx`, does not cover those failures.
 
+### Caching
+
+A 404, 405, 410 or 501 describes the URL itself, so its error page keeps the cache policy set before the throw, as a successful page would: the page's `Cache-Control` header and the loader's [`cacheControl`](/docs/route-loader/#cachecontrol). Any other status, and any other error, is sent with `Cache-Control: private, no-store`, so no cache keeps an answer meant for one visitor or one moment.
+
+To keep a 404 out of caches, for example a draft only its author can see, set the header before throwing:
+
+```tsx
+ev.cacheControl({ private: true, noStore: true });
+throw ev.httpError(404, 'Draft not found');
+```
+
 ## Other errors
 
 Any other error is a failure of the code that threw it:

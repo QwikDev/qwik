@@ -367,7 +367,7 @@ describe('loaderHandler', () => {
     expect(response.p).toBeUndefined();
   });
 
-  it('sends a fail() result from the loader with Cache-Control: no-store over the loader option', async () => {
+  it('sends a fail() result from the loader with Cache-Control: private, no-store over the loader option', async () => {
     const requestEv = createRequestEv();
     const loader = {
       __id: 'loader-id',
@@ -380,7 +380,7 @@ describe('loaderHandler', () => {
     await handlerFor([loader])(requestEv as any);
 
     expect(requestEv.send).toHaveBeenCalledOnce();
-    expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+    expect(requestEv.headers.get('Cache-Control')).toBe('private, no-store');
   });
 
   it.each([
@@ -388,7 +388,7 @@ describe('loaderHandler', () => {
     ['an HttpError from a streamed loader', new HttpError(404, 'No such product'), false],
     ['a plain Error', new Error('db down'), true],
   ])(
-    'sends %s with Cache-Control: no-store over the loader option',
+    'sends %s with Cache-Control: private, no-store over the loader option',
     async (_label, failure, blockSSR) => {
       const requestEv = createRequestEv();
       const loader = {
@@ -409,9 +409,24 @@ describe('loaderHandler', () => {
       }
 
       expect(requestEv.send).toHaveBeenCalledOnce();
-      expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+      expect(requestEv.headers.get('Cache-Control')).toBe('private, no-store');
     }
   );
+
+  it("sends a 404 HttpError from a blocking loader with the loader's cacheControl", async () => {
+    const requestEv = createRequestEv();
+    const loader = {
+      ...createLoader('loader-id', async () => {
+        throw new HttpError(404, 'No such product');
+      }),
+      __cacheControl: 60,
+    };
+
+    await handlerFor([loader as any])(requestEv as any);
+
+    expect(requestEv.send).toHaveBeenCalledOnce();
+    expect(requestEv.headers.get('Cache-Control')).toBe('max-age=60, s-maxage=60');
+  });
 
   it.each([
     [
@@ -432,7 +447,7 @@ describe('loaderHandler', () => {
       ],
     ],
   ])(
-    'sends %s with Cache-Control: no-store over a header set by middleware',
+    'sends %s with Cache-Control: private, no-store over a header set by middleware',
     async (_label, createLoaders) => {
       const requestEv = createRequestEv();
       requestEv.headers.set('Cache-Control', 'public, max-age=60');
@@ -444,7 +459,7 @@ describe('loaderHandler', () => {
       }
 
       expect(requestEv.send).toHaveBeenCalledOnce();
-      expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+      expect(requestEv.headers.get('Cache-Control')).toBe('private, no-store');
     }
   );
 

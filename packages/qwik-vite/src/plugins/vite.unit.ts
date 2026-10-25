@@ -1,6 +1,6 @@
 import path, { resolve } from 'node:path';
 import type { Rolldown } from 'vite';
-import { assert, describe, test } from 'vitest';
+import { assert, describe, test, vi } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
 import { flattenToChunkName } from './vite-utils';
@@ -1028,12 +1028,22 @@ describe('library build', () => {
       getFileName: () => 'file',
       getModuleInfo: () => null,
     };
-    await postPlugin.generateBundle.handler.call(context, {}, {});
-    return emittedFiles;
+    const bundle = {
+      'index.js': { type: 'chunk', fileName: 'index.js', imports: ['external.js'] },
+    };
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await postPlugin.generateBundle.handler.call(context, {}, bundle);
+      return { emittedFiles, warnings: warn.mock.calls };
+    } finally {
+      warn.mockRestore();
+    }
   };
 
   test('does not emit a client manifest for a library build', async () => {
-    assert.deepEqual(await generateBundleFor('lib'), []);
+    const { emittedFiles, warnings } = await generateBundleFor('lib');
+    assert.deepEqual(emittedFiles, []);
+    assert.deepEqual(warnings, []);
   });
 });
 

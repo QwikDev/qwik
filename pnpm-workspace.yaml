@@ -23,9 +23,75 @@ overrides:
   vfile: 6.0.3
   # 1.0.6 uses node:events, breaks REPL
   '@napi-rs/wasm-runtime': 1.0.5
+  '@auth/core': 0.41.3
+  '@fastify/busboy@3': 3.2.4
+  '@humanfs/node': 0.16.8
+  '@isaacs/brace-expansion': 5.0.1
+  ajv@6: 6.15.0
+  ajv@8: 8.20.0
+  axios@0: 0.34.0
+  baseline-browser-mapping: 2.11.29
+  body-parser@1: 1.20.9
+  brace-expansion@1: 1.1.21
+  brace-expansion@2: 2.1.7
+  brace-expansion@5: 5.0.12
+  browserslist: 4.29.4
+  defu: 6.1.7
+  diff@4: 4.0.4
+  diff@5: 5.2.2
+  effect@3: 3.22.4
+  fast-uri@2: 2.4.8
+  fast-uri@3: 3.1.9
+  flatted: 3.4.4
+  follow-redirects: 1.16.1
+  form-data@4: 4.0.6
+  glob@10: 10.5.0
+  h3@1: 1.15.11
+  http-cache-semantics: 4.3.0
+  http-proxy-middleware@2: 2.0.10
+  image-size@2: 2.0.4
+  ipx@2: 2.1.1
+  js-yaml@3: 3.15.2
+  js-yaml@4: 4.3.2
+  jws@3: 3.2.3
+  lodash: 4.18.1
+  lodash-es: 4.18.1
+  mdast-util-to-hast: 13.2.1
+  minimatch@10: 10.2.6
+  minimatch@3: 3.1.5
+  minimatch@5: 5.1.9
+  minimatch@9: 9.0.9
+  multiparty: 4.3.1
+  nanoid@3: 3.3.20
+  node-forge: 1.4.0
+  path-to-regexp@0.1: 0.1.13
+  picomatch@2: 2.3.2
+  picomatch@4: 4.0.7
+  postcss: 8.5.31
+  proxy-addr: 2.0.8
+  qs: 6.16.1
+  sharp: 0.35.5
+  shell-quote: 1.12.0
+  source-map-js: 1.2.2
+  tar: 7.5.22
+  tinypool: 2.1.2
+  tmp: 0.2.7
+  toml: 5.0.1
+  undici@6: 6.29.1
+  undici@7: 7.30.1
+  uuid@11: 11.1.1
+  uuid@8: 11.1.1
+  uuid@9: 11.1.1
+  valibot@1: 1.5.0
+  validator: 13.15.35
+  vite@7: 7.3.7
+  ws@8: 8.22.0
+  yaml@1: 1.10.3
+  yaml@2: 2.9.1
 
 patchedDependencies:
   density-clustering@1.3.0: patches/density-clustering@1.3.0.patch
   domino@2.1.6: patches/domino@2.1.6.patch
+  image-size@1.2.1: patches/image-size@1.2.1.patch
 
 shellEmulator: true

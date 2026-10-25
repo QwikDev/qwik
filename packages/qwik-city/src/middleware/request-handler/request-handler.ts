@@ -1,4 +1,3 @@
-import type { Render } from '@builder.io/qwik/server';
 import { loadRoute } from '../../runtime/src/routing';
 import type { RebuildRouteInfoInternal, QwikCityPlan } from '../../runtime/src/types';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
@@ -15,7 +14,7 @@ export async function requestHandler<T = unknown>(
   opts: ServerRenderOptions,
   qwikSerializer: QwikSerializer
 ): Promise<QwikCityRun<T> | null> {
-  const { render, qwikCityPlan, checkOrigin } = opts;
+  const { qwikCityPlan } = opts;
   const { pathname, isInternal } = getRouteMatchPathname(
     serverRequestEv.url.pathname,
     qwikCityPlan.trailingSlash
@@ -24,8 +23,7 @@ export async function requestHandler<T = unknown>(
     qwikCityPlan,
     pathname,
     serverRequestEv.request.method,
-    checkOrigin ?? true,
-    render,
+    opts,
     isInternal
   );
 
@@ -39,8 +37,7 @@ export async function requestHandler<T = unknown>(
         qwikCityPlan,
         pathname,
         serverRequestEv.request.method,
-        checkOrigin ?? true,
-        render,
+        opts,
         isInternal
       );
 
@@ -69,8 +66,7 @@ async function loadRequestHandlers(
   qwikCityPlan: QwikCityPlan,
   pathname: string,
   method: string,
-  checkOrigin: boolean | 'lax-proto',
-  renderFn: Render,
+  opts: ServerRenderOptions,
   isInternal: boolean
 ) {
   const { routes, serverPlugins, menus, cacheModules } = qwikCityPlan;
@@ -79,8 +75,8 @@ async function loadRequestHandlers(
     serverPlugins,
     route,
     method,
-    checkOrigin,
-    renderQwikMiddleware(renderFn),
+    opts.checkOrigin ?? true,
+    renderQwikMiddleware(opts.render, opts.trustForwardedHeaders),
     isInternal
   );
   if (requestHandlers.length > 0) {

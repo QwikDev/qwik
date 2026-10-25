@@ -40,6 +40,24 @@ export const loadRoute = async (
     errorLoader,
   } = result;
 
+  const loaderEndpoints = new Map<string, ReturnType<typeof matchRouteTree>>();
+  const pagePath = ensureSlash(pathname);
+  for (const hash in loaderPathsByHash) {
+    const loaderPath = loaderPathsByHash[hash];
+    if (loaderPath === pagePath) {
+      continue;
+    }
+    let endpoint = loaderEndpoints.get(loaderPath);
+    if (!endpoint) {
+      endpoint = matchRouteTree(routes, loaderPath);
+      loaderEndpoints.set(loaderPath, endpoint);
+    }
+    // A shorter endpoint can belong to a sibling without this loader.
+    if (!endpoint.notFound && !endpoint.loaderPathsByHash?.[hash]) {
+      loaderPathsByHash[hash] = pagePath;
+    }
+  }
+
   const routeName = '/' + routeParts.join('/');
 
   const modules: RouteModule[] = new Array(loaders.length);
@@ -699,10 +717,8 @@ export function matchRouteTree(
 
   let done = false;
   let matched = true;
-  const parts = pathname
-    .split('/')
-    .filter((p) => p.length > 0)
-    .map(decodeURIComponent);
+  const encodedParts = pathname.split('/').filter((p) => p.length > 0);
+  const parts = encodedParts.map(decodeURIComponent);
 
   // Track the deepest rest wildcard (_A) encountered during traversal as a fallback.
   // If _W matches a segment but the path ultimately leads to no route, we fall back to _A.
@@ -774,7 +790,7 @@ export function matchRouteTree(
     done = found.done;
     node = found.next;
     const span = found.span ?? 1;
-    const matchedParts = parts.slice(0, found.done ? len : i + span);
+    const matchedParts = encodedParts.slice(0, found.done ? len : i + span);
     const matchedPathname = matchedParts.length ? `/${matchedParts.join('/')}/` : '/';
     collectNodeMeta(
       node,

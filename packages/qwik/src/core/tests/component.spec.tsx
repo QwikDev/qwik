@@ -46,6 +46,47 @@ function Hola(props: any) {
 
 const globalObj = ['foo', 'bar'];
 
+const formatCount = (count: number) => `count ${count}`;
+const CountLabel = component$((props: { label: string }) => <span>{props.label}</span>);
+const CountButton = component$(() => {
+  const count = useSignal(0);
+  return (
+    <button onClick$={() => count.value++}>
+      <CountLabel label={formatCount(count.value)} />
+    </button>
+  );
+});
+
+const formatSize = (count: number) => (count < 10 ? 'few' : 'many');
+const ToggleLabel = component$((props: { label: string }) => {
+  const on = useSignal(false);
+  return (
+    <button id="toggle" class={on.value ? 'on' : 'off'} onClick$={() => (on.value = true)}>
+      {props.label}
+    </button>
+  );
+});
+const TickPanel = component$(() => {
+  const count = useSignal(0);
+  return (
+    <div>
+      <button id="tick" onClick$={() => count.value++}>
+        tick
+      </button>
+      <ToggleLabel label={formatSize(count.value)} />
+    </div>
+  );
+});
+const SpreadLabel = component$((props: { label?: string }) => <span>{props.label ?? 'none'}</span>);
+const SpreadButton = component$(() => {
+  const count = useSignal(0);
+  return (
+    <button onClick$={() => count.value++}>
+      <SpreadLabel {...(count.value === 0 ? { label: 'initial' } : {})} />
+    </button>
+  );
+});
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -2683,6 +2724,57 @@ describe.each([
         </Fragment>
       </Component>
     );
+  });
+
+  it('should rerender a module-scope child when its var props change', async () => {
+    const { vNode, document } = await render(<CountButton />, { debug });
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <Component ssr-required>
+            <span>
+              <Signal ssr-required>count 1</Signal>
+            </span>
+          </Component>
+        </button>
+      </Component>
+    );
+  });
+
+  it('should rerender a module-scope child when its var props become empty', async () => {
+    const { document } = await render(<SpreadButton />, { debug });
+    expect(document.querySelector('span')?.textContent).toBe('initial');
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('span')?.textContent).toBe('none');
+  });
+
+  it('should keep a module-scope child state when its var props do not change', async () => {
+    const { document } = await render(<TickPanel />, { debug });
+    await trigger(document.body, '#toggle', 'click');
+    const toggle = document.querySelector('#toggle');
+    expect(toggle?.getAttribute('class')).toBe('on');
+    await trigger(document.body, '#tick', 'click');
+    expect(document.querySelector('#toggle')).toBe(toggle);
+    expect(toggle?.getAttribute('class')).toBe('on');
+    expect(toggle?.textContent).toBe('few');
+  });
+
+  it('should render a component stored under two store keys after resume', async () => {
+    const Hello = component$(() => <p>hello</p>);
+    const Cmp = component$(() => {
+      const registry = useStore({ first: Hello, second: Hello });
+      const shown = useSignal<typeof Hello | null>(null);
+      return (
+        <>
+          <button onClick$={() => (shown.value = registry.second)}>show</button>
+          {shown.value && <shown.value />}
+        </>
+      );
+    });
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('p')?.textContent).toBe('hello');
   });
 
   it("should update multiple signals from component's props", async () => {

@@ -14,8 +14,9 @@ import type { RequestEvent, ServerRequestEvent } from './types';
 import { checkCSRF } from './resolve-request-handlers-core';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
-import { IsQLoader, QLoaderId } from './request-path';
+import { getLoaderName, IsQLoader, QLoaderId } from './request-path';
 import { getRouteLoaderValues } from '../../runtime/src/route-loaders';
+import { loadRoute } from '../../runtime/src/routing';
 
 const { prerenderedPaths } = vi.hoisted(() => ({ prerenderedPaths: new Set<string>() }));
 vi.mock('./static-paths', () => ({
@@ -635,6 +636,108 @@ describe('resolve-request-handler', () => {
         globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
       }
     });
+
+    it('preserves originalUrl for a strict page loader after a rewrite', async () => {
+      const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+      globalThis.__STRICT_LOADERS__ = true;
+      try {
+        const loaderFn = vi.fn(() => 'page');
+        const loader = makeLoader('page', loaderFn);
+        loader.__search = [];
+        const route = await loadRoute(
+          {
+            target: {
+              _W: {
+                _P: 'id',
+                _I: () => ({ default: () => null, usePage: loader }),
+                _D: ['page'],
+              },
+            },
+          },
+          false,
+          '/target/42/'
+        );
+        const originalUrl = new URL('http://localhost:3000/pretty/42/');
+        const targetUrl = new URL('http://localhost:3000/target/42/');
+        const handlers = resolveRequestHandlers(undefined, route, 'GET', true, exitRender());
+        const requestEv = createRequestEvent(
+          createMockServerRequestEvent(originalUrl.href),
+          route,
+          [],
+          '/',
+          vi.fn()
+        );
+        requestEv.resetRoute(route, handlers, targetUrl);
+
+        await requestEv.next();
+
+        expect(loaderFn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: targetUrl,
+            originalUrl,
+            params: { id: '42' },
+          })
+        );
+      } finally {
+        globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+      }
+    });
+
+    for (const mode of ['document', 'loader']) {
+      for (const search of ['', '?ignored=1']) {
+        it(`keeps group params scoped at a fallback endpoint for ${mode}${search}`, async () => {
+          const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+          globalThis.__STRICT_LOADERS__ = true;
+          try {
+            const groupFn = vi.fn(() => 'group');
+            const pageFn = vi.fn(() => 'page');
+            const groupLoader = makeLoader('group', groupFn);
+            const pageLoader = makeLoader('page', pageFn);
+            groupLoader.__search = [];
+            pageLoader.__search = [];
+            const pageModule = { default: () => null, usePage: pageLoader };
+            const route = await loadRoute(
+              {
+                k: {
+                  _M: [
+                    {
+                      _L: () => ({ default: () => null, useGroup: groupLoader }),
+                      _R: ['group'],
+                      area: { _W: { _P: 'id', _I: () => pageModule, _D: ['page'] } },
+                    },
+                  ],
+                  _W: { _P: 'x', _I: () => ({ default: () => null }) },
+                },
+              },
+              false,
+              '/k/area/42/'
+            );
+            expect(route.$loaderPaths$?.group).toBe('/k/area/42/');
+            expect(route.$loaderParams$?.group).toEqual({});
+            const suffix = mode === 'loader' ? getLoaderName('group', 'manifest') : '';
+            const handlers = resolveRequestHandlers(undefined, route, 'GET', true, exitRender());
+            const requestEv = createRequestEvent(
+              createMockServerRequestEvent(`http://localhost:3000/k/area/42/${suffix}${search}`),
+              route,
+              handlers,
+              '/',
+              vi.fn()
+            );
+
+            await requestEv.next();
+
+            expect(groupFn).toHaveBeenCalledWith(expect.objectContaining({ params: {} }));
+            if (mode === 'document') {
+              expect(pageFn).toHaveBeenCalledWith(
+                expect.objectContaining({ params: { id: '42' } })
+              );
+            }
+          } finally {
+            globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+          }
+        });
+      }
+    }
 
     it('does not await blockSSR:false loaders before render', async () => {
       let release!: () => void;

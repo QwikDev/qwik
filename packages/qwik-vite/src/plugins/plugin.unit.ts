@@ -144,6 +144,95 @@ test('entryStrategy, smart', async () => {
   assert.deepEqual(opts.entryStrategy.type, 'smart');
 });
 
+test.each([
+  { tsOptimizer: false, compiled: false },
+  { tsOptimizer: true, compiled: false },
+  { tsOptimizer: false, compiled: true },
+  { tsOptimizer: true, compiled: true },
+])(
+  'smart preserves optimizer entries and SSR stripping inside custom hooks ($tsOptimizer, compiled: $compiled)',
+  async ({ tsOptimizer, compiled }) => {
+    const hooks = compiled
+      ? `useTaskQrl(inlinedQrl(() => { const [value] = useLexicalScope(); console.log('shared-task', value); }, 's_task', [value]));
+         useVisibleTaskQrl(inlinedQrl(() => { const [value] = useLexicalScope(); clientFeature(value); }, 's_visible', [value]));
+         useClientFeatureQrl(inlinedQrl(() => { const [value] = useLexicalScope(); clientFeature(value); }, 's_client', [value]));`
+      : `useTask$(() => console.log('shared-task', value));
+         visible(() => clientFeature(value));
+         useClientFeature$(() => clientFeature(value));`;
+    const source = `import { $, component$, inlinedQrl, useLexicalScope, useTaskQrl, useVisibleTaskQrl, useTask$, useVisibleTask$ as visible } from '@qwik.dev/core';
+    import { clientFeature } from './client-feature';
+    import { useClientFeature$, useClientFeatureQrl } from './custom-client-hook';
+    function useCustomHook(value) {
+      ${hooks}
+    }
+    export const App = component$(() => {
+      const value = 1;
+      useCustomHook(value);
+      const read = $(() => console.log('shared-callback', value));
+      read();
+      return <button onClick$={() => clientFeature(value)}>run</button>;
+    });`;
+    const transform = async (target: 'client' | 'ssr') => {
+      const plugin = await mockPlugin(process.platform, true, tsOptimizer);
+      await plugin.normalizeOptions({
+        rootDir: '/root',
+        srcDir: '/root/src',
+        target,
+        buildMode: 'production',
+        entryStrategy: { type: 'smart' },
+      });
+      const result = await plugin.transform(
+        {
+          addWatchFile() {},
+          emitFile() {},
+          async resolve() {
+            return null;
+          },
+        } as any,
+        source,
+        '/root/src/example.tsx'
+      );
+      const segments = await Promise.all(
+        result!.meta!.qwikdeps.map(async (id: string) => {
+          const output = (await plugin.load({} as any, id)) as {
+            code: string;
+            meta: { segment: any };
+          };
+          return { code: output.code, segment: output.meta.segment };
+        })
+      );
+      return {
+        segments,
+        code: [result!.code, ...segments.map((output) => output.code)].join('\n'),
+      };
+    };
+    const { segments: client } = await transform('client');
+    const server = await transform('ssr');
+    const visible = client.find(({ segment }) => segment.ctxName === 'useVisibleTask$')!;
+    const task = client.find(({ segment }) => segment.ctxName === 'useTask$')!;
+    const callback = client.find(({ segment }) => segment.ctxName === '$')!;
+    expect(visible.segment.entry).toBe(task.segment.entry);
+    expect(visible.code).toContain('clientFeature(');
+    expect(
+      client.find(({ segment }) => segment.ctxName === 'useClientFeature$')!.segment.entry
+    ).toBe(task.segment.entry);
+    expect(task.segment.entry).toBe('example.tsx_entry_useCustomHook');
+    expect(callback.segment.entry).toBe(
+      client.find(({ segment }) => segment.ctxName === 'component$')!.segment.entry
+    );
+    expect(
+      client.find(({ segment }) => segment.ctxKind === 'eventHandler')!.segment.entry
+    ).toBeNull();
+    expect(server.code).toContain('shared-task');
+    expect(server.code).toContain('shared-callback');
+    if (compiled) {
+      expect(server.code).toContain('_noopQrl("s_visible")');
+    } else {
+      expect(server.code).not.toContain('clientFeature(value)');
+    }
+  }
+);
+
 test('entryStrategy, segment no forceFullBuild', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ entryStrategy: { type: 'segment' } });

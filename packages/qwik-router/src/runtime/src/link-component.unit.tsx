@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { component$ } from '@qwik.dev/core';
+import { $, component$ } from '@qwik.dev/core';
 import { QwikRouterMockProvider } from '@qwik.dev/router';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { Link, type PrefetchStrategy } from './link-component';
 
-const { prefetchRouteMock, getClientNavPathMock } = vi.hoisted(() => ({
+const { prefetchRouteMock, getClientNavPathMock, gotoMock } = vi.hoisted(() => ({
   prefetchRouteMock: vi.fn(),
   getClientNavPathMock: vi.fn(),
+  gotoMock: vi.fn(),
 }));
 
 vi.mock('./prefetch-route', () => ({
@@ -311,6 +312,65 @@ describe.each([
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/test', false, 1);
+  });
+
+  describe('navigating state', () => {
+    const NavigatingRoot = component$(() => {
+      return (
+        <QwikRouterMockProvider goto={$(() => gotoMock())}>
+          <Link href="/test">Test Link</Link>
+        </QwikRouterMockProvider>
+      );
+    });
+
+    const clickLink = async () => {
+      const { document } = await render(<NavigatingRoot />, { debug });
+      const anchor = document.querySelector('a')!;
+      await trigger(document.body, anchor, 'click');
+      return anchor;
+    };
+
+    const flushNavigation = () => new Promise((resolve) => setTimeout(resolve));
+
+    it('marks the link with data-navigating until navigation resolves', async () => {
+      let resolveNavigation!: () => void;
+      gotoMock.mockReturnValue(new Promise<void>((resolve) => (resolveNavigation = resolve)));
+
+      const anchor = await clickLink();
+
+      expect(anchor.hasAttribute('aria-pressed')).toBe(false);
+      expect(anchor.hasAttribute('data-navigating')).toBe(true);
+
+      resolveNavigation();
+      await flushNavigation();
+
+      expect(anchor.hasAttribute('data-navigating')).toBe(false);
+    });
+
+    it('clears data-navigating when navigation rejects, still reporting the error', async () => {
+      const offline = new Error('offline');
+      let rejectNavigation!: (error: Error) => void;
+      gotoMock.mockReturnValue(new Promise<void>((_, reject) => (rejectNavigation = reject)));
+      const vitestListeners = process.listeners('unhandledRejection');
+      const onUnhandledRejection = vi.fn();
+      process.removeAllListeners('unhandledRejection');
+      process.on('unhandledRejection', onUnhandledRejection);
+
+      try {
+        const anchor = await clickLink();
+
+        expect(anchor.hasAttribute('data-navigating')).toBe(true);
+
+        rejectNavigation(offline);
+        await flushNavigation();
+
+        expect(anchor.hasAttribute('data-navigating')).toBe(false);
+        expect(onUnhandledRejection).toHaveBeenCalledWith(offline, expect.any(Promise));
+      } finally {
+        process.removeAllListeners('unhandledRejection');
+        vitestListeners.forEach((listener) => process.on('unhandledRejection', listener));
+      }
+    });
   });
 
   it('calls onPointerEnter$ on pointerenter, not onMouseOver$', async () => {

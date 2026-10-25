@@ -43,7 +43,13 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, OnRenderProp, QBackRefs } from '../utils/markers';
 import { isObjectEmpty } from '../utils/objects';
 import { isPromise, maybeThen } from '../utils/promises';
-import { Constants, EMPTY_OBJECT_PAYLOAD, explicitUndefined, TypeIds } from './constants';
+import {
+  BIGINT_PAYLOAD_REGEXP,
+  Constants,
+  EMPTY_OBJECT_PAYLOAD,
+  explicitUndefined,
+  TypeIds,
+} from './constants';
 import { qrlToString } from './qrl-to-string';
 import {
   SerializationBackRef,
@@ -417,7 +423,11 @@ export class Serializer {
           break;
         case 'bigint':
           if ((value < 10000 && value > -1000) || this.getSeenRefOrOutput(value, index)) {
-            this.output(TypeIds.BigInt, value.toString());
+            const payload = value.toString();
+            if (!BIGINT_PAYLOAD_REGEXP.test(payload)) {
+              throw qError(QError.invalidBigIntPayload);
+            }
+            this.output(TypeIds.BigInt, payload);
           }
           break;
         case 'symbol':
@@ -496,7 +506,10 @@ export class Serializer {
           } else if (isQwikComponent(value)) {
             const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
             this.$serializationContext$.$renderSymbols$.add(qrl.$symbol$);
+            const oldParent = this.$parent$;
+            this.$parent$ = { $index$: index, $parent$: oldParent };
             this.output(TypeIds.Component, [qrl]);
+            this.$parent$ = oldParent;
           } else {
             throw qError(QError.serializeErrorCannotSerializeFunction, [value.toString()]);
           }

@@ -819,13 +819,22 @@ function expectSlot(diffContext: DiffContext) {
       getInsertBefore(diffContext)
     );
 
+    const isUnclaimedProjection =
+      oldParent && vnode_isElementVNode(oldParent) && vnode_getElementName(oldParent) === QTemplate;
+    if (isUnclaimedProjection) {
+      const template = oldParent.node as QElement;
+      if (template._qInit) {
+        template._qInit = false;
+        queueQwikLoaderEvent(getCursorData(diffContext.$cursor$)!, QwikLoaderScanEvent.qinit);
+      }
+      if (template._qIdle) {
+        template._qIdle = false;
+        queueQwikLoaderEvent(getCursorData(diffContext.$cursor$)!, QwikLoaderScanEvent.qidle);
+      }
+    }
+
     // If we moved from a q:template and it's now empty, remove it
-    if (
-      oldParent &&
-      vnode_isElementVNode(oldParent) &&
-      !oldParent.firstChild &&
-      vnode_getElementName(oldParent) === QTemplate
-    ) {
+    if (isUnclaimedProjection && !oldParent.firstChild) {
       vnode_remove(
         diffContext.$journal$,
         oldParent.parent as ElementVNode | VirtualVNode,
@@ -1548,7 +1557,7 @@ function expectComponent(diffContext: DiffContext, component: Function) {
     }
 
     if (host) {
-      const vNodeProps = vnode_getProp<PropsProxy | null>(
+      const vNodeProps = vnode_getProp<PropsProxy | false | null>(
         host as VirtualVNode,
         ELEMENT_PROPS,
         diffContext.$container$.$getObjectById$
@@ -1747,7 +1756,7 @@ function Projection() {}
 function handleProps(
   host: VirtualVNode,
   jsxProps: PropsProxy,
-  vNodeProps: PropsProxy | null,
+  vNodeProps: PropsProxy | false | null,
   container: ClientContainer
 ): boolean {
   let shouldRender = false;
@@ -1775,10 +1784,9 @@ function handleProps(
     // Update the owner after all props have been synced
     vNodeProps[_OWNER] = (jsxProps as PropsProxy)[_OWNER];
   } else if (jsxProps) {
-    // If there is no props instance, create a new one.
-    // We can do this because we are not using the props instance for anything else.
+    // SSR drops the props of hosts it didn't serialize; `false` means they had var props.
+    shouldRender = vNodeProps === false || !isPropsEmpty(jsxProps[_VAR_PROPS]);
     vnode_setProp(host as VirtualVNode, ELEMENT_PROPS, jsxProps);
-    vNodeProps = jsxProps;
   }
   return shouldRender;
 }

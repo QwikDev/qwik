@@ -2184,7 +2184,7 @@ function materializeFromVNodeData(
       container.$setRawState$(parseInt(id, 10), vParent);
       isDev && vnode_setProp(vParent, ELEMENT_ID, id);
     } else if (peek() === VNodeDataChar.PROPS) {
-      vnode_setProp(vParent, ELEMENT_PROPS, consumeValue());
+      vnode_setProp(vParent, ELEMENT_PROPS, consumeValue() || false);
     } else if (peek() === VNodeDataChar.KEY) {
       vParent.key = consumeEncodedValue();
     } else if (peek() === VNodeDataChar.SEQ) {

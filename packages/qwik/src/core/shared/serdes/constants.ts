@@ -187,3 +187,6 @@ export const _typeIdNames = [
   'SubscriptionDataConstFalse',
   'EffectSubscriptionNoData',
 ];
+
+// Decimal BigInt parsing is super-linear, so bound untrusted payload size.
+export const BIGINT_PAYLOAD_REGEXP = /^-?\d{1,1000}$/;

@@ -130,7 +130,9 @@ async function runNext(
           const stream = requestEv.getWritableStream();
           if (!stream.locked) {
             const writer = stream.getWriter();
-            await writer.write(encoder.encode(getErrorHtml(500, 'Internal Server Error')));
+            await writer.write(
+              encoder.encode(getErrorHtml(500, isDev ? e : 'Internal Server Error'))
+            );
             await writer.close();
           }
         } catch {

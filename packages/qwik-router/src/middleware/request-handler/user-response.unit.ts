@@ -3,6 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   createRequestEvent: vi.fn(),
   asyncRequestStore: undefined as unknown,
+  isDev: true,
+}));
+
+vi.mock('@qwik.dev/core/internal', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@qwik.dev/core/internal')>()),
+  get isDev() {
+    return mocks.isDev;
+  },
 }));
 
 vi.mock('./request-event-core', () => ({
@@ -23,6 +31,7 @@ describe('runQwikRouter', () => {
   beforeEach(() => {
     mocks.createRequestEvent.mockReset();
     mocks.asyncRequestStore = undefined;
+    mocks.isDev = true;
   });
 
   it('does not throw when creating the request event fails', async () => {
@@ -66,8 +75,7 @@ describe('runQwikRouter', () => {
     expect(result.completion).toBe(completion);
   });
 
-  it('finishes and logs an error that is thrown after the response started', async () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+  const failAfterResponseStarted = async () => {
     const written: string[] = [];
     const writer = {
       write: async (chunk: Uint8Array) => {
@@ -88,15 +96,32 @@ describe('runQwikRouter', () => {
     };
     mocks.createRequestEvent.mockReturnValue(requestEv);
 
-    try {
-      await runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/').completion;
+    await runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/').completion;
 
-      expect(written.join('')).toContain('Internal Server Error');
+    return { html: written.join(''), writer };
+  };
+
+  it('finishes, logs and shows an error that is thrown after the response started in dev', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      const { html, writer } = await failAfterResponseStarted();
+
+      expect(html).toContain('boom');
       expect(writer.close).toHaveBeenCalled();
       expect(consoleError).toHaveBeenCalledWith(expect.objectContaining({ message: 'boom' }));
     } finally {
       consoleError.mockRestore();
     }
+  });
+
+  it('keeps the generic error page in production when SSR fails after the response started', async () => {
+    mocks.isDev = false;
+
+    const { html } = await failAfterResponseStarted();
+
+    expect(html).toContain('Internal Server Error');
+    expect(html).not.toContain('boom');
   });
 
   it.each(['application/json', 'text/html'])(

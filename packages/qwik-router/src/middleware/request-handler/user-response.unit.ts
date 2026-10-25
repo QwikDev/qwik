@@ -66,6 +66,39 @@ describe('runQwikRouter', () => {
     expect(result.completion).toBe(completion);
   });
 
+  it('finishes and logs an error that is thrown after the response started', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const written: string[] = [];
+    const writer = {
+      write: async (chunk: Uint8Array) => {
+        written.push(new TextDecoder().decode(chunk));
+      },
+      close: vi.fn(),
+    };
+    const requestEv = {
+      originalUrl: new URL('http://localhost/boom/'),
+      request: new Request('http://localhost/boom/'),
+      headers: new Headers(),
+      headersSent: true,
+      next: vi.fn(async () => {
+        throw new Error('boom');
+      }),
+      getWritableStream: vi.fn(() => ({ locked: false, getWriter: () => writer })),
+      isDirty: () => true,
+    };
+    mocks.createRequestEvent.mockReturnValue(requestEv);
+
+    try {
+      await runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/').completion;
+
+      expect(written.join('')).toContain('Internal Server Error');
+      expect(writer.close).toHaveBeenCalled();
+      expect(consoleError).toHaveBeenCalledWith(expect.objectContaining({ message: 'boom' }));
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
   it.each(['application/json', 'text/html'])(
     'sends a thrown ServerError with Cache-Control: no-store for %s',
     async (accept) => {

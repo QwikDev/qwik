@@ -34,6 +34,7 @@ import {
 import { delay } from '../shared/utils/promises';
 import { isServerPlatform } from '../shared/platform/platform';
 import { resetCatch } from '../shared/error/catch';
+import { vnode_getFirstChild, vnode_isProjection } from '../client/vnode-utils';
 import {
   ERROR_CONTEXT,
   getOwnCatchStore,
@@ -1245,6 +1246,11 @@ describe('Catch + fallback$', () => {
         const el = container.element;
         emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument);
         expect(el.querySelector('#fb')?.textContent).toContain('caught: late boom');
+        const fallbackHost = el.querySelector('#fb')!.closest('[q\\:rp]')!;
+        const projection = vnode_getFirstChild(container.vNodeLocate(fallbackHost))!;
+        expect(vnode_isProjection(projection)).toBe(true);
+        expect(projection.slotParent).toBeNull();
+        expect(vnode_getFirstChild(projection)).not.toBeNull();
       });
 
       // https://github.com/QwikDev/qwik/issues/8885

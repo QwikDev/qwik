@@ -1,5 +1,11 @@
 # eslint-plugin-qwik
 
+## 2.0.0-rc.4
+
+### Patch Changes
+
+- 🐞🩹 `qwik/no-async-prevent-default` now also reports `stopPropagation()` / `stopImmediatePropagation()`, inline `on*$={(e) => ...}` handlers and handlers inside a ternary or a handler array. A native listener created inside a `$` handler is no longer reported. (by [@intellix](https://github.com/intellix) in [#9181](https://github.com/QwikDev/qwik/pull/9181))
+
 ## 2.0.0-rc.3
 
 ## 2.0.0-rc.2

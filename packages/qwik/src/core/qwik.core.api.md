@@ -249,7 +249,7 @@ export interface _ContainerElement extends HTMLElement {
     qDestroy?: () => void;
     qSegmentVnodeData?: Map<string, string>;
     qVnodeData?: string;
-    qVNodeRefs?: Map<number, Element | _ElementVNode>;
+    qVNodeRefs?: Map<number, Element | _VNode>;
 }
 
 // @public

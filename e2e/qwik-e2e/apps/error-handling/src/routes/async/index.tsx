@@ -8,6 +8,7 @@ import {
   type JSXOutput,
 } from '@qwik.dev/core';
 import { releaseGated } from '../../../../../utils/release-gate';
+import { WEBKIT_STREAMING_FLUSH } from '../../../../../utils/webkit-flush';
 import { defaultFallback } from '../../components/catch/catch';
 import { ReleaseButton } from '../../components/release/release';
 
@@ -23,13 +24,25 @@ const CatchAsyncThrower = component$<{ requestId: string; releaseId: string | nu
 );
 
 export default component$(() => {
+  const count = useSignal(0);
   const url = useServerData<string>('url');
-  const releaseId = url ? new URL(url).searchParams.get('release') : null;
+  const params = url ? new URL(url).searchParams : null;
+  const releaseId = params?.get('release') ?? null;
+  const webkitFlush = params?.get('webkitFlush') === '1';
   const requestId = useSignal(
     `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
   ).value;
   return (
     <>
+      {webkitFlush ? (
+        <div aria-hidden="true" style="width:0px;height:0px;overflow:hidden">
+          {WEBKIT_STREAMING_FLUSH}
+        </div>
+      ) : null}
+      <button id="catch-shell-button" onClick$={() => count.value++}>
+        Touch shell
+      </button>
+      <span id="catch-shell-count">{count.value}</span>
       <Catch fallback$={defaultFallback}>
         <div id="catch-sibling">sibling</div>
         <Pending fallback$={() => <span id="catch-skel">loading</span>}>

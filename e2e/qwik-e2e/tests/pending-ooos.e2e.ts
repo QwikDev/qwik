@@ -268,11 +268,75 @@ test.describe('out-of-order streaming with <Pending>', () => {
     await expect(page.locator('#ooos-fallback')).toBeVisible();
     await expect(page.locator('#ooos-resolved')).toHaveCount(0);
 
+    const projection = await page.locator('[q\\:rp="1"]').evaluateHandle((host) => {
+      return (host as any).vNode.firstChild;
+    });
+    expect(await projection.evaluate((slot) => slot?.slotParent.props[''] === slot)).toBe(true);
+
     await releaseDeferred(page, '#ooos-default-release');
     await expect(page.locator('#ooos-resolved')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#ooos-fallback')).toBeHidden();
+    await expect
+      .poll(() =>
+        projection.evaluate((slot) => {
+          const host = document.querySelector('[q\\:rp="1"]') as any;
+          return (
+            host.vNode.firstChild === slot &&
+            slot.firstChild?.parent === slot &&
+            slot.slotParent.props[''] === slot
+          );
+        })
+      )
+      .toBe(true);
+    await page.locator('#ooos-resolved-button').click();
+    await expect(page.locator('#ooos-resolved-count')).toHaveText('1');
     await page.waitForLoadState('load');
   });
+
+  for (const variant of ['immediate', 'deferred']) {
+    test(`keeps Pending state when its owner rerenders (${variant})`, async ({
+      page,
+      browserName,
+    }, testInfo) => {
+      const releaseId = `pending-owner-${testInfo.workerIndex}-${Date.now()}`;
+      await page.goto(
+        getOutOfOrderPendingUrl(
+          browserName,
+          new URLSearchParams({ scenario: 'owner-update', variant, release: releaseId })
+        ),
+        { waitUntil: 'commit' }
+      );
+      if (variant === 'deferred') {
+        await expect(page.locator('#ooos-fallback')).toBeVisible();
+        await page.locator('#ooos-force-rerender').click();
+        await expect(page.locator('#ooos-render-count')).toHaveText('1');
+        await expect(page.locator('#ooos-fallback')).toBeVisible();
+        await expect(page.locator('#ooos-resolved')).toHaveCount(0);
+        await releaseDeferred(page, '#ooos-default-release');
+      }
+      await expect(page.locator('#ooos-resolved')).toBeVisible();
+      await expect(page.locator('#ooos-fallback')).toBeHidden();
+      await page.locator('#ooos-resolved-button').click();
+      await expect(page.locator('#ooos-resolved-count')).toHaveText('1');
+      const content = await page.locator('#ooos-resolved').elementHandle();
+
+      await page.locator('#ooos-force-rerender').click();
+      await expect(page.locator('#ooos-render-count')).toHaveText(
+        variant === 'deferred' ? '2' : '1'
+      );
+      await expect(page.locator('#ooos-fallback')).toBeHidden();
+      await expect(page.locator('#ooos-resolved')).toBeVisible();
+      await expect(page.locator('#ooos-resolved-count')).toHaveText('1');
+      expect(
+        await content!.evaluate((element) => element === document.querySelector('#ooos-resolved'))
+      ).toBe(true);
+      await page.locator('#ooos-resolved-button').click();
+      await expect(page.locator('#ooos-resolved-count')).toHaveText('2');
+      await page.locator('#ooos-shell-button').click();
+      await expect(page.locator('#ooos-owner-value')).toHaveText('1');
+      await page.waitForLoadState('load');
+    });
+  }
 
   test('streams and resolves multiple <Pending> boundaries independently', async ({
     page,
@@ -648,3 +712,82 @@ test.describe('out-of-order streaming with <Pending>', () => {
     await page.waitForLoadState('load');
   });
 });
+
+for (const first of ['client', 'server']) {
+  test(`keeps fallback during parent rerender before SSR segment delivery (${first} first)`, async ({
+    page,
+    browserName,
+  }) => {
+    assertNoBrowserErrors(page);
+    const releaseId = `before-segment-${Date.now()}`;
+    await page.goto(
+      getOutOfOrderPendingUrl(
+        browserName,
+        new URLSearchParams({ scenario: 'before-segment', release: releaseId })
+      ),
+      { waitUntil: 'commit' }
+    );
+    const fallback = page.locator('#before-segment-fallback');
+    await expect(fallback).toBeVisible();
+    const releaseUrl = await page
+      .locator('#before-segment-release')
+      .getAttribute('data-release-url');
+    expect(releaseUrl).not.toBeNull();
+    await page.waitForFunction(() => (window as any)._qwikEv?.roots);
+    await page.locator('#ooos-shell-button').click();
+    await expect(page.locator('#ooos-shell-count')).toHaveText('1');
+    await fallback.evaluate((element) => {
+      const container = (element.closest('[q\\:container]') as any).qContainer;
+      const host = container.getParentHost(container.vNodeLocate(element.parentElement));
+      (window as any).__beforeSegmentIdentity = {
+        element,
+        host,
+        sequence: container.getHostProp(host, 'q:seq'),
+      };
+    });
+    await page.locator('#before-segment-rerender').click();
+    await page.waitForFunction(() => (window as any).__beforeSegmentClientStarted);
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        )
+    );
+    await expect(fallback).toBeVisible();
+    await expect(page.locator('#before-segment-client-content')).toHaveCount(0);
+    await expect(page.locator('#before-segment-server-content')).toHaveCount(0);
+    expect(await page.evaluate(() => document.readyState)).toBe('loading');
+    expect(
+      await fallback.evaluate((element) => {
+        const container = (element.closest('[q\\:container]') as any).qContainer;
+        const host = container.getParentHost(container.vNodeLocate(element.parentElement));
+        const previous = (window as any).__beforeSegmentIdentity;
+        return (
+          element === previous.element &&
+          host === previous.host &&
+          container.getHostProp(host, 'q:seq') === previous.sequence &&
+          container.getHostProp(host, 'q:props').delay === 1
+        );
+      })
+    ).toBe(true);
+    if (first === 'server') {
+      expect((await page.request.post(new URL(releaseUrl!, page.url()).toString())).ok()).toBe(
+        true
+      );
+      await expect(page.locator('#before-segment-server-content')).toBeVisible();
+      await expect(fallback).toBeHidden();
+    }
+    await page.evaluate(() => (window as any).__beforeSegmentResolveClient());
+    await expect(page.locator('#before-segment-updated')).toBeVisible();
+    await expect(page.locator('#before-segment-client-content')).toBeVisible();
+    await expect(fallback).toBeHidden();
+    if (first === 'client') {
+      expect(await page.evaluate(() => document.readyState)).toBe('loading');
+      expect((await page.request.post(new URL(releaseUrl!, page.url()).toString())).ok()).toBe(
+        true
+      );
+    }
+    await page.waitForLoadState('load');
+    await expect(page.locator('#before-segment-client-content')).toBeVisible();
+  });
+}

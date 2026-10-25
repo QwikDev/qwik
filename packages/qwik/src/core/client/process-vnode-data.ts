@@ -5,7 +5,7 @@ import {
   VNodeDataSeparator,
   getSegmentVNodeRefId,
 } from '../shared/vnode-data-types';
-import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { VNode } from '../shared/vnode/vnode';
 import { logError } from '../shared/utils/log';
 import type { ContainerElement, QDocument } from './types';
 import {
@@ -325,7 +325,7 @@ function* processVNodeDataImpl(
     for (let i = 0; i < scripts.length; i++) {
       const script = scripts[i];
       const qContainer = script.closest('[q\\:container]') as ContainerElement;
-      qContainer.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+      qContainer.qVNodeRefs ||= new Map<number, Element | VNode>();
       if (script.hasAttribute(Q_PATCH)) {
         qDocument.qProcessVNodeDataPatch?.(script);
         yield;
@@ -425,7 +425,7 @@ function* processVNodeDataImpl(
     node: Node | null,
     exitNode: Node | null,
     vData: string,
-    qVNodeRefs: Map<number, Element | ElementVNode>,
+    qVNodeRefs: Map<number, Element | VNode>,
     qContainerElement: ContainerElement | null,
     segmentId?: string
   ): Generator<void, void, void> {
@@ -571,7 +571,7 @@ function* processVNodeDataImpl(
             ? getAttribute.call(node!, Q_PENDING_RESULT_PARENT)!
             : null;
         if (elementIdx === vNodeElementIndex) {
-          if (needsToStoreRef === elementIdx && !(isSegment && node === containerNode)) {
+          if (needsToStoreRef === elementIdx) {
             qVNodeRefs.set(
               isSegment ? getSegmentVNodeRefId(segmentId!, elementIdx) : elementIdx,
               node as Element
@@ -579,16 +579,7 @@ function* processVNodeDataImpl(
           }
           const data = vData.substring(vData_start, vData_end);
           if (isSegment && node === containerNode) {
-            const existing = vNodeDataMap.get(node as Element);
-            if (existing === undefined || existing === '') {
-              vNodeDataMap.set(node as Element, data);
-            } else if (
-              existing.charCodeAt(0) === VNodeDataChar.SEPARATOR &&
-              existing.charCodeAt(1) === VNodeDataChar.SEPARATOR &&
-              !existing.endsWith(data)
-            ) {
-              vNodeDataMap.set(node as Element, existing + data);
-            }
+            (node as QElement)._qSegmentVNodeData = data;
           } else if (nodeType !== NodeType.ELEMENT_CONTAINER) {
             // A nested container's root data comes from its own container only.
             vNodeDataMap.set(node as Element, data);
@@ -617,7 +608,7 @@ function* processVNodeDataImpl(
     vData: string,
     scopeSegmentId?: string
   ): Generator<void, void, void> {
-    qContainerElement.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+    qContainerElement.qVNodeRefs ||= new Map<number, Element | VNode>();
     const scopeWalker = document.createTreeWalker(
       document,
       0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
@@ -648,7 +639,7 @@ function* processVNodeDataImpl(
   };
 
   if (segmentContainer && segmentContent && segmentVNodeData !== undefined) {
-    segmentContainer.qVNodeRefs ||= new Map<number, Element | ElementVNode>();
+    segmentContainer.qVNodeRefs ||= new Map<number, Element | VNode>();
     if (__EXPERIMENTAL__.pendingBoundary && segmentId !== undefined) {
       yield* processPendingContentSegment(
         segmentContainer,

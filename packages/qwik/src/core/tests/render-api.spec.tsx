@@ -8,6 +8,7 @@ import {
   getDomContainer,
   getPlatform,
   inlinedQrl,
+  Pending,
   render,
   setPlatform,
   useLexicalScope,
@@ -1116,6 +1117,50 @@ describe('render api', () => {
 
           firstWrite.resolve();
           await expect(renderPromise).rejects.toThrow('async component failed');
+        } finally {
+          process.off('unhandledRejection', onUnhandledRejection);
+        }
+      });
+      it('should handle out-of-order Pending content rejection while a flush is pending', async () => {
+        const firstWrite = createDeferred();
+        let writeCount = 0;
+        const unhandledRejections: unknown[] = [];
+        const onUnhandledRejection = (reason: unknown) => {
+          unhandledRejections.push(reason);
+        };
+        const Throwing = component$(() => {
+          throw new Error('pending content failed');
+        });
+        const stream = createTestStream(() => {
+          writeCount++;
+          if (writeCount === 1) {
+            return firstWrite.promise;
+          }
+        });
+
+        process.on('unhandledRejection', onUnhandledRejection);
+        try {
+          const renderPromise = renderToStreamAndSetPlatform(
+            <div>
+              <Pending fallback$={() => <span>Loading...</span>}>
+                <Throwing />
+              </Pending>
+            </div>,
+            {
+              containerTagName: 'div',
+              stream,
+              streaming: {
+                inOrder: { strategy: 'disabled' },
+                outOfOrder: true,
+              },
+            }
+          );
+          await new Promise((resolve) => setImmediate(resolve));
+
+          expect(unhandledRejections).toEqual([]);
+
+          firstWrite.resolve();
+          await expect(renderPromise).rejects.toThrow('pending content failed');
         } finally {
           process.off('unhandledRejection', onUnhandledRejection);
         }

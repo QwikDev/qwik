@@ -725,6 +725,73 @@ describe.each([
         </Component>
       );
     });
+
+    it('should keep children with a key after spread props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        return (
+          <div {...props} key="k">
+            child
+          </div>
+        );
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test">child</div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should keep later spreads with a key after spread props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        const attrs: Record<string, any> = {
+          id: 'later',
+        };
+        return <div {...props} {...attrs} key="k" />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test" id="later"></div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should let spread props override earlier props with a key after them', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        return <div class="test component" {...props} key="k" />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test"></div>
+          </Component>
+        </Component>
+      );
+    });
   });
 
   describe('class attribute', () => {

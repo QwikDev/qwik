@@ -2,6 +2,7 @@ import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
+import { isStrippedSegment } from '../../../ts-optimizer/src/optimizer/rewrite/predicates';
 import type {
   DecoratorOptions,
   Diagnostic,
@@ -1458,14 +1459,18 @@ export const isDev = ${JSON.stringify(isDev)};
           if (module) {
             const segment = module.meta.segment as SegmentAnalysis | undefined;
             if (segment) {
+              const isSmartClientOnly =
+                opts.entryStrategy.type === 'smart' &&
+                isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true);
               // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-              if (EAGER_CTX_NAMES.has(segment.ctxName)) {
+              if (EAGER_CTX_NAMES.has(segment.ctxName) && !isSmartClientOnly) {
                 return null;
               }
               const { hash } = segment;
               // Group segments by entry or Qwik Insights hash.
               const chunkName =
-                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] ||
+                (isSmartClientOnly ? `segment_${hash}` : segment.entry);
               if (chunkName) {
                 return sanitizeChunkGroupName(chunkName);
               }

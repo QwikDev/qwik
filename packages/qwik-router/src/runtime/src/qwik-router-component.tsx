@@ -81,7 +81,7 @@ import { createDocumentHead, resolveHead } from './head';
 import { refreshLinkPrefetchObserver } from './link-prefetch';
 import { getRouterConfig } from './router-config';
 import { internalState, preventNav, REFRESH_HEAD, RUN_PENDING_ACTION } from './navigation-state';
-import { loadRoute } from './routing';
+import { httpErrorLoader, loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
   currentScrollState,
@@ -685,6 +685,32 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const { $routeName$, $params$, $mods$, $menu$, $notFound$ } = loadedRoute;
       const contentModules = $mods$ as ContentModule[];
       routeLoaderCtx.goto = noSerialize(startNavigation);
+      routeLoaderCtx.showErrorPage = noSerialize(async (error: Error) => {
+        if (internalState.navCount !== navCountBefore) {
+          return;
+        }
+        const errorLoader = loadedRoute.$errorLoader$;
+        let errorModules: ContentModule[];
+        try {
+          errorModules = (await Promise.all(
+            (errorLoader ?? [httpErrorLoader]).map((load) => load())
+          )) as ContentModule[];
+        } catch (e) {
+          console.error(`Could not load the error page for ${trackUrl.pathname}, reloading:`, e);
+          window.location.href = trackUrl.href;
+          return;
+        }
+        if (internalState.navCount !== navCountBefore) {
+          return;
+        }
+        const { status, data } = error as Error & { status?: number; data?: unknown };
+        httpStatus.value = {
+          status: status ?? 500,
+          message: typeof data === 'string' ? data : 'Server Error',
+        };
+        content.headings = (errorModules[errorModules.length - 1] as PageModule).headings;
+        contentInternal.value = noSerialize(errorModules);
+      });
       const routeLoaders = prepareRouteLoaders(
         contentModules,
         loaderState,

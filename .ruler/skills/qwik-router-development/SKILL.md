@@ -50,7 +50,8 @@ Do not use `--project chromium` with `e2e/qwik-e2e/playwright.config.ts`; this c
 - Keep middleware, loader, and action ordering explicit. Do not add broad fallbacks that hide which
   module owns a request.
 - Keep loader failures fail-closed: a crash in a blocking loader fails it and every loader after it,
-  in route order, on SSR and at the loader endpoint.
+  in route order, on SSR and at the loader endpoint. Only middleware failures and an `HttpError`
+  from a blocking loader are page failures.
 - Add regression tests for the exact route shape or request mode that failed, such as index route,
   layout loader, page loader, redirect, action, or SPA navigation.
 - When changing serialized route state or loader data, update both server output and client

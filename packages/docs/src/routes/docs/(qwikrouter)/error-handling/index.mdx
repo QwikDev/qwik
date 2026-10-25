@@ -14,7 +14,7 @@ A route can fail in two ways: the page itself has no answer, such as a missing p
 
 ## `HttpError`: the page's answer
 
-Throw an `HttpError` from [middleware](/docs/middleware/) or from a blocking [`routeLoader$`](/docs/route-loader/), the default, when the page has no answer. The router renders the nearest `error.tsx` at that status on the first page load.
+Throw an `HttpError` from [middleware](/docs/middleware/) or from a blocking [`routeLoader$`](/docs/route-loader/), the default, when the page has no answer. The router renders the nearest `error.tsx` at that status: on the first page load, on client navigation, and when a loader refreshes.
 
 ```tsx title="src/routes/product/[id]/index.tsx"
 import { component$ } from '@qwik.dev/core';
@@ -35,7 +35,7 @@ export default component$(() => {
 });
 ```
 
-A missing product answers with a 404, and the nearest `error.tsx` reads the status and message with `useHttpStatus()`. `throw ev.httpError(404, 'Product not found')` does the same without the import.
+A missing product answers with a 404, and the nearest `error.tsx` reads the status and message with `useHttpStatus()`. `throw ev.httpError(404, 'Product not found')` does the same without the import. If the product disappears later, a refresh such as `product.invalidate()` renders the error page too, keeping the URL.
 
 <Note>Thrown anywhere else, such as a `blockSSR: false` loader, a computed or an event handler, an `HttpError` is an ordinary error, handled like the ones below.</Note>
 

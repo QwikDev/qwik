@@ -6,11 +6,14 @@ import {
   emitC02,
   emitC03,
   emitC05,
+  emitMissingExperimentalFlag,
   emitPassiveConflictWarning,
 } from './diagnostics.js';
 import { collectExportNames } from '../extraction/marker-detection.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from '../types/types.js';
 import type { ModuleGatherFacts, PassiveConflict } from '../analysis/module-gather-walk.js';
+import type { ScopeAwareBindings } from '../jsx/jsx.js';
+import type { ImportInfo } from '../extraction/marker-detection.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
 import { plainQrlName } from '../qwik/qrl-naming.js';
 import { computeLineColFromOffset } from './source-loc.js';
@@ -177,6 +180,92 @@ export function detectC05Diagnostics(
       );
     }
   }
+}
+
+const EXPERIMENTAL_PRIMITIVES = [
+  { symbol: 'Catch', feature: 'catchBoundary' },
+  { symbol: 'Each', feature: 'each' },
+  { symbol: 'Pending', feature: 'pendingBoundary' },
+  { symbol: 'Reveal', feature: 'pendingBoundary' },
+  { symbol: 'Show', feature: 'show' },
+] as const;
+
+function isQwikCoreSource(source: string): boolean {
+  return source === '@qwik.dev/core' || source === '@builder.io/qwik';
+}
+
+/**
+ * Report the first experimental primitive rendered as JSX without its feature flag. Runs on the
+ * parsed AST, so aliases and namespace imports are recognized while strings, comments, and shadowed
+ * identifiers are ignored.
+ */
+export function detectMissingExperimentalFlagDiagnostics(
+  program: AstProgram,
+  imports: ReadonlyMap<string, ImportInfo>,
+  bindings: ScopeAwareBindings | undefined,
+  enabled: readonly string[],
+  originalCode: string,
+  originalOffset: (offset: number) => number,
+  file: string,
+  diagnostics: Diagnostic[]
+): void {
+  const enabledFeatures = new Set(enabled);
+  let found = false;
+
+  walk(program, {
+    enter(node: AstNode) {
+      if (found || node.type !== 'JSXOpeningElement') {
+        return;
+      }
+
+      const name = node.name;
+      let localName: string;
+      let importedName: string | undefined;
+      let spanStart = name.start;
+      let spanEnd = name.end;
+
+      if (name.type === 'JSXIdentifier') {
+        localName = name.name;
+        importedName = imports.get(localName)?.importedName;
+      } else if (name.type === 'JSXMemberExpression') {
+        if (name.object.type !== 'JSXIdentifier') {
+          return;
+        }
+        localName = name.object.name;
+        if (imports.get(localName)?.importedName !== '*') {
+          return;
+        }
+        importedName = name.property.name;
+        spanStart = name.object.start;
+        spanEnd = name.property.end;
+      } else {
+        return;
+      }
+
+      const importInfo = imports.get(localName);
+      if (!importInfo || !isQwikCoreSource(importInfo.source) || importedName === undefined) {
+        return;
+      }
+
+      const primitive = EXPERIMENTAL_PRIMITIVES.find((entry) => entry.symbol === importedName);
+      if (!primitive || enabledFeatures.has(primitive.feature)) {
+        return;
+      }
+      if (bindings?.classify(localName, node.start) !== undefined) {
+        return;
+      }
+
+      found = true;
+      diagnostics.push(
+        emitMissingExperimentalFlag(
+          primitive.symbol,
+          primitive.feature,
+          file,
+          buildHighlight(originalCode, originalOffset(spanStart), originalOffset(spanEnd))
+        )
+      );
+    },
+  });
 }
 
 export function emitPassiveConflictDiagnostics(

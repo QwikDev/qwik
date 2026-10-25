@@ -84,6 +84,7 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		reg_ctx_name,
 		strip_event_handlers: input.strip_event_handlers,
 		is_server: input.is_server,
+		experimental: input.experimental,
 		// filler to maintain line offsets
 	})
 }
@@ -3978,6 +3979,7 @@ export const Local = component$(() => {
 		strip_event_handlers: false,
 		reg_ctx_name: None,
 		is_server: None,
+		experimental: None,
 	});
 	snapshot_res!(&res, snapshot_inputs);
 }
@@ -4060,6 +4062,7 @@ export const Greeter = component$(() => {
 		strip_ctx_name: None,
 		strip_event_handlers: false,
 		is_server: None,
+		experimental: None,
 	});
 	let ref_segments: Vec<_> = res
 		.unwrap()
@@ -4100,6 +4103,7 @@ export const Greeter = component$(() => {
 			strip_event_handlers: false,
 			reg_ctx_name: None,
 			is_server: None,
+			experimental: None,
 		});
 
 		let segments: Vec<_> = res
@@ -6826,6 +6830,7 @@ struct TestInput {
 	pub strip_ctx_name: Option<Vec<String>>,
 	pub strip_event_handlers: bool,
 	pub is_server: Option<bool>,
+	pub experimental: Option<Vec<String>>,
 }
 
 #[test]
@@ -8586,6 +8591,7 @@ impl TestInput {
 			strip_ctx_name: None,
 			strip_event_handlers: false,
 			is_server: None,
+			experimental: None,
 		}
 	}
 }
@@ -8629,4 +8635,52 @@ export const task = inlinedQrl(() => {
 		"expected transformed capture array [left, true, right] to be preserved, got:\n{}",
 		entry_module.code
 	);
+}
+
+#[test]
+fn experimental_primitive_flags_are_checked_from_the_ast() {
+	let diagnostics = |code: &str, experimental: Option<Vec<String>>| {
+		test_input_fn(TestInput {
+			code: code.to_string(),
+			mode: EmitMode::Prod,
+			transpile_ts: true,
+			transpile_jsx: true,
+			experimental,
+			snapshot: false,
+			..TestInput::default()
+		})
+		.unwrap()
+		.diagnostics
+	};
+
+	let diags = diagnostics(
+		"import { Catch as Boundary, component$ } from '@qwik.dev/core'; export const App = component$(() => <Boundary>{null}</Boundary>);",
+		Some(vec![]),
+	);
+	assert_eq!(diags.len(), 1);
+	assert_eq!(diags[0].code.as_deref(), Some("experimental-flag"));
+	assert!(diags[0]
+		.message
+		.contains("<Catch> requires the `catchBoundary` experimental feature"));
+
+	let diags = diagnostics(
+		"import * as Qwik from '@qwik.dev/core'; export const App = () => <Qwik.Show>{null}</Qwik.Show>;",
+		Some(vec![]),
+	);
+	assert_eq!(diags.len(), 1);
+	assert!(diags[0]
+		.message
+		.contains("<Show> requires the `show` experimental feature"));
+
+	let diags = diagnostics(
+		"import { Catch, component$ } from '@qwik.dev/core'; const source = '<Catch>'; export const App = component$(() => { const Catch = () => <div/>; return <Catch/>; });",
+		Some(vec![]),
+	);
+	assert!(diags.is_empty());
+
+	let diags = diagnostics(
+		"import { Catch, component$ } from '@qwik.dev/core'; export const App = component$(() => <Catch>{null}</Catch>);",
+		Some(vec!["catchBoundary".to_string()]),
+	);
+	assert!(diags.is_empty());
 }

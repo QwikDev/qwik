@@ -90,7 +90,7 @@ impl<'a> QwikTransform<'a> {
 		});
 	}
 
-	pub(super) fn emit_span_error_with_code(&self, span: Span, message: &str, code: &str) {
+	pub(crate) fn emit_span_error_with_code(&self, span: Span, message: &str, code: &str) {
 		if self.is_diagnostic_disabled(span, code) {
 			return;
 		}

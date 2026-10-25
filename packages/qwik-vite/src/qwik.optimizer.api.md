@@ -470,6 +470,7 @@ export interface TransformOptions {
     decorator?: DecoratorOptions;
     // (undocumented)
     entryStrategy?: EntryStrategy;
+    experimental?: string[];
     // (undocumented)
     explicitExtensions?: boolean;
     // (undocumented)

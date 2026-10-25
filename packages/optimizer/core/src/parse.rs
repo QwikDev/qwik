@@ -107,6 +107,7 @@ pub struct TransformCodeOptions<'a> {
 	pub strip_ctx_name: Option<&'a [Atom]>,
 	pub strip_event_handlers: bool,
 	pub is_server: bool,
+	pub experimental: Option<&'a [String]>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -336,6 +337,14 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							is_server: config.is_server,
 							cm: Lrc::clone(&source_map),
 						});
+
+						if let Some(experimental) = config.experimental {
+							crate::experimental::report_missing_experimental_flags(
+								&program,
+								&qwik_transform,
+								experimental,
+							);
+						}
 
 						// print before transform, for debugging
 						// println!(

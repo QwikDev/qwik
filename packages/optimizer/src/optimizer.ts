@@ -38,6 +38,7 @@ const convertOptions = (opts: any) => {
     stripExports: undefined,
     stripCtxName: undefined,
     isServer: undefined,
+    experimental: undefined,
   };
   Object.entries(opts).forEach(([key, value]) => {
     if (value != null) {

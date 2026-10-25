@@ -16,6 +16,7 @@ mod const_replace;
 mod dependency_analysis;
 mod entry_strategy;
 mod errors;
+mod experimental;
 mod filter_exports;
 mod inlined_fn;
 mod is_const;
@@ -72,6 +73,8 @@ pub struct TransformModulesOptions {
 	pub strip_event_handlers: bool,
 	pub reg_ctx_name: Option<Vec<Atom>>,
 	pub is_server: Option<bool>,
+	/// Experimental features enabled in the Qwik Vite config.
+	pub experimental: Option<Vec<String>>,
 }
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
@@ -109,6 +112,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 			strip_event_handlers: config.strip_event_handlers,
 			// If you don't specify is_server, the safe value is true
 			is_server: config.is_server.unwrap_or(true),
+			experimental: config.experimental.as_deref(),
 		})
 	});
 

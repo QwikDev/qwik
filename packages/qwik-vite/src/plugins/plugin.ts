@@ -1098,6 +1098,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         mode,
         scope: opts.scope || undefined,
         isServer,
+        experimental:
+          mode !== 'lib' && opts.target !== 'test'
+            ? Object.keys(opts.experimental ?? {})
+            : undefined,
         decorator: mightContainDecorators(code)
           ? await resolveDecoratorOptions(ctx, pathId)
           : undefined,

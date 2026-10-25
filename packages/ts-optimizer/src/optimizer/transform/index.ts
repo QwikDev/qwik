@@ -96,6 +96,7 @@ import {
   detectC02Diagnostics,
   detectC03Diagnostics,
   detectC05Diagnostics,
+  detectMissingExperimentalFlagDiagnostics,
   emitPassiveConflictDiagnostics,
 } from '../diagnostics/diagnostic-detection.js';
 import {
@@ -713,6 +714,19 @@ function analyzeModuleCaptures(
     relPath,
     diagnostics
   );
+
+  if (options.experimental !== undefined) {
+    detectMissingExperimentalFlagDiagnostics(
+      program,
+      originalImports,
+      scopeAwareBindings?.bindings,
+      options.experimental,
+      mod.input.code,
+      prepared.originalOffset,
+      relPath,
+      diagnostics
+    );
+  }
 
   for (const extraction of extractions) {
     const closureNode = closureNodes.get(extraction.symbolName);

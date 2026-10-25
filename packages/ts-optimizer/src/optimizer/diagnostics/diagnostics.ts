@@ -46,6 +46,23 @@ export function emitC05(
   };
 }
 
+export function emitMissingExperimentalFlag(
+  symbol: string,
+  feature: string,
+  file: string,
+  highlightSpan?: DiagnosticHighlightFlat
+): Diagnostic {
+  return {
+    category: 'error',
+    code: 'experimental-flag',
+    file,
+    message: `<${symbol}> requires the \`${feature}\` experimental feature. Enable it in your Qwik Vite config: qwikVite({ experimental: ["${feature}"] }).`,
+    highlights: highlightSpan ? [highlightSpan] : null,
+    suggestions: null,
+    scope: 'optimizer',
+  };
+}
+
 export function emitPassiveConflictWarning(
   eventName: string,
   file: string,

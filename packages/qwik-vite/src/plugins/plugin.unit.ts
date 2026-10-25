@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
+import type { Diagnostic } from '@qwik.dev/optimizer';
 import type { QwikManifest } from '../types';
 import { ExperimentalFeatures, QWIK_PRELOADER_ID, createQwikPlugin } from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
@@ -938,6 +939,51 @@ function parseImportsOnly(code: string) {
   }));
   return { type: 'Program', body };
 }
+
+describe.each([{ tsOptimizer: false }, { tsOptimizer: true }])(
+  'transform: experimental primitives need their flag (tsOptimizer: $tsOptimizer)',
+  ({ tsOptimizer }) => {
+    const code = `import { Catch, component$ } from '@qwik.dev/core';
+
+export default component$(() => <Catch fallback$={() => <p>fallback</p>}>{'children'}</Catch>);
+`;
+    const id = '/root/src/routes/index.tsx';
+
+    const transformDiagnostics = async (experimental?: string[]) => {
+      const plugin = await mockPlugin(process.platform, true, tsOptimizer);
+      await plugin.normalizeOptions({
+        rootDir: '/root',
+        srcDir: '/root/src',
+        experimental: experimental as any,
+      });
+
+      const diagnostics: Diagnostic[] = [];
+      plugin.onDiagnostics((items) => diagnostics.push(...items));
+
+      const ctx = {
+        addWatchFile: () => undefined,
+        emitFile: () => 'ref',
+        async resolve() {
+          return null;
+        },
+      } as any;
+      await plugin.transform(ctx, code, id);
+      return diagnostics.filter((diagnostic) => diagnostic.code === 'experimental-flag');
+    };
+
+    test('reports the missing flag instead of rendering a 500', async () => {
+      const diagnostics = await transformDiagnostics();
+      expect(diagnostics).toHaveLength(1);
+      expect(diagnostics[0].message).toContain(
+        '<Catch> requires the `catchBoundary` experimental feature'
+      );
+    });
+
+    test('does not report the missing flag when the flag is enabled', async () => {
+      expect(await transformDiagnostics(['catchBoundary'])).toHaveLength(0);
+    });
+  }
+);
 
 describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
   const sampleManifest: QwikManifest = {

@@ -59,6 +59,9 @@ export interface TransformModulesOptions {
 
   readonly isServer?: boolean;
 
+  /** Experimental features enabled in the Qwik Vite config. */
+  readonly experimental?: readonly string[];
+
   /** Decorator lowering applied while stripping TypeScript, mirroring tsconfig. */
   readonly decorator?: DecoratorOptions;
 }

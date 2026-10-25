@@ -206,6 +206,7 @@ fn transform_todo_app(b: &mut Bencher) {
           strip_ctx_name: None,
           strip_event_handlers: false,
           is_server: None,
+          experimental: None,
       })
   });
 }

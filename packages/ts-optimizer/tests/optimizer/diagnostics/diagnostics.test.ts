@@ -275,6 +275,53 @@ export const App = component$((props) => {
     expect(c05Diags[0].message).toContain("'useMemoQrl'");
   });
 
+  it('emits experimental-flag only for rendered experimental primitives without their flag', () => {
+    const run = (input: string, experimental: readonly string[]) =>
+      transformModule({
+        input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+        srcDir: mkFilePath('.'),
+        transpileTs: true,
+        transpileJsx: true,
+        experimental,
+      }).diagnostics.filter((d) => d.code === 'experimental-flag');
+
+    const alias = run(
+      `import { Catch as Boundary, component$ } from '@qwik.dev/core';
+export const App = component$(() => <Boundary>{null}</Boundary>);`,
+      []
+    );
+    expect(alias).toHaveLength(1);
+    expect(alias[0].message).toContain('<Catch> requires the `catchBoundary` experimental feature');
+
+    expect(
+      run(
+        `import * as Qwik from '@qwik.dev/core';
+export const App = () => <Qwik.Show>{null}</Qwik.Show>;`,
+        []
+      )
+    ).toHaveLength(1);
+
+    expect(
+      run(
+        `import { Catch, component$ } from '@qwik.dev/core';
+const text = '<Catch>';
+export const App = component$(() => {
+  const Catch = () => <div />;
+  return <Catch />;
+});`,
+        []
+      )
+    ).toHaveLength(0);
+
+    expect(
+      run(
+        `import { Catch, component$ } from '@qwik.dev/core';
+export const App = component$(() => <Catch>{null}</Catch>);`,
+        ['catchBoundary']
+      )
+    ).toHaveLength(0);
+  });
+
   it('emits preventdefault-passive-check warning', () => {
     const input = `
 \t\timport { component$ } from '@qwik.dev/core';

@@ -60,6 +60,8 @@ export interface TransformOptions {
   stripCtxName?: string[];
   stripEventHandlers?: boolean;
   isServer?: boolean;
+  /** Experimental features enabled in the Qwik Vite config. */
+  experimental?: string[];
   /** Decorator lowering, mirroring tsconfig. Only the TypeScript optimizer applies it. */
   decorator?: DecoratorOptions;
 }

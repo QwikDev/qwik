@@ -10,6 +10,10 @@ import type {
   WhileStatement,
   DoWhileStatement,
 } from '../../ast-types.js';
+import MagicString from 'magic-string';
+import { isReferenceIdentifier, walk } from 'oxc-walker';
+import { parseWithRawTransfer } from '../ast/parse.js';
+import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import { paddingParam } from '../segment/post-process.js';
 
 export interface LoopContext {
@@ -212,4 +216,251 @@ function extractDeclaratorNames(declarators: VariableDeclarator[]): string[] {
     }
   }
   return names;
+}
+
+/** A loop handler's `.w([…])` binding, with the lexical captures it closes over. */
+export interface LoopWDecl {
+  decl: string;
+  symbolName: string;
+  captureNames: readonly string[];
+}
+
+function isFunctionNode(node: AstNode): node is AstFunction {
+  return (
+    node.type === 'ArrowFunctionExpression' ||
+    node.type === 'FunctionExpression' ||
+    node.type === 'FunctionDeclaration'
+  );
+}
+
+/** The body of a function or loop statement, else `undefined`. */
+function scopeBodyOf(node: AstNode): AstNode | null | undefined {
+  switch (node.type) {
+    case 'ArrowFunctionExpression':
+    case 'FunctionExpression':
+    case 'FunctionDeclaration':
+    case 'ForStatement':
+    case 'ForInStatement':
+    case 'ForOfStatement':
+      return node.body;
+    default:
+      return undefined;
+  }
+}
+
+/** AST nodes from `root` down to the innermost node whose range contains `pos`. */
+function pathToPosition(root: AstNode, pos: number): AstNode[] {
+  const path: AstNode[] = [root];
+  let node: AstNode | undefined = root;
+  while (node) {
+    let next: AstNode | undefined;
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'parent' || !value || typeof value !== 'object') {
+        continue;
+      }
+      for (const candidate of Array.isArray(value) ? value : [value]) {
+        if (
+          candidate &&
+          typeof candidate.type === 'string' &&
+          typeof candidate.start === 'number' &&
+          candidate.start <= pos &&
+          pos < candidate.end
+        ) {
+          next = candidate as AstNode;
+          break;
+        }
+      }
+      if (next) {
+        break;
+      }
+    }
+    if (next) {
+      path.push(next);
+    }
+    node = next;
+  }
+  return path;
+}
+
+function declarationNames(stmt: AstNode | null | undefined): string[] {
+  if (!stmt) {
+    return [];
+  }
+  if (stmt.type === 'VariableDeclaration') {
+    return stmt.declarations.flatMap((d) => collectBindingNamesFromPattern(d.id));
+  }
+  if ((stmt.type === 'FunctionDeclaration' || stmt.type === 'ClassDeclaration') && stmt.id) {
+    return [stmt.id.name];
+  }
+  return [];
+}
+
+/** Whether `node` introduces a binding for one of `names`; block declarations cover the whole block. */
+function declaresAny(node: AstNode, names: ReadonlySet<string>): boolean {
+  const hit = (bindings: string[]) => bindings.some((name) => names.has(name));
+  switch (node.type) {
+    case 'ArrowFunctionExpression':
+    case 'FunctionExpression':
+    case 'FunctionDeclaration':
+      return node.params.some((param) => hit(collectBindingNamesFromPattern(param)));
+    case 'BlockStatement':
+      return node.body.some((stmt) => hit(declarationNames(stmt)));
+    case 'ForStatement':
+      return node.init?.type === 'VariableDeclaration' && hit(declarationNames(node.init));
+    case 'ForInStatement':
+    case 'ForOfStatement':
+      return node.left.type === 'VariableDeclaration' && hit(declarationNames(node.left));
+    default:
+      return false;
+  }
+}
+
+/** Start of the first value or JSX tag reference to `name`; strings and property keys don't count. */
+function findReferenceStart(root: AstNode, name: string): number | undefined {
+  let referenceStart: number | undefined;
+  walk(root, {
+    enter(node: AstNode, parent) {
+      if (
+        referenceStart === undefined &&
+        (node.type === 'Identifier' || node.type === 'JSXIdentifier') &&
+        node.name === name &&
+        isReferenceIdentifier(node, parent)
+      ) {
+        referenceStart = node.start;
+      }
+    },
+  });
+  return referenceStart;
+}
+
+/** First statement that may read `name`, directly or via a hoisted function. */
+function firstUseStatement(statements: readonly AstNode[], name: string): AstNode | undefined {
+  const usedNames = new Set([name]);
+  const usesAny = (statement: AstNode) =>
+    [...usedNames].some((usedName) => findReferenceStart(statement, usedName) !== undefined);
+  let hasNewUser = true;
+  while (hasNewUser) {
+    hasNewUser = false;
+    for (const statement of statements) {
+      const functionName =
+        statement.type === 'FunctionDeclaration' ? statement.id?.name : undefined;
+      if (functionName && !usedNames.has(functionName) && usesAny(statement)) {
+        usedNames.add(functionName);
+        hasNewUser = true;
+      }
+    }
+  }
+  return (
+    statements.find(
+      (statement) => statement.type !== 'FunctionDeclaration' && usesAny(statement)
+    ) ?? statements.find(usesAny)
+  );
+}
+
+function lastDeclarationOf(
+  statements: readonly AstNode[],
+  names: ReadonlySet<string>
+): AstNode | undefined {
+  for (let i = statements.length - 1; i >= 0; i--) {
+    if (declarationNames(statements[i]).some((name) => names.has(name))) {
+      return statements[i];
+    }
+  }
+  return undefined;
+}
+
+function unplacedBindingError(symbolNames: readonly string[], reason: string): Error {
+  return new Error(
+    `Qwik optimizer: cannot place loop handler binding ${symbolNames.join(', ')}: ${reason}`
+  );
+}
+
+/**
+ * Places each loop handler's `.w([…])` binding in the innermost scope that declares one of its
+ * captures, right before the statement that uses it. When every capture is component-scoped that is
+ * the component body; when a capture comes from an outer loop (`items.map((item) => …)` nested in
+ * `facets.map((facet) => …)` capturing `facet`), the binding goes inside the outer loop callback.
+ * Either scope is turned into a block body if it was expression-bodied. Mirrors the Rust optimizer.
+ * Statement boundaries come from a parse — text scanning breaks on `;` inside type annotations.
+ */
+export function insertLoopWDecls(body: string, decls: readonly LoopWDecl[]): string {
+  const wrapperPrefixText = 'const __w__ = ';
+  const offset = wrapperPrefixText.length;
+  const parsed = parseWithRawTransfer('__w__.tsx', wrapperPrefixText + body + ';');
+  const init = parsed.program?.body?.[0];
+  const root = init?.type === 'VariableDeclaration' ? init.declarations?.[0]?.init : undefined;
+  if (!root || !isFunctionNode(root) || !root.body) {
+    throw unplacedBindingError(
+      decls.map((d) => d.symbolName),
+      'the body is not a function'
+    );
+  }
+
+  const s = new MagicString(body);
+  // Expression-bodied callbacks to rewrite as `{ <decls> return <expr>; }`, keyed by node start.
+  const expressionBodies = new Map<number, { node: AstNode; body: AstNode; decls: string[] }>();
+
+  for (const { decl, symbolName, captureNames } of decls) {
+    const usePos = findReferenceStart(root, symbolName);
+    if (usePos === undefined) {
+      throw unplacedBindingError([symbolName], 'the body never uses it');
+    }
+    const path = pathToPosition(root, usePos);
+    const names = new Set(captureNames);
+    let scopeIdx = 0;
+    for (let i = path.length - 2; i > 0; i--) {
+      if (declaresAny(path[i], names)) {
+        scopeIdx = i;
+        break;
+      }
+    }
+    let scope = path[scopeIdx];
+    let child = path[scopeIdx + 1];
+    const scopeBody = scopeBodyOf(scope);
+    if (scopeBody) {
+      if (scopeBody.type !== 'BlockStatement') {
+        if (scope.type === 'ArrowFunctionExpression') {
+          const entry = expressionBodies.get(scope.start) ?? {
+            node: scope,
+            body: scopeBody,
+            decls: [],
+          };
+          entry.decls.push(decl);
+          expressionBodies.set(scope.start, entry);
+          continue;
+        }
+        // `for (…) stmt;` — wrap the single statement in a block.
+        s.appendLeft(scopeBody.start - offset, `{\n        ${decl}\n        `);
+        s.appendRight(scopeBody.end - offset, '\n    }');
+        continue;
+      }
+      scope = scopeBody;
+      child = path[path.indexOf(scopeBody) + 1];
+    }
+    if (scope.type !== 'BlockStatement') {
+      throw unplacedBindingError([symbolName], `${scope.type} has no statement list`);
+    }
+    if (!scope.body.some((statement) => statement === child)) {
+      throw unplacedBindingError([symbolName], 'its use is outside the scope statements');
+    }
+    // Before the first use so it sees reassignments, never above a capture's declaration.
+    const useStatement = firstUseStatement(scope.body, symbolName) ?? child;
+    const captureDeclaration = lastDeclarationOf(scope.body, names);
+    if (captureDeclaration && captureDeclaration.start > useStatement.start) {
+      s.appendLeft(captureDeclaration.end - offset, `\n        ${decl}`);
+    } else {
+      s.appendLeft(useStatement.start - offset, `${decl}\n        `);
+    }
+  }
+
+  for (const { node, body: exprNode, decls: bodyDecls } of expressionBodies.values()) {
+    // The parsed body boundary (a parenthesised body is a ParenthesizedExpression, so its parens are
+    // kept): comments after `=>` stay ahead of the new block and can't swallow `return`.
+    const exprStart = exprNode.start - offset;
+    const indent = '\n        ';
+    s.appendRight(exprStart, `{${indent}${bodyDecls.join(indent)}${indent}return `);
+    s.appendLeft(node.end - offset, ';\n    }');
+  }
+
+  return s.toString();
 }

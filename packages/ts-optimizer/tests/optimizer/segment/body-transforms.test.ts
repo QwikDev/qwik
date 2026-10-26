@@ -279,7 +279,8 @@ describe('body-transforms', () => {
       );
 
       expect(out.indexOf('const firstHandler')).toBeLessThan(out.indexOf('const secondHandler'));
-      expect(out.indexOf('const secondHandler')).toBeLessThan(out.indexOf('function nested'));
+      expect(out.indexOf('const firstHandler')).toBeGreaterThan(out.indexOf('function nested'));
+      expect(out.indexOf('const secondHandler')).toBeLessThan(out.indexOf('return <>'));
     });
 
     it('ends a capture declaration at its statement, not a nested arrow semicolon', () => {

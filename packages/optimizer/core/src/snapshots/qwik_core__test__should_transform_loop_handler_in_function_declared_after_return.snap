@@ -1,0 +1,214 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6711
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const List = component$((props) => {
+  return <ul>{renderRows()}</ul>;
+
+  function renderRows() {
+    return props.items.map((item) => (
+      <li key={item.id} onClick$={() => props.select$(item.id)} />
+    ));
+  }
+});
+
+export const Table = component$((props) => {
+  return <table><Rows /></table>;
+
+  function Rows() {
+    return props.rows.map((row) => (
+      <tr key={row.id} onClick$={() => props.select$(row.id)} />
+    ));
+  }
+});
+
+============================= test.tsx_Table_component_ZCe07ck1dgI.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Table_component_Rows_tr_q_e_click_dAVaUTGJi2g = /*#__PURE__*/ qrl(()=>import("./test.tsx_Table_component_Rows_tr_q_e_click_dAVaUTGJi2g"), "Table_component_Rows_tr_q_e_click_dAVaUTGJi2g").m();
+//
+export const Table_component_ZCe07ck1dgI = (props)=>{
+    const Table_component_Rows_tr_q_e_click_dAVaUTGJi2g = q_Table_component_Rows_tr_q_e_click_dAVaUTGJi2g.w([
+        props
+    ]);
+    return /*#__PURE__*/ _jsxSorted("table", null, null, /*#__PURE__*/ _jsxSorted(Rows, null, null, null, 3, "u6_1"), 1, "u6_2");
+    function Rows() {
+        return props.rows.map((row)=>/*#__PURE__*/ _jsxSorted("tr", {
+                "q-e:click": Table_component_Rows_tr_q_e_click_dAVaUTGJi2g,
+                "q:p": row
+            }, null, null, 6, row.id));
+    }
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAagC,CAAC;;;;IAC/B,qBAAO,WAAC,mCAAM,WAAC;IAEf,SAAS;QACP,OAAO,MAAM,IAAI,CAAC,GAAG,CAAC,CAAC,oBACrB,WAAC;gBAAgB,WAAQ;uBADJ;8BACZ,IAAI,EAAE;IAEnB;AACF\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Table_component_ZCe07ck1dgI",
+  "entry": null,
+  "displayName": "test.tsx_Table_component",
+  "hash": "ZCe07ck1dgI",
+  "canonicalFilename": "test.tsx_Table_component_ZCe07ck1dgI",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    308,
+    491
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_List_component_HpIwcodkEXk = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_HpIwcodkEXk"), "List_component_HpIwcodkEXk");
+const q_Table_component_ZCe07ck1dgI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Table_component_ZCe07ck1dgI"), "Table_component_ZCe07ck1dgI");
+//
+export const List = /*#__PURE__*/ componentQrl(q_List_component_HpIwcodkEXk);
+export const Table = /*#__PURE__*/ componentQrl(q_Table_component_ZCe07ck1dgI);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,qBAAO,2CAQjB;AAEH,OAAO,MAAM,sBAAQ,4CAQlB\"}")
+============================= test.tsx_Table_component_Rows_tr_q_e_click_dAVaUTGJi2g.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const Table_component_Rows_tr_q_e_click_dAVaUTGJi2g = (_, _1, row)=>{
+    let props = _capturesObj._[0];
+    return props.select$(row.id);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6DAkBiC,QADN;;WACY,MAAM,OAAO,CAAC,IAAI,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Table_component_Rows_tr_q_e_click_dAVaUTGJi2g",
+  "entry": null,
+  "displayName": "test.tsx_Table_component_Rows_tr_q_e_click",
+  "hash": "dAVaUTGJi2g",
+  "canonicalFilename": "test.tsx_Table_component_Rows_tr_q_e_click_dAVaUTGJi2g",
+  "path": "",
+  "extension": "js",
+  "parent": "Table_component_ZCe07ck1dgI",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    446,
+    473
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "row"
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_List_component_HpIwcodkEXk.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_List_component_renderRows_li_q_e_click_XAFpLyoCMds = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_renderRows_li_q_e_click_XAFpLyoCMds"), "List_component_renderRows_li_q_e_click_XAFpLyoCMds").m();
+//
+export const List_component_HpIwcodkEXk = (props)=>{
+    const List_component_renderRows_li_q_e_click_XAFpLyoCMds = q_List_component_renderRows_li_q_e_click_XAFpLyoCMds.w([
+        props
+    ]);
+    return /*#__PURE__*/ _jsxSorted("ul", null, null, renderRows(), 1, "u6_0");
+    function renderRows() {
+        return props.items.map((item)=>/*#__PURE__*/ _jsxSorted("li", {
+                "q-e:click": List_component_renderRows_li_q_e_click_XAFpLyoCMds,
+                "q:p": item
+            }, null, null, 6, item.id));
+    }
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG+B,CAAC;;;;IAC9B,qBAAO,WAAC,kBAAI;IAEZ,SAAS;QACP,OAAO,MAAM,KAAK,CAAC,GAAG,CAAC,CAAC,qBACtB,WAAC;gBAAiB,WAAQ;uBADJ;8BACb,KAAK,EAAE;IAEpB;AACF\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_HpIwcodkEXk",
+  "entry": null,
+  "displayName": "test.tsx_List_component",
+  "hash": "HpIwcodkEXk",
+  "canonicalFilename": "test.tsx_List_component_HpIwcodkEXk",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    79,
+    272
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_List_component_renderRows_li_q_e_click_XAFpLyoCMds.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const List_component_renderRows_li_q_e_click_XAFpLyoCMds = (_, _1, item)=>{
+    let props = _capturesObj._[0];
+    return props.select$(item.id);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;kEAQkC,QADN;;WACY,MAAM,OAAO,CAAC,KAAK,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_renderRows_li_q_e_click_XAFpLyoCMds",
+  "entry": null,
+  "displayName": "test.tsx_List_component_renderRows_li_q_e_click",
+  "hash": "XAFpLyoCMds",
+  "canonicalFilename": "test.tsx_List_component_renderRows_li_q_e_click_XAFpLyoCMds",
+  "path": "",
+  "extension": "js",
+  "parent": "List_component_HpIwcodkEXk",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    226,
+    254
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "item"
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

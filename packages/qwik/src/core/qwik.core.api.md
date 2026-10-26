@@ -656,6 +656,9 @@ export const _isStore: (value: object) => boolean;
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;
 
+// @internal
+export const _isSyncQrl: (value: unknown) => boolean;
+
 // @internal (undocumented)
 export const _isTask: (value: any) => value is _Task;
 

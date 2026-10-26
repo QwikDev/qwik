@@ -6,6 +6,7 @@ import { createSerializationContext, parseQRL, qrlToString } from '../serdes/ind
 import { _regInlinedQrl, _regSymbol, inlinedQrl, qrl } from './qrl';
 import { _capturesObj, createQRL, deserializeCaptureDeltas, isQrlImportError } from './qrl-class';
 import { type QRL } from './qrl.public';
+import { isSyncQrl } from './qrl-utils';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
@@ -49,6 +50,13 @@ describe('types', () => {
 });
 
 describe('serialization', () => {
+  test('recognizes synchronous QRLs before and after serialization', () => {
+    expect(isSyncQrl(createQRL('', '<sync>', () => {}, null, null))).toBe(true);
+    expect(isSyncQrl(parseQRL('#0'))).toBe(true);
+    expect(isSyncQrl(parseQRL('chunk#0'))).toBe(false);
+    expect(isSyncQrl(() => {})).toBe(false);
+  });
+
   test('should parse', () => {
     matchProps(parseQRL('./chunk#default'), {
       $chunk$: './chunk',

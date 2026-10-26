@@ -2828,6 +2828,42 @@ describe.each([
     expect(document.querySelector('span')?.textContent).toBe('hello');
   });
 
+  it('should render a deep prop in a child that can rerender', async () => {
+    const Counter = component$((props: { label: string }) => {
+      const count = useSignal(0);
+      if (count.value < 0) {
+        return null;
+      }
+      return <button onClick$={() => count.value++}>{`${props.label}${count.value}`}</button>;
+    });
+    const Parent = component$(() => {
+      const item = { meta: { label: 'hello' }, format: () => 'x' };
+      return <Counter label={item.meta.label} />;
+    });
+
+    const { document } = await render(<Parent />, { debug });
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('button')!.textContent).toBe('hello1');
+  });
+
+  it('should still update a deep prop that reads a store', async () => {
+    const Parent = component$(() => {
+      const store = useStore({ label: 'a' });
+      const item = { meta: store };
+      return (
+        <div>
+          <button onClick$={() => (store.label = 'b')} />
+          <DeepPropLabel label={item.meta.label} />
+        </div>
+      );
+    });
+
+    const { document } = await render(<Parent />, { debug });
+    expect(document.querySelector('span')!.textContent).toBe('a');
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('span')!.textContent).toBe('b');
+  });
+
   it.each([
     { mode: 'same', expected: 'one:2' },
     { mode: 'change', expected: 'big:2' },

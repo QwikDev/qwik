@@ -51,6 +51,7 @@ import {
   explicitUndefined,
   TypeIds,
 } from './constants';
+import { canSerialize } from './can-serialize';
 import { qrlToString } from './qrl-to-string';
 import {
   SerializationBackRef,
@@ -1160,7 +1161,7 @@ function serializeWrappingFn(
   serializationContext: SerializationContext,
   value: WrappedSignalImpl<any>
 ) {
-  if (isConstantWrappedSignal(value)) {
+  if (isConstantWrappedSignal(value) && canSerialize(value.$untrackedValue$)) {
     // Its args may capture unserializable data, so send only the value
     const syncFnId = serializationContext.$addSyncFn$('p0', 1, returnArg);
     return [syncFnId, [value.$untrackedValue$]] as const;

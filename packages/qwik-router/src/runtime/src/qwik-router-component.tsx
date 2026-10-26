@@ -170,6 +170,22 @@ type Navigate = (
   options?: Parameters<RouteNavigate>[1]
 ) => Promise<void>;
 
+enum NavigationStartType {
+  Unchanged,
+  Duplicate,
+  Prepared,
+  Superseded,
+  External,
+}
+
+type NavigationStart = { type: NavigationStartType; finished?: Promise<void> };
+
+type NavigationPreparation = {
+  promise: Promise<void>;
+  resolve: (value: void | PromiseLike<void>) => void;
+  navCount?: number;
+};
+
 type ActionData = NonNullable<Parameters<typeof resolveHead>[0]>;
 
 type NavigationCommit = {
@@ -301,7 +317,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     prevUrl: undefined,
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
-  const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void } = {};
+  const navResolver: {
+    r?: () => void;
+    p?: Promise<void>;
+    cancel?: () => void;
+    preparation?: NavigationPreparation;
+    /** Accepted route preparation survives a later blocked attempt. */
+    routePreparation?: { started: Promise<NavigationStart>; preparation: NavigationPreparation };
+  } = {};
   const routeLoaderCtx = env.routeLoaderCtx;
   routeLoaderCtx.manifestHash = manifestHash;
   Object.assign(routeLoaderCtx.loaderPaths, env.loadedRoute.$loaderPaths$);
@@ -403,6 +426,45 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           getRouterContainer()
         );
       }
+      return prepareNavigation(path, opt).started.then((started) => started.finished);
+    };
+
+    const prepareNavigation = (path: Parameters<Navigate>[0], opt: Parameters<Navigate>[1]) => {
+      let resolvePreparation!: NavigationPreparation['resolve'];
+      let rejectPreparation!: (reason: unknown) => void;
+      const prepared = new Promise<void>((resolve, reject) => {
+        resolvePreparation = resolve;
+        rejectPreparation = reject;
+      });
+      // Public navigation callers only await the completion promise.
+      prepared.catch(() => {});
+      const preparation: NavigationPreparation = { promise: prepared, resolve: resolvePreparation };
+      const started = beginNavigation(path, opt, preparation);
+      started
+        .then(async (result) => {
+          if (
+            (result.type !== NavigationStartType.Duplicate &&
+              navResolver.preparation !== preparation &&
+              preparation.navCount !== internalState.navCount) ||
+            result.type === NavigationStartType.Superseded ||
+            result.type === NavigationStartType.External
+          ) {
+            return;
+          }
+          await navResolver.routePreparation?.started;
+          if (getClientRouteLoaders(routeLoaderCtx).navCount === internalState.navCount) {
+            resolvePreparation();
+          }
+        }, rejectPreparation)
+        .catch(rejectPreparation);
+      return { prepared, started };
+    };
+
+    const beginNavigation = async (
+      path: Parameters<Navigate>[0],
+      opt: Parameters<Navigate>[1],
+      preparation: NavigationPreparation
+    ): Promise<NavigationStart> => {
       const {
         type = 'link',
         forceReload = path === undefined, // Hack for nav() because this API is already set.
@@ -439,9 +501,17 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       ) {
         // Repeated redirects/loaders can request the same in-flight destination. Treat that as a
         // duplicate so we don't bump navCount and cancel the navigation that would commit it.
-        return navResolver.p;
+        return {
+          type: NavigationStartType.Duplicate,
+          finished: navResolver.p,
+        };
       }
 
+      const previousPreparation = navResolver.preparation;
+      navResolver.preparation = preparation;
+      if (previousPreparation?.navCount === undefined) {
+        previousPreparation?.resolve(preparation.promise);
+      }
       const attemptCount = ++internalState.attemptCount;
 
       if (
@@ -452,13 +522,16 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           !isSameOrigin(dest, lastDest))
       ) {
         const prevents = await Promise.all([...preventNav.$cbs$.values()].map((cb) => cb(dest)));
-        if (attemptCount !== internalState.attemptCount || prevents.some(Boolean)) {
-          if (attemptCount === internalState.attemptCount && type === 'popstate') {
+        if (attemptCount !== internalState.attemptCount) {
+          return { type: NavigationStartType.Superseded };
+        }
+        if (prevents.some(Boolean)) {
+          if (type === 'popstate') {
             // Popstate events are not cancellable, so we push to undo
             // TODO keep state?
             history.pushState(null, '', lastDest);
           }
-          return;
+          return { type: NavigationStartType.Unchanged };
         }
       }
 
@@ -466,7 +539,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (isBrowser) {
           history.go(dest);
         }
-        return;
+        return { type: NavigationStartType.External };
       }
 
       if (!isSameOrigin(dest, lastDest)) {
@@ -474,7 +547,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (isBrowser) {
           location.href = dest.href;
         }
-        return;
+        return { type: NavigationStartType.External };
       }
 
       if (!forceReload && isSamePath(dest, lastDest)) {
@@ -505,15 +578,30 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           }
         }
 
-        return navResolver.p;
+        return { type: NavigationStartType.Unchanged, finished: navResolver.p };
       }
 
       const navCount = ++internalState.navCount;
+      preparation.navCount = navCount;
+      navResolver.routePreparation?.preparation.resolve(preparation.promise);
       internalState.currentTransition?.skipTransition();
       navResolver.cancel?.();
       navResolver.cancel = undefined;
       navResolver.r?.();
 
+      const preparing = preparePageNavigation(
+        { type, dest, forceReload, replaceState, scroll },
+        navCount
+      );
+      navResolver.routePreparation = { started: preparing, preparation };
+      return preparing;
+    };
+
+    const preparePageNavigation = async (
+      navigation: RouteStateInternal,
+      navCount: number
+    ): Promise<NavigationStart> => {
+      const { type, dest, forceReload, replaceState } = navigation;
       let historyUpdated = false;
       if (isBrowser) {
         getClientRouteLoaders(routeLoaderCtx, routeLocation.url.href);
@@ -539,19 +627,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         // flush isNavigating to the DOM before awaiting the next task so that the router outlet can show a loading state
         await _waitUntilRendered(container);
         if (navCount !== internalState.navCount) {
-          return;
+          return { type: NavigationStartType.Superseded };
         }
       }
 
       actionState.value = undefined;
-      const navigation: RouteStateInternal = {
-        type,
-        dest,
-        forceReload,
-        replaceState,
-        scroll,
-        historyUpdated,
-      };
+      navigation.historyUpdated = historyUpdated;
       routeInternal.value = navigation;
 
       if (wasNavigating) {
@@ -570,12 +651,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         };
       });
       const navigated = navResolver.p;
-      loadNavigation(
+      await loadNavigation(
         navigation,
         undefined,
         (container as ClientContainer | undefined) ?? getRouterContainer()
       );
-      return navigated;
+      return { type: NavigationStartType.Prepared, finished: navigated };
     };
 
     const loadNavigation = async (
@@ -684,7 +765,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
       const { $routeName$, $params$, $mods$, $menu$, $notFound$ } = loadedRoute;
       const contentModules = $mods$ as ContentModule[];
-      routeLoaderCtx.goto = noSerialize(startNavigation);
+      routeLoaderCtx.goto = noSerialize((path, opt) => prepareNavigation(path, opt).prepared);
       const routeLoaders = prepareRouteLoaders(
         contentModules,
         loaderState,

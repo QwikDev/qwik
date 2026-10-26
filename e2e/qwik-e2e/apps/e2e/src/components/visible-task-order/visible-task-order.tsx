@@ -5,6 +5,7 @@ export const VisibleTaskOrderRoot = component$(() => {
     <div>
       <DependentVisibleTasks />
       <SlowVisibleTask />
+      <ParallelVisibleTasks />
     </div>
   );
 });
@@ -67,5 +68,25 @@ export const SlowVisibleTaskCounter = component$(() => {
     <button id="slow-task-counter" onClick$={() => count.value++}>
       {count.value}
     </button>
+  );
+});
+
+export const ParallelVisibleTasks = component$(() => {
+  const firstStatus = useSignal('pending');
+  const secondStatus = useSignal('pending');
+
+  useVisibleTask$(() => {
+    firstStatus.value = 'ran';
+  });
+
+  useVisibleTask$(() => {
+    secondStatus.value = 'ran';
+  });
+
+  return (
+    <div>
+      <p id="first-task-status">{firstStatus.value}</p>
+      <p id="second-task-status">{secondStatus.value}</p>
+    </div>
   );
 });

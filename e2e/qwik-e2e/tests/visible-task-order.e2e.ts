@@ -34,4 +34,22 @@ test.describe('visible task order', () => {
     loadVisibleTaskChunk();
     await expect(page.locator('#slow-task-status')).toHaveText('ran');
   });
+
+  test('should load the chunks of several visible tasks in parallel', async ({ page }) => {
+    let loadFirstTaskChunk!: () => void;
+    const firstTaskChunk = new Promise<void>((resolve) => (loadFirstTaskChunk = resolve));
+    // The second task's segment is suffixed with `_1_`.
+    await page.route(/ParallelVisibleTasks_component_useVisibleTask_(?!1_)/, async (route) => {
+      await firstTaskChunk;
+      await route.continue();
+    });
+
+    await page.goto('/e2e/visible-task-order');
+
+    await expect(page.locator('#second-task-status')).toHaveText('ran');
+    await expect(page.locator('#first-task-status')).toHaveText('pending');
+
+    loadFirstTaskChunk();
+    await expect(page.locator('#first-task-status')).toHaveText('ran');
+  });
 });

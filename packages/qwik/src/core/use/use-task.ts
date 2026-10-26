@@ -13,6 +13,7 @@ import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { type Container, type HostElement } from '../shared/types';
 import { TaskEvent } from '../shared/utils/markers';
+import { qTest } from '../shared/utils/qdev';
 import { isPromise, maybeThen, safeCall } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
@@ -289,6 +290,8 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
     }
     // Load first, so the body runs right after the render it observes commits.
     // A failed load still schedules the task, so runTask retries and reports it.
-    return task.$qrl$.resolve().then(markTaskDirty, markTaskDirty);
+    const loaded = task.$qrl$.resolve().then(markTaskDirty, markTaskDirty);
+    // qwikloader would hold the element's other handlers until it loads; tests await it.
+    return qTest ? loaded : undefined;
   });
 }

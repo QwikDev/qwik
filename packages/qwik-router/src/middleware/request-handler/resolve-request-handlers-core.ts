@@ -328,14 +328,16 @@ function createResolveRequestHandlers() {
       // Start every loader concurrently. `blockSSR` loaders (the default) are awaited before SSR so
       // a redirect/error short-circuits the response; the first one in route order wins. Loaders
       // with `blockSSR: false` resolve in the background and only surface when their `.value` is
-      // read.
+      // read, except in a static render, which treats every loader as blocking.
+      const isStatic = getRequestMode(requestEv) === 'static';
       let allBlockSSRLoaders: Promise<void> | undefined;
       for (let i = 0; i < routeLoaders.length; i++) {
         const loader = routeLoaders[i];
-        const promise = loadRouteLoader(loader, requestEv);
+        const blocksSSR = loader.__blockSSR || isStatic;
+        const promise = loadRouteLoader(loader, requestEv, blocksSSR);
         // Handle every rejection so a background loader can't crash the request.
         promise.catch(() => {});
-        if (loader.__blockSSR) {
+        if (blocksSSR) {
           // Chain the promises so a thrown error is handled in route order
           // Note: status changes are last-writer wins, but that's fine
           allBlockSSRLoaders = (

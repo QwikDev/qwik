@@ -1055,14 +1055,18 @@ const detachResponseFromEvent = (requestEv: RequestEvent): RequestEvent => {
   }) as RequestEvent;
 };
 
-export const loadRouteLoader = (loader: LoaderInternal, requestEv: RequestEvent) => {
+export const loadRouteLoader = (
+  loader: LoaderInternal,
+  requestEv: RequestEvent,
+  blocksSSR = loader.__blockSSR
+) => {
   const loaderEv = getLoaderRequestEvent(loader, requestEv);
   return loadRouteLoaderByQrl(
     loader.__id,
     loader.__qrl,
     loader.__validators,
     // A background (blockSSR:false) loader must not touch the page response.
-    loader.__blockSSR ? loaderEv : detachResponseFromEvent(loaderEv)
+    blocksSSR ? loaderEv : detachResponseFromEvent(loaderEv)
   );
 };
 

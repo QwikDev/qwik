@@ -1,6 +1,7 @@
 import type {
   ConfigEnv,
   EnvironmentOptions,
+  Rolldown,
   UserConfig,
   ViteDevServer,
   Plugin as VitePlugin,
@@ -592,6 +593,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             }
           }
 
+          stubRemovedChunkImports(rollupBundle);
+
           const manifest = await qwikPlugin.generateManifest(
             this,
             rollupBundle,
@@ -1074,6 +1077,27 @@ const LOG_COLOR = {
   warn: ANSI_COLOR.Yellow,
   info: ANSI_COLOR.Cyan,
   debug: ANSI_COLOR.BrightBlack,
+};
+
+const BUNDLE_DYNAMIC_IMPORT_RE = /import\(\s*([`'"])\.{1,2}\/(?:[^`'"]*\/)?([^/`'"]+)\1\s*\)/g;
+const getBaseName = (fileName: string) => fileName.slice(fileName.lastIndexOf('/') + 1);
+
+/** Vite deletes pure CSS chunks; we removed the plugin that stubs their imports. */
+export const stubRemovedChunkImports = (bundle: Rolldown.OutputBundle) => {
+  for (const chunk of Object.values(bundle)) {
+    if (chunk.type !== 'chunk') {
+      continue;
+    }
+    const removedNames = new Set(
+      chunk.dynamicImports.filter((file) => !bundle[file]).map(getBaseName)
+    );
+    if (removedNames.size === 0) {
+      continue;
+    }
+    chunk.code = chunk.code.replace(BUNDLE_DYNAMIC_IMPORT_RE, (dynamicImport, _quote, name) =>
+      removedNames.has(name) ? 'Promise.resolve({})' : dynamicImport
+    );
+  }
 };
 
 export const isNotNullable = <T>(v: T): v is NonNullable<T> => {

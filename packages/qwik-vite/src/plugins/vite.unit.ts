@@ -4,7 +4,12 @@ import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
 import { flattenToChunkName } from './vite-utils';
-import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
+import {
+  qwikVite,
+  stubRemovedChunkImports,
+  type QwikVitePlugin,
+  type QwikVitePluginOptions,
+} from './vite';
 import {
   createBuildWorkerCoreChunkResolver,
   createBuildWorkerQrlChunkResolver,
@@ -832,6 +837,20 @@ describe('hotUpdate', () => {
   ])('sends nothing for the plain stylesheet %s', (url) => {
     assert.deepEqual(sentHmrFiles([{ url, importers: ['/src/a.tsx'] }]), []);
   });
+});
+
+test('stubs dynamic imports of chunks removed from the bundle', () => {
+  const chunk = {
+    type: 'chunk',
+    fileName: 'build/q-segment.js',
+    code: 'await import(`./q-css.js`);await import("./q-kept.js");',
+    dynamicImports: ['build/q-css.js', 'build/q-kept.js'],
+  };
+  const bundle = { [chunk.fileName]: chunk, 'build/q-kept.js': { type: 'asset' } };
+
+  stubRemovedChunkImports(bundle as unknown as Rolldown.OutputBundle);
+
+  assert.equal(chunk.code, 'await Promise.resolve({});await import("./q-kept.js");');
 });
 
 describe('worker qrl chunk rewrites', () => {

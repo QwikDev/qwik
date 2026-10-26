@@ -172,7 +172,10 @@ export interface SSRContainer extends Container {
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
   renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
-  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T>;
+  $runQueuedRender$<T>(
+    render: () => ValueOrPromise<T>,
+    needsHtmlContext?: boolean
+  ): ValueOrPromise<T>;
   nextOutOfOrderId(markUsed?: boolean): number;
   emitOutOfOrderSegmentScripts(scripts: string): void;
   segment(

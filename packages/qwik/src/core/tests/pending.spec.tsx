@@ -920,6 +920,44 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(contentHost.style.display).toBe('contents');
   });
 
+  it('should not write resolved content inside an svg the shell is still rendering', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    let resolveIcon!: (value: JSXOutput) => void;
+    const icon = new Promise<JSXOutput>((resolve) => {
+      resolveIcon = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const Icon = component$(() => <>{icon}</>);
+    const chunks: string[] = [];
+
+    const renderPromise = ssrRenderPendingStream(
+      <main>
+        <Pending fallback$={() => <button>Waiting</button>}>
+          <Slow />
+        </Pending>
+        <svg>
+          <path d="M2 2h20" />
+          <Icon />
+        </svg>
+      </main>,
+      chunks
+    );
+
+    await delay(10);
+    resolveSlow(<p id="ooos-svg-content">Done</p>);
+    await delay(10);
+    resolveIcon(<circle r="10" />);
+    const { document } = await renderPromise;
+
+    const html = chunks.join('');
+    expect(html.lastIndexOf('<template q:r="1">')).toBeGreaterThan(html.indexOf('</svg>'));
+    const contentHost = document.querySelector('#ooos-svg-content')!.parentElement as HTMLElement;
+    expect(contentHost.style.display).toBe('contents');
+  });
+
   it('should reveal delayed fallback with a backpatch when content is still pending', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {

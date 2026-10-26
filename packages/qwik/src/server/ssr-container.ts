@@ -472,18 +472,27 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     return this.$containerState$ === SSRContainerState.OOOSReady;
   }
 
-  /** Queue OOOS serialization/write work that must not overlap with root state serialization. */
-  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {
+  /**
+   * Queue OOOS serialization/write work that must not overlap with root state serialization.
+   *
+   * With `needsHtmlContext`, work that arrives while the shell is inside an element where the
+   * parser would not read it as HTML (such as an svg) waits for the shell to end.
+   */
+  $runQueuedRender$<T>(
+    render: () => ValueOrPromise<T>,
+    needsHtmlContext = false
+  ): ValueOrPromise<T> {
     if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming) {
       return render();
     }
-    if (this.$containerState$ === SSRContainerState.NotReady) {
+    const waitsForShell = needsHtmlContext && this.$noScriptHere$ > 0;
+    if (this.$containerState$ === SSRContainerState.NotReady && !waitsForShell) {
       return render();
     }
     const result =
-      this.$containerState$ === SSRContainerState.DataStreamStarted
-        ? this.renderQueue.then(() => this.$waitForRootContainerReady$()).then(render)
-        : this.renderQueue.then(render);
+      this.$containerState$ === SSRContainerState.OOOSReady
+        ? this.renderQueue.then(render)
+        : this.renderQueue.then(() => this.$waitForRootContainerReady$()).then(render);
     this.renderQueue = result.catch(() => {});
     return result;
   }

@@ -300,7 +300,7 @@ async function emitRenderedOutOfOrderSegment(
   await ssr.$runQueuedRender$(async () => {
     ssr.addRoot(contentStyle);
     await finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, rendered, revealBoundary);
-  });
+  }, true);
 }
 
 function scheduleOutOfOrderFallbackDelay(

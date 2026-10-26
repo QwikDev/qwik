@@ -259,7 +259,7 @@ const SSRErrorFallbackRenderer = /*#__PURE__*/ createInternalServerComponent<
   const boundaryId = jsx.varProps.boundaryId as number;
   const store = jsx.varProps.store as CatchStore;
   if (jsx.varProps.deliverLate) {
-    const streamFallback = async (error: unknown): Promise<void> => {
+    const streamFallback = async (error: unknown, isLate = true): Promise<void> => {
       if (!store.$fallback$) {
         return;
       }
@@ -274,14 +274,15 @@ const SSRErrorFallbackRenderer = /*#__PURE__*/ createInternalServerComponent<
       );
       // qErr hides the errored content host and strips its broadcast handlers.
       segment.container.$registerErrorSwap$(boundaryId);
-      await ssr.$runQueuedRender$(() =>
-        finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, segment, null)
+      await ssr.$runQueuedRender$(
+        () => finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, segment, null),
+        isLate
       );
     };
     store.$emitFallback$ = noSerialize(streamFallback);
     ssr.write(`<template ${QPendingResolved}="${boundaryId}"></template>`);
     if (store.error !== undefined) {
-      return streamFallback(store.error);
+      return streamFallback(store.error, false);
     }
     return;
   }

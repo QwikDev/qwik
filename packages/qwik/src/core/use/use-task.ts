@@ -272,15 +272,23 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
       setCaptures(deserializeCaptureDeltas(container, this));
     }
     const task = _capturesObj._![0] as Task;
-    if (!task.$el$) {
-      // A Catch tore the host down; the task has nothing left to run against.
-      return;
+    const markTaskDirty = () => {
+      if (!task.$el$) {
+        // A Catch tore the host down; the task has nothing left to run against.
+        return;
+      }
+      if (task.$flags$ & (TaskFlags.DIRTY | TaskFlags.EXECUTED)) {
+        // the trigger event only performs the initial run
+        return;
+      }
+      task.$flags$ |= TaskFlags.DIRTY;
+      markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
+    };
+    if (task.$qrl$.resolved) {
+      return markTaskDirty();
     }
-    if (task.$flags$ & (TaskFlags.DIRTY | TaskFlags.EXECUTED)) {
-      // the trigger event only performs the initial run
-      return;
-    }
-    task.$flags$ |= TaskFlags.DIRTY;
-    markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
+    // Load first, so the body runs right after the render it observes commits.
+    // A failed load still schedules the task, so runTask retries and reports it.
+    return task.$qrl$.resolve().then(markTaskDirty, markTaskDirty);
   });
 }

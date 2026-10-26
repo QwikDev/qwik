@@ -1400,6 +1400,35 @@ describe.each([
         'entry /',
       ]);
     });
+
+    it('should run a visible task after the render of the signal it tracks', async () => {
+      const Cmp = component$(() => {
+        const isOpen = useSignal(true);
+        const status = useSignal('idle');
+        const rootRef = useSignal<Element>();
+        useVisibleTask$(async () => {
+          await Promise.resolve();
+          isOpen.value = false;
+        });
+        useVisibleTask$(({ track }) => {
+          if (track(isOpen)) {
+            return;
+          }
+          status.value = rootRef.value!.querySelector('#target') ? 'found' : 'missing';
+        });
+        return (
+          <div ref={rootRef}>
+            <span>{status.value}</span>
+            {!isOpen.value && <p id="target" />}
+          </div>
+        );
+      });
+
+      const { document, container } = await render(<Cmp />, { debug });
+      await trigger(document.body, 'div', 'qvisible');
+      await waitForDrain(container);
+      expect(document.querySelector('span')!.textContent).toBe('found');
+    });
   });
   it('should await returned async cleanup before rerun', async () => {
     vi.useFakeTimers();

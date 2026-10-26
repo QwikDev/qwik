@@ -28,6 +28,7 @@ import {
 } from '../../reactive-primitives/types';
 import { Task, TaskFlags } from '../../use/use-task';
 import { QError } from '../error/error';
+import { SERIALIZABLE_STATE } from '../component.public';
 import { _qrlWithChunk, inlinedQrl } from '../qrl/qrl';
 import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl, SYNC_QRL } from '../qrl/qrl-utils';
@@ -1648,7 +1649,14 @@ describe('shared-serialization', () => {
       expect(task.$qrl$.$symbol$).toEqual(qrl.$symbol$);
       expect(task.$el$).toEqual(shared1);
     });
-    it.todo(title(TypeIds.Component));
+    it(title(TypeIds.Component), async () => {
+      const Cmp = componentQrl(inlinedQrl(() => 'hi', 'repeated_component'));
+      const objs = await serialize({ first: Cmp, second: Cmp });
+      const { first, second } = deserialize(objs)[0] as any;
+      const qrl = first[SERIALIZABLE_STATE][0] as QRLInternal;
+      expect(qrl.$symbol$).toBe('repeated_component');
+      expect(second[SERIALIZABLE_STATE][0]).toBe(qrl);
+    });
     it(title(TypeIds.Signal), async () => {
       const objs = await serialize(createSignal('hi'));
       const signal = deserialize(objs)[0] as SignalImpl;
@@ -2635,6 +2643,25 @@ describe('serializer - internal', () => {
     await expect(_deserialize(JSON.stringify([TypeIds.Uint8Array, value]))).rejects.toThrow(
       `Code(Q${QError.invalidUint8ArrayPayload})`
     );
+  });
+  it.each([
+    ['non-string', 1],
+    ['empty', ''],
+    ['hex', '0x10'],
+    ['whitespace', ' 1'],
+    ['oversized', '9'.repeat(1001)],
+  ])('rejects %s BigInt payloads', async (_name, value) => {
+    await expect(_deserialize(JSON.stringify([TypeIds.BigInt, value]))).rejects.toThrow(
+      `Code(Q${QError.invalidBigIntPayload})`
+    );
+  });
+  it('round-trips BigInt values up to the digit limit', async () => {
+    const largest = 10n ** 1000n - 1n;
+    expect(await _deserialize(await _serialize(largest))).toBe(largest);
+    expect(await _deserialize(await _serialize(-largest))).toBe(-largest);
+  });
+  it('rejects serializing BigInt values over the digit limit', async () => {
+    await expect(_serialize(10n ** 1000n)).rejects.toThrow(`Code(Q${QError.invalidBigIntPayload})`);
   });
   it('_serialize should emit short integer-like plain object keys as numbers', async () => {
     const ser = await _serialize({

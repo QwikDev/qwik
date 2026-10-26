@@ -359,6 +359,16 @@ export const fetchRouteLoaderData = async (
   return promise;
 };
 
+const retainLoaderValue = (previous: unknown, abortSignal: AbortSignal) => {
+  if (previous !== undefined) {
+    return previous;
+  }
+  return new Promise<never>((_, reject) => {
+    abortSignal.throwIfAborted();
+    abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
+  });
+};
+
 const createRouteLoaderSignal = (
   loader: LoaderInternal,
   routeLoaderCtx: RouteLoaderCtx,
@@ -396,13 +406,7 @@ const createRouteLoaderSignal = (
       }
       const request = getLoaderRequest(routeLoaderCtx, state, id, loaderHash);
       if (!request.active) {
-        if (previous === undefined) {
-          return new Promise((_, reject) => {
-            abortSignal.throwIfAborted();
-            abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
-          });
-        }
-        return previous;
+        return retainLoaderValue(previous, abortSignal);
       }
       const pageUrl = new URL(request.pageUrl);
       const mHash = untrack(() => routeLoaderCtx.manifestHash) || 'dev';
@@ -959,14 +963,15 @@ export const getLoaderRequestEvent = (
   const filteredSearch = loader.__search
     ? filterSearchParams(url.searchParams, loader.__search)
     : rootRequestEv.url.search;
-  if (pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search) {
+  const isSameUrl =
+    pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search;
+  const params = globalThis.__STRICT_LOADERS__
+    ? (getRouteLoaderParams(rootRequestEv)[loader.__id] ??
+      (pathname === rootRequestEv.url.pathname ? rootRequestEv.params : {}))
+    : rootRequestEv.params;
+  if (isSameUrl && params === rootRequestEv.params) {
     return rootRequestEv;
   }
-  // An ancestor path only sees params matched up to it; fail closed if none were recorded.
-  const params =
-    pathname === rootRequestEv.url.pathname
-      ? rootRequestEv.params
-      : getRouteLoaderParams(rootRequestEv)[loader.__id] || {};
 
   let events: Map<string, RequestEvent> = rootRequestEv.sharedMap.get(REQUEST_ROUTE_LOADER_EVENTS);
   if (!events) {
@@ -974,7 +979,8 @@ export const getLoaderRequestEvent = (
     rootRequestEv.sharedMap.set(REQUEST_ROUTE_LOADER_EVENTS, events);
   }
 
-  const eventKey = `${pathname}\n${filteredSearch}`;
+  // Layouts sharing an endpoint can have different params.
+  const eventKey = `${pathname}\n${filteredSearch}\n${params === rootRequestEv.params ? '' : loader.__id}`;
   let loaderRequestEv = events.get(eventKey);
   if (!loaderRequestEv) {
     url.pathname = pathname;
@@ -987,7 +993,7 @@ export const getLoaderRequestEvent = (
     });
     loaderRequestEv = Object.create(rootRequestEv, {
       originalUrl: {
-        value: new URL(url),
+        value: isSameUrl ? rootRequestEv.originalUrl : new URL(url),
         enumerable: true,
       },
       params: {

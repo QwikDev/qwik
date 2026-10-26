@@ -249,7 +249,7 @@ export interface _ContainerElement extends HTMLElement {
     qDestroy?: () => void;
     qSegmentVnodeData?: Map<string, string>;
     qVnodeData?: string;
-    qVNodeRefs?: Map<number, Element | _ElementVNode>;
+    qVNodeRefs?: Map<number, Element | _VNode>;
 }
 
 // @public
@@ -655,6 +655,9 @@ export const _isStore: (value: object) => boolean;
 
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;
+
+// @internal
+export const _isSyncQrl: (value: unknown) => boolean;
 
 // @internal (undocumented)
 export const _isTask: (value: any) => value is _Task;

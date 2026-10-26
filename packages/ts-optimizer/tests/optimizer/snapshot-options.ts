@@ -37,6 +37,18 @@ export const DEFAULT_OPTIONS: Required<
 };
 
 export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
+  smart_visible_task_heavy_library: {
+    entryStrategy: { type: 'smart' },
+    transpileTs: true,
+    transpileJsx: true,
+    mode: 'prod',
+  },
+  smart_lifted_event_captures: {
+    entryStrategy: { type: 'smart' },
+    transpileTs: true,
+    transpileJsx: true,
+    mode: 'prod',
+  },
   example_1: {},
   example_2: {},
   example_3: {},
@@ -131,6 +143,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   example_ts_enums_issue_1341: { transpileTs: true, transpileJsx: true },
   example_ts_enums: { transpileTs: true, transpileJsx: true },
   example_spread_jsx: { transpileTs: true, transpileJsx: true },
+  example_moved_helper_spread_with_key: { transpileTs: true, transpileJsx: true },
   example_export_issue: { transpileTs: true, transpileJsx: true },
   example_getter_generation: { transpileTs: true, transpileJsx: true },
   issue_5008: { transpileTs: true, transpileJsx: true },
@@ -510,6 +523,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_not_auto_export_var_shadowed_in_labeled_block: { transpileTs: true, transpileJsx: true },
   should_not_auto_export_var_shadowed_in_switch: { transpileTs: true, transpileJsx: true },
   should_not_inline_exported_var_into_segment: { transpileTs: true, transpileJsx: true },
+  should_not_split_member_expression_spreads: { transpileTs: true, transpileJsx: true },
   should_not_transform_bind_checked_in_var_props_for_jsx_split: {
     transpileTs: true,
     transpileJsx: true,
@@ -522,6 +536,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_not_wrap_ternary_function_operator_with_fn: { transpileTs: true, transpileJsx: true },
   should_not_wrap_var_template_string: { transpileTs: true, transpileJsx: true },
   should_only_disable_the_next_line: { transpileTs: true, transpileJsx: true },
+  should_split_props_with_key_after_spread: { transpileTs: true, transpileJsx: true },
   should_split_spread_props: { transpileTs: true, transpileJsx: true },
   should_split_spread_props_with_additional_prop: { transpileTs: true, transpileJsx: true },
   should_split_spread_props_with_additional_prop2: { transpileTs: true, transpileJsx: true },

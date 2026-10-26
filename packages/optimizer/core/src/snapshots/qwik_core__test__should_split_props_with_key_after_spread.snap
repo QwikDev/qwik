@@ -1,0 +1,87 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from '@qwik.dev/core';
+		import { Item } from './item';
+
+		export default component$((props: any) => {
+			return (
+				<>
+					<Item {...props.a} key="children">child</Item>
+					<Item {...props.a} {...props.b} key="spreads" />
+					<div title="x" {...props.a} key="attribute" />
+					<Item {...props.a} key="between" {...props.b} />
+				</>
+			);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAIE,6BAAe,2CASZ\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { Item } from "./item";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+//
+export const test_component_LUXeXe0DQrg = (props)=>{
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSplit(Item, {
+            ...props.a
+        }, null, "child", 0, "children"),
+        /*#__PURE__*/ _jsxSplit(Item, {
+            ...props.a,
+            ...props.b
+        }, null, null, 0, "spreads"),
+        /*#__PURE__*/ _jsxSplit("div", {
+            title: "x",
+            ...props.a
+        }, null, null, 0, "attribute"),
+        /*#__PURE__*/ _jsxSplit(Item, {
+            ...props.a,
+            ...props.b
+        }, null, null, 0, "between")
+    ], 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAI4B,CAAC;IAC1B,qBACC;sBACC,UAAC;YAAM,GAAG,MAAM,CAAC;iBAAiB,YAAX;sBACvB,UAAC;YAAM,GAAG,MAAM,CAAC;YAAG,GAAG,MAAM,CAAC;0BAAM;sBACpC,UAAC;YAAI,OAAM;YAAK,GAAG,MAAM,CAAC;0BAAM;sBAChC,UAAC;YAAM,GAAG,MAAM,CAAC;YAAiB,GAAG,MAAM,CAAC;0BAArB;;AAG1B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    111,
+    377
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

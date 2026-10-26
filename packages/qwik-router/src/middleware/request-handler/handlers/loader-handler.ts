@@ -51,7 +51,7 @@ export function loaderHandler(
     }
 
     setRouteLoaderData(requestEv, routeLoaders, route);
-    await runBlockingLoadersBeforeTarget(routeLoaders, loader, requestEv);
+    await runRouteGuards(routeLoaders, loader, requestEv);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
     const cacheControl = resolveLoaderCacheControl(loader.__cacheControl, loaderRequestEv);
@@ -130,6 +130,9 @@ export function loaderHandler(
       return;
     }
 
+    if (responseData.e || failed) {
+      requestEv.headers.set('Cache-Control', 'no-store');
+    }
     await sendLoaderResponse(requestEv, data, cacheControl);
   };
 }
@@ -146,16 +149,14 @@ function resolveLoaderCacheControl(
   return value === undefined ? 'private' : value;
 }
 
-async function runBlockingLoadersBeforeTarget(
+/** Blocking loaders guard the route, so they all run whatever the export order. */
+async function runRouteGuards(
   routeLoaders: LoaderInternal[],
   targetLoader: LoaderInternal,
   requestEv: RequestEventInternal
 ) {
   for (const loader of routeLoaders) {
-    if (loader === targetLoader) {
-      return;
-    }
-    if (loader.__blockSSR) {
+    if (loader !== targetLoader && loader.__blockSSR) {
       await loadRouteLoader(loader, requestEv);
     }
   }

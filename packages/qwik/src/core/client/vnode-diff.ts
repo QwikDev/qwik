@@ -415,7 +415,7 @@ function diff(
                 expectNoTextNode(diffContext);
                 if (!expectSlot(diffContext)) {
                   // nothing to project, so try to render the Slot default content.
-                  descend(diffContext, diffContext.$jsxValue$.children, true);
+                  descend(diffContext, diffContext.$jsxValue$.children, true, true);
                 }
               } else if (type === Projection) {
                 expectProjection(diffContext);
@@ -695,7 +695,7 @@ function descendContentToProject(
     if (props) {
       // we need to create empty projections for all the slots to remove unused slots content
       for (const prop in props) {
-        if (isSlotProp(prop)) {
+        if (isSlotProp(prop) && (props[prop] as VNode | null)?.slotParent) {
           const slotName = prop;
           mapArray_set(projections, slotName, createProjectionJSXNode(slotName), 0);
         }
@@ -758,9 +758,9 @@ function expectProjection(diffContext: DiffContext) {
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
     isDev && vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, 'q:code', 'expectProjection');
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotName);
-    (diffContext.$vNewNode$ as VirtualVNode).slotParent = diffContext.$vParent$;
     vnode_setProp(diffContext.$vParent$ as VirtualVNode, slotName, diffContext.$vNewNode$);
   }
+  (diffContext.$vNewNode$ || diffContext.$vCurrent$)!.slotParent = diffContext.$vParent$;
 }
 
 function expectSlot(diffContext: DiffContext) {
@@ -781,7 +781,10 @@ function expectSlot(diffContext: DiffContext) {
       )
     : null;
 
-  if (vProjectedNode == null) {
+  if (
+    vProjectedNode == null ||
+    (!vProjectedNode.slotParent && vProjectedNode.flags & VNodeFlags.Deleted)
+  ) {
     diffContext.$vNewNode$ = vnode_newVirtual();
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
@@ -819,13 +822,22 @@ function expectSlot(diffContext: DiffContext) {
       getInsertBefore(diffContext)
     );
 
+    const isUnclaimedProjection =
+      oldParent && vnode_isElementVNode(oldParent) && vnode_getElementName(oldParent) === QTemplate;
+    if (isUnclaimedProjection) {
+      const template = oldParent.node as QElement;
+      if (template._qInit) {
+        template._qInit = false;
+        queueQwikLoaderEvent(getCursorData(diffContext.$cursor$)!, QwikLoaderScanEvent.qinit);
+      }
+      if (template._qIdle) {
+        template._qIdle = false;
+        queueQwikLoaderEvent(getCursorData(diffContext.$cursor$)!, QwikLoaderScanEvent.qidle);
+      }
+    }
+
     // If we moved from a q:template and it's now empty, remove it
-    if (
-      oldParent &&
-      vnode_isElementVNode(oldParent) &&
-      !oldParent.firstChild &&
-      vnode_getElementName(oldParent) === QTemplate
-    ) {
+    if (isUnclaimedProjection && !oldParent.firstChild) {
       vnode_remove(
         diffContext.$journal$,
         oldParent.parent as ElementVNode | VirtualVNode,
@@ -834,7 +846,7 @@ function expectSlot(diffContext: DiffContext) {
       );
     }
   }
-  return true;
+  return !!vProjectedNode.slotParent;
 }
 
 function cleanupSideBuffer(diffContext: DiffContext) {
@@ -1548,7 +1560,7 @@ function expectComponent(diffContext: DiffContext, component: Function) {
     }
 
     if (host) {
-      const vNodeProps = vnode_getProp<PropsProxy | null>(
+      const vNodeProps = vnode_getProp<PropsProxy | false | null>(
         host as VirtualVNode,
         ELEMENT_PROPS,
         diffContext.$container$.$getObjectById$
@@ -1747,7 +1759,7 @@ function Projection() {}
 function handleProps(
   host: VirtualVNode,
   jsxProps: PropsProxy,
-  vNodeProps: PropsProxy | null,
+  vNodeProps: PropsProxy | false | null,
   container: ClientContainer
 ): boolean {
   let shouldRender = false;
@@ -1775,10 +1787,9 @@ function handleProps(
     // Update the owner after all props have been synced
     vNodeProps[_OWNER] = (jsxProps as PropsProxy)[_OWNER];
   } else if (jsxProps) {
-    // If there is no props instance, create a new one.
-    // We can do this because we are not using the props instance for anything else.
+    // SSR drops the props of hosts it didn't serialize; `false` means they had var props.
+    shouldRender = vNodeProps === false || !isPropsEmpty(jsxProps[_VAR_PROPS]);
     vnode_setProp(host as VirtualVNode, ELEMENT_PROPS, jsxProps);
-    vNodeProps = jsxProps;
   }
   return shouldRender;
 }
@@ -1961,6 +1972,9 @@ export function cleanup(
                   typeof value === 'string'
                     ? vnode_locate(container.rootVNode, value)
                     : (value as unknown as VNode);
+                if (!projection.slotParent) {
+                  continue;
+                }
                 let projectionChild = vnode_getFirstChild(projection);
                 while (projectionChild) {
                   cleanup(container, journal, projectionChild, cursorRoot);
@@ -1975,9 +1989,8 @@ export function cleanup(
       }
 
       const isProjection = vnode_isProjection(vCursor);
-      // Descend into children
-      if (!isProjection) {
-        // Only if it is not a projection
+      // Projected children are cleaned up by their author.
+      if (!isProjection || !vCursor.slotParent) {
         const vFirstChild = vnode_getFirstChild(vCursor);
         if (vFirstChild) {
           vCursor = vFirstChild;

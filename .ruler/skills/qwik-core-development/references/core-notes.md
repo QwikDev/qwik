@@ -202,6 +202,9 @@ Out-of-order (OOOS) invariants:
 
 ## QRL And Optimizer-Facing Runtime
 
+- Across package boundaries, inspect core values through helpers exported from `@qwik.dev/core/internal`;
+  production builds mangle `$...$` properties inside core, so external packages cannot read them
+  directly. Verify these integrations after a production build, including client-rendered elements.
 - Use `$`-suffixed APIs and `$()` in tests when a QRL boundary is expected.
 - Avoid manual QRL construction unless nearby tests already use it for the same reason.
 - If runtime behavior relies on optimizer output, inspect the optimizer transform and snapshot too.

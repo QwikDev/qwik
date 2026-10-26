@@ -188,7 +188,7 @@ Cache key function. Used by `routeConfig.cacheKey` (SSR HTML cache) and by `rout
 
 - `true`: use the surface's default key.
 
-- SSR default: `${status}|${eTag}|${pathname}` when an eTag is set, otherwise `${status}|${pathname}`. - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set, otherwise `${pathname}|${filteredSearch}|${loaderId}`. - Function: receives the request event and the normalized, unquoted eTag (or an empty string when none was provided). Return the cache key string, or `null` or `''` to skip caching for this request. Loader callbacks receive the loader-scoped request event, with `url`, `query`, and `request.url` filtered by the loader's `search` allowlist.
+- SSR default: `${status}|${eTag}|${origin}${pathname}` when an eTag is set, otherwise `${status}|${origin}${pathname}`. - Loader default: `${origin}${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set, otherwise `${origin}${pathname}|${filteredSearch}|${loaderId}`. - Function: receives the request event and the normalized, unquoted eTag (or an empty string when none was provided). Return the cache key string, or `null` or `''` to skip caching for this request. Loader callbacks receive the loader-scoped request event, with `url`, `query`, and `request.url` filtered by the loader's `search` allowlist.
 
 Note: valid cacheKeys are non-empty strings.
 
@@ -951,7 +951,7 @@ QRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsu
 
 </td><td>
 
-_(Optional)_ Event handler executed right after the action is executed successfully and returns some data. Like the native `on*$` events, it accepts an inline function as well as a QRL.
+_(Optional)_ Runs after a form submission returns, including validation failures. Like the native `on*$` events, it accepts an inline function as well as a QRL.
 
 </td></tr>
 <tr><td>
@@ -981,7 +981,7 @@ boolean
 
 </td><td>
 
-_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.
+_(Optional)_ Resets SPA form controls after responses, including validation failures.
 
 Defaults to `false`
 

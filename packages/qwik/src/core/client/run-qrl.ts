@@ -6,7 +6,7 @@ import {
   setCaptures,
   type QRLInternal,
 } from '../shared/qrl/qrl-class';
-import { assertQrl } from '../shared/qrl/qrl-utils';
+import { assertQrl, isSyncQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
 import { retryOnPromise } from '../shared/utils/promises';
@@ -46,7 +46,12 @@ export function runEventHandlerQRL(
   const container = ctx.$container$!;
   const hostElement = ctx.$hostElement$ as ElementVNode;
   vnode_ensureElementInflated(container, hostElement);
-  let realHandler = handler;
+  // Sync handlers must not defer subsequent handlers.
+  const handlerFn = isSyncQrl(handler)
+    ? (...args: any[]) =>
+        ((handler as QRLInternal).$lazy$.$load$() as (...args: any[]) => void)(...args)
+    : handler;
+  let realHandler = handlerFn;
 
   if (hostElement.flags & VNodeFlags.HasIterationItems) {
     let shouldInflate: boolean | undefined;
@@ -57,11 +62,11 @@ export function runEventHandlerQRL(
     const getObj = shouldInflate ? container.$getObjectById$ : null;
     const singleItem = vnode_getProp<unknown>(hostElement, ITERATION_ITEM_SINGLE, getObj);
     if (singleItem !== null) {
-      realHandler = (() => handler(event, element, singleItem)) as typeof handler;
+      realHandler = (() => handlerFn(event, element, singleItem)) as typeof handler;
     } else {
       const multiItems = vnode_getProp<unknown[]>(hostElement, ITERATION_ITEM_MULTI, getObj);
       if (multiItems !== null) {
-        realHandler = (() => handler(event, element, ...multiItems)) as typeof handler;
+        realHandler = (() => handlerFn(event, element, ...multiItems)) as typeof handler;
       }
     }
   }

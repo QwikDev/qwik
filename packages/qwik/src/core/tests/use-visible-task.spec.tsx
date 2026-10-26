@@ -69,7 +69,7 @@ describe.each([
     );
   });
 
-  it('should execute visible task with strategy document-ready', async () => {
+  it.each([false, true])('should execute document-ready task (yield: %s)', async (shouldYield) => {
     const VisibleCmp = component$(() => {
       const state = useSignal('SSR');
       useVisibleTask$(
@@ -84,14 +84,25 @@ describe.each([
     });
 
     const { vNode, document } = await render(<VisibleCmp />, { debug });
-    await trigger(document.body, 'span', 'd:qinit');
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <span>
-          <Signal ssr-required>CSR</Signal>
-        </span>
-      </Component>
-    );
+    let now = 0;
+    // Force a yield before the resumed task finishes resolving.
+    const clock = shouldYield
+      ? vi.spyOn(performance, 'now').mockImplementation(() => (now += 20))
+      : undefined;
+    try {
+      await trigger(document.body, 'span', 'd:qinit');
+      await vi.waitFor(() => {
+        expect(vNode).toMatchVDOM(
+          <Component ssr-required>
+            <span>
+              <Signal ssr-required>CSR</Signal>
+            </span>
+          </Component>
+        );
+      });
+    } finally {
+      clock?.mockRestore();
+    }
   });
 
   it('should execute visible task with strategy document-idle', async () => {

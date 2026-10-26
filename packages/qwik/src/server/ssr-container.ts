@@ -11,6 +11,7 @@ import {
   _handleSSRError,
   _isTask as isTask,
   _createQRL as createQRL,
+  _getVarProps,
   isSignal,
   type Signal,
 } from '@qwik.dev/core/internal';
@@ -596,9 +597,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       elementName: '#segment',
       depthFirstElementIdx: -1,
       // OOOS inserts this synthetic root under the Pending content host on the client.
-      vNodeData: [VNodeDataFlag.SERIALIZE],
+      vNodeData: [VNodeDataFlag.SERIALIZE | VNodeDataFlag.TEXT_DATA],
       currentFile: null,
-      refBase: contentHostNode.id,
+      refBase: getSegmentVNodeRefId(segmentId, 0),
     };
     const segmentContainer = new SSRSegmentContainer(
       {
@@ -641,6 +642,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming) {
       return;
     }
+    // Promise.all observes the rejection only after the shell flush.
+    segment.catch(() => {});
     this.outOfOrderPendingSegments.push(segment);
   }
 
@@ -1396,6 +1399,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
             this.write(VNodeDataChar.RENDER_FN_CHAR);
             this.write(VNodeDataChar.RENDER_HASH_PREFIX_CHAR);
             this.write(encodeVNodeDataString(encodeVNodeDataKey((rawValue as QRLInternal).$hash$)));
+          } else if (key === ELEMENT_PROPS) {
+            const varProps = _getVarProps(rawValue as Props);
+            if (varProps && !isObjectEmpty(varProps)) {
+              // A `>` without a ref tells the client it can't diff the var props it gets next.
+              this.write(VNodeDataChar.PROPS_CHAR);
+            }
           }
           continue;
         }

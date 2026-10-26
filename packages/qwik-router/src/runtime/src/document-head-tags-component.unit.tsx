@@ -49,4 +49,26 @@ describe('DocumentHeadTags', () => {
       'desc'
     );
   });
+
+  it('does not render the script or style content as an attribute', async () => {
+    const { document } = await domRender(
+      <QwikRouterMockProvider>
+        <DocumentHeadTags
+          scripts={[
+            { type: 'application/ld+json', script: '{"a":1}' },
+            { key: 'old', props: { type: 'text/x-old' }, script: 'old' },
+          ]}
+          styles={[{ key: 'probe', style: 'p{color:red}' }]}
+        />
+      </QwikRouterMockProvider>
+    );
+
+    const ld = document.body.querySelector('script[type="application/ld+json"]')!;
+    expect(ld.textContent).toBe('{"a":1}');
+    expect(ld.hasAttribute('script')).toBe(false);
+    expect(document.body.querySelector('script[type="text/x-old"]')?.textContent).toBe('old');
+    const style = document.body.querySelector('style')!;
+    expect(style.textContent).toBe('p{color:red}');
+    expect(style.hasAttribute('style')).toBe(false);
+  });
 });

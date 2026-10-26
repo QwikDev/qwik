@@ -3,6 +3,7 @@ import { _deserialize } from '@qwik.dev/core/internal';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { createCacheControl } from '../cache-control';
 import { RedirectMessage } from '../redirect-handler';
+import { ServerError } from '../server-error';
 import { IsQLoader } from '../request-path';
 import type { CacheControl } from '../types';
 import { jsonRequestWrapper } from './json-request-wrapper';
@@ -50,13 +51,38 @@ describe('jsonRequestWrapper', () => {
     const result = await _deserialize(body);
     expect(result).toEqual({ r: '/login/' });
   });
+  it.each([
+    ['loader', 'a ServerError', new ServerError(403, 'Members only')],
+    ['loader', 'a plain Error', new Error('middleware boom')],
+    ['action', 'a ServerError', new ServerError(403, 'Members only')],
+    ['action', 'a plain Error', new Error('middleware boom')],
+  ] as const)(
+    'sends %s middleware failures from %s with Cache-Control: no-store',
+    async (internalRequest, _label, failure) => {
+      const requestEv = createLoaderRequestEvent('/products/123/', '/products/123/view/');
+      requestEv.internalRequest = internalRequest;
+      requestEv.next = vi.fn(async () => {
+        requestEv.headers.set('Cache-Control', 'public, max-age=60');
+        throw failure;
+      });
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        await jsonRequestWrapper()(requestEv as any);
+      } finally {
+        consoleError.mockRestore();
+      }
+
+      expect(requestEv.send).toHaveBeenCalledOnce();
+      expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+    }
+  );
 });
 
 function createLoaderRequestEvent(loaderPathname: string, fullPathname: string) {
   const headers = new Headers();
   return {
     sharedMap: new Map([[IsQLoader, true]]),
-    internalRequest: 'loader',
+    internalRequest: 'loader' as 'loader' | 'action',
     request: new Request(`http://localhost${loaderPathname}`, {
       headers: {
         [FULLPATH_HEADER]: fullPathname,

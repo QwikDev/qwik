@@ -105,6 +105,7 @@ async function runNext(
         return;
       } else if (e instanceof ServerError && !requestEv.headersSent) {
         const status = e.status as StatusCodes;
+        requestEv.headers.set('Cache-Control', 'no-store');
         const accept = requestEv.request.headers.get('Accept');
         if (accept && !accept.includes('text/html')) {
           requestEv.headers.set('Content-Type', 'application/qwik-json');
@@ -114,7 +115,10 @@ async function runNext(
         }
         return e;
       }
-      if (!isDev) {
+      if (!isDev || requestEv.headersSent) {
+        if (isDev) {
+          console.error(e);
+        }
         try {
           if (!requestEv.headersSent) {
             requestEv.headers.set('content-type', 'text/html; charset=utf-8');
@@ -124,7 +128,9 @@ async function runNext(
           const stream = requestEv.getWritableStream();
           if (!stream.locked) {
             const writer = stream.getWriter();
-            await writer.write(encoder.encode(getErrorHtml(500, 'Internal Server Error')));
+            await writer.write(
+              encoder.encode(getErrorHtml(500, isDev ? e : 'Internal Server Error'))
+            );
             await writer.close();
           }
         } catch {

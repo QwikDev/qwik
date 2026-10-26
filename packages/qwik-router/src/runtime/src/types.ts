@@ -155,6 +155,7 @@ export type RouteActionValue =
       data: FormData | Record<string, unknown> | undefined;
       output?: RouteActionResolver;
       resolve?: NoSerialize<(data: RouteActionResolver) => void>;
+      reject?: NoSerialize<(reason: unknown) => void>;
       resolveDispatch?: NoSerialize<() => void>;
     }
   | undefined;
@@ -404,10 +405,10 @@ export type ContentModuleETag = string | ((props: DocumentHeadProps) => string |
  *
  * - `true`: use the surface's default key.
  *
- *   - SSR default: `${status}|${eTag}|${pathname}` when an eTag is set, otherwise
- *       `${status}|${pathname}`.
- *   - Loader default: `${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set,
- *       otherwise `${pathname}|${filteredSearch}|${loaderId}`.
+ *   - SSR default: `${status}|${eTag}|${origin}${pathname}` when an eTag is set, otherwise
+ *       `${status}|${origin}${pathname}`.
+ *   - Loader default: `${origin}${pathname}|${filteredSearch}|${loaderId}|${eTag}` when an eTag is set,
+ *       otherwise `${origin}${pathname}|${filteredSearch}|${loaderId}`.
  * - Function: receives the request event and the normalized, unquoted eTag (or an empty string when
  *   none was provided). Return the cache key string, or `null` or `''` to skip caching for this
  *   request. Loader callbacks receive the loader-scoped request event, with `url`, `query`, and
@@ -848,8 +849,8 @@ export type LoaderOptions = {
   /**
    * Enable in-memory server-side caching of this loader's serialized JSON response.
    *
-   * - `true` — use the default key `${pathname}|${filteredSearch}|${loaderId}` (suffixed with
-   *   `|${eTag}` when an eTag is set).
+   * - `true` — use the default key `${origin}${pathname}|${filteredSearch}|${loaderId}` (suffixed
+   *   with `|${eTag}` when an eTag is set).
    * - Function `(requestEv, eTag) => string | null` — return a custom key, or `null` to skip caching
    *   this request. For user-specific data, include user identity and relevant permissions in the
    *   key or disable this cache.

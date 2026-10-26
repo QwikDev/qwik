@@ -20,7 +20,12 @@ import { eagerDeserializeStateIterator } from '../shared/serdes/inflate';
 import { getObjectById, parseQRL } from '../shared/serdes/index';
 import { preprocessStateIterator } from '../shared/serdes/preprocess-state';
 import { _SharedContainer } from '../shared/shared-container';
-import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
+import {
+  QContainerValue,
+  type HostElement,
+  type ObjToProxyMap,
+  type QElement,
+} from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import {
   ELEMENT_PROPS,
@@ -74,7 +79,10 @@ import {
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
   vnode_getProp,
+  vnode_isElementVNode,
+  vnode_isProjection,
   vnode_isVirtualVNode,
+  vnode_materializeSegment,
   vnode_locate,
   vnode_newUnMaterializedElement,
   vnode_setProp,
@@ -116,11 +124,24 @@ function getOutOfOrderStreamingScript(boundaryId: number, content: Element | nul
       processOutOfOrderSegmentVNodeData(document, segmentId, content);
     }
     onVNodeDataReady(document, () => {
-      qContainer.element.qContainer === qContainer &&
-        processContainerStateData(
-          qContainer,
-          processSegmentStateScriptsIterator(qContainer, boundaryId === 0 ? undefined : segmentId)
-        );
+      if (qContainer.element.qContainer !== qContainer) {
+        return;
+      }
+      if (__EXPERIMENTAL__.pendingBoundary) {
+        const host = boundaryId === 0 ? null : (content as QElement | null)?.vNode;
+        if (
+          host &&
+          vnode_isElementVNode(host) &&
+          host.firstChild &&
+          vnode_isProjection(host.firstChild)
+        ) {
+          vnode_materializeSegment(host, host.firstChild);
+        }
+      }
+      processContainerStateData(
+        qContainer,
+        processSegmentStateScriptsIterator(qContainer, boundaryId === 0 ? undefined : segmentId)
+      );
     });
   }
 }
@@ -311,10 +332,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       const store = getOwnCatchStore(this, boundaryHost);
       if (store && store.error === undefined) {
         store.error = storedError;
-        const boundaryProps = this.getHostProp<{
-          onError$?: (error: unknown, info: CatchInfo) => unknown;
-        }>(boundaryHost, ELEMENT_PROPS);
-        fireOnError(boundaryProps?.onError$, err, phase, store.boundaryId ?? '');
+        const boundaryProps = this.getHostProp<
+          { onError$?: (error: unknown, info: CatchInfo) => unknown } | false
+        >(boundaryHost, ELEMENT_PROPS);
+        fireOnError(
+          boundaryProps ? boundaryProps.onError$ : null,
+          err,
+          phase,
+          store.boundaryId ?? ''
+        );
         markVNodeDirty(this, boundaryHost, ChoreBits.COMPONENT);
         return;
       }

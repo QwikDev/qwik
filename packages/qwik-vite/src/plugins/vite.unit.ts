@@ -783,6 +783,57 @@ describe('configEnvironment', () => {
   });
 });
 
+describe('hotUpdate', () => {
+  const sentHmrFiles = (modules: { url: string; importers?: string[] }[]) => {
+    // configureServer and hotUpdate live on the post plugin
+    const plugin = qwikVite({
+      optimizerOptions: mockOptimizerOptions(),
+      devTools: { imageDevTools: false },
+    })[1];
+    const sent: { data: { files: string[] } }[] = [];
+    plugin.configureServer({
+      environments: { client: { hot: { send: (payload: any) => sent.push(payload) } } },
+    });
+    const ctx = {
+      modules: modules.map(({ url, importers = [] }) => ({
+        url,
+        type: 'js',
+        importers: new Set(importers.map((importer) => ({ url: importer, type: 'js' }))),
+      })),
+      timestamp: 1,
+    };
+    plugin.hotUpdate.call({ environment: { name: 'ssr' } }, ctx);
+    return sent.map((payload) => payload.data.files);
+  };
+
+  test('sends a changed source file', () => {
+    assert.deepEqual(sentHmrFiles([{ url: '/src/a.tsx' }]), [['/src/a.tsx']]);
+  });
+
+  test('sends the importers of a ?inline stylesheet', () => {
+    assert.deepEqual(sentHmrFiles([{ url: '/src/a.css?inline', importers: ['/src/a.tsx'] }]), [
+      ['/src/a.tsx'],
+    ]);
+  });
+
+  test('sends the importers of a css module', () => {
+    assert.deepEqual(sentHmrFiles([{ url: '/src/a.module.css', importers: ['/src/a.tsx'] }]), [
+      ['/src/a.tsx'],
+    ]);
+  });
+
+  test.each([
+    '/src/a.css',
+    '/src/a.scss',
+    '/src/a.pcss',
+    '/src/a.postcss',
+    '/src/a.sss',
+    '/src/theme.module.dark.css',
+  ])('sends nothing for the plain stylesheet %s', (url) => {
+    assert.deepEqual(sentHmrFiles([{ url, importers: ['/src/a.tsx'] }]), []);
+  });
+});
+
 describe('worker qrl chunk rewrites', () => {
   const workerPlaceholderCode = (importPath: string) =>
     `const chunk = "${QWIK_WORKER_QRL_SENTINEL}${importPath}";`;

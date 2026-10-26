@@ -1,6 +1,6 @@
 import path, { resolve } from 'node:path';
 import type { Rolldown } from 'vite';
-import { assert, describe, test } from 'vitest';
+import { assert, describe, test, vi } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
 import { flattenToChunkName } from './vite-utils';
@@ -1014,6 +1014,36 @@ describe('writeBundle entry facade', () => {
     } finally {
       await fs.promises.rm(tmp, { recursive: true, force: true });
     }
+  });
+});
+
+describe('library build', () => {
+  const generateBundleFor = async (mode: string) => {
+    const [prePlugin, postPlugin] = qwikVite({ optimizerOptions: mockOptimizerOptions() }) as any[];
+    await prePlugin.config.call(configHookPluginContext, {}, { command: 'build', mode });
+    const emittedFiles: unknown[] = [];
+    const context = {
+      environment: { config: { consumer: 'client' } },
+      emitFile: (file: unknown) => (emittedFiles.push(file), 'ref'),
+      getFileName: () => 'file',
+      getModuleInfo: () => null,
+    };
+    const bundle = {
+      'index.js': { type: 'chunk', fileName: 'index.js', imports: ['external.js'] },
+    };
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await postPlugin.generateBundle.handler.call(context, {}, bundle);
+      return { emittedFiles, warnings: warn.mock.calls };
+    } finally {
+      warn.mockRestore();
+    }
+  };
+
+  test('does not emit a client manifest for a library build', async () => {
+    const { emittedFiles, warnings } = await generateBundleFor('lib');
+    assert.deepEqual(emittedFiles, []);
+    assert.deepEqual(warnings, []);
   });
 });
 

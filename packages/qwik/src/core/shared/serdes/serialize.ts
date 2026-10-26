@@ -8,6 +8,7 @@ import { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
+import { _EFFECT_BACK_REF } from '../../reactive-primitives/backref';
 import {
   AsyncSignalFlags,
   EffectProperty,
@@ -1148,10 +1149,22 @@ function isObjectLiteral(obj: unknown): obj is object {
   return prototype == null || prototype === Object.prototype || prototype === Array.prototype;
 }
 
+const returnArg = <T>(p0: T) => p0;
+
+/** A computed wrapped signal that read no reactive source can never change. */
+const isConstantWrappedSignal = (value: WrappedSignalImpl<unknown>) =>
+  !(value.$flags$ & ComputedSignalFlags.INVALID) &&
+  !value[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.backRef?.size;
+
 function serializeWrappingFn(
   serializationContext: SerializationContext,
   value: WrappedSignalImpl<any>
 ) {
+  if (isConstantWrappedSignal(value)) {
+    // Its args may capture unserializable data, so send only the value
+    const syncFnId = serializationContext.$addSyncFn$('p0', 1, returnArg);
+    return [syncFnId, [value.$untrackedValue$]] as const;
+  }
   // if value is an object then we need to wrap this in ()
   if (value.$funcStr$ && value.$funcStr$[0] === '{') {
     value.$funcStr$ = `(${value.$funcStr$})`;

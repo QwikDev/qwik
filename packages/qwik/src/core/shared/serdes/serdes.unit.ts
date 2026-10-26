@@ -822,6 +822,23 @@ describe('shared-serialization', () => {
         (72 chars)"
       `);
     });
+    it(`${title(TypeIds.WrappedSignal)} without reactive sources serializes its value`, async () => {
+      const item = { meta: { label: 'hello' }, format: () => 'x' };
+      const wrapped = _fnSignal((p0) => p0.meta.label, [item], 'p0.meta.label');
+      expect(wrapped.value).toBe('hello');
+      const objs = await serialize(wrapped);
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 WrappedSignal [
+          {number} 0
+          Array [
+            {string} "hello"
+          ]
+          {number} 0
+        ]
+        (28 chars)"
+      `);
+    });
     it('ComputedSignal in CHECK state serializes as needing computation', async () => {
       const foo = createSignal(0);
       const maybeStale = createComputed$(() => foo.value + 1, { serializationStrategy: 'always' });

@@ -289,6 +289,8 @@ export const useRecommendations = routeLoader$(
 
 A background loader is treated as a **separate request**: it cannot redirect or error the page response. If it calls `redirect()` or `error()`, that control flow is captured on its own signal (surfacing when `.value` is read) and never changes the page's status or headers. Keep route guards that must redirect or set a status in a [request handler](/docs/middleware) such as `onRequest`, or in a blocking loader.
 
+SSG ignores `blockSSR: false`: the build waits for every loader, and a background loader's redirect or error applies to the static page, as it would for a blocking loader.
+
 Note: when the client fetches a background loader for SPA navigation, there is no difference between a blocking and non-blocking loader — the SPA fetch is always async, and the page is already rendered. Errors are not surfaced directly, but redirects are followed automatically.
 
 ## Accessing `RequestEvent`

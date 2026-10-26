@@ -5,6 +5,7 @@ import {
   resolveRequestHandlers,
 } from '../middleware/request-handler/resolve-request-handlers-core';
 import { trimInternalPathname } from '../middleware/request-handler/request-path';
+import type { RequestEventLoader } from '../middleware/request-handler/types';
 import { runQwikRouter } from '../middleware/request-handler/user-response';
 import { loadRoute } from '../runtime/src/routing';
 import type { SsgHandlerOptions, SsgWorkerRenderResult, System } from './types';
@@ -61,13 +62,13 @@ const createRender = ({ earlyCatch = false, lateCatch = false } = {}) =>
     };
   });
 
-function renderRoute(sys: System, render: any) {
+function renderRoute(sys: System, render: any, routeModule: object = { default: () => null }) {
   const opts: SsgHandlerOptions = {
     outDir: '/out',
     origin: 'https://example.com',
     render,
     qwikRouterConfig: {
-      routes: { _I: async () => ({ default: () => null }) },
+      routes: { _I: async () => routeModule },
       serverPlugins: undefined,
       cacheModules: false,
       basePathname: '/',
@@ -114,5 +115,59 @@ describe('SSG worker error boundary handling', () => {
     expect(result.ok).toBe(false);
     expect(result.error?.message).toContain('Catch');
     expect(result.filePath).toBeNull();
+  });
+});
+
+describe('SSG worker background loaders', () => {
+  function createBackgroundLoader(id: string, load: (ev: RequestEventLoader) => unknown) {
+    const loader: any = () => {};
+    loader.__brand = 'server_loader';
+    loader.__id = id;
+    loader.__qrl = { call: (_: unknown, ev: RequestEventLoader) => load(ev), getHash: () => id };
+    loader.__validators = undefined;
+    loader.__serializationStrategy = 'never';
+    loader.__cacheControl = 'immutable';
+    loader.__search = undefined;
+    loader.__blockSSR = false;
+    return loader;
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('fails the route when a background loader fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { sys } = createSystem();
+    const useFailing = createBackgroundLoader('failing', () => {
+      throw new Error('background loader failed');
+    });
+    const result = await renderRoute(sys, createRender(), { default: () => null, useFailing });
+
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toBe('background loader failed');
+  });
+
+  it('does not write the page when a background loader redirects', async () => {
+    const { sys, written } = createSystem();
+    const useRedirect = createBackgroundLoader('redirect', (ev) => {
+      throw ev.redirect(302, '/login/');
+    });
+    const result = await renderRoute(sys, createRender(), { default: () => null, useRedirect });
+
+    expect(result.ok).toBe(false);
+    expect(written.size).toBe(0);
+  });
+
+  it("writes a slow background loader's data file", async () => {
+    const { sys, written } = createSystem();
+    const useSlow = createBackgroundLoader(
+      'slow',
+      () => new Promise((resolve) => setTimeout(resolve, 50, 'late'))
+    );
+    const result = await renderRoute(sys, createRender(), { default: () => null, useSlow });
+
+    expect(result.ok).toBe(true);
+    expect([...written.keys()]).toContain('/out/q-data-slow.json');
   });
 });

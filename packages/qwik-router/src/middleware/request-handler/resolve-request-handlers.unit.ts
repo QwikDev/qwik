@@ -10,7 +10,7 @@ import { RequestEvHttpStatusMessage, RequestEvSharedActionId } from './request-e
 import { createRequestEvent } from './request-event-core';
 import { RedirectMessage } from './redirect-handler';
 import { isContentType } from './request-utils';
-import type { RequestEvent, ServerRequestEvent } from './types';
+import type { RequestEvent, ServerRequestEvent, ServerRequestMode } from './types';
 import { checkCSRF } from './resolve-request-handlers-core';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
@@ -573,11 +573,11 @@ describe('resolve-request-handler', () => {
       };
     }
 
-    function runPage(route: LoadedRoute, renderHandler: any) {
+    function runPage(route: LoadedRoute, renderHandler: any, mode: ServerRequestMode = 'server') {
       globalThis.__NO_TRAILING_SLASH__ = false;
       const handlers = resolveRequestHandlers(undefined, route, 'GET', true, renderHandler);
       const requestEv = createRequestEvent(
-        createMockServerRequestEvent('http://localhost:3000/'),
+        { ...createMockServerRequestEvent('http://localhost:3000/'), mode },
         route,
         handlers,
         '/',
@@ -751,6 +751,23 @@ describe('resolve-request-handler', () => {
 
       expect(renderHandler).toHaveBeenCalledOnce();
       release();
+    });
+
+    it('waits for background loaders before rendering a static page', async () => {
+      const route = pageRouteWithLoaders(
+        makeLoader('slow', () => new Promise((resolve) => setTimeout(resolve, 10, 'late')), {
+          blockSSR: false,
+        })
+      );
+      const renderHandler = vi.fn((requestEv: RequestEvent) => {
+        expect(getRouteLoaderValues(requestEv)).toEqual({ slow: 'late' });
+        requestEv.exit();
+      });
+      const requestEv = runPage(route, renderHandler, 'static');
+
+      await requestEv.next();
+
+      expect(renderHandler).toHaveBeenCalledOnce();
     });
 
     it('errors the response when a blockSSR loader errors, before render', async () => {

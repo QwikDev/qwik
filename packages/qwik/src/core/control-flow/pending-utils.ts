@@ -1,10 +1,14 @@
 import type { Container } from '../shared/types';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { isPropsProxy } from '../shared/jsx/props-proxy';
 import { _PROPS_HANDLER } from '../shared/utils/constants';
 import { getStoreHandler, getStoreTarget } from '../reactive-primitives/impl/store';
-import type { EffectSubscription } from '../reactive-primitives/types';
+import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import {
+  ComputedSignalFlags,
+  NEEDS_COMPUTATION,
+  type EffectSubscription,
+} from '../reactive-primitives/types';
 import { scheduleEffects } from '../reactive-primitives/utils';
 import {
   SubscriptionPatchChannel,
@@ -126,6 +130,7 @@ export const applySubscriptionPatches = (
     const root = container.$getObjectById$(patch.rootId);
     const subscriptions = patch.subscriptions;
     if (root instanceof SignalImpl) {
+      settleComputedFromPatch(root, patch.value);
       if (subscriptions instanceof Set) {
         const signal = root as ComputedSignalImpl<unknown>;
         const effects =
@@ -157,6 +162,18 @@ export const applySubscriptionPatches = (
       }
     }
   }
+};
+
+const settleComputedFromPatch = (signal: SignalImpl<unknown>, value: unknown): void => {
+  const isUnsettledComputed =
+    signal instanceof ComputedSignalImpl &&
+    signal.$flags$ & ComputedSignalFlags.INVALID &&
+    signal.$untrackedValue$ === NEEDS_COMPUTATION;
+  if (value === NEEDS_COMPUTATION || !isUnsettledComputed) {
+    return;
+  }
+  signal.$untrackedValue$ = value;
+  signal.$flags$ &= ~ComputedSignalFlags.INVALID;
 };
 
 const mergeSubscriptionSet = (

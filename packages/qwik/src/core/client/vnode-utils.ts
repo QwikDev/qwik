@@ -690,7 +690,7 @@ const vnode_getDomSibling = (
     let sibling: VNode | null | undefined = nextDirection
       ? cursor.nextSibling
       : cursor.previousSibling;
-    if (sibling && sibling.flags & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
+    if (sibling && sibling.flags & VNodeFlags.ELEMENT_OR_TEXT_MASK && vnode_getNode(sibling)) {
       // we found a previous/next DOM node, return it.
       return sibling as ElementVNode | TextVNode;
     } else if (!sibling) {

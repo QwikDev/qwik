@@ -251,4 +251,71 @@ describe.each([
       expect(document.querySelector('p')!.textContent).toBe('true true true');
     });
   });
+
+  describe('inserted siblings', () => {
+    it('should keep the next sibling children when inserting an element without children', async () => {
+      const Cmp = component$(() => {
+        const rows = useSignal(['field']);
+        return (
+          <form>
+            <button type="button" onClick$={() => (rows.value = ['divider', ...rows.value])} />
+            {rows.value.map((row) =>
+              row === 'divider' ? (
+                <hr />
+              ) : (
+                <label>
+                  <input />
+                </label>
+              )
+            )}
+          </form>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      const input = document.querySelector('input')!;
+      input.value = 'typed';
+
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('hr')).not.toBeNull();
+      expect(document.querySelector('input')).toBe(input);
+      expect(input.value).toBe('typed');
+    });
+
+    it('should keep a component in the next sibling when inserting an element without children', async () => {
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        return (
+          <button id="count" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+        );
+      });
+      const Cmp = component$(() => {
+        const rows = useSignal(['counter']);
+        return (
+          <div>
+            <button id="add" onClick$={() => (rows.value = ['divider', ...rows.value])} />
+            {rows.value.map((row) =>
+              row === 'divider' ? (
+                <hr />
+              ) : (
+                <section>
+                  <Counter />
+                </section>
+              )
+            )}
+          </div>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, '#count', 'click');
+      expect(document.querySelector('#count')!.textContent).toBe('1');
+
+      await trigger(container.element, '#add', 'click');
+      expect(document.querySelector('hr')).not.toBeNull();
+      expect(document.querySelector('#count')!.textContent).toBe('1');
+    });
+  });
 });

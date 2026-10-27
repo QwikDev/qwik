@@ -1,6 +1,13 @@
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
-import { $, component$, Fragment as Component, inlinedQrl, type QRL } from '@qwik.dev/core';
+import { describe, expect, it, onTestFinished } from 'vitest';
+import {
+  $,
+  component$,
+  Fragment as Component,
+  inlinedQrl,
+  useSignal,
+  type QRL,
+} from '@qwik.dev/core';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -11,6 +18,23 @@ const delayQrl = <T extends Function>(qrl: QRL<T>): QRL<T> => {
     'd_' + (qrl as any).$symbol$,
     (qrl as any).$captures$ as any
   ) as any;
+};
+
+const settlesWithin = (promise: Promise<unknown>, ms = 50) =>
+  Promise.race([
+    promise.then(() => 'settled'),
+    new Promise((resolve) => setTimeout(() => resolve('still pending'), ms)),
+  ]);
+
+const holdPendingClick = () => {
+  (globalThis as any).pendingClick = new Promise<void>((resolve) => {
+    (globalThis as any).releasePendingClick = resolve;
+    onTestFinished(() => {
+      resolve();
+      (globalThis as any).pendingClick = undefined;
+      (globalThis as any).releasePendingClick = undefined;
+    });
+  });
 };
 
 describe.each([
@@ -177,6 +201,62 @@ describe.each([
     expect((globalThis as any).logs).toEqual(['child', 'parent']);
     (globalThis as any).logs = undefined;
   });
+
+  it('settles a click on an element without a handler while another click handler is pending', async () => {
+    holdPendingClick();
+    const Cmp = component$(() => {
+      return (
+        <>
+          <button id="pending" onClick$={() => (globalThis as any).pendingClick}></button>
+          <p id="no-handler"></p>
+        </>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    void trigger(document.body, '#pending', 'click');
+
+    expect(await settlesWithin(trigger(document.body, '#no-handler', 'click'))).toBe('settled');
+  });
+
+  it('keeps event order for a deferred handler while an earlier click handler is still pending', async () => {
+    (globalThis as any).logs = [];
+    holdPendingClick();
+    const Cmp = component$(() => {
+      return (
+        <>
+          <button
+            id="pending"
+            onClick$={async () => {
+              await (globalThis as any).pendingClick;
+              (globalThis as any).logs.push('pending');
+            }}
+          ></button>
+          <button
+            id="deferred"
+            onClick$={[
+              $(async () => {}),
+              $(() => {
+                (globalThis as any).logs.push('deferred');
+              }),
+            ]}
+          ></button>
+        </>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    const pending = trigger(document.body, '#pending', 'click');
+    const deferred = trigger(document.body, '#deferred', 'click');
+
+    expect(await settlesWithin(deferred)).toBe('still pending');
+    expect((globalThis as any).logs).toEqual([]);
+
+    (globalThis as any).releasePendingClick();
+    await Promise.all([pending, deferred]);
+    expect((globalThis as any).logs).toEqual(['pending', 'deferred']);
+    (globalThis as any).logs = undefined;
+  });
 });
 
 // delayed handlers can be only for ssr
@@ -232,4 +312,52 @@ it('preserves mouseleave and mouseover execution order when delayed qrls resolve
   (globalThis as any).overPromise = undefined;
   (globalThis as any).resolveLeave = undefined;
   (globalThis as any).resolveOver = undefined;
+});
+
+describe('domRender: events', () => {
+  it('settles a click whose handler finished while another click handler is pending', async () => {
+    holdPendingClick();
+    const Cmp = component$(() => {
+      const count = useSignal(0);
+      return (
+        <>
+          <button id="pending" onClick$={() => (globalThis as any).pendingClick}></button>
+          <button id="count" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+        </>
+      );
+    });
+
+    const { document } = await domRender(<Cmp />, { debug });
+    void trigger(document.body, '#pending', 'click');
+
+    expect(await settlesWithin(trigger(document.body, '#count', 'click'))).toBe('settled');
+    expect(document.querySelector('#count')!.textContent).toBe('1');
+  });
+
+  it('settles an async click handler that resolves while an earlier one is still pending', async () => {
+    (globalThis as any).logs = [];
+    holdPendingClick();
+    const Cmp = component$(() => {
+      return (
+        <>
+          <button id="pending" onClick$={() => (globalThis as any).pendingClick}></button>
+          <button
+            id="async"
+            onClick$={async () => {
+              (globalThis as any).logs.push('async');
+            }}
+          ></button>
+        </>
+      );
+    });
+
+    const { document } = await domRender(<Cmp />, { debug });
+    void trigger(document.body, '#pending', 'click');
+
+    expect(await settlesWithin(trigger(document.body, '#async', 'click'))).toBe('settled');
+    expect((globalThis as any).logs).toEqual(['async']);
+    (globalThis as any).logs = undefined;
+  });
 });

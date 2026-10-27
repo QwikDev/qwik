@@ -399,10 +399,7 @@ function diff(
                   )) ||
                 _hasOwnProperty.call(diffContext.$jsxValue$.varProps, dangerouslySetInnerHTML);
               if (hasDangerousInnerHTML) {
-                // Only clean up children for existing nodes; new nodes have no children yet
-                if (!diffContext.$vNewNode$) {
-                  expectNoChildren(diffContext, false);
-                }
+                expectNoChildren(diffContext, false);
               } else {
                 descend(diffContext, diffContext.$jsxValue$.children, true);
               }
@@ -949,7 +946,8 @@ function cleanupDiffContext(diffContext: DiffContext): void {
 }
 
 function expectNoChildren(diffContext: DiffContext, removeDOM = true) {
-  const vFirstChild = diffContext.$vCurrent$ && vnode_getFirstChild(diffContext.$vCurrent$);
+  const vHost = diffContext.$vNewNode$ || diffContext.$vCurrent$;
+  const vFirstChild = vHost && vnode_getFirstChild(vHost);
   if (vFirstChild !== null) {
     let vChild: VNode | null = vFirstChild;
     while (vChild) {
@@ -958,7 +956,7 @@ function expectNoChildren(diffContext: DiffContext, removeDOM = true) {
     }
     vnode_truncate(
       diffContext.$journal$,
-      diffContext.$vCurrent$ as ElementVNode | VirtualVNode,
+      vHost as ElementVNode | VirtualVNode,
       vFirstChild,
       removeDOM
     );

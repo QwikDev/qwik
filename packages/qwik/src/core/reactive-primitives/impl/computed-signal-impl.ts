@@ -49,6 +49,7 @@ const log = (...args: any[]) => console.log('COMPUTED SIGNAL', ...args.map(qwikD
 export class Job<T> implements ComputeCtx<T> {
   /** First holds the compute promise and then the cleanup promise */
   $promise$: Promise<void> | null | void = null;
+  $computationSettled$: boolean = false;
   $cleanupRequested$: boolean = false;
   $canWrite$: boolean = true;
   declare $track$: Tracker | undefined;
@@ -502,6 +503,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         this.$info$ = undefined;
       }
       this.$flags$ &= ~ComputedSignalFlags.INVALID;
+      running.$computationSettled$ = true;
       this.$setError$(running, err);
       return;
     }
@@ -526,6 +528,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$info$ = undefined;
     }
     this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    running.$computationSettled$ = true;
     this.untrackedError = undefined;
     super.value = result;
   }
@@ -600,7 +603,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (this.$jobs$) {
       this.$jobs$.push(running);
     }
-    running.$promise$ = this.$runComputation$(running);
+    const promise = this.$runComputation$(running);
+    if (!running.$computationSettled$) {
+      running.$promise$ = promise;
+    }
   }
 
   async $runComputation$(running: Job<T>): Promise<void> {
@@ -612,6 +618,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       fn = await this.$computeQrl$.resolve();
       if (this.$disposed$ || running.$abortController$?.signal.aborted) {
         DEBUG && log('Computation aborted before it started');
+        running.$computationSettled$ = true;
         running.$promise$ = null;
         return;
       }
@@ -649,6 +656,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         value = valuePromise;
       }
 
+      running.$computationSettled$ = true;
       running.$promise$ = null;
 
       if (running.$canWrite$) {
@@ -676,6 +684,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         super.value = value;
       }
     } catch (err) {
+      running.$computationSettled$ = true;
       running.$promise$ = null;
       DEBUG && log('Error caught in promise.catch', err);
       this.$setError$(running, err);

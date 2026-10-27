@@ -3,6 +3,7 @@ import { createDocument } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getDomContainer } from '../../client/dom-container';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
+import { getPlatform, setPlatform } from '../../shared/platform/platform';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import type { Container, HostElement } from '../../shared/types';
@@ -50,6 +51,62 @@ describe('async signal', () => {
   afterEach(async () => {
     await container.$renderPromise$;
     container = null!;
+  });
+
+  describe.each([false, true])('synchronous completion (server: %s)', (isServer) => {
+    let platform: ReturnType<typeof getPlatform>;
+    beforeEach(() => {
+      platform = getPlatform();
+      setPlatform({ ...platform, isServer });
+    });
+    afterEach(() => setPlatform(platform));
+
+    it.each([42, undefined])('settles a synchronous value: %j', async (value) => {
+      await withContainer(async () => {
+        const ref = { value };
+        const signal = createAsyncQrl($(() => ref.value)) as AsyncSignalImpl<number | undefined>;
+
+        expect(signal.value).toBe(value);
+        expect(signal.pending).toBe(false);
+        expect(signal.$current$?.$promise$).toBeFalsy();
+        await signal.promise();
+        expect(signal.value).toBe(value);
+      });
+    });
+
+    it('settles a synchronous failure', async () => {
+      await withContainer(async () => {
+        const ref = { error: new Error('synchronous failure') };
+        const signal = createAsyncQrl(
+          $(() => {
+            throw ref.error;
+          })
+        ) as AsyncSignalImpl<never>;
+
+        expect(() => signal.value).toThrow(ref.error);
+        expect(signal.error).toBe(ref.error);
+        expect(signal.pending).toBe(false);
+        expect(signal.$current$?.$promise$).toBeFalsy();
+        await signal.promise();
+      });
+    });
+
+    it('recomputes after synchronous completion', async () => {
+      await withContainer(async () => {
+        const ref = { value: 1 };
+        const signal = createAsyncQrl($(() => ref.value)) as AsyncSignalImpl<number>;
+
+        expect(signal.value).toBe(1);
+        expect(signal.$current$?.$promise$).toBeFalsy();
+        ref.value = 2;
+        signal.invalidate();
+
+        expect(signal.value).toBe(2);
+        expect(signal.pending).toBe(false);
+        expect(signal.$current$?.$promise$).toBeFalsy();
+        await signal.promise();
+      });
+    });
   });
 
   describe('invalidate info', () => {

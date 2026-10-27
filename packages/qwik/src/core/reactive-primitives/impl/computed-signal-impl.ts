@@ -2,6 +2,7 @@ import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
 import { assertFalse, assertTrue } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
+import { toBoundaryError } from '../../shared/error/error-handling';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import { SubscriptionPatchChannel } from '../../shared/serdes/subscription-patch';
@@ -501,7 +502,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         this.$info$ = undefined;
       }
       this.$flags$ &= ~ComputedSignalFlags.INVALID;
-      this.$setError$(running, err as Error);
+      this.$setError$(running, err);
       return;
     }
     if (isPromise(result)) {
@@ -677,7 +678,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     } catch (err) {
       running.$promise$ = null;
       DEBUG && log('Error caught in promise.catch', err);
-      this.$setError$(running, err as Error);
+      this.$setError$(running, err);
     }
 
     if (isCurrent() && !this.$disposed$) {
@@ -700,7 +701,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * Sets the error from the given job. We only accept errors from the current job and we ignore
    * AbortErrors.
    */
-  $setError$(job: Job<T>, error: Error): void {
+  $setError$(job: Job<T>, error: unknown): void {
     if (job !== this.$current$ || !job.$canWrite$) {
       return;
     }
@@ -709,7 +710,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       // AbortError from AbortSignal is a cancellation, not an actual error
       return;
     }
-    this.untrackedError = error;
+    this.untrackedError = toBoundaryError(error);
     // Job failures should be rare and require retrying
     this.untrackedValue = NEEDS_COMPUTATION;
   }

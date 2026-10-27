@@ -281,6 +281,45 @@ describe('async signal', () => {
     });
   });
 
+  describe('errors', () => {
+    it.each([null, undefined, 0, false, ''])(
+      'normalizes a non-Error failure: %j',
+      async (reason) => {
+        await withContainer(async () => {
+          const ref = { reason };
+          const signal = createAsync<number>(async () => {
+            throw ref.reason;
+          });
+
+          await signal.promise();
+
+          const error = signal.error;
+          expect(error).toBeInstanceOf(Error);
+          expect(error!.cause).toBe(reason);
+          expect(() => signal.value).toThrow(error);
+
+          signal.value = 42;
+          expect(signal.error).toBeUndefined();
+          expect(signal.value).toBe(42);
+        });
+      }
+    );
+
+    it('preserves an Error failure', async () => {
+      await withContainer(async () => {
+        const ref = { error: new Error('compute failed') };
+        const signal = createAsync<number>(async () => {
+          throw ref.error;
+        });
+
+        await signal.promise();
+
+        expect(signal.error).toBe(ref.error);
+        expect(() => signal.value).toThrow(ref.error);
+      });
+    });
+  });
+
   describe('cleanup and abort', () => {
     it('should run async cleanups before next compute', async () => {
       await withContainer(async () => {

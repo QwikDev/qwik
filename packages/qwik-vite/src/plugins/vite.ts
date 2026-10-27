@@ -146,7 +146,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
   const injections: GlobalInjections[] = [];
-  let bundleFileNamesBeforeCssCleanup = new Set<string>();
+  // Keyed by environment: shared plugins can run environment builds concurrently.
+  const bundleFileNamesBeforeCssCleanup = new WeakMap<object, Set<string>>();
   const qwikPlugin = createQwikPlugin({
     tsOptimizer: qwikViteOpts.tsOptimizer,
     ...qwikViteOpts.optimizerOptions,
@@ -470,7 +471,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     generateBundle: {
       order: 'pre',
       handler(_, rollupBundle) {
-        bundleFileNamesBeforeCssCleanup = new Set(Object.keys(rollupBundle));
+        bundleFileNamesBeforeCssCleanup.set(this.environment, new Set(Object.keys(rollupBundle)));
       },
     },
 
@@ -602,8 +603,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             }
           }
 
-          stubRemovedChunkImports(rollupBundle, bundleFileNamesBeforeCssCleanup, (code) =>
-            this.parse(code)
+          stubRemovedChunkImports(
+            rollupBundle,
+            bundleFileNamesBeforeCssCleanup.get(this.environment) ?? new Set(),
+            (code) => this.parse(code)
           );
 
           const manifest = await qwikPlugin.generateManifest(

@@ -3,6 +3,7 @@ import {
   Fragment as Component,
   component$,
   Fragment,
+  Slot,
   useComputed$,
   useSignal,
   useStore,
@@ -196,6 +197,60 @@ describe.each([
       expect(document.querySelectorAll('[role=alert]')).toHaveLength(0);
       expect(pay().getAttribute('class')).toBe('pay busy');
       expect(pay().getAttribute('aria-busy')).toBe('true');
+    });
+  });
+
+  describe('conditional siblings', () => {
+    it('should insert a conditional element in place before an empty conditional', async () => {
+      const Cmp = component$(() => {
+        const first = useSignal(false);
+        const second = useSignal(false);
+        return (
+          <div>
+            <button id="first" onClick$={() => (first.value = true)} />
+            {first.value && <i id="a" />}
+            {second.value && <i id="b" />}
+            <button id="second" onClick$={() => (second.value = true)} />
+          </div>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      const ids = () => Array.from(document.querySelectorAll('[id]'), (el) => el.id);
+
+      await trigger(container.element, '#first', 'click');
+      expect(ids()).toEqual(['first', 'a', 'second']);
+
+      await trigger(container.element, '#second', 'click');
+      expect(ids()).toEqual(['first', 'a', 'b', 'second']);
+    });
+
+    it('should insert a projected conditional in place before an empty conditional', async () => {
+      const Wrapper = component$(() => (
+        <div>
+          <Slot />
+          <span id="after" />
+        </div>
+      ));
+      const Cmp = component$(() => {
+        const first = useSignal(false);
+        const second = useSignal(false);
+        return (
+          <>
+            <button id="first" onClick$={() => (first.value = true)} />
+            <Wrapper>
+              {first.value && <i id="a" />}
+              {second.value && <i id="b" />}
+            </Wrapper>
+          </>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      const ids = () => Array.from(document.querySelectorAll('[id]'), (el) => el.id);
+
+      await trigger(container.element, '#first', 'click');
+      expect(ids()).toEqual(['first', 'a', 'after']);
     });
   });
 

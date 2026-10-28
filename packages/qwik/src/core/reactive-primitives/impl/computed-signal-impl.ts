@@ -1,6 +1,6 @@
 import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
-import { assertFalse, assertTrue } from '../../shared/error/assert';
+import { assertTrue } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import { toBoundaryError } from '../../shared/error/error-handling';
 import { isServerPlatform } from '../../shared/platform/platform';
@@ -219,17 +219,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$flags$ & AsyncSignalFlags.ASYNC_MODE
         ? () => pullSourcesIfCheck(this)
         : this.$computeIfNeeded$;
-    let running: ValueOrPromise<unknown>;
-    try {
-      // @ts-expect-error it's confused about args any[] vs []
-      running = retryOnPromise(invokeApply.bind(this, ctx, compute));
-    } catch (err) {
-      // A missing input reruns this computed on its change; the writer must not see it.
-      if (err === NOT_READY) {
-        return;
-      }
-      throw err;
-    }
+    // @ts-expect-error it's confused about args any[] vs []
+    const running = retryOnPromise(invokeApply.bind(this, ctx, compute));
     if (isPromise(running)) {
       running.catch((err: unknown) => {
         if (this.$container$) {
@@ -308,13 +299,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     ) {
       throw qError(QError.asyncClientOnlyValueDuringSSR);
     }
-    if (this.$untrackedValue$ === NEEDS_COMPUTATION && this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
-      // Nothing computes a value now, e.g. a cancelled loader.
+    if (this.$untrackedValue$ === NEEDS_COMPUTATION) {
+      // Nothing can compute a value now, e.g. a cancelled loader or an input waiting for one.
       throw NOT_READY;
     }
-    isDev &&
-      !(this.$flags$ & AsyncSignalFlags.ASYNC_MODE) &&
-      assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
   set untrackedValue(value: T) {
@@ -367,7 +355,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   get untrackedPending(): boolean {
     // reading `.loading` means someone is interested in the result, so we should trigger the computation. The alternative is eager computation or imperative calls to invalidate; this seems nicer.
-    this.$computeForStatus$();
+    this.$computeIfNeeded$();
     // During SSR there's no such thing as loading state, we must render complete results
     if ((qTest ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
       DEBUG && log('Throwing loading promise for SSR');
@@ -433,23 +421,12 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   get untrackedError() {
-    this.$computeForStatus$();
+    this.$computeIfNeeded$();
     // During SSR we must render settled results
     if ((qTest ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
       throw this.$current$?.$promise$;
     }
     return this.$untrackedError$;
-  }
-
-  /** Starts the computation for a status read, where a missing input is not a failure. */
-  private $computeForStatus$(): void {
-    try {
-      this.$computeIfNeeded$();
-    } catch (err) {
-      if (err !== NOT_READY) {
-        throw err;
-      }
-    }
   }
 
   $setInvalid$(allowRecalc: boolean): void {
@@ -528,9 +505,13 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     try {
       result = this.$invokeComputeFn$(computeQrl.resolved as Function, running);
     } catch (err) {
-      // A thrown promise is a retry request, and a missing input reruns on its change
-      if (isPromise(err) || err === NOT_READY) {
+      // A thrown promise is a retry request
+      if (isPromise(err)) {
         throw err;
+      }
+      // A missing input leaves this computed invalid; its value read throws NOT_READY
+      if (err === NOT_READY) {
+        return;
       }
       if (running.$infoVersion$ === this.$infoVersion$) {
         this.$info$ = undefined;

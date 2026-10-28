@@ -2,4 +2,4 @@
 '@qwik.dev/router': patch
 ---
 
-fix: avoid quadratic allocation when matching long catch-all request paths
+fix: avoid quadratic parameter-value joins when matching long catch-all request paths

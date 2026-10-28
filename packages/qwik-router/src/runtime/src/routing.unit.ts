@@ -999,6 +999,7 @@ describe('loadRoute — [...rest] followed by more segments', () => {
     { suffix: '', nested: false },
     { suffix: '/product/123', nested: false },
     { suffix: '', nested: true },
+    { suffix: '/product/123', nested: true },
   ])(
     'long rest paths avoid quadratic string work: $suffix, nested=$nested',
     ({ suffix, nested }) => {
@@ -1007,6 +1008,7 @@ describe('loadRoute — [...rest] followed by more segments', () => {
       if (nested) {
         const restRoute = routes._A as RouteData;
         restRoute._A = { _P: 'inner', product: restRoute.product };
+        delete restRoute.product;
       }
       const pathname = '/' + Array(segmentCount).fill('a%2Fb').join('/') + suffix;
       const originalJoin = Array.prototype.join;
@@ -1028,6 +1030,10 @@ describe('loadRoute — [...rest] followed by more segments', () => {
       assert.isFalse(result.notFound);
       assert.equal(result.params.path, Array(segmentCount).fill('a/b').join('/'));
       assert.equal(result.params.id, suffix ? '123' : undefined);
+      if (nested && suffix) {
+        assert.equal(result.params.inner, '');
+        assert.deepEqual(result.routeParts, ['[...path]', '[...inner]', 'product', '[id]']);
+      }
     }
   );
 

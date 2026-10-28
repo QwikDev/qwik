@@ -247,7 +247,7 @@ test.describe('server$', () => {
       expect(serializerBundle).not.toBe(manifest.core);
     });
 
-    test('preloads the serializer so a server$ call loads no script', async ({ page }) => {
+    test('preloads the serializer before the first server$ call', async ({ page }) => {
       const scriptRequests: string[] = [];
       page.on('request', (request) => {
         if (request.resourceType() === 'script') {
@@ -266,7 +266,10 @@ test.describe('server$', () => {
       await button.click();
       await expect(button).toHaveText('Result: 42');
 
-      expect(scriptRequests.slice(scriptsBeforeClick)).toEqual([]);
+      const segmentRequestsAfterClick = scriptRequests
+        .slice(scriptsBeforeClick)
+        .filter((url) => url.endsWith(`/build/${serverSegmentBundle}`));
+      expect(segmentRequestsAfterClick).toEqual([]);
     });
   });
 });

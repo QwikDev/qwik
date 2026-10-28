@@ -87,6 +87,21 @@ const SpreadButton = component$(() => {
   );
 });
 
+const DeepPropLabel = component$((props: { label: string }) => <span>{props.label}</span>);
+const DeepPropParent = component$(() => {
+  const count = useSignal(0);
+  if (count.value < 0) {
+    return null;
+  }
+  const item = { meta: { label: 'hello' }, format: () => 'x' };
+  return (
+    <div>
+      <button onClick$={() => count.value++}>{count.value}</button>
+      <DeepPropLabel label={item.meta.label} />
+    </div>
+  );
+});
+
 type PropChange = 'same' | 'change' | 'remove' | 'add';
 
 const ResumedChildCounter = component$((props: { label?: string }) => {
@@ -2803,6 +2818,50 @@ describe.each([
     expect(document.querySelector('#toggle')).toBe(toggle);
     expect(toggle?.getAttribute('class')).toBe('on');
     expect(toggle?.textContent).toBe('few');
+  });
+
+  it('should rerender a child whose prop reads deep into an object holding a function', async () => {
+    const { document } = await render(<DeepPropParent />, { debug });
+    expect(document.querySelector('span')?.textContent).toBe('hello');
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('button')?.textContent).toBe('1');
+    expect(document.querySelector('span')?.textContent).toBe('hello');
+  });
+
+  it('should render a deep prop in a child that can rerender', async () => {
+    const Counter = component$((props: { label: string }) => {
+      const count = useSignal(0);
+      if (count.value < 0) {
+        return null;
+      }
+      return <button onClick$={() => count.value++}>{`${props.label}${count.value}`}</button>;
+    });
+    const Parent = component$(() => {
+      const item = { meta: { label: 'hello' }, format: () => 'x' };
+      return <Counter label={item.meta.label} />;
+    });
+
+    const { document } = await render(<Parent />, { debug });
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('button')!.textContent).toBe('hello1');
+  });
+
+  it('should still update a deep prop that reads a store', async () => {
+    const Parent = component$(() => {
+      const store = useStore({ label: 'a' });
+      const item = { meta: store };
+      return (
+        <div>
+          <button onClick$={() => (store.label = 'b')} />
+          <DeepPropLabel label={item.meta.label} />
+        </div>
+      );
+    });
+
+    const { document } = await render(<Parent />, { debug });
+    expect(document.querySelector('span')!.textContent).toBe('a');
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('span')!.textContent).toBe('b');
   });
 
   it.each([

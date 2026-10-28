@@ -11,7 +11,6 @@ on:
 
 permissions:
   actions: read
-  deployments: write
   contents: read
   pull-requests: write
 
@@ -41,10 +40,6 @@ jobs:
               core.setOutput('has-docs', false);
             }
 
-      - name: Checkout code
-        if: ${{ steps.check-artifact.outputs.has-docs == 'true' }}
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
       - name: Download docs artifact
         if: ${{ steps.check-artifact.outputs.has-docs == 'true' }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -58,18 +53,36 @@ jobs:
         if: ${{ steps.check-artifact.outputs.has-docs == 'true' }}
         run: test -d packages/docs/dist
 
-      # not the official version, so be careful when updating
+      # workflow_run.pull_requests is empty for PRs from forks.
+      - name: Find PR number
+        id: pr
+        if: ${{ steps.check-artifact.outputs.has-docs == 'true' && github.event.workflow_run.event == 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_LABEL: ${{ github.event.workflow_run.head_repository.owner.login }}:${{ github.event.workflow_run.head_branch }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          number=$(gh api -X GET "repos/$GITHUB_REPOSITORY/pulls" -f head="$HEAD_LABEL" --jq 'map(select(.head.sha == env.HEAD_SHA)) | if length == 1 then .[0].number else empty end')
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+
       - name: Deploy to Cloudflare Pages
-        if: ${{ steps.check-artifact.outputs.has-docs == 'true' }}
-        uses: AdrianGonz97/refined-cf-pages-action@6c0d47ff7c97c48fa702b6d9f71f7e3a7c30c7d8
+        id: deploy
+        if: ${{ steps.check-artifact.outputs.has-docs == 'true' && (github.event.workflow_run.event != 'pull_request' || steps.pr.outputs.number) }}
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: 'qwik-docs'
-          directory: packages/docs/dist
+          wranglerVersion: '3.114.17'
           # v1 docs are production (qwik.dev); main (v2) stays the original qwikdev-build-v2 preview until launch
-          branch: ${{ github.event.workflow_run.event == 'pull_request' && format('pr-{0}', github.event.workflow_run.pull_requests[0].number) || (github.event.workflow_run.head_branch == 'v1' && 'main') || (github.event.workflow_run.head_branch == 'main' && 'qwikdev-build-v2') || format('preview-{0}', github.event.workflow_run.head_branch) }}
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy packages/docs/dist --project-name=qwik-docs --branch=${{ github.event.workflow_run.event == 'pull_request' && format('pr-{0}', steps.pr.outputs.number) || (github.event.workflow_run.head_branch == 'v1' && 'main') || (github.event.workflow_run.head_branch == 'main' && 'qwikdev-build-v2') || format('preview-{0}', github.event.workflow_run.head_branch) }}
+
+      - name: Comment docs preview
+        if: ${{ steps.pr.outputs.number && steps.deploy.outputs.pages-deployment-alias-url }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          BODY: '⚡ [Docs preview](${{ steps.deploy.outputs.pages-deployment-alias-url }}) for ${{ github.event.workflow_run.head_sha }}'
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --edit-last --create-if-none --body "$BODY"
 
       # Pages doesn't purge the zone cache, and SSG HTML is edge-cached by a cache rule.
       - name: Purge Cloudflare cache

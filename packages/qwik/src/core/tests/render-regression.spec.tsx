@@ -3,6 +3,7 @@ import {
   Fragment as Component,
   component$,
   Fragment,
+  Slot,
   useComputed$,
   useSignal,
   useStore,
@@ -199,6 +200,60 @@ describe.each([
     });
   });
 
+  describe('conditional siblings', () => {
+    it('should insert a conditional element in place before an empty conditional', async () => {
+      const Cmp = component$(() => {
+        const first = useSignal(false);
+        const second = useSignal(false);
+        return (
+          <div>
+            <button id="first" onClick$={() => (first.value = true)} />
+            {first.value && <i id="a" />}
+            {second.value && <i id="b" />}
+            <button id="second" onClick$={() => (second.value = true)} />
+          </div>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      const ids = () => Array.from(document.querySelectorAll('[id]'), (el) => el.id);
+
+      await trigger(container.element, '#first', 'click');
+      expect(ids()).toEqual(['first', 'a', 'second']);
+
+      await trigger(container.element, '#second', 'click');
+      expect(ids()).toEqual(['first', 'a', 'b', 'second']);
+    });
+
+    it('should insert a projected conditional in place before an empty conditional', async () => {
+      const Wrapper = component$(() => (
+        <div>
+          <Slot />
+          <span id="after" />
+        </div>
+      ));
+      const Cmp = component$(() => {
+        const first = useSignal(false);
+        const second = useSignal(false);
+        return (
+          <>
+            <button id="first" onClick$={() => (first.value = true)} />
+            <Wrapper>
+              {first.value && <i id="a" />}
+              {second.value && <i id="b" />}
+            </Wrapper>
+          </>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      const ids = () => Array.from(document.querySelectorAll('[id]'), (el) => el.id);
+
+      await trigger(container.element, '#first', 'click');
+      expect(ids()).toEqual(['first', 'a', 'after']);
+    });
+  });
+
   describe('props derived from render-local values', () => {
     const Child = component$<{ open?: boolean }>((props) => {
       const computedOpen = useComputed$(() => props.open === true);
@@ -249,6 +304,73 @@ describe.each([
 
       await trigger(container.element, 'button', 'click');
       expect(document.querySelector('p')!.textContent).toBe('true true true');
+    });
+  });
+
+  describe('inserted siblings', () => {
+    it('should keep the next sibling children when inserting an element without children', async () => {
+      const Cmp = component$(() => {
+        const rows = useSignal(['field']);
+        return (
+          <form>
+            <button type="button" onClick$={() => (rows.value = ['divider', ...rows.value])} />
+            {rows.value.map((row) =>
+              row === 'divider' ? (
+                <hr />
+              ) : (
+                <label>
+                  <input />
+                </label>
+              )
+            )}
+          </form>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      const input = document.querySelector('input')!;
+      input.value = 'typed';
+
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('hr')).not.toBeNull();
+      expect(document.querySelector('input')).toBe(input);
+      expect(input.value).toBe('typed');
+    });
+
+    it('should keep a component in the next sibling when inserting an element without children', async () => {
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        return (
+          <button id="count" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+        );
+      });
+      const Cmp = component$(() => {
+        const rows = useSignal(['counter']);
+        return (
+          <div>
+            <button id="add" onClick$={() => (rows.value = ['divider', ...rows.value])} />
+            {rows.value.map((row) =>
+              row === 'divider' ? (
+                <hr />
+              ) : (
+                <section>
+                  <Counter />
+                </section>
+              )
+            )}
+          </div>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, '#count', 'click');
+      expect(document.querySelector('#count')!.textContent).toBe('1');
+
+      await trigger(container.element, '#add', 'click');
+      expect(document.querySelector('hr')).not.toBeNull();
+      expect(document.querySelector('#count')!.textContent).toBe('1');
     });
   });
 });

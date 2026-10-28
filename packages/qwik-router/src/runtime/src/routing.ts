@@ -323,13 +323,7 @@ function getStaticChild(node: RouteData, partLower: string): RouteData | undefin
  * Priority: exact match → _M groups (recursively) → _W wildcard → _A rest wildcard. This ensures
  * exact matches inside nested groups take precedence over wildcards at parent level.
  */
-function findChild(
-  node: RouteData,
-  part: string,
-  partLower: string,
-  parts: string[],
-  partIndex: number
-): ChildMatch | undefined {
+function findChild(node: RouteData, part: string, partLower: string): ChildMatch | undefined {
   // 1. Try exact match on this node's direct children
   const exact = getStaticChild(node, partLower);
   if (exact) {
@@ -348,7 +342,7 @@ function findChild(
   if (node._M) {
     for (let j = 0; j < node._M.length; j++) {
       const group = node._M[j];
-      const groupResult = findChild(group, part, partLower, parts, partIndex);
+      const groupResult = findChild(group, part, partLower);
       if (groupResult) {
         // Prepend this group to the groups chain
         groupResult.groups.unshift(group);
@@ -358,7 +352,7 @@ function findChild(
   }
 
   // 3. Try wildcard [param] on this node
-  const wildcard = tryWildcardMatch(node, part, partLower, parts, partIndex);
+  const wildcard = tryWildcardMatch(node, part, partLower);
   if (wildcard) {
     return { ...wildcard, groups: [] };
   }
@@ -370,11 +364,9 @@ function findChild(
 function tryWildcardMatch(
   node: RouteData,
   part: string,
-  partLower: string,
-  parts: string[],
-  partIndex: number
+  partLower: string
 ): Omit<ChildMatch, 'groups'> | undefined {
-  return matchWildcardNode(node, part, partLower) ?? matchRestNode(node, parts, partIndex);
+  return matchWildcardNode(node, part, partLower) ?? matchRestNode(node);
 }
 
 /** Try to match a segment against a node's `[param]` wildcard child (`_W`). */
@@ -423,22 +415,16 @@ function matchWildcardNode(
 }
 
 /** Try to match the remaining segments against a node's `[...param]` rest child (`_A`). */
-function matchRestNode(
-  node: RouteData,
-  parts: string[],
-  partIndex: number
-): Omit<ChildMatch, 'groups'> | undefined {
+function matchRestNode(node: RouteData): Omit<ChildMatch, 'groups'> | undefined {
   const next = node._A as RouteData | undefined;
   if (next) {
     const paramName = next._P!;
-    const restValue = parts.slice(partIndex).join('/');
     return {
       next,
       routePart: `[...${paramName}]`,
       done: true,
       kind: ChildMatchKind.Rest,
       paramName,
-      paramValue: restValue,
     };
   }
 
@@ -476,7 +462,6 @@ function matchRestSpans(node: RouteData, parts: string[], partIndex: number): Ch
       done: false,
       kind: ChildMatchKind.Rest,
       paramName,
-      paramValue: parts.slice(partIndex, partIndex + span).join('/'),
       span,
     });
   }
@@ -530,7 +515,7 @@ function findChildAll(
   // specific one, and the stable sort in `findMatchChain` keeps this order within the Rest kind.
   candidates.push(...matchRestSpans(node, parts, partIndex));
 
-  const rest = matchRestNode(node, parts, partIndex);
+  const rest = matchRestNode(node);
   if (rest) {
     candidates.push({ ...rest, groups: [] });
   }
@@ -754,7 +739,7 @@ export function matchRouteTree(
     const part = parts[i];
     const partLower = part.toLowerCase();
 
-    const found = chain ? chain[chainIndex++] : findChild(node, part, partLower, parts, i);
+    const found = chain ? chain[chainIndex++] : findChild(node, part, partLower);
     if (!found) {
       matched = false;
       break;
@@ -782,14 +767,15 @@ export function matchRouteTree(
       };
     }
 
+    const span = found.span ?? 1;
     if (found.paramName) {
-      params[found.paramName] = found.paramValue!;
+      params[found.paramName] =
+        found.paramValue ?? parts.slice(i, found.done ? len : i + span).join('/');
     }
 
     routeParts.push(found.routePart);
     done = found.done;
     node = found.next;
-    const span = found.span ?? 1;
     const matchedParts = encodedParts.slice(0, found.done ? len : i + span);
     const matchedPathname = matchedParts.length ? `/${matchedParts.join('/')}/` : '/';
     collectNodeMeta(

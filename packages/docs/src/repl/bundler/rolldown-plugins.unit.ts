@@ -29,6 +29,30 @@ test.each(['client', 'ssr'] as const)(
   }
 );
 
+test('resolves the serializer subpath to its own module', () => {
+  const plugin = replResolver(
+    {
+      '@builder.io/qwik': {
+        version: 'bundled',
+        '/dist/serializer.mjs': '/assets/serializer.mjs',
+      },
+    },
+    { srcInputs: [], buildMode: 'development', replId: 'test' },
+    'ssr'
+  );
+  if (typeof plugin.resolveId !== 'function') {
+    throw new Error('Expected resolveId hook');
+  }
+  expect(
+    plugin.resolveId.call(
+      {} as any,
+      '@qwik.dev/core/internal/serializer',
+      '/qwik/dist/server.mjs',
+      {} as any
+    )
+  ).toEqual({ id: '/qwik/dist/serializer.mjs', sideEffects: false });
+});
+
 describe('repl worker qrl chunk rewrites', () => {
   test('rewrites worker qrl placeholders to repl client bundle paths', () => {
     const manifest = {

@@ -103,6 +103,9 @@ export const replResolver = (
         if (pkgName === '/server') {
           return resolveQwik('/dist/server.mjs');
         }
+        if (pkgName === '/internal/serializer') {
+          return resolveQwik('/dist/serializer.mjs');
+        }
         if (pkgName === '/async-local-storage') {
           return resolveQwik('/dist/async-local-storage.mjs');
         }

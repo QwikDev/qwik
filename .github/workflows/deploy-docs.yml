@@ -58,9 +58,29 @@ jobs:
         if: ${{ steps.check-artifact.outputs.has-docs == 'true' }}
         run: test -d packages/docs/dist
 
+      # workflow_run.pull_requests is empty for PRs from forks.
+      - name: Find PR number
+        id: pr
+        if: ${{ steps.check-artifact.outputs.has-docs == 'true' && github.event.workflow_run.event == 'pull_request' }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          retries: 3
+          script: |
+            const run = context.payload.workflow_run;
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${run.head_repository.owner.login}:${run.head_branch}`,
+            });
+            const pr = pulls.find((pull) => pull.head.sha === run.head_sha);
+            if (pr) {
+              core.setOutput('number', pr.number);
+            }
+
       # not the official version, so be careful when updating
       - name: Deploy to Cloudflare Pages
-        if: ${{ steps.check-artifact.outputs.has-docs == 'true' }}
+        id: deploy
+        if: ${{ steps.check-artifact.outputs.has-docs == 'true' && (github.event.workflow_run.event != 'pull_request' || steps.pr.outputs.number) }}
         uses: AdrianGonz97/refined-cf-pages-action@6c0d47ff7c97c48fa702b6d9f71f7e3a7c30c7d8
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -68,8 +88,42 @@ jobs:
           projectName: 'qwik-docs'
           directory: packages/docs/dist
           # v1 docs are production (qwik.dev); main (v2) stays the original qwikdev-build-v2 preview until launch
-          branch: ${{ github.event.workflow_run.event == 'pull_request' && format('pr-{0}', github.event.workflow_run.pull_requests[0].number) || (github.event.workflow_run.head_branch == 'v1' && 'main') || (github.event.workflow_run.head_branch == 'main' && 'qwikdev-build-v2') || format('preview-{0}', github.event.workflow_run.head_branch) }}
+          branch: ${{ github.event.workflow_run.event == 'pull_request' && format('pr-{0}', steps.pr.outputs.number) || (github.event.workflow_run.head_branch == 'v1' && 'main') || (github.event.workflow_run.head_branch == 'main' && 'qwikdev-build-v2') || format('preview-{0}', github.event.workflow_run.head_branch) }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      # The action can't find fork PRs once `branch` is set.
+      - name: Comment docs preview on fork PR
+        if: ${{ steps.deploy.outputs.alias && github.event.workflow_run.head_repository.full_name != github.repository }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.alias }}
+        with:
+          script: |
+            const marker = '<!-- qwik-docs-preview -->';
+            const issue_number = Number(process.env.PR_NUMBER);
+            const body = `${marker}\n## ⚡ Docs preview\n\n[Visit Preview](${process.env.PREVIEW_URL}) for ${context.payload.workflow_run.head_sha}`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+            });
+            const previewComment = comments.find((comment) => comment.body?.includes(marker));
+            if (previewComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: previewComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number,
+                body,
+              });
+            }
 
       # Pages doesn't purge the zone cache, and SSG HTML is edge-cached by a cache rule.
       - name: Purge Cloudflare cache

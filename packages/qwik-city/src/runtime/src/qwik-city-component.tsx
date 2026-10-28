@@ -286,13 +286,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       if (isBrowser) {
         // Use `location.href` because the lastDest signal is only updated on page navigates.
         if (type === 'link' && dest.href !== location.href) {
-          if (location.href.startsWith(dest.href.split('#')[0])) {
-            location.hash = dest.hash;
-            if (location.hash === '') {
-              history.pushState(null, '', dest);
-            }
-          } else {
-            history.pushState(null, '', dest);
+          const oldURL = location.href;
+          history.pushState(null, '', dest);
+          // pushState() doesn't fire `hashchange`, so fire it like a native #hash navigation would.
+          if (new URL(oldURL).hash !== dest.hash) {
+            window.dispatchEvent(
+              new HashChangeEvent('hashchange', { oldURL, newURL: location.href })
+            );
           }
         }
 

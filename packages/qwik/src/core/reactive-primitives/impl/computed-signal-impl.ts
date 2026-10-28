@@ -219,8 +219,17 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$flags$ & AsyncSignalFlags.ASYNC_MODE
         ? () => pullSourcesIfCheck(this)
         : this.$computeIfNeeded$;
-    // @ts-expect-error it's confused about args any[] vs []
-    const running = retryOnPromise(invokeApply.bind(this, ctx, compute));
+    let running: ValueOrPromise<unknown>;
+    try {
+      // @ts-expect-error it's confused about args any[] vs []
+      running = retryOnPromise(invokeApply.bind(this, ctx, compute));
+    } catch (err) {
+      // A missing input reruns this computed on its change; the writer must not see it.
+      if (err === NOT_READY) {
+        return;
+      }
+      throw err;
+    }
     if (isPromise(running)) {
       running.catch((err: unknown) => {
         if (this.$container$) {

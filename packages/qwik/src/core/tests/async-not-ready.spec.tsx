@@ -1,4 +1,12 @@
-import { $, component$, createAsyncQrl, useComputed$, useTask$ } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  createAsyncQrl,
+  useComputed$,
+  useSignal,
+  useTask$,
+  type Signal,
+} from '@qwik.dev/core';
 import { domRender } from '@qwik.dev/core/testing';
 import { expect, it, vi } from 'vitest';
 import { delay } from '../shared/utils/promises';
@@ -12,6 +20,7 @@ interface List {
 const scenario = {
   list: undefined as AsyncSignalImpl<List> | undefined,
   runs: [] as number[],
+  trigger: undefined as Signal<number> | undefined,
 };
 
 /** An async signal whose first computation never settles until it is aborted. */
@@ -82,4 +91,19 @@ it('reruns a task that tracks a cancelled value once it arrives', async () => {
   list.value = { items: ['a'] };
   await container.$renderPromise$;
   expect(scenario.runs).toEqual([1]);
+});
+
+it('lets a write to another input finish while a computed waits for a cancelled value', async () => {
+  const Child = component$(() => {
+    const trigger = useSignal(0);
+    scenario.trigger = trigger;
+    const count = useComputed$(() => trigger.value + scenario.list!.value.items.length);
+    return <p id="count">{count.value}</p>;
+  });
+  const { document, container, list } = await renderAndCancel(<Child />);
+  expect(() => (scenario.trigger!.value = 1)).not.toThrow();
+
+  list.value = { items: ['a'] };
+  await container.$renderPromise$;
+  expect(document.querySelector('#count')?.textContent).toBe('2');
 });

@@ -3,10 +3,10 @@
   "devDependencies": {
     "@qwik.dev/optimizer": "workspace:*",
     "@qwik.dev/ts-optimizer": "workspace:*",
-    "image-size": "2.0.2",
+    "image-size": "2.0.4",
     "magic-string": "0.30.21",
     "rolldown": "1.2.4",
-    "vite": "8.2.1"
+    "vite": "8.2.4"
   },
   "private": true
 }

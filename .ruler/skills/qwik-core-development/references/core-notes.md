@@ -194,14 +194,17 @@ Out-of-order (OOOS) invariants:
   container's root takes vnode data only from its own container, never from the outer walk.
 - The root walk must resume after a `q:rp` subtree even when it is its parent's last child;
   counting segment elements shifts the vnode data of everything after that parent.
-- A subscription patch is emitted only for root-owned state. To test the merge on resume, provide
-  the store through context or read it in the shell; a store only passed as props into the segment
-  is segment-owned and the test passes falsely.
+- Test subscription patches against producers already delivered in the shell or an earlier segment.
+  A newly serialized producer tests initial state rather than merging late subscriptions; keep later
+  segments blocked when verifying that serialization stays within the emitting segment's scope.
 - Unit harnesses resolve every segment before resume. Timing-dependent OOOS bugs (shell resumed
   before release, `SSRStream` nested containers) need the e2e fixtures to reproduce.
 
 ## QRL And Optimizer-Facing Runtime
 
+- Across package boundaries, inspect core values through helpers exported from `@qwik.dev/core/internal`;
+  production builds mangle `$...$` properties inside core, so external packages cannot read them
+  directly. Verify these integrations after a production build, including client-rendered elements.
 - Use `$`-suffixed APIs and `$()` in tests when a QRL boundary is expected.
 - Avoid manual QRL construction unless nearby tests already use it for the same reason.
 - If runtime behavior relies on optimizer output, inspect the optimizer transform and snapshot too.

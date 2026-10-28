@@ -608,6 +608,21 @@ export default component$(() => {
 });
 ```
 
+### Navigating state
+
+While a client-side navigation started by a `Link` is in progress, the clicked `<a>` carries a
+`data-navigating` attribute. It is removed when the navigation finishes or fails, so you can use it
+to style the clicked link right away:
+
+```css
+a[data-navigating] {
+  opacity: 0.6;
+}
+```
+
+For a page-wide loading indicator, use `isNavigating` from
+[`useLocation()`](/docs/(qwikrouter)/api/index.mdx#uselocation) instead.
+
 ### Prefetch
 
 `Link` can prefetch route bundles, route data, or both before the user navigates.

@@ -535,6 +535,9 @@ export const formToObj = (formData: FormData): Record<string, any> => {
         const childNode = pathNode.children.get(key)!;
         const nextValue = object[key];
         if (nextValue !== undefined) {
+          if (!Array.isArray(nextValue) && Object.getPrototypeOf(nextValue) !== null) {
+            break;
+          }
           object = nextValue;
           pathNode = childNode;
           continue;

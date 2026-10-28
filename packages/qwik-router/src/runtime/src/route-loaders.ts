@@ -357,6 +357,16 @@ export const fetchRouteLoaderData = async (
   return promise;
 };
 
+const retainLoaderValue = (previous: unknown, abortSignal: AbortSignal) => {
+  if (previous !== undefined) {
+    return previous;
+  }
+  return new Promise<never>((_, reject) => {
+    abortSignal.throwIfAborted();
+    abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
+  });
+};
+
 const createRouteLoaderSignal = (
   loader: LoaderInternal,
   routeLoaderCtx: RouteLoaderCtx,
@@ -394,13 +404,7 @@ const createRouteLoaderSignal = (
       }
       const request = getLoaderRequest(routeLoaderCtx, state, id, loaderHash);
       if (!request.active) {
-        if (previous === undefined) {
-          return new Promise((_, reject) => {
-            abortSignal.throwIfAborted();
-            abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
-          });
-        }
-        return previous;
+        return retainLoaderValue(previous, abortSignal);
       }
       const pageUrl = new URL(request.pageUrl);
       const mHash = untrack(() => routeLoaderCtx.manifestHash) || 'dev';
@@ -455,10 +459,8 @@ const createRouteLoaderSignal = (
         } else {
           location.href = response.r;
         }
-        // Return `previous` (stale data) rather than throwing:  a ComputedSignal
-        // in error state can drop Resource subscriptions, which would prevent
-        // the redirect-target fetch from updating the UI once it arrives.
-        return previous;
+        // Keep unresolved loaders pending until the redirect replaces their request.
+        return retainLoaderValue(previous, abortSignal);
       }
       if (response.e) {
         // Error — throw so signal enters error state
@@ -945,14 +947,15 @@ export const getLoaderRequestEvent = (
   const filteredSearch = loader.__search
     ? filterSearchParams(url.searchParams, loader.__search)
     : rootRequestEv.url.search;
-  if (pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search) {
+  const isSameUrl =
+    pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search;
+  const params = globalThis.__STRICT_LOADERS__
+    ? (getRouteLoaderParams(rootRequestEv)[loader.__id] ??
+      (pathname === rootRequestEv.url.pathname ? rootRequestEv.params : {}))
+    : rootRequestEv.params;
+  if (isSameUrl && params === rootRequestEv.params) {
     return rootRequestEv;
   }
-  // An ancestor path only sees params matched up to it; fail closed if none were recorded.
-  const params =
-    pathname === rootRequestEv.url.pathname
-      ? rootRequestEv.params
-      : getRouteLoaderParams(rootRequestEv)[loader.__id] || {};
 
   let events: Map<string, RequestEvent> = rootRequestEv.sharedMap.get(REQUEST_ROUTE_LOADER_EVENTS);
   if (!events) {
@@ -960,15 +963,21 @@ export const getLoaderRequestEvent = (
     rootRequestEv.sharedMap.set(REQUEST_ROUTE_LOADER_EVENTS, events);
   }
 
-  const eventKey = `${pathname}\n${filteredSearch}`;
+  // Layouts sharing an endpoint can have different params.
+  const eventKey = `${pathname}\n${filteredSearch}\n${params === rootRequestEv.params ? '' : loader.__id}`;
   let loaderRequestEv = events.get(eventKey);
   if (!loaderRequestEv) {
     url.pathname = pathname;
     url.search = filteredSearch;
-    const request = new Request(url, rootRequestEv.request);
+    // Actions may have already consumed the original request body.
+    const request = new Request(url, {
+      method: rootRequestEv.request.method,
+      headers: rootRequestEv.request.headers,
+      signal: rootRequestEv.request.signal,
+    });
     loaderRequestEv = Object.create(rootRequestEv, {
       originalUrl: {
-        value: new URL(url),
+        value: isSameUrl ? rootRequestEv.originalUrl : new URL(url),
         enumerable: true,
       },
       params: {

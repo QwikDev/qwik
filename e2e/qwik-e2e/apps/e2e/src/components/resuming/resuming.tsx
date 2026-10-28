@@ -5,6 +5,7 @@ import {
   useContext,
   useContextProvider,
   useSignal,
+  useStore,
   useTask$,
 } from '@qwik.dev/core';
 
@@ -23,6 +24,7 @@ export const Resuming1 = component$(() => {
       <div>
         <Resuming2 />
       </div>
+      <ResumingStoredComponent />
     </>
   );
 });
@@ -68,6 +70,22 @@ export const ResumingCounterButton = component$(() => {
       <button id="increment" onClick$={() => count.value++}>
         Increment
       </button>
+    </>
+  );
+});
+
+export const Hello = component$(() => <p id="stored-hello">hello from Hello</p>);
+
+export const ResumingStoredComponent = component$(() => {
+  const registry = useStore({ first: Hello, second: Hello });
+  const shown = useSignal<typeof Hello | null>(null);
+
+  return (
+    <>
+      <button id="show-stored" onClick$={() => (shown.value = registry.second)}>
+        Show stored
+      </button>
+      {shown.value && <shown.value />}
     </>
   );
 });

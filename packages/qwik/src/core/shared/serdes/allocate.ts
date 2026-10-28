@@ -24,7 +24,7 @@ import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
 import type { ElementVNode } from '../vnode/element-vnode';
 import type { VNode } from '../vnode/vnode';
-import { _constants, TypeIds, type Constants } from './constants';
+import { _constants, BIGINT_PAYLOAD_REGEXP, TypeIds, type Constants } from './constants';
 import { needsInflation } from './deser-proxy';
 import { createQRLWithBackChannel } from './qrl-to-string';
 import { SubscriptionPatch } from './subscription-patch';
@@ -178,7 +178,10 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.JSXNode:
       return new JSXNodeImpl(null!, null, null, null, 0, null);
     case TypeIds.BigInt:
-      return BigInt(value as string);
+      if (typeof value !== 'string' || !BIGINT_PAYLOAD_REGEXP.test(value)) {
+        throw qError(QError.invalidBigIntPayload);
+      }
+      return BigInt(value);
     case TypeIds.Set:
       return new Set();
     case TypeIds.Map:
@@ -251,10 +254,11 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.EffectSubscriptionNoData:
       return new EffectSubscription(null!, null!, null, null);
     case TypeIds.SubscriptionPatch:
-      return new SubscriptionPatch();
-    default:
-      throw qError(QError.serializeErrorCannotAllocate, [typeId]);
+      if (__EXPERIMENTAL__.pendingBoundary) {
+        return new SubscriptionPatch();
+      }
   }
+  throw qError(QError.serializeErrorCannotAllocate, [typeId]);
 };
 export function retrieveVNodeOrDocument(
   container: DeserializeContainer,

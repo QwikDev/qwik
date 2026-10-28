@@ -38,4 +38,9 @@ test.describe('resuming', () => {
     await expect(counter).toHaveText('3');
     await expect(counterCopy).toHaveText('3');
   });
+
+  test('should render a component stored under two store keys', async ({ page }) => {
+    await page.locator('#show-stored').click();
+    await expect(page.locator('#stored-hello')).toHaveText('hello from Hello');
+  });
 });

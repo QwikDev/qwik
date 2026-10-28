@@ -49,8 +49,12 @@ export function resolveEntryField(
     case 'component':
       return getRootEntry(segment) ?? 'entry_segments';
     case 'smart':
-      // Capture-free handlers load on their own; everything else loads with its root.
-      if (!segment.captures && (segment.ctxKind !== 'function' || segment.ctxName === 'event$')) {
+      // Known events stay separate even when they capture state.
+      if (
+        segment.ctxKind === 'eventHandler' ||
+        segment.ctxName === 'event$' ||
+        (!segment.captures && segment.ctxKind !== 'function')
+      ) {
         return null;
       }
       return getRootEntry(segment);

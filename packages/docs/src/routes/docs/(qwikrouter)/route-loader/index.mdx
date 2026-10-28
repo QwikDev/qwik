@@ -182,7 +182,7 @@ Loader responses come from per-loader JSON endpoints, and the browser HTTP cache
 
 ### `cacheControl`
 
-Sets the `Cache-Control` header on the loader's JSON responses. It accepts everything the [`cacheControl()`](/docs/(qwikrouter)/caching/index.mdx) request method accepts — `'immutable'`, a max-age number in seconds, an options object — or a function of the request event (return `null` to skip the header). A `Cache-Control` header set inside the loader function wins over the option.
+Sets the `Cache-Control` header on the loader's JSON responses. It accepts everything the [`cacheControl()`](/docs/(qwikrouter)/caching/index.mdx) request method accepts — `'immutable'`, a max-age number in seconds, an options object — or a function of the request event (return `null` to skip the header). A `Cache-Control` header set inside the loader function wins over the option. A failed loader is always sent with `no-store`, so no cache ever reuses the failure.
 
 The default is `no-cache`: the browser always revalidates, which pairs well with `eTag` for cheap 304 responses.
 

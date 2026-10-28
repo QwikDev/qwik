@@ -3,6 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   createRequestEvent: vi.fn(),
   asyncRequestStore: undefined as unknown,
+  isDev: true,
+}));
+
+vi.mock('@qwik.dev/core/internal', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@qwik.dev/core/internal')>()),
+  get isDev() {
+    return mocks.isDev;
+  },
 }));
 
 vi.mock('./request-event-core', () => ({
@@ -15,6 +23,7 @@ vi.mock('./async-request-store', () => ({
   },
 }));
 
+import { ServerError } from './server-error';
 import { runQwikRouter } from './user-response';
 import type { ServerRequestEvent } from './types';
 
@@ -22,6 +31,7 @@ describe('runQwikRouter', () => {
   beforeEach(() => {
     mocks.createRequestEvent.mockReset();
     mocks.asyncRequestStore = undefined;
+    mocks.isDev = true;
   });
 
   it('does not throw when creating the request event fails', async () => {
@@ -64,4 +74,77 @@ describe('runQwikRouter', () => {
     );
     expect(result.completion).toBe(completion);
   });
+
+  const failAfterResponseStarted = async () => {
+    const written: string[] = [];
+    const writer = {
+      write: async (chunk: Uint8Array) => {
+        written.push(new TextDecoder().decode(chunk));
+      },
+      close: vi.fn(),
+    };
+    const requestEv = {
+      originalUrl: new URL('http://localhost/boom/'),
+      request: new Request('http://localhost/boom/'),
+      headers: new Headers(),
+      headersSent: true,
+      next: vi.fn(async () => {
+        throw new Error('boom');
+      }),
+      getWritableStream: vi.fn(() => ({ locked: false, getWriter: () => writer })),
+      isDirty: () => true,
+    };
+    mocks.createRequestEvent.mockReturnValue(requestEv);
+
+    await runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/').completion;
+
+    return { html: written.join(''), writer };
+  };
+
+  it('finishes, logs and shows an error that is thrown after the response started in dev', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      const { html, writer } = await failAfterResponseStarted();
+
+      expect(html).toContain('boom');
+      expect(writer.close).toHaveBeenCalled();
+      expect(consoleError).toHaveBeenCalledWith(expect.objectContaining({ message: 'boom' }));
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('keeps the generic error page in production when SSR fails after the response started', async () => {
+    mocks.isDev = false;
+
+    const { html } = await failAfterResponseStarted();
+
+    expect(html).toContain('Internal Server Error');
+    expect(html).not.toContain('boom');
+  });
+
+  it.each(['application/json', 'text/html'])(
+    'sends a thrown ServerError with Cache-Control: no-store for %s',
+    async (accept) => {
+      const requestEv = {
+        originalUrl: new URL('http://localhost/members/'),
+        request: new Request('http://localhost/members/', { headers: { Accept: accept } }),
+        headers: new Headers({ 'Cache-Control': 'public, max-age=60' }),
+        headersSent: false,
+        next: vi.fn(async () => {
+          throw new ServerError(403, 'Members only');
+        }),
+        send: vi.fn(),
+        html: vi.fn(),
+        isDirty: () => true,
+      };
+      mocks.createRequestEvent.mockReturnValue(requestEv);
+
+      await runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/').completion;
+
+      expect(requestEv.send.mock.calls.length + requestEv.html.mock.calls.length).toBe(1);
+      expect(requestEv.headers.get('Cache-Control')).toBe('no-store');
+    }
+  );
 });

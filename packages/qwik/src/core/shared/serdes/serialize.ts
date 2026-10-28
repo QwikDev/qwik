@@ -8,6 +8,7 @@ import { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
+import { _EFFECT_BACK_REF } from '../../reactive-primitives/backref';
 import {
   AsyncSignalFlags,
   EffectProperty,
@@ -43,7 +44,14 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, OnRenderProp, QBackRefs } from '../utils/markers';
 import { isObjectEmpty } from '../utils/objects';
 import { isPromise, maybeThen } from '../utils/promises';
-import { Constants, EMPTY_OBJECT_PAYLOAD, explicitUndefined, TypeIds } from './constants';
+import {
+  BIGINT_PAYLOAD_REGEXP,
+  Constants,
+  EMPTY_OBJECT_PAYLOAD,
+  explicitUndefined,
+  TypeIds,
+} from './constants';
+import { canSerialize } from './can-serialize';
 import { qrlToString } from './qrl-to-string';
 import {
   SerializationBackRef,
@@ -417,7 +425,11 @@ export class Serializer {
           break;
         case 'bigint':
           if ((value < 10000 && value > -1000) || this.getSeenRefOrOutput(value, index)) {
-            this.output(TypeIds.BigInt, value.toString());
+            const payload = value.toString();
+            if (!BIGINT_PAYLOAD_REGEXP.test(payload)) {
+              throw qError(QError.invalidBigIntPayload);
+            }
+            this.output(TypeIds.BigInt, payload);
           }
           break;
         case 'symbol':
@@ -496,7 +508,10 @@ export class Serializer {
           } else if (isQwikComponent(value)) {
             const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
             this.$serializationContext$.$renderSymbols$.add(qrl.$symbol$);
+            const oldParent = this.$parent$;
+            this.$parent$ = { $index$: index, $parent$: oldParent };
             this.output(TypeIds.Component, [qrl]);
+            this.$parent$ = oldParent;
           } else {
             throw qError(QError.serializeErrorCannotSerializeFunction, [value.toString()]);
           }
@@ -552,8 +567,8 @@ export class Serializer {
       } else {
         this.output(TypeIds.EffectSubscription, [value.consumer, value.property, value.data]);
       }
-    } else if (value instanceof SubscriptionPatch) {
-      this.output(TypeIds.SubscriptionPatch, [value.rootId, value.subscriptions]);
+    } else if (__EXPERIMENTAL__.pendingBoundary && value instanceof SubscriptionPatch) {
+      this.output(TypeIds.SubscriptionPatch, [value.rootId, value.subscriptions, value.channel]);
     } else if (isStore(value)) {
       const storeHandler = getStoreHandler(value)!;
       const storeTarget = getStoreTarget(value);
@@ -640,7 +655,7 @@ export class Serializer {
           ...serializeWrappingFn(this.$serializationContext$, value),
           value.$flags$ & ~ComputedSignalFlags.DIRTY_FLAGS,
           value.$hostElement$,
-          ...(value.$effects$ || []),
+          ...this.getSubscriptions(value.$effects$),
         ]);
       } else if (value instanceof ComputedSignalImpl) {
         let v = value.$untrackedValue$;
@@ -702,7 +717,7 @@ export class Serializer {
         const v = value.$untrackedValue$;
         const out = [v === undefined ? explicitUndefined : v];
         if (value.$effects$) {
-          out.push(...value.$effects$);
+          out.push(...this.getSubscriptions(value.$effects$));
         }
         this.output(TypeIds.Signal, out);
       }
@@ -749,10 +764,20 @@ export class Serializer {
         );
       }
       if (value.children) {
-        // Mark child vnode data for serialization (structure only, no value discovery needed)
+        // Preserve child bindings when the parent can rerender.
+        const canRerender = !!value.getProp(QBackRefs)?.get(EffectProperty.COMPONENT)?.backRef
+          ?.size;
         const childrenLength = value.children.length;
         for (let i = 0; i < childrenLength; i++) {
           const child = value.children[i];
+          if (
+            canRerender &&
+            child.getProp(OnRenderProp) &&
+            !this.$discoveredVNodeData$.has(child.vnodeData)
+          ) {
+            this.$discoveredVNodeData$.add(child.vnodeData);
+            discoverValuesForVNodeData(child.vnodeData, this.$serializationContext$);
+          }
           this.$serializationContext$.$markSsrNodeForSerialization$(child, VNodeDataFlag.SERIALIZE);
         }
       }
@@ -768,11 +793,14 @@ export class Serializer {
     } else if (value instanceof URLSearchParams) {
       this.output(TypeIds.URLSearchParams, value.toString());
     } else if (value instanceof Set) {
-      this.output(TypeIds.Set, [...value.values()]);
+      const entries = this.getSubscriptions(value);
+      this.output(TypeIds.Set, Array.isArray(entries) ? entries : [...entries]);
     } else if (value instanceof Map) {
       const combined = [];
       for (const [k, v] of value.entries()) {
-        combined.push(k, v);
+        if (this.isSubscriptionInScope(v)) {
+          combined.push(k, v);
+        }
       }
       this.output(TypeIds.Map, combined);
     } else if (isJSXNode(value)) {
@@ -948,6 +976,31 @@ export class Serializer {
       : this.$forwardRefs$.slice(0, lastIdx + 1);
   }
 
+  private isSubscriptionInScope(value: unknown): boolean {
+    const scope = this.$serializationContext$.$scope$;
+    return (
+      !scope ||
+      !(value instanceof EffectSubscription) ||
+      scope.$includesSegment$(value.$ssrSegmentId$)
+    );
+  }
+
+  private getSubscriptions<T>(effects: Set<T> | undefined): Set<T> | T[] {
+    if (!effects) {
+      return EMPTY_ARRAY;
+    }
+    if (!this.$serializationContext$.$scope$) {
+      return effects;
+    }
+    const included = [];
+    for (const effect of effects) {
+      if (this.isSubscriptionInScope(effect)) {
+        included.push(effect);
+      }
+    }
+    return included;
+  }
+
   private outputForwardRefsArray(forwardRefs: Array<number | string | number[]>): void {
     this.outputArray(forwardRefs, true, (value) => {
       if (typeof value === 'string') {
@@ -1097,10 +1150,22 @@ function isObjectLiteral(obj: unknown): obj is object {
   return prototype == null || prototype === Object.prototype || prototype === Array.prototype;
 }
 
+const returnArg = <T>(p0: T) => p0;
+
+/** A computed wrapped signal that read no reactive source can never change. */
+const isConstantWrappedSignal = (value: WrappedSignalImpl<unknown>) =>
+  !(value.$flags$ & ComputedSignalFlags.INVALID) &&
+  !value[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.backRef?.size;
+
 function serializeWrappingFn(
   serializationContext: SerializationContext,
   value: WrappedSignalImpl<any>
 ) {
+  if (isConstantWrappedSignal(value) && canSerialize(value.$untrackedValue$)) {
+    // Its args may capture unserializable data, so send only the value
+    const syncFnId = serializationContext.$addSyncFn$('p0', 1, returnArg);
+    return [syncFnId, [value.$untrackedValue$]] as const;
+  }
   // if value is an object then we need to wrap this in ()
   if (value.$funcStr$ && value.$funcStr$[0] === '{') {
     value.$funcStr$ = `(${value.$funcStr$})`;

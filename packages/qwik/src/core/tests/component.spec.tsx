@@ -46,6 +46,107 @@ function Hola(props: any) {
 
 const globalObj = ['foo', 'bar'];
 
+const formatCount = (count: number) => `count ${count}`;
+const CountLabel = component$((props: { label: string }) => <span>{props.label}</span>);
+const CountButton = component$(() => {
+  const count = useSignal(0);
+  return (
+    <button onClick$={() => count.value++}>
+      <CountLabel label={formatCount(count.value)} />
+    </button>
+  );
+});
+
+const formatSize = (count: number) => (count < 10 ? 'few' : 'many');
+const ToggleLabel = component$((props: { label: string }) => {
+  const on = useSignal(false);
+  return (
+    <button id="toggle" class={on.value ? 'on' : 'off'} onClick$={() => (on.value = true)}>
+      {props.label}
+    </button>
+  );
+});
+const TickPanel = component$(() => {
+  const count = useSignal(0);
+  return (
+    <div>
+      <button id="tick" onClick$={() => count.value++}>
+        tick
+      </button>
+      <ToggleLabel label={formatSize(count.value)} />
+    </div>
+  );
+});
+const SpreadLabel = component$((props: { label?: string }) => <span>{props.label ?? 'none'}</span>);
+const SpreadButton = component$(() => {
+  const count = useSignal(0);
+  return (
+    <button onClick$={() => count.value++}>
+      <SpreadLabel {...(count.value === 0 ? { label: 'initial' } : {})} />
+    </button>
+  );
+});
+
+const DeepPropLabel = component$((props: { label: string }) => <span>{props.label}</span>);
+const DeepPropParent = component$(() => {
+  const count = useSignal(0);
+  if (count.value < 0) {
+    return null;
+  }
+  const item = { meta: { label: 'hello' }, format: () => 'x' };
+  return (
+    <div>
+      <button onClick$={() => count.value++}>{count.value}</button>
+      <DeepPropLabel label={item.meta.label} />
+    </div>
+  );
+});
+
+type PropChange = 'same' | 'change' | 'remove' | 'add';
+
+const ResumedChildCounter = component$((props: { label?: string }) => {
+  (globalThis as any).resumedChildRenders++;
+  const count = useSignal(0);
+  return (
+    <button id="counter" onClick$={() => count.value++}>
+      {props.label}:{count.value}
+    </button>
+  );
+});
+
+const ResumedChildParent = component$((props: { mode: PropChange }) => {
+  const tick = useSignal(0);
+  const t = tick.value;
+  const childProps: { label?: string } = {};
+  if (props.mode === 'same' || (t === 0 && props.mode !== 'add')) {
+    childProps.label = 'one';
+  } else if (props.mode === 'change' || props.mode === 'add') {
+    childProps.label = 'big';
+  }
+  return (
+    <div>
+      <p>{t}</p>
+      <ResumedChildCounter {...childProps} />
+      <button id="tick" onClick$={() => tick.value++}>
+        tick
+      </button>
+    </div>
+  );
+});
+
+const UnserializedStaticBranch = component$(() => {
+  useSignal('unserialized-static-hook');
+  return <p>static</p>;
+});
+const ResumedChildPage = component$(() => (
+  <main>
+    <ResumedChildParent mode="change" />
+    <aside>
+      <UnserializedStaticBranch />
+    </aside>
+  </main>
+));
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -242,19 +343,19 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>
@@ -269,7 +370,7 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>
@@ -316,13 +417,13 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>
@@ -343,7 +444,7 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>
@@ -2685,6 +2786,118 @@ describe.each([
     );
   });
 
+  it('should rerender a module-scope child when its var props change', async () => {
+    const { vNode, document } = await render(<CountButton />, { debug });
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <button>
+          <Component ssr-required>
+            <span>
+              <Signal ssr-required>count 1</Signal>
+            </span>
+          </Component>
+        </button>
+      </Component>
+    );
+  });
+
+  it('should rerender a module-scope child when its var props become empty', async () => {
+    const { document } = await render(<SpreadButton />, { debug });
+    expect(document.querySelector('span')?.textContent).toBe('initial');
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('span')?.textContent).toBe('none');
+  });
+
+  it('should keep a module-scope child state when its var props do not change', async () => {
+    const { document } = await render(<TickPanel />, { debug });
+    await trigger(document.body, '#toggle', 'click');
+    const toggle = document.querySelector('#toggle');
+    expect(toggle?.getAttribute('class')).toBe('on');
+    await trigger(document.body, '#tick', 'click');
+    expect(document.querySelector('#toggle')).toBe(toggle);
+    expect(toggle?.getAttribute('class')).toBe('on');
+    expect(toggle?.textContent).toBe('few');
+  });
+
+  it('should rerender a child whose prop reads deep into an object holding a function', async () => {
+    const { document } = await render(<DeepPropParent />, { debug });
+    expect(document.querySelector('span')?.textContent).toBe('hello');
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('button')?.textContent).toBe('1');
+    expect(document.querySelector('span')?.textContent).toBe('hello');
+  });
+
+  it('should render a deep prop in a child that can rerender', async () => {
+    const Counter = component$((props: { label: string }) => {
+      const count = useSignal(0);
+      if (count.value < 0) {
+        return null;
+      }
+      return <button onClick$={() => count.value++}>{`${props.label}${count.value}`}</button>;
+    });
+    const Parent = component$(() => {
+      const item = { meta: { label: 'hello' }, format: () => 'x' };
+      return <Counter label={item.meta.label} />;
+    });
+
+    const { document } = await render(<Parent />, { debug });
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('button')!.textContent).toBe('hello1');
+  });
+
+  it('should still update a deep prop that reads a store', async () => {
+    const Parent = component$(() => {
+      const store = useStore({ label: 'a' });
+      const item = { meta: store };
+      return (
+        <div>
+          <button onClick$={() => (store.label = 'b')} />
+          <DeepPropLabel label={item.meta.label} />
+        </div>
+      );
+    });
+
+    const { document } = await render(<Parent />, { debug });
+    expect(document.querySelector('span')!.textContent).toBe('a');
+    await trigger(document.body, 'button', 'click');
+    expect(document.querySelector('span')!.textContent).toBe('b');
+  });
+
+  it.each([
+    { mode: 'same', expected: 'one:2' },
+    { mode: 'change', expected: 'big:2' },
+    { mode: 'remove', expected: ':2' },
+    { mode: 'add', expected: 'big:2' },
+  ] as const)('preserves state and prop bindings when props $mode', async ({ mode, expected }) => {
+    (globalThis as any).resumedChildRenders = 0;
+    const { document } = await render(<ResumedChildParent mode={mode} />);
+    await trigger(document.body, '#counter', 'click');
+    await trigger(document.body, '#counter', 'click');
+    await trigger(document.body, '#tick', 'click');
+    expect(document.querySelector('#counter')!.textContent).toBe(expected);
+    if (mode !== 'add') {
+      expect((globalThis as any).resumedChildRenders).toBe(1);
+    }
+  });
+
+  it('should render a component stored under two store keys after resume', async () => {
+    const Hello = component$(() => <p>hello</p>);
+    const Cmp = component$(() => {
+      const registry = useStore({ first: Hello, second: Hello });
+      const shown = useSignal<typeof Hello | null>(null);
+      return (
+        <>
+          <button onClick$={() => (shown.value = registry.second)}>show</button>
+          {shown.value && <shown.value />}
+        </>
+      );
+    });
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('p')?.textContent).toBe('hello');
+  });
+
   it("should update multiple signals from component's props", async () => {
     const TextContent = component$((props: { 'data-nu'?: string; class?: string }) => {
       return (
@@ -3944,4 +4157,12 @@ describe.each([
     const { container } = await render(<Parent />, { debug });
     expect(container.element.querySelector('span')!.textContent).toBe('true:true');
   });
+});
+
+it('keeps unrelated static branch hooks out of serialized state', async () => {
+  const { document } = await ssrRenderToDom(<ResumedChildPage />, { resume: false });
+  const state = Array.from(document.querySelectorAll('script[type="qwik/state"]'))
+    .map((script) => script.textContent)
+    .join('');
+  expect(state).not.toContain('unserialized-static-hook');
 });

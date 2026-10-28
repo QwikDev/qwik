@@ -7,7 +7,6 @@ import {
   type ComputedSignal,
 } from '@qwik.dev/core';
 import {
-  Form,
   routeAction$,
   routeLoader$,
   useLocation,
@@ -102,12 +101,19 @@ export default component$(() => {
       >
         Save parent
       </button>
-      <Form action={action} spaReset>
+      {/* Allow overlapping actions to test superseded responses. */}
+      <form
+        action={action.actionPath}
+        method="post"
+        preventdefault:submit
+        data-spa-reset="true"
+        onSubmit$={(event) => action.submit(event)}
+      >
         <input aria-label="Action value" name="value" />
         <button id="loader-refresh-action" type="submit">
           Refresh action
         </button>
-      </Form>
+      </form>
       <output id="loader-action-status">{action.isRunning ? 'running' : 'idle'}</output>
       <output id="loader-action-result">{action.value?.ok ? 'done' : ''}</output>
       <output id="loader-action-value">{String(action.value?.value ?? '')}</output>

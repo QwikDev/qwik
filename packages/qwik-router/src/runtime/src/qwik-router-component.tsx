@@ -89,7 +89,7 @@ import {
   restoreScroll,
   saveScrollHistory,
 } from './scroll-restoration';
-import spaInit from './spa-init';
+import spaInit, { isPlainPrimaryClick } from './spa-init';
 import {
   clearNavFetchCache,
   abortRouteLoaderNavigation,
@@ -301,7 +301,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     prevUrl: undefined,
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
-  const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void } = {};
+  const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void; dest?: URL } = {};
   const routeLoaderCtx = env.routeLoaderCtx;
   routeLoaderCtx.manifestHash = manifestHash;
   Object.assign(routeLoaderCtx.loaderPaths, env.loadedRoute.$loaderPaths$);
@@ -477,7 +477,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         return;
       }
 
-      if (!forceReload && isSamePath(dest, lastDest)) {
+      if (
+        !forceReload &&
+        isSamePath(dest, lastDest) &&
+        (!navResolver.dest ||
+          (isSamePath(navResolver.dest, dest) && navResolver.dest.href === dest.href))
+      ) {
         if (isBrowser) {
           // Use `location.href` because the lastDest signal is only updated on page navigates.
           if (type === 'link' && dest.href !== location.href) {
@@ -513,6 +518,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       navResolver.cancel?.();
       navResolver.cancel = undefined;
       navResolver.r?.();
+      navResolver.dest = dest;
 
       let historyUpdated = false;
       if (isBrowser) {
@@ -553,6 +559,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         historyUpdated,
       };
       routeInternal.value = navigation;
+      // routeInternal now holds the in-flight destination, so the shortcut can use it again.
+      navResolver.dest = undefined;
 
       if (wasNavigating) {
         abortRouteLoaderNavigation(routeLoaderCtx);
@@ -602,6 +610,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const canceled = new Promise<undefined>((resolve) => {
         navResolver.cancel = () => resolve(undefined);
       });
+      // A navigation that bails before submitting must still settle the submit promise.
+      const abandonAction = () => {
+        action?.reject?.(new Error('Action submission was superseded by a navigation'));
+        if (action) {
+          action.resolve = undefined;
+          action.reject = undefined;
+        }
+      };
 
       // ensure correct trailing slash
       if (trackUrl.pathname.endsWith('/')) {
@@ -620,11 +636,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       try {
         const route = await Promise.race([loadRoutePromise, canceled]);
         if (!route) {
+          abandonAction();
           return;
         }
         loadedRoute = route;
       } catch (e) {
         if (internalState.navCount !== navCountBefore) {
+          abandonAction();
           return;
         }
         const preparedNavCount = getClientRouteLoaders(routeLoaderCtx).navCount;
@@ -637,20 +655,27 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
       // Bail if a second nav() was fired while we were loading route modules.
       if (internalState.navCount !== navCountBefore) {
+        abandonAction();
         return;
       }
 
       // Submit action if one was triggered
       if (action) {
         const result = await Promise.race([
-          submitAction(action, trackUrl).then((result) => {
-            // Superseded actions still complete their caller's submit promise.
-            if (result && action.resolve) {
-              action.resolve({ status: result.status, result: result.result });
+          submitAction(action, trackUrl).then(
+            (result) => {
+              // Superseded actions still complete their caller's submit promise.
+              action.resolve?.({ status: result.status, result: result.result });
+              action.resolve = undefined;
+              action.reject = undefined;
+              return result;
+            },
+            (error) => {
+              action.reject?.(error);
+              action.reject = undefined;
               action.resolve = undefined;
             }
-            return result;
-          }),
+          ),
           canceled,
         ]);
 
@@ -660,6 +685,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         navResolver.cancel = undefined;
         if (!result) {
           routeInternal.untrackedValue = { type: navType, dest: trackUrl };
+          routeLocation.isNavigating = false;
+          navResolver.r?.();
           return;
         }
 
@@ -979,6 +1006,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       });
     };
 
+    if (isBrowser && !window._qRouterSPA) {
+      // Init-mode popstate must not wait for another QRL once navigation has resumed.
+      window._qRouterInitNavigate = startNavigation;
+    }
     return startNavigation(path, opt);
   });
 
@@ -1186,6 +1217,8 @@ export interface ClientSPAWindow extends Window {
   /** @internal */
   _qRouterInitPopstate?: () => void;
   /** @internal */
+  _qRouterInitNavigate?: Navigate;
+  /** @internal */
   _qRouterInitAnchors?: (event: MouseEvent) => void;
   /** @internal */
   _qRouterInitVisibility?: () => void;
@@ -1216,6 +1249,7 @@ function initializeSPA(goto: Navigate, scroller: HTMLElement) {
 
     window.removeEventListener('popstate', window._qRouterInitPopstate!);
     window._qRouterInitPopstate = undefined;
+    window._qRouterInitNavigate = undefined;
 
     // Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
     // Devs could push their own states that we can't control.
@@ -1264,7 +1298,7 @@ function initializeSPA(goto: Navigate, scroller: HTMLElement) {
     // Any <a> tags w/ #hash href will break SPA state in Firefox.
     // We patch these events and direct them to Link pipeline during SPA.
     document.addEventListener('click', (event) => {
-      if (event.defaultPrevented) {
+      if (event.defaultPrevented || !isPlainPrimaryClick(event)) {
         return;
       }
 

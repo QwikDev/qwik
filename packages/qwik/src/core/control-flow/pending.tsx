@@ -5,7 +5,6 @@ import { componentQrl, type Component } from '../shared/component.public';
 import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
-import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
 import { _fnSignal } from '../shared/qrl/inlined-fn';
 import { inlinedQrl } from '../shared/qrl/qrl';
@@ -13,15 +12,15 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import { _capturesObj, type QRLInternal } from '../shared/qrl/qrl-class';
 import {
   QCursorBoundary,
-  QDefaultSlot,
+  QFallbackSlot,
   QPendingResolved,
   QPendingResultParent,
 } from '../shared/utils/markers';
-import { resolveSlotName } from '../shared/utils/prop';
 import { ERROR_CONTEXT, type CatchStore } from '../shared/error/error-handling';
+import { openSlotProjection } from '../ssr/ssr-render-slot';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
 import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
-import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
+import type { SSRContainer, SSROutOfOrderSegment } from '../ssr/ssr-types';
 import { useComputedQrl } from '../use/use-computed';
 import { tryGetInvokeContext, untrack } from '../use/use-core';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
@@ -115,6 +114,10 @@ export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
   );
 
   const isServerEnv = qTest ? isServerPlatform() : !isBrowser;
+  // Reconcile restored SSR state when no client work is pending.
+  if (!isServerEnv && untrack(() => cursorBoundary.value) === 0) {
+    state.value = 'content';
+  }
   const isServerOutOfOrder = isServerEnv && isOutOfOrderStreaming();
   const outOfOrderBoundaryId = isServerOutOfOrder ? nextOutOfOrderPendingId() : 0;
   const outOfOrderRevealBoundary = isServerOutOfOrder
@@ -130,38 +133,42 @@ export const pendingCmp = (props: PendingProps): JSXNodeInternal<string>[] => {
       : null;
   const contentStyle = /*#__PURE__*/ _fnSignal(_hf1, [state, canReveal], _hf1_str);
   const fallback = props.fallback$
-    ? (props.fallback$ as QRLInternal<() => JSXOutput>).getFn(tryGetInvokeContext())()
+    ? /*#__PURE__*/ _jsxSorted(
+        Slot,
+        null,
+        { name: QFallbackSlot },
+        (props.fallback$ as QRLInternal<() => JSXOutput>).getFn(tryGetInvokeContext())(),
+        1,
+        null
+      )
     : null;
 
-  const fallbackHost = (
-    isServerOutOfOrder
+  const fallbackHost = /*#__PURE__*/ _jsxSorted(
+    'div',
+    {
+      style: _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
+    },
+    null,
+    fallback,
+    1,
+    null
+  );
+
+  return [
+    (isServerOutOfOrder
       ? /*#__PURE__*/ _jsxSorted(
           SSRFallback,
           {
             boundary: outOfOrderBoundaryState,
-            fallbackStyle: _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
             showFallback: showOutOfOrderFallback,
             state,
           },
           null,
-          fallback,
+          fallbackHost,
           1,
           null
         )
-      : /*#__PURE__*/ _jsxSorted(
-          'div',
-          {
-            style: _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
-          },
-          null,
-          fallback,
-          1,
-          null
-        )
-  ) as JSXNodeInternal<string>;
-
-  return [
-    fallbackHost,
+      : fallbackHost) as JSXNodeInternal<string>,
     /*#__PURE__*/ _jsxSorted(
       'div',
       null,
@@ -204,7 +211,6 @@ export const Pending: Component<PendingProps> = /*#__PURE__*/ componentQrl<Pendi
 
 type SSRFallbackProps = {
   boundary: SSROutOfOrderBoundaryState | null;
-  fallbackStyle: Signal<{ display: string }>;
   showFallback: boolean;
   state: Signal<PendingState>;
 };
@@ -212,7 +218,6 @@ type SSRFallbackProps = {
 const SSRFallback = /*#__PURE__*/ createInternalServerComponent<SSRFallbackProps>(
   (ssr, jsx, _options, enqueue) => {
     const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
-    const fallbackStyle = jsx.varProps.fallbackStyle as Signal<{ display: string }>;
     const showFallback = jsx.varProps.showFallback === true;
     const state = jsx.varProps.state as Signal<PendingState>;
     if (showFallback) {
@@ -222,18 +227,7 @@ const SSRFallback = /*#__PURE__*/ createInternalServerComponent<SSRFallbackProps
         state.value = 'fallback';
       }
     }
-    enqueue(
-      /*#__PURE__*/ _jsxSorted(
-        'div',
-        {
-          style: fallbackStyle,
-        },
-        null,
-        jsx.children as JSXOutput,
-        1,
-        null
-      )
-    );
+    enqueue(jsx.children as JSXOutput);
   }
 );
 
@@ -257,12 +251,9 @@ const SSRDeferredSlot = /*#__PURE__*/ createInternalServerComponent<SSRDeferredS
             | CatchStore
             | undefined)
         : undefined;
-    const content = ssr.segment(
-      contentSegment,
-      createClaimedDeferredSlot(ssr, jsx, options),
-      options
-    );
-
+    const slot = openSlotProjection(ssr, jsx, options);
+    const content = ssr.segment(contentSegment, slot.children, slot.options);
+    ssr.closeProjection();
     ssr.write(`<template ${QPendingResolved}="${boundaryId}"></template>`);
     ssr.emitOutOfOrderExecutorIfNeeded();
     ssr.queueOutOfOrderSegment(
@@ -289,41 +280,6 @@ const SSRDeferredSlot = /*#__PURE__*/ createInternalServerComponent<SSRDeferredS
     );
   }
 );
-
-function createClaimedDeferredSlot(
-  ssr: SSRContainer,
-  jsx: JSXNodeInternal,
-  options: SSRRenderJSXOptions
-): ReturnType<typeof _jsxSorted> {
-  const componentFrame = options.parentComponentFrame;
-  if (!componentFrame) {
-    return /*#__PURE__*/ _jsxSorted(
-      Slot,
-      jsx.varProps,
-      jsx.constProps,
-      jsx.children,
-      jsx.flags,
-      jsx.key
-    );
-  }
-  const slotName = resolveSlotName(componentFrame.componentNode, jsx, ssr);
-  const slotDefaultChildren = (jsx.children || null) as JSXChildren | null;
-  const slotChildren =
-    (
-      componentFrame as unknown as { claimChildrenForSlot(slotName: string): JSXChildren | null }
-    ).claimChildrenForSlot(slotName) || slotDefaultChildren;
-  if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
-    ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
-  }
-  return /*#__PURE__*/ _jsxSorted(
-    Slot,
-    jsx.varProps,
-    jsx.constProps,
-    slotChildren,
-    jsx.flags,
-    jsx.key
-  );
-}
 
 async function emitRenderedOutOfOrderSegment(
   ssr: SSRContainer,

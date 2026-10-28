@@ -67,6 +67,17 @@ describe('submitAction', () => {
     expect(action.data).toBeUndefined();
   });
 
+  it('rejects non-JSON responses without exposing the response body', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response('<h1>private proxy error</h1>', { status: 502 }))
+    );
+
+    await expect(
+      submitAction({ id: 'act-a', data: {} } as any, new URL('https://qwik.dev/test/'))
+    ).rejects.toEqual(new Error('Unexpected action response (502): expected JSON'));
+  });
+
   it('preserves route search params when appending the action id', async () => {
     const fetchSpy = vi.fn().mockResolvedValue(await makeJsonResponse({ result: { ok: true } }));
     vi.stubGlobal('fetch', fetchSpy);

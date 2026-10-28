@@ -250,7 +250,7 @@ export function executeComponentChore(
     return;
   }
 
-  const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
+  const props = container.getHostProp<Props | false | null>(host, ELEMENT_PROPS) || null;
 
   return executeComponentFunction(container, host, host, componentQRL, props, journal, cursor);
 }
@@ -493,7 +493,7 @@ export function executeReconcile(
     return;
   }
   const host = vNode as ElementVNode;
-  const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
+  const props = container.getHostProp<Props | false | null>(host, ELEMENT_PROPS) || null;
   if (!props) {
     return;
   }

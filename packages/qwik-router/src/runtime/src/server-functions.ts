@@ -104,21 +104,13 @@ Action.run() can only be called on the browser, for example when a user clicks a
       let form: HTMLFormElement | undefined;
       if (input instanceof SubmitEvent) {
         form = input.target as HTMLFormElement;
-        data = new FormData(form);
-        if (
-          (input.submitter instanceof HTMLInputElement ||
-            input.submitter instanceof HTMLButtonElement) &&
-          input.submitter.name
-        ) {
-          if (input.submitter.name) {
-            (data as FormData).append(input.submitter.name, input.submitter.value);
-          }
-        }
+        data = new FormData(form, input.submitter);
       } else {
         data = input;
       }
       const submission = {};
       latestSubmission.current = submission;
+      state.isRunning = true;
       const previousDispatch = currentAction.pendingDispatch ?? Promise.resolve();
       let resolveDispatch!: () => void;
       currentAction.pendingDispatch = noSerialize(
@@ -128,48 +120,53 @@ Action.run() can only be called on the browser, for example when a user clicks a
       );
       const run = previousDispatch.then(
         () =>
-          new Promise<RouteActionResolver>((resolve) => {
+          new Promise<RouteActionResolver>((resolve, reject) => {
             if (data instanceof FormData) {
               state.formData = data;
             }
             state.submitted = true;
-            state.isRunning = true;
             loc.isNavigating = true;
             currentAction.value = {
               data: data as Record<string, unknown>,
               id,
               resolve: noSerialize(resolve),
+              reject: noSerialize(reject),
               resolveDispatch: noSerialize(resolveDispatch),
             };
             runAction?.(RUN_PENDING_ACTION as unknown as string);
           })
       );
-      return run.then(({ result, status }) => {
-        const isLatestSubmission = latestSubmission.current === submission;
-        if (isLatestSubmission) {
-          state.isRunning = false;
-          state.status = status;
-          state.value = result;
-        }
-        if (form) {
-          if (isLatestSubmission && form.getAttribute('data-spa-reset') === 'true') {
-            form.reset();
+      return run
+        .finally(() => {
+          if (latestSubmission.current === submission) {
+            state.isRunning = false;
           }
-          const detail = { status, value: result } satisfies FormSubmitCompletedDetail<unknown>;
-          form.dispatchEvent(
-            new CustomEvent('submitcompleted', {
-              bubbles: false,
-              cancelable: false,
-              composed: false,
-              detail: detail,
-            })
-          );
-        }
-        return {
-          status: status,
-          value: result,
-        };
-      });
+        })
+        .then(({ result, status }) => {
+          const isLatestSubmission = latestSubmission.current === submission;
+          if (isLatestSubmission) {
+            state.status = status;
+            state.value = result;
+          }
+          if (form) {
+            if (isLatestSubmission && form.getAttribute('data-spa-reset') === 'true') {
+              form.reset();
+            }
+            const detail = { status, value: result } satisfies FormSubmitCompletedDetail<unknown>;
+            form.dispatchEvent(
+              new CustomEvent('submitcompleted', {
+                bubbles: false,
+                cancelable: false,
+                composed: false,
+                detail: detail,
+              })
+            );
+          }
+          return {
+            status: status,
+            value: result,
+          };
+        });
     });
     initialState.submit = submit;
 

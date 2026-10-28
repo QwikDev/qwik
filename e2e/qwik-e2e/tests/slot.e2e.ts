@@ -342,6 +342,7 @@ test.describe('slot', () => {
         expect(msg.text()).toEqual(undefined);
       }
     });
+    await expect.poll(() => page.evaluate(() => !!(window as any)._qwikEv?.roots)).toBe(true);
   });
 
   tests();

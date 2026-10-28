@@ -249,7 +249,7 @@ export interface _ContainerElement extends HTMLElement {
     qDestroy?: () => void;
     qSegmentVnodeData?: Map<string, string>;
     qVnodeData?: string;
-    qVNodeRefs?: Map<number, Element | _ElementVNode>;
+    qVNodeRefs?: Map<number, Element | _VNode>;
 }
 
 // @public
@@ -387,6 +387,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $setRawState$(id: number, vParent: _VNode): void;
     // (undocumented)
     $storeProxyMap$: ObjToProxyMap;
+    // (undocumented)
+    $streamingObjectRefs$: WeakMap<object, object[]> | undefined;
     constructor(element: _ContainerElement);
     // (undocumented)
     document: _QDocument;
@@ -653,6 +655,9 @@ export const _isStore: (value: object) => boolean;
 
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;
+
+// @internal
+export const _isSyncQrl: (value: unknown) => boolean;
 
 // @internal (undocumented)
 export const _isTask: (value: any) => value is _Task;
@@ -1449,7 +1454,11 @@ export class _SubscriptionData {
 
 // @internal (undocumented)
 export class _SubscriptionPatch {
-    constructor(rootId?: number, subscriptions?: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>);
+    constructor(rootId?: number, subscriptions?: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>, channel?: SubscriptionPatchChannel);
+    // Warning: (ae-forgotten-export) The symbol "SubscriptionPatchChannel" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    channel?: SubscriptionPatchChannel;
     // (undocumented)
     rootId: number;
     // (undocumented)

@@ -192,7 +192,7 @@ export const routeConfig: RouteConfig = ({ resolveValue }) => {
 
 The `cacheKey` export enables in-memory SSR caching. When set, rendered HTML is cached and served on subsequent requests with the same cache key, completely bypassing SSR.
 
-- `true`: uses the default cache key — `${status}|${eTag}|${pathname}` when an `eTag` is set, otherwise `${status}|${pathname}`.
+- `true`: uses the default cache key — `${status}|${eTag}|${origin}${pathname}` when an `eTag` is set, otherwise `${status}|${origin}${pathname}`.
 - Function `(requestEv, eTag) => string | null`: return a custom key, or `null` to skip caching this request. The second argument is the normalized eTag (or an empty string when none was provided or it normalized to an empty string).
 
 ```tsx title="src/routes/product/[id]/index.tsx"
@@ -287,7 +287,7 @@ export const useProduct = routeLoader$(
 ```
 
 - `eTag` (string | function): explicit validator. Set before the loader runs, so a matching `If-None-Match` short-circuits with `304` and the loader is skipped entirely.
-- `cacheKey` (`true` | function): enables an in-memory cache for the serialized JSON response. Default key: `${pathname}|${filteredSearch}|${loaderId}`, suffixed with `|${eTag}` when an explicit eTag is set.
+- `cacheKey` (`true` | function): enables an in-memory cache for the serialized JSON response. Default key: `${origin}${pathname}|${filteredSearch}|${loaderId}`, suffixed with `|${eTag}` when an explicit eTag is set.
 
 > **Security warning**: On a cache hit the loader function is **not executed**, so any authentication or authorization check written inside the loader is skipped and the cached JSON is returned to whoever asks. The default key does not identify the visitor. Do not use `cacheKey: true` on loaders that return per-visitor data — return `null` from a custom `cacheKey` function for identified visitors, or include the identifying value in the key — and enforce access control in `onRequest` middleware, which always runs before the cache lookup.
 

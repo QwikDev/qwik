@@ -9,7 +9,7 @@ import { type QRLInternal } from '../../shared/qrl/qrl-class';
 import { type QRL } from '../../shared/qrl/qrl.public';
 import type { Container, HostElement } from '../../shared/types';
 import { ELEMENT_SEQ } from '../../shared/utils/markers';
-import { retryOnPromise } from '../../shared/utils/promises';
+import { delay, retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task, TaskFlags } from '../../use/use-task';
 import {
@@ -22,6 +22,7 @@ import {
   type SerializerSignal,
   type Signal,
 } from '../signal.public';
+import { clearAllEffects } from '../cleanup';
 import { getSubscriber } from '../subscriber';
 import { EffectProperty, ComputedSignalFlags } from '../types';
 import type { ComputedSignalImpl } from './computed-signal-impl';
@@ -424,6 +425,58 @@ describe('signal', () => {
         expect(wrapped).not.toBe(signal);
         const wrapped2 = _wrapProp(wrapped);
         expect(wrapped2).toBe(wrapped);
+      });
+
+      it('retries a hostless pull that first reads a lazy computed', async () => {
+        await withContainer(async () => {
+          const gate = createSignal(false);
+          const error = createSignal(true);
+          const isValid = createComputedQrl(delayQrl($(() => !error.value)));
+          const disabled = createComputed$(() => !gate.value || !isValid.value);
+          // no host, like a wrapped component prop
+          const wrapped = new WrappedSignalImpl(
+            container,
+            (signal: Signal<boolean>) => signal.value,
+            [disabled],
+            null
+          );
+          effect$(() => log.push(wrapped.value));
+          expect(log).toEqual([true]);
+
+          // first read of isValid, whose QRL is not loaded yet
+          gate.value = true;
+          await delay(0);
+          error.value = false;
+          await flushSignals();
+          expect(log).toEqual([true, false]);
+        });
+      });
+
+      it('does not resubscribe a hostless pull whose consumer was cleaned up before its QRL resolved', async () => {
+        await withContainer(async () => {
+          const gate = createSignal(false);
+          const error = createSignal(true);
+          const isValid = createComputedQrl(delayQrl($(() => !error.value)));
+          const disabled = createComputed$(() => !gate.value || !isValid.value);
+          const wrapped = new WrappedSignalImpl(
+            container,
+            (signal: Signal<boolean>) => signal.value,
+            [disabled],
+            null
+          );
+          effect$(() => log.push(wrapped.value));
+
+          // the pull throws while isValid's QRL loads
+          gate.value = true;
+          // the consuming component is cleaned up before the QRL resolves
+          clearAllEffects(container, task!);
+          await delay(0);
+
+          const consumers = [...((disabled as ComputedSignalImpl<boolean>).$effects$ ?? [])].map(
+            (effect) => effect.consumer
+          );
+          expect(consumers).not.toContain(wrapped);
+        });
       });
     });
     // Async signal tests are in async-signal.unit.tsx

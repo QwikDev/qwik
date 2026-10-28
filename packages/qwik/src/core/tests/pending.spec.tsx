@@ -20,6 +20,7 @@ import {
   Catch,
   $,
   getDomContainer,
+  getPlatform,
   type JSXOutput,
   render,
   setPlatform,
@@ -33,6 +34,7 @@ import {
   useStore,
   Fragment as Signal,
   type Signal as SignalType,
+  type AsyncSignal,
 } from '@qwik.dev/core';
 import { _DomContainer } from '@qwik.dev/core/internal';
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
@@ -42,6 +44,7 @@ import { delay } from '../shared/utils/promises';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { TypeIds } from '../shared/serdes/constants';
 import { processOutOfOrderSegmentVNodeData } from '../client/process-vnode-data';
+import { whenContainerDataReady } from '../client/dom-container';
 import * as logUtils from '../shared/utils/log';
 import type { StreamWriter, StreamingOptions } from '../../server/types';
 import { cleanupAttrs } from '../../testing/element-fixture';
@@ -107,7 +110,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <div {...fallbackAttrs}>
-          <span>Loading...</span>
+          <Projection ssr-required>
+            <span>Loading...</span>
+          </Projection>
         </div>
         <div {...contentAttrs()}>
           <Projection ssr-required>
@@ -131,7 +136,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <div {...fallbackAttrs}>
-          <span>Loading...</span>
+          <Projection ssr-required>
+            <span>Loading...</span>
+          </Projection>
         </div>
         <div {...contentAttrs()}>
           <Projection ssr-required>
@@ -162,7 +169,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <div {...fallbackAttrs}>
-          <span>Loading...</span>
+          <Projection ssr-required>
+            <span>Loading...</span>
+          </Projection>
         </div>
         <div {...contentAttrs()}>
           <Projection ssr-required>
@@ -238,7 +247,9 @@ describe.each([
       <div>
         <Component ssr-required>
           <div {...fallbackAttrs}>
-            <span>Loading 1...</span>
+            <Projection ssr-required>
+              <span>Loading 1...</span>
+            </Projection>
           </div>
           <div {...contentAttrs('1')}>
             <Projection ssr-required>
@@ -249,7 +260,9 @@ describe.each([
 
         <Component ssr-required>
           <div {...fallbackAttrs}>
-            <span>Loading 2...</span>
+            <Projection ssr-required>
+              <span>Loading 2...</span>
+            </Projection>
           </div>
           <div {...contentAttrs('2')}>
             <Projection ssr-required>
@@ -272,7 +285,9 @@ describe.each([
       <div>
         <Component ssr-required>
           <div {...fallbackAttrs}>
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div {...contentAttrs()}>
             <Projection ssr-required></Projection>
@@ -296,7 +311,9 @@ describe.each([
       <div>
         <Component ssr-required>
           <div {...fallbackAttrs}>
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div {...contentAttrs()}>
             <Projection ssr-required>
@@ -371,7 +388,9 @@ describe.each([
       <div>
         <Component ssr-required>
           <div {...fallbackAttrs}>
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div {...contentAttrs()}>
             <Projection ssr-required>
@@ -490,7 +509,9 @@ describe('domRender: Pending client-side pause delay', () => {
       <div>
         <Component>
           <div style="display:none">
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div style="display:contents">
             <Projection>
@@ -613,7 +634,9 @@ describe('domRender: Pending client-side pause delay', () => {
       <div>
         <Component ssr-required>
           <div style="display:none">
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div style="display:contents">
             <Projection ssr-required>
@@ -650,7 +673,9 @@ describe('domRender: Pending client-side pause delay', () => {
       <div>
         <Component ssr-required>
           <div style="display:none">
-            <span>Loading...</span>
+            <Projection ssr-required>
+              <span>Loading...</span>
+            </Projection>
           </div>
           <div style="display:contents">
             <Projection ssr-required>
@@ -1006,6 +1031,86 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(contentHost.style.display).toBe('contents');
   });
 
+  it.each([false, true])('should preserve zero content with outOfOrder=%s', async (outOfOrder) => {
+    const { document } = await ssrRenderToDom(
+      <main>
+        <Pending>{0}</Pending>
+      </main>,
+      { debug, streaming: { outOfOrder } }
+    );
+    const contentHost = document.querySelector('main > div:last-of-type')!;
+    expect(contentHost.firstChild?.nodeValue).toBe('0');
+  });
+
+  it.each([
+    { outOfOrder: false, deferred: false },
+    { outOfOrder: true, deferred: false },
+    { outOfOrder: true, deferred: true },
+  ])(
+    'keeps resolved content after its owner updates ($outOfOrder, $deferred)',
+    async ({ outOfOrder, deferred }) => {
+      let resolveContent!: () => void;
+      const ready = new Promise<void>((resolve) => {
+        resolveContent = resolve;
+      });
+      const Child = component$<{ value: SignalType<string> }>((props) => {
+        const count = useSignal(0);
+        const content = (
+          <button id="preserved-content" onClick$={() => count.value++}>
+            {props.value.value}:{count.value}
+          </button>
+        );
+        return deferred && isServerPlatform() ? <>{ready.then(() => content)}</> : content;
+      });
+      const App = component$(() => {
+        const on = useSignal(false);
+        const value = useSignal('hello');
+        return (
+          <main>
+            <button id="toggle-owner" onClick$={() => (on.value = !on.value)}>
+              toggle
+            </button>
+            <button id="update-value" onClick$={() => (value.value = 'updated')}>
+              update
+            </button>
+            {on.value && <b id="owner-updated">on</b>}
+            <Pending fallback$={() => <span id="preserved-fallback">loading</span>}>
+              <Child value={value} />
+            </Pending>
+            <footer>owner shell</footer>
+          </main>
+        );
+      });
+      const chunks: string[] = [];
+      const rendered = ssrRenderPendingStream(<App />, chunks, { outOfOrder });
+      if (deferred) {
+        await vi.waitFor(() => expect(chunks.join('')).toContain('owner shell'));
+      }
+      resolveContent();
+      const { document } = await rendered;
+      if (deferred) {
+        expect(chunks.join('')).toContain('q:patch');
+      }
+      const content = document.querySelector('#preserved-content');
+      const fallbackHost = document.querySelector('#preserved-fallback')!.parentElement!;
+      const contentHost = content!.parentElement!;
+      expect(fallbackHost.style.display).toBe('none');
+      expect(contentHost.style.display).toBe('contents');
+
+      await trigger(document.body, '#preserved-content', 'click');
+      await trigger(document.body, '#toggle-owner', 'click');
+      expect(document.querySelector('#owner-updated')?.textContent).toBe('on');
+      expect(document.querySelectorAll('#preserved-content')).toHaveLength(1);
+      expect(document.querySelector('#preserved-content')).toBe(content);
+      expect(content?.textContent).toBe('hello:1');
+      expect(fallbackHost.style.display).toBe('none');
+      expect(contentHost.style.display).toBe('contents');
+
+      await trigger(document.body, '#update-value', 'click');
+      expect(content?.textContent).toBe('updated:1');
+    }
+  );
+
   it('should show a numeric zero fallback immediately during initial loading', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
@@ -1103,7 +1208,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(html).not.toContain('q:patch');
   });
 
-  it('should resume an early-finalized segment after delayed vnode data is emitted', async () => {
+  it('should resume tasks in an early-finalized segment after delayed vnode data is emitted', async () => {
     let resolveSegment!: (value: JSXOutput) => void;
     let resolveRoot!: (value: JSXOutput) => void;
     const segment = new Promise<JSXOutput>((resolve) => {
@@ -1114,19 +1219,20 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     (globalThis as any).__ooosUnitEarlySegmentClicks = 0;
 
-    const Slow = component$(() => (
-      <>
-        {segment}
-        <button
-          id="ooos-unit-early-segment-button"
-          onClick$={() => {
-            (globalThis as any).__ooosUnitEarlySegmentClicks += 1;
-          }}
-        >
-          Touch early segment
-        </button>
-      </>
-    ));
+    const Slow = component$(() => {
+      const count = useSignal(0);
+      useTask$(({ track }) => {
+        (globalThis as any).__ooosUnitEarlySegmentClicks = track(() => count.value);
+      });
+      return (
+        <>
+          {segment}
+          <button id="ooos-unit-early-segment-button" onClick$={() => count.value++}>
+            Touch early segment
+          </button>
+        </>
+      );
+    });
     const chunks: string[] = [];
 
     const renderPromise = ssrRenderPendingStream(
@@ -1160,6 +1266,74 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       resolveRoot(<footer>Root ready</footer>);
       await renderPromise;
       delete (globalThis as any).__ooosUnitEarlySegmentClicks;
+    }
+  });
+
+  it('should resume early and late segments without shifting state roots', async () => {
+    let resolveRoot!: (value: JSXOutput) => void;
+    let resolveSlow!: (value: string) => void;
+    const root = new Promise<JSXOutput>((resolve) => {
+      resolveRoot = resolve;
+    });
+    const slow = new Promise<string>((resolve) => {
+      resolveSlow = resolve;
+    });
+    const Fast = component$(() => {
+      const value = useComputed$(async () => 'fast');
+      const count = useSignal(0);
+      return (
+        <button id="early-counter" onClick$={() => count.value++}>
+          {value.value} {count.value}
+        </button>
+      );
+    });
+    const Slow = component$(() => {
+      const value = useComputed$(() => slow);
+      const count = useSignal(0);
+      return (
+        <button id="late-counter" onClick$={() => count.value++}>
+          {value.value} {count.value}
+        </button>
+      );
+    });
+    const chunks: string[] = [];
+    const renderPromise = ssrRenderPendingStream(
+      <main>
+        <Pending fallback$={() => <p>Waiting fast</p>}>
+          <Fast />
+        </Pending>
+        <Pending fallback$={() => <p>Waiting slow</p>}>
+          <Slow />
+        </Pending>
+        {root}
+      </main>,
+      chunks
+    );
+
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('qO(1)'));
+      expect(chunks.join('')).not.toContain('type="qwik/state"');
+      resolveRoot(<footer>Root ready</footer>);
+      await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+      resolveSlow('slow');
+      const { document, container } = await renderPromise;
+
+      const counters = [
+        ['early-counter', 'fast'],
+        ['late-counter', 'slow'],
+      ];
+      for (let i = 0; i < counters.length; i++) {
+        const [id, label] = counters[i];
+        expect(document.querySelector(`#${id}`)?.textContent).toBe(`${label} 0`);
+        await trigger(container.element, `#${id}`, 'click');
+        await trigger(container.element, `#${id}`, 'click');
+        await waitForDrain(container);
+        expect(document.querySelector(`#${id}`)?.textContent).toBe(`${label} 2`);
+      }
+    } finally {
+      resolveRoot(<footer>Root ready</footer>);
+      resolveSlow('slow');
+      await renderPromise;
     }
   });
 
@@ -1255,7 +1429,9 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
             <button id="ooos-unit-slow-forward-ref-button">Read slow forward ref</button>
             <Component ssr-required>
               <div style="display: none;">
-                <p>Waiting forward refs</p>
+                <Projection ssr-required>
+                  <p>Waiting forward refs</p>
+                </Projection>
               </div>
               {/* @ts-ignore-next-line */}
               <div q:rp="1" style="display: contents;">
@@ -1414,6 +1590,9 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(html).not.toContain('type="qwik/vnode" q:r="1" q:o=');
     expect(html).not.toContain('q:segment');
     expect(html).not.toContain('q:pending');
+    const document = createDocument({ html });
+    const segment = document.querySelector('script[type="qwik/vnode"][q\\:r="1"]')!;
+    expect(segment.textContent).not.toMatch(/\?[^{}]*~/);
   });
 
   it('should replay projected Slot children when resolved content is rendered later', async () => {
@@ -1825,7 +2004,7 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
-  it('should keep shell vnode ids when a resolved segment patches shell vnode data', async () => {
+  it('should keep shell vnode ids when a resolved segment references shell state', async () => {
     let resolveSlow!: (value: JSXOutput) => void;
     const slow = new Promise<JSXOutput>((resolve) => {
       resolveSlow = resolve;
@@ -1847,12 +2026,12 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     const SegmentReader = component$((props: { other: SignalType<string> }) => {
       const other = props.other.value;
-      return <span>{other}</span>;
+      return <span id="ooos-shell-other">{other}</span>;
     });
     const Slide = component$((props: { other: SignalType<string> }) => (
       <>
         {slow}
-        <b>{props.other.value}</b>
+        <b id="ooos-segment-other">{props.other.value}</b>
       </>
     ));
     const App = component$(() => {
@@ -1862,6 +2041,9 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
         <main>
           <ShellReader state={state} />
           <SegmentReader other={other} />
+          <button id="ooos-update-other" onClick$={() => (other.value = 'updated')}>
+            Update
+          </button>
           <Pending fallback$={() => <p>Waiting shell vnode ids</p>}>
             <Slide other={other} />
           </Pending>
@@ -1877,14 +2059,19 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     const { document, container } = await renderPromise;
 
     const getVNodeIds = (selector: string) =>
-      Array.from(document.querySelector(selector)!.textContent!.matchAll(/=(\d+)/g), (m) => m[1]);
+      Array.from(document.querySelectorAll(selector)).flatMap((script) =>
+        Array.from(script.textContent!.matchAll(/=(\d+)/g), (m) => m[1])
+      );
     const shellIds = getVNodeIds('script[type="qwik/vnode"]:not([q\\:patch]):not([q\\:r])');
     const patchIds = getVNodeIds('script[type="qwik/vnode"][q\\:patch]');
-    expect(patchIds.length).toBeGreaterThan(0);
     expect(shellIds).toEqual(expect.arrayContaining(patchIds));
     try {
       await trigger(container.element, '#ooos-shell-capture', 'click');
       expect((globalThis as any).__ooosShellCapture).toEqual(['/', undefined]);
+      await trigger(container.element, '#ooos-update-other', 'click');
+      await waitForDrain(container);
+      expect(document.querySelector('#ooos-shell-other')?.textContent).toBe('updated');
+      expect(document.querySelector('#ooos-segment-other')?.textContent).toBe('updated');
     } finally {
       delete (globalThis as any).__ooosShellCapture;
     }
@@ -2259,6 +2446,175 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     }
   });
 
+  it.each(['child', 'inline'])(
+    'should resume late %s subscriptions when segments share an async signal',
+    async (variant) => {
+      let resolveData!: (value: string) => void;
+      const dataPromise = new Promise<string>((resolve) => {
+        resolveData = resolve;
+      });
+      const Count = component$((props: { count: SignalType<number> }) => (
+        <span id="shared-async-count">{props.count.value}</span>
+      ));
+      const Reader = component$(
+        (props: { data: { value: string }; count?: SignalType<number> }) => (
+          <p>
+            {props.data.value}
+            {props.count &&
+              (variant === 'child' ? (
+                <Count count={props.count} />
+              ) : (
+                <span id="shared-async-count">{props.count.value}</span>
+              ))}
+          </p>
+        )
+      );
+      const App = component$(() => {
+        const count = useSignal(0);
+        const data = useComputed$(() => dataPromise);
+        return (
+          <main>
+            <button id="shared-async-increment" onClick$={() => count.value++}>
+              {count.value}
+            </button>
+            <Pending fallback$={() => <p>Waiting first</p>}>
+              <Reader data={data} />
+            </Pending>
+            <Pending fallback$={() => <p>Waiting second</p>}>
+              <Reader data={data} count={count} />
+            </Pending>
+          </main>
+        );
+      });
+      const chunks: string[] = [];
+      const renderPromise = ssrRenderPendingStream(<App />, chunks);
+
+      try {
+        await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+        resolveData('data');
+        const { document, container } = await renderPromise;
+        expect(document.querySelector('#shared-async-count')?.textContent).toBe('0');
+
+        await trigger(container.element, '#shared-async-increment', 'click');
+        await trigger(container.element, '#shared-async-increment', 'click');
+        await waitForDrain(container);
+        expect(document.querySelector('#shared-async-increment')?.textContent).toBe('2');
+        expect(document.querySelector('#shared-async-count')?.textContent).toBe('2');
+      } finally {
+        resolveData('data');
+        await renderPromise;
+      }
+    }
+  );
+
+  it.each(['pending', 'error'] as const)(
+    'resumes late %s subscriptions to shell state',
+    async (channel) => {
+      let release!: (value: JSXOutput) => void;
+      const gate = new Promise<JSXOutput>((resolve) => {
+        release = resolve;
+      });
+      const Status = component$((props: { data: AsyncSignal<number> }) => (
+        <span id="late-status">
+          {channel === 'pending'
+            ? String(props.data.pending)
+            : (props.data.error?.message ?? 'none')}
+        </span>
+      ));
+      const App = component$(() => {
+        const data = useComputed$(() => 0) as AsyncSignal<number>;
+        return (
+          <main>
+            <button
+              id="capture-status"
+              onClick$={() => {
+                (globalThis as any).__pendingStatusSignal = data;
+              }}
+            >
+              Capture
+            </button>
+            <Pending fallback$={() => <p>Waiting status</p>}>
+              {gate}
+              <Status data={data} />
+            </Pending>
+          </main>
+        );
+      });
+      const chunks: string[] = [];
+      const rendering = ssrRenderPendingStream(<App />, chunks);
+      try {
+        await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+        release(<span>Released status</span>);
+        const { document, container } = await rendering;
+        expect(document.querySelector('#late-status')?.textContent).toBe(
+          channel === 'pending' ? 'false' : 'none'
+        );
+        await trigger(container.element, '#capture-status', 'click');
+        const signal = (globalThis as any).__pendingStatusSignal;
+        if (channel === 'pending') {
+          signal.untrackedPending = true;
+        } else {
+          signal.untrackedError = new Error('late error');
+        }
+        await waitForDrain(container);
+        expect(document.querySelector('#late-status')?.textContent).toBe(
+          channel === 'pending' ? 'true' : 'late error'
+        );
+      } finally {
+        release(null);
+        await rendering;
+        delete (globalThis as any).__pendingStatusSignal;
+      }
+    }
+  );
+
+  it('tracks a root-owned computed first read by a late segment', async () => {
+    let release!: (value: JSXOutput) => void;
+    const gate = new Promise<JSXOutput>((resolve) => {
+      release = resolve;
+    });
+    const Reader = component$((props: { value: SignalType<number> }) => (
+      <span id="late-computed">{props.value.value}</span>
+    ));
+    const TaskReader = component$((props: { count: SignalType<number> }) => {
+      const observed = useSignal(0);
+      useTask$(({ track }) => {
+        observed.value = track(() => props.count.value);
+      });
+      return <span id="late-task">{observed.value}</span>;
+    });
+    const App = component$(() => {
+      const count = useSignal(0);
+      const doubled = useComputed$(() => count.value * 2);
+      return (
+        <main>
+          <button id="late-computed-increment" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+          <Pending fallback$={() => <p>Waiting computed</p>}>
+            {gate}
+            <Reader value={doubled} />
+            <TaskReader count={count} />
+          </Pending>
+        </main>
+      );
+    });
+    const chunks: string[] = [];
+    const rendering = ssrRenderPendingStream(<App />, chunks);
+    try {
+      await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+      release(<span>Released computed</span>);
+      const { document, container } = await rendering;
+      await trigger(container.element, '#late-computed-increment', 'click');
+      await waitForDrain(container);
+      expect(document.querySelector('#late-computed')?.textContent).toBe('2');
+      expect(document.querySelector('#late-task')?.textContent).toBe('1');
+    } finally {
+      release(null);
+      await rendering;
+    }
+  });
+
   it('should resume a segment that receives a signal holding undefined', async () => {
     let resolveData!: (value: string) => void;
     const dataPromise = new Promise<string>((resolve) => {
@@ -2493,7 +2849,8 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     (globalThis as any).__ooosUnitFallbackClicks = 0;
     (globalThis as any).__ooosUnitShellClicks = 0;
-    const Slow = component$(() => <>{slow}</>);
+    (globalThis as any).__ooosUnitSlowContent = slow;
+    const Slow = component$(() => <>{(globalThis as any).__ooosUnitSlowContent}</>);
     const Fallback = component$(() => {
       const count = useSignal(0);
       return (
@@ -2515,9 +2872,11 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     });
     const App = component$(() => {
       const count = useSignal(0);
+      const render = useSignal(0);
       return (
         <main>
-          <Pending fallback$={() => <Fallback />}>
+          <button onClick$={() => render.value++}>Rerender</button>
+          <Pending key={render.value} fallback$={() => <Fallback />}>
             <Slow />
           </Pending>
           <button
@@ -2538,12 +2897,14 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     const chunks: string[] = [];
 
     const renderPromise = ssrRenderPendingStream(<App />, chunks);
+    const platform = getPlatform();
 
     try {
       await vi.waitFor(() => expect(chunks.join('')).toContain('ooos-unit-fallback-button'));
       await vi.waitFor(() => expect(chunks.join('')).toContain('ooos-unit-shell-button'));
       await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
       const html = chunks.join('');
+      setPlatform(getTestPlatform());
       const document = createDocument({ html });
       emulateExecutionOfQwikFuncs(document);
       emulateExecutionOfBackpatch(document);
@@ -2553,13 +2914,17 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
       await trigger(container.element, '#ooos-unit-fallback-button', 'click');
       expect((globalThis as any).__ooosUnitFallbackClicks).toBe(1);
       expect((globalThis as any).__ooosUnitFallbackValue).toBe(1);
+      expect(document.querySelector('#ooos-unit-fallback-count')!.textContent).toBe('1');
 
       await trigger(container.element, '#ooos-unit-shell-button', 'click');
       expect((globalThis as any).__ooosUnitShellClicks).toBe(1);
       expect((globalThis as any).__ooosUnitShellValue).toBe(1);
+      expect(document.querySelector('#ooos-unit-shell-count')!.textContent).toBe('1');
     } finally {
+      setPlatform(platform);
       resolveSlow(<section>Done</section>);
       await renderPromise;
+      delete (globalThis as any).__ooosUnitSlowContent;
       delete (globalThis as any).__ooosUnitFallbackClicks;
       delete (globalThis as any).__ooosUnitShellClicks;
       delete (globalThis as any).__ooosUnitFallbackValue;
@@ -2635,4 +3000,110 @@ describe('ssrRenderToDom: author re-render across a deferred Pending', () => {
   it('should re-render an author with in-order shell content above the Pending (out-of-order)', async () => {
     await expectRemount(<ShellThenDeferApp />, OOOS_OPT_IN);
   });
+});
+
+describe('Pending before its SSR segment arrives', () => {
+  it.each([true, false])(
+    'rerenders its parent before segment delivery (client pending: %s)',
+    async (clientPending) => {
+      let resolveServer!: (value: JSXOutput) => void;
+      let resolveClient!: (value: JSXOutput) => void;
+      const server = new Promise<JSXOutput>((resolve) => {
+        resolveServer = resolve;
+      });
+      const client = new Promise<JSXOutput>((resolve) => {
+        resolveClient = resolve;
+      });
+      const clientContent = <p id="before-segment-content">Client ready</p>;
+      (globalThis as any).__pendingBeforeSegment = {
+        server,
+        client: clientPending ? client : clientContent,
+        clientStarted: false,
+      };
+      const Slow = component$(() => {
+        const scenario = (globalThis as any).__pendingBeforeSegment;
+        if (isServerPlatform()) {
+          return <>{scenario.server}</>;
+        }
+        scenario.clientStarted = true;
+        return <>{scenario.client}</>;
+      });
+      const App = component$(() => {
+        const revision = useSignal(0);
+        return (
+          <main>
+            <button id="before-segment-rerender" onClick$={() => revision.value++}>
+              Update parent
+            </button>
+            {revision.value > 0 && <b id="before-segment-updated">Parent rerendered</b>}
+            <Pending
+              delay={revision.value}
+              fallback$={() => <p id="before-segment-fallback">Waiting</p>}
+            >
+              <Slow />
+            </Pending>
+            <footer>Shell ready</footer>
+          </main>
+        );
+      });
+      const chunks: string[] = [];
+      const renderPromise = ssrRenderPendingStream(<App />, chunks);
+      const platform = getPlatform();
+      try {
+        await vi.waitFor(() => expect(chunks.join('')).toContain('type="qwik/state"'));
+        expect(chunks.join('')).not.toContain('qO(1)');
+        setPlatform(getTestPlatform());
+        const document = createDocument({ html: chunks.join('') });
+        emulateExecutionOfQwikFuncs(document);
+        emulateExecutionOfBackpatch(document);
+        const container = getDomContainer(document.querySelector('[q\\:container]') as HTMLElement);
+        await whenContainerDataReady(container, () => undefined);
+        const fallback = document.querySelector('#before-segment-fallback')!;
+        const fallbackHost = fallback.parentElement as HTMLElement;
+        const contentHost = document.querySelector('[q\\:rp="1"]') as HTMLElement;
+        const pendingHost = container.getParentHost(container.vNodeLocate(contentHost))!;
+        const sequence = container.getHostProp(pendingHost, 'q:seq');
+        expect(sequence).toContainEqual(expect.objectContaining({ $untrackedValue$: 'fallback' }));
+        expect(fallbackHost.style.display).toBe('contents');
+        expect(contentHost.querySelector('template[q\\:r="1"]')).toBeTruthy();
+
+        await trigger(
+          container.element,
+          '#before-segment-rerender',
+          'click',
+          {},
+          { waitForIdle: false }
+        );
+        await vi.waitFor(() =>
+          expect((globalThis as any).__pendingBeforeSegment.clientStarted).toBe(true)
+        );
+        await getTestPlatform().raf(() => undefined);
+        expect(document.querySelector('#before-segment-fallback')).toBe(fallback);
+        expect(container.getParentHost(container.vNodeLocate(contentHost))).toBe(pendingHost);
+        expect(container.getHostProp(pendingHost, 'q:seq')).toBe(sequence);
+        expect(sequence).toContainEqual(expect.objectContaining({ $untrackedValue$: 'content' }));
+        expect(container.getHostProp<{ delay: number }>(pendingHost, 'q:props')!.delay).toBe(1);
+        expect(chunks.join('')).not.toContain('qO(1)');
+
+        if (clientPending) {
+          expect(document.querySelector('#before-segment-content')).toBeFalsy();
+          expect(fallbackHost.style.display).toBe('contents');
+          expect(contentHost.style.display).toBe('none');
+        }
+        resolveClient(clientContent);
+        await waitForDrain(container);
+        expect(document.querySelector('#before-segment-updated')).toBeTruthy();
+        expect(document.querySelector('#before-segment-content')?.textContent).toBe('Client ready');
+        expect(fallbackHost.style.display).toBe('none');
+        expect(contentHost.style.display).toBe('contents');
+        expect(chunks.join('')).not.toContain('qO(1)');
+      } finally {
+        resolveClient(clientContent);
+        setPlatform(platform);
+        resolveServer(<p>Segment ready</p>);
+        await renderPromise;
+        delete (globalThis as any).__pendingBeforeSegment;
+      }
+    }
+  );
 });

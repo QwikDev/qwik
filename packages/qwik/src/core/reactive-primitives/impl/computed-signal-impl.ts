@@ -25,6 +25,7 @@ import {
   EffectProperty,
   EffectSubscription,
   NEEDS_COMPUTATION,
+  NOT_READY,
   SerializationSignalFlags,
   type ComputeCtx,
   type ComputedOptions,
@@ -243,7 +244,15 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * If you want to abort pending computations when setting, you have to call `abort()` manually.
    */
   override get value(): T {
-    return super.value;
+    try {
+      return super.value;
+    } catch (err) {
+      if (err === NOT_READY) {
+        // The reader reruns once a value arrives.
+        this.$subscribe$();
+      }
+      throw err;
+    }
   }
 
   override set value(value: T) {
@@ -289,6 +298,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$untrackedValue$ === NEEDS_COMPUTATION
     ) {
       throw qError(QError.asyncClientOnlyValueDuringSSR);
+    }
+    if (this.$untrackedValue$ === NEEDS_COMPUTATION && this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
+      // Nothing computes a value now, e.g. a cancelled loader.
+      throw NOT_READY;
     }
     isDev &&
       !(this.$flags$ & AsyncSignalFlags.ASYNC_MODE) &&
@@ -345,7 +358,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   get untrackedPending(): boolean {
     // reading `.loading` means someone is interested in the result, so we should trigger the computation. The alternative is eager computation or imperative calls to invalidate; this seems nicer.
-    this.$computeIfNeeded$();
+    this.$computeForStatus$();
     // During SSR there's no such thing as loading state, we must render complete results
     if ((qTest ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
       DEBUG && log('Throwing loading promise for SSR');
@@ -411,12 +424,23 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   get untrackedError() {
-    this.$computeIfNeeded$();
+    this.$computeForStatus$();
     // During SSR we must render settled results
     if ((qTest ? isServerPlatform() : isServer) && this.$current$?.$promise$) {
       throw this.$current$?.$promise$;
     }
     return this.$untrackedError$;
+  }
+
+  /** Starts the computation for a status read, where a missing input is not a failure. */
+  private $computeForStatus$(): void {
+    try {
+      this.$computeIfNeeded$();
+    } catch (err) {
+      if (err !== NOT_READY) {
+        throw err;
+      }
+    }
   }
 
   $setInvalid$(allowRecalc: boolean): void {
@@ -495,8 +519,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     try {
       result = this.$invokeComputeFn$(computeQrl.resolved as Function, running);
     } catch (err) {
-      // A thrown promise is a retry request, not a failure
-      if (isPromise(err)) {
+      // A thrown promise is a retry request, and a missing input reruns on its change
+      if (isPromise(err) || err === NOT_READY) {
         throw err;
       }
       if (running.$infoVersion$ === this.$infoVersion$) {
@@ -715,8 +739,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       return;
     }
     job.$canWrite$ = false;
-    if (error instanceof Error && error.name === 'AbortError') {
-      // AbortError from AbortSignal is a cancellation, not an actual error
+    if ((error instanceof Error && error.name === 'AbortError') || error === NOT_READY) {
+      // A cancellation or a missing input is not an actual error
       return;
     }
     this.untrackedError = toBoundaryError(error);

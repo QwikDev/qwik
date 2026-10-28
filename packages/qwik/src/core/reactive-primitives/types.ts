@@ -25,6 +25,9 @@ import { qwikSymbol } from '../shared/singletons';
  */
 export const NEEDS_COMPUTATION: any = /*#__PURE__*/ qwikSymbol('invalid');
 
+/** Thrown by a read with no value to give; the reader stays subscribed and reruns on a change. */
+export const NOT_READY: any = /*#__PURE__*/ qwikSymbol('notReady');
+
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
 export type ComputeCtx<T = unknown> = {
   /**

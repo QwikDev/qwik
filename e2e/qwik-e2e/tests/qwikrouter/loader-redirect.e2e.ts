@@ -7,12 +7,26 @@ async function holdRedirect(page: Page) {
   let releaseData!: () => void;
   const redirectGate = new Promise<void>((resolve) => (releaseRedirect = resolve));
   const dataGate = new Promise<void>((resolve) => (releaseData = resolve));
-  await page.route('**/list/q-loader-redirect-list.*', async (route) => {
+  await page.route('**/q-loader-*', async (route) => {
     const response = await route.fetch();
     await (new URL(route.request().url()).searchParams.has('sort') ? dataGate : redirectGate);
     await route.fulfill({ response });
   });
   return { releaseRedirect, releaseData };
+}
+
+// The layout and page loader requests both run the redirecting loader, which consumes the cookie.
+async function sendLoaderRequestsTogether(page: Page) {
+  let pending = 2;
+  let sendAll!: () => void;
+  const bothRequested = new Promise<void>((resolve) => (sendAll = resolve));
+  await page.route('**/q-loader-*', async (route) => {
+    if (--pending === 0) {
+      sendAll();
+    }
+    await bothRequested;
+    await route.continue();
+  });
 }
 
 test.describe('route loader redirects', () => {
@@ -55,7 +69,8 @@ test.describe('route loader redirects', () => {
       await page.locator('#loader-redirect-block').click();
       await expect(page.locator('#loader-redirect-block')).toHaveText('blocked');
       held.releaseRedirect();
-      await expect(page.locator('#loader-redirect-blocked-attempts')).toHaveText('1');
+      // Both layout and page loaders request the redirect.
+      await expect(page.locator('#loader-redirect-blocked-attempts')).toHaveText('2');
       await expect(page.locator('#loader-redirect-pending')).toHaveText('ready');
       await expect(page.locator('#loader-redirect-error')).toHaveText(
         'Route loader redirect completed without data.'
@@ -75,6 +90,7 @@ test.describe('route loader redirects', () => {
       await context.addCookies([
         { name: 'loader-redirect-mode', value: mode, url: new URL('/', page.url()).href },
       ]);
+      await sendLoaderRequestsTogether(page);
       await page.locator('#loader-redirect-list-link').click();
       await expect(page.locator('#loader-redirect-error')).toHaveText(
         'Route loader redirect completed without data.'
@@ -129,7 +145,7 @@ test.describe('route loader redirects', () => {
         await page.locator('#loader-redirect-again').click();
         await expect(page.locator('#loader-redirect-pending')).toHaveText('pending');
         held.releaseRedirect();
-        await expect(page.locator('#loader-redirect-blocked-attempts')).toHaveText('1');
+        await expect(page.locator('#loader-redirect-blocked-attempts')).toHaveText('2');
         await page.locator('#loader-redirect-settle').click();
         await expect(page.locator('#loader-redirect-completed')).toHaveText('1');
         await expect(page.locator('#loader-redirect-pending')).toHaveText('ready');

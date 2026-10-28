@@ -16,10 +16,11 @@ import {
   type ComputeCtx,
   EffectProperty,
   NEEDS_COMPUTATION,
+  NOT_READY,
   ComputedSignalFlags,
 } from '../types';
 import { clearAllEffects } from '../cleanup';
-import { createSignal, createAsyncQrl } from '../signal.public';
+import { createSignal, createAsyncQrl, createComputedQrl } from '../signal.public';
 import { getSubscriber } from '../subscriber';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ELEMENT_SEQ } from '../../shared/utils/markers';
@@ -378,6 +379,70 @@ describe('async signal', () => {
   });
 
   describe('cleanup and abort', () => {
+    it('throws NOT_READY for a cancelled read and keeps its reader subscribed', async () => {
+      await withContainer(async () => {
+        const signal = createAsync<number>(
+          async ({ abortSignal }) =>
+            new Promise((_, reject) => {
+              abortSignal.addEventListener('abort', () => reject(abortSignal.reason), {
+                once: true,
+              });
+            })
+        );
+        expect(() => signal.value).toThrow();
+        signal.abort();
+        await signal.promise();
+
+        const ctx = newInvokeContext();
+        ctx.$container$ = container;
+        ctx.$effectSubscriber$ = getSubscriber(vnode_newVirtual(), EffectProperty.COMPONENT);
+        let thrown: unknown;
+        invoke(ctx, () => {
+          try {
+            signal.value;
+          } catch (error) {
+            thrown = error;
+          }
+        });
+        expect(thrown).toBe(NOT_READY);
+        expect(signal.error).toBeUndefined();
+        expect((signal as unknown as SignalImpl).$effects$?.size).toBe(1);
+      });
+    });
+
+    it('passes NOT_READY through a computed until the source has a value', async () => {
+      await withContainer(async () => {
+        const source = createAsync<number>(
+          async ({ abortSignal }) =>
+            new Promise((_, reject) => {
+              abortSignal.addEventListener('abort', () => reject(abortSignal.reason), {
+                once: true,
+              });
+            })
+        );
+        expect(() => source.value).toThrow();
+        source.abort();
+        await source.promise();
+        const derived = createComputedQrl($(() => source.value + 1));
+
+        expect(() => derived.value).toThrow();
+        let thrown: unknown;
+        try {
+          derived.value;
+        } catch (error) {
+          thrown = error;
+        }
+        expect(thrown).toBe(NOT_READY);
+        // A missing input is neither an error nor running work.
+        expect(derived.error).toBeUndefined();
+        expect(derived.pending).toBe(false);
+
+        source.value = 1;
+        expect(derived.value).toBe(2);
+        expect(derived.value).toBe(2);
+      });
+    });
+
     it('should run async cleanups before next compute', async () => {
       await withContainer(async () => {
         const dep = createSignal(0);

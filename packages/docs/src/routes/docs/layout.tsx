@@ -17,7 +17,7 @@ export default component$(() => (
 const overviewPathnames = ['/docs/', '/api/'];
 
 /** Shared by the /docs and /api layouts so both get the header, sidebar and TOC. */
-export const DocsShell = component$((props: { class?: string; pagefindWeight?: number }) => {
+export const DocsShell = component$((props: { class?: string; excludeFromSearch?: boolean }) => {
   useStyles$(styles);
   const loc = useLocation();
   const hasOnThisPage = useComputed$(() => !overviewPathnames.includes(loc.url.pathname));
@@ -38,11 +38,7 @@ export const DocsShell = component$((props: { class?: string; pagefindWeight?: n
               'docs-main-full': !hasOnThisPage.value,
             }}
           >
-            <article
-              class="docs-content"
-              data-pagefind-body
-              data-pagefind-weight={props.pagefindWeight}
-            >
+            <article class="docs-content" data-pagefind-body={!props.excludeFromSearch}>
               <Slot />
               <div data-pagefind-ignore>
                 <Contributors />

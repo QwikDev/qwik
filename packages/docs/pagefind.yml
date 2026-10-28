@@ -1,3 +1,0 @@
-site: dist
-glob: '**/*.html'
-include_characters: '$<>:'

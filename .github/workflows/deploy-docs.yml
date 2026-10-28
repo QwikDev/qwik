@@ -67,7 +67,7 @@ jobs:
           HEAD_LABEL: ${{ github.event.workflow_run.head_repository.owner.login }}:${{ github.event.workflow_run.head_branch }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          number=$(gh api -X GET "repos/$GITHUB_REPOSITORY/pulls" -f head="$HEAD_LABEL" --jq 'first(.[] | select(.head.sha == env.HEAD_SHA) | .number)')
+          number=$(gh api -X GET "repos/$GITHUB_REPOSITORY/pulls" -f head="$HEAD_LABEL" --jq 'map(select(.head.sha == env.HEAD_SHA)) | if length == 1 then .[0].number else empty end')
           echo "number=$number" >> "$GITHUB_OUTPUT"
 
       # not the official version, so be careful when updating

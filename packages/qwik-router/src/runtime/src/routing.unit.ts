@@ -1,5 +1,5 @@
-import { assert, describe, test } from 'vitest';
-import { loadRoute } from './routing';
+import { assert, describe, test, vi } from 'vitest';
+import { loadRoute, matchRouteTree } from './routing';
 import type { MenuModuleLoader, ModuleLoader, RouteData } from './types';
 
 // A minimal sync module loader for testing.
@@ -994,6 +994,48 @@ describe('loadRoute — [...rest] followed by more segments', () => {
       product: { _W: { _P: 'id', _I: makeLoader() } },
     },
   });
+
+  test.each([
+    { suffix: '', nested: false },
+    { suffix: '/product/123', nested: false },
+    { suffix: '', nested: true },
+    { suffix: '/product/123', nested: true },
+  ])(
+    'long rest paths avoid quadratic string work: $suffix, nested=$nested',
+    ({ suffix, nested }) => {
+      const segmentCount = 1000;
+      const routes = makeRoutes();
+      if (nested) {
+        const restRoute = routes._A as RouteData;
+        restRoute._A = { _P: 'inner', product: restRoute.product };
+        delete restRoute.product;
+      }
+      const pathname = '/' + Array(segmentCount).fill('a%2Fb').join('/') + suffix;
+      const originalJoin = Array.prototype.join;
+      let joinedSegments = 0;
+      const joinSpy = vi.spyOn(Array.prototype, 'join').mockImplementation(function (
+        this: unknown[],
+        separator
+      ) {
+        joinedSegments += this.length;
+        return originalJoin.call(this, separator);
+      });
+      let result: ReturnType<typeof matchRouteTree>;
+      try {
+        result = matchRouteTree(routes, pathname);
+      } finally {
+        joinSpy.mockRestore();
+      }
+      assert.isBelow(joinedSegments, segmentCount * 10);
+      assert.isFalse(result.notFound);
+      assert.equal(result.params.path, Array(segmentCount).fill('a/b').join('/'));
+      assert.equal(result.params.id, suffix ? '123' : undefined);
+      if (nested && suffix) {
+        assert.equal(result.params.inner, '');
+        assert.deepEqual(result.routeParts, ['[...path]', '[...inner]', 'product', '[id]']);
+      }
+    }
+  );
 
   test('the segments after the rest match the route below it', async () => {
     const result = await loadRoute(makeRoutes(), false, '/sports/balls/product/123');

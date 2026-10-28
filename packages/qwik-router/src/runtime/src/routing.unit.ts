@@ -1005,7 +1005,8 @@ describe('loadRoute — [...rest] followed by more segments', () => {
       const segmentCount = 1000;
       const routes = makeRoutes();
       if (nested) {
-        routes._A!._A = { _P: 'inner', product: routes._A!.product };
+        const restRoute = routes._A as RouteData;
+        restRoute._A = { _P: 'inner', product: restRoute.product };
       }
       const pathname = '/' + Array(segmentCount).fill('a%2Fb').join('/') + suffix;
       const originalJoin = Array.prototype.join;

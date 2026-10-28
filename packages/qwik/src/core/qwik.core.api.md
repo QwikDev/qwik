@@ -24,11 +24,10 @@ export type AsyncFn<T> = ComputedFn<T>;
 // @public @deprecated
 export type AsyncSignal<T = unknown> = ComputedSignal<T>;
 
-// Warning: (ae-forgotten-export) The symbol "ComputedSignalImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "AsyncQRL" needs to be exported by the entry point index.d.ts
 //
 // @internal
-export class _AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> implements AsyncSignal<T> {
+export class _AsyncSignalImpl<T> extends _ComputedSignalImpl<T, AsyncQRL<T>> implements AsyncSignal<T> {
     constructor(container: _Container | null, fn: AsyncQRL<T>, flags?: number, options?: AsyncSignalOptions<T>);
 }
 
@@ -36,7 +35,13 @@ export class _AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> impl
 export type AsyncSignalOptions<T> = ComputedOptions<T>;
 
 // @internal (undocumented)
+export const _BIGINT_PAYLOAD_REGEXP: RegExp;
+
+// @internal (undocumented)
 export const _caC: (props: CatchProps) => JSXOutput;
+
+// @internal (undocumented)
+export const _canSerialize: (value: unknown, seen?: WeakSet<any>) => boolean;
 
 // @internal @deprecated
 export let _captures: Readonly<unknown[]> | null;
@@ -166,6 +171,85 @@ export interface ComputedSignal<T> extends Signal<T> {
     promise(): Promise<void>;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ComputeQRL" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "BackRef" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export class _ComputedSignalImpl<T, S extends _QRLInternal = ComputeQRL<T>> extends _SignalImpl<T> implements BackRef {
+    // (undocumented)
+    $computationTimeoutId$: ReturnType<typeof setTimeout> | undefined;
+    $computeAsync$(): void;
+    $computeIfNeeded$(): void;
+    $computeQrl$: S;
+    // (undocumented)
+    $concurrency$: number | undefined;
+    // Warning: (ae-forgotten-export) The symbol "Job" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $current$: Job<T> | null | undefined;
+    $destroy$(): Promise<void>;
+    $dispose(): void;
+    // (undocumented)
+    $disposed$: boolean | undefined;
+    // (undocumented)
+    $errorEffects$: undefined | Set<_EffectSubscription>;
+    // (undocumented)
+    $flags$: number;
+    // (undocumented)
+    $info$: unknown | undefined;
+    // (undocumented)
+    $infoVersion$: number | undefined;
+    $invokeComputeFn$(fn: Function, job: Job<T>): T | Promise<T>;
+    // (undocumented)
+    $jobs$: Job<T>[] | undefined;
+    // (undocumented)
+    $loadingEffects$: undefined | Set<_EffectSubscription>;
+    $pull$(): void;
+    // (undocumented)
+    $requestCleanups$(job: Job<T>, reason?: any): void;
+    $runCleanupCallbacks$(job: Job<T>): Promise<void> | undefined;
+    $runCleanups$(job: Job<T>): Promise<void> | undefined;
+    // (undocumented)
+    $runComputation$(running: Job<T>): Promise<void>;
+    $scheduleEagerCleanup$(): void;
+    $setError$(job: Job<T>, error: Error): void;
+    // (undocumented)
+    $setInvalid$(allowRecalc: boolean): void;
+    $settleComputation$(running: Job<T>, compute: () => ValueOrPromise<T>): Promise<void>;
+    // (undocumented)
+    $timeoutMs$: number | undefined;
+    // (undocumented)
+    $untrackedError$: Error | undefined;
+    // (undocumented)
+    $untrackedPending$: boolean | undefined;
+    // (undocumented)
+    [_EFFECT_BACK_REF]: Map<_EffectProperty | string, _EffectSubscription> | undefined;
+    constructor(container: _Container | null, fn: S, flags?: number, options?: ComputedOptions<T>);
+    abort(reason?: any): void;
+    clear(): void;
+    get error(): Error | undefined;
+    // (undocumented)
+    invalidate(info?: unknown): void;
+    // @deprecated (undocumented)
+    get loading(): boolean;
+    get pending(): boolean;
+    promise(): Promise<void>;
+    set untrackedError(value: Error | undefined);
+    // (undocumented)
+    get untrackedError(): Error | undefined;
+    // @deprecated (undocumented)
+    get untrackedLoading(): boolean;
+    set untrackedLoading(value: boolean);
+    set untrackedPending(value: boolean);
+    // (undocumented)
+    get untrackedPending(): boolean;
+    // (undocumented)
+    get untrackedValue(): T;
+    set untrackedValue(value: T);
+    get value(): T;
+    set value(value: T);
+}
+
 // @internal
 export interface _ComputedSignalInternal<T> extends ComputedSignal<T> {
     // @deprecated (undocumented)
@@ -222,19 +306,6 @@ export interface _Container {
     handleError(err: any, $host$: _HostElement | null, phase?: CatchPhase): void;
     // (undocumented)
     resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
-    // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    serializationCtxFactory(NodeConstructor: {
-        new (...rest: any[]): {
-            __brand__: 'SsrNode';
-        };
-    } | null, DomRefConstructor: {
-        new (...rest: any[]): {
-            __brand__: 'DomRef';
-        };
-    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter): SerializationContext;
     // (undocumented)
     setContext<T>(host: _HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
@@ -285,7 +356,7 @@ export const createComputed$: <T>(qrl: (ctx: ComputeCtx) => ValueOrPromise<T>, o
 // Warning: (ae-internal-missing-underscore) The name "createComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const createComputedQrl: <T>(qrl: QRL<ComputedFn<T>>, options?: ComputedOptions<T>) => ComputedSignalImpl<T>;
+export const createComputedQrl: <T>(qrl: QRL<ComputedFn<T>>, options?: ComputedOptions<T>) => _ComputedSignalImpl<T>;
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
@@ -306,7 +377,6 @@ export const _createQRL: <TYPE>(chunk: string | null, symbol: string, symbolRef?
 // @public
 export const createSerializer$: <T, S>(arg: SerializerArg<T, S>) => T extends Promise<any> ? never : SerializerSignal<T>;
 
-// Warning: (ae-forgotten-export) The symbol "SerializerSignalImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createSerializerQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -314,7 +384,7 @@ export const createSerializerQrl: <T, S>(arg: QRL<{
     serialize: (data: S | undefined) => T;
     deserialize: (data: T) => S;
     initial?: S;
-}>) => SerializerSignalImpl<T, S>;
+}>) => _SerializerSignalImpl<T, S>;
 
 // @public
 export const createSignal: {
@@ -455,6 +525,25 @@ export const enum _EffectProperty {
     VNODE = "."
 }
 
+// @internal
+export class _EffectSubscription {
+    // (undocumented)
+    $ssrSegmentId$?: number;
+    constructor(consumer: Consumer, property: _EffectProperty | string, backRef?: Set<EffectBackRef> | null, data?: _SubscriptionData | null);
+    // Warning: (ae-forgotten-export) The symbol "EffectBackRef" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    backRef: Set<EffectBackRef> | null;
+    // Warning: (ae-forgotten-export) The symbol "Consumer" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    consumer: Consumer;
+    // (undocumented)
+    data: _SubscriptionData | null;
+    // (undocumented)
+    property: _EffectProperty | string;
+}
+
 // @internal (undocumented)
 export const _ELEMENT_SEQ = "q:seq";
 
@@ -473,6 +562,9 @@ export const _EMPTY_ARRAY: any[];
 
 // @internal (undocumented)
 export const _EMPTY_OBJ: Record<string, any>;
+
+// @internal (undocumented)
+export const _EMPTY_OBJECT_PAYLOAD = 0;
 
 // @public (undocumented)
 export const event$: <T>(qrl: T) => QRL<T>;
@@ -493,10 +585,14 @@ export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 // @internal (undocumented)
 export function _executeSsrChores(container: SSRContainer, ssrNode: ISsrNode): ValueOrPromise<void>;
 
-// Warning: (ae-forgotten-export) The symbol "WrappedSignalImpl" needs to be exported by the entry point index.d.ts
-//
+// @internal
+export const _explicitUndefined: unique symbol;
+
 // @internal (undocumented)
-export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => WrappedSignalImpl<any>;
+export const _fastSkipSerialize: (obj: unknown) => boolean;
+
+// @internal (undocumented)
+export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => _WrappedSignalImpl<any>;
 
 // Warning: (ae-forgotten-export) The symbol "StoreTarget" needs to be exported by the entry point index.d.ts
 //
@@ -552,11 +648,16 @@ export function _getQContainerElement(element: Element): Element | null;
 // @internal
 export const _getSingleton: <T>(key: string) => T | undefined;
 
-// Warning: (ae-forgotten-export) The symbol "Consumer" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "EffectSubscription" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "StoreHandler" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export function _getSubscriber(effect: Consumer, prop: _EffectProperty | string, data?: _SubscriptionData): EffectSubscription;
+export const _getStoreHandler: (value: StoreTarget) => StoreHandler | null;
+
+// @internal (undocumented)
+export const _getStoreTarget: <T extends StoreTarget>(value: T) => T | null;
+
+// @internal (undocumented)
+export function _getSubscriber(effect: Consumer, prop: _EffectProperty | string, data?: _SubscriptionData): _EffectSubscription;
 
 // @internal
 export const _getVarProps: (props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
@@ -620,6 +721,19 @@ export { isDev }
 
 // @internal (undocumented)
 export const _isJSXNode: <T>(n: unknown) => n is JSXNodeInternal<T>;
+
+// @internal (undocumented)
+export const _isPropsProxy: (obj: any) => obj is PropsProxy;
+
+// @internal (undocumented)
+export const _isQwikComponent: <T extends Component<any>>(component: unknown) => component is T;
+
+// Warning: (ae-forgotten-export) The symbol "CustomSerializable" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _isSerializerObj: <T extends {
+    [SerializerSymbol]: (obj: any) => any;
+}, S>(obj: unknown) => obj is CustomSerializable<T, S>;
 
 export { isServer }
 
@@ -785,6 +899,9 @@ export type NativeUIEvent = UIEvent;
 // @public @deprecated (undocumented)
 export type NativeWheelEvent = WheelEvent;
 
+// @internal
+export const _NEEDS_COMPUTATION: any;
+
 // Warning: (ae-forgotten-export) The symbol "PossibleEvents" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "RenderEvent" needs to be exported by the entry point index.d.ts
 //
@@ -916,6 +1033,7 @@ export type _QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
 // @internal
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
 
+// Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SyncQRLInternal" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
@@ -1069,6 +1187,11 @@ name?: string;
 children?: JSXChildren;
 }>> | JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>>;
 
+// @internal (undocumented)
+export const _redactToGeneric: (err: unknown) => Error & {
+    digest: string;
+};
+
 // @internal
 export const _regInlinedQrl: (qrl: QRL) => void;
 
@@ -1209,14 +1332,30 @@ export const _rsc: <T>(arg: ResourceCtx<T>) => Promise<{
 // @internal
 export function _run(this: string, event: Event, element: Element): ValueOrPromise<unknown>;
 
+// @internal (undocumented)
+export const _SERIALIZABLE_STATE: unique symbol;
+
 // @public
 export type SerializationStrategy = 'never' | 'always';
 
-// @internal
-export function _serialize<T>(data: T): Promise<string>;
+// Warning: (ae-incompatible-release-tags) The symbol "SerializerSignalImpl" is marked as @public, but its signature references "_ComputedSignalImpl" which is marked as @internal
+//
+// @public
+export class _SerializerSignalImpl<T, S> extends _ComputedSignalImpl<T> {
+    // (undocumented)
+    $computeIfNeeded$(): void;
+    // (undocumented)
+    $didInitialize$: boolean;
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "_Container" which is marked as @internal
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "_QRLInternal" which is marked as @internal
+    constructor(container: _Container | null, argQrl: _QRLInternal<SerializerArg<T, S>>);
+}
 
 // @public
 export const SerializerSymbol: unique symbol;
+
+// @internal (undocumented)
+export const _setDomRefCheck: (check: (obj: unknown) => boolean) => void;
 
 // Warning: (ae-forgotten-export) The symbol "SSRWriteChunk" needs to be exported by the entry point index.d.ts
 //
@@ -1273,16 +1412,6 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     abstract resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)
-    serializationCtxFactory(NodeConstructor: {
-        new (...rest: any[]): {
-            __brand__: 'SsrNode';
-        };
-    } | null, DomRefConstructor: {
-        new (...rest: any[]): {
-            __brand__: 'DomRef';
-        };
-    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter): SerializationContext;
-    // (undocumented)
     abstract setContext<T>(host: _HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
     abstract setHostProp<T>(host: _HostElement, name: string, value: T): void;
@@ -1317,6 +1446,35 @@ export interface Signal<T = any> {
     trigger(): void;
     untrackedValue: T;
     value: T;
+}
+
+// @internal (undocumented)
+export class _SignalImpl<T = any> implements Signal<T> {
+    // (undocumented)
+    $container$: _Container | null;
+    $effects$: undefined | Set<_EffectSubscription>;
+    // (undocumented)
+    $untrackedValue$: T;
+    // (undocumented)
+    $wrappedSignal$: _WrappedSignalImpl<T> | null;
+    constructor(container: _Container | null | undefined, value: T);
+    // @deprecated (undocumented)
+    force(): void;
+    // (undocumented)
+    toJSON(): {
+        value: T;
+    };
+    // (undocumented)
+    toString(): string;
+    trigger(): void;
+    // (undocumented)
+    get untrackedValue(): T;
+    set untrackedValue(value: T);
+    // (undocumented)
+    get value(): T;
+    set value(value: T);
+    // (undocumented)
+    valueOf(): void;
 }
 
 // @public (undocumented)
@@ -1421,6 +1579,9 @@ export interface SSRStreamWriter {
 }
 
 // @internal (undocumented)
+export const _STORE_ALL_PROPS: unique symbol;
+
+// @internal (undocumented)
 export const enum _StoreFlags {
     // (undocumented)
     IMMUTABLE = 2,
@@ -1454,7 +1615,7 @@ export class _SubscriptionData {
 
 // @internal (undocumented)
 export class _SubscriptionPatch {
-    constructor(rootId?: number, subscriptions?: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>, channel?: SubscriptionPatchChannel);
+    constructor(rootId?: number, subscriptions?: Set<_EffectSubscription> | Map<string | symbol, Set<_EffectSubscription>>, channel?: SubscriptionPatchChannel);
     // Warning: (ae-forgotten-export) The symbol "SubscriptionPatchChannel" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -1462,7 +1623,7 @@ export class _SubscriptionPatch {
     // (undocumented)
     rootId: number;
     // (undocumented)
-    subscriptions: Set<EffectSubscription> | Map<string | symbol, Set<EffectSubscription>>;
+    subscriptions: Set<_EffectSubscription> | Map<string | symbol, Set<_EffectSubscription>>;
 }
 
 // Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point index.d.ts
@@ -2007,8 +2168,6 @@ export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
     dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
-// Warning: (ae-forgotten-export) The symbol "BackRef" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export class _Task<T = unknown, B = T> extends BackRef {
     // (undocumented)
@@ -2143,7 +2302,7 @@ export const useSerializer$: typeof createSerializer$;
 // Warning: (ae-internal-missing-underscore) The name "useSerializerQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => SerializerSignalImpl<T, S>;
+export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => _SerializerSignalImpl<T, S>;
 
 // @public
 export function useServerData<T>(key: string): T | undefined;
@@ -2303,6 +2462,9 @@ export const _vnode_isTextVNode: (vNode: _VNode) => vNode is _TextVNode;
 export const _vnode_isVirtualVNode: (vNode: _VNode) => vNode is _VirtualVNode;
 
 // @internal (undocumented)
+export const _vnode_isVNode: (vNode: any) => vNode is _VNode;
+
+// @internal (undocumented)
 export const _vnode_newVirtual: () => _VirtualVNode;
 
 // @internal (undocumented)
@@ -2377,6 +2539,37 @@ export const _whenContainerDataReady: <T>(container: ClientContainer, callback: 
 
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;
+
+// @internal (undocumented)
+export class _WrappedSignalImpl<T> extends _SignalImpl<T> {
+    // (undocumented)
+    $args$: any[];
+    // (undocumented)
+    $computeIfNeeded$(): void;
+    // Warning: (ae-forgotten-export) The symbol "AllSignalFlags" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $flags$: AllSignalFlags;
+    // (undocumented)
+    $func$: (...args: any[]) => T;
+    // (undocumented)
+    $funcStr$: string | null;
+    // (undocumented)
+    $hostElement$: _HostElement | undefined;
+    $pull$(): void;
+    // (undocumented)
+    $unwrapIfSignal$(): _SignalImpl<T> | _WrappedSignalImpl<T>;
+    // (undocumented)
+    [_EFFECT_BACK_REF]: Map<_EffectProperty | string, _EffectSubscription> | undefined;
+    constructor(container: _Container | null, fn: (...args: any[]) => T, args: any[], fnStr: string | null, flags?: AllSignalFlags);
+    // (undocumented)
+    invalidate(): void;
+    // (undocumented)
+    get untrackedValue(): T;
+    set value(_: any);
+    // (undocumented)
+    get value(): any;
+}
 
 // Warning: (ae-forgotten-export) The symbol "WrappedProp" needs to be exported by the entry point index.d.ts
 //

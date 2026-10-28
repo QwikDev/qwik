@@ -2,7 +2,7 @@ import { QError, qError } from '../error/error';
 import { isNode } from '../utils/element';
 import { isPromise } from '../utils/promises';
 import { isArray, isFunction, isObject, isSerializableObject } from '../utils/types';
-import { canSerialize } from './index';
+import { canSerialize } from './can-serialize';
 import { isSignal } from '../../reactive-primitives/utils';
 import { unwrapStore } from '../../reactive-primitives/impl/store';
 import { untrack } from '../../use/use-core';
@@ -114,6 +114,7 @@ const shouldSerialize = (obj: unknown): boolean => {
   return true;
 };
 
+/** @internal */
 export const fastSkipSerialize = (obj: unknown): boolean => {
   return (
     !!obj &&

@@ -6,7 +6,8 @@ import {
   runWorkerMessage,
   // @ts-expect-error - testing internal API
 } from './worker.shared.js';
-import { _regSymbol, _serialize, inlinedQrl } from '@qwik.dev/core';
+import { _regSymbol, inlinedQrl } from '@qwik.dev/core';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 
 describe('worker.shared', () => {
   const originalPlatform = getPlatform();

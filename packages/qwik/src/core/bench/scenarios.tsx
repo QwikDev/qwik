@@ -5,7 +5,7 @@ import { getTestPlatform } from '../../testing/platform';
 import { waitForDrain } from '../../testing/util';
 import { getDomContainer } from '../client/dom-container';
 import { render } from '../client/dom-render';
-import { _serialize } from '../shared/serdes/serdes.public';
+import { _serialize } from '../../serializer';
 
 // `vitest bench` does not reliably inherit the regular test setup hook, so make sure
 // benchmark DOM renders always use the client test platform and flush their journal.

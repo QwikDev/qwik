@@ -4,6 +4,100 @@ title: \@qwik.dev/core API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/core
 
+<h2 id="_serializersignalimpl">_SerializerSignalImpl</h2>
+
+A signal which provides a non-serializable value. It works like a computed signal, but it is handled slightly differently during serdes.
+
+```typescript
+export declare class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T>
+```
+
+**Extends:** ComputedSignalImpl&lt;T&gt;
+
+<table><thead><tr><th>
+
+Constructor
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+(constructor)(container, argQrl)
+
+</td><td>
+
+</td><td>
+
+Constructs a new instance of the `SerializerSignalImpl` class
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[$didInitialize$](#_serializersignalimpl-_didinitialize_)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[$computeIfNeeded$()](#_serializersignalimpl-_computeifneeded_)
+
+</td><td>
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/serializer-signal-impl.ts)
+
 <h2 id="componentbaseprops-_q_slot_">"q:slot"</h2>
 
 ```typescript
@@ -119,6 +213,22 @@ Expression which should be lazy loaded
 [QRL](#qrl-type-alias)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
+
+<h2 id="_serializersignalimpl-_computeifneeded_">$computeIfNeeded$</h2>
+
+```typescript
+$computeIfNeeded$(): void;
+```
+
+**Returns:**
+
+void
+
+<h2 id="_serializersignalimpl-_didinitialize_">$didInitialize$</h2>
+
+```typescript
+$didInitialize$: boolean;
+```
 
 <h2 id="computedsignal-abort">abort</h2>
 

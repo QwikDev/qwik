@@ -1,4 +1,4 @@
-import { _serialize } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   renderQwikMiddleware,

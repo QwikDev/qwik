@@ -23,6 +23,7 @@ import {
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_CORE_ID,
   QWIK_CORE_INTERNAL_ID,
+  QWIK_CORE_SERIALIZER_ID,
   QWIK_CORE_SERVER,
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_JSX_RUNTIME_ID,
@@ -55,6 +56,7 @@ const DEDUPE = [
   QWIK_JSX_RUNTIME_ID,
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_CORE_INTERNAL_ID,
+  QWIK_CORE_SERIALIZER_ID,
   '@builder.io/qwik',
   '@builder.io/qwik/jsx-runtime',
   '@builder.io/qwik/jsx-dev-runtime',
@@ -282,7 +284,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const updatedViteConfig: UserConfig = {
         // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
         ssr: {
-          noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+          noExternal: [
+            QWIK_CORE_ID,
+            QWIK_CORE_INTERNAL_ID,
+            QWIK_CORE_SERIALIZER_ID,
+            QWIK_CORE_SERVER,
+            QWIK_BUILD_ID,
+          ],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
@@ -307,6 +315,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             // this breaks Qwik because it relies a lot on module scoped symbols
             QWIK_CORE_ID,
             QWIK_CORE_INTERNAL_ID,
+            QWIK_CORE_SERIALIZER_ID,
             QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
@@ -379,6 +388,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           updatedViteConfig.build!.rolldownOptions.external = [
             QWIK_CORE_ID,
             QWIK_CORE_INTERNAL_ID,
+            QWIK_CORE_SERIALIZER_ID,
             QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
@@ -410,7 +420,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isServer) {
         return {
           resolve: {
-            noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+            noExternal: [
+              QWIK_CORE_ID,
+              QWIK_CORE_INTERNAL_ID,
+              QWIK_CORE_SERIALIZER_ID,
+              QWIK_CORE_SERVER,
+              QWIK_BUILD_ID,
+            ],
           },
         } satisfies EnvironmentOptions;
       }

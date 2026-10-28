@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { type SerializationContext } from './serialization-context';
+import type { SerializationContext } from '../../../serializer/serialization-context';
 import { qError, QError } from '../error/error';
 import { getPlatform } from '../platform/platform';
 import {

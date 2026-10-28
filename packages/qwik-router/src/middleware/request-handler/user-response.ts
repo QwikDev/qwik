@@ -1,4 +1,5 @@
-import { _serialize, isDev } from '@qwik.dev/core/internal';
+import { isDev } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import type {
   LoadedRoute,
   QwikRouterConfig,

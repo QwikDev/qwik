@@ -71,6 +71,7 @@ const errorDigest = (err: unknown): string =>
 
 const REDACTED: unique symbol = /*#__PURE__*/ qwikSymbol('redacted');
 
+/** @internal */
 export const redactToGeneric = (err: unknown): Error & { digest: string } => {
   const redacted = new Error(GENERIC_BOUNDARY_ERROR_MESSAGE) as Error & { digest: string };
   redacted.digest = errorDigest(err);

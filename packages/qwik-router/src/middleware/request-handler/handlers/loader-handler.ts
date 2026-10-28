@@ -1,4 +1,4 @@
-import { _serialize } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import {
   FULLPATH_HEADER,
   getRouteLoaderCtx,

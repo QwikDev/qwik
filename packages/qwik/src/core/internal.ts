@@ -34,6 +34,7 @@ export {
   vnode_getFirstChild as _vnode_getFirstChild,
   vnode_isMaterialized as _vnode_isMaterialized,
   vnode_isTextVNode as _vnode_isTextVNode,
+  vnode_isVNode as _vnode_isVNode,
   vnode_isVirtualVNode as _vnode_isVirtualVNode,
   vnode_newVirtual as _vnode_newVirtual,
   vnode_setProp as _vnode_setProp,
@@ -51,9 +52,23 @@ export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
 export {
   _hasStoreEffects,
   createStore as _createStore,
+  getStoreHandler as _getStoreHandler,
+  getStoreTarget as _getStoreTarget,
   isStore as _isStore,
 } from './reactive-primitives/impl/store';
-export { _markSignalAsExternallyOwned, isSignal } from './reactive-primitives/utils';
+export { SignalImpl as _SignalImpl } from './reactive-primitives/impl/signal-impl';
+export { ComputedSignalImpl as _ComputedSignalImpl } from './reactive-primitives/impl/computed-signal-impl';
+export { WrappedSignalImpl as _WrappedSignalImpl } from './reactive-primitives/impl/wrapped-signal-impl';
+export { SerializerSignalImpl as _SerializerSignalImpl } from './reactive-primitives/impl/serializer-signal-impl';
+export {
+  _markSignalAsExternallyOwned,
+  isSerializerObj as _isSerializerObj,
+  isSignal,
+} from './reactive-primitives/utils';
+export {
+  isQwikComponent as _isQwikComponent,
+  SERIALIZABLE_STATE as _SERIALIZABLE_STATE,
+} from './shared/component.public';
 export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
 export { getSubscriber as _getSubscriber } from './reactive-primitives/subscriber';
 export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
@@ -64,16 +79,29 @@ export {
 export { _chk, _res, _val } from './shared/jsx/bind-handlers';
 export { _jsxC, _jsxQ, _jsxS, _jsxSorted, _jsxSplit } from './shared/jsx/jsx-internal';
 export { isJSXNode as _isJSXNode } from './shared/jsx/jsx-node';
-export { _getConstProps, _getVarProps } from './shared/jsx/props-proxy';
+export {
+  _getConstProps,
+  _getVarProps,
+  isPropsProxy as _isPropsProxy,
+} from './shared/jsx/props-proxy';
 export { _fnSignal } from './shared/qrl/inlined-fn';
 export {
   _deserialize,
   _dumpState,
+  canSerialize as _canSerialize,
   preprocessState as _preprocessState,
-  _serialize,
 } from './shared/serdes/index';
+export { _setDomRefCheck } from './shared/serdes/can-serialize';
+export {
+  BIGINT_PAYLOAD_REGEXP as _BIGINT_PAYLOAD_REGEXP,
+  EMPTY_OBJECT_PAYLOAD as _EMPTY_OBJECT_PAYLOAD,
+  explicitUndefined as _explicitUndefined,
+} from './shared/serdes/constants';
 export { SubscriptionPatch as _SubscriptionPatch } from './shared/serdes/subscription-patch';
-export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
+export {
+  fastSkipSerialize as _fastSkipSerialize,
+  verifySerializable as _verifySerializable,
+} from './shared/serdes/verify';
 export { _SharedContainer } from './shared/shared-container';
 export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';
 export { EMPTY_ARRAY as _EMPTY_ARRAY, EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
@@ -81,6 +109,7 @@ export { ELEMENT_SEQ as _ELEMENT_SEQ } from './shared/utils/markers';
 export { hasSlotProps as _hasSlotProps, _restProps } from './shared/utils/prop';
 export { _walkJSX } from './ssr/ssr-render-jsx';
 export { handleSSRError as _handleSSRError } from './ssr/catch-ssr';
+export { redactToGeneric as _redactToGeneric } from './shared/error/error-handling';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {
   _getContextContainer,
@@ -106,6 +135,9 @@ export type { ComputedSignalInternal as _ComputedSignalInternal } from './reacti
 export { _injectAsyncSignalValue } from './reactive-primitives/impl/async-signal-impl';
 export {
   EffectProperty as _EffectProperty,
+  EffectSubscription as _EffectSubscription,
+  NEEDS_COMPUTATION as _NEEDS_COMPUTATION,
+  STORE_ALL_PROPS as _STORE_ALL_PROPS,
   StoreFlags as _StoreFlags,
   type AsyncSignalOptions,
 } from './reactive-primitives/types';

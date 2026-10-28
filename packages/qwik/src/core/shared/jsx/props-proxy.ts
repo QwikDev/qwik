@@ -240,6 +240,7 @@ export type PropsProxy = {
   [_PROPS_HANDLER]: PropsProxyHandler;
 } & Record<string | symbol, unknown>;
 
+/** @internal */
 export const isPropsProxy = (obj: any): obj is PropsProxy => {
   return obj && _VAR_PROPS in obj;
 };

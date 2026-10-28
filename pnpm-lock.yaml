@@ -517,9 +517,6 @@ importers:
       '@emotion/styled':
         specifier: 11.14.1
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4)(supports-color@11.0.0))(@types/react@19.2.14)(react@19.2.4)(supports-color@11.0.0)
-      '@modular-forms/qwik':
-        specifier: 0.29.1
-        version: 0.29.1(typescript@5.9.3)
       '@mui/material':
         specifier: 7.3.2
         version: 7.3.2(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4)(supports-color@11.0.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4)(supports-color@11.0.0))(@types/react@19.2.14)(react@19.2.4)(supports-color@11.0.0))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)

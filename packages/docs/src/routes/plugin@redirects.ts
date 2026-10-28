@@ -92,6 +92,7 @@ const redirects: Record<string, string> = {
   '/docs/components/resource/': '/docs/core/state/',
   '/docs/cookbook/re-exporting-loaders/': '/docs/re-exporting-loaders/',
   '/docs/env-variables/': '/docs/guides/env-variables/',
+  '/docs/integrations/modular-forms/': '/docs/integrations/formisch/',
   '/docs/labs/error-boundary/': '/docs/labs/catch/',
   '/docs/labs/suspense/': '/docs/labs/pending/',
   '/docs/labs/usePreventNavigate': '/docs/advanced/prevent-navigation/',

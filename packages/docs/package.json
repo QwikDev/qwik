@@ -9,7 +9,6 @@
     "@emnapi/runtime": "1.11.3",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
-    "@modular-forms/qwik": "0.29.1",
     "@mui/material": "7.3.2",
     "@mui/system": "7.3.2",
     "@mui/x-data-grid": "8.11.3",

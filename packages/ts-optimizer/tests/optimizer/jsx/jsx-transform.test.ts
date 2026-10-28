@@ -202,6 +202,16 @@ function f() {
     expect(bindings.classify('store', src.indexOf('use(store)') + 4)).toBe('const');
   });
 
+  it('uses explicit provenance for generated QRL aliases', () => {
+    const source = `function f() { const value = q_user; use(value); }`;
+    const { program } = parseSync('test.tsx', source);
+    const { bindings } = collectScopeAwareBindings(program);
+    const { bindings: generatedBindings } = collectScopeAwareBindings(program, new Set(['q_user']));
+    const refPos = source.indexOf('use(value)') + 4;
+    expect(bindings.classify('value', refPos)).toBe('var');
+    expect(generatedBindings.classify('value', refPos)).toBe('const');
+  });
+
   it('returns undefined for names that are not declared anywhere', () => {
     const source = `function f() { use(undeclared); }`;
     const { bindings } = setup(source);

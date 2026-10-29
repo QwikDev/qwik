@@ -9,6 +9,29 @@ describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: loops', ({ render }) => {
+  it.each([null, undefined])('preserves a single nullable capture: %s', async (value) => {
+    (globalThis as any).log = [];
+    const Cmp = component$((props: { prefix: string | null | undefined; change: boolean }) => {
+      let prefix = props.prefix;
+      if (props.change) {
+        prefix = 'changed';
+      }
+      return (
+        <div>
+          {['a', 'b'].map((item) => (
+            <button id={item} onClick$={() => (globalThis as any).log.push(prefix)} />
+          ))}
+        </div>
+      );
+    });
+    const { document } = await render(<Cmp prefix={value} change={false} />, { debug });
+    await trigger(document.body, document.getElementById('a'), 'click');
+    await trigger(document.body, document.getElementById('b'), 'click');
+    await trigger(document.body, document.getElementById('a'), 'click');
+    expect((globalThis as any).log).toEqual([value, value, value]);
+    (globalThis as any).log = undefined;
+  });
+
   it('should correctly extract qrls from loop items', async () => {
     (globalThis as any).log = [];
     const Cmp = component$(() => {
@@ -272,6 +295,88 @@ describe.each([
     await trigger(document.body, document.getElementById('footer-a'), 'click');
     expect((globalThis as any).log).toEqual(['f:b', 'footer:f:a']);
 
+    (globalThis as any).log = undefined;
+  });
+  it('should preserve captures across repeated helper calls and branches', async () => {
+    (globalThis as any).log = [];
+    const Cmp = component$((props: { items: string[]; again: boolean }) => {
+      let prefix = 'first';
+      const renderRows = () =>
+        props.items.map((item) => (
+          <button
+            id={`${prefix}-${item}`}
+            onClick$={() => (globalThis as any).log.push(`${prefix}:${item}`)}
+          />
+        ));
+      const alias = renderRows;
+      const first = alias();
+      prefix = 'second';
+      return (
+        <div>
+          {first}
+          {props.again ? alias() : null}
+        </div>
+      );
+    });
+    const { document } = await render(<Cmp items={['a', 'b']} again />, { debug });
+    await trigger(document.body, document.getElementById('first-b'), 'click');
+    await trigger(document.body, document.getElementById('second-a'), 'click');
+    expect((globalThis as any).log).toEqual(['first:b', 'second:a']);
+    (globalThis as any).log = undefined;
+  });
+
+  it('should preserve assigned captures through callbacks passed to helpers', async () => {
+    (globalThis as any).log = [];
+    const Cmp = component$((props: { items: string[] }) => {
+      let prefix = 'initial';
+      const run = (action: () => void) => action();
+      return (
+        <div>
+          {props.items.map((item) => {
+            run(() => {
+              prefix = item;
+            });
+            return (
+              <button
+                id={item}
+                onClick$={() => (globalThis as any).log.push(`${prefix}:${item}`)}
+              />
+            );
+          })}
+        </div>
+      );
+    });
+    const { document } = await render(<Cmp items={['a', 'b']} />, { debug });
+    await trigger(document.body, document.getElementById('a'), 'click');
+    await trigger(document.body, document.getElementById('b'), 'click');
+    expect((globalThis as any).log).toEqual(['a:a', 'b:b']);
+    (globalThis as any).log = undefined;
+  });
+
+  it('should preserve captures assigned by array and object patterns', async () => {
+    (globalThis as any).log = [];
+    const Cmp = component$((props: { items: { name: string }[] }) => {
+      let arrayPrefix = 'initial';
+      let objectPrefix = 'initial';
+      return (
+        <div>
+          {props.items.map((item) => {
+            [arrayPrefix] = [item.name];
+            ({ name: objectPrefix } = item);
+            return (
+              <button
+                id={item.name}
+                onClick$={() => (globalThis as any).log.push(`${arrayPrefix}:${objectPrefix}`)}
+              />
+            );
+          })}
+        </div>
+      );
+    });
+    const { document } = await render(<Cmp items={[{ name: 'a' }, { name: 'b' }]} />, { debug });
+    await trigger(document.body, document.getElementById('a'), 'click');
+    await trigger(document.body, document.getElementById('b'), 'click');
+    expect((globalThis as any).log).toEqual(['a:a', 'b:b']);
     (globalThis as any).log = undefined;
   });
 });

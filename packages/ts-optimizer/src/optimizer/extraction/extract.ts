@@ -129,6 +129,7 @@ interface ExtractionPhaseFields {
    * Recorded at promotion time (before strip-mode clears captures) — drives the `.m()` marker.
    */
   movedCaptures?: boolean;
+  captureParamNames?: string[];
   /** At least one lifted capture is a non-const binding (param/let) — the entry classifies var. */
   liftedNonConst?: boolean;
   parent: SymbolName | null;

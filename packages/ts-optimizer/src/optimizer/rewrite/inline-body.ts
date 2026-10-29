@@ -206,7 +206,9 @@ export function transformInlineSegmentBody(
           // a component-scope binding (the attr value must stay an identifier
           // for the `q:p` walk).
           const childIsStripped = isStrippedExtraction(child, stripCtxName, stripEventHandlers);
-          const promotedParams = childIsStripped ? eventHandlerQpParams(child.paramNames) : [];
+          const promotedParams = childIsStripped
+            ? eventHandlerQpParams(child.paramNames, child.captureParamNames)
+            : [];
 
           if (childIsStripped && promotedParams.length > 0 && childCaptureNames.length > 0) {
             const wCall = formatWCall(childVarName, childCaptureNames, '            ', '        ');
@@ -415,7 +417,7 @@ export function transformInlineSegmentBody(
               if (child.ctxKind !== 'eventHandler' && child.ctxKind !== 'jSXProp') {
                 continue;
               }
-              const params = eventHandlerQpParams(child.paramNames);
+              const params = eventHandlerQpParams(child.paramNames, child.captureParamNames);
               if (params.length > 0) {
                 qpByQrl.set(
                   qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`,
@@ -491,7 +493,9 @@ export function transformInlineSegmentBody(
           // The unified element array carries the client build's slot order;
           // per-child capture order would scramble multi-handler elements.
           const unified = elementQpParamsMap?.get(child.symbolName);
-          const captureParams = unified ? [...unified] : eventHandlerQpParams(child.paramNames);
+          const captureParams = unified
+            ? [...unified]
+            : eventHandlerQpParams(child.paramNames, child.captureParamNames);
           if (captureParams.length === 0) {
             continue;
           }
@@ -631,7 +635,8 @@ function collectElementCaptureNames(
       continue;
     }
     const params =
-      elementQpParamsMap?.get(child.symbolName) ?? eventHandlerQpParams(child.paramNames);
+      elementQpParamsMap?.get(child.symbolName) ??
+      eventHandlerQpParams(child.paramNames, child.captureParamNames);
     for (const name of [...params, ...child.captureNames]) {
       names.add(name);
     }

@@ -1291,7 +1291,7 @@ function diffProps(
       ) {
         patchProperty(diffContext, vnode, key, newValue, currentFile);
       }
-    } else if (newValue != null) {
+    } else if (newValue != null || (key === ITERATION_ITEM_SINGLE && newValue === null)) {
       patchProperty(diffContext, vnode, key, newValue, currentFile);
     }
   }
@@ -1306,7 +1306,13 @@ function diffProps(
         // we keep these handler props to indicate to qwikloader that these events are used
         !isHtmlAttributeAnEventName(key)
       ) {
-        patchProperty(diffContext, vnode, key, null, currentFile);
+        patchProperty(
+          diffContext,
+          vnode,
+          key,
+          key === ITERATION_ITEM_SINGLE ? undefined : null,
+          currentFile
+        );
       }
     }
   }

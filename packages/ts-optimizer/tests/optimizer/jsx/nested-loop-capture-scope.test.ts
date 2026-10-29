@@ -1,3 +1,8 @@
+/* eslint-disable no-new-func -- Execute generated optimizer output. */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { parseSnapshot } from '../../../src/testing/snapshot-parser.js';
+import { SNAP_DIR } from '../../rust-snapshots.js';
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
@@ -358,4 +363,581 @@ describe('loop handler .w() bindings and their captured locals', () => {
       expect(code).not.toMatch(/\blabel1\b/);
     }
   });
+});
+
+function executeSegment(code: string, bindings: Record<string, unknown>) {
+  const functionName = code.match(/export const (\w+)/)![1];
+  const executable = code.replace(/^import .*;\n/gm, '').replace(/export /g, '');
+  return new Function(...Object.keys(bindings), executable + ';return ' + functionName)(
+    ...Object.values(bindings)
+  );
+}
+
+it.each([
+  {
+    name: 'stable capture',
+    setup: '',
+    update: '',
+    initialize: 'const prefix = props.prefix;',
+    expectedPrefix: 'stable',
+  },
+  {
+    name: 'shadowed write',
+    setup: 'const setPrefix = prefix => { prefix = "ignored"; };',
+    update: 'setPrefix(item.name);',
+    initialize: 'const prefix = props.prefix;',
+    expectedPrefix: 'stable',
+  },
+  {
+    name: 'assignment before loop',
+    setup: '',
+    update: '',
+    initialize: 'let prefix = props.prefix; prefix = "updated";',
+    expectedPrefix: 'updated',
+  },
+  {
+    name: 'computed destructuring key read',
+    setup: '',
+    update: 'let assigned; ({ [prefix]: assigned } = item);',
+    initialize: 'const prefix = props.prefix;',
+    expectedPrefix: 'stable',
+  },
+  {
+    name: 'destructuring default read',
+    setup: '',
+    update: 'let assigned; ({ assigned = prefix } = item);',
+    initialize: 'const prefix = props.prefix;',
+    expectedPrefix: 'stable',
+  },
+  { name: 'direct assignment', setup: '', update: 'prefix = item.name;' },
+  { name: 'array destructuring', setup: '', update: '[prefix] = [item.name];' },
+  { name: 'object destructuring', setup: '', update: '({ name: prefix } = item);' },
+  {
+    name: 'callback passed to helper',
+    setup: 'const run = action => action();',
+    update: 'run(() => { prefix = item.name; });',
+  },
+  {
+    name: 'local helper',
+    setup: 'const setPrefix = value => { prefix = value; };',
+    update: 'setPrefix(item.name);',
+  },
+  {
+    name: 'helper alias',
+    setup: 'const setPrefix = value => { prefix = value; }; const alias = setPrefix;',
+    update: 'alias(item.name);',
+  },
+])(
+  'delivers captures from $name while sharing the QRL',
+  ({ setup, update, initialize = "let prefix = 'initial';", expectedPrefix }) => {
+    const output = transform(
+      `import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+ ${initialize} ${setup}
+ return <div>{props.items.map(item => { ${update}
+   return <button onClick$={() => props.select$(prefix, item.name)} />;
+ })}</div>;
+});`,
+      { entryStrategy: { type: 'smart' } }
+    );
+    const component = output.modules.find((m) => m.code.includes('props.items.map'))!;
+    const handler = output.modules.find((m) => m.code.includes('return props.select$'))!;
+    let allocations = 0;
+    const qrl = () => ({
+      m() {
+        return this;
+      },
+      w(captures: unknown[]) {
+        allocations++;
+        return { captures };
+      },
+    });
+    const render = executeSegment(component.code, {
+      qrl,
+      _jsxSorted: (_tag: string, props: unknown, _constant: unknown, children: unknown) => ({
+        props,
+        children,
+      }),
+    });
+    const selected: string[] = [];
+    const tree = render({
+      prefix: 'stable',
+      items: [{ name: 'a' }, { name: 'b' }],
+      select$: (prefix: string, name: string) => selected.push(prefix + ':' + name),
+    });
+    const buttons = tree.children;
+    expect(buttons[0].props['q-e:click']).toBe(buttons[1].props['q-e:click']);
+    expect(allocations).toBe(1);
+    if (expectedPrefix === 'stable') {
+      expect(buttons.every((button: any) => button.props['q:ps'] === undefined)).toBe(true);
+    }
+    for (const button of buttons) {
+      const captures = { _: button.props['q-e:click'].captures };
+      const invoke = executeSegment(handler.code, { _capturesObj: captures });
+      invoke(null, null, ...(button.props['q:ps'] ?? [button.props['q:p']]));
+    }
+    expect(selected).toEqual([`${expectedPrefix ?? 'a'}:a`, `${expectedPrefix ?? 'b'}:b`]);
+  }
+);
+
+it.each(['test', 'prod'] as const)('keeps capture slots local in %s mode', (mode) => {
+  const output = transform(
+    `import { component$ } from '@qwik.dev/core';
+
+export const List = component$((props) => {
+  let prefix = props.prefix;
+  prefix = \`\${prefix}!\`;
+  return (
+    <ul>
+      {props.items.map((item) => (
+        <li key={item.id} onClick$={() => props.select$(prefix, item.id)} />
+      ))}
+    </ul>
+  );
+});
+
+export const Groups = component$((props) => (
+  <div>
+    {props.groups.map((group) => {
+      let label = group.label;
+      label = label.toUpperCase();
+      return group.items.map((item) => (
+        <button key={item.id} onClick$={() => props.select$(label, item.id)} />
+      ));
+    })}
+  </div>
+));`,
+    { mode, entryStrategy: { type: 'smart' } }
+  );
+  const component = output.modules.find(
+    (m) =>
+      m.kind === 'segment' &&
+      m.segment.ctxKind === 'function' &&
+      m.segment.displayName.includes('Groups_component')
+  )!;
+  const handler = output.modules.find(
+    (m) =>
+      m.kind === 'segment' &&
+      m.segment.ctxKind === 'eventHandler' &&
+      m.segment.displayName.includes('Groups_component')
+  )!;
+  const selected: string[] = [];
+  const qrl = () => ({
+    m() {
+      return this;
+    },
+    w(captures: unknown[]) {
+      return { captures };
+    },
+  });
+  const render = executeSegment(component.code, {
+    qrl,
+    _jsxSorted: (_tag: string, props: unknown, _constant: unknown, children: unknown) => ({
+      props,
+      children,
+    }),
+  });
+  const tree = render({
+    groups: [{ label: 'group', items: [{ id: 'a' }, { id: 'b' }] }],
+    select$: (label: string, name: string) => selected.push(label + ':' + name),
+  });
+  for (const button of tree.children.flat()) {
+    const invoke = executeSegment(handler.code, {
+      _capturesObj: { _: button.props['q-e:click'].captures },
+    });
+    invoke(null, null, ...button.props['q:ps']);
+  }
+  expect(selected).toEqual(['GROUP:a', 'GROUP:b']);
+});
+
+describe.each(['TypeScript', 'Rust'] as const)('%s loop capture regressions', (optimizer) => {
+  it.each([
+    {
+      snapshot: 'should_transform_loop_stable_hoisted_var',
+      expected: Array.from({ length: 1000 }, (_, index) => 'stable:' + index),
+      perElementArrays: 0,
+      itemNames: Array.from({ length: 1000 }, (_, index) => String(index)),
+    },
+    {
+      snapshot: 'should_transform_loop_stable_hoisted_var_declarators',
+      expected: ['stable:a', 'stable:b'],
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_hoisted_function_reference',
+      expected: ['stable:a', 'stable:b'],
+      perElementArrays: 2,
+    },
+    {
+      snapshot: 'should_transform_loop_hoisted_function_chain',
+      expected: ['stable:a', 'stable:b'],
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_hoisted_function_chain_initialization',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+      perElementArrays: 4,
+    },
+    {
+      snapshot: 'should_transform_loop_logical_property_capture',
+      expected: ['stable:a'],
+      perElementArrays: 1,
+    },
+    {
+      snapshot: 'should_transform_loop_array_property_capture',
+      expected: ['stable:a'],
+      perElementArrays: 1,
+    },
+    {
+      snapshot: 'should_transform_loop_object_property_capture',
+      expected: ['stable:a'],
+      perElementArrays: 1,
+    },
+    {
+      snapshot: 'should_transform_loop_stable_logical_property_capture',
+      expected: ['stable:a'],
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_hoisted_helper_initialization',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+      perElementArrays: 4,
+    },
+    {
+      snapshot: 'should_transform_loop_stable_hoisted_helper',
+      expected: ['stable:a', 'stable:b'],
+      perElementArrays: 0,
+    },
+    { snapshot: 'should_transform_loop_property_helper', expected: ['stable:a', 'stable:b'] },
+    { snapshot: 'should_transform_loop_pushed_helper', expected: ['stable:a', 'stable:b'] },
+    { snapshot: 'should_transform_loop_setter_helper', expected: ['stable:a', 'stable:b'] },
+    {
+      snapshot: 'should_transform_loop_property_helper_across_initialization',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_stable_property_helper',
+      expected: Array.from({ length: 1000 }, (_, index) => 'stable:' + index),
+      itemNames: Array.from({ length: 1000 }, (_, index) => String(index)),
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_nullable_capture',
+      expected: ['null:fixed', 'null:fixed'],
+      prefix: null,
+    },
+    { snapshot: 'should_transform_loop_named_factory', expected: ['stable:a', 'stable:b'] },
+    { snapshot: 'should_transform_loop_function_argument', expected: ['stable:a', 'stable:b'] },
+    { snapshot: 'should_transform_loop_conditional_factory', expected: ['stable:a', 'stable:b'] },
+    {
+      snapshot: 'should_transform_loop_factory_returning_helper',
+      expected: ['stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_named_factory_across_initialization',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_argument_across_initialization',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_var_in_nested_blocks',
+      expected: ['setup:stable', 'stable:a', 'stable:b'],
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_var_in_try',
+      expected: ['setup:ready', 'stable:a', 'stable:b'],
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_var_in_label',
+      expected: ['stable:a', 'stable:b'],
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_var_in_nested_branch',
+      expected: ['setup:stable', 'stable:a', 'stable:b'],
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_var_in_while',
+      expected: ['0:a', '0:b', '1:a', '1:b'],
+      bindings: 2,
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_shared_padding_capture',
+      expected: ['stable:first:a', 'stable:second:a', 'stable:first:b', 'stable:second:b'],
+      events: ['onClick$', 'onMouseDown$'],
+      bindings: 2,
+    },
+    {
+      snapshot: 'should_transform_loop_shadowed_helper_name',
+      expected: ['stable:a', 'stable:b'],
+      perElementArrays: 2,
+    },
+    { snapshot: 'should_transform_loop_assigned_helper_alias', expected: ['stable:a', 'stable:b'] },
+    {
+      snapshot: 'should_transform_loop_assigned_alias_across_initialization',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_branch_assigned_helper',
+      expected: ['stable:a', 'stable:b'],
+    },
+    { snapshot: 'should_transform_loop_factory_helper', expected: ['stable:a', 'stable:b'] },
+    {
+      snapshot: 'should_transform_loop_factory_across_initialization',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+    },
+    { snapshot: 'should_transform_loop_helper_in_call_result', expected: ['stable:a', 'stable:b'] },
+    {
+      snapshot: 'should_transform_loop_handler_with_awaited_map_argument',
+      expected: [
+        'receiver:ready',
+        'method:ready',
+        'binding:ready',
+        'argument:ready',
+        'stable:a',
+        'stable:b',
+      ],
+      recordCallOrder: true,
+    },
+    {
+      snapshot: 'should_transform_loop_stable_var_in_block',
+      expected: Array.from({ length: 1000 }, (_, index) => 'stable:' + index),
+      itemNames: Array.from({ length: 1000 }, (_, index) => String(index)),
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_stable_var_in_branch',
+      expected: ['stable:a', 'stable:b'],
+      perElementArrays: 0,
+    },
+    {
+      snapshot: 'should_transform_loop_destructured_array_helper',
+      expected: ['stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_destructured_object_helper',
+      expected: ['stable:a', 'stable:b'],
+    },
+    { snapshot: 'should_transform_loop_conditional_helper', expected: ['stable:a', 'stable:b'] },
+    {
+      snapshot: 'should_transform_loop_destructured_helper_across_initialization',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+    },
+    { snapshot: 'should_transform_loop_capture_named_padding', expected: ['stable:a', 'stable:b'] },
+    {
+      snapshot: 'should_transform_loop_for_of_var_head',
+      expected: ['first:a', 'first:b', 'second:a', 'second:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_for_in_var_head',
+      expected: ['first:a', 'first:b', 'second:a', 'second:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_function_scoped_var_in_block',
+      expected: ['setup:ready', 'stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_function_scoped_var_in_for',
+      expected: ['stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_uncaptured_var_initializers',
+      expected: ['stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_first_var_initialization_array_pattern',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+      perElementArrays: 4,
+    },
+    {
+      snapshot: 'should_transform_loop_first_var_initialization_object_pattern',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+      perElementArrays: 4,
+    },
+    {
+      snapshot: 'should_transform_loop_first_var_initialization_between_declarators',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+      perElementArrays: 4,
+    },
+    {
+      snapshot: 'should_transform_loop_first_var_initialization_between_alias_calls',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+      perElementArrays: 4,
+    },
+    {
+      snapshot: 'should_transform_loop_first_var_initialization_between_branch_calls',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+      perElementArrays: 4,
+    },
+    {
+      snapshot: 'should_transform_loop_first_var_initialization_between_helper_calls',
+      expected: ['undefined:a', 'undefined:b', 'stable:a', 'stable:b'],
+      perElementArrays: 4,
+    },
+    {
+      snapshot: 'should_transform_loop_var_capture_after_helper_storage',
+      perElementArrays: 2,
+      expected: ['stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_handler_before_single_var_initializer',
+      perElementArrays: 2,
+      expected: ['undefined:a', 'undefined:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_var_reinitialized_before_helper',
+      expected: ['second:a', 'second:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_var_reinitialized_between_helper_calls',
+      expected: ['first:a', 'first:b', 'second:a', 'second:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_helper_call_after_capture_declarator',
+      perElementArrays: 0,
+      expected: ['stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_stable_var_capture',
+      perElementArrays: 0,
+      expected: ['stable:a', 'stable:b', 'stable:a', 'stable:b'],
+    },
+    { snapshot: 'should_transform_loop_helper_in_array', expected: ['stable:a', 'stable:b'] },
+    {
+      snapshot: 'should_transform_loop_helper_in_array_declaration',
+      expected: ['stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_handler_before_var_initializer',
+      expected: ['undefined:a', 'undefined:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_handler_in_arrow_parameter_default',
+      expected: ['stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_helper_multiple_declarators',
+      expected: ['stable:a', 'stable:b', 'stable:a', 'stable:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_helper_call_in_declaration',
+      expected: ['stable:a', 'stable:b', 'stable:a', 'stable:b'],
+    },
+    { snapshot: 'should_transform_loop_parenthesized_update_capture', expected: ['1:a', '2:b'] },
+    {
+      snapshot: 'should_transform_loop_for_of_head_capture',
+      expected: ['first:a', 'first:b', 'second:a', 'second:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_for_in_head_capture',
+      expected: ['first:a', 'first:b', 'second:a', 'second:b'],
+    },
+    {
+      snapshot: 'should_transform_loop_handler_in_parameter_default',
+      expected: ['stable:a', 'stable:b'],
+    },
+  ])(
+    '$snapshot',
+    async ({
+      snapshot,
+      expected,
+      perElementArrays,
+      events = ['onClick$'],
+      bindings = 1,
+      itemNames = ['a', 'b'],
+      recordCallOrder = false,
+      prefix = 'stable',
+    }) => {
+      const fixture = parseSnapshot(
+        readFileSync(join(SNAP_DIR, `qwik_core__test__${snapshot}.snap`), 'utf8')
+      );
+      const modules =
+        optimizer === 'Rust'
+          ? fixture.segments.map((segment) => ({
+              code: segment.code,
+              ctxName: segment.metadata?.ctxName,
+            }))
+          : transform(fixture.input!, { entryStrategy: { type: 'smart' } }).modules.map(
+              (module) => ({
+                code: module.code,
+                ctxName: module.kind === 'segment' ? module.segment.ctxName : undefined,
+              })
+            );
+      const component = modules.find((module) => module.ctxName === 'component$')!;
+      const handlers = events.map((event) => modules.find((module) => module.ctxName === event)!);
+      let allocations = 0;
+      const qrl = () => ({
+        m() {
+          return this;
+        },
+        w(captures: unknown[]) {
+          allocations++;
+          if (recordCallOrder) {
+            selected.push('binding:ready');
+          }
+          return { captures };
+        },
+      });
+      const render = executeSegment(component.code, {
+        qrl,
+        _jsxSorted: (_tag: string, props: unknown, _constant: unknown, children: unknown) => ({
+          props,
+          children,
+        }),
+      });
+      const selected: string[] = [];
+      const items = itemNames.map((name) => ({ name }));
+      if (recordCallOrder) {
+        Object.defineProperty(items, 'map', {
+          get() {
+            selected.push('method:ready');
+            return Array.prototype.map;
+          },
+        });
+      }
+      const tree = await render({
+        prefix,
+        get items() {
+          if (recordCallOrder) {
+            selected.push('receiver:ready');
+          }
+          return items;
+        },
+        get context() {
+          if (recordCallOrder) {
+            selected.push('argument:ready');
+          }
+          return null;
+        },
+        select$: (prefix: string, name: string) => selected.push(prefix + ':' + name),
+      });
+      const buttons = [tree.children].flat(Infinity);
+      if (perElementArrays !== undefined) {
+        expect(
+          buttons.filter((button: { props: Record<string, unknown> }) => button.props['q:ps'])
+            .length
+        ).toBe(perElementArrays);
+      }
+      expect(allocations).toBe(bindings);
+      const groupSize = (buttons.length * events.length) / bindings;
+      for (const [index, button] of buttons.entries()) {
+        const firstButton = buttons[Math.floor(index / groupSize) * groupSize];
+        for (const handler of handlers) {
+          const event = 'q-e:' + handler.ctxName!.slice(2, -1).toLowerCase();
+          expect(button.props[event]).toBe(firstButton.props[event]);
+          const invoke = executeSegment(handler.code, {
+            _capturesObj: { _: button.props[event].captures },
+          });
+          invoke(null, null, ...(button.props['q:ps'] ?? [button.props['q:p']]));
+        }
+      }
+      expect(selected).toEqual(expected);
+    }
+  );
 });

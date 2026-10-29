@@ -3,4 +3,4 @@
 '@qwik.dev/optimizer': patch
 ---
 
-fix: loop handlers capturing stale locals or throwing when rendered from a variable
+fix: preserve loop handler captures across scopes and assignments

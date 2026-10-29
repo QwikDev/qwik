@@ -29,7 +29,12 @@ import {
 import { walkWithProtocol } from '../ast/walk-with-protocol.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
-import { detectLoopContext, type LoopContext } from '../jsx/loop-hoisting.js';
+import {
+  detectLoopContext,
+  extendLoopWrittenCaptures,
+  writeCandidates,
+  type LoopContext,
+} from '../jsx/loop-hoisting.js';
 import {
   buildForLoopScopeEntry,
   buildFunctionScopeEntry,
@@ -233,6 +238,8 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   }
   // preserveExitedScopes: post-walk resolution reads scopes the walk already left.
   const tracker = new ScopeQueryTracker({ preserveExitedScopes: true });
+  const referenceScopes = new WeakMap<AstNode, string>();
+  const writes: AstNode[] = [];
   const openClosures: OpenClosure[] = [];
   const pendingResolutions: PendingResolution[] = [];
 
@@ -378,6 +385,11 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
     exitCtx,
     {
       enter(node, parent, ctx) {
+        referenceScopes.set(node, tracker.getCurrentScope());
+        const targets = writeCandidates(node);
+        if (targets) {
+          writes.push(...targets);
+        }
         enterFreeIdentifiers(node, parent, ctx);
         enterLexicalScopes(node, ctx);
         enterLoopMap(node, ctx);
@@ -439,6 +451,12 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   }
 
   tracker.freeze();
+  extendLoopWrittenCaptures(
+    [...extractionLoopMap.values()].flat(),
+    tracker,
+    referenceScopes,
+    writes
+  );
   resolveFreeIdentifiers(pendingResolutions, tracker);
 
   // Deferred to post-walk: a later `const` in an enclosing scope is still a capture.

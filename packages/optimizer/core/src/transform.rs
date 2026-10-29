@@ -21,11 +21,15 @@ use std::iter;
 use std::str;
 use swc_atoms::{atom, Atom};
 use swc_common::comments::{Comments, SingleThreadedComments};
+use swc_common::util::take::Take;
 use swc_common::SyntaxContext;
-use swc_common::{sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
+use swc_common::{sync::Lrc, BytePos, SourceMap, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast::{self, SpreadElement};
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
-use swc_ecmascript::visit::{noop_fold_type, noop_visit_type, Fold, FoldWith, Visit, VisitWith};
+use swc_ecmascript::visit::{
+	noop_fold_type, noop_visit_mut_type, noop_visit_type, Fold, FoldWith, Visit, VisitMut,
+	VisitMutWith, VisitWith,
+};
 
 mod disable_next_line_directive;
 #[path = "transform_worker.rs"]
@@ -135,6 +139,8 @@ pub struct QwikTransform<'a> {
 	extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
 	stack_ctxt: Vec<String>,
 	decl_stack: Vec<Vec<IdPlusType>>,
+	written_bindings: HashMap<Id, Span>,
+	function_vars: Vec<HashSet<Id>>,
 	/// Function params, which component props treat as render-stable like static consts.
 	param_ids: HashSet<Id>,
 	marker_functions: HashMap<Id, Atom>,
@@ -298,6 +304,8 @@ impl<'a> QwikTransform<'a> {
 			jsx_key_counter: 0,
 			stack_ctxt: Vec::with_capacity(16),
 			decl_stack: Vec::with_capacity(32),
+			written_bindings: HashMap::new(),
+			function_vars: Vec::new(),
 			param_ids: HashSet::new(),
 			segments: Vec::with_capacity(16),
 			segment_stack: Vec::with_capacity(16),
@@ -1386,10 +1394,9 @@ impl<'a> QwikTransform<'a> {
 					let min_decl_scope = scoped_idents
 						.iter()
 						.map(|capture| {
-							let name = capture.0.as_ref();
-							self.decl_stack.iter().rposition(|scope| {
-								scope.iter().any(|(id, _)| id.0.as_ref() == name)
-							})
+							self.decl_stack
+								.iter()
+								.rposition(|scope| scope.iter().any(|(id, _)| id == capture))
 						})
 						.collect::<Option<Vec<_>>>()?
 						.into_iter()
@@ -3424,38 +3431,80 @@ impl<'a> QwikTransform<'a> {
 		creates_hoisting_scope
 	}
 
+	fn extend_iteration_writes(&self, variables: &mut Vec<ast::Ident>) {
+		for (id, _) in self.decl_stack.iter().flatten() {
+			if let Some(span) = self.written_bindings.get(id) {
+				if !variables.iter().any(|ident| id!(ident) == *id) {
+					let mut ident = new_ident_from_id(id);
+					ident.span = *span;
+					variables.push(ident);
+				}
+			}
+		}
+		variables.sort_by_key(|ident| ident.span.lo);
+	}
+
+	fn record_function_variables<T: VisitWith<FunctionVariables>>(&mut self, body: &T) {
+		let mut variables = FunctionVariables::default();
+		body.visit_with(&mut variables);
+		let mut ids = HashSet::new();
+		let scope = self
+			.decl_stack
+			.last_mut()
+			.expect("Declaration stack empty!");
+		for (id, _) in variables.declarations {
+			if ids.insert(id.clone()) {
+				scope.push((id, IdentType::Var(false)));
+			}
+		}
+		self.function_vars.push(ids);
+	}
+
+	fn record_variable_declarations(&mut self, node: &ast::VarDecl) {
+		if let Some(current_scope) = self.decl_stack.last_mut() {
+			for decl in &node.decls {
+				let mut identifiers: Vec<(Id, Span)> = Vec::with_capacity(node.decls.len() + 2);
+				collect_from_pat(&decl.name, &mut identifiers);
+				let mut static_identifiers: Vec<Id> = vec![];
+				collect_static_identifiers(&mut static_identifiers, &decl.name, &decl.init);
+
+				let is_const = node.kind == ast::VarDeclKind::Const;
+
+				for ident in identifiers {
+					if node.kind == ast::VarDeclKind::Var
+						&& self
+							.function_vars
+							.last()
+							.is_some_and(|vars| vars.contains(&ident.0))
+					{
+						continue;
+					}
+					let is_static = static_identifiers.contains(&ident.0);
+					if !current_scope
+						.contains(&(ident.0.clone(), IdentType::Var(is_const && is_static)))
+					{
+						current_scope.push((ident.0, IdentType::Var(is_const && is_static)));
+					}
+				}
+			}
+		}
+	}
+
 	/// Helper to inject hoisted QRLs into a block statement
 	/// Returns true if QRLs were injected
 	fn inject_hoisted_qrls_into_block(&mut self, stmts: &mut Vec<ast::Stmt>) -> bool {
 		let popped_depth = self.hoisted_qrls.len().saturating_sub(1);
-		if let Some(current_qrls) = self.hoisted_qrls.pop() {
+		if let Some(mut current_qrls) = self.hoisted_qrls.pop() {
 			self.hoisting_scope_decl_indices.pop();
 			if self.component_depths.last() == Some(&popped_depth) {
 				self.component_depths.pop();
 			}
 			if !current_qrls.is_empty() {
-				// Declare each binding right before its first use, so it sees reassigned captures.
-				let mut placed_qrls: Vec<(usize, ast::Stmt)> = current_qrls
-					.into_iter()
-					.map(|(name, declarator)| {
-						let binding_id = (Atom::from(name), SyntaxContext::empty());
-						let use_pos = first_use_position(stmts, &binding_id).unwrap_or(stmts.len());
-						let qrl_stmt = ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
-							span: DUMMY_SP,
-							kind: ast::VarDeclKind::Const,
-							declare: false,
-							ctxt: SyntaxContext::empty(),
-							decls: vec![declarator],
-						})));
-						(use_pos, qrl_stmt)
-					})
-					.collect();
-
-				// Insert back to front so earlier positions stay valid and ties keep their order.
-				placed_qrls.sort_by_key(|(use_pos, _)| *use_pos);
-				for (use_pos, qrl_stmt) in placed_qrls.into_iter().rev() {
-					stmts.insert(use_pos, qrl_stmt);
-				}
+				let mut defaults = DefaultQrlBindings {
+					bindings: &mut current_qrls,
+				};
+				*stmts = std::mem::take(stmts).fold_with(&mut defaults);
+				place_block_qrls(stmts, current_qrls);
 				return true;
 			}
 		}
@@ -3531,6 +3580,19 @@ impl<'a> Fold for QwikTransform<'a> {
 	}
 
 	fn fold_module(&mut self, node: ast::Module) -> ast::Module {
+		let mut reads = LoopBindingReads::default();
+		node.visit_with(&mut reads);
+		let mut writes = WrittenBindings {
+			loop_bindings: reads.ids,
+			..Default::default()
+		};
+		node.visit_with(&mut writes);
+		let declarations = writes.declarations;
+		self.written_bindings = writes
+			.ids
+			.into_iter()
+			.filter_map(|id| declarations.get(&id).copied().map(|span| (id, span)))
+			.collect();
 		let mut body = Vec::with_capacity(node.body.len() + 10);
 		let module_body: Vec<_> = node
 			.body
@@ -3654,21 +3716,7 @@ impl<'a> Fold for QwikTransform<'a> {
 
 	// Variable tracking
 	fn fold_var_decl(&mut self, node: ast::VarDecl) -> ast::VarDecl {
-		if let Some(current_scope) = self.decl_stack.last_mut() {
-			for decl in &node.decls {
-				let mut identifiers: Vec<(Id, Span)> = Vec::with_capacity(node.decls.len() + 2);
-				collect_from_pat(&decl.name, &mut identifiers);
-				let mut static_identifiers: Vec<Id> = vec![];
-				collect_static_identifiers(&mut static_identifiers, &decl.name, &decl.init);
-
-				let is_const = node.kind == ast::VarDeclKind::Const;
-
-				for ident in identifiers {
-					let is_static = static_identifiers.contains(&ident.0);
-					current_scope.push((ident.0, IdentType::Var(is_const && is_static)));
-				}
-			}
-		}
+		self.record_variable_declarations(&node);
 		let is_const = node.kind == ast::VarDeclKind::Const;
 		let folded = node.fold_children_with(self);
 
@@ -3738,10 +3786,15 @@ impl<'a> Fold for QwikTransform<'a> {
 			current_scope.extend(params);
 		}
 
+		self.record_function_variables(&node.body);
 		let mut o = node.fold_children_with(self);
 
 		// Inject hoisted QRLs if this function created a hoisting scope
 		if creates_hoisting_scope {
+			if let Some(bindings) = self.hoisted_qrls.last_mut() {
+				o.params =
+					std::mem::take(&mut o.params).fold_with(&mut DefaultQrlBindings { bindings });
+			}
 			if let Some(body) = &mut o.body {
 				self.inject_hoisted_qrls_into_block(&mut body.stmts);
 			}
@@ -3750,6 +3803,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
 		self.decl_stack.pop();
+		self.function_vars.pop();
 
 		o
 	}
@@ -3777,10 +3831,15 @@ impl<'a> Fold for QwikTransform<'a> {
 			current_scope.extend(params);
 		}
 
+		self.record_function_variables(&node.body);
 		let mut o = node.fold_children_with(self);
 
 		// Inject hoisted QRLs if this arrow function created a hoisting scope
 		if creates_hoisting_scope {
+			if let Some(bindings) = self.hoisted_qrls.last_mut() {
+				o.params =
+					std::mem::take(&mut o.params).fold_with(&mut DefaultQrlBindings { bindings });
+			}
 			match &mut *o.body {
 				ast::BlockStmtOrExpr::BlockStmt(block) => {
 					self.inject_hoisted_qrls_into_block(&mut block.stmts);
@@ -3830,6 +3889,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
 		self.decl_stack.pop();
+		self.function_vars.pop();
 
 		o
 	}
@@ -3840,7 +3900,8 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.root_jsx_mode = true;
 
 		// Track the loop variable from the initialization
-		let iteration_vars = if let Some(ast::VarDeclOrExpr::VarDecl(ref var_decl)) = node.init {
+		let mut iteration_vars = if let Some(ast::VarDeclOrExpr::VarDecl(ref var_decl)) = node.init
+		{
 			var_decl
 				.decls
 				.first()
@@ -3855,6 +3916,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		} else {
 			Vec::new()
 		};
+		self.extend_iteration_writes(&mut iteration_vars);
 		self.iteration_var_stack.push(iteration_vars);
 
 		let o = node.fold_children_with(self);
@@ -3871,7 +3933,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.root_jsx_mode = true;
 
 		// Track the loop variable
-		let iteration_vars = match &node.left {
+		let mut iteration_vars = match &node.left {
 			ast::ForHead::VarDecl(var_decl) => var_decl.decls.first().and_then(|decl| {
 				if let ast::Pat::Ident(ident) = &decl.name {
 					Some(vec![ident.id.clone()])
@@ -3889,6 +3951,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			_ => None,
 		}
 		.unwrap_or_default();
+		self.extend_iteration_writes(&mut iteration_vars);
 		self.iteration_var_stack.push(iteration_vars);
 
 		let o = node.fold_children_with(self);
@@ -3905,7 +3968,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.root_jsx_mode = true;
 
 		// Track the loop variable
-		let iteration_vars = match &node.left {
+		let mut iteration_vars = match &node.left {
 			ast::ForHead::VarDecl(var_decl) => var_decl.decls.first().and_then(|decl| {
 				if let ast::Pat::Ident(ident) = &decl.name {
 					Some(vec![ident.id.clone()])
@@ -3923,6 +3986,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			_ => None,
 		}
 		.unwrap_or_default();
+		self.extend_iteration_writes(&mut iteration_vars);
 		self.iteration_var_stack.push(iteration_vars);
 
 		let current_scope = self
@@ -3983,6 +4047,11 @@ impl<'a> Fold for QwikTransform<'a> {
 
 	fn fold_block_stmt(&mut self, node: ast::BlockStmt) -> ast::BlockStmt {
 		self.decl_stack.push(vec![]);
+		for statement in &node.stmts {
+			if let ast::Stmt::Decl(ast::Decl::Var(declaration)) = statement {
+				self.record_variable_declarations(declaration);
+			}
+		}
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
 		let o = node.fold_children_with(self);
@@ -3999,7 +4068,7 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		// Try to extract the iteration variable from the condition
 		// e.g., in "while (i < results.length)", extract "i"
-		let iteration_vars = match &*node.test {
+		let mut iteration_vars = match &*node.test {
 			ast::Expr::Bin(bin_expr) => {
 				// Check left side of comparison
 				match &*bin_expr.left {
@@ -4009,6 +4078,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			}
 			_ => Vec::new(),
 		};
+		self.extend_iteration_writes(&mut iteration_vars);
 		self.iteration_var_stack.push(iteration_vars);
 
 		let o = node.fold_children_with(self);
@@ -4262,6 +4332,7 @@ impl<'a> Fold for QwikTransform<'a> {
 					}
 				}
 			}
+			self.extend_iteration_writes(&mut iteration_vars);
 			self.iteration_var_stack.push(iteration_vars);
 		}
 
@@ -5090,6 +5161,8 @@ impl IdentChecker {
 impl Visit for IdentChecker {
 	noop_visit_type!();
 
+	fn visit_binding_ident(&mut self, _: &ast::BindingIdent) {}
+
 	fn visit_ident(&mut self, ident: &ast::Ident) {
 		if id!(ident) == self.target_id {
 			self.found = true;
@@ -5097,36 +5170,269 @@ impl Visit for IdentChecker {
 	}
 }
 
-/// Check if a statement references a specific identifier
-fn stmt_uses_ident(stmt: &ast::Stmt, target_id: &Id) -> bool {
+/// Check if a node references a specific identifier
+fn node_uses_ident<T: VisitWith<IdentChecker>>(stmt: &T, target_id: &Id) -> bool {
 	let mut checker = IdentChecker::new(target_id);
 	stmt.visit_with(&mut checker);
 	checker.found
 }
 
-/// First statement that may read `binding_id`, directly or via a hoisted function.
-fn first_use_position(stmts: &[ast::Stmt], binding_id: &Id) -> Option<usize> {
-	let mut used_ids = vec![binding_id.clone()];
-	let uses_any =
-		|stmt: &ast::Stmt, used_ids: &[Id]| used_ids.iter().any(|id| stmt_uses_ident(stmt, id));
-	let mut has_new_user = true;
-	while has_new_user {
-		has_new_user = false;
-		for stmt in stmts {
-			if let ast::Stmt::Decl(ast::Decl::Fn(fn_decl)) = stmt {
-				let fn_id = id!(fn_decl.ident);
-				if !used_ids.contains(&fn_id) && uses_any(stmt, &used_ids) {
-					used_ids.push(fn_id);
-					has_new_user = true;
+fn declarator_positions(
+	stmts: &[ast::Stmt],
+) -> impl DoubleEndedIterator<Item = (usize, usize)> + '_ {
+	stmts.iter().enumerate().flat_map(|(index, stmt)| {
+		let count = match stmt {
+			ast::Stmt::Decl(ast::Decl::Var(var)) => var.decls.len(),
+			_ => 1,
+		};
+		(0..count).map(move |declarator| (index, declarator))
+	})
+}
+
+#[derive(Default)]
+struct BindingReferences {
+	ids: HashMap<Id, BytePos>,
+	block_start: BytePos,
+	hoisted_start: Option<BytePos>,
+}
+impl Visit for BindingReferences {
+	noop_visit_type!();
+	fn visit_binding_ident(&mut self, _: &ast::BindingIdent) {}
+	fn visit_ident(&mut self, node: &ast::Ident) {
+		let start = self
+			.hoisted_start
+			.map_or(node.span.lo, |start| start.min(node.span.lo));
+		let reference = self.ids.entry(id!(node)).or_insert(start);
+		*reference = (*reference).min(start);
+	}
+	fn visit_block_stmt(&mut self, node: &ast::BlockStmt) {
+		let previous = self.block_start;
+		self.block_start = node.span.lo;
+		node.visit_children_with(self);
+		self.block_start = previous;
+	}
+	fn visit_fn_decl(&mut self, node: &ast::FnDecl) {
+		let previous = self.hoisted_start;
+		self.hoisted_start =
+			Some(previous.map_or(self.block_start, |start| start.min(self.block_start)));
+		node.function.visit_with(self);
+		self.hoisted_start = previous;
+	}
+}
+
+struct BindingUses {
+	positions: HashMap<Id, ((usize, usize), (usize, usize), BytePos)>,
+}
+impl BindingUses {
+	fn new(stmts: &[ast::Stmt]) -> Self {
+		let mut analysis = Self {
+			positions: HashMap::new(),
+		};
+		let mut functions: HashMap<Id, HashSet<Id>> = stmts
+			.iter()
+			.filter_map(|statement| {
+				if let ast::Stmt::Decl(ast::Decl::Fn(function)) = statement {
+					Some((id!(function.ident), HashSet::new()))
+				} else {
+					None
 				}
+			})
+			.collect();
+		let mut references = Vec::new();
+		let mut roots = Vec::new();
+		for position @ (index, declarator_index) in declarator_positions(stmts) {
+			let mut reads = BindingReferences {
+				block_start: stmts[0].span().lo,
+				..BindingReferences::default()
+			};
+			let owner = if let ast::Stmt::Decl(ast::Decl::Fn(function)) = &stmts[index] {
+				Some(id!(function.ident))
+			} else {
+				None
+			};
+			match &stmts[index] {
+				ast::Stmt::Decl(ast::Decl::Var(var)) => {
+					var.decls[declarator_index].visit_with(&mut reads)
+				}
+				statement => statement.visit_with(&mut reads),
+			};
+			for (id, start) in reads.ids {
+				if functions.contains_key(&id) {
+					if let Some(owner) = &owner {
+						functions.get_mut(owner).unwrap().insert(id.clone());
+					} else {
+						roots.push((id.clone(), (position, start)));
+					}
+				}
+				references.push((id, position, start, owner.clone()));
 			}
 		}
+		roots.sort_by_key(|(_, (position, start))| (*start, *position));
+		let mut boundaries = HashMap::new();
+		for (root, boundary) in roots {
+			let mut pending = vec![root];
+			while let Some(id) = pending.pop() {
+				if boundaries.contains_key(&id) {
+					continue;
+				}
+				boundaries.insert(id.clone(), boundary);
+				pending.extend(functions[&id].iter().cloned());
+			}
+		}
+		for (id, position, start, owner) in references {
+			let (first, start) = if let Some(owner) = owner {
+				boundaries
+					.get(&owner)
+					.copied()
+					.unwrap_or(((0, 0), stmts[0].span().lo))
+			} else {
+				(position, start)
+			};
+			let uses = analysis
+				.positions
+				.entry(id)
+				.or_insert((first, position, start));
+			uses.0 = uses.0.min(first);
+			uses.1 = uses.1.max(position).max(first);
+			uses.2 = uses.2.min(start);
+		}
+		analysis
 	}
-	let is_fn_decl = |stmt: &ast::Stmt| matches!(stmt, ast::Stmt::Decl(ast::Decl::Fn(_)));
-	stmts
-		.iter()
-		.position(|stmt| !is_fn_decl(stmt) && uses_any(stmt, &used_ids))
-		.or_else(|| stmts.iter().position(|stmt| uses_any(stmt, &used_ids)))
+	fn for_binding(&self, binding: &Id) -> Option<((usize, usize), (usize, usize), BytePos)> {
+		self.positions.get(binding).copied()
+	}
+}
+
+struct NestedQrlBindings<'a> {
+	index: usize,
+	uses: &'a BindingUses,
+	bindings: &'a mut Vec<(String, ast::VarDeclarator)>,
+}
+impl VisitMut for NestedQrlBindings<'_> {
+	noop_visit_mut_type!();
+	fn visit_mut_function(&mut self, _: &mut ast::Function) {}
+	fn visit_mut_arrow_expr(&mut self, _: &mut ast::ArrowExpr) {}
+	fn visit_mut_class(&mut self, _: &mut ast::Class) {}
+	fn visit_mut_block_stmt(&mut self, block: &mut ast::BlockStmt) {
+		let mut nested = Vec::new();
+		self.bindings.retain(|(name, binding)| {
+			let id = (Atom::from(name.clone()), SyntaxContext::empty());
+			let only_use_here = self
+				.uses
+				.for_binding(&id)
+				.is_some_and(|(first, last, _)| first.0 == self.index && last.0 == self.index);
+			if !only_use_here || !node_uses_ident(block, &id) {
+				return true;
+			}
+			let initializes_capture = block.stmts.iter().any(|statement| {
+				if let ast::Stmt::Decl(ast::Decl::Var(var)) = statement {
+					var.decls.iter().any(|declaration| {
+						let mut ids = Vec::new();
+						collect_from_pat(&declaration.name, &mut ids);
+						declaration.init.is_some()
+							&& ids.iter().any(|(id, _)| node_uses_ident(binding, id))
+					})
+				} else {
+					false
+				}
+			});
+			if initializes_capture {
+				nested.push((name.clone(), binding.clone()));
+				false
+			} else {
+				true
+			}
+		});
+		if !nested.is_empty() {
+			place_block_qrls(&mut block.stmts, nested);
+		}
+		if !self.bindings.is_empty() {
+			block.visit_mut_children_with(self);
+		}
+	}
+}
+
+fn place_block_qrls(
+	stmts: &mut Vec<ast::Stmt>,
+	mut current_qrls: Vec<(String, ast::VarDeclarator)>,
+) {
+	let uses = BindingUses::new(stmts);
+	for (index, statement) in stmts.iter_mut().enumerate() {
+		statement.visit_mut_with(&mut NestedQrlBindings {
+			index,
+			uses: &uses,
+			bindings: &mut current_qrls,
+		});
+	}
+	let mut placed_qrls: Vec<(usize, usize, ast::Stmt)> = current_qrls
+		.into_iter()
+		.map(|(name, declarator)| {
+			let binding_id = (Atom::from(name), SyntaxContext::empty());
+			let (use_pos, declarator_pos) =
+				binding_position(stmts, &binding_id, &declarator, &uses)
+					.unwrap_or((stmts.len(), 0));
+			let qrl_stmt = ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+				span: DUMMY_SP,
+				kind: ast::VarDeclKind::Const,
+				declare: false,
+				ctxt: SyntaxContext::empty(),
+				decls: vec![declarator],
+			})));
+			(use_pos, declarator_pos, qrl_stmt)
+		})
+		.collect();
+
+	// Insert back to front so earlier positions stay valid and ties keep their order.
+	placed_qrls.sort_by_key(|(use_pos, declarator_pos, _)| (*use_pos, *declarator_pos));
+	for (use_pos, declarator_pos, qrl_stmt) in placed_qrls.into_iter().rev() {
+		if declarator_pos > 0 {
+			if let ast::Stmt::Decl(ast::Decl::Var(var)) = &mut stmts[use_pos] {
+				let remaining = var.decls.split_off(declarator_pos);
+				if !remaining.is_empty() {
+					let mut trailing = var.clone();
+					trailing.decls = remaining;
+					stmts.insert(use_pos + 1, ast::Stmt::Decl(ast::Decl::Var(trailing)));
+				}
+			}
+			stmts.insert(use_pos + 1, qrl_stmt);
+		} else {
+			stmts.insert(use_pos, qrl_stmt);
+		}
+	}
+}
+
+/// Binding position, after captures initialize and before execution.
+fn binding_position(
+	stmts: &[ast::Stmt],
+	binding_id: &Id,
+	binding: &ast::VarDeclarator,
+	uses: &BindingUses,
+) -> Option<(usize, usize)> {
+	let (first_use, _, _) = uses.for_binding(binding_id)?;
+	let captures_ready =
+		declarator_positions(stmts)
+			.rev()
+			.find_map(|(index, declaration_index)| match &stmts[index] {
+				ast::Stmt::Decl(ast::Decl::Var(var))
+					if var.kind != ast::VarDeclKind::Var
+						|| (var.decls[declaration_index].init.is_some()
+							&& (index, declaration_index) < first_use) =>
+				{
+					let mut identifiers = Vec::new();
+					collect_from_pat(&var.decls[declaration_index].name, &mut identifiers);
+					identifiers
+						.iter()
+						.any(|(id, _)| node_uses_ident(binding, id))
+						.then_some((index, declaration_index + 1))
+				}
+				ast::Stmt::Decl(ast::Decl::Class(class))
+					if node_uses_ident(binding, &id!(class.ident)) =>
+				{
+					Some((index, 1))
+				}
+				_ => None,
+			});
+	Some(first_use.max(captures_ready.unwrap_or((0, 0))))
 }
 
 /// Check if an expression references a specific identifier
@@ -5184,6 +5490,21 @@ fn build_event_handler_param_pats(
 	last_used_index: Option<usize>,
 ) -> Vec<ast::Pat> {
 	let mut new_params = Vec::new();
+	let mut existing = Vec::new();
+	for index in 0..existing_param_count {
+		collect_from_pat(&get_existing_pat(index), &mut existing);
+	}
+	let occupied: HashSet<Atom> = existing
+		.into_iter()
+		.map(|(id, _)| id.0)
+		.chain(
+			element_iter_vars
+				.iter()
+				.zip(used)
+				.filter(|(_, used)| **used)
+				.map(|(ident, _)| ident.sym.clone()),
+		)
+		.collect();
 
 	// Positions 0 and 1: event, element (placeholders _ and _1)
 	for slot_index in 0..2 {
@@ -5193,6 +5514,7 @@ fn build_event_handler_param_pats(
 
 	// Element iteration vars up to last used: use real ident if handler uses it, else placeholder _2, _3, ...
 	if let Some(last) = last_used_index {
+		let mut padding_counter = 2;
 		for (i, iter_var) in element_iter_vars.iter().enumerate().take(last + 1) {
 			let slot_index = 2 + i;
 			let value = if used[i] {
@@ -5201,9 +5523,13 @@ fn build_event_handler_param_pats(
 					type_ann: None,
 				}))
 			} else {
-				None
+				while occupied.contains(&Atom::from(format!("_{}", padding_counter))) {
+					padding_counter += 1;
+				}
+				Some(event_handler_placeholder_pat(padding_counter))
 			};
 			push_event_handler_param(&mut new_params, value, slot_index);
+			padding_counter += 1;
 		}
 	}
 
@@ -5537,4 +5863,295 @@ fn process_node_props(pat: &ast::Pat) -> Vec<IdPlusType> {
 	);
 
 	processed_scope_data
+}
+
+struct DefaultQrlBindings<'a> {
+	bindings: &'a mut Vec<(String, ast::VarDeclarator)>,
+}
+
+impl DefaultQrlBindings<'_> {
+	fn wrap(&mut self, expression: Box<ast::Expr>) -> Box<ast::Expr> {
+		let mut statements = Vec::new();
+		self.bindings.retain(|(name, declarator)| {
+			let id = (Atom::from(name.clone()), SyntaxContext::empty());
+			if !expr_uses_ident(&expression, &id) {
+				return true;
+			}
+			statements.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+				span: DUMMY_SP,
+				ctxt: SyntaxContext::empty(),
+				kind: ast::VarDeclKind::Const,
+				declare: false,
+				decls: vec![declarator.clone()],
+			}))));
+			false
+		});
+		if statements.is_empty() {
+			return expression;
+		}
+		statements.push(ast::Stmt::Return(ast::ReturnStmt {
+			span: DUMMY_SP,
+			arg: Some(expression),
+		}));
+		Box::new(ast::Expr::Call(ast::CallExpr {
+			callee: ast::Callee::Expr(Box::new(ast::Expr::Paren(ast::ParenExpr {
+				span: DUMMY_SP,
+				expr: Box::new(ast::Expr::Arrow(ast::ArrowExpr {
+					body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+						stmts: statements,
+						..Default::default()
+					})),
+					..Default::default()
+				})),
+			}))),
+			..Default::default()
+		}))
+	}
+}
+
+impl Fold for DefaultQrlBindings<'_> {
+	noop_fold_type!();
+	fn fold_assign_pat(&mut self, node: ast::AssignPat) -> ast::AssignPat {
+		let mut node = node.fold_children_with(self);
+		node.right = node.right.fold_with(&mut DefaultLoopBindings(self));
+		node
+	}
+	fn fold_assign_pat_prop(&mut self, node: ast::AssignPatProp) -> ast::AssignPatProp {
+		let mut node = node.fold_children_with(self);
+		node.value = node
+			.value
+			.map(|value| value.fold_with(&mut DefaultLoopBindings(self)));
+		node
+	}
+}
+
+struct DefaultLoopBindings<'a, 'b>(&'a mut DefaultQrlBindings<'b>);
+
+impl Fold for DefaultLoopBindings<'_, '_> {
+	noop_fold_type!();
+	fn fold_expr(&mut self, node: ast::Expr) -> ast::Expr {
+		if let ast::Expr::Call(mut call) = node {
+			if let ast::Callee::Expr(box ast::Expr::Member(member)) = &call.callee {
+				if prop_to_string(&member.prop).as_deref() == Some("map") {
+					if let Some(callback) = call.args.first_mut() {
+						callback.expr = self.0.wrap(callback.expr.take());
+					}
+					return ast::Expr::Call(call);
+				}
+			}
+			ast::Expr::Call(call).fold_children_with(self)
+		} else {
+			node.fold_children_with(self)
+		}
+	}
+}
+
+#[derive(Default)]
+struct FunctionVariables {
+	declarations: Vec<(Id, Span)>,
+}
+impl Visit for FunctionVariables {
+	noop_visit_type!();
+	fn visit_function(&mut self, _: &ast::Function) {}
+	fn visit_arrow_expr(&mut self, _: &ast::ArrowExpr) {}
+	fn visit_class(&mut self, _: &ast::Class) {}
+	fn visit_var_decl(&mut self, node: &ast::VarDecl) {
+		if node.kind == ast::VarDeclKind::Var {
+			for declaration in &node.decls {
+				collect_from_pat(&declaration.name, &mut self.declarations);
+			}
+		}
+		node.visit_children_with(self);
+	}
+}
+
+#[derive(Default)]
+struct LoopBindingReads {
+	ids: HashSet<Id>,
+}
+impl LoopBindingReads {
+	fn collect<T: VisitWith<BindingReferences>>(&mut self, node: &T) {
+		let mut references = BindingReferences::default();
+		node.visit_with(&mut references);
+		self.ids.extend(references.ids.into_keys());
+	}
+}
+impl Visit for LoopBindingReads {
+	noop_visit_type!();
+	fn visit_call_expr(&mut self, node: &ast::CallExpr) {
+		if let ast::Callee::Expr(box ast::Expr::Member(member)) = &node.callee {
+			if prop_to_string(&member.prop).as_deref() == Some("map") {
+				if let Some(callback) = node.args.first() {
+					self.collect(&callback.expr);
+				}
+			}
+		}
+		node.visit_children_with(self);
+	}
+	fn visit_for_stmt(&mut self, node: &ast::ForStmt) {
+		self.collect(&node.body);
+		node.visit_children_with(self);
+	}
+	fn visit_for_of_stmt(&mut self, node: &ast::ForOfStmt) {
+		self.collect(&node.body);
+		node.visit_children_with(self);
+	}
+	fn visit_for_in_stmt(&mut self, node: &ast::ForInStmt) {
+		self.collect(&node.body);
+		node.visit_children_with(self);
+	}
+	fn visit_while_stmt(&mut self, node: &ast::WhileStmt) {
+		self.collect(&node.body);
+		node.visit_children_with(self);
+	}
+	fn visit_do_while_stmt(&mut self, node: &ast::DoWhileStmt) {
+		self.collect(&node.body);
+		node.visit_children_with(self);
+	}
+}
+
+struct UnstableVarInitializers<'a> {
+	stmts: &'a [ast::Stmt],
+	ids: &'a mut HashSet<Id>,
+	loop_bindings: &'a HashSet<Id>,
+	uses: Option<BindingUses>,
+}
+impl Visit for UnstableVarInitializers<'_> {
+	noop_visit_type!();
+	fn visit_function(&mut self, _: &ast::Function) {}
+	fn visit_arrow_expr(&mut self, _: &ast::ArrowExpr) {}
+	fn visit_var_decl(&mut self, node: &ast::VarDecl) {
+		if node.kind == ast::VarDeclKind::Var {
+			for declarator in &node.decls {
+				if declarator.init.is_none() {
+					continue;
+				}
+				let mut identifiers = Vec::new();
+				collect_from_pat(&declarator.name, &mut identifiers);
+				for (id, _) in identifiers {
+					if !self.loop_bindings.contains(&id) {
+						continue;
+					}
+					let uses = self
+						.uses
+						.get_or_insert_with(|| BindingUses::new(self.stmts));
+					if let Some((_, _, start)) = uses.for_binding(&id) {
+						if start <= declarator.span.hi {
+							self.ids.insert(id);
+						}
+					}
+				}
+			}
+		}
+		node.visit_children_with(self);
+	}
+}
+
+#[derive(Default)]
+struct WrittenBindings {
+	ids: HashSet<Id>,
+	loop_bindings: HashSet<Id>,
+	declarations: HashMap<Id, Span>,
+}
+impl WrittenBindings {
+	fn record_pattern(&mut self, pattern: &ast::Pat, is_initialized: bool) {
+		let mut identifiers = Vec::new();
+		collect_from_pat(pattern, &mut identifiers);
+		for (id, span) in identifiers {
+			if is_initialized && self.declarations.contains_key(&id) {
+				self.ids.insert(id.clone());
+			}
+			self.declarations.entry(id).or_insert(span);
+		}
+	}
+	fn record_var_head(&mut self, declaration: &ast::VarDecl) {
+		if declaration.kind == ast::VarDeclKind::Var {
+			for declarator in &declaration.decls {
+				declarator
+					.name
+					.visit_with(&mut WriteTargetIds(&mut self.ids));
+			}
+		}
+	}
+	fn record_for_head(&mut self, head: &ast::ForHead) {
+		match head {
+			ast::ForHead::Pat(pattern) => pattern.visit_with(&mut WriteTargetIds(&mut self.ids)),
+			ast::ForHead::VarDecl(declaration) => self.record_var_head(declaration),
+			_ => {}
+		}
+	}
+}
+impl Visit for WrittenBindings {
+	noop_visit_type!();
+	fn visit_block_stmt(&mut self, node: &ast::BlockStmt) {
+		if !self.loop_bindings.is_empty() {
+			node.visit_with(&mut UnstableVarInitializers {
+				stmts: &node.stmts,
+				ids: &mut self.ids,
+				loop_bindings: &self.loop_bindings,
+				uses: None,
+			});
+		}
+		node.visit_children_with(self);
+	}
+	fn visit_var_declarator(&mut self, node: &ast::VarDeclarator) {
+		self.record_pattern(&node.name, node.init.is_some());
+		node.visit_children_with(self);
+	}
+	fn visit_param(&mut self, node: &ast::Param) {
+		self.record_pattern(&node.pat, false);
+		node.visit_children_with(self);
+	}
+	fn visit_arrow_expr(&mut self, node: &ast::ArrowExpr) {
+		for parameter in &node.params {
+			self.record_pattern(parameter, false);
+		}
+		node.visit_children_with(self);
+	}
+	fn visit_catch_clause(&mut self, node: &ast::CatchClause) {
+		if let Some(parameter) = &node.param {
+			self.record_pattern(parameter, false);
+		}
+		node.visit_children_with(self);
+	}
+
+	fn visit_assign_expr(&mut self, node: &ast::AssignExpr) {
+		node.left.visit_with(&mut WriteTargetIds(&mut self.ids));
+		node.visit_children_with(self);
+	}
+	fn visit_update_expr(&mut self, node: &ast::UpdateExpr) {
+		node.arg.visit_with(&mut WriteTargetIds(&mut self.ids));
+		node.visit_children_with(self);
+	}
+	fn visit_for_stmt(&mut self, node: &ast::ForStmt) {
+		if let Some(ast::VarDeclOrExpr::VarDecl(declaration)) = &node.init {
+			self.record_var_head(declaration);
+		}
+		node.visit_children_with(self);
+	}
+	fn visit_for_of_stmt(&mut self, node: &ast::ForOfStmt) {
+		self.record_for_head(&node.left);
+		node.visit_children_with(self);
+	}
+	fn visit_for_in_stmt(&mut self, node: &ast::ForInStmt) {
+		self.record_for_head(&node.left);
+		node.visit_children_with(self);
+	}
+}
+
+struct WriteTargetIds<'a>(&'a mut HashSet<Id>);
+impl Visit for WriteTargetIds<'_> {
+	noop_visit_type!();
+	fn visit_member_expr(&mut self, _: &ast::MemberExpr) {}
+	fn visit_prop_name(&mut self, _: &ast::PropName) {}
+	fn visit_assign_pat_prop(&mut self, node: &ast::AssignPatProp) {
+		node.key.visit_with(self);
+	}
+	fn visit_assign_pat(&mut self, node: &ast::AssignPat) {
+		node.left.visit_with(self);
+	}
+
+	fn visit_ident(&mut self, node: &ast::Ident) {
+		self.0.insert(id!(node));
+	}
 }

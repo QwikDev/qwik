@@ -1,14 +1,21 @@
+import { collectFunctionVarDeclarations } from '../analysis/capture-analysis.js';
 import { walk } from 'oxc-walker';
+import { ScopeQueryTracker } from '../analysis/scope-query-tracker.js';
 import { walkWithProtocol } from '../ast/walk-with-protocol.js';
 import type { AstNode, AstFunction, AstProgram } from '../../ast-types.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import {
   detectLoopContext,
+  extendLoopWrittenCaptures,
+  writeCandidates,
   eventHandlerQpParams,
   generateParamPadding,
   type LoopContext,
 } from './loop-hoisting.js';
-import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
+import {
+  addBindingNamesFromPatternToSet,
+  collectBindingNamesFromPattern,
+} from '../ast/binding-pattern.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
 import { getWholeWordPattern } from '../segment/post-process.js';
 
@@ -37,6 +44,9 @@ export function buildExtractionLoopMap(
   const extractionLoopMap = new Map<string, LoopContext[]>();
   const loopBodyVarDecls: LoopBodyVarDeclMap = new Map();
   const loopStack: LoopContext[] = [];
+  const tracker = new ScopeQueryTracker({ preserveExitedScopes: true });
+  const scopes = new WeakMap<AstNode, string>();
+  const writes: AstNode[] = [];
 
   const enterCtx: BuildExtractionLoopMapEnterContext = {
     extractions,
@@ -59,53 +69,66 @@ export function buildExtractionLoopMap(
     },
   };
 
-  walkWithProtocol(program, enterCtx, exitCtx, {
-    enter(node, _parent, ctx) {
-      const loopCtx = detectLoopContext(node, ctx.repairedCode);
-      if (loopCtx) {
-        ctx.pushLoop(loopCtx);
-        if (!ctx.loopBodyVarDecls.has(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd))) {
-          ctx.loopBodyVarDecls.set(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd), []);
+  walkWithProtocol(
+    program,
+    enterCtx,
+    exitCtx,
+    {
+      enter(node, _parent, ctx) {
+        scopes.set(node, tracker.getCurrentScope());
+        const targets = writeCandidates(node);
+        if (targets) {
+          writes.push(...targets);
         }
-      }
-      if (
-        node.type === 'VariableDeclaration' &&
-        ctx.loopStack.length > 0 &&
-        node.start !== undefined
-      ) {
-        const innermost = ctx.loopStack[ctx.loopStack.length - 1];
+        const loopCtx = detectLoopContext(node, ctx.repairedCode);
+        if (loopCtx) {
+          ctx.pushLoop(loopCtx);
+          if (!ctx.loopBodyVarDecls.has(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd))) {
+            ctx.loopBodyVarDecls.set(loopBodyKey(loopCtx.loopBodyStart, loopCtx.loopBodyEnd), []);
+          }
+        }
         if (
-          node.start >= innermost.loopBodyStart &&
-          node.end !== undefined &&
-          node.end <= innermost.loopBodyEnd
+          node.type === 'VariableDeclaration' &&
+          ctx.loopStack.length > 0 &&
+          node.start !== undefined
         ) {
-          const bucket = ctx.loopBodyVarDecls.get(
-            loopBodyKey(innermost.loopBodyStart, innermost.loopBodyEnd)
-          )!;
-          for (const decl of node.declarations ?? []) {
-            if (decl.id?.type === 'Identifier') {
-              bucket.push({ name: decl.id.name, declStart: decl.start ?? node.start });
+          const innermost = ctx.loopStack[ctx.loopStack.length - 1];
+          if (
+            node.start >= innermost.loopBodyStart &&
+            node.end !== undefined &&
+            node.end <= innermost.loopBodyEnd
+          ) {
+            const bucket = ctx.loopBodyVarDecls.get(
+              loopBodyKey(innermost.loopBodyStart, innermost.loopBodyEnd)
+            )!;
+            for (const decl of node.declarations ?? []) {
+              if (decl.id?.type === 'Identifier') {
+                bucket.push({ name: decl.id.name, declStart: decl.start ?? node.start });
+              }
             }
           }
         }
-      }
-      if (node.start !== undefined && node.end !== undefined && ctx.loopStack.length > 0) {
-        for (const ext of ctx.extractions) {
-          if (node.start <= ext.callStart && node.end >= ext.callEnd) {
-            if (
-              !ctx.extractionLoopMap.has(ext.symbolName) ||
-              ctx.extractionLoopMap.get(ext.symbolName)!.length < ctx.loopStack.length
-            ) {
-              ctx.extractionLoopMap.set(ext.symbolName, [...ctx.loopStack]);
+        if (node.start !== undefined && node.end !== undefined && ctx.loopStack.length > 0) {
+          for (const ext of ctx.extractions) {
+            if (node.start <= ext.callStart && node.end >= ext.callEnd) {
+              if (
+                !ctx.extractionLoopMap.has(ext.symbolName) ||
+                ctx.extractionLoopMap.get(ext.symbolName)!.length < ctx.loopStack.length
+              ) {
+                ctx.extractionLoopMap.set(ext.symbolName, [...ctx.loopStack]);
+              }
             }
           }
         }
-      }
+      },
+      leave(node, _parent, ctx) {
+        ctx.popTopLoopIfMatches(node);
+      },
     },
-    leave(node, _parent, ctx) {
-      ctx.popTopLoopIfMatches(node);
-    },
-  });
+    { scopeTracker: tracker }
+  );
+  tracker.freeze();
+  extendLoopWrittenCaptures([...extractionLoopMap.values()].flat(), tracker, scopes, writes);
 
   return { extractionLoopMap, loopBodyVarDecls };
 }
@@ -173,6 +196,19 @@ export function buildFunctionScopeEntry(node: AstFunction): ScopeEntry {
                 kind: stmtKind,
               });
             }
+          }
+        }
+      }
+    }
+  }
+  if (node.body) {
+    const names = new Set(bindings.map((binding) => binding.name));
+    for (const declaration of collectFunctionVarDeclarations(node.body)) {
+      for (const declarator of declaration.declarations) {
+        for (const name of collectBindingNamesFromPattern(declarator.id)) {
+          if (!names.has(name)) {
+            names.add(name);
+            bindings.push({ name, pos: declarator.start, kind: 'var' });
           }
         }
       }
@@ -445,6 +481,7 @@ function promoteNonLoopCaptures(
     extraction.captureNames = sortedCaptures;
     extraction.captures = sortedCaptures.length > 0;
   } else {
+    extraction.captureParamNames = sortedCaptures;
     extraction.paramNames = generateParamPadding(sortedCaptures, extraction.paramNames);
     extraction.captureNames = [];
     extraction.captures = false;
@@ -495,6 +532,7 @@ function partitionLoopCaptures(
   }
 
   if (loopLocalVars.length > 0) {
+    extraction.captureParamNames = loopLocalVars;
     extraction.paramNames = generateParamPadding(loopLocalVars, extraction.paramNames);
     extraction.movedCaptures = true;
   }
@@ -504,7 +542,7 @@ function partitionLoopCaptures(
 
 export function promoteEventHandlerCaptures(
   ctx: EventCaptureContext,
-  globalDeclPositions: Map<string, number>
+  captureDeclPositions: Map<string, Map<string, number>>
 ): void {
   const {
     extractions,
@@ -556,11 +594,7 @@ export function promoteEventHandlerCaptures(
       extraction,
       ctx
     );
-    for (const [name, pos] of declPositions) {
-      if (!globalDeclPositions.has(name)) {
-        globalDeclPositions.set(name, pos);
-      }
-    }
+    captureDeclPositions.set(extraction.symbolName, declPositions);
 
     const allCaptures = undeclaredIds.filter(
       (name) => allScopeIds.has(name) && !importedNames.has(name)
@@ -654,22 +688,16 @@ function groupByContainingElement(
   return elementGroups;
 }
 
-function sortByGlobalDeclPosition(
-  names: string[],
-  globalDeclPositions: ReadonlyMap<string, number>
-): void {
-  names.sort((a, b) => (globalDeclPositions.get(a) ?? 0) - (globalDeclPositions.get(b) ?? 0));
-}
-
 function sortQpNamesForGroup(
   names: string[],
   group: readonly ExtractionResult[],
   extractionLoopMap: ReadonlyMap<string, LoopContext[]>,
-  globalDeclPositions: ReadonlyMap<string, number>
+  captureDeclPositions: ReadonlyMap<string, Map<string, number>>
 ): void {
   const anyInLoop = group.some((h) => (extractionLoopMap.get(h.symbolName)?.length ?? 0) > 0);
   if (anyInLoop) {
-    sortByGlobalDeclPosition(names, globalDeclPositions);
+    const positions = captureDeclPositions.get(group[0].symbolName);
+    names.sort((a, b) => (positions?.get(a) ?? 0) - (positions?.get(b) ?? 0));
   } else {
     // Code-unit sort — the same comparator the promotion's capture sorts use;
     // localeCompare orders case-divergent names (colorSignal vs colors)
@@ -680,7 +708,7 @@ function sortQpNamesForGroup(
 
 export function unifyParameterSlots(
   ctx: EventCaptureContext,
-  globalDeclPositions: Map<string, number>
+  captureDeclPositions: Map<string, Map<string, number>>
 ): void {
   const { extractions, enclosingExtMap, extractionLoopMap, repairedCode } = ctx;
   const handlersByParent = groupPromotedHandlersByParent(extractions, enclosingExtMap);
@@ -707,7 +735,7 @@ export function unifyParameterSlots(
           }
         }
       }
-      sortQpNamesForGroup(allLoopLocals, group, extractionLoopMap, globalDeclPositions);
+      sortQpNamesForGroup(allLoopLocals, group, extractionLoopMap, captureDeclPositions);
 
       if (allLoopLocals.length === 0) {
         continue;
@@ -734,6 +762,12 @@ export function unifyParameterSlots(
           if (handlerCaptures.has(p)) {
             newParams.push(p);
           } else {
+            while (
+              h.paramNames.includes(`_${paddingCounter}`) ||
+              newParams.includes(`_${paddingCounter}`)
+            ) {
+              paddingCounter++;
+            }
             newParams.push(`_${paddingCounter}`);
           }
           paddingCounter++;
@@ -751,7 +785,7 @@ export function unifyParameterSlots(
  */
 export function buildElementCaptureMap(
   ctx: EventCaptureContext,
-  globalDeclPositions: Map<string, number>,
+  captureDeclPositions: Map<string, Map<string, number>>,
   stripCtxName?: readonly string[],
   stripEventHandlers?: boolean
 ): Map<string, string[]> {
@@ -767,14 +801,14 @@ export function buildElementCaptureMap(
       const allVars: string[] = [];
       const seen = new Set<string>();
       for (const h of group) {
-        for (const p of eventHandlerQpParams(h.paramNames)) {
+        for (const p of eventHandlerQpParams(h.paramNames, h.captureParamNames)) {
           if (!seen.has(p)) {
             seen.add(p);
             allVars.push(p);
           }
         }
       }
-      sortQpNamesForGroup(allVars, group, extractionLoopMap, globalDeclPositions);
+      sortQpNamesForGroup(allVars, group, extractionLoopMap, captureDeclPositions);
       for (const h of group) {
         elementQpParamsMap.set(h.symbolName, allVars);
       }
@@ -816,7 +850,7 @@ export function buildElementCaptureMap(
       }
       // Same sort as unifyParameterSlots: the client build assigns handler
       // param slots with it, and the serialized q:ps must line up.
-      sortQpNamesForGroup(allCaps, group, extractionLoopMap, globalDeclPositions);
+      sortQpNamesForGroup(allCaps, group, extractionLoopMap, captureDeclPositions);
       for (const h of group) {
         // Don't overwrite an entry already populated by the loop pass.
         if (!elementQpParamsMap.has(h.symbolName)) {

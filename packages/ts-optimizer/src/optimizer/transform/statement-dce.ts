@@ -78,7 +78,7 @@ function collectReferencedNames(program: AstProgram, dead: readonly RangedNode[]
   return referenced;
 }
 
-function isPureInit(init: unknown): boolean {
+export function isPureInit(init: unknown): boolean {
   if (init == null) {
     return true;
   }

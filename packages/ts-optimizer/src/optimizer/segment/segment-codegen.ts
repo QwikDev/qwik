@@ -849,7 +849,7 @@ export function generateSegmentCode(
     // The nested-call rewrite above turned the body into `workerQrl(q_X)`;
     // wrap it in the delegating handler that forwards event/element + lifted
     // params positionally.
-    const lifted = eventHandlerQpParams(extraction.paramNames);
+    const lifted = eventHandlerQpParams(extraction.paramNames, extraction.captureParamNames);
     const params = ['event', 'element', ...lifted].join(', ');
     bodyText = `(${params})=>${bodyText}(${params})`;
   } else if (hasUnderscorePlaceholderParams(extraction.paramNames, extraction.movedCaptures)) {

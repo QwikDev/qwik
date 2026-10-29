@@ -11,9 +11,14 @@ import type {
   DoWhileStatement,
 } from '../../ast-types.js';
 import MagicString from 'magic-string';
+import { blankNonCode } from '../edit/text-scanning.js';
 import { isReferenceIdentifier, walk } from 'oxc-walker';
 import { parseWithRawTransfer } from '../ast/parse.js';
-import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
+import {
+  collectBindingNamesFromPattern,
+  collectAssignedIdentifiers,
+} from '../ast/binding-pattern.js';
+import { ScopeQueryTracker } from '../analysis/scope-query-tracker.js';
 import { paddingParam } from '../segment/post-process.js';
 
 export interface LoopContext {
@@ -111,6 +116,155 @@ function buildLoopContext(
   };
 }
 
+export function writeCandidates(node: AstNode) {
+  if (
+    node.type === 'VariableDeclaration' ||
+    node.type === 'BlockStatement' ||
+    node.type === 'Program'
+  ) {
+    return [node];
+  }
+  const target =
+    node.type === 'AssignmentExpression'
+      ? node.left
+      : node.type === 'ForStatement' &&
+          node.init?.type === 'VariableDeclaration' &&
+          node.init.kind === 'var'
+        ? node.init
+        : node.type === 'UpdateExpression'
+          ? node.argument
+          : (node.type === 'ForOfStatement' || node.type === 'ForInStatement') &&
+              (node.left.type !== 'VariableDeclaration' || node.left.kind === 'var')
+            ? node.left
+            : undefined;
+  if (target?.type === 'VariableDeclaration') {
+    return target.declarations.flatMap((declarator) => collectAssignedIdentifiers(declarator.id));
+  }
+  return target ? collectAssignedIdentifiers(target) : undefined;
+}
+
+function referencesInScope(
+  tracker: ScopeQueryTracker,
+  scopes: WeakMap<AstNode, string>,
+  owner: AstNode
+) {
+  return (reference: AstNode & { name: string }) =>
+    tracker.getDeclarationFromScope(reference.name, scopes.get(reference) ?? '')?.node ===
+    tracker.getDeclarationFromScope(reference.name, scopes.get(owner) ?? '')?.node;
+}
+
+export function extendLoopWrittenCaptures(
+  loops: Iterable<LoopContext>,
+  tracker: ScopeQueryTracker,
+  scopes: WeakMap<AstNode, string>,
+  writes: readonly AstNode[]
+): void {
+  const contexts = new Set(loops);
+  if (contexts.size === 0) {
+    return;
+  }
+  const blocks = writes.filter((node) => node.type === 'BlockStatement' || node.type === 'Program');
+  const referencedBindings = new Set<AstNode>();
+  for (const loop of contexts) {
+    const owner =
+      loop.loopNode.type === 'CallExpression' ? loop.loopNode.arguments[0] : loop.loopNode;
+    if (!owner) {
+      continue;
+    }
+    walk(owner, {
+      enter(node: AstNode, parent) {
+        if (
+          (node.type === 'Identifier' || node.type === 'JSXIdentifier') &&
+          isReferenceIdentifier(node, parent)
+        ) {
+          const declaration = tracker.getDeclarationFromScope(node.name, scopes.get(node) ?? '');
+          if (declaration) {
+            referencedBindings.add(declaration.node);
+          }
+        }
+      },
+    });
+  }
+  const blockUses = new Map<AstNode, ReturnType<typeof indexBindingReferences>>();
+  const isInitializationAfterReference = (
+    identifier: AstNode & { name: string },
+    declarator: VariableDeclarator,
+    binding: AstNode
+  ) => {
+    const owner = blocks.find(
+      (block) =>
+        block.start <= declarator.start &&
+        declarator.end <= block.end &&
+        tracker.getDeclarationFromScope(identifier.name, scopes.get(block) ?? '')?.node === binding
+    );
+    if (!owner) {
+      return false;
+    }
+    let analysis = blockUses.get(owner);
+    if (!analysis) {
+      analysis = indexBindingReferences(owner.body, referencesInScope(tracker, scopes, owner));
+      blockUses.set(owner, analysis);
+    }
+    const uses = analysis(identifier.name);
+    return Boolean(uses && uses.start <= declarator.end);
+  };
+  const candidates = writes.flatMap<{
+    identifier: AstNode & { name: string };
+    declarator?: VariableDeclarator;
+    kind?: string;
+  }>((write) => {
+    if (write.type === 'VariableDeclaration') {
+      return write.declarations.flatMap((declarator) =>
+        collectAssignedIdentifiers(declarator.id).map((identifier) => ({
+          identifier,
+          declarator,
+          kind: write.kind,
+        }))
+      );
+    }
+    return write.type === 'Identifier' ? [{ identifier: write }] : [];
+  });
+  const seenDeclarations = new Set<AstNode>();
+  const declarations = candidates.flatMap(({ identifier, declarator, kind }) => {
+    const declaration = tracker.getDeclarationFromScope(
+      identifier.name,
+      scopes.get(identifier) ?? ''
+    );
+    if (!declaration || !referencedBindings.has(declaration.node)) {
+      return [];
+    }
+    if (declarator) {
+      const isWrite =
+        Boolean(declarator.init) &&
+        (seenDeclarations.has(declaration.node) ||
+          (kind === 'var' &&
+            isInitializationAfterReference(identifier, declarator, declaration.node)));
+      seenDeclarations.add(declaration.node);
+      if (!isWrite) {
+        return [];
+      }
+    }
+    return [{ name: identifier.name, node: declaration.node }];
+  });
+  for (const loop of contexts) {
+    const owner =
+      loop.loopNode.type === 'CallExpression' ? loop.loopNode.arguments[0] : loop.loopNode;
+    const body = owner && scopeBodyOf(owner);
+    if (!body) {
+      continue;
+    }
+    const scope = scopes.get(body) ?? '';
+    for (const declaration of declarations) {
+      if (
+        tracker.getDeclarationFromScope(declaration.name, scope)?.node === declaration.node &&
+        !loop.iterVars.includes(declaration.name)
+      ) {
+        loop.iterVars.push(declaration.name);
+      }
+    }
+  }
+}
+
 export function generateParamPadding(
   loopVarNames: string[],
   originalParams: readonly string[] = []
@@ -122,16 +276,11 @@ export function generateParamPadding(
   return [eventParam, elementParam, ...loopVarNames];
 }
 
-/**
- * The lexical-capture params an event handler receives positionally — its params after the `_, _1`
- * (event, element) prefix, excluding padding (`_2`, `_3`, … and bare `_`). Returns `[]` when
- * there's no `_, _1` prefix.
- *
- * A bare `_` at index ≥2 is never a lifted param — only an author-written placeholder — so it's
- * excluded defensively (with the `_, _1` prefix present it would also be a duplicate-param
- * SyntaxError in module code).
- */
-export function eventHandlerQpParams(paramNames: readonly string[]): string[] {
+/** Return promoted captures, distinguishing real names from generated padding. */
+export function eventHandlerQpParams(
+  paramNames: readonly string[],
+  captures?: readonly string[]
+): string[] {
   // Only capture promotion creates handlers with a third-or-later param —
   // authors write at most (event, element) — so position filters suffice.
   if (paramNames.length < 3) {
@@ -140,7 +289,7 @@ export function eventHandlerQpParams(paramNames: readonly string[]): string[] {
   const result: string[] = [];
   for (let i = 2; i < paramNames.length; i++) {
     const p = paramNames[i];
-    if (paddingParam.test(p)) {
+    if (captures ? !captures.includes(p) : paddingParam.test(p)) {
       continue;
     }
     result.push(p);
@@ -242,6 +391,8 @@ function scopeBodyOf(node: AstNode): AstNode | null | undefined {
     case 'ForStatement':
     case 'ForInStatement':
     case 'ForOfStatement':
+    case 'WhileStatement':
+    case 'DoWhileStatement':
       return node.body;
     default:
       return undefined;
@@ -316,7 +467,11 @@ function declaresAny(node: AstNode, names: ReadonlySet<string>): boolean {
 }
 
 /** Start of the first value or JSX tag reference to `name`; strings and property keys don't count. */
-function findReferenceStart(root: AstNode, name: string): number | undefined {
+function findReferenceStart(
+  root: AstNode,
+  name: string,
+  matches: (node: AstNode) => boolean = () => true
+): number | undefined {
   let referenceStart: number | undefined;
   walk(root, {
     enter(node: AstNode, parent) {
@@ -324,7 +479,8 @@ function findReferenceStart(root: AstNode, name: string): number | undefined {
         referenceStart === undefined &&
         (node.type === 'Identifier' || node.type === 'JSXIdentifier') &&
         node.name === name &&
-        isReferenceIdentifier(node, parent)
+        isReferenceIdentifier(node, parent) &&
+        matches(node)
       ) {
         referenceStart = node.start;
       }
@@ -333,40 +489,136 @@ function findReferenceStart(root: AstNode, name: string): number | undefined {
   return referenceStart;
 }
 
-/** First statement that may read `name`, directly or via a hoisted function. */
-function firstUseStatement(statements: readonly AstNode[], name: string): AstNode | undefined {
-  const usedNames = new Set([name]);
-  const usesAny = (statement: AstNode) =>
-    [...usedNames].some((usedName) => findReferenceStart(statement, usedName) !== undefined);
-  let hasNewUser = true;
-  while (hasNewUser) {
-    hasNewUser = false;
-    for (const statement of statements) {
-      const functionName =
-        statement.type === 'FunctionDeclaration' ? statement.id?.name : undefined;
-      if (functionName && !usedNames.has(functionName) && usesAny(statement)) {
-        usedNames.add(functionName);
-        hasNewUser = true;
+function declaratorSites(statements: readonly AstNode[]) {
+  return statements.flatMap((statement) => {
+    const nodes = statement.type === 'VariableDeclaration' ? statement.declarations : [statement];
+    return nodes.map((node, declaratorIndex) => ({ statement, node, declaratorIndex }));
+  });
+}
+
+/** Index lexical references, accounting for hoisted function availability. */
+export function indexBindingReferences(
+  statements: readonly AstNode[],
+  matches: (node: AstNode & { name: string }) => boolean = () => true
+) {
+  const sites = declaratorSites(statements);
+  const references: Array<{ name: string; owner?: string; first: number; start: number }> = [];
+  const functions = new Map<
+    string,
+    { uses: Set<string>; boundary?: { first: number; start: number } }
+  >();
+  for (const { node } of sites) {
+    if (node.type === 'FunctionDeclaration' && node.id) {
+      functions.set(node.id.name, { uses: new Set() });
+    }
+  }
+  sites.forEach((site, index) => {
+    const owner = site.node.type === 'FunctionDeclaration' ? site.node.id?.name : undefined;
+    const blocks = [statements[0].start];
+    const hoistedFunctions: number[] = [];
+    walk(site.node, {
+      enter(node: AstNode, parent) {
+        if (node.type === 'FunctionDeclaration') {
+          hoistedFunctions.push(Math.min(blocks.at(-1)!, hoistedFunctions.at(-1) ?? Infinity));
+        }
+        if (node.type === 'BlockStatement') {
+          blocks.push(node.start);
+        }
+        if (
+          (node.type === 'Identifier' || node.type === 'JSXIdentifier') &&
+          isReferenceIdentifier(node, parent) &&
+          matches(node)
+        ) {
+          const start = Math.min(node.start, hoistedFunctions.at(-1) ?? Infinity);
+          const first = start < site.node.start ? 0 : index;
+          references.push({ name: node.name, owner, first, start });
+        }
+      },
+      leave(node: AstNode) {
+        if (node.type === 'BlockStatement') {
+          blocks.pop();
+        }
+        if (node.type === 'FunctionDeclaration') {
+          hoistedFunctions.pop();
+        }
+      },
+    });
+  });
+  const roots: typeof references = [];
+  for (const reference of references) {
+    if (functions.has(reference.name)) {
+      if (reference.owner) {
+        functions.get(reference.owner)!.uses.add(reference.name);
+      } else {
+        roots.push(reference);
       }
     }
   }
-  return (
-    statements.find(
-      (statement) => statement.type !== 'FunctionDeclaration' && usesAny(statement)
-    ) ?? statements.find(usesAny)
-  );
-}
-
-function lastDeclarationOf(
-  statements: readonly AstNode[],
-  names: ReadonlySet<string>
-): AstNode | undefined {
-  for (let i = statements.length - 1; i >= 0; i--) {
-    if (declarationNames(statements[i]).some((name) => names.has(name))) {
-      return statements[i];
+  roots.sort((a, b) => a.start - b.start || a.first - b.first);
+  for (const root of roots) {
+    const pending = [root.name];
+    for (const name of pending) {
+      const declaration = functions.get(name)!;
+      if (declaration.boundary) {
+        continue;
+      }
+      declaration.boundary = root;
+      pending.push(...declaration.uses);
     }
   }
-  return undefined;
+  const indexed = new Map<string, { first: number; start: number }>();
+  for (const reference of references) {
+    const boundary = reference.owner
+      ? (functions.get(reference.owner)!.boundary ?? { first: 0, start: statements[0].start })
+      : reference;
+    const previous = indexed.get(reference.name);
+    indexed.set(reference.name, {
+      first: Math.min(previous?.first ?? Infinity, boundary.first),
+      start: Math.min(previous?.start ?? Infinity, boundary.start),
+    });
+  }
+  return (name: string) => {
+    const reference = indexed.get(name);
+    if (reference) {
+      return { start: reference.start, first: sites[reference.first] };
+    }
+  };
+}
+
+/** Plan a declarator boundary after captures initialize and before execution. */
+function bindingPosition(
+  statements: readonly AstNode[],
+  name: string,
+  captureNames: ReadonlySet<string>,
+  uses: ReturnType<typeof indexBindingReferences>
+) {
+  const firstUse = uses(name)?.first;
+  if (!firstUse) {
+    return;
+  }
+  let position: ReturnType<typeof declaratorSites>[number] = firstUse;
+  const sites = declaratorSites(statements);
+  for (const site of sites) {
+    const capturesReady =
+      (site.statement.type === 'VariableDeclaration' &&
+        site.node.type === 'VariableDeclarator' &&
+        (site.statement.kind !== 'var' ||
+          (site.node.init &&
+            (site.statement.start < firstUse.statement.start ||
+              (site.statement === firstUse.statement &&
+                site.declaratorIndex < firstUse.declaratorIndex)))) &&
+        collectBindingNamesFromPattern(site.node.id).some((name) => captureNames.has(name))) ||
+      (site.node.type === 'ClassDeclaration' &&
+        declarationNames(site.node).some((name) => captureNames.has(name)));
+    if (
+      capturesReady &&
+      (site.statement.start > position.statement.start ||
+        (site.statement === position.statement && site.declaratorIndex >= position.declaratorIndex))
+    ) {
+      position = { ...site, declaratorIndex: site.declaratorIndex + 1 };
+    }
+  }
+  return position;
 }
 
 function unplacedBindingError(symbolNames: readonly string[], reason: string): Error {
@@ -396,7 +648,22 @@ export function insertLoopWDecls(body: string, decls: readonly LoopWDecl[]): str
     );
   }
 
+  const tracker = new ScopeQueryTracker({ preserveExitedScopes: true });
+  const scopes = new WeakMap<AstNode, string>();
+  walk(root, {
+    scopeTracker: tracker,
+    enter(node: AstNode) {
+      scopes.set(node, tracker.getCurrentScope());
+    },
+  });
+  tracker.freeze();
   const s = new MagicString(body);
+  const splitPositions = new Set<number>();
+  const blockUses = new Map<AstNode, ReturnType<typeof indexBindingReferences>>();
+  const statementBindings: Array<{ statement: AstNode; declaratorIndex: number; decl: string }> =
+    [];
+  const statementBodies = new Map<AstNode, string[]>();
+  const defaultBindings = new Map<AstNode, string[]>();
   // Expression-bodied callbacks to rewrite as `{ <decls> return <expr>; }`, keyed by node start.
   const expressionBodies = new Map<number, { node: AstNode; body: AstNode; decls: string[] }>();
 
@@ -406,6 +673,12 @@ export function insertLoopWDecls(body: string, decls: readonly LoopWDecl[]): str
       throw unplacedBindingError([symbolName], 'the body never uses it');
     }
     const path = pathToPosition(root, usePos);
+    const defaultPattern = [...path]
+      .reverse()
+      .find(
+        (node) =>
+          node.type === 'AssignmentPattern' && node.right.start <= usePos && usePos < node.right.end
+      );
     const names = new Set(captureNames);
     let scopeIdx = 0;
     for (let i = path.length - 2; i > 0; i--) {
@@ -413,6 +686,17 @@ export function insertLoopWDecls(body: string, decls: readonly LoopWDecl[]): str
         scopeIdx = i;
         break;
       }
+    }
+    if (defaultPattern?.type === 'AssignmentPattern' && path.indexOf(defaultPattern) > scopeIdx) {
+      const loop = path.find(
+        (node) =>
+          node.start >= defaultPattern.right.start && detectLoopContext(node, body)?.type === 'map'
+      );
+      const expression = loop?.type === 'CallExpression' ? loop.arguments[0] : defaultPattern.right;
+      const bindings = defaultBindings.get(expression) ?? [];
+      bindings.push(decl);
+      defaultBindings.set(expression, bindings);
+      continue;
     }
     let scope = path[scopeIdx];
     let child = path[scopeIdx + 1];
@@ -430,8 +714,9 @@ export function insertLoopWDecls(body: string, decls: readonly LoopWDecl[]): str
           continue;
         }
         // `for (…) stmt;` — wrap the single statement in a block.
-        s.appendLeft(scopeBody.start - offset, `{\n        ${decl}\n        `);
-        s.appendRight(scopeBody.end - offset, '\n    }');
+        const bindings = statementBodies.get(scopeBody) ?? [];
+        bindings.push(decl);
+        statementBodies.set(scopeBody, bindings);
         continue;
       }
       scope = scopeBody;
@@ -443,14 +728,48 @@ export function insertLoopWDecls(body: string, decls: readonly LoopWDecl[]): str
     if (!scope.body.some((statement) => statement === child)) {
       throw unplacedBindingError([symbolName], 'its use is outside the scope statements');
     }
-    // Before the first use so it sees reassignments, never above a capture's declaration.
-    const useStatement = firstUseStatement(scope.body, symbolName) ?? child;
-    const captureDeclaration = lastDeclarationOf(scope.body, names);
-    if (captureDeclaration && captureDeclaration.start > useStatement.start) {
-      s.appendLeft(captureDeclaration.end - offset, `\n        ${decl}`);
-    } else {
-      s.appendLeft(useStatement.start - offset, `${decl}\n        `);
+    const uses =
+      blockUses.get(scope) ??
+      indexBindingReferences(scope.body, referencesInScope(tracker, scopes, scope));
+    blockUses.set(scope, uses);
+    const position = bindingPosition(scope.body, symbolName, names, uses) ?? {
+      statement: child,
+      declaratorIndex: 0,
+    };
+    statementBindings.push({ ...position, decl });
+  }
+
+  for (const { statement, declaratorIndex, decl } of statementBindings) {
+    if (statement.type === 'VariableDeclaration' && declaratorIndex > 0) {
+      const declarations = statement.declarations;
+      if (declaratorIndex < declarations.length) {
+        const previousEnd = declarations[declaratorIndex - 1].end - offset;
+        const start = declarations[declaratorIndex].start - offset;
+        const separator = previousEnd + blankNonCode(body.slice(previousEnd, start)).indexOf(',');
+        if (!splitPositions.has(separator)) {
+          s.overwrite(separator, separator + 1, ';');
+          splitPositions.add(separator);
+          s.appendRight(start, `${statement.kind} `);
+        }
+        s.appendLeft(start, `${decl}\n        `);
+        continue;
+      }
     }
+    if (declaratorIndex > 0) {
+      s.appendLeft(statement.end - offset, `\n        ${decl}`);
+    } else {
+      s.appendLeft(statement.start - offset, `${decl}\n        `);
+    }
+  }
+
+  for (const [statement, bindings] of statementBodies) {
+    s.appendLeft(statement.start - offset, `{\n        ${bindings.join('\n        ')}\n        `);
+    s.appendRight(statement.end - offset, '\n    }');
+  }
+
+  for (const [expression, bindings] of defaultBindings) {
+    s.appendRight(expression.start - offset, `(() => { ${bindings.join(' ')} return `);
+    s.appendLeft(expression.end - offset, '; })()');
   }
 
   for (const { node, body: exprNode, decls: bodyDecls } of expressionBodies.values()) {

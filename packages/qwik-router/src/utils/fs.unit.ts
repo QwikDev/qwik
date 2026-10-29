@@ -265,7 +265,6 @@ test('createFileId, Menu', () => {
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
       strictLoaders: true,
-      serverRewrites: false,
     };
     globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     const pathname = getPathnameFromDirPath(opts, t.dirPath);
@@ -369,7 +368,6 @@ test('parseRouteIndexName', () => {
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
       strictLoaders: true,
-      serverRewrites: false,
     };
     globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     const pathname = getMenuPathname(opts, t.filePath);

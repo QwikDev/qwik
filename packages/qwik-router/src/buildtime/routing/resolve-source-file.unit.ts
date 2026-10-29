@@ -50,7 +50,6 @@ test('resolveLayout', () => {
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
       strictLoaders: true,
-      serverRewrites: false,
     };
     const sourceFile: RouteSourceFile = {
       ...getSourceFile(c.fileName)!,

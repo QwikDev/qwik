@@ -27,6 +27,30 @@ export const Facets = component$((props: any) => {
 });
 `;
 
+const NESTED_EXPRESSION_BODIED_COMPONENT = `
+import { component$ } from '@qwik.dev/core';
+export const Facets = component$((props: any) => (
+  <div>
+    {props.facets.map((facet: any) => (
+      <div key={facet.slug}>
+        {facet.items.map((item: any) => (
+          <label key={item.slug}>
+            <input type="checkbox" onChange$={() => props.toggle$(facet.slug, item.slug)} />
+          </label>
+        ))}
+      </div>
+    ))}
+  </div>
+));
+`;
+
+const COMPACT_EXPRESSION_BODIED_COMPONENT = `
+import { component$ } from '@qwik.dev/core';
+export const Facets = component$((p)=>p.map((f)=>(
+  <div>{f.items.map((i) => <input onChange$={() => p.toggle$(f.slug, i.slug)} />)}</div>
+)));
+`;
+
 const NESTED_BLOCK_BODY_LOCAL = `
 import { component$ } from '@qwik.dev/core';
 export const Facets = component$((props: any) => {
@@ -72,6 +96,17 @@ export const List = component$((props: any) => {
     </ul>
   );
 });
+`;
+
+const SINGLE_LOOP_EXPRESSION_BODIED_COMPONENT = `
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props: any) => (
+  <ul>
+    {props.items.map((item: any) => (
+      <li key={item.id} onClick$={() => props.select$(item.id)} />
+    ))}
+  </ul>
+));
 `;
 
 const COMMENTED_ARROW_BODY = (comment: string) => `
@@ -200,6 +235,41 @@ describe('loop handler .w() bindings capturing an outer loop item (#9190)', () =
     }
   });
 
+  it('binds inside the outer callback when the component returns JSX directly', () => {
+    for (const options of [
+      ssrOptions,
+      { entryStrategy: { type: 'hoist' } } as const,
+      { entryStrategy: { type: 'smart' } } as const,
+    ]) {
+      expectBindingInsideOuterLoop(
+        componentCode(NESTED_EXPRESSION_BODIED_COMPONENT, options),
+        'facet, props'
+      );
+    }
+  });
+
+  it('binds inside the outer callback when a compact component returns the loop directly', () => {
+    for (const options of [ssrOptions, { entryStrategy: { type: 'smart' } } as const]) {
+      const code = componentCode(COMPACT_EXPRESSION_BODIED_COMPONENT, options);
+      const outerLoop = code.indexOf('p.map((f) => {');
+      const binding = code.search(/const \w+ = q_\w+\.w\(\[ ?f, p ?\]\);/);
+      expect(outerLoop).toBeGreaterThan(-1);
+      expect(binding).toBeGreaterThan(outerLoop);
+      expect(code.indexOf('f.items.map(')).toBeGreaterThan(binding);
+    }
+  });
+
+  it('keeps component-scoped captures of a single loop when the component returns JSX directly', () => {
+    for (const options of [ssrOptions, { entryStrategy: { type: 'smart' } } as const]) {
+      const code = componentCode(SINGLE_LOOP_EXPRESSION_BODIED_COMPONENT, options);
+      const componentBody = code.indexOf('(props) => {');
+      const binding = code.search(/const \w+ = q_\w+\.w\(\[ ?props ?\]\);/);
+      expect(componentBody).toBeGreaterThan(-1);
+      expect(binding).toBeGreaterThan(componentBody);
+      expect(binding).toBeLessThan(code.indexOf('props.items.map('));
+    }
+  });
+
   for (const comment of ['// some comment here', '/* => */']) {
     it(`keeps the JSX of an outer callback with \`${comment}\` after its arrow`, () => {
       for (const options of [ssrOptions, { entryStrategy: { type: 'smart' } } as const]) {
@@ -226,6 +296,66 @@ describe('loop handler .w() bindings capturing an outer loop item (#9190)', () =
       expect(groups).toBeGreaterThan(facetItems);
       expect(groupBinding).toBeGreaterThan(groups);
       expect(groupItems).toBeGreaterThan(groupBinding);
+    }
+  });
+});
+
+const RENDER_ARROW_BEFORE_CAPTURE = `
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props: any) => {
+  const renderRows = () =>
+    props.items.map((item: any) => <button onClick$={() => props.select$(prefix, item)} />);
+
+  const prefix = props.prefix;
+  return <div>{renderRows()}</div>;
+});
+`;
+
+const RENDER_ARROW_BEFORE_CALLBACK_CAPTURE = `
+import { component$ } from '@qwik.dev/core';
+export const Facets = component$((props: any) => (
+  <div>
+    {props.facets.map((facet: any) => {
+      const render = () =>
+        facet.items.map((item: any) => <input onChange$={() => props.toggle$(label, item.slug)} />);
+      const label = facet.label;
+      return <div>{render()}</div>;
+    })}
+  </div>
+));
+`;
+
+describe('loop handler .w() bindings and their captured locals', () => {
+  it('binds after a capture declared below the arrow that renders the loop', () => {
+    for (const options of [
+      ssrOptions,
+      { entryStrategy: { type: 'hoist' } } as const,
+      { entryStrategy: { type: 'smart' } } as const,
+    ]) {
+      const code = componentCode(RENDER_ARROW_BEFORE_CAPTURE, options);
+      const capture = code.indexOf('const prefix = props.prefix;');
+      const binding = code.search(/const \w+ = q_\w+\.w\(\[ ?prefix, props ?\]\);/);
+      expect(capture).toBeGreaterThan(-1);
+      expect(binding).toBeGreaterThan(capture);
+      expect(code.indexOf('return /*#__PURE__*/ _jsxSorted("div"')).toBeGreaterThan(binding);
+    }
+  });
+
+  it('binds inside the outer callback after a capture declared below its render arrow', () => {
+    for (const options of [
+      ssrOptions,
+      { entryStrategy: { type: 'hoist' } } as const,
+      { entryStrategy: { type: 'smart' } } as const,
+    ]) {
+      const code = componentCode(RENDER_ARROW_BEFORE_CALLBACK_CAPTURE, options);
+      const outerLoop = code.indexOf('props.facets.map((facet) => {');
+      const capture = code.indexOf('const label = facet.label;');
+      const binding = code.search(/const \w+ = q_\w+\.w\(\[ ?label, props ?\]\);/);
+      expect(outerLoop).toBeGreaterThan(-1);
+      expect(capture).toBeGreaterThan(outerLoop);
+      expect(binding).toBeGreaterThan(capture);
+      expect(code.indexOf('render()', binding)).toBeGreaterThan(binding);
+      expect(code).not.toMatch(/\blabel1\b/);
     }
   });
 });

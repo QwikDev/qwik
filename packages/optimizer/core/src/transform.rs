@@ -1382,20 +1382,24 @@ impl<'a> QwikTransform<'a> {
 						.unwrap_or(0);
 					Some(current_component_depth)
 				} else {
-					let min_decl_scope = (0..self.decl_stack.len()).find(|&i| {
-						scoped_idents.iter().all(|capture| {
+					// Each capture resolves to its innermost declaration, which shadows outer ones.
+					let min_decl_scope = scoped_idents
+						.iter()
+						.map(|capture| {
 							let name = capture.0.as_ref();
-							self.decl_stack[0..=i]
-								.iter()
-								.any(|scope| scope.iter().any(|(id, _)| id.0.as_ref() == name))
+							self.decl_stack.iter().rposition(|scope| {
+								scope.iter().any(|(id, _)| id.0.as_ref() == name)
+							})
 						})
-					})?;
+						.collect::<Option<Vec<_>>>()?
+						.into_iter()
+						.max()?;
 					// Smallest j = outermost scope whose body contains min_decl_scope
 					let j = self
 						.hoisting_scope_decl_indices
 						.iter()
 						.enumerate()
-						.find(|(_, &decl_idx)| decl_idx >= min_decl_scope.saturating_sub(1))
+						.find(|(_, &decl_idx)| decl_idx >= min_decl_scope)
 						.map(|(idx, _)| idx)?;
 					let target = j.min(current_depth);
 					// scoped_idents non-empty => capture array in qrl(..., [captures]) => must be in scope
@@ -3405,11 +3409,12 @@ impl<'a> QwikTransform<'a> {
 	/// All functions create hoisting scopes EXCEPT callbacks (.map, .filter, etc.).
 	/// Callbacks inside a loop also get a scope so QRLs capturing loop vars can be placed there.
 	/// Returns true if a scope was created (caller should inject hoisted QRLs on exit).
-	fn enter_hoisting_scope(&mut self) -> bool {
+	fn enter_hoisting_scope(&mut self, has_block_body: bool) -> bool {
 		let creates_hoisting_scope = !self.in_callback || !self.iteration_var_stack.is_empty();
 		if creates_hoisting_scope {
+			// Deepest decl scope visible where the QRLs are injected; an expression body has no block.
 			self.hoisting_scope_decl_indices
-				.push(self.decl_stack.len().saturating_sub(1));
+				.push(self.decl_stack.len().saturating_sub(1) + usize::from(has_block_body));
 			self.hoisted_qrls.push(Vec::new());
 			if !self.in_callback {
 				self.component_depths
@@ -3429,27 +3434,28 @@ impl<'a> QwikTransform<'a> {
 				self.component_depths.pop();
 			}
 			if !current_qrls.is_empty() {
-				// Create const declarations for hoisted QRLs
-				let mut qrl_stmts = Vec::new();
-				for (_, declarator) in current_qrls {
-					qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
-						span: DUMMY_SP,
-						kind: ast::VarDeclKind::Const,
-						declare: false,
-						ctxt: SyntaxContext::empty(),
-						decls: vec![declarator],
-					}))));
+				// Declare each binding right before its first use, so it sees reassigned captures.
+				let mut placed_qrls: Vec<(usize, ast::Stmt)> = current_qrls
+					.into_iter()
+					.map(|(name, declarator)| {
+						let binding_id = (Atom::from(name), SyntaxContext::empty());
+						let use_pos = first_use_position(stmts, &binding_id).unwrap_or(stmts.len());
+						let qrl_stmt = ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+							span: DUMMY_SP,
+							kind: ast::VarDeclKind::Const,
+							declare: false,
+							ctxt: SyntaxContext::empty(),
+							decls: vec![declarator],
+						})));
+						(use_pos, qrl_stmt)
+					})
+					.collect();
+
+				// Insert back to front so earlier positions stay valid and ties keep their order.
+				placed_qrls.sort_by_key(|(use_pos, _)| *use_pos);
+				for (use_pos, qrl_stmt) in placed_qrls.into_iter().rev() {
+					stmts.insert(use_pos, qrl_stmt);
 				}
-
-				// Find the position to insert - after the last variable declaration
-				let insert_pos = stmts
-					.iter()
-					.rposition(|stmt| matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(_))))
-					.map(|pos| pos + 1)
-					.unwrap_or(0);
-
-				// Insert hoisted QRLs after variable declarations
-				stmts.splice(insert_pos..insert_pos, qrl_stmts);
 				return true;
 			}
 		}
@@ -3712,7 +3718,7 @@ impl<'a> Fold for QwikTransform<'a> {
 
 	fn fold_function(&mut self, node: ast::Function) -> ast::Function {
 		self.decl_stack.push(vec![]);
-		let creates_hoisting_scope = self.enter_hoisting_scope();
+		let creates_hoisting_scope = self.enter_hoisting_scope(node.body.is_some());
 
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
@@ -3750,7 +3756,8 @@ impl<'a> Fold for QwikTransform<'a> {
 
 	fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
 		self.decl_stack.push(vec![]);
-		let creates_hoisting_scope = self.enter_hoisting_scope();
+		let creates_hoisting_scope =
+			self.enter_hoisting_scope(matches!(*node.body, ast::BlockStmtOrExpr::BlockStmt(_)));
 
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
@@ -5066,27 +5073,65 @@ fn base64(nu: u64) -> String {
 		.replace(['-', '_'], "0")
 }
 
-/// Check if an expression references a specific identifier
-fn expr_uses_ident(expr: &ast::Expr, target_id: &Id) -> bool {
-	struct IdentChecker {
-		target_id: Id,
-		found: bool,
+struct IdentChecker {
+	target_id: Id,
+	found: bool,
+}
+
+impl IdentChecker {
+	fn new(target_id: &Id) -> Self {
+		Self {
+			target_id: target_id.clone(),
+			found: false,
+		}
 	}
+}
 
-	impl Visit for IdentChecker {
-		noop_visit_type!();
+impl Visit for IdentChecker {
+	noop_visit_type!();
 
-		fn visit_ident(&mut self, ident: &ast::Ident) {
-			if id!(ident) == self.target_id {
-				self.found = true;
+	fn visit_ident(&mut self, ident: &ast::Ident) {
+		if id!(ident) == self.target_id {
+			self.found = true;
+		}
+	}
+}
+
+/// Check if a statement references a specific identifier
+fn stmt_uses_ident(stmt: &ast::Stmt, target_id: &Id) -> bool {
+	let mut checker = IdentChecker::new(target_id);
+	stmt.visit_with(&mut checker);
+	checker.found
+}
+
+/// First statement that may read `binding_id`, directly or via a hoisted function.
+fn first_use_position(stmts: &[ast::Stmt], binding_id: &Id) -> Option<usize> {
+	let mut used_ids = vec![binding_id.clone()];
+	let uses_any =
+		|stmt: &ast::Stmt, used_ids: &[Id]| used_ids.iter().any(|id| stmt_uses_ident(stmt, id));
+	let mut has_new_user = true;
+	while has_new_user {
+		has_new_user = false;
+		for stmt in stmts {
+			if let ast::Stmt::Decl(ast::Decl::Fn(fn_decl)) = stmt {
+				let fn_id = id!(fn_decl.ident);
+				if !used_ids.contains(&fn_id) && uses_any(stmt, &used_ids) {
+					used_ids.push(fn_id);
+					has_new_user = true;
+				}
 			}
 		}
 	}
+	let is_fn_decl = |stmt: &ast::Stmt| matches!(stmt, ast::Stmt::Decl(ast::Decl::Fn(_)));
+	stmts
+		.iter()
+		.position(|stmt| !is_fn_decl(stmt) && uses_any(stmt, &used_ids))
+		.or_else(|| stmts.iter().position(|stmt| uses_any(stmt, &used_ids)))
+}
 
-	let mut checker = IdentChecker {
-		target_id: target_id.clone(),
-		found: false,
-	};
+/// Check if an expression references a specific identifier
+fn expr_uses_ident(expr: &ast::Expr, target_id: &Id) -> bool {
+	let mut checker = IdentChecker::new(target_id);
 
 	// For arrow/fn expressions, we want to check the body, not the whole expression
 	match expr {

@@ -7,6 +7,7 @@ import {
   generateParamPadding,
   buildCaptureProp,
   eventHandlerQpParams,
+  insertLoopWDecls,
 } from '../../../src/optimizer/jsx/loop-hoisting.js';
 
 function findFirstNode(source: string, nodeType: string): AstNode {
@@ -189,6 +190,86 @@ describe('buildCaptureProp', () => {
     expect(result).not.toBeNull();
     expect(result!.propName).toBe('q:ps');
     expect(result!.propValue).toBe('[a, m, z]');
+  });
+});
+
+describe('insertLoopWDecls', () => {
+  const binding = { decl: 'const h = q_h.w([p]);', symbolName: 'h', captureNames: ['p'] };
+
+  it('places the binding inside the function body', () => {
+    expect(insertLoopWDecls('(p) => <b onClick$={h} />', [binding])).toMatch(
+      /^\(p\) => \{\s*const h = q_h\.w\(\[p\]\);\s*return <b onClick\$=\{h\} \/>;\s*\}$/
+    );
+  });
+
+  it('places the binding at its reference, not at an earlier string with the same text', () => {
+    const outerItemBinding = {
+      decl: 'const h = q_h.w([f]);',
+      symbolName: 'h',
+      captureNames: ['f'],
+    };
+    const body =
+      '(p) => <div title="h">{p.map((f) => f.items.map(() => <b onClick$={h} />))}</div>';
+    expect(insertLoopWDecls(body, [outerItemBinding])).toMatch(
+      /^\(p\) => <div title="h">\{p\.map\(\(f\) => \{\s*const h = q_h\.w\(\[f\]\);/
+    );
+  });
+
+  it('places the binding after statements that reassign a capture', () => {
+    const reassignedBinding = {
+      decl: 'const h = q_h.w([x]);',
+      symbolName: 'h',
+      captureNames: ['x'],
+    };
+    const body = "(p) => { let x = p.a; x = 'b'; return <b onClick$={h} />; }";
+    expect(insertLoopWDecls(body, [reassignedBinding])).toMatch(
+      /x = 'b';\s*const h = q_h\.w\(\[x\]\);\s*return/
+    );
+  });
+
+  it('places the binding before a declaration that uses it', () => {
+    const body =
+      '(p) => { const rows = p.map(() => <b onClick$={h} />); const t = 1; return rows; }';
+    expect(insertLoopWDecls(body, [binding])).toMatch(
+      /^\(p\) => \{\s*const h = q_h\.w\(\[p\]\);\s*const rows =/
+    );
+  });
+
+  it('places the binding before calls to a function declared after them', () => {
+    const body =
+      '(p) => { return render(); function render() { return p.map(() => <b onClick$={h} />); } }';
+    expect(insertLoopWDecls(body, [binding])).toMatch(
+      /^\(p\) => \{\s*const h = q_h\.w\(\[p\]\);\s*return render\(\);/
+    );
+  });
+
+  it('places the binding before JSX tags of a function declared after them', () => {
+    const body =
+      '(p) => { return <ul><Rows /></ul>; function Rows() { return p.map(() => <b onClick$={h} />); } }';
+    expect(insertLoopWDecls(body, [binding])).toMatch(
+      /^\(p\) => \{\s*const h = q_h\.w\(\[p\]\);\s*return <ul>/
+    );
+  });
+
+  it('places the binding after a capture declared below its first use', () => {
+    const laterCaptureBinding = {
+      decl: 'const h = q_h.w([x]);',
+      symbolName: 'h',
+      captureNames: ['x'],
+    };
+    const body =
+      '(p) => { const render = () => p.map(() => <b onClick$={h} />); const x = p.a; return render(); }';
+    expect(insertLoopWDecls(body, [laterCaptureBinding])).toMatch(
+      /const x = p\.a;\s*const h = q_h\.w\(\[x\]\);\s*return render\(\);/
+    );
+  });
+
+  it('throws instead of dropping the binding when the body is not a function', () => {
+    expect(() => insertLoopWDecls('items', [binding])).toThrow(/Qwik optimizer: .* h\b/);
+  });
+
+  it('throws instead of dropping the binding when nothing uses it', () => {
+    expect(() => insertLoopWDecls('(p) => <b />', [binding])).toThrow(/Qwik optimizer: .* h\b/);
   });
 });
 

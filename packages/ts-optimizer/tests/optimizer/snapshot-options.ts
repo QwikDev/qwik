@@ -554,6 +554,18 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  should_transform_loop_handler_after_capture_reassignment: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_handler_assigned_to_const_before_use: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_handler_in_function_declared_after_return: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_transform_loop_multiple_handler_with_different_captures: {
     transpileTs: true,
     transpileJsx: true,
@@ -568,6 +580,14 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_transform_multiple_event_handlers: { transpileTs: true, transpileJsx: true },
   should_transform_multiple_event_handlers_case2: { transpileTs: true, transpileJsx: true },
+  should_transform_nested_loop_handlers_in_expression_bodied_component: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_nested_loop_handlers_in_paren_less_callbacks: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_transform_nested_loops: { transpileTs: true, transpileJsx: true },
   should_transform_nested_loops_handler_captures_only_inner_scope: {
     transpileTs: true,
@@ -575,6 +595,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_transform_qrls_in_ternary_expression: { transpileTs: true, transpileJsx: true },
   should_transform_same_element_one_handler_with_captures_one_without: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_single_loop_handler_in_expression_bodied_component: {
     transpileTs: true,
     transpileJsx: true,
   },

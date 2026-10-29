@@ -6580,6 +6580,166 @@ export default component$(() => {
 }
 
 #[test]
+fn should_transform_nested_loop_handlers_in_expression_bodied_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Facets = component$((props) => (
+  <div>
+    {props.facets.map((facet) => (
+      <div key={facet.slug}>
+        {facet.items.map((item) => (
+          <input key={item.slug} onChange$={() => props.toggle$(facet.slug, item.slug)} />
+        ))}
+      </div>
+    ))}
+  </div>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_nested_loop_handlers_in_paren_less_callbacks() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Facets = component$((props) => <div>{props.facets.map((facet) => <div>{facet.items.map((item) => <input onChange$={() => props.toggle$(facet.slug, item.slug)} />)}</div>)}</div>);
+
+export const Groups = component$((props) => {
+  return <div>{props.groups.map((group) => <div>{group.items.map((item) => <input onChange$={() => props.toggle$(group.slug, item.slug)} />)}</div>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_single_loop_handler_in_expression_bodied_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const List = component$((props) => (
+  <ul>
+    {props.items.map((item) => (
+      <li key={item.id} onClick$={() => props.select$(item.id)} />
+    ))}
+  </ul>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_handler_after_capture_reassignment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const List = component$((props) => {
+  let prefix = props.prefix;
+  prefix = `${prefix}!`;
+  return (
+    <ul>
+      {props.items.map((item) => (
+        <li key={item.id} onClick$={() => props.select$(prefix, item.id)} />
+      ))}
+    </ul>
+  );
+});
+
+export const Groups = component$((props) => (
+  <div>
+    {props.groups.map((group) => {
+      let label = group.label;
+      label = label.toUpperCase();
+      return group.items.map((item) => (
+        <button key={item.id} onClick$={() => props.select$(label, item.id)} />
+      ));
+    })}
+  </div>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_handler_assigned_to_const_before_use() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const List = component$((props) => {
+  const rows = props.items.map((item) => (
+    <li key={item.id} onClick$={() => props.select$(item.id)} />
+  ));
+  const title = props.title.toUpperCase();
+  return (
+    <ul title={title}>
+      {rows}
+    </ul>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_handler_in_function_declared_after_return() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const List = component$((props) => {
+  return <ul>{renderRows()}</ul>;
+
+  function renderRows() {
+    return props.items.map((item) => (
+      <li key={item.id} onClick$={() => props.select$(item.id)} />
+    ));
+  }
+});
+
+export const Table = component$((props) => {
+  return <table><Rows /></table>;
+
+  function Rows() {
+    return props.rows.map((row) => (
+      <tr key={row.id} onClick$={() => props.select$(row.id)} />
+    ));
+  }
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_transform_same_element_one_handler_with_captures_one_without() {
 	test_input!(TestInput {
 		code: r#"

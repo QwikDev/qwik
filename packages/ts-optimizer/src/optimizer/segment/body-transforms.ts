@@ -1,6 +1,4 @@
 import { walk } from 'oxc-walker';
-import { parseWithRawTransfer } from '../ast/parse.js';
-import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import type { AstNode } from '../../ast-types.js';
 import {
   createFunctionTransformSession,
@@ -10,13 +8,13 @@ import {
 } from '../edit/transform-session.js';
 import { buildSyncTransform, needsPureAnnotation } from '../rewrite/rewrite-calls.js';
 import { formatWCall, parseArrayItems } from '../qwik/w-call.js';
+import { insertLoopWDecls, type LoopWDecl } from '../jsx/loop-hoisting.js';
 import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
 import type { NestedCallSiteInfo } from './segment-codegen.js';
 import {
   blankNonCode,
   isInsideString,
   pureAwareOverwriteStart,
-  scanMatchingParenBackward,
   scanMatchingParenForward,
 } from '../edit/text-scanning.js';
 import { replaceOutsideStrings, wholeIdentifierPattern } from '../edit/identifier-boundary.js';
@@ -30,172 +28,6 @@ function getNestedCallSiteStart(site: NestedCallSiteInfo): number {
   return site.attrStart ?? site.callStart;
 }
 
-/**
- * Binding names declared by an arrow's parameter list. Parsed rather than split on `,` so typed
- * (`facet: Facet`), defaulted and destructured parameters resolve to their binding names.
- */
-function arrowParamNames(paramText: string): string[] {
-  const program = parseWithRawTransfer('__params__.tsx', `(${paramText}) => 0;`).program;
-  const stmt = program?.body?.[0];
-  const arrow = stmt?.type === 'ExpressionStatement' ? stmt.expression : undefined;
-  if (arrow?.type !== 'ArrowFunctionExpression') {
-    return paramText.split(',').map((p) => p.trim());
-  }
-  return arrow.params.flatMap((param) => collectBindingNamesFromPattern(param));
-}
-
-/**
- * Names declared in a `for (…)` head whose closing paren is at `closeParen`, or `undefined` when
- * the parens don't belong to a `for` statement.
- */
-function forLoopHeadNames(text: string, closeParen: number): string[] | undefined {
-  const openParen = scanMatchingParenBackward(text, closeParen - 1);
-  const before = text.slice(Math.max(0, openParen - 16), openParen);
-  if (!/(?<![\w$])for(?:\s+await)?\s*$/.test(before)) {
-    return undefined;
-  }
-  const head = text.slice(openParen + 1, closeParen);
-  const program = parseWithRawTransfer('__for__.tsx', `async () => { for (${head}) {} }`).program;
-  const stmt = program?.body?.[0];
-  const fn = stmt?.type === 'ExpressionStatement' ? stmt.expression : undefined;
-  const loop =
-    fn?.type === 'ArrowFunctionExpression' && fn.body.type === 'BlockStatement'
-      ? fn.body.body[0]
-      : undefined;
-  const decl =
-    loop?.type === 'ForStatement'
-      ? loop.init
-      : loop?.type === 'ForOfStatement' || loop?.type === 'ForInStatement'
-        ? loop.left
-        : undefined;
-  if (decl?.type !== 'VariableDeclaration') {
-    return undefined;
-  }
-  return decl.declarations.flatMap((d) => collectBindingNamesFromPattern(d.id));
-}
-
-/**
- * Text-based because it runs after nested call site rewriting has invalidated the original AST
- * positions. Scans the blanked text so strings and comments can't fake an arrow or a declaration.
- */
-function findEnclosingArrowBodyForCapture(
-  text: string,
-  pos: number,
-  capturedVarName: string
-): number {
-  text = blankNonCode(text);
-  // Brackets closed between `i` and `pos` belong to siblings, not to an enclosing
-  // scope — without this, an earlier arrow that merely *precedes* the position
-  // matches and the declaration lands outside any statement.
-  const closedBrackets: string[] = [];
-  for (let i = pos - 1; i >= 1; i--) {
-    const ch = text[i];
-    if (ch === ')' || ch === '}' || ch === ']') {
-      closedBrackets.push(ch);
-      continue;
-    }
-    if (ch !== '(' && ch !== '{' && ch !== '[') {
-      continue;
-    }
-    const closer = ch === '(' ? ')' : ch === '{' ? '}' : ']';
-    if (closedBrackets[closedBrackets.length - 1] === closer) {
-      closedBrackets.pop();
-      continue;
-    }
-    if (ch === '[') {
-      continue;
-    }
-
-    let j = i - 1;
-    while (j >= 0 && /\s/.test(text[j])) {
-      j--;
-    }
-    if (ch === '{' && text[j] === ')') {
-      const loopVarNames = forLoopHeadNames(text, j);
-      if (loopVarNames?.includes(capturedVarName)) {
-        return i + 1;
-      }
-    }
-    if (!(j >= 1 && text[j] === '>' && text[j - 1] === '=')) {
-      continue;
-    }
-
-    let paramEnd = j - 2;
-    while (paramEnd >= 0 && /\s/.test(text[paramEnd])) {
-      paramEnd--;
-    }
-
-    let paramText = '';
-    if (text[paramEnd] === ')') {
-      const pStart = scanMatchingParenBackward(text, paramEnd - 1);
-      paramText = text.slice(pStart + 1, paramEnd);
-    } else if (/\w/.test(text[paramEnd])) {
-      let pStart = paramEnd;
-      while (pStart > 0 && /\w/.test(text[pStart - 1])) {
-        pStart--;
-      }
-      paramText = text.slice(pStart, paramEnd + 1);
-    }
-
-    if (arrowParamNames(paramText).includes(capturedVarName)) {
-      return i + 1;
-    }
-
-    const bodyStart = i + 1;
-    const bodySlice = text.slice(bodyStart, pos);
-    const localDeclPattern = new RegExp(
-      `\\b(?:const|let|var)\\s+${wholeIdentifierPattern(capturedVarName).source}`
-    );
-    if (localDeclPattern.test(bodySlice)) {
-      return bodyStart;
-    }
-  }
-  return -1;
-}
-
-function findVarDeclarationEnd(text: string, startPos: number, varName: string): number {
-  const code = blankNonCode(text);
-  const pattern = new RegExp(
-    `\\b(?:const|let|var)\\s+${wholeIdentifierPattern(varName).source}\\s*=`
-  );
-  const match = pattern.exec(code.slice(startPos));
-  if (!match) {
-    return -1;
-  }
-
-  const declStart = startPos + match.index;
-  // The statement's own `;`: same nesting depth as the declaration, outside
-  // strings — a nested arrow body's `;` must not end it early.
-  let semiIdx = -1;
-  let depth = 0;
-  for (let i = declStart + match[0].length; i < code.length; i++) {
-    const ch = code[i];
-    if (ch === '(' || ch === '[' || ch === '{') {
-      depth++;
-    } else if (ch === ')' || ch === ']' || ch === '}') {
-      if (depth === 0) {
-        break;
-      }
-      depth--;
-    } else if (ch === ';' && depth === 0) {
-      semiIdx = i;
-      break;
-    }
-  }
-  if (semiIdx < 0) {
-    return -1;
-  }
-
-  let endPos = semiIdx + 1;
-  if (text[endPos] === '\n') {
-    endPos++;
-  }
-  return endPos;
-}
-
-/** Fallback for malformed bodies that cannot provide an outer scope. */
-const OUTERMOST_BODY_THRESHOLD = 20;
-
 /** MUST run before any other text modifications because it uses original source positions. */
 export function rewriteNestedCallSitesInline(
   bodyText: string,
@@ -203,11 +35,6 @@ export function rewriteNestedCallSitesInline(
   bodyOffset: number,
   preserveOffsets = false
 ): string {
-  const outerSession = createFunctionTransformSession(bodyText, { tolerateErrors: true });
-  const outerBodyStart =
-    outerSession?.fn.body?.type === 'BlockStatement'
-      ? outerSession.fn.body.start - outerSession.offset + 1
-      : -1;
   const sorted = nestedCallSites
     .map((site) => {
       const captureStart =
@@ -225,10 +52,7 @@ export function rewriteNestedCallSitesInline(
     })
     .sort((a, b) => getNestedCallSiteStart(b) - getNestedCallSiteStart(a));
 
-  let componentScopeWDecls:
-    | Array<{ declaration: string; captureNames: readonly string[] }>
-    | undefined;
-  const hoistDeclarations: Array<{ position: number; declaration: string; scope: number }> = [];
+  const loopWDecls: LoopWDecl[] = [];
   const replaceBodyRange = (start: number, end: number, replacement: string): void => {
     if (start < 0 || end > bodyText.length) {
       return;
@@ -238,11 +62,6 @@ export function rewriteNestedCallSitesInline(
     }
     const offsetChange = replacement.length - (end - start);
     const absoluteEnd = end + bodyOffset;
-    for (const hoist of hoistDeclarations) {
-      if (hoist.position >= end) {
-        hoist.position += offsetChange;
-      }
-    }
     for (const pendingSite of sorted) {
       if (
         pendingSite.explicitCaptureStart !== undefined &&
@@ -302,47 +121,13 @@ export function rewriteNestedCallSitesInline(
         site.hoistedCaptureNames &&
         site.hoistedCaptureNames.length > 0
       ) {
-        // The binding can only live where every capture is in scope: the innermost of the
-        // scopes that declare them (e.g. an outer loop callback whose param is captured).
-        let enclosingPos = -1;
-        for (const capturedVar of site.hoistedCaptureNames) {
-          enclosingPos = Math.max(
-            enclosingPos,
-            findEnclosingArrowBodyForCapture(bodyText, relStart, capturedVar)
-          );
-        }
-        const isLoopCallback =
-          enclosingPos >= 0 &&
-          (outerBodyStart >= 0
-            ? enclosingPos !== outerBodyStart
-            : enclosingPos > OUTERMOST_BODY_THRESHOLD);
-        if (isLoopCallback) {
-          // Asymmetric indentation (12-space first item, 8-space rest+close)
-          // is intentional here; kept inline rather than routed through formatWCall.
-          const captureList = site.hoistedCaptureNames.join(',\n        ');
-          const decl = `const ${site.hoistedSymbolName} = ${site.qrlVarName}.w([\n            ${captureList}\n        ]);`;
-          let latestDeclPos = -1;
-          for (const capVar of site.hoistedCaptureNames) {
-            const varDeclPos = findVarDeclarationEnd(bodyText, enclosingPos, capVar);
-            if (varDeclPos > latestDeclPos) {
-              latestDeclPos = varDeclPos;
-            }
-          }
-          hoistDeclarations.push({
-            position: latestDeclPos >= 0 ? latestDeclPos : enclosingPos,
-            declaration: decl,
-            scope: enclosingPos,
-          });
-        } else {
-          if (!componentScopeWDecls) {
-            componentScopeWDecls = [];
-          }
-          const wCall = formatWCall(site.qrlVarName, site.hoistedCaptureNames, '        ', '    ');
-          componentScopeWDecls.unshift({
-            declaration: `const ${site.hoistedSymbolName} = ${wCall};`,
-            captureNames: site.hoistedCaptureNames,
-          });
-        }
+        const wCall = formatWCall(site.qrlVarName, site.hoistedCaptureNames, '        ', '    ');
+        // Sites run last to first; unshift keeps the bindings in source order.
+        loopWDecls.unshift({
+          decl: `const ${site.hoistedSymbolName} = ${wCall};`,
+          symbolName: site.hoistedSymbolName,
+          captureNames: site.hoistedCaptureNames,
+        });
       }
     } else {
       let relStart = site.callStart - bodyOffset;
@@ -387,162 +172,7 @@ export function rewriteNestedCallSitesInline(
     }
   }
 
-  bodyText = injectHoistDeclarations(bodyText, hoistDeclarations);
-  bodyText = injectComponentScopeWDecls(bodyText, componentScopeWDecls);
-  return bodyText;
-}
-
-function injectHoistDeclarations(
-  bodyText: string,
-  hoistDeclarations: Array<{ position: number; declaration: string; scope: number }>
-): string {
-  if (hoistDeclarations.length === 0) {
-    return bodyText;
-  }
-
-  // Group .w() declarations that share a lexical scope (the enclosing callback/loop body) at the
-  // latest position in that scope. Grouping by text distance alone could move a binding into a
-  // sibling loop's callback, leaving it undeclared (ReferenceError) where it is used.
-  const byScope = new Map<number, Array<{ position: number }>>();
-  for (const h of hoistDeclarations) {
-    const group = byScope.get(h.scope);
-    if (group) {
-      group.push(h);
-    } else {
-      byScope.set(h.scope, [h]);
-    }
-  }
-  for (const group of byScope.values()) {
-    if (group.length < 2) {
-      continue;
-    }
-    const maxPos = Math.max(...group.map((h) => h.position));
-    const minPos = Math.min(...group.map((h) => h.position));
-    if (maxPos - minPos < 500) {
-      for (const h of group) {
-        h.position = maxPos;
-      }
-    }
-  }
-
-  hoistDeclarations.sort((a, b) => b.position - a.position);
-  for (const hoist of hoistDeclarations) {
-    const pos = hoist.position;
-    const charBefore = bodyText[pos - 1];
-    if (charBefore === '(') {
-      const closeIdx = scanMatchingParenForward(bodyText, pos) - 1;
-      const exprContent = bodyText.slice(pos, closeIdx).replace(/^\s+/, '');
-      const blockBody = `{\n        ${hoist.declaration}\n        return ${exprContent};\n    }`;
-      bodyText = bodyText.slice(0, pos - 1) + blockBody + bodyText.slice(closeIdx + 1);
-    } else if (charBefore === '{') {
-      bodyText = bodyText.slice(0, pos) + '\n        ' + hoist.declaration + bodyText.slice(pos);
-    } else {
-      let indent = '\t';
-      const nextNewline = bodyText.indexOf('\n', pos);
-      if (nextNewline >= 0) {
-        const nextLine = bodyText.slice(nextNewline + 1);
-        const indentMatch = nextLine.match(/^(\s+)/);
-        if (indentMatch) {
-          indent = indentMatch[1];
-        }
-      }
-      bodyText = bodyText.slice(0, pos) + indent + hoist.declaration + '\n' + bodyText.slice(pos);
-    }
-  }
-  return bodyText;
-}
-
-/**
- * A component body may contain nested function declarations (each with their own `return`), and
- * `componentScopeWDecls` must be injected before the COMPONENT's return, not the first nested
- * function's — so this returns the LAST depth-1 `return`, or -1 when none is found.
- */
-function findComponentReturnPosition(bodyText: string): number {
-  // Blanked text: braces or `return` inside strings and comments can't affect the scan.
-  const code = blankNonCode(bodyText);
-  let i = 0;
-  // Skip ahead to the first `{` — the body open.
-  while (i < code.length && code[i] !== '{') {
-    i++;
-  }
-  if (i >= code.length) {
-    return -1;
-  }
-  let depth = 1;
-  i++;
-  let lastDepth1Return = -1;
-  while (i < code.length) {
-    const ch = code[i];
-    if (ch === '{') {
-      depth++;
-    } else if (ch === '}') {
-      depth--;
-    } else if (depth === 1 && code.startsWith('return ', i)) {
-      // Confirm `return ` is a keyword, not an identifier tail like `noreturn `.
-      const prev = i > 0 ? code[i - 1] : '\n';
-      if (!/[A-Za-z0-9_$]/.test(prev)) {
-        lastDepth1Return = i;
-      }
-      i += 7;
-      continue;
-    }
-    i++;
-  }
-  return lastDepth1Return;
-}
-
-function findComponentDeclarationPrologueEnd(bodyText: string): number {
-  const session = createFunctionTransformSession(bodyText, { tolerateErrors: true });
-  const block = session?.fn.body;
-  if (!session || !block || block.type !== 'BlockStatement') {
-    return -1;
-  }
-
-  let end = -1;
-  for (const statement of block.body ?? []) {
-    if (statement.type !== 'VariableDeclaration') {
-      break;
-    }
-    end = statement.end - session.offset;
-  }
-  if (bodyText[end] === '\n') {
-    end++;
-  }
-  return end;
-}
-
-function injectComponentScopeWDecls(
-  bodyText: string,
-  decls: Array<{ declaration: string; captureNames: readonly string[] }> | undefined
-): string {
-  if (!decls || decls.length === 0) {
-    return bodyText;
-  }
-
-  let insertionEnd = findComponentDeclarationPrologueEnd(bodyText);
-  for (const decl of decls) {
-    for (const captureName of decl.captureNames) {
-      insertionEnd = Math.max(insertionEnd, findVarDeclarationEnd(bodyText, 0, captureName));
-    }
-  }
-  if (insertionEnd >= 0) {
-    const indent = bodyText.slice(insertionEnd).match(/^[\t ]*/)?.[0] ?? '';
-    const declBlock = indent + decls.map((decl) => decl.declaration).join('\n' + indent) + '\n';
-    return bodyText.slice(0, insertionEnd) + declBlock + bodyText.slice(insertionEnd);
-  }
-
-  const returnIdx = findComponentReturnPosition(bodyText);
-  if (returnIdx < 0) {
-    return bodyText;
-  }
-
-  let lineStart = returnIdx - 1;
-  while (lineStart >= 0 && bodyText[lineStart] !== '\n') {
-    lineStart--;
-  }
-  const indent = bodyText.slice(lineStart + 1, returnIdx);
-  const declBlock = decls.map((decl) => decl.declaration).join('\n' + indent) + '\n' + indent;
-  return bodyText.slice(0, returnIdx) + declBlock + bodyText.slice(returnIdx);
+  return loopWDecls.length > 0 ? insertLoopWDecls(bodyText, loopWDecls) : bodyText;
 }
 
 export function inlineEnumReferences(

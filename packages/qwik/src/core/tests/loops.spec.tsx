@@ -148,4 +148,130 @@ describe.each([
 
     (globalThis as any).log = undefined;
   });
+  it('should capture the outer item in nested loop handlers of a component returning JSX directly', async () => {
+    (globalThis as any).log = [];
+    interface Facet {
+      slug: string;
+      items: { slug: string }[];
+    }
+    const Facets = component$((props: { facets: Facet[]; prefix: string }) => (
+      <div>
+        {props.facets.map((facet: Facet) => (
+          <div key={facet.slug}>
+            {facet.items.map((item) => (
+              <button
+                key={item.slug}
+                id={`${facet.slug}-${item.slug}`}
+                onClick$={() =>
+                  (globalThis as any).log.push(`${props.prefix}:${facet.slug}:${item.slug}`)
+                }
+              ></button>
+            ))}
+          </div>
+        ))}
+      </div>
+    ));
+
+    const facetList: Facet[] = [
+      { slug: 'color', items: [{ slug: 'red' }, { slug: 'blue' }] },
+      { slug: 'size', items: [{ slug: 'xl' }] },
+    ];
+    const { document } = await render(<Facets facets={facetList} prefix="f" />, { debug });
+
+    await trigger(document.body, document.getElementById('color-blue'), 'click');
+    await trigger(document.body, document.getElementById('size-xl'), 'click');
+    expect((globalThis as any).log).toEqual(['f:color:blue', 'f:size:xl']);
+
+    (globalThis as any).log = undefined;
+  });
+  it('should capture the reassigned value of a local in loop handlers', async () => {
+    (globalThis as any).log = [];
+    const Cmp = component$((props: { items: string[]; prefix: string }) => {
+      let prefix = props.prefix;
+      prefix = `${prefix}!`;
+      return (
+        <div>
+          {props.items.map((item) => (
+            <button
+              key={item}
+              id={item}
+              onClick$={() => (globalThis as any).log.push(`${prefix}:${item}`)}
+            ></button>
+          ))}
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp items={['a', 'b']} prefix="f" />, { debug });
+
+    await trigger(document.body, document.getElementById('b'), 'click');
+    expect((globalThis as any).log).toEqual(['f!:b']);
+
+    (globalThis as any).log = undefined;
+  });
+  it('should render loop handlers from a const declared before the return', async () => {
+    (globalThis as any).log = [];
+    const Cmp = component$((props: { items: string[]; prefix: string }) => {
+      const rows = props.items.map((item) => (
+        <button
+          key={item}
+          id={item}
+          onClick$={() => (globalThis as any).log.push(`${props.prefix}:${item}`)}
+        ></button>
+      ));
+      const title = props.prefix.toUpperCase();
+      return (
+        <div>
+          <h1>{title}</h1>
+          {rows}
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp items={['a', 'b']} prefix="f" />, { debug });
+
+    await trigger(document.body, document.getElementById('b'), 'click');
+    expect((globalThis as any).log).toEqual(['f:b']);
+
+    (globalThis as any).log = undefined;
+  });
+  it('should render loop handlers from functions declared after the return', async () => {
+    (globalThis as any).log = [];
+    const Cmp = component$((props: { items: string[]; prefix: string }) => {
+      return (
+        <div>
+          {renderRows()}
+          <Footer />
+        </div>
+      );
+
+      function renderRows() {
+        return props.items.map((item) => (
+          <button
+            key={item}
+            id={item}
+            onClick$={() => (globalThis as any).log.push(`${props.prefix}:${item}`)}
+          ></button>
+        ));
+      }
+
+      function Footer() {
+        return props.items.map((item) => (
+          <button
+            key={item}
+            id={`footer-${item}`}
+            onClick$={() => (globalThis as any).log.push(`footer:${props.prefix}:${item}`)}
+          ></button>
+        ));
+      }
+    });
+
+    const { document } = await render(<Cmp items={['a', 'b']} prefix="f" />, { debug });
+
+    await trigger(document.body, document.getElementById('b'), 'click');
+    await trigger(document.body, document.getElementById('footer-a'), 'click');
+    expect((globalThis as any).log).toEqual(['f:b', 'footer:f:a']);
+
+    (globalThis as any).log = undefined;
+  });
 });

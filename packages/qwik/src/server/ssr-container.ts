@@ -908,11 +908,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   }
 
   private drainScriptUnsafeEmits(): void {
-    let emit = this.scriptUnsafeEmits.shift();
-    while (emit) {
-      emit();
-      emit = this.scriptUnsafeEmits.shift();
+    for (let i = 0; i < this.scriptUnsafeEmits.length; i++) {
+      this.scriptUnsafeEmits[i]();
     }
+    this.scriptUnsafeEmits.length = 0;
   }
 
   /** Writes opening data to vNodeData for fragment boundaries */

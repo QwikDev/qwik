@@ -341,6 +341,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   private rootContainerReadyPromise: Promise<void> | null = null;
   private resolveRootContainerReady: (() => void) | null = null;
   private renderQueue: Promise<unknown> = Promise.resolve();
+  private scriptUnsafeEmits: (() => void)[] = [];
   private emittedQwikEventNames = new Set<string>();
   public emittedSyncFnCount = 0;
   private emittedVNodeDataOwners: Set<VNodeDataOwner> | null = null;
@@ -472,27 +473,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     return this.$containerState$ === SSRContainerState.OOOSReady;
   }
 
-  /**
-   * Queue OOOS serialization/write work that must not overlap with root state serialization.
-   *
-   * With `needsHtmlContext`, work that arrives while the shell is inside an element where the
-   * parser would not read it as HTML (such as an svg) waits for the shell to end.
-   */
-  $runQueuedRender$<T>(
-    render: () => ValueOrPromise<T>,
-    needsHtmlContext = false
-  ): ValueOrPromise<T> {
+  /** Queue OOOS serialization/write work that must not overlap with root state serialization. */
+  $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {
     if (!__EXPERIMENTAL__.pendingBoundary || !this.outOfOrderStreaming) {
       return render();
     }
-    const waitsForShell = needsHtmlContext && this.$noScriptHere$ > 0;
-    if (this.$containerState$ === SSRContainerState.NotReady && !waitsForShell) {
+    if (this.$containerState$ === SSRContainerState.NotReady) {
       return render();
     }
     const result =
-      this.$containerState$ === SSRContainerState.OOOSReady
-        ? this.renderQueue.then(render)
-        : this.renderQueue.then(() => this.$waitForRootContainerReady$()).then(render);
+      this.$containerState$ === SSRContainerState.DataStreamStarted
+        ? this.renderQueue.then(() => this.$waitForRootContainerReady$()).then(render)
+        : this.renderQueue.then(render);
     this.renderQueue = result.catch(() => {});
     return result;
   }
@@ -532,6 +524,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       return;
     }
     this.write(scripts);
+  }
+
+  $emitWhenScriptSafe$(emit: () => void): void {
+    if (this.$noScriptHere$ > 0) {
+      this.scriptUnsafeEmits.push(emit);
+      return;
+    }
+    emit();
   }
 
   async segment(
@@ -901,6 +901,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     // keep track of where to emit scripts
     if (NO_SCRIPT_HERE_ELEMENTS.has(elementName)) {
       this.$noScriptHere$--;
+      if (this.$noScriptHere$ === 0) {
+        this.drainScriptUnsafeEmits();
+      }
+    }
+  }
+
+  private drainScriptUnsafeEmits(): void {
+    let emit = this.scriptUnsafeEmits.shift();
+    while (emit) {
+      emit();
+      emit = this.scriptUnsafeEmits.shift();
     }
   }
 

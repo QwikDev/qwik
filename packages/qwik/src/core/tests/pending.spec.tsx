@@ -47,6 +47,7 @@ import { processOutOfOrderSegmentVNodeData } from '../client/process-vnode-data'
 import { whenContainerDataReady } from '../client/dom-container';
 import * as logUtils from '../shared/utils/log';
 import type { StreamWriter, StreamingOptions } from '../../server/types';
+import { SSRSegmentContainer } from '../../server/ssr-container';
 import { cleanupAttrs } from '../../testing/element-fixture';
 
 const debug = false; //true;
@@ -956,6 +957,66 @@ describe('ssrRenderToDom: out-of-order Pending', () => {
     expect(html.lastIndexOf('<template q:r="1">')).toBeGreaterThan(html.indexOf('</svg>'));
     const contentHost = document.querySelector('#ooos-svg-content')!.parentElement as HTMLElement;
     expect(contentHost.style.display).toBe('contents');
+  });
+
+  it('should not write resolved content inside an svg the shell enters while it finalizes', async () => {
+    let resolveSlow!: (value: JSXOutput) => void;
+    const slow = new Promise<JSXOutput>((resolve) => {
+      resolveSlow = resolve;
+    });
+    let resolveGate!: (value: JSXOutput) => void;
+    const gate = new Promise<JSXOutput>((resolve) => {
+      resolveGate = resolve;
+    });
+    let resolveIcon!: (value: JSXOutput) => void;
+    const icon = new Promise<JSXOutput>((resolve) => {
+      resolveIcon = resolve;
+    });
+    const Slow = component$(() => <>{slow}</>);
+    const Gate = component$(() => <>{gate}</>);
+    const Icon = component$(() => <>{icon}</>);
+    const chunks: string[] = [];
+    const finalize = SSRSegmentContainer.prototype.$finalizeOutOfOrderSegment$;
+    // Let the shell enter the svg while the segment is still finalizing.
+    const finalizeSpy = vi
+      .spyOn(SSRSegmentContainer.prototype, '$finalizeOutOfOrderSegment$')
+      .mockImplementation(async function (this: SSRSegmentContainer, ...args) {
+        const result = await finalize.apply(this, args);
+        resolveGate(
+          <svg>
+            <Icon />
+          </svg>
+        );
+        await delay(10);
+        return result;
+      });
+
+    try {
+      const renderPromise = ssrRenderPendingStream(
+        <main>
+          <Pending fallback$={() => <button>Waiting</button>}>
+            <Slow />
+          </Pending>
+          <Gate />
+        </main>,
+        chunks
+      );
+
+      await delay(10);
+      resolveSlow(<p id="ooos-svg-race-content">Done</p>);
+      await delay(30);
+      resolveIcon(<circle r="10" />);
+      const { document } = await renderPromise;
+
+      expect(finalizeSpy).toHaveBeenCalled();
+      const html = chunks.join('');
+      expect(html.lastIndexOf('<template q:r="1">')).toBeGreaterThan(html.indexOf('</svg>'));
+      const contentHost = document.querySelector('#ooos-svg-race-content')!
+        .parentElement as HTMLElement;
+      expect(contentHost.style.display).toBe('contents');
+    } finally {
+      finalizeSpy.mockRestore();
+    }
   });
 
   it('should reveal delayed fallback with a backpatch when content is still pending', async () => {

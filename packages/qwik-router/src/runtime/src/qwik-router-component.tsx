@@ -771,7 +771,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         | PageModule
         | undefined;
       if (
-        globalThis.__SERVER_REWRITES__ &&
         !action &&
         (loadedRoute.$notFound$ ||
           typeof lastModule?.default !== 'function' ||

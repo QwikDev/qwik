@@ -1,10 +1,15 @@
 import path, { resolve } from 'node:path';
-import type { Rolldown } from 'vite';
+import { parseAst, type Rolldown } from 'vite';
 import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
 import { flattenToChunkName } from './vite-utils';
-import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
+import {
+  qwikVite,
+  stubRemovedChunkImports,
+  type QwikVitePlugin,
+  type QwikVitePluginOptions,
+} from './vite';
 import {
   createBuildWorkerCoreChunkResolver,
   createBuildWorkerQrlChunkResolver,
@@ -831,6 +836,94 @@ describe('hotUpdate', () => {
     '/src/theme.module.dark.css',
   ])('sends nothing for the plain stylesheet %s', (url) => {
     assert.deepEqual(sentHmrFiles([{ url, importers: ['/src/a.tsx'] }]), []);
+  });
+});
+
+describe('stubRemovedChunkImports', () => {
+  const createChunk = (fileName: string, code: string, dynamicImports: string[]) => ({
+    type: 'chunk',
+    fileName,
+    code,
+    dynamicImports,
+  });
+  const stubImports = (chunk: ReturnType<typeof createChunk>, keptFiles: string[] = []) => {
+    const bundle: Record<string, unknown> = { [chunk.fileName]: chunk };
+    for (const file of keptFiles) {
+      bundle[file] = { type: 'asset' };
+    }
+    const fileNamesBeforeCssCleanup = new Set([chunk.fileName, ...chunk.dynamicImports]);
+    stubRemovedChunkImports(
+      bundle as unknown as Rolldown.OutputBundle,
+      fileNamesBeforeCssCleanup,
+      parseAst
+    );
+  };
+
+  test('stubs dynamic imports of chunks removed from the bundle', () => {
+    const chunk = createChunk(
+      'build/q-segment.js',
+      'await import(`./q-css.js`);await import("./q-kept.js");',
+      ['build/q-css.js', 'build/q-kept.js']
+    );
+
+    stubImports(chunk, ['build/q-kept.js']);
+
+    assert.equal(chunk.code, 'await Promise.resolve({ });await import("./q-kept.js");');
+  });
+
+  test('keeps the code length so source maps stay valid', () => {
+    const code = 'await import("./q-BvRk9kiK.js");throw Error();';
+    const chunk = createChunk('build/q-segment.js', code, ['build/q-BvRk9kiK.js']);
+
+    stubImports(chunk);
+
+    assert.equal(chunk.code.length, code.length);
+    assert.equal(chunk.code.indexOf('throw'), code.indexOf('throw'));
+  });
+
+  test('keeps strings that look like a removed import', () => {
+    const chunk = createChunk(
+      'build/q-segment.js',
+      'await import("./probe.js");export const s = "import(\'./probe.js\')";',
+      ['build/probe.js']
+    );
+
+    stubImports(chunk);
+
+    assert.equal(
+      chunk.code,
+      'await Promise.resolve({ });export const s = "import(\'./probe.js\')";'
+    );
+  });
+
+  test('keeps relative external dynamic imports', () => {
+    const externalImports = 'await import("../widget.js");await import("./worker%.js");';
+    const chunk = createChunk(
+      'build/q-segment.js',
+      `await import("./q-css.js");${externalImports}`,
+      ['build/q-css.js', 'widget.js', 'worker%.js']
+    );
+    const bundle = { [chunk.fileName]: chunk };
+
+    stubRemovedChunkImports(
+      bundle as unknown as Rolldown.OutputBundle,
+      new Set([chunk.fileName, 'build/q-css.js']),
+      parseAst
+    );
+
+    assert.equal(chunk.code, `await Promise.resolve({ });${externalImports}`);
+  });
+
+  test('matches the full path of a removed chunk, not its basename', () => {
+    const chunk = createChunk(
+      'build/js/q-segment.js',
+      'await import("../css/shared.js");await import("./shared.js");',
+      ['build/css/shared.js', 'build/js/shared.js']
+    );
+
+    stubImports(chunk, ['build/js/shared.js']);
+
+    assert.equal(chunk.code, 'await Promise.resolve({       });await import("./shared.js");');
   });
 });
 

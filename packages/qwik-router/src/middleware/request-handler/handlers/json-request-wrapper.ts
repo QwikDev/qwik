@@ -1,9 +1,8 @@
-import { isDev } from '@qwik.dev/core';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { RedirectMessage } from '../redirect-handler';
 import type { RequestEventInternal } from '../request-event-core';
 import { resolveValidInternalFullPathname } from '../request-path';
-import { HttpError } from '../http-error';
+import { getPublicCrashMessage, HttpError } from '../http-error';
 import type { RequestHandler, RequestEvent } from '../types';
 import { addVaryHeader, sendJsonResponse, sendActionResponse } from './loader-handler';
 
@@ -67,10 +66,7 @@ export function jsonRequestWrapper(): RequestHandler {
       } else if (err instanceof Error) {
         console.error('JSON request error:', err);
         requestEv.headers.set('Cache-Control', 'no-store');
-        const message = isDev
-          ? `${err.message}\n(this is only visible in dev mode)`
-          : 'Internal Server Error';
-        const se = new HttpError(500, message);
+        const se = new HttpError(500, getPublicCrashMessage(err));
         if (isLoader) {
           await sendJsonResponse(requestEv, { e: se });
         } else {

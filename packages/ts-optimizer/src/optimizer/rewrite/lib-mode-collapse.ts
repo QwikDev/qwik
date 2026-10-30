@@ -160,7 +160,7 @@ export function collapseToLibInlinedQrl(source: string): string {
     edits.remove(r.start, r.end);
   }
 
-  rewriteImports(edits, source, usedHelpers);
+  rewriteImports(edits, source, program, usedHelpers);
 
   return edits.toString();
 }
@@ -481,18 +481,37 @@ function collectQVarReferenceRanges(
   return out;
 }
 
-function rewriteImports(edits: MagicString, source: string, usedHelpers: Set<string>): void {
+function rewriteImports(
+  edits: MagicString,
+  source: string,
+  program: AstProgram,
+  usedHelpers: Set<string>
+): void {
   const noopImportRe =
     /import\s*\{\s*_noopQrl(?:DEV)?\s*\}\s*from\s*(["'])@qwik\.dev\/core\1\s*;\s*\n?/g;
   const match = noopImportRe.exec(source);
   if (match) {
-    const helpers = [...usedHelpers].sort().join(', ');
+    // Other passes (e.g. `bind:value`) may already import a helper.
+    const importedNames = collectImportedNames(program);
+    const helpers = [...usedHelpers].filter((helper) => !importedNames.has(helper)).sort();
     edits.overwrite(
       match.index,
       match.index + match[0].length,
-      `import { ${helpers} } from "@qwik.dev/core";\n`
+      helpers.length > 0 ? `import { ${helpers.join(', ')} } from "@qwik.dev/core";\n` : ''
     );
   }
+}
+
+function collectImportedNames(program: AstProgram): Set<string> {
+  const names = new Set<string>();
+  for (const stmt of program.body) {
+    if (stmt.type === 'ImportDeclaration') {
+      for (const spec of stmt.specifiers) {
+        names.add(spec.local.name);
+      }
+    }
+  }
+  return names;
 }
 
 function includeTrailingNewline(source: string, end: number): number {

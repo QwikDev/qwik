@@ -262,6 +262,28 @@ describe.each([
     );
   });
 
+  it('should keep the element var handler for the same event', async () => {
+    const Counter = component$((props: { step: number }) => {
+      const count = useSignal(0);
+      const step = props.step * 10;
+      useOn(
+        'click',
+        $(() => count.value++)
+      );
+      return <button onClick$={() => (count.value += step)}>Count: {count.value}!</button>;
+    });
+
+    const { vNode, container } = await render(<Counter step={1} />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal ssr-required>{'11'}</Signal>!
+        </button>
+      </Component>
+    );
+  });
+
   describe('useOnDocument', () => {
     it('should update value', async () => {
       const Counter = component$((props: { initial: number }) => {

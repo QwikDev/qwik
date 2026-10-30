@@ -4,7 +4,10 @@ import {
   renderQwikMiddleware,
   resolveRequestHandlers,
 } from '../middleware/request-handler/resolve-request-handlers-core';
-import { RequestEvCaughtError } from '../middleware/request-handler/request-event-core';
+import {
+  RequestEvCaughtError,
+  RequestEvHttpStatusMessage,
+} from '../middleware/request-handler/request-event-core';
 import { trimInternalPathname } from '../middleware/request-handler/request-path';
 import type { ServerRequestEvent } from '../middleware/request-handler/types';
 import { runQwikRouter } from '../middleware/request-handler/user-response';
@@ -30,6 +33,7 @@ interface StaticWorkerThreadDeps {
 
 interface WorkerThreadDeps extends StaticWorkerThreadDeps {
   serialize: typeof serialize;
+  announceFile: (pathname: string, filePath: string) => void;
 }
 
 const staticWorkerThreadDeps: StaticWorkerThreadDeps = {
@@ -46,6 +50,8 @@ export async function workerThread(sys: System) {
   const deps: WorkerThreadDeps = {
     ...staticWorkerThreadDeps,
     serialize,
+    announceFile: (pathname, filePath) =>
+      parentPort?.postMessage({ type: 'file', pathname, filePath } satisfies WorkerOutputMessage),
   };
 
   // Prevent unhandled errors/rejections from crashing the worker thread.
@@ -169,6 +175,16 @@ export async function workerRender(
         const isNotFoundPage = url.pathname.endsWith('/404.html');
         result.ok = (status >= 200 && status < 300) || (isNotFoundPage && status === 404);
 
+        if (status >= 500) {
+          const statusMessage = requestEv.sharedMap.get(RequestEvHttpStatusMessage);
+          result.error = {
+            message: statusMessage
+              ? `Responded with ${status}: ${statusMessage}`
+              : `Responded with ${status}`,
+            stack: undefined,
+          };
+        }
+
         if (!result.ok) {
           // not ok, don't write anything
           return createNoopWritableStream() as any;
@@ -195,6 +211,7 @@ export async function workerRender(
 
               if (hasRouteWriter) {
                 // create a write stream for the static file if enabled
+                deps.announceFile(staticRoute.pathname, routeFilePath);
                 routeWriter = sys.createWriteStream(routeFilePath);
                 routeWriter.on('error', (e) => {
                   console.error(e);
@@ -252,6 +269,7 @@ export async function workerRender(
                     loader.__id,
                     manifestHash
                   );
+                  deps.announceFile(staticRoute.pathname, loaderFilePath);
                   const loaderWriter = sys.createWriteStream(loaderFilePath);
                   loaderWriter.on('error', (e) => {
                     console.error(e);

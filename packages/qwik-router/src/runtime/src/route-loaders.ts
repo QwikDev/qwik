@@ -125,8 +125,8 @@ const wrapWithAbort = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> 
 /** Shared SSR paths and client-only loader navigation state. */
 export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
-  /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
-  goto?: NoSerialize<(path: string, options: { replaceState: boolean }) => unknown>;
+  /** Resolves after navigation prepares loader requests, before their results. */
+  goto?: NoSerialize<(path: string, options: { replaceState: boolean }) => Promise<void>>;
   /** Router callback that re-resolves the document head after a loader gets a new value. */
   onValue?: RouteNavigate;
   /** Client manifest hash for q-loader fetch URLs. */
@@ -140,6 +140,8 @@ type LoaderRequest = {
   hash?: string;
   /** An interrupting navigation aborted this request's fetch before it settled. */
   isAborted?: boolean;
+  /** Keep redirect reads pending until navigation installs the next request. */
+  redirect?: Promise<void>;
 };
 
 type LoaderNavigation = {
@@ -446,21 +448,33 @@ const createRouteLoaderSignal = (
       }
       assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
       if (response.r) {
-        // Redirect — fire SPA goto if available, else full page nav. We don't
-        // await or coordinate with the current nav: the new nav starts while
-        // this one finishes committing, producing a brief flash of stale data
-        // before the new route's loaders resolve. That trade-off is intentional
-        // — awaiting all loader promises just to catch redirects is too costly
-        // for the common case.
-        //
+        const redirectUrl = response.r;
         const goto = routeLoaderCtx.goto;
-        if (goto) {
-          goto(response.r, { replaceState: true });
-        } else {
-          location.href = response.r;
-        }
-        // Keep unresolved loaders pending until the redirect replaces their request.
-        return retainLoaderValue(previous, abortSignal);
+        // Mark the redirect pending before navigation can abort requests.
+        const prepared = Promise.resolve().then(() => {
+          assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
+          if (goto) {
+            return goto(redirectUrl, { replaceState: true });
+          }
+          location.href = redirectUrl;
+          return new Promise<void>(() => {});
+        });
+        request.redirect = prepared;
+        return wrapWithAbort(prepared, abortSignal)
+          .then(() => {
+            assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
+            // Reading the stored value distinguishes undefined from missing data.
+            try {
+              return state[id].untrackedValue;
+            } catch {
+              throw new Error('Route loader redirect completed without data.');
+            }
+          })
+          .finally(() => {
+            if (request.redirect === prepared) {
+              request.redirect = undefined;
+            }
+          });
       }
       if (response.e) {
         // Error — throw so signal enters error state
@@ -699,7 +713,9 @@ export function abortRouteLoaderNavigation(ctx: RouteLoaderCtx) {
     if ((signal as _ComputedSignalInternal<unknown>).untrackedPending) {
       request.isAborted = true;
     }
-    signal.abort();
+    if (!request.redirect) {
+      signal.abort();
+    }
   }
 }
 

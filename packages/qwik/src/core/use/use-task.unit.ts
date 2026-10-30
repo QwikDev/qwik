@@ -1,4 +1,5 @@
 import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
+import type { ReadonlySignal } from '../reactive-primitives/signal.public';
 import { component$ } from '../shared/component.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { Container, HostElement } from '../shared/types';
@@ -13,7 +14,9 @@ describe('types', () => {
   test('track', () => () => {
     component$(() => {
       const sig = useSignal(1);
+      const readonlySig: ReadonlySignal<number> = sig;
       const store = useStore({ count: 1 });
+      const valueStore = useStore({ value: 1 });
       useResource$(({ track }) => {
         expectTypeOf(track(store)).toEqualTypeOf(store);
         expectTypeOf(track(sig)).toEqualTypeOf<number>();
@@ -22,7 +25,9 @@ describe('types', () => {
       });
       useTask$(({ track }) => {
         expectTypeOf(track(store)).toEqualTypeOf(store);
+        expectTypeOf(track(valueStore)).toEqualTypeOf(valueStore);
         expectTypeOf(track(sig)).toEqualTypeOf<number>();
+        expectTypeOf(track(readonlySig)).toEqualTypeOf<number>();
         expectTypeOf(track(() => sig.value)).toEqualTypeOf<number>();
         expectTypeOf(track(() => store.count)).toEqualTypeOf<number>();
       });

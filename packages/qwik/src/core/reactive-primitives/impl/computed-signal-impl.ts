@@ -1,7 +1,8 @@
 import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
-import { assertFalse, assertTrue } from '../../shared/error/assert';
+import { assertTrue } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
+import { toBoundaryError } from '../../shared/error/error-handling';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import { SubscriptionPatchChannel } from '../../shared/serdes/subscription-patch';
@@ -24,6 +25,7 @@ import {
   EffectProperty,
   EffectSubscription,
   NEEDS_COMPUTATION,
+  NOT_READY,
   SerializationSignalFlags,
   type ComputeCtx,
   type ComputedOptions,
@@ -48,6 +50,7 @@ const log = (...args: any[]) => console.log('COMPUTED SIGNAL', ...args.map(qwikD
 export class Job<T> implements ComputeCtx<T> {
   /** First holds the compute promise and then the cleanup promise */
   $promise$: Promise<void> | null | void = null;
+  $computationSettled$: boolean = false;
   $cleanupRequested$: boolean = false;
   $canWrite$: boolean = true;
   declare $track$: Tracker | undefined;
@@ -243,7 +246,15 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * If you want to abort pending computations when setting, you have to call `abort()` manually.
    */
   override get value(): T {
-    return super.value;
+    try {
+      return super.value;
+    } catch (err) {
+      if (err === NOT_READY) {
+        // The reader reruns once a value arrives.
+        this.$subscribe$();
+      }
+      throw err;
+    }
   }
 
   override set value(value: T) {
@@ -290,9 +301,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     ) {
       throw qError(QError.asyncClientOnlyValueDuringSSR);
     }
-    isDev &&
-      !(this.$flags$ & AsyncSignalFlags.ASYNC_MODE) &&
-      assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
+    if (this.$untrackedValue$ === NEEDS_COMPUTATION) {
+      // Nothing can compute a value now, e.g. a cancelled loader or an input waiting for one.
+      throw NOT_READY;
+    }
     return this.$untrackedValue$;
   }
   set untrackedValue(value: T) {
@@ -495,15 +507,20 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     try {
       result = this.$invokeComputeFn$(computeQrl.resolved as Function, running);
     } catch (err) {
-      // A thrown promise is a retry request, not a failure
+      // A thrown promise is a retry request
       if (isPromise(err)) {
         throw err;
+      }
+      // A missing input leaves this computed invalid; its value read throws NOT_READY
+      if (err === NOT_READY) {
+        return;
       }
       if (running.$infoVersion$ === this.$infoVersion$) {
         this.$info$ = undefined;
       }
       this.$flags$ &= ~ComputedSignalFlags.INVALID;
-      this.$setError$(running, err as Error);
+      running.$computationSettled$ = true;
+      this.$setError$(running, err);
       return;
     }
     if (isPromise(result)) {
@@ -527,6 +544,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$info$ = undefined;
     }
     this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    running.$computationSettled$ = true;
     this.untrackedError = undefined;
     super.value = result;
   }
@@ -601,7 +619,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (this.$jobs$) {
       this.$jobs$.push(running);
     }
-    running.$promise$ = this.$runComputation$(running);
+    const promise = this.$runComputation$(running);
+    if (!running.$computationSettled$) {
+      running.$promise$ = promise;
+    }
   }
 
   async $runComputation$(running: Job<T>): Promise<void> {
@@ -613,6 +634,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       fn = await this.$computeQrl$.resolve();
       if (this.$disposed$ || running.$abortController$?.signal.aborted) {
         DEBUG && log('Computation aborted before it started');
+        running.$computationSettled$ = true;
         running.$promise$ = null;
         return;
       }
@@ -650,6 +672,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         value = valuePromise;
       }
 
+      running.$computationSettled$ = true;
       running.$promise$ = null;
 
       if (running.$canWrite$) {
@@ -677,9 +700,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         super.value = value;
       }
     } catch (err) {
+      running.$computationSettled$ = true;
       running.$promise$ = null;
       DEBUG && log('Error caught in promise.catch', err);
-      this.$setError$(running, err as Error);
+      this.$setError$(running, err);
     }
 
     if (isCurrent() && !this.$disposed$) {
@@ -702,16 +726,16 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * Sets the error from the given job. We only accept errors from the current job and we ignore
    * AbortErrors.
    */
-  $setError$(job: Job<T>, error: Error): void {
+  $setError$(job: Job<T>, error: unknown): void {
     if (job !== this.$current$ || !job.$canWrite$) {
       return;
     }
     job.$canWrite$ = false;
-    if (error instanceof Error && error.name === 'AbortError') {
-      // AbortError from AbortSignal is a cancellation, not an actual error
+    if ((error instanceof Error && error.name === 'AbortError') || error === NOT_READY) {
+      // A cancellation or a missing input is not an actual error
       return;
     }
-    this.untrackedError = error;
+    this.untrackedError = toBoundaryError(error);
     // Job failures should be rare and require retrying
     this.untrackedValue = NEEDS_COMPUTATION;
   }

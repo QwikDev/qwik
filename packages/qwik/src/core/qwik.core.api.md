@@ -212,7 +212,7 @@ export class _ComputedSignalImpl<T, S extends _QRLInternal = ComputeQRL<T>> exte
     // (undocumented)
     $runComputation$(running: Job<T>): Promise<void>;
     $scheduleEagerCleanup$(): void;
-    $setError$(job: Job<T>, error: Error): void;
+    $setError$(job: Job<T>, error: unknown): void;
     // (undocumented)
     $setInvalid$(allowRecalc: boolean): void;
     $settleComputation$(running: Job<T>, compute: () => ValueOrPromise<T>): Promise<void>;
@@ -1453,6 +1453,7 @@ export class _SignalImpl<T = any> implements Signal<T> {
     // (undocumented)
     $container$: _Container | null;
     $effects$: undefined | Set<_EffectSubscription>;
+    $subscribe$(): void;
     // (undocumented)
     $untrackedValue$: T;
     // (undocumented)

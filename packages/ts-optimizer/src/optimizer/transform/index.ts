@@ -694,6 +694,7 @@ function analyzeModuleCaptures(
   // lexical scopes) survive the prod `s_<hash>` rename.
   const {
     closureFreeIdentifiers,
+    closureFreeBindingStarts,
     closureLexicalScopes,
     nonFunctionCaptures,
     extractionLoopMap,
@@ -719,6 +720,8 @@ function analyzeModuleCaptures(
     if (!closureNode) {
       continue;
     }
+    extraction.freeBindingStarts = closureFreeBindingStarts.get(closureNode);
+    extraction.propsBindingStarts = collectPropsBindingStarts(closureNode);
 
     const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
 
@@ -828,7 +831,7 @@ function analyzeModuleCaptures(
     closureFreeIdentifiers,
     bodyScopeIds,
     moduleScopeIds,
-    importedNames,
+    importBindingStarts: collectImportBindingStarts(program),
     enclosingExtMap,
     extractionLoopMap,
     allScopeEntries,
@@ -899,6 +902,35 @@ function analyzeModuleCaptures(
     passiveConflicts,
     scopeAwareBindings,
   };
+}
+
+function collectPropsBindingStarts(closureNode: AstFunction): Map<string, number> | undefined {
+  const propsPattern = closureNode.params[0];
+  if (propsPattern?.type !== 'ObjectPattern') {
+    return undefined;
+  }
+  const starts = new Map<string, number>();
+  for (const property of propsPattern.properties) {
+    const target = property.type === 'RestElement' ? property.argument : property.value;
+    const binding = target.type === 'AssignmentPattern' ? target.left : target;
+    if (binding.type === 'Identifier') {
+      starts.set(binding.name, binding.start);
+    }
+  }
+  return starts;
+}
+
+function collectImportBindingStarts(program: AstProgram): Map<string, number> {
+  const starts = new Map<string, number>();
+  for (const statement of program.body) {
+    if (statement.type !== 'ImportDeclaration') {
+      continue;
+    }
+    for (const specifier of statement.specifiers) {
+      starts.set(specifier.local.name, specifier.local.start);
+    }
+  }
+  return starts;
 }
 
 /** Top-level module references resolve through module wiring, never QRL captures. */

@@ -11,7 +11,7 @@ describe('raw-props', () => {
   it('rewrites destructured params without reparsing the edited body', () => {
     const body = '({ count, label = "x" }) => ({ count, label, total: count + 1 })';
 
-    const result = applyRawPropsTransform(body);
+    const result = applyRawPropsTransform(body).code;
 
     expect(result).toBe(
       '(_rawProps) => ({ count: _rawProps.count, label: _rawProps.label ?? "x", total: _rawProps.count + 1 })'
@@ -21,7 +21,7 @@ describe('raw-props', () => {
   it('evaluates call-expression defaults once without tracking props', () => {
     const body = '({ count, label = getLabel() }) => ({ count, label, total: count + 1 })';
 
-    const result = applyRawPropsTransform(body);
+    const result = applyRawPropsTransform(body).code;
 
     expect(result).toBe(
       '(_rawProps) => {\nconst _defaultValue = untrack(() => _rawProps.label) === void 0 ? getLabel() : void 0;\nreturn ({ count: _rawProps.count, label: _rawProps.label === void 0 ? _defaultValue : _rawProps.label, total: _rawProps.count + 1 });\n}'
@@ -31,7 +31,7 @@ describe('raw-props', () => {
   it('aborts consolidation for nested ObjectPattern field (parity gate)', () => {
     const body = '({ count, stuff: { hey } }) => ({ count, hey })';
 
-    const result = applyRawPropsTransform(body);
+    const result = applyRawPropsTransform(body).code;
 
     expect(result).toBe(body);
   });
@@ -39,7 +39,7 @@ describe('raw-props', () => {
   it('rewrites body-level destructuring and keeps the original param name', () => {
     const body = '(props) => {\n  const { count, ...rest } = props;\n  return { count, rest };\n}';
 
-    const result = applyRawPropsTransform(body);
+    const result = applyRawPropsTransform(body).code;
 
     expect(result).toBe(
       '(props) => {\n  const rest = _restProps(props, [\n    "count"\n]);\n  return { count: props.count, rest };\n}'
@@ -50,7 +50,7 @@ describe('raw-props', () => {
     const body =
       '(props) => {\n  const { withDefault = true, plain, ...rest } = props;\n  return { withDefault, plain, rest };\n}';
 
-    const result = applyRawPropsTransform(body);
+    const result = applyRawPropsTransform(body).code;
 
     expect(result).toContain('withDefault: props.withDefault ?? true');
     expect(result).toContain('plain: props.plain');
@@ -61,7 +61,7 @@ describe('raw-props', () => {
     const body =
       '(rawProps) => {\n  const props = usePlayground(rawProps, "x");\n  const { value: givenValue, ...rest } = props;\n  return givenValue ?? rest;\n}';
 
-    const result = applyRawPropsTransform(body);
+    const result = applyRawPropsTransform(body).code;
 
     expect(result).toContain('const props = usePlayground(rawProps, "x");');
     expect(result).toMatch(/const rest = _restProps\(props, \[\s*"value"\s*\]\);/);
@@ -73,7 +73,7 @@ describe('raw-props', () => {
   it('rewrites rest-only destructuring in expression bodies', () => {
     const body = '({ ...rest }) => rest';
 
-    const result = applyRawPropsTransform(body);
+    const result = applyRawPropsTransform(body).code;
 
     expect(result).toBe('(_rawProps) => {\nconst rest = _restProps(_rawProps);\nreturn rest;\n}');
   });

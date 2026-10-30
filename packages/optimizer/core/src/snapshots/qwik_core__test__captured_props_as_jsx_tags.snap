@@ -1,0 +1,200 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(<Model />)} />;
+});
+
+export const Cmp2 = component$(
+	({ Model, ui = fallback, icons, 'my-icon': Icon }: { Model: any; ui?: any; icons: any; 'my-icon': any }) => {
+		return (
+			<button
+				onClick$={() =>
+					render(
+						<Model>
+							<ui.Home />
+							<icons.Star />
+							<Icon />
+						</Model>
+					)
+				}
+			/>
+		);
+	}
+);
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp2_component_FnOz26iMYaM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp2_component_FnOz26iMYaM"), "Cmp2_component_FnOz26iMYaM");
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+export const Cmp2 = /*#__PURE__*/ componentQrl(q_Cmp2_component_FnOz26iMYaM);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAIA,OAAO,MAAM,oBAAM,0CAEhB;AAEH,OAAO,MAAM,qBAAO,2CAgBlB\"}")
+============================= test.tsx_Cmp_component_button_q_e_click_0O0tA6ahzDQ.js (ENTRY POINT)==
+
+import { Fallback } from "./x";
+import { _jsxSorted } from "@qwik.dev/core";
+import { render } from "./x";
+//
+export const Cmp_component_button_q_e_click_0O0tA6ahzDQ = (_, _1, _rawProps)=>render(/*#__PURE__*/ _jsxSorted(_rawProps.Model ?? Fallback, null, null, null, 3, "u6_0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0DAK0B,oBAAM,qBAAO,qBADN,SAAQ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_button_q_e_click_0O0tA6ahzDQ",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component_button_q_e_click",
+  "hash": "0O0tA6ahzDQ",
+  "canonicalFilename": "test.tsx_Cmp_component_button_q_e_click_0O0tA6ahzDQ",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp_component_4ryKJTOKjWE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    199,
+    222
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp2_component_button_q_e_click_lRw2YGQT0z8.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { fallback } from "./x";
+import { render } from "./x";
+//
+export const Cmp2_component_button_q_e_click_lRw2YGQT0z8 = (_, _1, _rawProps)=>render(/*#__PURE__*/ _jsxSorted(_rawProps.Model, null, null, [
+        /*#__PURE__*/ _jsxSorted((_rawProps.ui ?? fallback).Home, null, null, null, 3, "u6_2"),
+        /*#__PURE__*/ _jsxSorted(_rawProps.icons.Star, null, null, null, 3, "u6_3"),
+        /*#__PURE__*/ _jsxSorted(_rawProps["my-icon"], null, null, null, 3, "u6_4")
+    ], 1, "u6_5"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2DAYc,oBACT,qBACC,qBALF;sBAMG,WAAC,WANG,MAAK,UAML,IAAI;sBACR,WAAC,UAPkB,MAOZ,IAAI;sBACX\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp2_component_button_q_e_click_lRw2YGQT0z8",
+  "entry": null,
+  "displayName": "test.tsx_Cmp2_component_button_q_e_click",
+  "hash": "lRw2YGQT0z8",
+  "canonicalFilename": "test.tsx_Cmp2_component_button_q_e_click_lRw2YGQT0z8",
+  "path": "",
+  "extension": "js",
+  "parent": "Cmp2_component_FnOz26iMYaM",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    412,
+    523
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp_component_button_q_e_click_0O0tA6ahzDQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_button_q_e_click_0O0tA6ahzDQ"), "Cmp_component_button_q_e_click_0O0tA6ahzDQ").m();
+//
+export const Cmp_component_4ryKJTOKjWE = (_rawProps)=>{
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q-e:click": q_Cmp_component_button_q_e_click_0O0tA6ahzDQ,
+        "q:p": _rawProps
+    }, null, null, 6, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAI8B;IAC7B,qBAAO,WAAC;QAAO,WAAQ;;;AACxB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    128,
+    229
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+============================= test.tsx_Cmp2_component_FnOz26iMYaM.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp2_component_button_q_e_click_lRw2YGQT0z8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp2_component_button_q_e_click_lRw2YGQT0z8"), "Cmp2_component_button_q_e_click_lRw2YGQT0z8").m();
+//
+export const Cmp2_component_FnOz26iMYaM = (_rawProps)=>{
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q-e:click": q_Cmp2_component_button_q_e_click_lRw2YGQT0z8,
+        "q:p": _rawProps
+    }, null, null, 6, "u6_6");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CASC;IACC,qBACC,WAAC;QACA,WAAQ;;;AAWX\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp2_component_FnOz26iMYaM",
+  "entry": null,
+  "displayName": "test.tsx_Cmp2_component",
+  "hash": "FnOz26iMYaM",
+  "canonicalFilename": "test.tsx_Cmp2_component_FnOz26iMYaM",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    266,
+    543
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

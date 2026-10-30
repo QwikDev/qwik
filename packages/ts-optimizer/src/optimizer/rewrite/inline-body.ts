@@ -37,9 +37,12 @@ import {
   bodyConsolidatesToRawProps,
   groupPropsFieldsByBinding,
   rawPropsBindingNames,
+  resolveDeferredTagReads,
   resolveRawPropsSlots,
+  collectElementBindingStarts,
   consolidateQpCaptureValues,
   extractDestructuredFieldInfo,
+  type DeferredTagReads,
   type InlineSegmentJsxOptions,
 } from './raw-props.js';
 import {
@@ -110,8 +113,15 @@ export function transformInlineSegmentBody(
     ? extractDestructuredFieldInfo(ext.bodyText)
     : undefined;
   const rawPropsFieldMap = rawPropsInfo?.fieldMap;
-  const qpValues = (params: string[]): string[] =>
-    rawPropsFieldMap === undefined ? params : consolidateQpCaptureValues(params, rawPropsFieldMap);
+  const qpValues = (params: string[], child: ExtractionResult): string[] =>
+    rawPropsFieldMap === undefined
+      ? params
+      : consolidateQpCaptureValues(
+          params,
+          rawPropsFieldMap,
+          ext.propsBindingStarts,
+          collectElementBindingStarts(child, nested, elementQpParamsMap)
+        );
 
   if (nested.length > 0) {
     const bodyOffset = ext.argStart;
@@ -342,6 +352,7 @@ export function transformInlineSegmentBody(
       additionalImports.set('_capturesObj', '@qwik.dev/core');
     }
   }
+  const deferredTagReads: DeferredTagReads[] = [];
   {
     // Consolidate any destructured first param (component props AND hook
     // contexts like useComputed$'s { cleanup }) — a bare destructured method
@@ -352,9 +363,12 @@ export function transformInlineSegmentBody(
           rawPropsInfo?.fieldDynamicDefaults,
           bindingNames.get(ext.symbolName)
         )
-      : body;
-    if (rawPropsResult !== body) {
-      body = rawPropsResult;
+      : { code: body };
+    if (rawPropsResult.code !== body) {
+      body = rawPropsResult.code;
+      if (rawPropsResult.deferredTagReads) {
+        deferredTagReads.push(rawPropsResult.deferredTagReads);
+      }
       if (body.includes('_restProps(')) {
         additionalImports.set('_restProps', '@qwik.dev/core');
       }
@@ -372,13 +386,17 @@ export function transformInlineSegmentBody(
       bindingNames
     );
     for (const [propsName, fields] of groups) {
-      body = replacePropsFieldReferencesInBody(
+      const rewritten = replacePropsFieldReferencesInBody(
         body,
         fields,
         propsName,
         ext.propsFieldDefaults,
         ext.propsFieldDynamicDefaults
       );
+      body = rewritten.code;
+      if (rewritten.deferredTagReads) {
+        deferredTagReads.push(rewritten.deferredTagReads);
+      }
     }
   }
 
@@ -422,7 +440,7 @@ export function transformInlineSegmentBody(
               if (params.length > 0) {
                 qpByQrl.set(
                   qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`,
-                  qpValues(params)
+                  qpValues(params, child)
                 );
               }
             }
@@ -499,7 +517,7 @@ export function transformInlineSegmentBody(
             continue;
           }
           const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
-          const consolidated = qpValues(captureParams);
+          const consolidated = qpValues(captureParams, child);
           qrlParamMap.set(childVarName, consolidated);
           qrlParamMap.set(child.symbolName, consolidated);
         }
@@ -528,7 +546,7 @@ export function transformInlineSegmentBody(
             // The unified element array carries the client build's slot order;
             // per-child capture order would scramble multi-handler elements.
             const unified = elementQpParamsMap?.get(child.symbolName);
-            const consolidated = qpValues(unified ? [...unified] : [...child.captureNames]);
+            const consolidated = qpValues(unified ? [...unified] : [...child.captureNames], child);
             qrlParamMap.set(childVarName, consolidated);
             qrlParamMap.set(child.symbolName, consolidated);
           }
@@ -588,6 +606,7 @@ export function transformInlineSegmentBody(
       if (body.endsWith(';') && !ext.bodyText.endsWith(';')) {
         body = body.slice(0, -1);
       }
+      body = resolveDeferredTagReads(body, deferredTagReads);
 
       for (const sym of bodyJsxResult.neededImports) {
         additionalImports.set(sym, '@qwik.dev/core');

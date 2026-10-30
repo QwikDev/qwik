@@ -130,12 +130,12 @@
   ],
   "libraries": [
     {
-      "title": "@modular-forms/qwik",
-      "github": "https://modularforms.dev/qwik/guides/introduction",
-      "imgSrc": "/ecosystem/modular-forms.svg",
+      "title": "@formisch/qwik",
+      "github": "https://formisch.dev/qwik/guides/introduction/",
+      "imgSrc": "/ecosystem/formisch.svg",
       "width": 90,
       "height": 90,
-      "description": "The modular and type-safe form library"
+      "description": "The schema-based and type-safe form library"
     },
     {
       "title": "@qwikest/icons",

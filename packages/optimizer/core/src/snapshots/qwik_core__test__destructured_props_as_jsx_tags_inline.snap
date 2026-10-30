@@ -1,0 +1,55 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, getFallback } from './x';
+
+export const Cmp = component$((props: { Model?: any; ui?: any; icons: any; 'my-icon': any }) => {
+	const { Model = Fallback, ui = fallback, icons, 'my-icon': Icon } = props;
+	return (
+		<Model>
+			<ui.Home />
+			<icons.Star />
+			<Icon />
+		</Model>
+	);
+});
+
+export const Cmp2 = component$(({ Model = getFallback() }: { Model?: any }) => {
+	return <Model />;
+});
+
+============================= test.js ==
+
+import { untrack } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { Fallback, fallback, getFallback } from './x';
+//
+const q_Cmp2_component_FnOz26iMYaM = /*#__PURE__*/ _noopQrl("Cmp2_component_FnOz26iMYaM");
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ _noopQrl("Cmp_component_4ryKJTOKjWE");
+//
+q_Cmp_component_4ryKJTOKjWE.s((props)=>{
+    return /*#__PURE__*/ _jsxSorted(props.Model ?? Fallback, null, null, [
+        /*#__PURE__*/ _jsxSorted((props.ui ?? fallback).Home, null, null, null, 3, "u6_0"),
+        /*#__PURE__*/ _jsxSorted(props.icons.Star, null, null, null, 3, "u6_1"),
+        /*#__PURE__*/ _jsxSorted(props["my-icon"], null, null, null, 3, "u6_2")
+    ], 1, "u6_3");
+});
+q_Cmp2_component_FnOz26iMYaM.s((_rawProps)=>{
+    const _defaultValue = untrack(()=>_rawProps.Model) === void 0 ? getFallback() : void 0;
+    return /*#__PURE__*/ _jsxSorted(_rawProps.Model === void 0 ? _defaultValue : _rawProps.Model, null, null, null, 3, "u6_4");
+});
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+export const Cmp2 = /*#__PURE__*/ componentQrl(q_Cmp2_component_FnOz26iMYaM);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAEA,SAAS,QAAQ,EAAE,QAAQ,EAAE,WAAW,QAAQ,MAAM;;;;;8BAExB,CAAC;IAE9B,qBACC,WAFmE,MAA5D,SAAQ;sBAGd,WAAC,CAHiE,MAA1C,MAAK,UAGzB,IAAI;sBACR,WAAC,AAJiE,MAA3B,MAIhC,IAAI;sBACX,WALkE;;AAQrE;+BAE+B;gDAAG,oBAAQ;IACzC,qBAAO,qBAD0B,6CAAA;AAElC;AAbA,OAAO,MAAM,oBAAM,0CAShB;AAEH,OAAO,MAAM,qBAAO,2CAEjB\"}")
+== DIAGNOSTICS ==
+
+[]

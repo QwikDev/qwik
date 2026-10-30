@@ -80,14 +80,18 @@ export {
   consolidateRawPropsInWCalls,
   applyRawPropsTransform,
   bodyConsolidatesToRawProps,
+  collectElementBindingStarts,
   consolidateQpCaptureValues,
   collectAncestorPropsSources,
   consolidateRawPropsCaptures,
   groupPropsFieldsByBinding,
   rawPropsBindingNames,
+  resolveDeferredTagReads,
   resolveRawPropsSlots,
+  type DeferredTagReads,
   type RawPropsConsolidation,
   type RawPropsSource,
+  type RawPropsTransformResult,
 } from './raw-props.js';
 
 import {
@@ -573,7 +577,11 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
     }
     let source = propsSources.get(symbolName);
     if (source === undefined) {
-      source = { symbolName, ...extractDestructuredFieldInfo(ext.bodyText) };
+      source = {
+        symbolName,
+        ...extractDestructuredFieldInfo(ext.bodyText),
+        bindingStarts: ext.propsBindingStarts,
+      };
       propsSources.set(symbolName, source);
     }
     return source;
@@ -598,7 +606,8 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
 
     const rawProps = consolidateRawPropsCaptures(
       ext.captureNames,
-      collectAncestorPropsSources(ext.parent, parentOf, propsSourceOf)
+      collectAncestorPropsSources(ext.parent, parentOf, propsSourceOf),
+      ext.freeBindingStarts
     );
     if (rawProps === null) {
       continue;
@@ -625,7 +634,11 @@ function consolidatePromotedParams(
   ext: Mutable<ConsolidatedSegment>,
   parent: RawPropsSource
 ): void {
-  const rawProps = consolidateRawPropsCaptures(ext.paramNames.slice(2), [parent]);
+  const rawProps = consolidateRawPropsCaptures(
+    ext.paramNames.slice(2),
+    [parent],
+    ext.freeBindingStarts
+  );
   if (rawProps === null) {
     return;
   }

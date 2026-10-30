@@ -1,4 +1,4 @@
-import { _serialize as serialize } from '@qwik.dev/core/internal';
+import { _serialize as serialize } from '@qwik.dev/core/internal/serializer';
 import { parentPort } from 'node:worker_threads';
 import {
   renderQwikMiddleware,

@@ -15,6 +15,7 @@ import { HOST_SIGNAL } from '../../shared/cursor/cursor-props';
 import { isDev } from '@qwik.dev/core/build';
 import { Brand, brandClass } from '../../shared/utils/brand';
 
+/** @internal */
 export class WrappedSignalImpl<T> extends SignalImpl<T> {
   $args$: any[];
   $func$: (...args: any[]) => T;

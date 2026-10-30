@@ -3,6 +3,20 @@
   "package": "@qwik.dev/core",
   "members": [
     {
+      "name": "_SerializerSignalImpl",
+      "id": "_serializersignalimpl",
+      "hierarchy": [
+        {
+          "name": "_SerializerSignalImpl",
+          "id": "_serializersignalimpl"
+        }
+      ],
+      "kind": "Class",
+      "content": "A signal which provides a non-serializable value. It works like a computed signal, but it is handled slightly differently during serdes.\n\n\n```typescript\nexport declare class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> \n```\n**Extends:** ComputedSignalImpl&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n(constructor)(container, argQrl)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `SerializerSignalImpl` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[$didInitialize$](#_serializersignalimpl-_didinitialize_)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[$computeIfNeeded$()](#_serializersignalimpl-_computeifneeded_)\n\n\n</td><td>\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/serializer-signal-impl.ts",
+      "mdFile": "core._serializersignalimpl.md"
+    },
+    {
       "name": "\"q:slot\"",
       "id": "componentbaseprops-_q_slot_",
       "hierarchy": [
@@ -219,6 +233,40 @@
       "content": "Qwik Optimizer marker function.\n\nUse `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a lazy-loadable resource referenced by `QRL`<!-- -->.\n\n\n```typescript\n$: <T>(expression: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nexpression\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nExpression which should be lazy loaded\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl-type-alias)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts",
       "mdFile": "core._.md"
+    },
+    {
+      "name": "$computeIfNeeded$",
+      "id": "_serializersignalimpl-_computeifneeded_",
+      "hierarchy": [
+        {
+          "name": "_SerializerSignalImpl",
+          "id": "_serializersignalimpl-_computeifneeded_"
+        },
+        {
+          "name": "$computeIfNeeded$",
+          "id": "_serializersignalimpl-_computeifneeded_"
+        }
+      ],
+      "kind": "Method",
+      "content": "```typescript\n$computeIfNeeded$(): void;\n```\n**Returns:**\n\nvoid",
+      "mdFile": "core._serializersignalimpl._computeifneeded_.md"
+    },
+    {
+      "name": "$didInitialize$",
+      "id": "_serializersignalimpl-_didinitialize_",
+      "hierarchy": [
+        {
+          "name": "_SerializerSignalImpl",
+          "id": "_serializersignalimpl-_didinitialize_"
+        },
+        {
+          "name": "$didInitialize$",
+          "id": "_serializersignalimpl-_didinitialize_"
+        }
+      ],
+      "kind": "Property",
+      "content": "```typescript\n$didInitialize$: boolean;\n```",
+      "mdFile": "core._serializersignalimpl._didinitialize_.md"
     },
     {
       "name": "abort",

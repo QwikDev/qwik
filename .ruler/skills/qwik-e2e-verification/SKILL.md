@@ -53,6 +53,17 @@ The brotli budget tests in `ssg-snapshot.e2e.ts` measure the built core chunk, s
 production `pnpm build.core` — `build.core.dev` leaves core unminified and blows the budget by ~4%.
 Before believing a budget failure, rebuild with `build.core` and re-run `pnpm test.e2e.router.ssg`.
 
+The shared Qwik dev server builds an app on its first page request, so `/<app>/q-manifest.json`
+does not exist until a test has called `page.goto()` on that app. A manifest-only test that skips the
+visit passes or fails depending on which worker ran first.
+
+Put preload and request-waterfall assertions in a `.prod` app: development builds leave the preloader
+out of SSR, so every lazy chunk loads in sequence there. Record `page.on('request')` and assert which
+scripts load after the interaction; on localhost every hop finishes within milliseconds, so timing
+never shows a waterfall. To see one while debugging, add latency through CDP
+`Network.emulateNetworkConditions`. Clicking before qwikloader has loaded drops the event, so wait for
+the page to settle before the first interaction.
+
 Playwright's `reuseExistingServer: !CI` means a dev server left over from an earlier run serves
 stale bundles, so a local pass can hide a build break that CI catches. Kill port 3301 before
 trusting a green local sweep after optimizer or bundler changes.

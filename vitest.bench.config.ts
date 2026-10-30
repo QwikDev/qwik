@@ -29,6 +29,12 @@ export default defineConfig({
         ),
       },
       {
+        find: '@qwik.dev/core/internal/serializer',
+        replacement: fileURLToPath(
+          new URL('./packages/qwik/src/serializer/index.ts', import.meta.url)
+        ),
+      },
+      {
         find: '@qwik.dev/core/internal',
         replacement: fileURLToPath(
           new URL('./packages/qwik/src/core/internal.ts', import.meta.url)

@@ -1,22 +1,28 @@
-import type { ISsrNode, SSRInternalStreamWriter, SymbolToChunkResolver } from '../../ssr/ssr-types';
-import { createStringStreamWriter } from '../../ssr/stream-writer';
-import type { QRL } from '../qrl/qrl.public';
-import type { ObjToProxyMap } from '../types';
-import type { ValueOrPromise } from '../utils/types';
+import { _setDomRefCheck } from '@qwik.dev/core/internal';
+import { Brand, brandClass, createStringStreamWriter } from './qwik-copy';
+import type {
+  ISsrNode,
+  ObjToProxyMap,
+  QRL,
+  SSRInternalStreamWriter,
+  SymbolToChunkResolver,
+  ValueOrPromise,
+} from './qwik-types';
 import { Serializer } from './serialize';
-import { Brand, brandClass } from '../utils/brand';
 
 type DomRef = {
   $ssrNode$: ISsrNode;
 };
 
-/** Stores the location of an object. If no parent, it's a root. */
+/**
+ * Stores the location of an object. If no parent, it's a root.
+ *
+ * @internal
+ */
 export type SeenRef = {
   $index$: number;
   $parent$?: SeenRef | null;
 };
-
-export let isDomRef = (obj: unknown): obj is DomRef => false;
 
 /**
  * A back reference to a previously serialized object. Before deserialization, all backrefs are
@@ -34,11 +40,13 @@ interface AddRootFn {
   (obj: unknown, returnRef?: never): number;
   (obj: unknown, returnRef: true): SeenRef;
 }
+/** @internal */
 export interface SerializationScope {
   $includesSegment$(ownerId: number | undefined): boolean;
   $getSharedRef$?(obj: unknown): SeenRef | undefined;
 }
 
+/** @internal */
 export interface SerializationContext {
   $scope$?: SerializationScope;
   $serialize$: () => ValueOrPromise<void>;
@@ -314,6 +322,7 @@ class SerializationContextImpl implements SerializationContext {
   }
 }
 
+/** @internal */
 export const createSerializationContext = (
   /**
    * Node constructor, for instanceof checks.
@@ -345,9 +354,7 @@ export const createSerializationContext = (
     );
   }
 
-  isDomRef = (
-    DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : ((() => false) as any)
-  ) as (obj: unknown) => obj is DomRef;
+  _setDomRefCheck(DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : () => false);
 
   return new SerializationContextImpl(
     NodeConstructor,

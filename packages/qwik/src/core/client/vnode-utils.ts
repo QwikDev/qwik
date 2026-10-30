@@ -312,6 +312,7 @@ export const vnode_newVirtual = (): VirtualVNode => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/** @internal */
 export const vnode_isVNode = (vNode: any): vNode is VNode => {
   return vNode instanceof VNode;
 };

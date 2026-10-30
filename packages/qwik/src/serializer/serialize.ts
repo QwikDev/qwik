@@ -1,65 +1,80 @@
 import { isDev } from '@qwik.dev/core/build';
-import { VNodeDataFlag } from '../../../server/types';
-import type { VNodeData } from '../../../server/vnode-data';
-import { vnode_isVNode } from '../../client/vnode-utils';
-import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
-import { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
-import { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
-import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primitives/impl/store';
-import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
-import { SubscriptionData } from '../../reactive-primitives/subscription-data';
-import { _EFFECT_BACK_REF } from '../../reactive-primitives/backref';
+import {
+  _BIGINT_PAYLOAD_REGEXP as BIGINT_PAYLOAD_REGEXP,
+  _canSerialize as canSerialize,
+  _ComputedSignalImpl as ComputedSignalImpl,
+  _EFFECT_BACK_REF,
+  _EffectSubscription as EffectSubscription,
+  _EMPTY_ARRAY as EMPTY_ARRAY,
+  _EMPTY_OBJ as EMPTY_OBJ,
+  _EMPTY_OBJECT_PAYLOAD as EMPTY_OBJECT_PAYLOAD,
+  _explicitUndefined as explicitUndefined,
+  _fastSkipSerialize as fastSkipSerialize,
+  _getStoreHandler as getStoreHandler,
+  _getStoreTarget as getStoreTarget,
+  _NEEDS_COMPUTATION as NEEDS_COMPUTATION,
+  _isJSXNode as isJSXNode,
+  _isPropsProxy as isPropsProxy,
+  _isQwikComponent as isQwikComponent,
+  _isSerializerObj as isSerializerObj,
+  _isStore as isStore,
+  _qrlToString as qrlToString,
+  _redactToGeneric as redactToGeneric,
+  _SerializerSignalImpl as SerializerSignalImpl,
+  _SERIALIZABLE_STATE as SERIALIZABLE_STATE,
+  _SignalImpl as SignalImpl,
+  _STORE_ALL_PROPS as STORE_ALL_PROPS,
+  _SubscriptionData as SubscriptionData,
+  _SubscriptionPatch as SubscriptionPatch,
+  _Task as Task,
+  _vnode_isVNode as vnode_isVNode,
+  _WrappedSignalImpl as WrappedSignalImpl,
+  Fragment,
+  SerializerSymbol,
+  Slot,
+} from '@qwik.dev/core/internal';
 import {
   AsyncSignalFlags,
-  EffectProperty,
-  EffectSubscription,
-  NEEDS_COMPUTATION,
-  SerializationSignalFlags,
-  ComputedSignalFlags,
-  STORE_ALL_PROPS,
-  type SerializerArg,
-} from '../../reactive-primitives/types';
-import { isSerializerObj } from '../../reactive-primitives/utils';
-import { Task } from '../../use/use-task';
-import type { SSRInternalStreamWriter, SSRWriteChunk } from '../../ssr/ssr-types';
-import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
-import { qError, QError } from '../error/error';
-import { redactToGeneric } from '../error/error-handling';
-import { isJSXNode } from '../jsx/jsx-node';
-import { Fragment, type Props } from '../jsx/jsx-runtime';
-import { isPropsProxy, type PropsProxy } from '../jsx/props-proxy';
-import { Slot } from '../jsx/slot.public';
-import type { QRLInternal } from '../qrl/qrl-class';
-import { isQrl } from '../qrl/qrl-utils';
-import {
   BRACKET_CLOSE,
   BRACKET_OPEN,
   CLOSE_TAG,
   COMMA,
-  ESCAPED_CLOSE_TAG,
-  QUOTE,
-} from '../ssr-const';
-import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
-import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
-import { ELEMENT_ID, ELEMENT_PROPS, OnRenderProp, QBackRefs } from '../utils/markers';
-import { isObjectEmpty } from '../utils/objects';
-import { isPromise, maybeThen } from '../utils/promises';
-import {
-  BIGINT_PAYLOAD_REGEXP,
+  ComputedSignalFlags,
   Constants,
-  EMPTY_OBJECT_PAYLOAD,
-  explicitUndefined,
+  EffectProperty,
+  ELEMENT_ID,
+  ELEMENT_PROPS,
+  ESCAPED_CLOSE_TAG,
+  isObjectEmpty,
+  isPromise,
+  isQrl,
+  maybeThen,
+  OnRenderProp,
+  _OWNER,
+  _PROPS_HANDLER,
+  QBackRefs,
+  qError,
+  QError,
+  QUOTE,
+  SerializationSignalFlags,
   TypeIds,
-} from './constants';
-import { canSerialize } from './can-serialize';
-import { qrlToString } from './qrl-to-string';
+  _UNINITIALIZED,
+  VNodeDataFlag,
+} from './qwik-copy';
+import type {
+  Props,
+  PropsProxy,
+  QRLInternal,
+  SerializerArg,
+  SSRInternalStreamWriter,
+  SSRWriteChunk,
+  VNodeData,
+} from './qwik-types';
 import {
   SerializationBackRef,
   type SeenRef,
   type SerializationContext,
 } from './serialization-context';
-import { SubscriptionPatch } from './subscription-patch';
-import { fastSkipSerialize, SerializerSymbol } from './verify';
 
 /**
  * Format:

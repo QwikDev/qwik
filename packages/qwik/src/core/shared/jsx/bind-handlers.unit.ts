@@ -9,7 +9,7 @@ import { createDocument } from '@qwik.dev/core/testing';
 import { QContainerAttr, QInstanceAttr } from '../../shared/utils/markers';
 import { setCaptures } from '../qrl/qrl-class';
 import { TypeIds } from '../serdes/constants';
-import { createSerializationContext } from '../serdes/serialization-context';
+import { createSerializationContext } from '../../../serializer';
 import { getDomContainer } from '../../client/dom-container';
 
 const instanceId = 'bind-handlers-unit';

@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+import type { QwikManifest } from '@qwik.dev/core/optimizer';
 
 test.describe('server$', () => {
   /** Checks that arguments weren't deduplicated or added */
@@ -213,4 +214,62 @@ test.describe('server$', () => {
       await expect(page.locator(`#${id}`)).toHaveText('pong:no-args');
     });
   }
+
+  test.describe('serializer loading in production', () => {
+    const pageUrl = '/qwikrouter-test.prod/server-function/serializer-preload/';
+
+    const findBundles = async (page: Page) => {
+      const manifest: QwikManifest = await (
+        await page.request.get('/qwikrouter-test.prod/q-manifest.json')
+      ).json();
+      const files = Object.keys(manifest.bundles);
+      const findByOrigin = (pattern: RegExp) =>
+        files.find((file) =>
+          manifest.bundles[file].origins?.some((origin) => pattern.test(origin))
+        );
+      const serializerBundle = findByOrigin(/\/serializer(\.prod)?\.mjs$/);
+      const serverSegmentBundle = findByOrigin(/_serverQrl_\w+\.js$/);
+      expect(serializerBundle, 'some bundle should contain the serializer').toBeDefined();
+      expect(serverSegmentBundle, 'some bundle should contain the server$ segment').toBeDefined();
+      return {
+        manifest,
+        serializerBundle: serializerBundle!,
+        serverSegmentBundle: serverSegmentBundle!,
+      };
+    };
+
+    test('ships the serializer inside the server$ segment, not core', async ({ page }) => {
+      // The dev server builds the app on its first page request.
+      await page.goto(pageUrl);
+      const { manifest, serializerBundle, serverSegmentBundle } = await findBundles(page);
+
+      expect(serializerBundle).toBe(serverSegmentBundle);
+      expect(serializerBundle).not.toBe(manifest.core);
+    });
+
+    test('preloads the serializer before the first server$ call', async ({ page }) => {
+      const scriptRequests: string[] = [];
+      page.on('request', (request) => {
+        if (request.resourceType() === 'script') {
+          scriptRequests.push(request.url());
+        }
+      });
+      await page.goto(pageUrl);
+      const { serverSegmentBundle } = await findBundles(page);
+      await expect
+        .poll(() => scriptRequests.some((url) => url.endsWith(`/build/${serverSegmentBundle}`)))
+        .toBe(true);
+      await page.waitForLoadState('networkidle');
+
+      const scriptsBeforeClick = scriptRequests.length;
+      const button = page.locator('#server-call-button');
+      await button.click();
+      await expect(button).toHaveText('Result: 42');
+
+      const segmentRequestsAfterClick = scriptRequests
+        .slice(scriptsBeforeClick)
+        .filter((url) => url.endsWith(`/build/${serverSegmentBundle}`));
+      expect(segmentRequestsAfterClick).toEqual([]);
+    });
+  });
 });

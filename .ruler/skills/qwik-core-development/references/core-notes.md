@@ -24,11 +24,12 @@ packages/qwik/src/core/
   client/                     client render, VNode materialization, cursor/diff integration
   reactive-primitives/         signals, async signals, stores, subscriptions
   shared/qrl/                  QRL classes and helpers
-  shared/serdes/               serialization, inflation, root refs
+  shared/serdes/               inflation (deserializer), root refs, type ids
   shared/vnode/                VNode structures
   shared/cursor/               cursor walking and DOM update primitives
   ssr/                         server-side JSX rendering
   tests/                       core feature specs
+packages/qwik/src/serializer/ the writer, shipped as `@qwik.dev/core/internal/serializer`
 ```
 
 Closest tests are usually in the same subtree and named `*.unit.ts(x)` or `*.spec.ts(x)`.
@@ -102,7 +103,7 @@ When changing AsyncSignal behavior, inspect:
 - `packages/qwik/src/core/reactive-primitives/types.ts`
 - `packages/qwik/src/core/reactive-primitives/signal.public.ts`
 - `packages/qwik/src/core/reactive-primitives/cleanup.ts`
-- `packages/qwik/src/core/shared/serdes/serialize.ts`
+- `packages/qwik/src/serializer/serialize.ts`
 - `packages/qwik/src/core/shared/serdes/inflate.ts`
 - closest async signal unit/spec tests
 
@@ -163,6 +164,13 @@ When a core value gains serialized state:
 2. Keep array positions or marker encodings documented in the code that owns them.
 3. Add a round-trip test in `shared/serdes` or the closest subsystem.
 4. Check SSR and client resume behavior when the value affects resumed or streamed state.
+
+The serializer is its own bundle so browser apps only load it inside the segments that call it
+(e.g. `server$`). Like `src/server/`, it takes runtime values from `@qwik.dev/core/internal` (as
+`_name` exports tagged `@internal`) so classes and flyweights keep one identity; only
+`serializer/qwik-copy.ts` (const enums, identity-free helpers) and `serializer/qwik-types.ts` may
+import core through `../`. `pnpm build.core` names any core module outside the server's copyable
+directories that ends up in the serializer bundle.
 
 For AsyncSignal fields, inspect the serdes tests that deserialize async signals and verify
 concurrency, timeout, stale value, and error/loading state behavior.

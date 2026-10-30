@@ -15,6 +15,7 @@ import {
   isSignal,
   type Signal,
 } from '@qwik.dev/core/internal';
+import { createSerializationContext } from '@qwik.dev/core/internal/serializer';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
   ATTR_EQUALS_QUOTE,
@@ -353,11 +354,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       const chunk = this.resolvedManifest.mapper[idx == -1 ? symbol : symbol.substring(idx + 1)];
       return chunk ? chunk[1] : '';
     };
-    this.serializationCtx = this.serializationCtxFactory(
+    this.serializationCtx = createSerializationContext(
       SsrNode,
       DomRef,
       this.symbolToChunkResolver,
-      opts.writer
+      this.setHostProp.bind(this),
+      this.$storeProxyMap$,
+      opts.writer as SSRInternalStreamWriter | undefined
     );
     this.renderTimer = createTimer();
     this.tag = opts.tagName;

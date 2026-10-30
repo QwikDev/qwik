@@ -1,18 +1,8 @@
-import { isServer } from '@qwik.dev/core/build';
 import type { ContextId } from '../use/use-context';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { version } from '../version';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
 import type { Signal } from '../reactive-primitives/signal.public';
-import type {
-  SSRInternalStreamWriter,
-  StreamWriter,
-  SymbolToChunkResolver,
-} from '../ssr/ssr-types';
-import {
-  createSerializationContext,
-  type SerializationContext,
-} from './serdes/serialization-context';
 import type { Container, HostElement, ObjToProxyMap } from './types';
 import type { CatchPhase } from './error/error-handling';
 
@@ -51,29 +41,6 @@ export abstract class _SharedContainer implements Container {
     data: SubscriptionData
   ): T {
     return trackSignalAndAssignHost(signal, subscriber, property, this, data);
-  }
-
-  serializationCtxFactory(
-    NodeConstructor: {
-      new (...rest: any[]): { __brand__: 'SsrNode' };
-    } | null,
-    DomRefConstructor: {
-      new (...rest: any[]): { __brand__: 'DomRef' };
-    } | null,
-    symbolToChunkResolver: SymbolToChunkResolver,
-    writer?: StreamWriter
-  ): SerializationContext {
-    if (isServer) {
-      return createSerializationContext(
-        NodeConstructor,
-        DomRefConstructor,
-        symbolToChunkResolver,
-        this.setHostProp.bind(this),
-        this.$storeProxyMap$,
-        writer as SSRInternalStreamWriter | undefined
-      );
-    }
-    throw new Error('Serialization context is only available on the server');
   }
 
   $checkPendingCount$(): void {

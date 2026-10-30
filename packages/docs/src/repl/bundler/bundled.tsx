@@ -15,6 +15,7 @@ import qWorkerNodeJs from '../../../node_modules/@qwik.dev/core/dist/worker/work
 import qWorkerSharedJs from '../../../node_modules/@qwik.dev/core/dist/worker/worker.shared.js?raw-source';
 // we use the debug version for the repl so it's understandable
 import qQwikLoaderJs from '../../../node_modules/@qwik.dev/core/dist/qwikloader.debug.js?raw-source';
+import qSerializerMjs from '../../../node_modules/@qwik.dev/core/dist/serializer.mjs?raw-source';
 import qServerMjs from '../../../node_modules/@qwik.dev/core/dist/server.mjs?raw-source';
 import qServerDts from '../../../node_modules/@qwik.dev/core/dist/server.d.ts?raw-source';
 import qTsOptimizerMjs from '../../../node_modules/@qwik.dev/core/dist/ts-optimizer.mjs?raw-source';
@@ -69,6 +70,7 @@ const qwikUrls: PkgUrls[string] = {
   '/dist/async-local-storage.mjs': qAsyncLocalStorageMjs,
   '/dist/optimizer.mjs': qViteMjs,
   '/dist/server.mjs': qServerMjs,
+  '/dist/serializer.mjs': qSerializerMjs,
   '/dist/server.d.ts': qServerDts,
   '/dist/preloader.mjs': qPreloaderMjs,
   '/dist/worker/index.mjs': qWorkerMjs,
@@ -100,6 +102,7 @@ export const getDeps = (qwikVersion: string) => {
       `/dist/core.min.mjs`,
       `/dist/optimizer.mjs`,
       `/dist/server.mjs`,
+      ...(isV2 ? [`/dist/serializer.mjs`] : []),
       ...(isV2 ? [`/dist/ts-optimizer.mjs`] : []),
       `/dist/qwikloader.js`,
       `/dist/preloader.mjs`,

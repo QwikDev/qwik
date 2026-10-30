@@ -29,10 +29,12 @@ const DEBUG = false;
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('STORE', ...args.map(qwikDebugToString));
 
+/** @internal */
 export const getStoreHandler = (value: StoreTarget): StoreHandler | null => {
   return value[STORE_HANDLER] as StoreHandler | null;
 };
 
+/** @internal */
 export const getStoreTarget = <T extends StoreTarget>(value: T): T | null => {
   try {
     return value?.[STORE_TARGET] || null;

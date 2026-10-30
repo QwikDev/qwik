@@ -15,7 +15,8 @@ import {
   useVisibleTask$,
   type JSXOutput,
 } from '@qwik.dev/core';
-import { _deserialize, _getDomContainer, _serialize } from '@qwik.dev/core/internal';
+import { _deserialize, _getDomContainer } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import {
   createDocument,
   domRender,

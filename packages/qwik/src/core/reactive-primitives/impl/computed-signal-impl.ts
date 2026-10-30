@@ -122,6 +122,8 @@ export class Job<T> implements ComputeCtx<T> {
  * the async engine — jobs, `loading`, `error` — giving it the same API as an AsyncSignal.
  * Auto-tracking only covers reads before the first await point (the invoke context is lost after
  * it); later reads must use the ComputeCtx `track()`.
+ *
+ * @internal
  */
 // TODO when we make core lazy async, lazy load the async engine part of this class
 export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>

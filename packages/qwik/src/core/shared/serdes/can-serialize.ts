@@ -10,13 +10,21 @@ import { Slot } from '../jsx/slot.public';
 import { isQrl } from '../qrl/qrl-utils';
 import { _UNINITIALIZED } from '../utils/constants';
 import { isPromise } from '../utils/promises';
-import { isDomRef } from './serialization-context';
 // Keep last
 import { Fragment } from '../jsx/jsx-runtime';
 import { isSerializerObj } from '../../reactive-primitives/utils';
 
 const getKeyVal = <T>(value: T, key: keyof T) => value[key];
 
+// The SSR container owns DomRef, so it registers how to recognize one.
+let isDomRef = (_obj: unknown): boolean => false;
+
+/** @internal */
+export const _setDomRefCheck = (check: (obj: unknown) => boolean) => {
+  isDomRef = check;
+};
+
+/** @internal */
 export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet()): boolean => {
   const hasTemporal = typeof Temporal !== 'undefined';
   if (
@@ -102,7 +110,7 @@ export const canSerialize = (value: unknown, seen: WeakSet<any> = new WeakSet())
       return true;
     } else if (value instanceof SubscriptionData) {
       return true;
-    } else if (isDomRef?.(value)) {
+    } else if (isDomRef(value)) {
       return true;
     }
   } else if (typeof value === 'function') {

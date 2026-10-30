@@ -201,8 +201,8 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/qwik/src/server/**/*.ts'],
-    ignores: ['packages/qwik/src/server/qwik-copy.ts'],
+    files: ['packages/qwik/src/server/**/*.ts', 'packages/qwik/src/serializer/**/*.ts'],
+    ignores: ['packages/qwik/src/server/qwik-copy.ts', 'packages/qwik/src/serializer/qwik-copy.ts'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',
@@ -223,7 +223,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/qwik/src/server/qwik-types.ts'],
+    files: ['packages/qwik/src/server/qwik-types.ts', 'packages/qwik/src/serializer/qwik-types.ts'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',

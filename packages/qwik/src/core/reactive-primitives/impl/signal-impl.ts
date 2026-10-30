@@ -22,6 +22,7 @@ const DEBUG = false;
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));
 
+/** @internal */
 export class SignalImpl<T = any> implements Signal<T> {
   $untrackedValue$: T;
 

@@ -1,5 +1,6 @@
 import { inlinedQrl, isDev, type QRL } from '@qwik.dev/core';
-import { _serialize, _verifySerializable } from '@qwik.dev/core/internal';
+import { _verifySerializable } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import type { Render, RenderToStreamResult, RenderToStringResult } from '@qwik.dev/core/server';
 import type {
   ActionInternal,

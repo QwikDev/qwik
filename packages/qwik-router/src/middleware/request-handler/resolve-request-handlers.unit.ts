@@ -13,7 +13,7 @@ import { isContentType } from './request-utils';
 import type { RequestEvent, ServerRequestEvent } from './types';
 import { checkCSRF } from './resolve-request-handlers-core';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
-import { ServerError } from '@qwik.dev/router/middleware/request-handler';
+import { HttpError } from '@qwik.dev/router/middleware/request-handler';
 import { getLoaderName, IsQLoader, QLoaderId } from './request-path';
 import { getRouteLoaderValues } from '../../runtime/src/route-loaders';
 import { loadRoute } from '../../runtime/src/routing';
@@ -194,13 +194,12 @@ describe('resolve-request-handler', () => {
             'Content-Type': 'application/qwik-json',
           },
         }),
-        error: vi.fn((status: number, message: string) => ({ status, message })),
         exit: vi.fn(),
         parseBody: vi.fn(async () => [[]]),
         headers: new Headers(),
       } as any;
 
-      await expect(handlers[2](ev)).rejects.toEqual({ status: 500, message: 'Invalid request' });
+      await expect(handlers[2](ev)).rejects.toEqual(new HttpError(500, 'Invalid request'));
 
       expect(ev.exit).toHaveBeenCalledTimes(1);
       expect(routeOnRequest).not.toHaveBeenCalled();
@@ -243,7 +242,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
@@ -259,7 +257,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
@@ -274,7 +271,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
@@ -290,7 +286,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       // Should not throw
@@ -307,7 +302,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       // Should not throw
@@ -324,7 +318,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       // Should not throw
@@ -341,7 +334,6 @@ describe('resolve-request-handler', () => {
         },
         url: new URL('http://server/path'),
         method: 'POST',
-        error: (status: number, msg: string) => new Error(msg),
       };
 
       expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
@@ -511,14 +503,14 @@ describe('resolve-request-handler', () => {
   });
 
   describe('server error handling', () => {
-    it('should catch public ServerError instances in page middleware', async () => {
+    it('should catch public HttpError instances in page middleware', async () => {
       const route: LoadedRoute = {
         $routeName$: '/',
         $params$: {},
         $mods$: [
           {
             onRequest() {
-              throw new ServerError(418, 'teapot');
+              throw new HttpError(418, 'teapot');
             },
           } as RouteModule,
           justHiModule as RouteModule,
@@ -756,7 +748,7 @@ describe('resolve-request-handler', () => {
     it('errors the response when a blockSSR loader errors, before render', async () => {
       const route = pageRouteWithLoaders(
         makeLoader('l1', () => {
-          throw new ServerError(401, 'boom');
+          throw new HttpError(401, 'boom');
         })
       );
       const requestEv = runPage(route, exitRender());
@@ -767,11 +759,11 @@ describe('resolve-request-handler', () => {
       expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('boom');
     });
 
-    it('clears resolved route loader data before rendering a ServerError page', async () => {
+    it('clears resolved route loader data before rendering an HttpError page', async () => {
       const route = pageRouteWithLoaders(
         makeLoader('protected', () => ({ secret: 'hidden' })),
         makeLoader('guard', () => {
-          throw new ServerError(401, 'login required');
+          throw new HttpError(401, 'login required');
         })
       );
       const renderHandler = vi.fn((requestEv: RequestEvent) => {
@@ -790,10 +782,10 @@ describe('resolve-request-handler', () => {
     it('reports the first blockSSR loader (in route order) that errors', async () => {
       const route = pageRouteWithLoaders(
         makeLoader('first', () => {
-          throw new ServerError(401, 'first-error');
+          throw new HttpError(401, 'first-error');
         }),
         makeLoader('second', () => {
-          throw new ServerError(500, 'second-error');
+          throw new HttpError(500, 'second-error');
         })
       );
       const requestEv = runPage(route, exitRender());
@@ -809,7 +801,7 @@ describe('resolve-request-handler', () => {
         makeLoader(
           'l1',
           () => {
-            throw new ServerError(401, 'boom');
+            throw new HttpError(401, 'boom');
           },
           { blockSSR: false }
         )

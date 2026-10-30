@@ -566,7 +566,7 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 
-<h2 id="servererror-data">data</h2>
+<h2 id="httperror-data">data</h2>
 
 ```typescript
 data: T;
@@ -805,6 +805,87 @@ headers(): string[];
 **Returns:**
 
 string[]
+
+<h2 id="httperror">HttpError</h2>
+
+```typescript
+export declare class HttpError<T = any> extends Error
+```
+
+**Extends:** Error
+
+<table><thead><tr><th>
+
+Constructor
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+(constructor)(status, data)
+
+</td><td>
+
+</td><td>
+
+Constructs a new instance of the `HttpError` class
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[data](#httperror-data)
+
+</td><td>
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[status](#httperror-status)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/http-error.ts)
 
 <h2 id="internalrequest">InternalRequest</h2>
 
@@ -1412,11 +1493,11 @@ error
 
 </td><td>
 
-&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [ServerError](#servererror)&lt;T&gt;
+&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [HttpError](#httperror)&lt;T&gt;
 
 </td><td>
 
-When called, the response will immediately end with the given status code. This could be useful to end a response with `404`, and use the 404 handler in the routes directory. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.
+The old name of `httpError()`.
 
 </td></tr>
 <tr><td>
@@ -1449,6 +1530,23 @@ html
 </td><td>
 
 Convenience method to send an HTML body response. The response will be automatically set the `Content-Type` header to`text/html; charset=utf-8`. An `html()` response can only be called once.
+
+</td></tr>
+<tr><td>
+
+httpError
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [HttpError](#httperror)&lt;T&gt;
+
+</td><td>
+
+Returns an `HttpError` to throw, like `new HttpError(statusCode, message)`. Thrown from middleware or a blocking loader, it ends the response with that status and renders the nearest `error.tsx`. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.
 
 </td></tr>
 <tr><td>
@@ -1642,14 +1740,10 @@ resolveValue
 ```typescript
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
   ev: RequestEvent<PLATFORM>,
-) =>
-  | Promise<void | AbortMessage | ServerError>
-  | void
-  | AbortMessage
-  | ServerError;
+) => Promise<void | AbortMessage | HttpError> | void | AbortMessage | HttpError;
 ```
 
-**References:** [RequestEvent](#requestevent), [AbortMessage](#abortmessage), [ServerError](#servererror)
+**References:** [RequestEvent](#requestevent), [AbortMessage](#abortmessage), [HttpError](#httperror)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/request-handler.ts)
 
@@ -1658,14 +1752,10 @@ export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
 ```typescript
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (
   ev: RequestEvent<PLATFORM>,
-) =>
-  | Promise<void | AbortMessage | ServerError>
-  | void
-  | AbortMessage
-  | ServerError;
+) => Promise<void | AbortMessage | HttpError> | void | AbortMessage | HttpError;
 ```
 
-**References:** [RequestEvent](#requestevent), [AbortMessage](#abortmessage), [ServerError](#servererror)
+**References:** [RequestEvent](#requestevent), [AbortMessage](#abortmessage), [HttpError](#httperror)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/types.ts)
 
@@ -1755,86 +1845,33 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/rewrite-handler.ts)
 
-<h2 id="servererror">ServerError</h2>
+<h2 id="servererror-type-alias">ServerError</h2>
+
+> Warning: This API is now obsolete.
+>
+> Use `HttpError`.
+
+The old name of `HttpError`.
 
 ```typescript
-export declare class ServerError<T = any> extends Error
+ServerError: typeof HttpError;
 ```
 
-**Extends:** Error
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/http-error.ts)
 
-<table><thead><tr><th>
+<h2 id="servererror-variable">ServerError</h2>
 
-Constructor
+> Warning: This API is now obsolete.
+>
+> Use `HttpError`.
 
-</th><th>
+The old name of `HttpError`.
 
-Modifiers
+```typescript
+ServerError: typeof HttpError;
+```
 
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-(constructor)(status, data)
-
-</td><td>
-
-</td><td>
-
-Constructs a new instance of the `ServerError` class
-
-</td></tr>
-</tbody></table>
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[data](#servererror-data)
-
-</td><td>
-
-</td><td>
-
-T
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[status](#servererror-status)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/server-error.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/request-handler/http-error.ts)
 
 <h2 id="serverrenderoptions">ServerRenderOptions</h2>
 
@@ -2137,7 +2174,7 @@ _(Optional)_
 
 void
 
-<h2 id="servererror-status">status</h2>
+<h2 id="httperror-status">status</h2>
 
 ```typescript
 status: number;

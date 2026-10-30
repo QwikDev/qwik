@@ -38,7 +38,7 @@ import { jsonRequestWrapper } from './handlers/json-request-wrapper';
 import { actionHandler } from './handlers/action-handler';
 import { IsQLoader, QLoaderId } from './request-path';
 import { isStaticPath } from './static-paths';
-import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
+import type { RequestEvent, RequestEventBase, RequestHandler } from './types';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import { resolveRouteConfig } from '../../runtime/src/head';
 import {
@@ -52,7 +52,7 @@ import {
 import { HttpStatus } from './http-status-codes';
 import { getQwikRouterServerData } from './response-page';
 import { encoder, isContentType } from './request-utils';
-import { ServerError, throwIfControlFlowSignal } from './server-error';
+import { HttpError, throwIfControlFlowSignal } from './http-error';
 
 const loadHttpError = () => import('../../runtime/src/http-error');
 
@@ -457,7 +457,7 @@ function createResolveRequestHandlers() {
       try {
         await requestEv.next();
       } catch (e) {
-        if (!(e instanceof ServerError) || requestEv.headersSent) {
+        if (!(e instanceof HttpError) || requestEv.headersSent) {
           throw e;
         }
 
@@ -541,7 +541,7 @@ function createResolveRequestHandlers() {
         | [args?: unknown[] | undefined, ...captured: unknown[]]
         | undefined;
       if (!Array.isArray(data) || !(Array.isArray(data[0]) || data[0] === undefined)) {
-        throw ev.error(500, 'Invalid request');
+        throw new HttpError(500, 'Invalid request');
       }
       const qrl = inlinedQrl(null, serverFnHash, data.slice(1));
       let result: unknown;
@@ -554,11 +554,11 @@ function createResolveRequestHandlers() {
           result = await (qrl as Function).apply(ev, data[0]);
         }
       } catch (err) {
-        if (err instanceof ServerError) {
-          throw ev.error(err.status as ErrorCodes, err.data);
+        if (err instanceof HttpError) {
+          throw err;
         }
         console.error(`Server function ${serverFnHash} failed:`, err);
-        throw ev.error(500, 'Invalid request');
+        throw new HttpError(500, 'Invalid request');
       }
       throwIfControlFlowSignal(result);
       if (isAsyncIterator(result)) {
@@ -711,7 +711,7 @@ function createResolveRequestHandlers() {
       }
 
       if (forbidden) {
-        throw requestEv.error(
+        throw new HttpError(
           403,
           `CSRF check failed. Cross-site ${requestEv.method} form submissions are forbidden.
 The request origin "${inputOrigin}" does not match the server origin "${origin}".`

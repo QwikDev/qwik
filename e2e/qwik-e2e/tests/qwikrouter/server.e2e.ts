@@ -118,18 +118,18 @@ test.describe('server$', () => {
 
       await expect(serverConfigContainer).toContainText('POST--MyCustomValue-GET--MyCustomValue');
     });
-    test('should modify ServerError in middleware', async ({ page }) => {
+    test('should modify HttpError in middleware', async ({ page }) => {
       await page.goto('/qwikrouter-test/server-func/server-error');
       const serverConfigContainer = page.locator('#server-error');
 
       await expect(serverConfigContainer).toContainText('my errorserver-error-caughtPOST');
     });
-    test('should catch ServerError in routeLoader', async ({ page }) => {
+    test('should catch HttpError in routeLoader', async ({ page }) => {
       await page.goto('/qwikrouter-test/server-func/server-error/loader');
       const serverConfigContainer = page.locator('#server-error');
       await expect(serverConfigContainer).toContainText('loader-error-data');
     });
-    test('should allow primitive ServerError data', async ({ page }) => {
+    test('should allow primitive HttpError data', async ({ page }) => {
       await page.goto('/qwikrouter-test/server-func/server-error/primitive');
       const serverConfigContainer = page.locator('#server-error');
       await expect(serverConfigContainer).toContainText('1error');

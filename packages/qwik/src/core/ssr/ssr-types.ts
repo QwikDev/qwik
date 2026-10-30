@@ -175,6 +175,8 @@ export interface SSRContainer extends Container {
   $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T>;
   nextOutOfOrderId(markUsed?: boolean): number;
   emitOutOfOrderSegmentScripts(scripts: string): void;
+  /** Runs `emit` now, or once the shell can hold scripts again. */
+  $emitWhenScriptSafe$(emit: () => void): void;
   segment(
     segmentId: string,
     jsx: JSXOutput,

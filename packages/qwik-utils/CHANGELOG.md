@@ -1,5 +1,12 @@
 # @qwik.dev/utils
 
+## 2.0.0-rc.5
+
+### Patch Changes
+
+- Updated dependencies [[`cdc83fd`](https://github.com/QwikDev/qwik/commit/cdc83fd09ee06e8e6ff0f993ce9fd3afd2949482), [`e697f17`](https://github.com/QwikDev/qwik/commit/e697f1793f6a5d56e55349762b36099e43d4c75f), [`f59f39b`](https://github.com/QwikDev/qwik/commit/f59f39b7cc7ab2dbb480f7e41d7361672b878fc7), [`e654d7b`](https://github.com/QwikDev/qwik/commit/e654d7b993cc3f464790d63a04f7881cfaa430fd), [`0be23e5`](https://github.com/QwikDev/qwik/commit/0be23e5e5291d1fd44a12a76aa9fd11b3bbbb411), [`15e246c`](https://github.com/QwikDev/qwik/commit/15e246c6204d3ff20a28d5fe1e1ce244ee405862), [`9e8ca24`](https://github.com/QwikDev/qwik/commit/9e8ca2490797e9ceb14d9178f86cdb2cba14e443), [`bd7741c`](https://github.com/QwikDev/qwik/commit/bd7741c1f9fa6b05c5ff427a12c169b6219af79f), [`a1f47ae`](https://github.com/QwikDev/qwik/commit/a1f47aef6f2e0cbc28c342d76644850dcf4bed61), [`43f92cb`](https://github.com/QwikDev/qwik/commit/43f92cbd432bb360ac75c62ca009235b74a42da2), [`ad9281d`](https://github.com/QwikDev/qwik/commit/ad9281d9333c473c1e33ec244ba3d7b44f160147), [`7c782ea`](https://github.com/QwikDev/qwik/commit/7c782ead9b8d064937ce0b790ce91fd55ed4a434)]:
+  - @qwik.dev/core@2.0.0-rc.5
+
 ## 2.0.0-rc.4
 
 ### Patch Changes

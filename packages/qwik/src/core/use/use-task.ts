@@ -13,6 +13,7 @@ import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { type Container, type HostElement } from '../shared/types';
 import { TaskEvent } from '../shared/utils/markers';
+import { qTest } from '../shared/utils/qdev';
 import { isPromise, maybeThen, safeCall } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
@@ -272,15 +273,25 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
       setCaptures(deserializeCaptureDeltas(container, this));
     }
     const task = _capturesObj._![0] as Task;
-    if (!task.$el$) {
-      // A Catch tore the host down; the task has nothing left to run against.
-      return;
+    const markTaskDirty = () => {
+      if (!task.$el$) {
+        // A Catch tore the host down; the task has nothing left to run against.
+        return;
+      }
+      if (task.$flags$ & (TaskFlags.DIRTY | TaskFlags.EXECUTED)) {
+        // the trigger event only performs the initial run
+        return;
+      }
+      task.$flags$ |= TaskFlags.DIRTY;
+      markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
+    };
+    if (task.$qrl$.resolved) {
+      return markTaskDirty();
     }
-    if (task.$flags$ & (TaskFlags.DIRTY | TaskFlags.EXECUTED)) {
-      // the trigger event only performs the initial run
-      return;
-    }
-    task.$flags$ |= TaskFlags.DIRTY;
-    markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
+    // Load first, so the body runs right after the render it observes commits.
+    // A failed load still schedules the task, so runTask retries and reports it.
+    const loaded = task.$qrl$.resolve().then(markTaskDirty, markTaskDirty);
+    // qwikloader would hold the element's other handlers until it loads; tests await it.
+    return qTest ? loaded : undefined;
   });
 }

@@ -1,5 +1,33 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.5
+
+### Patch Changes
+
+- 🐞🩹 skip renders that read a cancelled async signal until it has a value (by [@Varixo](https://github.com/Varixo) in [#9300](https://github.com/QwikDev/qwik/pull/9300))
+
+- 🐞🩹 prevent synchronous async signal results from blocking settled reads (by [@Varixo](https://github.com/Varixo) in [#9300](https://github.com/QwikDev/qwik/pull/9300))
+
+- 🐞🩹 ssr no longer fails on deep props over objects holding functions (by [@intellix](https://github.com/intellix) in [#9302](https://github.com/QwikDev/qwik/pull/9302))
+
+- 🐞🩹 inserting a new node without children no longer recreates the next sibling's children (by [@yiannis-psomadelis](https://github.com/yiannis-psomadelis) in [#9315](https://github.com/QwikDev/qwik/pull/9315))
+
+- perf: browser apps load the serializer only with segments that need it (by [@Varixo](https://github.com/Varixo) in [#9323](https://github.com/QwikDev/qwik/pull/9323))
+
+- 🐞🩹 settle failed action submissions and prevent duplicate form requests (by [@Varixo](https://github.com/Varixo) in [#9275](https://github.com/QwikDev/qwik/pull/9275))
+
+- 🐞🩹 preserve computed failures when thrown values are falsy (by [@Varixo](https://github.com/Varixo) in [#9300](https://github.com/QwikDev/qwik/pull/9300))
+
+- 🐞🩹 a conditional element no longer moves to the end of its parent after resume (by [@yiannis-psomadelis](https://github.com/yiannis-psomadelis) in [#9313](https://github.com/QwikDev/qwik/pull/9313))
+
+- 🐞🩹 bundle image-size 2.0.4 to address its denial-of-service advisories (by [@wmertens](https://github.com/wmertens) in [#9296](https://github.com/QwikDev/qwik/pull/9296))
+
+- 🐞🩹 dynamic `import()` of a css file no longer points to a missing chunk in production builds (by [@gioboa](https://github.com/gioboa) in [#9299](https://github.com/QwikDev/qwik/pull/9299))
+
+- 🐞🩹 `track()` returns the value type for a `ReadonlySignal` (by [@Varixo](https://github.com/Varixo) in [#9340](https://github.com/QwikDev/qwik/pull/9340))
+
+- 🐞🩹 the TypeScript optimizer now handles destructured props used as JSX tags or shadowed by a local of the same name (by [@maiieul](https://github.com/maiieul) in [#9127](https://github.com/QwikDev/qwik/pull/9127))
+
 ## 2.0.0-rc.4
 
 ### Minor Changes

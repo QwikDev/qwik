@@ -3744,42 +3744,10 @@ export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 > Use `Readonly<Signal<T>>` instead.
 
 ```typescript
-export interface ReadonlySignal<T = unknown>
+export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-value
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-T
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [Signal](#signal)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 

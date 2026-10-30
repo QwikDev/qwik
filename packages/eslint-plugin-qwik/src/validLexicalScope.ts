@@ -471,7 +471,7 @@ function isSymbolCapturable(
 
 /**
  * Returns the `value` property symbol if `type` is Signal-shaped — i.e. its own symbol name ends
- * with `Signal` (e.g. `Signal`, `ReadonlySignal`), or its `value` property is declared on an
+ * with `Signal` (e.g. `Signal`, `ComputedSignal`), or its `value` property is declared on an
  * interface whose name ends with `Signal`. The latter covers TS utility wrappers such as
  * `Readonly<Signal<T>>` / `Pick<Signal<T>, 'value'>` and user interfaces extending `Signal`, which
  * produce synthetic symbol names that the simple name check would miss.

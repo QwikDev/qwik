@@ -1055,10 +1055,7 @@ export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
 export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 
 // @public @deprecated (undocumented)
-export interface ReadonlySignal<T = unknown> {
-    // (undocumented)
-    readonly value: T;
-}
+export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 
 // Warning: (ae-forgotten-export) The symbol "InternalServerComponent" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SSRRevealSlotProps" needs to be exported by the entry point index.d.ts

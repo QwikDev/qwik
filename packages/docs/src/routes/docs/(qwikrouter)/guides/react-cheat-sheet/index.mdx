@@ -372,6 +372,144 @@ export const DebouncedInput = component$(() => {
 });
 ```
 
+## Controlled and uncontrolled inputs
+
+### ⚛️ From React
+
+```tsx
+export function Terms() {
+  const [accepted, setAccepted] = useState(false);
+  return (
+    <>
+      {/* Uncontrolled: `defaultChecked` only sets the starting value */}
+      <input type="checkbox" defaultChecked={true} />
+
+      {/* Controlled: React keeps the input in sync with the state */}
+      <input
+        type="checkbox"
+        checked={accepted}
+        onChange={(e) => setAccepted(e.target.checked)}
+      />
+    </>
+  );
+}
+```
+
+### ⚡️ To Qwik
+
+```tsx
+export const Terms = component$(() => {
+  const accepted = useSignal(false);
+  return (
+    <>
+      {/* Uncontrolled: works like plain HTML, `checked` is only the starting value */}
+      <input type="checkbox" checked={true} />
+
+      {/* One-way: the input follows the signal, and the handler updates the signal */}
+      <input
+        type="checkbox"
+        checked={accepted.value}
+        onChange$={(_, el) => (accepted.value = el.checked)}
+      />
+
+      {/* Two-way: `bind:checked` is shorthand for the input above */}
+      <input type="checkbox" bind:checked={accepted} />
+    </>
+  );
+});
+```
+
+<details>
+  <summary style={{color: "#17ADF5"}}>Why is there no defaultChecked or defaultValue in Qwik?</summary>
+  <p>In React, setting <code>value</code> or <code>checked</code> without an <code>onChange</code> handler makes the input read-only, because React puts the input back to match its state after every change. That's why React needs separate <code>defaultValue</code> and <code>defaultChecked</code> props for uncontrolled inputs.</p>
+  <p>Qwik doesn't re-render to keep the DOM in sync. It only updates the input when a signal it reads changes, so a plain <code>value</code> or <code>checked</code> works just like the HTML attribute: it sets the starting value, and the user can change it freely. To control an input, read a signal and update it from an event handler, or use the <a href="https://qwik.dev/docs/core/rendering/#bind-attribute">bind attribute</a>.</p>
+</details>
+
+## Controlled and uncontrolled reusable components
+
+### ⚛️ From React
+
+```tsx
+interface ToggleProps {
+  defaultOpen?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function Toggle({ defaultOpen = false, open, onOpenChange }: ToggleProps) {
+  const [localOpen, setLocalOpen] = useState(defaultOpen);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : localOpen;
+
+  return (
+    <button
+      aria-pressed={isOpen}
+      onClick={() => {
+        if (!isControlled) setLocalOpen(!isOpen);
+        onOpenChange?.(!isOpen);
+      }}
+    >
+      {isOpen ? 'Open' : 'Closed'}
+    </button>
+  );
+}
+
+export function Parent() {
+  const [open, setOpen] = useState(true);
+  return (
+    <>
+      <Toggle defaultOpen={true} />
+      <Toggle open={open} onOpenChange={setOpen} />
+      <p>The second toggle is {open ? 'open' : 'closed'}</p>
+    </>
+  );
+}
+```
+
+### ⚡️ To Qwik
+
+```tsx
+interface ToggleProps {
+  open?: boolean;
+  'bind:open'?: Signal<boolean>;
+  onChange$?: QRL<(open: boolean) => void>;
+}
+
+export const Toggle = component$<ToggleProps>((props) => {
+  const localOpen = useSignal(props.open ?? false);
+  const isOpen = props['bind:open'] ?? localOpen;
+
+  return (
+    <button
+      aria-pressed={isOpen.value}
+      onClick$={() => {
+        isOpen.value = !isOpen.value;
+        props.onChange$?.(isOpen.value);
+      }}
+    >
+      {isOpen.value ? 'Open' : 'Closed'}
+    </button>
+  );
+});
+
+export const Parent = component$(() => {
+  const isOpen = useSignal(true);
+  return (
+    <>
+      <Toggle open={true} />
+      <Toggle bind:open={isOpen} />
+      <p>The second toggle is {isOpen.value ? 'open' : 'closed'}</p>
+    </>
+  );
+});
+```
+
+<details>
+  <summary style={{color: "#17ADF5"}}>How does bind:open work on my own component?</summary>
+  <p>Qwik only turns <code>bind:</code> into a property and an event handler on native elements like <code>input</code>. On your own components, <code>bind:open</code> is passed as a regular prop named <code>'bind:open'</code> that holds the signal, so the component can read and write it directly.</p>
+  <p>Following the same pattern as native inputs keeps your component APIs consistent: <code>open</code> sets the starting value, <code>bind:open</code> keeps a parent signal in sync both ways, and <code>onChange$</code> lets the parent react to changes.</p>
+</details>
+
 ## Change background color randomly every button click
 
 ### ⚛️ From React

@@ -37,6 +37,8 @@ export interface DevInfoSourcePosition {
   source: string;
   bodyOriginOffset: number;
   wrapperPrefixLen: number;
+  /** Source offsets of the JSX the body keeps, ascending; rewrites shift the body's own offsets. */
+  jsxSourceStarts?: readonly number[];
 }
 
 export interface DevSuffixOptions {
@@ -912,6 +914,50 @@ export interface TransformAllJsxOptions {
   precomputedScopeBindings?: ScopeAwareCollectResult;
 }
 
+function collectJsxStarts(program: AstProgram): number[] {
+  const starts: number[] = [];
+  const visit = (node: AstNode): void => {
+    if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
+      starts.push(node.start);
+    }
+    forEachAstChild(node, visit);
+  };
+  visit(program);
+  return starts.sort((a, b) => a - b);
+}
+
+const JSX_TAG_NAME = /[^\s/>{<]*/y;
+
+/** Tag name after `<`, empty for a fragment. */
+function readJsxTagName(text: string, start: number): string {
+  JSX_TAG_NAME.lastIndex = start + 1;
+  return JSX_TAG_NAME.exec(text)?.[0] ?? '';
+}
+
+/** Maps rewritten JSX starts to source starts; undefined when the tags differ. */
+function pairJsxSourceStarts(
+  program: AstProgram,
+  bodySource: string,
+  sourcePosition: DevInfoSourcePosition | undefined
+): Map<number, number> | undefined {
+  const jsxSourceStarts = sourcePosition?.jsxSourceStarts;
+  if (!jsxSourceStarts) {
+    return undefined;
+  }
+  const nodeStarts = collectJsxStarts(program);
+  const isSameJsx =
+    nodeStarts.length === jsxSourceStarts.length &&
+    nodeStarts.every(
+      (nodeStart, index) =>
+        readJsxTagName(bodySource, nodeStart) ===
+        readJsxTagName(sourcePosition.source, jsxSourceStarts[index])
+    );
+  if (!isSameJsx) {
+    return undefined;
+  }
+  return new Map(nodeStarts.map((nodeStart, index) => [nodeStart, jsxSourceStarts[index]]));
+}
+
 export function transformAllJsx(
   input: TransformAllJsxInput,
   opts: TransformAllJsxOptions = {}
@@ -971,14 +1017,22 @@ export function transformAllJsx(
     }
   }
 
+  const jsxSourceStartByNodeStart = pairJsxSourceStarts(
+    program,
+    source,
+    devOptions?.sourcePosition
+  );
+
   function getDevSourceSuffix(nodeStart: number): string {
     if (!devOptions || !lineStarts) {
       return '';
     }
-    const effectiveOffset = devOptions.sourcePosition
-      ? devOptions.sourcePosition.bodyOriginOffset +
-        (nodeStart - devOptions.sourcePosition.wrapperPrefixLen)
-      : nodeStart;
+    const sourcePosition = devOptions.sourcePosition;
+    const effectiveOffset =
+      jsxSourceStartByNodeStart?.get(nodeStart) ??
+      (sourcePosition
+        ? sourcePosition.bodyOriginOffset + (nodeStart - sourcePosition.wrapperPrefixLen)
+        : nodeStart);
     let lo = 0,
       hi = lineStarts.length - 1;
     while (lo < hi) {

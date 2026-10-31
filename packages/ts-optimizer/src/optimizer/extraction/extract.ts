@@ -76,6 +76,8 @@ export interface ExtractionBase {
   readonly argEnd: ByteOffset;
 
   readonly bodyText: BodyText;
+  /** Source offsets of the JSX this body keeps once nested segments are extracted, ascending. */
+  readonly jsxStarts?: readonly number[];
 
   readonly calleeName: string;
   readonly isBare: boolean;
@@ -288,6 +290,7 @@ type ActiveSegmentBody = {
    */
   result: ExtractedSegmentBuilder;
   hasJsx: boolean;
+  jsxStarts?: number[];
   /**
    * When set, the outer walk accumulates referenced Identifier names here as it descends. On
    * `leave`, `segmentImports` is computed from this set instead of re-walking the body — avoids an
@@ -717,6 +720,7 @@ export function createExtractionCollector(
         if (activeTop.hasJsx) {
           activeTop.result.extension = extensionFromSegmentJsx(true, sourceExt);
         }
+        activeTop.result.jsxStarts = activeTop.jsxStarts;
         if (activeTop.bodyIds) {
           activeTop.result.segmentImports = filterImportsByIds(activeTop.bodyIds, imports);
         }
@@ -754,9 +758,17 @@ export function createExtractionCollector(
       }
 
       if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
-        for (const seg of ctx.activeSegmentBodies) {
-          if (!seg.hasJsx && nodeContainedIn(node, seg.root)) {
-            seg.hasJsx = true;
+        let isOwnerFound = false;
+        for (let i = ctx.activeSegmentBodies.length - 1; i >= 0; i--) {
+          const seg = ctx.activeSegmentBodies[i];
+          if (!nodeContainedIn(node, seg.root)) {
+            continue;
+          }
+          seg.hasJsx = true;
+          // Only the innermost body keeps this JSX once segments are extracted.
+          if (!isOwnerFound) {
+            (seg.jsxStarts ??= []).push(node.start);
+            isOwnerFound = true;
           }
         }
       }

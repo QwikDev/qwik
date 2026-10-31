@@ -13,7 +13,8 @@ vi.mock('@qwik.dev/core/internal', async (importOriginal) => ({
   },
 }));
 
-vi.mock('./request-event-core', () => ({
+vi.mock('./request-event-core', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./request-event-core')>()),
   createRequestEvent: mocks.createRequestEvent,
 }));
 
@@ -23,6 +24,7 @@ vi.mock('./async-request-store', () => ({
   },
 }));
 
+import { RedirectMessage } from './redirect-handler';
 import { ServerError } from './server-error';
 import { runQwikRouter } from './user-response';
 import type { ServerRequestEvent } from './types';
@@ -96,32 +98,44 @@ describe('runQwikRouter', () => {
     };
     mocks.createRequestEvent.mockReturnValue(requestEv);
 
-    await runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/').completion;
+    const completion = await runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/')
+      .completion;
 
-    return { html: written.join(''), writer };
+    return { completion, html: written.join(''), writer };
   };
 
-  it('finishes, logs and shows an error that is thrown after the response started in dev', async () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('finishes and shows an error that is thrown after the response started in dev', async () => {
+    const { completion, html, writer } = await failAfterResponseStarted();
 
-    try {
-      const { html, writer } = await failAfterResponseStarted();
-
-      expect(html).toContain('boom');
-      expect(writer.close).toHaveBeenCalled();
-      expect(consoleError).toHaveBeenCalledWith(expect.objectContaining({ message: 'boom' }));
-    } finally {
-      consoleError.mockRestore();
-    }
+    expect(html).toContain('boom');
+    expect(writer.close).toHaveBeenCalled();
+    expect(completion).toEqual(expect.objectContaining({ message: 'boom' }));
   });
 
   it('keeps the generic error page in production when SSR fails after the response started', async () => {
     mocks.isDev = false;
 
-    const { html } = await failAfterResponseStarted();
+    const { completion, html } = await failAfterResponseStarted();
 
     expect(html).toContain('Internal Server Error');
     expect(html).not.toContain('boom');
+    expect(completion).toEqual(expect.objectContaining({ message: 'boom' }));
+  });
+
+  it('resolves completion with nothing for a redirect', async () => {
+    const requestEv = {
+      originalUrl: new URL('http://localhost/'),
+      next: vi.fn(async () => {
+        throw new RedirectMessage();
+      }),
+      getWritableStream: vi.fn(() => ({ close: vi.fn() })),
+      isDirty: () => true,
+    };
+    mocks.createRequestEvent.mockReturnValue(requestEv);
+
+    const run = runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/');
+
+    await expect(run.completion).resolves.toBeUndefined();
   });
 
   it.each(['application/json', 'text/html'])(
@@ -132,6 +146,7 @@ describe('runQwikRouter', () => {
         request: new Request('http://localhost/members/', { headers: { Accept: accept } }),
         headers: new Headers({ 'Cache-Control': 'public, max-age=60' }),
         headersSent: false,
+        sharedMap: new Map(),
         next: vi.fn(async () => {
           throw new ServerError(403, 'Members only');
         }),
@@ -141,7 +156,9 @@ describe('runQwikRouter', () => {
       };
       mocks.createRequestEvent.mockReturnValue(requestEv);
 
-      await runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/').completion;
+      await expect(
+        runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/').completion
+      ).resolves.toBeUndefined();
 
       expect(requestEv.send.mock.calls.length + requestEv.html.mock.calls.length).toBe(1);
       expect(requestEv.headers.get('Cache-Control')).toBe('no-store');

@@ -5,6 +5,7 @@ import {
   resolveRequestHandlers,
 } from '../middleware/request-handler/resolve-request-handlers-core';
 import { trimInternalPathname } from '../middleware/request-handler/request-path';
+import { ServerError } from '../middleware/request-handler/server-error';
 import { runQwikRouter } from '../middleware/request-handler/user-response';
 import { loadRoute } from '../runtime/src/routing';
 import type { SsgHandlerOptions, SsgWorkerRenderResult, System } from './types';
@@ -61,13 +62,13 @@ const createRender = ({ earlyCatch = false, lateCatch = false } = {}) =>
     };
   });
 
-function renderRoute(sys: System, render: any) {
+function renderRoute(sys: System, render: any, routeModule: object = { default: () => null }) {
   const opts: SsgHandlerOptions = {
     outDir: '/out',
     origin: 'https://example.com',
     render,
     qwikRouterConfig: {
-      routes: { _I: async () => ({ default: () => null }) },
+      routes: { _I: async () => routeModule },
       serverPlugins: undefined,
       cacheModules: false,
       basePathname: '/',
@@ -94,6 +95,35 @@ describe('SSG worker error boundary handling', () => {
     expect(result.error).toBeNull();
     expect(result.filePath).toBe('/out/index.html');
     expect(written.get('/out/index.html')?.join('')).toContain('q:container');
+  });
+
+  it('a ServerError fails the route', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { sys, written } = createSystem();
+    const render = vi.fn(async () => {
+      throw new ServerError(404, 'No such page');
+    });
+
+    const result = await renderRoute(sys, render);
+
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toBe('No such page');
+    expect(written.size).toBe(0);
+  });
+
+  it('a redirect writes nothing and is not an error', async () => {
+    const { sys, written } = createSystem();
+
+    const result = await renderRoute(sys, createRender(), {
+      default: () => null,
+      onGet: (ev: any) => {
+        throw ev.redirect(302, '/elsewhere');
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBeNull();
+    expect(written.size).toBe(0);
   });
 
   it('a boundary caught before the first flush fails the route', async () => {

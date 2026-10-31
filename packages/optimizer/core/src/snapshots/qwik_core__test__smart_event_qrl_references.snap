@@ -1,0 +1,345 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+import { $, component$, useSignal } from '@qwik.dev/core';
+import { openFeature } from './heavy-feature';
+
+function invoke(callback) {
+  return callback();
+}
+function useCustomHook(callback) {
+  return invoke(callback);
+}
+function Consumer(props) {
+  return props.onClick$();
+}
+
+export const App = component$(() => {
+  const count = useSignal(0);
+  const click = $(() => openFeature(count.value));
+  const wrapped = $(() => openFeature(count.value));
+  const render = $(() => count.value);
+  const hookRead = $(() => count.value);
+  const mixed = $(() => count.value);
+  const custom = $(() => count.value);
+  render();
+  useCustomHook(hookRead);
+  mixed();
+  return (
+    <>
+      <button onClick$={click}>direct</button>
+      <button onClick$={wrapped}>wrapped</button>
+      <button onClick$={mixed}>mixed</button>
+      <Consumer onClick$={custom} />
+    </>
+  );
+});
+
+============================= test.tsx_App_component_mixed_uq5CXKicshI.js ==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const s_uq5CXKicshI = ()=>{
+    let count = _capturesObj._[0];
+    return count.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6BAmBkB;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_uq5CXKicshI",
+  "entry": "test.tsx_entry_App",
+  "displayName": "test.tsx_App_component_mixed",
+  "hash": "uq5CXKicshI",
+  "canonicalFilename": "test.tsx_App_component_mixed_uq5CXKicshI",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    550,
+    567
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_s_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "s_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(q_s_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAaA,OAAO,MAAM,oBAAM,8BAmBhB\"}")
+============================= test.tsx_App_component_custom_62lfzFTntzw.js ==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const s_62lfzFTntzw = ()=>{
+    let count = _capturesObj._[0];
+    return count.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6BAoBmB;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_62lfzFTntzw",
+  "entry": "test.tsx_entry_App",
+  "displayName": "test.tsx_App_component_custom",
+  "hash": "62lfzFTntzw",
+  "canonicalFilename": "test.tsx_App_component_custom_62lfzFTntzw",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    589,
+    606
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.tsx_App_component_wrapped_XMnVMnQ4y0E.js ==
+
+import { _capturesObj } from "@qwik.dev/core";
+import { openFeature } from "./heavy-feature";
+//
+export const s_XMnVMnQ4y0E = ()=>{
+    let count = _capturesObj._[0];
+    return openFeature(count.value);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6BAgBoB;;WAAM,YAAY,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_XMnVMnQ4y0E",
+  "entry": "segment_XMnVMnQ4y0E",
+  "displayName": "test.tsx_App_component_wrapped",
+  "hash": "XMnVMnQ4y0E",
+  "canonicalFilename": "test.tsx_App_component_wrapped_XMnVMnQ4y0E",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    419,
+    449
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.tsx_App_component_hookRead_Sz0TYDazZnE.js ==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const s_Sz0TYDazZnE = ()=>{
+    let count = _capturesObj._[0];
+    return count.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6BAkBqB;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_Sz0TYDazZnE",
+  "entry": "test.tsx_entry_App",
+  "displayName": "test.tsx_App_component_hookRead",
+  "hash": "Sz0TYDazZnE",
+  "canonicalFilename": "test.tsx_App_component_hookRead_Sz0TYDazZnE",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    512,
+    529
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.tsx_App_component_click_0Z0APcS8nqU.js ==
+
+import { _capturesObj } from "@qwik.dev/core";
+import { openFeature } from "./heavy-feature";
+//
+export const s_0Z0APcS8nqU = ()=>{
+    let count = _capturesObj._[0];
+    return openFeature(count.value);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6BAekB;;WAAM,YAAY,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_0Z0APcS8nqU",
+  "entry": "segment_0Z0APcS8nqU",
+  "displayName": "test.tsx_App_component_click",
+  "hash": "0Z0APcS8nqU",
+  "canonicalFilename": "test.tsx_App_component_click_0Z0APcS8nqU",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    366,
+    396
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.tsx_App_component_render_FoKC0yW9nK4.js ==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const s_FoKC0yW9nK4 = ()=>{
+    let count = _capturesObj._[0];
+    return count.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6BAiBmB;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_FoKC0yW9nK4",
+  "entry": "test.tsx_entry_App",
+  "displayName": "test.tsx_App_component_render",
+  "hash": "FoKC0yW9nK4",
+  "canonicalFilename": "test.tsx_App_component_render_FoKC0yW9nK4",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    471,
+    488
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js ==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+function invoke(callback) {
+    return callback();
+}
+function useCustomHook(callback) {
+    return invoke(callback);
+}
+function Consumer(props) {
+    return props.onClick$();
+}
+//
+const q_s_0Z0APcS8nqU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_click_0Z0APcS8nqU"), "s_0Z0APcS8nqU");
+const q_s_62lfzFTntzw = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_custom_62lfzFTntzw"), "s_62lfzFTntzw");
+const q_s_FoKC0yW9nK4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_render_FoKC0yW9nK4"), "s_FoKC0yW9nK4");
+const q_s_Sz0TYDazZnE = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_hookRead_Sz0TYDazZnE"), "s_Sz0TYDazZnE");
+const q_s_XMnVMnQ4y0E = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_wrapped_XMnVMnQ4y0E"), "s_XMnVMnQ4y0E");
+const q_s_uq5CXKicshI = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_mixed_uq5CXKicshI"), "s_uq5CXKicshI");
+//
+export const s_ckEPmXZlub0 = ()=>{
+    const count = useSignal(0);
+    const click = q_s_0Z0APcS8nqU.w([
+        count
+    ]);
+    const wrapped = q_s_XMnVMnQ4y0E.w([
+        count
+    ]);
+    const render = q_s_FoKC0yW9nK4.w([
+        count
+    ]);
+    const hookRead = q_s_Sz0TYDazZnE.w([
+        count
+    ]);
+    const mixed = q_s_uq5CXKicshI.w([
+        count
+    ]);
+    const custom = q_s_62lfzFTntzw.w([
+        count
+    ]);
+    render();
+    useCustomHook(hookRead);
+    mixed();
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": click
+        }, "direct", 3, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": wrapped
+        }, "wrapped", 3, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": mixed
+        }, "mixed", 3, null),
+        /*#__PURE__*/ _jsxSorted(Consumer, null, {
+            onClick$: custom
+        }, null, 3, "u6_0")
+    ], 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,SAAS,OAAO,QAAQ;IACtB,OAAO;AACT;AACA,SAAS,cAAc,QAAQ;IAC7B,OAAO,OAAO;AAChB;AACA,SAAS,SAAS,KAAK;IACrB,OAAO,MAAM,QAAQ;AACvB;;;;;;;;;6BAE8B;IAC5B,MAAM,QAAQ,UAAU;IACxB,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN;IACA,cAAc;IACd;IACA,qBACE;sBACE,WAAC;YAAO,aAAU;WAAO;sBACzB,WAAC;YAAO,aAAU;WAAS;sBAC3B,WAAC;YAAO,aAAU;WAAO;sBACzB,WAAC;YAAS,UAAU;;;AAG1B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_ckEPmXZlub0",
+  "entry": "test.tsx_entry_App",
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    310,
+    871
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

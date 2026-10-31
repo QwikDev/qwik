@@ -1,0 +1,214 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+import { $, component$, useSignal, _jsxSorted } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const count = useSignal(0);
+  const View = $(() => <span>{count.value}</span>);
+  const getter = $(() => count.value);
+  const click = $(() => count.value++);
+  return (
+    <>
+      <button onClick$={click}>event only</button>
+      <button onClick$={View}>also a tag</button>
+      <View />
+      {_jsxSorted(
+        'button',
+        null,
+        {
+          get 'q-e:click'() {
+            getter();
+            return getter;
+          },
+        },
+        'getter',
+        3,
+        null
+      )}
+    </>
+  );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_s_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "s_ckEPmXZlub0");
+//
+export const App = /*#__PURE__*/ componentQrl(q_s_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,oBAAM,8BAyBhB\"}")
+============================= test.tsx_App_component_View_lXnYJQT0fIM.js ==
+
+import { _capturesObj } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+//
+export const s_lXnYJQT0fIM = ()=>{
+    let count = _capturesObj._[0];
+    return /*#__PURE__*/ _jsxSorted("span", null, null, _wrapProp(count), 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6BAIiB;;yBAAM,WAAC,8BAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_lXnYJQT0fIM",
+  "entry": "test.tsx_entry_App",
+  "displayName": "test.tsx_App_component_View",
+  "hash": "lXnYJQT0fIM",
+  "canonicalFilename": "test.tsx_App_component_View_lXnYJQT0fIM",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    158,
+    190
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.tsx_App_component_click_0Z0APcS8nqU.js ==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const s_0Z0APcS8nqU = ()=>{
+    let count = _capturesObj._[0];
+    return count.value++;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6BAMkB;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_0Z0APcS8nqU",
+  "entry": "segment_0Z0APcS8nqU",
+  "displayName": "test.tsx_App_component_click",
+  "hash": "0Z0APcS8nqU",
+  "canonicalFilename": "test.tsx_App_component_click_0Z0APcS8nqU",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    250,
+    269
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js ==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+//
+const q_s_0Z0APcS8nqU = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_click_0Z0APcS8nqU"), "s_0Z0APcS8nqU");
+const q_s_MfcD0P2z4cE = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_getter_MfcD0P2z4cE"), "s_MfcD0P2z4cE");
+const q_s_lXnYJQT0fIM = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_View_lXnYJQT0fIM"), "s_lXnYJQT0fIM");
+//
+export const s_ckEPmXZlub0 = ()=>{
+    const count = useSignal(0);
+    const View = q_s_lXnYJQT0fIM.w([
+        count
+    ]);
+    const getter = q_s_MfcD0P2z4cE.w([
+        count
+    ]);
+    const click = q_s_0Z0APcS8nqU.w([
+        count
+    ]);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": click
+        }, "event only", 3, null),
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": View
+        }, "also a tag", 3, null),
+        /*#__PURE__*/ _jsxSorted(View, null, null, null, 3, "u6_1"),
+        _jsxSorted('button', null, {
+            get 'q-e:click' () {
+                getter();
+                return getter;
+            }
+        }, 'getter', 3, null)
+    ], 1, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;6BAE8B;IAC5B,MAAM,QAAQ,UAAU;IACxB,MAAM;;;IACN,MAAM;;;IACN,MAAM;;;IACN,qBACE;sBACE,WAAC;YAAO,aAAU;WAAO;sBACzB,WAAC;YAAO,aAAU;WAAM;sBACxB,WAAC;QACA,WACC,UACA,MACA;YACE,IAAI,eAAc;gBAChB;gBACA,OAAO;YACT;QACF,GACA,UACA,GACA;;AAIR\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_ckEPmXZlub0",
+  "entry": "test.tsx_entry_App",
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    103,
+    635
+  ]
+}
+*/
+============================= test.tsx_App_component_getter_MfcD0P2z4cE.js ==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const s_MfcD0P2z4cE = ()=>{
+    let count = _capturesObj._[0];
+    return count.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6BAKmB;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_MfcD0P2z4cE",
+  "entry": "test.tsx_entry_App",
+  "displayName": "test.tsx_App_component_getter",
+  "hash": "MfcD0P2z4cE",
+  "canonicalFilename": "test.tsx_App_component_getter_MfcD0P2z4cE",
+  "path": "",
+  "extension": "js",
+  "parent": "s_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    212,
+    229
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

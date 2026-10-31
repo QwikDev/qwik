@@ -162,6 +162,133 @@ fn smart_lifted_event_captures() {
 }
 
 #[test]
+fn smart_event_qrl_alias_consumers() {
+	for (event, render, separated) in [
+		("alias", "", true),
+		("(alias)", "", true),
+		("[alias]", "", true),
+		("enabled ? alias : alias", "", true),
+		("() => alias()", "", true),
+		("alias", "alias();", false),
+		("alias", "unknown(alias);", false),
+		(
+			"alias",
+			"const View = alias; const rendered = <View />; consume(rendered);",
+			false,
+		),
+	] {
+		let output = test_input_fn(TestInput {
+			code: format!(
+				r#"
+import {{ $ as defer, component$, useSignal }} from '@qwik.dev/core';
+export const App = component$(() => {{
+  const count = useSignal(0);
+  const click = defer(() => count.value++);
+  const alias = click;
+  {render}
+  return <button onClick$={{{event}}} />;
+}});"#
+			),
+			entry_strategy: EntryStrategy::Smart,
+			transpile_ts: true,
+			transpile_jsx: true,
+			mode: EmitMode::Prod,
+			..TestInput::default()
+		})
+		.unwrap();
+		let callback = output
+			.modules
+			.iter()
+			.filter_map(|module| module.segment.as_ref())
+			.find(|segment| segment.display_name == "test.tsx_App_component_click")
+			.unwrap();
+		assert_eq!(
+			callback
+				.entry
+				.as_ref()
+				.is_some_and(|entry| entry.as_ref() == format!("segment_{}", callback.hash)),
+			separated,
+			"{event} {render}"
+		);
+	}
+}
+
+#[test]
+fn smart_event_qrl_render_consumers() {
+	let code = include_str!("fixtures/smart-event-qrl-render-consumers.tsx").to_string();
+	let result = test_input_fn(TestInput {
+		code: code.clone(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+	let output = result.as_ref().unwrap();
+	let segments: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.collect();
+	let parent = segments
+		.iter()
+		.find(|segment| segment.ctx_name == "component$")
+		.unwrap();
+	for name in ["View", "getter"] {
+		let segment = segments
+			.iter()
+			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
+			.unwrap();
+		assert_eq!(segment.entry, parent.entry, "{name}");
+	}
+	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
+}
+
+#[test]
+fn smart_event_qrl_references() {
+	let code = include_str!("fixtures/smart-event-qrl-references.tsx").to_string();
+	let result = test_input_fn(TestInput {
+		code: code.clone(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+	let output = result.as_ref().unwrap();
+	for (name, is_event_only) in [
+		("click", true),
+		("wrapped", true),
+		("render", false),
+		("hookRead", false),
+		("mixed", false),
+		("custom", false),
+	] {
+		let segment = output
+			.modules
+			.iter()
+			.filter_map(|module| module.segment.as_ref())
+			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
+			.unwrap();
+		if is_event_only {
+			assert_eq!(
+				segment.entry.as_ref().unwrap(),
+				&format!("segment_{}", segment.hash),
+				"{name}"
+			);
+		} else {
+			assert_eq!(
+				segment.entry.as_deref(),
+				Some("test.tsx_entry_App"),
+				"{name}"
+			);
+		}
+		assert_eq!(segment.ctx_kind, SegmentKind::Function);
+	}
+	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
+}
+
+#[test]
 fn example_1() {
 	test_input!(TestInput {
 		code: r#"

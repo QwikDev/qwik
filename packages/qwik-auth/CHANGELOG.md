@@ -1,5 +1,11 @@
 # @builder.io/qwik-auth
 
+## 0.2.4
+
+### Patch Changes
+
+- 🐞🩹 require dependency versions that address published security advisories (by [@wmertens](https://github.com/wmertens) in [#9297](https://github.com/QwikDev/qwik/pull/9297))
+
 ## 0.2.3
 
 ### Patch Changes

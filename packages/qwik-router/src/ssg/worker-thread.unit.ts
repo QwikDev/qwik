@@ -62,7 +62,12 @@ const createRender = ({ earlyCatch = false, lateCatch = false } = {}) =>
     };
   });
 
-function renderRoute(sys: System, render: any, routeModule: object = { default: () => null }) {
+function renderRoute(
+  sys: System,
+  render: any,
+  routeModule: object = { default: () => null },
+  pathname = '/'
+) {
   const opts: SsgHandlerOptions = {
     outDir: '/out',
     origin: 'https://example.com',
@@ -76,7 +81,7 @@ function renderRoute(sys: System, render: any, routeModule: object = { default: 
     } as any,
   };
   return new Promise<SsgWorkerRenderResult>((resolve, reject) => {
-    workerRender(sys, opts, { pathname: '/', params: undefined }, new Set(), resolve, deps).catch(
+    workerRender(sys, opts, { pathname, params: undefined }, new Set(), resolve, deps).catch(
       reject
     );
   });
@@ -97,35 +102,6 @@ describe('SSG worker error boundary handling', () => {
     expect(written.get('/out/index.html')?.join('')).toContain('q:container');
   });
 
-  it('a ServerError fails the route', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    const { sys, written } = createSystem();
-    const render = vi.fn(async () => {
-      throw new ServerError(404, 'No such page');
-    });
-
-    const result = await renderRoute(sys, render);
-
-    expect(result.ok).toBe(false);
-    expect(result.error?.message).toBe('No such page');
-    expect(written.size).toBe(0);
-  });
-
-  it('a redirect writes nothing and is not an error', async () => {
-    const { sys, written } = createSystem();
-
-    const result = await renderRoute(sys, createRender(), {
-      default: () => null,
-      onGet: (ev: any) => {
-        throw ev.redirect(302, '/elsewhere');
-      },
-    });
-
-    expect(result.ok).toBe(false);
-    expect(result.error).toBeNull();
-    expect(written.size).toBe(0);
-  });
-
   it('a boundary caught before the first flush fails the route', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const { sys } = createSystem();
@@ -144,5 +120,53 @@ describe('SSG worker error boundary handling', () => {
     expect(result.ok).toBe(false);
     expect(result.error?.message).toContain('Catch');
     expect(result.filePath).toBeNull();
+  });
+});
+
+describe('SSG worker route failures', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('a ServerError fails the route', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { sys, written } = createSystem();
+    const render = vi.fn(async () => {
+      throw new ServerError(404, 'No such page');
+    });
+
+    const result = await renderRoute(sys, render);
+
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toBe('No such page');
+    expect(written.size).toBe(0);
+  });
+
+  it('a malformed URL fails the route', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { sys, written } = createSystem();
+    const render = createRender();
+
+    const result = await renderRoute(sys, render, undefined, '//x//');
+
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toBe('Resource Not Found');
+    expect(render).not.toHaveBeenCalled();
+    expect(written.size).toBe(0);
+  });
+
+  it('a redirect writes nothing and is not an error', async () => {
+    const { sys, written } = createSystem();
+
+    const result = await renderRoute(sys, createRender(), {
+      default: () => null,
+      onGet: (ev: any) => {
+        throw ev.redirect(302, '/elsewhere');
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBeNull();
+    expect(written.size).toBe(0);
   });
 });

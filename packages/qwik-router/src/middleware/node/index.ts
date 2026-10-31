@@ -85,6 +85,7 @@ export function createQwikRouter(
         const err = await handled.completion;
         if (err) {
           if (res.headersSent && !res.writableEnded) {
+            res.destroy();
             res.end();
           }
           throw err;

@@ -60,7 +60,7 @@ describe('request failures through the node middleware', () => {
       headers: { accept: 'text/html' },
       redirect: 'manual',
     });
-    const body = await response.text();
+    const body = await response.text().catch(() => null);
     await Promise.all(handled);
 
     return { body, endedWhenNextRan, next, status: response.status };
@@ -116,7 +116,7 @@ describe('request failures through the node middleware', () => {
     expect(consoleError).toHaveBeenCalledWith(crash);
   });
 
-  it('ends a response a crash left open before calling next', async () => {
+  it('cuts off a response a crash left open before calling next', async () => {
     const crash = new Error('stream failed');
     routeState.module = {
       onGet: async (ev: RequestEvent) => {
@@ -129,7 +129,7 @@ describe('request failures through the node middleware', () => {
     const { body, endedWhenNextRan, next, status } = await request(renderNothing);
 
     expect(status).toBe(200);
-    expect(body).toBe('partial');
+    expect(body).toBeNull();
     expect(next).toHaveBeenCalledOnce();
     expect(next).toHaveBeenCalledWith(crash);
     expect(endedWhenNextRan).toEqual([true]);

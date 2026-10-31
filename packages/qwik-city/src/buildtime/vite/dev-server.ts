@@ -176,7 +176,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         const renderFn = async (requestEv: RequestEvent) => {
           // routeResult && requestEv.sharedMap.set('@routeName', routeResult.route.pathname);
           if (!isInternal) {
-            const serverData = getQwikCityServerData(requestEv);
+            const serverData = getQwikCityServerData(requestEv, true);
 
             res.statusCode = requestEv.status();
             requestEv.headers.forEach((value, key) => {

@@ -497,7 +497,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
     }
   }
 }
-export function renderQwikMiddleware(render: Render) {
+export function renderQwikMiddleware(render: Render, trustForwardedHeaders = false) {
   return async (requestEv: RequestEvent) => {
     if (requestEv.headersSent) {
       return;
@@ -522,7 +522,7 @@ export function renderQwikMiddleware(render: Render) {
     const status = requestEv.status();
     try {
       const isStatic = getRequestMode(requestEv) === 'static';
-      const serverData = getQwikCityServerData(requestEv);
+      const serverData = getQwikCityServerData(requestEv, trustForwardedHeaders);
       const result = await render({
         base: requestEv.basePathname + 'build/',
         stream,

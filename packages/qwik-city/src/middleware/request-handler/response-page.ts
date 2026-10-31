@@ -9,7 +9,29 @@ import {
   RequestRouteName,
 } from './request-event';
 
-export function getQwikCityServerData(requestEv: RequestEvent) {
+/** Client-controlled forwarded headers only override the URL when the proxy is trusted. */
+export function getServerDataUrl(
+  originalUrl: URL,
+  headers: Headers,
+  trustForwardedHeaders: boolean
+): string {
+  const url = new URL(originalUrl.pathname + originalUrl.search, originalUrl);
+  if (!trustForwardedHeaders) {
+    return url.href;
+  }
+  const host = headers.get('X-Forwarded-Host');
+  const protocol = headers.get('X-Forwarded-Proto');
+  if (host) {
+    url.port = '';
+    url.host = host;
+  }
+  if (protocol) {
+    url.protocol = protocol;
+  }
+  return url.href;
+}
+
+export function getQwikCityServerData(requestEv: RequestEvent, trustForwardedHeaders: boolean) {
   const { params, request, status, locale, originalUrl } = requestEv;
   const requestHeaders: Record<string, string> = {};
   request.headers.forEach((value, key) => (requestHeaders[key] = value));
@@ -18,20 +40,9 @@ export function getQwikCityServerData(requestEv: RequestEvent) {
   const formData = requestEv.sharedMap.get(RequestEvSharedActionFormData);
   const routeName = requestEv.sharedMap.get(RequestRouteName) as string;
   const nonce = requestEv.sharedMap.get(RequestEvSharedNonce);
-  const headers = requestEv.request.headers;
-  const reconstructedUrl = new URL(originalUrl.pathname + originalUrl.search, originalUrl);
-  const host = headers.get('X-Forwarded-Host')!;
-  const protocol = headers.get('X-Forwarded-Proto')!;
-  if (host) {
-    reconstructedUrl.port = '';
-    reconstructedUrl.host = host;
-  }
-  if (protocol) {
-    reconstructedUrl.protocol = protocol;
-  }
 
   return {
-    url: reconstructedUrl.href,
+    url: getServerDataUrl(originalUrl, request.headers, trustForwardedHeaders),
     requestHeaders,
     locale: locale(),
     nonce,

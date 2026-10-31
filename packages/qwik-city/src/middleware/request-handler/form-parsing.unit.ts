@@ -1,8 +1,94 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { formToObj } from './request-event';
 
 describe('formToObj', () => {
+  it('retains nested form paths linearly', () => {
+    const depth = 128;
+    const fd = new FormData();
+    fd.append(Array(depth).fill('a').join('.'), 'value');
+    const mapSet = vi.spyOn(Map.prototype, 'set');
+
+    const obj = formToObj(fd);
+    let retainedKeyCharacters = 0;
+    for (let i = 0; i < mapSet.mock.calls.length; i++) {
+      const key = mapSet.mock.calls[i][0];
+      if (typeof key === 'string') {
+        retainedKeyCharacters += key.length;
+      }
+    }
+    mapSet.mockRestore();
+
+    expect(retainedKeyCharacters).toBeLessThanOrEqual(depth);
+    let value = obj;
+    for (let i = 0; i < depth; i++) {
+      value = value.a;
+    }
+    expect(value).toBe('value');
+  });
+
   describe('Object prototype pollution', () => {
+    it.each([
+      ['string', '1'],
+      ['empty string', ''],
+      ['file', new File(['1'], 'test.txt')],
+    ])('does not traverse %s form values', (_, value) => {
+      const methods = [
+        Object.prototype.hasOwnProperty,
+        Object.prototype.toString,
+        String.prototype.toString,
+      ];
+      const originalCalls = methods.map((method) =>
+        Object.getOwnPropertyDescriptor(method, 'call')
+      );
+      const fd = new FormData();
+      fd.append('a', value);
+      fd.append('a.hasOwnProperty.call', 'x');
+      fd.append('a.toString.call', 'x');
+      fd.append('items[]', value);
+      fd.append('items.0.hasOwnProperty.call', 'x');
+      fd.append('items.0.toString.call', 'x');
+      fd.append('safe', 'ok');
+
+      let obj: Record<string, any>;
+      let actualCalls: (PropertyDescriptor | undefined)[];
+      try {
+        obj = formToObj(fd);
+        actualCalls = methods.map((method) => Object.getOwnPropertyDescriptor(method, 'call'));
+      } finally {
+        // Restore shared functions before assertions or test reporting.
+        methods.forEach((method, i) => {
+          const descriptor = originalCalls[i];
+          if (descriptor) {
+            Object.defineProperty(method, 'call', descriptor);
+          } else {
+            Reflect.deleteProperty(method, 'call');
+          }
+        });
+      }
+
+      expect(actualCalls).toEqual(originalCalls);
+      expect(obj.a).toBe(value);
+      expect(obj.items).toEqual([value]);
+      expect(obj.safe).toBe('ok');
+    });
+
+    it('ignores child fields of existing form values', () => {
+      const file = new File(['contents'], 'test.txt');
+      const fd = new FormData();
+      fd.append('a', '1');
+      fd.append('a.b', '2');
+      fd.append('file', file);
+      fd.append('file.name', 'changed.txt');
+      fd.append('safe', 'ok');
+
+      const obj = formToObj(fd);
+
+      expect(obj.a).toBe('1');
+      expect(obj.file).toBe(file);
+      expect(file.name).toBe('test.txt');
+      expect(obj.safe).toBe('ok');
+    });
+
     it('blocks __proto__ pollution via dotted notation', () => {
       delete (Object.prototype as any).polluted;
 

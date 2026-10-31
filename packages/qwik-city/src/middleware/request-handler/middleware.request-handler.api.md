@@ -199,6 +199,7 @@ export interface ServerRenderOptions extends RenderOptions {
     qwikCityPlan: QwikCityPlan;
     // (undocumented)
     render: Render;
+    trustForwardedHeaders?: boolean;
 }
 
 // @public

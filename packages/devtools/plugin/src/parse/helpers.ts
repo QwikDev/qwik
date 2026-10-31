@@ -77,15 +77,6 @@ export function isCustomHook(hookName: string): boolean {
 }
 
 // ============================================================================
-// Statement Utilities
-// ============================================================================
-
-/** Removes trailing semicolon and whitespace from a code segment */
-export function trimStatementSemicolon(segment: string): string {
-  return segment.trim().replace(/;?\s*$/, '');
-}
-
-// ============================================================================
 // Collecthook Injection Utilities
 // ============================================================================
 

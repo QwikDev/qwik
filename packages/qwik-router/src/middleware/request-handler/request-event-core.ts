@@ -46,6 +46,7 @@ export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
 export const RequestEvETagCacheKey = '@eTagCacheKey';
 export const RequestEvCaughtError = '@caughtError';
+export const RequestEvSentServerError = '@sentServerError';
 export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 
 export function createRequestEvent(

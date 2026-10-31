@@ -16,7 +16,7 @@ import type {
 } from '../../../runtime/src/types';
 import type { CacheControl } from '../types';
 import { defaultLoaderCacheKey, getCachedLoader, resolveCacheKey, setCachedLoader } from '../etag';
-import { performETagMatch, hash, normalizeETag, setETagHeader } from '../etag-hash';
+import { performETagMatch, hash, resolvePreETag, setETagHeader } from '../etag-hash';
 import type { RequestEventInternal } from '../request-event-core';
 import { IsQLoader, QLoaderId } from '../request-path';
 import { createLoaderRequestEventFactory } from './loader-request-event';
@@ -176,18 +176,6 @@ export function setRouteLoaderData(
     Object.assign(getRouteLoaderParams(requestEv), route.$loaderParams$);
   }
   setRouteLoaders(requestEv, routeLoaders);
-}
-
-/** Resolve eTag from a static string or function (before running the loader). */
-function resolvePreETag(
-  eTagOption: string | ((ev: RequestEvent) => string | null),
-  requestEv: RequestEvent
-): string {
-  if (typeof eTagOption === 'string') {
-    return normalizeETag(eTagOption);
-  }
-  const result = eTagOption(requestEv);
-  return result ? normalizeETag(result) : '';
 }
 
 async function sendLoaderResponse(

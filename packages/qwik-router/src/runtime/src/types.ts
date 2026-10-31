@@ -842,6 +842,9 @@ export type LoaderOptions = {
    * When set, the server includes an `ETag` header on `q-loader-*.json` responses and returns `304`
    * if the client sends a matching `If-None-Match` header.
    *
+   * With `serializationStrategy: 'never'`, the eTag is also sent with the page, so the first client
+   * fetch with the same eTag reuses the rendered data without re-running its subscribers.
+   *
    * For auto-computed eTags, use `cacheKey` instead — on cache write the eTag is hashed from the
    * serialized response and stored alongside it, so subsequent hits get the same eTag.
    */

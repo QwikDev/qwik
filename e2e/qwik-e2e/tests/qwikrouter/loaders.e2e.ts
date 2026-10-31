@@ -443,6 +443,39 @@ test.describe('loaders', () => {
       await expect(page.locator('#prop-unwrapped')).toHaveText('test');
     });
 
+    test('should not rerun loader subscribers when the first client fetch matches SSR', async ({
+      page,
+      javaScriptEnabled,
+    }) => {
+      test.skip(!javaScriptEnabled, 'needs client resume');
+      await page.goto('/qwikrouter-test/loaders/resume/');
+      await expect(page.locator('#resume-label')).toHaveText('label:same');
+
+      const qLoaderResponse = page.waitForResponse((r) => r.url().includes('/q-loader-'));
+      await page.locator('#resume-read').click();
+      await qLoaderResponse;
+      await expect.poll(() => page.evaluate(() => (window as any).__resumeRead)).toBe('same');
+
+      expect(await page.evaluate(() => (window as any).__resumeComputeRuns)).toBeUndefined();
+      await expect(page.locator('#resume-label')).toHaveText('label:same');
+    });
+
+    test('should rerun loader subscribers when the first client fetch differs from SSR', async ({
+      page,
+      javaScriptEnabled,
+    }) => {
+      test.skip(!javaScriptEnabled, 'needs client resume');
+      await page.goto('/qwikrouter-test/loaders/resume/?changed');
+      const ssrLabel = await page.locator('#resume-label').textContent();
+
+      const qLoaderResponse = page.waitForResponse((r) => r.url().includes('/q-loader-'));
+      await page.locator('#resume-read').click();
+      await qLoaderResponse;
+
+      await expect(page.locator('#resume-label')).not.toHaveText(ssrLabel!);
+      expect(await page.evaluate(() => (window as any).__resumeComputeRuns)).toBe(1);
+    });
+
     test('should modify ServerError in middleware', async ({ page }) => {
       const response = await page.goto('/qwikrouter-test/loaders/loader-error');
       const contentType = await response?.headerValue('Content-Type');

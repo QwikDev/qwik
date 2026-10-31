@@ -1,3 +1,4 @@
+import type { RequestEvent } from '../../runtime/src/types';
 import type { RequestEventInternal } from './request-event-core';
 
 /**
@@ -68,4 +69,16 @@ export function performETagMatch(
     }
   }
   return false;
+}
+
+/** Resolve eTag from a static string or function (before running the loader). */
+export function resolvePreETag(
+  eTagOption: string | ((ev: RequestEvent) => string | null),
+  requestEv: RequestEvent
+): string {
+  if (typeof eTagOption === 'string') {
+    return normalizeETag(eTagOption);
+  }
+  const result = eTagOption(requestEv);
+  return result ? normalizeETag(result) : '';
 }

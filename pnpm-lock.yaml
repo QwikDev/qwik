@@ -705,6 +705,9 @@ importers:
       '@mdx-js/mdx':
         specifier: ^3.1.1
         version: 3.1.1
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13

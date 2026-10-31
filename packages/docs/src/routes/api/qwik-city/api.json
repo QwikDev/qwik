@@ -306,7 +306,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.input<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
+      "content": "```typescript\nexport type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaV1.InferInput<TYPE> : VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.input<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
       "mdFile": "qwik-city.getvalidatorinputtype.md"
     },
@@ -320,7 +320,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.output<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
+      "content": "```typescript\nexport type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaV1.InferOutput<TYPE> : VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.output<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
       "mdFile": "qwik-city.getvalidatoroutputtype.md"
     },
@@ -829,6 +829,48 @@
       "mdFile": "qwik-city.serviceworkerregister.md"
     },
     {
+      "name": "standardSchema$",
+      "id": "standardschema_",
+      "hierarchy": [
+        {
+          "name": "standardSchema$",
+          "id": "standardschema_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nstandardSchema$: StandardSchemaConstructor\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.standardschema_.md"
+    },
+    {
+      "name": "StandardSchemaConstructor",
+      "id": "standardschemaconstructor",
+      "hierarchy": [
+        {
+          "name": "StandardSchemaConstructor",
+          "id": "standardschemaconstructor"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type StandardSchemaConstructor = {\n    <T extends StandardSchemaV1>(schema: T): StandardSchemaDataValidator<T>;\n    <T extends StandardSchemaV1>(schema: (ev: RequestEvent) => T): StandardSchemaDataValidator<T>;\n};\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
+      "mdFile": "qwik-city.standardschemaconstructor.md"
+    },
+    {
+      "name": "standardSchemaQrl",
+      "id": "standardschemaqrl",
+      "hierarchy": [
+        {
+          "name": "standardSchemaQrl",
+          "id": "standardschemaqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nstandardSchemaQrl: StandardSchemaConstructorQRL\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.standardschemaqrl.md"
+    },
+    {
       "name": "StaticGenerate",
       "id": "staticgenerate",
       "hierarchy": [
@@ -880,7 +922,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type TypedDataValidator = ValibotDataValidator | ZodDataValidator;\n```",
+      "content": "```typescript\nexport type TypedDataValidator = ValibotDataValidator | ZodDataValidator | StandardSchemaDataValidator;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
       "mdFile": "qwik-city.typeddatavalidator.md"
     },
@@ -967,6 +1009,20 @@
       "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nvalibot$: ValibotConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
       "mdFile": "qwik-city.valibot_.md"
+    },
+    {
+      "name": "ValibotConstructor",
+      "id": "valibotconstructor",
+      "hierarchy": [
+        {
+          "name": "ValibotConstructor",
+          "id": "valibotconstructor"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport type ValibotConstructor = {\n    <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: T): ValibotDataValidator<T>;\n    <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: (ev: RequestEvent) => T): ValibotDataValidator<T>;\n};\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
+      "mdFile": "qwik-city.valibotconstructor.md"
     },
     {
       "name": "valibotQrl",

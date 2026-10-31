@@ -1,7 +1,12 @@
 import { isDev } from '@qwik.dev/core';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type { ClientConn, ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
-import { isStaticPath, requestHandler } from '@qwik.dev/router/middleware/request-handler';
+import {
+  AbortMessage,
+  isStaticPath,
+  requestHandler,
+  ServerError,
+} from '@qwik.dev/router/middleware/request-handler';
 import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Http2ServerRequest } from 'node:http2';
@@ -84,6 +89,10 @@ export function createQwikRouter(
       if (handled) {
         const err = await handled.completion;
         if (handled.requestEv.headersSent) {
+          // Response is sent; still surface genuine failures for logging.
+          if (err && !(err instanceof AbortMessage) && !(err instanceof ServerError)) {
+            console.error(err);
+          }
           return;
         }
         if (err) {

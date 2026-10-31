@@ -771,16 +771,16 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         | PageModule
         | undefined;
       if (
-        !action &&
-        (loadedRoute.$notFound$ ||
-          typeof lastModule?.default !== 'function' ||
-          loadedRoute.$routeName$.includes('['))
+        loadedRoute.$notFound$ ||
+        typeof lastModule?.default !== 'function' ||
+        loadedRoute.$routeName$.includes('[')
       ) {
+        // An action on a rewritten page also needs the real route, or the page renders as not found after submit.
         const resolved = await Promise.race([resolveServerRewrite(trackUrl), canceled]);
         if (internalState.navCount !== navCountBefore) {
           return;
         }
-        if (resolved === 'reload') {
+        if (resolved === 'reload' && !action) {
           window.location.href = trackUrl.href;
           return;
         }

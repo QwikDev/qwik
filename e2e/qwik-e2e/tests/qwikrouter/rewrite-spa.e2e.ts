@@ -59,4 +59,21 @@ test.describe('rewrite to a different route', () => {
     await expect(page.locator('#rewrite-spa-original')).toHaveText(prettyCached);
     await expect(page.locator('#rewrite-spa-served')).toHaveText(target);
   });
+
+  test('submitting an action on a rewritten URL keeps rendering the target, not the 404', async ({
+    page,
+  }) => {
+    const pageErrors: Error[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err));
+    await page.goto(pretty);
+    await expect(page.locator('#rewrite-spa-target')).toBeVisible();
+
+    await page.locator('#rewrite-spa-submit').click();
+
+    await expect(page.locator('#rewrite-spa-action-done')).toBeVisible();
+    await expect(page.locator('#rewrite-spa-target')).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`${pretty}$`));
+    await expect(page.locator('#rewrite-spa-original')).toHaveText(pretty);
+    expect(pageErrors).toEqual([]);
+  });
 });

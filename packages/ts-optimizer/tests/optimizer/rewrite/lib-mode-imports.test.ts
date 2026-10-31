@@ -74,6 +74,28 @@ export const C = component$(() => <div/>);
     expect(code).toMatch(/import \{ jsx as _jsx \} from ["']@qwik\.dev\/core\/jsx-runtime["']/);
   });
 
+  it('imports `inlinedQrl` once when `bind:value` also uses it under lib mode', () => {
+    const input = `
+import { component$, useSignal } from '@qwik.dev/core';
+export const C = component$(() => {
+  const v = useSignal('');
+  return <input bind:value={v} />;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      mode: 'lib',
+      transpileTs: true,
+      transpileJsx: true,
+    });
+    const code = findParent(result).code;
+    expect(
+      code.match(/import \{[^}]*\binlinedQrl\b[^}]*\} from ["']@qwik\.dev\/core["']/g)
+    ).toHaveLength(1);
+    expect(code).toMatch(/inlinedQrl\(_val, "_val", \[v\]\)/);
+  });
+
   it('non-lib modes still strip `$`-suffix markers from imports (negative scope)', () => {
     const input = `
 import { component$ } from '@qwik.dev/core';

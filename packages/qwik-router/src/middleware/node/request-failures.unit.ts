@@ -41,10 +41,16 @@ describe('request failures through the node middleware', () => {
 
   const request = async (render: unknown) => {
     const next = vi.fn();
+    const endedWhenNextRan: boolean[] = [];
     const handled: Promise<void>[] = [];
     const { router } = createQwikRouter({ render } as any);
     const server = createServer((req, res) => {
-      handled.push(router(req, res, next));
+      handled.push(
+        router(req, res, (err) => {
+          endedWhenNextRan.push(res.writableEnded);
+          next(err);
+        })
+      );
     });
     servers.push(server);
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -57,7 +63,7 @@ describe('request failures through the node middleware', () => {
     const body = await response.text();
     await Promise.all(handled);
 
-    return { body, next, status: response.status };
+    return { body, endedWhenNextRan, next, status: response.status };
   };
 
   let consoleError: ReturnType<typeof vi.spyOn>;
@@ -108,6 +114,25 @@ describe('request failures through the node middleware', () => {
     expect(next).toHaveBeenCalledOnce();
     expect(next).toHaveBeenCalledWith(crash);
     expect(consoleError).toHaveBeenCalledWith(crash);
+  });
+
+  it('ends a response a crash left open before calling next', async () => {
+    const crash = new Error('stream failed');
+    routeState.module = {
+      onGet: async (ev: RequestEvent) => {
+        const writer = ev.getWritableStream().getWriter();
+        await writer.write(new TextEncoder().encode('partial'));
+        throw crash;
+      },
+    };
+
+    const { body, endedWhenNextRan, next, status } = await request(renderNothing);
+
+    expect(status).toBe(200);
+    expect(body).toBe('partial');
+    expect(next).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledWith(crash);
+    expect(endedWhenNextRan).toEqual([true]);
   });
 
   it('forwards a ServerError thrown after headers were sent', async () => {

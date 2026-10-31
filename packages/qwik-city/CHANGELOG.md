@@ -1,5 +1,11 @@
 # @builder.io/qwik-city
 
+## 1.20.4
+
+### Patch Changes
+
+- 🐞🩹 require dependency versions that address published security advisories (by [@wmertens](https://github.com/wmertens) in [#9297](https://github.com/QwikDev/qwik/pull/9297))
+
 ## 1.20.3
 
 ### Patch Changes

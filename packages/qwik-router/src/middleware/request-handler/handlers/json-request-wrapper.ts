@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core';
-import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
+import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../../runtime/src/route-loaders';
 import { RedirectMessage } from '../redirect-handler';
 import type { RequestEventInternal } from '../request-event-core';
 import { resolveValidInternalFullPathname } from '../request-path';
@@ -7,11 +7,23 @@ import { ServerError } from '../server-error';
 import type { RequestHandler, RequestEvent } from '../types';
 import { addVaryHeader, sendJsonResponse, sendActionResponse } from './loader-handler';
 
+/** Shared by route selection and the URL rewrite so both agree on the page. */
+export function resolveLoaderPagePathname(
+  request: Request,
+  loaderPathname: string,
+  isDevRequest = isDev
+) {
+  const routePath =
+    request.headers.get(FULLPATH_HEADER) ??
+    (isDevRequest ? request.headers.get(ROUTE_PATH_HEADER) : null);
+  return resolveValidInternalFullPathname(loaderPathname, routePath);
+}
+
 /**
  * Early handler that wraps `next()` for JSON API requests (q-loader and q-action).
  *
- * For `IsQLoader` requests, it also rewrites the URL using the `X-Qwik-fullpath` header so that
- * downstream middleware sees the real page URL.
+ * For `IsQLoader` requests, it also rewrites the URL using the `X-Qwik-fullpath` header (or the dev
+ * `X-Qwik-route-path` header) so that downstream middleware sees the real page URL.
  *
  * By calling `await next()` inside a try/catch, middleware redirects and errors are captured and
  * returned as JSON envelopes instead of HTTP redirects/error pages. This keeps SPA navigation
@@ -29,11 +41,10 @@ export function jsonRequestWrapper(): RequestHandler {
       return;
     }
 
-    // For loaders: rewrite URL using X-Qwik-fullpath header so middleware sees the real route
+    // For loaders: rewrite URL using the page path header so middleware sees the real route
     if (isLoader) {
       addVaryHeader(requestEv, FULLPATH_HEADER);
-      const pagePath = requestEv.request.headers.get(FULLPATH_HEADER);
-      const pagePathname = resolveValidInternalFullPathname(requestEv.url.pathname, pagePath);
+      const pagePathname = resolveLoaderPagePathname(requestEv.request, requestEv.url.pathname);
       if (pagePathname) {
         requestEv.url.pathname = pagePathname;
       }

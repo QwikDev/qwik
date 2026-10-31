@@ -1,7 +1,8 @@
 import fs from 'node:fs';
-import { basename, join } from 'node:path';
-import type { BuildTrieNode } from '../types';
+import { basename, join, relative } from 'node:path';
+import type { BuildTrieNode, RouteSourceFile } from '../types';
 import { normalizePath } from '../../utils/fs';
+import type { IgnoreMatcher } from './ignore-routes';
 import { getSourceFile } from './source-file';
 
 /**
@@ -45,18 +46,40 @@ export function parseDirName(name: string): {
   return { key: name.toLowerCase() };
 }
 
-/** Walk the routes directory and return a BuildTrieNode with trie keys. */
-export async function walkRoutes(routesDir: string): Promise<BuildTrieNode> {
-  const dirPath = normalizePath(routesDir);
-  const root: BuildTrieNode = {
-    _files: [],
-    children: new Map(),
-  };
-  await walkRouteDir(root, dirPath);
-  return root;
+export interface WalkRoutesResult {
+  root: BuildTrieNode;
+  /** Paths relative to `routesDir` skipped by `ignoreRoutes`, folders with a trailing `/` */
+  ignoredPaths: string[];
+  /** Skipped files the route scan would otherwise have recognised */
+  ignoredFiles: RouteSourceFile[];
 }
 
-async function walkRouteDir(node: BuildTrieNode, dirPath: string) {
+/** Everything the recursion needs that does not change between directories. */
+interface WalkContext {
+  result: WalkRoutesResult;
+  routesDir: string;
+  ignoreMatcher: IgnoreMatcher | null;
+}
+
+/** Walk the routes directory and return a BuildTrieNode with trie keys. */
+export async function walkRoutes(
+  routesDir: string,
+  ignoreMatcher: IgnoreMatcher | null
+): Promise<WalkRoutesResult> {
+  const dirPath = normalizePath(routesDir);
+  const result: WalkRoutesResult = {
+    root: { _files: [], children: new Map() },
+    ignoredPaths: [],
+    ignoredFiles: [],
+  };
+  await walkRouteDir({ result, routesDir: dirPath, ignoreMatcher }, result.root, dirPath);
+  // Nested walks finish out of order, so the build log reads the same on every machine.
+  result.ignoredPaths.sort();
+  return result;
+}
+
+async function walkRouteDir(walk: WalkContext, node: BuildTrieNode, dirPath: string) {
+  const { result, routesDir, ignoreMatcher } = walk;
   // Sorted and pushed in that order so the trie never depends on readdir or stat completion order.
   const dirItemNames = (await fs.promises.readdir(dirPath)).sort();
   const dirItems = await Promise.all(
@@ -69,8 +92,27 @@ async function walkRouteDir(node: BuildTrieNode, dirPath: string) {
 
   const childWalks: Promise<void>[] = [];
   for (const { itemName, itemPath, isDirectory } of dirItems) {
+    const relPath = ignoreMatcher ? normalizePath(relative(routesDir, itemPath)) : '';
+    if (ignoreMatcher?.isIgnored(relPath)) {
+      result.ignoredPaths.push(relPath + (isDirectory ? '/' : ''));
+      const ignoredSourceFile = isDirectory ? null : getSourceFile(itemName);
+      if (ignoredSourceFile) {
+        result.ignoredFiles.push({
+          ...ignoredSourceFile,
+          fileName: itemName,
+          filePath: itemPath,
+          dirName: basename(dirPath),
+          dirPath: normalizePath(dirPath),
+        });
+      }
+      if (isDirectory) {
+        childWalks.push(markPatternsUsed(walk, itemPath));
+      }
+      continue;
+    }
+
     if (isDirectory) {
-      childWalks.push(walkRouteDir(getOrCreateChildNode(node, itemName), itemPath));
+      childWalks.push(walkRouteDir(walk, getOrCreateChildNode(node, itemName), itemPath));
       continue;
     }
     const sourceFileName = getSourceFile(itemName);
@@ -110,4 +152,31 @@ function getOrCreateChildNode(node: BuildTrieNode, dirName: string): BuildTrieNo
   }
   node.children.set(key, child);
   return child;
+}
+
+/**
+ * An ignored folder drops its whole subtree, but the subtree is still scanned so a pattern that
+ * only matches inside it still counts as used - otherwise it would be reported as matching
+ * nothing.
+ */
+async function markPatternsUsed(walk: WalkContext, dirPath: string) {
+  const dirItemNames = await fs.promises.readdir(dirPath);
+  await Promise.all(
+    dirItemNames.map(async (itemName) => {
+      const itemPath = normalizePath(join(dirPath, itemName));
+      walk.ignoreMatcher!.isIgnored(normalizePath(relative(walk.routesDir, itemPath)));
+      if ((await fs.promises.stat(itemPath)).isDirectory()) {
+        await markPatternsUsed(walk, itemPath);
+      }
+    })
+  );
+}
+
+/** Flatten every source file the trie collected, in walk order. */
+export function collectSourceFiles(node: BuildTrieNode, files: RouteSourceFile[] = []) {
+  files.push(...node._files);
+  for (const child of node.children.values()) {
+    collectSourceFiles(child, files);
+  }
+  return files;
 }

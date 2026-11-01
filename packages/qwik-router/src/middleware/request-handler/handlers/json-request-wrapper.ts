@@ -44,6 +44,9 @@ export function jsonRequestWrapper(): RequestHandler {
     // For loaders: rewrite URL using the page path header so middleware sees the real route
     if (isLoader) {
       addVaryHeader(requestEv, FULLPATH_HEADER);
+      if (isDev) {
+        addVaryHeader(requestEv, ROUTE_PATH_HEADER);
+      }
       const pagePathname = resolveLoaderPagePathname(requestEv.request, requestEv.url.pathname);
       if (pagePathname) {
         requestEv.url.pathname = pagePathname;

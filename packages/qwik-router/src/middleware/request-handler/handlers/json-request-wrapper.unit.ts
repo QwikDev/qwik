@@ -39,13 +39,15 @@ describe('jsonRequestWrapper', () => {
     expect(requestEv.next).toHaveBeenCalledOnce();
   });
 
-  it('adds Vary for X-Qwik-fullpath on loader requests', async () => {
+  it('adds Vary for X-Qwik-fullpath and the dev X-Qwik-route-path on loader requests', async () => {
     const requestEv = createLoaderRequestEvent('/products/123/', '/products/123/view/');
     requestEv.headers.set('Vary', 'Accept-Encoding');
 
     await jsonRequestWrapper()(requestEv as any);
 
-    expect(requestEv.headers.get('Vary')).toBe(`Accept-Encoding, ${FULLPATH_HEADER}`);
+    expect(requestEv.headers.get('Vary')).toBe(
+      `Accept-Encoding, ${FULLPATH_HEADER}, ${ROUTE_PATH_HEADER}`
+    );
   });
 
   it('serializes loader middleware redirects as loader responses', async () => {

@@ -1128,12 +1128,9 @@ function createNewElement(
         continue;
       }
 
-      directSetAttribute(
-        element,
-        key,
-        serializeAttribute(key, value, diffContext.$scopedStyleIdPrefix$),
-        isSvg
-      );
+      const serializedValue = serializeAttribute(key, value, diffContext.$scopedStyleIdPrefix$);
+      // `true` is a bare attribute, like in SSR
+      directSetAttribute(element, key, serializedValue === true ? '' : serializedValue, isSvg);
     }
   }
   const key = jsx.key;

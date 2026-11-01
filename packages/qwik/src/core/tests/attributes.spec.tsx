@@ -136,6 +136,27 @@ describe.each([
     );
   });
 
+  it('should render a constant boolean attribute as empty on a client-created element', async () => {
+    const AttrComp = component$(() => {
+      const show = useSignal(false);
+      return (
+        <>
+          <button id="show" onClick$={() => (show.value = true)}></button>
+          {show.value && (
+            <button id="target" disabled>
+              target
+            </button>
+          )}
+        </>
+      );
+    });
+
+    const { document } = await render(<AttrComp />, { debug });
+    await trigger(document.body, '#show', 'click');
+
+    expect(document.body.querySelector('#target')!.getAttribute('disabled')).toBe('');
+  });
+
   describe('binding', () => {
     it('should bind checked attribute', async () => {
       const BindCmp = component$(() => {

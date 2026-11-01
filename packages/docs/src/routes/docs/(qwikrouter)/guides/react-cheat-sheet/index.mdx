@@ -479,6 +479,12 @@ export const Toggle = component$<ToggleProps>((props) => {
   const localOpen = useSignal(props.open ?? false);
   const isOpen = props['bind:open'] ?? localOpen;
 
+  // Follow the parent when it changes `open`, like `checked` on an input
+  useTask$(({ track }) => {
+    const open = track(() => props.open);
+    if (open !== undefined) localOpen.value = open;
+  });
+
   return (
     <button
       aria-pressed={isOpen.value}
@@ -507,7 +513,7 @@ export const Parent = component$(() => {
 <details>
   <summary style={{color: "#17ADF5"}}>How does bind:open work on my own component?</summary>
   <p>Qwik only turns <code>bind:</code> into a property and an event handler on native elements like <code>input</code>. On your own components, <code>bind:open</code> is passed as a regular prop named <code>'bind:open'</code> that holds the signal, so the component can read and write it directly.</p>
-  <p>Following the same pattern as native inputs keeps your component APIs consistent: <code>open</code> sets the starting value, <code>bind:open</code> keeps a parent signal in sync both ways, and <code>onChange$</code> lets the parent react to changes.</p>
+  <p>Following the same pattern as native inputs keeps your component APIs consistent: <code>open</code> works like <code>checked</code> on the one-way input above, so the toggle follows it when the parent changes it, and clicks can still change the toggle on its own. <code>bind:open</code> keeps a parent signal in sync both ways, and <code>onChange$</code> lets the parent react to changes.</p>
 </details>
 
 ## Change background color randomly every button click

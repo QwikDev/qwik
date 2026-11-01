@@ -11,6 +11,7 @@ import {
   Pending,
   render,
   setPlatform,
+  Slot,
   useLexicalScope,
   useOn,
   useComputed$,
@@ -39,7 +40,7 @@ import type {
 } from '../../server/types';
 import { whenContainerDataReady } from '../client/dom-container';
 import { vnode_getFirstChild } from '../client/vnode-utils';
-import { _fnSignal, type _ContainerElement } from '../internal';
+import { _fnSignal, _waitOn, type _ContainerElement } from '../internal';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr, QwikEvContainerReady, QStatePrewarmAttr } from '../shared/utils/markers';
 
@@ -909,6 +910,20 @@ describe('render api', () => {
   });
 
   describe('renderToStream()', () => {
+    const AsyncDocument = component$(() => {
+      _waitOn(Promise.resolve());
+      return (
+        <>
+          <head>
+            <title>page</title>
+          </head>
+          <body>
+            <Slot />
+          </body>
+        </>
+      );
+    });
+
     describe('render result', () => {
       it('should renderToStream', async () => {
         const chunks: string[] = [];
@@ -1003,6 +1018,211 @@ describe('render api', () => {
         );
         expect(calls).toEqual([false]);
         expect(result.hasCaughtError).toBe(true);
+      });
+
+      it('reports a catch under an async document root', async () => {
+        const calls: Array<{ hasCaughtError: boolean; chunksAtCall: number }> = [];
+        const chunks: string[] = [];
+        await renderToStreamAndSetPlatform(
+          <AsyncDocument>
+            <Catch fallback$={$(() => 'fb')}>
+              <FlushThrower />
+            </Catch>
+          </AsyncDocument>,
+          {
+            containerTagName: 'html',
+            stream: createTestStream((chunk) => {
+              chunks.push(chunk as string);
+            }),
+            onBeforeFirstFlush: (info) =>
+              calls.push({
+                hasCaughtError: info.hasCaughtError,
+                chunksAtCall: chunks.length,
+              }),
+          }
+        );
+        expect(calls).toEqual([{ hasCaughtError: true, chunksAtCall: 0 }]);
+      });
+    });
+
+    describe('first flush', () => {
+      const Gated = component$(() => {
+        _waitOn(useServerData<Promise<void>>('gate', Promise.resolve()));
+        return <p>gated</p>;
+      });
+      const GatedTitle = component$(() => {
+        _waitOn(useServerData<Promise<void>>('gate', Promise.resolve()));
+        return <title>gated</title>;
+      });
+      const Thrower = component$((): JSXOutput => {
+        throw new Error('first flush boom');
+      });
+      const renderDocument = (jsx: JSXOutput, opts: Partial<RenderToStreamOptions> = {}) => {
+        const chunks: string[] = [];
+        const render = renderToStreamAndSetPlatform(jsx, {
+          containerTagName: 'html',
+          stream: createTestStream((chunk) => {
+            chunks.push(chunk as string);
+          }),
+          ...opts,
+        });
+        return { chunks, render };
+      };
+
+      describe('document head', () => {
+        it('an async root writes nothing before body opens', async () => {
+          const { chunks, render } = renderDocument(<AsyncDocument />);
+          await render;
+
+          expect(chunks[0]).toContain('<body');
+        });
+
+        it('a slow head stays held until body opens', async () => {
+          const { chunks, render } = renderDocument(
+            <>
+              <head>
+                <GatedTitle />
+              </head>
+              <body />
+            </>
+          );
+          await render;
+
+          expect(chunks[0]).toContain('<body');
+        });
+
+        it('a head past maximumInitialChunk flushes before body opens', async () => {
+          const { chunks, render } = renderDocument(
+            <>
+              <head>
+                <title>{'x'.repeat(2000)}</title>
+              </head>
+              <body />
+            </>,
+            { streaming: { inOrder: { strategy: 'auto', maximumInitialChunk: 1000 } } }
+          );
+          await render;
+
+          expect(chunks[0]).toContain('<title');
+          expect(chunks[0]).not.toContain('</head>');
+        });
+      });
+
+      describe('document body', () => {
+        it('the first await after body opens flushes', async () => {
+          const gate = createDeferred();
+          const { chunks, render } = renderDocument(
+            <AsyncDocument>
+              <p>shell</p>
+              <Gated />
+            </AsyncDocument>,
+            { serverData: { gate: gate.promise } }
+          );
+
+          await vi.waitFor(() => expect(chunks.join('')).toContain('shell'));
+          expect(chunks.join('')).not.toContain('gated');
+
+          gate.resolve();
+          await render;
+          expect(chunks.join('')).toContain('gated');
+        });
+
+        it('a Pending fallback flushes before its content resolves', async () => {
+          const gate = createDeferred();
+          const { chunks, render } = renderDocument(
+            <AsyncDocument>
+              <Pending fallback$={() => <span>Loading...</span>}>
+                <Gated />
+              </Pending>
+            </AsyncDocument>,
+            { serverData: { gate: gate.promise }, streaming: { outOfOrder: true } }
+          );
+
+          await vi.waitFor(() => expect(chunks.join('')).toContain('Loading...'));
+          expect(chunks.join('')).not.toContain('gated');
+
+          gate.resolve();
+          await render;
+          expect(chunks.join('')).toContain('gated');
+        });
+      });
+
+      describe('documents without body', () => {
+        it('a head-only document writes at the final flush', async () => {
+          const { chunks, render } = renderDocument(
+            <head>
+              <GatedTitle />
+            </head>
+          );
+          await render;
+
+          expect(chunks).toHaveLength(1);
+          expect(chunks[0]).toContain('<title');
+          expect(chunks[0]).toContain('gated');
+        });
+
+        it('a head-only document past maximumInitialChunk streams before the final flush', async () => {
+          const { chunks, render } = renderDocument(
+            <head>
+              <title>{'x'.repeat(2000)}</title>
+            </head>,
+            { streaming: { inOrder: { strategy: 'auto', maximumInitialChunk: 1000 } } }
+          );
+          await render;
+
+          expect(chunks.length).toBeGreaterThan(1);
+        });
+      });
+
+      describe('crashes', () => {
+        it('a crash before the first flush writes nothing and rejects', async () => {
+          const { chunks, render } = renderDocument(
+            <AsyncDocument>
+              <Thrower />
+            </AsyncDocument>
+          );
+
+          await expect(render).rejects.toThrow('first flush boom');
+          expect(chunks).toEqual([]);
+        });
+
+        it('a crash after the first flush keeps what it wrote', async () => {
+          const { chunks, render } = renderDocument(
+            <AsyncDocument>
+              <p>shell</p>
+              <Gated />
+              <Thrower />
+            </AsyncDocument>
+          );
+
+          await expect(render).rejects.toThrow('first flush boom');
+          expect(chunks.join('')).toContain('shell');
+        });
+      });
+
+      describe('renders that never hold', () => {
+        it('a containerTagName render flushes before its first await', async () => {
+          const gate = createDeferred();
+          const { chunks, render } = renderDocument(<Gated />, {
+            containerTagName: 'div',
+            serverData: { gate: gate.promise },
+          });
+
+          await vi.waitFor(() => expect(chunks.join('')).toContain('<div'));
+          expect(chunks.join('')).not.toContain('gated');
+
+          gate.resolve();
+          await render;
+        });
+
+        it('direct streaming writes the doctype straight through', async () => {
+          const { chunks, render } = renderDocument(<AsyncDocument />, {
+            streaming: { inOrder: { strategy: 'direct' } },
+          });
+          await render;
+
+          expect(chunks[0]).toBe('<!DOCTYPE html>');
+        });
       });
     });
 

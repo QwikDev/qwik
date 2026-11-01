@@ -93,6 +93,7 @@ export const renderToStream = async (
   await ssrContainer.$renderPromise$;
 
   // Flush remaining chunks in the buffer
+  streamHandler.releaseFirstFlush();
   await streamHandler.flush();
 
   const result: RenderToStreamResult = {

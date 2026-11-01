@@ -230,6 +230,8 @@ interface ElementFrame {
 const noopStreamHandler: IStreamHandler = {
   flush() {},
   waitForPendingFlush() {},
+  holdFirstFlush() {},
+  releaseFirstFlush() {},
   streamBlockStart() {},
   streamBlockEnd() {},
 };
@@ -724,6 +726,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
   openContainer() {
     if (this.tag == 'html') {
       this.write('<!DOCTYPE html>');
+      this.streamHandler.holdFirstFlush();
     }
 
     const containerAttributes = this.renderOptions.containerAttributes || {};
@@ -809,6 +812,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
     if (this.isHtml && elementName === 'body' && this.emitContainerDataFrame === null) {
       // For full document rendering emit before closing </body>.
       this.emitContainerDataFrame = this.currentElementFrame;
+      this.streamHandler.releaseFirstFlush();
     }
     vNodeData_openElement(this.currentElementFrame!.vNodeData);
     this.write(LT);

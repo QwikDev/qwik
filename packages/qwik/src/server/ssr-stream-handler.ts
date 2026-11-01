@@ -23,6 +23,7 @@ export class StreamHandler implements IStreamHandler {
   private firstFlushTimer = createTimer();
   private pendingFlush: Promise<void> | undefined;
   private flushQueued = false;
+  private isFirstFlushHeld = false;
   public stream: SSRInternalStreamWriter;
 
   constructor(
@@ -81,6 +82,7 @@ export class StreamHandler implements IStreamHandler {
             const maxBufferSize =
               handler.networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
             if (handler.bufferSize >= maxBufferSize) {
+              handler.releaseFirstFlush();
               return handler.flush();
             }
           }
@@ -138,8 +140,16 @@ export class StreamHandler implements IStreamHandler {
     return this.trackPendingFlush(this.nativeStream.write(chunk));
   }
 
+  holdFirstFlush() {
+    this.isFirstFlushHeld = true;
+  }
+
+  releaseFirstFlush() {
+    this.isFirstFlushHeld = false;
+  }
+
   flush(): Promise<void> | void {
-    if (!this.buffer) {
+    if (!this.buffer || this.isFirstFlushHeld) {
       return this.waitForPendingFlush();
     }
 

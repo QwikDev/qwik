@@ -72,6 +72,23 @@ export function pauseCursor(cursor: Cursor, container: Container): void {
   container.$pendingCount$++;
 }
 
+/**
+ * Resolves once nothing is pending except the cursors that are already paused right now, e.g. on a
+ * render blocking async task that has not settled yet. Cursors that pause later are waited for.
+ */
+export function waitUntilIdleIgnoringPausedCursors(container: Container): Promise<void> {
+  const ignored = pausedCursorQueue.filter(
+    (cursor) => getCursorData(cursor)?.container === container
+  );
+  const isIdle = () =>
+    container.$pendingCount$ ===
+    ignored.filter((cursor) => pausedCursorQueue.includes(cursor)).length;
+  if (isIdle()) {
+    return Promise.resolve();
+  }
+  return new Promise<void>((resolve) => (container.$idleWaiters$ ||= []).push({ isIdle, resolve }));
+}
+
 export function resumeCursor(cursor: Cursor, container: Container): void {
   removeCursorFromPausedQueue(cursor, container);
   if (!(cursor.flags & VNodeFlags.Cursor)) {

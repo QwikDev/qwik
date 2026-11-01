@@ -16,6 +16,7 @@ import { RenderEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
 import { setLocale } from './use-locale';
 import { registerSingleton } from '../shared/singletons';
+import { waitUntilIdleIgnoringPausedCursors } from '../shared/cursor/cursor-queue';
 
 export type PossibleEvents = Event | typeof TaskEvent | typeof RenderEvent;
 
@@ -266,7 +267,18 @@ export const _jsxBranch = <T>(input?: T) => {
 };
 
 /** @internal */
-export const _waitUntilRendered = (container: Container): Promise<void> => {
+export const _waitUntilRendered = (
+  container: Container,
+  /**
+   * Don't wait for cursors that are already paused on a pending promise right now (e.g. a render
+   * blocking async task that has not settled yet). Use it when you only need the rendering that is
+   * scheduled now to be flushed.
+   */
+  ignorePausedCursors = false
+): Promise<void> => {
+  if (ignorePausedCursors) {
+    return waitUntilIdleIgnoringPausedCursors(container);
+  }
   return container.$renderPromise$ || Promise.resolve();
 };
 

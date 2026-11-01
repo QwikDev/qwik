@@ -39,6 +39,7 @@ export interface Container {
   $renderPromise$: Promise<void> | null;
   $resolveRenderPromise$: (() => void) | null;
   $pendingCount$: number;
+  $idleWaiters$: Array<{ isIdle: () => boolean; resolve: () => void }> | null;
   $checkPendingCount$(): void;
 
   handleError(err: any, $host$: HostElement | null, phase?: CatchPhase): void;

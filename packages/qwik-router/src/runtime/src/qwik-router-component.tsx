@@ -632,7 +632,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const container = isBrowser ? _getContextContainer() : undefined;
       if (container && !wasNavigating) {
         // flush isNavigating to the DOM before awaiting the next task so that the router outlet can show a loading state
-        await _waitUntilRendered(container);
+        // (don't wait for a pending async task of the current page, it would block the navigation)
+        await _waitUntilRendered(container, true);
         if (navCount !== internalState.navCount) {
           return { type: NavigationStartType.Superseded };
         }

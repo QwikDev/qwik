@@ -23,6 +23,7 @@ export abstract class _SharedContainer implements Container {
   $renderPromise$: Promise<void> | null = null;
   $resolveRenderPromise$: (() => void) | null = null;
   $pendingCount$: number = 0;
+  $idleWaiters$: Array<{ isIdle: () => boolean; resolve: () => void }> | null = null;
 
   constructor(serverData: Record<string, any>, locale: string) {
     this.$serverData$ = serverData;
@@ -47,6 +48,18 @@ export abstract class _SharedContainer implements Container {
     if (this.$pendingCount$ === 0) {
       this.$resolveRenderPromise$?.();
       this.$renderPromise$ = null;
+    }
+    if (this.$idleWaiters$) {
+      const waiting = [];
+      for (let i = 0; i < this.$idleWaiters$.length; i++) {
+        const waiter = this.$idleWaiters$[i];
+        if (waiter.isIdle()) {
+          waiter.resolve();
+        } else {
+          waiting.push(waiter);
+        }
+      }
+      this.$idleWaiters$ = waiting.length ? waiting : null;
     }
   }
 

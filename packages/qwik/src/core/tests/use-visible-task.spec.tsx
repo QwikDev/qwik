@@ -764,6 +764,61 @@ describe.each([
       (globalThis as any).log = undefined;
     });
 
+    it('should execute cleanup visible task on unmount while an async task is still pending', async () => {
+      (globalThis as any).log = [] as string[];
+      // Not captured by the components: Qwik would serialize (= await) a captured promise.
+      (globalThis as any).asyncTaskDone = new Promise<void>(
+        (resolve) => ((globalThis as any).finishAsyncTask = resolve)
+      );
+      const Child = component$(() => {
+        const ready = useSignal(false);
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('visible_task:');
+          cleanup(() => (globalThis as any).log.push('cleanup:'));
+          ready.value = true;
+        });
+        // render blocking by default, so the cursor waits for it
+        useTask$(async ({ track }) => {
+          track(ready);
+          if (ready.value) {
+            (globalThis as any).log.push('async task: pending');
+            await (globalThis as any).asyncTaskDone;
+            (globalThis as any).log.push('async task: done');
+          }
+        });
+        return <span>Child</span>;
+      });
+      const Parent = component$(() => {
+        const show = useSignal(true);
+        return (
+          <button
+            onClick$={() => {
+              show.value = !show.value;
+            }}
+          >
+            {show.value ? <Child /> : 'click'}
+          </button>
+        );
+      });
+
+      const { document } = await render(<Parent />, { debug });
+      // The async task is pending until the end of the test, so don't wait for the scheduler to go idle.
+      const visible = trigger(document.body, 'span', 'qvisible', {}, { waitForIdle: false });
+      await vi.waitFor(() =>
+        expect((globalThis as any).log).toEqual(['visible_task:', 'async task: pending'])
+      );
+      (globalThis as any).log = [];
+      const click = trigger(document.body, 'button', 'click', {}, { waitForIdle: false });
+      // The component is gone: its cleanup must not wait for the unrelated pending async task.
+      await vi.waitFor(() => expect((globalThis as any).log).toEqual(['cleanup:']));
+      (globalThis as any).finishAsyncTask();
+      await visible;
+      await click;
+      (globalThis as any).log = undefined;
+      (globalThis as any).asyncTaskDone = undefined;
+      (globalThis as any).finishAsyncTask = undefined;
+    });
+
     it('#9203 - should run visible task cleanups for nested components', async () => {
       (globalThis as any).log = [] as string[];
       const Grandchild = component$(() => {

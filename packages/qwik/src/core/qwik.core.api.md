@@ -276,6 +276,11 @@ export interface _Container {
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
+    $idleWaiters$: Array<{
+        isIdle: () => boolean;
+        resolve: () => void;
+    }> | null;
+    // (undocumented)
     readonly $instanceHash$: string | null;
     // (undocumented)
     $isOutOfOrderSegment$: boolean;
@@ -1377,6 +1382,11 @@ export abstract class _SharedContainer implements _Container {
     $currentUniqueId$: number;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
+    // (undocumented)
+    $idleWaiters$: Array<{
+        isIdle: () => boolean;
+        resolve: () => void;
+    }> | null;
     // (undocumented)
     $instanceHash$: string | null;
     // (undocumented)
@@ -2525,7 +2535,8 @@ export type _VNodeJournal = Array<VNodeOperation>;
 export const _waitOn: (promise: Promise<unknown>) => void;
 
 // @internal (undocumented)
-export const _waitUntilRendered: (container: _Container) => Promise<void>;
+export const _waitUntilRendered: (container: _Container,
+ignorePausedCursors?: boolean) => Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "SSRRenderJSXOptions" needs to be exported by the entry point index.d.ts
 //

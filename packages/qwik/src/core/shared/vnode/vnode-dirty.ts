@@ -36,6 +36,15 @@ function propagatePath(target: VNode): void {
 }
 
 /**
+ * Links an already dirty vNode into the dirty chain of `cursorRoot`, so that the cursor walk
+ * reaches it. Use it for a vNode whose own dirty bits were left behind by a cursor that was
+ * abandoned.
+ */
+export function linkDirtyVNodeToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
+  propagateToCursorRoot(vNode, cursorRoot);
+}
+
+/**
  * Propagates dirty bits from vNode up to the specified cursorRoot. Used during diff when we know
  * the cursor root to merge with. Also updates cursor position if we pass through any cursors.
  */

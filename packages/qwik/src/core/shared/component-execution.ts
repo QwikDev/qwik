@@ -274,12 +274,11 @@ function addUseOnEvent(jsxElement: JSXNodeInternal, key: string, value: UseOnEve
   }
   const varProp = jsxElement.varProps[key];
   if (varProp) {
-    // we need to demote the handlers to varProps
-    if (Array.isArray(propValue)) {
-      propValue.push(...(props[key] as any));
-    } else {
-      jsxElement.varProps[key] = [propValue, ...qrls];
-    }
+    // we need to demote the handlers to varProps, keeping the JSX handlers in front
+    jsxElement.varProps[key] = [
+      ...(Array.isArray(varProp) ? varProp : [varProp]),
+      ...(props[key] as EventQRL<KnownEventNames>[]),
+    ];
     props[key] = undefined;
   }
 

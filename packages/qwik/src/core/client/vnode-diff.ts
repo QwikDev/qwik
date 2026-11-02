@@ -61,7 +61,11 @@ import type { TextVNode } from '../shared/vnode/text-vnode';
 import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
-import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import {
+  addVNodeOperation,
+  markVNodeDirty,
+  propagateToCursorRoot,
+} from '../shared/vnode/vnode-dirty';
 import { updateDirtySubtreeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { trackSignalAndAssignHost, untrack } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
@@ -1912,6 +1916,12 @@ export function cleanup(
   do {
     if (cursorRootData && vCursor !== cursorRoot && isCursor(vCursor)) {
       abandonCursor(container, cursorRootData, vCursor);
+      // The abandoned cursor keeps its dirty bits, but nothing walks it any more. Link it to the
+      // cursor root, otherwise markVNodeDirty() below skips it as "already dirty" and the cleanups
+      // of the visible tasks in this subtree are never executed.
+      if (vCursor.dirty & ChoreBits.DIRTY_MASK) {
+        propagateToCursorRoot(vCursor, cursorRoot!);
+      }
     }
     const type = vCursor.flags;
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {

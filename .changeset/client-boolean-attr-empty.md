@@ -2,4 +2,4 @@
 '@qwik.dev/core': patch
 ---
 
-fix: render a constant `true` attribute (e.g. `<button disabled>`) as `disabled=""` on a client-created element, like SSR does, instead of `disabled="true"`
+fix: render constant boolean attributes on client-created elements as empty, like SSR

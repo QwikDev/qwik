@@ -15,12 +15,15 @@ import {
   useContextProvider,
   $,
   Slot,
+  _jsxSorted,
 } from '@qwik.dev/core';
 import { QContainerAttr } from '../shared/utils/markers';
 import { QContainerValue } from '../shared/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+const disabledPromise = Promise.resolve(true);
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -147,6 +150,31 @@ describe.each([
               target
             </button>
           )}
+        </>
+      );
+    });
+
+    const { document } = await render(<AttrComp />, { debug });
+    await trigger(document.body, '#show', 'click');
+
+    expect(document.body.querySelector('#target')!.getAttribute('disabled')).toBe('');
+  });
+
+  it('should render a constant boolean attribute promise as empty on a client-created element', async () => {
+    const AttrComp = component$(() => {
+      const show = useSignal(false);
+      return (
+        <>
+          <button id="show" onClick$={() => (show.value = true)}></button>
+          {show.value &&
+            _jsxSorted(
+              'button',
+              null,
+              { id: 'target', disabled: disabledPromise },
+              'target',
+              0,
+              null
+            )}
         </>
       );
     });

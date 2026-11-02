@@ -1039,14 +1039,21 @@ function queueConstAttributePromise(
   const attributePromise = value.then((resolvedValue) =>
     key === dangerouslySetInnerHTML
       ? applyConstInnerHtml(element, resolvedValue)
-      : directSetAttribute(
-          element,
-          key,
-          serializeAttribute(key, resolvedValue, scopedStyleIdPrefix),
-          isSvg
-        )
+      : setConstAttribute(element, key, resolvedValue, scopedStyleIdPrefix, isSvg)
   );
   diffContext.$asyncAttributePromises$.push(attributePromise);
+}
+
+function setConstAttribute(
+  element: QElement,
+  key: string,
+  value: unknown,
+  scopedStyleIdPrefix: string | null,
+  isSvg: boolean
+) {
+  const serializedValue = serializeAttribute(key, value, scopedStyleIdPrefix);
+  // `true` is a bare attribute, like in SSR
+  directSetAttribute(element, key, serializedValue === true ? '' : serializedValue, isSvg);
 }
 
 function applyConstInnerHtml(element: QElement, value: unknown) {
@@ -1128,9 +1135,7 @@ function createNewElement(
         continue;
       }
 
-      const serializedValue = serializeAttribute(key, value, diffContext.$scopedStyleIdPrefix$);
-      // `true` is a bare attribute, like in SSR
-      directSetAttribute(element, key, serializedValue === true ? '' : serializedValue, isSvg);
+      setConstAttribute(element, key, value, diffContext.$scopedStyleIdPrefix$, isSvg);
     }
   }
   const key = jsx.key;

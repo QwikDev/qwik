@@ -300,14 +300,12 @@ function addUseOnEvent(jsxElement: JSXNodeInternal, key: string, value: UseOnEve
 }
 
 /** Whether two handlers are the same QRL: the same symbol with the same captured values. */
-function isSameHandler(
-  a: EventQRL<KnownEventNames> | undefined,
-  b: EventQRL<KnownEventNames> | undefined
-): boolean {
+function isSameHandler(a: unknown, b: unknown): boolean {
   if (a === b) {
     return true;
   }
-  if (!a || !b || a.getSymbol() !== b.getSymbol()) {
+  // JSX handlers can also be nested arrays, which a useOn handler never is
+  if (!isQrl(a) || !isQrl(b) || a.getSymbol() !== b.getSymbol()) {
     return false;
   }
   const aCaptured = a.getCaptured();

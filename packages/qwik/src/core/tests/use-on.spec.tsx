@@ -293,6 +293,31 @@ describe.each([
     expect(container.element.querySelector('span')!.textContent).toBe('1');
   });
 
+  it('should keep nested JSX handler arrays for the same event as useOn', async () => {
+    const Child = component$((props: { onClick$?: QRL<() => void> }) => {
+      const count = useSignal(0);
+      useOn(
+        'click',
+        $(() => count.value++)
+      );
+      return <button onClick$={[[props.onClick$]]}>{count.value}</button>;
+    });
+    const Parent = component$(() => {
+      const count = useSignal(0);
+      return (
+        <>
+          <Child onClick$={$(() => count.value++)} />
+          <span>{count.value}</span>
+        </>
+      );
+    });
+
+    const { container } = await render(<Parent />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('1');
+    expect(container.element.querySelector('span')!.textContent).toBe('1');
+  });
+
   it('should keep a JSX handler that has the same symbol as a useOn handler', async () => {
     const Cmp = component$(() => {
       const a = useSignal(0);

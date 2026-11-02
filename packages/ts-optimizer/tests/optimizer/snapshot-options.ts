@@ -504,6 +504,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
   },
   should_disable_qwik_transform_error_by_code: { transpileTs: true, transpileJsx: true },
+  should_extract_marker_call_with_identifier_argument: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_extract_multiple_qrls_with_item_and_index: { transpileTs: true, transpileJsx: true },
   should_extract_multiple_qrls_with_item_and_index_and_capture_ref: {
     transpileTs: true,

@@ -2643,10 +2643,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/ind
 */
 ============================= ../node_modules/@qwik.dev/router/index.qwik.mjs_qwik_view_transition_css_inline_vNfd9raIMI0.mjs (ENTRY POINT)==
 
-export const qwik_view_transition_css_inline_vNfd9raIMI0 = '@layer qwik{@supports selector(html:active-view-transition-type(type)){html:active-view-transition-type(qwik-navigation){:root{view-transition-name:none}}}@supports not selector(html:active-view-transition-type(type)){:root{view-transition-name:none}}}';
+const transitionCss = '@layer qwik{@supports selector(html:active-view-transition-type(type)){html:active-view-transition-type(qwik-navigation){:root{view-transition-name:none}}}@supports not selector(html:active-view-transition-type(type)){:root{view-transition-name:none}}}';
+export const qwik_view_transition_css_inline_vNfd9raIMI0 = transitionCss;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\"2DAoUE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/router/index.qwik.mjs\"],\"names\":[],\"mappings\":\"MAmUM,gBACJ;2DA6R6B\"}")
 /*
 {
   "origin": "../node_modules/@qwik.dev/router/index.qwik.mjs",

@@ -172,7 +172,8 @@ function isLiteralNode(node: AstNode): boolean {
  * Resolve a whole-body identifier segment (`$(render)`, `useStyles$(style)`) to its const init's
  * source text, matching Rust's static-expression inlining. Only fires when the init is a
  * serializable expression (literal, template, function) whose free identifiers are not locals of
- * the enclosing scope — those would need real captures.
+ * the enclosing scope — those would need real captures. Module-scope consts never inline: the
+ * segment shares them through their `_auto_` export.
  */
 export function resolveWholeBodyIdentifier(
   scopeNode: AstNode,
@@ -183,11 +184,13 @@ export function resolveWholeBodyIdentifier(
   let initNode: AstNode | null = null;
 
   const localBindings = new Set<string>();
-  const visit = (node: AstNode | null | undefined): void => {
+  const visit = (node: AstNode | null | undefined, parent?: AstNode): void => {
     if (!node) {
       return;
     }
-    if (node.type === 'VariableDeclaration') {
+    // Module-scope bindings stay out of both inlining and the capture check.
+    const isModuleScope = parent !== undefined && isModuleScopeParent(parent);
+    if (node.type === 'VariableDeclaration' && !isModuleScope) {
       for (const decl of node.declarations) {
         if (decl.id.type === 'Identifier') {
           localBindings.add(decl.id.name);
@@ -197,10 +200,10 @@ export function resolveWholeBodyIdentifier(
           }
         }
       }
-    } else if (node.type === 'FunctionDeclaration' && node.id) {
+    } else if (node.type === 'FunctionDeclaration' && node.id && !isModuleScope) {
       localBindings.add(node.id.name);
     }
-    forEachAstChild(node, (child) => visit(child));
+    forEachAstChild(node, (child) => visit(child, node));
   };
   visit(scopeNode);
 
@@ -223,6 +226,14 @@ export function resolveWholeBodyIdentifier(
     }
   }
   return { text: initText, start: init.start, end: init.end };
+}
+
+function isModuleScopeParent(node: AstNode): boolean {
+  return (
+    node.type === 'Program' ||
+    node.type === 'ExportNamedDeclaration' ||
+    node.type === 'ExportDefaultDeclaration'
+  );
 }
 
 function collectIdentifiers(node: AstNode): string[] {

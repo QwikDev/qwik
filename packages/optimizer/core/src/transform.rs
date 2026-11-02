@@ -431,7 +431,8 @@ impl<'a> QwikTransform<'a> {
 			write!(display_name, "_{}", index).unwrap();
 		}
 		let mut hasher = DefaultHasher::new();
-		if let Some(hash_override) = hash_override {
+		// Repeats re-hash by name, or every use of one import would share a prod symbol.
+		if let Some(hash_override) = hash_override.filter(|_| index == 0) {
 			hasher.write(hash_override.as_bytes());
 		} else {
 			let local_file_name = self.options.path_data.rel_path.to_slash_lossy();
@@ -596,30 +597,9 @@ impl<'a> QwikTransform<'a> {
 		self.segment_stack.pop();
 
 		// Inline const initializer if the value is a simple ident referencing a local const.
-		// This fixes cases like `const STYLE = '...'; inlinedQrl(STYLE, 'name')`
-		// where the entry point would otherwise reference an undefined identifier.
 		// For Inline/Hoist strategies, skip: the .s() call will use the ident directly
 		// (at module scope for globals, or inline via comma expr for non-globals).
-		// Skip inlining for exported identifiers: the chunk can import them from the parent
-		// module, so inlining their initializer is unnecessary and may cause referenced
-		// module-level variables to be incorrectly moved into the chunk.
-		let folded = if !self.is_inline() {
-			if let ast::Expr::Ident(ref ident) = folded {
-				if !self.options.global_collect.has_export_symbol(&ident.sym) {
-					if let Some(init) = self.const_initializers.get(&id!(ident)) {
-						*init.clone()
-					} else {
-						folded
-					}
-				} else {
-					folded
-				}
-			} else {
-				folded
-			}
-		} else {
-			folded
-		};
+		let folded = self.inline_const_initializer(folded);
 
 		let (scoped_idents, captures) = {
 			if let Some(scoped) = third_arg {
@@ -860,6 +840,19 @@ impl<'a> QwikTransform<'a> {
 		)
 	}
 
+	fn inline_const_initializer(&self, expr: ast::Expr) -> ast::Expr {
+		if self.is_inline() {
+			return expr;
+		}
+		let ast::Expr::Ident(ref ident) = expr else {
+			return expr;
+		};
+		match self.const_initializers.get(&id!(ident)) {
+			Some(init) => *init.clone(),
+			None => expr,
+		}
+	}
+
 	fn create_synthetic_qsegment(
 		&mut self,
 		first_arg: ast::Expr,
@@ -880,30 +873,11 @@ impl<'a> QwikTransform<'a> {
 	) -> (ast::CallExpr, bool) {
 		// Inline const initializer if first_arg is a simple ident referencing a local const.
 		// This fixes cases like `const style = \`${css1}${css2}\`; useStyles$(style);`
-		// where the segment would otherwise get an undefined identifier.
+		// where the segment would otherwise capture a local binding.
 		// For Inline/Hoist strategies, skip inlining: the ident will either be accessible
 		// at module scope (global), or the .s() call will be emitted inline at the use
 		// site via a comma expression (non-global).
-		// Skip inlining for exported identifiers: the chunk can import them from the parent
-		// module, so inlining their initializer is unnecessary and may cause referenced
-		// module-level variables to be incorrectly moved into the chunk.
-		let first_arg = if !self.is_inline() {
-			if let ast::Expr::Ident(ref ident) = first_arg {
-				if !self.options.global_collect.has_export_symbol(&ident.sym) {
-					if let Some(init) = self.const_initializers.get(&id!(ident)) {
-						*init.clone()
-					} else {
-						first_arg
-					}
-				} else {
-					first_arg
-				}
-			} else {
-				first_arg
-			}
-		} else {
-			first_arg
-		};
+		let first_arg = self.inline_const_initializer(first_arg);
 		let import_qrl_name = self.get_import_qrl_name(&first_arg);
 
 		// Library mode: inline wrapping with scope capture but no segment extraction.
@@ -3669,12 +3643,12 @@ impl<'a> Fold for QwikTransform<'a> {
 		// Store post-fold const initializers for potential inlining into segments.
 		// When a $ call receives a simple identifier (e.g. useStyles$(style)),
 		// we can replace it with the actual initializer expression.
-		if is_const {
+		// Module-scope consts stay shared through their `_auto_` export instead.
+		if is_const && !self.decl_stack.is_empty() {
 			for decl in &folded.decls {
 				if let ast::Pat::Ident(ident) = &decl.name {
 					if let Some(init) = &decl.init {
-						// Skip simple Ident inits (e.g. hoisted QRL references like q_name...)
-						if !matches!(**init, ast::Expr::Ident(_)) {
+						if is_inlinable_initializer(init) {
 							self.const_initializers.insert(id!(ident.id), init.clone());
 						}
 					}
@@ -5492,4 +5466,12 @@ fn process_node_props(pat: &ast::Pat) -> Vec<IdPlusType> {
 	);
 
 	processed_scope_data
+}
+
+/// Initializers safe to re-evaluate inside a segment: re-running a call would fork its state.
+const fn is_inlinable_initializer(init: &ast::Expr) -> bool {
+	matches!(
+		init,
+		ast::Expr::Lit(_) | ast::Expr::Tpl(_) | ast::Expr::Arrow(_) | ast::Expr::Fn(_)
+	)
 }

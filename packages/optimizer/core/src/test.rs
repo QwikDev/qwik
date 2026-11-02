@@ -8974,3 +8974,39 @@ fn assert_no_marker_call_left(output: &TransformOutput) {
 		);
 	}
 }
+
+#[test]
+fn should_extract_marker_call_with_identifier_argument() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Child, imported } from './child';
+import { createCounter } from './counter';
+
+const pick = () => console.log('picked');
+
+export function createHandlers() {
+  const first = $(pick);
+  const viaClosure = $(() => pick());
+  const afterExport = $(pick);
+  const importedOnce = $(imported);
+  const importedTwice = $(imported);
+  const localCounter = createCounter();
+  const localCounted = $(localCounter);
+  return [first, viaClosure, afterExport, importedOnce, importedTwice, localCounted];
+}
+
+export const renderChild = () => (
+  <Child root={$(pick)} imported={$(imported)} />
+);
+
+export const Parent = component$(() => (
+  <Child root={$(pick)} imported={$(imported)} />
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}

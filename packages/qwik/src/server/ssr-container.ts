@@ -724,8 +724,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
    */
   openContainer() {
     if (this.tag == 'html') {
-      this.write('<!DOCTYPE html>');
       this.streamHandler.isFirstFlushHeld = true;
+      this.write('<!DOCTYPE html>');
     }
 
     const containerAttributes = this.renderOptions.containerAttributes || {};

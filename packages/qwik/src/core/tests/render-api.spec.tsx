@@ -1105,6 +1105,15 @@ describe('render api', () => {
 
           expect(chunks[0]).toContain('</head>');
         });
+
+        it('a maximumInitialChunk of 0 still holds the doctype', async () => {
+          const { chunks, render } = renderDocument(<AsyncDocument />, {
+            streaming: { inOrder: { strategy: 'auto', maximumInitialChunk: 0 } },
+          });
+          await render;
+
+          expect(chunks[0]).toContain('</head>');
+        });
       });
 
       describe('document body', () => {

@@ -274,11 +274,19 @@ function addUseOnEvent(jsxElement: JSXNodeInternal, key: string, value: UseOnEve
   }
   const varProp = jsxElement.varProps[key];
   if (varProp) {
-    // we need to demote the handlers to varProps, keeping the JSX handlers in front
-    jsxElement.varProps[key] = [
-      ...(Array.isArray(varProp) ? varProp : [varProp]),
-      ...(props[key] as EventQRL<KnownEventNames>[]),
-    ];
+    // we need to demote the handlers to varProps, after the JSX handlers
+    const added = props[key] as EventQRL<KnownEventNames>[];
+    let handlers = (Array.isArray(varProp) ? varProp : [varProp]) as EventQRL<KnownEventNames>[];
+    // A JSX node reused across renders (or resumed from SSR) still ends with the handlers of the
+    // previous merge, maybe as other QRL instances, so replace them instead of adding them twice
+    const start = handlers.length - added.length;
+    if (
+      start >= 0 &&
+      added.every((qrl, i) => handlers[start + i]?.getSymbol() === qrl.getSymbol())
+    ) {
+      handlers = handlers.slice(0, start);
+    }
+    jsxElement.varProps[key] = [...handlers, ...added];
     props[key] = undefined;
   }
 

@@ -8,12 +8,14 @@ import {
   Fragment,
   Fragment as Signal,
   Slot,
+  useConstant,
   useOn,
   useOnDocument,
   useOnWindow,
   useSignal,
   useTask$,
   useVisibleTask$,
+  type JSXOutput,
   type QRL,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
@@ -285,6 +287,46 @@ describe.each([
     const { container } = await render(<Parent />, { debug });
     await trigger(container.element, 'button', 'click');
     expect(container.element.querySelector('button')!.textContent).toBe('1');
+    expect(container.element.querySelector('span')!.textContent).toBe('1');
+  });
+
+  it('should not add useOn handlers twice to a JSX node reused across renders', async () => {
+    const Child = component$((props: { n: number; onClick$?: QRL<() => void> }) => {
+      const count = useSignal(0);
+      useOn(
+        'click',
+        $(() => count.value++)
+      );
+      const button = useConstant<JSXOutput>(() => (
+        <button id="target" onClick$={props.onClick$}></button>
+      ));
+      // read in the body so that a new `n` re-renders Child
+      const renders = props.n + 1;
+      return (
+        <>
+          {button}
+          <i data-renders={renders}>{count.value}</i>
+        </>
+      );
+    });
+    const Parent = component$(() => {
+      const n = useSignal(0);
+      const count = useSignal(0);
+      return (
+        <>
+          <button id="rerender" onClick$={() => n.value++}></button>
+          <Child n={n.value} onClick$={$(() => count.value++)} />
+          <span>{count.value}</span>
+        </>
+      );
+    });
+
+    const { container } = await render(<Parent />, { debug });
+    await trigger(container.element, '#rerender', 'click');
+    await trigger(container.element, '#rerender', 'click');
+    expect(container.element.querySelector('i')!.getAttribute('data-renders')).toBe('3');
+    await trigger(container.element, '#target', 'click');
+    expect(container.element.querySelector('i')!.textContent).toBe('1');
     expect(container.element.querySelector('span')!.textContent).toBe('1');
   });
 

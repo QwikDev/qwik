@@ -9059,3 +9059,26 @@ export function make() {
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn should_reexport_side_effect_root_var_used_by_one_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { createCounter } from './counter';
+
+const counter = createCounter();
+const config = { size: 1 };
+const tracked = createCounter();
+const readTracked = () => tracked;
+
+export function make() {
+  return [$(() => counter), $(() => config), $(() => readTracked())];
+}
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}

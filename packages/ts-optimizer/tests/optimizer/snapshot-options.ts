@@ -587,6 +587,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_not_wrap_ternary_function_operator_with_fn: { transpileTs: true, transpileJsx: true },
   should_not_wrap_var_template_string: { transpileTs: true, transpileJsx: true },
   should_only_disable_the_next_line: { transpileTs: true, transpileJsx: true },
+  should_reexport_side_effect_root_var_used_by_one_segment: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_split_props_with_key_after_spread: { transpileTs: true, transpileJsx: true },
   should_split_spread_props: { transpileTs: true, transpileJsx: true },
   should_split_spread_props_with_additional_prop: { transpileTs: true, transpileJsx: true },

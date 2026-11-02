@@ -1028,6 +1028,7 @@ fn apply_variable_migration(
 		&root_dependencies,
 		&root_var_usage,
 		&main_module_usage,
+		&global_collect.root_side_effects,
 	);
 
 	// PHASE 1: Pre-declare all needed auto-exports BEFORE migration

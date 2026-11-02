@@ -743,7 +743,7 @@ function reexportMovedDeclDependencies(
   // segment) keeps it in the parent to reexport.
   const canMoveInto = (depIdx: number, segment: string): boolean => {
     const d = decls[depIdx];
-    if (d.isExported || rootStmtRefs.has(d.name)) {
+    if (d.isExported || d.hasSideEffects || rootStmtRefs.has(d.name)) {
       return false;
     }
     if (usingSegmentsOf(d.name, segmentUsage).some((s) => s !== segment)) {

@@ -216,10 +216,9 @@ export interface SSRSegmentContainer extends SSRContainer {
 
 /** @internal */
 export interface IStreamHandler {
+  isFirstFlushHeld: boolean;
   flush(): ValueOrPromise<void>;
   waitForPendingFlush(): ValueOrPromise<void>;
-  holdFirstFlush(): void;
-  releaseFirstFlush(): void;
   streamBlockStart(): void;
   streamBlockEnd(): ValueOrPromise<void>;
 }

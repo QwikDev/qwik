@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { StreamHandler } from './ssr-stream-handler';
-import type { InOrderStreaming, RenderToStreamOptions, StreamWriter } from './types';
+import type { RenderToStreamOptions, StreamWriter } from './types';
 
 const createDeferred = () => {
   let resolve!: () => void;
@@ -64,18 +64,12 @@ describe('StreamHandler', () => {
   });
 
   describe('first flush hold', () => {
-    const createHeldHandler = (
-      inOrder: InOrderStreaming = {
-        strategy: 'auto',
-        maximumInitialChunk: 10,
-        maximumChunk: 10,
-      }
-    ) => {
+    const createHeldHandler = () => {
       const chunks: string[] = [];
       const handler = new StreamHandler(
         {
           stream: { write: (chunk: string) => void chunks.push(chunk) },
-          streaming: { inOrder },
+          streaming: { inOrder: { strategy: 'auto', maximumInitialChunk: 10, maximumChunk: 10 } },
         } as RenderToStreamOptions,
         {
           firstFlush: 0,
@@ -83,7 +77,7 @@ describe('StreamHandler', () => {
           snapshot: 0,
         }
       );
-      handler.holdFirstFlush();
+      handler.isFirstFlushHeld = true;
       return { handler, chunks };
     };
 
@@ -106,7 +100,7 @@ describe('StreamHandler', () => {
       handler.flush();
       expect(onFirstWrite).not.toHaveBeenCalled();
 
-      handler.releaseFirstFlush();
+      handler.isFirstFlushHeld = false;
       handler.flush();
       expect(onFirstWrite).toHaveBeenCalledTimes(1);
     });
@@ -117,7 +111,7 @@ describe('StreamHandler', () => {
       handler.stream.write('a');
       handler.flush();
       handler.stream.write('b');
-      handler.releaseFirstFlush();
+      handler.isFirstFlushHeld = false;
       expect(chunks).toEqual([]);
 
       handler.flush();
@@ -134,40 +128,28 @@ describe('StreamHandler', () => {
       handler.streamBlockEnd();
       expect(chunks).toEqual([]);
 
-      handler.releaseFirstFlush();
+      handler.isFirstFlushHeld = false;
       handler.flush();
 
       expect(chunks).toEqual(['block']);
     });
 
-    it('a buffer past maximumInitialChunk writes through the hold', () => {
+    it('a buffer past maximumInitialChunk stays held', () => {
       const { handler, chunks } = createHeldHandler();
 
-      handler.stream.write('a'.repeat(5));
+      handler.stream.write('a'.repeat(20));
+
       expect(chunks).toEqual([]);
-
-      handler.stream.write('b'.repeat(5));
-
-      expect(chunks).toEqual(['aaaaabbbbb']);
     });
 
-    it('a buffer past maximumInitialChunk ends the hold', () => {
+    it('the first write after release flushes a buffer past maximumInitialChunk', () => {
       const { handler, chunks } = createHeldHandler();
 
-      handler.stream.write('a'.repeat(10));
+      handler.stream.write('a'.repeat(20));
+      handler.isFirstFlushHeld = false;
       handler.stream.write('b');
-      handler.flush();
 
-      expect(chunks).toEqual(['a'.repeat(10), 'b']);
-    });
-
-    it('the disabled strategy holds past any size', () => {
-      const { handler, chunks } = createHeldHandler({ strategy: 'disabled' });
-
-      handler.stream.write('a'.repeat(100_000));
-      handler.flush();
-
-      expect(chunks).toEqual([]);
+      expect(chunks).toEqual(['a'.repeat(20) + 'b']);
     });
   });
 });

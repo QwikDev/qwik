@@ -1091,7 +1091,7 @@ describe('render api', () => {
           expect(chunks[0]).toContain('<body');
         });
 
-        it('a head past maximumInitialChunk flushes before body opens', async () => {
+        it('a head past maximumInitialChunk stays held until body opens', async () => {
           const { chunks, render } = renderDocument(
             <>
               <head>
@@ -1103,8 +1103,7 @@ describe('render api', () => {
           );
           await render;
 
-          expect(chunks[0]).toContain('<title');
-          expect(chunks[0]).not.toContain('</head>');
+          expect(chunks[0]).toContain('</head>');
         });
       });
 
@@ -1159,18 +1158,6 @@ describe('render api', () => {
           expect(chunks).toHaveLength(1);
           expect(chunks[0]).toContain('<title');
           expect(chunks[0]).toContain('gated');
-        });
-
-        it('a head-only document past maximumInitialChunk streams before the final flush', async () => {
-          const { chunks, render } = renderDocument(
-            <head>
-              <title>{'x'.repeat(2000)}</title>
-            </head>,
-            { streaming: { inOrder: { strategy: 'auto', maximumInitialChunk: 1000 } } }
-          );
-          await render;
-
-          expect(chunks.length).toBeGreaterThan(1);
         });
       });
 

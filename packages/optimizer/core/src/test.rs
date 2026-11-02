@@ -9082,3 +9082,34 @@ export function make() {
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn should_keep_user_q_named_root_decl_when_migrating() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { registerHandler } from './register';
+
+const q_init = registerHandler();
+const helper = () => 1;
+
+export function make() {
+  return $(() => helper());
+}
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		minify: MinifyMode::None,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	let output = res.unwrap();
+	let parent = output.modules.iter().find(|m| m.segment.is_none()).unwrap();
+	assert!(
+		parent.code.contains("registerHandler()"),
+		"expected the user's q_init initializer to stay, got:\n{}",
+		parent.code
+	);
+}

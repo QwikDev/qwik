@@ -83,14 +83,12 @@ function runChildMove(mode: 'test' | 'dev'): { parent: TransformModule; panel: T
 }
 
 describe('moved-helper QRL binding ownership', () => {
-  it('parent demotes every moved-helper QRL binding to a bare qrl() statement', () => {
+  it('parent drops every moved-helper QRL binding', () => {
     const { parent } = run();
 
-    expect(parent.code).not.toMatch(/const q_useMockRouter_goto_\w+/);
-    expect(parent.code).not.toMatch(/const q_useMockRouter_useTask_\w+/);
-
-    const bareQrls = parent.code.match(/^qrl\(\(\)\s*=>\s*import\(/gm) ?? [];
-    expect(bareQrls.length).toBe(2);
+    expect(parent.code).not.toMatch(/useMockRouter_goto_\w+/);
+    expect(parent.code).not.toMatch(/useMockRouter_useTask_\w+/);
+    expect(parent.code).not.toMatch(/^qrl\(\(\)\s*=>\s*import\(/m);
 
     expect(parent.code).not.toContain('const useMockRouter');
   });
@@ -128,11 +126,10 @@ describe('moved-helper QRL binding ownership', () => {
 });
 
 describe('moved marker-decl QRL binding ownership (Widget → Panel)', () => {
-  it('dev mode: parent and segment use qrlDEV; segment imports qrlDEV + componentQrl', () => {
+  it('dev mode: parent drops the binding; segment imports qrlDEV + componentQrl', () => {
     const { parent, panel } = runChildMove('dev');
 
-    expect(parent.code).toMatch(/const q_Widget_component_\w+ = .*qrlDEV\(/);
-    expect(parent.code).not.toMatch(/^qrl\(\(\)\s*=>\s*import\(/m);
+    expect(parent.code).not.toMatch(/Widget_component_\w+/);
     expect(parent.code).not.toMatch(/[^.\w]qrl\(/);
 
     expect(panel.code).toMatch(/const q_Widget_component_\w+ = .*qrlDEV\(/);
@@ -142,10 +139,10 @@ describe('moved marker-decl QRL binding ownership (Widget → Panel)', () => {
     expect(panel.code).not.toMatch(/[^.\w]qrl\(/);
   });
 
-  it('prod mode: parent demotes to bare qrl(); segment imports qrl + componentQrl', () => {
+  it('prod mode: parent drops the binding; segment imports qrl + componentQrl', () => {
     const { parent, panel } = runChildMove('test');
 
-    expect(parent.code).toMatch(/^qrl\(\(\)\s*=>\s*import\(/m);
+    expect(parent.code).not.toMatch(/Widget_component_\w+/);
 
     expect(panel.code).toMatch(/const q_Widget_component_\w+ = .*qrl\(\(\)\s*=>\s*import\(/);
     expect(panel.code).toContain('const Widget = /*#__PURE__*/ componentQrl(q_Widget_component_');

@@ -15,7 +15,6 @@ import {
   isWorkerExtraction,
   markMovedCaptures,
 } from './rewrite-calls.js';
-import { escapeSymbol } from '../../hashing/naming.js';
 import { buildQrlDevDeclaration, buildDevFilePath, formatDevMeta } from '../segment/dev-mode.js';
 import {
   buildNoopQrlDeclaration,
@@ -225,34 +224,19 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   );
   const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));
 
-  // A moved source-decl carries its `componentQrl(q_<sym>)` wrap into the
-  // sibling segment, so the parent emits a bare `qrl(...)` registration
-  // instead of `const q_<sym> = qrl(...)` — the binding is unreferenced here.
-  const movedMarkerSymbols = new Set<string>();
+  // A moved decl takes its extractions' `q_<sym>` bindings along, so the parent declares none.
+  const movedDeclSymbols = new Set<string>();
   if (ctx.migrationDecisions && ctx.moduleLevelDecls) {
-    const fileStem = relPath.split('/').pop() ?? relPath;
-    for (const decision of ctx.migrationDecisions) {
-      if (decision.action !== 'move') {
-        continue;
-      }
-      const varName = escapeSymbol(decision.varName);
-      const exact = `${fileStem}_${varName}`;
-      const prefix = `${exact}_`;
-      const bareVarPrefix = `${varName}_`;
-      // A moved helper can own several extractions, so scan all — every one
-      // loses its parent-side `q_<sym>` binding when the decl moves out.
-      for (const e of extractions) {
-        if (e.parent !== null) {
-          continue;
-        }
-        if (
-          e.displayName === exact ||
-          e.displayName.startsWith(prefix) ||
-          e.displayName === varName ||
-          e.displayName.startsWith(bareVarPrefix)
-        ) {
-          movedMarkerSymbols.add(e.symbolName);
-        }
+    const movedNames = new Set(
+      ctx.migrationDecisions.filter((d) => d.action === 'move').map((d) => d.varName)
+    );
+    const movedDecls = ctx.moduleLevelDecls.filter((decl) => movedNames.has(decl.name));
+    for (const e of extractions) {
+      const isInsideMovedDecl = movedDecls.some(
+        (decl) => e.callStart >= decl.declStart && e.callEnd <= decl.declEnd
+      );
+      if (e.parent === null && isInsideMovedDecl) {
+        movedDeclSymbols.add(e.symbolName);
       }
     }
   }
@@ -411,14 +395,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         pushWorkerDeclaration(ext, varName);
         continue;
       }
-      if (movedMarkerSymbols.has(ext.symbolName) && !(isDevMode && devFilePath)) {
-        const fileExt = explicitExtensions ? (outputExtension ?? '.js') : '';
-        ctx.qrlDecls.push(
-          `qrl(()=>import("./${ext.canonicalFilename}${fileExt}"), "${ext.symbolName}");`
-        );
-        // Intentionally not registering `q_<sym>` in `qrlVarNames`: the
-        // parent no longer declares it, so a stray reference should surface
-        // as an error rather than be silently named.
+      if (movedDeclSymbols.has(ext.symbolName)) {
         continue;
       }
       if (isDevMode && devFilePath) {
@@ -467,8 +444,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
     }
   }
 
-  // Sort by segment symbol, not raw text — bare `qrl(...)` registrations
-  // interleave with `const q_* = ...` declarations in symbol order.
+  // Sort by segment symbol, not raw text.
   const declSortKey = (line: string): string =>
     /^const q_([\w$]+)/.exec(line)?.[1] ?? /"([^"]+)"\)?;?\s*$/.exec(line)?.[1] ?? line;
   ctx.qrlDecls.sort((a, b) => {

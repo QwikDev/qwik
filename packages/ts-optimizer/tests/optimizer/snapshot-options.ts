@@ -447,6 +447,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
     entryStrategy: { type: 'inline' },
   },
+  should_drop_parent_qrls_of_root_fn_moved_into_segment: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_inline_member_read_alias_passed_to_marker: {
     transpileTs: true,
     transpileJsx: true,

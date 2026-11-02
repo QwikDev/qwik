@@ -580,11 +580,19 @@ export function filterInlineStrategyMigrations(
  * binding-level decisions); the default keeps the name-harvest semantics `wireMigration` uses for
  * import wiring.
  */
+export interface SourceRange {
+  readonly start: number;
+  readonly end: number;
+}
+
 export function collectDeclIdentifiers(
   program: AstProgram,
   decl: Pick<ModuleLevelDecl, 'declStart' | 'declEnd'>,
-  referencesOnly = false
+  referencesOnly = false,
+  skippedRanges: readonly SourceRange[] = []
 ): Set<string> {
+  const isSkipped = (node: AstNode): boolean =>
+    skippedRanges.some((range) => node.start >= range.start && node.end <= range.end);
   const names = new Set<string>();
   const enclosingStmt = (program.body ?? []).find(
     (stmt) => stmt.start <= decl.declStart && stmt.end >= decl.declEnd
@@ -595,7 +603,8 @@ export function collectDeclIdentifiers(
         node.type === 'Identifier' &&
         node.start >= decl.declStart &&
         node.end <= decl.declEnd &&
-        !(referencesOnly && isNonReferenceIdentifier(node, parent as AstNode | null))
+        !(referencesOnly && isNonReferenceIdentifier(node, parent as AstNode | null)) &&
+        !isSkipped(node)
       ) {
         names.add(node.name);
       }
@@ -604,7 +613,8 @@ export function collectDeclIdentifiers(
         node.type === 'JSXIdentifier' &&
         node.start >= decl.declStart &&
         node.end <= decl.declEnd &&
-        isReferenceIdentifier(node, parent)
+        isReferenceIdentifier(node, parent) &&
+        !isSkipped(node)
       ) {
         names.add(node.name);
       }
@@ -641,20 +651,21 @@ function usingSegmentsOf(name: string, segmentUsage: Map<string, Set<string>>): 
  * into that segment instead.
  *
  * Post-pass MIG-06: a `move`d declaration's body can still reference other module-level
- * declarations after it leaves the parent. Any such dependency that would otherwise stay
- * un-exported (`keep`) — or would move to a different segment — flips to `reexport` so the migrated
- * body can import it.
+ * declarations after it leaves the parent. Code extracted into segments is not part of that body.
+ * Any such dependency that would otherwise stay un-exported (`keep`) — or would move to a different
+ * segment — flips to `reexport` so the migrated body can import it.
  */
 export function analyzeMigration(
   decls: ModuleLevelDecl[],
   segmentUsage: Map<string, Set<string>>,
   rootUsage: Set<string>,
-  program?: AstProgram
+  program?: AstProgram,
+  extractedRanges: readonly SourceRange[] = []
 ): MigrationDecision[] {
   const decisions = decls.map((decl) => decideMigration(decl, segmentUsage, rootUsage));
   promoteSharedDestructureGroups(decls, decisions, segmentUsage, rootUsage);
   if (program) {
-    reexportMovedDeclDependencies(decls, decisions, program, segmentUsage);
+    reexportMovedDeclDependencies(decls, decisions, program, segmentUsage, extractedRanges);
   }
   return decisions;
 }
@@ -672,7 +683,8 @@ function reexportMovedDeclDependencies(
   decls: ModuleLevelDecl[],
   decisions: MigrationDecision[],
   program: AstProgram,
-  segmentUsage: Map<string, Set<string>>
+  segmentUsage: Map<string, Set<string>>,
+  extractedRanges: readonly SourceRange[]
 ): void {
   const indexByName = new Map<string, number>();
   for (let i = 0; i < decls.length; i++) {
@@ -683,7 +695,7 @@ function reexportMovedDeclDependencies(
   const moverDeps = (i: number): Set<string> => {
     let deps = depsOfMover.get(i);
     if (!deps) {
-      deps = collectDeclIdentifiers(program, decls[i], true);
+      deps = collectDeclIdentifiers(program, decls[i], true, extractedRanges);
       depsOfMover.set(i, deps);
     }
     return deps;
@@ -724,7 +736,7 @@ function reexportMovedDeclDependencies(
 
   const referencedByDecls = new Map<string, Set<number>>();
   for (let j = 0; j < decls.length; j++) {
-    for (const dep of collectDeclIdentifiers(program, decls[j], true)) {
+    for (const dep of collectDeclIdentifiers(program, decls[j], true, extractedRanges)) {
       if (dep === decls[j].name) {
         continue;
       }
@@ -819,7 +831,7 @@ function collectTopLevelStatementRefs(program: AstProgram, decls: ModuleLevelDec
 /** Names root code reads outside the `excluded` ranges (extracted or inlined code). */
 export function collectRootReads(
   program: AstProgram,
-  excluded: ReadonlyArray<{ readonly start: number; readonly end: number }>
+  excluded: readonly SourceRange[]
 ): Set<string> {
   const isExcluded = (pos: number): boolean =>
     excluded.some((range) => pos >= range.start && pos < range.end);

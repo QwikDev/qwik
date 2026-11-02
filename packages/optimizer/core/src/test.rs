@@ -9113,3 +9113,23 @@ export function make() {
 		parent.code
 	);
 }
+
+#[test]
+fn should_drop_parent_qrls_of_root_fn_moved_into_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Child, imported } from './child';
+
+const pick = () => console.log('picked');
+
+const renderChild = () => <Child root={$(pick)} imported={$(imported)} />;
+
+export const Parent = component$(() => <>{renderChild()}</>);
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}

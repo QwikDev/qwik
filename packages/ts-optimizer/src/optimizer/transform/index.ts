@@ -1024,10 +1024,11 @@ function attributeSegmentUsage(
     }
   }
 
+  const extractedRanges = extractions.map((e) => ({ start: e.callStart, end: e.callEnd }));
+
   // `$(alias)` segments later inline the alias's init, so its module-level reads belong to them.
   // A dropped alias decl takes those reads out of root code too; a member read stays behind.
   if (!isInlineStrategy) {
-    const extractedRanges = extractions.map((e) => ({ start: e.callStart, end: e.callEnd }));
     const rootReads = collectRootReads(program, extractedRanges);
     const droppedInits: Array<{ start: number; end: number; moduleReads: string[] }> = [];
     for (const ext of extractions) {
@@ -1148,7 +1149,13 @@ function attributeSegmentUsage(
     }
   }
 
-  let migrationDecisions = analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage, program);
+  let migrationDecisions = analyzeMigration(
+    moduleLevelDecls,
+    segmentUsage,
+    rootUsage,
+    program,
+    extractedRanges
+  );
   if (isInlineStrategy) {
     const dynamicDefaultOwners = new Map<string, string>();
     for (const extraction of extractions) {

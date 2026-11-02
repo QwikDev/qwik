@@ -9010,3 +9010,52 @@ export const Parent = component$(() => (
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn should_inline_member_read_alias_passed_to_marker() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { handlers, createHandler } from './handlers';
+
+const config = { actions: { save: () => console.log('save') } };
+
+export function make() {
+  const imported = handlers.onClick;
+  const nested = config.actions.save;
+  const fromCall = createHandler();
+  return [$(imported), $(nested), $(fromCall)];
+}
+
+export const App = component$(() => {
+  const handler = handlers.onClick;
+  const action = $(handler);
+  return <button onClick$={action} />;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_root_const_read_by_inlined_alias() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+
+const config = { save: () => console.log('save') };
+
+export function make() {
+  const run = () => config.save();
+  return $(run);
+}
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}

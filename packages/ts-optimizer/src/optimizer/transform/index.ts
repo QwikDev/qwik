@@ -57,7 +57,9 @@ import {
 import type { ScopeAwareCollectResult } from '../jsx/jsx.js';
 import {
   analyzeMigration,
+  collectDeclIdentifiers,
   collectModuleLevelDecls,
+  collectRootReads,
   filterInlineStrategyMigrations,
   MIG_REASON,
   type MigrationDecision,
@@ -392,6 +394,7 @@ function transformOneModule(
     mod,
     prepared,
     extractions,
+    closureNodes,
     analysis,
     emit.isInlineStrategy
   );
@@ -953,10 +956,29 @@ function dropTopLevelModuleScopeCaptures(
 }
 
 /** Phase 3: attribute module-level decl usage and decide migrations. */
+/** The const init a whole-body identifier segment (`$(alias)`) inlines, if any. */
+function resolveAliasInit(
+  ext: ExtractionResult,
+  closureNodes: ReadonlyMap<string, AstFunction>,
+  program: AstProgram,
+  repairedCode: string
+): ReturnType<typeof resolveWholeBodyIdentifier> {
+  const bare = ext.bodyText.trim();
+  if (!isSimpleIdentifierName(bare)) {
+    return null;
+  }
+  const scopeNode = ext.parent ? closureNodes.get(ext.parent) : (program as unknown as AstNode);
+  if (!scopeNode) {
+    return null;
+  }
+  return resolveWholeBodyIdentifier(scopeNode as AstNode, repairedCode, bare);
+}
+
 function attributeSegmentUsage(
   mod: ModuleContext,
   prepared: PreparedModuleInput,
   extractions: ExtractionResult[],
+  closureNodes: ReadonlyMap<string, AstFunction>,
   analysis: CaptureAnalysis,
   isInlineStrategy: boolean
 ): MigrationAnalysis {
@@ -998,6 +1020,42 @@ function attributeSegmentUsage(
     if (usage && ext.captureNames) {
       for (const name of ext.captureNames) {
         usage.add(name);
+      }
+    }
+  }
+
+  // `$(alias)` segments later inline the alias's init, so its module-level reads belong to them.
+  // A dropped alias decl takes those reads out of root code too; a member read stays behind.
+  if (!isInlineStrategy) {
+    const extractedRanges = extractions.map((e) => ({ start: e.callStart, end: e.callEnd }));
+    const rootReads = collectRootReads(program, extractedRanges);
+    const droppedInits: Array<{ start: number; end: number; moduleReads: string[] }> = [];
+    for (const ext of extractions) {
+      const usage = segmentUsage.get(ext.symbolName);
+      const init = ext.isSync ? null : resolveAliasInit(ext, closureNodes, program, repairedCode);
+      if (!usage || !init) {
+        continue;
+      }
+      const initRange = { declStart: init.start, declEnd: init.end };
+      const moduleReads = [...collectDeclIdentifiers(program, initRange, true)].filter((name) =>
+        moduleLevelDeclsByName.has(name)
+      );
+      for (const name of moduleReads) {
+        usage.add(name);
+      }
+      const isAliasDropped = !init.keepsRead && !rootReads.has(ext.bodyText.trim());
+      if (isAliasDropped) {
+        droppedInits.push({ start: init.start, end: init.end, moduleReads });
+      }
+    }
+    if (droppedInits.length > 0) {
+      const liveRootReads = collectRootReads(program, [...extractedRanges, ...droppedInits]);
+      for (const { moduleReads } of droppedInits) {
+        for (const name of moduleReads) {
+          if (!liveRootReads.has(name)) {
+            rootUsage.delete(name);
+          }
+        }
       }
     }
   }
@@ -1420,14 +1478,7 @@ function generateSegments(
         continue;
       }
       const bare = ext.bodyText.trim();
-      if (!isSimpleIdentifierName(bare)) {
-        continue;
-      }
-      const scopeNode = ext.parent ? closureNodes.get(ext.parent) : (program as unknown as AstNode);
-      if (!scopeNode) {
-        continue;
-      }
-      const init = resolveWholeBodyIdentifier(scopeNode as AstNode, repairedCode, bare);
+      const init = resolveAliasInit(ext, closureNodes, program, repairedCode);
       if (init !== null) {
         const mutable = ext as Mutable<ExtractionResult>;
         mutable.bodyText = mkBodyText(init.text);

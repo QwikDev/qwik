@@ -447,6 +447,14 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
     entryStrategy: { type: 'inline' },
   },
+  should_inline_member_read_alias_passed_to_marker: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_move_root_const_read_by_inlined_alias: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_not_consolidate_loop_params_named_like_props: {
     transpileTs: true,
     transpileJsx: true,

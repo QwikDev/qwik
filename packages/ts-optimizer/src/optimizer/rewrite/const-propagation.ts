@@ -171,15 +171,15 @@ function isLiteralNode(node: AstNode): boolean {
 /**
  * Resolve a whole-body identifier segment (`$(render)`, `useStyles$(style)`) to its const init's
  * source text, matching Rust's static-expression inlining. Only fires when the init is a
- * serializable expression (literal, template, function) whose free identifiers are not locals of
- * the enclosing scope — those would need real captures. Module-scope consts never inline: the
- * segment shares them through their `_auto_` export.
+ * serializable expression (literal, template, function, dotted member read) whose free identifiers
+ * are not locals of the enclosing scope — those would need real captures. Module-scope consts never
+ * inline: the segment shares them through their `_auto_` export.
  */
 export function resolveWholeBodyIdentifier(
   scopeNode: AstNode,
   source: string,
   name: string
-): { text: string; start: number; end: number } | null {
+): { text: string; start: number; end: number; keepsRead: boolean } | null {
   let initText: string | null = null;
   let initNode: AstNode | null = null;
 
@@ -215,17 +215,29 @@ export function resolveWholeBodyIdentifier(
     init.type === 'Literal' ||
     init.type === 'TemplateLiteral' ||
     init.type === 'ArrowFunctionExpression' ||
-    init.type === 'FunctionExpression';
+    init.type === 'FunctionExpression' ||
+    isStaticMemberRead(init);
   if (!serializable) {
     return null;
   }
 
-  for (const ident of collectIdentifiers(init)) {
+  const memberRoot = isStaticMemberRead(init) ? memberRootName(init) : null;
+  const freeNames = memberRoot ? [memberRoot] : collectIdentifiers(init);
+  for (const ident of freeNames) {
     if (ident !== name && localBindings.has(ident)) {
       return null;
     }
   }
-  return { text: initText, start: init.start, end: init.end };
+  // A dropped member-read alias leaves its read behind: the getter may have side effects.
+  return { text: initText, start: init.start, end: init.end, keepsRead: memberRoot !== null };
+}
+
+/** A dotted read such as `handlers.onClick` or `a.b.c`. */
+function isStaticMemberRead(node: AstNode): boolean {
+  if (node.type !== 'MemberExpression' || node.computed) {
+    return false;
+  }
+  return node.object.type === 'Identifier' || isStaticMemberRead(node.object);
 }
 
 function isModuleScopeParent(node: AstNode): boolean {

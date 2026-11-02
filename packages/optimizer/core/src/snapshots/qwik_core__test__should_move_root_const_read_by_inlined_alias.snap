@@ -1,0 +1,60 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $ } from '@qwik.dev/core';
+
+const config = { save: () => console.log('save') };
+
+export function make() {
+  const run = () => config.save();
+  return $(run);
+}
+
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_make_0UXI11s6V9M = /*#__PURE__*/ qrl(()=>import("./test.tsx_make_0UXI11s6V9M"), "make_0UXI11s6V9M");
+//
+export function make() {
+    return q_make_0UXI11s6V9M;
+}
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAKA,OAAO,SAAS;IAEd;AACF\"}")
+============================= test.tsx_make_0UXI11s6V9M.js (ENTRY POINT)==
+
+const config = {
+    save: ()=>console.log('save')
+};
+export const make_0UXI11s6V9M = ()=>config.save();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"MAGM,SAAS;IAAE,MAAM,IAAM,QAAQ,GAAG,CAAC;AAAQ;gCAGnC,IAAM,OAAO,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "make_0UXI11s6V9M",
+  "entry": null,
+  "displayName": "test.tsx_make",
+  "hash": "0UXI11s6V9M",
+  "canonicalFilename": "test.tsx_make_0UXI11s6V9M",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    131,
+    150
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

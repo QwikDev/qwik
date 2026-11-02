@@ -5469,9 +5469,20 @@ fn process_node_props(pat: &ast::Pat) -> Vec<IdPlusType> {
 }
 
 /// Initializers safe to re-evaluate inside a segment: re-running a call would fork its state.
-const fn is_inlinable_initializer(init: &ast::Expr) -> bool {
+fn is_inlinable_initializer(init: &ast::Expr) -> bool {
 	matches!(
 		init,
 		ast::Expr::Lit(_) | ast::Expr::Tpl(_) | ast::Expr::Arrow(_) | ast::Expr::Fn(_)
-	)
+	) || is_static_member_read(init)
+}
+
+/// A dotted read such as `handlers.onClick` or `a.b.c`.
+fn is_static_member_read(expr: &ast::Expr) -> bool {
+	let ast::Expr::Member(member) = expr else {
+		return false;
+	};
+	if matches!(member.prop, ast::MemberProp::Computed(_)) {
+		return false;
+	}
+	matches!(&*member.obj, ast::Expr::Ident(_)) || is_static_member_read(&member.obj)
 }

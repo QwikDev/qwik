@@ -316,6 +316,11 @@ export function stripDiagnosticsAndDirectives(bodyText: string): string {
   const code = blankNonCode(bodyText);
   const deletions: Array<{ start: number; end: number }> = [];
   for (const tag of code.matchAll(/<(\w+)([^>]*?)>/g)) {
+    // Only HTML tags drop them here. A component or dynamic tag keeps both, so _jsxSplit can still
+    // make the listener passive when the tag is a string at runtime.
+    if (!/^[a-z]/.test(tag[1])) {
+      continue;
+    }
     const attrs = tag[2];
     const attrsStart = tag.index + 1 + tag[1].length;
     const elementPassive = new Set<string>();

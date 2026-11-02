@@ -1,0 +1,117 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$, $ } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
+import { Child } from './child';
+
+export default component$((props: { eventName: string }) => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+  const handler = $(() => console.log('clicked'));
+  return jsx('div', {
+    children: [
+      jsx(Cmp, { [props.eventName]: handler }),
+      jsx(Cmp, { ['onClick$']: handler }),
+      jsx(Cmp, { ['title']: 'static' }),
+      jsx(Child, { [props.eventName]: handler }),
+    ],
+  });
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAKA,6BAAe,2CAWZ\"}")
+============================= test.tsx_test_component_handler_8vo8NHSEKSA.js (ENTRY POINT)==
+
+export const test_component_handler_8vo8NHSEKSA = ()=>console.log('clicked');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAOoB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_handler_8vo8NHSEKSA",
+  "entry": null,
+  "displayName": "test.tsx_test_component_handler",
+  "hash": "8vo8NHSEKSA",
+  "canonicalFilename": "test.tsx_test_component_handler_8vo8NHSEKSA",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    269,
+    297
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { Child } from "./child";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_handler_8vo8NHSEKSA = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_handler_8vo8NHSEKSA"), "test_component_handler_8vo8NHSEKSA");
+//
+export const test_component_LUXeXe0DQrg = (props)=>{
+    const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+    const handler = q_test_component_handler_8vo8NHSEKSA;
+    return _jsxSorted('div', null, null, [
+        _jsxSplit(Cmp, {
+            [props.eventName]: handler
+        }, null, null, 3, "u6_0"),
+        _jsxSplit(Cmp, {
+            ['onClick$']: handler
+        }, null, null, 3, "u6_1"),
+        _jsxSorted(Cmp, {
+            ['title']: 'static'
+        }, null, null, 3, "u6_2"),
+        _jsxSorted(Child, {
+            [props.eventName]: handler
+        }, null, null, 3, "u6_3")
+    ], 1, "u6_4");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAK0B,CAAC;IACzB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,WAAW;IAC9C,MAAM;IACN,OAAO,WAAI,mBACC;QACR,UAAI;YAAO,CAAC,MAAM,SAAS,CAAC,EAAE;;QAC9B,UAAI;YAAO,CAAC,WAAW,EAAE;;QACzB,WAAI;YAAO,CAAC,QAAQ,EAAE;;QACtB,WAAI;YAAS,CAAC,MAAM,SAAS,CAAC,EAAE;;KACjC;AAEL\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    160,
+    534
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

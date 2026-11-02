@@ -1225,12 +1225,24 @@ impl<'a> QwikTransform<'a> {
 				(false, true, false)
 			}
 		};
+		// A tag bound in a function scope (or any other expression) can change at runtime.
+		// Imported, module-level and global tags like `Host` are static components.
+		let is_dynamic_tag = match &*node_type.expr {
+			ast::Expr::Lit(_) => false,
+			ast::Expr::Ident(ident) => {
+				let id = id!(ident);
+				self.decl_stack
+					.iter()
+					.any(|scope| scope.iter().any(|(decl, _)| *decl == id))
+			}
+			_ => true,
+		};
 		let should_emit_key = is_fn || self.root_jsx_mode;
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = false;
 
 		let (should_sort, var_props, const_props, children, flags) =
-			self.handle_jsx_props_obj(node_props, is_fn, is_text_only);
+			self.handle_jsx_props_obj(node_props, is_fn, is_dynamic_tag, is_text_only);
 
 		let key = if node.args.len() == 1 {
 			node.args.remove(0)
@@ -2010,14 +2022,23 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	/// Checks if a component has on*$ event handler props, including shorthand ones like `{ onClick$ }`.
+	/// On a dynamic tag, computed keys that may name an event count too.
 	/// A dynamic tag can be a string at runtime, so it needs _jsxSplit to turn them into listeners.
-	fn component_has_event_props(props: &[ast::PropOrSpread]) -> bool {
+	fn component_has_event_props(props: &[ast::PropOrSpread], is_dynamic_tag: bool) -> bool {
 		props.iter().any(|prop| match prop {
 			ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) => match &node.key {
 				ast::PropName::Ident(ref ident) => {
 					jsx_event_to_html_attribute(&ident.sym, false).is_some()
 				}
 				ast::PropName::Str(ref s) => jsx_event_to_html_attribute(&s.value, false).is_some(),
+				// `{ ['onClick$']: fn }` is checked by name, `{ [name]: fn }` could be any event
+				ast::PropName::Computed(ref computed) if is_dynamic_tag => match &*computed.expr {
+					ast::Expr::Lit(ast::Lit::Str(ref s)) => {
+						jsx_event_to_html_attribute(&s.value, false).is_some()
+					}
+					ast::Expr::Lit(_) => false,
+					_ => true,
+				},
 				_ => false,
 			},
 			ast::PropOrSpread::Prop(box ast::Prop::Shorthand(ref ident)) => {
@@ -2222,6 +2243,7 @@ impl<'a> QwikTransform<'a> {
 		&mut self,
 		expr: ast::ExprOrSpread,
 		is_fn: bool,
+		is_dynamic_tag: bool,
 		is_text_only: bool,
 	) -> (
 		bool,
@@ -2231,7 +2253,7 @@ impl<'a> QwikTransform<'a> {
 		ast::ExprOrSpread,
 	) {
 		let (should_sort, var_props_raw, const_props_raw, children, flags) =
-			self.internal_handle_jsx_props_obj(expr, is_fn, is_text_only);
+			self.internal_handle_jsx_props_obj(expr, is_fn, is_dynamic_tag, is_text_only);
 
 		let var_props = if var_props_raw.is_empty() {
 			get_null_arg()
@@ -2262,6 +2284,7 @@ impl<'a> QwikTransform<'a> {
 		&mut self,
 		expr: ast::ExprOrSpread,
 		is_fn: bool,
+		is_dynamic_tag: bool,
 		is_text_only: bool,
 	) -> (
 		bool,
@@ -2342,7 +2365,8 @@ impl<'a> QwikTransform<'a> {
 				// In the edge case when fn is actually a string component at runtime
 				let has_component_bind_props = is_fn && Self::component_has_bind_props(&props);
 				// Same for on*$ props: a dynamic tag that is a string at runtime needs them as listeners
-				let has_component_event_props = is_fn && Self::component_has_event_props(&props);
+				let has_component_event_props =
+					is_fn && Self::component_has_event_props(&props, is_dynamic_tag);
 
 				let should_runtime_sort =
 					has_spread_props || has_component_bind_props || has_component_event_props;

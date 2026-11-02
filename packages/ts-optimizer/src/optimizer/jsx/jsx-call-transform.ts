@@ -73,6 +73,7 @@ interface JsxCallTransformOptions {
   localNames?: ReadonlySet<string>;
   bindings?: ScopeAwareBindings;
   paramNames?: readonly string[];
+  program?: AstProgram;
 }
 
 /**
@@ -114,6 +115,7 @@ export function transformJsxCalls(
   }
   opts.localNames = localNames;
   opts.bindings = scopeBindings.bindings;
+  opts.program = program;
 
   const directJsxChildStarts = new Set<number>();
 
@@ -509,6 +511,7 @@ function buildJsxSortedCall(
   // Event-handler key rewriting (`onClick$` → `"q-e:click"`) applies only to
   // HTML — components receive the `*$` form as a JSX prop and wire it at runtime.
   const isHtmlTag = tagArg.type === 'Literal' && typeof tagArg.value === 'string';
+  const isDynamicTag = isDynamicTagExpr(tagArg, opts);
 
   let childrenText: string | null = null;
   let childrenIsDynamic = false;
@@ -537,7 +540,7 @@ function buildJsxSortedCall(
       return null;
     }
     const keyName = propertyKeyName(prop);
-    if (!isHtmlTag && keyName !== null && !prop.computed && isRuntimeEventProp(keyName)) {
+    if (!isHtmlTag && mayBeRuntimeEventKey(prop, keyName, isDynamicTag)) {
       hasEventPropsOnDynamicTag = true;
     }
     if (keyName === 'children' && !prop.computed) {
@@ -587,7 +590,8 @@ function buildJsxSortedCall(
         continue;
       }
     }
-    if (isHandlerPropKey(keyName)) {
+    // A computed key like `['onClick$']` is a plain prop in Rust, so only a named handler goes here
+    if (!prop.computed && isHandlerPropKey(keyName)) {
       const handlerText = s.slice(prop.start, prop.end);
       const isConst = isConstEventHandlerValue(prop.value);
       slots.push({
@@ -689,6 +693,49 @@ function buildJsxSortedCall(
  */
 function isConstEventHandlerValue(value: AstNode): boolean {
   return value.type === 'Identifier';
+}
+
+/**
+ * Whether a prop key can be an on*$ event at runtime. `['onClick$']` is checked by name, and a
+ * computed key like `[name]` could be any event. Computed keys count only on a dynamic tag. Same
+ * rule as `component_has_event_props` in the Rust optimizer.
+ */
+function mayBeRuntimeEventKey(
+  prop: AstNode,
+  keyName: string | null,
+  isDynamicTag: boolean
+): boolean {
+  if (prop.type !== 'Property') {
+    return false;
+  }
+  if (!prop.computed) {
+    return keyName !== null && isRuntimeEventProp(keyName);
+  }
+  if (!isDynamicTag) {
+    return false;
+  }
+  if (prop.key.type === 'Literal') {
+    return typeof prop.key.value === 'string' && isRuntimeEventProp(prop.key.value);
+  }
+  return true;
+}
+
+/**
+ * A tag bound in a function or block (or any other expression) can change at runtime. Imported,
+ * module-level and global tags like `Host` are static components. Same rule as the Rust optimizer.
+ */
+function isDynamicTagExpr(tagArg: AstNode, opts: JsxCallTransformOptions): boolean {
+  if (tagArg.type === 'Literal') {
+    return false;
+  }
+  if (tagArg.type !== 'Identifier') {
+    return true;
+  }
+  return (
+    (opts.paramNames?.includes(tagArg.name) ?? false) ||
+    (opts.program !== undefined &&
+      (opts.bindings?.isInnerScopeBinding(tagArg.name, tagArg.start, opts.program) ?? false))
+  );
 }
 
 function propertyKeyName(prop: AstNode): string | null {

@@ -6865,6 +6865,57 @@ export default component$(() => {
 }
 
 #[test]
+fn should_make_dynamic_tag_jsx_split_with_computed_event_prop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
+import { Child } from './child';
+
+export default component$((props: { eventName: string }) => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+  const handler = $(() => console.log('clicked'));
+  return jsx('div', {
+    children: [
+      jsx(Cmp, { [props.eventName]: handler }),
+      jsx(Cmp, { ['onClick$']: handler }),
+      jsx(Cmp, { ['title']: 'static' }),
+      jsx(Child, { [props.eventName]: handler }),
+    ],
+  });
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_passive_directive_on_dynamic_tag_jsx_split() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'div' : 'section'
+  return (
+    <div>
+      <Cmp passive:wheel onWheel$={() => console.log('wheel')} />
+      <Cmp passive:touchstart preventdefault:touchstart onTouchStart$={() => console.log('touch')} />
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_transform_block_scoped_variables_in_loop() {
 	test_input!(TestInput {
 		code: r#"

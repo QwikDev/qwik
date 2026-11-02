@@ -40,6 +40,25 @@ describe.each([
     expect((globalThis as any).logs).toEqual(['clicked']);
     (globalThis as any).logs = undefined;
   });
+  it('should register event listeners on a dynamic string tag', async () => {
+    (globalThis as any).logs = [];
+    const Cmp = component$(() => {
+      const Tag = 'button' as any;
+      return (
+        <Tag
+          onClick$={() => {
+            (globalThis as any).logs.push('clicked');
+          }}
+        ></Tag>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).logs).toEqual(['clicked']);
+    (globalThis as any).logs = undefined;
+  });
   it('should render event falsy value', async () => {
     const Cmp = component$(() => {
       return <button onClick$={undefined}></button>;

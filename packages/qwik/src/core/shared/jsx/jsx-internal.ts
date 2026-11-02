@@ -1,7 +1,11 @@
 import type { OnRenderFn } from '../component.public';
 import { createQRL } from '../qrl/qrl-class';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { jsxEventToHtmlAttribute, normalizeJsxEventName } from '../utils/event-names';
+import {
+  isJsxPropertyAnEventName,
+  jsxEventToHtmlAttribute,
+  normalizeJsxEventName,
+} from '../utils/event-names';
 import { logOnceWarn } from '../utils/log';
 import type { OnRenderProp, QSlot, QSlotS, QScopedStyle, ELEMENT_ID } from '../utils/markers';
 import { qDev } from '../utils/qdev';
@@ -97,6 +101,17 @@ const convertJsxEventProps = (
   return mutableProps;
 };
 
+const hasEventProps = (props: Props | null): boolean => {
+  if (props) {
+    for (const k in props) {
+      if (isJsxPropertyAnEventName(k)) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 /**
  * Create a JSXNode with the properties fully split into variable and constant parts, and children
  * separated out. Furthermore, the varProps must be a sorted object, that is, the keys must be
@@ -123,6 +138,10 @@ export const _jsxSorted = <T>(
   key: string | number | null | undefined,
   dev?: DevJSX
 ): JSXNodeInternal<T> => {
+  // Dynamic string tags reach here with unconverted event props
+  if (typeof type === 'string' && (hasEventProps(varProps) || hasEventProps(constProps))) {
+    return _jsxSplit(type, varProps, constProps, children, flags, key, dev) as JSXNodeInternal<T>;
+  }
   return new JSXNodeImpl(type, varProps, constProps, children, flags, key, false, dev);
 };
 

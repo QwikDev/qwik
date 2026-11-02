@@ -1444,7 +1444,11 @@ export const isDev = ${JSON.stringify(isDev)};
   }
 
   // Eager contexts stay with their parent, not a segment chunk.
-  const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
+  // `useComputed$` is not here on purpose: the runtime resolves the QRL of every serialized
+  // computed signal while it resumes (inflate.ts), so a computed in its own chunk costs one
+  // dynamic import per computed at load, before any of them is needed. Grouped by entry, a
+  // computed ships in the chunk of the component or hook that created it, like `useTask$` does.
+  const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$']);
 
   /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
@@ -1470,7 +1474,6 @@ export const isDev = ${JSON.stringify(isDev)};
               const isSmartClientOnly =
                 opts.entryStrategy.type === 'smart' &&
                 isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true);
-              // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
               if (EAGER_CTX_NAMES.has(segment.ctxName) && !isSmartClientOnly) {
                 return null;
               }

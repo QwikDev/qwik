@@ -2009,6 +2009,26 @@ impl<'a> QwikTransform<'a> {
 		})
 	}
 
+	/// Checks if a component has on*$ event handler props.
+	/// A dynamic tag can be a string at runtime, so it needs _jsxSplit to turn them into listeners.
+	fn component_has_event_props(props: &[ast::PropOrSpread]) -> bool {
+		props.iter().any(|prop| {
+			if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) = prop {
+				match &node.key {
+					ast::PropName::Ident(ref ident) => {
+						jsx_event_to_html_attribute(&ident.sym, false).is_some()
+					}
+					ast::PropName::Str(ref s) => {
+						jsx_event_to_html_attribute(&s.value, false).is_some()
+					}
+					_ => false,
+				}
+			} else {
+				false
+			}
+		})
+	}
+
 	fn create_qrl(
 		&mut self,
 		path: Atom,
@@ -2323,8 +2343,11 @@ impl<'a> QwikTransform<'a> {
 				// Components with bind props need _jsxSplit for runtime handling
 				// In the edge case when fn is actually a string component at runtime
 				let has_component_bind_props = is_fn && Self::component_has_bind_props(&props);
+				// Same for on*$ props: a dynamic tag that is a string at runtime needs them as listeners
+				let has_component_event_props = is_fn && Self::component_has_event_props(&props);
 
-				let should_runtime_sort = has_spread_props || has_component_bind_props;
+				let should_runtime_sort =
+					has_spread_props || has_component_bind_props || has_component_event_props;
 				let mut static_listeners = !has_spread_props;
 				let mut static_subtree = !has_spread_props;
 				let mut moved_captures = false; // Track if we've already added q:p or q:ps

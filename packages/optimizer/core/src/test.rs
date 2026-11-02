@@ -6799,6 +6799,28 @@ export default component$(() => {
 }
 
 #[test]
+fn should_make_dynamic_tag_jsx_split_with_event_handlers() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a'
+  return (
+    <div>
+      <Cmp onClick$={() => console.log('clicked')} />
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_transform_block_scoped_variables_in_loop() {
 	test_input!(TestInput {
 		code: r#"

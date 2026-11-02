@@ -12,7 +12,7 @@ import {
   type JsxKeyReservations,
   reserveRegionKeys,
 } from './jsx.js';
-import { transformEventPropName } from './event-handlers.js';
+import { isRuntimeEventProp, transformEventPropName } from './event-handlers.js';
 import { buildCaptureProp } from './loop-hoisting.js';
 import { analyzeSignalExpression, type SignalHoister } from './signal-analysis.js';
 import type { SegmentImportData } from '../segment/segment-codegen.js';
@@ -513,6 +513,10 @@ function buildJsxSortedCall(
   let childrenText: string | null = null;
   let childrenIsDynamic = false;
   let hasVarEventHandler = false;
+  let hasShorthandEventHandler = false;
+  // A dynamic tag can be a string at runtime, so on*$ props (shorthand too) need _jsxSplit to
+  // become listeners. Same rule as the JSX element path and the Rust optimizer.
+  let hasEventPropsOnDynamicTag = false;
   const varEntries: string[] = [];
   const constEntries: string[] = [];
   const slots: PropSlot[] = [];
@@ -533,6 +537,9 @@ function buildJsxSortedCall(
       return null;
     }
     const keyName = propertyKeyName(prop);
+    if (!isHtmlTag && keyName !== null && !prop.computed && isRuntimeEventProp(keyName)) {
+      hasEventPropsOnDynamicTag = true;
+    }
     if (keyName === 'children' && !prop.computed) {
       const value = prop.value;
       childrenText = s.slice(value.start, value.end);
@@ -544,7 +551,7 @@ function buildJsxSortedCall(
       varEntries.push(entryText);
       slots.push({ kind: 'named', text: entryText, isConst: false, rawConst: false });
       if (isHandlerPropKey(keyName)) {
-        hasVarEventHandler = true;
+        hasShorthandEventHandler = true;
       }
       continue;
     }
@@ -653,9 +660,21 @@ function buildJsxSortedCall(
   const varPropsText = varEntries.length > 0 ? `{ ${varEntries.join(', ')} }` : 'null';
   const constPropsText = constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : 'null';
   const hasVarProps = varEntries.length > 0;
-  let flags = computeJsxFlags(hasVarProps, childrenType, false, hasVarEventHandler);
+  // Rust keeps the static_listeners bit for a shorthand handler on the _jsxSplit path (the runtime
+  // never reads that bit); _jsxSorted clears it so the handler is not treated as a const listener.
+  let flags = computeJsxFlags(
+    hasVarProps,
+    childrenType,
+    false,
+    hasVarEventHandler || (!hasEventPropsOnDynamicTag && hasShorthandEventHandler)
+  );
   if (qpParams.length > 0) {
     flags |= 4;
+  }
+
+  if (hasEventPropsOnDynamicTag) {
+    opts.neededImports.add('_jsxSplit');
+    return `/*#__PURE__*/ _jsxSplit(${tag}, ${varPropsText}, ${constPropsText}, ${childrenSlot}, ${flags}, ${keyText})`;
   }
 
   opts.neededImports.add('_jsxSorted');

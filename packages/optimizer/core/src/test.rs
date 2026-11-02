@@ -6821,6 +6821,50 @@ export default component$(() => {
 }
 
 #[test]
+fn should_make_dynamic_tag_jsx_split_with_shorthand_event_prop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+  const onClick$ = $(() => console.log('clicked'));
+  return jsx(Cmp, { onClick$ });
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_make_dynamic_tag_jsx_split_with_lowercase_event_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a'
+  return (
+    <div>
+      <Cmp onclick$={() => console.log('clicked')} />
+      <Cmp window:onresize$={() => console.log('resized')} />
+      <Cmp document:onscroll$={() => console.log('scrolled')} />
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_transform_block_scoped_variables_in_loop() {
 	test_input!(TestInput {
 		code: r#"

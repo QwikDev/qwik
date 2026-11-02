@@ -720,6 +720,14 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  should_make_dynamic_tag_jsx_split_with_lowercase_event_props: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_make_dynamic_tag_jsx_split_with_shorthand_event_prop: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_mark_props_as_var_props_for_inner_cmp: { transpileTs: true, transpileJsx: true },
   should_merge_attributes_with_spread_props: { transpileTs: true, transpileJsx: true },
   should_merge_attributes_with_spread_props_before_and_after: {

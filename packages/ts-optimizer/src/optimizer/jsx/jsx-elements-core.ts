@@ -1,5 +1,5 @@
 import type { JSXAttributeItem, JSXElement, JSXFragment } from '../../ast-types.js';
-import { collectPassiveDirectives, isEventProp } from './event-handlers.js';
+import { collectPassiveDirectives, isRuntimeEventProp } from './event-handlers.js';
 import { getJsxAttributeName } from './jsx-attr-name.js';
 import { buildCaptureProp, type LoopContext } from './loop-hoisting.js';
 import {
@@ -626,7 +626,7 @@ export function transformJsxElement(
   const hasEventPropsOnDynamicTag =
     !tagIsHtml &&
     openingElement.attributes.some(
-      (a) => a.type === 'JSXAttribute' && isEventProp(getJsxAttributeName(a))
+      (a) => a.type === 'JSXAttribute' && isRuntimeEventProp(getJsxAttributeName(a))
     );
   const varProps = varEntries.length > 0 ? `{ ${varEntries.join(', ')} }` : null;
   const constProps = constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : null;

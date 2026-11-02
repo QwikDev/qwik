@@ -2009,23 +2009,21 @@ impl<'a> QwikTransform<'a> {
 		})
 	}
 
-	/// Checks if a component has on*$ event handler props.
+	/// Checks if a component has on*$ event handler props, including shorthand ones like `{ onClick$ }`.
 	/// A dynamic tag can be a string at runtime, so it needs _jsxSplit to turn them into listeners.
 	fn component_has_event_props(props: &[ast::PropOrSpread]) -> bool {
-		props.iter().any(|prop| {
-			if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) = prop {
-				match &node.key {
-					ast::PropName::Ident(ref ident) => {
-						jsx_event_to_html_attribute(&ident.sym, false).is_some()
-					}
-					ast::PropName::Str(ref s) => {
-						jsx_event_to_html_attribute(&s.value, false).is_some()
-					}
-					_ => false,
+		props.iter().any(|prop| match prop {
+			ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) => match &node.key {
+				ast::PropName::Ident(ref ident) => {
+					jsx_event_to_html_attribute(&ident.sym, false).is_some()
 				}
-			} else {
-				false
+				ast::PropName::Str(ref s) => jsx_event_to_html_attribute(&s.value, false).is_some(),
+				_ => false,
+			},
+			ast::PropOrSpread::Prop(box ast::Prop::Shorthand(ref ident)) => {
+				jsx_event_to_html_attribute(&ident.sym, false).is_some()
 			}
+			_ => false,
 		})
 	}
 

@@ -1977,7 +1977,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
       if (serializedValue != null && serializedValue !== false) {
         this.write(SPACE);
         this.write(key);
-        if (serializedValue !== true) {
+        // write `true` (serialized to '') as a bare attribute
+        if (!(value === true && serializedValue === '')) {
           this.write(ATTR_EQUALS_QUOTE);
           if (Array.isArray(serializedValue)) {
             this.writeEscapedChunks(serializedValue as SSRWriteChunk[]);

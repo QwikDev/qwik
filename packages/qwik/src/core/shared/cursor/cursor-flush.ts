@@ -172,7 +172,8 @@ export function _flushJournal(journal: VNodeJournal): void {
           : null;
       const shouldRemove = attrValue == null || attrValue === false;
       if (isBooleanAttr(element, attrName)) {
-        (element as any)[attrName] = parseBoolean(attrValue);
+        // `true` serializes to '', which parseBoolean() reads as false
+        (element as any)[attrName] = rawValue === true || parseBoolean(attrValue);
       } else if (attrName === dangerouslySetInnerHTML) {
         if (batchParent === element) {
           flush();

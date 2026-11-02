@@ -63,8 +63,8 @@ import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import {
   addVNodeOperation,
-  linkDirtyVNodeToCursorRoot,
   markVNodeDirty,
+  propagateToCursorRoot,
 } from '../shared/vnode/vnode-dirty';
 import { updateDirtySubtreeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { trackSignalAndAssignHost, untrack } from '../use/use-core';
@@ -1920,7 +1920,7 @@ export function cleanup(
       // cursor root, otherwise markVNodeDirty() below skips it as "already dirty" and the cleanups
       // of the visible tasks in this subtree are never executed.
       if (vCursor.dirty & ChoreBits.DIRTY_MASK) {
-        linkDirtyVNodeToCursorRoot(vCursor, cursorRoot!);
+        propagateToCursorRoot(vCursor, cursorRoot!);
       }
     }
     const type = vCursor.flags;

@@ -19,6 +19,27 @@ pub fn is_const_expr(
 	collector.is_const
 }
 
+/// Whether `expr` calls a function outside nested closures.
+pub fn contains_call(expr: &ast::Expr) -> bool {
+	let mut finder = CallFinder { has_call: false };
+	finder.visit_expr(expr);
+	finder.has_call
+}
+
+struct CallFinder {
+	has_call: bool,
+}
+
+impl Visit for CallFinder {
+	noop_visit_type!();
+
+	fn visit_call_expr(&mut self, _: &ast::CallExpr) {
+		self.has_call = true;
+	}
+
+	fn visit_arrow_expr(&mut self, _: &ast::ArrowExpr) {}
+}
+
 pub struct ConstCollector<'a> {
 	global: &'a GlobalCollect,
 	const_idents: Option<&'a Vec<IdPlusType>>,

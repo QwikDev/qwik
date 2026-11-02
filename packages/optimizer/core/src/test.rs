@@ -8893,3 +8893,84 @@ export const task = inlinedQrl(() => {
 		entry_module.code
 	);
 }
+
+#[test]
+fn should_transform_marker_call_in_jsx_prop_reading_only_module_scope() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Child, config, pick, wrap } from './child';
+
+export const renderChild = () => (
+  <Child
+    arrow={$(() => pick())}
+    asyncArrow={$(async () => pick())}
+    fn={$(function () { pick(); })}
+    noIdents={$(() => undefined)}
+    nestedInCall={wrap($(() => pick()))}
+    nestedInObject={{ action: $(() => pick()) }}
+    nestedInClosure={{ action: () => $(() => pick()), size: config.size }}
+  />
+);
+
+export default component$(() => (
+  <>
+    {renderChild()}
+    <Child action={$(() => pick())} />
+  </>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+
+	assert_no_marker_call_left(&res.unwrap());
+}
+
+#[test]
+fn should_transform_marker_call_with_identifier_in_jsx_prop() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Child, imported, wrap } from './child';
+
+const pick = () => console.log('picked');
+
+const renderChild = () => (
+  <Child
+    root={$(pick)}
+    imported={$(imported)}
+    nestedInCall={wrap($(pick))}
+    nestedInObject={{ action: $(pick) }}
+  />
+);
+
+export default component$(() => (
+  <>
+    {renderChild()}
+    <Child action={$(pick)} />
+  </>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	assert_no_marker_call_left(&res.unwrap());
+}
+
+fn assert_no_marker_call_left(output: &TransformOutput) {
+	for module in &output.modules {
+		assert!(
+			!module.code.contains("$("),
+			"expected every $() to become a QRL in {}, got:\n{}",
+			module.path,
+			module.code
+		);
+	}
+}

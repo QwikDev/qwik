@@ -4,7 +4,7 @@ use crate::collector::{
 };
 use crate::entry_strategy::EntryPolicy;
 use crate::inlined_fn::{convert_inlined_fn, render_expr};
-use crate::is_const::is_const_expr;
+use crate::is_const::{contains_call, is_const_expr};
 use crate::parse::{EmitMode, PathData};
 
 use crate::words::*;
@@ -818,7 +818,7 @@ impl<'a> QwikTransform<'a> {
 		let (scoped_idents, is_const) = compute_scoped_idents(&descendent_idents, &decl_collect);
 
 		if contains_side_effect {
-			return (None, scoped_idents.is_empty());
+			return (None, scoped_idents.is_empty() && !contains_call(&folded));
 		}
 
 		// simple variable expression, no need to inline
@@ -3059,7 +3059,7 @@ impl<'a> QwikTransform<'a> {
 			}
 			return Some((expr, is_const));
 		} else if is_const {
-			return Some((expr.clone(), true));
+			return Some((expr.clone().fold_with(self), true));
 		}
 		None
 	}

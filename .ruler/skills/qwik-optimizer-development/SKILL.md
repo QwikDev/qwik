@@ -99,9 +99,10 @@ subscribe, `_wrapProp` returns const values unwrapped, and SSR skips serializing
 If one changes anyway, the child only re-renders and its `useComputed$`/`useTask$` readers go stale.
 So either optimizer may put a prop, including a `_fnSignal`/`_wrapProp` wrapper, in the const bag
 only when every local it reads survives re-renders: imports, `const` bindings with a static
-initializer (`use*`, `*$`, `*Qrl` calls), or params. Render-computed locals and `_restProps` copies
-are recreated per render and belong in the var bag. Unit specs pass on the TS optimizer alone, so
-pin classification with a `test_input!` snapshot and check the runtime with `QWIK_OPTIMIZER=rust`.
+initializer (`use*`, `*$`, `*Qrl` calls), or params. Render-computed locals, `_restProps` copies and
+call results, even of module-scope functions, can change per render and belong in the var bag. Unit
+specs pass on the TS optimizer alone, so pin classification with a `test_input!` snapshot and check
+the runtime with `QWIK_OPTIMIZER=rust`.
 
 ## Worker pool changes
 

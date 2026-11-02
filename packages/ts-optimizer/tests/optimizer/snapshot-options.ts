@@ -597,6 +597,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  should_transform_marker_call_in_jsx_prop_reading_only_module_scope: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_transform_multiple_block_scoped_variables_and_item_index_in_loop: {
     transpileTs: true,
     transpileJsx: true,

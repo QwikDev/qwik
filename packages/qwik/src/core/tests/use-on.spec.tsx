@@ -17,12 +17,15 @@ import {
   useVisibleTask$,
   type JSXOutput,
   type QRL,
+  type Signal as SignalType,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+const useIncrement = (count: SignalType<number>) => $(() => count.value++);
 
 const InlineComponentNoChildren = (props: { count: number }) => <>Count: {props.count}!</>;
 
@@ -290,6 +293,23 @@ describe.each([
     expect(container.element.querySelector('span')!.textContent).toBe('1');
   });
 
+  it('should keep a JSX handler that has the same symbol as a useOn handler', async () => {
+    const Cmp = component$(() => {
+      const a = useSignal(0);
+      const b = useSignal(0);
+      useOn('click', useIncrement(a));
+      return (
+        <button onClick$={useIncrement(b)}>
+          {a.value}:{b.value}
+        </button>
+      );
+    });
+
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('1:1');
+  });
+
   it('should not add useOn handlers twice to a JSX node reused across renders', async () => {
     const Child = component$((props: { n: number; onClick$?: QRL<() => void> }) => {
       const count = useSignal(0);
@@ -297,9 +317,9 @@ describe.each([
         'click',
         $(() => count.value++)
       );
-      const button = useConstant<JSXOutput>(() => (
-        <button id="target" onClick$={props.onClick$}></button>
-      ));
+      const button = useConstant(
+        (): JSXOutput => <button id="target" onClick$={props.onClick$}></button>
+      );
       // read in the body so that a new `n` re-renders Child
       const renders = props.n + 1;
       return (

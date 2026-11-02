@@ -280,10 +280,7 @@ function addUseOnEvent(jsxElement: JSXNodeInternal, key: string, value: UseOnEve
     // A JSX node reused across renders (or resumed from SSR) still ends with the handlers of the
     // previous merge, maybe as other QRL instances, so replace them instead of adding them twice
     const start = handlers.length - added.length;
-    if (
-      start >= 0 &&
-      added.every((qrl, i) => handlers[start + i]?.getSymbol() === qrl.getSymbol())
-    ) {
+    if (start >= 0 && added.every((qrl, i) => isSameHandler(handlers[start + i], qrl))) {
       handlers = handlers.slice(0, start);
     }
     jsxElement.varProps[key] = [...handlers, ...added];
@@ -300,6 +297,27 @@ function addUseOnEvent(jsxElement: JSXNodeInternal, key: string, value: UseOnEve
   capture && addUseOnModifier(jsxElement, eventName, 'capture');
   preventdefault && addUseOnModifier(jsxElement, eventName, 'preventdefault');
   stoppropagation && addUseOnModifier(jsxElement, eventName, 'stoppropagation');
+}
+
+/** Whether two handlers are the same QRL: the same symbol with the same captured values. */
+function isSameHandler(
+  a: EventQRL<KnownEventNames> | undefined,
+  b: EventQRL<KnownEventNames> | undefined
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b || a.getSymbol() !== b.getSymbol()) {
+    return false;
+  }
+  const aCaptured = a.getCaptured();
+  const bCaptured = b.getCaptured();
+  if (!aCaptured || !bCaptured) {
+    return aCaptured === bCaptured;
+  }
+  return (
+    aCaptured.length === bCaptured.length && aCaptured.every((value, i) => value === bCaptured[i])
+  );
 }
 
 function addUseOnModifier(

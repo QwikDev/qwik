@@ -1,5 +1,5 @@
 import { intro, isCancel, log, outro, select, spinner } from '@clack/prompts';
-import { bgBlue, bgMagenta, blue, bold, cyan, magenta } from 'kleur/colors';
+import { bgBlue, bgMagenta, blue, bold, cyan, magenta, red } from 'kleur/colors';
 import type { IntegrationData, UpdateAppOptions, UpdateAppResult } from '../types';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
 import { bye, getPackageManager, note, panic } from '../utils/utils';
@@ -79,8 +79,12 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
   if (postInstall) {
     const s = spinner();
     s.start(`Running post install script: ${postInstall}`);
-    await runInPkg(pkgManager, postInstall.split(' '), app.rootDir);
-    s.stop('Post install script complete');
+    const { install } = await runInPkg(pkgManager, postInstall.split(' '), app.rootDir);
+    if (await install) {
+      s.stop('Post install script complete');
+    } else {
+      s.stop(red(`Post install script failed: ${postInstall}`));
+    }
   }
   logUpdateAppCommitResult(result, pkgManager);
 

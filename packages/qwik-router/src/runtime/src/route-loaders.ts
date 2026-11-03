@@ -286,7 +286,8 @@ export const fetchRouteLoaderData = async (
     }
   }
 
-  const cacheKey = `${url}\n${headers[FULLPATH_HEADER] ?? ''}`;
+  const pagePath = headers[FULLPATH_HEADER] ?? headers[ROUTE_PATH_HEADER] ?? '';
+  const cacheKey = `${url}\n${pagePath}`;
   const cache = navFetchCache;
   if (!opts?.ignoreCache) {
     const entry = cache.get(cacheKey);

@@ -21,9 +21,12 @@ export interface MigrationDecision {
 
 export interface ModuleLevelDecl {
   readonly name: string;
+  /** Range of the migration unit: the declarator when its statement has siblings. */
   readonly declStart: number;
   readonly declEnd: number;
   readonly declText: string;
+  readonly stmtStart: number;
+  readonly stmtEnd: number;
   // Mutable: set false during the initial decl walk, flipped true by the later
   // pass that scans `export { name }` specifiers.
   isExported: boolean;
@@ -157,6 +160,15 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
   }
 }
 
+export function sharesStatement(decl: ModuleLevelDecl): boolean {
+  return decl.declStart !== decl.stmtStart || decl.declEnd !== decl.stmtEnd;
+}
+
+/** Wraps a sibling declarator's text so it stands alone as a statement. */
+export function asStandaloneDeclaration(decl: ModuleLevelDecl, text: string): string {
+  return sharesStatement(decl) ? `${decl.kind} ${text};` : text;
+}
+
 function countBindings(node: BindingPatternLike | null | undefined): number {
   return collectBindingNamesFromPattern(node).length;
 }
@@ -185,6 +197,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
 
     if (declaration.type === 'VariableDeclaration') {
       const kind = declaration.kind;
+      const hasSiblingDeclarators = (declaration.declarations?.length ?? 0) > 1;
       for (const declarator of declaration.declarations ?? []) {
         const id = declarator.id;
         if (!id) {
@@ -197,13 +210,18 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
         const hasRouterMarkerInit = isRouterMarkerInit(declarator.init);
 
         const names = collectBindingNamesFromPattern(id);
+        const unit = hasSiblingDeclarators ? declarator : stmt;
 
         for (const name of names) {
           decls.push({
             name,
-            declStart,
-            declEnd,
-            declText,
+            declStart: unit.start,
+            declEnd: unit.end,
+            declText: hasSiblingDeclarators
+              ? `${kind} ${source.slice(unit.start, unit.end)};`
+              : declText,
+            stmtStart: declStart,
+            stmtEnd: declEnd,
             isExported,
             isDirectlyExported: isExported,
             hasSideEffects,
@@ -221,6 +239,8 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           declStart,
           declEnd,
           declText,
+          stmtStart: declStart,
+          stmtEnd: declEnd,
           isExported,
           isDirectlyExported: isExported,
           hasSideEffects: false,
@@ -237,6 +257,8 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           declStart,
           declEnd,
           declText,
+          stmtStart: declStart,
+          stmtEnd: declEnd,
           isExported,
           isDirectlyExported: isExported,
           hasSideEffects: false,
@@ -253,6 +275,8 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           declStart,
           declEnd,
           declText,
+          stmtStart: declStart,
+          stmtEnd: declEnd,
           isExported,
           isDirectlyExported: isExported,
           hasSideEffects: false,

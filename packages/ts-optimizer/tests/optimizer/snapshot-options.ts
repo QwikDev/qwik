@@ -595,6 +595,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  should_split_multi_declarator_statement_when_migrating: { transpileTs: true, transpileJsx: true },
   should_split_props_with_key_after_spread: { transpileTs: true, transpileJsx: true },
   should_split_spread_props: { transpileTs: true, transpileJsx: true },
   should_split_spread_props_with_additional_prop: { transpileTs: true, transpileJsx: true },

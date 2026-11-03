@@ -9084,6 +9084,35 @@ export function make() {
 }
 
 #[test]
+fn should_split_multi_declarator_statement_when_migrating() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { createCounter } from './counter';
+
+const counter = createCounter(), readCounter = () => counter;
+const base = 1, addBase = () => base + 2;
+const first = () => 1, middle = () => 2, last = () => 3;
+const kept = () => 4, movedA = () => 5, movedB = () => 6;
+console.log(base, first(), last(), kept());
+
+export function make() {
+  return [
+    $(() => readCounter()),
+    $(() => addBase()),
+    $(() => middle()),
+    $(() => movedA() + movedB()),
+  ];
+}
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_keep_user_q_named_root_decl_when_migrating() {
 	let res = test_input!(TestInput {
 		code: r#"

@@ -6,6 +6,7 @@ import type { ImportInfo } from '../extraction/marker-detection.js';
 import {
   autoExportedNames,
   MIG_REASON,
+  sharesStatement,
   type ModuleLevelDecl,
 } from '../analysis/variable-migration.js';
 import {
@@ -797,12 +798,12 @@ function findLastReferencedDeclEnd(
 ): number | null {
   let maxEnd = -1;
   for (const decl of decls) {
-    if (decl.declEnd <= maxEnd) {
+    if (decl.stmtEnd <= maxEnd) {
       continue;
     }
     const wb = wordBoundaryTester(decl.name);
     if (sCalls.some((sc) => wb.test(sc))) {
-      maxEnd = decl.declEnd;
+      maxEnd = decl.stmtEnd;
     }
   }
   return maxEnd >= 0 ? maxEnd : null;
@@ -821,14 +822,14 @@ function findForwardReferencedDeclEnd(
 ): number | null {
   let maxEnd = -1;
   for (const decl of decls) {
-    if (decl.declStart <= threshold) {
+    if (decl.stmtStart <= threshold) {
       continue;
     }
-    if (decl.declEnd <= maxEnd) {
+    if (decl.stmtEnd <= maxEnd) {
       continue;
     }
     if (wordBoundaryTester(decl.name).test(sCall)) {
-      maxEnd = decl.declEnd;
+      maxEnd = decl.stmtEnd;
     }
   }
   return maxEnd >= 0 ? maxEnd : null;
@@ -952,24 +953,67 @@ function placeSCalls(
   s.append('\n' + groupedSCalls.join('\n'));
 }
 
+/** Removes migrated decls, keeping sibling declarators that stay in the parent. */
+function removeDeclarations(
+  s: MagicString,
+  source: string,
+  program: AstProgram,
+  removedDecls: readonly ModuleLevelDecl[]
+): void {
+  const removedStarts = new Set(removedDecls.map((decl) => decl.declStart));
+  const handledStatements = new Set<number>();
+  for (const decl of removedDecls) {
+    if (handledStatements.has(decl.stmtStart)) {
+      continue;
+    }
+    handledStatements.add(decl.stmtStart);
+    const statement = program.body.find((node) => node.start === decl.stmtStart);
+    const declarators =
+      sharesStatement(decl) && statement?.type === 'VariableDeclaration'
+        ? statement.declarations
+        : [];
+    const keptDeclarators = declarators.filter((d) => !removedStarts.has(d.start));
+    if (keptDeclarators.length === 0) {
+      let end = decl.stmtEnd;
+      if (end < source.length && source[end] === '\n') {
+        end++;
+      }
+      s.remove(decl.stmtStart, end);
+      continue;
+    }
+    const lastKeptEnd = keptDeclarators[keptDeclarators.length - 1].end;
+    declarators.forEach((declarator, index) => {
+      if (!removedStarts.has(declarator.start)) {
+        return;
+      }
+      // Trailing declarators take the comma before them; others the one after.
+      if (declarator.start > lastKeptEnd) {
+        s.remove(lastKeptEnd, declarator.end);
+      } else {
+        s.remove(declarator.start, declarators[index + 1].start);
+      }
+    });
+  }
+}
+
 function placeLibReferencedDeclarations(ctx: RewriteContext): void {
   const anchor = findMarkerExportAnchor(ctx.program);
   if (!anchor || !ctx.moduleLevelDecls) {
     return;
   }
   for (const decl of [...ctx.moduleLevelDecls].reverse()) {
-    if (decl.hasSideEffects || decl.declStart < anchor.end) {
+    if (decl.hasSideEffects || decl.stmtStart < anchor.end) {
       continue;
     }
     const tester = wordBoundaryTester(decl.name);
     if (!ctx.extractions.some((ext) => tester.test(ext.bodyText))) {
       continue;
     }
-    let end = decl.declEnd;
+    let end = decl.stmtEnd;
     if (ctx.source[end] === '\n') {
       end++;
     }
-    ctx.s.move(decl.declStart, end, anchor.start);
+    ctx.s.move(decl.stmtStart, end, anchor.start);
   }
 }
 
@@ -1063,6 +1107,7 @@ export function assembleOutput(ctx: RewriteContext): string {
 
   if (migrationDecisions && moduleLevelDecls) {
     const removedRanges = new Set<string>();
+    const removedDecls: ModuleLevelDecl[] = [];
     for (const decision of migrationDecisions) {
       const decl = moduleLevelDecls.find((d) => d.name === decision.varName);
       if (!decl) {
@@ -1073,11 +1118,7 @@ export function assembleOutput(ctx: RewriteContext): string {
         continue;
       }
       if (interleavedDeclarationRanges.has(rangeKey)) {
-        let end = decl.declEnd;
-        if (end < source.length && source[end] === '\n') {
-          end++;
-        }
-        s.remove(decl.declStart, end);
+        removedDecls.push(decl);
         removedRanges.add(rangeKey);
         continue;
       }
@@ -1107,12 +1148,9 @@ export function assembleOutput(ctx: RewriteContext): string {
         continue;
       }
       removedRanges.add(rangeKey);
-      let end = decl.declEnd;
-      if (end < source.length && source[end] === '\n') {
-        end++;
-      }
-      s.remove(decl.declStart, end);
+      removedDecls.push(decl);
     }
+    removeDeclarations(s, source, program, removedDecls);
   }
 
   if (ctx.isLibMode) {

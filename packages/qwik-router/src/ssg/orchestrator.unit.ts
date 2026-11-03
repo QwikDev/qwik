@@ -311,6 +311,36 @@ describe('retries', () => {
       assert.deepEqual(waits, [650, 1300, 2600, 2600]);
     });
 
+    test('starts a queued route while a failed route waits for its retry', async () => {
+      let activeRenders = 0;
+      let indexRenderCount = 0;
+      let aboutStartedAt: number | undefined;
+      const sys = createSystem({
+        routes: {
+          _I: async () => ({ default: () => null as any }),
+          about: { _I: async () => ({ default: () => null as any }) },
+        },
+        hasAvailableWorker: () => activeRenders === 0,
+        render: async ({ pathname }) => {
+          activeRenders++;
+          if (pathname === '/about') {
+            aboutStartedAt ??= Date.now();
+          }
+          await Promise.resolve();
+          activeRenders--;
+          return pathname === '/' && indexRenderCount++ === 0
+            ? createFailedRenderResult(pathname)
+            : createRenderResult(pathname);
+        },
+        retries: 1,
+      });
+      const startedAt = Date.now();
+
+      await runMainThread(sys);
+
+      assert.isBelow(aboutStartedAt! - startedAt, 500);
+    });
+
     test('does not finish the build while a retry is waiting', async () => {
       let indexRenderCount = 0;
       const sys = createSystem({

@@ -175,6 +175,7 @@ export async function mainThread(sys: System) {
 
           if (result.error && hasRetriesLeft(staticRoute)) {
             retryLater(staticRoute, result.error.message);
+            flushQueue();
             return;
           }
 

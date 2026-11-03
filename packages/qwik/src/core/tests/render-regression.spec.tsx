@@ -18,6 +18,9 @@ import '../../testing/vdom-diff.unit-util';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+const Placeholder = component$(() => <div />);
+const Chord = (props: { children: string }) => <b>{props.children}</b>;
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -371,6 +374,85 @@ describe.each([
       await trigger(container.element, '#add', 'click');
       expect(document.querySelector('hr')).not.toBeNull();
       expect(document.querySelector('#count')!.textContent).toBe('1');
+    });
+  });
+
+  describe('keyed list: SSR-shared text of keyed fragments after a keyed swap', () => {
+    // SSR writes the text of adjacent keyed fragments ("t1", "t2") as one DOM Text node. Swapping the keyed
+    // placeholders around them must not duplicate, overwrite or drop that text after resume.
+    it('element placeholders, text after the swapped items', async () => {
+      const Cmp = component$(() => {
+        const done = useSignal(false);
+        return (
+          <div>
+            <button onClick$={() => (done.value = true)} />
+            <section>
+              {done.value ? <b key="c0">X0</b> : <i key="c0" />}
+              <Fragment key="t1">t1</Fragment>
+              <Fragment key="t2">t2</Fragment>
+              {done.value ? <b key="c3">X3</b> : <i key="c3" />}
+              <Fragment key="t4">t4</Fragment>
+            </section>
+          </div>
+        );
+      });
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3t4');
+    });
+
+    it('element placeholders, no text after the swapped items', async () => {
+      const Cmp = component$(() => {
+        const done = useSignal(false);
+        return (
+          <div>
+            <button onClick$={() => (done.value = true)} />
+            <section>
+              {done.value ? <b key="c0">X0</b> : <i key="c0" />}
+              <Fragment key="t1">t1</Fragment>
+              <Fragment key="t2">t2</Fragment>
+              {done.value ? <b key="c3">X3</b> : <i key="c3" />}
+              {done.value ? <b key="c4">X4</b> : <i key="c4" />}
+            </section>
+          </div>
+        );
+      });
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3X4');
+    });
+
+    it('component placeholders replaced by keyed fragments', async () => {
+      const Cmp = component$(() => {
+        const done = useSignal(false);
+        return (
+          <div>
+            <button onClick$={() => (done.value = true)} />
+            <section>
+              {done.value ? (
+                <Fragment key="c0">
+                  <Chord key="c0">X0</Chord>
+                </Fragment>
+              ) : (
+                <Placeholder key="c0" />
+              )}
+              <Fragment key="t1">t1</Fragment>
+              <Fragment key="t2">t2</Fragment>
+              {done.value ? (
+                <Fragment key="c3">
+                  <Chord key="c3">X3</Chord>
+                </Fragment>
+              ) : (
+                <Placeholder key="c3" />
+              )}
+              <Fragment key="t4">t4</Fragment>
+            </section>
+          </div>
+        );
+      });
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3t4');
     });
   });
 });

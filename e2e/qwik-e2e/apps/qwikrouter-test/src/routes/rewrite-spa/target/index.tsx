@@ -1,5 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import { Form, routeAction$, routeLoader$ } from '@qwik.dev/router';
+import { Form, Link, routeAction$, routeLoader$ } from '@qwik.dev/router';
 
 export const useTarget = routeLoader$(({ originalUrl, url }) => ({
   original: originalUrl.pathname,
@@ -22,6 +22,21 @@ export default component$(() => {
         </button>
       </Form>
       {submit.value?.done && <p id="rewrite-spa-action-done">action done</p>}
+      <button
+        id="rewrite-spa-submit-js"
+        onClick$={() => {
+          (window as any).__submitOutcome = 'pending';
+          submit.submit().then(
+            () => ((window as any).__submitOutcome = 'resolved'),
+            () => ((window as any).__submitOutcome = 'rejected')
+          );
+        }}
+      >
+        submit from code
+      </button>
+      <Link href="/qwikrouter-test/rewrite-spa/" id="rewrite-spa-back">
+        back
+      </Link>
     </>
   );
 });

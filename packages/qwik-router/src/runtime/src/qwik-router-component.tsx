@@ -778,23 +778,31 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         // An action on a rewritten page also needs the real route, or the page renders as not found after submit.
         const resolved = await Promise.race([resolveServerRewrite(trackUrl), canceled]);
         if (internalState.navCount !== navCountBefore) {
+          abandonAction();
           return;
         }
-        if (resolved === 'reload' && !action) {
-          window.location.href = trackUrl.href;
-          return;
-        }
-        if (resolved && resolved !== trackUrl.pathname) {
+        if (resolved === 'reload') {
+          // With an action, skip the reload so the submission is not dropped; the action still runs.
+          if (!action) {
+            window.location.href = trackUrl.href;
+            return;
+          }
+        } else if (resolved && resolved !== trackUrl.pathname) {
           try {
             const config = await getRouterConfig();
             loadedRoute = await loadRoute(config.routes, config.cacheModules, resolved);
             rewrittenTo = resolved;
           } catch (e) {
+            if (internalState.navCount !== navCountBefore) {
+              abandonAction();
+              return;
+            }
             console.error(`Could not load rewritten route ${resolved}, reloading:`, e);
             window.location.href = trackUrl.href;
             return;
           }
           if (internalState.navCount !== navCountBefore) {
+            abandonAction();
             return;
           }
         }

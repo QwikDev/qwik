@@ -1,7 +1,22 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 const pretty = '/qwikrouter-test/rewrite-spa/pretty/';
 const target = '/qwikrouter-test/rewrite-spa/target/';
+
+/** Holds the `pretty` q-route.json response until `release()` is called. */
+async function holdPrettyRoute(page: Page) {
+  let release!: () => void;
+  let started!: () => void;
+  const gate = new Promise<void>((resolve) => (release = resolve));
+  const requested = new Promise<void>((resolve) => (started = resolve));
+  await page.route(`**${pretty}q-route.json`, async (route) => {
+    const response = await route.fetch();
+    started();
+    await gate;
+    await route.fulfill({ response }).catch(() => {});
+  });
+  return { requested, release };
+}
 
 test.describe('rewrite to a different route', () => {
   test('SSR serves the target page under the original URL', async ({ page }) => {
@@ -75,5 +90,44 @@ test.describe('rewrite to a different route', () => {
     await expect(page).toHaveURL(new RegExp(`${pretty}$`));
     await expect(page.locator('#rewrite-spa-original')).toHaveText(pretty);
     expect(pageErrors).toEqual([]);
+  });
+
+  test('a navigation started while q-route.json is pending wins', async ({ page }) => {
+    const prettyCached = '/qwikrouter-test/rewrite-spa/pretty-cached/';
+    const pageErrors: Error[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err));
+    await page.goto('/qwikrouter-test/rewrite-spa/');
+    await page.evaluate(() => ((window as any).__noReload = true));
+    const held = await holdPrettyRoute(page);
+
+    await page.locator('[data-test-link="rewrite-spa-pretty"]').click();
+    await held.requested;
+    await page.locator('[data-test-link="rewrite-spa-pretty-cached"]').click();
+
+    await expect(page).toHaveURL(new RegExp(`${prettyCached}$`));
+    await expect(page.locator('#rewrite-spa-original')).toHaveText(prettyCached);
+
+    held.release();
+    await page.waitForTimeout(200);
+    await expect(page).toHaveURL(new RegExp(`${prettyCached}$`));
+    await expect(page.locator('#rewrite-spa-original')).toHaveText(prettyCached);
+    expect(await page.evaluate(() => (window as any).__noReload)).toBe(true);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('an action superseded while q-route.json is pending settles its submit promise', async ({
+    page,
+  }) => {
+    await page.goto(pretty);
+    await expect(page.locator('#rewrite-spa-target')).toBeVisible();
+    const held = await holdPrettyRoute(page);
+
+    await page.locator('#rewrite-spa-submit-js').click();
+    await held.requested;
+    await page.locator('#rewrite-spa-back').click();
+
+    await expect(page.locator('#rewrite-spa-source')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => (window as any).__submitOutcome)).toBe('rejected');
+    held.release();
   });
 });

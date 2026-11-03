@@ -131,6 +131,12 @@ export type RouteLoaderCtx = {
   onValue?: RouteNavigate;
   /** Client manifest hash for q-loader fetch URLs. */
   manifestHash?: string;
+  /**
+   * Set by SSR when the page was served through a `rewrite()`: the pathname it was rewritten to.
+   * The client then fetches loaders through the visible URL, as a SPA navigation to a rewritten URL
+   * does, and skips the `q-route.json` lookup for actions on this page.
+   */
+  rewrittenTo?: string;
 };
 
 type LoaderRequest = {
@@ -164,7 +170,8 @@ export function getClientRouteLoaders(ctx: RouteLoaderCtx, pageUrl?: string): Cl
   if (!client) {
     const current = {
       requests: new Map(),
-      paths: { ...ctx.loaderPaths },
+      // SSR paths of a rewritten page are the target's; fetch through the visible URL instead.
+      paths: ctx.rewrittenTo ? {} : { ...ctx.loaderPaths },
       pageUrl: pageUrl || location.href,
     };
     client = { current, committed: current };

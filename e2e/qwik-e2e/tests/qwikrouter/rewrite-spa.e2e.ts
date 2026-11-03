@@ -27,6 +27,27 @@ test.describe('rewrite to a different route', () => {
     await expect(page.locator('#rewrite-spa-served')).toHaveText(target);
   });
 
+  test('a loader fetched on a server-rendered rewritten page goes through the visible URL', async ({
+    page,
+  }) => {
+    await page.goto(pretty);
+    await expect(page.locator('#rewrite-spa-target')).toBeVisible();
+    const loaderPaths: string[] = [];
+    page.on('request', (r) => {
+      const { pathname } = new URL(r.url());
+      if (pathname.includes('/q-loader-')) {
+        loaderPaths.push(pathname);
+      }
+    });
+
+    await page.locator('#rewrite-spa-read-lazy').click();
+
+    // Same originalUrl the SSR loaders saw.
+    await expect(page.locator('#rewrite-spa-lazy')).toHaveText(pretty);
+    expect(loaderPaths.length).toBeGreaterThan(0);
+    expect(loaderPaths.filter((p) => !p.startsWith(pretty))).toEqual([]);
+  });
+
   test('q-route.json uses the cache headers the rewriting middleware set', async ({ request }) => {
     const plain = await request.get(`${pretty}q-route.json`);
     expect(await plain.json()).toEqual({ p: target });
@@ -115,19 +136,19 @@ test.describe('rewrite to a different route', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('an action superseded while q-route.json is pending settles its submit promise', async ({
+  test('an action on a rewritten page needs no q-route.json lookup and settles its submit promise', async ({
     page,
   }) => {
     await page.goto(pretty);
     await expect(page.locator('#rewrite-spa-target')).toBeVisible();
-    const held = await holdPrettyRoute(page);
+    const routeLookups: string[] = [];
+    page.on('request', (r) => r.url().includes('q-route.json') && routeLookups.push(r.url()));
 
     await page.locator('#rewrite-spa-submit-js').click();
-    await held.requested;
-    await page.locator('#rewrite-spa-back').click();
 
-    await expect(page.locator('#rewrite-spa-source')).toBeVisible();
-    await expect.poll(() => page.evaluate(() => (window as any).__submitOutcome)).toBe('rejected');
-    held.release();
+    await expect.poll(() => page.evaluate(() => (window as any).__submitOutcome)).toBe('resolved');
+    await expect(page.locator('#rewrite-spa-action-done')).toBeVisible();
+    await expect(page.locator('#rewrite-spa-target')).toBeVisible();
+    expect(routeLookups).toEqual([]);
   });
 });

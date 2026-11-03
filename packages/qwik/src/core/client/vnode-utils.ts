@@ -759,9 +759,13 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
         | Text
         | null);
 
+    // Only text vnodes that still point at the same SSR Text node belong to this run. A keyed diff can make text
+    // vnodes from two different SSR Text nodes adjacent (e.g. it removed the element that separated them), and
+    // splitting across them duplicates or overwrites text.
+    const isSameRun = (v: TextVNode) => v.node === sharedTextNode;
     let lastPreviousTextNode = insertBeforeNode;
     while (vCursor && vnode_isTextVNode(vCursor)) {
-      if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
+      if ((vCursor.flags & VNodeFlags.Inflated) === 0 && isSameRun(vCursor)) {
         const textNode = doc.createTextNode(vCursor.text!);
         addVNodeOperation(
           journal,
@@ -777,8 +781,18 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
     vCursor = vnode;
     while (vCursor && vnode_isTextVNode(vCursor)) {
       const next = vnode_getDomSibling(vCursor, true, true);
-      const isLastNode = next ? !vnode_isTextVNode(next) : true;
-      if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
+      // The last vnode of the run keeps the shared Text node; later text vnodes of another run don't count.
+      let isLastNode = true;
+      for (let n = next; n && vnode_isTextVNode(n); n = vnode_getDomSibling(n, true, true)) {
+        if ((n.flags & VNodeFlags.Inflated) === 0 && isSameRun(n)) {
+          isLastNode = false;
+          break;
+        }
+      }
+      if (
+        (vCursor.flags & VNodeFlags.Inflated) === 0 &&
+        (vCursor === textVNode || isSameRun(vCursor))
+      ) {
         if (isLastNode && sharedTextNode) {
           addVNodeOperation(journal, createSetTextOperation(sharedTextNode, vCursor.text!));
         } else {
@@ -1121,6 +1135,11 @@ export const vnode_insertVirtualBefore = (
     }
   }
 
+  if (newChildCurrentParent) {
+    // Split SSR-shared text while the virtual is still linked to its siblings. Once unlinked, its last text vnode
+    // looks like the end of the run and takes over the shared Text node, dropping the text of the others.
+    vnode_walkDirectChildren(journal, newChild, () => {});
+  }
   vnode_unlinkFromOldParent(journal, newChildCurrentParent, parent, newChild);
 
   const parentIsDeleted = parent.flags & VNodeFlags.Deleted;

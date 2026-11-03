@@ -6,7 +6,7 @@
     "viteConfig": {},
     "docs": [
       "https://qwik.dev/docs/integrations/prisma/",
-      "https://www.prisma.io/docs/orm"
+      "https://www.prisma.io/docs/orm?utm_source=qwik&utm_medium=cli&utm_campaign=qwik-prisma-integration"
     ],
     "postInstall": "prisma contract emit",
     "nextSteps": {

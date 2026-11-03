@@ -437,6 +437,10 @@ function diff(
               }
             }
           } else if (Array.isArray(diffContext.$jsxValue$)) {
+            if (diffContext.$jsxValue$.length === 0) {
+              skipEmptyArray(diffContext);
+              continue;
+            }
             descend(diffContext, diffContext.$jsxValue$, false);
           } else if (isSignal(diffContext.$jsxValue$)) {
             expectVirtual(diffContext, VirtualType.WrappedSignal, null);
@@ -543,6 +547,23 @@ function advance(diffContext: DiffContext) {
     diffContext.$vNewNode$ = null;
   } else {
     diffContext.$vCurrent$ = peekNextSiblingWithinBoundary(diffContext, diffContext.$vCurrent$);
+  }
+}
+
+/** An empty JSX array renders nothing, so it must not consume `vCurrent`. */
+function skipEmptyArray(diffContext: DiffContext) {
+  const stack = diffContext.$stack$;
+  diffContext.$jsxIdx$++;
+  // Flattened arrays ending here skip `advance`, whose sibling step would consume `vCurrent`.
+  while (diffContext.$jsxIdx$ >= diffContext.$jsxCount$ && stack[stack.length - 1] === false) {
+    stack.pop(); // descendVNode
+    stack.pop(); // jsxValue
+    diffContext.$jsxCount$ = stack.pop();
+    diffContext.$jsxIdx$ = stack.pop() + 1;
+    diffContext.$jsxChildren$ = stack.pop();
+  }
+  if (diffContext.$jsxIdx$ < diffContext.$jsxCount$) {
+    diffContext.$jsxValue$ = diffContext.$jsxChildren$![diffContext.$jsxIdx$];
   }
 }
 

@@ -27,6 +27,7 @@ import type {
 // Import directly from leaf modules to avoid circular dependency:
 // route-loaders.ts → middleware barrel → runtime/src/ (same module group)
 import { _asyncRequestStore } from '../../middleware/request-handler/async-request-store';
+import { normalizeETag, resolvePreETag } from '../../middleware/request-handler/etag-hash';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import {
@@ -93,6 +94,7 @@ export type LoaderResponse = {
 export type LoaderFetchResult = {
   raw?: string;
   r?: string;
+  eTag?: string;
 };
 
 /**
@@ -212,8 +214,21 @@ class ServerRouteLoaderCapture {
     readonly qrl: QRL<(event: RequestEventLoader) => unknown>,
     readonly validators: DataValidator[] | undefined,
     readonly blockSSR: boolean,
+    readonly loader: LoaderInternal,
     readonly requestEv?: RequestEvent
   ) {}
+
+  /** The eTag the q-loader endpoint will send for a value that isn't serialized. */
+  eTag() {
+    const option = this.loader.__eTag;
+    if (
+      this.requestEv &&
+      option !== undefined &&
+      this.loader.__serializationStrategy !== 'always'
+    ) {
+      return resolvePreETag(option, getLoaderRequestEvent(this.loader, this.requestEv));
+    }
+  }
 
   load() {
     const requestEv = this.requestEv;
@@ -323,7 +338,7 @@ export const fetchRouteLoaderData = async (
     }
     const raw = await response.text();
     opts?.signal?.throwIfAborted();
-    return { raw };
+    return { raw, eTag: response.headers.get('ETag') ?? undefined };
   };
 
   if (opts?.ignoreCache) {
@@ -382,6 +397,7 @@ const createRouteLoaderSignal = (
         loader.__qrl,
         loader.__validators,
         loader.__blockSSR,
+        loader,
         requestEv ?? useServerData<QwikRouterEnvData>('qwikrouter')?.ev
       )
     : id;
@@ -389,11 +405,16 @@ const createRouteLoaderSignal = (
   const loaderHash = isDev ? loader.__qrl.getHash() : id;
   // Raw text of the last successful fetch, to skip deserialization and keep object
   // identity (no rerenders) when a refetch returns unchanged data.
-  const lastFetch: { raw?: string } = {};
+  // `e`: eTag of the SSR value, so the first client fetch can match it.
+  const lastFetch: { raw?: string; e?: string } = {};
   const signal = createComputed$(
     async (ctx) => {
       const { info, previous, abortSignal } = ctx;
       const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
+      const eTag = isServer && (capture as ServerRouteLoaderCapture).eTag();
+      if (eTag) {
+        lastFetch.e = eTag;
+      }
       // Pre-loaded value injection (from middleware via setLoaderSignalValue).
       if (hasInjectedValue) {
         const value = (info as { __v: unknown }).__v;
@@ -481,6 +502,15 @@ const createRouteLoaderSignal = (
         throw response.e;
       }
       lastFetch.raw = result.raw;
+      // Same eTag as during SSR: subscribers already rendered this data.
+      if (
+        previous === undefined &&
+        lastFetch.e &&
+        lastFetch.e === normalizeETag(result.eTag || '')
+      ) {
+        (state[id] as _ComputedSignalInternal<unknown>).untrackedValue = response.d;
+      }
+      lastFetch.e = undefined;
       const onValue = routeLoaderCtx.onValue;
       if (onValue) {
         Promise.resolve()

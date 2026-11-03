@@ -6,10 +6,14 @@ export const useTarget = routeLoader$(({ originalUrl, url }) => ({
   served: url.pathname,
 }));
 
+/** Not read during SSR, so the client fetches it on first read. */
+export const useLazy = routeLoader$(({ originalUrl }) => originalUrl.pathname);
+
 export const useSubmit = routeAction$(() => ({ done: true }));
 
 export default component$(() => {
   const target = useTarget();
+  const lazy = useLazy();
   const submit = useSubmit();
   return (
     <>
@@ -34,6 +38,15 @@ export default component$(() => {
       >
         submit from code
       </button>
+      <button
+        id="rewrite-spa-read-lazy"
+        onClick$={() => {
+          document.getElementById('rewrite-spa-lazy')!.textContent = lazy.value;
+        }}
+      >
+        read lazy loader
+      </button>
+      <p id="rewrite-spa-lazy"></p>
       <Link href="/qwikrouter-test/rewrite-spa/" id="rewrite-spa-back">
         back
       </Link>

@@ -5,6 +5,7 @@ import {
   getRequestMode,
   getRequestRoute,
   RequestEvHttpStatusMessage,
+  RequestEvIsRewrite,
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
   RequestEvSharedNonce,
@@ -46,6 +47,11 @@ export function getQwikRouterServerData(requestEv: RequestEvent, trustForwardedH
   const nonce = requestEv.sharedMap.get(RequestEvSharedNonce);
 
   const routeLoaderCtx = getRouteLoaderCtx(requestEv);
+  if (requestEv.sharedMap.get(RequestEvIsRewrite)) {
+    // Read on the client only: loaders of a rewritten page go through the visible URL, and an
+    // action on it needs no `q-route.json` lookup.
+    routeLoaderCtx.rewrittenTo = requestEv.url.pathname;
+  }
   const loaderValues = getRouteLoaderValues(requestEv);
 
   return {

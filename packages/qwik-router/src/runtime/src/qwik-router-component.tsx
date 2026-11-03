@@ -348,7 +348,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     preparation?: NavigationPreparation;
     /** Accepted route preparation survives a later blocked attempt. */
     routePreparation?: { started: Promise<NavigationStart>; preparation: NavigationPreparation };
-  } = {};
+    /**
+     * Where the server rewrote the URL on screen to (from SSR or the last navigation), so an action
+     * or same-URL navigation on a rewritten page needs no `q-route.json` lookup.
+     */
+    rewrite?: { key: string; target: string };
+  } = env.routeLoaderCtx.rewrittenTo
+    ? { rewrite: { key: url.pathname + url.search, target: env.routeLoaderCtx.rewrittenTo } }
+    : {};
   const routeLoaderCtx = env.routeLoaderCtx;
   routeLoaderCtx.manifestHash = manifestHash;
   Object.assign(routeLoaderCtx.loaderPaths, env.loadedRoute.$loaderPaths$);
@@ -715,8 +722,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const canceled = new Promise<undefined>((resolve) => {
         navResolver.cancel = () => resolve(undefined);
       });
-      // A navigation that bails before submitting must still settle the submit promise.
+      let submitting: Promise<Awaited<ReturnType<typeof submitAction>> | undefined> | undefined;
+      // A navigation that bails before submitting must still settle the submit promise. Once the
+      // action is in flight its own handlers settle it with the real outcome.
       const abandonAction = () => {
+        if (submitting) {
+          return;
+        }
         action?.reject?.(new Error('Action submission was superseded by a navigation'));
         if (action) {
           action.resolve = undefined;
@@ -764,6 +776,25 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         return;
       }
 
+      // The action does not depend on the route lookup below, so it is submitted meanwhile.
+      if (action) {
+        submitting = submitAction(action, trackUrl).then(
+          (result) => {
+            // Superseded actions still complete their caller's submit promise.
+            action.resolve?.({ status: result.status, result: result.result });
+            action.resolve = undefined;
+            action.reject = undefined;
+            return result;
+          },
+          (error) => {
+            action.reject?.(error);
+            action.reject = undefined;
+            action.resolve = undefined;
+            return undefined;
+          }
+        );
+      }
+
       // A server `rewrite()` is invisible to the client's route table. If nothing, or only a
       // dynamic route, matched, let the server resolve the URL and load that route, keeping the URL.
       let rewrittenTo: string | undefined;
@@ -776,7 +807,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         loadedRoute.$routeName$.includes('[')
       ) {
         // An action on a rewritten page also needs the real route, or the page renders as not found after submit.
-        const resolved = await Promise.race([resolveServerRewrite(trackUrl), canceled]);
+        // The page on screen already knows where its own URL goes (from SSR or the last navigation).
+        const key = trackUrl.pathname + trackUrl.search;
+        const known =
+          !navigation.forceReload && navResolver.rewrite?.key === key
+            ? navResolver.rewrite.target
+            : undefined;
+        const resolved = known ?? (await Promise.race([resolveServerRewrite(trackUrl), canceled]));
         if (internalState.navCount !== navCountBefore) {
           abandonAction();
           return;
@@ -806,27 +843,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             return;
           }
         }
+        navResolver.rewrite = rewrittenTo ? { key, target: rewrittenTo } : undefined;
       }
 
-      // Submit action if one was triggered
-      if (action) {
-        const result = await Promise.race([
-          submitAction(action, trackUrl).then(
-            (result) => {
-              // Superseded actions still complete their caller's submit promise.
-              action.resolve?.({ status: result.status, result: result.result });
-              action.resolve = undefined;
-              action.reject = undefined;
-              return result;
-            },
-            (error) => {
-              action.reject?.(error);
-              action.reject = undefined;
-              action.resolve = undefined;
-            }
-          ),
-          canceled,
-        ]);
+      // Wait for the action that was submitted above
+      if (action && submitting) {
+        const result = await Promise.race([submitting, canceled]);
 
         if (internalState.navCount !== navCountBefore || action !== actionState.untrackedValue) {
           return;

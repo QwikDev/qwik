@@ -56,6 +56,7 @@ const includeDeps = undefined;
 const noExternal = [
   '@qwik.dev/core',
   '@qwik.dev/core/internal',
+  '@qwik.dev/core/internal/serializer',
   '@qwik.dev/core/server',
   '@qwik.dev/core/build',
 ];
@@ -63,6 +64,7 @@ const noExternal = [
 const excludeDeps = [
   '@qwik.dev/core',
   '@qwik.dev/core/internal',
+  '@qwik.dev/core/internal/serializer',
   '@qwik.dev/core/server',
   '@qwik.dev/core/jsx-runtime',
   '@qwik.dev/core/jsx-dev-runtime',

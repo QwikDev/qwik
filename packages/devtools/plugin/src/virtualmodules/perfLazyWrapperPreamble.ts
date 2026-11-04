@@ -8,31 +8,49 @@ import perfRuntime from './perfRuntime';
 const perfLazyWrapperPreamble = `${perfRuntime}
 
 // [qwik-component-proxy] Render function wrapper
+// Matches core's isPromise, so suspensions are recognized alike.
+const __qwik_is_thenable__ = (value) =>
+  !!value && typeof value === 'object' && typeof value.then === 'function';
+
 const __qwik_wrap__ = (fn, name, viteId) => {
   if (typeof fn !== 'function') return fn;
   let renderCount = 0;
 
   function wrapped(...args) {
-    renderCount += 1;
     const phase = __qwik_perf_is_server__() ? 'ssr' : 'csr';
     const start = performance.now();
 
+    // Counted on completion; perf errors must never break the render.
+    const commit = () => {
+      try {
+        renderCount += 1;
+        const duration = performance.now() - start;
+        __qwik_perf_commit__({
+          component: name,
+          phase,
+          duration,
+          start,
+          end: start + duration,
+          viteId,
+          renderCount,
+        });
+      } catch {
+        // perf recording is best effort
+      }
+    };
+
+    // Errors and suspensions (thrown promises) pass through untimed.
     const result = fn.apply(this, args);
-    const duration = performance.now() - start;
-    __qwik_perf_commit__({
-      component: name,
-      phase,
-      duration,
-      start,
-      end: start + duration,
-      viteId,
-      renderCount,
-    });
+    // Async renders run past the first await; time until they resolve.
+    if (__qwik_is_thenable__(result)) {
+      result.then(commit, () => {});
+    } else {
+      commit();
+    }
     return result;
   }
 
   // Preserve Qwik-compiler metadata attached to the original function.
-  // (No try/catch per request; avoid touching special function props.)
   const skip = {
     length: true,
     name: true,

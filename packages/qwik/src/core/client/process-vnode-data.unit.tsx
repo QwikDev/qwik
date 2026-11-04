@@ -22,7 +22,7 @@ import {
   whenContainerDataReady,
 } from './process-state-data';
 import { installOutOfOrderExecutor } from '../../out-of-order-executor-shared';
-import { _serialize } from '../shared/serdes/serdes.public';
+import { _serialize } from '../../serializer';
 import { processSegmentStateScriptsIterator } from './process-segment-state';
 
 describe('processVnodeData', () => {

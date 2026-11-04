@@ -11,19 +11,22 @@ export async function finalizeAndSwapOutOfOrderSegment(
 ): Promise<void> {
   const segmentId = String(boundaryId);
   const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
-  ssr.write(`<template ${QPendingResolved}="${boundaryId}"${revealBoundary?.attrs ?? ''}>`);
-  ssr.write(result.html);
-  ssr.write('</template>');
-  ssr.emitOutOfOrderSegmentScripts(result.scripts);
-  ssr.emitOutOfOrderExecutorIfNeeded();
-  ssr.emitInlineScript(`qO(${boundaryId})`);
-  const errorSwapIds = rendered.container.$errorSwapIds$;
-  if (__EXPERIMENTAL__.catchBoundary && errorSwapIds?.length) {
-    ssr.emitErrorSwapExecutorIfNeeded();
-    for (let i = 0; i < errorSwapIds.length; i++) {
-      ssr.emitInlineScript(`qErr(${errorSwapIds[i]})`);
+  // The shell may have entered an svg while the segment was finalizing.
+  ssr.$emitWhenScriptSafe$(() => {
+    ssr.write(`<template ${QPendingResolved}="${boundaryId}"${revealBoundary?.attrs ?? ''}>`);
+    ssr.write(result.html);
+    ssr.write('</template>');
+    ssr.emitOutOfOrderSegmentScripts(result.scripts);
+    ssr.emitOutOfOrderExecutorIfNeeded();
+    ssr.emitInlineScript(`qO(${boundaryId})`);
+    const errorSwapIds = rendered.container.$errorSwapIds$;
+    if (__EXPERIMENTAL__.catchBoundary && errorSwapIds?.length) {
+      ssr.emitErrorSwapExecutorIfNeeded();
+      for (let i = 0; i < errorSwapIds.length; i++) {
+        ssr.emitInlineScript(`qErr(${errorSwapIds[i]})`);
+      }
     }
-  }
+  });
   // qO() is the browser-visible handoff for this segment, so flush it immediately.
   await ssr.streamHandler.flush();
 }

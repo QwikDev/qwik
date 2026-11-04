@@ -47,7 +47,7 @@ const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
       request.raw,
       response.raw,
       (err) => {
-        if (err) {
+        if (err && !response.sent) {
           response.send(err);
         }
       },

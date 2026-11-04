@@ -22,8 +22,13 @@ import { qwikSymbol } from '../shared/singletons';
 /**
  * Special value used to mark that a given signal needs to be computed. This is essentially a
  * "marked as dirty" flag.
+ *
+ * @internal
  */
 export const NEEDS_COMPUTATION: any = /*#__PURE__*/ qwikSymbol('invalid');
+
+/** Thrown by a read with no value to give; the reader stays subscribed and reruns on a change. */
+export const NOT_READY: any = /*#__PURE__*/ qwikSymbol('notReady');
 
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
 export type ComputeCtx<T = unknown> = {
@@ -173,6 +178,8 @@ export type Consumer = Task | VNode | SignalImpl | ISsrNode;
  * - Property name of the VNode
  * - `EffectProperty.COMPONENT` if component
  * - `EffectProperty.VNODE` if VNode
+ *
+ * @internal
  */
 export class EffectSubscription {
   declare $ssrSegmentId$?: number;
@@ -250,6 +257,7 @@ export type CustomSerializable<T extends { [SerializerSymbol]: (obj: any) => any
 
 export const STORE_TARGET: unique symbol = /*#__PURE__*/ qwikSymbol('store.target');
 export const STORE_HANDLER: unique symbol = /*#__PURE__*/ qwikSymbol('store.handler');
+/** @internal */
 export const STORE_ALL_PROPS: unique symbol = /*#__PURE__*/ qwikSymbol('store.all');
 
 export type StoreTarget = Record<string | symbol, any>;

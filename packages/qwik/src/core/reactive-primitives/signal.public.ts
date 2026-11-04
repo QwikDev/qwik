@@ -14,9 +14,7 @@ export { isSignal } from './utils';
  * @deprecated Use `Readonly<Signal<T>>` instead.
  * @public
  */
-export interface ReadonlySignal<T = unknown> {
-  readonly value: T;
-}
+export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 
 /**
  * A signal is a reactive value which can be read and written. When the signal is written, all tasks

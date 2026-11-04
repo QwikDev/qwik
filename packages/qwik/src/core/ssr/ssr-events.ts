@@ -3,7 +3,7 @@ import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import { isQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToChunks } from '../shared/serdes/qrl-to-string';
-import type { SerializationContext } from '../shared/serdes/serialization-context';
+import type { SerializationContext } from '../../serializer/serialization-context';
 import { getEventDataFromHtmlAttribute, getScopedEventName } from '../shared/utils/event-names';
 import type { SSRWriteChunk } from './ssr-types';
 

@@ -12,7 +12,8 @@ import {
   type AsyncSignal,
 } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _serialize, _wrapProp } from '../../internal';
+import { _deserialize, _EFFECT_BACK_REF, _fnSignal, _wrapProp } from '../../internal';
+import { _serialize, createSerializationContext } from '../../../serializer';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
@@ -44,11 +45,10 @@ import { _dumpState } from './dump-state';
 import { qrlToString } from './qrl-to-string';
 import { preprocessState } from './preprocess-state';
 import { _createDeserializeContainer, getObjectById } from './serdes.public';
-import { createSerializationContext } from './serialization-context';
 import { SsrNode } from '../../../server/ssr-node';
 import { VNodeDataFlag } from '../../../server/types';
 import { OPEN_FRAGMENT, type VNodeData } from '../../../server/vnode-data';
-import { _serializationWeakRef, shouldSkipComponentProps } from './serialize';
+import { _serializationWeakRef, shouldSkipComponentProps } from '../../../serializer/serialize';
 import { SubscriptionPatch, SubscriptionPatchChannel } from './subscription-patch';
 import type { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import type { DeserializeContainer } from '../types';

@@ -10,6 +10,7 @@ import { walk } from 'oxc-walker';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 import {
+  asStandaloneDeclaration,
   autoExportedNames,
   type MigrationDecision,
   type ModuleLevelDecl,
@@ -344,7 +345,10 @@ export function rewriteParentModule(
       if (!decl) {
         continue;
       }
-      movedDeclSnapshots.set(decision.varName, ctx.s.slice(decl.declStart, decl.declEnd));
+      movedDeclSnapshots.set(
+        decision.varName,
+        asStandaloneDeclaration(decl, ctx.s.slice(decl.declStart, decl.declEnd))
+      );
     }
   }
 

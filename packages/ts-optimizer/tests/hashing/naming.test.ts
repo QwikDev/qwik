@@ -96,6 +96,7 @@ describe('buildSymbolName', () => {
       'qwik_core__test__worker_qrl_segment_prod_snapshot.snap',
       'qwik_core__test__example_capture_imports.snap',
       'qwik_core__test__should_extract_marker_call_with_identifier_argument.snap',
+      'qwik_core__test__should_drop_parent_qrls_of_root_fn_moved_into_segment.snap',
       'qwik_core__test__example_prod_node.snap',
       'qwik_core__test__example_qwik_react.snap',
       'qwik_core__test__example_strip_server_code.snap',

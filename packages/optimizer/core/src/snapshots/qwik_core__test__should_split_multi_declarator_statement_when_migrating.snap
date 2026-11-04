@@ -1,0 +1,169 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $ } from '@qwik.dev/core';
+import { createCounter } from './counter';
+
+const counter = createCounter(), readCounter = () => counter;
+const base = 1, addBase = () => base + 2;
+const first = () => 1, middle = () => 2, last = () => 3;
+const kept = () => 4, movedA = () => 5, movedB = () => 6;
+console.log(base, first(), last(), kept());
+
+export function make() {
+  return [
+    $(() => readCounter()),
+    $(() => addBase()),
+    $(() => middle()),
+    $(() => movedA() + movedB()),
+  ];
+}
+
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+import { createCounter } from './counter';
+//
+const q_make_0UXI11s6V9M = /*#__PURE__*/ qrl(()=>import("./test.tsx_make_0UXI11s6V9M"), "make_0UXI11s6V9M");
+const q_make_1_2Xd1pNTB7Jo = /*#__PURE__*/ qrl(()=>import("./test.tsx_make_1_2Xd1pNTB7Jo"), "make_1_2Xd1pNTB7Jo");
+const q_make_2_QpC1LOBDQz4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_make_2_QpC1LOBDQz4"), "make_2_QpC1LOBDQz4");
+const q_make_3_jkXthDjrkog = /*#__PURE__*/ qrl(()=>import("./test.tsx_make_3_jkXthDjrkog"), "make_3_jkXthDjrkog");
+//
+const counter = createCounter();
+const base = 1;
+const first = ()=>1, last = ()=>3;
+const kept = ()=>4;
+console.log(base, first(), last(), kept());
+export function make() {
+    return [
+        q_make_0UXI11s6V9M,
+        q_make_1_2Xd1pNTB7Jo,
+        q_make_2_QpC1LOBDQz4,
+        q_make_3_jkXthDjrkog
+    ];
+}
+export { base as _auto_base };
+export { counter as _auto_counter };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAEA,SAAS,aAAa,QAAQ,YAAY;;;;;;;AAE1C,MAAM,UAAU;AAChB,MAAM,OAAO;AACb,MAAM,QAAQ,IAAM,GAAqB,OAAO,IAAM;AACtD,MAAM,OAAO,IAAM;AACnB,QAAQ,GAAG,CAAC,MAAM,SAAS,QAAQ;AAEnC,OAAO,SAAS;IACd,OAAO;;;;;KAKN;AACH\"}")
+============================= test.tsx_make_2_QpC1LOBDQz4.js (ENTRY POINT)==
+
+const middle = ()=>2;
+export const make_2_QpC1LOBDQz4 = ()=>middle();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"MAMuB,SAAS,IAAM;kCAQhC,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "make_2_QpC1LOBDQz4",
+  "entry": null,
+  "displayName": "test.tsx_make_2",
+  "hash": "QpC1LOBDQz4",
+  "canonicalFilename": "test.tsx_make_2_QpC1LOBDQz4",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    440,
+    454
+  ]
+}
+*/
+============================= test.tsx_make_3_jkXthDjrkog.js (ENTRY POINT)==
+
+const movedA = ()=>5;
+const movedB = ()=>6;
+export const make_3_jkXthDjrkog = ()=>movedA() + movedB();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"MAOsB,SAAS,IAAM;MAAG,SAAS,IAAM;kCAQjD,IAAM,WAAW\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "make_3_jkXthDjrkog",
+  "entry": null,
+  "displayName": "test.tsx_make_3",
+  "hash": "jkXthDjrkog",
+  "canonicalFilename": "test.tsx_make_3_jkXthDjrkog",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    463,
+    488
+  ]
+}
+*/
+============================= test.tsx_make_1_2Xd1pNTB7Jo.js (ENTRY POINT)==
+
+import { _auto_base as base } from "./test";
+//
+const addBase = ()=>base + 2;
+export const make_1_2Xd1pNTB7Jo = ()=>addBase();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;MAKgB,UAAU,IAAM,OAAO;kCAQjC,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "make_1_2Xd1pNTB7Jo",
+  "entry": null,
+  "displayName": "test.tsx_make_1",
+  "hash": "2Xd1pNTB7Jo",
+  "canonicalFilename": "test.tsx_make_1_2Xd1pNTB7Jo",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    416,
+    431
+  ]
+}
+*/
+============================= test.tsx_make_0UXI11s6V9M.js (ENTRY POINT)==
+
+import { _auto_counter as counter } from "./test";
+//
+const readCounter = ()=>counter;
+export const make_0UXI11s6V9M = ()=>readCounter();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;MAIiC,cAAc,IAAM;gCAQ/C,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "make_0UXI11s6V9M",
+  "entry": null,
+  "displayName": "test.tsx_make",
+  "hash": "0UXI11s6V9M",
+  "canonicalFilename": "test.tsx_make_0UXI11s6V9M",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    388,
+    407
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

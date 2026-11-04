@@ -419,7 +419,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 												.remove_root_and_exports_for_id(id);
 										}
 										remove_migrated_exports(module, &migrated_ids);
-										remove_unused_qrl_declarations(module);
+										remove_unused_qrl_declarations(module, &segments);
 
 										// Re-run DCE to remove imports that are no longer used
 										// after migrating variables to segments
@@ -1028,6 +1028,7 @@ fn apply_variable_migration(
 		&root_dependencies,
 		&root_var_usage,
 		&main_module_usage,
+		&global_collect.root_side_effects,
 	);
 
 	// PHASE 1: Pre-declare all needed auto-exports BEFORE migration
@@ -1505,14 +1506,20 @@ fn remove_migrated_exports(module: &mut ast::Module, migrated_ids: &std::collect
 	});
 }
 
-/// After variable migration, some `const _qrl_*` / `const i_*` declarations and
+/// After variable migration, some generated `const q_*` declarations and
 /// their associated imports may become unused in the root module. SWC's DCE can't
 /// remove these because `may_have_side_effects` returns true for all Call expressions.
 /// This function does a targeted cleanup: it iteratively removes unreferenced
-/// `_qrl_*`/`i_*` const declarations and then unreferenced import declarations.
-fn remove_unused_qrl_declarations(module: &mut ast::Module) {
+/// generated `q_*` const declarations and then unreferenced import declarations.
+fn remove_unused_qrl_declarations(module: &mut ast::Module, segments: &[Segment]) {
 	use std::collections::HashSet;
 	use swc_ecmascript::visit::Visit;
+
+	// Only optimizer-generated bindings: a user's `q_*` const may run side effects.
+	let generated: HashSet<String> = segments
+		.iter()
+		.map(|segment| format!("q_{}", segment.name))
+		.collect();
 
 	/// Collect all identifiers referenced in expressions (not declarations)
 	struct RefCollector {
@@ -1526,7 +1533,7 @@ fn remove_unused_qrl_declarations(module: &mut ast::Module) {
 
 	// Iterate until stable (removing a qrl const may make an import unused)
 	loop {
-		// 1. Collect all identifiers DEFINED by const _qrl_*/i_* declarations and imports
+		// 1. Collect all identifiers DEFINED by const q_* declarations and imports
 		let mut qrl_defined: HashSet<Atom> = HashSet::new();
 		let mut import_defined: HashSet<Atom> = HashSet::new();
 		for item in &module.body {
@@ -1535,7 +1542,7 @@ fn remove_unused_qrl_declarations(module: &mut ast::Module) {
 					for decl in &var.decls {
 						if let ast::Pat::Ident(ident) = &decl.name {
 							let name = &*ident.id.sym;
-							if name.starts_with("_qrl_") || name.starts_with("i_") {
+							if generated.contains(name) {
 								qrl_defined.insert(ident.id.sym.clone());
 							}
 						}
@@ -1566,7 +1573,7 @@ fn remove_unused_qrl_declarations(module: &mut ast::Module) {
 					var.decls.iter().all(|decl| {
 						if let ast::Pat::Ident(ident) = &decl.name {
 							let name = &*ident.id.sym;
-							name.starts_with("_qrl_") || name.starts_with("i_")
+							generated.contains(name)
 						} else {
 							false
 						}
@@ -1595,7 +1602,7 @@ fn remove_unused_qrl_declarations(module: &mut ast::Module) {
 						var.decls.first().and_then(|decl| {
 							if let ast::Pat::Ident(ident) = &decl.name {
 								let name = &*ident.id.sym;
-								if name.starts_with("_qrl_") || name.starts_with("i_") {
+								if generated.contains(name) {
 									Some(ident.id.sym.clone())
 								} else {
 									None
@@ -1636,12 +1643,11 @@ fn remove_unused_qrl_declarations(module: &mut ast::Module) {
 		module.body.retain(|item| {
 			match item {
 				ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(var))) => {
-					// Remove _qrl_*/i_* const declarations that are unused
+					// Remove q_* const declarations that are unused
 					!var.decls.iter().all(|decl| {
 						if let ast::Pat::Ident(ident) = &decl.name {
 							let name = &*ident.id.sym;
-							(name.starts_with("_qrl_") || name.starts_with("i_"))
-								&& !used.contains(&ident.id.sym)
+							generated.contains(name) && !used.contains(&ident.id.sym)
 						} else {
 							false
 						}

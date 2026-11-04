@@ -48,6 +48,8 @@ pub struct GlobalCollect {
 	pub dynamic_imports: Vec<Atom>,
 	pub exports: IndexMap<Atom, ExportInfo>,
 	pub root: IndexMap<Id, Span>,
+	/// Root vars whose initializer may have side effects, so they never move into a segment.
+	pub root_side_effects: HashSet<Id>,
 
 	rev_imports: HashMap<(Atom, Atom), Id>,
 	canonical_ids: HashMap<Atom, Id>,
@@ -62,6 +64,7 @@ pub fn global_collect(program: &ast::Program) -> GlobalCollect {
 		exports: IndexMap::with_capacity(16),
 
 		root: IndexMap::with_capacity(16),
+		root_side_effects: HashSet::new(),
 		rev_imports: HashMap::with_capacity(16),
 		canonical_ids: HashMap::with_capacity(16),
 
@@ -232,7 +235,11 @@ impl Visit for GlobalCollect {
 					for decl in &var.decls {
 						let mut identifiers: Vec<(Id, Span)> = vec![];
 						collect_from_pat(&decl.name, &mut identifiers);
+						let has_side_effects = !is_initializer_safe(decl.init.as_deref());
 						for (id, span) in identifiers {
+							if has_side_effects {
+								self.root_side_effects.insert(id.clone());
+							}
 							self.add_root(id, span);
 						}
 					}
@@ -536,6 +543,63 @@ pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut Vec<(Id, Span)>) -> bo
 			}
 			false
 		}
+		_ => false,
+	}
+}
+
+/// Conservative purity check: true only for initializers that provably have no side effects.
+fn is_initializer_safe(init: Option<&ast::Expr>) -> bool {
+	let Some(expr) = init else {
+		return true;
+	};
+	match expr {
+		ast::Expr::Lit(_)
+		| ast::Expr::Arrow(_)
+		| ast::Expr::Fn(_)
+		| ast::Expr::Ident(_)
+		| ast::Expr::MetaProp(_) => true,
+		ast::Expr::Tpl(tpl) => tpl.exprs.iter().all(|e| is_initializer_safe(Some(e))),
+		ast::Expr::Object(obj) => obj.props.iter().all(|prop| match prop {
+			ast::PropOrSpread::Spread(_) => false,
+			ast::PropOrSpread::Prop(prop) => match &**prop {
+				ast::Prop::KeyValue(kv) => {
+					!matches!(kv.key, ast::PropName::Computed(_))
+						&& is_initializer_safe(Some(&kv.value))
+				}
+				ast::Prop::Shorthand(_) => true,
+				ast::Prop::Method(m) => !matches!(m.key, ast::PropName::Computed(_)),
+				ast::Prop::Getter(g) => !matches!(g.key, ast::PropName::Computed(_)),
+				ast::Prop::Setter(s) => !matches!(s.key, ast::PropName::Computed(_)),
+				ast::Prop::Assign(_) => false,
+			},
+		}),
+		ast::Expr::Array(arr) => arr
+			.elems
+			.iter()
+			.flatten()
+			.all(|elem| elem.spread.is_none() && is_initializer_safe(Some(&elem.expr))),
+		ast::Expr::Unary(unary) => is_initializer_safe(Some(&unary.arg)),
+		ast::Expr::Bin(bin) => {
+			is_initializer_safe(Some(&bin.left)) && is_initializer_safe(Some(&bin.right))
+		}
+		ast::Expr::Cond(cond) => {
+			is_initializer_safe(Some(&cond.test))
+				&& is_initializer_safe(Some(&cond.cons))
+				&& is_initializer_safe(Some(&cond.alt))
+		}
+		// Could trigger a getter, but reading a member is treated as safe.
+		ast::Expr::Member(member) => {
+			!matches!(member.prop, ast::MemberProp::Computed(_))
+				&& is_initializer_safe(Some(&member.obj))
+		}
+		// Marker calls become non-mutating QRL forms once extracted.
+		ast::Expr::Call(call) => match &call.callee {
+			ast::Callee::Expr(callee) => match &**callee {
+				ast::Expr::Ident(ident) => ident.sym.ends_with('$'),
+				_ => false,
+			},
+			_ => false,
+		},
 		_ => false,
 	}
 }

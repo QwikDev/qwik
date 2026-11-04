@@ -23,6 +23,8 @@ function makeDecl(overrides: Partial<ModuleLevelDecl> & { name: string }): Modul
     kind: 'const',
     hasRouterMarkerInit: false,
     ...overrides,
+    stmtStart: overrides.stmtStart ?? overrides.declStart ?? 0,
+    stmtEnd: overrides.stmtEnd ?? overrides.declEnd ?? 0,
   };
 }
 

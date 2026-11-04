@@ -6,6 +6,7 @@ import type { ImportInfo } from '../extraction/marker-detection.js';
 import {
   autoExportedNames,
   MIG_REASON,
+  sharesStatement,
   type ModuleLevelDecl,
 } from '../analysis/variable-migration.js';
 import {
@@ -15,7 +16,6 @@ import {
   isWorkerExtraction,
   markMovedCaptures,
 } from './rewrite-calls.js';
-import { escapeSymbol } from '../../hashing/naming.js';
 import { buildQrlDevDeclaration, buildDevFilePath, formatDevMeta } from '../segment/dev-mode.js';
 import {
   buildNoopQrlDeclaration,
@@ -225,34 +225,19 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   );
   const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));
 
-  // A moved source-decl carries its `componentQrl(q_<sym>)` wrap into the
-  // sibling segment, so the parent emits a bare `qrl(...)` registration
-  // instead of `const q_<sym> = qrl(...)` — the binding is unreferenced here.
-  const movedMarkerSymbols = new Set<string>();
+  // A moved decl takes its extractions' `q_<sym>` bindings along, so the parent declares none.
+  const movedDeclSymbols = new Set<string>();
   if (ctx.migrationDecisions && ctx.moduleLevelDecls) {
-    const fileStem = relPath.split('/').pop() ?? relPath;
-    for (const decision of ctx.migrationDecisions) {
-      if (decision.action !== 'move') {
-        continue;
-      }
-      const varName = escapeSymbol(decision.varName);
-      const exact = `${fileStem}_${varName}`;
-      const prefix = `${exact}_`;
-      const bareVarPrefix = `${varName}_`;
-      // A moved helper can own several extractions, so scan all — every one
-      // loses its parent-side `q_<sym>` binding when the decl moves out.
-      for (const e of extractions) {
-        if (e.parent !== null) {
-          continue;
-        }
-        if (
-          e.displayName === exact ||
-          e.displayName.startsWith(prefix) ||
-          e.displayName === varName ||
-          e.displayName.startsWith(bareVarPrefix)
-        ) {
-          movedMarkerSymbols.add(e.symbolName);
-        }
+    const movedNames = new Set(
+      ctx.migrationDecisions.filter((d) => d.action === 'move').map((d) => d.varName)
+    );
+    const movedDecls = ctx.moduleLevelDecls.filter((decl) => movedNames.has(decl.name));
+    for (const e of extractions) {
+      const isInsideMovedDecl = movedDecls.some(
+        (decl) => e.callStart >= decl.declStart && e.callEnd <= decl.declEnd
+      );
+      if (e.parent === null && isInsideMovedDecl) {
+        movedDeclSymbols.add(e.symbolName);
       }
     }
   }
@@ -411,14 +396,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         pushWorkerDeclaration(ext, varName);
         continue;
       }
-      if (movedMarkerSymbols.has(ext.symbolName) && !(isDevMode && devFilePath)) {
-        const fileExt = explicitExtensions ? (outputExtension ?? '.js') : '';
-        ctx.qrlDecls.push(
-          `qrl(()=>import("./${ext.canonicalFilename}${fileExt}"), "${ext.symbolName}");`
-        );
-        // Intentionally not registering `q_<sym>` in `qrlVarNames`: the
-        // parent no longer declares it, so a stray reference should surface
-        // as an error rather than be silently named.
+      if (movedDeclSymbols.has(ext.symbolName)) {
         continue;
       }
       if (isDevMode && devFilePath) {
@@ -467,8 +445,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
     }
   }
 
-  // Sort by segment symbol, not raw text — bare `qrl(...)` registrations
-  // interleave with `const q_* = ...` declarations in symbol order.
+  // Sort by segment symbol, not raw text.
   const declSortKey = (line: string): string =>
     /^const q_([\w$]+)/.exec(line)?.[1] ?? /"([^"]+)"\)?;?\s*$/.exec(line)?.[1] ?? line;
   ctx.qrlDecls.sort((a, b) => {
@@ -821,12 +798,12 @@ function findLastReferencedDeclEnd(
 ): number | null {
   let maxEnd = -1;
   for (const decl of decls) {
-    if (decl.declEnd <= maxEnd) {
+    if (decl.stmtEnd <= maxEnd) {
       continue;
     }
     const wb = wordBoundaryTester(decl.name);
     if (sCalls.some((sc) => wb.test(sc))) {
-      maxEnd = decl.declEnd;
+      maxEnd = decl.stmtEnd;
     }
   }
   return maxEnd >= 0 ? maxEnd : null;
@@ -845,14 +822,14 @@ function findForwardReferencedDeclEnd(
 ): number | null {
   let maxEnd = -1;
   for (const decl of decls) {
-    if (decl.declStart <= threshold) {
+    if (decl.stmtStart <= threshold) {
       continue;
     }
-    if (decl.declEnd <= maxEnd) {
+    if (decl.stmtEnd <= maxEnd) {
       continue;
     }
     if (wordBoundaryTester(decl.name).test(sCall)) {
-      maxEnd = decl.declEnd;
+      maxEnd = decl.stmtEnd;
     }
   }
   return maxEnd >= 0 ? maxEnd : null;
@@ -976,24 +953,67 @@ function placeSCalls(
   s.append('\n' + groupedSCalls.join('\n'));
 }
 
+/** Removes migrated decls, keeping sibling declarators that stay in the parent. */
+function removeDeclarations(
+  s: MagicString,
+  source: string,
+  program: AstProgram,
+  removedDecls: readonly ModuleLevelDecl[]
+): void {
+  const removedStarts = new Set(removedDecls.map((decl) => decl.declStart));
+  const handledStatements = new Set<number>();
+  for (const decl of removedDecls) {
+    if (handledStatements.has(decl.stmtStart)) {
+      continue;
+    }
+    handledStatements.add(decl.stmtStart);
+    const statement = program.body.find((node) => node.start === decl.stmtStart);
+    const declarators =
+      sharesStatement(decl) && statement?.type === 'VariableDeclaration'
+        ? statement.declarations
+        : [];
+    const keptDeclarators = declarators.filter((d) => !removedStarts.has(d.start));
+    if (keptDeclarators.length === 0) {
+      let end = decl.stmtEnd;
+      if (end < source.length && source[end] === '\n') {
+        end++;
+      }
+      s.remove(decl.stmtStart, end);
+      continue;
+    }
+    const lastKeptEnd = keptDeclarators[keptDeclarators.length - 1].end;
+    declarators.forEach((declarator, index) => {
+      if (!removedStarts.has(declarator.start)) {
+        return;
+      }
+      // Trailing declarators take the comma before them; others the one after.
+      if (declarator.start > lastKeptEnd) {
+        s.remove(lastKeptEnd, declarator.end);
+      } else {
+        s.remove(declarator.start, declarators[index + 1].start);
+      }
+    });
+  }
+}
+
 function placeLibReferencedDeclarations(ctx: RewriteContext): void {
   const anchor = findMarkerExportAnchor(ctx.program);
   if (!anchor || !ctx.moduleLevelDecls) {
     return;
   }
   for (const decl of [...ctx.moduleLevelDecls].reverse()) {
-    if (decl.hasSideEffects || decl.declStart < anchor.end) {
+    if (decl.hasSideEffects || decl.stmtStart < anchor.end) {
       continue;
     }
     const tester = wordBoundaryTester(decl.name);
     if (!ctx.extractions.some((ext) => tester.test(ext.bodyText))) {
       continue;
     }
-    let end = decl.declEnd;
+    let end = decl.stmtEnd;
     if (ctx.source[end] === '\n') {
       end++;
     }
-    ctx.s.move(decl.declStart, end, anchor.start);
+    ctx.s.move(decl.stmtStart, end, anchor.start);
   }
 }
 
@@ -1087,6 +1107,7 @@ export function assembleOutput(ctx: RewriteContext): string {
 
   if (migrationDecisions && moduleLevelDecls) {
     const removedRanges = new Set<string>();
+    const removedDecls: ModuleLevelDecl[] = [];
     for (const decision of migrationDecisions) {
       const decl = moduleLevelDecls.find((d) => d.name === decision.varName);
       if (!decl) {
@@ -1097,11 +1118,7 @@ export function assembleOutput(ctx: RewriteContext): string {
         continue;
       }
       if (interleavedDeclarationRanges.has(rangeKey)) {
-        let end = decl.declEnd;
-        if (end < source.length && source[end] === '\n') {
-          end++;
-        }
-        s.remove(decl.declStart, end);
+        removedDecls.push(decl);
         removedRanges.add(rangeKey);
         continue;
       }
@@ -1131,12 +1148,9 @@ export function assembleOutput(ctx: RewriteContext): string {
         continue;
       }
       removedRanges.add(rangeKey);
-      let end = decl.declEnd;
-      if (end < source.length && source[end] === '\n') {
-        end++;
-      }
-      s.remove(decl.declStart, end);
+      removedDecls.push(decl);
     }
+    removeDeclarations(s, source, program, removedDecls);
   }
 
   if (ctx.isLibMode) {

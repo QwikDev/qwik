@@ -406,6 +406,7 @@ pub fn find_migratable_vars(
 	root_dependencies: &HashMap<Id, RootVarDependency>,
 	root_var_usage: &indexmap::IndexMap<Id, Vec<usize>>,
 	main_module_usage: &HashSet<Id>,
+	root_side_effects: &HashSet<Id>,
 ) -> std::collections::BTreeMap<usize, Vec<Id>> {
 	let mut migratable: std::collections::BTreeMap<usize, Vec<Id>> =
 		std::collections::BTreeMap::new();
@@ -416,7 +417,11 @@ pub fn find_migratable_vars(
 		// 2. Not exported
 		// 3. Not already an import (must be a root variable declaration)
 		// 4. Not still referenced by the main/root module
-		if segments_using.len() == 1 && !main_module_usage.contains(root_var_id) {
+		// 5. Its initializer has no side effects, so moving it doesn't defer them
+		if segments_using.len() == 1
+			&& !main_module_usage.contains(root_var_id)
+			&& !root_side_effects.contains(root_var_id)
+		{
 			let seg_idx = segments_using[0];
 			if let Some(dep_info) = root_dependencies.get(root_var_id) {
 				if !dep_info.is_exported && !dep_info.is_imported {
@@ -427,6 +432,7 @@ pub fn find_migratable_vars(
 						segments,
 						seg_idx,
 						main_module_usage,
+						root_side_effects,
 					);
 
 					migratable.entry(seg_idx).or_default().extend(transitive);
@@ -511,6 +517,7 @@ fn collect_transitive_dependencies(
 	_segments: &[crate::transform::Segment],
 	_target_seg_idx: usize,
 	main_module_usage: &HashSet<Id>,
+	root_side_effects: &HashSet<Id>,
 ) -> Vec<Id> {
 	let mut result = vec![var_id.clone()];
 	let mut queue = VecDeque::new();
@@ -528,12 +535,13 @@ fn collect_transitive_dependencies(
 					// 1. A root variable (not imported)
 					// 2. Not exported
 					// 3. Not still referenced by the main/root module
+					// 4. Free of initializer side effects, which must run with the parent
 					if let Some(dep_info) = root_dependencies.get(dep) {
 						if !dep_info.is_exported
 							&& !dep_info.is_imported
 							&& !main_module_usage.contains(dep)
+							&& !root_side_effects.contains(dep)
 						{
-							// Assume it's safe to migrate (doesn't have side effects)
 							result.push(dep.clone());
 							queue.push_back(dep.clone());
 						}

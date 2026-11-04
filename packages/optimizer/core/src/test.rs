@@ -9186,3 +9186,106 @@ export function make() {
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn should_reexport_side_effect_root_var_used_by_one_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { createCounter } from './counter';
+
+const counter = createCounter();
+const config = { size: 1 };
+const tracked = createCounter();
+const readTracked = () => tracked;
+
+export function make() {
+  return [$(() => counter), $(() => config), $(() => readTracked())];
+}
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_multi_declarator_statement_when_migrating() {
+	test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { createCounter } from './counter';
+
+const counter = createCounter(), readCounter = () => counter;
+const base = 1, addBase = () => base + 2;
+const first = () => 1, middle = () => 2, last = () => 3;
+const kept = () => 4, movedA = () => 5, movedB = () => 6;
+console.log(base, first(), last(), kept());
+
+export function make() {
+  return [
+    $(() => readCounter()),
+    $(() => addBase()),
+    $(() => middle()),
+    $(() => movedA() + movedB()),
+  ];
+}
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_user_q_named_root_decl_when_migrating() {
+	let res = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { registerHandler } from './register';
+
+const q_init = registerHandler();
+const helper = () => 1;
+
+export function make() {
+  return $(() => helper());
+}
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		minify: MinifyMode::None,
+		snapshot: false,
+		..TestInput::default()
+	});
+
+	let output = res.unwrap();
+	let parent = output.modules.iter().find(|m| m.segment.is_none()).unwrap();
+	assert!(
+		parent.code.contains("registerHandler()"),
+		"expected the user's q_init initializer to stay, got:\n{}",
+		parent.code
+	);
+}
+
+#[test]
+fn should_drop_parent_qrls_of_root_fn_moved_into_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Child, imported } from './child';
+
+const pick = () => console.log('picked');
+
+const renderChild = () => <Child root={$(pick)} imported={$(imported)} />;
+
+export const Parent = component$(() => <>{renderChild()}</>);
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}

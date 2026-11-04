@@ -1,0 +1,123 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+import { Child, imported } from './child';
+
+const pick = () => console.log('picked');
+
+const renderChild = () => <Child root={$(pick)} imported={$(imported)} />;
+
+export const Parent = component$(() => <>{renderChild()}</>);
+
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+const q_Parent_component_0TaiDayHrlo = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo");
+//
+export const Parent = /*#__PURE__*/ componentQrl(q_Parent_component_0TaiDayHrlo);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAQA,OAAO,MAAM,uBAAS,6CAAuC\"}")
+============================= test.tsx_child_imported_Vl97AMhAVTE.js (ENTRY POINT)==
+
+import { imported } from "./child";
+//
+export const child_imported_Vl97AMhAVTE = imported;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAM4D\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "child_imported_Vl97AMhAVTE",
+  "entry": null,
+  "displayName": "test.tsx_child_imported",
+  "hash": "Vl97AMhAVTE",
+  "canonicalFilename": "test.tsx_child_imported_Vl97AMhAVTE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    197,
+    205
+  ]
+}
+*/
+============================= test.tsx_Parent_component_0TaiDayHrlo.js (ENTRY POINT)==
+
+import { Child } from "./child";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_child_imported_Vl97AMhAVTE = /*#__PURE__*/ qrl(()=>import("./test.tsx_child_imported_Vl97AMhAVTE"), "child_imported_Vl97AMhAVTE");
+const q_renderChild_Child_root_B0yK978pr3o = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderChild_Child_root_B0yK978pr3o"), "renderChild_Child_root_B0yK978pr3o");
+//
+const renderChild = ()=>/*#__PURE__*/ _jsxSorted(Child, {
+        imported: q_child_imported_Vl97AMhAVTE,
+        root: q_renderChild_Child_root_B0yK978pr3o
+    }, null, null, 3, "u6_0");
+export const Parent_component_0TaiDayHrlo = ()=>/*#__PURE__*/ _jsxSorted(_Fragment, null, null, renderChild(), 1, "u6_1");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;MAMM,cAAc,kBAAM,WAAC;QAAqB,QAAQ;QAAvB,IAAI;;4CAEJ,kBAAM,kCAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Parent_component_0TaiDayHrlo",
+  "entry": null,
+  "displayName": "test.tsx_Parent_component",
+  "hash": "0TaiDayHrlo",
+  "canonicalFilename": "test.tsx_Parent_component_0TaiDayHrlo",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    246,
+    272
+  ]
+}
+*/
+============================= test.tsx_renderChild_Child_root_B0yK978pr3o.js (ENTRY POINT)==
+
+const pick = ()=>console.log('picked');
+export const renderChild_Child_root_B0yK978pr3o = pick;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"MAIM,OAAO,IAAM,QAAQ,GAAG,CAAC;kDAEU\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderChild_Child_root_B0yK978pr3o",
+  "entry": null,
+  "displayName": "test.tsx_renderChild_Child_root",
+  "hash": "B0yK978pr3o",
+  "canonicalFilename": "test.tsx_renderChild_Child_root_B0yK978pr3o",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    178,
+    182
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

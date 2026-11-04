@@ -12,6 +12,7 @@ import type {
   TSEnumDeclaration,
 } from '../../ast-types.js';
 import MagicString from 'magic-string';
+import { collectEventOnlyQrls } from '../analysis/event-qrls.js';
 import { stripTypeScript } from '../edit/strip-types.js';
 import { blankNonCode, skipStringLiteralForward } from '../edit/text-scanning.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
@@ -587,6 +588,12 @@ function extractModuleSegments(
   // orchestrator then advances elements in place through the `captured` →
   // `consolidated` phases via per-mutation `Mutable` casts.
   const extractions = facts.extractions as ExtractionResult[];
+  if ((options.entryStrategy?.type ?? 'smart') === 'smart') {
+    const eventOnly = collectEventOnlyQrls(program, extractions);
+    for (const extraction of extractions) {
+      extraction.isEventOnly = eventOnly.has(extraction.argStart);
+    }
+  }
   for (const extraction of extractions) {
     (extraction as Mutable<ExtractionResult>).loc = [
       mkByteOffset(prepared.originalOffset(extraction.loc[0]) + 1),

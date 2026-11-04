@@ -1,5 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import type { PerfComponentVm } from '../computePerfViewModel';
+import { describeSsrRenders, type PerfComponentVm } from '../computePerfViewModel';
 import { formatMs } from '../utils/formatMs';
 
 interface ComponentCardProps {
@@ -25,9 +25,7 @@ export const ComponentCard = component$<ComponentCardProps>(({ component, select
         </div>
         <div class="shrink-0 text-right">
           <div class="text-primary text-lg font-semibold">{formatMs(component.totalTime)}</div>
-          <div class="text-muted-foreground text-xs">
-            SSR: {typeof component.ssr?.ssrCount === 'number' ? component.ssr.ssrCount : '-'}
-          </div>
+          <div class="text-muted-foreground text-xs">{describeSsrRenders(component.ssr)}</div>
         </div>
       </div>
     </button>

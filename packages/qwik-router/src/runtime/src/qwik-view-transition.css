@@ -1,7 +1,7 @@
 @layer qwik {
   @supports selector(html:active-view-transition-type(type)) {
     html:active-view-transition-type(qwik-navigation) {
-      :root {
+      & {
         view-transition-name: none;
       }
     }

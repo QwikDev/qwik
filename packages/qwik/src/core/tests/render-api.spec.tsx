@@ -619,6 +619,23 @@ describe('render api', () => {
         const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('colgroup')).toHaveLength(1);
         expect(document.querySelector('colgroup > col')).toBeTruthy();
+        expect(result.html).toContain('"e:click"');
+      });
+      it('should push pending event names before opening a colgroup', async () => {
+        const result = await renderToStringAndSetPlatform(
+          <table>
+            <caption>
+              <button onClick$={() => {}}>click</button>
+            </caption>
+            <colgroup>
+              <col />
+            </colgroup>
+          </table>,
+          { containerTagName: 'div' }
+        );
+        const pushed = result.html.indexOf('"e:click"');
+        expect(pushed).toBeGreaterThan(-1);
+        expect(pushed).toBeLessThan(result.html.indexOf('<colgroup'));
       });
     });
     describe('qwikFuncs', () => {

@@ -5241,8 +5241,10 @@ impl Visit for BindingReferences {
 	}
 }
 
+type BindingUsePositions = ((usize, usize), (usize, usize), BytePos);
+
 struct BindingUses {
-	positions: HashMap<Id, ((usize, usize), (usize, usize), BytePos)>,
+	positions: HashMap<Id, BindingUsePositions>,
 }
 impl BindingUses {
 	fn new(stmts: &[ast::Stmt]) -> Self {
@@ -5305,7 +5307,7 @@ impl BindingUses {
 				boundaries
 					.get(&owner)
 					.copied()
-					.unwrap_or(((0, 0), stmts[0].span().lo))
+					.unwrap_or_else(|| ((0, 0), stmts[0].span().lo))
 			} else {
 				(position, start)
 			};
@@ -5319,7 +5321,7 @@ impl BindingUses {
 		}
 		analysis
 	}
-	fn for_binding(&self, binding: &Id) -> Option<((usize, usize), (usize, usize), BytePos)> {
+	fn for_binding(&self, binding: &Id) -> Option<BindingUsePositions> {
 		self.positions.get(binding).copied()
 	}
 }

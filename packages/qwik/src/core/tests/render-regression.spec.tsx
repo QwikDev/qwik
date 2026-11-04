@@ -455,4 +455,55 @@ describe.each([
       expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3t4');
     });
   });
+
+  describe('issue #9370', () => {
+    it.each([
+      ['an empty list', false],
+      ['a nested list ending empty', true],
+    ])('should keep the siblings after %s on re-render', async (_, isNested) => {
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        return (
+          <button id="count" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+        );
+      });
+      const List = component$(() => {
+        const clicks = useSignal(0);
+        const label = `clicked ${clicks.value}`;
+        const items: string[] = [];
+        const list = items.map((item) => <i key={item}>{item}</i>);
+        return (
+          <>
+            {isNested ? [list] : list}
+            {label}
+            <Counter />
+            <b>{label}</b>
+            <button id="rerender" onClick$={() => clicks.value++} />
+          </>
+        );
+      });
+      const Parent = component$(() => {
+        const shown = useSignal(false);
+        if (!shown.value) {
+          return <button id="show" onClick$={() => (shown.value = true)} />;
+        }
+        return <List />;
+      });
+
+      const { container, document } = await render(<Parent />, { debug });
+      await trigger(container.element, '#show', 'click');
+      await trigger(container.element, '#count', 'click');
+      const siblings = () => Array.from(document.querySelector('b')!.parentNode!.childNodes);
+      const siblingsBefore = siblings();
+
+      await trigger(container.element, '#rerender', 'click');
+      expect(document.querySelector('#count')!.textContent).toBe('1');
+      expect(document.querySelector('b')!.textContent).toBe('clicked 1');
+      const siblingsAfter = siblings();
+      expect(siblingsAfter.length).toBe(siblingsBefore.length);
+      expect(siblingsAfter.every((node, i) => node === siblingsBefore[i])).toBe(true);
+    });
+  });
 });

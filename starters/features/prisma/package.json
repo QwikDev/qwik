@@ -13,6 +13,7 @@
       "title": "Next Steps",
       "lines": [
         " Prisma ORM was installed with a User model and demo routes at /users and /create.",
+        " Prisma ORM 8 needs Node.js 22.18 or newer.",
         "",
         " 1. Set DATABASE_URL in .env (see .env.example). Any PostgreSQL 15+ database works.",
         "    To create a Prisma Postgres database: npx create-db@latest --env .env",
@@ -26,7 +27,8 @@
   },
   "dependencies": {
     "@prisma/orm-postgres": "^8.0.0-rc.22",
-    "dotenv": "^18.0.9"
+    "dotenv": "^18.0.9",
+    "temporal-polyfill": "^1.0.4"
   },
   "devDependencies": {
     "prisma": "^8.0.0-rc.29"

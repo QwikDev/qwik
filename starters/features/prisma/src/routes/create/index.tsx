@@ -37,7 +37,10 @@ export default component$(() => {
         <button type="submit">Create</button>
       </Form>
       {createUserAction.value?.failed && (
-        <p>{createUserAction.value.message}</p>
+        <p>
+          {createUserAction.value.message ??
+            createUserAction.value.fieldErrors?.email}
+        </p>
       )}
       {createUserAction.value && !createUserAction.value.failed && (
         <h2>User {createUserAction.value.name} created successfully!</h2>

@@ -17,6 +17,7 @@
         "",
         " 1. Set DATABASE_URL in .env (see .env.example). Any PostgreSQL 15+ database works.",
         "    To create a Prisma Postgres database: npx create-db@latest --env .env",
+        "    It is deleted after 24 hours unless you claim it with the link the command prints.",
         " 2. Create the User table: npm run prisma:db:init",
         "",
         " After editing prisma/contract.prisma, run npm run prisma:emit and npm run prisma:db:update.",
@@ -31,7 +32,7 @@
     "temporal-polyfill": "^1.0.4"
   },
   "devDependencies": {
-    "prisma": "^8.0.0-rc.29"
+    "prisma": "^8.0.0-rc.30"
   },
   "scripts": {
     "prisma:emit": "prisma contract emit",

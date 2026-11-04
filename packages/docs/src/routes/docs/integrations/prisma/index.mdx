@@ -189,7 +189,7 @@ export default component$(() => {
 
 We will use `routeAction$` and `Form` to create a progressive form to add a new user to the DB. We will use `db.orm.public.User.create()` to create the user. It returns the inserted row.
 
-The `email` column is unique, so creating a second user with the same email fails. PostgreSQL reports this as error code `23505`, which the action turns into a `409` response with a message for the form:
+The `email` column is unique, so creating a second user with the same email fails. PostgreSQL reports this as error code `23505`, which the action turns into a `409` response with a message for the form. When `zod$` rejects the input, `failed` is also set and the messages are in `fieldErrors`, so the form shows either one:
 
 ```tsx {8} /db/ title="src/routes/create/index.tsx"
 import { component$ } from '@qwik.dev/core';
@@ -230,7 +230,9 @@ export default component$(() => {
         </label>
         <button type="submit">Create</button>
       </Form>
-      {createUserAction.value?.failed && <p>{createUserAction.value.message}</p>}
+      {createUserAction.value?.failed && (
+        <p>{createUserAction.value.message ?? createUserAction.value.fieldErrors?.email}</p>
+      )}
       {createUserAction.value && !createUserAction.value.failed && (
         <h2>User {createUserAction.value.name} created successfully!</h2>
       )}

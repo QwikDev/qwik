@@ -1,6 +1,8 @@
+import { isDev } from '@qwik.dev/core';
 import { _serialize } from '@qwik.dev/core/internal/serializer';
 import {
   FULLPATH_HEADER,
+  ROUTE_PATH_HEADER,
   getRouteLoaderCtx,
   getRouteLoaderParams,
   getRouteLoaderResponse,
@@ -185,6 +187,9 @@ async function sendLoaderResponse(
 ) {
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
   addVaryHeader(requestEv, FULLPATH_HEADER);
+  if (isDev) {
+    addVaryHeader(requestEv, ROUTE_PATH_HEADER);
+  }
   // A Cache-Control set by the loader function itself wins over the option
   if (cacheControl !== null && !requestEv.headers.has('Cache-Control')) {
     requestEv.cacheControl(cacheControl);

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
+import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../../runtime/src/route-loaders';
 import { createCacheControl } from '../cache-control';
 import { getLoaderName, IsQLoader, QLoaderId } from '../request-path';
 import { RedirectMessage } from '../redirect-handler';
@@ -34,7 +34,7 @@ describe('loaderHandler', () => {
     };
   }
 
-  it('defaults to private, no-cache Cache-Control and varies on full path', async () => {
+  it('defaults to private, no-cache Cache-Control and varies on full path and dev route path', async () => {
     const requestEv = createRequestEv();
     const loader = {
       __id: 'loader-id',
@@ -50,7 +50,7 @@ describe('loaderHandler', () => {
     await loaderHandler([loader as any])(requestEv as any);
 
     expect(requestEv.headers.get('Cache-Control')).toBe('no-cache, private');
-    expect(requestEv.headers.get('Vary')).toBe(FULLPATH_HEADER);
+    expect(requestEv.headers.get('Vary')).toBe(`${FULLPATH_HEADER}, ${ROUTE_PATH_HEADER}`);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
 

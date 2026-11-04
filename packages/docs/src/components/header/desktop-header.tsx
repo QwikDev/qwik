@@ -385,11 +385,6 @@ export const DesktopHeader = component$((props: { sidebarId?: string }) => {
                   icon={<pixel.interfaceessentialflag class={navPillIconClass} />}
                 />
                 <NavPill
-                  href="/docs/labs"
-                  label="Qwik Labs"
-                  icon={<pixel.healthlaboratory class={navPillIconClass} />}
-                />
-                <NavPill
                   href="/media/"
                   label="Media"
                   icon={<pixel.entertainmenteventshobbiesfilmplayer class={navPillIconClass} />}

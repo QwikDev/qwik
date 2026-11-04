@@ -260,23 +260,15 @@ function getUseOnSourceLocation(eventQrls: EventQRL<KnownEventNames>[]): string 
 function addUseOnEvent(jsxElement: JSXNodeInternal, key: string, value: UseOnEvent) {
   // These handlers are always there, so they go in constProps
   const props = (jsxElement.constProps ||= {} as Props);
-  const propValue = props[key] as
-    | EventQRL<KnownEventNames>[]
-    | EventQRL<KnownEventNames>
-    | undefined;
   const qrls = value.qrls;
-  if (propValue == null) {
-    props[key] = qrls;
-  } else if (Array.isArray(propValue)) {
-    propValue.push(...qrls);
-  } else {
-    props[key] = [propValue, ...qrls];
-  }
+  const handlers = withoutUseOnHandlers(props[key], qrls).concat(qrls);
   const varProp = jsxElement.varProps[key];
   if (varProp) {
     // we need to demote the handlers to varProps
-    jsxElement.varProps[key] = (Array.isArray(varProp) ? varProp : [varProp]).concat(props[key]);
+    jsxElement.varProps[key] = withoutUseOnHandlers(varProp, qrls).concat(handlers);
     props[key] = undefined;
+  } else {
+    props[key] = handlers;
   }
 
   const capture = value.capture;
@@ -289,6 +281,39 @@ function addUseOnEvent(jsxElement: JSXNodeInternal, key: string, value: UseOnEve
   capture && addUseOnModifier(jsxElement, eventName, 'capture');
   preventdefault && addUseOnModifier(jsxElement, eventName, 'preventdefault');
   stoppropagation && addUseOnModifier(jsxElement, eventName, 'stoppropagation');
+}
+
+/**
+ * Returns the handlers as an array, without the `useOn` handlers at its end.
+ *
+ * A JSX node that is reused across renders (or resumed from SSR) still ends with the `useOn`
+ * handlers of the previous render, maybe as other QRL instances.
+ */
+function withoutUseOnHandlers(handlers: unknown, qrls: EventQRL<KnownEventNames>[]): unknown[] {
+  const list = handlers == null ? [] : isArray(handlers) ? handlers : [handlers];
+  const start = list.length - qrls.length;
+  const endsWithUseOnHandlers =
+    start >= 0 && qrls.every((qrl, i) => isSameHandler(list[start + i], qrl));
+  return endsWithUseOnHandlers ? list.slice(0, start) : list;
+}
+
+/** Whether both are the same QRL: the same symbol with the same captured values. */
+function isSameHandler(handler: unknown, qrl: EventQRL<KnownEventNames>): boolean {
+  if (handler === qrl) {
+    return true;
+  }
+  // element handlers can also be nested arrays or empty
+  if (!isQrl(handler) || !isQrl(qrl) || handler.getSymbol() !== qrl.getSymbol()) {
+    return false;
+  }
+  const captured = handler.getCaptured();
+  const qrlCaptured = qrl.getCaptured();
+  if (!captured || !qrlCaptured) {
+    return captured === qrlCaptured;
+  }
+  return (
+    captured.length === qrlCaptured.length && captured.every((value, i) => value === qrlCaptured[i])
+  );
 }
 
 function addUseOnModifier(

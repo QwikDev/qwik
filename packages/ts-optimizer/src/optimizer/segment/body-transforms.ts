@@ -820,6 +820,8 @@ export function removeDeadConstLiterals(
     name: string;
     stmtStart: number;
     stmtEnd: number;
+    /** A member read stays as a statement: its getter may have side effects. */
+    keptRead?: string;
   }
   const candidates: DeadCandidate[] = [];
 
@@ -849,6 +851,10 @@ export function removeDeadConstLiterals(
       name: d.id.name,
       stmtStart: stmt.start - offset,
       stmtEnd: stmt.end - offset,
+      keptRead:
+        initNode.type === 'MemberExpression'
+          ? bodyText.slice(initNode.start - offset, initNode.end - offset)
+          : undefined,
     });
   }
 
@@ -871,6 +877,10 @@ export function removeDeadConstLiterals(
   toRemove.sort((a, b) => b.stmtStart - a.stmtStart);
   let result = bodyText;
   for (const c of toRemove) {
+    if (c.keptRead !== undefined) {
+      result = result.slice(0, c.stmtStart) + `${c.keptRead};` + result.slice(c.stmtEnd);
+      continue;
+    }
     let end = c.stmtEnd;
     while (
       end < result.length &&

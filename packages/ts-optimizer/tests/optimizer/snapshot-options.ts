@@ -459,6 +459,14 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
     entryStrategy: { type: 'inline' },
   },
+  should_inline_member_read_alias_passed_to_marker: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_move_root_const_read_by_inlined_alias: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_not_consolidate_loop_params_named_like_props: {
     transpileTs: true,
     transpileJsx: true,
@@ -516,6 +524,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
   },
   should_disable_qwik_transform_error_by_code: { transpileTs: true, transpileJsx: true },
+  should_extract_marker_call_with_identifier_argument: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_extract_multiple_qrls_with_item_and_index: { transpileTs: true, transpileJsx: true },
   should_extract_multiple_qrls_with_item_and_index_and_capture_ref: {
     transpileTs: true,
@@ -606,6 +618,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileJsx: true,
   },
   should_transform_loop_multiple_handler_with_different_captures: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_marker_call_in_jsx_prop_reading_only_module_scope: {
     transpileTs: true,
     transpileJsx: true,
   },

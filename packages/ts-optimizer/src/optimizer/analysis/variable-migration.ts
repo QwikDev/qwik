@@ -816,6 +816,29 @@ function collectTopLevelStatementRefs(program: AstProgram, decls: ModuleLevelDec
   return refs;
 }
 
+/** Names root code reads outside the `excluded` ranges (extracted or inlined code). */
+export function collectRootReads(
+  program: AstProgram,
+  excluded: ReadonlyArray<{ readonly start: number; readonly end: number }>
+): Set<string> {
+  const isExcluded = (pos: number): boolean =>
+    excluded.some((range) => pos >= range.start && pos < range.end);
+  const reads = new Set<string>();
+  walk(program, {
+    enter(node: AstNode, parent) {
+      if (
+        (node.type === 'Identifier' || node.type === 'JSXIdentifier') &&
+        isReferenceIdentifier(node, parent) &&
+        !isNonReferenceIdentifier(node, parent as AstNode | null) &&
+        !isExcluded(node.start)
+      ) {
+        reads.add(node.name);
+      }
+    },
+  });
+  return reads;
+}
+
 /**
  * Names `assembleOutput` appends `export { X as _auto_X }` for, in the order it appends them. The
  * rewrite pass must keep these bindings alive even when nothing in the module body reads them, so

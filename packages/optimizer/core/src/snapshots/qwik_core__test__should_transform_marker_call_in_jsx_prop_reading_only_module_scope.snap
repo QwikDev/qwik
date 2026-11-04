@@ -1,0 +1,330 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+import { Child, config, pick, wrap } from './child';
+
+export const renderChild = () => (
+  <Child
+    arrow={$(() => pick())}
+    asyncArrow={$(async () => pick())}
+    fn={$(function () { pick(); })}
+    noIdents={$(() => undefined)}
+    nestedInCall={wrap($(() => pick()))}
+    nestedInObject={{ action: $(() => pick()) }}
+    nestedInClosure={{ action: () => $(() => pick()), size: config.size }}
+  />
+);
+
+export default component$(() => (
+  <>
+    {renderChild()}
+    <Child action={$(() => pick())} />
+  </>
+));
+
+============================= test.tsx_renderChild_Child_nestedInCall_wrap_p4j0Y002QgU.js (ENTRY POINT)==
+
+import { pick } from "./child";
+//
+export const renderChild_Child_nestedInCall_wrap_p4j0Y002QgU = ()=>pick();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;+DAUyB,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderChild_Child_nestedInCall_wrap_p4j0Y002QgU",
+  "entry": null,
+  "displayName": "test.tsx_renderChild_Child_nestedInCall_wrap",
+  "hash": "p4j0Y002QgU",
+  "canonicalFilename": "test.tsx_renderChild_Child_nestedInCall_wrap_p4j0Y002QgU",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    310,
+    322
+  ]
+}
+*/
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { Child, config, wrap } from './child';
+//
+const q_renderChild_Child_arrow_2ldW8aVbniw = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderChild_Child_arrow_2ldW8aVbniw"), "renderChild_Child_arrow_2ldW8aVbniw");
+const q_renderChild_Child_asyncArrow_w5nbzEexb9U = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderChild_Child_asyncArrow_w5nbzEexb9U"), "renderChild_Child_asyncArrow_w5nbzEexb9U");
+const q_renderChild_Child_fn_r6qA2KiEnqY = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderChild_Child_fn_r6qA2KiEnqY"), "renderChild_Child_fn_r6qA2KiEnqY");
+const q_renderChild_Child_nestedInCall_wrap_p4j0Y002QgU = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderChild_Child_nestedInCall_wrap_p4j0Y002QgU"), "renderChild_Child_nestedInCall_wrap_p4j0Y002QgU");
+const q_renderChild_Child_nestedInClosure_doY8JcUb8zw = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderChild_Child_nestedInClosure_doY8JcUb8zw"), "renderChild_Child_nestedInClosure_doY8JcUb8zw");
+const q_renderChild_Child_nestedInObject_wsCcWgvsgqQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderChild_Child_nestedInObject_wsCcWgvsgqQ"), "renderChild_Child_nestedInObject_wsCcWgvsgqQ");
+const q_renderChild_Child_noIdents_hCSFKiL93p0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderChild_Child_noIdents_hCSFKiL93p0"), "renderChild_Child_noIdents_hCSFKiL93p0");
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export const renderChild = ()=>/*#__PURE__*/ _jsxSorted(Child, {
+        arrow: q_renderChild_Child_arrow_2ldW8aVbniw,
+        asyncArrow: q_renderChild_Child_asyncArrow_w5nbzEexb9U,
+        fn: q_renderChild_Child_fn_r6qA2KiEnqY,
+        nestedInCall: wrap(q_renderChild_Child_nestedInCall_wrap_p4j0Y002QgU),
+        nestedInObject: {
+            action: q_renderChild_Child_nestedInObject_wsCcWgvsgqQ
+        },
+        noIdents: q_renderChild_Child_noIdents_hCSFKiL93p0
+    }, {
+        nestedInClosure: {
+            action: ()=>q_renderChild_Child_nestedInClosure_doY8JcUb8zw,
+            size: config.size
+        }
+    }, null, 3, "u6_0");
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,SAAS,KAAK,EAAE,MAAM,EAAQ,IAAI,QAAQ,UAAU;;;;;;;;;;;AAEpD,OAAO,MAAM,cAAc,kBACzB,WAAC;QACC,KAAK;QACL,UAAU;QACV,EAAE;QAEF,cAAc;QACd,gBAAgB;YAAE,MAAM;QAAkB;QAF1C,QAAQ;;QAGR,iBAAiB;YAAE,QAAQ;YAAuB,MAAM,OAAO,IAAI;QAAC;wBAEtE;AAEF,6BAAe,2CAKZ\"}")
+============================= test.tsx_renderChild_Child_arrow_2ldW8aVbniw.js (ENTRY POINT)==
+
+import { pick } from "./child";
+//
+export const renderChild_Child_arrow_2ldW8aVbniw = ()=>pick();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDAMa,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderChild_Child_arrow_2ldW8aVbniw",
+  "entry": null,
+  "displayName": "test.tsx_renderChild_Child_arrow",
+  "hash": "2ldW8aVbniw",
+  "canonicalFilename": "test.tsx_renderChild_Child_arrow_2ldW8aVbniw",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    161,
+    173
+  ]
+}
+*/
+============================= test.tsx_renderChild_Child_nestedInClosure_doY8JcUb8zw.js (ENTRY POINT)==
+
+import { pick } from "./child";
+//
+export const renderChild_Child_nestedInClosure_doY8JcUb8zw = ()=>pick();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6DAYuC,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderChild_Child_nestedInClosure_doY8JcUb8zw",
+  "entry": null,
+  "displayName": "test.tsx_renderChild_Child_nestedInClosure",
+  "hash": "doY8JcUb8zw",
+  "canonicalFilename": "test.tsx_renderChild_Child_nestedInClosure_doY8JcUb8zw",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    414,
+    426
+  ]
+}
+*/
+============================= test.tsx_renderChild_Child_noIdents_hCSFKiL93p0.js (ENTRY POINT)==
+
+export const renderChild_Child_noIdents_hCSFKiL93p0 = ()=>undefined;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sDASgB,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderChild_Child_noIdents_hCSFKiL93p0",
+  "entry": null,
+  "displayName": "test.tsx_renderChild_Child_noIdents",
+  "hash": "hCSFKiL93p0",
+  "canonicalFilename": "test.tsx_renderChild_Child_noIdents_hCSFKiL93p0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    267,
+    282
+  ]
+}
+*/
+============================= test.tsx_renderChild_Child_nestedInObject_wsCcWgvsgqQ.js (ENTRY POINT)==
+
+import { pick } from "./child";
+//
+export const renderChild_Child_nestedInObject_wsCcWgvsgqQ = ()=>pick();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4DAWgC,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderChild_Child_nestedInObject_wsCcWgvsgqQ",
+  "entry": null,
+  "displayName": "test.tsx_renderChild_Child_nestedInObject",
+  "hash": "wsCcWgvsgqQ",
+  "canonicalFilename": "test.tsx_renderChild_Child_nestedInObject_wsCcWgvsgqQ",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    358,
+    370
+  ]
+}
+*/
+============================= test.tsx_test_component_Fragment_Child_action_ztI4pQ0S9aU.js (ENTRY POINT)==
+
+import { pick } from "./child";
+//
+export const test_component_Fragment_Child_action_ztI4pQ0S9aU = ()=>pick();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;gEAmBqB,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_Fragment_Child_action_ztI4pQ0S9aU",
+  "entry": null,
+  "displayName": "test.tsx_test_component_Fragment_Child_action",
+  "hash": "ztI4pQ0S9aU",
+  "canonicalFilename": "test.tsx_test_component_Fragment_Child_action_ztI4pQ0S9aU",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    539,
+    551
+  ]
+}
+*/
+============================= test.tsx_renderChild_Child_fn_r6qA2KiEnqY.js (ENTRY POINT)==
+
+import { pick } from "./child";
+//
+export const renderChild_Child_fn_r6qA2KiEnqY = function() {
+    pick();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;gDAQU;IAAc;AAAQ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderChild_Child_fn_r6qA2KiEnqY",
+  "entry": null,
+  "displayName": "test.tsx_renderChild_Child_fn",
+  "hash": "r6qA2KiEnqY",
+  "canonicalFilename": "test.tsx_renderChild_Child_fn_r6qA2KiEnqY",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    225,
+    248
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { renderChild } from "./test";
+import { Child } from "./child";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_Fragment_Child_action_ztI4pQ0S9aU = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_Child_action_ztI4pQ0S9aU"), "test_component_Fragment_Child_action_ztI4pQ0S9aU");
+//
+export const test_component_LUXeXe0DQrg = ()=>/*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        renderChild(),
+        /*#__PURE__*/ _jsxSorted(Child, {
+            action: q_test_component_Fragment_Child_action_ztI4pQ0S9aU
+        }, null, null, 3, "u6_1")
+    ], 1, "u6_2");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;0CAgB0B,kBACxB;QACG;sBACD,WAAC;YAAM,MAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    485,
+    564
+  ]
+}
+*/
+============================= test.tsx_renderChild_Child_asyncArrow_w5nbzEexb9U.js (ENTRY POINT)==
+
+import { pick } from "./child";
+//
+export const renderChild_Child_asyncArrow_w5nbzEexb9U = async ()=>pick();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;wDAOkB,UAAY\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderChild_Child_asyncArrow_w5nbzEexb9U",
+  "entry": null,
+  "displayName": "test.tsx_renderChild_Child_asyncArrow",
+  "hash": "w5nbzEexb9U",
+  "canonicalFilename": "test.tsx_renderChild_Child_asyncArrow_w5nbzEexb9U",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    194,
+    212
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

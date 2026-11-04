@@ -1,0 +1,226 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@qwik.dev/core';
+import { handlers, createHandler } from './handlers';
+
+const config = { actions: { save: () => console.log('save') } };
+
+export function make() {
+  const imported = handlers.onClick;
+  const nested = config.actions.save;
+  const fromCall = createHandler();
+  return [$(imported), $(nested), $(fromCall)];
+}
+
+export const App = component$(() => {
+  const handler = handlers.onClick;
+  const action = $(handler);
+  return <button onClick$={action} />;
+});
+
+============================= test.tsx_App_component_action_kNpeeTeoPRg.js (ENTRY POINT)==
+
+import { handlers } from "./handlers";
+//
+export const App_component_action_kNpeeTeoPRg = handlers.onClick;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;gDAckB,SAAS,OAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_action_kNpeeTeoPRg",
+  "entry": null,
+  "displayName": "test.tsx_App_component_action",
+  "hash": "kNpeeTeoPRg",
+  "canonicalFilename": "test.tsx_App_component_action_kNpeeTeoPRg",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    414,
+    430
+  ]
+}
+*/
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { handlers, createHandler } from './handlers';
+//
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0");
+const q_make_0UXI11s6V9M = /*#__PURE__*/ qrl(()=>import("./test.tsx_make_0UXI11s6V9M"), "make_0UXI11s6V9M");
+const q_make_1_2Xd1pNTB7Jo = /*#__PURE__*/ qrl(()=>import("./test.tsx_make_1_2Xd1pNTB7Jo"), "make_1_2Xd1pNTB7Jo");
+const q_make_2_QpC1LOBDQz4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_make_2_QpC1LOBDQz4"), "make_2_QpC1LOBDQz4");
+//
+const config = {
+    actions: {
+        save: ()=>console.log('save')
+    }
+};
+export function make() {
+    handlers.onClick;
+    config.actions.save;
+    createHandler();
+    return [
+        q_make_0UXI11s6V9M,
+        q_make_1_2Xd1pNTB7Jo,
+        q_make_2_QpC1LOBDQz4
+    ];
+}
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+export { config as _auto_config };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,QAAQ,EAAE,aAAa,QAAQ,aAAa;;;;;;;AAErD,MAAM,SAAS;IAAE,SAAS;QAAE,MAAM,IAAM,QAAQ,GAAG,CAAC;IAAQ;AAAE;AAE9D,OAAO,SAAS;IACG,SAAS,OAAO;IAClB,OAAO,OAAO,CAAC,IAAI;IACjB;IACjB,OAAO;;;;KAAqC;AAC9C;AAEA,OAAO,MAAM,oBAAM,0CAIhB\"}")
+============================= test.tsx_make_2_QpC1LOBDQz4.js (ENTRY POINT)==
+
+export const make_2_QpC1LOBDQz4 = fromCall;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAUoC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "make_2_QpC1LOBDQz4",
+  "entry": null,
+  "displayName": "test.tsx_make_2",
+  "hash": "QpC1LOBDQz4",
+  "canonicalFilename": "test.tsx_make_2_QpC1LOBDQz4",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    343,
+    351
+  ]
+}
+*/
+============================= test.tsx_make_1_2Xd1pNTB7Jo.js (ENTRY POINT)==
+
+import { _auto_config as config } from "./test";
+//
+export const make_1_2Xd1pNTB7Jo = config.actions.save;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;kCAQiB,OAAO,OAAO,CAAC,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "make_1_2Xd1pNTB7Jo",
+  "entry": null,
+  "displayName": "test.tsx_make_1",
+  "hash": "2Xd1pNTB7Jo",
+  "canonicalFilename": "test.tsx_make_1_2Xd1pNTB7Jo",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    250,
+    269
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { handlers } from "./handlers";
+import { qrl } from "@qwik.dev/core";
+//
+const q_App_component_action_kNpeeTeoPRg = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_action_kNpeeTeoPRg"), "App_component_action_kNpeeTeoPRg");
+//
+export const App_component_ckEPmXZlub0 = ()=>{
+    handlers.onClick;
+    const action = q_App_component_action_kNpeeTeoPRg;
+    return /*#__PURE__*/ _jsxSorted("button", null, {
+        "q-e:click": action
+    }, null, 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAa8B;IACZ,SAAS,OAAO;IAChC,MAAM;IACN,qBAAO,WAAC;QAAO,aAAU;;AAC3B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    388,
+    501
+  ]
+}
+*/
+============================= test.tsx_make_0UXI11s6V9M.js (ENTRY POINT)==
+
+import { handlers } from "./handlers";
+//
+export const make_0UXI11s6V9M = handlers.onClick;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;gCAOmB,SAAS,OAAO\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "make_0UXI11s6V9M",
+  "entry": null,
+  "displayName": "test.tsx_make",
+  "hash": "0UXI11s6V9M",
+  "canonicalFilename": "test.tsx_make_0UXI11s6V9M",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    215,
+    231
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[
+  {
+    "category": "error",
+    "code": "C03",
+    "file": "test.tsx",
+    "message": "Qrl($) scope is not a function, but it's capturing local identifiers: fromCall",
+    "highlights": [
+      {
+        "lo": 343,
+        "hi": 351,
+        "startLine": 11,
+        "startCol": 37,
+        "endLine": 11,
+        "endCol": 44
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

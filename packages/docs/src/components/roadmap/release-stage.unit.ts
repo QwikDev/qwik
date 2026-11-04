@@ -16,6 +16,9 @@ describe('getReleaseStage', () => {
     ['2.0.0', 'stable'],
     ['2.0.3', 'stable'],
     ['2.1.0', 'minor'],
+    ['2.1.0-beta.1', 'minor'],
+    ['3.0.0', 'next-major'],
+    ['3.0.0-alpha.1', 'next-major'],
   ])('maps %s to %s', (version, stage) => {
     expect(getReleaseStage(version)).toBe(stage);
   });

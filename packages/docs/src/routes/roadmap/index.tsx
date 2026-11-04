@@ -15,7 +15,7 @@ const LAST_UPDATED = 'November 2026';
 
 type Progress = 'done' | 'current' | 'upcoming' | 'exploring';
 
-const milestones: { stage: ReleaseStage | 'next-major'; label: string }[] = [
+const milestones: { stage: ReleaseStage; label: string }[] = [
   { stage: 'alpha', label: 'v2 alpha' },
   { stage: 'beta', label: 'v2 beta' },
   { stage: 'rc', label: '2.0 RC' },

@@ -64,7 +64,7 @@ const NavPill = component$((props: { href: string; label: string; icon?: JSXOutp
 ));
 
 const contentBaseClass = tw(
-  'open:flex fixed top-24 2xl:top-[calc(76px+24px+16px)] left-1/2 -translate-x-1/2 m-0 gap-4 shadow-emphasis rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0'
+  'open:flex fixed top-24 2xl:top-[calc(76px+24px+16px)] max-h-[calc(100dvh-8rem)] overflow-y-auto left-1/2 -translate-x-1/2 m-0 gap-4 shadow-emphasis rounded-2xl p-4 border-[1.6px] border-emphasis bg-background-base transition-[opacity,display,overlay] transition-discrete duration-325 ease-in-out open:animate-to-visible not-open:animate-from-visible opacity-0'
 );
 
 const triggerAnchorReset = 'anchor-name: none;';

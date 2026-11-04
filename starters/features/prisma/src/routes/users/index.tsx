@@ -1,11 +1,9 @@
-import { PrismaClient } from "@prisma/client";
 import { routeLoader$ } from "@qwik.dev/router";
 import { component$ } from "@qwik.dev/core";
+import { db } from "../../../prisma/db";
 
 export const useGetUsers = routeLoader$(async () => {
-  const prisma = new PrismaClient();
-  const users = await prisma.user.findMany();
-  return users;
+  return db.orm.public.User.all();
 });
 
 export default component$(() => {

@@ -312,6 +312,7 @@ export const vnode_newVirtual = (): VirtualVNode => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/** @internal */
 export const vnode_isVNode = (vNode: any): vNode is VNode => {
   return vNode instanceof VNode;
 };
@@ -556,15 +557,15 @@ function registerQrlHandlers(attr: Attr, key: string, container: Container, elem
 export function vnode_walkDirectChildren(
   journal: VNodeJournal,
   vParent: VNode,
-  callback: (vNode: ElementVNode | TextVNode, vParent: VNode | null) => boolean | void
+  callback?: (vNode: ElementVNode | TextVNode, vParent: VNode | null) => boolean | void
 ): void {
   let vNode = vnode_getFirstChild(vParent);
   while (vNode) {
     if (vnode_isTextVNode(vNode)) {
       vnode_ensureTextInflated(journal, vNode);
-      callback(vNode, vParent);
+      callback?.(vNode, vParent);
     } else if (vnode_isElementVNode(vNode)) {
-      callback(vNode, vParent);
+      callback?.(vNode, vParent);
     } else {
       // for virtual nodes, we need to walk their children
       vnode_walkDirectChildren(journal, vNode, callback);
@@ -691,7 +692,7 @@ const vnode_getDomSibling = (
     let sibling: VNode | null | undefined = nextDirection
       ? cursor.nextSibling
       : cursor.previousSibling;
-    if (sibling && sibling.flags & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
+    if (sibling && sibling.flags & VNodeFlags.ELEMENT_OR_TEXT_MASK && vnode_getNode(sibling)) {
       // we found a previous/next DOM node, return it.
       return sibling as ElementVNode | TextVNode;
     } else if (!sibling) {
@@ -759,8 +760,11 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
         | Text
         | null);
 
+    // Only text vnodes that still point at the same SSR Text node belong to this run. A keyed diff can make text
+    // vnodes from two different SSR Text nodes adjacent (e.g. it removed the element that separated them), and
+    // splitting across them duplicates or overwrites text.
     let lastPreviousTextNode = insertBeforeNode;
-    while (vCursor && vnode_isTextVNode(vCursor)) {
+    while (vCursor && vnode_isTextVNode(vCursor) && vCursor.node === sharedTextNode) {
       if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
         const textNode = doc.createTextNode(vCursor.text!);
         addVNodeOperation(
@@ -775,9 +779,9 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
     }
     // Walk the next siblings and inflate them.
     vCursor = vnode;
-    while (vCursor && vnode_isTextVNode(vCursor)) {
+    while (vCursor && vnode_isTextVNode(vCursor) && vCursor.node === sharedTextNode) {
       const next = vnode_getDomSibling(vCursor, true, true);
-      const isLastNode = next ? !vnode_isTextVNode(next) : true;
+      const isLastNode = !next || !vnode_isTextVNode(next) || next.node !== sharedTextNode;
       if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
         if (isLastNode && sharedTextNode) {
           addVNodeOperation(journal, createSetTextOperation(sharedTextNode, vCursor.text!));
@@ -1121,6 +1125,11 @@ export const vnode_insertVirtualBefore = (
     }
   }
 
+  if (newChildCurrentParent) {
+    // Split SSR-shared text while the virtual is still linked to its siblings. Once unlinked, its last text vnode
+    // looks like the end of the run and takes over the shared Text node, dropping the text of the others.
+    vnode_walkDirectChildren(journal, newChild);
+  }
   vnode_unlinkFromOldParent(journal, newChildCurrentParent, parent, newChild);
 
   const parentIsDeleted = parent.flags & VNodeFlags.Deleted;

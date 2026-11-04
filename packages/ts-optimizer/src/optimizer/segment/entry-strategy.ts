@@ -4,11 +4,13 @@ type EntryStrategyType = 'smart' | 'segment' | 'hook' | 'component' | 'single' |
 
 interface EntrySegment {
   symbolName: string;
+  hash: string;
   rootContext: string | null;
   origin: string;
   ctxKind: 'eventHandler' | 'function' | 'jSXProp';
   ctxName: string;
   captures: boolean;
+  isEventOnly?: boolean;
 }
 
 const routeParamFileStem = /^\[\[\.\.\.(.+)\]\]$|^\[(.+)\]$/;
@@ -49,6 +51,9 @@ export function resolveEntryField(
     case 'component':
       return getRootEntry(segment) ?? 'entry_segments';
     case 'smart':
+      if (segment.isEventOnly) {
+        return `segment_${segment.hash}`;
+      }
       // Known events stay separate even when they capture state.
       if (
         segment.ctxKind === 'eventHandler' ||

@@ -19,9 +19,12 @@ export type { JSXChildren } from '../core/shared/jsx/types/jsx-qwik-attributes';
 export type { ContextId } from '../core/use/use-context';
 export type { ValueOrPromise } from '../core/shared/utils/types';
 export type { InnerContainer } from '../core/shared/utils/container';
-export type { SerializationContext } from '../core/shared/serdes/index';
 export type { SubscriptionPatchChannel } from '../core/shared/serdes/subscription-patch';
-export type { SeenRef, SerializationScope } from '../core/shared/serdes/serialization-context';
+export type {
+  SeenRef,
+  SerializationContext,
+  SerializationScope,
+} from '../serializer/serialization-context';
 export type { Container, HostElement, ObjToProxyMap } from '../core/shared/types';
 export type {
   ISsrComponentFrame,

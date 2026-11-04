@@ -224,11 +224,13 @@ export const SearchModal = component$(() => {
             }}
           />
 
+          {/* The modal's scroll lock blocks touch scrolling outside marked elements. */}
           <div
             class={{
               'search-results mt-10 pr-2 w-full': true,
               'search-results-scrollable': shouldScrollResults.value,
             }}
+            data-noscroll-target-scrollable
           >
             {!queryReady.value ? (
               <SearchIdle />

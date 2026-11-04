@@ -421,7 +421,7 @@ What changed:
 
 ### `ReadonlySignal` → `Readonly<Signal<T>>`
 
-In v1 `ReadonlySignal<T>` was an alias for `Readonly<Signal<T>>`. In v2 it is a standalone interface exposing only `value`, so it is no longer interchangeable with a real signal. Replace it:
+`ReadonlySignal<T>` is a deprecated alias for `Readonly<Signal<T>>`. Replace it:
 
 ```typescript
 // v1

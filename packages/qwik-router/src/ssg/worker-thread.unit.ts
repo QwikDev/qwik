@@ -1,11 +1,11 @@
-import { _serialize } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   renderQwikMiddleware,
   resolveRequestHandlers,
 } from '../middleware/request-handler/resolve-request-handlers-core';
 import { trimInternalPathname } from '../middleware/request-handler/request-path';
-import type { RequestEventLoader } from '../middleware/request-handler/types';
+import { ServerError } from '../middleware/request-handler/server-error';
 import { runQwikRouter } from '../middleware/request-handler/user-response';
 import { loadRoute } from '../runtime/src/routing';
 import type { SsgHandlerOptions, SsgWorkerRenderResult, System } from './types';
@@ -62,7 +62,12 @@ const createRender = ({ earlyCatch = false, lateCatch = false } = {}) =>
     };
   });
 
-function renderRoute(sys: System, render: any, routeModule: object = { default: () => null }) {
+function renderRoute(
+  sys: System,
+  render: any,
+  routeModule: object = { default: () => null },
+  pathname = '/'
+) {
   const opts: SsgHandlerOptions = {
     outDir: '/out',
     origin: 'https://example.com',
@@ -76,7 +81,7 @@ function renderRoute(sys: System, render: any, routeModule: object = { default: 
     } as any,
   };
   return new Promise<SsgWorkerRenderResult>((resolve, reject) => {
-    workerRender(sys, opts, { pathname: '/', params: undefined }, new Set(), resolve, deps).catch(
+    workerRender(sys, opts, { pathname, params: undefined }, new Set(), resolve, deps).catch(
       reject
     );
   });
@@ -118,56 +123,50 @@ describe('SSG worker error boundary handling', () => {
   });
 });
 
-describe('SSG worker background loaders', () => {
-  function createBackgroundLoader(id: string, load: (ev: RequestEventLoader) => unknown) {
-    const loader: any = () => {};
-    loader.__brand = 'server_loader';
-    loader.__id = id;
-    loader.__qrl = { call: (_: unknown, ev: RequestEventLoader) => load(ev), getHash: () => id };
-    loader.__validators = undefined;
-    loader.__serializationStrategy = 'never';
-    loader.__cacheControl = 'immutable';
-    loader.__search = undefined;
-    loader.__blockSSR = false;
-    return loader;
-  }
-
+describe('SSG worker route failures', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('fails the route when a background loader fails', async () => {
+  it('a ServerError fails the route', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    const { sys } = createSystem();
-    const useFailing = createBackgroundLoader('failing', () => {
-      throw new Error('background loader failed');
-    });
-    const result = await renderRoute(sys, createRender(), { default: () => null, useFailing });
-
-    expect(result.ok).toBe(false);
-    expect(result.error?.message).toBe('background loader failed');
-  });
-
-  it('does not write the page when a background loader redirects', async () => {
     const { sys, written } = createSystem();
-    const useRedirect = createBackgroundLoader('redirect', (ev) => {
-      throw ev.redirect(302, '/login/');
+    const render = vi.fn(async () => {
+      throw new ServerError(404, 'No such page');
     });
-    const result = await renderRoute(sys, createRender(), { default: () => null, useRedirect });
+
+    const result = await renderRoute(sys, render);
 
     expect(result.ok).toBe(false);
+    expect(result.error?.message).toBe('No such page');
     expect(written.size).toBe(0);
   });
 
-  it("writes a slow background loader's data file", async () => {
+  it('a malformed URL fails the route', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     const { sys, written } = createSystem();
-    const useSlow = createBackgroundLoader(
-      'slow',
-      () => new Promise((resolve) => setTimeout(resolve, 50, 'late'))
-    );
-    const result = await renderRoute(sys, createRender(), { default: () => null, useSlow });
+    const render = createRender();
 
-    expect(result.ok).toBe(true);
-    expect([...written.keys()]).toContain('/out/q-data-slow.json');
+    const result = await renderRoute(sys, render, undefined, '//x//');
+
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toBe('Resource Not Found');
+    expect(render).not.toHaveBeenCalled();
+    expect(written.size).toBe(0);
+  });
+
+  it('a redirect writes nothing and is not an error', async () => {
+    const { sys, written } = createSystem();
+
+    const result = await renderRoute(sys, createRender(), {
+      default: () => null,
+      onGet: (ev: any) => {
+        throw ev.redirect(302, '/elsewhere');
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBeNull();
+    expect(written.size).toBe(0);
   });
 });

@@ -15,7 +15,8 @@ import {
   useVisibleTask$,
   type JSXOutput,
 } from '@qwik.dev/core';
-import { _deserialize, _getDomContainer, _serialize } from '@qwik.dev/core/internal';
+import { _deserialize, _getDomContainer } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import {
   createDocument,
   domRender,
@@ -1230,6 +1231,41 @@ describe('Catch + fallback$', () => {
           Promise.reject(new Error('late boom'))
         ) as Promise<JSXOutput>;
         return <>{pending}</>;
+      });
+
+      it('a throw arriving while the shell renders an svg swaps in the fallback after the svg', async () => {
+        let rejectLate!: (error: Error) => void;
+        const late = new Promise<JSXOutput>((_resolve, reject) => {
+          rejectLate = reject;
+        });
+        let resolveIcon!: (value: JSXOutput) => void;
+        const icon = new Promise<JSXOutput>((resolve) => {
+          resolveIcon = resolve;
+        });
+        const Late = component$(() => <>{late}</>);
+        const Icon = component$(() => <>{icon}</>);
+
+        const rendered = streamAndResume(
+          <main>
+            <Catch fallback$={fb()}>
+              <Pending fallback$={() => <span id="skel">loading</span>}>
+                <Late />
+              </Pending>
+            </Catch>
+            <svg>
+              <Icon />
+            </svg>
+          </main>,
+          OOOS
+        );
+        await delay(10);
+        rejectLate(new Error('late boom'));
+        await delay(10);
+        resolveIcon(<circle r="10" />);
+        const { html, document } = await rendered;
+
+        expect(html.indexOf('id="fb"')).toBeGreaterThan(html.indexOf('</svg>'));
+        expect(document.querySelector('#fb')?.textContent).toContain('caught: late boom');
       });
 
       it('a throw arriving after the segment deferred still swaps in the fallback', async () => {

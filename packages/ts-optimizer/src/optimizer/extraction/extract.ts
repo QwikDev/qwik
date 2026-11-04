@@ -121,6 +121,8 @@ export interface ExtractionBase {
  * readonly on `ExtractionBase`. Consumers narrow on `phase`.
  */
 interface ExtractionPhaseFields {
+  /** Every known consumer runs through a native event. */
+  isEventOnly?: boolean;
   captureNames: string[];
   paramNames: string[];
   captures: boolean;
@@ -148,6 +150,8 @@ interface ExtractionPhaseFields {
   /** Dynamic prop defaults keyed by their original local binding. */
   propsFieldDynamicDefaults?: Map<string, string>;
   constLiterals?: Map<string, string>;
+  freeBindingStarts?: ReadonlyMap<string, number>;
+  propsBindingStarts?: ReadonlyMap<string, number>;
 }
 
 /**

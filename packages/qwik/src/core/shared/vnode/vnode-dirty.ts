@@ -39,7 +39,7 @@ function propagatePath(target: VNode): void {
  * Propagates dirty bits from vNode up to the specified cursorRoot. Used during diff when we know
  * the cursor root to merge with. Also updates cursor position if we pass through any cursors.
  */
-function propagateToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
+export function propagateToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
   reusablePath.push(vNode);
   let cursorBoundary = getOwnCursorBoundary(vNode);
   let current: VNode | null = vNode.slotParent || vNode.parent;

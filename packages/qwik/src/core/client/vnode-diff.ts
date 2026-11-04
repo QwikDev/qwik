@@ -61,7 +61,11 @@ import type { TextVNode } from '../shared/vnode/text-vnode';
 import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
-import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import {
+  addVNodeOperation,
+  markVNodeDirty,
+  propagateToCursorRoot,
+} from '../shared/vnode/vnode-dirty';
 import { updateDirtySubtreeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { trackSignalAndAssignHost, untrack } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
@@ -399,10 +403,7 @@ function diff(
                   )) ||
                 _hasOwnProperty.call(diffContext.$jsxValue$.varProps, dangerouslySetInnerHTML);
               if (hasDangerousInnerHTML) {
-                // Only clean up children for existing nodes; new nodes have no children yet
-                if (!diffContext.$vNewNode$) {
-                  expectNoChildren(diffContext, false);
-                }
+                expectNoChildren(diffContext, false);
               } else {
                 descend(diffContext, diffContext.$jsxValue$.children, true);
               }
@@ -949,7 +950,8 @@ function cleanupDiffContext(diffContext: DiffContext): void {
 }
 
 function expectNoChildren(diffContext: DiffContext, removeDOM = true) {
-  const vFirstChild = diffContext.$vCurrent$ && vnode_getFirstChild(diffContext.$vCurrent$);
+  const vHost = diffContext.$vNewNode$ || diffContext.$vCurrent$;
+  const vFirstChild = vHost && vnode_getFirstChild(vHost);
   if (vFirstChild !== null) {
     let vChild: VNode | null = vFirstChild;
     while (vChild) {
@@ -958,7 +960,7 @@ function expectNoChildren(diffContext: DiffContext, removeDOM = true) {
     }
     vnode_truncate(
       diffContext.$journal$,
-      diffContext.$vCurrent$ as ElementVNode | VirtualVNode,
+      vHost as ElementVNode | VirtualVNode,
       vFirstChild,
       removeDOM
     );
@@ -1920,6 +1922,12 @@ export function cleanup(
   do {
     if (cursorRootData && vCursor !== cursorRoot && isCursor(vCursor)) {
       abandonCursor(container, cursorRootData, vCursor);
+      // The abandoned cursor keeps its dirty bits, but nothing walks it any more. Link it to the
+      // cursor root, otherwise markVNodeDirty() below skips it as "already dirty" and the cleanups
+      // of the visible tasks in this subtree are never executed.
+      if (vCursor.dirty & ChoreBits.DIRTY_MASK) {
+        propagateToCursorRoot(vCursor, cursorRoot!);
+      }
     }
     const type = vCursor.flags;
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {

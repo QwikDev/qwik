@@ -6,7 +6,8 @@ export default component$(() => {
   useStyles$(apiStyles);
 
   return (
-    <DocsShell class="api" pagefindWeight={0.5}>
+    // scripts/build-search-index.ts indexes API pages per symbol instead.
+    <DocsShell class="api" excludeFromSearch>
       <Slot />
     </DocsShell>
   );

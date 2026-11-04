@@ -1,5 +1,6 @@
 import { inlinedQrl, isDev, type QRL } from '@qwik.dev/core';
-import { _serialize, _verifySerializable } from '@qwik.dev/core/internal';
+import { _verifySerializable } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import type { Render, RenderToStreamResult, RenderToStringResult } from '@qwik.dev/core/server';
 import type {
   ActionInternal,
@@ -36,6 +37,7 @@ import {
 import { loaderHandler, setRouteLoaderData } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
 import { actionHandler } from './handlers/action-handler';
+import { routeResolveHandler } from './handlers/route-resolve-handler';
 import { IsQLoader, QLoaderId } from './request-path';
 import { isStaticPath } from './static-paths';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
@@ -119,6 +121,7 @@ function createResolveRequestHandlers() {
 
     if (isPageRoute) {
       // Per-loader handler: returns JSON with metadata and exits if IsQLoader is set
+      requestHandlers.push(routeResolveHandler());
       requestHandlers.push(loaderHandler(routeLoaders, route));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
@@ -328,16 +331,14 @@ function createResolveRequestHandlers() {
       // Start every loader concurrently. `blockSSR` loaders (the default) are awaited before SSR so
       // a redirect/error short-circuits the response; the first one in route order wins. Loaders
       // with `blockSSR: false` resolve in the background and only surface when their `.value` is
-      // read, except in a static render, which treats every loader as blocking.
-      const isStatic = getRequestMode(requestEv) === 'static';
+      // read.
       let allBlockSSRLoaders: Promise<void> | undefined;
       for (let i = 0; i < routeLoaders.length; i++) {
         const loader = routeLoaders[i];
-        const blocksSSR = loader.__blockSSR || isStatic;
-        const promise = loadRouteLoader(loader, requestEv, blocksSSR);
+        const promise = loadRouteLoader(loader, requestEv);
         // Handle every rejection so a background loader can't crash the request.
         promise.catch(() => {});
-        if (blocksSSR) {
+        if (loader.__blockSSR) {
           // Chain the promises so a thrown error is handled in route order
           // Note: status changes are last-writer wins, but that's fine
           allBlockSSRLoaders = (

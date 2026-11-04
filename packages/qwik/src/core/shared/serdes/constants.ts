@@ -6,8 +6,13 @@ import { Slot } from '../jsx/slot.public';
 import { Fragment } from '../jsx/jsx-runtime';
 import { qwikSymbol } from '../singletons';
 
-/** Used to represent an undefined value that must be serialized */
+/**
+ * Used to represent an undefined value that must be serialized
+ *
+ * @internal
+ */
 export const explicitUndefined: unique symbol = /*#__PURE__*/ qwikSymbol('undefined');
+/** @internal */
 export const EMPTY_OBJECT_PAYLOAD = 0;
 
 export const enum Constants {
@@ -189,4 +194,5 @@ export const _typeIdNames = [
 ];
 
 // Decimal BigInt parsing is super-linear, so bound untrusted payload size.
+/** @internal */
 export const BIGINT_PAYLOAD_REGEXP = /^-?\d{1,1000}$/;

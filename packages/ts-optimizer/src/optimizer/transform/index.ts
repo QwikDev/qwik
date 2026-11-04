@@ -12,6 +12,7 @@ import type {
   TSEnumDeclaration,
 } from '../../ast-types.js';
 import MagicString from 'magic-string';
+import { collectEventOnlyQrls } from '../analysis/event-qrls.js';
 import { stripTypeScript } from '../edit/strip-types.js';
 import { blankNonCode, skipStringLiteralForward } from '../edit/text-scanning.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
@@ -591,6 +592,12 @@ function extractModuleSegments(
   // orchestrator then advances elements in place through the `captured` →
   // `consolidated` phases via per-mutation `Mutable` casts.
   const extractions = facts.extractions as ExtractionResult[];
+  if ((options.entryStrategy?.type ?? 'smart') === 'smart') {
+    const eventOnly = collectEventOnlyQrls(program, extractions);
+    for (const extraction of extractions) {
+      extraction.isEventOnly = eventOnly.has(extraction.argStart);
+    }
+  }
   for (const extraction of extractions) {
     (extraction as Mutable<ExtractionResult>).loc = [
       mkByteOffset(prepared.originalOffset(extraction.loc[0]) + 1),
@@ -698,6 +705,7 @@ function analyzeModuleCaptures(
   // lexical scopes) survive the prod `s_<hash>` rename.
   const {
     closureFreeIdentifiers,
+    closureFreeBindingStarts,
     closureLexicalScopes,
     nonFunctionCaptures,
     extractionLoopMap,
@@ -723,6 +731,8 @@ function analyzeModuleCaptures(
     if (!closureNode) {
       continue;
     }
+    extraction.freeBindingStarts = closureFreeBindingStarts.get(closureNode);
+    extraction.propsBindingStarts = collectPropsBindingStarts(closureNode);
 
     const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
 
@@ -832,7 +842,7 @@ function analyzeModuleCaptures(
     closureFreeIdentifiers,
     bodyScopeIds,
     moduleScopeIds,
-    importedNames,
+    importBindingStarts: collectImportBindingStarts(program),
     enclosingExtMap,
     extractionLoopMap,
     allScopeEntries,
@@ -904,6 +914,35 @@ function analyzeModuleCaptures(
     passiveConflicts,
     scopeAwareBindings,
   };
+}
+
+function collectPropsBindingStarts(closureNode: AstFunction): Map<string, number> | undefined {
+  const propsPattern = closureNode.params[0];
+  if (propsPattern?.type !== 'ObjectPattern') {
+    return undefined;
+  }
+  const starts = new Map<string, number>();
+  for (const property of propsPattern.properties) {
+    const target = property.type === 'RestElement' ? property.argument : property.value;
+    const binding = target.type === 'AssignmentPattern' ? target.left : target;
+    if (binding.type === 'Identifier') {
+      starts.set(binding.name, binding.start);
+    }
+  }
+  return starts;
+}
+
+function collectImportBindingStarts(program: AstProgram): Map<string, number> {
+  const starts = new Map<string, number>();
+  for (const statement of program.body) {
+    if (statement.type !== 'ImportDeclaration') {
+      continue;
+    }
+    for (const specifier of statement.specifiers) {
+      starts.set(specifier.local.name, specifier.local.start);
+    }
+  }
+  return starts;
 }
 
 /** Top-level module references resolve through module wiring, never QRL captures. */

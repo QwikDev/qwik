@@ -17,6 +17,7 @@ import {
   collectBindingNamesFromPattern,
 } from '../ast/binding-pattern.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
+import { isShadowedBinding } from '../rewrite/raw-props.js';
 import { getWholeWordPattern } from '../segment/post-process.js';
 
 interface BuildExtractionLoopMapEnterContext {
@@ -148,7 +149,7 @@ export interface EventCaptureContext {
   closureFreeIdentifiers: ReadonlyMap<AstFunction, readonly string[]>;
   bodyScopeIds: Map<string, Set<string>>;
   moduleScopeIds: Set<string>;
-  importedNames: Set<string>;
+  importBindingStarts: ReadonlyMap<string, number>;
   enclosingExtMap: Map<string, ExtractionResult>;
   extractionLoopMap: Map<string, LoopContext[]>;
   allScopeEntries: ScopeEntry[];
@@ -547,7 +548,7 @@ export function promoteEventHandlerCaptures(
   const {
     extractions,
     closureNodes,
-    importedNames,
+    importBindingStarts,
     extractionLoopMap,
     allScopeEntries,
     loopBodyVarDecls,
@@ -596,8 +597,13 @@ export function promoteEventHandlerCaptures(
     );
     captureDeclPositions.set(extraction.symbolName, declPositions);
 
+    const readsImport = (name: string) =>
+      importBindingStarts.has(name) &&
+      !isShadowedBinding(importBindingStarts, extraction.freeBindingStarts, name);
+    const isLiteralShadowingImport = (name: string) =>
+      importBindingStarts.has(name) && extraction.constLiterals?.has(name) === true;
     const allCaptures = undeclaredIds.filter(
-      (name) => allScopeIds.has(name) && !importedNames.has(name)
+      (name) => allScopeIds.has(name) && !readsImport(name) && !isLiteralShadowingImport(name)
     );
     const uniqueCaptures = [...new Set(allCaptures)].sort(
       (a, b) => (declPositions.get(a) ?? 0) - (declPositions.get(b) ?? 0)

@@ -5,6 +5,7 @@ import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { SNAP_DIR } from '../rust-snapshots.js';
+import { getSnapshotTransformOptions } from '../optimizer/snapshot-options.js';
 
 describe('escapeSymbol', () => {
   it('strips trailing $ from component names', () => {
@@ -104,6 +105,11 @@ describe('buildSymbolName', () => {
     for (const file of snapFiles) {
       const content = readFileSync(join(SNAP_DIR, file), 'utf-8');
       const parsed = parseSnapshot(content);
+      const options = getSnapshotTransformOptions(
+        file.replace('qwik_core__test__', '').replace('.snap', ''),
+        parsed.input ?? '',
+        parsed.inputs.length ? parsed.inputs : undefined
+      );
 
       for (const segment of parsed.segments) {
         if (!segment.metadata) {
@@ -130,7 +136,15 @@ describe('buildSymbolName', () => {
           continue;
         }
 
-        const computed = buildSymbolName(mkDisplayName(meta.displayName), undefined, meta.origin);
+        const fullName = buildSymbolName(
+          mkDisplayName(meta.displayName),
+          options.scope,
+          meta.origin
+        );
+        const computed =
+          options.mode === 'prod'
+            ? 's_' + fullName.slice(meta.displayName.length - prefix.length + 1)
+            : fullName;
         totalNames++;
 
         if (computed !== meta.name) {

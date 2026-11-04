@@ -170,6 +170,22 @@ type Navigate = (
   options?: Parameters<RouteNavigate>[1]
 ) => Promise<void>;
 
+enum NavigationStartType {
+  Unchanged,
+  Duplicate,
+  Prepared,
+  Superseded,
+  External,
+}
+
+type NavigationStart = { type: NavigationStartType; finished?: Promise<void> };
+
+type NavigationPreparation = {
+  promise: Promise<void>;
+  resolve: (value: void | PromiseLike<void>) => void;
+  navCount?: number;
+};
+
 type ActionData = NonNullable<Parameters<typeof resolveHead>[0]>;
 
 type NavigationCommit = {
@@ -190,6 +206,29 @@ const ensureRouteInternal = (
   routeLocation: RouteLocation
 ): RouteStateInternal =>
   (routeInternal.untrackedValue ||= { type: 'initial', dest: routeLocation.url });
+
+/**
+ * A URL the client can't render itself (no matching page) may be a server `rewrite()`. Ask the
+ * server where it routes to. Returns the target pathname, `'reload'` if the server redirects, or
+ * `undefined` when the URL is not rewritten.
+ */
+const resolveServerRewrite = async (url: URL): Promise<string | undefined> => {
+  try {
+    const response = await fetch(`${ensureSlash(url.pathname)}q-route.json${url.search}`, {
+      redirect: 'manual',
+      headers: { accept: 'application/json' },
+    });
+    if (response.type === 'opaqueredirect' || (response.status >= 300 && response.status < 400)) {
+      return 'reload';
+    }
+    if (response.ok) {
+      const { p } = await response.json();
+      return typeof p === 'string' ? p : undefined;
+    }
+  } catch {
+    // Fall back to rendering what the client matched.
+  }
+};
 
 const getRouterContainer = () => _getDomContainer(document.documentElement);
 
@@ -301,7 +340,15 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     prevUrl: undefined,
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
-  const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void; dest?: URL } = {};
+  const navResolver: {
+    r?: () => void;
+    p?: Promise<void>;
+    cancel?: () => void;
+    dest?: URL;
+    preparation?: NavigationPreparation;
+    /** Accepted route preparation survives a later blocked attempt. */
+    routePreparation?: { started: Promise<NavigationStart>; preparation: NavigationPreparation };
+  } = {};
   const routeLoaderCtx = env.routeLoaderCtx;
   routeLoaderCtx.manifestHash = manifestHash;
   Object.assign(routeLoaderCtx.loaderPaths, env.loadedRoute.$loaderPaths$);
@@ -403,6 +450,45 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           getRouterContainer()
         );
       }
+      return prepareNavigation(path, opt).started.then((started) => started.finished);
+    };
+
+    const prepareNavigation = (path: Parameters<Navigate>[0], opt: Parameters<Navigate>[1]) => {
+      let resolvePreparation!: NavigationPreparation['resolve'];
+      let rejectPreparation!: (reason: unknown) => void;
+      const prepared = new Promise<void>((resolve, reject) => {
+        resolvePreparation = resolve;
+        rejectPreparation = reject;
+      });
+      // Public navigation callers only await the completion promise.
+      prepared.catch(() => {});
+      const preparation: NavigationPreparation = { promise: prepared, resolve: resolvePreparation };
+      const started = beginNavigation(path, opt, preparation);
+      started
+        .then(async (result) => {
+          if (
+            (result.type !== NavigationStartType.Duplicate &&
+              navResolver.preparation !== preparation &&
+              preparation.navCount !== internalState.navCount) ||
+            result.type === NavigationStartType.Superseded ||
+            result.type === NavigationStartType.External
+          ) {
+            return;
+          }
+          await navResolver.routePreparation?.started;
+          if (getClientRouteLoaders(routeLoaderCtx).navCount === internalState.navCount) {
+            resolvePreparation();
+          }
+        }, rejectPreparation)
+        .catch(rejectPreparation);
+      return { prepared, started };
+    };
+
+    const beginNavigation = async (
+      path: Parameters<Navigate>[0],
+      opt: Parameters<Navigate>[1],
+      preparation: NavigationPreparation
+    ): Promise<NavigationStart> => {
       const {
         type = 'link',
         forceReload = path === undefined, // Hack for nav() because this API is already set.
@@ -439,9 +525,17 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       ) {
         // Repeated redirects/loaders can request the same in-flight destination. Treat that as a
         // duplicate so we don't bump navCount and cancel the navigation that would commit it.
-        return navResolver.p;
+        return {
+          type: NavigationStartType.Duplicate,
+          finished: navResolver.p,
+        };
       }
 
+      const previousPreparation = navResolver.preparation;
+      navResolver.preparation = preparation;
+      if (previousPreparation?.navCount === undefined) {
+        previousPreparation?.resolve(preparation.promise);
+      }
       const attemptCount = ++internalState.attemptCount;
 
       if (
@@ -452,13 +546,16 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           !isSameOrigin(dest, lastDest))
       ) {
         const prevents = await Promise.all([...preventNav.$cbs$.values()].map((cb) => cb(dest)));
-        if (attemptCount !== internalState.attemptCount || prevents.some(Boolean)) {
-          if (attemptCount === internalState.attemptCount && type === 'popstate') {
+        if (attemptCount !== internalState.attemptCount) {
+          return { type: NavigationStartType.Superseded };
+        }
+        if (prevents.some(Boolean)) {
+          if (type === 'popstate') {
             // Popstate events are not cancellable, so we push to undo
             // TODO keep state?
             history.pushState(null, '', lastDest);
           }
-          return;
+          return { type: NavigationStartType.Unchanged };
         }
       }
 
@@ -466,7 +563,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (isBrowser) {
           history.go(dest);
         }
-        return;
+        return { type: NavigationStartType.External };
       }
 
       if (!isSameOrigin(dest, lastDest)) {
@@ -474,7 +571,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (isBrowser) {
           location.href = dest.href;
         }
-        return;
+        return { type: NavigationStartType.External };
       }
 
       if (
@@ -510,16 +607,31 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           }
         }
 
-        return navResolver.p;
+        return { type: NavigationStartType.Unchanged, finished: navResolver.p };
       }
 
       const navCount = ++internalState.navCount;
+      preparation.navCount = navCount;
+      navResolver.routePreparation?.preparation.resolve(preparation.promise);
       internalState.currentTransition?.skipTransition();
       navResolver.cancel?.();
       navResolver.cancel = undefined;
       navResolver.r?.();
       navResolver.dest = dest;
 
+      const preparing = preparePageNavigation(
+        { type, dest, forceReload, replaceState, scroll },
+        navCount
+      );
+      navResolver.routePreparation = { started: preparing, preparation };
+      return preparing;
+    };
+
+    const preparePageNavigation = async (
+      navigation: RouteStateInternal,
+      navCount: number
+    ): Promise<NavigationStart> => {
+      const { type, dest, forceReload, replaceState } = navigation;
       let historyUpdated = false;
       if (isBrowser) {
         getClientRouteLoaders(routeLoaderCtx, routeLocation.url.href);
@@ -545,19 +657,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         // flush isNavigating to the DOM before awaiting the next task so that the router outlet can show a loading state
         await _waitUntilRendered(container);
         if (navCount !== internalState.navCount) {
-          return;
+          return { type: NavigationStartType.Superseded };
         }
       }
 
       actionState.value = undefined;
-      const navigation: RouteStateInternal = {
-        type,
-        dest,
-        forceReload,
-        replaceState,
-        scroll,
-        historyUpdated,
-      };
+      navigation.historyUpdated = historyUpdated;
       routeInternal.value = navigation;
       // routeInternal now holds the in-flight destination, so the shortcut can use it again.
       navResolver.dest = undefined;
@@ -578,12 +683,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         };
       });
       const navigated = navResolver.p;
-      loadNavigation(
+      await loadNavigation(
         navigation,
         undefined,
         (container as ClientContainer | undefined) ?? getRouterContainer()
       );
-      return navigated;
+      return { type: NavigationStartType.Prepared, finished: navigated };
     };
 
     const loadNavigation = async (
@@ -659,6 +764,50 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         return;
       }
 
+      // A server `rewrite()` is invisible to the client's route table. If nothing, or only a
+      // dynamic route, matched, let the server resolve the URL and load that route, keeping the URL.
+      let rewrittenTo: string | undefined;
+      const lastModule = loadedRoute.$mods$[loadedRoute.$mods$.length - 1] as
+        | PageModule
+        | undefined;
+      if (
+        loadedRoute.$notFound$ ||
+        typeof lastModule?.default !== 'function' ||
+        loadedRoute.$routeName$.includes('[')
+      ) {
+        // An action on a rewritten page also needs the real route, or the page renders as not found after submit.
+        const resolved = await Promise.race([resolveServerRewrite(trackUrl), canceled]);
+        if (internalState.navCount !== navCountBefore) {
+          abandonAction();
+          return;
+        }
+        if (resolved === 'reload') {
+          // With an action, skip the reload so the submission is not dropped; the action still runs.
+          if (!action) {
+            window.location.href = trackUrl.href;
+            return;
+          }
+        } else if (resolved && resolved !== trackUrl.pathname) {
+          try {
+            const config = await getRouterConfig();
+            loadedRoute = await loadRoute(config.routes, config.cacheModules, resolved);
+            rewrittenTo = resolved;
+          } catch (e) {
+            if (internalState.navCount !== navCountBefore) {
+              abandonAction();
+              return;
+            }
+            console.error(`Could not load rewritten route ${resolved}, reloading:`, e);
+            window.location.href = trackUrl.href;
+            return;
+          }
+          if (internalState.navCount !== navCountBefore) {
+            abandonAction();
+            return;
+          }
+        }
+      }
+
       // Submit action if one was triggered
       if (action) {
         const result = await Promise.race([
@@ -711,12 +860,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
       const { $routeName$, $params$, $mods$, $menu$, $notFound$ } = loadedRoute;
       const contentModules = $mods$ as ContentModule[];
-      routeLoaderCtx.goto = noSerialize(startNavigation);
+      routeLoaderCtx.goto = noSerialize((path, opt) => prepareNavigation(path, opt).prepared);
       const routeLoaders = prepareRouteLoaders(
         contentModules,
         loaderState,
         routeLoaderCtx,
-        loadedRoute.$loaderPaths$,
+        // After a rewrite, loaders are fetched via the visible URL so the server re-applies it.
+        rewrittenTo ? undefined : loadedRoute.$loaderPaths$,
         trackUrl,
         prevUrl,
         navCountBefore,

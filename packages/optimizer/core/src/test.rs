@@ -162,6 +162,133 @@ fn smart_lifted_event_captures() {
 }
 
 #[test]
+fn smart_event_qrl_alias_consumers() {
+	for (event, render, separated) in [
+		("alias", "", true),
+		("(alias)", "", true),
+		("[alias]", "", true),
+		("enabled ? alias : alias", "", true),
+		("() => alias()", "", true),
+		("alias", "alias();", false),
+		("alias", "unknown(alias);", false),
+		(
+			"alias",
+			"const View = alias; const rendered = <View />; consume(rendered);",
+			false,
+		),
+	] {
+		let output = test_input_fn(TestInput {
+			code: format!(
+				r#"
+import {{ $ as defer, component$, useSignal }} from '@qwik.dev/core';
+export const App = component$(() => {{
+  const count = useSignal(0);
+  const click = defer(() => count.value++);
+  const alias = click;
+  {render}
+  return <button onClick$={{{event}}} />;
+}});"#
+			),
+			entry_strategy: EntryStrategy::Smart,
+			transpile_ts: true,
+			transpile_jsx: true,
+			mode: EmitMode::Prod,
+			..TestInput::default()
+		})
+		.unwrap();
+		let callback = output
+			.modules
+			.iter()
+			.filter_map(|module| module.segment.as_ref())
+			.find(|segment| segment.display_name == "test.tsx_App_component_click")
+			.unwrap();
+		assert_eq!(
+			callback
+				.entry
+				.as_ref()
+				.is_some_and(|entry| entry.as_ref() == format!("segment_{}", callback.hash)),
+			separated,
+			"{event} {render}"
+		);
+	}
+}
+
+#[test]
+fn smart_event_qrl_render_consumers() {
+	let code = include_str!("fixtures/smart-event-qrl-render-consumers.tsx").to_string();
+	let result = test_input_fn(TestInput {
+		code: code.clone(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+	let output = result.as_ref().unwrap();
+	let segments: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.collect();
+	let parent = segments
+		.iter()
+		.find(|segment| segment.ctx_name == "component$")
+		.unwrap();
+	for name in ["View", "getter"] {
+		let segment = segments
+			.iter()
+			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
+			.unwrap();
+		assert_eq!(segment.entry, parent.entry, "{name}");
+	}
+	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
+}
+
+#[test]
+fn smart_event_qrl_references() {
+	let code = include_str!("fixtures/smart-event-qrl-references.tsx").to_string();
+	let result = test_input_fn(TestInput {
+		code: code.clone(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+	let output = result.as_ref().unwrap();
+	for (name, is_event_only) in [
+		("click", true),
+		("wrapped", true),
+		("render", false),
+		("hookRead", false),
+		("mixed", false),
+		("custom", false),
+	] {
+		let segment = output
+			.modules
+			.iter()
+			.filter_map(|module| module.segment.as_ref())
+			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
+			.unwrap();
+		if is_event_only {
+			assert_eq!(
+				segment.entry.as_ref().unwrap(),
+				&format!("segment_{}", segment.hash),
+				"{name}"
+			);
+		} else {
+			assert_eq!(
+				segment.entry.as_deref(),
+				Some("test.tsx_entry_App"),
+				"{name}"
+			);
+		}
+		assert_eq!(segment.ctx_kind, SegmentKind::Function);
+	}
+	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
+}
+
+#[test]
 fn example_1() {
 	test_input!(TestInput {
 		code: r#"
@@ -789,6 +916,269 @@ export const Cmp = component$((props: { flag?: boolean; className?: string }) =>
 	}
 	const { className, ...rest } = props;
 	return <div class={className}>{JSON.stringify(rest)}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructured_props_as_jsx_tags() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, getFallback } from './x';
+
+export const Cmp = component$((props: { Model?: any; ui?: any; icons: any; 'my-icon': any }) => {
+	const { Model = Fallback, ui = fallback, icons, 'my-icon': Icon } = props;
+	return (
+		<Model>
+			<ui.Home />
+			<icons.Star />
+			<Icon />
+		</Model>
+	);
+});
+
+export const Cmp2 = component$(({ Model = getFallback() }: { Model?: any }) => {
+	return <Model />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructured_props_as_jsx_tags_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, getFallback } from './x';
+
+export const Cmp = component$((props: { Model?: any; ui?: any; icons: any; 'my-icon': any }) => {
+	const { Model = Fallback, ui = fallback, icons, 'my-icon': Icon } = props;
+	return (
+		<Model>
+			<ui.Home />
+			<icons.Star />
+			<Icon />
+		</Model>
+	);
+});
+
+export const Cmp2 = component$(({ Model = getFallback() }: { Model?: any }) => {
+	return <Model />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_as_jsx_tags() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(<Model />)} />;
+});
+
+export const Cmp2 = component$(
+	({ Model, ui = fallback, icons, 'my-icon': Icon }: { Model: any; ui?: any; icons: any; 'my-icon': any }) => {
+		return (
+			<button
+				onClick$={() =>
+					render(
+						<Model>
+							<ui.Home />
+							<icons.Star />
+							<Icon />
+						</Model>
+					)
+				}
+			/>
+		);
+	}
+);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_as_jsx_tags_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Fallback, fallback, render } from './x';
+
+export const Cmp = component$(
+	({
+		Model = Fallback,
+		Layout,
+		ui = fallback,
+		icons,
+		'my-icon': Icon,
+	}: {
+		Model?: any;
+		Layout: any;
+		ui?: any;
+		icons: any;
+		'my-icon': any;
+	}) => {
+		const view = $(() =>
+			render(
+				<Layout>
+					<Model />
+					<ui.Home />
+					<icons.Star />
+					<Icon />
+				</Layout>
+			)
+		);
+		return <button onClick$={view} />;
+	}
+);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_shadowed_in_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(Model, [1].map((Model) => Model))} />;
+});
+
+export const Cmp2 = component$(({ Model }: { Model: any }) => {
+	return <button onClick$={() => render(<Model />, [1].map((Model) => <Model />))} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_shadowed_in_segment_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback, Layout }: { Model?: any; Layout: any }) => {
+	const read = $(() => render(Model, [1].map((Model) => Model)));
+	const view = $(() => render(<Layout />, [1].map((Layout) => <Layout />)));
+	return <button onClick$={read} onDblClick$={view} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_consolidate_loop_params_named_like_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const List = component$(({ item, items }: any) => {
+	return <ul>{items.map((item: any) => <li onClick$={() => console.log(item)} />)}</ul>;
+});
+
+export const Tabs = component$(({ tab, tabs }: any) => {
+	const selected = useSignal('');
+	return <div>{tabs.map((tab: string) => <button onClick$={() => (selected.value = tab)} />)}</div>;
+});
+
+export const Rows = component$(({ item, items }: any) => {
+	return (
+		<ul>
+			{items.map((item: any, idx: number) => (
+				<li onClick$={() => console.log(item)} onDblClick$={() => console.log(idx)} />
+			))}
+		</ul>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_consolidate_locals_named_like_props() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { render } from './x';
+
+export const Nested = component$(({ Model }: { Model: any }) => {
+	return <button onClick$={() => render(Model, [1].map((Model) => $(() => render(Model))))} />;
+});
+
+export const Block = component$(({ item, other }: { item: string; other: string }) => {
+	if (other) {
+		const item = other.toUpperCase();
+		return <button onClick$={() => console.log(item)} />;
+	}
+	return <p>{item}</p>;
+});
+
+export const Helper = component$(({ label }: { label: string }) => {
+	const renderButton = (label: string) => <button onClick$={() => console.log(label)} />;
+	return <div>{renderButton(label + '!')}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_loop_params_named_like_imports() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { item } from './x';
+
+export const List = component$(({ items }: { items: string[] }) => {
+	console.log(item);
+	return <ul>{items.map((item) => <li onClick$={() => console.log(item)} />)}</ul>;
 });
 "#
 		.to_string(),

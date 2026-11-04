@@ -1,4 +1,5 @@
-import { _serialize, isDev } from '@qwik.dev/core/internal';
+import { isDev } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import type {
   LoadedRoute,
   QwikRouterConfig,
@@ -8,7 +9,11 @@ import type {
 } from '../../runtime/src/types';
 import { _asyncRequestStore } from './async-request-store';
 import { getErrorHtml } from './error-handler';
-import { createRequestEvent, type RequestEventInternal } from './request-event-core';
+import {
+  createRequestEvent,
+  RequestEvSentServerError,
+  type RequestEventInternal,
+} from './request-event-core';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { RewriteMessage } from './rewrite-handler';
 import { ServerError } from './server-error';
@@ -77,7 +82,8 @@ async function runNext(
     const message = 'Resource Not Found';
     requestEv.status(status);
     requestEv.html(status, getErrorHtml(status, message));
-    return new ServerError(status, message);
+    requestEv.sharedMap.set(RequestEvSentServerError, new ServerError(status, message));
+    return;
   }
 
   let rewriteAttempt = 1;
@@ -89,7 +95,7 @@ async function runNext(
       if (e instanceof RedirectMessage) {
         const stream = requestEv.getWritableStream();
         await stream.close();
-        return e;
+        return;
       } else if (e instanceof RewriteMessage) {
         if (rewriteAttempt > 50) {
           return new Error(`Infinite rewrite loop`);
@@ -113,12 +119,10 @@ async function runNext(
         } else {
           requestEv.html(status, getErrorHtml(status, e.data));
         }
-        return e;
+        requestEv.sharedMap.set(RequestEvSentServerError, e);
+        return;
       }
       if (!isDev || requestEv.headersSent) {
-        if (isDev) {
-          console.error(e);
-        }
         try {
           if (!requestEv.headersSent) {
             requestEv.headers.set('content-type', 'text/html; charset=utf-8');

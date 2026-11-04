@@ -10,8 +10,11 @@ import type {
   AstMaybeNode,
   AstNode,
 } from '../../ast-types.js';
-import { buildPropertyAccessor } from '../ast/identifier-name.js';
-import { rewritePropsFieldReferences } from './props-field-rewrite.js';
+import { buildPropertyAccessor, isSimpleIdentifierName } from '../ast/identifier-name.js';
+import {
+  collectShadowedIdentifierStarts,
+  rewritePropsFieldReferences,
+} from './props-field-rewrite.js';
 import {
   forEachAstChild,
   getAssignedIdentifierName,
@@ -42,7 +45,7 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import type { DevSuffixOptions } from '../jsx/jsx.js';
-import { isReferenceIdentifier, ScopeTracker, walk } from 'oxc-walker';
+import { isReferenceIdentifier } from 'oxc-walker';
 
 function isRawPropsMemberExpression(
   node: unknown
@@ -94,6 +97,19 @@ interface IdentifierReplacement {
   local: string;
   isShorthand?: boolean;
   needsParens?: boolean;
+  isJsxTagName?: boolean;
+}
+
+export interface DeferredTagReads {
+  readonly baseName: string;
+  readonly fieldLocalToKey: Map<string, string>;
+  readonly fieldLocalToDefault: ReadonlyMap<string, string>;
+  readonly fieldLocalToDynamicDefault: ReadonlyMap<string, string>;
+}
+
+export interface RawPropsTransformResult {
+  readonly code: string;
+  readonly deferredTagReads?: DeferredTagReads;
 }
 
 interface RawPropsField {
@@ -717,6 +733,7 @@ function buildIdentifierReplacementsCollector(
           local: node.name,
           // JSX tag position does not need parens around a MemberExpression.
           needsParens: false,
+          isJsxTagName: true,
         });
       }
       return { replacements: [] };
@@ -765,7 +782,11 @@ function collectIdentifierReplacements(
   excludedRanges?: Array<{ start: number; end: number }>
 ): IdentifierReplacement[] {
   const out: IdentifierReplacement[] = [];
-  const shadowedStarts = collectShadowedIdentifierStarts(session.fn, fieldLocalToKey);
+  const shadowedStarts = collectShadowedIdentifierStarts(
+    session.fn,
+    fieldLocalToKey,
+    session.fn.body
+  );
   collectRangeReplacements(session.program as unknown as AstNode, 0, '', [
     buildIdentifierReplacementsCollector(
       fieldLocalToKey,
@@ -778,45 +799,26 @@ function collectIdentifierReplacements(
   return out;
 }
 
-function collectShadowedIdentifierStarts(
-  fn: FunctionTransformSession['fn'],
-  fieldLocalToKey: ReadonlyMap<string, string>
-): Set<number> {
-  const tracker = new ScopeTracker({ preserveExitedScopes: true });
-  walk(fn, { scopeTracker: tracker });
-  tracker.freeze();
-
-  const shadowedStarts = new Set<number>();
-  let bodyScope: string | undefined;
-  walk(fn, {
-    scopeTracker: tracker,
-    enter(node) {
-      if (node === fn.body) {
-        bodyScope = tracker.getCurrentScope();
-      }
-      const name = (node as { name?: unknown }).name;
-      if (bodyScope === undefined || typeof name !== 'string' || !fieldLocalToKey.has(name)) {
-        return;
-      }
-      if (tracker.getDeclaration(name)?.scope.startsWith(`${bodyScope}-`)) {
-        shadowedStarts.add(node.start);
-      }
-    },
-  });
-  return shadowedStarts;
-}
-
 function applyIdentifierReplacements(
   session: TransformSession,
   replacements: IdentifierReplacement[],
   baseName: string,
   defaultValues: ReadonlyMap<string, string>,
   dynamicDefaults: ReadonlyMap<string, string>
-): void {
+): Map<string, string> {
+  const deferredTagFields = new Map<string, string>();
   for (const replacement of replacements) {
     const baseAccessor = buildPropertyAccessor(baseName, replacement.key);
     const defaultValue = defaultValues?.get(replacement.local);
     const dynamicDefaultName = dynamicDefaults.get(replacement.local);
+    const isMemberChain =
+      defaultValue === undefined &&
+      dynamicDefaultName === undefined &&
+      isSimpleIdentifierName(replacement.key);
+    if (replacement.isJsxTagName && !isMemberChain) {
+      deferredTagFields.set(replacement.local, replacement.key);
+      continue;
+    }
     // Parens only when parent precedence requires them (via `replacement.needsParens`).
     let accessor: string;
     if (dynamicDefaultName !== undefined) {
@@ -838,6 +840,30 @@ function applyIdentifierReplacements(
       session.edits.overwrite(start, end, accessor);
     }
   }
+  return deferredTagFields;
+}
+
+export function resolveDeferredTagReads(
+  body: string,
+  deferredReads: readonly DeferredTagReads[]
+): string {
+  let resolved = body;
+  for (const reads of deferredReads) {
+    const session = createFunctionTransformSession(resolved);
+    if (!session) {
+      return resolved;
+    }
+    const replacements = collectIdentifierReplacements(session, reads.fieldLocalToKey);
+    applyIdentifierReplacements(
+      session,
+      replacements,
+      reads.baseName,
+      reads.fieldLocalToDefault,
+      reads.fieldLocalToDynamicDefault
+    );
+    resolved = session.toSource();
+  }
+  return resolved;
 }
 
 function formatConsolidatedWItems(items: string[]): string {
@@ -935,15 +961,15 @@ export function applyRawPropsTransform(
   body: string,
   preferredDynamicDefaultNames?: ReadonlyMap<string, string>,
   propsName = '_rawProps'
-): string {
+): RawPropsTransformResult {
   const session = createFunctionTransformSession(body);
   if (!session) {
-    return body;
+    return { code: body };
   }
 
   const plan = analyzeRawPropsTransform(session, body, preferredDynamicDefaultNames, propsName);
   if (!plan) {
-    return body;
+    return { code: body };
   }
 
   if (plan.replacementParamRange) {
@@ -964,31 +990,40 @@ export function applyRawPropsTransform(
   } else if (plan.restLine) {
     prologueLines.push(plan.restLine);
   }
+  let deferredTagReads: DeferredTagReads | undefined;
   if (plan.fieldLocalToKey.size > 0) {
     const replacements = collectIdentifierReplacements(
       session,
       plan.fieldLocalToKey,
       plan.excludedRanges
     );
-    applyIdentifierReplacements(
+    const deferredTagFields = applyIdentifierReplacements(
       session,
       replacements,
       plan.replacementBaseName,
       plan.fieldLocalToDefault,
       plan.fieldLocalToDynamicDefault
     );
+    if (deferredTagFields.size > 0) {
+      deferredTagReads = {
+        baseName: plan.replacementBaseName,
+        fieldLocalToKey: deferredTagFields,
+        fieldLocalToDefault: plan.fieldLocalToDefault,
+        fieldLocalToDynamicDefault: plan.fieldLocalToDynamicDefault,
+      };
+    }
   }
 
   const transformed = session.toSource();
   if (prologueLines.length === 0) {
-    return transformed;
+    return { code: transformed, deferredTagReads };
   }
   const prologueSession = createFunctionTransformSession(transformed);
   if (!prologueSession) {
-    return transformed;
+    return { code: transformed, deferredTagReads };
   }
   insertFunctionBodyPrologue(prologueSession, prologueSession.fn, prologueLines.join('\n'));
-  return prologueSession.toSource();
+  return { code: prologueSession.toSource(), deferredTagReads };
 }
 
 export function bodyConsolidatesToRawProps(body: string): boolean {
@@ -1002,6 +1037,17 @@ export function bodyConsolidatesToRawProps(body: string): boolean {
 /** A consolidated ancestor's destructured props, as seen by the segments nested in it. */
 export interface RawPropsSource extends DestructuredFieldInfo {
   readonly symbolName: string;
+  readonly bindingStarts: ReadonlyMap<string, number> | undefined;
+}
+
+export function isShadowedBinding(
+  outerBindingStarts: ReadonlyMap<string, number> | undefined,
+  seenBindingStarts: ReadonlyMap<string, number> | undefined,
+  name: string
+): boolean {
+  const outerStart = outerBindingStarts?.get(name);
+  const seenStart = seenBindingStarts?.get(name);
+  return outerStart !== undefined && seenStart !== undefined && outerStart !== seenStart;
 }
 
 export interface RawPropsConsolidation {
@@ -1021,7 +1067,8 @@ export interface RawPropsConsolidation {
  */
 export function consolidateRawPropsCaptures(
   captureNames: readonly string[],
-  ancestors: readonly RawPropsSource[]
+  ancestors: readonly RawPropsSource[],
+  captureBindingStarts: ReadonlyMap<string, number> | undefined
 ): RawPropsConsolidation | null {
   const propsFieldCaptures = new Map<string, string>();
   const propsFieldSources = new Map<string, string>();
@@ -1029,8 +1076,11 @@ export function consolidateRawPropsCaptures(
   const propsFieldDynamicDefaults = new Map<string, string>();
   const nonPropsCaptures: string[] = [];
   for (const name of captureNames) {
-    // ponytail: resolves by name, so an intermediate local named like an outer prop still maps to it.
-    const source = ancestors.find((ancestor) => ancestor.fieldMap.has(name));
+    const source = ancestors.find(
+      (ancestor) =>
+        ancestor.fieldMap.has(name) &&
+        !isShadowedBinding(ancestor.bindingStarts, captureBindingStarts, name)
+    );
     if (source === undefined) {
       nonPropsCaptures.push(name);
       continue;
@@ -1155,16 +1205,47 @@ export function groupPropsFieldsByBinding(
   return groups;
 }
 
+interface ElementHandler {
+  readonly symbolName: string;
+  readonly freeBindingStarts?: ReadonlyMap<string, number>;
+}
+
+export function collectElementBindingStarts(
+  handler: ElementHandler,
+  siblings: readonly ElementHandler[],
+  elementQpParamsMap: ReadonlyMap<string, readonly string[]> | undefined
+): Map<string, number> {
+  const elementParams = elementQpParamsMap?.get(handler.symbolName);
+  const starts = new Map<string, number>();
+  for (const sibling of siblings) {
+    const sharesElement =
+      sibling === handler ||
+      (elementParams !== undefined &&
+        elementQpParamsMap?.get(sibling.symbolName) === elementParams);
+    if (!sharesElement) {
+      continue;
+    }
+    for (const [name, start] of sibling.freeBindingStarts ?? []) {
+      starts.set(name, start);
+    }
+  }
+  return starts;
+}
+
 export function consolidateQpCaptureValues(
   params: readonly string[],
-  fieldMap: ReadonlyMap<string, string>
+  fieldMap: ReadonlyMap<string, string>,
+  propsBindingStarts: ReadonlyMap<string, number> | undefined,
+  paramBindingStarts: ReadonlyMap<string, number> | undefined
 ): string[] {
   // The handler's params consolidate too, so the slot carries the whole
   // props proxy — a field read would serialize the naked value and lose the
   // proxy identity on resume (rust parity). Dedup to one proxy slot.
   const out: string[] = [];
   for (const p of params) {
-    const value = fieldMap.has(p) ? '_rawProps' : p;
+    const isPropsField =
+      fieldMap.has(p) && !isShadowedBinding(propsBindingStarts, paramBindingStarts, p);
+    const value = isPropsField ? '_rawProps' : p;
     if (value === '_rawProps' && out.includes('_rawProps')) {
       continue;
     }
@@ -1184,7 +1265,7 @@ export function replacePropsFieldReferencesInBody(
   propsName: string,
   defaultValues?: ReadonlyMap<string, string>,
   dynamicDefaults?: ReadonlyMap<string, string>
-): string {
+): RawPropsTransformResult {
   return rewritePropsFieldReferences(body, fieldMap, {
     propsName,
     defaultValues,

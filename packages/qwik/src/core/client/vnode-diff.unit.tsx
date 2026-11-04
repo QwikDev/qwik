@@ -88,18 +88,18 @@ describe('vNode-diff', () => {
       expect(vNode).toMatchVDOM(<div key="KA_6">Hello</div>);
     });
     it('should remove all text nodes', () => {
-      const { vNode, vParent, container } = vnode_fromJSX(<div>text{'removeMe'}</div>);
+      const { vNode, vParent, container } = vnode_fromJSX(<div key="KA_6">text{'removeMe'}</div>);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div></div>, vParent, vParent, null);
+      vnode_diff(container, journal, <div key="KA_6"></div>, vParent, vParent, null);
       _flushJournal(journal);
-      expect(vNode).toMatchVDOM(<div></div>);
+      expect(vNode).toMatchVDOM(<div key="KA_6"></div>);
     });
     it('should treat undefined as no children', () => {
-      const { vNode, vParent, container } = vnode_fromJSX(<div>text{'removeMe'}</div>);
+      const { vNode, vParent, container } = vnode_fromJSX(<div key="KA_6">text{'removeMe'}</div>);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div>{undefined}</div>, vParent, vParent, null);
+      vnode_diff(container, journal, <div key="KA_6">{undefined}</div>, vParent, vParent, null);
       _flushJournal(journal);
-      expect(vNode).toMatchVDOM(<div></div>);
+      expect(vNode).toMatchVDOM(<div key="KA_6"></div>);
     });
 
     describe('2 empty texts', () => {

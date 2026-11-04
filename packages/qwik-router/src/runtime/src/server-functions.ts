@@ -10,12 +10,8 @@ import {
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
-import {
-  _deserialize,
-  _getContextHostElement,
-  _regInlinedQrl,
-  _serialize,
-} from '@qwik.dev/core/internal';
+import { _deserialize, _getContextHostElement, _regInlinedQrl } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import * as v from 'valibot';
 import * as z from 'zod';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';

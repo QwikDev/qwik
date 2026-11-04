@@ -275,23 +275,22 @@ describe('async computed', () => {
     });
   });
 
-  it('should capture non-Error sync throws', async () => {
-    await withContainer(async () => {
-      const signal = createComputed$(() => {
-        throw 'oops';
-      }) as ComputedSignalImpl<never>;
+  it.each(['oops', null, undefined, 0, false, ''])(
+    'normalizes a non-Error sync failure: %j',
+    async (reason) => {
+      await withContainer(async () => {
+        const ref = { reason };
+        const signal = createComputed$(() => {
+          throw ref.reason;
+        }) as ComputedSignalImpl<never>;
 
-      const error = await retryOnPromise(() => signal.error);
-      expect(error).toBe('oops');
-      let thrown: unknown;
-      try {
-        signal.untrackedValue;
-      } catch (e) {
-        thrown = e;
-      }
-      expect(thrown).toBe('oops');
-    });
-  });
+        const error = await retryOnPromise(() => signal.error);
+        expect(error).toBeInstanceOf(Error);
+        expect(error!.cause).toBe(reason);
+        expect(() => signal.untrackedValue).toThrow(error);
+      });
+    }
+  );
 
   it('should provide the ComputeCtx argument to sync computeds', async () => {
     await withContainer(async () => {

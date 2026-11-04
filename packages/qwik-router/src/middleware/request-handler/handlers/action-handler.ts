@@ -1,4 +1,5 @@
-import { _serialize, _verifySerializable, isDev } from '@qwik.dev/core/internal';
+import { _verifySerializable, isDev } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import type {
   ActionInternal,
   DataValidator,

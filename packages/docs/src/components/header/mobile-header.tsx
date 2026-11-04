@@ -138,6 +138,7 @@ export const MobileHeader = component$((props: { sidebarId?: string }) => {
                     { href: '/blog', label: 'Blog' },
                     { href: '/docs/concepts/think-qwik', label: 'Concepts' },
                     { href: '/playground', label: 'Playground' },
+                    { href: '/roadmap', label: 'Roadmap' },
                     { href: '/docs/labs', label: 'Qwik Labs' },
                     { href: '/media/', label: 'Media' },
                     { href: '/press/', label: 'Press' },

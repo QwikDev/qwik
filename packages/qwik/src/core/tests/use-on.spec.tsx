@@ -19,6 +19,7 @@ import {
   type QRL,
   type Signal as SignalType,
 } from '@qwik.dev/core';
+import { _jsxSorted } from '@qwik.dev/core/internal';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
@@ -288,6 +289,73 @@ describe.each([
         </button>
       </Component>
     );
+  });
+
+  it('should keep an array of element var handlers for the same event', async () => {
+    const Cmp = component$(() => {
+      const calls = useSignal('');
+      useOn(
+        'click',
+        $(() => {
+          calls.value += 'useOn;';
+        })
+      );
+      return _jsxSorted(
+        'button',
+        {
+          'q-e:click': [
+            $(() => {
+              calls.value += 'own1;';
+            }),
+            $(() => {
+              calls.value += 'own2;';
+            }),
+          ],
+        },
+        null,
+        calls.value,
+        0,
+        null
+      );
+    });
+
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('own1;own2;useOn;');
+  });
+
+  it('should run a handler once when it is both an element var handler and a useOn handler', async () => {
+    const Cmp = component$(() => {
+      const calls = useSignal('');
+      const handler = $(() => {
+        calls.value += 'handler;';
+      });
+      useOn('click', handler);
+      return _jsxSorted('button', { 'q-e:click': handler }, null, calls.value, 0, null);
+    });
+
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('handler;');
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('handler;handler;');
+  });
+
+  it('should run a handler once when it is both an element const handler and a useOn handler', async () => {
+    const Cmp = component$(() => {
+      const calls = useSignal('');
+      const handler = $(() => {
+        calls.value += 'handler;';
+      });
+      useOn('click', handler);
+      return _jsxSorted('button', null, { 'q-e:click': handler }, calls.value, 0, null);
+    });
+
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('handler;');
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('handler;handler;');
   });
 
   it('should not add useOn handlers twice to a JSX node reused across renders', async () => {

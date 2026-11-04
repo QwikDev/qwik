@@ -84,6 +84,12 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
       s.stop('Post install script complete');
     } else {
       s.stop(red(`Post install script failed: ${postInstall}`));
+      const runPrefix = pkgManager === 'npm' ? 'npx' : pkgManager;
+      note(
+        `The integration files were added, but its post install script failed.\nFix the error above, then run it again:\n  ${runPrefix} ${postInstall}`,
+        'Action Required!'
+      );
+      process.exit(1);
     }
   }
   logUpdateAppCommitResult(result, pkgManager);

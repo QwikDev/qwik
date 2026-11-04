@@ -145,6 +145,17 @@ const columns: {
         description: 'Make Pending, Catch, .pending and .error stable.',
         tags: ['@qwik.dev/core'],
       },
+    ],
+  },
+  {
+    title: 'Exploring',
+    progress: 'exploring',
+    items: [
+      {
+        title: 'No virtual DOM',
+        description: 'Rendering without a virtual DOM.',
+        tags: ['v3'],
+      },
       {
         title: 'Fewer $ wrappers',
         description: 'Remove the $ wrappers you have to write today.',
@@ -164,17 +175,6 @@ const columns: {
         title: 'Async data without waterfalls',
         description: 'Async computed signals with no waterfalls, replacing route loaders.',
         tags: ['@qwik.dev/core', '@qwik.dev/router'],
-      },
-    ],
-  },
-  {
-    title: 'Exploring',
-    progress: 'exploring',
-    items: [
-      {
-        title: 'No virtual DOM',
-        description: 'Rendering without a virtual DOM.',
-        tags: ['v3'],
       },
     ],
   },

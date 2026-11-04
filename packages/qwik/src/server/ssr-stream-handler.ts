@@ -15,6 +15,7 @@ export class StreamHandler implements IStreamHandler {
   private firstWriteNotified = false;
   public onFirstWrite: (() => void) | undefined;
   public networkFlushes = 0;
+  public isFirstFlushHeld = false;
   private inOrderStreaming: InOrderStreaming;
   private streamBlockDepth = 0;
   private streamBlockBuffer: string = '';
@@ -139,7 +140,7 @@ export class StreamHandler implements IStreamHandler {
   }
 
   flush(): Promise<void> | void {
-    if (!this.buffer) {
+    if (!this.buffer || this.isFirstFlushHeld) {
       return this.waitForPendingFlush();
     }
 

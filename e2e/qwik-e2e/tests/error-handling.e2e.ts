@@ -861,3 +861,69 @@ test.describe('Catch in a production build (qDev=false)', () => {
     await expect(page.locator('#catch-content-count')).toHaveText('1');
   });
 });
+
+test.describe('Render crash status', () => {
+  test.describe('production build (qDev=false)', () => {
+    const crashUrl = (params: Record<string, string>) =>
+      routeUrl('render-crash/', { app: 'error-handling.prod', params });
+
+    test.describe('before the first flush', () => {
+      test('a sync crash answers 500 with the built-in page', async ({ request }) => {
+        const response = await request.get(crashUrl({ scenario: 'crash' }));
+
+        expect(response.status()).toBe(500);
+        const html = await response.text();
+        expect(html).toContain('Internal Server Error');
+        expect(html).not.toContain('q:container');
+        expect(html).not.toContain('render-crash-boom');
+      });
+
+      test('a sync crash on a public, max-age=300 route answers 500 with no-cache', async ({
+        request,
+      }) => {
+        const response = await request.get(crashUrl({ scenario: 'crash', cached: '1' }));
+
+        expect(response.status()).toBe(500);
+        expect(response.headers()['cache-control']).toBe('no-cache');
+      });
+
+      test('a ServerError answers its own status with no-store', async ({ request }) => {
+        const response = await request.get(crashUrl({ scenario: 'server-error' }));
+
+        expect(response.status()).toBe(403);
+        expect(response.headers()['cache-control']).toBe('no-store');
+      });
+
+      test('a sync catch on a public, max-age=300 route answers 200 with no-store', async ({
+        request,
+      }) => {
+        const response = await request.get(crashUrl({ scenario: 'caught', cached: '1' }));
+
+        expect(response.status()).toBe(200);
+        expect(response.headers()['cache-control']).toBe('no-store');
+        expect(await response.text()).toContain('catch-fallback');
+      });
+    });
+
+    test.describe('after the first flush', () => {
+      test("a crash after a component's await stays at 200", async ({ request }) => {
+        const response = await request.get(crashUrl({ scenario: 'crash-after-await' }));
+
+        expect(response.status()).toBe(200);
+        const html = await response.text();
+        expect(html).toContain('q:container');
+        expect(html).toContain('Internal Server Error');
+      });
+    });
+  });
+
+  test.describe('dev fixture', () => {
+    test('a sync crash answers 500 with either core build', async ({ request }) => {
+      const response = await request.get(
+        routeUrl('render-crash/', { params: { scenario: 'crash' } })
+      );
+
+      expect(response.status()).toBe(500);
+    });
+  });
+});

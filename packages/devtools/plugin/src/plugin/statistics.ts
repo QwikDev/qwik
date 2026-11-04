@@ -6,6 +6,7 @@ import {
   isPerfVirtualModuleId,
   rewriteComponentQrlImport,
   shouldTransformStatisticsSource,
+  wrapHoistedComponentSegments,
   wrapQwikLazyComponentExports,
 } from '../transforms/perf-transform';
 
@@ -16,6 +17,7 @@ import {
  *
  * - Rewrite `componentQrl` imports to a proxy virtual module
  * - Wrap generated lazy component modules so CSR perf can be recorded
+ * - Wrap render functions hoisted into their module so SSR perf can be recorded
  * - Inject SSR perf snapshots into dev HTML responses
  */
 export function statisticsPlugin(): Plugin {
@@ -39,16 +41,14 @@ export function statisticsPlugin(): Plugin {
       hasChanges = hasChanges || rewritten.changed;
 
       const cleanId = normalizeVirtualModuleId(id);
-      if (cleanId.includes('_component_')) {
-        const exports = findQwikLazyComponentExports(code);
-        const wrapped = wrapQwikLazyComponentExports({
-          code: modifiedCode,
-          id,
-          exports,
-        });
-        modifiedCode = wrapped.code;
-        hasChanges = hasChanges || wrapped.changed;
-      }
+      const exports = cleanId.includes('_component_') ? findQwikLazyComponentExports(code) : [];
+      // User file paths can contain `_component_` too.
+      const wrapped =
+        exports.length > 0
+          ? wrapQwikLazyComponentExports({ code: modifiedCode, id, exports })
+          : wrapHoistedComponentSegments(modifiedCode, id);
+      modifiedCode = wrapped.code;
+      hasChanges = hasChanges || wrapped.changed;
 
       if (!hasChanges) {
         return null;

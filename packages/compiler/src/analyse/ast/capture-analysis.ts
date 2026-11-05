@@ -162,7 +162,7 @@ export function lowerCaptures(
     const { name, start, end } = hookCall.node as Extract<typeof hookCall.node, { name: string }>;
     throw new InvalidModuleError(
       'expression-hook',
-      `${name}() cannot run inside ${subject}; hooks belong to the component body.`,
+      `${name}() cannot run inside ${subject}; call it in the component body (const value = ${name}(…)) and use the result here.`,
       [start, end]
     );
   }

@@ -18,7 +18,7 @@ export const Cmp = component$(() => <i title={useContext(ctx).on} />);
     "category": "error",
     "code": "expression-hook",
     "file": "src/component.tsx",
-    "message": "useContext() cannot run inside an expression; hooks belong to the component body.",
+    "message": "useContext() cannot run inside an expression; call it in the component body (const value = useContext(…)) and use the result here.",
     "highlights": [
       {
         "lo": 175,

@@ -287,7 +287,7 @@ export const Child = $(() => useSignal(0));
         module: 'src/child.tsx',
         code: 'expression-hook',
         message:
-          'useSignal() cannot run inside a QRL callback; hooks belong to the component body.',
+          'useSignal() cannot run inside a QRL callback; call it in the component body (const value = useSignal(…)) and use the result here.',
       },
     ]);
   });

@@ -80,6 +80,17 @@ const expectPrefetchRouteCall = (
   expect(args).toEqual(expectedArgs);
 };
 
+const getSyncClickHandler = (anchor: HTMLAnchorElement): Function => {
+  const dispatch = (anchor as any)._qDispatch?.['e:click'];
+  if (dispatch) {
+    return Array.isArray(dispatch) ? dispatch[0] : dispatch;
+  }
+  const document = anchor.ownerDocument as any;
+  const functions = Object.keys(document).find((key) => key.startsWith('qFuncs_'))!;
+  const index = Number(anchor.getAttribute('q-e:click')!.split('|')[0].slice(1));
+  return document[functions][index];
+};
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -113,6 +124,58 @@ describe.each([
     getClientNavPathMock.mockReturnValue('/missing/');
     const unmatched = await renderLink(render);
     expect(unmatched.anchor.hasAttribute('data-q-route')).toBe(false);
+  });
+
+  it('emits the route name and synchronously reports navigation demand', async () => {
+    const { anchor } = await renderLink(render);
+    expect(anchor.getAttribute('data-q-route')).toBe('/test');
+    const preload = vi.fn();
+    vi.stubGlobal('qPreload', preload);
+    try {
+      const prevent = getSyncClickHandler(anchor);
+      const event = { preventDefault: vi.fn() };
+      const result = prevent(event, anchor);
+      if (render === ssrRenderToDom) {
+        expect(result).toBeUndefined();
+        expect(preload).toHaveBeenCalledWith('test/', 1);
+      }
+      await result;
+      expect(event.preventDefault).toHaveBeenCalledOnce();
+      expect(anchor.hasAttribute('data-q-navigation')).toBe(false);
+      expect(preload).toHaveBeenCalledWith('test/', 1);
+      expect(prefetchRouteMock).not.toHaveBeenCalled();
+      preload.mockClear();
+      for (const modifier of ['metaKey', 'ctrlKey', 'shiftKey', 'altKey']) {
+        const preventDefault = vi.fn();
+        await prevent({ [modifier]: true, preventDefault }, anchor);
+        expect(preventDefault).not.toHaveBeenCalled();
+        expect(preload).not.toHaveBeenCalled();
+      }
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('buffers only the canonical route before the preloader is installed', async () => {
+    getClientNavPathMock.mockReturnValue('/product/hoodie-01/');
+    const { anchor } = await renderLink(render, { prefetchBundles: 'off' });
+    const queue: unknown[] = [];
+    vi.stubGlobal('qPreload', undefined);
+    vi.stubGlobal('qPreloadQueue', queue);
+    try {
+      expect(anchor.getAttribute('data-q-route')).toBe('/product/[id]');
+      const result = getSyncClickHandler(anchor)({ preventDefault: vi.fn() }, anchor);
+      if (render === ssrRenderToDom) {
+        expect(result).toBeUndefined();
+        expect(queue).toEqual([['product/[id]/', 1]]);
+      }
+      await result;
+      expect(queue).toEqual([['product/[id]/', 1]]);
+      expect(anchor.hasAttribute('data-q-navigation')).toBe(false);
+      expect(prefetchRouteMock).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('prefetches route data on intent', async () => {
@@ -308,10 +371,17 @@ describe.each([
     const anchor = document.querySelector('a');
     prefetchRouteMock.mockClear();
 
-    await trigger(document.body, anchor, 'click');
+    const preload = vi.fn();
+    vi.stubGlobal('qPreload', preload);
+    try {
+      await trigger(document.body, anchor, 'click');
 
-    expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/test', false, 1);
+      expect(anchor!.hasAttribute('data-q-navigation')).toBe(false);
+      expect(preload).toHaveBeenCalledWith('test/', 1);
+      expect(prefetchRouteMock).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   describe('navigating state', () => {

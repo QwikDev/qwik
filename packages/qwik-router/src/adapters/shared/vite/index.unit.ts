@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { viteAdapter } from './index';
+
+vi.mock('./post-build', () => ({ postBuild: vi.fn() }));
 
 describe('viteAdapter ssg environment', () => {
   it('drops the inherited deploy entry input from the ssg environment only', () => {
@@ -54,5 +56,69 @@ describe('viteAdapter ssg environment', () => {
     });
     const runSsgSource: string = plugin.load.call({ warn() {} }, '\0@qwik-ssg-entry');
     expect(runSsgSource).toContain('"maxWorkers":1');
+  });
+});
+
+describe('viteAdapter app build', () => {
+  const resolvedConfig = {
+    command: 'build',
+    plugins: [
+      {
+        name: 'vite-plugin-qwik-router',
+        api: { getBasePathname: () => '/', getRoutes: () => [] },
+      },
+      {
+        name: 'vite-plugin-qwik',
+        api: { getClientOutDir: () => '/app/dist', getClientPublicOutDir: () => '/app/dist' },
+      },
+    ],
+  };
+  const ssrBundles = {
+    'entry.azure-swa.js': { type: 'chunk', isEntry: true },
+    'q-chunk.js': { type: 'chunk', isEntry: false },
+  };
+
+  it('hands the ssr entries to generate() without warning, across plugin instances', async () => {
+    const generate = vi.fn();
+    const opts = { name: 'test', origin: 'https://example.com', generate };
+    // Vite resolves the config again for each environment, so the `ssr` build uses another
+    // instance of the plugin than the one `buildApp` runs on.
+    const [topLevelPlugin] = viteAdapter(opts) as any[];
+    const [ssrPlugin] = viteAdapter(opts) as any[];
+    topLevelPlugin.configResolved(resolvedConfig);
+    ssrPlugin.configResolved(resolvedConfig);
+
+    const warn = vi.fn();
+    const ssr = { config: { build: { outDir: '/app/server' } } };
+    await topLevelPlugin.buildApp({
+      environments: { ssr },
+      config: { root: '/app', define: {}, logger: { warn() {} } },
+      build: async () => {
+        ssrPlugin.generateBundle.call(
+          { environment: { name: 'ssr', config: { root: '/app' } }, warn },
+          {},
+          ssrBundles
+        );
+      },
+    });
+
+    expect(warn).not.toHaveBeenCalled();
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({ outputEntries: ['entry.azure-swa.js'] })
+    );
+  });
+
+  it('warns when the ssr environment is built outside buildApp', () => {
+    const [plugin] = viteAdapter({ name: 'test', origin: 'https://example.com' }) as any[];
+    plugin.configResolved(resolvedConfig);
+
+    const warn = vi.fn();
+    plugin.generateBundle.call(
+      { environment: { name: 'ssr', config: { root: '/app' } }, warn },
+      {},
+      ssrBundles
+    );
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Qwik Router SSG was skipped'));
   });
 });

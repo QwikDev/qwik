@@ -383,8 +383,6 @@ describe('link component', () => {
       return anchor;
     };
 
-    const flushNavigation = () => new Promise((resolve) => setTimeout(resolve));
-
     it('marks the link with data-navigating until navigation resolves', async () => {
       let resolveNavigation!: () => void;
       gotoMock.mockReturnValue(new Promise<void>((resolve) => (resolveNavigation = resolve)));
@@ -395,9 +393,9 @@ describe('link component', () => {
       expect(anchor.hasAttribute('data-navigating')).toBe(true);
 
       resolveNavigation();
-      await flushNavigation();
 
-      expect(anchor.hasAttribute('data-navigating')).toBe(false);
+      // A resumed handler loads `nav` lazily, so it settles after a few ticks.
+      await vi.waitFor(() => expect(anchor.hasAttribute('data-navigating')).toBe(false));
     });
 
     it('clears data-navigating when navigation rejects, still reporting the error', async () => {
@@ -415,10 +413,11 @@ describe('link component', () => {
         expect(anchor.hasAttribute('data-navigating')).toBe(true);
 
         rejectNavigation(offline);
-        await flushNavigation();
 
-        expect(anchor.hasAttribute('data-navigating')).toBe(false);
-        expect(onUnhandledRejection).toHaveBeenCalledWith(offline, expect.any(Promise));
+        await vi.waitFor(() => {
+          expect(anchor.hasAttribute('data-navigating')).toBe(false);
+          expect(onUnhandledRejection).toHaveBeenCalledWith(offline, expect.any(Promise));
+        });
       } finally {
         process.removeAllListeners('unhandledRejection');
         vitestListeners.forEach((listener) => process.on('unhandledRejection', listener));

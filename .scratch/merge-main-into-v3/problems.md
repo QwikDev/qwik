@@ -19,8 +19,8 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
 - **`Link` `data-q-route` (fixed).** The attribute expression captured the matched route, whose
   loader functions can't be serialized, so 13 `|resume|` tests failed. The name is now computed in
   setup.
-- **`Link` `data-navigating`**: both navigating-state tests fail in `|resume|` only: the attribute
-  stays set after the navigation promise settles. They pass in `|csr|`.
+- **`Link` `data-navigating` (fixed).** The tests waited one tick, but a resumed handler loads
+  `nav` lazily; they now use `vi.waitFor`.
 - **`window._qRouterInitNavigate`**: main sets it inside `goto` to `goto` itself. On v3 that makes
   the `goto` QRL capture itself and SSR throws "Cannot access 'goto' before initialization", so
   the assignment was dropped. `spa-init.ts` still reads it and falls back to the old init-mode

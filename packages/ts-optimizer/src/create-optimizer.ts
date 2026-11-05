@@ -111,6 +111,8 @@ export interface NapiSegmentAnalysis {
   path: string;
   extension: string;
   parent: string | null;
+  /** Every known consumer runs through a native event. */
+  isEventOnly?: boolean;
   ctxKind: 'eventHandler' | 'function' | 'jSXProp';
   ctxName: string;
   captures: boolean;

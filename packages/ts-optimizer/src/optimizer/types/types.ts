@@ -169,6 +169,8 @@ export interface SegmentAnalysis {
 
   readonly parent: SymbolName | null;
 
+  /** Every known consumer runs through a native event. */
+  readonly isEventOnly?: boolean;
   readonly ctxKind: 'eventHandler' | 'function' | 'jSXProp';
 
   readonly ctxName: CtxName;

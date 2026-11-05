@@ -10,6 +10,8 @@ export let graph: BundleGraph;
 const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {
     $name$: name,
+    $priority$: 0,
+    $renderPriority$: 0,
     $state$: isJSRegex.test(name) ? BundleImportState_None : BundleImportState_Alias,
     $deps$: deps,
     $inverseProbability$: 1,
@@ -24,14 +26,17 @@ export const parseBundleGraph = (serialized: (string | number)[]) => {
     const deps: ImportProbability[] = [];
     let idx: number | string;
     let probability = 1;
+    let isRender = false;
     while (((idx = serialized[i]), typeof idx === 'number')) {
       if (idx < 0) {
-        probability = -idx / 10;
+        isRender = idx < -10;
+        probability = (-idx - (isRender ? 10 : 0)) / 10;
       } else {
         deps.push({
           $name$: serialized[idx] as string,
           $importProbability$: probability,
           $factor$: 1,
+          ...(isRender ? { $isRender$: true } : {}),
         });
       }
       i++;

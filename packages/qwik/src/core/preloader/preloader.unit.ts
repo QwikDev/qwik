@@ -49,7 +49,19 @@ test.each([true, false])(
         '/build/',
         Promise.resolve(
           new Response(
-            JSON.stringify(['route/', 2, 'route.js', 4, 'component.js', 6, 'static.js', 'event.js'])
+            JSON.stringify([
+              'route/',
+              2,
+              'route.js',
+              -19,
+              5,
+              'component.js',
+              9,
+              -9,
+              10,
+              'static.js',
+              'event.js',
+            ])
           )
         ),
         { P: 1 }

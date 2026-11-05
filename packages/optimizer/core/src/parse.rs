@@ -48,6 +48,8 @@ use swc_ecmascript::visit::{FoldWith, VisitMutWith, VisitWith};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SegmentAnalysis {
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub is_event_only: Option<bool>,
 	pub origin: Atom,
 	pub name: Atom,
 	pub entry: Option<Atom>,
@@ -559,6 +561,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								imports: vec![],
 								order: h.hash,
 								segment: Some(SegmentAnalysis {
+									is_event_only: h.is_event_only.then_some(true),
 									origin: h.data.origin,
 									name: h.name,
 									entry: h.entry,

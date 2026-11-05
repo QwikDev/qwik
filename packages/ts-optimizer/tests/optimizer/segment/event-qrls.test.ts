@@ -67,8 +67,13 @@ describe('event-only QRL references', () => {
       expect(segment.entry, name).toBe(`segment_${segment.hash}`);
       expect(segment.ctxKind).toBe('function');
       expect(segment.ctxName).toBe('$');
+      expect(segment.isEventOnly, name).toBe(true);
     }
     for (const name of ['render', 'hookRead', 'mixed', 'custom']) {
+      expect(
+        segments.find((segment) => segment.displayName.endsWith('_' + name))!.isEventOnly,
+        name
+      ).toBeUndefined();
       expect(
         segments.find((segment) => segment.displayName.endsWith('_' + name))!.entry,
         name

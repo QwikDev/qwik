@@ -403,6 +403,7 @@ function buildSegmentMetadata(
     path: getDirectory(ext.origin),
     extension: outputExtension.replace(leadingDot, ''),
     parent: ext.parent,
+    isEventOnly: ext.isEventOnly || undefined,
     ctxKind: ext.ctxKind,
     ctxName: ext.ctxName,
     captures: ext.captures,

@@ -1294,3 +1294,15 @@ describe('qwik libraries as server externals', () => {
     }
   });
 });
+
+test('opts Qwik-compiled modules out of the vitest module cache', () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() }) as any;
+  let generateCacheKey: (ctx: { id: string }) => string | false | undefined = () => '';
+  plugin.configureVitest({
+    defineCacheKeyGenerator: (generator: typeof generateCacheKey) => (generateCacheKey = generator),
+  });
+
+  assert.equal(generateCacheKey({ id: '/app/src/routes/index.tsx' }), false);
+  assert.equal(generateCacheKey({ id: '/app/node_modules/lib/index.qwik.mjs' }), false);
+  assert.equal(generateCacheKey({ id: '/app/node_modules/lodash/index.js' }), undefined);
+});

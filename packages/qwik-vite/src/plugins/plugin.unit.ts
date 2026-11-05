@@ -880,6 +880,23 @@ test('transform omits sourcemaps for public virtual modules', async () => {
   expect(result!.map).toBeNull();
 });
 
+test('isCompiledModule includes QRL segments registered by transform', async () => {
+  const root = normalizePath(resolve(cwd, 'compiled-test'));
+  const plugin = await mockPlugin(process.platform, true);
+  await plugin.normalizeOptions({ rootDir: root });
+  const result = await plugin.transform(
+    { addWatchFile: () => undefined, emitFile: () => undefined } as any,
+    `import { $ } from '@qwik.dev/core';
+export const greet = $(() => 'hello');
+`,
+    `${root}/src/greet.ts`
+  );
+  const segmentId: string = result!.meta!.qwikdeps![0];
+
+  expect(segmentId).toMatch(/greet\.ts_.*\.js$/);
+  expect(plugin.isCompiledModule(segmentId)).toBe(true);
+});
+
 test('load bootstraps a cold QRL segment whose parent is not in the module graph', async () => {
   // Absolute, pre-normalized paths so parentId matches the optimizer's segment
   // keys on every platform (including Windows drive letters).

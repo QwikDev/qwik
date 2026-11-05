@@ -1306,3 +1306,15 @@ test('opts Qwik-compiled modules out of the vitest module cache', () => {
   assert.equal(generateCacheKey({ id: '/app/node_modules/lib/index.qwik.mjs' }), false);
   assert.equal(generateCacheKey({ id: '/app/node_modules/lodash/index.js' }), undefined);
 });
+
+test('supports vitest 4 cache key generator name and older vitest without one', () => {
+  const plugin = getPlugin({ optimizerOptions: mockOptimizerOptions() }) as any;
+  let generateCacheKey: (ctx: { id: string }) => string | false | undefined = () => '';
+  plugin.configureVitest({
+    experimental_defineCacheKeyGenerator: (generator: typeof generateCacheKey) =>
+      (generateCacheKey = generator),
+  });
+
+  assert.equal(generateCacheKey({ id: '/app/src/routes/index.tsx' }), false);
+  assert.doesNotThrow(() => plugin.configureVitest({}));
+});

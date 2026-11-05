@@ -115,11 +115,14 @@ const QWIK_HMR_BRIDGE_CODE = `
 `;
 
 /** The vitest hook we use, typed locally so vitest stays optional for these types. */
+type DefineCacheKeyGenerator = (
+  generate: (ctx: { id: string }) => string | false | undefined
+) => void;
+
 interface VitestPlugin {
   configureVitest(ctx: {
-    defineCacheKeyGenerator: (
-      generate: (ctx: { id: string }) => string | false | undefined
-    ) => void;
+    defineCacheKeyGenerator?: DefineCacheKeyGenerator;
+    experimental_defineCacheKeyGenerator?: DefineCacheKeyGenerator;
   }): void;
 }
 
@@ -189,9 +192,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     enforce: 'pre',
     api,
 
-    configureVitest({ defineCacheKeyGenerator }) {
+    configureVitest({ defineCacheKeyGenerator, experimental_defineCacheKeyGenerator }) {
+      // vitest 5 renamed the 4.x experimental API; earlier versions have no fs module cache.
+      const defineGenerator = defineCacheKeyGenerator ?? experimental_defineCacheKeyGenerator;
       // Cache hits skip transform/load, which register QRL segments in memory.
-      defineCacheKeyGenerator(({ id }) => (qwikPlugin.isCompiledModule(id) ? false : undefined));
+      defineGenerator?.(({ id }) => (qwikPlugin.isCompiledModule(id) ? false : undefined));
     },
 
     async config(viteConfig, viteEnv) {

@@ -16,13 +16,11 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
 
 ## Router
 
-- **`Link` `data-q-route`** (main's change in `link-component.tsx`): the route lookup
-  runs inside `untrack(() => matchRouteTree(routes, …))`. The v3 compiler captures `routes`, which
-  holds page-loader functions, so resume serialization throws "Cannot serialize function". 13
-  `|resume|` tests in `link-component.unit.tsx` fail, including v3's existing prefetch tests.
-- **`Link` `data-navigating`**: the csr test "marks the link with data-navigating until navigation
-  resolves" still sees the attribute after the navigation promise resolves. Its sibling "clears
-  data-navigating when navigation rejects" fails now and then, depending on timing.
+- **`Link` `data-q-route` (fixed).** The attribute expression captured the matched route, whose
+  loader functions can't be serialized, so 13 `|resume|` tests failed. The name is now computed in
+  setup.
+- **`Link` `data-navigating`**: both navigating-state tests fail in `|resume|` only: the attribute
+  stays set after the navigation promise settles. They pass in `|csr|`.
 - **`window._qRouterInitNavigate`**: main sets it inside `goto` to `goto` itself. On v3 that makes
   the `goto` QRL capture itself and SSR throws "Cannot access 'goto' before initialization", so
   the assignment was dropped. `spa-init.ts` still reads it and falls back to the old init-mode

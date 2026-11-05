@@ -68,6 +68,8 @@ export const Link = component$<LinkProps>((props) => {
   const routes = shouldVisiblePrefetchBundles && findRouterConfig()?.routes;
   const route =
     routes && untrack(() => matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname));
+  // Only the name reaches the attribute: the matched route holds loader functions.
+  const routeName = route && !route.notFound ? '/' + route.routeParts.join('/') : undefined;
 
   const shouldPrefetchBundles =
     !!clientNavPath &&
@@ -157,7 +159,7 @@ export const Link = component$<LinkProps>((props) => {
               ? 'd'
               : null
       }
-      data-q-route={route && !route.notFound ? '/' + route.routeParts.join('/') : undefined}
+      data-q-route={routeName}
       onClick$={[
         preventDefault,
         handlePreload, // needs to be in between preventDefault and onClick$ to ensure it starts asap.

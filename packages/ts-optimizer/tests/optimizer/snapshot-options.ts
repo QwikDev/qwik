@@ -37,6 +37,12 @@ export const DEFAULT_OPTIONS: Required<
 };
 
 export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
+  migrated_qrl_pure: {
+    filename: 'node_modules/library/index.qwik.mjs',
+    entryStrategy: { type: 'smart' },
+    mode: 'prod',
+    isServer: false,
+  },
   should_transform_loop_stable_hoisted_var: { transpileTs: true, transpileJsx: true },
   should_transform_loop_stable_hoisted_var_declarators: { transpileTs: true, transpileJsx: true },
   should_transform_loop_hoisted_function_reference: { transpileTs: true, transpileJsx: true },

@@ -414,7 +414,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
       if (movedMarkerSymbols.has(ext.symbolName) && !(isDevMode && devFilePath)) {
         const fileExt = explicitExtensions ? (outputExtension ?? '.js') : '';
         ctx.qrlDecls.push(
-          `qrl(()=>import("./${ext.canonicalFilename}${fileExt}"), "${ext.symbolName}");`
+          `/*#__PURE__*/ qrl(()=>import("./${ext.canonicalFilename}${fileExt}"), "${ext.symbolName}");`
         );
         // Intentionally not registering `q_<sym>` in `qrlVarNames`: the
         // parent no longer declares it, so a stray reference should surface

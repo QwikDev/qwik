@@ -1,0 +1,174 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+import { componentQrl, inlinedQrl } from '@qwik.dev/core';
+
+function useUnused() {
+  return /*#__PURE__*/ inlinedQrl(() => 'UNUSED_CALLBACK', 'useUnused_callback_AAA111aaa11');
+}
+
+export const Unused = /*#__PURE__*/ componentQrl(
+  /*#__PURE__*/ inlinedQrl(() => {
+    useUnused();
+    return null;
+  }, 'Unused_component_BBB222bbb22')
+);
+
+function useRead() {
+  const read = /*#__PURE__*/ inlinedQrl(() => 'LIVE_READ', 'useRead_read_CCC333ccc33');
+  return read();
+}
+
+export const App = /*#__PURE__*/ componentQrl(
+  /*#__PURE__*/ inlinedQrl(() => useRead(), 'App_component_DDD444ddd44')
+);
+
+console.log('KEEP_SIDE_EFFECT');
+
+============================= node_modules/library/index.qwik.mjs_useUnused_callback_AAA111aaa11.mjs ==
+
+export const s_AAA111aaa11 = ()=>'UNUSED_CALLBACK';
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/library/index.qwik.mjs\"],\"names\":[],\"mappings\":\"6BAGkC,IAAM\"}")
+/*
+{
+  "origin": "node_modules/library/index.qwik.mjs",
+  "name": "s_AAA111aaa11",
+  "entry": "node_modules/library/index.qwik.mjs_entry_useUnused",
+  "displayName": "index.qwik.mjs_useUnused_callback",
+  "hash": "AAA111aaa11",
+  "canonicalFilename": "index.qwik.mjs_useUnused_callback_AAA111aaa11",
+  "path": "node_modules/library",
+  "extension": "mjs",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useUnused",
+  "captures": false,
+  "loc": [
+    118,
+    141
+  ]
+}
+*/
+============================= node_modules/library/index.qwik.mjs_Unused_component_BBB222bbb22.mjs ==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_s_AAA111aaa11 = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useUnused_callback_AAA111aaa11"), "s_AAA111aaa11");
+//
+function useUnused() {
+    return q_s_AAA111aaa11;
+}
+export const s_BBB222bbb22 = ()=>{
+    useUnused();
+    return null;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/library/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;AAEA,SAAS;IACP;AACF;6BAG2B;IACvB;IACA,OAAO;AACT\"}")
+/*
+{
+  "origin": "node_modules/library/index.qwik.mjs",
+  "name": "s_BBB222bbb22",
+  "entry": "node_modules/library/index.qwik.mjs_entry_Unused",
+  "displayName": "index.qwik.mjs_Unused_component",
+  "hash": "BBB222bbb22",
+  "canonicalFilename": "index.qwik.mjs_Unused_component_BBB222bbb22",
+  "path": "node_modules/library",
+  "extension": "mjs",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    258,
+    303
+  ]
+}
+*/
+============================= node_modules/library/index.qwik.mjs_useRead_read_CCC333ccc33.mjs ==
+
+export const s_CCC333ccc33 = ()=>'LIVE_READ';
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/library/index.qwik.mjs\"],\"names\":[],\"mappings\":\"6BAcwC,IAAM\"}")
+/*
+{
+  "origin": "node_modules/library/index.qwik.mjs",
+  "name": "s_CCC333ccc33",
+  "entry": "node_modules/library/index.qwik.mjs_entry_useRead",
+  "displayName": "index.qwik.mjs_useRead_read",
+  "hash": "CCC333ccc33",
+  "canonicalFilename": "index.qwik.mjs_useRead_read_CCC333ccc33",
+  "path": "node_modules/library",
+  "extension": "mjs",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "read",
+  "captures": false,
+  "loc": [
+    402,
+    419
+  ]
+}
+*/
+============================= node_modules/library/index.qwik.mjs_App_component_DDD444ddd44.mjs ==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_s_CCC333ccc33 = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useRead_read_CCC333ccc33"), "s_CCC333ccc33");
+//
+function useRead() {
+    const read = q_s_CCC333ccc33;
+    return read();
+}
+export const s_DDD444ddd44 = ()=>useRead();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/library/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;AAaA,SAAS;IACP,MAAM;IACN,OAAO;AACT;6BAG2B,IAAM\"}")
+/*
+{
+  "origin": "node_modules/library/index.qwik.mjs",
+  "name": "s_DDD444ddd44",
+  "entry": "node_modules/library/index.qwik.mjs_entry_App",
+  "displayName": "index.qwik.mjs_App_component",
+  "hash": "DDD444ddd44",
+  "canonicalFilename": "index.qwik.mjs_App_component_DDD444ddd44",
+  "path": "node_modules/library",
+  "extension": "mjs",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    544,
+    559
+  ]
+}
+*/
+============================= node_modules/library/index.qwik.mjs ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from '@qwik.dev/core';
+//
+/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useUnused_callback_AAA111aaa11"), "s_AAA111aaa11");
+//
+const q_s_BBB222bbb22 = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_Unused_component_BBB222bbb22"), "s_BBB222bbb22");
+//
+/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useRead_read_CCC333ccc33"), "s_CCC333ccc33");
+//
+const q_s_DDD444ddd44 = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_App_component_DDD444ddd44"), "s_DDD444ddd44");
+//
+export const Unused = /*#__PURE__*/ componentQrl(q_s_BBB222bbb22);
+export const App = /*#__PURE__*/ componentQrl(q_s_DDD444ddd44);
+console.log('KEEP_SIDE_EFFECT');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/node_modules/library/index.qwik.mjs\"],\"names\":[],\"mappings\":\";AAAA,SAAS,YAAY,QAAoB,iBAAiB;;;;;;;;;;AAM1D,OAAO,MAAM,SAAS,WAAW,GAAG,8BAKlC;AAOF,OAAO,MAAM,MAAM,WAAW,GAAG,8BAE/B;AAEF,QAAQ,GAAG,CAAC\"}")
+== DIAGNOSTICS ==
+
+[]

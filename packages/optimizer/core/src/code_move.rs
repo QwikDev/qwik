@@ -7,7 +7,9 @@ use crate::words::*;
 
 use anyhow::Error;
 use indexmap::IndexMap;
+use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::rc::Rc;
 use swc_atoms::Atom;
 use swc_common::comments::{SingleThreadedComments, SingleThreadedCommentsMap};
 use swc_common::Spanned;
@@ -120,9 +122,10 @@ pub struct NewModuleCtx<'a> {
 }
 
 pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComments), Error> {
+	// Emitters consume comments, so each module needs independent storage.
 	let comments = SingleThreadedComments::from_leading_and_trailing(
-		ctx.leading_comments,
-		ctx.trailing_comments,
+		Rc::new(RefCell::new(ctx.leading_comments.borrow().clone())),
+		Rc::new(RefCell::new(ctx.trailing_comments.borrow().clone())),
 	);
 	let max_cap = ctx.global.imports.len() + ctx.global.exports.len() + ctx.extra_top_items.len();
 	let mut module = ast::Module {

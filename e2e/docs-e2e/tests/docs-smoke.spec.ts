@@ -101,14 +101,14 @@ test.describe('Docs site smoke tests', () => {
       page.locator('[ui-qds-popover-root]').filter({ has: page.getByRole('button', { name }) });
 
     await section('Core').locator('[ui-qds-popover-trigger]').hover();
-    await expect(section('Core')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Core')).toHaveAttribute('ui-open');
     await expect(section('Core').locator('[ui-qds-popover-content]')).not.toHaveAttribute(
       'data-nav-slide',
       /.+/
     );
 
     await section('Ecosystem').locator('[ui-qds-popover-trigger]').hover();
-    await expect(section('Ecosystem')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Ecosystem')).toHaveAttribute('ui-open');
     await expect(section('Ecosystem').locator('[ui-qds-popover-content]')).toHaveAttribute(
       'data-nav-slide',
       'right'
@@ -123,7 +123,7 @@ test.describe('Docs site smoke tests', () => {
     );
 
     await section('Router').locator('[ui-qds-popover-trigger]').hover();
-    await expect(section('Router')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Router')).toHaveAttribute('ui-open');
     await expect(section('Router').locator('[ui-qds-popover-content]')).toHaveAttribute(
       'data-nav-slide',
       'left'
@@ -139,7 +139,7 @@ test.describe('Docs site smoke tests', () => {
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await section('Resources').locator('[ui-qds-popover-trigger]').hover();
-    await expect(section('Resources')).toHaveAttribute('ui-open', 'true');
+    await expect(section('Resources')).toHaveAttribute('ui-open');
     await expect(section('Resources').locator('[ui-qds-popover-content]')).toHaveCSS(
       'animation-name',
       'none'

@@ -427,7 +427,8 @@ export const vnode_getProp = <T = unknown>(
 
 /** @internal */
 export const vnode_setProp = (vNode: VNode, key: string, value: unknown) => {
-  if (value == null && vNode.props) {
+  const isNullItem = key === ITERATION_ITEM_SINGLE && value === null;
+  if (value == null && !isNullItem && vNode.props) {
     delete vNode.props[key];
   } else {
     vNode.props ||= {};

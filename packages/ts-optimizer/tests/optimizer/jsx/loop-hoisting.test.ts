@@ -1,3 +1,4 @@
+/* eslint-disable no-new-func -- Execute generated optimizer output. */
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
@@ -7,6 +8,8 @@ import {
   generateParamPadding,
   buildCaptureProp,
   eventHandlerQpParams,
+  insertLoopWDecls,
+  indexBindingReferences,
 } from '../../../src/optimizer/jsx/loop-hoisting.js';
 
 function findFirstNode(source: string, nodeType: string): AstNode {
@@ -192,6 +195,205 @@ describe('buildCaptureProp', () => {
   });
 });
 
+describe('insertLoopWDecls', () => {
+  it('defers captures until an aliased helper executes after initialization', () => {
+    const output = insertLoopWDecls(
+      '(p) => { const render = () => p.items.map(() => h); const alias = render; const x = p.prefix; return alias(); }',
+      [{ decl: 'const h = q.w([x]);', symbolName: 'h', captureNames: ['x'] }]
+    );
+    const render = new Function('q', `return ${output}`)({ w: ([value]: string[]) => value });
+    expect(render({ items: [1, 2], prefix: 'current' })).toEqual(['current', 'current']);
+  });
+  it('shares the default loop binding inside each outer callback', () => {
+    const output = insertLoopWDecls(
+      '(p) => { const { rows = p.facets.map(facet => facet.items.map(() => h)) } = p; return rows; }',
+      [{ decl: 'const h = q.w([facet, p]);', symbolName: 'h', captureNames: ['facet', 'p'] }]
+    );
+    let allocations = 0;
+    const render = new Function('q', `return ${output}`)({
+      w: ([facet]: { slug: string }[]) => {
+        allocations++;
+        return facet.slug;
+      },
+    });
+    expect(
+      render({
+        facets: [
+          { slug: 'color', items: [1, 2] },
+          { slug: 'size', items: [3] },
+        ],
+      })
+    ).toEqual([['color', 'color'], ['size']]);
+    expect(allocations).toBe(2);
+    const rows = ['existing'];
+    expect(render({ rows })).toBe(rows);
+    expect(allocations).toBe(2);
+  });
+
+  it('evaluates an awaited receiver before binding once for the loop', async () => {
+    const output = insertLoopWDecls(
+      'async (p) => { const { x, rows = (await p.loadItems()).map(() => h) } = p; return rows; }',
+      [{ decl: 'const h = q.w([x]);', symbolName: 'h', captureNames: ['x'] }]
+    );
+    const events: string[] = [];
+    const render = new Function('q', `return ${output}`)({
+      w: ([value]: string[]) => {
+        events.push('bind');
+        return value;
+      },
+    });
+    expect(
+      await render({
+        x: 'current',
+        loadItems: async () => {
+          events.push('load');
+          return [1, 2, 3];
+        },
+      })
+    ).toEqual(['current', 'current', 'current']);
+    expect(events).toEqual(['load', 'bind']);
+    const rows = ['existing'];
+    expect(await render({ x: 'unused', rows })).toBe(rows);
+    expect(events).toEqual(['load', 'bind']);
+  });
+
+  it('keeps await outside the shared binding wrapper', async () => {
+    const output = insertLoopWDecls(
+      'async (p) => { const { x, rows = await Promise.resolve(p.items.map(() => h)) } = p; return rows; }',
+      [{ decl: 'const h = q.w([x]);', symbolName: 'h', captureNames: ['x'] }]
+    );
+    let allocations = 0;
+    const render = new Function('q', `return ${output}`)({
+      w: ([value]: string[]) => {
+        allocations++;
+        return value;
+      },
+    });
+    expect(await render({ x: 'current', items: [1, 2, 3] })).toEqual([
+      'current',
+      'current',
+      'current',
+    ]);
+    expect(allocations).toBe(1);
+    const rows = ['existing'];
+    expect(await render({ x: 'unused', rows })).toBe(rows);
+    expect(allocations).toBe(1);
+  });
+
+  it('shares a binding only when a destructuring default is evaluated', () => {
+    const output = insertLoopWDecls(
+      '(p) => { const { x, rows = p.items.map(() => h) } = p; return rows; }',
+      [{ decl: 'const h = q.w([x]);', symbolName: 'h', captureNames: ['x'] }]
+    );
+    let allocations = 0;
+    const render = new Function('q', `return ${output}`)({
+      w: ([value]: string[]) => {
+        allocations++;
+        return value;
+      },
+    });
+    expect(render({ x: 'current', items: [1, 2, 3] })).toEqual(['current', 'current', 'current']);
+    expect(allocations).toBe(1);
+    const rows = ['existing'];
+    expect(render({ x: 'unused', rows })).toBe(rows);
+    expect(allocations).toBe(1);
+  });
+
+  it('splits a declaration before the initializer using the binding', () => {
+    const output = insertLoopWDecls(
+      '(p) => { const x = p.a, rows = p.items.map(() => h); return rows; }',
+      [{ decl: 'const h = q.w([x]);', symbolName: 'h', captureNames: ['x'] }]
+    );
+    const captures: unknown[] = [];
+    const render = new Function('q', `return ${output}`)({
+      w: (values: unknown[]) => {
+        captures.push(values[0]);
+        return values[0];
+      },
+    });
+    expect(render({ a: 'current', items: [1, 2, 3] })).toEqual(['current', 'current', 'current']);
+    expect(captures).toEqual(['current']);
+  });
+
+  const binding = { decl: 'const h = q_h.w([p]);', symbolName: 'h', captureNames: ['p'] };
+
+  it('places the binding inside the function body', () => {
+    expect(insertLoopWDecls('(p) => <b onClick$={h} />', [binding])).toMatch(
+      /^\(p\) => \{\s*const h = q_h\.w\(\[p\]\);\s*return <b onClick\$=\{h\} \/>;\s*\}$/
+    );
+  });
+
+  it('places the binding at its reference, not at an earlier string with the same text', () => {
+    const outerItemBinding = {
+      decl: 'const h = q_h.w([f]);',
+      symbolName: 'h',
+      captureNames: ['f'],
+    };
+    const body =
+      '(p) => <div title="h">{p.map((f) => f.items.map(() => <b onClick$={h} />))}</div>';
+    expect(insertLoopWDecls(body, [outerItemBinding])).toMatch(
+      /^\(p\) => <div title="h">\{p\.map\(\(f\) => \{\s*const h = q_h\.w\(\[f\]\);/
+    );
+  });
+
+  it('places the binding after statements that reassign a capture', () => {
+    const reassignedBinding = {
+      decl: 'const h = q_h.w([x]);',
+      symbolName: 'h',
+      captureNames: ['x'],
+    };
+    const body = "(p) => { let x = p.a; x = 'b'; return <b onClick$={h} />; }";
+    expect(insertLoopWDecls(body, [reassignedBinding])).toMatch(
+      /x = 'b';\s*const h = q_h\.w\(\[x\]\);\s*return/
+    );
+  });
+
+  it('places the binding before a declaration that uses it', () => {
+    const body =
+      '(p) => { const rows = p.map(() => <b onClick$={h} />); const t = 1; return rows; }';
+    expect(insertLoopWDecls(body, [binding])).toMatch(
+      /^\(p\) => \{\s*const h = q_h\.w\(\[p\]\);\s*const rows =/
+    );
+  });
+
+  it('places the binding before calls to a function declared after them', () => {
+    const body =
+      '(p) => { return render(); function render() { return p.map(() => <b onClick$={h} />); } }';
+    expect(insertLoopWDecls(body, [binding])).toMatch(
+      /^\(p\) => \{\s*const h = q_h\.w\(\[p\]\);\s*return render\(\);/
+    );
+  });
+
+  it('places the binding before JSX tags of a function declared after them', () => {
+    const body =
+      '(p) => { return <ul><Rows /></ul>; function Rows() { return p.map(() => <b onClick$={h} />); } }';
+    expect(insertLoopWDecls(body, [binding])).toMatch(
+      /^\(p\) => \{\s*const h = q_h\.w\(\[p\]\);\s*return <ul>/
+    );
+  });
+
+  it('places the binding after a capture declared below its first use', () => {
+    const laterCaptureBinding = {
+      decl: 'const h = q_h.w([x]);',
+      symbolName: 'h',
+      captureNames: ['x'],
+    };
+    const body =
+      '(p) => { const render = () => p.map(() => <b onClick$={h} />); const x = p.a; return render(); }';
+    expect(insertLoopWDecls(body, [laterCaptureBinding])).toMatch(
+      /const x = p\.a;\s*const h = q_h\.w\(\[x\]\);\s*return render\(\);/
+    );
+  });
+
+  it('throws instead of dropping the binding when the body is not a function', () => {
+    expect(() => insertLoopWDecls('items', [binding])).toThrow(/Qwik optimizer: .* h\b/);
+  });
+
+  it('throws instead of dropping the binding when nothing uses it', () => {
+    expect(() => insertLoopWDecls('(p) => <b />', [binding])).toThrow(/Qwik optimizer: .* h\b/);
+  });
+});
+
 describe('snapshot pattern matching', () => {
   it('matches loop hoisting pattern from event_listeners_inside_loop snap', () => {
     const params = generateParamPadding(['item']);
@@ -223,5 +425,32 @@ describe('snapshot pattern matching', () => {
     const qp = buildCaptureProp(['key']);
     expect(qp!.propName).toBe('q:p');
     expect(qp!.propValue).toBe('key');
+  });
+});
+
+describe('binding use indexing', () => {
+  it('resolves many bindings without revisiting references', () => {
+    const source =
+      '() => { ' +
+      Array.from({ length: 200 }, (_, index) => `var value${index} = props.field${index};`).join(
+        ' '
+      ) +
+      ' return props; }';
+    const body = findFirstNode(source, 'BlockStatement');
+    if (body.type !== 'BlockStatement') {
+      throw new Error('Expected a block');
+    }
+    let reads = 0;
+    const uses = indexBindingReferences(body.body, () => {
+      reads++;
+      return true;
+    });
+    const indexedReads = reads;
+    for (let index = 0; index < 200; index++) {
+      expect(uses(`value${index}`)).toBeUndefined();
+    }
+    expect(uses('props')).toBeDefined();
+    expect(indexedReads).toBeGreaterThan(0);
+    expect(reads).toBe(indexedReads);
   });
 });

@@ -86,6 +86,24 @@ function collectParamNames(params: AstParamPattern[]): string[] {
   return names;
 }
 
+export function collectFunctionVarDeclarations(body: AstNode): VariableDeclaration[] {
+  const declarations: VariableDeclaration[] = [];
+  walk(body, {
+    enter(node: AstNode) {
+      if (
+        isFunctionLikeNode(node) ||
+        node.type === 'ClassDeclaration' ||
+        node.type === 'ClassExpression'
+      ) {
+        this.skip();
+      } else if (node.type === 'VariableDeclaration' && node.kind === 'var') {
+        declarations.push(node);
+      }
+    },
+  });
+  return declarations;
+}
+
 export function collectScopeIdentifiers(
   containerNode: AstProgram | BlockStatement | FunctionBody | AstFunction,
   _source: string,
@@ -93,6 +111,17 @@ export function collectScopeIdentifiers(
 ): Set<string> {
   const ids = new Set<string>();
   collectDeclarationsFromNode(containerNode, ids);
+  const body =
+    containerNode.type === 'FunctionExpression' ||
+    containerNode.type === 'FunctionDeclaration' ||
+    containerNode.type === 'ArrowFunctionExpression'
+      ? containerNode.body
+      : containerNode;
+  if (body) {
+    for (const declaration of collectFunctionVarDeclarations(body)) {
+      addScopeDeclarations(declaration, ids);
+    }
+  }
   return ids;
 }
 

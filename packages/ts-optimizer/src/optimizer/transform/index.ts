@@ -396,7 +396,11 @@ function transformOneModule(
     analysis,
     emit.isInlineStrategy
   );
-  const preRenameSymbolName = applyProdRename(extractions, closureNodes, emit.emitMode);
+  const preRenameSymbolName = applyProdRename(
+    extractions,
+    [closureNodes, analysis.elementQpParamsMap],
+    emit.emitMode
+  );
   const sourceExtensions = downgradeExtensions(
     extractions,
     emit.shouldTranspileJsx,
@@ -827,7 +831,7 @@ function analyzeModuleCaptures(
     }
   }
 
-  const globalDeclPositions = new Map<string, number>();
+  const captureDeclPositions = new Map<string, Map<string, number>>();
   // Only `inline` (not `hoist`) skips captures→paramNames promotion: `hoist`
   // still needs the `(_, _1, capture)` param-padding form, while `inline`
   // keeps captures in `captureNames` for the `_capturesObj._[N]` unpacking path.
@@ -849,7 +853,7 @@ function analyzeModuleCaptures(
     moduleTopLevelNames: new Set(collectModuleLevelDecls(program, repairedCode).map((d) => d.name)),
   };
 
-  promoteEventHandlerCaptures(eventCaptureCtx, globalDeclPositions);
+  promoteEventHandlerCaptures(eventCaptureCtx, captureDeclPositions);
 
   // A worker wrapper delegates positionally to its worker child, so it takes
   // the child's lifted params and moved-captures marker verbatim.
@@ -866,18 +870,19 @@ function analyzeModuleCaptures(
     }
     const mut = wrapper as Mutable<ExtractionResult>;
     mut.paramNames = [...worker.paramNames];
+    mut.captureParamNames = worker.captureParamNames?.slice();
     mut.movedCaptures = worker.movedCaptures;
     mut.captureNames = [];
     mut.captures = false;
   }
 
-  unifyParameterSlots(eventCaptureCtx, globalDeclPositions);
+  unifyParameterSlots(eventCaptureCtx, captureDeclPositions);
 
   // Threads strip-config so stripped event handlers' captures still populate
   // `elementQpParamsMap` for segment-body JSX.
   const elementQpParamsMap = buildElementCaptureMap(
     eventCaptureCtx,
-    globalDeclPositions,
+    captureDeclPositions,
     options.stripCtxName,
     options.stripEventHandlers
   );
@@ -1208,7 +1213,7 @@ function attributeSegmentUsage(
  */
 function applyProdRename(
   extractions: ExtractionResult[],
-  closureNodes: Map<string, AstFunction>,
+  symbolMaps: readonly Map<string, unknown>[],
   emitMode: EmitMode
 ): Map<SymbolName, SymbolName> {
   const preRenameSymbolName = new Map<SymbolName, SymbolName>();
@@ -1224,11 +1229,12 @@ function applyProdRename(
     // Internal-builder cast: rename mutates identity in place post-extraction.
     (ext as Mutable<ExtractionResult>).symbolName = mkSymbolName('s_' + ext.hash);
     preRenameSymbolName.set(ext.symbolName, original);
-    // Mirror the rename in `closureNodes` so post-rename lookups still resolve.
-    const closure = closureNodes.get(original);
-    if (closure) {
-      closureNodes.delete(original);
-      closureNodes.set(ext.symbolName, closure);
+    for (const symbols of symbolMaps) {
+      const value = symbols.get(original);
+      if (value !== undefined) {
+        symbols.delete(original);
+        symbols.set(ext.symbolName, value);
+      }
     }
   }
   return preRenameSymbolName;

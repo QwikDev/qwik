@@ -37,6 +37,172 @@ export const DEFAULT_OPTIONS: Required<
 };
 
 export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
+  should_transform_loop_stable_hoisted_var: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_stable_hoisted_var_declarators: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_hoisted_function_reference: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_hoisted_function_chain: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_hoisted_function_chain_initialization: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+
+  should_transform_loop_logical_property_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_array_property_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_object_property_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_stable_logical_property_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_hoisted_helper_initialization: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_stable_hoisted_helper: { transpileTs: true, transpileJsx: true },
+
+  should_transform_loop_property_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_pushed_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_setter_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_property_helper_across_initialization: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_stable_property_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_nullable_capture: { transpileTs: true, transpileJsx: true },
+
+  should_transform_loop_named_factory: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_function_argument: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_conditional_factory: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_factory_returning_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_named_factory_across_initialization: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_argument_across_initialization: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_var_in_nested_blocks: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_var_in_try: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_var_in_label: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_var_in_nested_branch: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_var_in_while: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_shared_padding_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_shadowed_helper_name: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_assigned_helper_alias: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_assigned_alias_across_initialization: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_branch_assigned_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_factory_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_factory_across_initialization: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_helper_in_call_result: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_handler_with_awaited_map_argument: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_stable_var_in_block: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_stable_var_in_branch: { transpileTs: true, transpileJsx: true },
+  should_transform_promoted_capture_consolidated_props: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_destructured_array_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_destructured_object_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_conditional_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_destructured_helper_across_initialization: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_capture_named_padding: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_for_of_var_head: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_for_in_var_head: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_function_scoped_var_in_block: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_function_scoped_var_in_for: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_uncaptured_var_initializers: { transpileTs: true, transpileJsx: true },
+  should_transform_inline_component_var_props_destructure: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_inline_component_let_props_destructure: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_first_var_initialization_array_pattern: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_first_var_initialization_object_pattern: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_first_var_initialization_between_declarators: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_first_var_initialization_between_alias_calls: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_first_var_initialization_between_branch_calls: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_first_var_initialization_between_helper_calls: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_var_capture_after_helper_storage: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_handler_before_single_var_initializer: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_var_reinitialized_before_helper: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_var_reinitialized_between_helper_calls: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_helper_call_after_capture_declarator: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_stable_var_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_helper_in_array: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_helper_in_array_declaration: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_handler_before_var_initializer: { transpileTs: true, transpileJsx: true },
+
+  should_transform_loop_handler_in_arrow_parameter_default: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_helper_multiple_declarators: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_helper_call_in_declaration: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_parenthesized_update_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_for_of_head_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_for_in_head_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_handler_in_parameter_default: { transpileTs: true, transpileJsx: true },
+
+  should_transform_loop_destructuring_default_read: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_destructuring_key_read: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_object_assigned_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_array_assigned_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_shadowed_write: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_stable_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_callback_assigned_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_alias_assigned_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_helper_assigned_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_for_of_assigned_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_assigned_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_helper_forward_const_capture: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_helper_forward_capture: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_helper_branches: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_helper_alias: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_helper_repeated_calls: { transpileTs: true, transpileJsx: true },
+  should_transform_nested_loop_handler_in_destructuring_default: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_handler_with_awaited_default_receiver: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_handler_in_awaited_destructuring_default: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_handler_in_destructuring_default: { transpileTs: true, transpileJsx: true },
+  should_transform_loop_handler_between_declarators: { transpileTs: true, transpileJsx: true },
   smart_event_qrl_render_consumers: {
     entryStrategy: { type: 'smart' },
     transpileTs: true,
@@ -605,6 +771,18 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     transpileTs: true,
     transpileJsx: true,
   },
+  should_transform_loop_handler_after_capture_reassignment: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_handler_assigned_to_const_before_use: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_loop_handler_in_function_declared_after_return: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_transform_loop_multiple_handler_with_different_captures: {
     transpileTs: true,
     transpileJsx: true,
@@ -619,6 +797,14 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_transform_multiple_event_handlers: { transpileTs: true, transpileJsx: true },
   should_transform_multiple_event_handlers_case2: { transpileTs: true, transpileJsx: true },
+  should_transform_nested_loop_handlers_in_expression_bodied_component: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_nested_loop_handlers_in_paren_less_callbacks: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_transform_nested_loops: { transpileTs: true, transpileJsx: true },
   should_transform_nested_loops_handler_captures_only_inner_scope: {
     transpileTs: true,
@@ -626,6 +812,10 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_transform_qrls_in_ternary_expression: { transpileTs: true, transpileJsx: true },
   should_transform_same_element_one_handler_with_captures_one_without: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_transform_single_loop_handler_in_expression_bodied_component: {
     transpileTs: true,
     transpileJsx: true,
   },

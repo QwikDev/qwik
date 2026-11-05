@@ -1,0 +1,200 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6637
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const Facets = component$((props) => <div>{props.facets.map((facet) => <div>{facet.items.map((item) => <input onChange$={() => props.toggle$(facet.slug, item.slug)} />)}</div>)}</div>);
+
+export const Groups = component$((props) => {
+  return <div>{props.groups.map((group) => <div>{group.items.map((item) => <input onChange$={() => props.toggle$(group.slug, item.slug)} />)}</div>)}</div>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Facets_component_V53IH8KaBD0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Facets_component_V53IH8KaBD0"), "Facets_component_V53IH8KaBD0");
+const q_Groups_component_hJ0Zdme0QaI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Groups_component_hJ0Zdme0QaI"), "Groups_component_hJ0Zdme0QaI");
+//
+export const Facets = /*#__PURE__*/ componentQrl(q_Facets_component_V53IH8KaBD0);
+export const Groups = /*#__PURE__*/ componentQrl(q_Groups_component_hJ0Zdme0QaI);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,uBAAS,6CAA0K;AAEhM,OAAO,MAAM,uBAAS,6CAEnB\"}")
+============================= test.tsx_Groups_component_div_div_input_q_e_change_grvJFQyy4iE.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const Groups_component_div_div_input_q_e_change_grvJFQyy4iE = (_, _1, item)=>{
+    let group = _capturesObj._[0], props = _capturesObj._[1];
+    return props.toggle$(group.slug, item.slug);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;qEAM6F,QAA3B;;WAAiC,MAAM,OAAO,CAAC,MAAM,IAAI,EAAE,KAAK,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Groups_component_div_div_input_q_e_change_grvJFQyy4iE",
+  "entry": null,
+  "displayName": "test.tsx_Groups_component_div_div_input_q_e_change",
+  "hash": "grvJFQyy4iE",
+  "canonicalFilename": "test.tsx_Groups_component_div_div_input_q_e_change_grvJFQyy4iE",
+  "path": "",
+  "extension": "js",
+  "parent": "Groups_component_hJ0Zdme0QaI",
+  "ctxKind": "eventHandler",
+  "ctxName": "onChange$",
+  "captures": true,
+  "loc": [
+    381,
+    423
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "item"
+  ],
+  "captureNames": [
+    "group",
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Facets_component_V53IH8KaBD0.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Facets_component_div_div_input_q_e_change_0QuDJW7en0Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_Facets_component_div_div_input_q_e_change_0QuDJW7en0Y"), "Facets_component_div_div_input_q_e_change_0QuDJW7en0Y").m();
+//
+export const Facets_component_V53IH8KaBD0 = (props)=>/*#__PURE__*/ _jsxSorted("div", null, null, props.facets.map((facet)=>{
+        const Facets_component_div_div_input_q_e_change_0QuDJW7en0Y = q_Facets_component_div_div_input_q_e_change_0QuDJW7en0Y.w([
+            facet,
+            props
+        ]);
+        return /*#__PURE__*/ _jsxSorted("div", null, null, facet.items.map((item)=>/*#__PURE__*/ _jsxSorted("input", {
+                "q-e:change": Facets_component_div_div_input_q_e_change_0QuDJW7en0Y,
+                "q:p": item
+            }, null, null, 6, "u6_0")), 1, "u6_1");
+    }), 1, "u6_2");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAGiC,CAAC,sBAAU,WAAC,mBAAK,MAAM,MAAM,CAAC,GAAG,CAAC,CAAC;;;;;6BAAU,WAAC,mBAAK,MAAM,KAAK,CAAC,GAAG,CAAC,CAAC,qBAAS,WAAC;gBAAM,YAAS;uBAAzB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Facets_component_V53IH8KaBD0",
+  "entry": null,
+  "displayName": "test.tsx_Facets_component",
+  "hash": "V53IH8KaBD0",
+  "canonicalFilename": "test.tsx_Facets_component_V53IH8KaBD0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    81,
+    238
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Groups_component_hJ0Zdme0QaI.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Groups_component_div_div_input_q_e_change_grvJFQyy4iE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Groups_component_div_div_input_q_e_change_grvJFQyy4iE"), "Groups_component_div_div_input_q_e_change_grvJFQyy4iE").m();
+//
+export const Groups_component_hJ0Zdme0QaI = (props)=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, props.groups.map((group)=>{
+        const Groups_component_div_div_input_q_e_change_grvJFQyy4iE = q_Groups_component_div_div_input_q_e_change_grvJFQyy4iE.w([
+            group,
+            props
+        ]);
+        return /*#__PURE__*/ _jsxSorted("div", null, null, group.items.map((item)=>/*#__PURE__*/ _jsxSorted("input", {
+                "q-e:change": Groups_component_div_div_input_q_e_change_grvJFQyy4iE,
+                "q:p": item
+            }, null, null, 6, "u6_3")), 1, "u6_4");
+    }), 1, "u6_5");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC,CAAC;IAChC,qBAAO,WAAC,mBAAK,MAAM,MAAM,CAAC,GAAG,CAAC,CAAC;;;;;6BAAU,WAAC,mBAAK,MAAM,KAAK,CAAC,GAAG,CAAC,CAAC,qBAAS,WAAC;gBAAM,YAAS;uBAAzB;;;AAClE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Groups_component_hJ0Zdme0QaI",
+  "entry": null,
+  "displayName": "test.tsx_Groups_component",
+  "hash": "hJ0Zdme0QaI",
+  "canonicalFilename": "test.tsx_Groups_component_hJ0Zdme0QaI",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    275,
+    446
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Facets_component_div_div_input_q_e_change_0QuDJW7en0Y.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const Facets_component_div_div_input_q_e_change_0QuDJW7en0Y = (_, _1, item)=>{
+    let facet = _capturesObj._[0], props = _capturesObj._[1];
+    return props.toggle$(facet.slug, item.slug);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;qEAGgI,QAA3B;;WAAiC,MAAM,OAAO,CAAC,MAAM,IAAI,EAAE,KAAK,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Facets_component_div_div_input_q_e_change_0QuDJW7en0Y",
+  "entry": null,
+  "displayName": "test.tsx_Facets_component_div_div_input_q_e_change",
+  "hash": "0QuDJW7en0Y",
+  "canonicalFilename": "test.tsx_Facets_component_div_div_input_q_e_change_0QuDJW7en0Y",
+  "path": "",
+  "extension": "js",
+  "parent": "Facets_component_V53IH8KaBD0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onChange$",
+  "captures": true,
+  "loc": [
+    176,
+    218
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "item"
+  ],
+  "captureNames": [
+    "facet",
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

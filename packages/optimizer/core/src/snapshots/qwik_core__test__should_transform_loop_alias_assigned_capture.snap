@@ -1,0 +1,121 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+let prefix = 'initial';
+const setPrefix = value => { prefix = value; }; const alias = setPrefix;
+return <div>{props.items.map(item => { alias(item.name); return <button onClick$={() => props.select$(prefix, item.name)} />; })}</div>;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_List_component_HpIwcodkEXk = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_HpIwcodkEXk"), "List_component_HpIwcodkEXk");
+//
+export const List = /*#__PURE__*/ componentQrl(q_List_component_HpIwcodkEXk);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,qBAAO,2CAIjB\"}")
+============================= test.tsx_List_component_HpIwcodkEXk.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_List_component_div_button_q_e_click_b7FXjnKcNoQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_List_component_div_button_q_e_click_b7FXjnKcNoQ"), "List_component_div_button_q_e_click_b7FXjnKcNoQ").m();
+//
+export const List_component_HpIwcodkEXk = (props)=>{
+    let prefix = 'initial';
+    const setPrefix = (value)=>{
+        prefix = value;
+    };
+    const alias = setPrefix;
+    const List_component_div_button_q_e_click_b7FXjnKcNoQ = q_List_component_div_button_q_e_click_b7FXjnKcNoQ.w([
+        props
+    ]);
+    return /*#__PURE__*/ _jsxSorted("div", null, null, props.items.map((item)=>{
+        alias(item.name);
+        return /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": List_component_div_button_q_e_click_b7FXjnKcNoQ,
+            "q:ps": [
+                prefix,
+                item
+            ]
+        }, null, null, 6, "u6_0");
+    }), 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAE+B,CAAC;IAChC,IAAI,SAAS;IACb,MAAM,YAAY,CAAA;QAAW,SAAS;IAAO;IAAG,MAAM,QAAQ;;;;IAC9D,qBAAO,WAAC,mBAAK,MAAM,KAAK,CAAC,GAAG,CAAC,CAAA;QAAU,MAAM,KAAK,IAAI;QAAG,qBAAO,WAAC;YAAO,WAAQ;;gBAF5E;gBAEyB;;;IAAiG;AAC9H\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_HpIwcodkEXk",
+  "entry": null,
+  "displayName": "test.tsx_List_component",
+  "hash": "HpIwcodkEXk",
+  "canonicalFilename": "test.tsx_List_component_HpIwcodkEXk",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    326
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_List_component_div_button_q_e_click_b7FXjnKcNoQ.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const List_component_div_button_q_e_click_b7FXjnKcNoQ = (_, _1, prefix, item)=>{
+    let props = _capturesObj._[0];
+    return props.select$(prefix, item.name);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;+DAKkF,QAF9E,QAEyB;;WAA2D,MAAM,OAAO,CAAC,QAAQ,KAAK,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "List_component_div_button_q_e_click_b7FXjnKcNoQ",
+  "entry": null,
+  "displayName": "test.tsx_List_component_div_button_q_e_click",
+  "hash": "b7FXjnKcNoQ",
+  "canonicalFilename": "test.tsx_List_component_div_button_q_e_click_b7FXjnKcNoQ",
+  "path": "",
+  "extension": "js",
+  "parent": "List_component_HpIwcodkEXk",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    270,
+    308
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "prefix",
+    "item"
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

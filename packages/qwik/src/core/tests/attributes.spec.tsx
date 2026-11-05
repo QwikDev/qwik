@@ -15,12 +15,15 @@ import {
   useContextProvider,
   $,
   Slot,
+  _jsxSorted,
 } from '@qwik.dev/core';
 import { QContainerAttr } from '../shared/utils/markers';
 import { QContainerValue } from '../shared/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+const disabledPromise = Promise.resolve(true);
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -132,6 +135,91 @@ describe.each([
             tabIndex={-1}
           />
         </Fragment>
+      </Component>
+    );
+  });
+
+  it('should render a constant boolean attribute as empty on a client-created element', async () => {
+    const AttrComp = component$(() => {
+      const show = useSignal(false);
+      return (
+        <>
+          <button id="show" onClick$={() => (show.value = true)}></button>
+          {show.value && (
+            <button id="target" disabled>
+              target
+            </button>
+          )}
+        </>
+      );
+    });
+
+    const { document } = await render(<AttrComp />, { debug });
+    await trigger(document.body, '#show', 'click');
+
+    expect(document.body.querySelector('#target')!.getAttribute('disabled')).toBe('');
+  });
+
+  it('should render a constant boolean attribute promise as empty on a client-created element', async () => {
+    const AttrComp = component$(() => {
+      const show = useSignal(false);
+      return (
+        <>
+          <button id="show" onClick$={() => (show.value = true)}></button>
+          {show.value &&
+            _jsxSorted(
+              'button',
+              null,
+              { id: 'target', disabled: disabledPromise },
+              'target',
+              0,
+              null
+            )}
+        </>
+      );
+    });
+
+    const { document } = await render(<AttrComp />, { debug });
+    await trigger(document.body, '#show', 'click');
+
+    expect(document.body.querySelector('#target')!.getAttribute('disabled')).toBe('');
+  });
+
+  it('should match a boolean attribute that is set only as a DOM property', async () => {
+    const AttrComp = component$(() => {
+      const checked = useSignal(false);
+      return (
+        <div>
+          <button onClick$={() => (checked.value = true)}></button>
+          {_jsxSorted('input', { checked: checked.value }, { type: 'checkbox' }, null, 0, null)}
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<AttrComp />, { debug });
+    await trigger(document.body, 'button', 'click');
+
+    // Browsers do not reflect the `checked` property to the attribute, unlike the test DOM
+    document.querySelector('input')!.removeAttribute('checked');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <button></button>
+          <input type="checkbox" checked={true} />
+        </div>
+      </Component>
+    );
+  });
+
+  it('should match an attribute that is present only in the DOM', async () => {
+    const AttrComp = component$(() => <div id="target"></div>);
+
+    const { vNode, document } = await render(<AttrComp />, { debug });
+    document.querySelector('#target')!.setAttribute('data-dom-only', 'value');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div id="target" data-dom-only="value"></div>
       </Component>
     );
   });

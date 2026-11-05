@@ -1,9 +1,7 @@
 @layer qwik {
   @supports selector(html:active-view-transition-type(type)) {
     html:active-view-transition-type(qwik-navigation) {
-      & {
-        view-transition-name: none;
-      }
+      view-transition-name: none;
     }
   }
   @supports not selector(html:active-view-transition-type(type)) {

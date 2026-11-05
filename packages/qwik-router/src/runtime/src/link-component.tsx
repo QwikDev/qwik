@@ -27,6 +27,9 @@ export const Link = component$<LinkProps>((props) => {
   const isDepratedPrefetchDisabled = prefetchProp === false;
 
   const shouldPrefetch = untrack(shouldPreload, clientNavPath, loc);
+  const routes = clientNavPath && findRouterConfig()?.routes;
+  const route =
+    routes && untrack(() => matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname));
 
   const shouldVisiblePrefetchBundles =
     !!clientNavPath &&
@@ -44,11 +47,6 @@ export const Link = component$<LinkProps>((props) => {
     (prefetchDataProp === 'visible' ||
       // deprecated prop below, remove in favor of prefetchData
       prefetchProp === true);
-
-  // The bundle graph is keyed by route name (`product/[id]/`), which needs the route tree
-  const routes = shouldVisiblePrefetchBundles && findRouterConfig()?.routes;
-  const route =
-    routes && untrack(() => matchRouteTree(routes, new URL(clientNavPath!, loc.url).pathname));
 
   const shouldPrefetchBundles =
     !!clientNavPath &&
@@ -86,9 +84,22 @@ export const Link = component$<LinkProps>((props) => {
     : null;
 
   const preventDefault = clientNavPath
-    ? sync$((event: MouseEvent) => {
+    ? sync$((event: MouseEvent, element: HTMLAnchorElement) => {
         if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
           event.preventDefault();
+          const route = element.getAttribute('data-q-route');
+          if (route) {
+            const runtime = globalThis as any;
+            let name = route.startsWith('/') ? route.slice(1) : route;
+            if (!name.endsWith('/')) {
+              name += '/';
+            }
+            if (runtime.qPreload) {
+              runtime.qPreload(name, 1);
+            } else {
+              (runtime.qPreloadQueue ||= []).push([name, 1]);
+            }
+          }
         }
       })
     : null;
@@ -145,7 +156,7 @@ export const Link = component$<LinkProps>((props) => {
       data-q-route={route && !route.notFound ? '/' + route.routeParts.join('/') : undefined}
       onClick$={[
         preventDefault,
-        handlePreload, // needs to be in between preventDefault and onClick$ to ensure it starts asap.
+        route && !route.notFound ? null : handlePreload,
         onClick$,
         handleClientSideNavigation,
       ]}

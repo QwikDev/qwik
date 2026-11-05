@@ -261,6 +261,30 @@ test('rootDir, rel path', async () => {
   assert.deepEqual(opts.rootDir, normalizePath(resolve(cwd, customRoot)));
 });
 
+describe.each(['client', 'ssr'] as const)('default input (%s)', (target) => {
+  const entry = target === 'ssr' ? 'entry.ssr' : 'root';
+
+  test.each(['.', 'custom-src', resolve(cwd, 'absolute-src')])('srcDir: %s', async (srcDir) => {
+    const plugin = await mockPlugin();
+    const opts = await plugin.normalizeOptions({ target, srcDir });
+    expect(opts.input).toEqual([normalizePath(resolve(cwd, srcDir, entry))]);
+  });
+
+  test('retains srcDir across normalization calls', async () => {
+    const plugin = await mockPlugin();
+    await plugin.normalizeOptions({ target: 'lib', srcDir: 'custom-src' });
+    const opts = await plugin.normalizeOptions({ target });
+    expect(opts.input).toEqual([normalizePath(resolve(cwd, 'custom-src', entry))]);
+  });
+
+  test('preserves explicit input', async () => {
+    const plugin = await mockPlugin();
+    const opts = await plugin.normalizeOptions({ target, srcDir: '.', input: 'custom-entry.tsx' });
+    expect(opts.input).toBeUndefined();
+    expect(plugin.getOptions().input).toEqual(['custom-entry.tsx']);
+  });
+});
+
 test('tsconfigFileNames', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({

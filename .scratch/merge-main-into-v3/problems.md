@@ -53,10 +53,10 @@ v3 lacks main's v2 fixes.
   preserve captures across repeated helper calls and branches`, `should preserve captures assigned
   by array and object patterns`, `should render loop handlers from functions declared after the
   return`.
-- `core/tests/use-on.spec.tsx` (**whole file**, csr and resume): main's "keep re-rendering a
-  reused JSX node with only useOn" test calls a hook inside JSX (`onClick$={useIncrement(b)}`).
-  The v3 compiler rejects that, so the file fails to compile and **none of v3's own use-on tests
-  run** until it is fixed.
+- `core/tests/use-on.spec.tsx` (csr 2, resume 2): `should not add useOn handlers twice to a JSX
+  node reused across renders`, `should keep re-rendering a reused JSX node that only has useOn
+  handlers`. Main's test called `useIncrement(b)` inside JSX, which v3 rejects (and main's
+  `use-method-usage` lint rule flags), so it was renamed to `createIncrement`.
 - `core/tests/projection.spec.tsx` (resume 1): `should render nested Slots in the owner of default
   content`.
 

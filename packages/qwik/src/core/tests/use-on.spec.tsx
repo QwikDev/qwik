@@ -26,7 +26,7 @@ const useClick = (handler: any): void => {
 
 const debug = false;
 
-const useIncrement = (count: SignalType<number>) => $(() => count.value++);
+const createIncrement = (count: SignalType<number>) => $(() => count.value++);
 
 const { name, render } = testRenderer;
 
@@ -417,9 +417,9 @@ describe(`${name}: useOn`, () => {
     const Cmp = component$(() => {
       const a = useSignal(0);
       const b = useSignal(0);
-      useOn('click', useIncrement(a));
+      useOn('click', createIncrement(a));
       return (
-        <button onClick$={useIncrement(b)}>
+        <button onClick$={createIncrement(b)}>
           {a.value}:{b.value}
         </button>
       );

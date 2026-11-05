@@ -2364,9 +2364,12 @@ impl<'a> QwikTransform<'a> {
 				// Components with bind props need _jsxSplit for runtime handling
 				// In the edge case when fn is actually a string component at runtime
 				let has_component_bind_props = is_fn && Self::component_has_bind_props(&props);
-				// Same for on*$ props: a dynamic tag that is a string at runtime needs them as listeners
-				let has_component_event_props =
-					is_fn && Self::component_has_event_props(&props, is_dynamic_tag);
+				// Same for on*$ props: a dynamic tag that is a string at runtime needs them as listeners.
+				// With strip_event_handlers there must be no listeners, and these handlers stay JSXProp
+				// (not stripped) because the tag can still be a component, so keep _jsxSorted.
+				let has_component_event_props = is_fn
+					&& !self.options.strip_event_handlers
+					&& Self::component_has_event_props(&props, is_dynamic_tag);
 
 				let should_runtime_sort =
 					has_spread_props || has_component_bind_props || has_component_event_props;

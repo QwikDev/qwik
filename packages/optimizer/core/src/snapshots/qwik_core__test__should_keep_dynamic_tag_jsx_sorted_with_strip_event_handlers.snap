@@ -1,0 +1,128 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  const Cmp = Math.random() >= 0.5 ? 'button' : 'a'
+  return (
+    <div>
+      <button onClick$={() => console.log('stripped')} />
+      <Cmp onClick$={() => console.log('clicked')} />
+    </div>
+  );
+});
+
+============================= test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU.js (ENTRY POINT)==
+
+export const test_component_div_button_q_e_click_2TvarUvNGmU = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_button_q_e_click_2TvarUvNGmU",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_button_q_e_click",
+  "hash": "2TvarUvNGmU",
+  "canonicalFilename": "test.tsx_test_component_div_button_q_e_click_2TvarUvNGmU",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_test_component_LUXeXe0DQrg = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg");
+//
+export default /*#__PURE__*/ componentQrl(q_test_component_LUXeXe0DQrg);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,6BAAe,2CAQZ\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_qrl_4294901760 = /*#__PURE__*/ _noopQrl("test_component_div_button_q_e_click_2TvarUvNGmU");
+const q_test_component_div_Cmp_onClick_skwEus0QZ0E = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_Cmp_onClick_skwEus0QZ0E"), "test_component_div_Cmp_onClick_skwEus0QZ0E");
+//
+export const test_component_LUXeXe0DQrg = ()=>{
+    const Cmp = Math.random() >= 0.5 ? 'button' : 'a';
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            "q-e:click": q_qrl_4294901760
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted(Cmp, null, {
+            onClick$: q_test_component_div_Cmp_onClick_skwEus0QZ0E
+        }, null, 3, "u6_0")
+    ], 1, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAG0B;IACxB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,WAAW;IAC9C,qBACE,WAAC;sBACC,WAAC;YAAO,WAAQ;;sBAChB,WAAC;YAAI,QAAQ;;;AAGnB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    74,
+    284
+  ]
+}
+*/
+============================= test.tsx_test_component_div_Cmp_onClick_skwEus0QZ0E.js (ENTRY POINT)==
+
+export const test_component_div_Cmp_onClick_skwEus0QZ0E = ()=>console.log('clicked');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAQqB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_Cmp_onClick_skwEus0QZ0E",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_Cmp_onClick",
+  "hash": "skwEus0QZ0E",
+  "canonicalFilename": "test.tsx_test_component_div_Cmp_onClick_skwEus0QZ0E",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "jSXProp",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    234,
+    262
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

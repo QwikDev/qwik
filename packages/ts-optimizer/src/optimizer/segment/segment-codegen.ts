@@ -343,7 +343,8 @@ function transformSegmentJsxCalls(
   importContext: SegmentImportData,
   keyCounterStartOverride: number | undefined,
   qpByQrl?: ReadonlyMap<string, readonly string[]>,
-  paramNames?: readonly string[]
+  paramNames?: readonly string[],
+  stripEventHandlers?: boolean
 ): { bodyText: string; keyCounterValue?: number } {
   // Cheap fast-path: only parse if the body even mentions a candidate
   // jsx-function name. Most segments don't.
@@ -384,6 +385,7 @@ function transformSegmentJsxCalls(
       importedNames,
       signalHoister,
       paramNames,
+      stripEventHandlers,
     });
 
     const newBodyText = session.toSource();
@@ -418,7 +420,8 @@ function transformSegmentJsx(
   parts: string[],
   jsxOptions: SegmentJsxOptions,
   nestedCallSites: NestedCallSiteInfo[] | undefined,
-  captureInfo: SegmentCaptureInfo | undefined
+  captureInfo: SegmentCaptureInfo | undefined,
+  stripEventHandlers: boolean | undefined
 ): { bodyText: string; keyCounterValue?: number } {
   if (!/(?:<[A-Z_a-z/]|JSX)/.test(bodyText)) {
     return { bodyText };
@@ -476,6 +479,7 @@ function transformSegmentJsx(
         paramNames: jsxOptions.paramNames,
         relPath: jsxOptions.relPath,
         precomputedScopeBindings: segScopeBindings,
+        stripEventHandlers,
       }
     );
 
@@ -776,7 +780,8 @@ export function generateSegmentCode(
   nestedCallSites?: NestedCallSiteInfo[],
   importContext?: SegmentImportData,
   enumValueMap?: Map<string, Map<string, string>>,
-  inlinedIdentifiers?: ReadonlySet<string>
+  inlinedIdentifiers?: ReadonlySet<string>,
+  stripEventHandlers?: boolean
 ): { code: string; keyCounterValue?: number; paramNames?: string[] } {
   const capturedNames = new Set<string>(captureInfo ? captureInfo.captureNames : []);
 
@@ -806,7 +811,8 @@ export function generateSegmentCode(
       parts,
       jsxOptions,
       nestedCallSites,
-      liveCaptureInfo
+      liveCaptureInfo,
+      stripEventHandlers
     );
     bodyText = resolveDeferredTagReads(jsxResult.bodyText, transformed.deferredTagReads);
     segmentKeyCounterValue = jsxResult.keyCounterValue;
@@ -835,7 +841,8 @@ export function generateSegmentCode(
       importContext,
       segmentKeyCounterValue,
       qpByQrl.size > 0 ? qpByQrl : undefined,
-      extraction.paramNames
+      extraction.paramNames,
+      stripEventHandlers
     );
     bodyText = jsxCallResult.bodyText;
     if (jsxCallResult.keyCounterValue !== undefined) {

@@ -68,6 +68,8 @@ export interface JsxTransformContext {
    * classify children without re-parsing generated code.
    */
   jsxWriteMemo?: ReadonlyMap<number, JsxWriteRecord>;
+  /** With stripEventHandlers there must be no listeners, so dynamic tags keep `_jsxSorted`. */
+  stripEventHandlers?: boolean;
 }
 
 export interface JsxWriteRecord {
@@ -924,6 +926,7 @@ export interface TransformAllJsxOptions {
   paramNames?: Set<string>;
   relPath?: string;
   sharedSignalHoister?: SignalHoister;
+  stripEventHandlers?: boolean;
   precomputedScopeBindings?: ScopeAwareCollectResult;
 }
 
@@ -945,6 +948,7 @@ export function transformAllJsx(
     relPath,
     sharedSignalHoister,
     precomputedScopeBindings,
+    stripEventHandlers,
   } = opts;
   const { bindings: resolvedBindings, allLocalNames: allDeclaredNames } =
     precomputedScopeBindings ?? collectScopeAwareBindings(program);
@@ -968,6 +972,7 @@ export function transformAllJsx(
     paramNames,
     qrlsWithCaptures,
     qrlsNonConst,
+    stripEventHandlers,
     jsxWriteMemo,
   };
 

@@ -456,6 +456,7 @@ export function transformInlineSegmentBody(
               importedNames: jsxCallImportedNames,
               signalHoister: bodyJsxCallHoister,
               paramNames: ext.paramNames,
+              stripEventHandlers,
             });
             const rewritten = callS.toString();
             if (rewritten !== wrappedBody) {
@@ -597,6 +598,7 @@ export function transformInlineSegmentBody(
           qrlsNonConst: bodyQrlsNonConst,
           relPath: jsxBodyOptions.relPath,
           sharedSignalHoister,
+          stripEventHandlers,
           paramNames: ext.paramNames ? new Set(ext.paramNames) : undefined,
         }
       );

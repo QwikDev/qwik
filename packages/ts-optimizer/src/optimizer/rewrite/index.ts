@@ -1072,6 +1072,7 @@ function runJsxTransform(ctx: RewriteContext): void {
       keyReservations: ctx.jsxKeyReservations,
       relPath: ctx.relPath,
       precomputedScopeBindings: ctx.jsxOptions.precomputedScopeBindings,
+      stripEventHandlers: ctx.inlineOptions?.stripEventHandlers,
     }
   );
   ctx.jsxKeyCounterValue = ctx.jsxResult.keyCounterValue;
@@ -1120,6 +1121,7 @@ function runPeerToolJsxCallTransform(ctx: RewriteContext): void {
     skipRanges,
     keyReservations: ctx.jsxKeyReservations,
     qpByQrl: qpByQrl.size > 0 ? qpByQrl : undefined,
+    stripEventHandlers: ctx.inlineOptions?.stripEventHandlers,
   });
   ctx.jsxKeyCounterValue = parentKeyCounter.current();
 

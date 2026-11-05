@@ -23,7 +23,7 @@
  * Bodies are substituted bottom-up: each q_X's body has inner q_Y references replaced first, so the
  * outer literal already contains the collapsed inner ones.
  *
- * Import side: removes `_noopQrl`, adds `inlinedQrl`; `_capturesObj` stays.
+ * Import side: removes `_noopQrl`, adds or reuses `inlinedQrl` from core; `_capturesObj` stays.
  */
 
 import MagicString from 'magic-string';
@@ -31,9 +31,14 @@ import { walk } from 'oxc-walker';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import type { AstNode, AstProgram, CallExpression } from '../../ast-types.js';
 import { createTransformSession } from '../edit/transform-session.js';
+import { collectImports } from '../extraction/marker-detection.js';
+import { collectModuleLevelDecls } from '../analysis/variable-migration.js';
+import { formatNamedImportPart } from '../edit/import-format.js';
 
 /** Runtime marker on a QRL whose captures moved to its element; must survive collapse. */
 const MOVED_CAPTURES_MARKER = '.m()';
+
+const QWIK_CORE = '@qwik.dev/core';
 
 interface NoopQrlDecl {
   readonly qVarName: string;
@@ -81,7 +86,7 @@ export function collapseToLibInlinedQrl(source: string): string {
   }
 
   const inlinedLiteralsByVar = new Map<string, string>();
-  const usedHelpers = new Set<string>();
+  const helperBindings = createHelperBindings(program, source);
   const inProgress = new Set<string>();
   function buildInlinedLiteral(qVar: string): string | null {
     const cached = inlinedLiteralsByVar.get(qVar);
@@ -103,8 +108,7 @@ export function collapseToLibInlinedQrl(source: string): string {
     const marker = decl.hasMovedCaptures ? MOVED_CAPTURES_MARKER : '';
     const helper = decl.devMetaText === undefined ? 'inlinedQrl' : 'inlinedQrlDEV';
     const devMeta = decl.devMetaText === undefined ? '' : `, ${decl.devMetaText}`;
-    usedHelpers.add(helper);
-    const literal = `/*#__PURE__*/ ${helper}(${collapsedBody}, "${decl.qrlSymbolName}"${devMeta})${marker}`;
+    const literal = `/*#__PURE__*/ ${helperBindings.localFor(helper)}(${collapsedBody}, "${decl.qrlSymbolName}"${devMeta})${marker}`;
     inlinedLiteralsByVar.set(qVar, literal);
     return literal;
   }
@@ -160,7 +164,7 @@ export function collapseToLibInlinedQrl(source: string): string {
     edits.remove(r.start, r.end);
   }
 
-  rewriteImports(edits, source, program, usedHelpers);
+  rewriteImports(edits, source, helperBindings.imports);
 
   return edits.toString();
 }
@@ -481,37 +485,74 @@ function collectQVarReferenceRanges(
   return out;
 }
 
+/** A same-named user binding is not core's helper, so alias around it. */
+function createHelperBindings(
+  program: AstProgram,
+  source: string
+): { localFor(helper: string): string; imports: Map<string, string> } {
+  const imports = collectImports(program);
+  const taken = new Set<string>(imports.keys());
+  for (const decl of collectModuleLevelDecls(program, source)) {
+    taken.add(decl.name);
+  }
+  const locals = new Map<string, string>();
+  // Helpers that need a new import: imported name → local name.
+  const toImport = new Map<string, string>();
+
+  function localFor(helper: string): string {
+    const known = locals.get(helper);
+    if (known !== undefined) {
+      return known;
+    }
+    let local: string | undefined;
+    for (const info of imports.values()) {
+      if (info.source === QWIK_CORE && info.importedName === helper) {
+        local = info.localName;
+        if (local === helper) {
+          break;
+        }
+      }
+    }
+    if (local === undefined) {
+      local = taken.has(helper) ? pickFreshName(helper, taken, source) : helper;
+      taken.add(local);
+      toImport.set(helper, local);
+    }
+    locals.set(helper, local);
+    return local;
+  }
+
+  return { localFor, imports: toImport };
+}
+
+/** First `base<N>` that is unbound and unused in `source`. */
+function pickFreshName(base: string, taken: ReadonlySet<string>, source: string): string {
+  for (let i = 1; ; i++) {
+    const candidate = `${base}${i}`;
+    if (!taken.has(candidate) && !new RegExp(`(?<![\\w$])${candidate}(?![\\w$])`).test(source)) {
+      return candidate;
+    }
+  }
+}
+
 function rewriteImports(
   edits: MagicString,
   source: string,
-  program: AstProgram,
-  usedHelpers: Set<string>
+  helperImports: Map<string, string>
 ): void {
   const noopImportRe =
     /import\s*\{\s*_noopQrl(?:DEV)?\s*\}\s*from\s*(["'])@qwik\.dev\/core\1\s*;\s*\n?/g;
   const match = noopImportRe.exec(source);
   if (match) {
-    // Other passes (e.g. `bind:value`) may already import a helper.
-    const importedNames = collectImportedNames(program);
-    const helpers = [...usedHelpers].filter((helper) => !importedNames.has(helper)).sort();
+    const parts = [...helperImports]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([imported, local]) => formatNamedImportPart(imported, local));
     edits.overwrite(
       match.index,
       match.index + match[0].length,
-      helpers.length > 0 ? `import { ${helpers.join(', ')} } from "@qwik.dev/core";\n` : ''
+      parts.length > 0 ? `import { ${parts.join(', ')} } from "${QWIK_CORE}";\n` : ''
     );
   }
-}
-
-function collectImportedNames(program: AstProgram): Set<string> {
-  const names = new Set<string>();
-  for (const stmt of program.body) {
-    if (stmt.type === 'ImportDeclaration') {
-      for (const spec of stmt.specifiers) {
-        names.add(spec.local.name);
-      }
-    }
-  }
-  return names;
 }
 
 function includeTrailingNewline(source: string, end: number): number {

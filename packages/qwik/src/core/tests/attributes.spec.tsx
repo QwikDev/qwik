@@ -185,6 +185,45 @@ describe.each([
     expect(document.body.querySelector('#target')!.getAttribute('disabled')).toBe('');
   });
 
+  it('should match a boolean attribute that is set only as a DOM property', async () => {
+    const AttrComp = component$(() => {
+      const checked = useSignal(false);
+      return (
+        <div>
+          <button onClick$={() => (checked.value = true)}></button>
+          {_jsxSorted('input', { checked: checked.value }, { type: 'checkbox' }, null, 0, null)}
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<AttrComp />, { debug });
+    await trigger(document.body, 'button', 'click');
+
+    // Browsers do not reflect the `checked` property to the attribute, unlike the test DOM
+    document.querySelector('input')!.removeAttribute('checked');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <button></button>
+          <input type="checkbox" checked={true} />
+        </div>
+      </Component>
+    );
+  });
+
+  it('should match an attribute that is present only in the DOM', async () => {
+    const AttrComp = component$(() => <div id="target"></div>);
+
+    const { vNode, document } = await render(<AttrComp />, { debug });
+    document.querySelector('#target')!.setAttribute('data-dom-only', 'value');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div id="target" data-dom-only="value"></div>
+      </Component>
+    );
+  });
+
   describe('binding', () => {
     it('should bind checked attribute', async () => {
       const BindCmp = component$(() => {

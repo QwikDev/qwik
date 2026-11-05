@@ -1,7 +1,6 @@
-import { createMacroTask } from '../shared/platform/next-tick';
-import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
-import { adjustProbabilities, bundles, nextTriggerMacroTask, shouldResetFactor } from './queue';
-import type { BundleGraph, BundleImport, ImportProbability } from './types';
+import { config, isBrowser, isJSRegex } from './constants';
+import { adjustProbabilities, bundles, nextTriggerMacroTask } from './queue';
+import type { BundleGraph, ImportProbability } from './types';
 import { BundleImportState_Alias, BundleImportState_None } from './types';
 
 // Note, making these singletons pulls in too much code and they are ok being module-scoped
@@ -12,11 +11,8 @@ const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {
     $name$: name,
     $state$: isJSRegex.test(name) ? BundleImportState_None : BundleImportState_Alias,
-    $deps$: shouldResetFactor ? deps?.map((d) => ({ ...d, $factor$: 1 })) : deps,
+    $deps$: deps,
     $inverseProbability$: 1,
-    $createdTs$: performance.now(),
-    $waitedMs$: 0,
-    $loadedMs$: 0,
   };
 };
 
@@ -88,34 +84,18 @@ export const loadBundleGraph = (
       .then((r) => r.text())
       .then((text) => {
         graph = parseBundleGraph(JSON.parse(text));
-        const toAdjust: [BundleImport, number][] = [];
-        for (const [name, deps] of graph.entries()) {
-          const bundle = getBundle(name)!;
-          bundle.$deps$ = deps;
-          if (bundle.$inverseProbability$ < 1) {
-            toAdjust.push([bundle, bundle.$inverseProbability$]);
-            bundle.$inverseProbability$ = 1;
-          }
-        }
-        if (!toAdjust.length) {
-          nextTriggerMacroTask();
-          return;
-        }
-        let i = 0;
-        const continueAdjust = createMacroTask(() => {
-          const deadline = performance.now() + yieldInterval;
-          while (i < toAdjust.length) {
-            const [bundle, inverseProbability] = toAdjust[i];
-            i++;
-            adjustProbabilities(bundle, inverseProbability);
-            if (i < toAdjust.length && performance.now() >= deadline) {
-              continueAdjust();
-              return;
+        for (const [name, bundle] of bundles) {
+          const deps = graph.get(name);
+          if (deps) {
+            bundle.$deps$ = deps;
+            if (bundle.$inverseProbability$ < 1) {
+              const probability = bundle.$inverseProbability$;
+              bundle.$inverseProbability$ = 1;
+              adjustProbabilities(bundle, probability);
             }
           }
-          nextTriggerMacroTask();
-        });
-        continueAdjust();
+        }
+        nextTriggerMacroTask();
       })
       .catch(console.warn);
   }

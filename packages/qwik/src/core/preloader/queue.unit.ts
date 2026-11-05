@@ -378,3 +378,26 @@ test('defers bundle graph re-adjustment to a later task', async () => {
 
   expect(headAppend).toHaveBeenCalled();
 });
+
+test('replays early demand without creating state for unrelated graph entries', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload, bundles } = await import('./queue');
+  preload('route/', 1);
+  loadBundleGraph(
+    '/build/',
+    Promise.resolve({
+      text: async () =>
+        JSON.stringify(['route/', 2, 'route.js', 4, 'helper.js', 'unrelated.js', 'other/']),
+    } as Response)
+  );
+  await vi.runAllTimersAsync();
+  expect([...bundles.keys()]).toEqual(['route/', 'route.js', 'helper.js']);
+  expect(
+    Array.from(document.head.querySelectorAll('link'), (link) => new URL(link.href).pathname)
+  ).toEqual(['/build/route.js', '/build/helper.js']);
+});

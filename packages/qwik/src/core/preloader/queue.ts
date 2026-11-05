@@ -10,7 +10,6 @@ import {
 } from './types';
 
 export const bundles: BundleImports = new Map();
-export let shouldResetFactor: boolean;
 let queueDirty: boolean;
 const inFlight = new Set<BundleImport>();
 const queue: BundleImport[] = [];
@@ -218,8 +217,6 @@ const preloadOne = (bundle: BundleImport) => {
   }
   inFlight.add(bundle);
 
-  const start = performance.now();
-  bundle.$waitedMs$ = start - bundle.$createdTs$;
   bundle.$state$ = BundleImportState_Preload;
 
   const link = doc.createElement('link');
@@ -234,8 +231,6 @@ const preloadOne = (bundle: BundleImport) => {
   // Handle completion of the preload
   link.onload = link.onerror = () => {
     inFlight.delete(bundle);
-    const end = performance.now();
-    bundle.$loadedMs$ = end - start;
     bundle.$state$ = BundleImportState_Loaded;
     // Keep the <head> clean
     link.remove();

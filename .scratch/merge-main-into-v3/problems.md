@@ -7,14 +7,12 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
 
 ## Tooling
 
-- **vitest pinned to 5.0.0.** Main's `a1f47aef6` bumped it to 5.0.5 for a security advisory. On
-  5.0.5, v3's multi-project resume harness (`packages/qwik-vite/src/plugins/test-resume.ts`) is
-  nondeterministic: v3 alone gives 23 to 459 failures per run ("ssrRender requires a resume or ssr
-  test target", "Cannot find module '….qwik-test-root-0.tsx'"). Make the harness deterministic
-  (its registry and target are process-global across projects), then take 5.0.5.
-- **`pnpm api.update` fails on v3 HEAD already**: `core/dom/effect/effect.unit.ts:219` passes a
-  `string` where `AttributeBindingKind` is expected. The API reports in this merge were generated
-  with that line cast locally (the cast is not committed).
+- **vitest 5.0.5 (fixed).** It was pinned to 5.0.0 at first because the render projects were flaky
+  on 5.0.4+. The cause was vitest's `fsModuleCache` replaying Qwik-compiled modules. Now
+  `qwikVite` opts those modules out through `configureVitest`, and vitest is back on 5.0.5.
+- **`pnpm api.update` (fixed).** It failed on `effect.unit.ts:219` (a `string` where
+  `AttributeBindingKind` was expected) and, after `build.core.dev`, on the serializer entry, whose
+  dev shim pointed `@qwik.dev/core/internal/serializer` back at its own sources.
 
 ## Router
 
@@ -23,7 +21,8 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
   holds page-loader functions, so resume serialization throws "Cannot serialize function". 13
   `|resume|` tests in `link-component.unit.tsx` fail, including v3's existing prefetch tests.
 - **`Link` `data-navigating`**: the csr test "marks the link with data-navigating until navigation
-  resolves" still sees the attribute after the navigation promise resolves.
+  resolves" still sees the attribute after the navigation promise resolves. Its sibling "clears
+  data-navigating when navigation rejects" fails now and then, depending on timing.
 - **`window._qRouterInitNavigate`**: main sets it inside `goto` to `goto` itself. On v3 that makes
   the `goto` QRL capture itself and SSR throws "Cannot access 'goto' before initialization", so
   the assignment was dropped. `spa-init.ts` still reads it and falls back to the old init-mode

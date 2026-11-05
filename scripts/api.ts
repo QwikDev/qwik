@@ -1,5 +1,5 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import ts from 'typescript';
 import { generateQwikApiMarkdownDocs, generateQwikRouterApiMarkdownDocs } from './api-docs.ts';
@@ -282,6 +282,10 @@ function createTypesApi(
 ) {
   const extractorConfigPath = join(inPath, configFile);
   const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
+  if (extractorConfig.untrimmedFilePath) {
+    // A dev shim resolves the entry's own subpath back to its sources, splitting its symbols.
+    rmSync(extractorConfig.untrimmedFilePath, { force: true });
+  }
   const result = Extractor.invoke(extractorConfig, {
     localBuild: !!config.dev,
     showVerboseMessages: true,

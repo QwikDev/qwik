@@ -74,8 +74,6 @@ interface JsxCallTransformOptions {
   bindings?: ScopeAwareBindings;
   paramNames?: readonly string[];
   program?: AstProgram;
-  /** With stripEventHandlers there must be no listeners, so dynamic tags keep `_jsxSorted`. */
-  stripEventHandlers?: boolean;
 }
 
 /**
@@ -542,11 +540,7 @@ function buildJsxSortedCall(
       return null;
     }
     const keyName = propertyKeyName(prop);
-    if (
-      !isHtmlTag &&
-      !opts.stripEventHandlers &&
-      mayBeRuntimeEventKey(prop, keyName, isDynamicTag)
-    ) {
+    if (!isHtmlTag && mayBeRuntimeEventKey(prop, keyName, isDynamicTag)) {
       hasEventPropsOnDynamicTag = true;
     }
     if (keyName === 'children' && !prop.computed) {

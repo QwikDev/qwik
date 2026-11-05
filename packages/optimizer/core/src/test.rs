@@ -6916,7 +6916,7 @@ export default component$(() => {
 }
 
 #[test]
-fn should_keep_dynamic_tag_jsx_sorted_with_strip_event_handlers() {
+fn should_make_dynamic_tag_jsx_split_with_strip_event_handlers() {
 	test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';

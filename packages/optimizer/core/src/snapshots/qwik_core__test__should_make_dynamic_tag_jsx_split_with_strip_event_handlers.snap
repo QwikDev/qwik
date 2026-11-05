@@ -57,6 +57,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
@@ -69,14 +70,14 @@ export const test_component_LUXeXe0DQrg = ()=>{
         /*#__PURE__*/ _jsxSorted("button", null, {
             "q-e:click": q_qrl_4294901760
         }, null, 3, null),
-        /*#__PURE__*/ _jsxSorted(Cmp, null, {
+        /*#__PURE__*/ _jsxSplit(Cmp, null, {
             onClick$: q_test_component_div_Cmp_onClick_skwEus0QZ0E
         }, null, 3, "u6_0")
     ], 1, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAG0B;IACxB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,WAAW;IAC9C,qBACE,WAAC;sBACC,WAAC;YAAO,WAAQ;;sBAChB,WAAC;YAAI,QAAQ;;;AAGnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;0CAG0B;IACxB,MAAM,MAAM,KAAK,MAAM,MAAM,MAAM,WAAW;IAC9C,qBACE,WAAC;sBACC,WAAC;YAAO,WAAQ;;sBAChB,UAAC;YAAI,QAAQ;;;AAGnB\"}")
 /*
 {
   "origin": "test.tsx",

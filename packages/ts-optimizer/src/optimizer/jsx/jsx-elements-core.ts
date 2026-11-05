@@ -622,12 +622,9 @@ export function transformJsxElement(
   }
 
   const hasBindInConst = !tagIsHtml && constEntries.some((e) => e.startsWith('"bind:'));
-  // A dynamic tag can be a string at runtime, so on*$ props need _jsxSplit to become listeners.
-  // With stripEventHandlers there must be no listeners, and these handlers stay jSXProp (not
-  // stripped) because the tag can still be a component, so keep _jsxSorted.
+  // A dynamic tag can be a string at runtime, so on*$ props need _jsxSplit to become listeners
   const hasEventPropsOnDynamicTag =
     !tagIsHtml &&
-    !ctx.stripEventHandlers &&
     openingElement.attributes.some(
       (a) => a.type === 'JSXAttribute' && isRuntimeEventProp(getJsxAttributeName(a))
     );

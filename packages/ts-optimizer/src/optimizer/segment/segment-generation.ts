@@ -1428,8 +1428,7 @@ export function buildDefaultStrategySegment(
         nestedCallSites.length > 0 ? nestedCallSites : undefined,
         importContext,
         enumValueMap.size > 0 ? enumValueMap : undefined,
-        ctx.inlinedIdentifiersByParent.get(ext.symbolName),
-        ctx.options.stripEventHandlers
+        ctx.inlinedIdentifiersByParent.get(ext.symbolName)
       );
   let segmentCode = segmentResult.code;
 

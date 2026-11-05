@@ -716,7 +716,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_keep_root_var_used_by_export_decl_and_qrl: { transpileTs: true, transpileJsx: true },
   should_keep_root_var_used_by_exported_function_and_qrl: { transpileTs: true, transpileJsx: true },
   should_keep_passive_directive_on_dynamic_tag_jsx_split: { transpileTs: true, transpileJsx: true },
-  should_keep_dynamic_tag_jsx_sorted_with_strip_event_handlers: {
+  should_make_dynamic_tag_jsx_split_with_strip_event_handlers: {
     transpileTs: true,
     transpileJsx: true,
     stripEventHandlers: true,

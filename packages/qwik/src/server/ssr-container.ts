@@ -180,6 +180,8 @@ const NO_SCRIPT_HERE_ELEMENTS = new Set([
   'template',
   'svg',
   'math',
+  // the parser moves a script out of colgroup and splits it
+  'colgroup',
 ]);
 
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
@@ -778,12 +780,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
 
     const isQwikStyle =
       isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
-    // keep track of parser states/contexts where inline scripts are not safe to emit.
-    // Non-element tokenizer states are already safe because emission only happens before opening
-    // a new element, never while serializing a tag, attribute, comment, or CDATA section.
-    if (NO_SCRIPT_HERE_ELEMENTS.has(elementName)) {
-      this.$noScriptHere$++;
-    }
     if (
       // don't append scripts before qwik style elements
       // it will confuse the resuming, because styles are expected to be the first nodes in subtree
@@ -799,6 +795,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer, Serializat
         // Lets qwikloader catch interactions while the rest of the page streams in
         this.emitNewQwikEvents(false, true);
       }
+    }
+    // keep track of parser states/contexts where inline scripts are not safe to emit.
+    // Non-element tokenizer states are already safe because emission only happens before opening
+    // a new element, never while serializing a tag, attribute, comment, or CDATA section.
+    // Counted after the flush, since this element's parent context is still script-safe.
+    if (NO_SCRIPT_HERE_ELEMENTS.has(elementName)) {
+      this.$noScriptHere$++;
     }
 
     let innerHTML: string | undefined = undefined;

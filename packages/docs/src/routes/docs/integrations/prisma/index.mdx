@@ -12,64 +12,119 @@ contributors:
   - enesflow
   - fabian-hiller
   - aendel
-updated_at: '2023-10-03T18:53:23Z'
+  - ankur-arch
+updated_at: '2026-11-02T00:00:00Z'
 created_at: '2023-04-25T11:05:50Z'
 ---
 
-import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 import { Note } from '~/components/note/note';
 
 # Prisma
 
-[Prisma](https://www.prisma.io/) allows interaction with [MongoDB](https://www.prisma.io/docs/concepts/database-connectors/mongodb) or [SQL databases](https://www.prisma.io/docs/concepts/database-connectors/postgresql) in a fully type-safe manner.
+[Prisma ORM](https://www.prisma.io/orm?utm_source=qwik&utm_medium=docs&utm_campaign=qwik-prisma-integration) lets you work with [PostgreSQL](https://www.prisma.io/docs/orm/supported-databases?utm_source=qwik&utm_medium=docs&utm_campaign=qwik-prisma-integration) or [MongoDB](https://www.prisma.io/docs/orm/data-modeling/mongodb?utm_source=qwik&utm_medium=docs&utm_campaign=qwik-prisma-integration) in a fully type-safe manner.
 
-With Prisma you define your DB schema in `.prisma` files, and their CLI automatically generates the DB migrations as well as the Typescript types.
+You describe your models in a contract file, and Prisma ORM turns it into the types your queries are checked against and the SQL that creates your tables.
 
-Prisma can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` functions. These are Qwik APIs to allow code to execute only on the server-side.
+Prisma ORM can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` functions. These are Qwik APIs to allow code to execute only on the server-side, so your database credentials and queries never reach the browser.
 
-The easiest way to add Prisma to Qwik is using the Qwik CLI command. This will install the required dependencies and create a `prisma` folder with the Prisma schema and the migrations.
+This guide uses Prisma ORM 8 with PostgreSQL.
 
+<Note>The `qwik add prisma` command sets up an earlier Prisma ORM version with SQLite. This guide installs Prisma ORM 8 directly instead.</Note>
 
-<PackageManagerTabs>
-<span q:slot="pnpm">
+## Add Prisma ORM
+
+Run the Prisma CLI from the root of your Qwik app. It installs `@prisma/orm-postgres` and the `prisma` CLI with the package manager your lockfile uses, and writes a starter setup:
+
 ```shell
-pnpm run qwik add prisma
+npx prisma@latest orm init --yes --target postgres --authoring psl
 ```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add prisma
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add prisma
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add prisma
-```
-</span>
-</PackageManagerTabs>
 
-<Note>Prisma makes it easy to use different databases such as Postgres, MySQL, SQLite and MongoDB.</Note>
+The command creates three files you work with:
 
+- `src/prisma/contract.prisma`: your data model
+- `src/prisma/db.ts`: the database client your routes import
+- `prisma.config.ts`: tells the CLI where the contract is and reads `DATABASE_URL` from `.env`
+
+It also adds `"node"` to the `types` in `tsconfig.json`.
+
+`src/prisma/db.ts` creates one client for the whole server, and its connection pool is shared by every request:
+
+```ts title="src/prisma/db.ts"
+import 'dotenv/config';
+import postgres from '@prisma/orm-postgres/runtime';
+import { contractFromJson } from '@prisma/orm-postgres/static';
+import type { Contract } from './contract.d';
+import contractJson from './contract.json' with { type: 'json' };
+
+export const contract = contractFromJson<Contract>(contractJson);
+
+export const db = postgres({
+  contract,
+  url: process.env['DATABASE_URL']!,
+});
+```
+
+Prisma ORM generates `src/prisma/contract.d.ts` from your contract. The Qwik starter lints every file in `src` as part of `npm run build`, so add the generated file to the `ignores` list in `eslint.config.js`:
+
+```js title="eslint.config.js"
+const ignores = [
+  'src/prisma/contract.d.ts',
+  // ...
+];
+```
+
+## Create a database
+
+The app needs a PostgreSQL 15 or newer database. If you don't have one, you can create a [Prisma Postgres](https://www.prisma.io/postgres?utm_source=qwik&utm_medium=docs&utm_campaign=qwik-prisma-integration) database without signing up. This command creates it and writes its connection string to `.env` as `DATABASE_URL`:
+
+```shell
+npx create-db@latest --env .env
+```
+
+The database is deleted after 24 hours unless you claim it with the link the command prints.
+
+To use another PostgreSQL database, set `DATABASE_URL` in `.env` yourself:
+
+```shell title=".env"
+DATABASE_URL="postgres://user:password@localhost:5432/mydb"
+```
+
+<Note>If the server logs an SSL security warning from `pg`, change `sslmode=require` to `sslmode=verify-full` in the connection string.</Note>
+
+## Define the data model
+
+Replace the starter models in `src/prisma/contract.prisma` with a `User` model:
+
+```prisma title="src/prisma/contract.prisma"
+// use prisma-8
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+```
+
+Then generate the contract files and create the table in your database:
+
+```shell
+npx prisma contract emit
+npx prisma db init
+```
+
+`contract emit` writes `contract.json` and `contract.d.ts` next to your contract. Commit both. `db init` creates the `User` table and records the contract in the database.
 
 ## Listing all the users
 
-We will use `routeLoader$` to query all users in the DB, using `prisma.user.findMany()`, and returning the result.
+We will use `routeLoader$` to query all users in the DB, using `db.orm.public.User.all()`, and returning the result. On PostgreSQL, models are grouped by schema, so the `User` model lives at `db.orm.public.User`.
 
-```tsx {7} /PrismaClient/ title="src/routes/users/index.tsx"
+```tsx {6} /db/ title="src/routes/users/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
-import { PrismaClient } from '@prisma/client'
+import { db } from '~/prisma/db';
 
 export const useGetUsers = routeLoader$(async () => {
-  const prisma = new PrismaClient();
-  // example read from SQLite
-  const users = await prisma.user.findMany()
-  return users;
+  return db.orm.public.User.all();
 });
 
 export default component$(() => {
@@ -78,31 +133,33 @@ export default component$(() => {
     <section>
       <h1>User's directory</h1>
       <ul>
-        {users.value.map(user => (
+        {users.value.map((user) => (
           <li key={user.id}>
-            <a href={`/users/${user.id}`}>{user.name} ({user.email})</a>
+            <a href={`/users/${user.id}`}>
+              {user.name} ({user.email})
+            </a>
           </li>
         ))}
       </ul>
     </section>
-  )
+  );
 });
 ```
 
+The returned rows are typed from your contract, so `user.name` and `user.email` autocomplete in the component.
+
 ## Show user detail
 
-We will use `routeLoader$` to query specific users based on the `userId` URL param, using `prisma.user.findUnique()`, and returning the result.
+We will use `routeLoader$` to query a specific user based on the `userId` URL param, using `.where({ id }).first()`, and returning the result. `first()` returns `null` when no row matches.
 
-
-```tsx {8} /PrismaClient/ title="src/routes/users/[userId]/index.tsx"
+```tsx {7} /db/ title="src/routes/users/[userId]/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
-import { PrismaClient } from '@prisma/client'
+import { db } from '~/prisma/db';
 
-export const useGetUser = routeLoader$(async ({params, status}) => {
+export const useGetUser = routeLoader$(async ({ params, status }) => {
   const userId = parseInt(params['userId'], 10);
-  const prisma = new PrismaClient();
-  const user = await prisma.user.findUnique({where: {id: userId}});
+  const user = await db.orm.public.User.where({ id: userId }).first();
   if (!user) {
     // Set the status to 404 if the user is not found
     status(404);
@@ -124,30 +181,38 @@ export default component$(() => {
         <p>User not found</p>
       )}
     </section>
-  )
+  );
 });
 ```
 
 ## Adding a user
 
-We will use `routeAction$` and `Form` to create a progressive form to add a new user to the DB. We will use `prisma.user.create()` to create the user.
+We will use `routeAction$` and `Form` to create a progressive form to add a new user to the DB. We will use `db.orm.public.User.create()` to create the user. It returns the inserted row.
 
-```tsx {7-9} /PrismaClient/ title="src/routes/create/index.tsx"
+The `email` column is unique, so creating a second user with the same email fails. PostgreSQL reports this as error code `23505`, which the action turns into a `409` response with a message for the form. When `zod$` rejects the input, `failed` is also set and the messages are in `fieldErrors`, so the form shows either one:
+
+```tsx {8} /db/ title="src/routes/create/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, Form } from '@qwik.dev/router';
-import { zod$, z } from '@qwik.dev/utils';
-import { PrismaClient } from '@prisma/client'
+import { routeAction$, Form, zod$, z } from '@qwik.dev/router';
+import { db } from '~/prisma/db';
 
-export const useCreateUser = routeAction$(async (data) => {
-  const prisma = new PrismaClient();
-  const user = await prisma.user.create({
-    data,
-  });
-  return user;
-}, zod$({
-  name: z.string(),
-  email: z.string().email(),
-}));
+export const useCreateUser = routeAction$(
+  async (data, { fail }) => {
+    try {
+      return await db.orm.public.User.create(data);
+    } catch (error) {
+      // 23505 is the PostgreSQL error code for a unique constraint violation
+      if ((error as { sqlState?: string }).sqlState === '23505') {
+        return fail(409, { message: 'Email already in use' });
+      }
+      throw error;
+    }
+  },
+  zod$({
+    name: z.string(),
+    email: z.string().email(),
+  })
+);
 
 export default component$(() => {
   const createUserAction = useCreateUser();
@@ -155,20 +220,40 @@ export default component$(() => {
     <section>
       <h1>Create User</h1>
       <Form action={createUserAction}>
-        <label>Name
+        <label>
+          Name
           <input name="name" value={createUserAction.formData?.get('name')} />
         </label>
-        <label>Email
+        <label>
+          Email
           <input name="email" value={createUserAction.formData?.get('email')} />
         </label>
         <button type="submit">Create</button>
       </Form>
-      {createUserAction.value && (
-        <div>
-          <h2>User created successfully!</h2>
-        </div>
+      {createUserAction.value?.failed && (
+        <p>{createUserAction.value.message ?? createUserAction.value.fieldErrors?.email}</p>
+      )}
+      {createUserAction.value && !createUserAction.value.failed && (
+        <h2>User {createUserAction.value.name} created successfully!</h2>
       )}
     </section>
-  )
+  );
 });
 ```
+
+Start the dev server with `npm run dev`, add a user at `/create`, then open `/users` to see it.
+
+## Changing the data model
+
+When you edit `src/prisma/contract.prisma`, emit the contract again and apply the change to your database:
+
+```shell
+npx prisma contract emit
+npx prisma db update
+```
+
+See the [Prisma ORM docs](https://www.prisma.io/docs/orm/fundamentals/reading-data?utm_source=qwik&utm_medium=docs&utm_campaign=qwik-prisma-integration) for filtering, sorting, relations and transactions.
+
+## Deploying
+
+Keep `.env` out of version control. In production, set `DATABASE_URL` in your hosting provider's environment settings. If you deploy with a Node.js adapter, also set `ORIGIN` as described in the [Node middleware guide](/docs/deployments/node/), or form submissions fail Qwik's CSRF check.

@@ -12,10 +12,9 @@ export function prettyJSX(element: JSXOutput, prefix: string = ''): string {
   lines.push(prefix, '<', element.type);
   const attrs = Object.entries(element.props)
     .map(([name, value]) => {
-      const serializedAttr = serializeAttribute(name, value);
       return {
         name,
-        value: serializedAttr === true ? '' : serializedAttr,
+        value: serializeAttribute(name, value),
       };
     })
     .filter(

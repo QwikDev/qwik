@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { _deserialize } from '@qwik.dev/core/internal';
-import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
+import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../../runtime/src/route-loaders';
 import { createCacheControl } from '../cache-control';
 import { RedirectMessage } from '../redirect-handler';
 import { ServerError } from '../server-error';
@@ -18,6 +18,18 @@ describe('jsonRequestWrapper', () => {
     expect(requestEv.next).toHaveBeenCalledOnce();
   });
 
+  it('rewrites loader requests using the dev X-Qwik-route-path header', async () => {
+    const requestEv = createLoaderRequestEvent(
+      '/products/123/',
+      '/products/123/view/',
+      ROUTE_PATH_HEADER
+    );
+
+    await jsonRequestWrapper()(requestEv as any);
+
+    expect(requestEv.url.pathname).toBe('/products/123/view/');
+  });
+
   it('ignores X-Qwik-fullpath when it does not have the loader path as a prefix', async () => {
     const requestEv = createLoaderRequestEvent('/products/123/', '/admin/');
 
@@ -27,13 +39,15 @@ describe('jsonRequestWrapper', () => {
     expect(requestEv.next).toHaveBeenCalledOnce();
   });
 
-  it('adds Vary for X-Qwik-fullpath on loader requests', async () => {
+  it('adds Vary for X-Qwik-fullpath and the dev X-Qwik-route-path on loader requests', async () => {
     const requestEv = createLoaderRequestEvent('/products/123/', '/products/123/view/');
     requestEv.headers.set('Vary', 'Accept-Encoding');
 
     await jsonRequestWrapper()(requestEv as any);
 
-    expect(requestEv.headers.get('Vary')).toBe(`Accept-Encoding, ${FULLPATH_HEADER}`);
+    expect(requestEv.headers.get('Vary')).toBe(
+      `Accept-Encoding, ${FULLPATH_HEADER}, ${ROUTE_PATH_HEADER}`
+    );
   });
 
   it('serializes loader middleware redirects as loader responses', async () => {
@@ -78,14 +92,18 @@ describe('jsonRequestWrapper', () => {
   );
 });
 
-function createLoaderRequestEvent(loaderPathname: string, fullPathname: string) {
+function createLoaderRequestEvent(
+  loaderPathname: string,
+  fullPathname: string,
+  header = FULLPATH_HEADER
+) {
   const headers = new Headers();
   return {
     sharedMap: new Map([[IsQLoader, true]]),
     internalRequest: 'loader' as 'loader' | 'action',
     request: new Request(`http://localhost${loaderPathname}`, {
       headers: {
-        [FULLPATH_HEADER]: fullPathname,
+        [header]: fullPathname,
       },
     }),
     url: new URL(`http://localhost${loaderPathname}`),

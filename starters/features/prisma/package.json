@@ -1,36 +1,42 @@
 {
-  "description": "Next-generation Node.js TypeScript ORM",
+  "description": "Type-safe PostgreSQL access with Prisma ORM",
   "__qwik__": {
     "displayName": "Integration: Prisma (Database ORM)",
     "priority": -10,
     "viteConfig": {},
     "docs": [
       "https://qwik.dev/docs/integrations/prisma/",
-      "https://www.prisma.io/docs/concepts/overview/what-is-prisma"
+      "https://www.prisma.io/docs/orm?utm_source=qwik&utm_medium=cli&utm_campaign=qwik-prisma-integration"
     ],
-    "postInstall": "prisma migrate dev --name initial",
+    "postInstall": "prisma contract emit",
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        " Prisma was installed with a default DB schema and some demo routes,",
+        " Prisma ORM was installed with a User model and demo routes at /users and /create.",
+        " Prisma ORM 8 needs Node.js 22.18+, 24.11+ or 26+.",
         "",
-        " Sqlite was configured by default, but in production",
-        " you'll want to use Postgres or MongoDB.",
+        " 1. Set DATABASE_URL in .env (see .env.example). Any PostgreSQL 15+ database works.",
+        "    To create a Prisma Postgres database: npx create-db@latest --env .env",
+        "    It is deleted after 24 hours unless you claim it with the link the command prints.",
+        " 2. Create the User table: npm run prisma:db:init",
         "",
-        " Check out the Prisma docs for more info:",
-        "   - https://www.prisma.io/docs/getting-started"
+        " After editing prisma/contract.prisma, run npm run prisma:emit and npm run prisma:db:update.",
+        " Docs: https://qwik.dev/docs/integrations/prisma/"
       ]
     },
     "alwaysInRoot": []
   },
+  "dependencies": {
+    "@prisma/orm-postgres": "^8.0.0-rc.22",
+    "dotenv": "^18.0.9",
+    "temporal-polyfill": "^1.0.4"
+  },
   "devDependencies": {
-    "@prisma/client": "5.3.1",
-    "prisma": "^5.3.1"
+    "prisma": "^8.0.0-rc.30"
   },
   "scripts": {
-    "postinstall": "prisma generate",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:migrate:prod": "prisma migrate deploy"
+    "prisma:emit": "prisma contract emit",
+    "prisma:db:init": "prisma db init",
+    "prisma:db:update": "prisma db update"
   }
 }

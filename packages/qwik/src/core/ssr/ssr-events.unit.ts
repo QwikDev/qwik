@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createQRL } from '../shared/qrl/qrl-class';
-import type { SerializationContext } from '../shared/serdes/serialization-context';
+import type { SerializationContext } from '../../serializer/serialization-context';
 import { setEvent } from './ssr-events';
 
 describe('setEvent', () => {

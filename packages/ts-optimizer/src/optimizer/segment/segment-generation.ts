@@ -1170,7 +1170,10 @@ export function buildNestedCallSites(
         child.captureNames.length > 0 &&
         (hasUnderscorePlaceholderParams(child.paramNames, child.movedCaptures) || childIsInLoop);
 
-      const loopLocalParams = consolidateParams(eventHandlerQpParams(child.paramNames), child);
+      const loopLocalParams = consolidateParams(
+        eventHandlerQpParams(child.paramNames, child.captureParamNames),
+        child
+      );
 
       nestedCallSites.push({
         qrlVarName,
@@ -1204,7 +1207,7 @@ export function buildNestedCallSites(
         qpParams === undefined &&
         (child.ctxKind === 'eventHandler' || child.ctxKind === 'jSXProp')
       ) {
-        const params = eventHandlerQpParams(child.paramNames);
+        const params = eventHandlerQpParams(child.paramNames, child.captureParamNames);
         if (params.length > 0) {
           qpParams = consolidateParams(params, child);
         }

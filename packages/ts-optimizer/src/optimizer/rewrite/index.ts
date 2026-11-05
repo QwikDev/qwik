@@ -635,7 +635,7 @@ function consolidatePromotedParams(
   parent: RawPropsSource
 ): void {
   const rawProps = consolidateRawPropsCaptures(
-    ext.paramNames.slice(2),
+    eventHandlerQpParams(ext.paramNames, ext.captureParamNames),
     [parent],
     ext.freeBindingStarts
   );
@@ -656,6 +656,7 @@ function consolidatePromotedParams(
     ...ext.paramNames.slice(0, 2),
     ...slots.filter((slot, i) => slot !== '_rawProps' || slots.indexOf(slot) === i),
   ];
+  ext.captureParamNames = rawProps.newCaptureNames;
 }
 
 function preComputeQrlVarNames(ctx: RewriteContext): void {
@@ -1107,7 +1108,7 @@ function runPeerToolJsxCallTransform(ctx: RewriteContext): void {
     if (ext.ctxKind !== 'eventHandler' && ext.ctxKind !== 'jSXProp') {
       continue;
     }
-    const params = eventHandlerQpParams(ext.paramNames);
+    const params = eventHandlerQpParams(ext.paramNames, ext.captureParamNames);
     if (params.length > 0) {
       qpByQrl.set(getQrlVarName(ctx, ext.symbolName), params);
     }
@@ -1255,7 +1256,7 @@ function buildParentLiftedQpOverrides(ctx: RewriteContext): Map<number, string[]
     (ext) =>
       ext.ctxKind === 'eventHandler' &&
       !ext.isSync &&
-      eventHandlerQpParams(ext.paramNames).length > 0
+      eventHandlerQpParams(ext.paramNames, ext.captureParamNames).length > 0
   );
   if (lifted.length === 0) {
     return undefined;
@@ -1273,7 +1274,7 @@ function buildParentLiftedQpOverrides(ctx: RewriteContext): Map<number, string[]
       const seen = new Set<string>();
       for (const ext of lifted) {
         if (opening && ext.argStart >= opening.start && ext.argEnd <= opening.end) {
-          for (const p of eventHandlerQpParams(ext.paramNames)) {
+          for (const p of eventHandlerQpParams(ext.paramNames, ext.captureParamNames)) {
             if (!seen.has(p)) {
               seen.add(p);
               collected.push(p);

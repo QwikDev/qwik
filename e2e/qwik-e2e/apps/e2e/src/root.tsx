@@ -40,6 +40,7 @@ import { WorkerRoot } from './components/worker/worker';
 import './global.css';
 import { QRL } from './components/qrl/qrl';
 import { QVisibleRoot } from './components/qvisible/qvisible';
+import { VisibleTaskOrderRoot } from './components/visible-task-order/visible-task-order';
 import { AsyncRoot } from './components/use-async/use-async';
 import { Backpatching } from './components/backpatching/backpatching';
 import { EachRoot } from './components/each/each';
@@ -86,6 +87,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/exception/use-task': () => <UseTaskExceptions />,
   '/e2e/qrl': () => <QRL />,
   '/e2e/qvisible': () => <QVisibleRoot />,
+  '/e2e/visible-task-order': () => <VisibleTaskOrderRoot />,
   '/e2e/async-computed': () => <AsyncRoot />,
   '/e2e/backpatching': () => <Backpatching />,
   '/e2e/each': () => <EachRoot />,

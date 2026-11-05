@@ -764,6 +764,58 @@ describe.each([
       (globalThis as any).log = undefined;
     });
 
+    it('should execute cleanup visible task on unmount when the removed component has a pending re-render', async () => {
+      (globalThis as any).log = [] as string[];
+      // Not captured by the components: Qwik would serialize (= await) a captured promise.
+      let finishTask!: () => void;
+      (globalThis as any).taskDone = new Promise<void>((resolve) => (finishTask = resolve));
+      const Child = component$((props: { count: SignalType<number> }) => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('visible_task:');
+          cleanup(() => (globalThis as any).log.push('cleanup:'));
+        });
+        // render blocking: when `count` changes the re-render of the component waits for this task
+        useTask$(async ({ track }) => {
+          const count = track(props.count);
+          if (count > 0) {
+            (globalThis as any).log.push('task: waiting');
+            await (globalThis as any).taskDone;
+          }
+        });
+        // reading the signal in the body makes the whole component re-render when it changes
+        return <span>Child {props.count.value}</span>;
+      });
+      const Parent = component$(() => {
+        const show = useSignal(true);
+        const count = useSignal(0);
+        return (
+          <button
+            onClick$={() => {
+              // the child gets a pending re-render in the same moment it is removed
+              count.value++;
+              show.value = false;
+            }}
+          >
+            {show.value ? <Child count={count} /> : 'click'}
+          </button>
+        );
+      });
+
+      const { document } = await render(<Parent />, { debug });
+      await trigger(document.body, 'span', 'qvisible');
+      expect((globalThis as any).log).toEqual(['visible_task:']);
+      (globalThis as any).log = [];
+      // the pending task keeps the scheduler busy, so don't wait for it to go idle
+      const click = trigger(document.body, 'button', 'click', {}, { waitForIdle: false });
+      await vi.waitFor(() =>
+        expect((globalThis as any).log).toEqual(expect.arrayContaining(['cleanup:']))
+      );
+      finishTask();
+      await click;
+      (globalThis as any).log = undefined;
+      (globalThis as any).taskDone = undefined;
+    });
+
     it('#9203 - should run visible task cleanups for nested components', async () => {
       (globalThis as any).log = [] as string[];
       const Grandchild = component$(() => {
@@ -1399,6 +1451,35 @@ describe.each([
         'return /foo',
         'entry /',
       ]);
+    });
+
+    it('should run a visible task after the render of the signal it tracks', async () => {
+      const Cmp = component$(() => {
+        const isOpen = useSignal(true);
+        const status = useSignal('idle');
+        const rootRef = useSignal<Element>();
+        useVisibleTask$(async () => {
+          await Promise.resolve();
+          isOpen.value = false;
+        });
+        useVisibleTask$(({ track }) => {
+          if (track(isOpen)) {
+            return;
+          }
+          status.value = rootRef.value!.querySelector('#target') ? 'found' : 'missing';
+        });
+        return (
+          <div ref={rootRef}>
+            <span>{status.value}</span>
+            {!isOpen.value && <p id="target" />}
+          </div>
+        );
+      });
+
+      const { document, container } = await render(<Cmp />, { debug });
+      await trigger(document.body, 'div', 'qvisible');
+      await waitForDrain(container);
+      expect(document.querySelector('span')!.textContent).toBe('found');
     });
   });
   it('should await returned async cleanup before rerun', async () => {

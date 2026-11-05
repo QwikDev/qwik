@@ -27,6 +27,7 @@ import type {
 // Import directly from leaf modules to avoid circular dependency:
 // route-loaders.ts → middleware barrel → runtime/src/ (same module group)
 import { _asyncRequestStore } from '../../middleware/request-handler/async-request-store';
+import { normalizeETag, resolvePreETag } from '../../middleware/request-handler/etag-hash';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import {
@@ -93,6 +94,7 @@ export type LoaderResponse = {
 export type LoaderFetchResult = {
   raw?: string;
   r?: string;
+  eTag?: string;
 };
 
 /**
@@ -125,8 +127,8 @@ const wrapWithAbort = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> 
 /** Shared SSR paths and client-only loader navigation state. */
 export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
-  /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
-  goto?: NoSerialize<(path: string, options: { replaceState: boolean }) => unknown>;
+  /** Resolves after navigation prepares loader requests, before their results. */
+  goto?: NoSerialize<(path: string, options: { replaceState: boolean }) => Promise<void>>;
   /** Router callback that re-resolves the document head after a loader gets a new value. */
   onValue?: RouteNavigate;
   /** Client manifest hash for q-loader fetch URLs. */
@@ -140,6 +142,8 @@ type LoaderRequest = {
   hash?: string;
   /** An interrupting navigation aborted this request's fetch before it settled. */
   isAborted?: boolean;
+  /** Keep redirect reads pending until navigation installs the next request. */
+  redirect?: Promise<void>;
 };
 
 type LoaderNavigation = {
@@ -210,8 +214,21 @@ class ServerRouteLoaderCapture {
     readonly qrl: QRL<(event: RequestEventLoader) => unknown>,
     readonly validators: DataValidator[] | undefined,
     readonly blockSSR: boolean,
+    readonly loader: LoaderInternal,
     readonly requestEv?: RequestEvent
   ) {}
+
+  /** The eTag the q-loader endpoint will send for a value that isn't serialized. */
+  eTag() {
+    const option = this.loader.__eTag;
+    if (
+      this.requestEv &&
+      option !== undefined &&
+      this.loader.__serializationStrategy !== 'always'
+    ) {
+      return resolvePreETag(option, getLoaderRequestEvent(this.loader, this.requestEv));
+    }
+  }
 
   load() {
     const requestEv = this.requestEv;
@@ -284,7 +301,8 @@ export const fetchRouteLoaderData = async (
     }
   }
 
-  const cacheKey = `${url}\n${headers[FULLPATH_HEADER] ?? ''}`;
+  const pagePath = headers[FULLPATH_HEADER] ?? headers[ROUTE_PATH_HEADER] ?? '';
+  const cacheKey = `${url}\n${pagePath}`;
   const cache = navFetchCache;
   if (!opts?.ignoreCache) {
     const entry = cache.get(cacheKey);
@@ -321,7 +339,7 @@ export const fetchRouteLoaderData = async (
     }
     const raw = await response.text();
     opts?.signal?.throwIfAborted();
-    return { raw };
+    return { raw, eTag: response.headers.get('ETag') ?? undefined };
   };
 
   if (opts?.ignoreCache) {
@@ -380,6 +398,7 @@ const createRouteLoaderSignal = (
         loader.__qrl,
         loader.__validators,
         loader.__blockSSR,
+        loader,
         requestEv ?? useServerData<QwikRouterEnvData>('qwikrouter')?.ev
       )
     : id;
@@ -387,11 +406,16 @@ const createRouteLoaderSignal = (
   const loaderHash = isDev ? loader.__qrl.getHash() : id;
   // Raw text of the last successful fetch, to skip deserialization and keep object
   // identity (no rerenders) when a refetch returns unchanged data.
-  const lastFetch: { raw?: string } = {};
+  // `e`: eTag of the SSR value, so the first client fetch can match it.
+  const lastFetch: { raw?: string; e?: string } = {};
   const signal = createComputed$(
     async (ctx) => {
       const { info, previous, abortSignal } = ctx;
       const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
+      const eTag = isServer && (capture as ServerRouteLoaderCapture).eTag();
+      if (eTag) {
+        lastFetch.e = eTag;
+      }
       // Pre-loaded value injection (from middleware via setLoaderSignalValue).
       if (hasInjectedValue) {
         const value = (info as { __v: unknown }).__v;
@@ -446,27 +470,48 @@ const createRouteLoaderSignal = (
       }
       assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
       if (response.r) {
-        // Redirect — fire SPA goto if available, else full page nav. We don't
-        // await or coordinate with the current nav: the new nav starts while
-        // this one finishes committing, producing a brief flash of stale data
-        // before the new route's loaders resolve. That trade-off is intentional
-        // — awaiting all loader promises just to catch redirects is too costly
-        // for the common case.
-        //
+        const redirectUrl = response.r;
         const goto = routeLoaderCtx.goto;
-        if (goto) {
-          goto(response.r, { replaceState: true });
-        } else {
-          location.href = response.r;
-        }
-        // Keep unresolved loaders pending until the redirect replaces their request.
-        return retainLoaderValue(previous, abortSignal);
+        // Mark the redirect pending before navigation can abort requests.
+        const prepared = Promise.resolve().then(() => {
+          assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
+          if (goto) {
+            return goto(redirectUrl, { replaceState: true });
+          }
+          location.href = redirectUrl;
+          return new Promise<void>(() => {});
+        });
+        request.redirect = prepared;
+        return wrapWithAbort(prepared, abortSignal)
+          .then(() => {
+            assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
+            // Reading the stored value distinguishes undefined from missing data.
+            try {
+              return state[id].untrackedValue;
+            } catch {
+              throw new Error('Route loader redirect completed without data.');
+            }
+          })
+          .finally(() => {
+            if (request.redirect === prepared) {
+              request.redirect = undefined;
+            }
+          });
       }
       if (response.e) {
         // Error — throw so signal enters error state
         throw response.e;
       }
       lastFetch.raw = result.raw;
+      // Same eTag as during SSR: subscribers already rendered this data.
+      if (
+        previous === undefined &&
+        lastFetch.e &&
+        lastFetch.e === normalizeETag(result.eTag || '')
+      ) {
+        (state[id] as _ComputedSignalInternal<unknown>).untrackedValue = response.d;
+      }
+      lastFetch.e = undefined;
       const onValue = routeLoaderCtx.onValue;
       if (onValue) {
         Promise.resolve()
@@ -699,7 +744,9 @@ export function abortRouteLoaderNavigation(ctx: RouteLoaderCtx) {
     if ((signal as _ComputedSignalInternal<unknown>).untrackedPending) {
       request.isAborted = true;
     }
-    signal.abort();
+    if (!request.redirect) {
+      signal.abort();
+    }
   }
 }
 

@@ -3,6 +3,7 @@ import { createDocument } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getDomContainer } from '../../client/dom-container';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
+import { getPlatform, setPlatform } from '../../shared/platform/platform';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { QRL } from '../../shared/qrl/qrl.public';
 import type { Container, HostElement } from '../../shared/types';
@@ -15,10 +16,11 @@ import {
   type ComputeCtx,
   EffectProperty,
   NEEDS_COMPUTATION,
+  NOT_READY,
   ComputedSignalFlags,
 } from '../types';
 import { clearAllEffects } from '../cleanup';
-import { createSignal, createAsyncQrl } from '../signal.public';
+import { createSignal, createAsyncQrl, createComputedQrl } from '../signal.public';
 import { getSubscriber } from '../subscriber';
 import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ELEMENT_SEQ } from '../../shared/utils/markers';
@@ -50,6 +52,62 @@ describe('async signal', () => {
   afterEach(async () => {
     await container.$renderPromise$;
     container = null!;
+  });
+
+  describe.each([false, true])('synchronous completion (server: %s)', (isServer) => {
+    let platform: ReturnType<typeof getPlatform>;
+    beforeEach(() => {
+      platform = getPlatform();
+      setPlatform({ ...platform, isServer });
+    });
+    afterEach(() => setPlatform(platform));
+
+    it.each([42, undefined])('settles a synchronous value: %j', async (value) => {
+      await withContainer(async () => {
+        const ref = { value };
+        const signal = createAsyncQrl($(() => ref.value)) as AsyncSignalImpl<number | undefined>;
+
+        expect(signal.value).toBe(value);
+        expect(signal.pending).toBe(false);
+        expect(signal.$current$?.$promise$).toBeFalsy();
+        await signal.promise();
+        expect(signal.value).toBe(value);
+      });
+    });
+
+    it('settles a synchronous failure', async () => {
+      await withContainer(async () => {
+        const ref = { error: new Error('synchronous failure') };
+        const signal = createAsyncQrl(
+          $(() => {
+            throw ref.error;
+          })
+        ) as AsyncSignalImpl<never>;
+
+        expect(() => signal.value).toThrow(ref.error);
+        expect(signal.error).toBe(ref.error);
+        expect(signal.pending).toBe(false);
+        expect(signal.$current$?.$promise$).toBeFalsy();
+        await signal.promise();
+      });
+    });
+
+    it('recomputes after synchronous completion', async () => {
+      await withContainer(async () => {
+        const ref = { value: 1 };
+        const signal = createAsyncQrl($(() => ref.value)) as AsyncSignalImpl<number>;
+
+        expect(signal.value).toBe(1);
+        expect(signal.$current$?.$promise$).toBeFalsy();
+        ref.value = 2;
+        signal.invalidate();
+
+        expect(signal.value).toBe(2);
+        expect(signal.pending).toBe(false);
+        expect(signal.$current$?.$promise$).toBeFalsy();
+        await signal.promise();
+      });
+    });
   });
 
   describe('invalidate info', () => {
@@ -281,7 +339,110 @@ describe('async signal', () => {
     });
   });
 
+  describe('errors', () => {
+    it.each([null, undefined, 0, false, ''])(
+      'normalizes a non-Error failure: %j',
+      async (reason) => {
+        await withContainer(async () => {
+          const ref = { reason };
+          const signal = createAsync<number>(async () => {
+            throw ref.reason;
+          });
+
+          await signal.promise();
+
+          const error = signal.error;
+          expect(error).toBeInstanceOf(Error);
+          expect(error!.cause).toBe(reason);
+          expect(() => signal.value).toThrow(error);
+
+          signal.value = 42;
+          expect(signal.error).toBeUndefined();
+          expect(signal.value).toBe(42);
+        });
+      }
+    );
+
+    it('preserves an Error failure', async () => {
+      await withContainer(async () => {
+        const ref = { error: new Error('compute failed') };
+        const signal = createAsync<number>(async () => {
+          throw ref.error;
+        });
+
+        await signal.promise();
+
+        expect(signal.error).toBe(ref.error);
+        expect(() => signal.value).toThrow(ref.error);
+      });
+    });
+  });
+
   describe('cleanup and abort', () => {
+    it('throws NOT_READY for a cancelled read and keeps its reader subscribed', async () => {
+      await withContainer(async () => {
+        const signal = createAsync<number>(
+          async ({ abortSignal }) =>
+            new Promise((_, reject) => {
+              abortSignal.addEventListener('abort', () => reject(abortSignal.reason), {
+                once: true,
+              });
+            })
+        );
+        expect(() => signal.value).toThrow();
+        signal.abort();
+        await signal.promise();
+
+        const ctx = newInvokeContext();
+        ctx.$container$ = container;
+        ctx.$effectSubscriber$ = getSubscriber(vnode_newVirtual(), EffectProperty.COMPONENT);
+        let thrown: unknown;
+        invoke(ctx, () => {
+          try {
+            signal.value;
+          } catch (error) {
+            thrown = error;
+          }
+        });
+        expect(thrown).toBe(NOT_READY);
+        expect(signal.error).toBeUndefined();
+        expect((signal as unknown as SignalImpl).$effects$?.size).toBe(1);
+      });
+    });
+
+    it('passes NOT_READY through a computed until the source has a value', async () => {
+      await withContainer(async () => {
+        const source = createAsync<number>(
+          async ({ abortSignal }) =>
+            new Promise((_, reject) => {
+              abortSignal.addEventListener('abort', () => reject(abortSignal.reason), {
+                once: true,
+              });
+            })
+        );
+        expect(() => source.value).toThrow();
+        source.abort();
+        await source.promise();
+        const derived = createComputedQrl($(() => source.value + 1));
+
+        expect(() => derived.value).toThrow();
+        let thrown: unknown;
+        try {
+          derived.value;
+        } catch (error) {
+          thrown = error;
+        }
+        expect(thrown).toBe(NOT_READY);
+        // A missing input is neither an error nor running work.
+        expect(derived.error).toBeUndefined();
+        expect(derived.pending).toBe(false);
+
+        source.value = 1;
+        expect(derived.value).toBe(2);
+        expect(derived.value).toBe(2);
+      });
+    });
+
     it('should run async cleanups before next compute', async () => {
       await withContainer(async () => {
         const dep = createSignal(0);

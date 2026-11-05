@@ -213,14 +213,14 @@ function diffJsxVNode(
       const propLowerCased = prop.toLowerCase();
       let convertNullToUndefined = false;
       const vnodePropValue =
-        stringifyAttribute(received, prop, vnode_getProp(received, prop, null)) ||
+        stringifyAttribute(received, prop, vnode_getProp(received, prop, null)) ??
         stringifyAttribute(received, propLowerCased, vnode_getProp(received, propLowerCased, null));
       if (vnodePropValue === null) {
         convertNullToUndefined = true;
       }
       let receivedValue: string | boolean | undefined | null =
-        vnodePropValue ||
-        receivedElement?.getAttribute(prop) ||
+        vnodePropValue ??
+        receivedElement?.getAttribute(prop) ??
         receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
         prop === 'key' || prop === ELEMENT_KEY
@@ -591,6 +591,10 @@ function attrsEqual(expectedValue: any, receivedValue: any) {
 }
 
 function stringifyAttribute(vnode: VNode, key: string, value: any): string | null | boolean {
+  // a missing prop must fall back to the DOM, even for `class` and `style`
+  if (value == null) {
+    return null;
+  }
   if (isSignal(value)) {
     value = untrack(() => value.value);
   }

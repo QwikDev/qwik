@@ -10,12 +10,8 @@ import {
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
-import {
-  _deserialize,
-  _getContextHostElement,
-  _regInlinedQrl,
-  _serialize,
-} from '@qwik.dev/core/internal';
+import { _deserialize, _getContextHostElement, _regInlinedQrl } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import * as v from 'valibot';
 import * as z from 'zod';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
@@ -463,41 +459,54 @@ export function serverQrl<T extends ServerFunction>(
       }
       const res = await fetch(`${origin}?${QFN_KEY}=${qrlHash}${query}`, config);
 
-      const contentType = res.headers.get('Content-Type');
-      if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
-        return (async function* () {
-          try {
-            for await (const result of deserializeStream(res.body!, abortSignal)) {
-              yield result;
-            }
-          } finally {
-            if (!abortSignal?.aborted) {
-              await res.body!.cancel();
-            }
-          }
-        })();
-      } else if (contentType === 'application/qwik-json') {
-        const str = await res.text();
-        const obj = await _deserialize(str);
-        if (res.status >= 400) {
-          throw obj;
-        }
-        return obj;
-      } else if (contentType === 'application/json') {
-        const obj = await res.json();
-        if (res.status >= 400) {
-          throw obj;
-        }
-        return obj;
-      } else if (contentType === 'text/plain' || contentType === 'text/html') {
-        const str = await res.text();
-        if (res.status >= 400) {
-          throw str;
-        }
-        return str;
-      }
+      return readServerFunctionResponse(res, abortSignal);
     }
   }) as ServerQRL<T>;
+}
+
+/** @internal Exported for tests */
+export async function readServerFunctionResponse(
+  res: Response,
+  abortSignal: AbortSignal | undefined
+): Promise<unknown> {
+  // Compare only the media type, the header can have parameters like `; charset=utf-8`
+  const contentType = res.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase();
+  if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
+    return (async function* () {
+      try {
+        for await (const result of deserializeStream(res.body!, abortSignal)) {
+          yield result;
+        }
+      } finally {
+        if (!abortSignal?.aborted) {
+          await res.body!.cancel();
+        }
+      }
+    })();
+  } else if (contentType === 'application/qwik-json') {
+    const str = await res.text();
+    const obj = await _deserialize(str);
+    if (res.status >= 400) {
+      throw obj;
+    }
+    return obj;
+  } else if (contentType === 'application/json') {
+    const obj = await res.json();
+    if (res.status >= 400) {
+      throw obj;
+    }
+    return obj;
+  } else if (contentType === 'text/plain') {
+    const str = await res.text();
+    if (res.status >= 400) {
+      throw str;
+    }
+    return str;
+  }
+  // Anything else, e.g. an HTML page after a middleware redirect, is not a server$ response
+  throw new Error(
+    `server$ got an unexpected response: ${res.status} ${res.headers.get('Content-Type') ?? '(no Content-Type)'}`
+  );
 }
 
 /** @public */

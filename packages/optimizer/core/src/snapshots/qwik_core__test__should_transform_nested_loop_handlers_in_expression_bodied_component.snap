@@ -1,0 +1,119 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6584
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const Facets = component$((props) => (
+  <div>
+    {props.facets.map((facet) => (
+      <div key={facet.slug}>
+        {facet.items.map((item) => (
+          <input key={item.slug} onChange$={() => props.toggle$(facet.slug, item.slug)} />
+        ))}
+      </div>
+    ))}
+  </div>
+));
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Facets_component_V53IH8KaBD0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Facets_component_V53IH8KaBD0"), "Facets_component_V53IH8KaBD0");
+//
+export const Facets = /*#__PURE__*/ componentQrl(q_Facets_component_V53IH8KaBD0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,uBAAS,6CAUnB\"}")
+============================= test.tsx_Facets_component_V53IH8KaBD0.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Facets_component_div_div_input_q_e_change_0QuDJW7en0Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_Facets_component_div_div_input_q_e_change_0QuDJW7en0Y"), "Facets_component_div_div_input_q_e_change_0QuDJW7en0Y").m();
+//
+export const Facets_component_V53IH8KaBD0 = (props)=>/*#__PURE__*/ _jsxSorted("div", null, null, props.facets.map((facet)=>{
+        const Facets_component_div_div_input_q_e_change_0QuDJW7en0Y = q_Facets_component_div_div_input_q_e_change_0QuDJW7en0Y.w([
+            facet,
+            props
+        ]);
+        return /*#__PURE__*/ _jsxSorted("div", null, null, facet.items.map((item)=>/*#__PURE__*/ _jsxSorted("input", {
+                "q-e:change": Facets_component_div_div_input_q_e_change_0QuDJW7en0Y,
+                "q:p": item
+            }, null, null, 6, item.slug)), 1, facet.slug);
+    }), 1, "u6_0");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAGiC,CAAC,sBAChC,WAAC,mBACE,MAAM,MAAM,CAAC,GAAG,CAAC,CAAC;;;;;6BACjB,WAAC,mBACE,MAAM,KAAK,CAAC,GAAG,CAAC,CAAC,qBAChB,WAAC;gBAAsB,YAAS;uBADhB;8BACJ,KAAK,IAAI,OAFf,MAAM,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Facets_component_V53IH8KaBD0",
+  "entry": null,
+  "displayName": "test.tsx_Facets_component",
+  "hash": "V53IH8KaBD0",
+  "canonicalFilename": "test.tsx_Facets_component_V53IH8KaBD0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    81,
+    337
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Facets_component_div_div_input_q_e_change_0QuDJW7en0Y.js (ENTRY POINT)==
+
+import { _capturesObj } from "@qwik.dev/core";
+//
+export const Facets_component_div_div_input_q_e_change_0QuDJW7en0Y = (_, _1, item)=>{
+    let facet = _capturesObj._[0], props = _capturesObj._[1];
+    return props.toggle$(facet.slug, item.slug);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;qEAQ4C,QADlB;;WACwB,MAAM,OAAO,CAAC,MAAM,IAAI,EAAE,KAAK,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Facets_component_div_div_input_q_e_change_0QuDJW7en0Y",
+  "entry": null,
+  "displayName": "test.tsx_Facets_component_div_div_input_q_e_change",
+  "hash": "0QuDJW7en0Y",
+  "canonicalFilename": "test.tsx_Facets_component_div_div_input_q_e_change_0QuDJW7en0Y",
+  "path": "",
+  "extension": "js",
+  "parent": "Facets_component_V53IH8KaBD0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onChange$",
+  "captures": true,
+  "loc": [
+    247,
+    289
+  ],
+  "paramNames": [
+    "_",
+    "_1",
+    "item"
+  ],
+  "captureNames": [
+    "facet",
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

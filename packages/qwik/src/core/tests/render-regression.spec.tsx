@@ -18,6 +18,9 @@ import '../../testing/vdom-diff.unit-util';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+const Placeholder = component$(() => <div />);
+const Chord = (props: { children: string }) => <b>{props.children}</b>;
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -371,6 +374,136 @@ describe.each([
       await trigger(container.element, '#add', 'click');
       expect(document.querySelector('hr')).not.toBeNull();
       expect(document.querySelector('#count')!.textContent).toBe('1');
+    });
+  });
+
+  describe('keyed list: SSR-shared text of keyed fragments after a keyed swap', () => {
+    // SSR writes the text of adjacent keyed fragments ("t1", "t2") as one DOM Text node. Swapping the keyed
+    // placeholders around them must not duplicate, overwrite or drop that text after resume.
+    it('element placeholders, text after the swapped items', async () => {
+      const Cmp = component$(() => {
+        const done = useSignal(false);
+        return (
+          <div>
+            <button onClick$={() => (done.value = true)} />
+            <section>
+              {done.value ? <b key="c0">X0</b> : <i key="c0" />}
+              <Fragment key="t1">t1</Fragment>
+              <Fragment key="t2">t2</Fragment>
+              {done.value ? <b key="c3">X3</b> : <i key="c3" />}
+              <Fragment key="t4">t4</Fragment>
+            </section>
+          </div>
+        );
+      });
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3t4');
+    });
+
+    it('element placeholders, no text after the swapped items', async () => {
+      const Cmp = component$(() => {
+        const done = useSignal(false);
+        return (
+          <div>
+            <button onClick$={() => (done.value = true)} />
+            <section>
+              {done.value ? <b key="c0">X0</b> : <i key="c0" />}
+              <Fragment key="t1">t1</Fragment>
+              <Fragment key="t2">t2</Fragment>
+              {done.value ? <b key="c3">X3</b> : <i key="c3" />}
+              {done.value ? <b key="c4">X4</b> : <i key="c4" />}
+            </section>
+          </div>
+        );
+      });
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3X4');
+    });
+
+    it('component placeholders replaced by keyed fragments', async () => {
+      const Cmp = component$(() => {
+        const done = useSignal(false);
+        return (
+          <div>
+            <button onClick$={() => (done.value = true)} />
+            <section>
+              {done.value ? (
+                <Fragment key="c0">
+                  <Chord key="c0">X0</Chord>
+                </Fragment>
+              ) : (
+                <Placeholder key="c0" />
+              )}
+              <Fragment key="t1">t1</Fragment>
+              <Fragment key="t2">t2</Fragment>
+              {done.value ? (
+                <Fragment key="c3">
+                  <Chord key="c3">X3</Chord>
+                </Fragment>
+              ) : (
+                <Placeholder key="c3" />
+              )}
+              <Fragment key="t4">t4</Fragment>
+            </section>
+          </div>
+        );
+      });
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3t4');
+    });
+  });
+
+  describe('issue #9370', () => {
+    it.each([
+      ['an empty list', false],
+      ['a nested list ending empty', true],
+    ])('should keep the siblings after %s on re-render', async (_, isNested) => {
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        return (
+          <button id="count" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+        );
+      });
+      const List = component$(() => {
+        const clicks = useSignal(0);
+        const label = `clicked ${clicks.value}`;
+        const items: string[] = [];
+        const list = items.map((item) => <i key={item}>{item}</i>);
+        return (
+          <>
+            {isNested ? [list] : list}
+            {label}
+            <Counter />
+            <b>{label}</b>
+            <button id="rerender" onClick$={() => clicks.value++} />
+          </>
+        );
+      });
+      const Parent = component$(() => {
+        const shown = useSignal(false);
+        if (!shown.value) {
+          return <button id="show" onClick$={() => (shown.value = true)} />;
+        }
+        return <List />;
+      });
+
+      const { container, document } = await render(<Parent />, { debug });
+      await trigger(container.element, '#show', 'click');
+      await trigger(container.element, '#count', 'click');
+      const siblings = () => Array.from(document.querySelector('b')!.parentNode!.childNodes);
+      const siblingsBefore = siblings();
+
+      await trigger(container.element, '#rerender', 'click');
+      expect(document.querySelector('#count')!.textContent).toBe('1');
+      expect(document.querySelector('b')!.textContent).toBe('clicked 1');
+      const siblingsAfter = siblings();
+      expect(siblingsAfter.length).toBe(siblingsBefore.length);
+      expect(siblingsAfter.every((node, i) => node === siblingsBefore[i])).toBe(true);
     });
   });
 });

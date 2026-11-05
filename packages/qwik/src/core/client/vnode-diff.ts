@@ -61,7 +61,11 @@ import type { TextVNode } from '../shared/vnode/text-vnode';
 import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { VNode } from '../shared/vnode/vnode';
-import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import {
+  addVNodeOperation,
+  markVNodeDirty,
+  propagateToCursorRoot,
+} from '../shared/vnode/vnode-dirty';
 import { updateDirtySubtreeCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { trackSignalAndAssignHost, untrack } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
@@ -433,6 +437,10 @@ function diff(
               }
             }
           } else if (Array.isArray(diffContext.$jsxValue$)) {
+            if (diffContext.$jsxValue$.length === 0) {
+              skipEmptyArray(diffContext);
+              continue;
+            }
             descend(diffContext, diffContext.$jsxValue$, false);
           } else if (isSignal(diffContext.$jsxValue$)) {
             expectVirtual(diffContext, VirtualType.WrappedSignal, null);
@@ -539,6 +547,23 @@ function advance(diffContext: DiffContext) {
     diffContext.$vNewNode$ = null;
   } else {
     diffContext.$vCurrent$ = peekNextSiblingWithinBoundary(diffContext, diffContext.$vCurrent$);
+  }
+}
+
+/** An empty JSX array renders nothing, so it must not consume `vCurrent`. */
+function skipEmptyArray(diffContext: DiffContext) {
+  const stack = diffContext.$stack$;
+  diffContext.$jsxIdx$++;
+  // Flattened arrays ending here skip `advance`, whose sibling step would consume `vCurrent`.
+  while (diffContext.$jsxIdx$ >= diffContext.$jsxCount$ && stack[stack.length - 1] === false) {
+    stack.pop(); // descendVNode
+    stack.pop(); // jsxValue
+    diffContext.$jsxCount$ = stack.pop();
+    diffContext.$jsxIdx$ = stack.pop() + 1;
+    diffContext.$jsxChildren$ = stack.pop();
+  }
+  if (diffContext.$jsxIdx$ < diffContext.$jsxCount$) {
+    diffContext.$jsxValue$ = diffContext.$jsxChildren$![diffContext.$jsxIdx$];
   }
 }
 
@@ -1289,7 +1314,7 @@ function diffProps(
       ) {
         patchProperty(diffContext, vnode, key, newValue, currentFile);
       }
-    } else if (newValue != null) {
+    } else if (newValue != null || (key === ITERATION_ITEM_SINGLE && newValue === null)) {
       patchProperty(diffContext, vnode, key, newValue, currentFile);
     }
   }
@@ -1304,7 +1329,13 @@ function diffProps(
         // we keep these handler props to indicate to qwikloader that these events are used
         !isHtmlAttributeAnEventName(key)
       ) {
-        patchProperty(diffContext, vnode, key, null, currentFile);
+        patchProperty(
+          diffContext,
+          vnode,
+          key,
+          key === ITERATION_ITEM_SINGLE ? undefined : null,
+          currentFile
+        );
       }
     }
   }
@@ -1912,6 +1943,12 @@ export function cleanup(
   do {
     if (cursorRootData && vCursor !== cursorRoot && isCursor(vCursor)) {
       abandonCursor(container, cursorRootData, vCursor);
+      // The abandoned cursor keeps its dirty bits, but nothing walks it any more. Link it to the
+      // cursor root, otherwise markVNodeDirty() below skips it as "already dirty" and the cleanups
+      // of the visible tasks in this subtree are never executed.
+      if (vCursor.dirty & ChoreBits.DIRTY_MASK) {
+        propagateToCursorRoot(vCursor, cursorRoot!);
+      }
     }
     const type = vCursor.flags;
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {

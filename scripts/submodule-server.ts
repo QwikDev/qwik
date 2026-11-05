@@ -7,6 +7,15 @@ import { inlineBackpatchScriptsEsBuild } from './submodule-backpatch.ts';
 import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
 import { type BuildConfig, getBanner, importPath, readFile, target, writeFile } from './util.ts';
 
+/** Core files other bundles may copy; everything else must come from `@qwik.dev/core/internal`. */
+export const isCopyableCorePath = (path: string) =>
+  path.includes('util') ||
+  path.includes('shared') ||
+  path.includes('ssr') ||
+  path.includes('version') ||
+  // we allow building preloader into server builds
+  path.includes('preloader');
+
 /**
  * Builds @qwik.dev/core/server
  *
@@ -62,14 +71,7 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
         name: 'forbid-core',
         setup(build) {
           build.onLoad({ filter: /src[\\/]core[\\/]/ }, (args) => {
-            if (
-              args.path.includes('util') ||
-              args.path.includes('shared') ||
-              args.path.includes('ssr') ||
-              args.path.includes('version') ||
-              // we allow building preloader into server builds
-              args.path.includes('preloader')
-            ) {
+            if (isCopyableCorePath(args.path)) {
               return null;
             }
             console.error('forbid-core', args);

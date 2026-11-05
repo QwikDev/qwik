@@ -38,6 +38,11 @@ export async function apiExtractorQwik(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.srcQwikDir, 'serializer'),
+    join(config.distQwikPkgDir, 'serializer.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.srcQwikDir, 'testing'),
     join(config.distQwikPkgDir, 'testing', 'index.d.ts')
   );

@@ -59,6 +59,15 @@
         "default": "./dist/core.prod.mjs"
       }
     },
+    "./internal/serializer": {
+      "types": "./dist/serializer.d.ts",
+      "import": {
+        "development": "./dist/serializer.mjs",
+        "production": "./dist/serializer.prod.mjs",
+        "min": "./dist/serializer.prod.mjs",
+        "default": "./dist/serializer.prod.mjs"
+      }
+    },
     "./jsx-runtime": {
       "types": "./dist/jsx-runtime.d.ts",
       "import": {

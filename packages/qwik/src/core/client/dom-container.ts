@@ -89,6 +89,7 @@ import {
 } from './vnode-utils';
 import { ContainerDataProcessState, processContainerStateData } from './process-state-data';
 import { Brand, brandClass } from '../shared/utils/brand';
+import { NOT_READY } from '../reactive-primitives/types';
 export { onContainerDataReady, whenContainerDataReady } from './process-state-data';
 
 /** @public */
@@ -309,6 +310,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   handleError(err: any, host: VNode | null, phase: CatchPhase = CatchPhase.Render): void {
+    if (err === NOT_READY) {
+      // Its reader stays subscribed and reruns once the value arrives.
+      return;
+    }
     if (qDev && host) {
       handleDevError(this, err, host);
     }

@@ -61,7 +61,7 @@ export function runEventHandlerQRL(
     }
     const getObj = shouldInflate ? container.$getObjectById$ : null;
     const singleItem = vnode_getProp<unknown>(hostElement, ITERATION_ITEM_SINGLE, getObj);
-    if (singleItem !== null) {
+    if (singleItem !== null || hostElement.props?.[ITERATION_ITEM_SINGLE] === null) {
       realHandler = (() => handlerFn(event, element, singleItem)) as typeof handler;
     } else {
       const multiItems = vnode_getProp<unknown[]>(hostElement, ITERATION_ITEM_MULTI, getObj);

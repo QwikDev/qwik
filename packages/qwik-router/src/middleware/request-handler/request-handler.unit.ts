@@ -1,4 +1,5 @@
-import { afterEach, describe, it, expect, vi } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
+import { _deserialize } from '@qwik.dev/core/internal';
 import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../runtime/src/route-loaders';
 import { _setRouterConfig } from '../../runtime/src/router-config';
 import { getLoaderName } from './request-path';
@@ -170,5 +171,82 @@ describe('getRequestHandlerPathname', () => {
     });
 
     expect(getRequestHandlerPathname(ev)).toBe('/products/');
+  });
+});
+
+describe('onRequest url for q-loader requests', () => {
+  const loaderPath = `/${getLoaderName('layout-loader', 'manifest')}`;
+  let seenUrls: string[];
+
+  beforeEach(() => {
+    seenUrls = [];
+    // A page's onRequest is skipped for loaders it does not declare; a layout's runs.
+    const rootLayout = {
+      useLayoutData: Object.assign(() => {}, { __brand: 'server_loader', __id: 'layout-loader' }),
+      onRequest: ({ url, redirect }: any) => {
+        seenUrls.push(url.pathname + url.search);
+        throw redirect(302, `${url.pathname}step/`);
+      },
+    };
+    const page = { default: () => null };
+    _setRouterConfig({
+      routes: { _L: () => rootLayout, _I: () => page, redirect: { _I: () => page } } as any,
+      basePathname: '/',
+      cacheModules: false,
+    });
+  });
+
+  afterEach(() => {
+    _setRouterConfig({ routes: {}, basePathname: '/', cacheModules: false });
+  });
+
+  async function handle(ev: ServerRequestEvent) {
+    const result = await requestHandler(ev, { render: (async () => ({ html: '' })) as any });
+    await result?.completion;
+  }
+
+  function readLoaderResponse(ev: ServerRequestEvent) {
+    const writer = (ev.getWritableStream as any).mock.results[0].value.getWriter();
+    return _deserialize(new TextDecoder().decode(writer.write.mock.calls[0][0]));
+  }
+
+  it.each([
+    ['X-Qwik-route-path', ROUTE_PATH_HEADER],
+    ['X-Qwik-fullpath', FULLPATH_HEADER],
+  ])('shows the page url for a root layout loader request using %s', async (_, header) => {
+    const ev = createMockServerRequestEvent(`http://localhost${loaderPath}?tab=1`, {
+      headers: { [header]: '/redirect/' },
+    });
+
+    await handle(ev);
+
+    expect(seenUrls).toEqual(['/redirect/?tab=1']);
+    expect(await readLoaderResponse(ev)).toEqual({ r: '/redirect/step/' });
+  });
+
+  it.each([
+    ['no route path', undefined],
+    ['a protocol-relative route path', '//evil.example/redirect/'],
+    ['a cross-origin route path', 'https://evil.example/redirect/'],
+  ])('keeps the loader url for a loader request with %s', async (_, routePath) => {
+    const ev = createMockServerRequestEvent(`http://localhost${loaderPath}`, {
+      headers: routePath ? { [ROUTE_PATH_HEADER]: routePath } : undefined,
+    });
+
+    await handle(ev);
+
+    expect(seenUrls).toEqual(['/']);
+    expect(await readLoaderResponse(ev)).toEqual({ r: '/step/' });
+  });
+
+  it('keeps the request url for a page request', async () => {
+    const ev = createMockServerRequestEvent('http://localhost/redirect/', {
+      headers: { [ROUTE_PATH_HEADER]: '/other/' },
+    });
+
+    await handle(ev);
+
+    expect(seenUrls).toEqual(['/redirect/']);
+    expect((ev.getWritableStream as any).mock.calls[0][1].get('Location')).toBe('/redirect/step/');
   });
 });

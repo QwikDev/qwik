@@ -121,6 +121,8 @@ export interface ExtractionBase {
  * readonly on `ExtractionBase`. Consumers narrow on `phase`.
  */
 interface ExtractionPhaseFields {
+  /** Every known consumer runs through a native event. */
+  isEventOnly?: boolean;
   captureNames: string[];
   paramNames: string[];
   captures: boolean;
@@ -129,6 +131,7 @@ interface ExtractionPhaseFields {
    * Recorded at promotion time (before strip-mode clears captures) — drives the `.m()` marker.
    */
   movedCaptures?: boolean;
+  captureParamNames?: string[];
   /** At least one lifted capture is a non-const binding (param/let) — the entry classifies var. */
   liftedNonConst?: boolean;
   parent: SymbolName | null;

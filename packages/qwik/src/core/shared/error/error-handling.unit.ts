@@ -1,4 +1,5 @@
-import { _deserialize, _serialize } from '@qwik.dev/core/internal';
+import { _deserialize } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import { describe, expect, it, vi } from 'vitest';
 import * as logUtils from '../utils/log';
 import {

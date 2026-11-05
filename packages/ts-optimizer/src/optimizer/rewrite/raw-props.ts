@@ -605,7 +605,7 @@ function analyzeBodyDestructurePlan(
   const propsDerived = collectPropsDerivedLocals(baseName, fnBody.body ?? []);
 
   for (const stmt of fnBody.body ?? []) {
-    if (stmt.type !== 'VariableDeclaration' || !hasRange(stmt)) {
+    if (stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const' || !hasRange(stmt)) {
       continue;
     }
 

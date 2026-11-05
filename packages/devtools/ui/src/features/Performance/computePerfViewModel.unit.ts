@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeEventRows, computePerfViewModel } from './computePerfViewModel';
+import { computeEventRows, computePerfViewModel, describeSsrRenders } from './computePerfViewModel';
 import type { QwikPerfStoreRemembered } from '@qwik.dev/devtools/kit';
 import type { PerfGroupedCsrItem } from './transformPerformanceData';
 
@@ -116,5 +116,20 @@ describe('computeEventRows', () => {
     expect(byName.get('render')?.time).toBe(2);
     expect(byName.get('useEffect')?.calls).toBe(3);
     expect(byName.get('useEffect')?.time).toBe(1);
+  });
+});
+
+describe('describeSsrRenders', () => {
+  const entry = { id: 1, component: 'App_component_abc', phase: 'ssr' as const, start: 0, end: 0 };
+
+  it('shows the server render time next to the render count', () => {
+    expect(describeSsrRenders({ ...entry, duration: 40.11, renderCount: 2, ssrCount: 2 })).toBe(
+      'SSR: 40ms × 2'
+    );
+  });
+
+  it('shows no count for components that were only set up, never rendered', () => {
+    expect(describeSsrRenders({ ...entry, duration: 0, ssrCount: 2 })).toBe('SSR: -');
+    expect(describeSsrRenders(undefined)).toBe('SSR: -');
   });
 });

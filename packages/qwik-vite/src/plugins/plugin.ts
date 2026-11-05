@@ -1,3 +1,4 @@
+import { CLIENT_STRIP_CTX_NAME, SERVER_STRIP_CTX_NAME } from '../transform-contexts';
 import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
@@ -46,25 +47,6 @@ const SERVER_STRIP_EXPORTS = [
   'onOptions',
   'onPatch',
   'onStaticGenerate',
-];
-
-const SERVER_STRIP_CTX_NAME = [
-  'useServer',
-  'route',
-  'server',
-  'action$',
-  'loader$',
-  'zod$',
-  'validator$',
-  'globalAction$',
-];
-const CLIENT_STRIP_CTX_NAME = [
-  'useClient',
-  'useBrowser',
-  'useVisibleTask',
-  'client',
-  'browser',
-  'event$',
 ];
 
 type ViteResolveIdOptions = NonNullable<Parameters<Extract<Plugin['resolveId'], Function>>[2]>;

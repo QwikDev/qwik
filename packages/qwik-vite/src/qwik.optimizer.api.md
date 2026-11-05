@@ -203,6 +203,7 @@ export interface QwikBundle {
     interactivity?: number;
     origins?: string[];
     qrlImports?: string[];
+    renderImports?: string[];
     size: number;
     symbols?: string[];
     total: number;
@@ -368,6 +369,7 @@ export interface SegmentAnalysis {
     extension: string;
     // (undocumented)
     hash: string;
+    isEventOnly?: boolean;
     // (undocumented)
     loc: [number, number];
     // (undocumented)

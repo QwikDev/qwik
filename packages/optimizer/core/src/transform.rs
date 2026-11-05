@@ -66,6 +66,7 @@ pub enum SegmentKind {
 
 #[derive(Debug, Clone)]
 pub struct Segment {
+	pub is_event_only: bool,
 	pub entry: Option<Atom>,
 	pub canonical_filename: Atom,
 	pub name: Atom,
@@ -1184,6 +1185,7 @@ impl<'a> QwikTransform<'a> {
 		}
 		let import_expr = self.create_qrl(import_path.into(), &symbol_name, &segment_data, &span);
 		self.segments.push(Segment {
+			is_event_only: self.event_only_qrls.contains(&span.lo),
 			entry,
 			span,
 			canonical_filename,
@@ -2103,6 +2105,7 @@ impl<'a> QwikTransform<'a> {
 			);
 			self.hoisted_segment_idents.insert(id!(new_ident));
 			self.segments.push(Segment {
+				is_event_only: self.event_only_qrls.contains(&span.lo),
 				entry: None,
 				span,
 				canonical_filename: get_canonical_filename(
@@ -3219,6 +3222,7 @@ impl<'a> QwikTransform<'a> {
 
 		// Add the segment to the collection with entry set to None to indicate it's a noop
 		self.segments.push(Segment {
+			is_event_only: false,
 			entry: None,
 			span: DUMMY_SP,
 			canonical_filename,

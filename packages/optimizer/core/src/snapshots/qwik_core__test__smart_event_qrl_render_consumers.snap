@@ -93,6 +93,7 @@ export const s_0Z0APcS8nqU = ()=>{
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6BAMkB;;WAAM,MAAM,KAAK\"}")
 /*
 {
+  "isEventOnly": true,
   "origin": "test.tsx",
   "name": "s_0Z0APcS8nqU",
   "entry": "test.tsx_App_component_click_0Z0APcS8nqU",

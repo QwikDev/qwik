@@ -11,9 +11,11 @@ use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::rc::Rc;
 use swc_atoms::Atom;
-use swc_common::comments::{SingleThreadedComments, SingleThreadedCommentsMap};
-use swc_common::Spanned;
+use swc_common::comments::{
+	SingleThreadedComments, SingleThreadedCommentsMap, SingleThreadedCommentsMapInner,
+};
 use swc_common::DUMMY_SP;
+use swc_common::{BytePos, Span, Spanned};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
 use swc_ecmascript::visit::{noop_visit_type, Fold, FoldWith, Visit, VisitWith};
@@ -122,11 +124,6 @@ pub struct NewModuleCtx<'a> {
 }
 
 pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComments), Error> {
-	// Emitters consume comments, so each module needs independent storage.
-	let comments = SingleThreadedComments::from_leading_and_trailing(
-		Rc::new(RefCell::new(ctx.leading_comments.borrow().clone())),
-		Rc::new(RefCell::new(ctx.trailing_comments.borrow().clone())),
-	);
 	let max_cap = ctx.global.imports.len() + ctx.global.exports.len() + ctx.extra_top_items.len();
 	let mut module = ast::Module {
 		span: DUMMY_SP,
@@ -451,7 +448,100 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 	module.body = final_body;
 
 	module.body.push(create_named_export(expr, ctx.name));
+	let comments = copy_module_comments(&module, &ctx.leading_comments, &ctx.trailing_comments);
 	Ok((module, comments))
+}
+
+fn copy_module_comments(
+	module: &ast::Module,
+	leading: &SingleThreadedCommentsMap,
+	trailing: &SingleThreadedCommentsMap,
+) -> SingleThreadedComments {
+	struct ModuleComments<'a> {
+		source_leading: &'a SingleThreadedCommentsMapInner,
+		source_trailing: &'a SingleThreadedCommentsMapInner,
+		leading: SingleThreadedCommentsMapInner,
+		trailing: SingleThreadedCommentsMapInner,
+	}
+
+	impl ModuleComments<'_> {
+		fn copy_leading(&mut self, pos: BytePos) {
+			if !pos.is_dummy() {
+				if let Some(comments) = self.source_leading.get(&pos) {
+					self.leading.entry(pos).or_insert_with(|| comments.clone());
+				}
+			}
+		}
+
+		fn copy_trailing(&mut self, pos: BytePos) {
+			if !pos.is_dummy() {
+				if let Some(comments) = self.source_trailing.get(&pos) {
+					self.trailing.entry(pos).or_insert_with(|| comments.clone());
+				}
+			}
+		}
+	}
+
+	impl Visit for ModuleComments<'_> {
+		fn visit_span(&mut self, span: &Span) {
+			self.copy_leading(span.lo);
+			self.copy_trailing(span.hi);
+			// SWC uses opening positions for empty-list trailing comments.
+			self.copy_trailing(span.lo);
+			// SWC also emits leading comments before closing delimiters.
+			if span.hi.0 > 0 {
+				self.copy_leading(span.hi - BytePos(1));
+			}
+		}
+
+		fn visit_member_expr(&mut self, member: &ast::MemberExpr) {
+			member.visit_children_with(self);
+			if member.prop.is_computed() {
+				return;
+			}
+			let start = member.prop.span().lo;
+			// SWC checks dot positions before member property identifiers.
+			if start.0 >= 1 {
+				self.copy_leading(start - BytePos(1));
+			}
+			if start.0 >= 2 {
+				self.copy_leading(start - BytePos(2));
+			}
+		}
+
+		fn visit_super_prop_expr(&mut self, member: &ast::SuperPropExpr) {
+			member.visit_children_with(self);
+			if member.prop.is_computed() {
+				return;
+			}
+			let start = member.prop.span().lo;
+			if start.0 >= 1 {
+				self.copy_leading(start - BytePos(1));
+			}
+		}
+
+		fn visit_jsx_expr_container(&mut self, container: &ast::JSXExprContainer) {
+			container.visit_children_with(self);
+			self.copy_trailing(container.span.lo + BytePos(1));
+		}
+	}
+
+	let source_leading = leading.borrow();
+	let source_trailing = trailing.borrow();
+	if source_leading.is_empty() && source_trailing.is_empty() {
+		return SingleThreadedComments::default();
+	}
+	let mut collector = ModuleComments {
+		source_leading: &source_leading,
+		source_trailing: &source_trailing,
+		leading: Default::default(),
+		trailing: Default::default(),
+	};
+	module.visit_with(&mut collector);
+	SingleThreadedComments::from_leading_and_trailing(
+		Rc::new(RefCell::new(collector.leading)),
+		Rc::new(RefCell::new(collector.trailing)),
+	)
 }
 
 fn collect_needed_extra_top_items(
@@ -1373,6 +1463,157 @@ impl Fold for QrlHoistingVisitor<'_> {
 		}
 
 		expr
+	}
+}
+
+#[cfg(test)]
+mod module_comment_tests {
+	use super::*;
+	use swc_common::comments::Comments;
+	use swc_common::{sync::Lrc, FileName, Globals, SourceMap, GLOBALS};
+	use swc_ecmascript::parser::{parse_file_as_module, EsSyntax, Syntax};
+
+	fn parse_comments(code: &'static str) -> (Lrc<SourceMap>, ast::Module, SingleThreadedComments) {
+		let comments = SingleThreadedComments::default();
+		let source_map: Lrc<SourceMap> = Default::default();
+		let file =
+			source_map.new_source_file(Lrc::new(FileName::Custom("comments.jsx".into())), code);
+		let mut errors = vec![];
+		let module = parse_file_as_module(
+			&file,
+			Syntax::Es(EsSyntax {
+				jsx: true,
+				..Default::default()
+			}),
+			Default::default(),
+			Some(&comments),
+			&mut errors,
+		)
+		.unwrap();
+		assert!(errors.is_empty(), "{errors:?}");
+		(source_map, module, comments)
+	}
+
+	#[test]
+	fn bracket_access_skips_dot_comments_but_keeps_child_comments() {
+		use swc_common::comments::{Comment, CommentKind};
+
+		for code in [
+			"/* object */ items   [/* key */ index];",
+			"class Child extends Parent { read() { return /* object */ super   [/* key */ index]; } }",
+		] {
+			let (source_map, module, source) = parse_comments(code);
+			let file_start = source_map.lookup_source_file(module.span.lo).start_pos;
+			let bracket = file_start + BytePos(code.find('[').unwrap() as u32);
+			let unused_positions = [bracket - BytePos(1), bracket - BytePos(2)];
+			for pos in unused_positions {
+				source.add_leading(pos, Comment {
+					kind: CommentKind::Block,
+					span: DUMMY_SP,
+					text: "unused dot position".into(),
+				});
+			}
+			let (leading, trailing) = source.clone().take_all();
+			let copied = copy_module_comments(&module, &leading, &trailing);
+			for pos in unused_positions {
+				assert!(copied.get_leading(pos).is_none(), "{code}: {pos:?}");
+			}
+			let expected = crate::parse::emit_source_code(source_map.clone(), Some(source), &module, None, false).unwrap().0;
+			let actual = crate::parse::emit_source_code(source_map, Some(copied), &module, None, false).unwrap().0;
+			assert!(actual.contains("/* object */"), "{actual}");
+			assert!(actual.contains("/* key */"), "{actual}");
+			assert_eq!(actual, expected);
+		}
+	}
+
+	#[test]
+	fn preserves_comments_used_by_codegen_at_delimiters() {
+		let (source_map, module, source) = parse_comments(
+			r#"
+/** helper */ function helper() { /*#__PURE__*/ factory(/* argument */); /* closing */ }
+const object = { /* object */ };
+const array = [ /* array */ ];
+object /* before dot */ . /* after dot */ field;
+1 /* number */ .toString();
+class Child extends Parent { read() { return super /* super */ .field; } }
+const view = <div>{/* jsx */}</div>;
+"#,
+		);
+		let (leading, trailing) = source.clone().take_all();
+		let copied = copy_module_comments(&module, &leading, &trailing);
+		let expected =
+			crate::parse::emit_source_code(source_map.clone(), Some(source), &module, None, false)
+				.unwrap()
+				.0;
+		let actual = crate::parse::emit_source_code(source_map, Some(copied), &module, None, false)
+			.unwrap()
+			.0;
+		for marker in ["closing", "before dot", "after dot", "super", "jsx"] {
+			assert!(
+				expected.contains(&format!("/*{marker}*/"))
+					|| expected.contains(&format!("/* {marker} */")),
+				"{marker}: {expected}"
+			);
+		}
+		assert_eq!(actual, expected);
+	}
+
+	#[test]
+	fn copies_only_final_module_comments_including_migrated_helpers() {
+		GLOBALS.set(&Globals::new(), || {
+			let (_, parsed, source) = parse_comments(
+				r#"
+/** helper docs */ function helper() { /*#__PURE__*/ factory(); /* closing */ }
+/* render expression */ value /* render tail */;
+/* unrelated segment */ function other() {} // unrelated tail
+"#,
+			);
+			let helper = parsed.body[0].clone();
+			let helper_start = helper.span().lo;
+			let unrelated = parsed.body[2].span();
+			let ast::ModuleItem::Stmt(ast::Stmt::Expr(expression)) = &parsed.body[1] else {
+				panic!("expected render expression")
+			};
+			let global = crate::collector::global_collect(&ast::Program::Module(parsed.clone()));
+			let path = crate::parse::parse_path("test.tsx", std::path::Path::new("/src")).unwrap();
+			let (leading, trailing) = source.clone().take_all();
+			let (_, copied) = new_module(NewModuleCtx {
+				expr: expression.expr.clone(),
+				path: &path,
+				name: "render",
+				local_idents: &[],
+				scoped_idents: &[],
+				global: &global,
+				core_module: &"@qwik.dev/core".into(),
+				need_transform: false,
+				explicit_extensions: true,
+				leading_comments: leading,
+				trailing_comments: trailing,
+				extra_top_items: &BTreeMap::new(),
+				migrated_root_vars: &[helper],
+				explicit_imports: &IndexMap::new(),
+			})
+			.unwrap();
+			let (leading, trailing) = copied.borrow_all();
+			let texts: Vec<_> = leading
+				.values()
+				.chain(trailing.values())
+				.flatten()
+				.map(|comment| comment.text.to_string())
+				.collect();
+			for marker in ["helper docs", "closing", "render expression", "render tail"] {
+				assert!(
+					texts.iter().any(|text| text.contains(marker)),
+					"{marker}: {texts:?}"
+				);
+			}
+			assert!(!texts.iter().any(|text| text.contains("unrelated")));
+			drop((leading, trailing));
+			assert!(copied.get_leading(unrelated.lo).is_none());
+			assert!(copied.get_trailing(unrelated.hi).is_none());
+			copied.take_leading(helper_start).unwrap();
+			assert!(source.get_leading(helper_start).is_some());
+		});
 	}
 }
 

@@ -18,7 +18,7 @@ test('route files are ordered by name, not by readdir or stat completion order',
     return { isDirectory: () => false } as fs.Stats;
   });
 
-  const root = await walkRoutes('/app/src/routes');
+  const { root } = await walkRoutes('/app/src/routes', null);
 
   assert.deepEqual(
     root._files.map((file) => file.fileName),

@@ -236,6 +236,18 @@ test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }
       meta: { segment: { hash: 'visible123', ctxName: 'useVisibleTask$', entry: 'entry_render' } },
     });
     assert.equal(name('/src/visible.js', ctx), manual?.visible123 ?? 'segment_visible123');
+    // A computed is resolved eagerly on resume, so it ships with the entry that created it.
+    ctx.getModuleInfo = () => ({
+      meta: {
+        segment: {
+          hash: 'computed123',
+          ctxName: 'useComputed$',
+          ctxKind: 'function',
+          entry: 'entry_render',
+        },
+      },
+    });
+    assert.equal(name('/src/computed.js', ctx), 'entry_render');
     ctx.getModuleInfo = () => ({
       meta: { segment: { hash: 'read123', ctxName: '$', ctxKind: 'function', entry: null } },
     });

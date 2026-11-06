@@ -493,3 +493,165 @@ test('warns that manualChunks and advancedChunks are ignored', async () => {
   assert.match(warn.mock.calls[0][0], /codeSplitting\.groups/);
   warn.mockRestore();
 });
+
+test.each(
+  [true, false].flatMap((tsOptimizer) =>
+    [false, true].flatMap((minify) =>
+      ['direct', 'object', 'reexport'].flatMap((consumer) =>
+        (consumer === 'reexport' ? [false] : [false, true]).map((namespace) => ({
+          tsOptimizer,
+          minify,
+          consumer,
+          namespace,
+        }))
+      )
+    )
+  )
+)(
+  'smart graph retains uncertain compiled dependencies (TS=$tsOptimizer, minify=$minify, consumer=$consumer, namespace=$namespace)',
+  async ({ tsOptimizer, minify, consumer, namespace }) => {
+    const { rolldown } = await import('rolldown');
+    const { generateManifestFromBundles } = await import('../manifest');
+    const { convertManifestToBundleGraph } = await import('./bundle-graph');
+    const { getRouteImports } =
+      await import('../../../../qwik-router/src/buildtime/vite/get-route-imports');
+    const rootDir = normalizePath(resolve(cwd, 'compiled-hook-fixture'));
+    const library = createQwikPlugin({ tsOptimizer });
+    await library.init();
+    await library.normalizeOptions({
+      target: 'lib',
+      buildMode: 'production',
+      rootDir,
+      srcDir: rootDir,
+    });
+    const compiled = await library.transform(
+      { addWatchFile() {}, emitFile() {} } as any,
+      consumer === 'reexport'
+        ? `import {component$} from '@qwik.dev/core';export const Screen=component$(()=> <h1>RENDER_VIEW</h1>);`
+        : `import {$} from '@qwik.dev/core';
+           function helper(read){return read()}
+           export function useRead(value){const read=$(()=> 'RENDER_READ'+value);return ${consumer === 'object' ? '{read,label:value}' : 'helper(read)'}}
+           export function useHandler(value){const click=$(()=> 'FUTURE_CLICK'+value);return click}`,
+      rootDir + '/library.tsx'
+    );
+    expect(compiled!.code).toContain('inlinedQrl');
+    const plugin = createQwikPlugin({ tsOptimizer });
+    await plugin.init();
+    await plugin.normalizeOptions({
+      target: 'client',
+      buildMode: 'production',
+      entryStrategy: { type: 'smart' },
+      rootDir,
+      srcDir: rootDir,
+    });
+    const readCall = namespace ? 'hooks.renamedRead' : 'useRead';
+    const handlerCall = namespace ? 'hooks.renamedHandler' : 'useHandler';
+    const modules = new Map<string, any>();
+    const sources =
+      consumer === 'reexport'
+        ? {
+            'page.tsx': `export {Screen as default} from './barrel';`,
+            'barrel.js': `export {Screen} from './library.qwik.mjs';`,
+          }
+        : {
+            'page.tsx': `import {component$} from '@qwik.dev/core';
+        ${namespace ? "import * as hooks from './barrel';" : "import {renamedRead as useRead,renamedHandler as useHandler} from './barrel';"}
+        export const Root=component$(()=>{
+          ${consumer === 'object' ? `const api=${readCall}('v');const text=api.read();const label=api.label;` : `const text=${readCall}('v');const label='label';`}
+          const click=${handlerCall}('v');return <button onClick$={click}>{text}{label}</button>});`,
+            'barrel.js': `export {useRead as renamedRead,useHandler as renamedHandler} from './library.qwik.mjs';`,
+          };
+    for (const [file, code] of Object.entries({ ...sources, 'library.qwik.mjs': compiled!.code })) {
+      const id = rootDir + '/' + file;
+      const output = await plugin.transform({ addWatchFile() {}, emitFile() {} } as any, code, id);
+      modules.set(id, output || { code });
+      for (const dep of output?.meta?.qwikdeps || []) {
+        modules.set(dep, await plugin.load({} as any, dep));
+      }
+    }
+    let context: Rolldown.PluginContext;
+    const build = await rolldown({
+      input: [...modules.keys()],
+      preserveEntrySignatures: 'allow-extension',
+      external: (id) => id.startsWith('@qwik.dev/'),
+      plugins: [
+        {
+          name: 'compiled-hook-fixture',
+          buildStart() {
+            context = this;
+          },
+          resolveId(id, importer) {
+            const resolved = normalizePath(
+              id.startsWith('.') ? path.resolve(path.dirname(importer!), id) : id
+            );
+            return modules.has(resolved)
+              ? resolved
+              : modules.has(resolved + '.js')
+                ? resolved + '.js'
+                : null;
+          },
+          load: (id) => modules.get(id),
+        },
+      ],
+    });
+    try {
+      const { output } = await build.generate({
+        format: 'es',
+        minify,
+        codeSplitting: { ...plugin.codeSplitting(), includeDependenciesRecursively: false },
+      });
+      const chunks = output.filter((chunk) => chunk.type === 'chunk');
+      const segments = [...modules.values()].map((m) => m?.meta?.segment).filter(Boolean);
+      const manifest = generateManifestFromBundles(
+        path as any,
+        segments,
+        [],
+        Object.fromEntries(chunks.map((c) => [c.fileName, c])) as any,
+        { rootDir, outDir: rootDir } as any,
+        () => {},
+        (p) => p,
+        (id) => context!.getModuleInfo(id)
+      );
+      const root = segments.find((s) => s.ctxName === 'component$');
+      const body = manifest.mapping[root.name];
+      const graph = convertManifestToBundleGraph(
+        manifest,
+        consumer === 'reexport'
+          ? new Set([
+              (m) =>
+                getRouteImports(
+                  [{ filePath: rootDir + '/page.tsx', routeName: 'page/', layouts: [] }] as any,
+                  m
+                ),
+            ])
+          : undefined
+      );
+      const reachable = new Set<string>();
+      const visit = (name: string) => {
+        if (reachable.has(name)) {
+          return;
+        }
+        reachable.add(name);
+        for (let i = graph.indexOf(name) + 1; typeof graph[i] === 'number'; i++) {
+          if ((graph[i] as number) >= 0) {
+            visit(graph[graph[i] as number] as string);
+          }
+        }
+      };
+      visit(consumer === 'reexport' ? 'page/' : body);
+      expect(reachable).toContain(body);
+      const read = chunks.find((c) =>
+        c.code.includes(consumer === 'reexport' ? 'RENDER_VIEW' : 'RENDER_READ')
+      )!;
+      expect(read).toBeDefined();
+      expect(reachable).toContain(read.fileName);
+      if (consumer !== 'reexport') {
+        const click = chunks.find((c) => c.code.includes('FUTURE_CLICK'))!;
+        expect(click).toBeDefined();
+        expect(reachable).toContain(click.fileName);
+      }
+    } finally {
+      await build.close();
+    }
+  }
+);

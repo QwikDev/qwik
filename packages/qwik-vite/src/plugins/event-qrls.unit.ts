@@ -1,6 +1,10 @@
 import { resolve, dirname } from 'node:path';
 import { expect, test } from 'vitest';
 import { createQwikPlugin } from './plugin';
+import { generateManifestFromBundles } from '../manifest';
+import { convertManifestToBundleGraph } from './bundle-graph';
+import path from 'node:path';
+import type { Rolldown } from 'vite';
 import { normalizePath } from '../../../qwik/src/testing/util';
 
 const renderConsumers = {
@@ -89,6 +93,7 @@ test.each(
       ([, module]) => module?.meta?.segment && module.code.includes('FUTURE_QRL')
     )![0];
     const { rolldown } = await import('rolldown');
+    let context: Rolldown.PluginContext;
     const build = await rolldown({
       input: [...modules.keys()],
       external: (id) => id.startsWith('@qwik.dev/'),
@@ -96,6 +101,9 @@ test.each(
       plugins: [
         {
           name: 'event-qrl-fixture',
+          buildStart() {
+            context = this;
+          },
           resolveId(id, importer) {
             const resolved = normalizePath(
               id.startsWith('.') ? resolve(dirname(importer!), id) : id
@@ -117,6 +125,39 @@ test.each(
         codeSplitting: { ...plugin.codeSplitting(), includeDependenciesRecursively: false },
       });
       const chunks = generated.output.filter((chunk) => chunk.type === 'chunk');
+      const segments = [...modules.values()].map((m) => m?.meta?.segment).filter(Boolean);
+      expect(modules.get(clickId).meta.segment.isEventOnly).toBe(true);
+      expect(modules.get(readId).meta.segment.isEventOnly).toBeUndefined();
+      const manifest = generateManifestFromBundles(
+        path as any,
+        segments,
+        [],
+        Object.fromEntries(chunks.map((c) => [c.fileName, c])) as any,
+        { rootDir: root, outDir: root } as any,
+        () => {},
+        (p) => p,
+        (id) => context!.getModuleInfo(id)
+      );
+      const graph = convertManifestToBundleGraph(manifest);
+      const reachable = new Set<string>();
+      const visitGraph = (name: string) => {
+        if (reachable.has(name)) {
+          return;
+        }
+        reachable.add(name);
+        for (let i = graph.indexOf(name) + 1; typeof graph[i] === 'number'; i++) {
+          if ((graph[i] as number) >= 0) {
+            visitGraph(graph[graph[i] as number] as string);
+          }
+        }
+      };
+      const renderChunk = chunks.find((c) => renderId in c.modules)!;
+      const clickChunk = chunks.find((c) => clickId in c.modules)!;
+      visitGraph(renderChunk.fileName);
+      expect(reachable).not.toContain(clickChunk.fileName);
+      expect(
+        [...reachable].some((file) => readId in chunks.find((c) => c.fileName === file)!.modules)
+      ).toBe(true);
       const byName = new Map(chunks.map((chunk) => [chunk.fileName, chunk]));
       const render = chunks.find((chunk) => renderId in chunk.modules)!;
       const seen = new Set<string>();

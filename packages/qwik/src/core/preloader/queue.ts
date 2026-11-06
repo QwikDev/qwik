@@ -11,18 +11,21 @@ import {
 
 export const bundles: BundleImports = new Map();
 let queueDirty: boolean;
-const inFlight = new Set<BundleImport>();
+let requestPriority = 0;
+const inFlight = new Map<BundleImport, HTMLLinkElement>();
+// Import cycles must not release active render slots.
+const renderInFlight = new Set<BundleImport>();
 const queue: BundleImport[] = [];
 
 export const nextTriggerMacroTask = createMacroTask(trigger);
 export const nextAdjustmentMacroTask = createMacroTask(processPendingAdjustments);
-let isTriggerScheduled = false;
-let isAdjustmentScheduled = false;
 let isProcessingAdjustments = false;
 
 type AdjustmentFrame = {
   $bundle$: BundleImport;
   $inverseProbability$: number;
+  $priority$: number;
+  $renderPriority$?: number;
   $seen$?: Set<BundleImport>;
   $deps$?: ImportProbability[];
   $index$?: number;
@@ -34,7 +37,7 @@ const isNeeded = (bundle: BundleImport) => 1 - bundle.$inverseProbability$ >= 0.
 
 // Read live: a speculative preload may since have been requested at probability 1
 const isNeededInFlight = () => {
-  for (const bundle of inFlight) {
+  for (const [bundle] of inFlight) {
     if (isNeeded(bundle)) {
       return true;
     }
@@ -44,7 +47,13 @@ const isNeededInFlight = () => {
 
 export const sortQueue = () => {
   if (queueDirty) {
-    queue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$);
+    queue.sort(
+      (a, b) =>
+        Number(isNeeded(b)) - Number(isNeeded(a)) ||
+        (isNeeded(a) ? 0 : b.$renderPriority$ - a.$renderPriority$) ||
+        b.$priority$ - a.$priority$ ||
+        (a.$renderPriority$ ? 0 : a.$inverseProbability$ - b.$inverseProbability$)
+    );
     queueDirty = false;
   }
 };
@@ -59,43 +68,47 @@ export const sortQueue = () => {
  * We make sure to first preload the high priority items.
  */
 function trigger() {
-  isTriggerScheduled = false;
   if (!queue.length) {
     return;
   }
   sortQueue();
   const deadline = performance.now() + yieldInterval;
-  let shouldYield = false;
   while (queue.length) {
     const bundle = queue[0];
-    // We want to preload all the transitive static (1) and dynamic (0.99) dependencies, throttled by the user defined maxIdlePreloads.
-    // Speculative preloads wait while needed bundles load, so they don't take their bandwidth.
-    if (isNeeded(bundle) || (inFlight.size < config.$maxIdlePreloads$ && !isNeededInFlight())) {
+    if (
+      isNeeded(bundle) ||
+      (bundle.$renderPriority$
+        ? renderInFlight.size < config.$maxIdlePreloads$
+        : inFlight.size < config.$maxIdlePreloads$ && !isNeededInFlight())
+    ) {
       queue.shift();
+      if (bundle.$renderPriority$ && !isNeeded(bundle)) {
+        renderInFlight.add(bundle);
+      }
       preloadOne(bundle);
       if (performance.now() >= deadline) {
-        shouldYield = true;
+        if (queue.length) {
+          nextTriggerMacroTask();
+        }
         break;
       }
     } else {
       break;
     }
   }
-  if (shouldYield && queue.length && !isTriggerScheduled) {
-    isTriggerScheduled = true;
-    nextTriggerMacroTask();
-  }
 }
 
 const enqueueAdjustment = (
   bundle: BundleImport,
   inverseProbability: number,
-  seen?: Set<BundleImport>
+  seen?: Set<BundleImport>,
+  priority = bundle.$priority$
 ) => {
   // Keep existing work on the stack hot and append new roots behind it.
   adjustmentStack.unshift({
     $bundle$: bundle,
     $inverseProbability$: inverseProbability,
+    $priority$: priority,
     $seen$: seen,
   });
 };
@@ -115,15 +128,15 @@ const processAdjustmentFrame = () => {
     frame.$index$ = index + 1;
 
     const depBundle = getBundle(dep.$name$)!;
-    if (depBundle.$inverseProbability$ === 0) {
+    if (depBundle.$inverseProbability$ === 0 && depBundle.$priority$ >= frame.$priority$) {
       return true;
     }
 
     const probability = 1 - bundle.$inverseProbability$;
     let newInverseProbability: number;
-    if (probability === 1 || probability >= 0.99) {
-      // bundle is requested at max probability, so elevate all its transitive static and dynamic deps to 99% sure
-      newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
+    if (probability >= 0.99 && dep.$importProbability$ === 1) {
+      // Only guaranteed dependencies inherit the importer's required priority.
+      newInverseProbability = bundle.$inverseProbability$;
     } else {
       const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
       /** We need to undo the previous adjustment */
@@ -131,12 +144,17 @@ const processAdjustmentFrame = () => {
       const factor = newInverseImportProbability / prevAdjust;
       // limit organic probability to 98%
       newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
-      dep.$factor$ = factor;
+      dep.$factor$ = newInverseImportProbability;
     }
 
     adjustmentStack.push({
       $bundle$: depBundle,
       $inverseProbability$: newInverseProbability,
+      $priority$: frame.$priority$,
+      $renderPriority$:
+        dep.$isRender$ || dep.$importProbability$ === 1
+          ? frame.$renderPriority$ || (isNeeded(bundle) ? frame.$priority$ : 0)
+          : 0,
       $seen$: frame.$seen$,
     });
     return true;
@@ -148,11 +166,26 @@ const processAdjustmentFrame = () => {
   }
 
   const previousInverseProbability = bundle.$inverseProbability$;
-  bundle.$inverseProbability$ = Math.min(previousInverseProbability, frame.$inverseProbability$);
-  // Don't propagate tiny changes
-  if (previousInverseProbability - bundle.$inverseProbability$ < 0.01) {
+  const hasHigherProbability = previousInverseProbability - frame.$inverseProbability$ >= 0.01;
+  const hasHigherPriority = frame.$priority$ > bundle.$priority$;
+  const hasHigherRenderPriority = (frame.$renderPriority$ || 0) > bundle.$renderPriority$;
+  if (!hasHigherProbability && !hasHigherPriority && !hasHigherRenderPriority) {
     adjustmentStack.pop();
     return false;
+  }
+  bundle.$inverseProbability$ = Math.min(previousInverseProbability, frame.$inverseProbability$);
+  if (hasHigherPriority) {
+    bundle.$priority$ = frame.$priority$;
+    queueDirty = true;
+  }
+  if (hasHigherRenderPriority) {
+    bundle.$renderPriority$ = frame.$renderPriority$!;
+    queueDirty = true;
+  }
+  frame.$priority$ = bundle.$priority$;
+  frame.$renderPriority$ = bundle.$renderPriority$;
+  if (isNeeded(bundle) || bundle.$renderPriority$) {
+    inFlight.get(bundle)?.removeAttribute('fetchpriority');
   }
 
   if (
@@ -173,7 +206,10 @@ const processAdjustmentFrame = () => {
     const seen = frame.$seen$ || new Set<BundleImport>();
     seen.add(bundle);
     frame.$seen$ = seen;
-    frame.$deps$ = bundle.$deps$;
+    frame.$deps$ =
+      frame.$renderPriority$ || isNeeded(bundle)
+        ? [...bundle.$deps$].sort((a, b) => Number(!!b.$isRender$) - Number(!!a.$isRender$))
+        : bundle.$deps$;
     frame.$index$ = 0;
     return false;
   }
@@ -187,7 +223,6 @@ function processPendingAdjustments() {
     return;
   }
 
-  isAdjustmentScheduled = false;
   isProcessingAdjustments = true;
   const deadline = isBrowser ? performance.now() + yieldInterval : 0;
   let processed = false;
@@ -196,10 +231,7 @@ function processPendingAdjustments() {
     processed = true;
     const checkDeadline = processAdjustmentFrame();
     if (isBrowser && checkDeadline && performance.now() >= deadline) {
-      if (!isAdjustmentScheduled) {
-        isAdjustmentScheduled = true;
-        nextAdjustmentMacroTask();
-      }
+      nextAdjustmentMacroTask();
       break;
     }
   }
@@ -215,22 +247,22 @@ const preloadOne = (bundle: BundleImport) => {
   if (bundle.$state$ >= BundleImportState_Preload) {
     return;
   }
-  inFlight.add(bundle);
-
   bundle.$state$ = BundleImportState_Preload;
 
   const link = doc.createElement('link');
+  inFlight.set(bundle, link);
   // Only bundles with state none are js bundles
   link.href = new URL(`${base}${bundle.$name$}`, doc.baseURI).toString();
   link.rel = rel;
   // Needed when rel is 'preload'
   link.as = 'script';
-  if (!isNeeded(bundle)) {
+  if (!isNeeded(bundle) && !bundle.$renderPriority$) {
     link.setAttribute('fetchpriority', 'low');
   }
   // Handle completion of the preload
   link.onload = link.onerror = () => {
     inFlight.delete(bundle);
+    renderInFlight.delete(bundle);
     bundle.$state$ = BundleImportState_Loaded;
     // Keep the <head> clean
     link.remove();
@@ -239,14 +271,32 @@ const preloadOne = (bundle: BundleImport) => {
   };
 
   doc.head.appendChild(link);
+  // Selected renders also require their complete static import graph.
+  if (bundle.$renderPriority$) {
+    let hasStaticDependencies = false;
+    const dependencies = bundle.$deps$ || [];
+    for (let i = 0; i < dependencies.length; i++) {
+      const dependency = dependencies[i];
+      if (dependency.$importProbability$ === 1) {
+        const imported = getBundle(dependency.$name$)!;
+        if (!isNeeded(imported)) {
+          enqueueAdjustment(imported, 0, undefined, bundle.$priority$);
+          hasStaticDependencies = true;
+        }
+      }
+    }
+    if (hasStaticDependencies) {
+      nextAdjustmentMacroTask();
+    }
+  }
 };
 
 /**
  * Adjust the probability of a bundle based on the probability of its dependent bundles, and queue
  * it if it's likely enough to be preloaded.
  *
- * Note that if the probability is 100%, we treat the dynamic imports as 99% sure, and both will be
- * preloaded without limit.
+ * Guaranteed dependencies inherit needed priority; speculative dependencies keep their
+ * probabilities.
  *
  * We also limit "organic" probability to 98% so they don't get unlimited preloads.
  */
@@ -263,10 +313,10 @@ export const adjustProbabilities = (
   }
 };
 
-export const handleBundle = (name: string, inverseProbability: number) => {
+export const handleBundle = (name: string, inverseProbability: number, priority = 0) => {
   const bundle = getBundle(name);
   if (bundle) {
-    enqueueAdjustment(bundle, inverseProbability);
+    enqueueAdjustment(bundle, inverseProbability, undefined, priority);
   }
 };
 
@@ -275,14 +325,14 @@ export const preload = (item: string | string[], probability?: number) => {
     return;
   }
   const inverseProbability = probability ? 1 - probability : 0.4;
+  const priority = (probability ?? 0) >= 0.99 ? ++requestPriority : 0;
   if (Array.isArray(item)) {
-    // We must process in reverse order to ensure first bundles are handled first
-    for (let i = item.length - 1; i >= 0; i--) {
+    for (let i = 0; i < item.length; i++) {
       const bundle = item[i];
-      handleBundle(bundle, inverseProbability);
+      handleBundle(bundle, inverseProbability, priority);
     }
   } else {
-    handleBundle(item, inverseProbability);
+    handleBundle(item, inverseProbability, priority);
   }
   if (isBrowser) {
     nextAdjustmentMacroTask();

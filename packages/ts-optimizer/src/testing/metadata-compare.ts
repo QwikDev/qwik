@@ -27,6 +27,7 @@ export function compareMetadata(
     'path',
     'extension',
     'parent',
+    'isEventOnly',
     'ctxKind',
     'ctxName',
     'captures',

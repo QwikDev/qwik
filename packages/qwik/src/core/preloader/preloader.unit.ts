@@ -8,7 +8,7 @@ import { createDocument } from '@qwik.dev/core/testing';
 import { expect, test, vi } from 'vitest';
 
 test.each([true, false])(
-  'runs independently and preserves the preload protocol (mangle=%s)',
+  'loads its graph and replays buffered hints before core runs (mangle=%s)',
   async (mangle) => {
     const outDir = await mkdtemp(join(tmpdir(), 'qwik-preloader-'));
     try {

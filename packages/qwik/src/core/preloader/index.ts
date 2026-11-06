@@ -21,11 +21,8 @@ if (isBrowser) {
 
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
-    const { symbol, href } = (ev as QwikSymbolEvent).detail;
-    // the qrl class doesn't emit href, we don't need to preload
-    if (href) {
-      const hash = symbol.slice(symbol.lastIndexOf('_') + 1);
-      preload(hash, 1);
-    }
+    const { symbol } = (ev as QwikSymbolEvent).detail;
+    const hash = symbol.slice(symbol.lastIndexOf('_') + 1);
+    preload(hash, 1);
   });
 }

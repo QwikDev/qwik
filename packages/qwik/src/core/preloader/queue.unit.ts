@@ -93,6 +93,27 @@ test('appends preloads directly to head within a trigger slice', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(2);
 });
 
+test('preloads dependencies when a client QRL emits usage without an href', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  vi.spyOn(performance, 'now').mockReturnValue(0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const listen = vi.spyOn(document, 'addEventListener');
+  await import('./index');
+  const { initPreloader } = await importAndResetState();
+  initPreloader(['renderHash', 2, 'component.js', 4, 'dependency.js']);
+  const listener = listen.mock.calls.find(([type]) => type === 'qsymbol')![1] as EventListener;
+  listener({ detail: { symbol: 's_renderHash' } } as unknown as Event);
+  vi.runAllTimers();
+
+  expect(Array.from(document.head.querySelectorAll('link'), (link) => link.href)).toEqual([
+    expect.stringContaining('component.js'),
+    expect.stringContaining('dependency.js'),
+  ]);
+});
+
 test('limits concurrent speculative preloads to maxIdlePreloads', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

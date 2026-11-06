@@ -5,6 +5,7 @@ import type { OptimizerOptions, SegmentAnalysis } from '../types';
 import { createQwikPlugin, type NormalizedQwikPluginOptions } from './plugin';
 import { assert, expect, test, vi } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
+import { shortenChunkName } from './vite-utils';
 
 const cwd = process.cwd();
 
@@ -529,6 +530,20 @@ test.each([true, false])(
     }
   }
 );
+
+test('debug build shortens long chunk file names', async () => {
+  const plugin = qwikRolldown({
+    optimizerOptions: mockOptimizerOptions(),
+    buildMode: 'production',
+    debug: true,
+  });
+  await plugin.options!({});
+  const output: Rolldown.OutputOptions = await plugin.outputOptions!({});
+  const chunkFileNames = output.chunkFileNames as (chunk: Rolldown.PreRenderedChunk) => string;
+  const name = `segment_app.tsx_App_component_${'div_'.repeat(60)}button_q_e_click_ppvuTaDoEGk`;
+
+  expect(chunkFileNames({ name, moduleIds: [] } as any)).toBe(`build/${shortenChunkName(name)}.js`);
+});
 
 test('codeSplitting starts with the qwik groups and disables dependency recursion', async () => {
   const codeSplitting = await clientCodeSplitting({});

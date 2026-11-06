@@ -1,4 +1,5 @@
 import type { Rolldown } from 'vite';
+import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 
 export interface Loc {
   file: string;
@@ -155,6 +156,24 @@ export const flattenToChunkName = (name: string) =>
     .replace(/^\.[/\\]/, '')
     .replace(/^[/\\]+/, '')
     .replace(/[/\\]+/g, '-');
+
+const MAX_CHUNK_NAME_BYTES = 200;
+const KEPT_CHUNK_NAME_END_BYTES = 90;
+const utf8Encoder = new TextEncoder();
+const utf8Decoder = new TextDecoder();
+
+const decodeWholeCharacters = (bytes: Uint8Array) =>
+  utf8Decoder.decode(bytes).replace(/^\uFFFD+|\uFFFD+$/g, '');
+
+export const shortenChunkName = (name: string) => {
+  const bytes = utf8Encoder.encode(name);
+  if (bytes.length <= MAX_CHUNK_NAME_BYTES) {
+    return name;
+  }
+  const start = decodeWholeCharacters(bytes.subarray(0, KEPT_CHUNK_NAME_END_BYTES));
+  const end = decodeWholeCharacters(bytes.subarray(-KEPT_CHUNK_NAME_END_BYTES));
+  return `${start}~${hashCode(name)}~${end}`;
+};
 
 // A user chunk with these names would hijack the manifest.
 const RESERVED_CHUNK_NAMES = new Set(['qwik-core', 'qwikloader', 'qwik-preloader']);

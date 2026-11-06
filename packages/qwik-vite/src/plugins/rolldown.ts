@@ -18,7 +18,12 @@ import {
   type QwikPlugin,
   type QwikPluginOptions,
 } from './plugin';
-import { createRolldownError, flattenToChunkName, isVirtualId } from './vite-utils';
+import {
+  createRolldownError,
+  flattenToChunkName,
+  isVirtualId,
+  shortenChunkName,
+} from './vite-utils';
 
 type QwikRolldownPluginApi = {
   getOptimizer: () => Optimizer;
@@ -157,7 +162,7 @@ const getChunkFileName = (opts: NormalizedQwikPluginOptions, optimizer: Optimize
 
       // Flatten path-like names so debug output stays flat in build/.
       const relativePath = optimizer.sys.path.relative(optimizer.sys.cwd(), chunkInfo.name);
-      return `${chunkPathPrefix}${flattenToChunkName(relativePath)}.js`;
+      return `${chunkPathPrefix}${shortenChunkName(flattenToChunkName(relativePath))}.js`;
     };
   }
 };

@@ -1,10 +1,8 @@
 import type { Rolldown } from 'vite';
-import { CLIENT_STRIP_CTX_NAME, SERVER_STRIP_CTX_NAME } from './transform-contexts';
+import { CLIENT_STRIP_CTX_NAME } from './transform-contexts';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import { condenseImportGraph } from './plugins/bundle-graph';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
-
-const DEFERRED_CTX_NAMES = [...CLIENT_STRIP_CTX_NAME, ...SERVER_STRIP_CTX_NAME];
 
 // The handlers that are exported by the core package
 // See handlers.mjs
@@ -377,7 +375,7 @@ function getQrlImports(
         const isDeferred =
           segment.isEventOnly ||
           segment.ctxKind === 'eventHandler' ||
-          DEFERRED_CTX_NAMES.some((prefix) => segment.ctxName?.startsWith(prefix));
+          CLIENT_STRIP_CTX_NAME.some((prefix) => segment.ctxName?.startsWith(prefix));
         if (!isDeferred) {
           renderImports.add(importedBundle);
         }

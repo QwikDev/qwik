@@ -4,7 +4,7 @@ type EntryStrategyType = 'smart' | 'segment' | 'hook' | 'component' | 'single' |
 
 interface EntrySegment {
   symbolName: string;
-  hash: string;
+  canonicalFilename: string;
   rootContext: string | null;
   origin: string;
   ctxKind: 'eventHandler' | 'function' | 'jSXProp';
@@ -52,7 +52,7 @@ export function resolveEntryField(
       return getRootEntry(segment) ?? 'entry_segments';
     case 'smart':
       if (segment.isEventOnly) {
-        return `segment_${segment.hash}`;
+        return `segment_${segment.canonicalFilename}`;
       }
       // Known events stay separate even when they capture state.
       if (

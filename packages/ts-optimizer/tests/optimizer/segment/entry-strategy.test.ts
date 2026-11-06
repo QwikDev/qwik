@@ -4,7 +4,7 @@ import { resolveEntryField } from '../../../src/optimizer/segment/entry-strategy
 // Prod-mode symbol names carry only the hash; grouping must come from the context stack.
 const segment = {
   symbolName: 's_abc123',
-  hash: 'abc123',
+  canonicalFilename: 'test.tsx_App_component_abc123',
   rootContext: 'App' as string | null,
   origin: 'test.tsx',
   ctxKind: 'function' as const,

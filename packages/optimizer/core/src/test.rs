@@ -253,10 +253,9 @@ export const App = component$(() => {{
 			.find(|segment| segment.display_name == "test.tsx_App_component_click")
 			.unwrap();
 		assert_eq!(
-			callback
-				.entry
-				.as_ref()
-				.is_some_and(|entry| entry.as_ref() == format!("segment_{}", callback.hash)),
+			callback.entry.as_ref().is_some_and(
+				|entry| entry.as_ref() == format!("segment_{}", callback.canonical_filename)
+			),
 			separated,
 			"{event} {render}"
 		);
@@ -323,7 +322,7 @@ fn smart_event_qrl_references() {
 		if is_event_only {
 			assert_eq!(
 				segment.entry.as_ref().unwrap(),
-				&format!("segment_{}", segment.hash),
+				&format!("segment_{}", segment.canonical_filename),
 				"{name}"
 			);
 		} else {

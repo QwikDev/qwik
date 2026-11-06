@@ -235,7 +235,10 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         // SSG runs only from `buildApp` (the multi-environment app build). If the deployed server was
         // built directly via Vite's programmatic `build()`, buildApp never ran and nothing was
         // prerendered — warn loudly rather than silently shipping an un-prerendered site.
-        if (opts.ssg !== null && viteCommand === 'build' && !appBuild) {
+        // In watch mode `builder.build()` returns before the bundle is written, so `buildApp` has
+        // already finished by now and this says nothing about how the build was started.
+        const isWatching = !!this.environment.config.build?.watch;
+        if (opts.ssg !== null && viteCommand === 'build' && !appBuild && !isWatching) {
           this.warn(
             'Qwik Router SSG was skipped: the `ssr` environment was built directly instead of through ' +
               'the Vite app builder, so no pages were prerendered. Build with the Qwik CLI or ' +

@@ -159,10 +159,13 @@ const getChunkFileName = (opts: NormalizedQwikPluginOptions, optimizer: Optimize
       if (chunkInfo.moduleIds?.some((id) => /qwik-router\/lib\/index\.qwik\.mjs$/.test(id))) {
         return `${chunkPathPrefix}qwik-router.js`;
       }
+      const frontsEntryInAnotherChunk =
+        !!chunkInfo.facadeModuleId && !chunkInfo.moduleIds?.includes(chunkInfo.facadeModuleId);
 
       // Flatten path-like names so debug output stays flat in build/.
       const relativePath = optimizer.sys.path.relative(optimizer.sys.cwd(), chunkInfo.name);
-      return `${chunkPathPrefix}${shortenChunkName(flattenToChunkName(relativePath))}.js`;
+      const chunkName = `${flattenToChunkName(relativePath)}${frontsEntryInAnotherChunk ? '-entry' : ''}`;
+      return `${chunkPathPrefix}${shortenChunkName(chunkName)}.js`;
     };
   }
 };

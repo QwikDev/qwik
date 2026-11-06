@@ -34,11 +34,11 @@ describe('shortenChunkName', () => {
   });
 
   test('shortens a longer name to 200 bytes, keeping its start and end', () => {
-    const name = `segment_app.tsx_App_component_${'div_'.repeat(60)}button_q_e_click_ppvuTaDoEGk`;
+    const name = `app.tsx_App_component_${'div_'.repeat(60)}button_q_e_click_ppvuTaDoEGk`;
     const shortened = shortenChunkName(name);
 
     expect(Buffer.byteLength(shortened)).toBeLessThanOrEqual(200);
-    expect(shortened).toMatch(/^segment_app\.tsx_App_component_div_/);
+    expect(shortened).toMatch(/^app\.tsx_App_component_div_/);
     expect(shortened).toMatch(/_button_q_e_click_ppvuTaDoEGk$/);
   });
 

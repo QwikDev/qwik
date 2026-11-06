@@ -1170,7 +1170,7 @@ impl<'a> QwikTransform<'a> {
 
 		// We import from the segment file directly but store the entry for later chunking by the bundler
 		let entry = if self.event_only_qrls.contains(&span.lo) {
-			Some(Atom::from(format!("segment_{}", canonical_filename)))
+			Some(canonical_filename.clone())
 		} else {
 			self.options
 				.entry_policy

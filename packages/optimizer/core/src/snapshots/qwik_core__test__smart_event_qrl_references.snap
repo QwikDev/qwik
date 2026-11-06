@@ -133,7 +133,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "s_XMnVMnQ4y0E",
-  "entry": "segment_test.tsx_App_component_wrapped_XMnVMnQ4y0E",
+  "entry": "test.tsx_App_component_wrapped_XMnVMnQ4y0E",
   "displayName": "test.tsx_App_component_wrapped",
   "hash": "XMnVMnQ4y0E",
   "canonicalFilename": "test.tsx_App_component_wrapped_XMnVMnQ4y0E",
@@ -202,7 +202,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "s_0Z0APcS8nqU",
-  "entry": "segment_test.tsx_App_component_click_0Z0APcS8nqU",
+  "entry": "test.tsx_App_component_click_0Z0APcS8nqU",
   "displayName": "test.tsx_App_component_click",
   "hash": "0Z0APcS8nqU",
   "canonicalFilename": "test.tsx_App_component_click_0Z0APcS8nqU",

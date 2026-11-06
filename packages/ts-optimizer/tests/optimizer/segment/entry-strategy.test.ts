@@ -53,7 +53,7 @@ describe('resolveEntryField', () => {
           { ...segment, ctxName: '$', captures: true, isEventOnly: true },
           undefined
         )
-      ).toBe('segment_test.tsx_App_component_abc123');
+      ).toBe('test.tsx_App_component_abc123');
     });
 
     it('returns null for segment strategy (alias of smart)', () => {

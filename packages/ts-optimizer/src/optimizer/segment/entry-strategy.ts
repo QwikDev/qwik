@@ -52,7 +52,7 @@ export function resolveEntryField(
       return getRootEntry(segment) ?? 'entry_segments';
     case 'smart':
       if (segment.isEventOnly) {
-        return `segment_${segment.canonicalFilename}`;
+        return segment.canonicalFilename;
       }
       // Known events stay separate even when they capture state.
       if (

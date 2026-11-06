@@ -122,7 +122,9 @@ describe('event-only QRL references', () => {
     const callback = result.modules
       .flatMap((mod) => (mod.kind === 'segment' ? [mod.segment] : []))
       .find((segment) => segment.displayName.endsWith('_click'))!;
-    expect(callback.entry === `segment_${callback.canonicalFilename}`).toBe(separated);
+    expect(callback.entry).toBe(
+      separated ? `segment_${callback.canonicalFilename}` : 'test.tsx_entry_App'
+    );
   });
 
   it('uses smart analysis when entryStrategy is omitted', () => {

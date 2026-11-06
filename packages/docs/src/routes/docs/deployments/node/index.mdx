@@ -157,7 +157,7 @@ You can check [how to deploy with Docker here](/docs/cookbook/node-docker-deploy
 
 ### CSRF Protection
 
-By default, all Qwik Router applications are protected against [CSRF attacks](https://owasp.org/www-community/attacks/csrf) for all POST, PATCH, DELETE form submits.
+By default, Qwik Router checks the `Origin` header on every POST, PUT, PATCH, and DELETE request to protect against [CSRF attacks](https://owasp.org/www-community/attacks/csrf).
 
 This protection is enabled by default and it's the reason why you need to set the `ORIGIN` environment variable when deploying your application for production.
 

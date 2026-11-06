@@ -487,6 +487,7 @@ export function transformInlineSegmentBody(
           source: jsxBodyOptions.source,
           bodyOriginOffset: ext.argStart,
           wrapperPrefixLen: wrapperPrefix.length,
+          jsxSourceStarts: ext.jsxStarts,
         },
       };
     }

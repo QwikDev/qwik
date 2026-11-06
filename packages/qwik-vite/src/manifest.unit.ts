@@ -223,6 +223,8 @@ describe('generateManifestFromBundles', () => {
     [true, 'function', '$', []],
     [undefined, 'eventHandler', 'onClick$', []],
     [undefined, 'function', 'useVisibleTask$', []],
+    [undefined, 'function', 'server$', ['seg.js']],
+    [undefined, 'function', 'routeAction$', ['seg.js']],
     [undefined, 'function', 'useComputed$', ['seg.js']],
     [undefined, 'function', '$', ['seg.js']],
     [undefined, undefined, undefined, ['seg.js']],

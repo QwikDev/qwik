@@ -1,4 +1,5 @@
-import { config, isBrowser, isJSRegex } from './constants';
+import { createMacroTask } from '../shared/platform/next-tick';
+import { config, isBrowser, isJSRegex, yieldInterval } from './constants';
 import { adjustProbabilities, bundles, nextTriggerMacroTask } from './queue';
 import type { BundleGraph, ImportProbability } from './types';
 import { BundleImportState_Alias, BundleImportState_None } from './types';
@@ -84,18 +85,32 @@ export const loadBundleGraph = (
       .then((r) => r.text())
       .then((text) => {
         graph = parseBundleGraph(JSON.parse(text));
-        for (const [name, bundle] of bundles) {
-          const deps = graph.get(name);
-          if (deps) {
-            bundle.$deps$ = deps;
-            if (bundle.$inverseProbability$ < 1) {
-              const probability = bundle.$inverseProbability$;
-              bundle.$inverseProbability$ = 1;
-              adjustProbabilities(bundle, probability);
+        // Snapshot hints before dependency propagation adds new bundle records.
+        const pendingBundles = Array.from(bundles.values());
+        let nextIndex = 0;
+        const replayPendingBundles = () => {
+          const deadline = performance.now() + yieldInterval;
+          while (nextIndex < pendingBundles.length) {
+            const bundle = pendingBundles[nextIndex++];
+            const deps = graph.get(bundle.$name$);
+            if (deps) {
+              bundle.$deps$ = deps;
+              if (bundle.$inverseProbability$ < 1) {
+                const probability = bundle.$inverseProbability$;
+                bundle.$inverseProbability$ = 1;
+                adjustProbabilities(bundle, probability);
+              }
+            }
+            if (nextIndex < pendingBundles.length && performance.now() >= deadline) {
+              resumeReplay();
+              return;
             }
           }
-        }
-        nextTriggerMacroTask();
+          resumeReplay.$destroy$?.();
+          nextTriggerMacroTask();
+        };
+        const resumeReplay = createMacroTask(replayPendingBundles);
+        replayPendingBundles();
       })
       .catch(console.warn);
   }

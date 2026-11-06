@@ -1,7 +1,7 @@
 import path, { resolve } from 'node:path';
-import { qwikRolldown } from './rolldown';
+import { normalizeRolldownOutputObject, qwikRolldown } from './rolldown';
 import type { Rolldown } from 'vite';
-import type { OptimizerOptions } from '../types';
+import type { OptimizerOptions, SegmentAnalysis } from '../types';
 import { createQwikPlugin, type NormalizedQwikPluginOptions } from './plugin';
 import { assert, expect, test, vi } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
@@ -224,6 +224,7 @@ test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }
         meta: {
           segment: {
             hash: 'click123',
+            canonicalFilename: 'app.tsx_App_component_click_click123',
             ctxName: 'event$',
             ctxKind: 'function',
             entry: 'entry_render',
@@ -231,11 +232,24 @@ test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }
         },
       }),
     } as any;
-    assert.equal(name('/src/click.js', ctx), manual?.click123 ?? 'segment_click123');
+    assert.equal(
+      name('/src/click.js', ctx),
+      manual?.click123 ?? 'segment_app.tsx_App_component_click_click123'
+    );
     ctx.getModuleInfo = () => ({
-      meta: { segment: { hash: 'visible123', ctxName: 'useVisibleTask$', entry: 'entry_render' } },
+      meta: {
+        segment: {
+          hash: 'visible123',
+          canonicalFilename: 'app.tsx_App_component_useVisibleTask_visible123',
+          ctxName: 'useVisibleTask$',
+          entry: 'entry_render',
+        },
+      },
     });
-    assert.equal(name('/src/visible.js', ctx), manual?.visible123 ?? 'segment_visible123');
+    assert.equal(
+      name('/src/visible.js', ctx),
+      manual?.visible123 ?? 'segment_app.tsx_App_component_useVisibleTask_visible123'
+    );
     ctx.getModuleInfo = () => ({
       meta: { segment: { hash: 'read123', ctxName: '$', ctxKind: 'function', entry: null } },
     });
@@ -432,6 +446,86 @@ test.each(
       expect(chunks.some((chunk) => chunk.code.includes('CLIENT_ONLY_HEAVY'))).toBe(true);
     } finally {
       await build.close();
+    }
+  }
+);
+
+test.each([true, false])(
+  'smart debug build names each separated chunk after its segment (tsOptimizer: %s)',
+  async (tsOptimizer) => {
+    const debugLog = vi.spyOn(console, 'debug').mockImplementation(() => {});
+    const srcDir = normalizePath(resolve(cwd, 'fixture', 'src'));
+    const plugin = createQwikPlugin({ tsOptimizer });
+    await plugin.init();
+    await plugin.normalizeOptions({
+      target: 'client',
+      buildMode: 'production',
+      debug: true,
+      entryStrategy: { type: 'smart' },
+      rootDir: path.dirname(srcDir),
+      srcDir,
+    });
+    const parent = `${srcDir}/app.tsx`;
+    const source = `import { $, component$, event$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+     export const App = component$(() => {
+       const count = useSignal(0);
+       const reset = $(() => (count.value = 0));
+       const log = event$(() => console.log(count.value));
+       useVisibleTask$(() => console.log(count.value));
+       return <>
+         <button onClick$={() => count.value++}>increment</button>
+         <button onClick$={reset}>reset</button>
+         <button onClick$={log}>log</button>
+       </>;
+     });`;
+    const segments = new Map<string, SegmentAnalysis>();
+    const { rolldown } = await import('rolldown');
+    const build = await rolldown({
+      input: parent,
+      external: (id) => id.startsWith('@qwik.dev/'),
+      preserveEntrySignatures: 'allow-extension',
+      plugins: [
+        {
+          name: 'qwik-fixture',
+          resolveId: (id, importer) => {
+            if (!importer) {
+              return id;
+            }
+            return id.startsWith('.')
+              ? normalizePath(path.resolve(path.dirname(importer), id))
+              : null;
+          },
+          async load(id) {
+            if (id === parent) {
+              return source;
+            }
+            const segment = await plugin.load(this as any, id);
+            segments.set(id, segment!.meta!.segment);
+            return segment;
+          },
+          transform(code, id) {
+            return id === parent ? plugin.transform(this as any, code, id) : null;
+          },
+        },
+      ],
+    });
+    try {
+      const { output } = await build.generate(normalizeRolldownOutputObject(plugin, {}));
+      const chunkFileName = (id: string) =>
+        output.find((chunk) => chunk.type === 'chunk' && id in chunk.modules)?.fileName;
+      const separated = [...segments].filter(([, segment]) => segment.ctxName !== 'component$');
+      expect(separated.map(([, segment]) => segment.ctxName).sort()).toEqual([
+        '$',
+        'event$',
+        'onClick$',
+        'useVisibleTask$',
+      ]);
+      expect(separated.map(([id]) => chunkFileName(id))).toEqual(
+        separated.map(([, segment]) => `build/segment_${segment.canonicalFilename}.js`)
+      );
+    } finally {
+      await build.close();
+      debugLog.mockRestore();
     }
   }
 );

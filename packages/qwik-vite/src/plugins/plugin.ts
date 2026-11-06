@@ -1470,7 +1470,7 @@ export const isDev = ${JSON.stringify(isDev)};
               // Group segments by entry or Qwik Insights hash.
               const chunkName =
                 (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] ||
-                (isSmartClientOnly ? `segment_${hash}` : segment.entry);
+                (isSmartClientOnly ? `segment_${segment.canonicalFilename}` : segment.entry);
               if (chunkName) {
                 return sanitizeChunkGroupName(chunkName);
               }

@@ -3,7 +3,7 @@ import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { _walkJSX } from './ssr-render-jsx';
 import type { SSRContainer } from './ssr-types';
 
-test('discovers stylesheets before preloading application JavaScript', async () => {
+test('emits stylesheet links before preload hints in the SSR head', async () => {
   const order: string[] = [];
   const ssr = {
     isHtml: true,

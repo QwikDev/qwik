@@ -46,6 +46,16 @@ describe('resolveEntryField', () => {
       ).toBeNull();
     });
 
+    it('names event-only QRLs after their canonical filename', () => {
+      expect(
+        resolveEntryField(
+          'smart',
+          { ...segment, ctxName: '$', captures: true, isEventOnly: true },
+          undefined
+        )
+      ).toBe('segment_test.tsx_App_component_abc123');
+    });
+
     it('returns null for segment strategy (alias of smart)', () => {
       expect(resolveEntryField('segment', segment, undefined)).toBeNull();
     });
@@ -85,6 +95,11 @@ describe('resolveEntryField', () => {
     it('returns mapped value when symbol is in manual map', () => {
       const manual = { s_abc123: 'vendor' };
       expect(resolveEntryField('smart', segment, manual)).toBe('vendor');
+    });
+
+    it('prefers the manual entry over event-only separation', () => {
+      const manual = { s_abc123: 'vendor' };
+      expect(resolveEntryField('smart', { ...segment, isEventOnly: true }, manual)).toBe('vendor');
     });
 
     it('falls back to the selected strategy when symbol is not mapped', () => {

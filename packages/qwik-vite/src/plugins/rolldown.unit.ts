@@ -1,11 +1,15 @@
 import path, { resolve } from 'node:path';
-import { normalizeRolldownOutputObject, qwikRolldown } from './rolldown';
+import {
+  normalizeRolldownOutputObject,
+  qwikRolldown,
+  type QwikRolldownPluginOptions,
+} from './rolldown';
 import type { Rolldown } from 'vite';
 import type { OptimizerOptions, SegmentAnalysis } from '../types';
 import { createQwikPlugin, type NormalizedQwikPluginOptions } from './plugin';
-import { assert, expect, test, vi } from 'vitest';
+import { assert, describe, expect, test, vi } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
-import { shortenChunkName } from './vite-utils';
+import { flattenToChunkName, shortenChunkName } from './vite-utils';
 
 const cwd = process.cwd();
 
@@ -451,98 +455,162 @@ test.each(
   }
 );
 
-test.each([true, false])(
-  'smart debug build names each separated chunk after its segment (tsOptimizer: %s)',
-  async (tsOptimizer) => {
-    const debugLog = vi.spyOn(console, 'debug').mockImplementation(() => {});
-    const srcDir = normalizePath(resolve(cwd, 'fixture', 'src'));
-    const plugin = createQwikPlugin({ tsOptimizer });
-    await plugin.init();
-    await plugin.normalizeOptions({
-      target: 'client',
-      buildMode: 'production',
-      debug: true,
-      entryStrategy: { type: 'smart' },
-      rootDir: path.dirname(srcDir),
-      srcDir,
-    });
-    const parent = `${srcDir}/app.tsx`;
-    const source = `import { $, component$, event$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
-     export const App = component$(() => {
-       const count = useSignal(0);
-       const reset = $(() => (count.value = 0));
-       const log = event$(() => console.log(count.value));
-       useVisibleTask$(() => console.log(count.value));
-       return <>
-         <button onClick$={() => count.value++}>increment</button>
-         <button onClick$={reset}>reset</button>
-         <button onClick$={log}>log</button>
-       </>;
-     });`;
-    const segments = new Map<string, SegmentAnalysis>();
-    const { rolldown } = await import('rolldown');
-    const build = await rolldown({
-      input: parent,
-      external: (id) => id.startsWith('@qwik.dev/'),
-      preserveEntrySignatures: 'allow-extension',
-      plugins: [
-        {
-          name: 'qwik-fixture',
-          resolveId: (id, importer) => {
-            if (!importer) {
-              return id;
-            }
-            return id.startsWith('.')
-              ? normalizePath(path.resolve(path.dirname(importer), id))
-              : null;
-          },
-          async load(id) {
-            if (id === parent) {
-              return source;
-            }
-            const segment = await plugin.load(this as any, id);
-            segments.set(id, segment!.meta!.segment);
-            return segment;
-          },
-          transform(code, id) {
-            return id === parent ? plugin.transform(this as any, code, id) : null;
-          },
+async function buildSmartDebugClient(tsOptimizer: boolean, sources: Record<string, string>) {
+  const debugLog = vi.spyOn(console, 'debug').mockImplementation(() => {});
+  const srcDir = normalizePath(resolve(cwd, 'fixture', 'src'));
+  const plugin = createQwikPlugin({ tsOptimizer });
+  await plugin.init();
+  await plugin.normalizeOptions({
+    target: 'client',
+    buildMode: 'production',
+    debug: true,
+    entryStrategy: { type: 'smart' },
+    rootDir: path.dirname(srcDir),
+    srcDir,
+  });
+  const files = new Map(Object.entries(sources).map(([file, code]) => [`${srcDir}/${file}`, code]));
+  const segments = new Map<string, SegmentAnalysis>();
+  const { rolldown } = await import('rolldown');
+  const build = await rolldown({
+    input: [...files.keys()],
+    external: (id) => id.startsWith('@qwik.dev/'),
+    preserveEntrySignatures: 'allow-extension',
+    plugins: [
+      {
+        name: 'qwik-fixture',
+        resolveId: (id, importer) => {
+          if (!importer) {
+            return id;
+          }
+          return id.startsWith('.')
+            ? normalizePath(path.resolve(path.dirname(importer), id))
+            : null;
         },
-      ],
-    });
-    try {
-      const { output } = await build.generate(normalizeRolldownOutputObject(plugin, {}));
-      const chunkFileName = (id: string) =>
-        output.find((chunk) => chunk.type === 'chunk' && id in chunk.modules)?.fileName;
-      const separated = [...segments].filter(([, segment]) => segment.ctxName !== 'component$');
-      expect(separated.map(([, segment]) => segment.ctxName).sort()).toEqual([
+        async load(id) {
+          if (files.has(id)) {
+            return files.get(id);
+          }
+          const segment = await plugin.load(this as any, id);
+          segments.set(id, segment!.meta!.segment);
+          return segment;
+        },
+        transform(code, id) {
+          return files.has(id) ? plugin.transform(this as any, code, id) : null;
+        },
+      },
+    ],
+  });
+  try {
+    const { output } = await build.generate(normalizeRolldownOutputObject(plugin, {}));
+    return [...segments].map(([id, segment]) => ({
+      segment,
+      fileName: output.find((chunk) => chunk.type === 'chunk' && id in chunk.modules)?.fileName,
+    }));
+  } finally {
+    await build.close();
+    debugLog.mockRestore();
+  }
+}
+
+async function readableChunkFileNames(
+  options: Pick<QwikRolldownPluginOptions, 'buildMode' | 'debug'>
+) {
+  const plugin = qwikRolldown({ optimizerOptions: mockOptimizerOptions(), ...options });
+  await plugin.options!({});
+  const output: Rolldown.OutputOptions = await plugin.outputOptions!({});
+  return output.chunkFileNames as (chunk: Rolldown.PreRenderedChunk) => string;
+}
+
+describe('debug chunk names', () => {
+  test.each([true, false])(
+    'names each separated smart chunk after its segment (tsOptimizer: %s)',
+    async (tsOptimizer) => {
+      const chunks = await buildSmartDebugClient(tsOptimizer, {
+        'app.tsx': `import { $, component$, event$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+         export const App = component$(() => {
+           const count = useSignal(0);
+           const reset = $(() => (count.value = 0));
+           const log = event$(() => console.log(count.value));
+           useVisibleTask$(() => console.log(count.value));
+           return <>
+             <button onClick$={() => count.value++}>increment</button>
+             <button onClick$={reset}>reset</button>
+             <button onClick$={log}>log</button>
+           </>;
+         });`,
+      });
+      const separated = chunks.filter(({ segment }) => segment.ctxName !== 'component$');
+
+      expect(separated.map(({ segment }) => segment.ctxName).sort()).toEqual([
         '$',
         'event$',
         'onClick$',
         'useVisibleTask$',
       ]);
-      expect(separated.map(([id]) => chunkFileName(id))).toEqual(
-        separated.map(([, segment]) => `build/segment_${segment.canonicalFilename}.js`)
+      expect(separated.map(({ fileName }) => fileName)).toEqual(
+        separated.map(({ segment }) => `build/segment_${segment.canonicalFilename}.js`)
       );
-    } finally {
-      await build.close();
-      debugLog.mockRestore();
     }
-  }
-);
+  );
 
-test('debug build shortens long chunk file names', async () => {
-  const plugin = qwikRolldown({
-    optimizerOptions: mockOptimizerOptions(),
-    buildMode: 'production',
-    debug: true,
+  test.each([true, false])(
+    'gives every separated handler its own chunk when names repeat (tsOptimizer: %s)',
+    async (tsOptimizer) => {
+      const page = `import { component$ } from '@qwik.dev/core';
+       export const Page = component$(() => <>
+         <button onClick$={() => console.log('one')}>one</button>
+         <button onClick$={() => console.log('two')}>two</button>
+       </>);`;
+      const chunks = await buildSmartDebugClient(tsOptimizer, {
+        'a/page.tsx': page,
+        'b/page.tsx': page,
+      });
+      const handlers = chunks.filter(({ segment }) => segment.ctxName === 'onClick$');
+
+      expect(handlers).toHaveLength(4);
+      expect(new Set(handlers.map(({ segment }) => segment.displayName)).size).toBe(2);
+      expect(new Set(handlers.map(({ fileName }) => fileName)).size).toBe(4);
+    }
+  );
+
+  test.each([true, false])(
+    'shortens the chunk name of a deeply nested handler (tsOptimizer: %s)',
+    async (tsOptimizer) => {
+      const chunks = await buildSmartDebugClient(tsOptimizer, {
+        'app.tsx': `import { component$ } from '@qwik.dev/core';
+         export const App = component$(() =>
+           ${'<div>'.repeat(60)}<button onClick$={() => console.log('deep')} />${'</div>'.repeat(60)}
+         );`,
+      });
+      const { segment, fileName } = chunks.find(({ segment }) => segment.ctxName === 'onClick$')!;
+      const groupName = `segment_${segment.canonicalFilename}`;
+
+      expect(Buffer.byteLength(groupName)).toBeGreaterThan(200);
+      expect(fileName).toBe(`build/${shortenChunkName(groupName)}.js`);
+      expect(fileName).toMatch(new RegExp(`_${segment.hash}\\.js$`));
+    }
+  );
+
+  test.each([
+    { buildMode: 'production', debug: true },
+    { buildMode: 'development', debug: false },
+  ] as const)('shortens long chunk file names ($buildMode, debug: $debug)', async (options) => {
+    const chunkFileNames = await readableChunkFileNames(options);
+    const name = `segment_app.tsx_App_component_${'div_'.repeat(60)}button_q_e_click_ppvuTaDoEGk`;
+
+    expect(chunkFileNames({ name, moduleIds: [] } as any)).toBe(
+      `build/${shortenChunkName(name)}.js`
+    );
   });
-  await plugin.options!({});
-  const output: Rolldown.OutputOptions = await plugin.outputOptions!({});
-  const chunkFileNames = output.chunkFileNames as (chunk: Rolldown.PreRenderedChunk) => string;
-  const name = `segment_app.tsx_App_component_${'div_'.repeat(60)}button_q_e_click_ppvuTaDoEGk`;
 
-  expect(chunkFileNames({ name, moduleIds: [] } as any)).toBe(`build/${shortenChunkName(name)}.js`);
+  test('flattens, then shortens, long path-like chunk names', async () => {
+    const chunkFileNames = await readableChunkFileNames({ buildMode: 'production', debug: true });
+    const relativeName = `node_modules/.pnpm/${'@scope+lib@1.0.0_'.repeat(10)}/node_modules/@scope/lib/index.qwik.mjs_entry_Widget`;
+    const fileName = chunkFileNames({ name: resolve(cwd, relativeName), moduleIds: [] } as any);
+
+    expect(fileName).toBe(`build/${shortenChunkName(flattenToChunkName(relativeName))}.js`);
+    expect(fileName.slice('build/'.length)).not.toContain('/');
+  });
 });
 
 test('codeSplitting starts with the qwik groups and disables dependency recursion', async () => {

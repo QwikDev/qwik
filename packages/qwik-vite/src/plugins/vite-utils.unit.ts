@@ -27,8 +27,10 @@ describe('sanitizeChunkGroupName', () => {
 });
 
 describe('shortenChunkName', () => {
-  test('keeps names up to 200 bytes as-is', () => {
+  test('shortens only names over 200 bytes', () => {
     expect(shortenChunkName('a'.repeat(200))).toBe('a'.repeat(200));
+    expect(shortenChunkName('a'.repeat(201))).not.toBe('a'.repeat(201));
+    expect(Buffer.byteLength(shortenChunkName('a'.repeat(201)))).toBeLessThanOrEqual(200);
   });
 
   test('shortens a longer name to 200 bytes, keeping its start and end', () => {

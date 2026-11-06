@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5888
 expression: output
 ---
 ==INPUT==
@@ -241,7 +240,7 @@ import { qrl } from "@qwik.dev/core";
 //
 const q_ComponentA_component_100sEyGkGuA = /*#__PURE__*/ qrl(()=>import("./test.tsx_ComponentA_component_100sEyGkGuA"), "ComponentA_component_100sEyGkGuA");
 //
-qrl(()=>import("./test.tsx_ComponentB_component_WfCOFVxlmq4"), "ComponentB_component_WfCOFVxlmq4");
+/*#__PURE__*/ qrl(()=>import("./test.tsx_ComponentB_component_WfCOFVxlmq4"), "ComponentB_component_WfCOFVxlmq4");
 //
 const q_MutualExample_component_LXt10RL0k44 = /*#__PURE__*/ qrl(()=>import("./test.tsx_MutualExample_component_LXt10RL0k44"), "MutualExample_component_LXt10RL0k44");
 const q_Nested_component_8cqIQQSPqhE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Nested_component_8cqIQQSPqhE"), "Nested_component_8cqIQQSPqhE");

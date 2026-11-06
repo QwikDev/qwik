@@ -89,6 +89,56 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 }
 
 #[test]
+fn migrated_qrl_pure() {
+	let code = include_str!("fixtures/migrated-qrl-pure.js").to_string();
+	for minify in [MinifyMode::None, MinifyMode::Simplify] {
+		let output = test_input_fn(TestInput {
+			code: code.clone(),
+			filename: "node_modules/library/index.qwik.mjs".into(),
+			entry_strategy: EntryStrategy::Smart,
+			mode: EmitMode::Prod,
+			minify,
+			is_server: Some(false),
+			..TestInput::default()
+		})
+		.unwrap();
+		let parent = output
+			.modules
+			.iter()
+			.find(|module| module.segment.is_none())
+			.unwrap();
+		let calls: Vec<_> = parent
+			.code
+			.lines()
+			.filter(|line| line.contains("qrl("))
+			.collect();
+		assert!(!calls.is_empty());
+		for call in calls {
+			assert!(call.contains("/*#__PURE__*/"), "{call}");
+		}
+		assert!(parent.code.contains("KEEP_SIDE_EFFECT"));
+		let render = output
+			.modules
+			.iter()
+			.find(|module| {
+				module
+					.segment
+					.as_ref()
+					.is_some_and(|segment| segment.display_name.ends_with("_App_component"))
+			})
+			.unwrap();
+		assert!(render.code.contains("useRead"));
+		assert!(render.code.contains("q_s_CCC333ccc33"));
+		if matches!(minify, MinifyMode::Simplify) {
+			snapshot_res!(
+				Ok::<_, anyhow::Error>(output),
+				format!("==INPUT==\n\n{}", code)
+			);
+		}
+	}
+}
+
+#[test]
 fn smart_visible_task_heavy_library() {
 	test_input!(TestInput {
 		code: include_str!("fixtures/smart-visible-task-heavy-library.tsx").to_string(),

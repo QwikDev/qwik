@@ -114,6 +114,18 @@ const QWIK_HMR_BRIDGE_CODE = `
   }
 `;
 
+/** The vitest hook we use, typed locally so vitest stays optional for these types. */
+type DefineCacheKeyGenerator = (
+  generate: (ctx: { id: string }) => string | false | undefined
+) => void;
+
+interface VitestPlugin {
+  configureVitest(ctx: {
+    defineCacheKeyGenerator?: DefineCacheKeyGenerator;
+    experimental_defineCacheKeyGenerator?: DefineCacheKeyGenerator;
+  }): void;
+}
+
 /**
  * Workaround to make the api be defined in the type.
  *
@@ -175,10 +187,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   // Vite hooks. The second plugin is a post plugin that is called after the build has finished.
   // The post plugin is used to generate the Qwik manifest file that is used during SSR to
   // generate QRLs for event handlers.
-  const vitePluginPre: P<QwikVitePluginApi> = {
+  const vitePluginPre: P<QwikVitePluginApi> & VitestPlugin = {
     name: 'vite-plugin-qwik',
     enforce: 'pre',
     api,
+
+    configureVitest({ defineCacheKeyGenerator, experimental_defineCacheKeyGenerator }) {
+      // vitest 5 renamed the 4.x experimental API; earlier versions have no fs module cache.
+      const defineGenerator = defineCacheKeyGenerator ?? experimental_defineCacheKeyGenerator;
+      // Cache hits skip transform/load, which register QRL segments in memory.
+      defineGenerator?.(({ id }) => (qwikPlugin.isCompiledModule(id) ? false : undefined));
+    },
 
     async config(viteConfig, viteEnv) {
       await qwikPlugin.init();
@@ -576,7 +595,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       return qwikPlugin.transform(this, code, id, transformOpts);
     },
-  } as const satisfies VitePlugin<QwikVitePluginApi>;
+  } as const satisfies VitePlugin<QwikVitePluginApi> & VitestPlugin;
 
   const vitePluginPost: VitePlugin<never> = {
     name: 'vite-plugin-qwik-post',

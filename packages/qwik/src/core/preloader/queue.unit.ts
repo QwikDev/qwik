@@ -689,7 +689,7 @@ test('keeps selected render slots occupied through static import cycles', async 
   expect(document.head.querySelector('link[href$="second.js"]')).toBeTruthy();
 });
 
-test('replays early demand without creating state for unrelated graph entries', async () => {
+test('replays buffered hints without allocating unused bundle records', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, { MessageChannel: undefined });
   vi.spyOn(performance, 'now').mockReturnValue(0);
@@ -710,4 +710,85 @@ test('replays early demand without creating state for unrelated graph entries', 
   expect(
     Array.from(document.head.querySelectorAll('link'), (link) => new URL(link.href).pathname)
   ).toEqual(['/build/route.js', '/build/helper.js']);
+});
+
+test('yields while replaying many hints buffered before the graph arrives', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  let now = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload, bundles } = await import('./queue');
+  const hints = Array.from({ length: 100 }, (_, index) => `route-${index}/`);
+  const serialized: (string | number)[] = [];
+  for (let i = 0; i < hints.length; i++) {
+    serialized.push(hints[i], serialized.length + 2, `entry-${i}.js`);
+  }
+  serialized.push('unused.js');
+
+  preload(hints, 1);
+  vi.runAllTimers();
+  expect(bundles.size).toBe(hints.length);
+  expect(document.head.querySelectorAll('link')).toHaveLength(0);
+
+  clock.mockImplementation(() => (now += 6));
+  loadBundleGraph(
+    '/build/',
+    Promise.resolve({ text: async () => JSON.stringify(serialized) } as Response)
+  );
+  await flushPromises();
+
+  const replayed = hints.filter((name) => bundles.get(name)!.$deps$);
+  expect(replayed.length).toBeGreaterThan(0);
+  expect(replayed.length).toBeLessThan(hints.length);
+  expect(document.head.querySelectorAll('link')).toHaveLength(0);
+
+  await vi.runAllTimersAsync();
+
+  expect(
+    Array.from(document.head.querySelectorAll('link'), (link) => new URL(link.href).pathname).sort()
+  ).toEqual(hints.map((_, index) => `/build/entry-${index}.js`).sort());
+  expect(bundles.size).toBe(hints.length * 2);
+  expect(bundles.has('unused.js')).toBe(false);
+});
+
+test('keeps newer required hints when buffered replay resumes after yielding', async () => {
+  installBrowserGlobals();
+  Object.assign(globalThis, { MessageChannel: undefined });
+  let now = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  vi.resetModules();
+  await installTestPlatform();
+  const { loadBundleGraph } = await import('./bundle-graph');
+  const { preload, bundles } = await import('./queue');
+  const chain = createLinearGraph(50);
+  const serialized = [
+    'first/',
+    6,
+    'second/',
+    6,
+    'third/',
+    6 + chain.length,
+    ...chain.map((entry) => (typeof entry === 'number' && entry >= 0 ? entry + 6 : entry)),
+    'last.js',
+  ];
+
+  preload(['first/', 'second/'], 1);
+  preload('third/', 0.8);
+  vi.runAllTimers();
+  clock.mockImplementation(() => (now += 6));
+  loadBundleGraph(
+    '/build/',
+    Promise.resolve({ text: async () => JSON.stringify(serialized) } as Response)
+  );
+  await flushPromises();
+  expect(bundles.get('third/')!.$deps$).toBeUndefined();
+
+  preload('third/', 1);
+  await vi.runAllTimersAsync();
+
+  expect(bundles.get('third/')!.$inverseProbability$).toBe(0);
+  expect(bundles.get('last.js')!.$inverseProbability$).toBe(0);
 });

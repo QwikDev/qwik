@@ -180,7 +180,7 @@ describe('preloader', () => {
     expectDeferredUntilAfterPaint(getScriptContent(), true);
   });
 
-  it('starts before load on demand while buffering speculative hints', async () => {
+  it('starts once on required demand before window.load and buffers speculative hints', async () => {
     const { container, getScriptContent } = createContainer();
     const { preloaderPre } = await import('./preload-impl');
     preloaderPre(container, {});
@@ -200,8 +200,11 @@ describe('preloader', () => {
       getScriptContent().replaceAll('import(', 'importModule(')
     )(scope, scope, fetch, importModule);
     expect(scope.qPreload).toBeTypeOf('function');
+    expect(scope.addEventListener).toHaveBeenCalledWith('load', expect.any(Function));
     scope.qPreload('other/', 0.8);
     expect(fetch).not.toHaveBeenCalled();
+    expect(importModule).not.toHaveBeenCalled();
+    expect(scope.qPreloadQueue).toEqual([['other/', 0.8]]);
     scope.qPreload('product/[id]/', 1);
     scope.qPreload('product/[id]/', 1);
     expect(fetch).toHaveBeenCalledOnce();

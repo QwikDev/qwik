@@ -21,15 +21,15 @@ export const DependentVisibleTasks = component$(() => {
     isOpen.value = false;
   });
 
-  useVisibleTask$(({ track }) => {
-    if (track(isOpen)) {
+  useVisibleTask$(() => {
+    if (isOpen.value) {
       return;
     }
     queryStatus.value = document.querySelector('#target') ? 'found' : 'missing';
   });
 
-  useVisibleTask$(({ track }) => {
-    if (track(targetRef)) {
+  useVisibleTask$(() => {
+    if (targetRef.value) {
       refStatus.value = 'found';
     }
   });

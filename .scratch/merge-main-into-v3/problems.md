@@ -21,18 +21,19 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
   setup.
 - **`Link` `data-navigating` (fixed).** The tests waited one tick, but a resumed handler loads
   `nav` lazily; they now use `vi.waitFor`.
-- **`window._qRouterInitNavigate` (ported, e2e unverified).** `goto` now wraps its body in main's
-  `startNavigation` closure and hands that to init-mode popstate. Main's `issue9247` page fails
-  SSR first (see the `track` fixtures below).
-- **Main's fixtures use the v2 `track` task API.** `issue9247/index.tsx` and
-  `loader-redirect/list/index.tsx` call `useTask$(({ track }) => …)`; v3's `TaskCtx` only has
-  `cleanup`, so SSR throws "track is not a function". v3's own `error-handling/inert` and
-  `preloader-test/visible-task-dialog` do the same. Needs fixture edits to v3 auto-tracking.
+- **`window._qRouterInitNavigate` (ported).** `goto` wraps its body in main's `startNavigation`
+  closure and hands that to init-mode popstate; `issue9247: keeps Back while the init popstate
+  handler is loading` passes. Its sibling `…while the navigation render is held` still fails:
+  `#list li` stays empty after the held render.
+- **v2 `track` in fixtures (fixed).** `issue9247`, `loader-redirect/list`, `visible-task-order`,
+  `error-handling/inert` and `preloader-test/visible-task-dialog` now use v3 auto-tracking.
+- **`visible-task-order` e2e (from main):** 3 cases fail (run after the tracked render, parallel
+  chunk loads, not holding back renders); the fixture now renders, so these are v3 behaviour gaps.
 - **Navigation preparation for loader redirects** (main `cf8f82404`, `d7439be7a`): main's
   `prepareNavigation`/`beginNavigation` layer was not ported, because v3 drives navigation from
-  `useTask$`. Main's `qwikrouter-test` `loader-redirect` fixture changes and the new
-  `loader-redirect/list` route were kept; the home page renders now. Its e2e cases still fail on
-  the list page's `track` call, so whether the redirect semantics hold is still unknown.
+  `useTask$`. The fixture compiles and renders; 2 of 19 e2e cases pass. The rest fail on the list
+  page with a client error, "Failed to execute 'setEndBefore' on 'Range': parameter 1 is not of
+  type 'Node'", before the redirect semantics are reached.
 - Unverified from the router merge: SSR eTag reuse in `route-loaders.ts` relies on `lastFetch.e`
   surviving serialization in the `useComputed$` closure. The `Form` submit lock relies on core
   running and awaiting handlers in order.

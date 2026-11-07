@@ -27,15 +27,14 @@ export default component$(() => {
   const nav = useNavigate();
   const completedNavigations = useSignal(0);
   // Hold goto's render wait before it updates routeInternal
-  useTask$(async ({ track }) => {
-    if (track(() => loc.isNavigating) && isBrowser) {
+  useTask$(async () => {
+    if (loc.isNavigating && isBrowser) {
       await (window as any).__issue9247HoldRender?.();
     }
   });
   // The field comes from the URL, and follows it on back/forward.
   const query = useSignal(loc.url.searchParams.get('q') ?? '');
-  useTask$(({ track }) => {
-    track(() => loc.url.search);
+  useTask$(() => {
     query.value = loc.url.searchParams.get('q') ?? '';
   });
 

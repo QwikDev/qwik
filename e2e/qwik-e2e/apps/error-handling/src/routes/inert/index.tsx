@@ -2,8 +2,9 @@ import { component$, Catch, isServer, useSignal, useTask$, type Signal } from '@
 import { defaultFallback, CatchSyncThrower } from '../../components/catch/catch';
 
 const CatchInertContent = component$<{ trigger: Signal<number> }>((props) => {
-  useTask$(({ track }) => {
-    track(() => props.trigger.value);
+  useTask$(() => {
+    // Subscribe: each bump must re-run the task.
+    void props.trigger.value;
     if (!isServer) {
       (window as any).__catchDeadTaskClientRuns =
         ((window as any).__catchDeadTaskClientRuns ?? 0) + 1;

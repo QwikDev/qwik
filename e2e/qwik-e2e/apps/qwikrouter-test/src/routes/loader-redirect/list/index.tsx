@@ -4,6 +4,7 @@ import {
   Pending,
   useSignal,
   useTask$,
+  untrack,
   type NoSerialize,
 } from '@qwik.dev/core';
 import {
@@ -70,8 +71,8 @@ export default component$(() => {
   const waitForLoader = useSignal(false);
   const interruptNavigation = useSignal(false);
   const guardResolution = useSignal<NoSerialize<(result: boolean | Error) => void>>();
-  useTask$(({ track }) => {
-    if (track(() => location.isNavigating) && interruptNavigation.value) {
+  useTask$(() => {
+    if (location.isNavigating && untrack(() => interruptNavigation.value)) {
       interruptNavigation.value = false;
       navigate('?sort=new');
     }

@@ -4,9 +4,8 @@ export const VisibleTaskDialog = component$(() => {
   const dialogRef = useSignal<HTMLDialogElement>();
   const isOpen = useSignal(false);
 
-  useVisibleTask$(({ track }) => {
-    const isDialogOpen = track(() => isOpen.value);
-    document.body.style.overflow = isDialogOpen ? 'hidden' : '';
+  useVisibleTask$(() => {
+    document.body.style.overflow = isOpen.value ? 'hidden' : '';
   });
 
   return (

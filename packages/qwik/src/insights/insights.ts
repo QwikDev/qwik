@@ -96,7 +96,14 @@ declare var __QI_PINGER__: string;
 export const insightsGate = sync$(() =>
   ((w: any, d: Document, p: Performance) => {
     /* eslint-disable no-var -- better minification */
-    if (Math.random() >= __QI_SAMPLE__) {
+    // One roll per tab session, so a sampled visitor stays sampled across full page loads.
+    var roll: number;
+    try {
+      roll = +w.sessionStorage.qInsights || (w.sessionStorage.qInsights = Math.random());
+    } catch (e) {
+      roll = Math.random();
+    }
+    if (roll >= __QI_SAMPLE__) {
       return;
     }
     var qRouteEl = d.querySelector(`[q\\:route]`),

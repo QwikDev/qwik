@@ -1,4 +1,5 @@
-import { mkdtempSync } from 'node:fs';
+import { existsSync, mkdtempSync } from 'node:fs';
+import { DatabaseSync } from 'node:sqlite';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test, vi } from 'vitest';
@@ -29,7 +30,7 @@ test('computeInsightsStrategy derives prefetch and clusters correlated symbols',
   await writeInsights(dbUrl, payload([sym('chunk_aaa', 5), sym('chunk_bbb', 5)]));
   await writeInsights(dbUrl, payload([sym('chunk_aaa', 5), sym('chunk_bbb', 5)]));
 
-  const strategy = await computeInsightsStrategy(dbUrl, KEY);
+  const strategy = (await computeInsightsStrategy(dbUrl, KEY))!;
 
   // prefetch: route "/" lists the symbols seen on it.
   const rootRoute = strategy.prefetch.find((p) => p.route === '/');
@@ -48,7 +49,7 @@ test('route prefetch lists the most frequently used symbols first', async () => 
   await writeInsights(dbUrl, payload([sym('chunk_ccc', 5)]));
   await writeInsights(dbUrl, payload([sym('chunk_ccc', 5)]));
 
-  const strategy = await computeInsightsStrategy(dbUrl, KEY);
+  const strategy = (await computeInsightsStrategy(dbUrl, KEY))!;
 
   expect(strategy.prefetch).toEqual([{ route: '/', symbols: ['ccc', 'aaa'] }]);
 });
@@ -66,8 +67,18 @@ test('only the latest 100 builds feed the strategy', async () => {
     clock.mockRestore();
   }
 
-  const strategy = await computeInsightsStrategy(dbUrl, KEY);
+  const strategy = (await computeInsightsStrategy(dbUrl, KEY))!;
 
   expect(Object.keys(strategy.manual)).toEqual(['fresh']);
   expect(strategy.prefetch).toEqual([{ route: '/', symbols: ['fresh'] }]);
+});
+
+test('a DB nothing was collected into yet yields no strategy and no new file', async () => {
+  const dbUrl = tmpDbUrl();
+  expect(await computeInsightsStrategy(dbUrl, KEY)).toBeNull();
+  expect(existsSync(dbUrl.replace(/^file:/, ''))).toBe(false);
+
+  // An existing but empty DB (e.g. created by another tool) is also "no data yet".
+  new DatabaseSync(dbUrl.replace(/^file:/, '')).close();
+  expect(await computeInsightsStrategy(dbUrl, KEY)).toBeNull();
 });

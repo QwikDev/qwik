@@ -35,7 +35,8 @@ function computeSymbolGraph(rows: SymbolPair[]): Sym[] {
   const symbols: Sym[] = [];
   const rootSymbol = getSymbol('<synthetic.root.symbol>');
 
-  for (const row of rows) {
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
     fixNames(row);
     // Related if the previous symbol loaded < 250ms earlier, else treat as an independent root.
     const [countRelated, countUnrelated] = vectorSum2(row.delay, 250);
@@ -50,15 +51,17 @@ function computeSymbolGraph(rows: SymbolPair[]): Sym[] {
   }
 
   computeDepth(rootSymbol, 0);
-  for (const symbol of symbols) {
-    symbol.children.sort((a, b) => b.count - a.count);
+  for (let i = 0; i < symbols.length; i++) {
+    symbols[i].children.sort((a, b) => b.count - a.count);
   }
   return symbols;
 
   function computeDepth(symbol: Sym, distance: number) {
     if (distance < symbol.depth) {
       symbol.depth = distance;
-      symbol.children.forEach((edge) => computeDepth(edge.to, distance + 1));
+      for (let i = 0; i < symbol.children.length; i++) {
+        computeDepth(symbol.children[i].to, distance + 1);
+      }
     }
   }
   function getEdge(parent: Sym, self: Sym): SymEdge {
@@ -136,11 +139,12 @@ function computeSymbolVectors(symbols: Sym[]): SymbolVectors {
       return;
     }
     visited.add(symbol);
-    symbol.children.forEach((edge) => {
+    for (let i = 0; i < symbol.children.length; i++) {
+      const edge = symbol.children[i];
       edgePath.push(edge);
       processChildren(edge.to, edgePath, visited);
       edgePath.pop();
-    });
+    }
   }
 }
 
@@ -230,14 +234,16 @@ export async function computeInsightsStrategy(
   const symbols = computeSymbolGraph(edges);
   const bundles = computeBundles(computeSymbolVectors(symbols));
   const manual: Record<string, string> = {};
-  bundles.forEach((bundle) => {
-    bundle.symbols.forEach((symbol) => {
-      manual[symbol.name] = bundle.name;
-    });
-  });
+  for (let i = 0; i < bundles.length; i++) {
+    const bundle = bundles[i];
+    for (let j = 0; j < bundle.symbols.length; j++) {
+      manual[bundle.symbols[j].name] = bundle.name;
+    }
+  }
 
   const routeMap = new Map<string, { route: string; symbols: string[] }>();
-  for (const { route, symbol } of routes) {
+  for (let i = 0; i < routes.length; i++) {
+    const { route, symbol } = routes[i];
     let entry = routeMap.get(route);
     if (!entry) {
       routeMap.set(route, (entry = { route, symbols: [] }));

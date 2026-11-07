@@ -4,6 +4,8 @@
  * fall back to the optional `@libsql/client` package on older Node; remote Turso URLs always use
  * `@libsql/client`, loaded on demand so other setups never need it.
  */
+import { fileURLToPath } from 'node:url';
+
 /** @internal */
 export interface InsightsStatement {
   sql: string;
@@ -117,7 +119,11 @@ export function localInsightsDbPath(url: string): string | null {
   if (isRemoteInsightsUrl(url)) {
     return null;
   }
-  return url.replace(/^file:(\/\/(?=\/))?/, '');
+  // A standard `file:///` URL is percent-encoded (`%20` for a space).
+  if (/^file:\/\/\//i.test(url)) {
+    return fileURLToPath(url);
+  }
+  return url.replace(/^file:/, '');
 }
 
 /**

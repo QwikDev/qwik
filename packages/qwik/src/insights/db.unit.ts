@@ -1,6 +1,7 @@
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { expect, test, vi } from 'vitest';
 import {
   describeInsightsDbError,
@@ -23,7 +24,7 @@ test('isRemoteInsightsUrl distinguishes local files from remote Turso', () => {
 test('localInsightsDbPath strips every file: form and rejects remote URLs', () => {
   expect(localInsightsDbPath('file:.qwik/insights.db')).toBe('.qwik/insights.db');
   expect(localInsightsDbPath('file:/a/b.db')).toBe('/a/b.db');
-  expect(localInsightsDbPath('file:///a/b.db')).toBe('/a/b.db');
+  expect(localInsightsDbPath(pathToFileURL('/a b/c.db').href)).toBe(resolve('/a b/c.db'));
   expect(localInsightsDbPath('/a/b.db')).toBe('/a/b.db');
   expect(localInsightsDbPath('libsql://x.turso.io')).toBeNull();
 });

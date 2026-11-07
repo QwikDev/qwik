@@ -69,8 +69,7 @@ export async function apiExtractorQwik(config: BuildConfig) {
   createTypesApi(
     config,
     join(config.srcQwikDir, 'insights', 'collector'),
-    join(config.distQwikPkgDir, 'insights', 'collector', 'index.d.ts'),
-    '..'
+    join(config.distQwikPkgDir, 'insights', 'collector', 'index.d.ts')
   );
 
   generateServerReferenceModules(config);

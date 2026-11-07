@@ -11,6 +11,7 @@ import { connect } from 'node:net';
 import { performance } from 'node:perf_hooks';
 import { Readable } from 'node:stream';
 import { assert, describe, expect, test, vi } from 'vitest';
+import { createRequestEvent } from '../request-handler/request-event-core';
 import { fromNodeHttp, normalizeUrl } from './http';
 
 [
@@ -472,6 +473,38 @@ describe('fromNodeHttp()', () => {
 
     expect(res.write).toHaveBeenCalledTimes(1);
     expect(res.end).not.toHaveBeenCalled();
+  });
+
+  test('should report an unexpected response error even when it aborts the request', async () => {
+    const error = new Error('emitted write failure');
+    const req = createBodyRequest([]);
+    const res = createResponse();
+    res.setHeader = vi.fn();
+    res.write = vi.fn(() => {
+      res.emit('error', error);
+      return false;
+    });
+    const serverRequestEv = await fromNodeHttp(new URL('http://localhost/'), req, res, 'server');
+    const requestEv = createRequestEvent(
+      serverRequestEv,
+      { $routeName$: '/', $params$: {}, $mods$: [] },
+      [],
+      '/',
+      vi.fn()
+    );
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      requestEv.send(200, 'hello');
+
+      await vi.waitFor(() => expect(requestEv.signal.aborted).toBe(true));
+      await vi.waitFor(() =>
+        expect(consoleError).toHaveBeenCalledWith('Response stream failed:', error)
+      );
+      expect(consoleError).toHaveBeenCalledTimes(1);
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 
   // Verifies the Node adapter starts making response-write progress before a large SSR render fully completes.

@@ -163,7 +163,11 @@ export function createRequestEvent(
       }
     }
     void responseWrite.catch((error) => {
-      if (request.signal.aborted || (error instanceof Error && error.name === 'AbortError')) {
+      const signal = request.signal;
+      if (
+        (error instanceof Error && error.name === 'AbortError') ||
+        (signal.aborted && error === signal.reason)
+      ) {
         return;
       }
       console.error('Response stream failed:', error);

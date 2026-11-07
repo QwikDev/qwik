@@ -1,7 +1,13 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { NUMBER_OF_BUCKETS, padBucket, toBucket, toBucketTimeline } from '../buckets';
-import { type InsightsDb, localInsightsDbPath, openInsightsDb, redactInsightsDbUrl } from '../db';
+import {
+  type InsightsDb,
+  type InsightsStatement,
+  localInsightsDbPath,
+  openInsightsDb,
+  redactInsightsDbUrl,
+} from '../db';
 import type { InsightsPayload } from '../insights';
 
 /** Strip the chunk prefix before the last `_`; `hW` is Qwik's no-op handler, so ignore it. */
@@ -19,6 +25,10 @@ const bucketColumns = (prefix: string) =>
     (_, i) => `${prefix}${padBucket(i)} INTEGER NOT NULL DEFAULT 0`
   ).join(', ');
 
+// Upsert conflict targets; `from` is NULL for root edges, and NULLs never conflict in SQLite.
+const EDGE_KEY = `public_api_key, manifest_hash, ifnull("from", ''), "to"`;
+const ROUTE_KEY = 'public_api_key, manifest_hash, route, symbol';
+
 const schemaReady = new WeakSet<InsightsDb>();
 async function ensureSchema(db: InsightsDb): Promise<void> {
   if (schemaReady.has(db)) {
@@ -28,9 +38,9 @@ async function ensureSchema(db: InsightsDb): Promise<void> {
     `CREATE TABLE IF NOT EXISTS applications (name TEXT, public_api_key TEXT, url TEXT);
      CREATE UNIQUE INDEX IF NOT EXISTS idx_applications_key ON applications(public_api_key);
      CREATE TABLE IF NOT EXISTS edges ("from" TEXT, "to" TEXT NOT NULL, manifest_hash TEXT NOT NULL, public_api_key TEXT, interaction INTEGER NOT NULL DEFAULT 0, ${bucketColumns('delay_count_')}, ${bucketColumns('latency_count_')});
-     CREATE INDEX IF NOT EXISTS idx_edges ON edges(public_api_key, manifest_hash, "from", "to");
+     CREATE UNIQUE INDEX IF NOT EXISTS idx_edges_key ON edges(${EDGE_KEY});
      CREATE TABLE IF NOT EXISTS routes (public_api_key TEXT, manifest_hash TEXT NOT NULL, route TEXT NOT NULL, symbol TEXT NOT NULL, ${bucketColumns('timeline_')});
-     CREATE INDEX IF NOT EXISTS idx_routes ON routes(public_api_key, manifest_hash, route, symbol);`
+     CREATE UNIQUE INDEX IF NOT EXISTS idx_routes_key ON routes(${ROUTE_KEY});`
   );
   schemaReady.add(db);
 }
@@ -68,58 +78,37 @@ function warnOnce(message: string, error: unknown): void {
 
 // Increment one delay + one latency bucket for an edge, inserting the row if it's new.
 // Column names are derived from clamped bucket indices (never user input); values are bound.
-async function updateEdge(
-  db: InsightsDb,
-  e: {
-    publicApiKey: string;
-    manifestHash: string;
-    from: string | null;
-    to: string;
-    interaction: number;
-    delayBucket: number;
-    latencyBucket: number;
-  }
-): Promise<void> {
+function edgeUpsert(e: {
+  publicApiKey: string;
+  manifestHash: string;
+  from: string | null;
+  to: string;
+  interaction: number;
+  delayBucket: number;
+  latencyBucket: number;
+}): InsightsStatement {
   const delayCol = `delay_count_${padBucket(e.delayBucket)}`;
   const latencyCol = `latency_count_${padBucket(e.latencyBucket)}`;
-  const fromClause = e.from == null ? '"from" IS NULL' : '"from" = ?';
-  const whereArgs =
-    e.from == null
-      ? [e.publicApiKey, e.manifestHash, e.to]
-      : [e.publicApiKey, e.manifestHash, e.from, e.to];
-  const updated = await db.run(
-    `UPDATE edges SET ${delayCol} = ${delayCol} + 1, ${latencyCol} = ${latencyCol} + 1 WHERE public_api_key = ? AND manifest_hash = ? AND ${fromClause} AND "to" = ?`,
-    whereArgs
-  );
-  if (updated.changes === 0) {
-    await db.run(
-      `INSERT INTO edges (public_api_key, manifest_hash, "from", "to", interaction, ${delayCol}, ${latencyCol}) VALUES (?, ?, ?, ?, ?, 1, 1)`,
-      [e.publicApiKey, e.manifestHash, e.from, e.to, e.interaction]
-    );
-  }
+  return {
+    sql: `INSERT INTO edges (public_api_key, manifest_hash, "from", "to", interaction, ${delayCol}, ${latencyCol}) VALUES (?, ?, ?, ?, ?, 1, 1)
+      ON CONFLICT (${EDGE_KEY}) DO UPDATE SET ${delayCol} = ${delayCol} + 1, ${latencyCol} = ${latencyCol} + 1`,
+    args: [e.publicApiKey, e.manifestHash, e.from, e.to, e.interaction],
+  };
 }
 
-async function updateRoutes(
-  db: InsightsDb,
-  r: {
-    publicApiKey: string;
-    manifestHash: string;
-    route: string;
-    symbol: string;
-    timelineBucket: number;
-  }
-): Promise<void> {
+function routeUpsert(r: {
+  publicApiKey: string;
+  manifestHash: string;
+  route: string;
+  symbol: string;
+  timelineBucket: number;
+}): InsightsStatement {
   const timelineCol = `timeline_${padBucket(r.timelineBucket)}`;
-  const updated = await db.run(
-    `UPDATE routes SET ${timelineCol} = ${timelineCol} + 1 WHERE public_api_key = ? AND manifest_hash = ? AND route = ? AND symbol = ?`,
-    [r.publicApiKey, r.manifestHash, r.route, r.symbol]
-  );
-  if (updated.changes === 0) {
-    await db.run(
-      `INSERT INTO routes (public_api_key, manifest_hash, route, symbol, ${timelineCol}) VALUES (?, ?, ?, ?, 1)`,
-      [r.publicApiKey, r.manifestHash, r.route, r.symbol]
-    );
-  }
+  return {
+    sql: `INSERT INTO routes (public_api_key, manifest_hash, route, symbol, ${timelineCol}) VALUES (?, ?, ?, ?, 1)
+      ON CONFLICT (${ROUTE_KEY}) DO UPDATE SET ${timelineCol} = ${timelineCol} + 1`,
+    args: [r.publicApiKey, r.manifestHash, r.route, r.symbol],
+  };
 }
 
 /**
@@ -137,36 +126,41 @@ export async function writeInsights(dbUrl: string, payload: InsightsPayload): Pr
   if (!publicApiKey || publicApiKey.length <= 4 || !Array.isArray(payload.symbols)) {
     return false;
   }
-  const db = await getDb(dbUrl);
-  await db.run(`INSERT OR IGNORE INTO applications (public_api_key, name) VALUES (?, ?)`, [
-    publicApiKey,
-    publicApiKey,
-  ]);
+  const statements: InsightsStatement[] = [
+    {
+      sql: `INSERT OR IGNORE INTO applications (public_api_key, name) VALUES (?, ?)`,
+      args: [publicApiKey, publicApiKey],
+    },
+  ];
 
   let previousSymbol = cleanupSymbolName(payload.previousSymbol);
   for (let i = 0; i < payload.symbols.length; i++) {
     const event = payload.symbols[i];
     const symbolHash = cleanupSymbolName(event.symbol);
     if (symbolHash) {
-      await updateEdge(db, {
-        publicApiKey,
-        manifestHash,
-        from: previousSymbol,
-        to: symbolHash,
-        interaction: event.interaction ? 1 : 0,
-        delayBucket: toBucket(event.delay),
-        latencyBucket: toBucket(event.latency),
-      });
-      await updateRoutes(db, {
-        publicApiKey,
-        manifestHash,
-        route: event.route,
-        symbol: symbolHash,
-        timelineBucket: toBucketTimeline(event.timeline),
-      });
+      statements.push(
+        edgeUpsert({
+          publicApiKey,
+          manifestHash,
+          from: previousSymbol,
+          to: symbolHash,
+          interaction: event.interaction ? 1 : 0,
+          delayBucket: toBucket(event.delay),
+          latencyBucket: toBucket(event.latency),
+        }),
+        routeUpsert({
+          publicApiKey,
+          manifestHash,
+          route: event.route,
+          symbol: symbolHash,
+          timelineBucket: toBucketTimeline(event.timeline),
+        })
+      );
     }
     previousSymbol = symbolHash;
   }
+  const db = await getDb(dbUrl);
+  await db.batch(statements);
   return true;
 }
 

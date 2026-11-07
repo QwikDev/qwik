@@ -22,14 +22,17 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
 - **`Link` `data-navigating` (fixed).** The tests waited one tick, but a resumed handler loads
   `nav` lazily; they now use `vi.waitFor`.
 - **`window._qRouterInitNavigate` (ported, e2e unverified).** `goto` now wraps its body in main's
-  `startNavigation` closure and hands that to init-mode popstate. Main's `issue9247` e2e cases
-  still fail before reaching popstate: on first load `#list li` stays empty (a `blockSSR: false`
-  loader under `<Pending>`), so this needs that fixture rendering first.
+  `startNavigation` closure and hands that to init-mode popstate. Main's `issue9247` page fails
+  SSR first (see the `track` fixtures below).
+- **Main's fixtures use the v2 `track` task API.** `issue9247/index.tsx` and
+  `loader-redirect/list/index.tsx` call `useTask$(({ track }) => …)`; v3's `TaskCtx` only has
+  `cleanup`, so SSR throws "track is not a function". v3's own `error-handling/inert` and
+  `preloader-test/visible-task-dialog` do the same. Needs fixture edits to v3 auto-tracking.
 - **Navigation preparation for loader redirects** (main `cf8f82404`, `d7439be7a`): main's
   `prepareNavigation`/`beginNavigation` layer was not ported, because v3 drives navigation from
   `useTask$`. Main's `qwikrouter-test` `loader-redirect` fixture changes and the new
-  `loader-redirect/list` route were kept; the fixture compiles now. Its e2e cases still fail:
-  most time out waiting for qwikloader (`window._qwikEv.roots`) on those pages; cause not checked.
+  `loader-redirect/list` route were kept; the home page renders now. Its e2e cases still fail on
+  the list page's `track` call, so whether the redirect semantics hold is still unknown.
 - Unverified from the router merge: SSR eTag reuse in `route-loaders.ts` relies on `lastFetch.e`
   surviving serialization in the `useComputed$` closure. The `Form` submit lock relies on core
   running and awaiting handlers in order.

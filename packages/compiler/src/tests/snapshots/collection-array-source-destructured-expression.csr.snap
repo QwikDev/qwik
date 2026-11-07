@@ -1,0 +1,73 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+const Item = component$((props: { href: string }) => <a href={props.href} />);
+export default component$(() => {
+  return <ul>{[{ kind: 'a', search: '?a' }].map(({ kind, search }) => <li key={kind} id={`row-${kind}`}><Item href={`/list/${search}`} /></li>)}</ul>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  propSource,
+  createAttrEffect,
+  _createElementTemplate,
+  _first,
+  _next,
+  createCollection,
+  patchAttrValue,
+  createComponent,
+  _toNodes,
+  maybeThen,
+} from '@qwik.dev/core';
+const Item_tmpl0 = _createElementTemplate('<a></a>');
+const semantic_collectionRender_153_287_230tpyuuqn4ag_tmpl0 =
+  _createElementTemplate('<li><!></li>');
+const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+const Item = (props, ctx) => {
+  const el0 = Item_tmpl0(ctx.document);
+  const prop0 = propSource(props, 'href');
+  const effect0 = createAttrEffect(el0, 'href', prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  function semantic_collectionRender_153_287_230tpyuuqn4ag(ctx, item) {
+    const el0 = semantic_collectionRender_153_287_230tpyuuqn4ag_tmpl0(ctx.document);
+    patchAttrValue(el0, 'id', `row-${item.kind}`);
+    const component0 = createComponent(Item, { href: `/list/${item.search}` }, ctx);
+    const marker0 = _first(el0);
+    maybeThen(component0, (component1) => marker0.replaceWith(..._toNodes(component1)));
+    return el0;
+  }
+  createCollection(
+    ctx,
+    start0,
+    end0,
+    [
+      {
+        kind: 'a',
+        search: '?a',
+      },
+    ],
+    null,
+    semantic_collectionRender_153_287_230tpyuuqn4ag,
+    0,
+    0,
+    true
+  );
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+
+export { Item as __qwik_Item };
+
+export { Item as Item_component_33lzeq7ebrquo };
+== CSR DIAGNOSTICS ==
+
+[]

@@ -574,7 +574,13 @@ function lowerRowProgram(
 
   ctx.locals = rowLocals;
   const outerInlineParams = ctx.inlineParams;
-  ctx.inlineParams = lexical ? localBindings : null;
+  // The row function names its params, not their aliases; an alias splices as `param.member`.
+  ctx.inlineParams = lexical
+    ? new Set([
+        ...paramBindings,
+        ...[...localBindings].filter((binding) => !paramAliases.has(binding)),
+      ])
+    : null;
   try {
     const setupReads = collectCaptures([...paramPatterns.values(), ...statements], ctx, new Set());
     const parameterSetup = lowerParameterPatterns(paramPatterns, paramBindings, ctx, rowLocals);

@@ -256,9 +256,13 @@ export function recordPayloadReads(
 
 /** Inline rows read their loop params lexically: the expression splices in place, no QRL. */
 function tryLowerInlineValue(expression: Expression, ctx: LowerContext): ReactiveValue | null {
-  const refs = collectCaptures(expression, ctx, ctx.inlineParams!);
+  const inlineParams = ctx.inlineParams!;
+  const refs = collectCaptures(expression, ctx, inlineParams);
+  const readsOnlyParamAliases = refs.locals.every(
+    ({ local }) => local.kind === LocalKind.PropMember && inlineParams.has(local.binding)
+  );
   // A reactive read needs an effect, so it cannot splice — null defers to the hole path.
-  if (refs.propsReads.length > 0 || refs.locals.length > 0) {
+  if (refs.propsReads.length > 0 || !readsOnlyParamAliases) {
     return null;
   }
   // Module bindings stay readable: the inline row function nests inside the module scope.

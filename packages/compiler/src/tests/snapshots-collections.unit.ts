@@ -174,6 +174,20 @@ export default component$(() => {
     });
   });
 
+  test('should read destructured inline row params through the row param', async () => {
+    const output = await testInput(mode, 'collection-array-source-destructured-expression', {
+      code: `import { component$ } from '@qwik.dev/core';
+const Item = component$((props: { href: string }) => <a href={props.href} />);
+export default component$(() => {
+  return <ul>{[{ kind: 'a', search: '?a' }].map(({ kind, search }) => <li key={kind} id={\`row-\${kind}\`}><Item href={\`/list/\${search}\`} /></li>)}</ul>;
+});
+`,
+    });
+    // The row function only names `item`, so spliced expressions must read through it.
+    expect(output.modules[0].code).toContain('`row-${item.kind}`');
+    expect(output.modules[0].code).toContain('`/list/${item.search}`');
+  });
+
   test('should renumber rows through a reactive index param', async () => {
     await testInput(mode, 'collection-index-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

@@ -1,6 +1,6 @@
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { Readable } from 'node:stream';
 import { expect, test } from 'vitest';
@@ -65,7 +65,7 @@ test('with db and no postUrl, dev beacons to the dev-server collector', () =>
     const dev = await plugin.config({ root: '/app', base: '/docs/' }, { command: 'serve' });
     expect(dev.define['globalThis.__QI_URL__']).toBe('"/docs/__qwik-insights/"');
     // Relative paths resolve against the Vite root and are shared with the collector and devtools.
-    expect(process.env.QWIK_INSIGHTS_DB_URL).toBe('file:/app/.qwik/x.db');
+    expect(process.env.QWIK_INSIGHTS_DB_URL).toBe(`file:${resolve('/app', '.qwik/x.db')}`);
   }));
 
 test('a build with db and no postUrl skips the tracker instead of beaconing centrally', () =>

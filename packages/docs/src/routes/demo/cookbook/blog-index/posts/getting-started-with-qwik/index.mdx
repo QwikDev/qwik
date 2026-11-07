@@ -1,0 +1,27 @@
+---
+title: 'Getting started with Qwik'
+published: '2026-11-02'
+description: 'A first look at building a page with Qwik, from an empty starter to a rendered route.'
+---
+
+import { PostCallout } from '~/routes/demo/cookbook/blog-index/components/post-callout';
+
+# Getting started with Qwik
+
+Qwik renders on the server and resumes on the client, so a page ships only the JavaScript its
+interactions need. Start from an empty starter, add a route, and the framework takes care of
+splitting the rest.
+
+<PostCallout>
+
+This is a shared component rendered inside an MDX post. Both MDX posts in this demo use it.
+
+</PostCallout>
+
+## What you need
+
+- Node.js 20.19+ or 22.12+
+- A Qwik starter (`npm create qwik@latest`)
+- One route file to edit
+
+Write the route, run the dev server, and the page is live.

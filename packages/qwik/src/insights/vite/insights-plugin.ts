@@ -1,7 +1,8 @@
 import type { QwikVitePlugin, SmartEntryStrategy } from '@qwik.dev/core/optimizer';
 import { existsSync, mkdirSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { PluginOption } from 'vite';
 
@@ -13,6 +14,18 @@ const log = (message?: any) => {
   // eslint-disable-next-line no-console
   console.log('\x1b[35m%s\x1b[0m', `qwikInsight(): ${message}`);
 };
+
+/** Where the dev server records beacons when `db` is set without a `postUrl`. */
+const DEV_COLLECTOR_PATH = '__qwik-insights/';
+
+/** Make a relative local DB path absolute so every reader and writer opens the same file. */
+function resolveDbUrl(dbUrl: string, root: string): string {
+  if (/^(libsql|wss?|https?):\/\//i.test(dbUrl)) {
+    return dbUrl;
+  }
+  const path = dbUrl.replace(/^file:(\/\/(?=\/))?/, '');
+  return `file:${isAbsolute(path) ? path : resolve(root, path)}`;
+}
 
 /** @public */
 export interface InsightManifest {
@@ -33,9 +46,15 @@ export async function qwikInsights(qwikInsightsOpts: {
    * build.
    */
   sampleRate?: number;
-  /** Where the client beacons. Set to a local collector route to report to your own server. */
+  /**
+   * Where the client beacons. Set to a local collector route to report to your own server. With
+   * `db`, dev defaults to a collector on the dev server; a build without it skips the tracker.
+   */
   postUrl?: string;
-  /** LibSQL/SQLite URL to compute the build strategy from locally instead of the central service. */
+  /**
+   * LibSQL/SQLite URL to compute the build strategy from locally instead of the central service.
+   * Relative file paths resolve against the Vite root. Defaults to `QWIK_INSIGHTS_DB_URL`.
+   */
   db?: string;
 }): Promise<PluginOption> {
   const {
@@ -46,7 +65,7 @@ export async function qwikInsights(qwikInsightsOpts: {
     postUrl: postUrlOverride,
     db,
   } = qwikInsightsOpts;
-  const dbUrl = db || process.env.QWIK_INSIGHTS_DB_URL;
+  let dbUrl = db || process.env.QWIK_INSIGHTS_DB_URL;
 
   if (!publicApiKey) {
     console.warn('qwikInsights: publicApiKey is required, skipping...');
@@ -62,7 +81,8 @@ export async function qwikInsights(qwikInsightsOpts: {
   const pingerFile = () => fileURLToPath(new URL('../../insights-pinger.js', import.meta.url));
 
   const apiUrl = `${baseUrl}/api/v1/${publicApiKey}`;
-  const postUrl = postUrlOverride || `${apiUrl}/post/`;
+  let postUrl = postUrlOverride || `${apiUrl}/post/`;
+  let devCollectorPath: string | null = null;
 
   async function loadQwikInsights(): Promise<InsightManifest | null> {
     if (data) {
@@ -89,6 +109,21 @@ export async function qwikInsights(qwikInsightsOpts: {
       if (command === 'serve' && !dbUrl) {
         return;
       }
+      if (dbUrl) {
+        dbUrl = resolveDbUrl(dbUrl, viteConfig.root || process.cwd());
+        // The collector and devtools read this, so they open the same DB as the plugin.
+        process.env.QWIK_INSIGHTS_DB_URL = dbUrl;
+        if (!postUrlOverride) {
+          if (command === 'build') {
+            logWarn(
+              '`db` is set without `postUrl`: not adding the tracker, so beacons stay out of the central service. Set `postUrl` to your collector route.'
+            );
+            return;
+          }
+          devCollectorPath = (viteConfig.base || '/') + DEV_COLLECTOR_PATH;
+          postUrl = devCollectorPath;
+        }
+      }
 
       // Track every session in dev (so you see data immediately), sample in a build.
       const sampleRate = sampleRateOpt ?? (command === 'serve' ? 1 : 0.05);
@@ -104,6 +139,10 @@ export async function qwikInsights(qwikInsightsOpts: {
     // Dev serve has no generateBundle, so serve the lazy pinger from the built package instead.
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
+        if (devCollectorPath && req.method === 'POST' && req.url?.startsWith(devCollectorPath)) {
+          recordDevBeacon(req, res, dbUrl!, publicApiKey).catch(next);
+          return;
+        }
         if (req.url && req.url.split('?')[0].endsWith('qwik-insights-pinger.js')) {
           readFile(pingerFile(), 'utf-8')
             .then((code) => {
@@ -235,4 +274,27 @@ export async function qwikInsights(qwikInsightsOpts: {
     },
   };
   return vitePlugin;
+}
+
+/** Dev-server collector: forwards a beacon (or `error/` beacon) to the local collector. */
+async function recordDevBeacon(
+  req: IncomingMessage,
+  res: ServerResponse,
+  dbUrl: string,
+  publicApiKey: string
+): Promise<void> {
+  const body = await new Promise<Buffer>((resolveBody, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk: Buffer) => chunks.push(chunk));
+    req.on('end', () => resolveBody(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+  const { handleInsightsBeacon } = await import('../collector');
+  const request = new Request(new URL(req.url!, 'http://localhost'), {
+    method: 'POST',
+    body: new Uint8Array(body),
+  });
+  const recorded = await handleInsightsBeacon(request, { dbUrl, publicApiKey });
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify({ ok: recorded }));
 }

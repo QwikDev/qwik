@@ -89,10 +89,16 @@ export function parseInsightsError(raw: unknown): InsightsError | null {
     return null;
   }
   const error = raw as Record<string, unknown>;
-  if (!isBoundedString(error.manifestHash, MAX_KEY_LENGTH) || typeof error.message !== 'string') {
+  const publicApiKey = error.publicApiKey ?? undefined;
+  if (
+    !isBoundedString(error.manifestHash, MAX_KEY_LENGTH) ||
+    typeof error.message !== 'string' ||
+    (publicApiKey !== undefined && !isBoundedString(publicApiKey, MAX_KEY_LENGTH))
+  ) {
     return null;
   }
   return {
+    publicApiKey: publicApiKey as string | undefined,
     manifestHash: error.manifestHash,
     timestamp: integerOrZero(error.timestamp),
     url: clippedText(error.url, MAX_ROUTE_LENGTH),

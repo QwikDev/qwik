@@ -175,6 +175,7 @@ test('handleInsightsBeacon rejects an oversized body', async () => {
 test('handleInsightsBeacon records error beacons posted to `error/`', async () => {
   const dbUrl = tmpDbUrl();
   const error = {
+    publicApiKey: 'key12345',
     url: 'http://app/page',
     manifestHash: 'mh1',
     timestamp: 1700000000000,
@@ -267,4 +268,17 @@ test('an edge stays marked interactive once any beacon saw it interactive', asyn
   const db = openRead(dbUrl);
   expect(db.prepare('SELECT interaction FROM edges').all()).toEqual([{ interaction: 1 }]);
   db.close();
+});
+
+test("handleInsightsBeacon ignores other apps' error beacons when a key is configured", async () => {
+  const dbUrl = tmpDbUrl();
+  const errorBeacon = (publicApiKey?: string) =>
+    new Request('http://app/insights/error/', {
+      method: 'POST',
+      body: JSON.stringify({ publicApiKey, manifestHash: 'mh1', message: 'boom' }),
+    });
+  const opts = { dbUrl, publicApiKey: 'key12345' };
+  expect(await handleInsightsBeacon(errorBeacon('other123'), opts)).toBe(false);
+  expect(await handleInsightsBeacon(errorBeacon(), opts)).toBe(false);
+  expect(await handleInsightsBeacon(errorBeacon('key12345'), opts)).toBe(true);
 });

@@ -1,0 +1,25 @@
+---
+title: 'Resumability in practice'
+published: '2026-10-05'
+description: 'How Qwik resumes a server-rendered page on the client without re-running component code.'
+---
+
+import { PostCallout } from '~/routes/demo/cookbook/blog-index/components/post-callout';
+
+# Resumability in practice
+
+Most frameworks render on the server and then hydrate on the client, re-running component code
+to attach listeners. Qwik takes a different path: the server serializes the application state
+and its listeners into the HTML, and the client resumes exactly where the server left off.
+
+<PostCallout>
+
+Resumability is why a Qwik page can stay interactive while shipping very little JavaScript:
+listeners are attached lazily, only when the user interacts.
+
+</PostCallout>
+
+## What changes for the author
+
+Very little. You write components the same way; the optimizer splits them at `$` boundaries
+and the runtime resumes them on demand.

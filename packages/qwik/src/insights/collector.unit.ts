@@ -249,3 +249,22 @@ test('a failed schema setup closes the adapter before the next retry', async () 
   }
   expect(closed).toHaveLength(1);
 });
+
+test('an edge stays marked interactive once any beacon saw it interactive', async () => {
+  const dbUrl = tmpDbUrl();
+  const sym = (interaction: boolean) => ({
+    symbol: 'chunk_aaa',
+    route: '/',
+    delay: 5,
+    latency: 5,
+    timeline: 5,
+    interaction,
+  });
+  await writeInsights(dbUrl, payload({ symbols: [sym(false)] }));
+  await writeInsights(dbUrl, payload({ symbols: [sym(true)] }));
+  await writeInsights(dbUrl, payload({ symbols: [sym(false)] }));
+
+  const db = openRead(dbUrl);
+  expect(db.prepare('SELECT interaction FROM edges').all()).toEqual([{ interaction: 1 }]);
+  db.close();
+});

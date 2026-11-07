@@ -4,6 +4,7 @@
   "version": "0.3.0-beta.2",
   "bugs": "https://github.com/QwikDev/devtools/issues",
   "dependencies": {
+    "@libsql/client": "^0.15.11",
     "birpc": "^4.0.0",
     "debug": "4.4.3",
     "dree": "^5.1.5",

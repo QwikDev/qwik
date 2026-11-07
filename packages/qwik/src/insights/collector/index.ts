@@ -42,6 +42,8 @@ async function ensureSchema(db: InsightsDb): Promise<void> {
      CREATE UNIQUE INDEX IF NOT EXISTS idx_edges_key ON edges(${EDGE_KEY});
      CREATE TABLE IF NOT EXISTS routes (public_api_key TEXT, manifest_hash TEXT NOT NULL, route TEXT NOT NULL, symbol TEXT NOT NULL, ${bucketColumns('timeline_')});
      CREATE UNIQUE INDEX IF NOT EXISTS idx_routes_key ON routes(${ROUTE_KEY});
+     CREATE TABLE IF NOT EXISTS manifests (public_api_key TEXT NOT NULL, hash TEXT NOT NULL, first_seen INTEGER NOT NULL);
+     CREATE UNIQUE INDEX IF NOT EXISTS idx_manifests_key ON manifests(public_api_key, hash);
      CREATE TABLE IF NOT EXISTS errors (public_api_key TEXT, manifest_hash TEXT NOT NULL, timestamp INTEGER, url TEXT, source TEXT, line INTEGER, "column" INTEGER, message TEXT, error TEXT, stack TEXT);`
   );
   schemaReady.add(db);
@@ -134,6 +136,11 @@ export async function writeInsights(dbUrl: string, beacon: InsightsPayload): Pro
     {
       sql: `INSERT OR IGNORE INTO applications (public_api_key, name) VALUES (?, ?)`,
       args: [publicApiKey, publicApiKey],
+    },
+    // First sighting of a build, so the strategy can prefer the most recent builds.
+    {
+      sql: `INSERT OR IGNORE INTO manifests (public_api_key, hash, first_seen) VALUES (?, ?, ?)`,
+      args: [publicApiKey, manifestHash, Date.now()],
     },
   ];
 

@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@croct/json5-parser": "0.2.2",
-    "@libsql/client": "^0.15.11",
+    "@libsql/client": "0.15.15",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
     "domino": "2.1.6",
@@ -189,7 +189,7 @@
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
-    "@libsql/client": ">=0.15.0",
+    "@libsql/client": "^0.15.11",
     "prettier": "*",
     "vite": ">=8 <9",
     "vitest": ">=2 <5"

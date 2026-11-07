@@ -98,24 +98,16 @@ function computeSymbolGraph(rows: SymbolPair[]): Sym[] {
 
 interface SymbolVectors {
   symbols: Sym[];
-  vectors: number[][];
+  vectors: Float64Array[];
 }
 
 function computeSymbolVectors(symbols: Sym[]): SymbolVectors {
   const rootSymbol = symbols.shift()!; // drop the synthetic root
   const symbolVectorIdxMap = new Map<Sym, number>();
-  const vectors: number[][] = [];
-
-  const base: number[] = [];
+  const vectors: Float64Array[] = [];
   for (let i = 0; i < symbols.length; i++) {
     symbolVectorIdxMap.set(symbols[i], i);
-    base.push(0);
-  }
-  if (base.length > 0) {
-    vectors.push(base);
-  }
-  for (let i = 1; i < base.length; i++) {
-    vectors.push(base.slice());
+    vectors.push(new Float64Array(symbols.length));
   }
 
   processChildren(rootSymbol, [], new Set());
@@ -158,6 +150,19 @@ const hashCode = (text: string) => {
   return Math.abs(hash).toString(36);
 };
 
+/** Euclidean distance check that stops summing once the pair is already too far apart. */
+function isWithinSquaredDistance(a: Float64Array, b: Float64Array, maxSquared: number): boolean {
+  let sum = 0;
+  for (let k = 0; k < a.length; k++) {
+    const d = a[k] - b[k];
+    sum += d * d;
+    if (sum > maxSquared) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // DBSCAN with minPoints=1 is just connected components of the eps-neighborhood graph.
 function computeBundles({ symbols, vectors }: SymbolVectors): { name: string; symbols: Sym[] }[] {
   const n = vectors.length;
@@ -169,14 +174,14 @@ function computeBundles({ symbols, vectors }: SymbolVectors): { name: string; sy
     }
     return x;
   };
+  const maxSquaredDistance = maxDistance * maxDistance;
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
-      let sum = 0;
-      for (let k = 0; k < vectors[i].length; k++) {
-        const d = vectors[i][k] - vectors[j][k];
-        sum += d * d;
+      // Already in one cluster: the distance can't change the result.
+      if (find(i) === find(j)) {
+        continue;
       }
-      if (Math.sqrt(sum) <= maxDistance) {
+      if (isWithinSquaredDistance(vectors[i], vectors[j], maxSquaredDistance)) {
         parent[find(i)] = find(j);
       }
     }
@@ -209,6 +214,9 @@ const timelineTotal = Array.from(
 const RECENT_MANIFESTS = 100;
 const MAX_EDGES = 5000;
 const MAX_ROUTE_SYMBOLS = 1000;
+// shortcut: clustering is all-pairs, so only the most-used symbols get a manual bundle and the
+// rest keep default chunking; replace with an indexed clustering if apps outgrow it.
+const MAX_CLUSTERED_SYMBOLS = 1000;
 
 async function readEdges(dbUrl: string, publicApiKey: string, authToken?: string) {
   const path = localInsightsDbPath(dbUrl);
@@ -278,8 +286,9 @@ export async function computeInsightsStrategy(
     return null;
   }
 
-  const symbols = computeSymbolGraph(edges);
-  const bundles = computeBundles(computeSymbolVectors(symbols));
+  const [rootSymbol, ...graphSymbols] = computeSymbolGraph(edges);
+  const mostUsed = graphSymbols.sort((a, b) => b.count - a.count).slice(0, MAX_CLUSTERED_SYMBOLS);
+  const bundles = computeBundles(computeSymbolVectors([rootSymbol, ...mostUsed]));
   const manual: Record<string, string> = {};
   for (let i = 0; i < bundles.length; i++) {
     const bundle = bundles[i];

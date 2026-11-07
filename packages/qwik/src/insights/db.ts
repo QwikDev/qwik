@@ -42,7 +42,8 @@ export async function openLibsql(url: string, authToken?: string): Promise<Insig
       // Normalize libSQL Row objects to plain records (named columns only, no numeric indices).
       return result.rows.map((row) => {
         const record: Record<string, any> = {};
-        for (const column of result.columns) {
+        for (let i = 0; i < result.columns.length; i++) {
+          const column = result.columns[i];
           record[column] = (row as any)[column];
         }
         return record;

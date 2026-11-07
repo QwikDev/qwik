@@ -122,7 +122,8 @@ export async function writeInsights(dbUrl: string, payload: InsightsPayload): Pr
   ]);
 
   let previousSymbol = cleanupSymbolName(payload.previousSymbol);
-  for (const event of payload.symbols) {
+  for (let i = 0; i < payload.symbols.length; i++) {
+    const event = payload.symbols[i];
     const symbolHash = cleanupSymbolName(event.symbol);
     if (symbolHash) {
       await updateEdge(db, {

@@ -43,7 +43,9 @@ test('writeInsights creates the schema and records app, edges and routes', async
   ]);
 
   // Each edge got exactly one delay + one latency bucket incremented.
-  for (const row of db.prepare('SELECT * FROM edges').all() as any[]) {
+  const edgeRows = db.prepare('SELECT * FROM edges').all() as any[];
+  for (let i = 0; i < edgeRows.length; i++) {
+    const row = edgeRows[i];
     expect(sumPrefix(row, 'delay_count_')).toBe(1);
     expect(sumPrefix(row, 'latency_count_')).toBe(1);
   }

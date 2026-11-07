@@ -1,5 +1,7 @@
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { NUMBER_OF_BUCKETS, padBucket, toBucket, toBucketTimeline } from '../buckets';
-import { type InsightsDb, openInsightsDb } from '../db';
+import { type InsightsDb, localInsightsDbPath, openInsightsDb, redactInsightsDbUrl } from '../db';
 import type { InsightsPayload } from '../insights';
 
 /** Strip the chunk prefix before the last `_`; `hW` is Qwik's no-op handler, so ignore it. */
@@ -37,13 +39,31 @@ const dbCache = new Map<string, Promise<InsightsDb>>();
 function getDb(dbUrl: string): Promise<InsightsDb> {
   let db = dbCache.get(dbUrl);
   if (!db) {
-    db = openInsightsDb(dbUrl, process.env.QWIK_INSIGHTS_DB_AUTH_TOKEN).then(async (opened) => {
-      await ensureSchema(opened);
-      return opened;
-    });
+    db = openWritableDb(dbUrl);
     dbCache.set(dbUrl, db);
+    // Don't pin a failed open: the next beacon retries (e.g. once the directory exists).
+    db.catch(() => dbCache.delete(dbUrl));
   }
   return db;
+}
+
+async function openWritableDb(dbUrl: string): Promise<InsightsDb> {
+  const path = localInsightsDbPath(dbUrl);
+  if (path !== null) {
+    mkdirSync(dirname(path), { recursive: true });
+  }
+  const db = await openInsightsDb(dbUrl, process.env.QWIK_INSIGHTS_DB_AUTH_TOKEN);
+  await ensureSchema(db);
+  return db;
+}
+
+const reportedFailures = new Set<string>();
+function warnOnce(message: string, error: unknown): void {
+  const key = message + String(error);
+  if (!reportedFailures.has(key)) {
+    reportedFailures.add(key);
+    console.warn(`qwikInsights collector: ${message}`, error);
+  }
 }
 
 // Increment one delay + one latency bucket for an edge, inserting the row if it's new.
@@ -108,12 +128,14 @@ async function updateRoutes(
  * The URL scheme selects the backend — local `file:` (node:sqlite) or remote Turso
  * (`@libsql/client`).
  *
+ * Resolves to whether the beacon was recorded.
+ *
  * @beta
  */
-export async function writeInsights(dbUrl: string, payload: InsightsPayload): Promise<void> {
+export async function writeInsights(dbUrl: string, payload: InsightsPayload): Promise<boolean> {
   const { publicApiKey, manifestHash } = payload;
   if (!publicApiKey || publicApiKey.length <= 4 || !Array.isArray(payload.symbols)) {
-    return;
+    return false;
   }
   const db = await getDb(dbUrl);
   await db.run(`INSERT OR IGNORE INTO applications (public_api_key, name) VALUES (?, ?)`, [
@@ -145,6 +167,7 @@ export async function writeInsights(dbUrl: string, payload: InsightsPayload): Pr
     }
     previousSymbol = symbolHash;
   }
+  return true;
 }
 
 /**
@@ -158,12 +181,12 @@ export function resolveInsightsDbUrl(dbUrl?: string): string {
 
 /**
  * Read an insights beacon from a request and record it. Never throws — a metrics beacon must not
- * break the response. Mount it in a Qwik Router route:
+ * break the response — and resolves to whether the beacon was recorded. Mount it in a Qwik Router
+ * route:
  *
  * ```ts
  * export const onPost: RequestHandler = async ({ request, json }) => {
- *   await handleInsightsBeacon(request);
- *   json(200, { ok: true });
+ *   json(200, { ok: await handleInsightsBeacon(request) });
  * };
  * ```
  *
@@ -172,11 +195,19 @@ export function resolveInsightsDbUrl(dbUrl?: string): string {
 export async function handleInsightsBeacon(
   request: Request,
   opts: { dbUrl?: string } = {}
-): Promise<void> {
+): Promise<boolean> {
+  let payload: InsightsPayload;
   try {
-    const payload = (await request.json()) as InsightsPayload;
-    await writeInsights(resolveInsightsDbUrl(opts.dbUrl), payload);
+    payload = (await request.json()) as InsightsPayload;
   } catch {
-    // Swallow: malformed beacon or DB hiccup must not fail the request.
+    // A malformed beacon is client noise, not a server problem.
+    return false;
+  }
+  const dbUrl = resolveInsightsDbUrl(opts.dbUrl);
+  try {
+    return await writeInsights(dbUrl, payload);
+  } catch (error) {
+    warnOnce(`failed to record a beacon into ${redactInsightsDbUrl(dbUrl)}`, error);
+    return false;
   }
 }

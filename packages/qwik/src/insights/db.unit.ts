@@ -2,7 +2,13 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test } from 'vitest';
-import { isRemoteInsightsUrl, openLibsql, openNodeSqlite, type InsightsDb } from './db';
+import {
+  isRemoteInsightsUrl,
+  localInsightsDbPath,
+  openLibsql,
+  openNodeSqlite,
+  type InsightsDb,
+} from './db';
 
 const tmpPath = () => join(mkdtempSync(join(tmpdir(), 'qwik-db-')), 'x.db');
 
@@ -11,6 +17,14 @@ test('isRemoteInsightsUrl distinguishes local files from remote Turso', () => {
   expect(isRemoteInsightsUrl('/a/b.db')).toBe(false);
   expect(isRemoteInsightsUrl('libsql://x.turso.io')).toBe(true);
   expect(isRemoteInsightsUrl('https://x.turso.io')).toBe(true);
+});
+
+test('localInsightsDbPath strips every file: form and rejects remote URLs', () => {
+  expect(localInsightsDbPath('file:.qwik/insights.db')).toBe('.qwik/insights.db');
+  expect(localInsightsDbPath('file:/a/b.db')).toBe('/a/b.db');
+  expect(localInsightsDbPath('file:///a/b.db')).toBe('/a/b.db');
+  expect(localInsightsDbPath('/a/b.db')).toBe('/a/b.db');
+  expect(localInsightsDbPath('libsql://x.turso.io')).toBeNull();
 });
 
 // Both backends must implement the same exec/run/all contract (node:sqlite; @libsql via a file: URL).

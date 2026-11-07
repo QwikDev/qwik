@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 const COLLECTOR_URL = 'http://localhost:3301/qwikrouter-test/insights-collect/';
 
 // API-level e2e (no browser): the client tracker beacons here in production; verify the Qwik Router
-// route accepts a payload and hands it to the collector without error.
-test('insights collector route accepts a beacon', async ({ request }) => {
+// route hands the payload to the collector and that it was actually recorded.
+test('insights collector route records a beacon', async ({ request }) => {
   const beacon = {
     qVersion: '2',
     manifestHash: 'e2e',
@@ -35,6 +35,7 @@ test('insights collector route swallows a malformed beacon', async ({ request })
     data: 'not-json',
   });
 
-  // handleInsightsBeacon never throws, so the route still replies 200.
+  // handleInsightsBeacon never throws, so the route still replies 200, but nothing is recorded.
   expect(response.status()).toBe(200);
+  expect(await response.json()).toEqual({ ok: false });
 });

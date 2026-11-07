@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -91,13 +91,12 @@ test('writeInsights skips beacons with an unusably short public key (no DB creat
   expect(existsSync(dbUrl.replace(/^file:/, ''))).toBe(false);
 });
 
+const beaconRequest = (body: unknown = payload()) =>
+  new Request('http://app/insights', { method: 'POST', body: JSON.stringify(body) });
+
 test('handleInsightsBeacon records a POST body into the DB', async () => {
   const dbUrl = tmpDbUrl();
-  const request = new Request('http://app/insights', {
-    method: 'POST',
-    body: JSON.stringify(payload()),
-  });
-  await handleInsightsBeacon(request, { dbUrl });
+  expect(await handleInsightsBeacon(beaconRequest(), { dbUrl })).toBe(true);
 
   const db = openRead(dbUrl);
   expect((db.prepare('SELECT COUNT(*) c FROM edges').get() as any).c).toBe(2);
@@ -107,6 +106,25 @@ test('handleInsightsBeacon records a POST body into the DB', async () => {
 test('handleInsightsBeacon swallows a malformed body without throwing', async () => {
   const dbUrl = tmpDbUrl();
   const request = new Request('http://app/insights', { method: 'POST', body: 'not-json' });
-  await expect(handleInsightsBeacon(request, { dbUrl })).resolves.toBeUndefined();
+  await expect(handleInsightsBeacon(request, { dbUrl })).resolves.toBe(false);
   expect(existsSync(dbUrl.replace(/^file:/, ''))).toBe(false);
+});
+
+test('handleInsightsBeacon creates a missing DB directory', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'qwik-collector-'));
+  const dbUrl = `file:${join(dir, '.qwik', 'nested', 'insights.db')}`;
+  expect(await handleInsightsBeacon(beaconRequest(), { dbUrl })).toBe(true);
+  expect(existsSync(join(dir, '.qwik', 'nested', 'insights.db'))).toBe(true);
+});
+
+test('handleInsightsBeacon retries a DB that failed to open', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'qwik-collector-'));
+  const blocker = join(dir, 'blocked');
+  // A file where the DB directory should be makes the first open fail.
+  writeFileSync(blocker, '');
+  const dbUrl = `file:${join(blocker, 'insights.db')}`;
+  expect(await handleInsightsBeacon(beaconRequest(), { dbUrl })).toBe(false);
+
+  rmSync(blocker);
+  expect(await handleInsightsBeacon(beaconRequest(), { dbUrl })).toBe(true);
 });

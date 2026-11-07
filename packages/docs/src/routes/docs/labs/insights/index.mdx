@@ -6,7 +6,7 @@ contributors:
   - mrhoodz
   - thejackshelton
   - maiieul
-updated_at: '2025-09-29T22:12:12Z'
+updated_at: '2026-11-07T12:00:00Z'
 created_at: '2023-06-22T22:13:24Z'
 ---
 
@@ -56,7 +56,7 @@ export default defineConfig(({ command, mode }): UserConfig => {
 
 ```typescript
 // ...
-import { Insights } from '@qwik.dev/core';
+import { Insights } from '@qwik.dev/core/insights';
 
 export default component$(() => {
   useQwikRouter();
@@ -66,9 +66,7 @@ export default component$(() => {
     <>
       <head>
         // ...
-        <Insights
-          publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY}
-        />
+        <Insights />
       </head>
       <body lang="en">
         // ...
@@ -78,12 +76,12 @@ export default component$(() => {
 });
 ```
 
-You can get `PUBLIC_QWIK_INSIGHTS_KEY` by visiting [Qwik Insight](https://insights.qwik.dev/app/add/).
+The component reads its configuration from the `qwikInsights` Vite plugin (see below), so it takes no props. You can get the `PUBLIC_QWIK_INSIGHTS_KEY` the plugin needs by visiting [Qwik Insight](https://insights.qwik.dev/app/add/).
 
 The `<Insights>` component collects this data:
 - Timing information of symbols.
-- The `pathname` part of the URL.
-- Random sessionID which identifies which symbol loads came from the same browser session.
+- The route the symbols were used on.
+- Uncaught JavaScript errors.
 
 <Note>The `<Insights>` component does not collect any user-identifiable information.</Note>
 
@@ -112,3 +110,54 @@ export default defineConfig(async () => {
   };
 });
 ```
+
+## Sampling
+
+Only a fraction of sessions report: 5% in a production build, every session in dev. A small inline script decides once per browser tab session, and only sampled sessions download the tracker. Set `sampleRate` (from `0` to `1`) to change it:
+
+```typescript
+qwikInsights({
+  publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY,
+  sampleRate: 0.2, // 20% of sessions
+}),
+```
+
+<Note>Before sampling was added, every session reported. Set `sampleRate: 1` to keep that behavior.</Note>
+
+## Self-hosted collection
+
+Instead of the central Insights service, you can collect sessions into your own libSQL database: a local SQLite file, or a remote [Turso](https://turso.tech) database. The build then computes the bundling strategy from that database.
+
+Point the plugin at the database with `db`, and at your collector route with `postUrl`:
+
+```typescript
+qwikInsights({
+  publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY,
+  db: 'file:.qwik/insights.db',
+  postUrl: '/insights-collect/',
+}),
+```
+
+Then record the beacons in a Qwik Router endpoint. Client errors are posted to `postUrl` + `error/`, so use a catch-all route that handles both:
+
+```typescript
+// src/routes/insights-collect/[...path]/index.ts
+import { handleInsightsBeacon } from '@qwik.dev/core/insights/collector';
+import type { RequestHandler } from '@qwik.dev/router';
+
+export const onPost: RequestHandler = async ({ request, json }) => {
+  json(200, {
+    ok: await handleInsightsBeacon(request, {
+      publicApiKey: import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY,
+    }),
+  });
+};
+```
+
+`handleInsightsBeacon()` validates each beacon, records it, and never throws, so a broken beacon can't fail the response. Passing `publicApiKey` makes the public endpoint ignore beacons from other apps.
+
+- **In dev**, you don't need the route: without `postUrl`, the dev server records beacons into `db` itself. You can inspect them in the devtools Insights tab.
+- **In a production build**, `postUrl` is required. Without it the tracker is left out, so beacons never go to the central service by accident.
+- **The server** that runs the collector route reads the database from the `QWIK_INSIGHTS_DB_URL` environment variable (default `file:.qwik/insights.db`). Set the same variable instead of `db` to configure everything in one place. For a remote Turso database, put its auth token in `QWIK_INSIGHTS_DB_AUTH_TOKEN`.
+
+<Note>Local files use Node's built-in `node:sqlite` (Node 22.5+). On older Node, and for remote Turso URLs, install the optional `@libsql/client` package. The collector needs a Node server, so it doesn't work on edge runtimes such as Cloudflare Workers.</Note>

@@ -73,13 +73,13 @@ import {
   RouteLocationContext,
   RouteNavigateContext,
   RoutedLevelsContext,
-  RoutePreventNavigateContext,
   RouteStateContext,
   type RoutedLevelComponent,
   type RoutedLevels,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { refreshLinkPrefetchObserver } from './link-prefetch';
+import { internalState, preventNav } from './navigation-state';
 import { loadRouterConfig } from './router-config';
 import { loadRoute, matchRouteLoadersByName } from './routing';
 import {
@@ -110,6 +110,7 @@ import type {
   DocumentHeadValue,
   Editable,
   EndpointResponse,
+  HttpStatus,
   LoadedRoute,
   Loader,
   LoaderInternal,
@@ -117,7 +118,6 @@ import type {
   MutableRouteLocation,
   NavigationType,
   PageModule,
-  PreventNavigateCallback,
   ResolvedDocumentHead,
   RouteModule,
   RouteAction,
@@ -167,22 +167,6 @@ export interface QwikRouterProps {
  * @public
  */
 export type QwikCityProps = QwikRouterProps;
-
-// Gets populated by registerPreventNav on the client
-const preventNav: {
-  $cbs$?: Set<QRL<PreventNavigateCallback> | PreventNavigateCallback> | undefined;
-  $handler$?: (event: BeforeUnloadEvent) => void;
-} = {};
-
-// Track navigations during prevent so we don't overwrite.
-// We need to use an object so we can write into it from qrls.
-const internalState: {
-  navCount: number;
-  attemptCount: number;
-  currentTransition?: ViewTransition;
-  /** Loader stack of the currently rendered route — the per-level nav diff baseline. */
-  routedLoaders?: ModuleLoader[];
-} = { navCount: 0, attemptCount: 0 };
 
 /**
  * Write the level signals from the first changed level down; untouched levels keep their component
@@ -351,7 +335,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     }>
   >();
 
-  const httpStatus = useSignal({
+  const httpStatus = useSignal<HttpStatus | undefined>({
     status: env.response.status,
     message: env.loadedRoute.$notFound$
       ? 'Not Found'
@@ -383,46 +367,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
       : undefined
   );
-  const registerPreventNav = $((fn$: QRL<PreventNavigateCallback> | PreventNavigateCallback) => {
-    if (!isBrowser) {
-      return;
-    }
-    preventNav.$handler$ ||= (event: BeforeUnloadEvent) => {
-      // track navigations during prevent so we don't overwrite
-      internalState.attemptCount++;
-      if (!preventNav.$cbs$) {
-        return;
-      }
-      const prevents = [...preventNav.$cbs$.values()].map((cb) => {
-        const resolved = (cb as Partial<QRL<PreventNavigateCallback>>).resolved;
-        return resolved ? resolved() : cb();
-      });
-      // this catches both true and Promise<any>
-      // we assume a Promise means to prevent the navigation
-      if (prevents.some(Boolean)) {
-        event.preventDefault();
-        // legacy support
-        event.returnValue = true;
-      }
-    };
-
-    (preventNav.$cbs$ ||= new Set()).add(fn$);
-    // we need QRLs synchronous for beforeunload; plain callbacks (client form) have no resolve
-    (fn$ as Partial<QRL<PreventNavigateCallback>>).resolve?.();
-    window.addEventListener('beforeunload', preventNav.$handler$);
-
-    return () => {
-      if (preventNav.$cbs$) {
-        preventNav.$cbs$.delete(fn$);
-        if (!preventNav.$cbs$.size) {
-          preventNav.$cbs$ = undefined;
-          // unregister the event listener if no more callbacks, to make older Firefox happy
-          window.removeEventListener('beforeunload', preventNav.$handler$!);
-        }
-      }
-    };
-  });
-
   /**
    * This is the `nav()` function that `useNavigation()` returns. It is also used internally for SPA
    * navigations and is provided in context for use in loaders and actions.
@@ -622,7 +566,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteLoaderCtxContext, routeLoaderCtx);
   useContextProvider(RouteActionContext, actionState);
-  useContextProvider<any>(RoutePreventNavigateContext, registerPreventNav);
 
   /**
    * This is split in 3 tasks because we need to update the head once we figured out the route, and
@@ -900,10 +843,11 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       if ($notFound$) {
         httpStatus.value = { status: 404, message: 'Not Found' };
       } else if (endpointResponse) {
-        httpStatus.value = {
-          status: endpointResponse.status,
-          message: endpointResponse.statusMessage ?? 'OK',
-        };
+        const message = endpointResponse.statusMessage ?? 'OK';
+        httpStatus.value =
+          endpointResponse.status === 200 && message === 'OK'
+            ? undefined
+            : { status: endpointResponse.status, message };
       } else if (actionData) {
         httpStatus.value = { status: actionData.status, message: 'OK' };
       } else {

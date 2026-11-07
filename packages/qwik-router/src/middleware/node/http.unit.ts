@@ -476,18 +476,30 @@ describe('fromNodeHttp()', () => {
   });
 
   test.each([
-    { source: 'response error event', abortsRequest: true },
-    { source: 'write callback', abortsRequest: false },
-  ])('should report an unexpected response error from the $source', async ({ abortsRequest }) => {
+    { source: 'response error event', timing: 'during write', abortsRequest: true },
+    { source: 'write callback', timing: 'during write', abortsRequest: false },
+    { source: 'response error event', timing: 'before drain', abortsRequest: true },
+    { source: 'write callback', timing: 'before drain', abortsRequest: false },
+  ])('logs unexpected errors from the $source $timing', async ({ timing, abortsRequest }) => {
     const error = new Error('unexpected write failure');
     const req = createBodyRequest([]);
     const res = createResponse();
+    const waitsForDrain = timing === 'before drain';
+    let drainListenersAtFailure: number | undefined;
     res.setHeader = vi.fn();
     res.write = vi.fn((_chunk: Uint8Array, callback?: (error?: Error | null) => void) => {
-      if (abortsRequest) {
-        res.emit('error', error);
+      const fail = () => {
+        drainListenersAtFailure = res.listenerCount('drain');
+        if (abortsRequest) {
+          res.emit('error', error);
+        } else {
+          callback?.(error);
+        }
+      };
+      if (waitsForDrain) {
+        queueMicrotask(fail);
       } else {
-        callback?.(error);
+        fail();
       }
       return false;
     }) as ServerResponse['write'];
@@ -509,6 +521,8 @@ describe('fromNodeHttp()', () => {
       );
       expect(consoleError).toHaveBeenCalledTimes(1);
       expect(requestEv.signal.aborted).toBe(abortsRequest);
+      expect(drainListenersAtFailure).toBe(waitsForDrain ? 1 : 0);
+      expect(res.listenerCount('drain')).toBe(0);
     } finally {
       consoleError.mockRestore();
     }

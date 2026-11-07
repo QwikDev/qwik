@@ -29,12 +29,16 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
   `error-handling/inert` and `preloader-test/visible-task-dialog` now use v3 auto-tracking.
 - **`visible-task-order` e2e (from main):** 3 cases fail (run after the tracked render, parallel
   chunk loads, not holding back renders); the fixture now renders, so these are v3 behaviour gaps.
-- **Navigation preparation for loader redirects** (main `cf8f82404`, `d7439be7a`): main's
-  `prepareNavigation`/`beginNavigation` layer was not ported, because v3 drives navigation from
-  `useTask$`. The fixture renders in SSR and SPA now; 7 of 19 e2e cases pass. The rest fail on
-  redirect semantics: `list.promise()` never settles (`#loader-redirect-completed` stays `0`), the
-  "Route loader redirect completed without data." / "Navigation guard failed." errors never show,
-  and redirected data keeps the old value.
+- **Goto-driven navigation (ported).** Main's 2026-09-30 series (`5fbe367a0`, `315c9993a`,
+  `6b40a1706`, `49f841a7e`, `7ab6f1904`) is in: the three router tasks are gone and `goto` loads,
+  refreshes and commits the page. `5ddb4578e` (isNavigating waits for loaders) was not ported:
+  its e2e already passes, because `_waitUntilRendered` waits for the pending loader work the
+  render triggers.
+- **Navigation preparation for loader redirects** (main `cf8f82404`, `d7439be7a`): not ported yet;
+  it builds on `loadNavigation`, which v3 now has. 12 `loader-redirect` e2e cases fail on redirect
+  semantics: `list.promise()` never settles (`#loader-redirect-completed` stays `0`), the "Route
+  loader redirect completed without data." / "Navigation guard failed." errors never show, and
+  redirected data keeps the old value.
 - Unverified from the router merge: SSR eTag reuse in `route-loaders.ts` relies on `lastFetch.e`
   surviving serialization in the `useComputed$` closure. The `Form` submit lock relies on core
   running and awaiting handlers in order.
@@ -84,6 +88,9 @@ main's `isSmartClientOnly` grouping, which classifies v3 segments with the ts-op
 - `isCopyableCorePath` again allows `version` (for `qwikSymbol`), shared by the server and the
   serializer bundles.
 - The BigInt payload limit is error `Q40` on v3, because v3 already uses `Q39` (main uses `Q41`).
+- `_waitOn` is a core setup call the compiler treats like `useTask$` (`blocksRender`), so the
+  render waits without a serialized task. The compiler now also reads `@qwik.dev/core/internal`
+  as a core source; a core call authored from it keeps its own import.
 - The router lib build sets `minifyInternalExports: false`. A chunk export mangled to `$` was read
   as a QRL marker by linked builds, which emitted `import { Qrl }`.
 - v2-only files from main were dropped: q:template handling in `qwikloader.ts` and its behaviour

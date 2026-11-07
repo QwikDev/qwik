@@ -4,6 +4,7 @@ import {
   isDev,
   isServer,
   noSerialize,
+  useContext,
   useStore,
   withLocale,
   type QRL,
@@ -14,7 +15,9 @@ import { _serialize } from '@qwik.dev/core/internal/serializer';
 import * as v from 'valibot';
 import * as z from 'zod';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
+import { RouteActionRunnerContext } from './contexts';
 import type { FormSubmitCompletedDetail } from './form-component';
+import { RUN_PENDING_ACTION } from './navigation-state';
 import { getRequestEvent } from './route-loaders';
 import type {
   ActionConstructor,
@@ -55,6 +58,7 @@ export const routeActionQrl = ((
   function action() {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
+    const runAction = useContext(RouteActionRunnerContext, null);
     const initialState: Editable<Partial<ActionStore<unknown, unknown>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
       submitted: false,
@@ -119,6 +123,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
               reject: noSerialize(reject),
               resolveDispatch: noSerialize(resolveDispatch),
             };
+            runAction?.(RUN_PENDING_ACTION as unknown as string);
           })
       );
       return run

@@ -215,6 +215,26 @@ async function writeInsightsError(
   return true;
 }
 
+/** The body as text, or null once it exceeds `maxBytes` (chunked bodies have no content-length). */
+async function readBoundedText(request: Request, maxBytes: number): Promise<string | null> {
+  if (!request.body) {
+    return '';
+  }
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let text = '';
+  let byteLength = 0;
+  for (let chunk = await reader.read(); !chunk.done; chunk = await reader.read()) {
+    byteLength += chunk.value.byteLength;
+    if (byteLength > maxBytes) {
+      await reader.cancel();
+      return null;
+    }
+    text += decoder.decode(chunk.value, { stream: true });
+  }
+  return text + decoder.decode();
+}
+
 // The pinger posts errors to `${postUrl}error/`, next to the symbol beacons.
 const isErrorBeacon = (request: Request) => /\/error\/?$/.test(new URL(request.url).pathname);
 
@@ -251,8 +271,8 @@ export async function handleInsightsBeacon(
     if (Number(request.headers.get('content-length')) > MAX_BEACON_BYTES) {
       return false;
     }
-    const body = await request.text();
-    if (body.length > MAX_BEACON_BYTES) {
+    const body = await readBoundedText(request, MAX_BEACON_BYTES);
+    if (body === null) {
       return false;
     }
     beacon = JSON.parse(body);

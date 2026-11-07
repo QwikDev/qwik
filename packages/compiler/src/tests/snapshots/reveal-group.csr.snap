@@ -46,6 +46,8 @@ const default_tmpl0 = _createElementTemplate('<section><!><!><div><!><!></div><!
 import { Slow } from './slow';
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
+  const el1 = _next(_next(_first(el0)));
+  const marker0 = _prev(_last(el0));
   const start0 = _first(el0);
   const end0 = _next(start0);
   const reveal0 = createRevealGroup('sequential', true, 2);
@@ -58,7 +60,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     reveal0,
     0
   );
-  const start1 = _first(_next(_next(_first(el0))));
+  const start1 = _first(el1);
   const end1 = _next(start1);
   createPending(
     ctx,
@@ -69,12 +71,11 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     reveal0,
     1
   );
-  const start2 = _prev(_last(el0));
-  const end2 = _next(start2);
+  const end2 = _next(marker0);
   const reveal1 = createRevealGroup(undefined, undefined, 1);
   createPending(
     ctx,
-    new BranchRange(ctx.document, start2, end2),
+    new BranchRange(ctx.document, marker0, end2),
     component_suspense_content_segment_5_ozo1223pxaju,
     component_suspense_fallback_segment_4_1i2rsq0l805ws,
     0,

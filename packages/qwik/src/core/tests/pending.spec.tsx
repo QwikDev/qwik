@@ -7,6 +7,35 @@ const debug = false;
 const { name, render } = testRenderer;
 
 describe(`${name}: pending`, () => {
+  it('keeps sibling bindings in place after Pending renders ready content', async () => {
+    const App = component$(() => {
+      const label = useSignal('label');
+      const count = useSignal(0);
+      return (
+        <main>
+          <Pending fallback$={(() => <p id="loading">loading</p>) as any}>
+            <p id="value">ready</p>
+          </Pending>
+          <b id="label">{label.value}</b>
+          <i id="count">{count.value}</i>
+          {/* trailing nodes keep the bindings above on start-relative paths */}
+          <hr />
+          <hr />
+          <hr />
+          <hr />
+        </main>
+      );
+    });
+
+    const { container, cleanup } = await render(App, { debug });
+    try {
+      expect(container.querySelector('#label')!.textContent).toBe('label');
+      expect(container.querySelector('#count')!.textContent).toBe('0');
+    } finally {
+      cleanup();
+    }
+  });
+
   it('updates the parent while scalar content under Pending waits', async () => {
     const App = component$(() => {
       const version = useSignal(0);

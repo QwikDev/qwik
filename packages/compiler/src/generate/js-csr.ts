@@ -570,9 +570,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       }
       nodeIndex += templateNodeCount(child);
     }
-    // A mounted component or slot replaces its marker, shifting every later sibling path.
+    // A mount that inserts nodes right away shifts every later sibling path.
     const firstReplacingMount = dynamicChildren.findIndex(
-      ({ child }) => child.op === OpKind.Component || child.op === OpKind.Slot
+      ({ child }) =>
+        child.op === OpKind.Component || child.op === OpKind.Slot || fillsRangeOnMount(child)
     );
     if (firstReplacingMount !== -1) {
       for (const located of dynamicChildren.slice(firstReplacingMount + 1)) {
@@ -706,10 +707,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   ): string {
     const { fragment, start, end } = this.createRangeRoot(ownerName, statements, pass);
     this.mountRange(op, start, end, statements, pass);
-    // Rows and a fallback are already between the comments before the root mounts.
-    return op.op === OpKind.Each || op.op === OpKind.Pending || op.op === OpKind.Catch
-      ? `[...${fragment}.childNodes]`
-      : `[${start}, ${end}]`;
+    return fillsRangeOnMount(op) ? `[...${fragment}.childNodes]` : `[${start}, ${end}]`;
   }
 
   private mountRange(
@@ -1697,4 +1695,9 @@ function rowPath(path: string, pass: RenderPass, id: number): string {
   }
   const effect = pass.batches.get(id)!.shared?.effect;
   return path.replaceAll(new RegExp(`\\b${row.root}\\b`, 'g'), `${effect}.root`);
+}
+
+/** Rows, pending content and a catch fallback land between the comments as the range mounts. */
+function fillsRangeOnMount(op: LinkedOp): boolean {
+  return op.op === OpKind.Each || op.op === OpKind.Pending || op.op === OpKind.Catch;
 }

@@ -58,6 +58,8 @@ const default_tmpl0 = _createElementTemplate(
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const show = useSignal(false);
   const el0 = default_tmpl0(ctx.document);
+  const el1 = _prev(_last(el0));
+  const el2 = _last(el0);
   const start0 = _first(el0);
   const end0 = _next(start0);
   const branch0 = createBranch(
@@ -83,7 +85,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
       0
     )
   );
-  const start2 = _first(_prev(_last(el0)));
+  const start2 = _first(el1);
   const end2 = _next(start2);
   const branch1 = createBranch(
     ctx,
@@ -93,7 +95,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     undefined
   );
   ctx.scheduler.notify(branch1);
-  const start3 = _first(_first(_last(el0)));
+  const start3 = _first(_first(el2));
   const end3 = _next(start3);
   const branch2 = createBranch(
     ctx,

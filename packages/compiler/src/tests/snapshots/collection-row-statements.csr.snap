@@ -39,6 +39,7 @@ const default_tmpl0 = _createElementTemplate('<ul><!><!><!><!></ul>');
 export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const rows = useSignal([1]);
   const el0 = default_tmpl0(ctx.document);
+  const marker0 = _prev(_last(el0));
   const start0 = _first(el0);
   const end0 = _next(start0);
   ctx.scheduler.waitFor(
@@ -53,8 +54,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
       0
     )
   );
-  const start1 = _prev(_last(el0));
-  const end1 = _next(start1);
+  const end1 = _next(marker0);
   function semantic_collectionRender_361_452_1ilm85gvuesnv(ctx, n) {
     let doubled = n * 2;
     doubled += 1;
@@ -71,7 +71,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   }
   createCollection(
     ctx,
-    start1,
+    marker0,
     end1,
     [1, 2],
     null,

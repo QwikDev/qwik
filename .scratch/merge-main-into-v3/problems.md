@@ -31,9 +31,10 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
   chunk loads, not holding back renders); the fixture now renders, so these are v3 behaviour gaps.
 - **Navigation preparation for loader redirects** (main `cf8f82404`, `d7439be7a`): main's
   `prepareNavigation`/`beginNavigation` layer was not ported, because v3 drives navigation from
-  `useTask$`. The fixture compiles and renders; 2 of 19 e2e cases pass. The rest fail on the list
-  page with a client error, "Failed to execute 'setEndBefore' on 'Range': parameter 1 is not of
-  type 'Node'", before the redirect semantics are reached.
+  `useTask$`. The fixture renders in SSR and SPA now; 7 of 19 e2e cases pass. The rest fail on
+  redirect semantics: `list.promise()` never settles (`#loader-redirect-completed` stays `0`), the
+  "Route loader redirect completed without data." / "Navigation guard failed." errors never show,
+  and redirected data keeps the old value.
 - Unverified from the router merge: SSR eTag reuse in `route-loaders.ts` relies on `lastFetch.e`
   surviving serialization in the `useComputed$` closure. The `Form` submit lock relies on core
   running and awaiting handlers in order.

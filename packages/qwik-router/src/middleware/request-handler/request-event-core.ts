@@ -50,6 +50,7 @@ export const RequestEvCaughtError = '@caughtError';
 export const RequestEvSentServerError = '@sentServerError';
 export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 
+/** Builds shared request state and controls route handler execution. */
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute,

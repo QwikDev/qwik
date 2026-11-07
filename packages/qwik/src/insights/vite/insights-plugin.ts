@@ -7,7 +7,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { isAbsolute, join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import type { PluginOption } from 'vite';
-import { describeInsightsDbError, redactInsightsDbUrl } from '../db';
+import { describeInsightsDbError, localInsightsDbPath, redactInsightsDbUrl } from '../db';
 
 const logWarn = (message?: any, ...rest: any[]) => {
   console.warn('\x1b[33m%s\x1b[0m', `qwikInsight()[WARN]: ${message}`, ...rest);
@@ -23,10 +23,10 @@ const DEV_COLLECTOR_PATH = '__qwik-insights/';
 
 /** Make a relative local DB path absolute so every reader and writer opens the same file. */
 function resolveDbUrl(dbUrl: string, root: string): string {
-  if (/^(libsql|wss?|https?):\/\//i.test(dbUrl)) {
+  const path = localInsightsDbPath(dbUrl);
+  if (path === null) {
     return dbUrl;
   }
-  const path = dbUrl.replace(/^file:(\/\/(?=\/))?/, '');
   return `file:${isAbsolute(path) ? path : resolve(root, path)}`;
 }
 

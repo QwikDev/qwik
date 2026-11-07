@@ -6,6 +6,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { isAbsolute, join, resolve } from 'node:path';
 import type { PluginOption } from 'vite';
+import { redactInsightsDbUrl } from '../db';
 
 const logWarn = (message?: any, ...rest: any[]) => {
   console.warn('\x1b[33m%s\x1b[0m', `qwikInsight()[WARN]: ${message}`, ...rest);
@@ -190,12 +191,20 @@ export async function qwikInsights(qwikInsightsOpts: {
               publicApiKey,
               process.env.QWIK_INSIGHTS_DB_AUTH_TOKEN
             );
-            data = { manual: strategy.manual, prefetch: strategy.prefetch };
-            mkdirSync(jsonDir, { recursive: true });
-            log('Computed Qwik Insight strategy from: ' + dbUrl);
-            await writeFile(jsonFile, JSON.stringify(data));
+            if (strategy) {
+              data = { manual: strategy.manual, prefetch: strategy.prefetch };
+              mkdirSync(jsonDir, { recursive: true });
+              log('Computed Qwik Insight strategy from: ' + redactInsightsDbUrl(dbUrl));
+              await writeFile(jsonFile, JSON.stringify(data));
+            } else {
+              log('No insights collected yet in: ' + redactInsightsDbUrl(dbUrl));
+              await loadQwikInsights();
+            }
           } catch (e) {
-            logWarn(`Failed to compute strategy from insights DB at ${dbUrl}`, e);
+            logWarn(
+              `Failed to compute strategy from insights DB at ${redactInsightsDbUrl(dbUrl)}`,
+              e
+            );
             await loadQwikInsights();
           }
         } else if (isProd) {

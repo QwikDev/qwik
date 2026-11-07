@@ -1,5 +1,6 @@
 import { NUMBER_OF_BUCKETS, padBucket, vectorSum2 } from '../buckets';
-import { openInsightsDb } from '../db';
+import { existsSync } from 'node:fs';
+import { type InsightsDb, localInsightsDbPath, openInsightsDb } from '../db';
 
 /**
  * Build-time bundling strategy computed from a local insights database — the decentralized
@@ -210,8 +211,16 @@ const MAX_EDGES = 5000;
 const MAX_ROUTE_SYMBOLS = 1000;
 
 async function readEdges(dbUrl: string, publicApiKey: string, authToken?: string) {
+  const path = localInsightsDbPath(dbUrl);
+  // Opening a missing file would create an empty DB; nothing has been collected yet.
+  if (path !== null && !existsSync(path)) {
+    return null;
+  }
   const db = await openInsightsDb(dbUrl, authToken);
   try {
+    if (!(await hasCollectedData(db))) {
+      return null;
+    }
     const manifestRows = await db.all(
       `SELECT hash FROM manifests WHERE public_api_key = ? ORDER BY first_seen DESC LIMIT ${RECENT_MANIFESTS}`,
       [publicApiKey]
@@ -242,13 +251,28 @@ async function readEdges(dbUrl: string, publicApiKey: string, authToken?: string
   }
 }
 
-/** Read the insights DB and compute a `{ manual, prefetch }` bundling strategy locally. */
+/** The collector creates every table on its first write, so `edges` marks a collected DB. */
+async function hasCollectedData(db: InsightsDb): Promise<boolean> {
+  const tables = await db.all(
+    `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'edges'`
+  );
+  return tables.length > 0;
+}
+
+/**
+ * Read the insights DB and compute a `{ manual, prefetch }` bundling strategy locally. Resolves to
+ * null when nothing has been collected into the DB yet.
+ */
 export async function computeInsightsStrategy(
   dbUrl: string,
   publicApiKey: string,
   authToken?: string
-): Promise<InsightStrategy> {
-  const { edges, routes } = await readEdges(dbUrl, publicApiKey, authToken);
+): Promise<InsightStrategy | null> {
+  const collected = await readEdges(dbUrl, publicApiKey, authToken);
+  if (!collected) {
+    return null;
+  }
+  const { edges, routes } = collected;
 
   const symbols = computeSymbolGraph(edges);
   const bundles = computeBundles(computeSymbolVectors(symbols));

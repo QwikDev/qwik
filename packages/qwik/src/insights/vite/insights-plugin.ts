@@ -2,6 +2,7 @@ import type { QwikVitePlugin, SmartEntryStrategy } from '@qwik.dev/core/optimize
 import { existsSync, mkdirSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { PluginOption } from 'vite';
 
 const logWarn = (message?: any, ...rest: any[]) => {
@@ -27,8 +28,15 @@ export async function qwikInsights(qwikInsightsOpts: {
   publicApiKey: string;
   baseUrl?: string;
   outDir?: string;
+  /** Fraction of sessions (0-1) that load the tracker and report. Defaults to 0.05. */
+  sampleRate?: number;
 }): Promise<PluginOption> {
-  const { publicApiKey, baseUrl = 'https://insights.qwik.dev', outDir = '' } = qwikInsightsOpts;
+  const {
+    publicApiKey,
+    baseUrl = 'https://insights.qwik.dev',
+    outDir = '',
+    sampleRate = 0.05,
+  } = qwikInsightsOpts;
 
   if (!publicApiKey) {
     console.warn('qwikInsights: publicApiKey is required, skipping...');
@@ -39,6 +47,8 @@ export async function qwikInsights(qwikInsightsOpts: {
   let jsonFile: string;
   let data: InsightManifest | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
+
+  const pingerFile = () => fileURLToPath(new URL('../../insights-pinger.js', import.meta.url));
 
   const apiUrl = `${baseUrl}/api/v1/${publicApiKey}`;
   const postUrl = `${apiUrl}/post/`;
@@ -68,6 +78,7 @@ export async function qwikInsights(qwikInsightsOpts: {
         define: {
           'globalThis.__QI_KEY__': JSON.stringify(publicApiKey),
           'globalThis.__QI_URL__': JSON.stringify(postUrl),
+          'globalThis.__QI_SAMPLE__': JSON.stringify(sampleRate),
         },
       };
     },
@@ -130,6 +141,22 @@ export async function qwikInsights(qwikInsightsOpts: {
           });
         }
       },
+    },
+
+    // Copy the lazy pinger into the client build so the inline gate can import it from q:base.
+    async generateBundle(this: { emitFile: (f: any) => void }) {
+      if (qwikVitePlugin?.api.getOptions().target !== 'client') {
+        return;
+      }
+      try {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'build/qwik-insights-pinger.js',
+          source: await readFile(pingerFile(), 'utf-8'),
+        });
+      } catch (e) {
+        logWarn('Failed to emit insights pinger chunk', e);
+      }
     },
 
     closeBundle: async () => {

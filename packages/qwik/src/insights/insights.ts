@@ -67,116 +67,59 @@ export interface InsightsError {
   stack: string;
 }
 
-interface QwikSymbolTrackerWindow extends Window {
-  qSymbolTracker: {
-    symbols: InsightSymbol[];
-    publicApiKey: string;
-  };
-}
-
 interface QSymbolDetail {
   element: HTMLElement | undefined;
   reqTime: number;
   symbol: string;
 }
 
-// Injected by the vite plugin
+// Injected as window globals by the inline <Insights> script (sync$ code isn't replaced by the vite plugin)
 // eslint-disable-next-line no-var
 declare var __QI_KEY__: string;
 // eslint-disable-next-line no-var
 declare var __QI_URL__: string;
+// eslint-disable-next-line no-var
+declare var __QI_SAMPLE__: number;
 
-// We use a self-invoking function to minify the code, renaming long globals and attributes
-// the qwik optimizer only minifies somewhat, so put all var declarations in the same line
-/** @internal */
-export const insightsPing = sync$(() =>
-  ((w: QwikSymbolTrackerWindow, d, l, n, p, r, S) => {
+/**
+ * Tiny gate emitted inline on every insights-enabled page. It samples the session, buffers
+ * `qsymbol` activations, then lazily imports the pinger chunk to drain them and take over. Only the
+ * sampled fraction downloads the pinger; everyone else runs just this gate.
+ *
+ * We use a self-invoking function to minify the code, renaming long globals and attributes; the
+ * qwik optimizer only minifies somewhat, so put all var declarations in the same line.
+ *
+ * @internal
+ */
+export const insightsGate = sync$(() =>
+  ((w: any, d: Document, p: Performance) => {
     /* eslint-disable no-var -- better minification */
-    var publicApiKey = __QI_KEY__,
-      postUrl = __QI_URL__,
-      qVersion = d.querySelector(`[q\\:version]`)?.getAttribute(`q:version`) || 'unknown',
-      manifestHash =
-        d.querySelector(`[q\\:manifest-hash]`)?.getAttribute(`q:manifest-hash`) || 'dev',
-      qSymbols: InsightSymbol[] = [],
-      existingSymbols: Set<string> = new Set(),
-      flushSymbolIndex: number = 0,
-      lastReqTime: number = 0,
-      timeoutID: ReturnType<typeof setTimeout> | undefined,
-      qRouteChangeTime = p.now(),
-      qRouteEl = d.querySelector(`[q\\:route]`),
-      flush = () => {
-        timeoutID = undefined;
-        if (qSymbols.length > flushSymbolIndex) {
-          var payload = {
-            qVersion,
-            publicApiKey,
-            manifestHash,
-            previousSymbol:
-              flushSymbolIndex == 0 ? undefined : qSymbols[flushSymbolIndex - 1].symbol,
-            symbols: qSymbols.slice(flushSymbolIndex),
-          } satisfies InsightsPayload;
-          n.sendBeacon(postUrl, S(payload));
-          flushSymbolIndex = qSymbols.length;
-        }
-      },
-      debounceFlush = () => {
-        timeoutID != undefined && clearTimeout(timeoutID);
-        timeoutID = setTimeout(flush, 1000);
-      };
-
-    w.qSymbolTracker = {
-      symbols: qSymbols,
-      publicApiKey,
-    };
-    if (qRouteEl) {
-      new MutationObserver((mutations) => {
-        var mutation = mutations.find((m) => m.attributeName === `q:route`);
-        if (mutation) {
-          qRouteChangeTime = p.now();
-        }
-      }).observe(qRouteEl, { attributes: true });
+    if (Math.random() >= __QI_SAMPLE__) {
+      return;
     }
-    d.addEventListener('visibilitychange', () => d.visibilityState === 'hidden' && flush());
+    var qRouteEl = d.querySelector(`[q\\:route]`),
+      base = d.querySelector(`[q\\:base]`)?.getAttribute(`q:base`) || '/build/',
+      queue: any[] = [],
+      tracker: any = (w.qSymbolTracker = {
+        symbols: [],
+        publicApiKey: __QI_KEY__,
+        q: queue,
+        c: { u: __QI_URL__ },
+        t0: p.now(),
+      });
     d.addEventListener(`qsymbol`, (_event) => {
-      var event = _event as CustomEvent<QSymbolDetail>,
-        detail = event.detail,
-        symbolRequestTime = detail.reqTime,
-        symbolDeliveredTime = event.timeStamp,
-        symbol = detail.symbol;
-      if (!existingSymbols.has(symbol)) {
-        existingSymbols.add(symbol);
-        var route = qRouteEl?.getAttribute(`q:route`) || '/';
-        qSymbols.push({
-          symbol,
-          route,
-          delay: r(0 - lastReqTime + symbolRequestTime),
-          latency: r(symbolDeliveredTime - symbolRequestTime),
-          timeline: r(0 - qRouteChangeTime + symbolRequestTime),
-          interaction: !!detail.element,
-        });
-        lastReqTime = symbolDeliveredTime;
-        debounceFlush();
-      }
+      var detail = (_event as CustomEvent<QSymbolDetail>).detail;
+      queue.push({
+        symbol: detail.symbol,
+        reqTime: detail.reqTime,
+        deliveredTime: _event.timeStamp,
+        interaction: !!detail.element,
+        route: qRouteEl?.getAttribute(`q:route`) || '/',
+      });
+      tracker.f && tracker.f();
     });
-    w.addEventListener('error', (event: ErrorEvent) => {
-      var error = event.error;
-      if (!(error && typeof error === 'object')) {
-        return;
-      }
-      var payload = {
-        url: `${l}`,
-        manifestHash,
-        timestamp: new Date().getTime(),
-        source: event.filename,
-        line: event.lineno,
-        column: event.colno,
-        message: event.message,
-        error: 'message' in error ? (error as Error).message : `${error}`,
-        stack: 'stack' in error ? (error as Error).stack || '' : '',
-      } satisfies InsightsError;
-      n.sendBeacon(`${postUrl}error/`, S(payload));
-    });
-  })(window as any, document, location, navigator, performance, Math.round, JSON.stringify)
+    import(/* @vite-ignore */ base + 'qwik-insights-pinger.js');
+  })(window, document, performance)
 );
 
 /**
@@ -191,6 +134,7 @@ export const Insights = component$(() => {
   }
   const key = (globalThis as any).__QI_KEY__;
   const url = (globalThis as any).__QI_URL__;
+  const sample = (globalThis as any).__QI_SAMPLE__ ?? 0.05;
   if (!key || !url) {
     if (!isDev) {
       console.warn('<Insights />: no config from qwikInsights plugin, skipping...');
@@ -198,8 +142,8 @@ export const Insights = component$(() => {
     return null;
   }
   return /* @__PURE__ */ jsx('script', {
-    'document:onQInit$': insightsPing,
+    'document:onQInit$': insightsGate,
     // We must pass the vite injected variables via window because sync$ code doesn't get replaced by the vite plugin
-    dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(key)};__QI_URL__=${JSON.stringify(url)}`,
+    dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(key)};__QI_URL__=${JSON.stringify(url)};__QI_SAMPLE__=${sample}`,
   });
 });

@@ -93,11 +93,12 @@ async function openWritableDb(dbUrl: string): Promise<InsightsDb> {
 
 const reportedFailures = new Set<string>();
 function warnOnce(message: string, error: unknown): void {
-  const key = message + String(error);
+  // libSQL errors can echo the DB URL, token included, so only keep the redacted text.
+  const details = describeInsightsDbError(error);
+  const key = message + details;
   if (!reportedFailures.has(key)) {
     reportedFailures.add(key);
-    // libSQL errors can echo the DB URL, token included.
-    console.warn(`qwikInsights collector: ${message}`, describeInsightsDbError(error));
+    console.warn(`qwikInsights collector: ${message}`, details);
   }
 }
 

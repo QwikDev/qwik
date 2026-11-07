@@ -1,0 +1,109 @@
+==INPUT==
+
+import { useStore } from '@qwik.dev/core';
+import { _waitOn } from '@qwik.dev/core/internal';
+export const Child = (props) => <b>{props.state.ready ? 'ready' : 'waiting'}</b>;
+export default () => {
+  const state = useStore({ ready: false });
+  _waitOn(Promise.resolve().then(() => { state.ready = true; }));
+  return <section><Child state={state} /></section>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+  useStore,
+  createComponent,
+  getActiveInvokeContextOrNull,
+  invoke,
+} from '@qwik.dev/core';
+import { _waitOn } from '@qwik.dev/core/internal';
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.state.ready ? 'ready' : 'waiting';
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+export const Child = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    ctx.addRoot(props);
+    const text0 = renderSsrTextExpression(
+      id0,
+      null,
+      [props],
+      q_component_text_segment_0_1fh10fbkzokfc
+    );
+    return maybeThen(text0, (text0) => [
+      '<b q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</b>',
+    ]);
+  },
+  'Child_component_syc3erfxihm7',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const invokeCtx0 = getActiveInvokeContextOrNull();
+    const state = useStore({ ready: false });
+    _waitOn(
+      Promise.resolve().then(() => {
+        state.ready = true;
+      })
+    );
+    return maybeThen(ctx.scheduler.flush(), () =>
+      invoke(invokeCtx0, () => {
+        const component0 = ctx.observeError(createComponent(Child, { state: state }, ctx));
+        return ['<section>', component0, '</section>'];
+      })
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.state.ready ? 'ready' : 'waiting';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    130,
+    169
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

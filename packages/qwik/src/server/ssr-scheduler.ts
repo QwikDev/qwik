@@ -4,7 +4,7 @@ import {
   SsrDomSubscription,
   type PhaseSubscriber,
   type SsrAttributePatch,
-  type TaskScheduler,
+  type SsrTaskScheduler,
   type TaskSubscriber,
   type ValueOrPromise,
 } from '@qwik.dev/core';
@@ -13,7 +13,17 @@ import { OwnerFlags, SubscriberFlags, SubscriberKind } from './qwik-copy';
 
 const NO_ERROR = Symbol();
 const NOOP = () => {};
-type SsrWork = TaskSubscriber | SsrDomEffectBase | SsrDomSubscription;
+
+/** A promise the render waits on, queued behind the lane's tasks. */
+class SsrWaitWork {
+  constructor(private readonly promise: Promise<unknown>) {}
+
+  run(): Promise<void> {
+    return this.promise.then(NOOP);
+  }
+}
+
+type SsrWork = TaskSubscriber | SsrDomEffectBase | SsrDomSubscription | SsrWaitWork;
 interface SsrSchedulerState {
   error: unknown;
   notifyRenderer: () => void;
@@ -68,7 +78,7 @@ export class SsrScheduler {
   }
 }
 
-export class SsrLane implements TaskScheduler {
+export class SsrLane implements SsrTaskScheduler {
   private queue: SsrWork[] | null = null;
   private queueIndex = 0;
   private pendingDom: Set<Promise<void>> | null = null;
@@ -117,6 +127,18 @@ export class SsrLane implements TaskScheduler {
       return;
     }
     this.start(subscriber);
+  }
+
+  waitOn(value: Promise<unknown>): void {
+    if (this.isCancelled || this.state.error !== NO_ERROR) {
+      return;
+    }
+    const work = new SsrWaitWork(value);
+    if (this.running || this.pending !== null) {
+      (this.queue ??= []).push(work);
+      return;
+    }
+    this.start(work);
   }
 
   flush(): void | Promise<void> {

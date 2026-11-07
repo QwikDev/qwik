@@ -88,6 +88,11 @@ export interface ResolvedSetupCall {
   stem: string | null;
 }
 
+/** A `use*` call, or a core setup call whose name is not hook-shaped (`_waitOn`). */
+export function isSetupHookCall(callee: ResolvedSetupCall | null): callee is ResolvedSetupCall {
+  return callee !== null && (callee.contract !== undefined || /^use.+/.test(callee.name));
+}
+
 export function resolveSetupCall(
   call: CallExpression,
   ctx: LowerContext
@@ -111,7 +116,13 @@ export function resolveSetupCall(
     (imported !== undefined && imported.imported !== 'default' && imported.imported !== '*'
       ? imported.imported
       : ctx.plan.bindings[binding].name);
-  if (!/^use.+/.test(name) && !name.endsWith(QRL_SUFFIX) && !ctx.locals.has(binding)) {
+  const isCoreSetupCall = coreApi !== undefined && coreSetupCalls.has(coreApi);
+  if (
+    !isCoreSetupCall &&
+    !/^use.+/.test(name) &&
+    !name.endsWith(QRL_SUFFIX) &&
+    !ctx.locals.has(binding)
+  ) {
     return null;
   }
   // Named `$` imports and exported `$` locals have twins by convention; other `$` bindings keep their call.

@@ -60,4 +60,6 @@ export const _getContextContainer = (): ContainerContext | undefined =>
 export const _waitUntilRendered = (container: ContainerContext): Promise<void> =>
   container.scheduler.flushInteraction();
 
+export { _waitOn } from './runtime/task';
+
 export { requestPreload as _requestPreload } from './preloader/bridge';

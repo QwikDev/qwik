@@ -2,7 +2,7 @@ import { isPromise, maybeThen } from '../shared/utils/promises';
 import type { Subscriber } from '../runtime/subscriber';
 import type { Owner } from '../runtime/owner';
 import type { SerializationContext } from '@qwik.dev/core/internal/serializer';
-import type { TaskScheduler } from '../runtime/scheduler';
+import type { SsrTaskScheduler } from '../runtime/scheduler';
 import type { ServerDataContext } from '../runtime/use-server-data';
 import type { RuntimeInvokeContext } from '../runtime/invoke-context';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
@@ -13,7 +13,7 @@ export interface SsrContentContext extends ServerDataContext {
   readonly document?: never;
   readonly state?: never;
   readonly locale?: never;
-  scheduler: TaskScheduler;
+  scheduler: SsrTaskScheduler;
   styleIds?: Map<string, string>;
   serializationCtx?: SerializationContext;
   markEagerResume?(value: object): void;

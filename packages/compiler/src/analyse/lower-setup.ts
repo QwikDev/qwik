@@ -48,7 +48,12 @@ import { lowerComponentParameter, pathReadIr } from './lower-parameter';
 import { readObjectParameter } from './ast/parameter-members';
 import { ValueIrKind, type ValueIR } from '../schema/value-ir';
 
-import { lowerSetupCall, lowerSetupCallback, resolveSetupCall } from './lower-setup-call';
+import {
+  isSetupHookCall,
+  lowerSetupCall,
+  lowerSetupCallback,
+  resolveSetupCall,
+} from './lower-setup-call';
 import { lowerComponentValue, lowerQrlArgument } from './lower-function';
 import { recordFunctionJsx } from './lower-function';
 export function lowerConstDeclaration(
@@ -162,7 +167,7 @@ export function lowerSetup(
         const expression = unwrapExpression(statement.expression);
         const call = expression.type === 'ChainExpression' ? expression.expression : expression;
         const hook = call.type === 'CallExpression' ? resolveSetupCall(call, ctx) : null;
-        if (hook !== null && /^use.+/.test(hook.name) && call.type === 'CallExpression') {
+        if (isSetupHookCall(hook) && call.type === 'CallExpression') {
           setup.push(lowerSetupCall(call, hook, null, ctx, locals));
           continue;
         }
@@ -262,7 +267,7 @@ function lowerSetupDeclaration(
     );
   }
   const callee = resolveSetupCall(init, ctx);
-  if (expression?.type === 'ChainExpression' && (callee === null || !/^use.+/.test(callee.name))) {
+  if (expression?.type === 'ChainExpression' && !isSetupHookCall(callee)) {
     return lowerConstDeclaration(declarator, ctx, locals);
   }
   if (callee !== null) {
@@ -617,7 +622,7 @@ function lowerJsStatement(
     if (!isNode(node) || isFunctionLike(node)) {
       return false;
     }
-    if (node.type === 'CallExpression' && /^use.+/.test(resolveSetupCall(node, ctx)?.name ?? '')) {
+    if (node.type === 'CallExpression' && isSetupHookCall(resolveSetupCall(node, ctx))) {
       return true;
     }
     return Object.keys(node).some(

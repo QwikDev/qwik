@@ -28,7 +28,7 @@ function setup(run: () => SsrOutput, ownOutput = vi.fn((output: SsrOutput) => ou
   parents.push(parent);
   const content = new SSRContent(1, [], createQRL('', 'content', run), null, {
     ownOutput,
-    scheduler: { notify() {} },
+    scheduler: { notify() {}, waitOn() {} },
   });
   const subscription = new SSRContentSubscription(content);
   return {
@@ -44,7 +44,7 @@ describe('SSRContent output lifetime', () => {
     expectTypeOf<
       ConstructorParameters<typeof SSRContent>[4]
     >().not.toEqualTypeOf<ContainerContext>();
-    const server: SsrContentContext = { scheduler: { notify() {} } };
+    const server: SsrContentContext = { scheduler: { notify() {}, waitOn() {} } };
     // @ts-expect-error Server scheduling does not provide client flushes.
     server.scheduler.waitFor(Promise.resolve(), null);
     const client = null! as ContainerContext;

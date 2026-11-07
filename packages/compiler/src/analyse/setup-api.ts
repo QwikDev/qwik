@@ -26,4 +26,5 @@ export const coreSetupCalls: ReadonlyMap<string, SetupCallContract> = new Map([
   [QwikHook.UseTask, { operation: CoreOperation.Task, blocksRender: true }],
   [QwikHook.UseVisibleTask, { operation: CoreOperation.VisibleTask }],
   [QwikHook.UseSerializer, { operation: CoreOperation.Serializer, result: LocalKind.Signal }],
+  [QwikHook.WaitOn, { operation: CoreOperation.WaitOn, maxArgs: 1, blocksRender: true }],
 ]);

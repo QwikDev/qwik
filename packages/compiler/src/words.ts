@@ -171,6 +171,8 @@ export const enum QwikHook {
   UseSerializer = 'useSerializer$',
   UseSerializerQrl = 'useSerializerQrl',
   UseSerializerFunction = 'useSerializer',
+  /** Internal: holds back the calling component's render until a promise settles. */
+  WaitOn = '_waitOn',
 }
 
 /** Authored Qwik JSX directives recognized by the compiler. */

@@ -324,6 +324,7 @@ export const enum CoreOperation {
   Task = 'task',
   VisibleTask = 'visible-task',
   Serializer = 'serializer',
+  WaitOn = 'wait-on',
 }
 
 export const enum HookTwinKind {

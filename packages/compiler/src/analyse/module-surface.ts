@@ -17,7 +17,7 @@ import {
 } from '../schema';
 import type { BindingGraph } from './ast/bindings';
 
-const CORE_SOURCES = new Set(['@qwik.dev/core', '@qwik.dev/core/build']);
+const CORE_SOURCES = new Set(['@qwik.dev/core', '@qwik.dev/core/build', '@qwik.dev/core/internal']);
 
 /** Records the module's ESM surface and returns bindings imported from Qwik Core. */
 export function scanModuleSurface(

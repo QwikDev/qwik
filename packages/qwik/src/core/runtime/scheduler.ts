@@ -38,6 +38,11 @@ export interface TaskScheduler {
   notify(subscriber: PhaseSubscriber): void;
 }
 
+/** A server range's scheduler: its flush also waits on promises a setup handed it. */
+export interface SsrTaskScheduler extends TaskScheduler {
+  waitOn(value: Promise<unknown>): void;
+}
+
 interface OwnerFrame {
   owner: Owner;
   items: OwnerItems;
@@ -133,6 +138,11 @@ export class Scheduler {
       return;
     }
     (this.afterFlush ??= []).push([callback, owner]);
+  }
+
+  /** The setup-facing form of `waitFor`, shared with the server's range schedulers. */
+  waitOn(value: Promise<unknown>): void {
+    this.waitFor(value);
   }
 
   waitFor(value: ValueOrPromise<unknown>, owner?: Owner | null): void {

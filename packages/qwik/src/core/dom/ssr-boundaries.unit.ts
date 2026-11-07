@@ -320,7 +320,7 @@ describe('structured SSR boundaries', () => {
 function createSsrContext(): SsrSlotContext {
   let nextId = 0;
   return {
-    scheduler: { notify() {} },
+    scheduler: { notify() {}, waitOn() {} },
     nextId: () => nextId++,
     addRoot: () => ({ type: 'root-ref', localId: 0 }),
   };

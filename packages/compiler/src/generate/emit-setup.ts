@@ -25,7 +25,7 @@ import { ValueIrKind } from '../schema/value-ir';
 import { UnsupportedError } from '../errors';
 import { expressionJs, extractPayloadJs, inlineValueJs, valueIrJs, type EmitQrl } from './print-js';
 import { namedSpecifier, requestBindingImport } from './emit-import';
-import { QwikGenWord, QwikHook, QwikWord } from '../words';
+import { QWIK_CORE_IMPORT, QwikGenWord, QwikHook, QwikWord } from '../words';
 import { captureNames } from './captures';
 import { noopQrlJs } from './noop-qrl';
 import { allocateGeneratedName } from '../names';
@@ -50,6 +50,7 @@ const coreCallNames: Record<CoreOperation, { qrl: QwikHook; fn: QwikHook }> = {
     qrl: QwikHook.UseSerializerQrl,
     fn: QwikHook.UseSerializerFunction,
   },
+  [CoreOperation.WaitOn]: { qrl: QwikHook.WaitOn, fn: QwikHook.WaitOn },
 };
 
 /**
@@ -288,6 +289,16 @@ function hookCalleeJs(
       return module.bindings[target.binding].name;
     case CallTargetKind.Core: {
       const name = coreCallNames[target.operation][form];
+      // A core call authored from a core subpath (`_waitOn` from core/internal) keeps that import.
+      const subpathImport = module.imports.find(
+        ({ source }) =>
+          !source.typeOnly &&
+          source.imported === name &&
+          module.edges[source.edge].specifier !== QWIK_CORE_IMPORT
+      );
+      if (subpathImport !== undefined) {
+        return module.bindings[subpathImport.source.binding].name;
+      }
       imports.add(name);
       return name;
     }

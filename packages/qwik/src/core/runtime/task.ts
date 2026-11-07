@@ -154,6 +154,25 @@ export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
   return subscriber;
 }
 
+/**
+ * Holds back the calling component's render until the promise settles. The compiler treats the call
+ * like a task: the render waits for the scheduler on the server and for the setup on the client.
+ *
+ * @internal
+ */
+export function _waitOn(promise: Promise<unknown>): void {
+  const invokeContext = getActiveInvokeContext();
+  const scheduler = invokeContext.container?.scheduler ?? defaultScheduler;
+  if (qTest ? isServerPlatform() : isServer) {
+    scheduler.waitOn(promise);
+    return;
+  }
+  const previous = invokeContext.pendingSetup;
+  const pending = (previous ? previous.then(() => promise) : promise).then(() => {});
+  invokeContext.pendingSetup = pending;
+  scheduler.waitOn(pending);
+}
+
 export function useTaskQrl(qrl: TaskQrlRef, options?: TaskOptions): TaskSubscriber {
   const invokeContext = getActiveInvokeContextOrNull();
   const container = invokeContext?.container;

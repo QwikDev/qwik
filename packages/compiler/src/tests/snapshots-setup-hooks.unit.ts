@@ -451,6 +451,26 @@ export default () => {
     }
   });
 
+  test('should wait on a setup promise before rendering', async () => {
+    const output = await testInput(mode, 'setup-wait-on', {
+      code: `import { useStore } from '@qwik.dev/core';
+import { _waitOn } from '@qwik.dev/core/internal';
+export const Child = (props) => <b>{props.state.ready ? 'ready' : 'waiting'}</b>;
+export default () => {
+  const state = useStore({ ready: false });
+  _waitOn(Promise.resolve().then(() => { state.ready = true; }));
+  return <section><Child state={state} /></section>;
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toContain(
+      mode === 'ssr'
+        ? 'maybeThen(ctx.scheduler.flush(), () => invoke(invokeCtx0, () => {'
+        : 'maybeThen(invokeCtx0.pendingSetup, () => invoke(invokeCtx0, () => {'
+    );
+  });
+
   test('should compile local implicit hooks and task setup', async () => {
     await testInput(mode, 'setup-task-hook', {
       code: `import { implicit$FirstArg, useTaskQrl, useTask$ as task, useSignal } from '@qwik.dev/core';

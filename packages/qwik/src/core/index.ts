@@ -143,6 +143,7 @@ export {
   _isSyncQrl,
   _renderCompiled,
   _verifySerializable,
+  _waitOn,
   _waitUntilRendered,
   _requestPreload,
   QContainerSelector,
@@ -328,7 +329,7 @@ export {
   type ContextId,
   type UseContext,
 } from './runtime/context';
-export { Phase, type TaskScheduler } from './runtime/scheduler';
+export { Phase, type SsrTaskScheduler, type TaskScheduler } from './runtime/scheduler';
 export {
   Task,
   TaskSubscription,

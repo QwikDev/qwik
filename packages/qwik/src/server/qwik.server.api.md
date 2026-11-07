@@ -18,10 +18,10 @@ import { SsrEventAttrChunk } from '@qwik.dev/core';
 import { SsrOutput } from '@qwik.dev/core';
 import { SsrRangeScope } from '@qwik.dev/core';
 import { SsrReferenceChunk } from '@qwik.dev/core';
+import { SsrTaskScheduler } from '@qwik.dev/core';
 import type { StreamWriter } from '@qwik.dev/core';
 import { Subscriber } from '@qwik.dev/core';
 import type { SymbolMapperFn } from '@qwik.dev/core/optimizer';
-import { TaskScheduler } from '@qwik.dev/core';
 
 // @public
 export function getQwikLoaderScript(opts?: {

@@ -82,3 +82,9 @@ test('a DB nothing was collected into yet yields no strategy and no new file', a
   new DatabaseSync(dbUrl.replace(/^file:/, '')).close();
   expect(await computeInsightsStrategy(dbUrl, KEY)).toBeNull();
 });
+
+test("a DB holding only other apps' data yields no strategy for this app", async () => {
+  const dbUrl = tmpDbUrl();
+  await writeInsights(dbUrl, { ...payload([sym('chunk_aaa', 5)]), publicApiKey: 'otherapp1' });
+  expect(await computeInsightsStrategy(dbUrl, KEY)).toBeNull();
+});

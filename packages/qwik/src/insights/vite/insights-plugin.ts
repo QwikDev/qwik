@@ -28,21 +28,32 @@ export async function qwikInsights(qwikInsightsOpts: {
   publicApiKey: string;
   baseUrl?: string;
   outDir?: string;
-  /** Fraction of sessions (0-1) that load the tracker and report. Defaults to 0.05. */
+  /**
+   * Fraction of sessions (0-1) that load the tracker and report. Defaults to 1 in dev, 0.05 in a
+   * build.
+   */
   sampleRate?: number;
+  /** Where the client beacons. Set to a local collector route to report to your own server. */
+  postUrl?: string;
+  /** LibSQL/SQLite URL to compute the build strategy from locally instead of the central service. */
+  db?: string;
 }): Promise<PluginOption> {
   const {
     publicApiKey,
     baseUrl = 'https://insights.qwik.dev',
     outDir = '',
-    sampleRate = 0.05,
+    sampleRate: sampleRateOpt,
+    postUrl: postUrlOverride,
+    db,
   } = qwikInsightsOpts;
+  const dbUrl = db || process.env.QWIK_INSIGHTS_DB_URL;
 
   if (!publicApiKey) {
     console.warn('qwikInsights: publicApiKey is required, skipping...');
     return;
   }
   let isProd = false;
+  let command: 'build' | 'serve' = 'build';
   let jsonDir: string;
   let jsonFile: string;
   let data: InsightManifest | null = null;
@@ -51,7 +62,7 @@ export async function qwikInsights(qwikInsightsOpts: {
   const pingerFile = () => fileURLToPath(new URL('../../insights-pinger.js', import.meta.url));
 
   const apiUrl = `${baseUrl}/api/v1/${publicApiKey}`;
-  const postUrl = `${apiUrl}/post/`;
+  const postUrl = postUrlOverride || `${apiUrl}/post/`;
 
   async function loadQwikInsights(): Promise<InsightManifest | null> {
     if (data) {
@@ -67,12 +78,20 @@ export async function qwikInsights(qwikInsightsOpts: {
   const vitePlugin: PluginOption = {
     name: 'vite-plugin-qwik-insights',
     enforce: 'pre',
-    // Only activate in production builds
-    apply: 'build',
-    async config(viteConfig) {
+    async config(viteConfig, env) {
+      command = env.command;
       jsonDir = resolve(viteConfig.root || '.', outDir);
       jsonFile = join(jsonDir, 'q-insights.json');
       isProd = viteConfig.mode !== 'ssr';
+
+      // In dev, only inject the tracker when collecting into a local DB — don't beacon to the
+      // central service during `pnpm dev`. Production builds always inject.
+      if (command === 'serve' && !dbUrl) {
+        return;
+      }
+
+      // Track every session in dev (so you see data immediately), sample in a build.
+      const sampleRate = sampleRateOpt ?? (command === 'serve' ? 1 : 0.05);
 
       return {
         define: {
@@ -82,10 +101,29 @@ export async function qwikInsights(qwikInsightsOpts: {
         },
       };
     },
+    // Dev serve has no generateBundle, so serve the lazy pinger from the built package instead.
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url && req.url.split('?')[0].endsWith('qwik-insights-pinger.js')) {
+          readFile(pingerFile(), 'utf-8')
+            .then((code) => {
+              res.setHeader('Content-Type', 'application/javascript');
+              res.end(code);
+            })
+            .catch(next);
+          return;
+        }
+        next();
+      });
+    },
     configResolved: {
       // we want to register the bundle graph adder last so we overwrite existing routes
       order: 'post',
       async handler(config) {
+        // The bundling strategy only matters for a real build; dev serve just needs the tracker.
+        if (command !== 'build') {
+          return;
+        }
         qwikVitePlugin = config.plugins.find(
           (p) => p.name === 'vite-plugin-qwik'
         ) as QwikVitePlugin;
@@ -93,7 +131,24 @@ export async function qwikInsights(qwikInsightsOpts: {
           throw new Error('Missing vite-plugin-qwik');
         }
         const opts = qwikVitePlugin.api.getOptions();
-        if (isProd) {
+        if (isProd && dbUrl) {
+          // Decentralized: compute the strategy from a local libSQL DB instead of central HTTP.
+          try {
+            const { computeInsightsStrategy } = await import('../vite/strategy');
+            const strategy = await computeInsightsStrategy(
+              dbUrl,
+              publicApiKey,
+              process.env.QWIK_INSIGHTS_DB_AUTH_TOKEN
+            );
+            data = { manual: strategy.manual, prefetch: strategy.prefetch };
+            mkdirSync(jsonDir, { recursive: true });
+            log('Computed Qwik Insight strategy from: ' + dbUrl);
+            await writeFile(jsonFile, JSON.stringify(data));
+          } catch (e) {
+            logWarn(`Failed to compute strategy from insights DB at ${dbUrl}`, e);
+            await loadQwikInsights();
+          }
+        } else if (isProd) {
           try {
             const qManifest: InsightManifest = { manual: {}, prefetch: [] };
             const response = await fetch(`${apiUrl}/bundles/strategy/`);
@@ -160,6 +215,10 @@ export async function qwikInsights(qwikInsightsOpts: {
     },
 
     closeBundle: async () => {
+      // Decentralized (local DB) setups don't report to the central service.
+      if (dbUrl) {
+        return;
+      }
       const path = resolve(outDir, 'q-manifest.json');
       if (isProd && existsSync(path)) {
         const qManifest = await readFile(path, 'utf-8');

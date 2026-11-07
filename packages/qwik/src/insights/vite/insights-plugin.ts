@@ -111,9 +111,9 @@ export async function qwikInsights(qwikInsightsOpts: {
       jsonFile = join(jsonDir, 'q-insights.json');
       isProd = viteConfig.mode !== 'ssr';
 
-      // In dev, only inject the tracker when collecting into a local DB — don't beacon to the
-      // central service during `pnpm dev`. Production builds always inject.
-      if (command === 'serve' && !dbUrl) {
+      // In dev, only inject the tracker for a local DB or an explicit collector — never beacon
+      // to the central service during `pnpm dev`. Production builds always inject.
+      if (command === 'serve' && !dbUrl && !postUrlOverride) {
         return;
       }
       if (dbUrl) {

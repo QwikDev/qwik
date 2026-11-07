@@ -132,3 +132,10 @@ test('the pinger gets a content-hashed name that dev serves and the build emits'
     );
     expect(served).toContain('qSymbolTracker');
   }));
+
+test('dev injects the tracker for an explicit postUrl without a local DB', () =>
+  withDbEnv(async () => {
+    const plugin = await getPlugin({ publicApiKey: 'key12345', postUrl: '/collect/' });
+    const dev = await callConfig(plugin, 'serve');
+    expect(dev.define['globalThis.__QI_URL__']).toBe('"/collect/"');
+  }));

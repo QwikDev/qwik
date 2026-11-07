@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test, vi } from 'vitest';
 import {
+  describeInsightsDbError,
   isRemoteInsightsUrl,
   localInsightsDbPath,
   openLibsql,
@@ -69,4 +70,11 @@ test('local files fall back to @libsql/client without node:sqlite (Node < 22.5)'
     vi.doUnmock('node:sqlite');
     vi.resetModules();
   }
+});
+
+test('describeInsightsDbError redacts a token the error echoes', () => {
+  const error = new Error('cannot reach libsql://db.turso.io?authToken=secret123');
+  const described = describeInsightsDbError(error);
+  expect(described).toContain('authToken=***');
+  expect(described).not.toContain('secret123');
 });

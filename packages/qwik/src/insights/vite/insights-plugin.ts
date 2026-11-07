@@ -7,7 +7,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { isAbsolute, join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import type { PluginOption } from 'vite';
-import { redactInsightsDbUrl } from '../db';
+import { describeInsightsDbError, redactInsightsDbUrl } from '../db';
 
 const logWarn = (message?: any, ...rest: any[]) => {
   console.warn('\x1b[33m%s\x1b[0m', `qwikInsight()[WARN]: ${message}`, ...rest);
@@ -204,7 +204,7 @@ export async function qwikInsights(qwikInsightsOpts: {
           } catch (e) {
             logWarn(
               `Failed to compute strategy from insights DB at ${redactInsightsDbUrl(dbUrl)}`,
-              e
+              describeInsightsDbError(e)
             );
             await loadQwikInsights();
           }

@@ -2,6 +2,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { NUMBER_OF_BUCKETS, padBucket, toBucket, toBucketTimeline } from '../buckets';
 import {
+  describeInsightsDbError,
   type InsightsDb,
   type InsightsStatement,
   localInsightsDbPath,
@@ -76,7 +77,17 @@ async function openWritableDb(dbUrl: string): Promise<InsightsDb> {
     mkdirSync(dirname(path), { recursive: true });
   }
   const db = await openInsightsDb(dbUrl, process.env.QWIK_INSIGHTS_DB_AUTH_TOKEN);
-  await ensureSchema(db);
+  try {
+    await ensureSchema(db);
+  } catch (error) {
+    // Each retry opens a new adapter, so don't leak this one.
+    try {
+      db.close();
+    } catch {
+      // The schema error is the one worth reporting.
+    }
+    throw error;
+  }
   return db;
 }
 
@@ -85,7 +96,8 @@ function warnOnce(message: string, error: unknown): void {
   const key = message + String(error);
   if (!reportedFailures.has(key)) {
     reportedFailures.add(key);
-    console.warn(`qwikInsights collector: ${message}`, error);
+    // libSQL errors can echo the DB URL, token included.
+    console.warn(`qwikInsights collector: ${message}`, describeInsightsDbError(error));
   }
 }
 

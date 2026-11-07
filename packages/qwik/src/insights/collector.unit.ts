@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { handleInsightsBeacon, writeInsights } from './collector';
 import type { InsightsPayload } from './insights';
 
@@ -221,4 +221,31 @@ test('handleInsightsBeacon stops reading a chunked body past the size limit', as
   } as RequestInit);
   expect(await handleInsightsBeacon(request, { dbUrl })).toBe(false);
   expect(chunksPulled).toBeLessThan(10);
+});
+
+test('a failed schema setup closes the adapter before the next retry', async () => {
+  vi.resetModules();
+  const closed: string[] = [];
+  vi.doMock('./db', async (importOriginal) => {
+    const real = await importOriginal<typeof import('./db')>();
+    return {
+      ...real,
+      openInsightsDb: async (url: string) => ({
+        exec: async () => {
+          throw new Error('schema failed');
+        },
+        batch: async () => {},
+        all: async () => [],
+        close: () => closed.push(url),
+      }),
+    };
+  });
+  try {
+    const collector = await import('./collector');
+    await expect(collector.writeInsights(tmpDbUrl(), payload())).rejects.toThrow('schema failed');
+  } finally {
+    vi.doUnmock('./db');
+    vi.resetModules();
+  }
+  expect(closed).toHaveLength(1);
 });

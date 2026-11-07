@@ -116,7 +116,7 @@ function edgeUpsert(e: {
   const latencyCol = `latency_count_${padBucket(e.latencyBucket)}`;
   return {
     sql: `INSERT INTO edges (public_api_key, manifest_hash, "from", "to", interaction, ${delayCol}, ${latencyCol}) VALUES (?, ?, ?, ?, ?, 1, 1)
-      ON CONFLICT (${EDGE_KEY}) DO UPDATE SET ${delayCol} = ${delayCol} + 1, ${latencyCol} = ${latencyCol} + 1`,
+      ON CONFLICT (${EDGE_KEY}) DO UPDATE SET ${delayCol} = ${delayCol} + 1, ${latencyCol} = ${latencyCol} + 1, interaction = max(interaction, excluded.interaction)`,
     args: [e.publicApiKey, e.manifestHash, e.from, e.to, e.interaction],
   };
 }

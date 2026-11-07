@@ -140,3 +140,34 @@ test('handleInsightsBeacon retries a DB that failed to open', async () => {
   rmSync(blocker);
   expect(await handleInsightsBeacon(beaconRequest(), { dbUrl })).toBe(true);
 });
+
+test.each<[string, unknown]>([
+  ['a NaN delay', { symbols: [{ ...payload().symbols[0], delay: 'abc' }] }],
+  ['a missing manifestHash', { manifestHash: undefined }],
+  ['an oversized route', { symbols: [{ ...payload().symbols[0], route: 'x'.repeat(2000) }] }],
+  ['too many symbols', { symbols: Array.from({ length: 1001 }, () => payload().symbols[0]) }],
+  ['a non-array symbols', { symbols: 'nope' }],
+])('writeInsights rejects a beacon with %s', async (_name, override) => {
+  const dbUrl = tmpDbUrl();
+  expect(await writeInsights(dbUrl, { ...payload(), ...(override as object) })).toBe(false);
+  expect(existsSync(dbUrl.replace(/^file:/, ''))).toBe(false);
+});
+
+test('handleInsightsBeacon only accepts the configured public API key', async () => {
+  const dbUrl = tmpDbUrl();
+  const publicApiKey = 'key12345';
+  expect(
+    await handleInsightsBeacon(beaconRequest({ ...payload(), publicApiKey: 'other123' }), {
+      dbUrl,
+      publicApiKey,
+    })
+  ).toBe(false);
+  expect(await handleInsightsBeacon(beaconRequest(), { dbUrl, publicApiKey })).toBe(true);
+});
+
+test('handleInsightsBeacon rejects an oversized body', async () => {
+  const dbUrl = tmpDbUrl();
+  const body = JSON.stringify({ ...payload(), padding: 'x'.repeat(300 * 1024) });
+  const request = new Request('http://app/insights', { method: 'POST', body });
+  expect(await handleInsightsBeacon(request, { dbUrl })).toBe(false);
+});

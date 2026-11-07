@@ -28,7 +28,10 @@ export const Insights = component$(() => {
   const hasRows = !!value && (value.apps.length || value.edges.length || value.routes.length);
   const error = errorMessage.value || value?.error;
   // Rows from several apps can share a DB; only label them when that happens.
-  const showApp = !!value && value.apps.length > 1;
+  const showApp =
+    !!value &&
+    new Set([...value.apps, ...value.edges, ...value.routes].map((row) => row.publicApiKey)).size >
+      1;
   const withApp = (key: string, cells: (string | number)[]) => (showApp ? [key, ...cells] : cells);
   const appHead = (head: string[]) => (showApp ? ['App', ...head] : head);
 

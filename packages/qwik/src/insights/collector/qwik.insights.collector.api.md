@@ -7,7 +7,46 @@
 // @beta
 export function handleInsightsBeacon(request: Request, opts?: {
     dbUrl?: string;
-}): Promise<void>;
+    publicApiKey?: string;
+}): Promise<boolean>;
+
+// Warning: (ae-internal-missing-underscore) The name "InsightsDb" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface InsightsDb {
+    // (undocumented)
+    all(sql: string, params?: unknown[]): Promise<Record<string, any>[]>;
+    batch(statements: InsightsStatement[]): Promise<void>;
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    exec(sql: string): Promise<void>;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "InsightsStatement" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface InsightsStatement {
+    // (undocumented)
+    args: unknown[];
+    // (undocumented)
+    sql: string;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "localInsightsDbPath" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function localInsightsDbPath(url: string): string | null;
+
+// Warning: (ae-internal-missing-underscore) The name "openInsightsDb" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function openInsightsDb(url: string, authToken?: string): Promise<InsightsDb>;
+
+// Warning: (ae-internal-missing-underscore) The name "redactInsightsDbUrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function redactInsightsDbUrl(url: string): string;
 
 // @beta
 export function resolveInsightsDbUrl(dbUrl?: string): string;
@@ -15,7 +54,7 @@ export function resolveInsightsDbUrl(dbUrl?: string): string;
 // Warning: (ae-forgotten-export) The symbol "InsightsPayload" needs to be exported by the entry point index.d.ts
 //
 // @beta
-export function writeInsights(dbUrl: string, payload: InsightsPayload): Promise<void>;
+export function writeInsights(dbUrl: string, beacon: InsightsPayload): Promise<boolean>;
 
 // (No @packageDocumentation comment for this package)
 

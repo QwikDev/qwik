@@ -126,8 +126,8 @@ const wrapWithAbort = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> 
 /** Shared SSR paths and client-only loader navigation state. */
 export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
-  /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
-  goto?: NoSerialize<(path: string, options: { replaceState: boolean }) => unknown>;
+  /** Resolves after navigation prepares loader requests, before their results. */
+  goto?: NoSerialize<(path: string, options: { replaceState: boolean }) => Promise<void>>;
   /** Router callback that re-resolves the document head after a loader gets a new value. */
   onValue?: RouteNavigate;
   /** Client manifest hash for q-loader fetch URLs. */
@@ -141,6 +141,8 @@ type LoaderRequest = {
   hash?: string;
   /** An interrupting navigation aborted this request's fetch before it settled. */
   isAborted?: boolean;
+  /** Keep redirect reads pending until navigation installs the next request. */
+  redirect?: Promise<void>;
 };
 
 type LoaderNavigation = {
@@ -470,15 +472,32 @@ const createRouteLoaderSignal = (
           assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
           if (response.r) {
             const redirectUrl = toSafeRedirectUrl(response.r, pageUrl);
-            // Superseded requests cannot redirect the current navigation.
             const goto = routeLoaderCtx.goto;
-            if (goto) {
-              goto(redirectUrl.href, { replaceState: true });
-            } else {
+            // Mark the redirect pending before navigation can abort requests.
+            const prepared = Promise.resolve().then(() => {
+              assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
+              if (goto) {
+                return goto(redirectUrl.href, { replaceState: true });
+              }
               location.href = redirectUrl.href;
-            }
-            // Keep unresolved loaders pending until the redirect replaces their request.
-            return retainLoaderValue(previous, abortSignal);
+              return new Promise<void>(() => {});
+            });
+            request.redirect = prepared;
+            return wrapWithAbort(prepared, abortSignal)
+              .then(() => {
+                assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
+                // Reading the stored value distinguishes undefined from missing data.
+                try {
+                  return state[id].untrackedValue;
+                } catch {
+                  throw new Error('Route loader redirect completed without data.');
+                }
+              })
+              .finally(() => {
+                if (request.redirect === prepared) {
+                  request.redirect = undefined;
+                }
+              });
           }
           if (response.e) {
             // Error — throw so signal enters error state
@@ -727,7 +746,9 @@ export function abortRouteLoaderNavigation(ctx: RouteLoaderCtx) {
     if (signal.untrackedPending) {
       request.isAborted = true;
     }
-    signal.abort();
+    if (!request.redirect) {
+      signal.abort();
+    }
   }
 }
 

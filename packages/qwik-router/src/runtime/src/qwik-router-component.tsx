@@ -271,6 +271,26 @@ const getServerHttpStatus = (
     : { status: response.status, message };
 };
 
+/** Resolves once the loaders still fetching have settled and the renders they trigger have flushed. */
+const whenRouteLoadersSettled = async (
+  loaderState: Record<string, ComputedSignal<unknown>>,
+  container: RouterContainer
+): Promise<void> => {
+  const pending: Promise<void>[] = [];
+  for (const id in loaderState) {
+    const signal = loaderState[id];
+    if (signal.untrackedPending) {
+      // A failed loader shows its error state; the navigation itself is still over.
+      pending.push(signal.promise().catch(() => {}));
+    }
+  }
+  if (pending.length === 0) {
+    return;
+  }
+  await Promise.all(pending);
+  await _waitUntilRendered(container);
+};
+
 const whenReady = async <T,>(read: () => T): Promise<T> => {
   for (;;) {
     try {
@@ -1104,8 +1124,15 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (nav.shouldForceParams) {
           forceStoreEffects(routeLocation, 'params');
         }
-        routeLocation.isNavigating = false;
-        navResolver.r?.();
+        // A route that reuses the current component renders its new data only when its loaders
+        // resolve, after the commit above has already settled.
+        whenRouteLoadersSettled(loaderState, container).then(() => {
+          if (nav.navCount !== internalState.navCount) {
+            return;
+          }
+          routeLocation.isNavigating = false;
+          navResolver.r?.();
+        });
       });
     };
 

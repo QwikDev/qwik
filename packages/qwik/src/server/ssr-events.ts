@@ -37,14 +37,13 @@ export function serializeSsrEvent(
 
   const appendQrl = (qrl: QRLInternal<unknown>) => {
     // sync handlers have no captures to move — wrapping would lose their sync dispatch
-    if (
+    const needsRunWrapper =
       !isSyncQrl(qrl) &&
       !qrl.$symbol$.startsWith('_') &&
-      (qrl.$captures$?.length || qrl.$hasMovedCaptures$ || needsInvokeContext)
-    ) {
-      qrl = createQRL(null, '_run', _run, null, [qrl]);
-    }
-    append(qrlToChunks(serializationCtx, qrl));
+      (qrl.$captures$?.length || qrl.$hasMovedCaptures$ || needsInvokeContext);
+    const attrQrl = needsRunWrapper ? createQRL(null, '_run', _run, null, [qrl]) : qrl;
+    append(qrlToChunks(serializationCtx, attrQrl));
+    // the preloader needs the handler's own chunk, not the core-owned _run
     addEvent(serializationCtx, key, qrl);
   };
 

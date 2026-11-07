@@ -39,6 +39,20 @@ describe('SSR event attributes', () => {
     });
   });
 
+  it('registers the wrapped handler itself so the preloader fetches its chunk', () => {
+    const serializationCtx = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    const handler = createQRL('./listener.js', 'handler', () => {}, null, [{ id: 'capture' }]);
+
+    createSsrEventAttr(serializationCtx, 'q-e:click', handler, false);
+
+    expect([...serializationCtx.$eventQrls$]).toEqual([handler]);
+  });
+
   it('wraps capture-less handlers when the container needs an invoke context', () => {
     const serializationCtx = createSerializationContext(
       null,

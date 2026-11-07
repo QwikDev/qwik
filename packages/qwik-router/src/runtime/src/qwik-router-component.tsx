@@ -51,6 +51,7 @@ import {
   type ComputedSignal,
   type NoSerialize,
   type QRL,
+  type Signal,
   type ValueOrPromise,
 } from '@qwik.dev/core';
 import {
@@ -122,6 +123,7 @@ import type {
   RouteAction,
   RouteActionResolver,
   RouteActionValue,
+  RouteLocation,
   RouteNavigate,
   RouteStateInternal,
   ScrollState,
@@ -240,6 +242,11 @@ const resolveServerRewrite = async (url: URL): Promise<string | undefined> => {
   }
 };
 
+const ensureRouteInternal = (
+  routeInternal: Signal<RouteStateInternal>,
+  routeLocation: RouteLocation
+) => (routeInternal.untrackedValue ||= { type: 'initial', dest: routeLocation.url });
+
 const getScroller = () => {
   let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
   if (!scroller) {
@@ -289,11 +296,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
   const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void; dest?: URL } = {};
-  // Share serialized loader paths across resumed components.
-  const routeLoaderCtx = useStore(env.routeLoaderCtx);
+  const routeLoaderCtx = env.routeLoaderCtx;
   routeLoaderCtx.manifestHash = manifestHash;
-  // Create ComputedSignals whose QRL closures capture the store proxy for client-side reactivity.
-  // Then set .value from middleware-computed loader values (inert, non-reactive data).
+  // Inject middleware values without fetching.
   const loaderState = {} as Record<string, ComputedSignal<unknown>>;
   const contentModulesForInit = env.loadedRoute.$mods$ as ContentModule[];
   const loaders = ensureRouteLoaderSignals(
@@ -311,12 +316,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   // The initial state of routeInternal uses the URL provided by the server environment.
   // It may not be accurate to the actual URL the browser is accessing the site from.
-  // It is useful for the purposes of SSR and SSG, but may be overridden browser-side
-  // if needed for SPA routing.
-  const routeInternal = useSignal<RouteStateInternal>({
-    type: 'initial',
-    dest: url,
-  });
+  // It is only used for SSR and SSG; the browser rebuilds it from routeLocation.
+  const routeInternal = useSignal<RouteStateInternal>(noSerialize({ type: 'initial', dest: url })!);
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(
     () => createDocumentHead(serverHead, manifestHash),
     { deep: false }
@@ -444,6 +445,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       // which in the case of SSG may not match the actual origin the site
       // is deployed on.
       // We only do this for link navigations, as popstate will have already changed the URL
+      ensureRouteInternal(routeInternal, routeLocation);
       if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
         const url = new URL(window.location.href);
         routeInternal.value.dest = url;
@@ -628,7 +630,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
    */
   useTask$(
     async () => {
-      const navigation = routeInternal.value;
+      void routeInternal.value;
+      // untracked: the commit force-notifies routeLocation.url, which must not re-run this task
+      const navigation = untrack(() => ensureRouteInternal(routeInternal, routeLocation));
       const action = actionState.value;
 
       // v2 parity: only routeInternal and actionState drive this task
@@ -656,7 +660,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         trackUrl = new URL(navigation.dest, prevUrl);
         loadedRoute = env!.loadedRoute;
         endpointResponse = env!.response;
-        actionData = endpointResponse;
+        if (endpointResponse.action || endpointResponse.status !== 200) {
+          actionData = {
+            action: endpointResponse.action,
+            actionResult: endpointResponse.actionResult,
+            status: endpointResponse.status,
+          };
+        }
       } else {
         // client
         trackUrl = new URL(navigation.dest, location as any as URL);
@@ -950,7 +960,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       if (navigation.historyUpdated !== undefined) {
         nextRouteInternal.historyUpdated = navigation.historyUpdated;
       }
-      routeInternal.untrackedValue = nextRouteInternal;
+      if (!isServer) {
+        routeInternal.untrackedValue = nextRouteInternal;
+      }
 
       // Update content.
       // IMPORTANT: contentInternal must use .untrackedValue, NOT .value. Subscribers

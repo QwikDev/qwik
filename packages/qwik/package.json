@@ -112,6 +112,7 @@
       "types": "./dist/insights/vite.d.ts",
       "import": "./dist/insights/vite/index.mjs"
     },
+    "./insights-pinger.js": "./dist/insights-pinger.js",
     "./optimizer.mjs": "./dist/optimizer.mjs",
     "./optimizer": {
       "types": "./dist/optimizer.d.ts",

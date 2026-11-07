@@ -69,6 +69,18 @@ test('writeInsights accumulates counts across beacons without duplicating edges'
   db.close();
 });
 
+test('concurrent beacons accumulate into one row per edge and route', async () => {
+  const dbUrl = tmpDbUrl();
+  await Promise.all(Array.from({ length: 20 }, () => writeInsights(dbUrl, payload())));
+
+  const db = openRead(dbUrl);
+  expect((db.prepare('SELECT COUNT(*) c FROM edges').get() as any).c).toBe(2);
+  expect((db.prepare('SELECT COUNT(*) c FROM routes').get() as any).c).toBe(2);
+  const rootEdge = db.prepare('SELECT * FROM edges WHERE "from" IS NULL AND "to" = ?').get('aaa');
+  expect(sumPrefix(rootEdge, 'delay_count_')).toBe(20);
+  db.close();
+});
+
 test('writeInsights ignores hW symbols but still records the app', async () => {
   const dbUrl = tmpDbUrl();
   await writeInsights(

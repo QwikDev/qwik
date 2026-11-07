@@ -3,9 +3,15 @@
  * reader. Local `file:` URLs use Node's built-in `node:sqlite` (zero dependency); remote Turso URLs
  * use the optional `@libsql/client` package, loaded on demand so non-remote setups never need it.
  */
+export interface InsightsStatement {
+  sql: string;
+  args: unknown[];
+}
+
 export interface InsightsDb {
   exec(sql: string): Promise<void>;
-  run(sql: string, params?: unknown[]): Promise<{ changes: number }>;
+  /** Run statements in one transaction: all apply or none do. */
+  batch(statements: InsightsStatement[]): Promise<void>;
   all(sql: string, params?: unknown[]): Promise<Record<string, any>[]>;
   close(): void;
 }
@@ -33,9 +39,8 @@ export async function openLibsql(url: string, authToken?: string): Promise<Insig
     exec: async (sql) => {
       await client.executeMultiple(sql);
     },
-    run: async (sql, params = []) => {
-      const result = await client.execute({ sql, args: params as any });
-      return { changes: Number(result.rowsAffected) };
+    batch: async (statements) => {
+      await client.batch(statements as any[], 'write');
     },
     all: async (sql, params = []) => {
       const result = await client.execute({ sql, args: params as any });
@@ -60,9 +65,18 @@ export async function openNodeSqlite(path: string): Promise<InsightsDb> {
   const db = new DatabaseSync(path);
   return {
     exec: async (sql) => db.exec(sql),
-    run: async (sql, params = []) => {
-      const result = db.prepare(sql).run(...(params as any[]));
-      return { changes: Number(result.changes) };
+    // Synchronous between BEGIN and COMMIT, so concurrent beacons can't interleave.
+    batch: async (statements) => {
+      db.exec('BEGIN');
+      try {
+        for (let i = 0; i < statements.length; i++) {
+          db.prepare(statements[i].sql).run(...(statements[i].args as any[]));
+        }
+        db.exec('COMMIT');
+      } catch (error) {
+        db.exec('ROLLBACK');
+        throw error;
+      }
     },
     all: async (sql, params = []) =>
       db.prepare(sql).all(...(params as any[])) as Record<string, any>[],

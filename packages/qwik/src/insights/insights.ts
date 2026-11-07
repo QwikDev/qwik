@@ -80,6 +80,8 @@ declare var __QI_KEY__: string;
 declare var __QI_URL__: string;
 // eslint-disable-next-line no-var
 declare var __QI_SAMPLE__: number;
+// eslint-disable-next-line no-var
+declare var __QI_PINGER__: string;
 
 /**
  * Tiny gate emitted inline on every insights-enabled page. It samples the session, buffers
@@ -118,7 +120,7 @@ export const insightsGate = sync$(() =>
       });
       tracker.f && tracker.f();
     });
-    import(/* @vite-ignore */ base + 'qwik-insights-pinger.js');
+    import(/* @vite-ignore */ base + __QI_PINGER__);
   })(window, document, performance)
 );
 
@@ -135,7 +137,8 @@ export const Insights = component$(() => {
   const key = (globalThis as any).__QI_KEY__;
   const url = (globalThis as any).__QI_URL__;
   const sample = (globalThis as any).__QI_SAMPLE__ ?? 0.05;
-  if (!key || !url) {
+  const pinger = (globalThis as any).__QI_PINGER__;
+  if (!key || !url || !pinger) {
     if (!isDev) {
       console.warn('<Insights />: no config from qwikInsights plugin, skipping...');
     }
@@ -144,6 +147,6 @@ export const Insights = component$(() => {
   return /* @__PURE__ */ jsx('script', {
     'document:onQInit$': insightsGate,
     // We must pass the vite injected variables via window because sync$ code doesn't get replaced by the vite plugin
-    dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(key)};__QI_URL__=${JSON.stringify(url)};__QI_SAMPLE__=${sample}`,
+    dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(key)};__QI_URL__=${JSON.stringify(url)};__QI_SAMPLE__=${sample};__QI_PINGER__=${JSON.stringify(pinger)}`,
   });
 });

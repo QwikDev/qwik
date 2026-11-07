@@ -113,3 +113,22 @@ test('the dev-server collector records beacons into the db', () =>
     expect(db.prepare('SELECT "to" FROM edges').all()).toEqual([{ to: 'a' }]);
     db.close();
   }));
+
+test('the pinger gets a content-hashed name that dev serves and the build emits', () =>
+  withDbEnv(async () => {
+    const plugin = await getPlugin({ publicApiKey: 'key12345', postUrl: '/collect/' });
+    const cfg = await callConfig(plugin, 'build');
+    const fileName = JSON.parse(cfg.define['globalThis.__QI_PINGER__']);
+    expect(fileName).toMatch(/^qwik-insights-pinger-[0-9a-f]{8}\.js$/);
+
+    let middleware: any;
+    plugin.configureServer({ middlewares: { use: (fn: any) => (middleware = fn) } });
+    const served = await new Promise<string>((resolveBody, reject) =>
+      middleware(
+        { method: 'GET', url: `/build/${fileName}?v=1` },
+        { setHeader() {}, end: resolveBody },
+        reject
+      )
+    );
+    expect(served).toContain('qSymbolTracker');
+  }));

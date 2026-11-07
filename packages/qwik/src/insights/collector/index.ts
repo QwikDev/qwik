@@ -9,6 +9,7 @@ import {
   redactInsightsDbUrl,
 } from '../db';
 import type { InsightsPayload } from '../insights';
+import { MAX_BEACON_BYTES, parseInsightsPayload } from './validate';
 
 /** Strip the chunk prefix before the last `_`; `hW` is Qwik's no-op handler, so ignore it. */
 function cleanupSymbolName(symbolName?: string | null): string | null {
@@ -117,15 +118,17 @@ function routeUpsert(r: {
  * The URL scheme selects the backend — local `file:` (node:sqlite) or remote Turso
  * (`@libsql/client`).
  *
+ * The payload is validated first (types and size limits), so it may come straight from a request.
  * Resolves to whether the beacon was recorded.
  *
  * @beta
  */
-export async function writeInsights(dbUrl: string, payload: InsightsPayload): Promise<boolean> {
-  const { publicApiKey, manifestHash } = payload;
-  if (!publicApiKey || publicApiKey.length <= 4 || !Array.isArray(payload.symbols)) {
+export async function writeInsights(dbUrl: string, beacon: InsightsPayload): Promise<boolean> {
+  const payload = parseInsightsPayload(beacon);
+  if (!payload) {
     return false;
   }
+  const { publicApiKey, manifestHash } = payload;
   const statements: InsightsStatement[] = [
     {
       sql: `INSERT OR IGNORE INTO applications (public_api_key, name) VALUES (?, ?)`,
@@ -175,8 +178,8 @@ export function resolveInsightsDbUrl(dbUrl?: string): string {
 
 /**
  * Read an insights beacon from a request and record it. Never throws — a metrics beacon must not
- * break the response — and resolves to whether the beacon was recorded. Mount it in a Qwik Router
- * route:
+ * break the response — and resolves to whether the beacon was recorded. The endpoint is public, so
+ * pass `publicApiKey` to only accept your own app's beacons. Mount it in a Qwik Router route:
  *
  * ```ts
  * export const onPost: RequestHandler = async ({ request, json }) => {
@@ -188,13 +191,23 @@ export function resolveInsightsDbUrl(dbUrl?: string): string {
  */
 export async function handleInsightsBeacon(
   request: Request,
-  opts: { dbUrl?: string } = {}
+  opts: { dbUrl?: string; publicApiKey?: string } = {}
 ): Promise<boolean> {
   let payload: InsightsPayload;
   try {
-    payload = (await request.json()) as InsightsPayload;
+    if (Number(request.headers.get('content-length')) > MAX_BEACON_BYTES) {
+      return false;
+    }
+    const body = await request.text();
+    if (body.length > MAX_BEACON_BYTES) {
+      return false;
+    }
+    payload = JSON.parse(body);
   } catch {
     // A malformed beacon is client noise, not a server problem.
+    return false;
+  }
+  if (opts.publicApiKey && payload?.publicApiKey !== opts.publicApiKey) {
     return false;
   }
   const dbUrl = resolveInsightsDbUrl(opts.dbUrl);

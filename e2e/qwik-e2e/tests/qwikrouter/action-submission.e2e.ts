@@ -333,11 +333,15 @@ for (const payload of ['event', 'form-data', 'object']) {
 }
 
 test('releases the form lock after its submit handler chunk fails to load', async ({ page }) => {
-  const submitChunk = /Form_form_q_e_submit/;
   let blocked = 0;
-  await page.route(submitChunk, (route) => {
-    blocked++;
-    return route.abort('failed');
+  await page.route(/form_component_qrl_segment_/, async (route) => {
+    const response = await route.fetch();
+    // The async submit handler is the Form segment that checks the submit lock.
+    if ((await response.text()).includes('_qSubmit')) {
+      blocked++;
+      return route.abort('failed');
+    }
+    return route.fulfill({ response });
   });
   await page.goto('/qwikrouter-test/actions/issue9238/');
   await page.locator('#bare-submit').click();

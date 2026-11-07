@@ -229,7 +229,12 @@ test.describe('server$', () => {
           manifest.bundles[file].origins?.some((origin) => pattern.test(origin))
         );
       const serializerBundle = findByOrigin(/\/serializer(\.prod)?\.mjs$/);
-      const serverSegmentBundle = findByOrigin(/_serverQrl_\w+\.js$/);
+      // A server$ call runs the router's RPC segment, the one capturing the server function's qrl.
+      const rpcSymbol = Object.entries(manifest.symbols).find(
+        ([name, symbol]) =>
+          name.startsWith('server_functions_') && symbol.captureNames?.includes('qrl')
+      )?.[0];
+      const serverSegmentBundle = rpcSymbol && manifest.mapping[rpcSymbol];
       expect(serializerBundle, 'some bundle should contain the serializer').toBeDefined();
       expect(serverSegmentBundle, 'some bundle should contain the server$ segment').toBeDefined();
       return {

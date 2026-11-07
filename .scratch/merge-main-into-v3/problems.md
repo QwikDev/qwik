@@ -38,6 +38,10 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
 - **Flaky since the series (open).** `nav` "should restore scroll on back and forward
   navigations" fails ~1–2 in 10 under 2 workers (pre-series baseline: 20/20), and `loader-lifecycle`
   "redirects before a resumed shared loader has a client value" sometimes stays `navigating`.
+- **`server$` serializer preload (open).** `server.e2e.ts` "preloads the serializer before the
+  first server$ call" fails: v3 preloads only the startup bundles, so the RPC segment and the
+  serializer load on the first click. The two sibling tests now find bundles through manifest
+  symbols and chunk bodies instead of v2 segment file names.
 - Unverified from the router merge: SSR eTag reuse in `route-loaders.ts` relies on `lastFetch.e`
   surviving serialization in the `useComputed$` closure. The `Form` submit lock relies on core
   running and awaiting handlers in order.

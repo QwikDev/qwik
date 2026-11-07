@@ -1327,6 +1327,14 @@ if (${initialParent} !== undefined && (${nextValue} === null || typeof ${nextVal
         break;
       }
       case ValueKind.Computed: {
+        if (op.value.resume.r === ResumeKind.Inline) {
+          // Lexical inline value: the text is fixed for the row's lifetime — no effect.
+          this.imports.add(QwikWord.TextValue);
+          statements.push(
+            `${target}.data = ${QwikWord.TextValue}(${inlineValueJs(this.module, op.value)});`
+          );
+          break;
+        }
         if (op.value.resume.r !== ResumeKind.Qrl) {
           throw new UnsupportedError('a non-QRL computed text hole');
         }

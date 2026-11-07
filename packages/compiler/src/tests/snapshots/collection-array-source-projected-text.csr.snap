@@ -1,0 +1,101 @@
+==INPUT==
+
+import { component$, Slot } from '@qwik.dev/core';
+const Item = component$(() => <li><Slot /></li>);
+export default component$(() => {
+  return <ul>{[{ kind: 'object' }, { kind: 'undefined' }].map(({ kind }) => <Item key={kind}>{kind}</Item>)}</ul>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  maybeThen,
+  createSlot,
+  _createElementTemplate,
+  _next,
+  createCollection,
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+const Item_tmpl0 = _createElementTemplate('<li><!></li>');
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+const Item = (props, ctx) => {
+  const el0 = Item_tmpl0(ctx.document);
+  const marker0 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  return el0;
+};
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  function semantic_collectionRender_148_241_26tfmp3js0irq(ctx, item) {
+    const slotScope0 = createSlotScope();
+    registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([item]));
+    const component0 = createComponent(Item, null, ctx, { slotScope: slotScope0 });
+    return component0;
+  }
+  createCollection(
+    ctx,
+    start0,
+    end0,
+    [{ kind: 'object' }, { kind: 'undefined' }],
+    null,
+    semantic_collectionRender_148_241_26tfmp3js0irq,
+    0,
+    3,
+    true
+  );
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+
+export { Item as __qwik_Item };
+
+export { Item as Item_component_33lzeq7ebrquo };
+============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
+
+import { _capturesObj, _textValue } from '@qwik.dev/core';
+
+export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
+  const [item] = _capturesObj._;
+  const text0 = ctx.document.createTextNode('');
+  text0.data = _textValue(item.kind);
+  return text0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_0_3b0tagwys7lui",
+  "entry": null,
+  "displayName": "component_slot_render_segment_0",
+  "hash": "3b0tagwys7lui",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    222,
+    234
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "item"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

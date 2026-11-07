@@ -22,14 +22,14 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
 - **`Link` `data-navigating` (fixed).** The tests waited one tick, but a resumed handler loads
   `nav` lazily; they now use `vi.waitFor`.
 - **`window._qRouterInitNavigate` (ported, e2e unverified).** `goto` now wraps its body in main's
-  `startNavigation` closure and hands that to init-mode popstate. The `issue9247` e2e cases can't
-  run until `qwikrouter-test` compiles (see loader-redirect below).
+  `startNavigation` closure and hands that to init-mode popstate. Main's `issue9247` e2e cases
+  still fail before reaching popstate: on first load `#list li` stays empty (a `blockSSR: false`
+  loader under `<Pending>`), so this needs that fixture rendering first.
 - **Navigation preparation for loader redirects** (main `cf8f82404`, `d7439be7a`): main's
   `prepareNavigation`/`beginNavigation` layer was not ported, because v3 drives navigation from
   `useTask$`. Main's `qwikrouter-test` `loader-redirect` fixture changes and the new
-  `loader-redirect/list` route were kept. The compiler acceptance sweep fails on
-  `loader-redirect/index.tsx` ("pipeline does not support: a non-QRL computed text hole"), and
-  the matching e2e cases are expected to fail.
+  `loader-redirect/list` route were kept; the fixture compiles now. Its e2e cases still fail:
+  most time out waiting for qwikloader (`window._qwikEv.roots`) on those pages; cause not checked.
 - Unverified from the router merge: SSR eTag reuse in `route-loaders.ts` relies on `lastFetch.e`
   surviving serialization in the `useComputed$` closure. The `Form` submit lock relies on core
   running and awaiting handlers in order.

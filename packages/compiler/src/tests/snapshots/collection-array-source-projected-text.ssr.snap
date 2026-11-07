@@ -1,0 +1,135 @@
+==INPUT==
+
+import { component$, Slot } from '@qwik.dev/core';
+const Item = component$(() => <li><Slot /></li>);
+export default component$(() => {
+  return <ul>{[{ kind: 'object' }, { kind: 'undefined' }].map(({ kind }) => <Item key={kind}>{kind}</Item>)}</ul>;
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  renderSsrSlot,
+  _markComponent,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  renderSsrCollection,
+  _capturesObj,
+  createSsrNodeId,
+  _createSsrSlotMarker,
+  escapeHTML,
+  _textValue,
+  _noopQrl,
+} from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId, __projectionRootId) => {
+  const [item] = _capturesObj._;
+  const rangeId0 = ctx.nextId();
+  return [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '>',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    escapeHTML(_textValue(item.kind)),
+    '<!/s><!/b>',
+  ];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
+const Item = _markComponent(
+  (props, ctx) => {
+    const slot0 = ctx.observeError(renderSsrSlot(ctx));
+    return ['<li>', slot0, '</li>'];
+  },
+  'Item_component_33lzeq7ebrquo',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    function semantic_collectionRender_148_241_26tfmp3js0irq(ctx, __rangeId, __rowId, item) {
+      const slotScope0 = createSlotScope();
+      registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([item]));
+      ctx.addRoot(slotScope0);
+      const component0 = ctx.observeError(
+        createComponent(Item, null, ctx, { slotScope: slotScope0 })
+      );
+      return component0;
+    }
+    const collection0 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        undefined,
+        [{ kind: 'object' }, { kind: 'undefined' }],
+        undefined,
+        semantic_collectionRender_148_241_26tfmp3js0irq,
+        0,
+        false,
+        3
+      )
+    );
+    return ['<ul>', collection0, '</ul>'];
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Item as __qwik_Item };
+
+export { Item as Item_component_33lzeq7ebrquo };
+============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
+
+import {
+  _capturesObj,
+  createSsrNodeId,
+  _createSsrSlotMarker,
+  escapeHTML,
+  _textValue,
+} from '@qwik.dev/core';
+
+export const component_slot_render_segment_0_3b0tagwys7lui = (
+  ctx,
+  __rangeId,
+  __projectionRootId
+) => {
+  const [item] = _capturesObj._;
+  const rangeId0 = ctx.nextId();
+  return [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '>',
+    _createSsrSlotMarker(__rangeId, __projectionRootId),
+    escapeHTML(_textValue(item.kind)),
+    '<!/s><!/b>',
+  ];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_0_3b0tagwys7lui",
+  "entry": null,
+  "displayName": "component_slot_render_segment_0",
+  "hash": "3b0tagwys7lui",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    222,
+    234
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "item"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

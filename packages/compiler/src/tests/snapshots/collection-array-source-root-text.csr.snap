@@ -1,0 +1,45 @@
+==INPUT==
+
+export default () => {
+  return <ul>{['first', 'second'].map((label) => <>{label}</>)}</ul>;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  createCollection,
+  _textValue,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+
+const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  function semantic_collectionRender_36_84_37i7lefdfeijx(ctx, label) {
+    const text0 = ctx.document.createTextNode('');
+    text0.data = _textValue(label);
+    return text0;
+  }
+  createCollection(
+    ctx,
+    start0,
+    end0,
+    ['first', 'second'],
+    null,
+    semantic_collectionRender_36_84_37i7lefdfeijx,
+    0,
+    1,
+    true
+  );
+  return el0;
+};
+export default default_component_3rg6kq1so9aio;
+== CSR DIAGNOSTICS ==
+
+[]

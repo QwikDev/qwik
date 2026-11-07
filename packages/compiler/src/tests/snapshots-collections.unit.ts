@@ -154,6 +154,26 @@ export default () => {
     });
   });
 
+  test('should splice an inline row param read at the root of a fragment row', async () => {
+    await testInput(mode, 'collection-array-source-root-text', {
+      code: `export default () => {
+  return <ul>{['first', 'second'].map((label) => <>{label}</>)}</ul>;
+};
+`,
+    });
+  });
+
+  test('should splice an inline row param read as projected component children', async () => {
+    await testInput(mode, 'collection-array-source-projected-text', {
+      code: `import { component$, Slot } from '@qwik.dev/core';
+const Item = component$(() => <li><Slot /></li>);
+export default component$(() => {
+  return <ul>{[{ kind: 'object' }, { kind: 'undefined' }].map(({ kind }) => <Item key={kind}>{kind}</Item>)}</ul>;
+});
+`,
+    });
+  });
+
   test('should renumber rows through a reactive index param', async () => {
     await testInput(mode, 'collection-index-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

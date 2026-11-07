@@ -650,6 +650,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         this.element(pass, op, parts, rootMarker, hookEvents);
         return;
       case OpKind.Hole:
+        if (isInlineHole(op)) {
+          this.inlineText(op, parts);
+          return;
+        }
         if (rootRange === null) {
           throw new UnsupportedError('a root text hole outside a range');
         }

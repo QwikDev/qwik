@@ -1,0 +1,45 @@
+==INPUT==
+
+export default () => {
+  return <ul>{['first', 'second'].map((label) => <>{label}</>)}</ul>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  escapeHTML,
+  _textValue,
+  renderSsrCollection,
+  _markComponent,
+} from '@qwik.dev/core';
+
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    function semantic_collectionRender_36_84_37i7lefdfeijx(ctx, __rangeId, __rowId, label) {
+      const rangeId0 = ctx.nextId();
+      return ['<!b=', createSsrNodeId(rangeId0), '>', escapeHTML(_textValue(label)), '<!/b>'];
+    }
+    const collection0 = ctx.observeError(
+      renderSsrCollection(
+        ctx,
+        undefined,
+        ['first', 'second'],
+        undefined,
+        semantic_collectionRender_36_84_37i7lefdfeijx,
+        0,
+        false,
+        1
+      )
+    );
+    return ['<ul>', collection0, '</ul>'];
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+== SSR DIAGNOSTICS ==
+
+[]

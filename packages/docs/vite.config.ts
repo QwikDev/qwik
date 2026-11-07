@@ -19,6 +19,9 @@ import { examplesData, playgroundData, rawSource, tutorialData } from './vite.re
 import { sourceResolver } from './vite.source-resolver';
 
 const insightsApiKey = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
+// Decentralized insights: set QWIK_INSIGHTS_DB_URL to collect into a local libSQL/Turso DB (works in
+// `pnpm dev`) instead of the central service. The /insights-collect route records the beacons.
+const insightsDbUrl = process.env.QWIK_INSIGHTS_DB_URL;
 const docsDir = new URL(import.meta.url).pathname;
 
 // https://github.com/vitejs/vite/issues/15012#issuecomment-1825035992
@@ -265,7 +268,15 @@ export default defineConfig(({ mode }) => {
       tutorialData(routesDir),
       sourceResolver(docsDir),
       qwikReact(),
-      qwikInsights({ publicApiKey: insightsApiKey }),
+      qwikInsights(
+        insightsDbUrl
+          ? {
+              publicApiKey: insightsApiKey || 'docs-local',
+              postUrl: '/insights-collect/',
+              db: insightsDbUrl,
+            }
+          : { publicApiKey: insightsApiKey }
+      ),
       tailwindcss(),
       overrideManualChunksForRepl(),
       // qwikDevtools(),

@@ -47,12 +47,13 @@ const ListValue = component$(() => {
   if (signal.error) {
     return <p id="loader-redirect-error">{signal.error.message}</p>;
   }
-  const list = signal.value;
+  // Throws while pending, so <Pending> shows its fallback and re-runs this setup.
+  void signal.value;
   return (
     <p id="loader-redirect-value">
-      {location.url.searchParams.get('kind') === 'undefined' && list === undefined
+      {location.url.searchParams.get('kind') === 'undefined' && signal.value === undefined
         ? 'undefined'
-        : `${list!.items.length} items, sorted by ${list!.sort}`}
+        : `${signal.value!.items.length} items, sorted by ${signal.value!.sort}`}
     </p>
   );
 });

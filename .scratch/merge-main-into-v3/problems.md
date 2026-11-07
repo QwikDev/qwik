@@ -30,15 +30,14 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
 - **`visible-task-order` e2e (from main):** 3 cases fail (run after the tracked render, parallel
   chunk loads, not holding back renders); the fixture now renders, so these are v3 behaviour gaps.
 - **Goto-driven navigation (ported).** Main's 2026-09-30 series (`5fbe367a0`, `315c9993a`,
-  `6b40a1706`, `49f841a7e`, `7ab6f1904`) is in: the three router tasks are gone and `goto` loads,
-  refreshes and commits the page. `5ddb4578e` (isNavigating waits for loaders) was not ported:
-  its e2e already passes, because `_waitUntilRendered` waits for the pending loader work the
-  render triggers.
-- **Navigation preparation for loader redirects** (main `cf8f82404`, `d7439be7a`): not ported yet;
-  it builds on `loadNavigation`, which v3 now has. 12 `loader-redirect` e2e cases fail on redirect
-  semantics: `list.promise()` never settles (`#loader-redirect-completed` stays `0`), the "Route
-  loader redirect completed without data." / "Navigation guard failed." errors never show, and
-  redirected data keeps the old value.
+  `6b40a1706`, `49f841a7e`, `7ab6f1904`) and `5ddb4578e` are in: the three router tasks are gone,
+  `goto` loads, refreshes and commits the page, and the navigation promise waits for pending
+  loaders. That last part is what keeps a repeated navigation a duplicate during a redirect.
+- **Loader redirects (ported, `cf8f82404`).** All 19 `loader-redirect` e2e cases pass. The
+  `ListValue` fixture reads `signal.value` in JSX: a v3 setup read is a one-time snapshot.
+- **Flaky since the series (open).** `nav` "should restore scroll on back and forward
+  navigations" fails ~1–2 in 10 under 2 workers (pre-series baseline: 20/20), and `loader-lifecycle`
+  "redirects before a resumed shared loader has a client value" sometimes stays `navigating`.
 - Unverified from the router merge: SSR eTag reuse in `route-loaders.ts` relies on `lastFetch.e`
   surviving serialization in the `useComputed$` closure. The `Form` submit lock relies on core
   running and awaiting handlers in order.

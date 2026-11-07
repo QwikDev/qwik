@@ -21,6 +21,7 @@ export interface InsightsError {
     manifestHash: string;
     // (undocumented)
     message: string;
+    publicApiKey?: string;
     // (undocumented)
     source: string;
     // (undocumented)

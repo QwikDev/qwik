@@ -171,3 +171,35 @@ test('handleInsightsBeacon rejects an oversized body', async () => {
   const request = new Request('http://app/insights', { method: 'POST', body });
   expect(await handleInsightsBeacon(request, { dbUrl })).toBe(false);
 });
+
+test('handleInsightsBeacon records error beacons posted to `error/`', async () => {
+  const dbUrl = tmpDbUrl();
+  const error = {
+    url: 'http://app/page',
+    manifestHash: 'mh1',
+    timestamp: 1700000000000,
+    source: 'http://app/build/q-abc.js',
+    line: 3,
+    column: 7,
+    message: 'Uncaught Error: boom',
+    error: 'boom',
+    stack: 'x'.repeat(20000),
+  };
+  const request = new Request('http://app/insights/error/', {
+    method: 'POST',
+    body: JSON.stringify(error),
+  });
+  expect(await handleInsightsBeacon(request, { dbUrl, publicApiKey: 'key12345' })).toBe(true);
+
+  const db = openRead(dbUrl);
+  const row = db.prepare('SELECT * FROM errors').get() as any;
+  expect(row).toMatchObject({
+    public_api_key: 'key12345',
+    manifest_hash: 'mh1',
+    message: 'Uncaught Error: boom',
+    line: 3,
+  });
+  expect(row.stack.length).toBe(8192);
+  expect((db.prepare('SELECT COUNT(*) c FROM edges').get() as any).c).toBe(0);
+  db.close();
+});

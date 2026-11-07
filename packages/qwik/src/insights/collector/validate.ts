@@ -1,4 +1,4 @@
-import type { InsightSymbol, InsightsPayload } from '../insights';
+import type { InsightSymbol, InsightsError, InsightsPayload } from '../insights';
 
 /** Largest beacon body accepted; the gate dedupes symbols, so real beacons stay far below this. */
 export const MAX_BEACON_BYTES = 256 * 1024;
@@ -73,5 +73,34 @@ export function parseInsightsPayload(raw: unknown): InsightsPayload | null {
     manifestHash,
     previousSymbol: previousSymbol as string | null,
     symbols,
+  };
+}
+
+const MAX_ERROR_TEXT_LENGTH = 1024;
+const MAX_STACK_LENGTH = 8192;
+
+const clippedText = (value: unknown, maxLength: number) =>
+  typeof value === 'string' ? value.slice(0, maxLength) : '';
+const integerOrZero = (value: unknown) => (Number.isInteger(value) ? (value as number) : 0);
+
+/** Check an untrusted error beacon; long texts are clipped rather than rejected. */
+export function parseInsightsError(raw: unknown): InsightsError | null {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+  const error = raw as Record<string, unknown>;
+  if (!isBoundedString(error.manifestHash, MAX_KEY_LENGTH) || typeof error.message !== 'string') {
+    return null;
+  }
+  return {
+    manifestHash: error.manifestHash,
+    timestamp: integerOrZero(error.timestamp),
+    url: clippedText(error.url, MAX_ROUTE_LENGTH),
+    source: clippedText(error.source, MAX_ROUTE_LENGTH),
+    line: integerOrZero(error.line),
+    column: integerOrZero(error.column),
+    message: clippedText(error.message, MAX_ERROR_TEXT_LENGTH),
+    error: clippedText(error.error, MAX_ERROR_TEXT_LENGTH),
+    stack: clippedText(error.stack, MAX_STACK_LENGTH),
   };
 }

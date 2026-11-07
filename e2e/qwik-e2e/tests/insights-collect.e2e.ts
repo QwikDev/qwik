@@ -39,3 +39,12 @@ test('insights collector route swallows a malformed beacon', async ({ request })
   expect(response.status()).toBe(200);
   expect(await response.json()).toEqual({ ok: false });
 });
+
+test('insights collector route records an error beacon', async ({ request }) => {
+  const response = await request.post(`${COLLECTOR_URL}error/`, {
+    data: { manifestHash: 'e2e', url: 'http://localhost/', message: 'Uncaught Error: e2e' },
+  });
+
+  expect(response.status()).toBe(200);
+  expect(await response.json()).toEqual({ ok: true });
+});

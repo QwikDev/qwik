@@ -29,16 +29,19 @@ test('computeInsightsStrategy derives prefetch and clusters correlated symbols',
   // Two sessions where bbb reliably follows aaa quickly (< 250ms) → correlated.
   await writeInsights(dbUrl, payload([sym('chunk_aaa', 5), sym('chunk_bbb', 5)]));
   await writeInsights(dbUrl, payload([sym('chunk_aaa', 5), sym('chunk_bbb', 5)]));
+  // ccc always starts its own session, so it is unrelated to aaa and bbb.
+  await writeInsights(dbUrl, payload([sym('chunk_ccc', 5000)]));
 
   const strategy = (await computeInsightsStrategy(dbUrl, KEY))!;
 
   // prefetch: route "/" lists the symbols seen on it.
   const rootRoute = strategy.prefetch.find((p) => p.route === '/');
-  expect(rootRoute?.symbols.sort()).toEqual(['aaa', 'bbb']);
+  expect(rootRoute?.symbols.sort()).toEqual(['aaa', 'bbb', 'ccc']);
 
   // manual: every symbol is assigned, and the two correlated ones share a bundle.
-  expect(Object.keys(strategy.manual).sort()).toEqual(['aaa', 'bbb']);
+  expect(Object.keys(strategy.manual).sort()).toEqual(['aaa', 'bbb', 'ccc']);
   expect(strategy.manual.aaa).toBe(strategy.manual.bbb);
+  expect(strategy.manual.ccc).not.toBe(strategy.manual.aaa);
 });
 
 const tmpDbUrl = () => `file:${join(mkdtempSync(join(tmpdir(), 'qwik-strategy-')), 'insights.db')}`;
@@ -87,4 +90,23 @@ test("a DB holding only other apps' data yields no strategy for this app", async
   const dbUrl = tmpDbUrl();
   await writeInsights(dbUrl, { ...payload([sym('chunk_aaa', 5)]), publicApiKey: 'otherapp1' });
   expect(await computeInsightsStrategy(dbUrl, KEY)).toBeNull();
+});
+
+test('clustering a few thousand symbols stays bounded', async () => {
+  const dbUrl = tmpDbUrl();
+  // One long session: 3,000 symbols, each closely following the previous one.
+  const symbols = Array.from({ length: 3000 }, (_, i) => sym(`chunk_s${i}`, 5));
+  for (let i = 0; i < symbols.length; i += 1000) {
+    await writeInsights(dbUrl, {
+      ...payload(symbols.slice(i, i + 1000)),
+      previousSymbol: i ? `chunk_s${i - 1}` : null,
+    });
+  }
+
+  const started = Date.now();
+  const strategy = (await computeInsightsStrategy(dbUrl, KEY))!;
+
+  // Only the most-used symbols are clustered; unbounded, this took minutes.
+  expect(Object.keys(strategy.manual)).toHaveLength(1000);
+  expect(Date.now() - started).toBeLessThan(4000);
 });

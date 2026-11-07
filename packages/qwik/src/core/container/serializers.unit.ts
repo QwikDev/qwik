@@ -1,6 +1,22 @@
 import { describe, test, expect, vi } from 'vitest';
 import { getSerializer } from './serializers';
+import { _deserializeData } from './resume';
 import crypto from 'node:crypto';
+
+describe('BigIntSerializer', () => {
+  const deserialize = (value: string) =>
+    _deserializeData(JSON.stringify({ _entry: '0', _objs: [`\u0018${value}`] }));
+
+  test('accepts decimal values up to 1000 digits', () => {
+    expect(deserialize('-42')).toBe(-42n);
+    expect(deserialize('9'.repeat(1000))).toBe(BigInt('9'.repeat(1000)));
+  });
+
+  test('rejects oversized and non-decimal values', () => {
+    expect(() => deserialize('9'.repeat(1001))).toThrow('Invalid BigInt');
+    expect(() => deserialize('0x10')).toThrow('Invalid BigInt');
+  });
+});
 
 describe('Uint8ArraySerializer', () => {
   const serializer = getSerializer('\u001c');

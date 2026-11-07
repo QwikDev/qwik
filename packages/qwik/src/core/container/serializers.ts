@@ -462,6 +462,10 @@ const BigIntSerializer = /*#__PURE__*/ serializer<bigint>({
     return v.toString();
   },
   $prepare$: (data) => {
+    // Decimal BigInt parsing is super-linear.
+    if (!/^-?\d{1,1000}$/.test(data)) {
+      throw new Error('Invalid BigInt');
+    }
     return BigInt(data);
   },
 });

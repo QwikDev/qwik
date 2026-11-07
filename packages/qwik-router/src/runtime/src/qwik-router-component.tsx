@@ -429,176 +429,184 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
    * treat it as a user-initiated navigation and allow scroll restoration to work. For this reason,
    * make sure to change the address bar before awaiting anything.
    */
-  const goto: RouteNavigate = $(async (path, opt) => {
-    const {
-      type = 'link',
-      forceReload = path === undefined, // Hack for nav() because this API is already set.
-      replaceState = false,
-      scroll = true,
-    } = typeof opt === 'object' ? opt : { forceReload: opt };
-    // If this is the first SPA navigation, we rewrite routeInternal's URL
-    // as the browser location URL to prevent an erroneous origin mismatch.
-    // The initial value of routeInternal is derived from the server env,
-    // which in the case of SSG may not match the actual origin the site
-    // is deployed on.
-    // We only do this for link navigations, as popstate will have already changed the URL
-    if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
-      const url = new URL(window.location.href);
-      routeInternal.value.dest = url;
-      routeLocation.url = url;
-    }
+  const goto: RouteNavigate = $((path, opt) => {
+    const startNavigation: NonNullable<RouteNavigate['resolved']> = async (path, opt) => {
+      const {
+        type = 'link',
+        forceReload = path === undefined, // Hack for nav() because this API is already set.
+        replaceState = false,
+        scroll = true,
+      } = typeof opt === 'object' ? opt : { forceReload: opt };
+      // If this is the first SPA navigation, we rewrite routeInternal's URL
+      // as the browser location URL to prevent an erroneous origin mismatch.
+      // The initial value of routeInternal is derived from the server env,
+      // which in the case of SSG may not match the actual origin the site
+      // is deployed on.
+      // We only do this for link navigations, as popstate will have already changed the URL
+      if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
+        const url = new URL(window.location.href);
+        routeInternal.value.dest = url;
+        routeLocation.url = url;
+      }
 
-    const lastDest = routeInternal.value.dest;
-    const dest =
-      path === undefined
-        ? lastDest
-        : typeof path === 'number'
-          ? path
-          : toUrl(path, routeLocation.url);
+      const lastDest = routeInternal.value.dest;
+      const dest =
+        path === undefined
+          ? lastDest
+          : typeof path === 'number'
+            ? path
+            : toUrl(path, routeLocation.url);
 
-    if (
-      navResolver.p &&
-      !forceReload &&
-      typeof dest !== 'number' &&
-      isSamePath(dest, lastDest) &&
-      dest.href === lastDest.href
-    ) {
-      // Repeated redirects/loaders can request the same in-flight destination. Treat that as a
-      // duplicate so we don't bump navCount and cancel the navigation that would commit it.
-      return navResolver.p;
-    }
+      if (
+        navResolver.p &&
+        !forceReload &&
+        typeof dest !== 'number' &&
+        isSamePath(dest, lastDest) &&
+        dest.href === lastDest.href
+      ) {
+        // Repeated redirects/loaders can request the same in-flight destination. Treat that as a
+        // duplicate so we don't bump navCount and cancel the navigation that would commit it.
+        return navResolver.p;
+      }
 
-    const attemptCount = ++internalState.attemptCount;
+      const attemptCount = ++internalState.attemptCount;
 
-    if (
-      preventNav.$cbs$ &&
-      (forceReload ||
-        typeof dest === 'number' ||
-        !isSamePath(dest, lastDest) ||
-        !isSameOrigin(dest, lastDest))
-    ) {
-      const prevents = await Promise.all([...preventNav.$cbs$.values()].map((cb) => cb(dest)));
-      if (attemptCount !== internalState.attemptCount || prevents.some(Boolean)) {
-        if (attemptCount === internalState.attemptCount && type === 'popstate') {
-          // Popstate events are not cancellable, so we push to undo
-          // TODO keep state?
-          history.pushState(null, '', lastDest);
+      if (
+        preventNav.$cbs$ &&
+        (forceReload ||
+          typeof dest === 'number' ||
+          !isSamePath(dest, lastDest) ||
+          !isSameOrigin(dest, lastDest))
+      ) {
+        const prevents = await Promise.all([...preventNav.$cbs$.values()].map((cb) => cb(dest)));
+        if (attemptCount !== internalState.attemptCount || prevents.some(Boolean)) {
+          if (attemptCount === internalState.attemptCount && type === 'popstate') {
+            // Popstate events are not cancellable, so we push to undo
+            // TODO keep state?
+            history.pushState(null, '', lastDest);
+          }
+          return;
+        }
+      }
+
+      if (typeof dest === 'number') {
+        if (isBrowser) {
+          history.go(dest);
         }
         return;
       }
-    }
 
-    if (typeof dest === 'number') {
-      if (isBrowser) {
-        history.go(dest);
+      if (!isSameOrigin(dest, lastDest)) {
+        // Cross-origin nav() should always abort early.
+        if (isBrowser) {
+          location.href = dest.href;
+        }
+        return;
       }
-      return;
-    }
 
-    if (!isSameOrigin(dest, lastDest)) {
-      // Cross-origin nav() should always abort early.
-      if (isBrowser) {
-        location.href = dest.href;
-      }
-      return;
-    }
+      if (
+        !forceReload &&
+        isSamePath(dest, lastDest) &&
+        (!navResolver.dest ||
+          (isSamePath(navResolver.dest, dest) && navResolver.dest.href === dest.href))
+      ) {
+        if (isBrowser) {
+          // Use `location.href` because the lastDest signal is only updated on page navigates.
+          if (type === 'link' && dest.href !== location.href) {
+            history.pushState(null, '', dest);
+          }
 
-    if (
-      !forceReload &&
-      isSamePath(dest, lastDest) &&
-      (!navResolver.dest ||
-        (isSamePath(navResolver.dest, dest) && navResolver.dest.href === dest.href))
-    ) {
-      if (isBrowser) {
-        // Use `location.href` because the lastDest signal is only updated on page navigates.
-        if (type === 'link' && dest.href !== location.href) {
-          history.pushState(null, '', dest);
+          // Always scroll on same-page popstates, #hash clicks, or links.
+          const scroller = getScroller();
+
+          restoreScroll(type, dest, new URL(location.href), scroller, getScrollHistory());
+
+          if (type === 'popstate') {
+            window._qRouterScrollEnabled = true;
+          }
         }
 
-        // Always scroll on same-page popstates, #hash clicks, or links.
+        // Update routeLocation.url on hash/search-only changes so components react to the new URL
+        if (dest.href !== routeLocation.url.href) {
+          const newUrl = new URL(dest.href);
+          routeInternal.value.dest = newUrl;
+          routeLocation.url = newUrl;
+        }
+
+        return navResolver.p;
+      }
+
+      const navCount = ++internalState.navCount;
+      internalState.currentTransition?.skipTransition();
+      navResolver.cancel?.();
+      navResolver.cancel = undefined;
+      navResolver.r?.();
+      navResolver.dest = dest;
+
+      let historyUpdated = false;
+      if (isBrowser) {
+        getClientRouteLoaders(routeLoaderCtx, routeLocation.url.href);
+      }
+      if (isBrowser && type === 'link' && !forceReload) {
+        // WebKit on iOS may treat async pushState() calls as skippable history entries.
+        // Commit the navigation entry while the original tap/click is still active.
         const scroller = getScroller();
 
-        restoreScroll(type, dest, new URL(location.href), scroller, getScrollHistory());
+        window._qRouterScrollEnabled = false;
+        clearTimeout(window._qRouterScrollDebounce);
 
-        if (type === 'popstate') {
-          window._qRouterScrollEnabled = true;
+        const scrollState = currentScrollState(scroller);
+        saveScrollHistory(scrollState);
+        clientNavigate(window, type, new URL(location.href), dest, replaceState);
+        historyUpdated = true;
+      }
+
+      const wasNavigating = routeLocation.isNavigating;
+      routeLocation.isNavigating = true;
+      const container = isBrowser ? _getContextContainer() : undefined;
+      if (container && !wasNavigating) {
+        // flush isNavigating to the DOM before awaiting the next task so that the router outlet can show a loading state
+        await _waitUntilRendered(container);
+        if (navCount !== internalState.navCount) {
+          return;
         }
       }
 
-      // Update routeLocation.url on hash/search-only changes so components react to the new URL
-      if (dest.href !== routeLocation.url.href) {
-        const newUrl = new URL(dest.href);
-        routeInternal.value.dest = newUrl;
-        routeLocation.url = newUrl;
-      }
-
-      return navResolver.p;
-    }
-
-    const navCount = ++internalState.navCount;
-    internalState.currentTransition?.skipTransition();
-    navResolver.cancel?.();
-    navResolver.cancel = undefined;
-    navResolver.r?.();
-    navResolver.dest = dest;
-
-    let historyUpdated = false;
-    if (isBrowser) {
-      getClientRouteLoaders(routeLoaderCtx, routeLocation.url.href);
-    }
-    if (isBrowser && type === 'link' && !forceReload) {
-      // WebKit on iOS may treat async pushState() calls as skippable history entries.
-      // Commit the navigation entry while the original tap/click is still active.
-      const scroller = getScroller();
-
-      window._qRouterScrollEnabled = false;
-      clearTimeout(window._qRouterScrollDebounce);
-
-      const scrollState = currentScrollState(scroller);
-      saveScrollHistory(scrollState);
-      clientNavigate(window, type, new URL(location.href), dest, replaceState);
-      historyUpdated = true;
-    }
-
-    const wasNavigating = routeLocation.isNavigating;
-    routeLocation.isNavigating = true;
-    const container = isBrowser ? _getContextContainer() : undefined;
-    if (container && !wasNavigating) {
-      // flush isNavigating to the DOM before awaiting the next task so that the router outlet can show a loading state
-      await _waitUntilRendered(container);
-      if (navCount !== internalState.navCount) {
-        return;
-      }
-    }
-
-    actionState.value = undefined;
-    routeInternal.value = {
-      type,
-      dest,
-      forceReload,
-      replaceState,
-      scroll,
-      historyUpdated,
-    };
-    // routeInternal now holds the in-flight destination, so the shortcut can use it again.
-    navResolver.dest = undefined;
-
-    if (wasNavigating) {
-      abortRouteLoaderNavigation(routeLoaderCtx);
-    }
-    if (isBrowser) {
-      // Prefetch bundles; loader signals fetch navigation data below.
-      prefetchRoute(dest, false, 0.8, manifestHash, true);
-    }
-
-    navResolver.p = new Promise<void>((resolve) => {
-      navResolver.r = () => {
-        navResolver.r = undefined;
-        navResolver.p = undefined;
-        resolve();
+      actionState.value = undefined;
+      routeInternal.value = {
+        type,
+        dest,
+        forceReload,
+        replaceState,
+        scroll,
+        historyUpdated,
       };
-    });
-    return navResolver.p;
+      // routeInternal now holds the in-flight destination, so the shortcut can use it again.
+      navResolver.dest = undefined;
+
+      if (wasNavigating) {
+        abortRouteLoaderNavigation(routeLoaderCtx);
+      }
+      if (isBrowser) {
+        // Prefetch bundles; loader signals fetch navigation data below.
+        prefetchRoute(dest, false, 0.8, manifestHash, true);
+      }
+
+      navResolver.p = new Promise<void>((resolve) => {
+        navResolver.r = () => {
+          navResolver.r = undefined;
+          navResolver.p = undefined;
+          resolve();
+        };
+      });
+      return navResolver.p;
+    };
+
+    if (isBrowser && !window._qRouterSPA) {
+      // Init-mode popstate must not wait for another QRL once navigation has resumed.
+      window._qRouterInitNavigate = startNavigation;
+    }
+    return startNavigation(path, opt);
   });
 
   useContextProvider(ContentContext, content);
@@ -1367,7 +1375,7 @@ export interface ClientSPAWindow extends Window {
   /** @internal */
   _qRouterInitPopstate?: () => void;
   /** @internal */
-  _qRouterInitNavigate?: RouteNavigate;
+  _qRouterInitNavigate?: NonNullable<RouteNavigate['resolved']>;
   /** @internal */
   _qRouterInitAnchors?: (event: MouseEvent) => void;
   /** @internal */

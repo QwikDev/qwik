@@ -21,10 +21,9 @@ a v3 follow-up. Baseline for comparison: v3 `48b56e8a6` has 9 unit failures (7
   setup.
 - **`Link` `data-navigating` (fixed).** The tests waited one tick, but a resumed handler loads
   `nav` lazily; they now use `vi.waitFor`.
-- **`window._qRouterInitNavigate`**: main sets it inside `goto` to `goto` itself. On v3 that makes
-  the `goto` QRL capture itself and SSR throws "Cannot access 'goto' before initialization", so
-  the assignment was dropped. `spa-init.ts` still reads it and falls back to the old init-mode
-  popstate path. Needs a v3-shaped way to hand the resumed `goto` to init-mode popstate.
+- **`window._qRouterInitNavigate` (ported, e2e unverified).** `goto` now wraps its body in main's
+  `startNavigation` closure and hands that to init-mode popstate. The `issue9247` e2e cases can't
+  run until `qwikrouter-test` compiles (see loader-redirect below).
 - **Navigation preparation for loader redirects** (main `cf8f82404`, `d7439be7a`): main's
   `prepareNavigation`/`beginNavigation` layer was not ported, because v3 drives navigation from
   `useTask$`. Main's `qwikrouter-test` `loader-redirect` fixture changes and the new

@@ -1,7 +1,7 @@
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import {
   isRemoteInsightsUrl,
   localInsightsDbPath,
@@ -51,4 +51,22 @@ test.each<[string, (p: string) => Promise<InsightsDb>]>([
   expect(await db.all('SELECT id FROM t WHERE id = ?', [2])).toEqual([]);
 
   db.close();
+});
+
+test('local files fall back to @libsql/client without node:sqlite (Node < 22.5)', async () => {
+  vi.resetModules();
+  vi.doMock('node:sqlite', () => {
+    throw new Error('No such built-in module: node:sqlite');
+  });
+  try {
+    const { openInsightsDb } = await import('./db');
+    const db = await openInsightsDb('file:' + tmpPath());
+    await db.exec('CREATE TABLE t (id INTEGER);');
+    await db.batch([{ sql: 'INSERT INTO t (id) VALUES (?)', args: [1] }]);
+    expect(await db.all('SELECT id FROM t')).toEqual([{ id: 1 }]);
+    db.close();
+  } finally {
+    vi.doUnmock('node:sqlite');
+    vi.resetModules();
+  }
 });

@@ -1,7 +1,8 @@
 /**
  * Minimal async libSQL/SQLite adapter shared by the collector (writes) and the build-time strategy
- * reader. Local `file:` URLs use Node's built-in `node:sqlite` (zero dependency); remote Turso URLs
- * use the optional `@libsql/client` package, loaded on demand so non-remote setups never need it.
+ * reader. Local `file:` URLs use Node's built-in `node:sqlite` (Node 22.5+, zero dependency) and
+ * fall back to the optional `@libsql/client` package on older Node; remote Turso URLs always use
+ * `@libsql/client`, loaded on demand so other setups never need it.
  */
 export interface InsightsStatement {
   sql: string;
@@ -23,13 +24,17 @@ export function isRemoteInsightsUrl(url: string): boolean {
 }
 
 /** @internal — exported for tests; use {@link openInsightsDb}. */
-export async function openLibsql(url: string, authToken?: string): Promise<InsightsDb> {
+export async function openLibsql(
+  url: string,
+  authToken?: string,
+  missingPackageHint = 'Remote insights DB URLs need'
+): Promise<InsightsDb> {
   let createClient;
   try {
     ({ createClient } = await import('@libsql/client'));
   } catch {
     throw new Error(
-      `Remote insights URL "${url}" needs the optional "@libsql/client" package. Install it with: npm i @libsql/client`
+      `${missingPackageHint} the optional "@libsql/client" package. Install it with: npm i @libsql/client`
     );
   }
   // intMode 'number' matches node:sqlite so both backends return the same value types.
@@ -59,9 +64,12 @@ export async function openLibsql(url: string, authToken?: string): Promise<Insig
 }
 
 /** @internal — exported for tests; use {@link openInsightsDb}. */
-export async function openNodeSqlite(path: string): Promise<InsightsDb> {
+export async function openNodeSqlite(
+  path: string,
+  sqlite?: typeof import('node:sqlite')
+): Promise<InsightsDb> {
   // Lazy import keeps the experimental-SQLite warning out of processes that never touch insights.
-  const { DatabaseSync } = await import('node:sqlite');
+  const { DatabaseSync } = sqlite ?? (await import('node:sqlite'));
   const db = new DatabaseSync(path);
   return {
     exec: async (sql) => db.exec(sql),
@@ -98,10 +106,23 @@ export function localInsightsDbPath(url: string): string | null {
 }
 
 /** Open a libSQL/SQLite connection, picking the backend from the URL scheme. */
-export function openInsightsDb(url: string, authToken?: string): Promise<InsightsDb> {
+export async function openInsightsDb(url: string, authToken?: string): Promise<InsightsDb> {
   const path = localInsightsDbPath(url);
   if (path === null) {
     return openLibsql(url, authToken);
   }
-  return openNodeSqlite(path);
+  const sqlite = await loadNodeSqlite();
+  if (sqlite) {
+    return openNodeSqlite(path, sqlite);
+  }
+  return openLibsql(`file:${path}`, undefined, 'Local insights DBs on Node < 22.5 need');
+}
+
+/** `node:sqlite`, or null on Node versions that don't ship it. */
+async function loadNodeSqlite(): Promise<typeof import('node:sqlite') | null> {
+  try {
+    return await import('node:sqlite');
+  } catch {
+    return null;
+  }
 }

@@ -199,23 +199,42 @@ const delaySumColumns = Array.from(
   { length: NUMBER_OF_BUCKETS },
   (_, i) => `SUM(delay_count_${padBucket(i)}) d${i}`
 ).join(', ');
+const timelineTotal = Array.from(
+  { length: NUMBER_OF_BUCKETS },
+  (_, i) => `SUM(timeline_${padBucket(i)})`
+).join(' + ');
+
+// Same windows as the central service: recent builds only, bounded result sizes.
+const RECENT_MANIFESTS = 100;
+const MAX_EDGES = 5000;
+const MAX_ROUTE_SYMBOLS = 1000;
 
 async function readEdges(dbUrl: string, publicApiKey: string, authToken?: string) {
   const db = await openInsightsDb(dbUrl, authToken);
   try {
-    // ponytail: aggregate across all manifests. Filter to recent builds if stale data ever skews it.
-    const rows = await db.all(
-      `SELECT "from", "to", ${delaySumColumns} FROM edges WHERE public_api_key = ? GROUP BY "from", "to" LIMIT 5000`,
+    const manifestRows = await db.all(
+      `SELECT hash FROM manifests WHERE public_api_key = ? ORDER BY first_seen DESC LIMIT ${RECENT_MANIFESTS}`,
       [publicApiKey]
+    );
+    const manifestHashes = manifestRows.map((row) => row.hash as string);
+    const where = manifestHashes.length
+      ? `public_api_key = ? AND manifest_hash IN (${manifestHashes.map(() => '?').join(', ')})`
+      : 'public_api_key = ?';
+    const whereArgs = [publicApiKey, ...manifestHashes];
+
+    const rows = await db.all(
+      `SELECT "from", "to", ${delaySumColumns} FROM edges WHERE ${where} GROUP BY "from", "to" LIMIT ${MAX_EDGES}`,
+      whereArgs
     );
     const edges: SymbolPair[] = rows.map((r) => ({
       from: r.from,
       to: r.to,
       delay: Array.from({ length: NUMBER_OF_BUCKETS }, (_, i) => Number(r[`d${i}`]) || 0),
     }));
+    // Most frequently used symbols first, so route prefetch starts with what's needed most.
     const routes = (await db.all(
-      `SELECT DISTINCT route, symbol FROM routes WHERE public_api_key = ?`,
-      [publicApiKey]
+      `SELECT route, symbol FROM routes WHERE ${where} GROUP BY route, symbol ORDER BY route, ${timelineTotal} DESC LIMIT ${MAX_ROUTE_SYMBOLS}`,
+      whereArgs
     )) as { route: string; symbol: string }[];
     return { edges, routes };
   } finally {

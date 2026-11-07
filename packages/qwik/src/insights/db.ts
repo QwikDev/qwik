@@ -70,10 +70,24 @@ export async function openNodeSqlite(path: string): Promise<InsightsDb> {
   };
 }
 
+/** Hide an auth token embedded in a libSQL URL before it is logged or displayed. */
+export function redactInsightsDbUrl(url: string): string {
+  return url.replace(/(authToken|token)=[^&]*/gi, '$1=***');
+}
+
+/** Filesystem path of a local `file:` URL (`file:rel`, `file:/abs`, `file:///abs`), else null. */
+export function localInsightsDbPath(url: string): string | null {
+  if (isRemoteInsightsUrl(url)) {
+    return null;
+  }
+  return url.replace(/^file:(\/\/(?=\/))?/, '');
+}
+
 /** Open a libSQL/SQLite connection, picking the backend from the URL scheme. */
 export function openInsightsDb(url: string, authToken?: string): Promise<InsightsDb> {
-  if (isRemoteInsightsUrl(url)) {
+  const path = localInsightsDbPath(url);
+  if (path === null) {
     return openLibsql(url, authToken);
   }
-  return openNodeSqlite(url.replace(/^file:/, ''));
+  return openNodeSqlite(path);
 }

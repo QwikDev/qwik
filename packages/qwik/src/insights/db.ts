@@ -103,6 +103,11 @@ export function redactInsightsDbUrl(url: string): string {
   return url.replace(/(authToken|token)=[^&]*/gi, '$1=***');
 }
 
+/** An error's stack (or message) with any DB token embedded in it redacted. */
+export function describeInsightsDbError(error: unknown): string {
+  return redactInsightsDbUrl(error instanceof Error ? error.stack || error.message : String(error));
+}
+
 /**
  * Filesystem path of a local `file:` URL (`file:rel`, `file:/abs`, `file:///abs`), else null.
  *

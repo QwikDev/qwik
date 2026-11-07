@@ -5,6 +5,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { isAbsolute, join, resolve } from 'node:path';
+import { Readable } from 'node:stream';
 import type { PluginOption } from 'vite';
 import { redactInsightsDbUrl } from '../db';
 
@@ -295,17 +296,13 @@ async function recordDevBeacon(
   dbUrl: string,
   publicApiKey: string
 ): Promise<void> {
-  const body = await new Promise<Buffer>((resolveBody, reject) => {
-    const chunks: Buffer[] = [];
-    req.on('data', (chunk: Buffer) => chunks.push(chunk));
-    req.on('end', () => resolveBody(Buffer.concat(chunks)));
-    req.on('error', reject);
-  });
   const { handleInsightsBeacon } = await import('../collector');
+  // Streamed, so the collector's size limit stops oversized bodies before they're buffered.
   const request = new Request(new URL(req.url!, 'http://localhost'), {
     method: 'POST',
-    body: new Uint8Array(body),
-  });
+    body: Readable.toWeb(req) as ReadableStream,
+    duplex: 'half',
+  } as RequestInit);
   const recorded = await handleInsightsBeacon(request, { dbUrl, publicApiKey });
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify({ ok: recorded }));

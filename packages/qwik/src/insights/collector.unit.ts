@@ -203,3 +203,22 @@ test('handleInsightsBeacon records error beacons posted to `error/`', async () =
   expect((db.prepare('SELECT COUNT(*) c FROM edges').get() as any).c).toBe(0);
   db.close();
 });
+
+test('handleInsightsBeacon stops reading a chunked body past the size limit', async () => {
+  const dbUrl = tmpDbUrl();
+  let chunksPulled = 0;
+  // No content-length: an endless stream of 64 KiB chunks.
+  const body = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      chunksPulled++;
+      controller.enqueue(new Uint8Array(64 * 1024).fill(32));
+    },
+  });
+  const request = new Request('http://app/insights', {
+    method: 'POST',
+    body,
+    duplex: 'half',
+  } as RequestInit);
+  expect(await handleInsightsBeacon(request, { dbUrl })).toBe(false);
+  expect(chunksPulled).toBeLessThan(10);
+});

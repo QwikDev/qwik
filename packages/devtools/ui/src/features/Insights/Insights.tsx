@@ -27,6 +27,10 @@ export const Insights = component$(() => {
   const value = data.value;
   const hasRows = !!value && (value.apps.length || value.edges.length || value.routes.length);
   const error = errorMessage.value || value?.error;
+  // Rows from several apps can share a DB; only label them when that happens.
+  const showApp = !!value && value.apps.length > 1;
+  const withApp = (key: string, cells: (string | number)[]) => (showApp ? [key, ...cells] : cells);
+  const appHead = (head: string[]) => (showApp ? ['App', ...head] : head);
 
   return (
     <div class="flex h-full min-h-0 flex-col gap-4 overflow-auto">
@@ -78,16 +82,16 @@ export const Insights = component$(() => {
 
           {value!.edges.length ? (
             <Section title={`Symbol edges (top ${value!.edges.length})`}>
-              <Table head={['From', 'To', 'Interaction', 'Count']}>
+              <Table head={appHead(['From', 'To', 'Interaction', 'Count'])}>
                 {value!.edges.map((edge, i) => (
                   <Row
                     key={i}
-                    cells={[
+                    cells={withApp(edge.publicApiKey, [
                       edge.from ?? '(root)',
                       edge.to,
                       edge.interaction ? 'yes' : '',
                       edge.count,
-                    ]}
+                    ])}
                   />
                 ))}
               </Table>
@@ -96,9 +100,12 @@ export const Insights = component$(() => {
 
           {value!.routes.length ? (
             <Section title={`Routes (top ${value!.routes.length})`}>
-              <Table head={['Route', 'Symbol', 'Count']}>
+              <Table head={appHead(['Route', 'Symbol', 'Count'])}>
                 {value!.routes.map((route, i) => (
-                  <Row key={i} cells={[route.route, route.symbol, route.count]} />
+                  <Row
+                    key={i}
+                    cells={withApp(route.publicApiKey, [route.route, route.symbol, route.count])}
+                  />
                 ))}
               </Table>
             </Section>

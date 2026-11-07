@@ -4,11 +4,13 @@
  * fall back to the optional `@libsql/client` package on older Node; remote Turso URLs always use
  * `@libsql/client`, loaded on demand so other setups never need it.
  */
+/** @internal */
 export interface InsightsStatement {
   sql: string;
   args: unknown[];
 }
 
+/** @internal */
 export interface InsightsDb {
   exec(sql: string): Promise<void>;
   /** Run statements in one transaction: all apply or none do. */
@@ -92,12 +94,20 @@ export async function openNodeSqlite(
   };
 }
 
-/** Hide an auth token embedded in a libSQL URL before it is logged or displayed. */
+/**
+ * Hide an auth token embedded in a libSQL URL before it is logged or displayed.
+ *
+ * @internal
+ */
 export function redactInsightsDbUrl(url: string): string {
   return url.replace(/(authToken|token)=[^&]*/gi, '$1=***');
 }
 
-/** Filesystem path of a local `file:` URL (`file:rel`, `file:/abs`, `file:///abs`), else null. */
+/**
+ * Filesystem path of a local `file:` URL (`file:rel`, `file:/abs`, `file:///abs`), else null.
+ *
+ * @internal
+ */
 export function localInsightsDbPath(url: string): string | null {
   if (isRemoteInsightsUrl(url)) {
     return null;
@@ -105,7 +115,11 @@ export function localInsightsDbPath(url: string): string | null {
   return url.replace(/^file:(\/\/(?=\/))?/, '');
 }
 
-/** Open a libSQL/SQLite connection, picking the backend from the URL scheme. */
+/**
+ * Open a libSQL/SQLite connection, picking the backend from the URL scheme.
+ *
+ * @internal
+ */
 export async function openInsightsDb(url: string, authToken?: string): Promise<InsightsDb> {
   const path = localInsightsDbPath(url);
   if (path === null) {

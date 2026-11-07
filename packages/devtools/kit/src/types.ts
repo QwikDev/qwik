@@ -99,6 +99,7 @@ export interface InsightsAppRow {
 }
 
 export interface InsightsEdgeRow {
+  publicApiKey: string;
   from: string | null;
   to: string;
   interaction: boolean;
@@ -106,6 +107,7 @@ export interface InsightsEdgeRow {
 }
 
 export interface InsightsRouteRow {
+  publicApiKey: string;
   route: string;
   symbol: string;
   count: number;

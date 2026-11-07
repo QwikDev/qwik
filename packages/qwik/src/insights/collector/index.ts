@@ -11,6 +11,15 @@ import {
 import type { InsightsError, InsightsPayload } from '../insights';
 import { MAX_BEACON_BYTES, parseInsightsError, parseInsightsPayload } from './validate';
 
+// Shared with the devtools Insights panel so both read the DB the same way.
+export {
+  type InsightsDb,
+  type InsightsStatement,
+  localInsightsDbPath,
+  openInsightsDb,
+  redactInsightsDbUrl,
+} from '../db';
+
 /** Strip the chunk prefix before the last `_`; `hW` is Qwik's no-op handler, so ignore it. */
 function cleanupSymbolName(symbolName?: string | null): string | null {
   if (!symbolName) {

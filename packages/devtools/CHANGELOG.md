@@ -1,5 +1,16 @@
 # @qwik.dev/devtools
 
+## 2.0.0-rc.5
+
+### Patch Changes
+
+- 🐞🩹 devtools no longer drops the source maps of every module in dev (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#9155](https://github.com/QwikDev/qwik/pull/9155))
+
+- 🐞🩹 server render times were recorded as near zero for every component (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#9233](https://github.com/QwikDev/qwik/pull/9233))
+
+- Updated dependencies [[`cdc83fd`](https://github.com/QwikDev/qwik/commit/cdc83fd09ee06e8e6ff0f993ce9fd3afd2949482), [`e697f17`](https://github.com/QwikDev/qwik/commit/e697f1793f6a5d56e55349762b36099e43d4c75f), [`1b2efae`](https://github.com/QwikDev/qwik/commit/1b2efae231d4724768ff0eb71f24da09dd71adca), [`31bcb99`](https://github.com/QwikDev/qwik/commit/31bcb993f3081ac74863d3b890a5708007e30e80), [`f59f39b`](https://github.com/QwikDev/qwik/commit/f59f39b7cc7ab2dbb480f7e41d7361672b878fc7), [`89be75b`](https://github.com/QwikDev/qwik/commit/89be75bd035e3f3de54686d33e55194b197a163e), [`6dd1965`](https://github.com/QwikDev/qwik/commit/6dd1965e9dbe051b5983ac798ce16528917f5a12), [`7fad75a`](https://github.com/QwikDev/qwik/commit/7fad75a03b51aa02c039b810559fad52f4f16c97), [`1edf36c`](https://github.com/QwikDev/qwik/commit/1edf36c54d9a4cc020e92417150724b81006984d), [`1ad577e`](https://github.com/QwikDev/qwik/commit/1ad577ef5ba1dd23831e016642affce7f8d41f94), [`e654d7b`](https://github.com/QwikDev/qwik/commit/e654d7b993cc3f464790d63a04f7881cfaa430fd), [`0be23e5`](https://github.com/QwikDev/qwik/commit/0be23e5e5291d1fd44a12a76aa9fd11b3bbbb411), [`0e88000`](https://github.com/QwikDev/qwik/commit/0e88000819435e4f87112a97a3452558a138596c), [`15e246c`](https://github.com/QwikDev/qwik/commit/15e246c6204d3ff20a28d5fe1e1ce244ee405862), [`9e8ca24`](https://github.com/QwikDev/qwik/commit/9e8ca2490797e9ceb14d9178f86cdb2cba14e443), [`bb258cb`](https://github.com/QwikDev/qwik/commit/bb258cbd96e17d299358db778c37aedb525dd253), [`5248e3b`](https://github.com/QwikDev/qwik/commit/5248e3b8aa31385bf609cd15c3d896a6a8164168), [`bd7741c`](https://github.com/QwikDev/qwik/commit/bd7741c1f9fa6b05c5ff427a12c169b6219af79f), [`88d5c81`](https://github.com/QwikDev/qwik/commit/88d5c815cc3c02bdf256b00084a9296c8dd21b54), [`b8d9d70`](https://github.com/QwikDev/qwik/commit/b8d9d70d311725db42f9468b8203a8eee8b56f05), [`a1f47ae`](https://github.com/QwikDev/qwik/commit/a1f47aef6f2e0cbc28c342d76644850dcf4bed61), [`0255c74`](https://github.com/QwikDev/qwik/commit/0255c743fe5fd5307846d8b22e805a0b45809fc9), [`0452ebe`](https://github.com/QwikDev/qwik/commit/0452ebe43d25b071e7a287d44d97f272ea8b8339), [`43f92cb`](https://github.com/QwikDev/qwik/commit/43f92cbd432bb360ac75c62ca009235b74a42da2), [`c60de66`](https://github.com/QwikDev/qwik/commit/c60de66c08a4cf870806652edec5b88a1049c6cd), [`ad9281d`](https://github.com/QwikDev/qwik/commit/ad9281d9333c473c1e33ec244ba3d7b44f160147), [`7c782ea`](https://github.com/QwikDev/qwik/commit/7c782ead9b8d064937ce0b790ce91fd55ed4a434), [`1de5b49`](https://github.com/QwikDev/qwik/commit/1de5b49c099916b2820ecc631f5d821c7c5ae9d4), [`3cc490a`](https://github.com/QwikDev/qwik/commit/3cc490a115efac0870df4446a28c6fa22c59b9fb)]:
+  - @qwik.dev/core@2.0.0-rc.5
+
 ## 2.0.0-rc.4
 
 ### Patch Changes

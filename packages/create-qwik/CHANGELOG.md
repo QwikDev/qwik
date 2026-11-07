@@ -1,5 +1,11 @@
 # create-qwik
 
+## 2.0.0-rc.5
+
+### Patch Changes
+
+- ✨ move the `qwik add prisma` starter to Prisma ORM 8 with PostgreSQL and a shared database client (by [@ankur-arch](https://github.com/ankur-arch) in [#9358](https://github.com/QwikDev/qwik/pull/9358))
+
 ## 2.0.0-rc.4
 
 ### Patch Changes

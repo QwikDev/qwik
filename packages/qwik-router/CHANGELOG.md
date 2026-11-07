@@ -1,5 +1,46 @@
 # @qwik.dev/city
 
+## 2.0.0-rc.5
+
+### Minor Changes
+
+- ✨ add the ssg `retries` option to re-render a failed route before the build fails (by [@maiieul](https://github.com/maiieul) in [#8979](https://github.com/QwikDev/qwik/pull/8979))
+
+### Patch Changes
+
+- 🐞🩹 preload bundles for catch-all routes on link prefetch and navigation (by [@Varixo](https://github.com/Varixo) in [#9304](https://github.com/QwikDev/qwik/pull/9304))
+
+- 🐞🩹 log and finish the response when SSR fails in dev after the response has started (by [@akasakariko](https://github.com/akasakariko) in [#9293](https://github.com/QwikDev/qwik/pull/9293))
+
+- perf: browser apps load the serializer only with segments that need it (by [@Varixo](https://github.com/Varixo) in [#9323](https://github.com/QwikDev/qwik/pull/9323))
+
+- 🐞🩹 avoid quadratic parameter-value joins when matching long catch-all request paths (by [@Varixo](https://github.com/Varixo) in [#9320](https://github.com/QwikDev/qwik/pull/9320))
+
+- 🐞🩹 skip rerunning loader subscribers when the first client fetch has the same eTag as SSR (by [@Varixo](https://github.com/Varixo) in [#9221](https://github.com/QwikDev/qwik/pull/9221))
+
+- 🐞🩹 `onRequest` now sees the page URL when a root layout loader is requested in dev (by [@fixfon](https://github.com/fixfon) in [#9342](https://github.com/QwikDev/qwik/pull/9342))
+
+- 🐞🩹 settle failed action submissions and prevent duplicate form requests (by [@Varixo](https://github.com/Varixo) in [#9275](https://github.com/QwikDev/qwik/pull/9275))
+
+- 🐞🩹 keep a Back pressed during an in-flight navigation (by [@akasakariko](https://github.com/akasakariko) in [#9262](https://github.com/QwikDev/qwik/pull/9262))
+
+- 🐞🩹 prevent unintended full-page animations during typed view transitions (by [@Nelmad](https://github.com/Nelmad) in [#9375](https://github.com/QwikDev/qwik/pull/9375))
+
+- 🐞🩹 production crashes now reach `next(err)` and the server logs (by [@maiieul](https://github.com/maiieul) in [#9341](https://github.com/QwikDev/qwik/pull/9341))
+
+- 🐞🩹 client-side navigation to a URL that only exists through a server `rewrite()` now shows the rewritten page instead of a 404, and keeps the original URL in the address bar. Submitting an action on such a page keeps it rendered too, and navigating to a route that only redirects (no page component) now follows the redirect. (by [@omerman](https://github.com/omerman) in [#9225](https://github.com/QwikDev/qwik/pull/9225))
+
+- 🐞🩹 reject `server$` calls that get an HTML page or another non-server$ response instead of resolving `undefined` (by [@thelastbackspace](https://github.com/thelastbackspace) in [#9378](https://github.com/QwikDev/qwik/pull/9378))
+
+- 🐞🩹 service workers that share modules with the app now register (by [@mevichitra](https://github.com/mevichitra) in [#9227](https://github.com/QwikDev/qwik/pull/9227))
+
+- 🐞🩹 a crashed ssg worker no longer stalls the build until it times out (by [@maiieul](https://github.com/maiieul) in [#8979](https://github.com/QwikDev/qwik/pull/8979))
+
+- 🐞🩹 ssg no longer silently skips routes that render a 5xx error page (by [@maiieul](https://github.com/maiieul) in [#8979](https://github.com/QwikDev/qwik/pull/8979))
+
+- Updated dependencies [[`cdc83fd`](https://github.com/QwikDev/qwik/commit/cdc83fd09ee06e8e6ff0f993ce9fd3afd2949482), [`e697f17`](https://github.com/QwikDev/qwik/commit/e697f1793f6a5d56e55349762b36099e43d4c75f), [`1b2efae`](https://github.com/QwikDev/qwik/commit/1b2efae231d4724768ff0eb71f24da09dd71adca), [`31bcb99`](https://github.com/QwikDev/qwik/commit/31bcb993f3081ac74863d3b890a5708007e30e80), [`f59f39b`](https://github.com/QwikDev/qwik/commit/f59f39b7cc7ab2dbb480f7e41d7361672b878fc7), [`89be75b`](https://github.com/QwikDev/qwik/commit/89be75bd035e3f3de54686d33e55194b197a163e), [`6dd1965`](https://github.com/QwikDev/qwik/commit/6dd1965e9dbe051b5983ac798ce16528917f5a12), [`7fad75a`](https://github.com/QwikDev/qwik/commit/7fad75a03b51aa02c039b810559fad52f4f16c97), [`1edf36c`](https://github.com/QwikDev/qwik/commit/1edf36c54d9a4cc020e92417150724b81006984d), [`1ad577e`](https://github.com/QwikDev/qwik/commit/1ad577ef5ba1dd23831e016642affce7f8d41f94), [`e654d7b`](https://github.com/QwikDev/qwik/commit/e654d7b993cc3f464790d63a04f7881cfaa430fd), [`0be23e5`](https://github.com/QwikDev/qwik/commit/0be23e5e5291d1fd44a12a76aa9fd11b3bbbb411), [`0e88000`](https://github.com/QwikDev/qwik/commit/0e88000819435e4f87112a97a3452558a138596c), [`15e246c`](https://github.com/QwikDev/qwik/commit/15e246c6204d3ff20a28d5fe1e1ce244ee405862), [`9e8ca24`](https://github.com/QwikDev/qwik/commit/9e8ca2490797e9ceb14d9178f86cdb2cba14e443), [`bb258cb`](https://github.com/QwikDev/qwik/commit/bb258cbd96e17d299358db778c37aedb525dd253), [`5248e3b`](https://github.com/QwikDev/qwik/commit/5248e3b8aa31385bf609cd15c3d896a6a8164168), [`bd7741c`](https://github.com/QwikDev/qwik/commit/bd7741c1f9fa6b05c5ff427a12c169b6219af79f), [`88d5c81`](https://github.com/QwikDev/qwik/commit/88d5c815cc3c02bdf256b00084a9296c8dd21b54), [`b8d9d70`](https://github.com/QwikDev/qwik/commit/b8d9d70d311725db42f9468b8203a8eee8b56f05), [`a1f47ae`](https://github.com/QwikDev/qwik/commit/a1f47aef6f2e0cbc28c342d76644850dcf4bed61), [`0255c74`](https://github.com/QwikDev/qwik/commit/0255c743fe5fd5307846d8b22e805a0b45809fc9), [`0452ebe`](https://github.com/QwikDev/qwik/commit/0452ebe43d25b071e7a287d44d97f272ea8b8339), [`43f92cb`](https://github.com/QwikDev/qwik/commit/43f92cbd432bb360ac75c62ca009235b74a42da2), [`c60de66`](https://github.com/QwikDev/qwik/commit/c60de66c08a4cf870806652edec5b88a1049c6cd), [`ad9281d`](https://github.com/QwikDev/qwik/commit/ad9281d9333c473c1e33ec244ba3d7b44f160147), [`7c782ea`](https://github.com/QwikDev/qwik/commit/7c782ead9b8d064937ce0b790ce91fd55ed4a434), [`1de5b49`](https://github.com/QwikDev/qwik/commit/1de5b49c099916b2820ecc631f5d821c7c5ae9d4), [`3cc490a`](https://github.com/QwikDev/qwik/commit/3cc490a115efac0870df4446a28c6fa22c59b9fb)]:
+  - @qwik.dev/core@2.0.0-rc.5
+
 ## 2.0.0-rc.4
 
 ### Patch Changes

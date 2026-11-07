@@ -1,0 +1,100 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+const Row = (props: { n: number }) => (
+	<tr onClick$={() => console.log('row')}>
+		<td>{props.n}</td>
+	</tr>
+);
+
+export const Table = component$(() => (
+	<table>
+		<Row n={1} />
+	</table>
+));
+
+============================= test.tsx_Table_component_ZCe07ck1dgI.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Row_tr_q_e_click_tY0LqKpecZI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Row_tr_q_e_click_tY0LqKpecZI"), "Row_tr_q_e_click_tY0LqKpecZI");
+//
+const Row = (props)=>/*#__PURE__*/ _jsxSorted("tr", null, {
+        "q-e:click": q_Row_tr_q_e_click_tY0LqKpecZI
+    }, /*#__PURE__*/ _jsxSorted("td", null, null, _wrapProp(props, "n"), 1, null), 1, "u6_0");
+export const Table_component_ZCe07ck1dgI = ()=>/*#__PURE__*/ _jsxSorted("table", null, null, /*#__PURE__*/ _jsxSorted(Row, null, {
+        n: 1
+    }, null, 3, "u6_1"), 1, "u6_2");
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;MAGM,MAAM,CAAC,sBACZ,WAAC;QAAG,WAAQ;qBACX,WAAC,4BAAI;2CAIyB,kBAC/B,WAAC,mCACA,WAAC;QAAI,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Table_component_ZCe07ck1dgI",
+  "entry": null,
+  "displayName": "test.tsx_Table_component",
+  "hash": "ZCe07ck1dgI",
+  "canonicalFilename": "test.tsx_Table_component_ZCe07ck1dgI",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    194,
+    238
+  ]
+}
+*/
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+//
+qrl(()=>import("./test.tsx_Row_tr_q_e_click_tY0LqKpecZI"), "Row_tr_q_e_click_tY0LqKpecZI");
+//
+const q_Table_component_ZCe07ck1dgI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Table_component_ZCe07ck1dgI"), "Table_component_ZCe07ck1dgI");
+//
+export const Table = /*#__PURE__*/ componentQrl(q_Table_component_ZCe07ck1dgI);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AASA,OAAO,MAAM,sBAAQ,4CAIlB\"}")
+============================= test.tsx_Row_tr_q_e_click_tY0LqKpecZI.js (ENTRY POINT)==
+
+export const Row_tr_q_e_click_tY0LqKpecZI = ()=>console.log('row');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"4CAIe,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Row_tr_q_e_click_tY0LqKpecZI",
+  "entry": null,
+  "displayName": "test.tsx_Row_tr_q_e_click",
+  "hash": "tY0LqKpecZI",
+  "canonicalFilename": "test.tsx_Row_tr_q_e_click_tY0LqKpecZI",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    103,
+    127
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

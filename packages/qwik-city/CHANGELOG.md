@@ -1,5 +1,65 @@
 # @builder.io/qwik-city
 
+## 1.20.3
+
+### Patch Changes
+
+- 🐞🩹 ignore spoofable `X-Forwarded-Host` and `X-Forwarded-Proto` headers unless `trustForwardedHeaders` is enabled
+
+- 🐞🩹 keep deeply nested form parsing work proportional
+
+- 🐞🩹 prevent shared function pollution when parsing conflicting form field paths (by [@github-actions](https://github.com/apps/github-actions) in [#9274](https://github.com/QwikDev/qwik/pull/9274))
+
+## 1.20.2
+
+### Patch Changes
+
+- 🐞🩹 limit request bodies to 10 MiB by default in the Node, Deno, Bun, Cloudflare Pages, Netlify Edge and Vercel Edge adapters (and AWS Lambda / Firebase through Node); configurable with the new `requestBodyLimit` option (by [@github-actions](https://github.com/apps/github-actions) in [#9074](https://github.com/QwikDev/qwik/pull/9074))
+
+- 🐞🩹 prevent private responses from entering shared Cloudflare caches (by [@Varixo](https://github.com/Varixo) in [`0585c24`](https://github.com/QwikDev/qwik/commit/0585c24c10ef41153abf5b8bf2b76bd5206d82fd))
+
+- 🐞🩹 prevent excessive array lengths from form field indexes (by [@Varixo](https://github.com/Varixo) in [`b40324c`](https://github.com/QwikDev/qwik/commit/b40324c6a6b3ee5d31bcb7b75a6f533a81c0b013))
+
+- 🐞🩹 catch-all route matching no longer hangs on paths containing `//` (by [@wmertens](https://github.com/wmertens) in [#9072](https://github.com/QwikDev/qwik/pull/9072))
+
+- 🐞🩹 `redirect()` now strips ASCII tab/LF/CR from the URL, so targets like `/<TAB>/example.com` can no longer redirect to another origin (by [@github-actions](https://github.com/apps/github-actions) in [#9074](https://github.com/QwikDev/qwik/pull/9074))
+
+## 1.20.1
+
+### Patch Changes
+
+- 🐞🩹 prevent static middleware from reading files outside configured directories (by [@github-actions](https://github.com/apps/github-actions) in [#9035](https://github.com/QwikDev/qwik/pull/9035))
+
+## 1.20.0
+
+### Minor Changes
+
+- 🐞🩹 The server plugins were not actually sorted and were relying on directory traversal order. Now they are explicitly sorted by ascending name. (by [@wmertens](https://github.com/wmertens) in [#8568](https://github.com/QwikDev/qwik/pull/8568))
+
+### Patch Changes
+
+- 🐞🩹 include route bundles when their matching origin is not the first manifest origin (by [@Varixo](https://github.com/Varixo) in [#8455](https://github.com/QwikDev/qwik/pull/8455))
+
+- 🐞🩹 Bun and Deno request URL normalization to prevent protocol-relative paths from overriding the configured origin (by [@Varixo](https://github.com/Varixo) in [#8463](https://github.com/QwikDev/qwik/pull/8463))
+
+- ✨ getRequestEvent() provides the current request event; used in the starter templates for providing better diagnostics in uncaught exceptions (by [@wmertens](https://github.com/wmertens) in [#8655](https://github.com/QwikDev/qwik/pull/8655))
+
+## 1.19.2
+
+### Patch Changes
+
+- 🐞🩹 When a form POST is done, keys like "name.1" mean it's an array. However, later keys could be strings like "name.value". Now, we check if all the keys are numbers, otherwise we make an object instead of an array. This allows for more correct form data handling. (by [@wmertens](https://github.com/wmertens) in [#8424](https://github.com/QwikDev/qwik/pull/8424))
+
+- 🐞🩹 handle special characters in dynamic route (by [@gioboa](https://github.com/gioboa) in [#8400](https://github.com/QwikDev/qwik/pull/8400))
+
+## 1.19.1
+
+### Patch Changes
+
+- 🐞🩹 support Deno as package manager for production builds. The Vite plugin now recognizes Deno as a Node-compatible runtime for manifest passing, and SSG delegates to the Node implementation instead of stubbing out. (by [@ianlet](https://github.com/ianlet) in [#8385](https://github.com/QwikDev/qwik/pull/8385))
+
+- 🐞🩹 Link hash change now properly updates location.url.hash (by [@maiieul](https://github.com/maiieul) in [#8305](https://github.com/QwikDev/qwik/pull/8305))
+
 ## 1.19.0
 
 ### Minor Changes

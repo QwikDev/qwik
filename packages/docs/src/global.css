@@ -64,7 +64,9 @@
 
 :root {
   color-scheme: light;
-  --header-height: 80px;
+  --super-header-height: 40px;
+  --header-nav-height: 80px;
+  --header-height: calc(var(--header-nav-height) + var(--super-header-height));
   --aside-width: 300px;
   --container-max-width: 1400px;
   --builder-bar-height: 56px;
@@ -175,7 +177,9 @@
   :root {
     --panel-toggle-height: 56px;
     --builder-bar-height: 40px;
-    --header-height: 60px;
+    --super-header-height: 42px;
+    --header-nav-height: 60px;
+    --header-height: calc(var(--header-nav-height) + var(--super-header-height));
   }
 }
 

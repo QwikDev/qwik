@@ -352,7 +352,7 @@ export const renderAttributes = (attributes: Record<string, string>): string => 
 export const renderVirtualAttributes = (attributes: Record<string, string>): string => {
   let text = '';
   for (const prop in attributes) {
-    if (prop === 'children' || prop === dangerouslySetInnerHTML) {
+    if (prop === 'children' || prop === dangerouslySetInnerHTML || isSSRUnsafeAttr(prop)) {
       continue;
     }
     const value = attributes[prop];

@@ -41,6 +41,7 @@
 
 - [Overview](/docs/cookbook/index.mdx)
 - [Algolia Search](/docs/cookbook/algolia-search/index.mdx)
+- [Blog Index](/docs/cookbook/blog-index/index.mdx)
 - [Combine Handlers](/docs/cookbook/combine-request-handlers/index.mdx)
 - [Debouncer](/docs/cookbook/debouncer/index.mdx)
 - [Fonts](/docs/cookbook/fonts/index.mdx)

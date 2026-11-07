@@ -1,49 +1,57 @@
 import { type RequestHandler } from '@builder.io/qwik-city';
 import { InsightsPayload } from '@builder.io/qwik-labs';
 import { getDB } from '~/db';
-import { getAppInfo, updateEdge, updateRoutes } from '~/db/query';
+import { isRegisteredApp, updateEdge, updateRoutes } from '~/db/query';
 import { dbGetManifestInfo } from '~/db/sql-manifest';
 import { toBucket, toBucketTimeline } from '~/stats/vector';
+import { readBoundedJson } from './read-bounded-json';
 
-export const onPost: RequestHandler = async ({ exit, json, request, params }) => {
-  const payloadJson = await request.json();
-  migrate1(payloadJson);
-  // publicApiKey is always part of the URL as route parameter.
-  if (!payloadJson.publicApiKey) {
-    payloadJson.publicApiKey = params.publicApiKey;
+const MAX_PAYLOAD_BYTES = 64 * 1024;
+const MAX_SYMBOLS = 500;
+
+export const onPost: RequestHandler = async ({ error, exit, json, request, params }) => {
+  const payloadJson = await readBoundedJson(request, MAX_PAYLOAD_BYTES);
+  if (payloadJson === undefined) {
+    throw error(413, 'Payload Too Large');
   }
+  migrate1(payloadJson);
+  // Bind writes to the URL key so the body cannot target another application.
+  payloadJson.publicApiKey = params.publicApiKey;
   const payload = InsightsPayload.parse(payloadJson);
+  if (payload.symbols.length > MAX_SYMBOLS) {
+    throw error(413, 'Too Many Symbols');
+  }
+  const db = getDB();
+  const { publicApiKey, manifestHash } = payload;
+  if (!(await isRegisteredApp(db, publicApiKey))) {
+    throw error(404, 'Unknown Application');
+  }
   // console.log('API: POST: symbol', payload);
   exit();
   json(200, { code: 200, message: 'OK' });
-  const db = getDB();
   let previousSymbol = payload.previousSymbol;
-  const { publicApiKey, manifestHash } = payload;
   await dbGetManifestInfo(db, publicApiKey, manifestHash);
-  if (publicApiKey && publicApiKey.length > 4) {
-    await getAppInfo(db, publicApiKey, { autoCreate: true });
-    for (const event of payload.symbols) {
-      const symbolHash = cleanupSymbolName(event.symbol);
-      if (symbolHash) {
-        await updateEdge(db, {
-          publicApiKey,
-          manifestHash,
-          from: previousSymbol,
-          to: symbolHash,
-          interaction: event.interaction,
-          delayBucket: toBucket(event.delay),
-          latencyBucket: toBucket(event.latency),
-        });
-        await updateRoutes(db, {
-          publicApiKey,
-          manifestHash,
-          route: event.route,
-          symbol: symbolHash,
-          timelineBucket: toBucketTimeline(event.timeline),
-        });
-      }
-      previousSymbol = symbolHash;
+  for (const event of payload.symbols) {
+    const symbolHash = cleanupSymbolName(event.symbol);
+    if (symbolHash) {
+      await updateEdge(db, {
+        publicApiKey,
+        manifestHash,
+        from: previousSymbol,
+        to: symbolHash,
+        interaction: event.interaction,
+        delayBucket: toBucket(event.delay),
+        latencyBucket: toBucket(event.latency),
+      });
+      await updateRoutes(db, {
+        publicApiKey,
+        manifestHash,
+        route: event.route,
+        symbol: symbolHash,
+        timelineBucket: toBucketTimeline(event.timeline),
+      });
     }
+    previousSymbol = symbolHash;
   }
 };
 

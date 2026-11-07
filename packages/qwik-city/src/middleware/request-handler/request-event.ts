@@ -236,13 +236,17 @@ export function createRequestEvent(
       check();
       status = statusCode;
       if (url) {
+        // browsers strip ASCII tab/LF/CR before parsing a URL, so /<TAB>/test.com is //test.com
+        url = url.replace(/[\t\n\r]/g, '');
         if (
-          // //test.com
-          /^\/\//.test(url) ||
-          // /test//path
-          /([^:])\/\/+/.test(url)
+          // protocol-relative URL, e.g. //test.com — browsers also treat backslashes
+          // as forward slashes in http(s) URLs, so /\test.com, \\test.com, \/test.com
+          // are equivalent and must be collapsed too.
+          /^[/\\]{2,}/.test(url) ||
+          // /test//path or /test/\path
+          /[^:][/\\]{2,}/.test(url)
         ) {
-          const fixedURL = url.replace(/^\/\/+/, '/').replace(/([^:])\/\/+/g, '$1/');
+          const fixedURL = url.replace(/^[/\\]{2,}/, '/').replace(/([^:])[/\\]{2,}/g, '$1/');
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
           url = fixedURL;
         }
@@ -406,10 +410,19 @@ const parseRequest = async (
 };
 
 const isDangerousKey = (k: string) => k === '__proto__' || k === 'constructor' || k === 'prototype';
-const isArrayIndexKey = (k: string) => /^(0|[1-9]\d*)$/.test(k);
+const MAX_FORM_ARRAY_LENGTH = 10_000;
+const isArrayIndexKey = (k: string) =>
+  /^(0|[1-9]\d*)$/.test(k) && Number(k) < MAX_FORM_ARRAY_LENGTH;
 
-const getArrayPaths = (formData: FormData) => {
-  const arrayCandidates = new Map<string, boolean>();
+interface FormPathNode {
+  children: Map<string, FormPathNode>;
+  isArray: boolean;
+}
+
+const createFormPathNode = (): FormPathNode => ({ children: new Map(), isArray: true });
+
+const getFormPathTree = (formData: FormData) => {
+  const root = createFormPathNode();
 
   for (const [name] of formData) {
     const keys = name.split('.');
@@ -426,28 +439,26 @@ const getArrayPaths = (formData: FormData) => {
       continue;
     }
 
-    let path = '';
+    let pathNode = root;
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (key.endsWith('[]')) {
         break;
       }
 
-      path = path ? `${path}.${key}` : key;
-      if (!arrayCandidates.has(path)) {
-        arrayCandidates.set(path, true);
+      let childNode = pathNode.children.get(key);
+      if (!childNode) {
+        childNode = createFormPathNode();
+        pathNode.children.set(key, childNode);
       }
       if (!isArrayIndexKey(keys[i + 1])) {
-        arrayCandidates.set(path, false);
+        childNode.isArray = false;
       }
+      pathNode = childNode;
     }
   }
 
-  return new Set(
-    Array.from(arrayCandidates.entries())
-      .filter(([, isArrayPath]) => isArrayPath)
-      .map(([path]) => path)
-  );
+  return root;
 };
 
 export const formToObj = (formData: FormData): Record<string, any> => {
@@ -457,7 +468,7 @@ export const formToObj = (formData: FormData): Record<string, any> => {
    * multiselects Create values object by form data entries
    */
   const values = Object.create(null);
-  const arrayPaths = getArrayPaths(formData);
+  const pathTree = getFormPathTree(formData);
 
   for (const [name, value] of formData) {
     const keys = name.split('.');
@@ -475,7 +486,7 @@ export const formToObj = (formData: FormData): Record<string, any> => {
     }
 
     let object = values;
-    let path = '';
+    let pathNode = pathTree;
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
 
@@ -500,14 +511,19 @@ export const formToObj = (formData: FormData): Record<string, any> => {
 
       // If it is not last index, return nested object or array
       if (i < keys.length - 1) {
-        path = path ? `${path}.${key}` : key;
+        const childNode = pathNode.children.get(key)!;
         const nextValue = object[key];
         if (nextValue !== undefined) {
+          if (!Array.isArray(nextValue) && Object.getPrototypeOf(nextValue) !== null) {
+            break;
+          }
           object = nextValue;
+          pathNode = childNode;
           continue;
         }
 
-        object = object[key] = arrayPaths.has(path) ? [] : Object.create(null);
+        object = object[key] = childNode.isArray ? [] : Object.create(null);
+        pathNode = childNode;
       } else {
         object[key] = value;
       }

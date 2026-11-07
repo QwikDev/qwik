@@ -81,6 +81,7 @@ async function buildVite(config: BuildConfig) {
     'typescript',
     'vite-imagetools',
     'svgo',
+    'yaml',
     '@builder.io/qwik-city/middleware/request-handler',
   ];
 

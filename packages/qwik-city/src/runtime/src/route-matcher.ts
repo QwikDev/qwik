@@ -174,7 +174,8 @@ function lastIndexOf(
   searchIdx: number,
   notFoundIdx: number
 ): number {
-  let idx = text.lastIndexOf(match, searchIdx);
+  // Search strictly before `searchIdx` so the scan never moves forward (e.g. on `//`).
+  let idx = text.lastIndexOf(match, searchIdx - 1);
   if (idx == searchIdx - match.length) {
     // If previous match was right upto the separator, then try to find the match before that.
     idx = text.lastIndexOf(match, searchIdx - match.length - 1);

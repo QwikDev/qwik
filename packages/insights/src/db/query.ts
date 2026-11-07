@@ -120,10 +120,18 @@ export async function getSymbolDetails(
     .all();
 }
 
+export async function isRegisteredApp(db: AppDatabase, publicApiKey: string): Promise<boolean> {
+  const app = await db
+    .select({ id: applicationTable.id })
+    .from(applicationTable)
+    .where(eq(applicationTable.publicApiKey, publicApiKey))
+    .get();
+  return !!app;
+}
+
 export async function getAppInfo(
   db: AppDatabase,
-  publicApiKey: string,
-  options: { autoCreate?: boolean } = {}
+  publicApiKey: string
 ): Promise<{
   id: number;
   name: string;
@@ -132,24 +140,11 @@ export async function getAppInfo(
   url: string | null;
   github: string | null;
 }> {
-  let app = await db
+  const app = await db
     .select()
     .from(applicationTable)
     .where(eq(applicationTable.publicApiKey, publicApiKey))
     .get();
-  if (!app && options.autoCreate) {
-    const appFields = {
-      name: 'Auto create: ' + publicApiKey,
-      description: 'Auto create: ' + publicApiKey,
-      url: '',
-      publicApiKey,
-    };
-    const response = await db.insert(applicationTable).values(appFields).run();
-    app = {
-      id: Number(response.lastInsertRowid),
-      ...appFields,
-    };
-  }
   return {
     github:
       publicApiKey == '221smyuj5gl'

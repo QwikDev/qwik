@@ -11,6 +11,7 @@ import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
+import { limitRequestBody } from '../request-handler/request-body-limit';
 
 // @builder.io/qwik-city/middleware/cloudflare-pages
 
@@ -50,7 +51,9 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         url.hostname !== '127.0.0.1' &&
         url.hostname !== 'localhost' &&
         url.port === '' &&
-        request.method === 'GET';
+        request.method === 'GET' &&
+        !request.headers.has('Cookie') &&
+        !request.headers.has('Authorization');
       const cacheKey = new Request(url.href, request);
       const cache = useCache ? await caches.open('custom:qwikcity') : null;
       if (cache) {
@@ -59,6 +62,9 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
           return cachedResponse;
         }
       }
+
+      // platform.request shares the limited body, the original stream is locked by the limiter
+      request = limitRequestBody(request, opts.requestBodyLimit);
 
       const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
@@ -102,7 +108,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
         });
         const response = await handledResponse.response;
         if (response) {
-          if (response.ok && cache && response.headers.has('Cache-Control')) {
+          if (response.ok && cache && isSharedCacheable(response)) {
             // Store the fetched response as cacheKey
             // Use waitUntil so you can return the response without blocking on
             // writing to cache
@@ -137,8 +143,24 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
   return onCloudflarePagesFetch;
 }
 
+const uncacheableDirectives = new Set(['private', 'no-store', 'no-cache']);
+
+const isSharedCacheable = (response: Response) => {
+  const cacheControl = response.headers.get('Cache-Control');
+  if (!cacheControl || response.headers.has('Set-Cookie')) {
+    return false;
+  }
+  return !cacheControl.split(',').some((value) => {
+    const directive = value.trim().split('=', 1)[0].toLowerCase();
+    return uncacheableDirectives.has(directive);
+  });
+};
+
 /** @public */
-export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {}
+export interface QwikCityCloudflarePagesOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+}
 
 /** @public */
 export interface PlatformCloudflarePages {

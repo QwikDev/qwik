@@ -51,7 +51,7 @@ const COMMANDS = [
     value: 'migrate-v2',
     label: 'migrate-v2',
     hint: 'Rescopes the application from @builder.io/* namespace to @qwik.dev/*',
-    run: (app: AppCommand) => runV2Migration(app),
+    run: () => runV2Migration(),
     showInHelp: false,
   },
   {
@@ -115,7 +115,7 @@ async function runCommand(app: AppCommand) {
       return;
     }
     case 'migrate-v2': {
-      await runV2Migration(app);
+      await runV2Migration();
       return;
     }
     case 'check-client': {

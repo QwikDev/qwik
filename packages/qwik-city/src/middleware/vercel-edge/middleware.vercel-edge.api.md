@@ -15,6 +15,7 @@ export interface PlatformVercel {
 
 // @public (undocumented)
 export interface QwikCityVercelEdgeOptions extends ServerRenderOptions {
+    requestBodyLimit?: number;
 }
 
 // (No @packageDocumentation comment for this package)

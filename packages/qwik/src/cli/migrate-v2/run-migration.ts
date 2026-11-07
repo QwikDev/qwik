@@ -1,70 +1,36 @@
-import { confirm, intro, isCancel, log } from '@clack/prompts';
-import type { AppCommand } from '../utils/app-command';
-import { bgMagenta, bgRed, bold, green } from 'kleur/colors';
-import { bye } from '../utils/utils';
-import { replacePackage } from './replace-package';
-import {
-  installTsMorph,
-  removeTsMorphFromPackageJson,
-  updateDependencies,
-} from './update-dependencies';
+import spawn from 'cross-spawn';
+import detectPackageManager from 'which-pm-runs';
 
-export async function runV2Migration(app: AppCommand) {
-  intro(
-    `✨  ${bgMagenta(' This command will migrate your Qwik application from v1 to v2')}\n` +
-      `This includes the following: \n` +
-      `  - "@builder.io/qwik", "@builder.io/qwik-city" and "@builder.io/qwik-react" packages will be rescoped to "@qwik.dev/core", "@qwik.dev/router" and "@qwik.dev/react" respectively \n` +
-      `  - related dependencies will be updated \n\n` +
-      `${bold(bgRed('Warning: migration tool is experimental and will migrate your application to the "alpha" release of Qwik V2'))}`
-  );
-  const proceed = await confirm({
-    message: 'Do you want to proceed?',
-    initialValue: true,
+/** The migration ships with v2, so it always matches the latest v2 release. */
+export function runV2Migration() {
+  const [cmd, ...args] = getRunner();
+  const child = spawn(cmd, [...args, '@qwik.dev/core@latest', 'migrate-v2'], {
+    stdio: 'inherit',
   });
+  return new Promise<void>((resolve, reject) => {
+    child.on('error', reject);
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`migrate-v2 exited with code ${code}`));
+      }
+    });
+  });
+}
 
-  if (isCancel(proceed) || !proceed) {
-    bye();
+/** Uses the project's package manager so the migration installs with it too. */
+function getRunner() {
+  const pm = detectPackageManager();
+  if (pm?.name === 'pnpm') {
+    return ['pnpm', 'dlx'];
   }
-
-  try {
-    const installedTsMorph = await installTsMorph();
-    const { replaceImportInFiles } = await import('./rename-import');
-    replaceImportInFiles(
-      [
-        ['QwikCityProvider', 'QwikRouterProvider'],
-        ['qwikCity', 'qwikRouter'],
-        ['QwikCityVitePluginOptions', 'QwikRouterVitePluginOptions'],
-        ['QwikCityPlugin', 'QwikRouterPlugin'],
-        ['createQwikCity', 'createQwikRouter'],
-        ['QwikCityNodeRequestOptions', 'QwikRouterNodeRequestOptions'],
-      ],
-      '@builder.io/qwik-city'
-    );
-    replaceImportInFiles(
-      [['qwikCityPlan', 'qwikRouterConfig']],
-      '@qwik-city-plan' // using old name, package name will be updated in the next step
-    );
-    replaceImportInFiles([['jsxs', 'jsx']], '@builder.io/qwik/jsx-runtime');
-
-    replacePackage('@qwik-city-plan', '@qwik-router-config', true);
-    replacePackage('@builder.io/qwik-city', '@qwik.dev/router');
-    replacePackage('@builder.io/qwik-react', '@qwik.dev/react');
-    // jsx-runtime contains re-exports from "core"
-    replacePackage('@builder.io/qwik/jsx-runtime', '@qwik.dev/core');
-    // "@builder.io/qwik" should be the last one because it's name is a substring of the package names above
-    replacePackage('@builder.io/qwik', '@qwik.dev/core');
-
-    if (installedTsMorph) {
-      await removeTsMorphFromPackageJson();
-    }
-
-    // COMMENTED OUT FOR NOW 👇 (as this is fixed in https://github.com/QwikDev/qwik/pull/7159)
-    // updateConfigurations();
-
-    await updateDependencies();
-    log.success(`${green(`Your application has been successfully migrated to v2!`)}`);
-  } catch (error) {
-    console.error(error);
-    throw error;
+  if (pm?.name === 'bun') {
+    return ['bunx'];
   }
+  // yarn 1 has no dlx
+  if (pm?.name === 'yarn' && !pm.version.startsWith('1.')) {
+    return ['yarn', 'dlx'];
+  }
+  return ['npx', '-y'];
 }

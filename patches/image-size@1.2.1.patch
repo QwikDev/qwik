@@ -1,0 +1,38 @@
+diff --git a/dist/types/icns.js b/dist/types/icns.js
+index f2bfafef3723cb423b110304815e56e3f97f81e0..d08600fd89c3c0c7974e18bbc36dd42777fb7b3f 100644
+--- a/dist/types/icns.js
++++ b/dist/types/icns.js
+@@ -81,6 +81,9 @@ exports.ICNS = {
+         const fileLength = (0, utils_1.readUInt32BE)(input, FILE_LENGTH_OFFSET);
+         let imageOffset = SIZE_HEADER;
+         let imageHeader = readImageHeader(input, imageOffset);
++        if (imageHeader[1] < SIZE_HEADER) {
++            throw new TypeError('Invalid ICNS entry length');
++        }
+         let imageSize = getImageSize(imageHeader[0]);
+         imageOffset += imageHeader[1];
+         if (imageOffset === fileLength)
+@@ -92,6 +95,9 @@ exports.ICNS = {
+         };
+         while (imageOffset < fileLength && imageOffset < inputLength) {
+             imageHeader = readImageHeader(input, imageOffset);
++            if (imageHeader[1] < SIZE_HEADER) {
++                throw new TypeError('Invalid ICNS entry length');
++            }
+             imageSize = getImageSize(imageHeader[0]);
+             imageOffset += imageHeader[1];
+             result.images.push(imageSize);
+diff --git a/dist/types/jxl.js b/dist/types/jxl.js
+index f557b0aea7e679d2cb84d9915e957dd2254eba97..29ffcca8ccd63734afeea59bb65896f77ca98bcc 100644
+--- a/dist/types/jxl.js
++++ b/dist/types/jxl.js
+@@ -23,6 +23,9 @@ function extractPartialStreams(input) {
+         const jxlpBox = (0, utils_1.findBox)(input, 'jxlp', offset);
+         if (!jxlpBox)
+             break;
++        if (jxlpBox.size < 12) {
++            throw new TypeError('Invalid JXL jxlp box size');
++        }
+         partialStreams.push(input.slice(jxlpBox.offset + 12, jxlpBox.offset + jxlpBox.size));
+         offset = jxlpBox.offset + jxlpBox.size;
+     }

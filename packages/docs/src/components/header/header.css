@@ -8,6 +8,73 @@
   z-index: 100;
 }
 
+.v2-docs-super-header {
+  align-items: center;
+  background: #05070d;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.36);
+  color: #fff;
+  display: flex;
+  min-height: var(--super-header-height);
+  text-decoration: none;
+}
+
+.v2-docs-super-header:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+.v2-docs-super-header-inner {
+  align-items: center;
+  display: flex;
+  font-family: Poppins, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  gap: 0.625rem;
+  justify-content: center;
+  line-height: 1.2;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: var(--container-max-width);
+  padding: 0 1rem;
+  width: 100%;
+}
+
+.v2-docs-super-header-icon {
+  align-items: center;
+  color: #18b6f6;
+  display: inline-flex;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 0 10px rgba(24, 182, 246, 0.55));
+}
+
+.v2-docs-super-header-copy {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.625rem;
+}
+
+.v2-docs-super-header-copy strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.v2-docs-super-header-copy span {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.v2-docs-super-header-arrow {
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  opacity: 0.9;
+  transition: transform 0.2s ease;
+}
+
+.v2-docs-super-header:hover .v2-docs-super-header-arrow {
+  transform: translateX(3px);
+}
+
 @media (min-width: 1024px) {
   .header-container {
     background: var(--bg-header-color);
@@ -65,7 +132,7 @@ header li a:hover svg {
 }
 
 header .mobile-menu {
-  height: var(--header-height);
+  height: var(--header-nav-height);
   position: absolute;
   right: 0;
   @apply p-5 lg:hidden;
@@ -92,7 +159,7 @@ header .header-inner {
   margin-left: auto;
   margin-right: auto;
   position: relative;
-  height: var(--header-height);
+  height: var(--header-nav-height);
 }
 
 .full-width header .header-inner {
@@ -103,7 +170,7 @@ header .header-logo {
   padding-left: 1rem;
   display: flex;
   align-items: center;
-  height: var(--header-height);
+  height: var(--header-nav-height);
 }
 
 .full-width header .header-logo {
@@ -123,6 +190,14 @@ header .header-logo {
 
   header .mobile-menu {
     padding: 0.5rem 1rem;
+  }
+
+  .v2-docs-super-header-inner {
+    font-size: 0.8125rem;
+  }
+
+  .v2-docs-super-header-copy span {
+    display: none;
   }
 
   .header-open header ul:not([role='listbox']) {

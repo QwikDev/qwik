@@ -134,6 +134,15 @@ We recommend setting the `ORIGIN` environment variable to the origin of your sit
 
 However, if the origin of your application is not static because you're hosting multiple sites, the Node.js based middleware provides a `getOrigin()` callback option to reliably reconstruct the origin (scheme + host + optional port).
 
+By default, `useLocation()` reports the URL the server received and ignores the `X-Forwarded-Host` and `X-Forwarded-Proto` request headers, since any client can send them. If your reverse proxy always overwrites these headers, enable `trustForwardedHeaders` so `useLocation()` reports the public URL:
+
+```ts
+createQwikCity({
+  render,
+  qwikCityPlan,
+  trustForwardedHeaders: true, // Only when a proxy overwrites X-Forwarded-* headers
+});
+```
 
 ### Examples
 

@@ -1,5 +1,47 @@
 # @builder.io/qwik
 
+## 1.20.3
+
+## 1.20.2
+
+### Patch Changes
+
+- 🐞🩹 prevent development image tooling from requesting private network resources (by [@github-actions](https://github.com/apps/github-actions) in [#9074](https://github.com/QwikDev/qwik/pull/9074))
+
+- 🐞🩹 dev server image auto fix endpoint accepted cross-site requests and paths outside `src` (by [@Varixo](https://github.com/Varixo) in [`85efa68`](https://github.com/QwikDev/qwik/commit/85efa68e417bed900910ee90554aaa963fdd47ff))
+
+## 1.20.1
+
+### Patch Changes
+
+- Async functions in `useComputed$` are no longer deprecated, since they now remain supported in Qwik v2. (by [@wmertens](https://github.com/wmertens) in [#8888](https://github.com/QwikDev/qwik/pull/8888))
+
+- ✨ `qwik migrate-v2` now migrates renamed and removed APIs, `tsconfig.json`, `package.json` and Vite 8, adds options that keep the v1 behavior where v2 changed it, and lists the changes that need manual attention. (by [@Varixo](https://github.com/Varixo) in [#9015](https://github.com/QwikDev/qwik/pull/9015))
+
+- 🐞🩹 prevent unsafe virtual attribute names in server-rendered HTML (by [@github-actions](https://github.com/apps/github-actions) in [#9035](https://github.com/QwikDev/qwik/pull/9035))
+
+- 🐞🩹 Rollup now has stable hashes with large parallel builds, so now Qwik doesn't enforce the workaround any more. (by [@wmertens](https://github.com/wmertens) in [#8691](https://github.com/QwikDev/qwik/pull/8691))
+
+- 🐞🩹 `useConstant()` now retains a `null` factory result instead of re-running the factory on every render. The retention guard changed from `!= null` to `!== undefined`, so any defined value (including `null`) is cached for the lifetime of the component; only a factory that returns `undefined` is re-run on each render. (by [@youdie006](https://github.com/youdie006) in [#8827](https://github.com/QwikDev/qwik/pull/8827))
+
+## 1.20.0
+
+## 1.19.2
+
+### Patch Changes
+
+- 🐞🩹 type casts to bridge Rollup vs Rolldown type differences without changing runtime behavior (by [@gioboa](https://github.com/gioboa) in [#8405](https://github.com/QwikDev/qwik/pull/8405))
+
+## 1.19.1
+
+### Patch Changes
+
+- 🐞🩹 support Deno as package manager for production builds. The Vite plugin now recognizes Deno as a Node-compatible runtime for manifest passing, and SSG delegates to the Node implementation instead of stubbing out. (by [@ianlet](https://github.com/ianlet) in [#8385](https://github.com/QwikDev/qwik/pull/8385))
+
+- 🐞🩹 the optimizer was not using the binary builds (by [@wmertens](https://github.com/wmertens) in [#8360](https://github.com/QwikDev/qwik/pull/8360))
+
+- 🐞🩹 resolve 404 error for virtual CSS modules during dev SSR (by [@jantimon](https://github.com/jantimon) in [#8351](https://github.com/QwikDev/qwik/pull/8351))
+
 ## 1.19.0
 
 ### Minor Changes

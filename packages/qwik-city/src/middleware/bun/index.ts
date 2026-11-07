@@ -14,6 +14,7 @@ import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
+import { limitRequestBody } from '../request-handler/request-body-limit';
 import { join, extname } from 'node:path';
 import { normalizeRequestUrl } from '../shared/url';
 
@@ -57,7 +58,7 @@ export function createQwikCity(opts: QwikCityBunOptions) {
             return Bun.env[key];
           },
         },
-        request,
+        request: limitRequestBody(request, opts.requestBodyLimit),
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream<Uint8Array>();
           const response = new Response(readable, {
@@ -193,6 +194,9 @@ export function createQwikCity(opts: QwikCityBunOptions) {
 
 /** @public */
 export interface QwikCityBunOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+
   /** Options for serving static files */
   static?: {
     /** The root folder for statics files. Defaults to /dist */

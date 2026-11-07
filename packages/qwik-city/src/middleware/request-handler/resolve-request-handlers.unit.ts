@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getPathname, isContentType, fixTrailingSlash } from './resolve-request-handlers';
+import {
+  getPathname,
+  isContentType,
+  fixTrailingSlash,
+  resolveRequestHandlers,
+} from './resolve-request-handlers';
 import { createRequestEvent } from './request-event';
 import { RedirectMessage } from './redirect-handler';
 import type { ServerRequestEvent, QwikSerializer } from './types';
@@ -102,6 +107,33 @@ describe('resolve-request-handler', () => {
         'content-type': 'application/x-www-form-urlencoded, bypass',
       });
       expect(isContentType(headers, 'application/x-www-form-urlencoded')).toBe(true);
+    });
+  });
+
+  describe('server function request isolation', () => {
+    it('runs server functions after plugin middleware and before route middleware', () => {
+      const pluginOnRequest = vi.fn();
+      const routeOnRequest = vi.fn();
+      const route = ['/public/', {}, [{ default: vi.fn(), onRequest: routeOnRequest }]] as any;
+
+      const handlers = resolveRequestHandlers(
+        [{ onRequest: pluginOnRequest }] as any,
+        route,
+        'POST',
+        false,
+        vi.fn(),
+        false
+      );
+
+      const serverFn = handlers.findIndex((h) => h.name === 'runServerFunction');
+      expect(handlers.indexOf(pluginOnRequest)).toBeGreaterThanOrEqual(0);
+      expect(handlers.indexOf(pluginOnRequest)).toBeLessThan(serverFn);
+      expect(serverFn).toBeLessThan(handlers.indexOf(routeOnRequest));
+    });
+
+    it('does not run server functions when no route matched', () => {
+      const handlers = resolveRequestHandlers(undefined, null, 'POST', false, vi.fn(), false);
+      expect(handlers.some((h) => h.name === 'runServerFunction')).toBe(false);
     });
   });
 

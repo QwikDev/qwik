@@ -98,6 +98,9 @@ function isLoggedIn() {
 ```
 </CodeSandbox>
 
+> **Security:** Route and layout middleware protects that route's loaders, actions, endpoints, and
+> rendered page. It does not run for [`server$` requests](/docs/server$/#middleware-and-server).
+> Authorize each sensitive server function directly or use application-wide `plugin.ts` middleware.
 
 ## `RequestEvent`
 

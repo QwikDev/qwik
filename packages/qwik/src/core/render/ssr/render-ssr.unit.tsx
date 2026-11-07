@@ -1452,6 +1452,26 @@ test('html fragment', async () => {
   );
 });
 
+test('html fragment skips unsafe property names', async () => {
+  const props = {
+    'x--><script>globalThis.__qwikXSS=1</script><qv': '',
+    dangerouslySetInnerHTML: '<div>safe</div>',
+  };
+  await testSSR(
+    <body>
+      <HTMLFragment {...props} />
+    </body>,
+    `
+  <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
+    <body>
+      <!--qv-->
+      <div>safe</div>
+      <!--/qv-->
+    </body>
+  </html>`
+  );
+});
+
 test('html slot', async () => {
   await testSSR(
     <HtmlContext>
@@ -1620,6 +1640,15 @@ describe('renderVirtualAttributes', () => {
     };
     const out = renderVirtualAttributes(attrs as any);
     expect(out).toBe(' foo=bar');
+  });
+
+  test('skips unsafe property names', () => {
+    const attrs = {
+      'x--><script>globalThis.__qwikXSS=1</script><qv': '',
+      safe: 'value',
+    };
+    const out = renderVirtualAttributes(attrs as any);
+    expect(out).toBe(' safe=value');
   });
 
   test('renders numeric attributes', () => {

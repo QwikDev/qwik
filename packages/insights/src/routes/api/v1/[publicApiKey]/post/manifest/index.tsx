@@ -1,17 +1,32 @@
 import { type RequestHandler } from '@builder.io/qwik-city';
 import { and, eq } from 'drizzle-orm';
 import { getDB, symbolDetailTable } from '~/db';
+import { isRegisteredApp } from '~/db/query';
 import { dbGetManifestInfo } from '~/db/sql-manifest';
 import { QManifest } from '~/types/q-manifest';
+import { readBoundedJson } from '../read-bounded-json';
 
-export const onPost: RequestHandler = async ({ exit, json, request, params }) => {
+const MAX_MANIFEST_BYTES = 10 * 1024 * 1024;
+const MAX_MANIFEST_SYMBOLS = 10_000;
+
+export const onPost: RequestHandler = async ({ error, exit, json, request, params }) => {
   // onsole.log('API: POST: symbol');
   const publicApiKey = params.publicApiKey;
+  const db = getDB();
+  if (!(await isRegisteredApp(db, publicApiKey))) {
+    throw error(404, 'Unknown Application');
+  }
+  const manifestJson = await readBoundedJson(request, MAX_MANIFEST_BYTES);
+  if (manifestJson === undefined) {
+    throw error(413, 'Payload Too Large');
+  }
+  const qManifest = QManifest.parse(manifestJson);
+  if (Object.keys(qManifest.symbols).length > MAX_MANIFEST_SYMBOLS) {
+    throw error(413, 'Too Many Symbols');
+  }
   try {
-    const qManifest = QManifest.parse(await request.json());
     const manifestHash = qManifest.manifestHash;
     exit();
-    const db = getDB();
     await dbGetManifestInfo(db, publicApiKey, manifestHash);
     const existing = await db
       .select()

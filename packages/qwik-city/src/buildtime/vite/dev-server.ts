@@ -1,7 +1,7 @@
 import type { QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import type { ServerResponse } from 'node:http';
-import { join, resolve } from 'node:path';
+import { isAbsolute, relative, resolve, sep } from 'node:path';
 import type { Connect, ViteDevServer } from 'vite';
 import { computeOrigin, fromNodeHttp, getUrl } from '../../middleware/node/http';
 import {
@@ -176,7 +176,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         const renderFn = async (requestEv: RequestEvent) => {
           // routeResult && requestEv.sharedMap.set('@routeName', routeResult.route.pathname);
           if (!isInternal) {
-            const serverData = getQwikCityServerData(requestEv);
+            const serverData = getQwikCityServerData(requestEv, true);
 
             res.statusCode = requestEv.status();
             requestEv.headers.forEach((value, key) => {
@@ -440,7 +440,7 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
       return;
     }
 
-    const relPath = `${url.pathname.slice(1)}${url.search}`;
+    const relPath = url.pathname.slice(1);
 
     const ext = getExtension(relPath);
     const contentType = STATIC_CONTENT_TYPES[ext];
@@ -451,7 +451,15 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
 
     for (const distDir of distDirs) {
       try {
-        const filePath = join(distDir, relPath);
+        const filePath = resolve(distDir, relPath);
+        const relativePath = relative(distDir, filePath);
+        if (
+          relativePath === '..' ||
+          relativePath.startsWith(`..${sep}`) ||
+          isAbsolute(relativePath)
+        ) {
+          continue;
+        }
         const s = await fs.promises.stat(filePath);
         if (s.isFile()) {
           res.writeHead(200, {

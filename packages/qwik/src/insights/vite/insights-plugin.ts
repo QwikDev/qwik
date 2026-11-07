@@ -1,9 +1,10 @@
 import type { QwikVitePlugin, SmartEntryStrategy } from '@qwik.dev/core/optimizer';
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { existsSync, mkdirSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { isAbsolute, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type { PluginOption } from 'vite';
 
 const logWarn = (message?: any, ...rest: any[]) => {
@@ -78,7 +79,11 @@ export async function qwikInsights(qwikInsightsOpts: {
   let data: InsightManifest | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
 
-  const pingerFile = () => fileURLToPath(new URL('../../insights-pinger.js', import.meta.url));
+  const pingerFile = () =>
+    createRequire(import.meta.url).resolve('@qwik.dev/core/insights-pinger.js');
+  let pingerSource = '';
+  // Content-hashed, because `build/` is served immutable: a stale pinger must never be reused.
+  let pingerFileName = '';
 
   const apiUrl = `${baseUrl}/api/v1/${publicApiKey}`;
   let postUrl = postUrlOverride || `${apiUrl}/post/`;
@@ -125,6 +130,15 @@ export async function qwikInsights(qwikInsightsOpts: {
         }
       }
 
+      try {
+        pingerSource = await readFile(pingerFile(), 'utf-8');
+      } catch (e) {
+        logWarn('Failed to read the insights pinger, not adding the tracker', e);
+        return;
+      }
+      const pingerHash = createHash('sha256').update(pingerSource).digest('hex').slice(0, 8);
+      pingerFileName = `qwik-insights-pinger-${pingerHash}.js`;
+
       // Track every session in dev (so you see data immediately), sample in a build.
       const sampleRate = sampleRateOpt ?? (command === 'serve' ? 1 : 0.05);
 
@@ -133,6 +147,7 @@ export async function qwikInsights(qwikInsightsOpts: {
           'globalThis.__QI_KEY__': JSON.stringify(publicApiKey),
           'globalThis.__QI_URL__': JSON.stringify(postUrl),
           'globalThis.__QI_SAMPLE__': JSON.stringify(sampleRate),
+          'globalThis.__QI_PINGER__': JSON.stringify(pingerFileName),
         },
       };
     },
@@ -143,13 +158,9 @@ export async function qwikInsights(qwikInsightsOpts: {
           recordDevBeacon(req, res, dbUrl!, publicApiKey).catch(next);
           return;
         }
-        if (req.url && req.url.split('?')[0].endsWith('qwik-insights-pinger.js')) {
-          readFile(pingerFile(), 'utf-8')
-            .then((code) => {
-              res.setHeader('Content-Type', 'application/javascript');
-              res.end(code);
-            })
-            .catch(next);
+        if (pingerFileName && req.url?.split('?')[0].endsWith('/' + pingerFileName)) {
+          res.setHeader('Content-Type', 'application/javascript');
+          res.end(pingerSource);
           return;
         }
         next();
@@ -239,18 +250,10 @@ export async function qwikInsights(qwikInsightsOpts: {
 
     // Copy the lazy pinger into the client build so the inline gate can import it from q:base.
     async generateBundle(this: { emitFile: (f: any) => void }) {
-      if (qwikVitePlugin?.api.getOptions().target !== 'client') {
+      if (!pingerFileName || qwikVitePlugin?.api.getOptions().target !== 'client') {
         return;
       }
-      try {
-        this.emitFile({
-          type: 'asset',
-          fileName: 'build/qwik-insights-pinger.js',
-          source: await readFile(pingerFile(), 'utf-8'),
-        });
-      } catch (e) {
-        logWarn('Failed to emit insights pinger chunk', e);
-      }
+      this.emitFile({ type: 'asset', fileName: `build/${pingerFileName}`, source: pingerSource });
     },
 
     closeBundle: async () => {

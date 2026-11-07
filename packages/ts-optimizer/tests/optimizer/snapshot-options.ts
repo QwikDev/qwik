@@ -721,7 +721,29 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   },
   should_keep_root_var_used_by_export_decl_and_qrl: { transpileTs: true, transpileJsx: true },
   should_keep_root_var_used_by_exported_function_and_qrl: { transpileTs: true, transpileJsx: true },
+  should_keep_passive_directive_on_dynamic_tag_jsx_split: { transpileTs: true, transpileJsx: true },
+  should_make_dynamic_tag_jsx_split_with_strip_event_handlers: {
+    transpileTs: true,
+    transpileJsx: true,
+    stripEventHandlers: true,
+  },
   should_make_component_jsx_split_with_bind: { transpileTs: true, transpileJsx: true },
+  should_make_dynamic_tag_jsx_split_with_event_handlers: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_make_dynamic_tag_jsx_split_with_computed_event_prop: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_make_dynamic_tag_jsx_split_with_lowercase_event_props: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+  should_make_dynamic_tag_jsx_split_with_shorthand_event_prop: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
   should_mark_props_as_var_props_for_inner_cmp: { transpileTs: true, transpileJsx: true },
   should_merge_attributes_with_spread_props: { transpileTs: true, transpileJsx: true },
   should_merge_attributes_with_spread_props_before_and_after: {

@@ -29,6 +29,7 @@ import {
 import { walkWithProtocol } from '../ast/walk-with-protocol.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
+import { processJsxTag } from '../jsx/jsx.js';
 import {
   detectLoopContext,
   extendLoopWrittenCaptures,
@@ -765,7 +766,8 @@ function enterPassiveConflicts(
   if (!ctx.passiveEnabled) {
     return;
   }
-  if (node.type !== 'JSXOpeningElement') {
+  // Like Rust, only HTML tags warn: a component or dynamic tag passes both props through
+  if (node.type !== 'JSXOpeningElement' || !processJsxTag(node.name).startsWith('"')) {
     return;
   }
 

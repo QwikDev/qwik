@@ -12,7 +12,7 @@ import {
   type JsxKeyReservations,
   reserveRegionKeys,
 } from './jsx.js';
-import { transformEventPropName } from './event-handlers.js';
+import { isRuntimeEventProp, transformEventPropName } from './event-handlers.js';
 import { buildCaptureProp } from './loop-hoisting.js';
 import { analyzeSignalExpression, type SignalHoister } from './signal-analysis.js';
 import type { SegmentImportData } from '../segment/segment-codegen.js';
@@ -73,6 +73,7 @@ interface JsxCallTransformOptions {
   localNames?: ReadonlySet<string>;
   bindings?: ScopeAwareBindings;
   paramNames?: readonly string[];
+  program?: AstProgram;
 }
 
 /**
@@ -114,6 +115,7 @@ export function transformJsxCalls(
   }
   opts.localNames = localNames;
   opts.bindings = scopeBindings.bindings;
+  opts.program = program;
 
   const directJsxChildStarts = new Set<number>();
 
@@ -509,10 +511,15 @@ function buildJsxSortedCall(
   // Event-handler key rewriting (`onClick$` → `"q-e:click"`) applies only to
   // HTML — components receive the `*$` form as a JSX prop and wire it at runtime.
   const isHtmlTag = tagArg.type === 'Literal' && typeof tagArg.value === 'string';
+  const isDynamicTag = isDynamicTagExpr(tagArg, opts);
 
   let childrenText: string | null = null;
   let childrenIsDynamic = false;
   let hasVarEventHandler = false;
+  let hasShorthandEventHandler = false;
+  // A dynamic tag can be a string at runtime, so on*$ props (shorthand too) need _jsxSplit to
+  // become listeners. Same rule as the JSX element path and the Rust optimizer.
+  let hasEventPropsOnDynamicTag = false;
   const varEntries: string[] = [];
   const constEntries: string[] = [];
   const slots: PropSlot[] = [];
@@ -533,6 +540,9 @@ function buildJsxSortedCall(
       return null;
     }
     const keyName = propertyKeyName(prop);
+    if (!isHtmlTag && mayBeRuntimeEventKey(prop, keyName, isDynamicTag)) {
+      hasEventPropsOnDynamicTag = true;
+    }
     if (keyName === 'children' && !prop.computed) {
       const value = prop.value;
       childrenText = s.slice(value.start, value.end);
@@ -544,7 +554,7 @@ function buildJsxSortedCall(
       varEntries.push(entryText);
       slots.push({ kind: 'named', text: entryText, isConst: false, rawConst: false });
       if (isHandlerPropKey(keyName)) {
-        hasVarEventHandler = true;
+        hasShorthandEventHandler = true;
       }
       continue;
     }
@@ -580,7 +590,8 @@ function buildJsxSortedCall(
         continue;
       }
     }
-    if (isHandlerPropKey(keyName)) {
+    // A computed key like `['onClick$']` is a plain prop in Rust, so only a named handler goes here
+    if (!prop.computed && isHandlerPropKey(keyName)) {
       const handlerText = s.slice(prop.start, prop.end);
       const isConst = isConstEventHandlerValue(prop.value);
       slots.push({
@@ -653,9 +664,21 @@ function buildJsxSortedCall(
   const varPropsText = varEntries.length > 0 ? `{ ${varEntries.join(', ')} }` : 'null';
   const constPropsText = constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : 'null';
   const hasVarProps = varEntries.length > 0;
-  let flags = computeJsxFlags(hasVarProps, childrenType, false, hasVarEventHandler);
+  // Rust keeps the static_listeners bit for a shorthand handler on the _jsxSplit path (the runtime
+  // never reads that bit); _jsxSorted clears it so the handler is not treated as a const listener.
+  let flags = computeJsxFlags(
+    hasVarProps,
+    childrenType,
+    false,
+    hasVarEventHandler || (!hasEventPropsOnDynamicTag && hasShorthandEventHandler)
+  );
   if (qpParams.length > 0) {
     flags |= 4;
+  }
+
+  if (hasEventPropsOnDynamicTag) {
+    opts.neededImports.add('_jsxSplit');
+    return `/*#__PURE__*/ _jsxSplit(${tag}, ${varPropsText}, ${constPropsText}, ${childrenSlot}, ${flags}, ${keyText})`;
   }
 
   opts.neededImports.add('_jsxSorted');
@@ -670,6 +693,49 @@ function buildJsxSortedCall(
  */
 function isConstEventHandlerValue(value: AstNode): boolean {
   return value.type === 'Identifier';
+}
+
+/**
+ * Whether a prop key can be an on*$ event at runtime. `['onClick$']` is checked by name, and a
+ * computed key like `[name]` could be any event. Computed keys count only on a dynamic tag. Same
+ * rule as `component_has_event_props` in the Rust optimizer.
+ */
+function mayBeRuntimeEventKey(
+  prop: AstNode,
+  keyName: string | null,
+  isDynamicTag: boolean
+): boolean {
+  if (prop.type !== 'Property') {
+    return false;
+  }
+  if (!prop.computed) {
+    return keyName !== null && isRuntimeEventProp(keyName);
+  }
+  if (!isDynamicTag) {
+    return false;
+  }
+  if (prop.key.type === 'Literal') {
+    return typeof prop.key.value === 'string' && isRuntimeEventProp(prop.key.value);
+  }
+  return true;
+}
+
+/**
+ * A tag bound in a function or block (or any other expression) can change at runtime. Imported,
+ * module-level and global tags like `Host` are static components. Same rule as the Rust optimizer.
+ */
+function isDynamicTagExpr(tagArg: AstNode, opts: JsxCallTransformOptions): boolean {
+  if (tagArg.type === 'Literal') {
+    return false;
+  }
+  if (tagArg.type !== 'Identifier') {
+    return true;
+  }
+  return (
+    (opts.paramNames?.includes(tagArg.name) ?? false) ||
+    (opts.program !== undefined &&
+      (opts.bindings?.isInnerScopeBinding(tagArg.name, tagArg.start, opts.program) ?? false))
+  );
 }
 
 function propertyKeyName(prop: AstNode): string | null {

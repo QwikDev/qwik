@@ -24,6 +24,15 @@ export function isEventProp(propName: string): boolean {
   return false;
 }
 
+/**
+ * Whether the runtime turns this prop into a listener on a string tag: `on*$`, `window:on*$` or
+ * `document:on*$`, in any case (`onclick$` too). Mirrors `isJsxPropertyAnEventName` in
+ * `event-names.ts` and the Rust optimizer's `jsx_event_to_html_attribute`.
+ */
+export function isRuntimeEventProp(propName: string): boolean {
+  return getEventScopeData(propName, false) !== null && propName.endsWith('$');
+}
+
 export function isPassiveDirective(propName: string): boolean {
   return propName.startsWith('passive:');
 }

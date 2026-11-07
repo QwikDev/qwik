@@ -48,6 +48,6 @@ export const Wrapper = component$((props: { data: any }) => {
   const out = transform(code);
   // onClick$ (w-call capturing props) in the var bag; text stays const.
   expect(out).toMatch(
-    /_jsxSorted\(Inner, \{ onClick\$: q_[\w$]+\.w\(\[props\]\) \}, \{ text: "a" \}/
+    /_jsxSplit\(Inner, \{ onClick\$: q_[\w$]+\.w\(\[props\]\) \}, \{ text: "a" \}/
   );
 });

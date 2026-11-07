@@ -475,15 +475,22 @@ describe('fromNodeHttp()', () => {
     expect(res.end).not.toHaveBeenCalled();
   });
 
-  test('should report an unexpected response error even when it aborts the request', async () => {
-    const error = new Error('emitted write failure');
+  test.each([
+    { source: 'response error event', abortsRequest: true },
+    { source: 'write callback', abortsRequest: false },
+  ])('should report an unexpected response error from the $source', async ({ abortsRequest }) => {
+    const error = new Error('unexpected write failure');
     const req = createBodyRequest([]);
     const res = createResponse();
     res.setHeader = vi.fn();
-    res.write = vi.fn(() => {
-      res.emit('error', error);
+    res.write = vi.fn((_chunk: Uint8Array, callback?: (error?: Error | null) => void) => {
+      if (abortsRequest) {
+        res.emit('error', error);
+      } else {
+        callback?.(error);
+      }
       return false;
-    });
+    }) as ServerResponse['write'];
     const serverRequestEv = await fromNodeHttp(new URL('http://localhost/'), req, res, 'server');
     const requestEv = createRequestEvent(
       serverRequestEv,
@@ -497,11 +504,11 @@ describe('fromNodeHttp()', () => {
     try {
       requestEv.send(200, 'hello');
 
-      await vi.waitFor(() => expect(requestEv.signal.aborted).toBe(true));
       await vi.waitFor(() =>
         expect(consoleError).toHaveBeenCalledWith('Response stream failed:', error)
       );
       expect(consoleError).toHaveBeenCalledTimes(1);
+      expect(requestEv.signal.aborted).toBe(abortsRequest);
     } finally {
       consoleError.mockRestore();
     }

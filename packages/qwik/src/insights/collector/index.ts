@@ -196,14 +196,14 @@ export async function writeInsights(dbUrl: string, beacon: InsightsPayload): Pro
   return true;
 }
 
-/** Record one client error beacon. The pinger sends no key with errors, so it comes from options. */
+/** Record one client error beacon, ignoring other apps' errors when `expectedKey` is set. */
 async function writeInsightsError(
   dbUrl: string,
   beacon: unknown,
-  publicApiKey: string | undefined
+  expectedKey: string | undefined
 ): Promise<boolean> {
   const error: InsightsError | null = parseInsightsError(beacon);
-  if (!error) {
+  if (!error || (expectedKey && error.publicApiKey !== expectedKey)) {
     return false;
   }
   const db = await getDb(dbUrl);
@@ -211,7 +211,7 @@ async function writeInsightsError(
     {
       sql: `INSERT INTO errors (public_api_key, manifest_hash, timestamp, url, source, line, "column", message, error, stack) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
-        publicApiKey ?? null,
+        error.publicApiKey ?? null,
         error.manifestHash,
         error.timestamp,
         error.url,

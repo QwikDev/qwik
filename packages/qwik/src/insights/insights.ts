@@ -55,6 +55,8 @@ export interface InsightSymbol {
 
 /** @public */
 export interface InsightsError {
+  /** Public API key of the app, so a collector can ignore other apps' errors. */
+  publicApiKey?: string;
   /** Manifest Hash of the container. */
   manifestHash: string;
   timestamp: number;

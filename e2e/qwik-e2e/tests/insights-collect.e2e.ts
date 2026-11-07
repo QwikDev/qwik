@@ -42,7 +42,12 @@ test('insights collector route swallows a malformed beacon', async ({ request })
 
 test('insights collector route records an error beacon', async ({ request }) => {
   const response = await request.post(`${COLLECTOR_URL}error/`, {
-    data: { manifestHash: 'e2e', url: 'http://localhost/', message: 'Uncaught Error: e2e' },
+    data: {
+      publicApiKey: 'e2ekey123',
+      manifestHash: 'e2e',
+      url: 'http://localhost/',
+      message: 'Uncaught Error: e2e',
+    },
   });
 
   expect(response.status()).toBe(200);

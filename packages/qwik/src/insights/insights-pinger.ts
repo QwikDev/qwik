@@ -146,6 +146,7 @@ export default function startInsights(): void {
       return;
     }
     const payload: InsightsError = {
+      publicApiKey,
       url: `${location}`,
       manifestHash,
       timestamp: new Date().getTime(),

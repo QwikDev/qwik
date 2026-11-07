@@ -4,7 +4,7 @@ import { resolveEntryField } from '../../../src/optimizer/segment/entry-strategy
 // Prod-mode symbol names carry only the hash; grouping must come from the context stack.
 const segment = {
   symbolName: 's_abc123',
-  hash: 'abc123',
+  canonicalFilename: 'test.tsx_App_component_abc123',
   rootContext: 'App' as string | null,
   origin: 'test.tsx',
   ctxKind: 'function' as const,
@@ -46,6 +46,16 @@ describe('resolveEntryField', () => {
       ).toBeNull();
     });
 
+    it('names event-only QRLs after their canonical filename', () => {
+      expect(
+        resolveEntryField(
+          'smart',
+          { ...segment, ctxName: '$', captures: true, isEventOnly: true },
+          undefined
+        )
+      ).toBe('test.tsx_App_component_abc123');
+    });
+
     it('returns null for segment strategy (alias of smart)', () => {
       expect(resolveEntryField('segment', segment, undefined)).toBeNull();
     });
@@ -85,6 +95,11 @@ describe('resolveEntryField', () => {
     it('returns mapped value when symbol is in manual map', () => {
       const manual = { s_abc123: 'vendor' };
       expect(resolveEntryField('smart', segment, manual)).toBe('vendor');
+    });
+
+    it('prefers the manual entry over event-only separation', () => {
+      const manual = { s_abc123: 'vendor' };
+      expect(resolveEntryField('smart', { ...segment, isEventOnly: true }, manual)).toBe('vendor');
     });
 
     it('falls back to the selected strategy when symbol is not mapped', () => {

@@ -1,10 +1,15 @@
 import path, { resolve } from 'node:path';
-import { qwikRolldown } from './rolldown';
+import {
+  normalizeRolldownOutputObject,
+  qwikRolldown,
+  type QwikRolldownPluginOptions,
+} from './rolldown';
 import type { Rolldown } from 'vite';
-import type { OptimizerOptions } from '../types';
+import type { OptimizerOptions, SegmentAnalysis } from '../types';
 import { createQwikPlugin, type NormalizedQwikPluginOptions } from './plugin';
-import { assert, expect, test, vi } from 'vitest';
+import { assert, describe, expect, test, vi } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
+import { flattenToChunkName, shortenChunkName } from './vite-utils';
 
 const cwd = process.cwd();
 
@@ -224,6 +229,7 @@ test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }
         meta: {
           segment: {
             hash: 'click123',
+            canonicalFilename: 'app.tsx_App_component_click_click123',
             ctxName: 'event$',
             ctxKind: 'function',
             entry: 'entry_render',
@@ -231,11 +237,24 @@ test.each([undefined, { click123: 'manual_click', visible123: 'manual_visible' }
         },
       }),
     } as any;
-    assert.equal(name('/src/click.js', ctx), manual?.click123 ?? 'segment_click123');
+    assert.equal(
+      name('/src/click.js', ctx),
+      manual?.click123 ?? 'app.tsx_App_component_click_click123'
+    );
     ctx.getModuleInfo = () => ({
-      meta: { segment: { hash: 'visible123', ctxName: 'useVisibleTask$', entry: 'entry_render' } },
+      meta: {
+        segment: {
+          hash: 'visible123',
+          canonicalFilename: 'app.tsx_App_component_useVisibleTask_visible123',
+          ctxName: 'useVisibleTask$',
+          entry: 'entry_render',
+        },
+      },
     });
-    assert.equal(name('/src/visible.js', ctx), manual?.visible123 ?? 'segment_visible123');
+    assert.equal(
+      name('/src/visible.js', ctx),
+      manual?.visible123 ?? 'app.tsx_App_component_useVisibleTask_visible123'
+    );
     ctx.getModuleInfo = () => ({
       meta: { segment: { hash: 'read123', ctxName: '$', ctxKind: 'function', entry: null } },
     });
@@ -273,6 +292,7 @@ test('smart rendering never imports a future interaction library through bundler
                     ? {
                         segment: {
                           hash: id,
+                          canonicalFilename: `app.tsx_App_component_${id}`,
                           ctxName: id === 'render' ? 'component$' : 'event$',
                           entry: id === 'render' ? 'entry_render' : null,
                         },
@@ -435,6 +455,210 @@ test.each(
     }
   }
 );
+
+async function buildSmartDebugClient(
+  tsOptimizer: boolean,
+  sources: Record<string, string>,
+  inputs = Object.keys(sources)
+) {
+  const debugLog = vi.spyOn(console, 'debug').mockImplementation(() => {});
+  const srcDir = normalizePath(resolve(cwd, 'fixture', 'src'));
+  const plugin = createQwikPlugin({ tsOptimizer });
+  await plugin.init();
+  await plugin.normalizeOptions({
+    target: 'client',
+    buildMode: 'production',
+    debug: true,
+    entryStrategy: { type: 'smart' },
+    rootDir: path.dirname(srcDir),
+    srcDir,
+  });
+  const files = new Map(Object.entries(sources).map(([file, code]) => [`${srcDir}/${file}`, code]));
+  const segments = new Map<string, SegmentAnalysis>();
+  const { rolldown } = await import('rolldown');
+  const build = await rolldown({
+    input: inputs.map((file) => `${srcDir}/${file}`),
+    external: (id) => id.startsWith('@qwik.dev/'),
+    preserveEntrySignatures: 'allow-extension',
+    plugins: [
+      {
+        name: 'qwik-fixture',
+        resolveId: (id, importer) => {
+          if (!importer) {
+            return id;
+          }
+          return id.startsWith('.')
+            ? normalizePath(path.resolve(path.dirname(importer), id))
+            : null;
+        },
+        async load(id) {
+          if (files.has(id)) {
+            return files.get(id);
+          }
+          const segment = await plugin.load(this as any, id);
+          segments.set(id, segment!.meta!.segment);
+          return segment;
+        },
+        transform(code, id) {
+          return files.has(id) ? plugin.transform(this as any, code, id) : null;
+        },
+      },
+    ],
+  });
+  try {
+    const { output } = await build.generate(normalizeRolldownOutputObject(plugin, {}));
+    const chunks = output.filter((chunk) => chunk.type === 'chunk');
+    const segmentChunks = [...segments].map(([id, segment]) => ({
+      segment,
+      fileName: chunks.find((chunk) => id in chunk.modules)?.fileName,
+    }));
+    return { chunks, segmentChunks };
+  } finally {
+    await build.close();
+    debugLog.mockRestore();
+  }
+}
+
+async function readableChunkFileNames(
+  options: Pick<QwikRolldownPluginOptions, 'buildMode' | 'debug'>
+) {
+  const plugin = qwikRolldown({ optimizerOptions: mockOptimizerOptions(), ...options });
+  await plugin.options!({});
+  const output: Rolldown.OutputOptions = await plugin.outputOptions!({});
+  return output.chunkFileNames as (chunk: Rolldown.PreRenderedChunk) => string;
+}
+
+describe('debug chunk names', () => {
+  test.each([true, false])(
+    'names each separated smart chunk after its segment (tsOptimizer: %s)',
+    async (tsOptimizer) => {
+      const { segmentChunks } = await buildSmartDebugClient(tsOptimizer, {
+        'app.tsx': `import { $, component$, event$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+         export const App = component$(() => {
+           const count = useSignal(0);
+           const reset = $(() => (count.value = 0));
+           const log = event$(() => console.log(count.value));
+           useVisibleTask$(() => console.log(count.value));
+           return <>
+             <button onClick$={() => count.value++}>increment</button>
+             <button onClick$={reset}>reset</button>
+             <button onClick$={log}>log</button>
+           </>;
+         });`,
+      });
+      const separated = segmentChunks.filter(({ segment }) => segment.ctxName !== 'component$');
+
+      expect(separated.map(({ segment }) => segment.ctxName).sort()).toEqual([
+        '$',
+        'event$',
+        'onClick$',
+        'useVisibleTask$',
+      ]);
+      expect(separated.map(({ fileName }) => fileName)).toEqual(
+        separated.map(({ segment }) => `build/${segment.canonicalFilename}.js`)
+      );
+    }
+  );
+
+  test.each([true, false])(
+    'gives every separated handler its own chunk when names repeat (tsOptimizer: %s)',
+    async (tsOptimizer) => {
+      const page = `import { component$ } from '@qwik.dev/core';
+       export const Page = component$(() => <>
+         <button onClick$={() => console.log('one')}>one</button>
+         <button onClick$={() => console.log('two')}>two</button>
+       </>);`;
+      const { segmentChunks } = await buildSmartDebugClient(tsOptimizer, {
+        'a/page.tsx': page,
+        'b/page.tsx': page,
+      });
+      const handlers = segmentChunks.filter(({ segment }) => segment.ctxName === 'onClick$');
+
+      expect(handlers).toHaveLength(4);
+      expect(new Set(handlers.map(({ segment }) => segment.displayName)).size).toBe(2);
+      expect(new Set(handlers.map(({ fileName }) => fileName)).size).toBe(4);
+    }
+  );
+
+  test.each([true, false])(
+    'shortens the chunk name of a deeply nested handler (tsOptimizer: %s)',
+    async (tsOptimizer) => {
+      const { segmentChunks } = await buildSmartDebugClient(tsOptimizer, {
+        'app.tsx': `import { component$ } from '@qwik.dev/core';
+         export const App = component$(() =>
+           ${'<div>'.repeat(60)}<button onClick$={() => console.log('deep')} />${'</div>'.repeat(60)}
+         );`,
+      });
+      const { segment, fileName } = segmentChunks.find(
+        ({ segment }) => segment.ctxName === 'onClick$'
+      )!;
+
+      expect(Buffer.byteLength(segment.canonicalFilename)).toBeGreaterThan(200);
+      expect(fileName).toBe(`build/${shortenChunkName(segment.canonicalFilename)}.js`);
+      expect(fileName).toMatch(new RegExp(`_${segment.hash}\\.js$`));
+    }
+  );
+
+  test.each([true, false])(
+    'keeps the handler name when its entry chunk also holds a dependency (tsOptimizer: %s)',
+    async (tsOptimizer) => {
+      const { chunks, segmentChunks } = await buildSmartDebugClient(
+        tsOptimizer,
+        {
+          'root.tsx': `export const load = () => import('./routes/page.tsx');`,
+          'routes/page.tsx': `import { component$ } from '@qwik.dev/core';
+           import { confetti } from './confetti';
+           export const Page = component$(() => <button onClick$={() => confetti()}>go</button>);`,
+          'routes/confetti': `export const confetti = () => console.log('CONFETTI');`,
+        },
+        ['root.tsx']
+      );
+      const { segment, fileName } = segmentChunks.find(
+        ({ segment }) => segment.ctxName === 'onClick$'
+      )!;
+      const entry = chunks.find(
+        (chunk) => chunk.fileName === `build/${segment.canonicalFilename}-entry.js`
+      );
+
+      expect(fileName).toBe(`build/${segment.canonicalFilename}.js`);
+      expect(Object.keys(entry!.modules).map((id) => path.basename(id))).toEqual(['confetti']);
+    }
+  );
+
+  test('adds -entry to an entry chunk whose module lives in another chunk', async () => {
+    const chunkFileNames = await readableChunkFileNames({ buildMode: 'production', debug: true });
+    const name = 'app.tsx_App_component_button_q_e_click_abc123';
+    const facadeModuleId = `/src/${name}.js`;
+
+    expect(chunkFileNames({ name, facadeModuleId, moduleIds: ['/src/confetti.ts'] } as any)).toBe(
+      `build/${name}-entry.js`
+    );
+    expect(chunkFileNames({ name, facadeModuleId, moduleIds: [facadeModuleId] } as any)).toBe(
+      `build/${name}.js`
+    );
+  });
+
+  test.each([
+    { buildMode: 'production', debug: true },
+    { buildMode: 'development', debug: false },
+  ] as const)('shortens long chunk file names ($buildMode, debug: $debug)', async (options) => {
+    const chunkFileNames = await readableChunkFileNames(options);
+    const name = `app.tsx_App_component_${'div_'.repeat(60)}button_q_e_click_ppvuTaDoEGk`;
+
+    expect(chunkFileNames({ name, moduleIds: [] } as any)).toBe(
+      `build/${shortenChunkName(name)}.js`
+    );
+  });
+
+  test('flattens, then shortens, long path-like chunk names', async () => {
+    const chunkFileNames = await readableChunkFileNames({ buildMode: 'production', debug: true });
+    const relativeName = `node_modules/.pnpm/${'@scope+lib@1.0.0_'.repeat(10)}/node_modules/@scope/lib/index.qwik.mjs_entry_Widget`;
+    const fileName = chunkFileNames({ name: resolve(cwd, relativeName), moduleIds: [] } as any);
+
+    expect(fileName).toBe(`build/${shortenChunkName(flattenToChunkName(relativeName))}.js`);
+    expect(fileName.slice('build/'.length)).not.toContain('/');
+  });
+});
 
 test('codeSplitting starts with the qwik groups and disables dependency recursion', async () => {
   const codeSplitting = await clientCodeSplitting({});

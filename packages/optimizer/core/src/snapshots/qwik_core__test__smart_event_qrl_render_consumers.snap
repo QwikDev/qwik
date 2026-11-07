@@ -95,7 +95,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "s_0Z0APcS8nqU",
-  "entry": "segment_0Z0APcS8nqU",
+  "entry": "test.tsx_App_component_click_0Z0APcS8nqU",
   "displayName": "test.tsx_App_component_click",
   "hash": "0Z0APcS8nqU",
   "canonicalFilename": "test.tsx_App_component_click_0Z0APcS8nqU",

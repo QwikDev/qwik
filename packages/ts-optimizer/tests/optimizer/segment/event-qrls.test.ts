@@ -64,7 +64,7 @@ describe('event-only QRL references', () => {
     );
     for (const name of ['click', 'wrapped']) {
       const segment = segments.find((segment) => segment.displayName.endsWith('_' + name))!;
-      expect(segment.entry, name).toBe(`segment_${segment.hash}`);
+      expect(segment.entry, name).toBe(segment.canonicalFilename);
       expect(segment.ctxKind).toBe('function');
       expect(segment.ctxName).toBe('$');
     }
@@ -122,7 +122,7 @@ describe('event-only QRL references', () => {
     const callback = result.modules
       .flatMap((mod) => (mod.kind === 'segment' ? [mod.segment] : []))
       .find((segment) => segment.displayName.endsWith('_click'))!;
-    expect(callback.entry === `segment_${callback.hash}`).toBe(separated);
+    expect(callback.entry).toBe(separated ? callback.canonicalFilename : 'test.tsx_entry_App');
   });
 
   it('uses smart analysis when entryStrategy is omitted', () => {
@@ -136,7 +136,7 @@ describe('event-only QRL references', () => {
     const click = result.modules
       .flatMap((mod) => (mod.kind === 'segment' ? [mod.segment] : []))
       .find((segment) => segment.displayName.endsWith('_click'))!;
-    expect(click.entry).toBe(`segment_${click.hash}`);
+    expect(click.entry).toBe(click.canonicalFilename);
   });
 
   it('does not change component strategy', () => {
@@ -155,7 +155,7 @@ describe('event-only QRL references', () => {
     const callbacks = result.modules.flatMap((mod) =>
       mod.kind === 'segment' && mod.segment.ctxName === '$' ? [mod.segment] : []
     );
-    expect(callbacks.filter((segment) => segment.entry === `segment_${segment.hash}`)).toHaveLength(
+    expect(callbacks.filter((segment) => segment.entry === segment.canonicalFilename)).toHaveLength(
       1
     );
     expect(callbacks.filter((segment) => segment.entry === 'test.tsx_entry_App')).toHaveLength(1);
@@ -172,7 +172,7 @@ describe('event-only QRL references', () => {
       (mod) => mod.kind === 'segment' && mod.code.includes('EVENT_HEAVY')
     );
     expect(click?.kind === 'segment' && click.segment.entry).toBe(
-      click?.kind === 'segment' ? `segment_${click.segment.hash}` : 'missing'
+      click?.kind === 'segment' ? click.segment.canonicalFilename : 'missing'
     );
   });
 });

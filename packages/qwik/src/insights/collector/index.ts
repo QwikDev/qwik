@@ -8,8 +8,8 @@ import {
   openInsightsDb,
   redactInsightsDbUrl,
 } from '../db';
-import type { InsightsPayload } from '../insights';
-import { MAX_BEACON_BYTES, parseInsightsPayload } from './validate';
+import type { InsightsError, InsightsPayload } from '../insights';
+import { MAX_BEACON_BYTES, parseInsightsError, parseInsightsPayload } from './validate';
 
 /** Strip the chunk prefix before the last `_`; `hW` is Qwik's no-op handler, so ignore it. */
 function cleanupSymbolName(symbolName?: string | null): string | null {
@@ -41,7 +41,8 @@ async function ensureSchema(db: InsightsDb): Promise<void> {
      CREATE TABLE IF NOT EXISTS edges ("from" TEXT, "to" TEXT NOT NULL, manifest_hash TEXT NOT NULL, public_api_key TEXT, interaction INTEGER NOT NULL DEFAULT 0, ${bucketColumns('delay_count_')}, ${bucketColumns('latency_count_')});
      CREATE UNIQUE INDEX IF NOT EXISTS idx_edges_key ON edges(${EDGE_KEY});
      CREATE TABLE IF NOT EXISTS routes (public_api_key TEXT, manifest_hash TEXT NOT NULL, route TEXT NOT NULL, symbol TEXT NOT NULL, ${bucketColumns('timeline_')});
-     CREATE UNIQUE INDEX IF NOT EXISTS idx_routes_key ON routes(${ROUTE_KEY});`
+     CREATE UNIQUE INDEX IF NOT EXISTS idx_routes_key ON routes(${ROUTE_KEY});
+     CREATE TABLE IF NOT EXISTS errors (public_api_key TEXT, manifest_hash TEXT NOT NULL, timestamp INTEGER, url TEXT, source TEXT, line INTEGER, "column" INTEGER, message TEXT, error TEXT, stack TEXT);`
   );
   schemaReady.add(db);
 }
@@ -167,6 +168,40 @@ export async function writeInsights(dbUrl: string, beacon: InsightsPayload): Pro
   return true;
 }
 
+/** Record one client error beacon. The pinger sends no key with errors, so it comes from options. */
+async function writeInsightsError(
+  dbUrl: string,
+  beacon: unknown,
+  publicApiKey: string | undefined
+): Promise<boolean> {
+  const error: InsightsError | null = parseInsightsError(beacon);
+  if (!error) {
+    return false;
+  }
+  const db = await getDb(dbUrl);
+  await db.batch([
+    {
+      sql: `INSERT INTO errors (public_api_key, manifest_hash, timestamp, url, source, line, "column", message, error, stack) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        publicApiKey ?? null,
+        error.manifestHash,
+        error.timestamp,
+        error.url,
+        error.source,
+        error.line,
+        error.column,
+        error.message,
+        error.error,
+        error.stack,
+      ],
+    },
+  ]);
+  return true;
+}
+
+// The pinger posts errors to `${postUrl}error/`, next to the symbol beacons.
+const isErrorBeacon = (request: Request) => /\/error\/?$/.test(new URL(request.url).pathname);
+
 /**
  * Resolve the libSQL URL: explicit option, then `QWIK_INSIGHTS_DB_URL`, then a local file.
  *
@@ -179,7 +214,9 @@ export function resolveInsightsDbUrl(dbUrl?: string): string {
 /**
  * Read an insights beacon from a request and record it. Never throws — a metrics beacon must not
  * break the response — and resolves to whether the beacon was recorded. The endpoint is public, so
- * pass `publicApiKey` to only accept your own app's beacons. Mount it in a Qwik Router route:
+ * pass `publicApiKey` to only accept your own app's beacons. Client errors arrive at
+ * `${postUrl}error/`, so mount it as a catch-all route, e.g.
+ * `src/routes/insights-collect/[...path]/index.ts`:
  *
  * ```ts
  * export const onPost: RequestHandler = async ({ request, json }) => {
@@ -193,7 +230,7 @@ export async function handleInsightsBeacon(
   request: Request,
   opts: { dbUrl?: string; publicApiKey?: string } = {}
 ): Promise<boolean> {
-  let payload: InsightsPayload;
+  let beacon: InsightsPayload;
   try {
     if (Number(request.headers.get('content-length')) > MAX_BEACON_BYTES) {
       return false;
@@ -202,17 +239,21 @@ export async function handleInsightsBeacon(
     if (body.length > MAX_BEACON_BYTES) {
       return false;
     }
-    payload = JSON.parse(body);
+    beacon = JSON.parse(body);
   } catch {
     // A malformed beacon is client noise, not a server problem.
     return false;
   }
-  if (opts.publicApiKey && payload?.publicApiKey !== opts.publicApiKey) {
+  const dbUrl = resolveInsightsDbUrl(opts.dbUrl);
+  const isError = isErrorBeacon(request);
+  if (!isError && opts.publicApiKey && beacon?.publicApiKey !== opts.publicApiKey) {
     return false;
   }
-  const dbUrl = resolveInsightsDbUrl(opts.dbUrl);
   try {
-    return await writeInsights(dbUrl, payload);
+    if (isError) {
+      return await writeInsightsError(dbUrl, beacon, opts.publicApiKey);
+    }
+    return await writeInsights(dbUrl, beacon);
   } catch (error) {
     warnOnce(`failed to record a beacon into ${redactInsightsDbUrl(dbUrl)}`, error);
     return false;

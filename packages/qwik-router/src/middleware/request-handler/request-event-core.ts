@@ -125,6 +125,7 @@ export function createRequestEvent(
     }
   };
 
+  /** Exits the route synchronously while handling stream failures asynchronously. */
   const send = (statusOrResponse: number | Response, body: string | Uint8Array) => {
     check();
     let responseWrite: Promise<unknown>;

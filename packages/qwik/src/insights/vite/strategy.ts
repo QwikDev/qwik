@@ -273,6 +273,10 @@ export async function computeInsightsStrategy(
     return null;
   }
   const { edges, routes } = collected;
+  // A shared DB may hold only other apps' data; keep the saved strategy then.
+  if (!edges.length && !routes.length) {
+    return null;
+  }
 
   const symbols = computeSymbolGraph(edges);
   const bundles = computeBundles(computeSymbolVectors(symbols));

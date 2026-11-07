@@ -15,6 +15,7 @@ import type {
   LoaderInternal,
   RequestEvent,
   RequestHandler,
+  RouteModule,
 } from '../../../runtime/src/types';
 import type { CacheControl } from '../types';
 import { defaultLoaderCacheKey, getCachedLoader, resolveCacheKey, setCachedLoader } from '../etag';
@@ -53,7 +54,7 @@ export function loaderHandler(
     }
 
     setRouteLoaderData(requestEv, routeLoaders, route);
-    await runRouteGuards(routeLoaders, loader, requestEv);
+    await runRouteGuards(routeLoaders, loader, requestEv, route?.$mods$);
 
     const loaderRequestEv = createLoaderRequestEventFactory(requestEv)(loader);
     const cacheControl = resolveLoaderCacheControl(loader.__cacheControl, loaderRequestEv);
@@ -151,20 +152,57 @@ function resolveLoaderCacheControl(
   return value === undefined ? 'private' : value;
 }
 
-/** Blocking loaders guard the route, so they all run whatever the export order. */
+/**
+ * Blocking loaders guard the route, so they all run whatever the export order. Loaders of modules
+ * below the requested loader's module do not: a layout's loader request is matched to the page at
+ * the layout's path, and that page's loaders must not run (or redirect) for it.
+ */
 async function runRouteGuards(
   routeLoaders: LoaderInternal[],
   targetLoader: LoaderInternal,
-  requestEv: RequestEventInternal
+  requestEv: RequestEventInternal,
+  routeModules: RouteModule[] | undefined
 ) {
+  const below = getLoadersBelow(routeModules, targetLoader);
   for (const loader of routeLoaders) {
-    if (loader !== targetLoader && loader.__blockSSR) {
+    if (loader !== targetLoader && loader.__blockSSR && !below.has(loader)) {
       await loadRouteLoader(loader, requestEv);
     }
   }
 }
 
-type RouteLoaderData = Pick<LoadedRoute, '$loaderPaths$' | '$loaderParams$'>;
+/** Loaders only exported by route modules after the one that exports the target. */
+function getLoadersBelow(routeModules: RouteModule[] | undefined, targetLoader: LoaderInternal) {
+  const below = new Set<LoaderInternal>();
+  if (!routeModules) {
+    return below;
+  }
+  const loadersOf = (routeModule: RouteModule) =>
+    Object.values(routeModule).filter(
+      (value) => typeof value === 'function' && (value as any).__brand === 'server_loader'
+    ) as LoaderInternal[];
+  const targetIndex = routeModules.findIndex((routeModule) =>
+    loadersOf(routeModule).includes(targetLoader)
+  );
+  if (targetIndex < 0) {
+    return below;
+  }
+  for (let i = routeModules.length - 1; i > targetIndex; i--) {
+    for (const loader of loadersOf(routeModules[i])) {
+      below.add(loader);
+    }
+  }
+  // a loader the target's module or a module above also exports is still a guard
+  for (let i = 0; i <= targetIndex; i++) {
+    for (const loader of loadersOf(routeModules[i])) {
+      below.delete(loader);
+    }
+  }
+  return below;
+}
+
+type RouteLoaderData = Pick<LoadedRoute, '$loaderPaths$' | '$loaderParams$'> &
+  Partial<Pick<LoadedRoute, '$mods$'>>;
 
 export function setRouteLoaderData(
   requestEv: RequestEventInternal,

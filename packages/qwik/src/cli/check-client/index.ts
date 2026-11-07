@@ -1,8 +1,7 @@
 import type { AppCommand } from '../utils/app-command';
 // Removed non-critical logging to keep command output silent unless there are serious issues
 import { red } from 'kleur/colors';
-import { runInPkg } from '../utils/install-deps';
-import { getPackageManager, panic } from '../utils/utils';
+import { getPackageManager, panic, runCommand } from '../utils/utils';
 import fs from 'fs/promises';
 import type { Stats } from 'fs';
 import path from 'path';
@@ -53,7 +52,7 @@ async function checkClientCommand(app: AppCommand, src: string, dist: string): P
 
 async function goBuild(app: AppCommand) {
   const pkgManager = getPackageManager();
-  const { install } = await runInPkg(pkgManager, ['run', 'build.client'], app.rootDir);
+  const { install } = runCommand(pkgManager, ['run', 'build.client'], app.rootDir);
   if (!(await install)) {
     throw new Error('Client build command reported failure.');
   }

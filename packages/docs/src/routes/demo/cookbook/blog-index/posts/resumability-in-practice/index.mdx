@@ -15,7 +15,7 @@ and its listeners into the HTML, and the client resumes exactly where the server
 <PostCallout>
 
 Resumability is why a Qwik page can stay interactive while shipping very little JavaScript:
-listeners are attached lazily, only when the user interacts.
+Qwik registers delegated listeners before events and loads handlers on demand.
 
 </PostCallout>
 

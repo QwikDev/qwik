@@ -24,10 +24,12 @@ export const usePosts = routeLoader$(async () => {
         )
       ).map(async ([path, readPost]) => {
         const { frontmatter } = await readPost();
-        const slug = path.split('/')[2];
+        const slug = path
+          .replace(/^\.\//, '')
+          .replace(/\/index\.(mdx|md)$/, '');
         return {
           ...frontmatter,
-          href: `./posts/${slug}/`,
+          href: `./${slug}/`,
         };
       })
     )

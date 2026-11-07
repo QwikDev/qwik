@@ -161,9 +161,10 @@ export function createRequestEvent(
       }
     }
     void responseWrite.catch((error) => {
-      if (isDev) {
-        console.error('Response stream failed:', error);
+      if (request.signal.aborted || (error instanceof Error && error.name === 'AbortError')) {
+        return;
       }
+      console.error('Response stream failed:', error);
     });
     return exit();
   };

@@ -138,6 +138,40 @@ describe('request-event send', () => {
       consoleError.mockRestore();
     }
   });
+
+  it.each([
+    ['an abort error', new DOMException('Client disconnected', 'AbortError'), false],
+    ['an aborted request', new Error('Client disconnected'), true],
+  ] as const)('does not report %s', async (_, error, abortRequest) => {
+    const controller = new AbortController();
+    const serverRequestEv = createMockServerRequestEvent(undefined, { signal: controller.signal });
+    vi.mocked(serverRequestEv.getWritableStream).mockReturnValue(
+      new WritableStream({
+        write() {
+          if (abortRequest) {
+            controller.abort(error);
+          }
+          throw error;
+        },
+      })
+    );
+    const requestEv = createRequestEvent(serverRequestEv, mockRoute, [], '/', vi.fn());
+    const cancel = vi.fn();
+    const body = new ReadableStream({
+      start: (stream) => stream.enqueue(new TextEncoder().encode('hello')),
+      cancel,
+    });
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      requestEv.send(new Response(body));
+
+      await vi.waitFor(() => expect(cancel).toHaveBeenCalledWith(error));
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
 });
 
 describe('request-event redirect', () => {

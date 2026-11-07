@@ -6,6 +6,7 @@ import { getRouteFunctions } from '../routes';
 import { getNpmFunctions } from '../npm';
 import { getComponentsFunctions } from '../components';
 import { getModulesContent } from '../inspect';
+import { getInsightsFunctions } from '../insights';
 
 export function getServerFunctions(ctx: ServerContext): ServerFunctions {
   return {
@@ -16,5 +17,6 @@ export function getServerFunctions(ctx: ServerContext): ServerFunctions {
     ...getNpmFunctions(ctx),
     ...getBuildAnalysisFunctions(ctx),
     ...getModulesContent(ctx),
+    ...getInsightsFunctions(ctx),
   };
 }

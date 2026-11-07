@@ -77,4 +77,10 @@ export const devtoolsTabs: DevtoolsTabConfig[] = [
     renderIcon: () => <IconChartBarOutline class="h-6 w-6" />,
     viteOnly: true,
   },
+  {
+    id: 'insights',
+    title: 'Insights',
+    renderIcon: () => <IconMegaphoneMini class="h-6 w-6" />,
+    viteOnly: true,
+  },
 ];

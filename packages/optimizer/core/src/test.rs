@@ -317,6 +317,11 @@ fn smart_event_qrl_references() {
 			.filter_map(|module| module.segment.as_ref())
 			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
 			.unwrap();
+		assert_eq!(
+			segment.is_event_only,
+			is_event_only.then_some(true),
+			"{name}"
+		);
 		if is_event_only {
 			assert_eq!(
 				segment.entry.as_ref(),

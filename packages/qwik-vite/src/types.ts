@@ -115,6 +115,8 @@ export interface QwikBundle {
   dynamicImports?: string[];
   /** Dynamic imports of qrl segments, the subset of `dynamicImports` the preloader follows */
   qrlImports?: string[];
+  /** QRL imports that may execute while rendering */
+  renderImports?: string[];
   /** Source files of the bundle */
   origins?: string[];
 }

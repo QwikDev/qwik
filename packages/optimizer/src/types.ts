@@ -106,6 +106,8 @@ export interface SegmentAnalysis {
   canonicalFilename: string;
   extension: string;
   parent: string | null;
+  /** Every known consumer runs through a native event. */
+  isEventOnly?: boolean;
   ctxKind: 'eventHandler' | 'function';
   ctxName: string;
   captures: boolean;

@@ -13,6 +13,7 @@ export interface SegmentMetadata {
   path: string;
   extension: string;
   parent: string | null;
+  isEventOnly?: boolean;
   ctxKind: string;
   ctxName: string;
   captures: boolean;

@@ -2,16 +2,22 @@ import type { RenderOptions, RenderResult, RenderRoot } from './render-types';
 import { QContainerValue } from './shared/types';
 import { QContainerAttr } from './shared/utils/markers';
 import { createContainerContext, type ContainerContext } from './runtime/container-context';
-import { invoke, newInvokeContext } from './runtime/invoke-context';
+import { newInvokeContext } from './runtime/invoke-context';
 import { disposeOwner } from './runtime/owner';
 import { defaultScheduler, type Scheduler } from './runtime/scheduler';
 import { toNodes } from './utils/nodes';
-import type { MaybeNodeOutput } from './utils/nodes';
+import type { MaybeNodeOutput, NodeOutput } from './utils/nodes';
 import type { ValueOrPromise } from './shared/utils/types';
 import { maybeThen } from './shared/utils/promises';
-import { applyUseOnToCsrOutput } from './runtime/use-on';
+import { createComponent } from './component/component';
 
 export type CsrRenderContext = ContainerContext;
+
+/** A root returning `null` renders nothing, as a component returning nothing does. */
+type ComponentRender<Props> = (
+  props: Props,
+  ctx: CsrRenderContext
+) => ValueOrPromise<NodeOutput | void>;
 
 export type CsrRenderRoot<Props = undefined> = (
   props: Props,
@@ -57,14 +63,13 @@ export const renderCompiled = <Props = undefined>(
 
   let rendering: ValueOrPromise<void>;
   try {
+    // the root renders as a component, so a read that throws a promise retries it
     const mounted = maybeThen(
-      invoke(invokeContext, root, opts.props as Props, context),
-      (value) => {
-        let output = value;
-        if (invokeContext.useOnEvents !== undefined) {
-          output = applyUseOnToCsrOutput(output, invokeContext.useOnEvents, context.document);
-        }
-        const nodes = toNodes(output);
+      createComponent(root as ComponentRender<Props>, opts.props as Props, context, {
+        invokeContext,
+      }),
+      (output) => {
+        const nodes = toNodes(output as MaybeNodeOutput);
         if (nodes.length > 0) {
           mountedAfter = target.lastChild;
           for (let i = 0; i < nodes.length; i++) {

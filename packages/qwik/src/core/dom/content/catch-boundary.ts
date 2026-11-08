@@ -1,4 +1,4 @@
-import { safeCall } from '../../shared/utils/promises';
+import { isPromise, safeCall } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { OwnerFlags } from '../../reactive/flags';
 import type { Owner } from '../../runtime/owner';
@@ -46,7 +46,8 @@ export function handleError(owner: Owner | null, error: unknown): ValueOrPromise
   if (owner !== null && owner.flags & OwnerFlags.Disposed) {
     return;
   }
-  if (isQrlImportError(error)) {
+  // A thrown promise is a retry request, not an error.
+  if (isPromise(error) || isQrlImportError(error)) {
     throw error;
   }
   const boundary = findCatchBoundary(owner);

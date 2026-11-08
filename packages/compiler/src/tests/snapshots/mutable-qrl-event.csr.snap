@@ -42,7 +42,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     component_onClickqrl_segment_1_3rzjk4cwl942g,
     ctx.scheduler
   );
-  ctx.scheduler.waitFor(effect0.run());
+  ctx.scheduler.run(effect0);
   const text0 = _first(el0);
   const effect1 = createTextNodeEffect(text0, count, ctx.scheduler);
   ctx.scheduler.notify(effect1);

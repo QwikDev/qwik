@@ -44,7 +44,7 @@ export const Button = (props, ctx) => {
     component_onClickqrl_segment_0_3rzjkie0i362z,
     ctx.scheduler
   );
-  ctx.scheduler.waitFor(effect0.run());
+  ctx.scheduler.run(effect0);
   return el0;
 };
 export const default_component_3rg6kq1so9aio = (props, ctx) => {

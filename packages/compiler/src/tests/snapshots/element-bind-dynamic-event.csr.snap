@@ -65,7 +65,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     [],
     [inlinedQrl(_val, '_val', [text])]
   );
-  ctx.scheduler.waitFor(effect0.run());
+  ctx.scheduler.run(effect0);
   const el2 = _next(_first(el0));
   createDomBatchEffect(() => {
     patchAttrValue(el1, 'value', readTrackedValue(text));
@@ -80,7 +80,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     [],
     [inlinedQrl(_val, '_val', [text])]
   );
-  ctx.scheduler.waitFor(effect1.run());
+  ctx.scheduler.run(effect1);
   const el3 = _prev(_last(el0));
   const effect2 = createEventEffect(
     el3,
@@ -91,7 +91,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     [],
     [inlinedQrl(_chk, '_chk', [checked])]
   );
-  ctx.scheduler.waitFor(effect2.run());
+  ctx.scheduler.run(effect2);
   const el4 = _last(el0);
   createDomBatchEffect(() => {
     patchAttrValue(el3, 'checked', readTrackedValue(checked));
@@ -106,7 +106,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     [],
     [inlinedQrl(_chk, '_chk', [checked])]
   );
-  ctx.scheduler.waitFor(effect3.run());
+  ctx.scheduler.run(effect3);
   return el0;
 };
 export default default_component_3rg6kq1so9aio;

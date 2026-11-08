@@ -39,7 +39,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     component_props_segment_0_208o16glymg7p,
     ctx.scheduler
   );
-  ctx.scheduler.waitFor(effect0.run());
+  ctx.scheduler.run(effect0);
   const el2 = _next(_first(el0));
   const effect1 = createPropsEffect(
     el2,
@@ -47,7 +47,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     component_props_segment_1_208o0sfi1se76,
     ctx.scheduler
   );
-  ctx.scheduler.waitFor(effect1.run());
+  ctx.scheduler.run(effect1);
   const el3 = _prev(_last(el0));
   const effect2 = createPropsEffect(
     el3,
@@ -55,7 +55,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     component_props_segment_2_208o0eee4yc6n,
     ctx.scheduler
   );
-  ctx.scheduler.waitFor(effect2.run());
+  ctx.scheduler.run(effect2);
   const el4 = _last(el0);
   const effect3 = createPropsEffect(
     el4,
@@ -63,7 +63,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     component_props_segment_3_208o00da84a64,
     ctx.scheduler
   );
-  ctx.scheduler.waitFor(effect3.run());
+  ctx.scheduler.run(effect3);
   return el0;
 };
 export default default_component_3rg6kq1so9aio;

@@ -153,8 +153,8 @@ export class BranchSubscription implements BranchSubscriber {
       if (isSubscriberDisposed(this)) {
         return;
       }
-      const condition = retryOnPromise(() =>
-        runWithCollector(this, () => invoke(this.branch.invokeContext, conditionFn))
+      const condition = runWithCollector(this, () =>
+        invoke(this.branch.invokeContext, conditionFn)
       );
       return maybeThen(condition, (condition) => {
         if (isSubscriberDisposed(this)) {

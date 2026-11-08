@@ -121,6 +121,53 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(order).toEqual(['committed', 'flushed', 'updated']);
   });
 
+  it('retries a subscriber run that throws a promise', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const owner = createOwner(null);
+    const order: string[] = [];
+    const effect = runWithOwner(owner, () =>
+      createOrderTextExpressionEffect(scheduler, 'scalar', order)
+    );
+    let load!: () => void;
+    const loading = new Promise<void>((resolve) => (load = resolve));
+    let isLoaded = false;
+    // like a read of a computed whose body is still loading
+    effect.run = () => {
+      if (!isLoaded) {
+        throw loading.then(() => {
+          isLoaded = true;
+        });
+      }
+      order.push('ran');
+    };
+    scheduler.notify(effect);
+    const flushing = scheduler.flushInteraction();
+    load();
+    await flushing;
+    expect(order).toEqual(['ran']);
+  });
+
+  it('retries a first run that throws a promise', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const owner = createOwner(null);
+    const order: string[] = [];
+    const effect = runWithOwner(owner, () =>
+      createOrderTextExpressionEffect(scheduler, 'scalar', order)
+    );
+    let isLoaded = false;
+    effect.run = () => {
+      if (!isLoaded) {
+        throw Promise.resolve().then(() => {
+          isLoaded = true;
+        });
+      }
+      order.push('ran');
+    };
+    scheduler.run(effect);
+    await scheduler.flushInteraction();
+    expect(order).toEqual(['ran']);
+  });
+
   it('does not allocate await registries without Catch', async () => {
     const owner = createOwner(null);
     const NativeSet = Set;

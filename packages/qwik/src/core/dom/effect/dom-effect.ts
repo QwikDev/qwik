@@ -7,7 +7,7 @@ import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
 import { registerSubscriberToOwner, type Owner } from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import { SubscriberKind, type DomSubscriber } from '../../runtime/subscriber';
-import { retryOnPromise } from '../../shared/utils/promises';
+import { isPromise } from '../../shared/utils/promises';
 import { handleError } from '../content/catch-boundary';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
@@ -39,15 +39,16 @@ export abstract class DomEffect implements DomSubscriber {
       return;
     }
     this.invalidate();
-    return retryOnPromise(
-      () => {
-        cleanupDeps(this);
-        return isSubscriberDisposed(this)
-          ? undefined
-          : runWithCollector1(this, executeDomEffect, this);
-      },
-      (error) => handleError(this.owner, error)
-    );
+    try {
+      cleanupDeps(this);
+      if (isSubscriberDisposed(this)) {
+        return;
+      }
+      const result = runWithCollector1(this, executeDomEffect, this);
+      return isPromise(result) ? result.catch((error) => handleError(this.owner, error)) : result;
+    } catch (error) {
+      return handleError(this.owner, error);
+    }
   }
 
   trackPromise<T>(promise: Promise<T>, commit: (value: T) => void): Promise<void> {

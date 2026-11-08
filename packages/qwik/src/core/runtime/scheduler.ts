@@ -3,7 +3,7 @@ import { PendingContentSubscription } from '../dom/content/content';
 import { findPendingBoundary } from '../dom/content/pending-boundary';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
 import { logError } from '../shared/utils/log';
-import { isPromise, maybeThen } from '../shared/utils/promises';
+import { isPromise, maybeThen, retryAfterPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { getActiveInvokeContextOrNull } from './invoke-context';
 import {
@@ -49,6 +49,11 @@ interface OwnerFrame {
 const NO_ERROR = Symbol();
 
 type StructuralSubscriber = BranchSubscriber | ForBlockSubscriber | ContentSubscriber;
+type RunnableSubscriber =
+  | TaskSubscriber
+  | VisibleTaskSubscriber
+  | StructuralSubscriber
+  | DomSubscriber;
 
 export class Scheduler {
   private readonly ownerQueue: Owner[] = [];
@@ -111,6 +116,11 @@ export class Scheduler {
     this.ownerQueue.push(root);
 
     this.scheduleFlush();
+  }
+
+  /** Runs a subscriber outside a flush, such as an effect's first run during render. */
+  run(subscriber: RunnableSubscriber): void {
+    this.waitFor(runSubscriber(subscriber));
   }
 
   onFlushed(callback: () => void): void {
@@ -477,7 +487,7 @@ export class Scheduler {
         item.kind === SubscriberKind.Task &&
         item.task.phase === Phase.BlockingTask
       ) {
-        const result = item.run();
+        const result = runSubscriber(item);
         if (isPromise(result)) {
           const next = i + 1;
           return result.then(() => this.runBlockingTasksFrom(items, end, next));
@@ -518,7 +528,7 @@ export class Scheduler {
       const subscriber = item as StructuralSubscriber;
       if (takeDirty(subscriber)) {
         cleanupDeps(subscriber);
-        const result = subscriber.run();
+        const result = runSubscriber(subscriber);
         if (isPromise(result)) {
           this.suspendDomWork(subscriber.owner, result);
           const next = i + 1;
@@ -540,7 +550,7 @@ export class Scheduler {
     }
 
     const end = ownerItemsLength(items);
-    let pending: Promise<void>[] | null = null;
+    let pending: Promise<unknown>[] | null = null;
     for (let i = 0; i < end && i < ownerItemsLength(items); i++) {
       const item = ownerItemAt(items, i)!;
       if (!(item instanceof Owner) && item.kind === SubscriberKind.Dom) {
@@ -548,7 +558,7 @@ export class Scheduler {
         if (!takeDirty(effect)) {
           continue;
         }
-        const result = effect.run();
+        const result = runSubscriber(effect);
         if (isPromise(result)) {
           this.suspendDomWork(owner, result);
           (pending ??= []).push(result);
@@ -613,7 +623,7 @@ export class Scheduler {
   /** Fire-and-forget phases report failures rather than propagating them into the flush. */
   private runDetached(task: TaskSubscriber | VisibleTaskSubscriber): void {
     try {
-      const result = task.run();
+      const result = runSubscriber(task);
       if (isPromise(result)) {
         result.catch(logError);
       }
@@ -639,6 +649,19 @@ export class Scheduler {
 }
 
 export const defaultScheduler = new Scheduler();
+
+/** A read that throws a promise, such as a computed whose body is loading, reruns once it settles. */
+function runSubscriber(subscriber: RunnableSubscriber): ValueOrPromise<unknown> {
+  let result: ValueOrPromise<unknown>;
+  try {
+    result = subscriber.run();
+  } catch (error) {
+    return retryAfterPromise(subscriber.owner, error, () => subscriber.run());
+  }
+  return isPromise(result)
+    ? result.catch((error) => retryAfterPromise(subscriber.owner, error, () => subscriber.run()))
+    : result;
+}
 
 function guardPendingWork(pending: Promise<unknown>): PendingWork {
   let cancel!: () => void;

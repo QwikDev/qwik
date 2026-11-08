@@ -495,7 +495,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       this.imports.add(QwikWord.CreatePropsEffect);
       statements.push(
         `const ${effect} = ${QwikWord.CreatePropsEffect}(${el}, [${args.join(', ')}], ${this.chunkSymbol(qrl)}, ${pass.names.ctx}.scheduler${scope});`,
-        `${pass.names.ctx}.scheduler.waitFor(${effect}.run());`
+        `${pass.names.ctx}.scheduler.run(${effect});`
       );
     }
     if (op.eventParams !== undefined) {
@@ -1482,7 +1482,7 @@ if (${initialParent} !== undefined && (${nextValue} === null || typeof ${nextVal
       this.imports.add(QwikWord.CreateEventEffect);
       statements.push(
         `const ${effect} = ${QwikWord.CreateEventEffect}(${el}, ${JSON.stringify(scopeName)}, [${args.join(', ')}], ${this.chunkSymbol(qrl)}, ${pass.names.ctx}.scheduler${after});`,
-        `${pass.names.ctx}.scheduler.waitFor(${effect}.run());`
+        `${pass.names.ctx}.scheduler.run(${effect});`
       );
       return;
     }

@@ -36,7 +36,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     ctx.scheduler,
     '⚡️f5nwzpjzm8yb-0'
   );
-  ctx.scheduler.waitFor(effect0.run());
+  ctx.scheduler.run(effect0);
   const el1 = _next(_first(fragment0));
   const effect1 = createPropsEffect(
     el1,
@@ -45,7 +45,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     ctx.scheduler,
     '⚡️f5nwzpjzm8yb-0'
   );
-  ctx.scheduler.waitFor(effect1.run());
+  ctx.scheduler.run(effect1);
   return [...fragment0.childNodes];
 };
 export default default_component_3rg6kq1so9aio;

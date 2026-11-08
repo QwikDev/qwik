@@ -41,7 +41,7 @@ export const Child = (props, ctx) => {
     component_onClickqrl_segment_0_3rzjkie0i362z,
     ctx.scheduler
   );
-  ctx.scheduler.waitFor(effect0.run());
+  ctx.scheduler.run(effect0);
   const text0 = _first(el0);
   const prop0 = propSource(props, 'title');
   const effect1 = createTextNodeEffect(text0, prop0, ctx.scheduler);

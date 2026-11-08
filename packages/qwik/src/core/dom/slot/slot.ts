@@ -389,7 +389,7 @@ export function createDynamicTag(
     namespace === undefined
       ? ctx.document.createElement(tag)
       : ctx.document.createElementNS(namespace === 'svg' ? SVG_NS : MATH_NS, tag);
-  ctx.scheduler.waitFor(createPropsEffect(element, [props], _tagProps, ctx.scheduler).run());
+  ctx.scheduler.run(createPropsEffect(element, [props], _tagProps, ctx.scheduler));
   // the props effect already wrote dangerouslySetInnerHTML, so projecting on top would duplicate it
   if (VOID_TAGS.has(tag) || props[DangerousInnerHTMLAttr] !== undefined) {
     return element;

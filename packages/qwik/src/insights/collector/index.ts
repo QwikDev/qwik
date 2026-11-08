@@ -1,5 +1,3 @@
-import { mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
 import { NUMBER_OF_BUCKETS, padBucket, toBucket, toBucketTimeline } from '../buckets';
 import {
   describeInsightsDbError,
@@ -7,6 +5,7 @@ import {
   type InsightsStatement,
   localInsightsDbPath,
   openInsightsDb,
+  readInsightsEnv,
   redactInsightsDbUrl,
 } from '../db';
 import type { InsightsError, InsightsPayload } from '../insights';
@@ -60,10 +59,10 @@ async function ensureSchema(db: InsightsDb): Promise<void> {
 }
 
 const dbCache = new Map<string, Promise<InsightsDb>>();
-function getDb(dbUrl: string): Promise<InsightsDb> {
+function getDb(dbUrl: string, authToken?: string): Promise<InsightsDb> {
   let db = dbCache.get(dbUrl);
   if (!db) {
-    db = openWritableDb(dbUrl);
+    db = openWritableDb(dbUrl, authToken ?? readInsightsEnv('QWIK_INSIGHTS_DB_AUTH_TOKEN'));
     dbCache.set(dbUrl, db);
     // Don't pin a failed open: the next beacon retries (e.g. once the directory exists).
     db.catch(() => dbCache.delete(dbUrl));
@@ -71,12 +70,17 @@ function getDb(dbUrl: string): Promise<InsightsDb> {
   return db;
 }
 
-async function openWritableDb(dbUrl: string): Promise<InsightsDb> {
+async function openWritableDb(dbUrl: string, authToken: string | undefined): Promise<InsightsDb> {
   const path = localInsightsDbPath(dbUrl);
   if (path !== null) {
+    // Loaded only for local files, so edge runtimes with a remote DB never need Node modules.
+    const [{ mkdirSync }, { dirname }] = await Promise.all([
+      import('node:fs'),
+      import('node:path'),
+    ]);
     mkdirSync(dirname(path), { recursive: true });
   }
-  const db = await openInsightsDb(dbUrl, process.env.QWIK_INSIGHTS_DB_AUTH_TOKEN);
+  const db = await openInsightsDb(dbUrl, authToken);
   try {
     await ensureSchema(db);
   } catch (error) {
@@ -148,7 +152,11 @@ function routeUpsert(r: {
  *
  * @beta
  */
-export async function writeInsights(dbUrl: string, beacon: InsightsPayload): Promise<boolean> {
+export async function writeInsights(
+  dbUrl: string,
+  beacon: InsightsPayload,
+  authToken?: string
+): Promise<boolean> {
   const payload = parseInsightsPayload(beacon);
   if (!payload) {
     return false;
@@ -192,7 +200,7 @@ export async function writeInsights(dbUrl: string, beacon: InsightsPayload): Pro
     }
     previousSymbol = symbolHash;
   }
-  const db = await getDb(dbUrl);
+  const db = await getDb(dbUrl, authToken);
   await db.batch(statements);
   return true;
 }
@@ -201,13 +209,14 @@ export async function writeInsights(dbUrl: string, beacon: InsightsPayload): Pro
 async function writeInsightsError(
   dbUrl: string,
   beacon: unknown,
-  expectedKey: string | undefined
+  expectedKey: string | undefined,
+  authToken: string | undefined
 ): Promise<boolean> {
   const error: InsightsError | null = parseInsightsError(beacon);
   if (!error || (expectedKey && error.publicApiKey !== expectedKey)) {
     return false;
   }
-  const db = await getDb(dbUrl);
+  const db = await getDb(dbUrl, authToken);
   await db.batch([
     {
       sql: `INSERT INTO errors (public_api_key, manifest_hash, timestamp, url, source, line, "column", message, error, stack) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -257,7 +266,7 @@ const isErrorBeacon = (request: Request) => /\/error\/?$/.test(new URL(request.u
  * @beta
  */
 export function resolveInsightsDbUrl(dbUrl?: string): string {
-  return dbUrl || process.env.QWIK_INSIGHTS_DB_URL || 'file:.qwik/insights.db';
+  return dbUrl || readInsightsEnv('QWIK_INSIGHTS_DB_URL') || 'file:.qwik/insights.db';
 }
 
 /**
@@ -265,7 +274,8 @@ export function resolveInsightsDbUrl(dbUrl?: string): string {
  * break the response — and resolves to whether the beacon was recorded. The endpoint is public, so
  * pass `publicApiKey` to only accept your own app's beacons. Client errors arrive at
  * `${postUrl}error/`, so mount it as a catch-all route, e.g.
- * `src/routes/insights-collect/[...path]/index.ts`:
+ * `src/routes/insights-collect/[...path]/index.ts`. On runtimes without `process.env` (e.g.
+ * Cloudflare), pass `dbUrl` and `authToken` read from the request's `env`.
  *
  * ```ts
  * export const onPost: RequestHandler = async ({ request, json }) => {
@@ -277,7 +287,7 @@ export function resolveInsightsDbUrl(dbUrl?: string): string {
  */
 export async function handleInsightsBeacon(
   request: Request,
-  opts: { dbUrl?: string; publicApiKey?: string } = {}
+  opts: { dbUrl?: string; authToken?: string; publicApiKey?: string } = {}
 ): Promise<boolean> {
   let beacon: InsightsPayload;
   try {
@@ -300,9 +310,9 @@ export async function handleInsightsBeacon(
   }
   try {
     if (isError) {
-      return await writeInsightsError(dbUrl, beacon, opts.publicApiKey);
+      return await writeInsightsError(dbUrl, beacon, opts.publicApiKey, opts.authToken);
     }
-    return await writeInsights(dbUrl, beacon);
+    return await writeInsights(dbUrl, beacon, opts.authToken);
   } catch (error) {
     warnOnce(`failed to record a beacon into ${redactInsightsDbUrl(dbUrl)}`, error);
     return false;

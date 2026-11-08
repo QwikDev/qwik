@@ -282,3 +282,47 @@ test("handleInsightsBeacon ignores other apps' error beacons when a key is confi
   expect(await handleInsightsBeacon(errorBeacon(), opts)).toBe(false);
   expect(await handleInsightsBeacon(errorBeacon('key12345'), opts)).toBe(true);
 });
+
+test('a remote DB works without Node modules or process.env (edge runtimes)', async () => {
+  vi.resetModules();
+  const nodeOnly = ['node:fs', 'node:path', 'node:url', 'node:sqlite'];
+  for (let i = 0; i < nodeOnly.length; i++) {
+    vi.doMock(nodeOnly[i], () => {
+      throw new Error(`${nodeOnly[i]} is not available on this runtime`);
+    });
+  }
+  const batches: unknown[][] = [];
+  let clientConfig: Record<string, unknown> = {};
+  vi.doMock('@libsql/client', () => ({
+    createClient: (config: Record<string, unknown>) => {
+      clientConfig = config;
+      return {
+        executeMultiple: async () => {},
+        batch: async (statements: unknown[]) => {
+          batches.push(statements);
+        },
+        execute: async () => ({ rows: [], columns: [] }),
+        close: () => {},
+      };
+    },
+  }));
+  try {
+    const { handleInsightsBeacon: handle } = await import('./collector');
+    const recorded = await handle(beaconRequest(), {
+      dbUrl: 'libsql://insights-example.turso.io',
+      authToken: 'secret-token',
+    });
+    expect(recorded).toBe(true);
+    expect(clientConfig).toMatchObject({
+      url: 'libsql://insights-example.turso.io',
+      authToken: 'secret-token',
+    });
+    expect(batches).toHaveLength(1);
+  } finally {
+    for (let i = 0; i < nodeOnly.length; i++) {
+      vi.doUnmock(nodeOnly[i]);
+    }
+    vi.doUnmock('@libsql/client');
+    vi.resetModules();
+  }
+});

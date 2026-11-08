@@ -4,8 +4,6 @@
  * fall back to the optional `@libsql/client` package on older Node; remote Turso URLs always use
  * `@libsql/client`, loaded on demand so other setups never need it.
  */
-import { fileURLToPath } from 'node:url';
-
 /** @internal */
 export interface InsightsStatement {
   sql: string;
@@ -26,6 +24,14 @@ const REMOTE_URL = /^(libsql|wss?|https?):\/\//i;
 export function isRemoteInsightsUrl(url: string): boolean {
   return REMOTE_URL.test(url);
 }
+
+/**
+ * An environment variable, or undefined where there is no `process` (e.g. Cloudflare Workers).
+ *
+ * @internal
+ */
+export const readInsightsEnv = (name: string): string | undefined =>
+  typeof process === 'undefined' ? undefined : process.env[name];
 
 /** @internal — exported for tests; use {@link openInsightsDb}. */
 export async function openLibsql(
@@ -119,9 +125,11 @@ export function localInsightsDbPath(url: string): string | null {
   if (isRemoteInsightsUrl(url)) {
     return null;
   }
-  // A standard `file:///` URL is percent-encoded (`%20` for a space).
+  // A standard `file:///` URL is percent-encoded (`%20` for a space). Decoded without `node:url`
+  // so this module also loads on edge runtimes.
   if (/^file:\/\/\//i.test(url)) {
-    return fileURLToPath(url);
+    const path = decodeURIComponent(new URL(url).pathname);
+    return /^\/[a-z]:/i.test(path) ? path.slice(1) : path;
   }
   return url.replace(/^file:/, '');
 }

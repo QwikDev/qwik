@@ -4,7 +4,12 @@ import { Brand, brandClass } from '../shared/utils/brand';
 import { isServer } from '@qwik.dev/core/build';
 import { QError, qError } from '../shared/error/error';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { isPromise, thenInLifetime, retryInLifetime } from '../shared/utils/promises';
+import {
+  isPromise,
+  retryInLifetime,
+  retryOnPromise,
+  thenInLifetime,
+} from '../shared/utils/promises';
 import { qTest } from '../shared/utils/qdev';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { isServerPlatform } from '../shared/platform/platform';
@@ -227,7 +232,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   async promise(): Promise<void> {
-    this.computeIfNeeded();
+    await retryOnPromise(() => this.computeIfNeeded());
     while (this.current?.promise) {
       await this.current.promise;
     }
@@ -252,9 +257,9 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     }
   }
 
-  resume(): void {
+  resume(): ValueOrPromise<void> {
     if (this.flags & ComputedFlags.Dirty) {
-      this.computeIfNeeded();
+      return retryOnPromise(() => this.computeIfNeeded());
     }
   }
 
@@ -330,6 +335,11 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       this.loadingValue = true;
       this.addToEagerResume();
       return;
+    }
+    const loadingBody = this.loadSyncBody();
+    if (loadingBody !== null) {
+      // Like a sync body throwing a promise: the reader retries once the body loads.
+      throw loadingBody;
     }
 
     this.flags |= ComputedFlags.Computing;
@@ -431,6 +441,34 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     } finally {
       clearTimeout(timeoutId);
     }
+  }
+
+  /** The not yet imported body of a sync computed; loading it is no async computation. */
+  private loadSyncBody(): Promise<void> | null {
+    if (this.computeFn !== null || this.flags & ComputedFlags.Async || isServerEnv()) {
+      return null;
+    }
+    const run = getFunctionOrResolve(this.computeQrl!, this.container, false);
+    if (!isPromise(run)) {
+      return null;
+    }
+    // Importing the body is framework work: the flush must outlast it.
+    (this.container as ContainerContext | undefined)?.scheduler.waitFor(
+      run,
+      getActiveCollector()?.owner ?? getOrCreateContextOwner(getActiveInvokeContextOrNull())
+    );
+    return run.then(
+      () => {},
+      (error) => {
+        // a value assigned meanwhile is newer than this failed load
+        if (!(this.flags & ComputedFlags.Dirty)) {
+          return;
+        }
+        // a body that failed to load is a failed computation
+        this.flags &= ~ComputedFlags.Dirty;
+        this.untrackedError = error as Error;
+      }
+    );
   }
 
   private evaluate(job: AsyncJob<T>, run: ComputeSignalFn<T>): ValueOrPromise<T> {

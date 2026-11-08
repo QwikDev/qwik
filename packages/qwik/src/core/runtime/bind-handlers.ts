@@ -1,5 +1,6 @@
 import { _capturesObj, setCaptures } from '../shared/qrl/qrl-class';
 import { deserializeCaptures } from '../shared/serdes/captures';
+import { isPromise, maybeThen } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import { Computed } from '../reactive/computed';
 import type { Signal } from '../reactive/signal';
@@ -40,14 +41,21 @@ export function _chk(this: string | undefined, _: unknown, element: HTMLInputEle
 export function _res(this: string | undefined, _: unknown, element: Element) {
   return withScopeFromQL(this, element, () => {
     const captures = _capturesObj._;
-    if (captures) {
-      for (let i = 0; i < captures.length; i++) {
-        const capture = captures[i];
-        if (capture instanceof Computed) {
-          capture.resume();
-          capture.trigger();
+    if (!captures) {
+      return;
+    }
+    const resuming: Promise<void>[] = [];
+    for (let i = 0; i < captures.length; i++) {
+      const capture = captures[i];
+      if (capture instanceof Computed) {
+        const resumed = maybeThen(capture.resume(), () => capture.trigger());
+        if (isPromise(resumed)) {
+          resuming.push(resumed);
         }
       }
+    }
+    if (resuming.length > 0) {
+      return Promise.all(resuming).then(() => {});
     }
   });
 }

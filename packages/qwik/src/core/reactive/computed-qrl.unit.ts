@@ -7,7 +7,8 @@ import { useAsyncQrl, useComputedQrl, useSignal } from './public-api';
 import type { ComputeCtx } from './public-types';
 import type { Signal } from './signal';
 import { _await } from './tracking';
-import { Computed } from './computed';
+import { Computed, isAsyncComputed } from './computed';
+import { ComputedQrl } from './computed-qrl';
 
 afterEach(() => setCaptures(null));
 
@@ -260,7 +261,8 @@ describe('computed cancellation lifetime', () => {
         ];
       }
       const waiting = computed.promise();
-      expect(computed.current).not.toBeNull();
+      // a loading body is no computation yet
+      expect(computed.current === null).toBe(phase === 'qrl');
       disposeSubscriber(computed);
       release();
       await waiting;
@@ -414,5 +416,52 @@ describe.each([
     await computed.promise();
     expect(computed.error).toBe(error);
     disposeSubscriber(computed);
+  });
+});
+
+describe('computed body loading', () => {
+  it('keeps a sync computed sync while its body loads', async () => {
+    const source = useSignal(2);
+    const double = () => source.value * 2;
+    const computed = new ComputedQrl(
+      createQRL('chunk', 'double', null, async () => ({ double }), null)
+    );
+
+    let thrown: unknown;
+    try {
+      void computed.value;
+    } catch (error) {
+      thrown = error;
+    }
+    // like a sync body throwing a promise: the reader retries once the body loads
+    expect(thrown).toBeInstanceOf(Promise);
+    expect(computed.loadingValue).toBe(false);
+
+    await thrown;
+    expect(computed.value).toBe(4);
+    expect(isAsyncComputed(computed)).toBe(false);
+  });
+
+  it('keeps a value assigned while the body failed to load', async () => {
+    const computed = new ComputedQrl(
+      createQRL<() => number>(
+        'chunk',
+        'double',
+        null,
+        () => Promise.reject(new Error('load failed')),
+        null
+      )
+    );
+
+    let thrown: unknown;
+    try {
+      void computed.value;
+    } catch (error) {
+      thrown = error;
+    }
+    computed.value = 1;
+    await thrown;
+    expect(computed.error).toBeUndefined();
+    expect(computed.value).toBe(1);
   });
 });

@@ -15,6 +15,7 @@ import { RenderExceptions, UseTaskExceptions } from './components/exceptions';
 import { Factory } from './components/factory/factory';
 import { LexicalScope } from './components/lexical-scope/lexicalScope';
 import { MountRoot } from './components/mount/mount';
+import { MovedHelpers } from './components/moved-helpers/moved-helpers';
 import { NoResume } from './components/no-resume/no-resume';
 import { RefRoot } from './components/ref/ref';
 import { Render } from './components/render/render';
@@ -95,6 +96,7 @@ const tests: Record<string, FunctionComponent> = {
   '/e2e/pending': () => <PendingRoot />,
   '/e2e/pending-ooos': () => <OutOfOrderPendingRoot />,
   '/e2e/worker': () => <WorkerRoot />,
+  '/e2e/moved-helpers': () => <MovedHelpers />,
 };
 
 export const Root = component$<{ pathname: string }>(({ pathname }) => {

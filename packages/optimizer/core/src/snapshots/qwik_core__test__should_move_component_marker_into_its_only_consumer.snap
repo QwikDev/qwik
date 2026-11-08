@@ -20,7 +20,7 @@ export const Outer = component$(() => (
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-qrl(()=>import("./test.tsx_Inner_component_f8kVziTmIO8"), "Inner_component_f8kVziTmIO8");
+/*#__PURE__*/ qrl(()=>import("./test.tsx_Inner_component_f8kVziTmIO8"), "Inner_component_f8kVziTmIO8");
 //
 const q_Outer_component_qwx60a4JUUw = /*#__PURE__*/ qrl(()=>import("./test.tsx_Outer_component_qwx60a4JUUw"), "Outer_component_qwx60a4JUUw");
 //

@@ -25,7 +25,7 @@ import { componentQrl } from "@qwik.dev/core";
 //
 const q_Counter_component_zTmRHlL09Gg = /*#__PURE__*/ qrl(()=>import("./test.tsx_Counter_component_zTmRHlL09Gg"), "Counter_component_zTmRHlL09Gg");
 //
-qrl(()=>import("./test.tsx_useLogger_useTask_0vnJnikBpko"), "useLogger_useTask_0vnJnikBpko");
+/*#__PURE__*/ qrl(()=>import("./test.tsx_useLogger_useTask_0vnJnikBpko"), "useLogger_useTask_0vnJnikBpko");
 export const Counter = /*#__PURE__*/ componentQrl(q_Counter_component_zTmRHlL09Gg);
 
 

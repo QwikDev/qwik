@@ -61,7 +61,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 //
-qrl(()=>import("./test.tsx_Row_tr_q_e_click_tY0LqKpecZI"), "Row_tr_q_e_click_tY0LqKpecZI");
+/*#__PURE__*/ qrl(()=>import("./test.tsx_Row_tr_q_e_click_tY0LqKpecZI"), "Row_tr_q_e_click_tY0LqKpecZI");
 //
 const q_Table_component_ZCe07ck1dgI = /*#__PURE__*/ qrl(()=>import("./test.tsx_Table_component_ZCe07ck1dgI"), "Table_component_ZCe07ck1dgI");
 //

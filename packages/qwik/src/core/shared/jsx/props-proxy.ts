@@ -21,6 +21,7 @@ export function createPropsProxy(owner: JSXNodeImpl): Props {
 export class PropsProxyHandler implements ProxyHandler<any> {
   $effects$: undefined | Map<string | symbol, Set<EffectSubscription>> = undefined;
   $container$: Container | null = null;
+  $omitChildren$ = false;
 
   constructor(public owner: JSXNodeImpl) {}
   get(_: any, prop: string | symbol) {
@@ -36,7 +37,7 @@ export class PropsProxyHandler implements ProxyHandler<any> {
     }
     let value: unknown;
     if (prop === 'children') {
-      value = this.owner.children;
+      value = this.$omitChildren$ ? undefined : this.owner.children;
     } else {
       if (typeof prop === 'string' && typeof this.owner.type === 'string') {
         const attr = jsxEventToHtmlAttribute(prop as string);
@@ -57,6 +58,7 @@ export class PropsProxyHandler implements ProxyHandler<any> {
       // used for deserialization
       this.owner = value;
     } else if (prop === 'children') {
+      this.$omitChildren$ = false;
       this.owner.children = value;
     } else if (prop === _CONST_PROPS) {
       this.owner.constProps = value;
@@ -87,6 +89,11 @@ export class PropsProxyHandler implements ProxyHandler<any> {
     return true;
   }
   deleteProperty(_: any, prop: string | symbol) {
+    if (prop === 'children') {
+      // Component props omit children without consuming the reusable JSX node's projection.
+      this.$omitChildren$ = true;
+      return true;
+    }
     let didDelete = delete this.owner.varProps[prop as string];
     if (didDelete) {
       triggerPropsProxyEffect(this, prop);
@@ -94,15 +101,11 @@ export class PropsProxyHandler implements ProxyHandler<any> {
     if (this.owner.constProps) {
       didDelete = delete this.owner.constProps[prop as string] || didDelete;
     }
-    if (this.owner.children != null && prop === 'children') {
-      this.owner.children = null;
-      didDelete = true;
-    }
     return didDelete;
   }
   has(_: any, prop: string | symbol) {
     if (prop === 'children') {
-      return this.owner.children != null;
+      return !this.$omitChildren$ && this.owner.children != null;
     } else if (prop === _CONST_PROPS || prop === _VAR_PROPS) {
       return true;
     }
@@ -122,6 +125,9 @@ export class PropsProxyHandler implements ProxyHandler<any> {
     return inVarProps || (this.owner.constProps ? prop in this.owner.constProps : false);
   }
   getOwnPropertyDescriptor(_: any, p: string | symbol): PropertyDescriptor | undefined {
+    if (p === 'children' && this.$omitChildren$) {
+      return undefined;
+    }
     const value =
       p === 'children'
         ? this.owner.children
@@ -136,7 +142,7 @@ export class PropsProxyHandler implements ProxyHandler<any> {
   }
   ownKeys() {
     const out = Object.keys(this.owner.varProps);
-    if (this.owner.children != null) {
+    if (!this.$omitChildren$ && this.owner.children != null) {
       out.push('children');
     }
     if (this.owner.constProps) {

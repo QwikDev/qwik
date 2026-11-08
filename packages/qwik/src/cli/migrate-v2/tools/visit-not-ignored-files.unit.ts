@@ -29,4 +29,24 @@ describe('visitNotIgnoredFiles', () => {
     });
     expect(visit()).toEqual(['.gitignore', 'a.ts', 'src/b.ts']);
   });
+
+  test('skips node_modules and .git without a .gitignore', () => {
+    project = createTmpProject({
+      '.git/config': '',
+      'a.ts': '',
+      'node_modules/pkg/package.json': '',
+      'packages/app/node_modules/pkg/package.json': '',
+      'packages/app/b.ts': '',
+    });
+    expect(visit()).toEqual(['a.ts', 'packages/app/b.ts']);
+  });
+
+  test('skips node_modules even when .gitignore negates it', () => {
+    project = createTmpProject({
+      '.gitignore': '!node_modules\n',
+      'a.ts': '',
+      'node_modules/pkg/package.json': '',
+    });
+    expect(visit()).toEqual(['.gitignore', 'a.ts']);
+  });
 });

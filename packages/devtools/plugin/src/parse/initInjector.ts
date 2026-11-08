@@ -4,7 +4,6 @@
  */
 
 import type { ComponentBodyRange } from './componentBodies';
-import { readIndent } from './helpers';
 import { INNER_USE_HOOK } from '@qwik.dev/devtools/kit';
 import type { InjectOptions, InsertTask } from './types';
 import { applySourceEdits } from './sourceEdits';
@@ -48,15 +47,11 @@ function createInitTask(
     return null;
   }
 
-  // Calculate insertion position
-  const { insertIndex, prefixNewline } = calculateInsertPosition(code, insertPos);
-  const indent = readIndent(code, insertIndex);
-
-  // Build initialization code
+  // Stay on the body's opening line so source line numbers don't shift.
   const componentArg = buildComponentArg(options?.path, exportName);
-  const initLine = `${prefixNewline}${indent}const collecthook = ${INNER_USE_HOOK}(${componentArg})\n`;
+  const initStatement = ` const collecthook = ${INNER_USE_HOOK}(${componentArg});`;
 
-  return { kind: 'insert', pos: insertIndex, text: initLine };
+  return { kind: 'insert', pos: insertPos, text: initStatement };
 }
 
 // ============================================================================
@@ -66,22 +61,6 @@ function createInitTask(
 function hasExistingCollecthook(code: string, insertPos: number): boolean {
   const lookahead = code.slice(insertPos, insertPos + 200);
   return /const\s+collecthook\s*=\s*useCollectHooks\s*\(/.test(lookahead);
-}
-
-function calculateInsertPosition(
-  code: string,
-  insertPos: number
-): {
-  insertIndex: number;
-  prefixNewline: string;
-} {
-  if (code[insertPos] === '\r' && code[insertPos + 1] === '\n') {
-    return { insertIndex: insertPos + 2, prefixNewline: '' };
-  }
-  if (code[insertPos] === '\n') {
-    return { insertIndex: insertPos + 1, prefixNewline: '' };
-  }
-  return { insertIndex: insertPos, prefixNewline: '\n' };
 }
 
 // ============================================================================

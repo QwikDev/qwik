@@ -3,6 +3,20 @@
   "package": "@qwik.dev/core",
   "members": [
     {
+      "name": "_SerializerSignalImpl",
+      "id": "_serializersignalimpl",
+      "hierarchy": [
+        {
+          "name": "_SerializerSignalImpl",
+          "id": "_serializersignalimpl"
+        }
+      ],
+      "kind": "Class",
+      "content": "A signal which provides a non-serializable value. It works like a computed signal, but it is handled slightly differently during serdes.\n\n\n```typescript\nexport declare class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> \n```\n**Extends:** ComputedSignalImpl&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n(constructor)(container, argQrl)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `SerializerSignalImpl` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[$didInitialize$](#_serializersignalimpl-_didinitialize_)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[$computeIfNeeded$()](#_serializersignalimpl-_computeifneeded_)\n\n\n</td><td>\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/serializer-signal-impl.ts",
+      "mdFile": "core._serializersignalimpl.md"
+    },
+    {
       "name": "\"q:slot\"",
       "id": "componentbaseprops-_q_slot_",
       "hierarchy": [
@@ -219,6 +233,40 @@
       "content": "Qwik Optimizer marker function.\n\nUse `$(...)` to tell Qwik Optimizer to extract the expression in `$(...)` into a lazy-loadable resource referenced by `QRL`<!-- -->.\n\n\n```typescript\n$: <T>(expression: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nexpression\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nExpression which should be lazy loaded\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl-type-alias)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts",
       "mdFile": "core._.md"
+    },
+    {
+      "name": "$computeIfNeeded$",
+      "id": "_serializersignalimpl-_computeifneeded_",
+      "hierarchy": [
+        {
+          "name": "_SerializerSignalImpl",
+          "id": "_serializersignalimpl-_computeifneeded_"
+        },
+        {
+          "name": "$computeIfNeeded$",
+          "id": "_serializersignalimpl-_computeifneeded_"
+        }
+      ],
+      "kind": "Method",
+      "content": "```typescript\n$computeIfNeeded$(): void;\n```\n**Returns:**\n\nvoid",
+      "mdFile": "core._serializersignalimpl._computeifneeded_.md"
+    },
+    {
+      "name": "$didInitialize$",
+      "id": "_serializersignalimpl-_didinitialize_",
+      "hierarchy": [
+        {
+          "name": "_SerializerSignalImpl",
+          "id": "_serializersignalimpl-_didinitialize_"
+        },
+        {
+          "name": "$didInitialize$",
+          "id": "_serializersignalimpl-_didinitialize_"
+        }
+      ],
+      "kind": "Property",
+      "content": "```typescript\n$didInitialize$: boolean;\n```",
+      "mdFile": "core._serializersignalimpl._didinitialize_.md"
     },
     {
       "name": "abort",
@@ -1895,8 +1943,8 @@
           "id": "readonlysignal"
         }
       ],
-      "kind": "Interface",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `Readonly<Signal<T>>` instead.\n> \n\n\n```typescript\nexport interface ReadonlySignal<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `Readonly<Signal<T>>` instead.\n> \n\n\n```typescript\nexport type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;\n```\n**References:** [Signal](#signal)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.readonlysignal.md"
     },
@@ -2784,7 +2832,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function useServerData<T>(key: string): T | undefined;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nkey\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT \\| undefined",
+      "content": "Reads a value from the `serverData` passed to the server render.\n\nUse it in a component that renders on the server to read data handed to the render call, such as the `serverData` option of `renderToStream()`<!-- -->. Qwik Router fills it with request details like `url`<!-- -->, `requestHeaders`<!-- -->, `locale` and `nonce`<!-- -->. This is a low-level API that most apps don't need.\n\n\\#\\#\\# Example\n\n```tsx\nimport { component$, useServerData } from '@qwik.dev/core';\n\nexport const InlineScript = component$(() => {\n  const nonce = useServerData<string>('nonce');\n  return <script nonce={nonce}>console.log('hello');</script>;\n});\n```\nThe `nonce` is read on the server while the component renders. Server data is not serialized, so values like `nonce` or `url` are not available after the app resumes in the browser: copy anything the client needs into a store, a signal or a context during SSR.\n\nIt isn't meant for `routeLoader$`<!-- -->, `onStaticGenerate` or other code that runs outside rendering; use module-scoped data or `requestEvent.sharedMap` there instead.\n\n\n```typescript\nexport declare function useServerData<T>(key: string): T | undefined;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nkey\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe `serverData` key to read.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nT \\| undefined\n\nThe value for `key`<!-- -->, or `undefined` when it isn't set.",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-env-data.ts",
       "mdFile": "core.useserverdata.md"
     },

@@ -1,0 +1,28 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+export const List = (props) => {
+  let { prefix } = props;
+  prefix = 'updated';
+  return <div>{prefix}</div>;
+};
+
+============================= test.js ==
+
+//
+import { _jsxSorted } from "@qwik.dev/core";
+export const List = (props)=>{
+    let { prefix } = props;
+    prefix = 'updated';
+    return /*#__PURE__*/ _jsxSorted("div", null, null, prefix, 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,OAAO,MAAM,OAAO,CAAC;IACnB,IAAI,EAAE,MAAM,EAAE,GAAG;IACjB,SAAS;IACT,qBAAO,WAAC,mBAAK;AACf,EAAE\"}")
+== DIAGNOSTICS ==
+
+[]

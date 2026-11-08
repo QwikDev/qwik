@@ -144,7 +144,6 @@ export default defineConfig(({ mode }) => {
         optimizeDeps: {
           entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
           exclude: [
-            '@modular-forms/qwik',
             'qwik-image',
             // optimizing breaks the wasm import
             '@rolldown/browser',
@@ -185,9 +184,8 @@ export default defineConfig(({ mode }) => {
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     },
     resolve: {
-      // Every server environment, including the adapter's `ssg`, bundles these Qwik libraries;
-      // @modular-forms/qwik is built with Qwik 1.
-      noExternal: ['qwik-image', '@modular-forms/qwik', '@qds.dev/ui', '@qds.dev/tools'],
+      // Every server environment, including the adapter's `ssg`, bundles these Qwik libraries
+      noExternal: ['qwik-image', '@qds.dev/ui', '@qds.dev/tools'],
       alias: [
         {
           find: '~',

@@ -12,7 +12,7 @@
     "priority": 30,
     "displayName": "Adapter: Firebase",
     "docs": [
-      "https://qwik.dev/docs/deployments/aws-lambda/"
+      "https://qwik.dev/docs/deployments/firebase/"
     ],
     "nextSteps": {
       "title": "Next Steps",

@@ -513,9 +513,7 @@ pub fn collect_from_pat(pat: &ast::Pat, identifiers: &mut Vec<(Id, Span)>) -> bo
 			false
 		}
 		ast::Pat::Assign(expr) => {
-			if let ast::Pat::Ident(ident) = expr.left.as_ref() {
-				identifiers.push((id!(ident.id), ident.id.span));
-			}
+			collect_from_pat(&expr.left, identifiers);
 			false
 		}
 		ast::Pat::Object(obj) => {

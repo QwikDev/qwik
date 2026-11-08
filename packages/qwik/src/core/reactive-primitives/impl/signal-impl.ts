@@ -7,7 +7,6 @@ import { isSameContainer } from '../../shared/utils/container';
 import { qDev, qTest } from '../../shared/utils/qdev';
 import { tryGetInvokeContext } from '../../use/use-core';
 import {
-  addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
   getEffectSerializationContainer,
@@ -17,13 +16,13 @@ import type { Signal } from '../signal.public';
 import { ComputedSignalFlags, type EffectSubscription } from '../types';
 import type { WrappedSignalImpl } from './wrapped-signal-impl';
 import { isServerPlatform } from '../../shared/platform/platform';
-import type { SSRSegmentContainer } from '../../ssr/ssr-types';
 import { Brand, brandClass } from '../../shared/utils/brand';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));
 
+/** @internal */
 export class SignalImpl<T = any> implements Signal<T> {
   $untrackedValue$: T;
 
@@ -61,10 +60,16 @@ export class SignalImpl<T = any> implements Signal<T> {
   get value() {
     // Important: first read, then subscribe. Otherwise, initial compute invalidation will cause the reading subscriber to be marked invalid.
     const val = this.untrackedValue;
+    this.$subscribe$();
+    return val;
+  }
+
+  /** Subscribes the current reader to this signal. */
+  $subscribe$(): void {
     const ctx = tryGetInvokeContext();
     if (!ctx) {
       DEBUG && log('read->no-ctx', pad('\n' + this.toString(), '  '));
-      return val;
+      return;
     }
     if (this.$container$ === null) {
       // Grab the container now we have access to it
@@ -81,9 +86,7 @@ export class SignalImpl<T = any> implements Signal<T> {
       // Let's make sure that we have a reference to this effect.
       // Adding reference is essentially adding a subscription, so if the signal
       // changes we know who to notify.
-      const isOnServer = qTest ? isServerPlatform() : isServer;
       const effects = (this.$effects$ ||= new Set());
-      const shouldRecordExternalRootEffect = __EXPERIMENTAL__.pendingBoundary && isOnServer;
 
       ensureContainsSubscription(effects, effectSubscriber);
       // But when effect is scheduled in needs to be able to know which signals
@@ -91,25 +94,16 @@ export class SignalImpl<T = any> implements Signal<T> {
       // to this signal.
       ensureContainsBackRef(effectSubscriber, this);
 
-      if (isOnServer) {
-        const serializationContainer = getEffectSerializationContainer(
-          ctx.$container$,
-          this.$container$
+      if (qTest ? isServerPlatform() : isServer) {
+        getEffectSerializationContainer(ctx.$container$, this.$container$)?.$recordEffect$?.(
+          this,
+          effectSubscriber
         );
-        if (shouldRecordExternalRootEffect) {
-          (serializationContainer as SSRSegmentContainer | null)?.$recordExternalRootEffect$?.(
-            this,
-            effectSubscriber,
-            null
-          );
-        }
-        addQrlToSerializationCtx(effectSubscriber, serializationContainer);
       }
       DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
     } else {
       DEBUG && log('read no sub', pad('\n' + this.toString(), '  '));
     }
-    return val;
   }
 
   set value(value) {

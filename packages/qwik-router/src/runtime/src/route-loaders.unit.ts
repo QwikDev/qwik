@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import {
   abortRouteLoaderNavigation,
   prepareRouteLoaders,
   commitRouteLoaders,
   restoreRouteLoaders,
+  clearNavFetchCache,
+  fetchRouteLoaderData,
   ensureRouteLoaderSignal,
   getClientRouteLoaders,
   getRouteLoaderResponse,
@@ -57,9 +59,7 @@ describe('route loader execution', () => {
       1
     );
     commitRouteLoaders(state, ctx, 1);
-    expect(
-      Object.keys(state).filter((id) => !id.startsWith('__qwik_route_loader_value__'))
-    ).toEqual(['target-page']);
+    expect(Object.keys(state)).toEqual(['target-page']);
   });
 
   it('refreshes a resumed loader whose module export is still lazy', () => {
@@ -239,7 +239,7 @@ describe('route loader execution', () => {
     expect(invalidate).toHaveBeenCalledOnce();
   });
 
-  it('stores an uninitialized resume marker for never loaders', () => {
+  it('keeps only loader signals in the state', () => {
     const state = {} as RouteLoaderState;
     const routeLoaderCtx = { loaderPaths: {} };
     const neverLoader = createLoader('never-loader', async () => undefined);
@@ -248,11 +248,7 @@ describe('route loader execution', () => {
     ensureRouteLoaderSignal(neverLoader, state, routeLoaderCtx);
     ensureRouteLoaderSignal(alwaysLoader, state, routeLoaderCtx);
 
-    expect(state['never-loader']).toBeDefined();
-    expect(state['always-loader']).toBeDefined();
-    expect(
-      Object.entries(state).filter(([key]) => key.startsWith('__qwik_route_loader_value__'))
-    ).toEqual([['__qwik_route_loader_value__never-loader', _UNINITIALIZED]]);
+    expect(Object.keys(state)).toEqual(['never-loader', 'always-loader']);
   });
 
   it('registers immutable loaders so nav-wide invalidation skips them', () => {
@@ -305,6 +301,35 @@ describe('route loader execution', () => {
     expect(() => routeLoaderQrl(createQrl('bg-loader'), { blockSSR: false })).toThrowError(
       /experimental/
     );
+  });
+});
+
+describe('fetchRouteLoaderData nav cache', () => {
+  it('does not share a strict dev root loader fetch between pages', async () => {
+    const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+    globalThis.__STRICT_LOADERS__ = true;
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const headers = init?.headers as Record<string, string>;
+      return new Response(headers['X-Qwik-route-path']);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    clearNavFetchCache();
+    try {
+      const a = await fetchRouteLoaderData('root', '/', 'hash', {
+        pageUrl: new URL('http://test/a/'),
+      });
+      const b = await fetchRouteLoaderData('root', '/', 'hash', {
+        pageUrl: new URL('http://test/b/'),
+      });
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(a).toEqual({ raw: '/a/' });
+      expect(b).toEqual({ raw: '/b/' });
+    } finally {
+      clearNavFetchCache();
+      vi.unstubAllGlobals();
+      globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+    }
   });
 });
 

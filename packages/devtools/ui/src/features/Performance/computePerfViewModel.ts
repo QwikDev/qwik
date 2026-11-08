@@ -6,6 +6,7 @@ import {
   type PerfGroupedCsrItem,
   type PerfSsrItem,
 } from './transformPerformanceData';
+import { formatMs } from './utils/formatMs';
 
 export type PerfPayload = QwikPerfStoreRemembered;
 
@@ -39,6 +40,14 @@ export interface PerfEventVm {
 export interface PerfViewModel {
   overview: PerfOverviewVm;
   components: PerfComponentVm[];
+}
+
+/** Card label for a component's server renders; setup-only entries have no `renderCount`. */
+export function describeSsrRenders(ssr: PerfSsrItem | undefined): string {
+  if (typeof ssr?.renderCount !== 'number') {
+    return 'SSR: -';
+  }
+  return `SSR: ${formatMs(ssr.duration)} × ${ssr.renderCount}`;
 }
 
 function getCallsFromCsr(item: PerfGroupedCsrItem): number {

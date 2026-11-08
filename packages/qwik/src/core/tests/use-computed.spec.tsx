@@ -11,6 +11,7 @@ import {
   _wrapProp,
   component$,
   createComputed$,
+  createComputedQrl,
   createSignal,
   noSerialize,
   qrl,
@@ -286,6 +287,34 @@ describe.each([
         </button>
       </Component>
     );
+  });
+
+  it('should update an attribute bound to a computed that reads another computed', async () => {
+    const Cmp = component$(() => {
+      const isToggled = useSignal(false);
+      const base = useComputed$(() => 3);
+      const derived = useComputed$(() => {
+        if (!isToggled.value) {
+          return;
+        }
+        return base.value + 2;
+      });
+      return (
+        <button
+          id="btn"
+          data-test={derived.value}
+          onClick$={() => (isToggled.value = !isToggled.value)}
+        >
+          Click me! {derived.value}
+        </button>
+      );
+    });
+    const { document } = await render(<Cmp />, { debug });
+    const button = document.querySelector('#btn')!;
+    expect(button.getAttribute('data-test')).toBe(null);
+    await trigger(document.body, '#btn', 'click');
+    expect(button.textContent).toBe('Click me! 5');
+    expect(button.getAttribute('data-test')).toBe('5');
   });
 
   it('should track when recomputing computed signal', async () => {
@@ -1362,4 +1391,55 @@ describe.each([
     expect(effectSubscriber.backRef).toBeDefined();
     expect(effectSubscriber.backRef?.size).toBe(1);
   });
+
+  // the fake lazy segment below cannot be resumed under SSR
+  it.skipIf(render !== domRender)(
+    'should update a derived component prop after a lazy computed is first read mid-update',
+    async () => {
+      const Child = component$((props: { disabled: boolean; loading?: boolean }) => (
+        <button id="submit" disabled={Boolean(props.disabled || props.loading)} />
+      ));
+      const Parent = component$(() => {
+        const store = useConstant(() => {
+          const error = createSignal(false);
+          const isValid = createComputedQrl<boolean>(
+            qrl(
+              // pretend to be an async import that has not loaded yet
+              () =>
+                Promise.resolve({
+                  lazy: () => {
+                    const [error] = _capturesObj._ as any;
+                    return !error.value;
+                  },
+                }),
+              'lazy',
+              [error]
+            )
+          );
+          return { error, isValid };
+        });
+        const gate = useSignal(false);
+        // isValid is not read until gate is true, so its QRL first resolves during that update
+        const disabled = useComputed$(() => !gate.value || !store.isValid.value);
+        return (
+          <>
+            <Child disabled={disabled.value} />
+            <button id="invalidate" onClick$={() => (store.error.value = true)} />
+            <button id="gate" onClick$={() => (gate.value = true)} />
+            <button id="validate" onClick$={() => (store.error.value = false)} />
+          </>
+        );
+      });
+
+      const { document } = await render(<Parent />, { debug });
+      const submit = () => document.querySelector('#submit') as HTMLButtonElement;
+
+      await trigger(document.body, '#invalidate', 'click');
+      await trigger(document.body, '#gate', 'click');
+      expect(submit().disabled).toBe(true);
+
+      await trigger(document.body, '#validate', 'click');
+      expect(submit().disabled).toBe(false);
+    }
+  );
 });

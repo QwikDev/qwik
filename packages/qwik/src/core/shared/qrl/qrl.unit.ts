@@ -2,10 +2,12 @@ import { $ } from '@qwik.dev/core';
 import { assert, assertType, describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { getPlatform, setPlatform } from '../platform/platform';
-import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
+import { createSerializationContext } from '../../../serializer';
+import { parseQRL, qrlToString } from '../serdes/index';
 import { _regInlinedQrl, _regSymbol, inlinedQrl, qrl } from './qrl';
-import { _capturesObj, createQRL, deserializeCaptureDeltas } from './qrl-class';
+import { _capturesObj, createQRL, deserializeCaptureDeltas, isQrlImportError } from './qrl-class';
 import { type QRL } from './qrl.public';
+import { isSyncQrl } from './qrl-utils';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
@@ -49,6 +51,13 @@ describe('types', () => {
 });
 
 describe('serialization', () => {
+  test('recognizes synchronous QRLs before and after serialization', () => {
+    expect(isSyncQrl(createQRL('', '<sync>', () => {}, null, null))).toBe(true);
+    expect(isSyncQrl(parseQRL('#0'))).toBe(true);
+    expect(isSyncQrl(parseQRL('chunk#0'))).toBe(false);
+    expect(isSyncQrl(() => {})).toBe(false);
+  });
+
   test('should parse', () => {
     matchProps(parseQRL('./chunk#default'), {
       $chunk$: './chunk',
@@ -383,6 +392,54 @@ describe('w (with captures)', () => {
     assert.isDefined(q2.resolved);
     assert.deepEqual(q2.resolved!(), ['b']);
   });
+});
+
+describe('QRL import errors', () => {
+  test.each([
+    ['an Error', new Error('import failed'), true],
+    ['a frozen Error', Object.freeze(new Error('import failed')), true],
+    ['an object', {}, true],
+    ['a function', () => {}, true],
+    ['null', null, false],
+    ['undefined', undefined, false],
+    ['a string', 'import failed', false],
+    ['a number', 42, false],
+    ['a boolean', false, false],
+    ['a symbol', Symbol('import failed'), false],
+  ])('preserves %s rejection and only tags objects or functions', async (_, failure, tagged) => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const handler = qrl(() => Promise.reject(failure), 's_failedImport');
+
+      expect(isQrlImportError(failure)).toBe(false);
+      await expect(handler.resolve()).rejects.toBe(failure);
+      expect(isQrlImportError(failure)).toBe(tagged);
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  test.each([false, true])(
+    'does not tag errors from resolved handlers (async: %s)',
+    async (isAsync) => {
+      const failure = new Error('handler boom');
+      const handler = qrl(
+        () =>
+          Promise.resolve({
+            s_handler: () => {
+              if (isAsync) {
+                return Promise.reject(failure);
+              }
+              throw failure;
+            },
+          }),
+        's_handler'
+      );
+
+      await expect(handler()).rejects.toBe(failure);
+      expect(isQrlImportError(failure)).toBe(false);
+    }
+  );
 });
 
 describe('binding this', () => {

@@ -1,4 +1,3 @@
-import { createSerializationContext } from './index';
 import { assertTrue } from '../error/assert';
 import type { DeserializeContainer } from '../types';
 import { wrapDeserializerProxy } from './deser-proxy';
@@ -10,25 +9,6 @@ import {
   scheduleYieldingIterator,
 } from '../../client/yielding-iterator';
 
-/**
- * Serialize data to string using SerializationContext.
- *
- * @internal
- */
-
-export async function _serialize<T>(data: T): Promise<string> {
-  const serializationContext = createSerializationContext(
-    null,
-    null,
-    () => '',
-    () => {},
-    new WeakMap<any, any>()
-  );
-
-  serializationContext.$addRoot$(data);
-  await serializationContext.$serialize$();
-  return serializationContext.$writer$.toString();
-}
 /**
  * Deserialize data from string.
  *

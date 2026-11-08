@@ -15,7 +15,8 @@ import {
   useVisibleTask$,
   type JSXOutput,
 } from '@qwik.dev/core';
-import { _deserialize, _getDomContainer, _serialize } from '@qwik.dev/core/internal';
+import { _deserialize, _getDomContainer } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import {
   createDocument,
   domRender,
@@ -34,6 +35,7 @@ import {
 import { delay } from '../shared/utils/promises';
 import { isServerPlatform } from '../shared/platform/platform';
 import { resetCatch } from '../shared/error/catch';
+import { vnode_getFirstChild, vnode_isProjection } from '../client/vnode-utils';
 import {
   ERROR_CONTEXT,
   getOwnCatchStore,
@@ -1231,6 +1233,41 @@ describe('Catch + fallback$', () => {
         return <>{pending}</>;
       });
 
+      it('a throw arriving while the shell renders an svg swaps in the fallback after the svg', async () => {
+        let rejectLate!: (error: Error) => void;
+        const late = new Promise<JSXOutput>((_resolve, reject) => {
+          rejectLate = reject;
+        });
+        let resolveIcon!: (value: JSXOutput) => void;
+        const icon = new Promise<JSXOutput>((resolve) => {
+          resolveIcon = resolve;
+        });
+        const Late = component$(() => <>{late}</>);
+        const Icon = component$(() => <>{icon}</>);
+
+        const rendered = streamAndResume(
+          <main>
+            <Catch fallback$={fb()}>
+              <Pending fallback$={() => <span id="skel">loading</span>}>
+                <Late />
+              </Pending>
+            </Catch>
+            <svg>
+              <Icon />
+            </svg>
+          </main>,
+          OOOS
+        );
+        await delay(10);
+        rejectLate(new Error('late boom'));
+        await delay(10);
+        resolveIcon(<circle r="10" />);
+        const { html, document } = await rendered;
+
+        expect(html.indexOf('id="fb"')).toBeGreaterThan(html.indexOf('</svg>'));
+        expect(document.querySelector('#fb')?.textContent).toContain('caught: late boom');
+      });
+
       it('a throw arriving after the segment deferred still swaps in the fallback', async () => {
         const { container } = await ssrRenderToDom(
           <main>
@@ -1245,6 +1282,11 @@ describe('Catch + fallback$', () => {
         const el = container.element;
         emulateExecutionOfStreamingOutOfOrderScripts(el.ownerDocument);
         expect(el.querySelector('#fb')?.textContent).toContain('caught: late boom');
+        const fallbackHost = el.querySelector('#fb')!.closest('[q\\:rp]')!;
+        const projection = vnode_getFirstChild(container.vNodeLocate(fallbackHost))!;
+        expect(vnode_isProjection(projection)).toBe(true);
+        expect(projection.slotParent).toBeNull();
+        expect(vnode_getFirstChild(projection)).not.toBeNull();
       });
 
       // https://github.com/QwikDev/qwik/issues/8885
@@ -1969,6 +2011,63 @@ describe('qerror (client event channel)', () => {
       await waitForDrain(container);
 
       expect(container.element.querySelector('#fb')).toBeFalsy();
+    });
+
+    it('a failed handler-chunk import in core dispatch is reported as an importError qerror, not routed to the boundary (#8962)', async () => {
+      const importFailure = new Error('Failed to fetch dynamically imported module: /q-h.js');
+      const failingHandler = qrl(() => Promise.reject(importFailure), 's_failingHandler') as any;
+      const { container } = await domRender(
+        <Catch fallback$={fb()}>
+          <button id="target" onClick$={failingHandler}>
+            x
+          </button>
+        </Catch>,
+        { debug }
+      );
+      const doc = container.element.ownerDocument;
+      const seen: any[] = [];
+      const listener = (e: Event) => seen.push((e as CustomEvent).detail);
+      doc.addEventListener('qerror', listener);
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      // Use the mock document's event implementation, not Node's.
+      const originalCustomEvent = globalThis.CustomEvent;
+      vi.stubGlobal('CustomEvent', doc.createEvent('CustomEvent').constructor);
+      try {
+        await trigger(container.element, '#target', 'click');
+        await waitForDrain(container).catch(() => {});
+        await delay(0);
+      } finally {
+        doc.removeEventListener('qerror', listener);
+        errorSpy.mockRestore();
+        vi.stubGlobal('CustomEvent', originalCustomEvent);
+      }
+
+      expect(container.element.querySelector('#fb')).toBeFalsy();
+      expect(seen).toHaveLength(1);
+      expect(seen[0].importError).toBe('async');
+      expect(seen[0].error).toBe(importFailure);
+      expect(seen[0].element).toBe(container.element.querySelector('#target'));
+      expect(seen[0].symbol).toBe('s_failingHandler');
+    });
+
+    it('a handler that resolves but throws in core dispatch still reaches the boundary', async () => {
+      const { container } = await domRender(
+        <Catch fallback$={fb()}>
+          <button
+            id="target"
+            onClick$={$(() => {
+              throw new Error('handler boom');
+            })}
+          >
+            x
+          </button>
+        </Catch>,
+        { debug }
+      );
+      await trigger(container.element, '#target', 'click');
+      await waitForDrain(container).catch(() => {});
+
+      expect(container.element.querySelector('#fb')?.textContent).toContain('caught: handler boom');
     });
 
     it('CSR: a non-recoverable build error is not caught by the boundary', async () => {

@@ -13,15 +13,12 @@ import { QACTION_KEY } from './constants';
 export async function submitAction(
   action: NonNullable<RouteActionValue>,
   routeUrl: URL
-): Promise<
-  | {
-      status: number;
-      result: unknown;
-      redirect?: string | URL;
-      loaderHashes?: string[];
-    }
-  | undefined
-> {
+): Promise<{
+  status: number;
+  result: unknown;
+  redirect?: string | URL;
+  loaderHashes?: string[];
+}> {
   const pathBase = ensureSlash(routeUrl.pathname);
   const searchParams = new URLSearchParams(routeUrl.search);
   searchParams.set(QACTION_KEY, action.id);
@@ -73,5 +70,5 @@ export async function submitAction(
     };
   }
 
-  return undefined;
+  throw new Error(`Unexpected action response (${response.status}): expected JSON`);
 }

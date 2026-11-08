@@ -1,6 +1,7 @@
 import type {
   ConfigEnv,
   EnvironmentOptions,
+  Rolldown,
   UserConfig,
   ViteDevServer,
   Plugin as VitePlugin,
@@ -23,6 +24,7 @@ import {
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_CORE_ID,
   QWIK_CORE_INTERNAL_ID,
+  QWIK_CORE_SERIALIZER_ID,
   QWIK_CORE_SERVER,
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_JSX_RUNTIME_ID,
@@ -55,12 +57,30 @@ const DEDUPE = [
   QWIK_JSX_RUNTIME_ID,
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_CORE_INTERNAL_ID,
+  QWIK_CORE_SERIALIZER_ID,
   '@builder.io/qwik',
   '@builder.io/qwik/jsx-runtime',
   '@builder.io/qwik/jsx-dev-runtime',
 ];
 
-const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
+const STYLING = [
+  '.css',
+  '.scss',
+  '.sass',
+  '.less',
+  '.styl',
+  '.stylus',
+  '.pcss',
+  '.postcss',
+  '.sss',
+];
+
+/** Checks for .js, .jsx, .ts, .tsx, .mjs, .cjs, .mts, .cts, .md, .mdx ignoring the query string */
+const isSourceUrl = (url: string) => /^[^?]*\.([mc]?[jt]sx?|mdx?)(\?|$)/.test(url);
+
+/** Stylesheet imported without a query that is not a css module */
+const isPlainStylesheetUrl = (url: string) =>
+  STYLING.some((ext) => url.endsWith(ext) && !url.endsWith(`.module${ext}`));
 
 const QWIK_HMR_BRIDGE_ID = '@qwik-hmr-bridge';
 /**
@@ -128,6 +148,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
   const injections: GlobalInjections[] = [];
+  // Keyed by environment: shared plugins can run environment builds concurrently.
+  const bundleFileNamesBeforeCssCleanup = new WeakMap<object, Set<string>>();
   const qwikPlugin = createQwikPlugin({
     tsOptimizer: qwikViteOpts.tsOptimizer,
     ...qwikViteOpts.optimizerOptions,
@@ -265,7 +287,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const updatedViteConfig: UserConfig = {
         // Duplicated in configEnvironment to support legacy vite build --ssr compatibility
         ssr: {
-          noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+          noExternal: [
+            QWIK_CORE_ID,
+            QWIK_CORE_INTERNAL_ID,
+            QWIK_CORE_SERIALIZER_ID,
+            QWIK_CORE_SERVER,
+            QWIK_BUILD_ID,
+          ],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
@@ -290,6 +318,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             // this breaks Qwik because it relies a lot on module scoped symbols
             QWIK_CORE_ID,
             QWIK_CORE_INTERNAL_ID,
+            QWIK_CORE_SERIALIZER_ID,
             QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
@@ -362,6 +391,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           updatedViteConfig.build!.rolldownOptions.external = [
             QWIK_CORE_ID,
             QWIK_CORE_INTERNAL_ID,
+            QWIK_CORE_SERIALIZER_ID,
             QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
@@ -393,7 +423,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (isServer) {
         return {
           resolve: {
-            noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+            noExternal: [
+              QWIK_CORE_ID,
+              QWIK_CORE_INTERNAL_ID,
+              QWIK_CORE_SERIALIZER_ID,
+              QWIK_CORE_SERVER,
+              QWIK_BUILD_ID,
+            ],
           },
         } satisfies EnvironmentOptions;
       }
@@ -445,6 +481,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           }
         }
       }
+    },
+
+    // Runs before Vite deletes pure CSS chunks, to tell them apart from externals.
+    generateBundle: {
+      order: 'pre',
+      handler(_, rollupBundle) {
+        bundleFileNamesBeforeCssCleanup.set(this.environment, new Set(Object.keys(rollupBundle)));
+      },
     },
 
     async buildStart() {
@@ -575,6 +619,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             }
           }
 
+          stubRemovedChunkImports(
+            rollupBundle,
+            bundleFileNamesBeforeCssCleanup.get(this.environment) ?? new Set(),
+            (code) => this.parse(code)
+          );
+
           const manifest = await qwikPlugin.generateManifest(
             this,
             rollupBundle,
@@ -690,8 +740,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // is not a JS/TS file. For those, emit their JS importers instead, since
           // the component that needs to re-render is the importer.
           const files = new Set<string>();
-          const isSourceUrl = (url: string) => /\.([mc]?[jt]sx?|mdx?)$/.test(url.split('?')[0]);
           for (const m of ctx.modules) {
+            // Vite swaps plain stylesheets in place and their importers render the same output
+            if (isPlainStylesheetUrl(m.url)) {
+              continue;
+            }
             const url = m.url.split('?')[0];
             if (m.type === 'js' && isSourceUrl(m.url)) {
               files.add(url);
@@ -1054,6 +1107,87 @@ const LOG_COLOR = {
   warn: ANSI_COLOR.Yellow,
   info: ANSI_COLOR.Cyan,
   debug: ANSI_COLOR.BrightBlack,
+};
+
+type AstNode = { type?: string; start: number; end: number; [key: string]: any };
+
+const findImportExpressions = (ast: unknown) => {
+  const importExpressions: AstNode[] = [];
+  const stack = [ast];
+  while (stack.length > 0) {
+    const node = stack.pop() as AstNode | null;
+    if (!node || typeof node !== 'object') {
+      continue;
+    }
+    if (node.type === 'ImportExpression') {
+      importExpressions.push(node);
+    }
+    for (const value of Object.values(node)) {
+      if (Array.isArray(value)) {
+        for (const child of value) {
+          stack.push(child);
+        }
+      } else {
+        stack.push(value);
+      }
+    }
+  }
+  return importExpressions;
+};
+
+const getStaticSpecifier = (source: AstNode | undefined): string | undefined => {
+  if (source?.type === 'Literal' && typeof source.value === 'string') {
+    return source.value;
+  }
+  if (source?.type === 'TemplateLiteral' && source.expressions.length === 0) {
+    return source.quasis[0].value.cooked;
+  }
+};
+
+const resolveBundleFileName = (importer: string, specifier: string) => {
+  const segments = importer.split('/').slice(0, -1);
+  for (const segment of specifier.split('/')) {
+    if (segment === '..') {
+      segments.pop();
+    } else if (segment !== '.') {
+      segments.push(segment);
+    }
+  }
+  return segments.join('/');
+};
+
+// Same-length stub keeps the chunk's source map columns valid.
+const createImportStub = (length: number) =>
+  `Promise.resolve({${' '.repeat(Math.max(0, length - 19))}})`;
+
+/** Vite deletes pure CSS chunks; we removed the plugin that stubs their imports. */
+export const stubRemovedChunkImports = (
+  bundle: Rolldown.OutputBundle,
+  fileNamesBeforeCssCleanup: Set<string>,
+  parse: (code: string) => unknown
+) => {
+  for (const chunk of Object.values(bundle)) {
+    if (chunk.type !== 'chunk') {
+      continue;
+    }
+    const removedFiles = new Set(
+      chunk.dynamicImports.filter((file) => fileNamesBeforeCssCleanup.has(file) && !bundle[file])
+    );
+    if (removedFiles.size === 0) {
+      continue;
+    }
+    const removedImports = findImportExpressions(parse(chunk.code))
+      .filter((node) => {
+        const specifier = getStaticSpecifier(node.source);
+        const isRelative = specifier?.startsWith('./') || specifier?.startsWith('../');
+        return isRelative && removedFiles.has(resolveBundleFileName(chunk.fileName, specifier!));
+      })
+      .sort((a, b) => b.start - a.start);
+    for (const { start, end } of removedImports) {
+      chunk.code =
+        chunk.code.slice(0, start) + createImportStub(end - start) + chunk.code.slice(end);
+    }
+  }
 };
 
 export const isNotNullable = <T>(v: T): v is NonNullable<T> => {

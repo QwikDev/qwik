@@ -1,5 +1,6 @@
 import { createInPageBridge } from '../../devtools/kit/src/client-bridge';
-import { readPage } from './page';
+import { locateElement, readPage } from './page';
+import type { InspectInput, LocateInput } from './protocol';
 
 const hot = import.meta.hot!;
 const pageId = crypto.randomUUID();
@@ -23,23 +24,19 @@ hot.on('vite:afterUpdate', () => {
 });
 hot.on(
   'qwik:mcp:request',
-  async ({
-    id,
-    name,
-    args,
-  }: {
-    id: string;
-    name: string;
-    args: Parameters<typeof readPage>[0];
-  }) => {
+  async ({ id, name, args }: { id: string; name: string; args: InspectInput & LocateInput }) => {
     try {
       if (args.url && args.url !== location.href) {
         throw new Error(`Page navigated. Retry with url: ${location.href}`);
       }
-      const result =
-        name === 'get_dev_errors'
-          ? { url: location.href, errors }
-          : await readPage(args, document, bridge, location.href);
+      let result;
+      if (name === 'get_dev_errors') {
+        result = { url: location.href, errors };
+      } else if (name === 'locate_element') {
+        result = locateElement(args, document, location.href);
+      } else {
+        result = await readPage(args, document, bridge, location.href);
+      }
       hot.send('qwik:mcp:response', { id, result });
     } catch (error) {
       hot.send('qwik:mcp:response', { id, error: String(error) });

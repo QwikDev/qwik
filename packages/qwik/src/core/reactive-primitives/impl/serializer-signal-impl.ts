@@ -35,6 +35,10 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
   $didInitialize$: boolean = false;
 
   $computeIfNeeded$() {
+    if (this.$flags$ & ComputedSignalFlags.CHECK) {
+      // The update fn decides itself whether anything changed, so skip the source walk
+      this.$flags$ = (this.$flags$ & ~ComputedSignalFlags.CHECK) | ComputedSignalFlags.INVALID;
+    }
     if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }

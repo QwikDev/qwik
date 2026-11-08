@@ -2,7 +2,6 @@ import { isBrowser, isDev } from '@qwik.dev/core/build';
 import { useCatchStore } from '../../use/use-catch-store';
 import { componentQrl, type Component } from '../component.public';
 import { _jsxSorted } from '../jsx/jsx-internal';
-import { Fragment } from '../jsx/jsx-runtime';
 import { Slot } from '../jsx/slot.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import { isServerPlatform } from '../platform/platform';
@@ -13,6 +12,7 @@ import {
   OnRenderProp,
   QErrorContentHost,
   QErrorFallbackHost,
+  QFallbackSlot,
   QSlot,
   QPendingResolved,
   QPendingResultParent,
@@ -113,7 +113,7 @@ function scheduleBoundaryContentReset(
   let crossedProjection = false;
   while (vNode) {
     if (vnode_isVirtualVNode(vNode)) {
-      if (vnode_getProp(vNode, QSlot, null) !== null) {
+      if (vnode_getProp(vNode, QSlot, null) !== null && vNode.slotParent) {
         crossedProjection = true;
       } else if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
         if (!crossedProjection) {
@@ -227,9 +227,9 @@ export const catchCmp = (props: CatchProps): JSXOutput => {
 
   const displayError = redactBoundaryErrorForDisplay(store.error, true);
   return /*#__PURE__*/ _jsxSorted(
-    Fragment,
+    Slot,
     null,
-    null,
+    { name: QFallbackSlot },
     renderFallbackOrLastResort(props.fallback$, displayError, reset),
     0,
     null
@@ -319,10 +319,17 @@ export const SSRErrorFallbackHost =
           },
           null,
           /*#__PURE__*/ _jsxSorted(
-            SSRErrorFallbackRenderer,
-            { boundaryId, store, deliverLate },
+            Slot,
             null,
-            null,
+            { name: QFallbackSlot },
+            /*#__PURE__*/ _jsxSorted(
+              SSRErrorFallbackRenderer,
+              { boundaryId, store, deliverLate },
+              null,
+              null,
+              1,
+              null
+            ),
             1,
             null
           ),

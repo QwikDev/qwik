@@ -19,7 +19,8 @@ if (isWindows && __dirname.startsWith('/')) {
 }
 const qwikPkgDir = path.join(__dirname, '..', 'qwik', 'dist');
 
-if (!fs.existsSync(path.join(qwikPkgDir, 'core-internal.d.ts'))) {
+const requiredArtifacts = ['core-internal.d.ts', 'serializer.mjs'];
+if (requiredArtifacts.some((file) => !fs.existsSync(path.join(qwikPkgDir, file)))) {
   console.warn(
     `\n\n=== Running 'pnpm run build.full' to generate missing imports for the docs ===\n`
   );

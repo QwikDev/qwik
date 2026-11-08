@@ -38,11 +38,20 @@ describe('default cache keys', () => {
       originalUrl: new URL('http://localhost/products/'),
     } as any;
 
-    expect(defaultSsrCacheKey(requestEv, 'etag')).toBe('200|etag|/products/');
-    expect(defaultSsrCacheKey(requestEv, '')).toBe('200|/products/');
+    expect(defaultSsrCacheKey(requestEv, 'etag')).toBe('200|etag|http://localhost/products/');
+    expect(defaultSsrCacheKey(requestEv, '')).toBe('200|http://localhost/products/');
 
     requestEv.url = new URL('http://localhost/rewrite-target/');
-    expect(defaultSsrCacheKey(requestEv, 'etag')).toBe('200|etag|/products/');
+    expect(defaultSsrCacheKey(requestEv, 'etag')).toBe('200|etag|http://localhost/products/');
+  });
+
+  it('keeps SSR entries for different request origins apart', () => {
+    const requestEv = {
+      status: vi.fn(() => 200),
+      originalUrl: new URL('http://evil.example/products/'),
+    } as any;
+
+    expect(defaultSsrCacheKey(requestEv, '')).toBe('200|http://evil.example/products/');
   });
 
   it('builds the loader key from request path and sharedMap loader metadata', () => {
@@ -52,8 +61,10 @@ describe('default cache keys', () => {
     } as any;
 
     expect(defaultLoaderCacheKey(requestEv, 'etag')).toBe(
-      '/products/|?page=2&q=shoes|loader-id|etag'
+      'http://localhost/products/|?page=2&q=shoes|loader-id|etag'
     );
-    expect(defaultLoaderCacheKey(requestEv, '')).toBe('/products/|?page=2&q=shoes|loader-id');
+    expect(defaultLoaderCacheKey(requestEv, '')).toBe(
+      'http://localhost/products/|?page=2&q=shoes|loader-id'
+    );
   });
 });

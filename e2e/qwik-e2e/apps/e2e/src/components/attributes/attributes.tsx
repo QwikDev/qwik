@@ -232,15 +232,15 @@ const ProgressRootShowHide = component$<{ min: number } & PropsOf<'div'>>(({ min
 
   return (
     <>
+      <button id="progress-hide" onClick$={() => (show.value = !show.value)}>
+        show/hide progress
+      </button>
+
       {show.value && (
         <div id="progress-2" aria-valuetext={min.toString()} {...rest}>
           {min}
         </div>
       )}
-
-      <button id="progress-hide" onClick$={() => (show.value = !show.value)}>
-        show/hide progress
-      </button>
     </>
   );
 });

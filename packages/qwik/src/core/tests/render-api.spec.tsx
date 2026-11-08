@@ -8,8 +8,10 @@ import {
   getDomContainer,
   getPlatform,
   inlinedQrl,
+  Pending,
   render,
   setPlatform,
+  Slot,
   useLexicalScope,
   useOn,
   useComputed$,
@@ -38,7 +40,7 @@ import type {
 } from '../../server/types';
 import { whenContainerDataReady } from '../client/dom-container';
 import { vnode_getFirstChild } from '../client/vnode-utils';
-import { _fnSignal, type _ContainerElement } from '../internal';
+import { _fnSignal, _waitOn, type _ContainerElement } from '../internal';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr, QwikEvContainerReady, QStatePrewarmAttr } from '../shared/utils/markers';
 
@@ -397,6 +399,63 @@ describe('render api', () => {
       });
     });
     describe('qwikLoader', () => {
+      it.each([undefined, 'module'] as const)(
+        'should eagerly import the module loader with a nonce (include: %s)',
+        async (qwikLoader) => {
+          const result = await renderToStringAndSetPlatform(
+            <>
+              <head />
+              <body>
+                <Counter />
+              </body>
+            </>,
+            {
+              manifest: manifestWithHelpers,
+              qwikLoader,
+              serverData: { nonce: 'test-nonce' },
+            }
+          );
+          const document = createDocument({ html: result.html });
+          const preload = document.head.querySelector('link[rel=modulepreload]')!;
+          expect(preload.getAttribute('href')).toEqual('/build/qwik-loader.js');
+          expect(preload.getAttribute('nonce')).toEqual('test-nonce');
+          const script = preload.nextElementSibling!;
+          expect(script.tagName.toLowerCase()).toEqual('script');
+          expect(script.textContent).toEqual(
+            'import(new URL("/build/qwik-loader.js",document.baseURI).href)'
+          );
+          expect(script.getAttribute('nonce')).toEqual('test-nonce');
+          expect(script.getAttribute('type')).toEqual('text/javascript');
+          expect(script.hasAttribute('src')).toBe(false);
+          expect(script.hasAttribute('async')).toBe(false);
+        }
+      );
+
+      it.each([
+        'build/',
+        'https://cdn.example.com/build/',
+        '/build/"\\</script><script>injected</script>/',
+      ])('should safely resolve the module URL against the document base (%s)', async (base) => {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+          manifest: manifestWithHelpers,
+          qwikLoader: 'module',
+          base,
+        });
+        const document = createDocument({ html: result.html });
+        const preload = document.querySelector('link[rel=modulepreload]')!;
+        const script = preload.nextElementSibling!;
+        const body = script.textContent!;
+        expect(preload.getAttribute('href')).toEqual(base + manifestWithHelpers.qwikLoader);
+        expect(body).toMatch(/^import\(new URL\(.*?,document\.baseURI\)\.href\)$/);
+        expect(body).not.toContain('<');
+        expect(
+          JSON.parse(body.slice('import(new URL('.length, -',document.baseURI).href)'.length))
+        ).toEqual(base + manifestWithHelpers.qwikLoader);
+        expect(preload.hasAttribute('nonce')).toBe(false);
+        expect(script.hasAttribute('nonce')).toBe(false);
+      });
+
       describe('inline', () => {
         it('should render at bottom as fallback', async () => {
           const result = await renderToStringAndSetPlatform(<Counter />, {
@@ -524,11 +583,59 @@ describe('render api', () => {
           containerTagName: 'div',
           qwikLoader: 'module',
         });
-        expect(result.html).toMatch(
+        // Names are pushed as their elements render; the container-ready marker comes last
+        const pushed = Array.from(
+          result.html.matchAll(/\(window\._qwikEv\|\|\(window\._qwikEv=\[\]\)\)\.push\(([^)]*)\)/g),
+          (match) => match[1]
+        ).join(',');
+        expect(pushed).toMatch(
           new RegExp(
-            `\\(window\\._qwikEv\\|\\|\\(window\\._qwikEv=\\[\\]\\)\\)\\.push\\("e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click",${QwikEvContainerReady},"[^"]+"\\)`
+            `^"e:focus","e:-my---custom","e:click","e:dblclick","d:focus","e:another-custom","e:blur","w:click",${QwikEvContainerReady},"[^"]+"$`
           )
         );
+      });
+      it('should push event names right after the element that uses them', async () => {
+        const result = await renderToStringAndSetPlatform(
+          <>
+            <Counter />
+            <div>{'hello world '.repeat(3000)}</div>
+          </>,
+          { containerTagName: 'div' }
+        );
+        const pushed = result.html.indexOf('.push("e:click");document.currentScript.remove()');
+        expect(pushed).toBeGreaterThan(result.html.indexOf('<button'));
+        expect(pushed).toBeLessThan(result.html.indexOf('hello world'));
+        expect(result.html.split('"e:click"')).toHaveLength(2);
+      });
+      it('should not push event names inside a colgroup', async () => {
+        const result = await renderToStringAndSetPlatform(
+          <table>
+            <colgroup onClick$={() => {}}>
+              <col />
+            </colgroup>
+          </table>,
+          { containerTagName: 'div' }
+        );
+        const document = createDocument({ html: result.html });
+        expect(document.querySelectorAll('colgroup')).toHaveLength(1);
+        expect(document.querySelector('colgroup > col')).toBeTruthy();
+        expect(result.html).toContain('"e:click"');
+      });
+      it('should push pending event names before opening a colgroup', async () => {
+        const result = await renderToStringAndSetPlatform(
+          <table>
+            <caption>
+              <button onClick$={() => {}}>click</button>
+            </caption>
+            <colgroup>
+              <col />
+            </colgroup>
+          </table>,
+          { containerTagName: 'div' }
+        );
+        const pushed = result.html.indexOf('"e:click"');
+        expect(pushed).toBeGreaterThan(-1);
+        expect(pushed).toBeLessThan(result.html.indexOf('<colgroup'));
       });
     });
     describe('qwikFuncs', () => {
@@ -588,7 +695,9 @@ describe('render api', () => {
         expect(containerElement?.nodeName.toLowerCase()).toEqual(testTag);
         expect(containerElement?.lastChild?.textContent ?? '').toContain('window._qwikEv');
         const scripts = document.querySelectorAll('script');
-        expect(scripts[0]?.getAttribute('src')).toEqual('/build/qwik-loader.js');
+        expect(document.querySelector('link[rel=modulepreload] + script')?.textContent).toEqual(
+          'import(new URL("/build/qwik-loader.js",document.baseURI).href)'
+        );
         for (let i = 0; i < scripts.length; i++) {
           expect(scripts[i]?.innerHTML).not.toContain('/build/preloader.js');
         }
@@ -831,6 +940,20 @@ describe('render api', () => {
   });
 
   describe('renderToStream()', () => {
+    const AsyncDocument = component$(() => {
+      _waitOn(Promise.resolve());
+      return (
+        <>
+          <head>
+            <title>page</title>
+          </head>
+          <body>
+            <Slot />
+          </body>
+        </>
+      );
+    });
+
     describe('render result', () => {
       it('should renderToStream', async () => {
         const chunks: string[] = [];
@@ -925,6 +1048,207 @@ describe('render api', () => {
         );
         expect(calls).toEqual([false]);
         expect(result.hasCaughtError).toBe(true);
+      });
+
+      it('reports a catch under an async document root', async () => {
+        const calls: Array<{ hasCaughtError: boolean; chunksAtCall: number }> = [];
+        const chunks: string[] = [];
+        await renderToStreamAndSetPlatform(
+          <AsyncDocument>
+            <Catch fallback$={$(() => 'fb')}>
+              <FlushThrower />
+            </Catch>
+          </AsyncDocument>,
+          {
+            containerTagName: 'html',
+            stream: createTestStream((chunk) => {
+              chunks.push(chunk as string);
+            }),
+            onBeforeFirstFlush: (info) =>
+              calls.push({
+                hasCaughtError: info.hasCaughtError,
+                chunksAtCall: chunks.length,
+              }),
+          }
+        );
+        expect(calls).toEqual([{ hasCaughtError: true, chunksAtCall: 0 }]);
+      });
+    });
+
+    describe('first flush', () => {
+      const Gated = component$(() => {
+        _waitOn(useServerData<Promise<void>>('gate', Promise.resolve()));
+        return <p>gated</p>;
+      });
+      const GatedTitle = component$(() => {
+        _waitOn(useServerData<Promise<void>>('gate', Promise.resolve()));
+        return <title>gated</title>;
+      });
+      const Thrower = component$((): JSXOutput => {
+        throw new Error('first flush boom');
+      });
+      const renderDocument = (jsx: JSXOutput, opts: Partial<RenderToStreamOptions> = {}) => {
+        const chunks: string[] = [];
+        const render = renderToStreamAndSetPlatform(jsx, {
+          containerTagName: 'html',
+          stream: createTestStream((chunk) => {
+            chunks.push(chunk as string);
+          }),
+          ...opts,
+        });
+        return { chunks, render };
+      };
+
+      describe('document head', () => {
+        it('an async root writes nothing before body opens', async () => {
+          const { chunks, render } = renderDocument(<AsyncDocument />);
+          await render;
+
+          expect(chunks[0]).toContain('<body');
+        });
+
+        it('a slow head stays held until body opens', async () => {
+          const { chunks, render } = renderDocument(
+            <>
+              <head>
+                <GatedTitle />
+              </head>
+              <body />
+            </>
+          );
+          await render;
+
+          expect(chunks[0]).toContain('<body');
+        });
+
+        it('a head past maximumInitialChunk stays held until body opens', async () => {
+          const { chunks, render } = renderDocument(
+            <>
+              <head>
+                <title>{'x'.repeat(2000)}</title>
+              </head>
+              <body />
+            </>,
+            { streaming: { inOrder: { strategy: 'auto', maximumInitialChunk: 1000 } } }
+          );
+          await render;
+
+          expect(chunks[0]).toContain('</head>');
+        });
+
+        it('a maximumInitialChunk of 0 still holds the doctype', async () => {
+          const { chunks, render } = renderDocument(<AsyncDocument />, {
+            streaming: { inOrder: { strategy: 'auto', maximumInitialChunk: 0 } },
+          });
+          await render;
+
+          expect(chunks[0]).toContain('</head>');
+        });
+      });
+
+      describe('document body', () => {
+        it('the first await after body opens flushes', async () => {
+          const gate = createDeferred();
+          const { chunks, render } = renderDocument(
+            <AsyncDocument>
+              <p>shell</p>
+              <Gated />
+            </AsyncDocument>,
+            { serverData: { gate: gate.promise } }
+          );
+
+          await vi.waitFor(() => expect(chunks.join('')).toContain('shell'));
+          expect(chunks.join('')).not.toContain('gated');
+
+          gate.resolve();
+          await render;
+          expect(chunks.join('')).toContain('gated');
+        });
+
+        it('a Pending fallback flushes before its content resolves', async () => {
+          const gate = createDeferred();
+          const { chunks, render } = renderDocument(
+            <AsyncDocument>
+              <Pending fallback$={() => <span>Loading...</span>}>
+                <Gated />
+              </Pending>
+            </AsyncDocument>,
+            { serverData: { gate: gate.promise }, streaming: { outOfOrder: true } }
+          );
+
+          await vi.waitFor(() => expect(chunks.join('')).toContain('Loading...'));
+          expect(chunks.join('')).not.toContain('gated');
+
+          gate.resolve();
+          await render;
+          expect(chunks.join('')).toContain('gated');
+        });
+      });
+
+      describe('documents without body', () => {
+        it('a head-only document writes at the final flush', async () => {
+          const { chunks, render } = renderDocument(
+            <head>
+              <GatedTitle />
+            </head>
+          );
+          await render;
+
+          expect(chunks).toHaveLength(1);
+          expect(chunks[0]).toContain('<title');
+          expect(chunks[0]).toContain('gated');
+        });
+      });
+
+      describe('crashes', () => {
+        it('a crash before the first flush writes nothing and rejects', async () => {
+          const { chunks, render } = renderDocument(
+            <AsyncDocument>
+              <Thrower />
+            </AsyncDocument>
+          );
+
+          await expect(render).rejects.toThrow('first flush boom');
+          expect(chunks).toEqual([]);
+        });
+
+        it('a crash after the first flush keeps what it wrote', async () => {
+          const { chunks, render } = renderDocument(
+            <AsyncDocument>
+              <p>shell</p>
+              <Gated />
+              <Thrower />
+            </AsyncDocument>
+          );
+
+          await expect(render).rejects.toThrow('first flush boom');
+          expect(chunks.join('')).toContain('shell');
+        });
+      });
+
+      describe('renders that never hold', () => {
+        it('a containerTagName render flushes before its first await', async () => {
+          const gate = createDeferred();
+          const { chunks, render } = renderDocument(<Gated />, {
+            containerTagName: 'div',
+            serverData: { gate: gate.promise },
+          });
+
+          await vi.waitFor(() => expect(chunks.join('')).toContain('<div'));
+          expect(chunks.join('')).not.toContain('gated');
+
+          gate.resolve();
+          await render;
+        });
+
+        it('direct streaming writes the doctype straight through', async () => {
+          const { chunks, render } = renderDocument(<AsyncDocument />, {
+            streaming: { inOrder: { strategy: 'direct' } },
+          });
+          await render;
+
+          expect(chunks[0]).toBe('<!DOCTYPE html>');
+        });
       });
     });
 
@@ -1039,6 +1363,50 @@ describe('render api', () => {
 
           firstWrite.resolve();
           await expect(renderPromise).rejects.toThrow('async component failed');
+        } finally {
+          process.off('unhandledRejection', onUnhandledRejection);
+        }
+      });
+      it('should handle out-of-order Pending content rejection while a flush is pending', async () => {
+        const firstWrite = createDeferred();
+        let writeCount = 0;
+        const unhandledRejections: unknown[] = [];
+        const onUnhandledRejection = (reason: unknown) => {
+          unhandledRejections.push(reason);
+        };
+        const Throwing = component$(() => {
+          throw new Error('pending content failed');
+        });
+        const stream = createTestStream(() => {
+          writeCount++;
+          if (writeCount === 1) {
+            return firstWrite.promise;
+          }
+        });
+
+        process.on('unhandledRejection', onUnhandledRejection);
+        try {
+          const renderPromise = renderToStreamAndSetPlatform(
+            <div>
+              <Pending fallback$={() => <span>Loading...</span>}>
+                <Throwing />
+              </Pending>
+            </div>,
+            {
+              containerTagName: 'div',
+              stream,
+              streaming: {
+                inOrder: { strategy: 'disabled' },
+                outOfOrder: true,
+              },
+            }
+          );
+          await new Promise((resolve) => setImmediate(resolve));
+
+          expect(unhandledRejections).toEqual([]);
+
+          firstWrite.resolve();
+          await expect(renderPromise).rejects.toThrow('pending content failed');
         } finally {
           process.off('unhandledRejection', onUnhandledRejection);
         }

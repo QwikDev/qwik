@@ -24,6 +24,7 @@ import { createSignal } from '../reactive-primitives/signal-api';
 import { StoreFlags } from '../reactive-primitives/types';
 import { QError, qError } from '../shared/error/error';
 import type { QElement } from '../shared/types';
+import { DeleteOperation, InsertOrMoveOperation } from '../shared/vnode/types/dom-vnode-operation';
 import { VNodeFlags } from './types';
 import {
   vnode_getFirstChild,
@@ -36,6 +37,7 @@ import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { VNode } from '../shared/vnode/vnode';
 import { vnode_diff } from './vnode-diff';
 
 describe('vNode-diff', () => {
@@ -86,18 +88,18 @@ describe('vNode-diff', () => {
       expect(vNode).toMatchVDOM(<div key="KA_6">Hello</div>);
     });
     it('should remove all text nodes', () => {
-      const { vNode, vParent, container } = vnode_fromJSX(<div>text{'removeMe'}</div>);
+      const { vNode, vParent, container } = vnode_fromJSX(<div key="KA_6">text{'removeMe'}</div>);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div></div>, vParent, vParent, null);
+      vnode_diff(container, journal, <div key="KA_6"></div>, vParent, vParent, null);
       _flushJournal(journal);
-      expect(vNode).toMatchVDOM(<div></div>);
+      expect(vNode).toMatchVDOM(<div key="KA_6"></div>);
     });
     it('should treat undefined as no children', () => {
-      const { vNode, vParent, container } = vnode_fromJSX(<div>text{'removeMe'}</div>);
+      const { vNode, vParent, container } = vnode_fromJSX(<div key="KA_6">text{'removeMe'}</div>);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div>{undefined}</div>, vParent, vParent, null);
+      vnode_diff(container, journal, <div key="KA_6">{undefined}</div>, vParent, vParent, null);
       _flushJournal(journal);
-      expect(vNode).toMatchVDOM(<div></div>);
+      expect(vNode).toMatchVDOM(<div key="KA_6"></div>);
     });
 
     describe('2 empty texts', () => {
@@ -255,6 +257,234 @@ describe('vNode-diff', () => {
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
       await expect(container.document.querySelector('test')).toMatchDOM(test);
+    });
+    describe('keeping siblings in place', () => {
+      const touchedNodes = (journal: VNodeJournal) =>
+        journal.flatMap((op) =>
+          op instanceof InsertOrMoveOperation || op instanceof DeleteOperation ? [op.target] : []
+        );
+
+      it('should not move later siblings when an earlier element becomes an empty text', async () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          <test key="KA_0">
+            <p>Message</p>
+            <iframe />
+            <button />
+          </test>
+        );
+        const test = (
+          <test key="KA_0">
+            {false}
+            <iframe />
+            <button />
+          </test>
+        );
+        const iframe = container.document.querySelector('iframe')!;
+        const button = container.document.querySelector('button')!;
+        const journal: VNodeJournal = [];
+        vnode_diff(container, journal, test, vParent, vParent, null);
+        expect(touchedNodes(journal)).not.toContain(iframe);
+        expect(touchedNodes(journal)).not.toContain(button);
+        _flushJournal(journal);
+        expect(vNode).toMatchVDOM(
+          <test>
+            {''}
+            <iframe />
+            <button />
+          </test>
+        );
+        expect(container.document.querySelector('iframe')).toBe(iframe);
+        expect(container.document.querySelector('button')).toBe(button);
+      });
+
+      it('should not move later siblings when earlier elements are dropped', async () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          <test key="KA_0">
+            <p>Message</p>
+            <span>A</span>
+            <iframe />
+            <button />
+          </test>
+        );
+        const test = (
+          <test key="KA_0">
+            <iframe />
+            <button />
+          </test>
+        );
+        const iframe = container.document.querySelector('iframe')!;
+        const button = container.document.querySelector('button')!;
+        const journal: VNodeJournal = [];
+        vnode_diff(container, journal, test, vParent, vParent, null);
+        expect(touchedNodes(journal)).not.toContain(iframe);
+        expect(touchedNodes(journal)).not.toContain(button);
+        _flushJournal(journal);
+        expect(vNode).toMatchVDOM(test);
+        await expect(container.document.querySelector('test')).toMatchDOM(test);
+      });
+
+      it.each([false, true])('should move only the rotated element (keyed: %s)', async (keyed) => {
+        const key = (value: string) => (keyed ? value : null);
+        const original = (
+          <test key="KA_0">
+            <p key={key('p')}>Message</p>
+            <iframe key={key('iframe')} />
+            <button key={key('button')} />
+          </test>
+        );
+        const rotated = (
+          <test key="KA_0">
+            <button key={key('button')} />
+            <p key={key('p')}>Message</p>
+            <iframe key={key('iframe')} />
+          </test>
+        );
+        const { vNode, vParent, container } = vnode_fromJSX(original);
+        const p = container.document.querySelector('p')!;
+        const iframe = container.document.querySelector('iframe')!;
+        const button = container.document.querySelector('button')!;
+
+        const steps = [rotated, original];
+        for (let i = 0; i < steps.length; i++) {
+          const test = steps[i];
+          const journal: VNodeJournal = [];
+          vnode_diff(container, journal, test, vParent, vParent, null);
+          expect(touchedNodes(journal)).toEqual([button]);
+          _flushJournal(journal);
+          expect(vNode).toMatchVDOM(test);
+          await expect(container.document.querySelector('test')).toMatchDOM(test);
+          expect(container.document.querySelector('p')).toBe(p);
+          expect(container.document.querySelector('iframe')).toBe(iframe);
+          expect(container.document.querySelector('button')).toBe(button);
+        }
+      });
+
+      const keyedList = (keys: string[]) => (
+        <ul key="KA_0">
+          {keys.map((key) => (
+            <li key={key}>{key}</li>
+          ))}
+        </ul>
+      );
+
+      it('should reverse a keyed list and back keeping the same elements', async () => {
+        const keys = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+        const { vNode, vParent, container } = vnode_fromJSX(keyedList(keys));
+        const items = Array.from(container.document.querySelectorAll('li'));
+
+        const steps = [[...keys].reverse(), keys];
+        for (let i = 0; i < steps.length; i++) {
+          const test = keyedList(steps[i]);
+          const journal: VNodeJournal = [];
+          vnode_diff(container, journal, test, vParent, vParent, null);
+          const touched = touchedNodes(journal);
+          expect(touched).toHaveLength(keys.length - 1);
+          expect(new Set(touched).size).toBe(touched.length);
+          _flushJournal(journal);
+          expect(vNode).toMatchVDOM(test);
+          await expect(container.document.querySelector('ul')).toMatchDOM(test);
+          const reordered = container.document.querySelectorAll('li');
+          for (let idx = 0; idx < keys.length; idx++) {
+            expect(reordered[idx]).toBe(items[keys.indexOf(steps[i][idx])]);
+          }
+        }
+      });
+
+      it('should not rescan matched siblings when reversing a keyed list', () => {
+        const keys = Array.from({ length: 200 }, (_, i) => String(i));
+        const { vNode, vParent, container } = vnode_fromJSX(keyedList(keys));
+        const vItems: VNode[] = [];
+        for (let vItem = vnode_getFirstChild(vNode!); vItem; vItem = vItem.nextSibling as VNode) {
+          vItems.push(vItem);
+        }
+        let nextSiblingReads = 0;
+        for (let i = 0; i < vItems.length; i++) {
+          let nextSibling = vItems[i].nextSibling;
+          Object.defineProperty(vItems[i], 'nextSibling', {
+            get: () => {
+              nextSiblingReads++;
+              return nextSibling;
+            },
+            set: (value) => {
+              nextSibling = value;
+            },
+          });
+        }
+
+        vnode_diff(container, [], keyedList([...keys].reverse()), vParent, vParent, null);
+        // Rescanning matched siblings reads about `keys.length ** 2 / 2` links.
+        expect(nextSiblingReads).toBeLessThan(keys.length * 10);
+      });
+
+      it.each([
+        [true, ['a', 'new', 'b', 'c'], 0],
+        [true, ['c', 'new', 'a', 'b'], 1],
+        [true, ['a', 'c', 'new', 'b'], 1],
+        [false, ['a', 'new', 'b', 'c'], 0],
+        [false, ['c', 'new', 'a', 'b'], 1],
+        [false, ['a', 'c', 'new', 'b'], 1],
+      ])(
+        'should insert a new element once at its final place (keyed: %s, order: %j)',
+        async (keyed, order, movedCount) => {
+          const tags: Record<string, string> = { a: 'p', b: 'span', c: 'button', new: 'i' };
+          const siblings = (names: string[]) => (
+            <test key="KA_0">
+              {names.map((name) => {
+                const Tag = keyed ? 'li' : tags[name];
+                return <Tag key={keyed ? name : null}>{name}</Tag>;
+              })}
+            </test>
+          );
+          const { vNode, vParent, container } = vnode_fromJSX(siblings(['a', 'b', 'c']));
+          const elementsByName = () =>
+            new Map(
+              Array.from(container.document.querySelector('test')!.children, (element) => [
+                element.textContent,
+                element,
+              ])
+            );
+          const original = elementsByName();
+
+          const test = siblings(order);
+          const journal: VNodeJournal = [];
+          vnode_diff(container, journal, test, vParent, vParent, null);
+          _flushJournal(journal);
+          expect(vNode).toMatchVDOM(test);
+          await expect(container.document.querySelector('test')).toMatchDOM(test);
+          const updated = elementsByName();
+          const touchedSiblings = touchedNodes(journal).filter((node) =>
+            Array.from(updated.values()).includes(node as Element)
+          );
+          expect(touchedSiblings.filter((node) => node === updated.get('new'))).toHaveLength(1);
+          expect(touchedSiblings).toHaveLength(movedCount + 1);
+          for (const [name, element] of original) {
+            expect(updated.get(name)).toBe(element);
+          }
+        }
+      );
+
+      it('should keep diffing after dropping a text node while matching out of order', async () => {
+        const { vNode, vParent, container } = vnode_fromJSX(
+          <test key="KA_0">
+            <p key="a">a</p>
+            {'text'}
+            <p key="b">b</p>
+          </test>
+        );
+        const test = (
+          <test key="KA_0">
+            <p key="b">b</p>
+            <p key="a">a</p>
+            <span />
+            <i />
+          </test>
+        );
+        const journal: VNodeJournal = [];
+        vnode_diff(container, journal, test, vParent, vParent, null);
+        _flushJournal(journal);
+        expect(vNode).toMatchVDOM(test);
+        await expect(container.document.querySelector('test')).toMatchDOM(test);
+      });
     });
   });
 

@@ -6,7 +6,7 @@
     "viteConfig": {},
     "docs": [
       "https://vitest.dev/guide/",
-      "https://qwik.dev/integrations/vitest/"
+      "https://qwik.dev/docs/integrations/vitest/"
     ]
   },
   "devDependencies": {

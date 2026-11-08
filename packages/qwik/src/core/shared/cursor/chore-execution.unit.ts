@@ -20,13 +20,12 @@ import type { CursorData } from './cursor-props';
 import type { Cursor } from './cursor';
 import { ELEMENT_SEQ, ELEMENT_PROPS, OnRenderProp, QScopedStyle } from '../utils/markers';
 import type { Props } from '../jsx/jsx-runtime';
-import { ComputedSignalFlags } from '../../reactive-primitives/types';
 import type { ElementVNode } from '../vnode/element-vnode';
 import { runTask } from '../../use/use-task';
 import { vnode_diff } from '../../client/vnode-diff';
 import { reconcileKeyedLoopToParent } from '../../client/reconcile-keyed-loop';
 import { executeComponent } from '../component-execution';
-import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
+import { isSignal } from '../../reactive-primitives/utils';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
@@ -887,36 +886,6 @@ describe('executeCompute', () => {
     expect(invoke.call).toHaveBeenCalled();
   });
 
-  it('should schedule effects if RUN_EFFECTS flag is set', async () => {
-    const effects = [vi.fn()];
-    const signal = {
-      $flags$: ComputedSignalFlags.RUN_EFFECTS,
-      $effects$: effects,
-      $computeIfNeeded$: vi.fn(),
-    };
-
-    container.setHostProp(vNode, ':signal', signal);
-
-    await executeCompute(vNode, container);
-
-    expect(scheduleEffects).toHaveBeenCalledWith(container, signal, effects);
-    expect(signal.$flags$ & ComputedSignalFlags.RUN_EFFECTS).toBe(0);
-  });
-
-  it('should not schedule effects if flag is not set', async () => {
-    const signal = {
-      $flags$: 0,
-      $effects$: [],
-      $computeIfNeeded$: vi.fn(),
-    };
-
-    container.setHostProp(vNode, ':signal', signal);
-
-    await executeCompute(vNode, container);
-
-    expect(scheduleEffects).not.toHaveBeenCalled();
-  });
-
   it('should handle async computation', async () => {
     const signal = {
       $flags$: 0,
@@ -932,25 +901,5 @@ describe('executeCompute', () => {
 
     expect(result).toBeInstanceOf(Promise);
     await result;
-  });
-
-  it('should handle computation that returns a promise', async () => {
-    const effects = [vi.fn()];
-    const signal = {
-      $flags$: ComputedSignalFlags.RUN_EFFECTS,
-      $effects$: effects,
-      $computeIfNeeded$: vi.fn(),
-    };
-
-    container.setHostProp(vNode, ':signal', signal);
-
-    vi.mocked(invoke.call).mockReturnValue(Promise.resolve());
-
-    const result = executeCompute(vNode, container);
-
-    expect(result).toBeInstanceOf(Promise);
-    await result;
-
-    expect(scheduleEffects).toHaveBeenCalledWith(container, signal, effects);
   });
 });

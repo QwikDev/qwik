@@ -107,6 +107,56 @@ export function wrapQwikLazyComponentExports(params: {
   return { code: modifiedCode, changed: true };
 }
 
+/** Wraps render functions that SSR builds hoist into the module, as `q_X.s(X_component_hash)`. */
+export function wrapHoistedComponentSegments(
+  code: string,
+  id: string
+): { code: string; changed: boolean } {
+  if (!code.includes('_component_') || !code.includes('.s(')) {
+    return { code, changed: false };
+  }
+
+  const edits: SourceEdit[] = [];
+  try {
+    traverseProgram(parseProgram(code), {
+      CallExpression(path) {
+        const node = path.node as CallExpressionNode;
+        if (
+          node.callee?.type !== 'MemberExpression' ||
+          getIdentifierName(node.callee.property) !== 's' ||
+          node.arguments?.length !== 1
+        ) {
+          return;
+        }
+        const [segment] = node.arguments;
+        const segmentName = getIdentifierName(segment);
+        const qrlName = getIdentifierName(node.callee.object);
+        if (!segmentName || !qrlName || !isQwikLazyComponentExportName(segmentName)) {
+          return;
+        }
+
+        edits.push({
+          kind: 'replace',
+          start: segment.start,
+          end: segment.end,
+          text: `__qwik_wrap_render__(${segmentName}, ${JSON.stringify(segmentName)}, ${qrlName})`,
+        });
+      },
+    });
+  } catch (_) {
+    return { code, changed: false };
+  }
+
+  if (edits.length === 0) {
+    return { code, changed: false };
+  }
+
+  log('wrap hoisted _component_ segments %O', { id, count: edits.length });
+  // Kept on line 1 so user line numbers stay put.
+  const importWrapper = `import { __qwik_wrap_render__ } from ${JSON.stringify(PERF_VIRTUAL_ID)};`;
+  return { code: importWrapper + applySourceEdits(code, edits), changed: true };
+}
+
 function isFromNodeModules(cleanId: string): boolean {
   return cleanId.includes('/node_modules/') || cleanId.includes('\\node_modules\\');
 }
@@ -138,6 +188,12 @@ function getIdentifierName(node: unknown): string | undefined {
   }
   const record = node as { type?: string; name?: string };
   return record.type === 'Identifier' ? record.name : undefined;
+}
+
+interface CallExpressionNode {
+  type: 'CallExpression';
+  callee?: { type?: string; object?: unknown; property?: unknown };
+  arguments?: { start: number; end: number }[];
 }
 
 interface ExportNamedDeclarationNode {

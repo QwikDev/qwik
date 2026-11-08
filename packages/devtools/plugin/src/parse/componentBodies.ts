@@ -22,6 +22,10 @@ export function findAllComponentBodyRangesFromProgram(program: unknown): Compone
   return deduplicateRanges(ranges);
 }
 
+export function isInsideComponentBody(bodies: ComponentBodyRange[], position: number): boolean {
+  return bodies.some((body) => body.bodyStart < position && position < body.bodyEnd);
+}
+
 function getComponentBodyRange(node: any, parent: any): ComponentBodyRange | null {
   if (!isComponentCall(node)) {
     return null;

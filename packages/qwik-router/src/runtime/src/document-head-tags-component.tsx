@@ -1,6 +1,11 @@
-import { component$ } from '@qwik.dev/core';
+import { component$, untrack } from '@qwik.dev/core';
 import { useDocumentHead } from '.';
 import type { DocumentHeadValue } from './types';
+
+const trackWholeStore = <T extends object>(store: T): T => {
+  Object.keys(store);
+  return untrack(() => ({ ...store }));
+};
 
 /**
  * This renders all the tags collected from `head`.
@@ -25,10 +30,14 @@ import type { DocumentHeadValue } from './types';
  * @public
  */
 export const DocumentHeadTags = component$((props: DocumentHeadValue) => {
-  let head = useDocumentHead();
-  if (props) {
-    head = { ...head, ...props };
-  }
+  const documentHead = trackWholeStore(useDocumentHead());
+  const head = {
+    title: props.title ?? documentHead.title,
+    meta: props.meta ?? documentHead.meta,
+    links: props.links ?? documentHead.links,
+    styles: props.styles ?? documentHead.styles,
+    scripts: props.scripts ?? documentHead.scripts,
+  };
 
   return (
     <>
@@ -40,24 +49,26 @@ export const DocumentHeadTags = component$((props: DocumentHeadValue) => {
         <link {...l} />
       ))}
       {head.styles.map((s) => {
-        // Support for the old `props` property
-        const props = s.props || s;
+        // `style` and `key` are not attributes. `props` is the old way to set the attributes.
+        const { style, key, props: oldProps, ...rest } = trackWholeStore(s);
+        const props = oldProps || rest;
         return (
           <style
             {...props}
-            dangerouslySetInnerHTML={s.style || props.dangerouslySetInnerHTML}
-            key={s.key}
+            dangerouslySetInnerHTML={style || props.dangerouslySetInnerHTML}
+            key={key}
           />
         );
       })}
       {head.scripts.map((s) => {
-        // Support for the old `props` property
-        const props = s.props || s;
+        // `script` and `key` are not attributes. `props` is the old way to set the attributes.
+        const { script, key, props: oldProps, ...rest } = trackWholeStore(s);
+        const props = oldProps || rest;
         return (
           <script
             {...props}
-            dangerouslySetInnerHTML={s.script || props.dangerouslySetInnerHTML}
-            key={s.key}
+            dangerouslySetInnerHTML={script || props.dangerouslySetInnerHTML}
+            key={key}
           />
         );
       })}

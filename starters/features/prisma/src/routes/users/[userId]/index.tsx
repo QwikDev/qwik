@@ -1,11 +1,10 @@
-import { PrismaClient } from "@prisma/client";
 import { routeLoader$ } from "@qwik.dev/router";
 import { component$ } from "@qwik.dev/core";
+import { db } from "../../../../prisma/db";
 
 export const useGetUser = routeLoader$(async ({ params, status }) => {
   const userId = parseInt(params["userId"], 10);
-  const prisma = new PrismaClient();
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await db.orm.public.User.where({ id: userId }).first();
   if (!user) {
     // Set the status to 404 if the user is not found
     status(404);

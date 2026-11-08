@@ -179,6 +179,11 @@ export const installOutOfOrderExecutor = (doc: Document) => {
   };
 
   const qO = ((boundaryId: number) => {
+    // Boundary zero marks the end of this container's stream.
+    if (boundaryId === 0) {
+      process(0, doc.currentScript?.closest('[q\\:container]') || null);
+      return;
+    }
     const scope = getScope();
     const resolved = getResolvedTemplate(scope, boundaryId);
 

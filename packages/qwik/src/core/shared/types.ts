@@ -1,14 +1,20 @@
-import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { ISsrNode } from '../ssr/ssr-types';
 import type { CatchPhase } from './error/error-handling';
 import type { ContextId } from '../use/use-context';
 import type { EventHandler } from './jsx/types/jsx-qwik-attributes';
-import type { SerializationContext } from './serdes/index';
 import type { VNode } from './vnode/vnode';
+
+/** @internal */
+export const enum EffectProperty {
+  COMPONENT = ':',
+  VNODE = '.',
+}
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
   $getForwardRef$: (id: number) => number | string | undefined;
   $pendingStoreTargets$?: Map<object, { t: number; v: unknown }>;
+  $streamingObjectRefs$?: WeakMap<object, object[]>;
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
@@ -51,16 +57,6 @@ export interface Container {
    * @param renderHost - Host element to ensure projection is resolved.
    */
   ensureProjectionResolved(host: HostElement): void;
-  serializationCtxFactory(
-    NodeConstructor: {
-      new (...rest: any[]): { __brand__: 'SsrNode' };
-    } | null,
-    DomRefConstructor: {
-      new (...rest: any[]): { __brand__: 'DomRef' };
-    } | null,
-    symbolToChunkResolver: SymbolToChunkResolver,
-    writer?: StreamWriter
-  ): SerializationContext;
 }
 
 /** @internal */
@@ -68,7 +64,10 @@ export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends Element {
   _qDispatch?: Record<string, EventHandler | EventHandler[]>;
+  _qIdle?: boolean;
+  _qInit?: boolean;
   _qSegment?: string;
+  _qSegmentVNodeData?: string;
   vNode?: VNode;
 }
 

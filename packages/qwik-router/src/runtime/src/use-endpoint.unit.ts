@@ -1,4 +1,4 @@
-import { _serialize } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal/serializer';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import {
@@ -65,6 +65,17 @@ describe('submitAction', () => {
     );
 
     expect(action.data).toBeUndefined();
+  });
+
+  it('rejects non-JSON responses without exposing the response body', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response('<h1>private proxy error</h1>', { status: 502 }))
+    );
+
+    await expect(
+      submitAction({ id: 'act-a', data: {} } as any, new URL('https://qwik.dev/test/'))
+    ).rejects.toEqual(new Error('Unexpected action response (502): expected JSON'));
   });
 
   it('preserves route search params when appending the action id', async () => {
@@ -441,6 +452,33 @@ describe('fetchRouteLoaderData', () => {
     });
 
     expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('lets a loader signal use each cached fetch once, so invalidate refetches', async () => {
+    const body = await _serialize({ d: 'cached' });
+    const fetchSpy = vi.fn().mockImplementation(() => Promise.resolve(new Response(body)));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const url = new URL('http://localhost/products/123/?view=full');
+    const fetchFor = (signal?: AbortSignal) =>
+      fetchRouteLoaderData('signal-refetch', '/products/123/', 'manifest-hash', {
+        pageUrl: url,
+        signal,
+      });
+    await fetchFor();
+    await fetchFor(new AbortController().signal);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    await fetchFor(new AbortController().signal);
+    await fetchFor(new AbortController().signal);
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+    expect(fetchSpy).toHaveBeenLastCalledWith(
+      expect.any(String),
+      expect.objectContaining({ cache: 'default' })
+    );
+
+    await fetchFor();
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
   });
 
   it('reuses a completed abortable loader request', async () => {

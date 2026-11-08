@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { readPage } from './page';
+import { locateElement, readPage } from './page';
 
 vi.mock('@qwik.dev/core/internal', () => ({}));
 
@@ -56,4 +56,38 @@ test('HTML is opt-in, limited in UTF-8 bytes, and selector failures are explicit
   expect(result.components[0].signals[0]).toHaveProperty('value', 2);
   await expect(readPage({ selector: '#missing' }, doc, bridge, '')).rejects.toThrow('No element');
   await expect(readPage({ selector: '[' }, doc, bridge, '')).rejects.toThrow('Invalid selector');
+});
+
+test('locates the source of an element from its inspector attribute', () => {
+  const withSource = {
+    tagName: 'BUTTON',
+    getAttribute: (name: string) =>
+      name === 'data-qwik-inspector' ? '/src/routes/index.tsx:5:5' : null,
+  };
+  const withSourceElement = { ...withSource, closest: () => withSourceElement };
+  const injected = { closest: () => withSource };
+  const clientRendered = { closest: () => null };
+  const elementsBySelector: Record<string, unknown[]> = {
+    '#button': [withSourceElement, withSourceElement],
+    '#injected': [injected],
+    '#client': [clientRendered],
+  };
+  const doc = {
+    querySelectorAll: (selector: string) => elementsBySelector[selector] ?? [],
+  } as unknown as Document;
+
+  expect(locateElement({ selector: '#button' }, doc, 'http://localhost/')).toEqual({
+    url: 'http://localhost/',
+    selector: '#button',
+    matches: 2,
+    source: { file: '/src/routes/index.tsx', line: 5, column: 5, tag: 'button', exact: true },
+  });
+  expect(locateElement({ selector: '#injected' }, doc, 'http://localhost/').source).toMatchObject({
+    line: 5,
+    exact: false,
+  });
+  expect(locateElement({ selector: '#client' }, doc, 'http://localhost/').source).toBeNull();
+  expect(() => locateElement({ selector: '#missing' }, doc, 'http://localhost/')).toThrow(
+    'No element matches selector: #missing'
+  );
 });

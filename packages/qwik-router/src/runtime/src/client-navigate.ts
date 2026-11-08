@@ -41,10 +41,10 @@ export const newScrollState = (): ScrollState => {
   };
 };
 
-export const preloadRouteBundles = (path: string, probability: number = 0.8) => {
+export const preloadRouteBundles = (routeName: string, probability: number = 0.8) => {
   if (isBrowser) {
-    path = ensureSlash(path);
-    path = path.length > 1 && path.startsWith('/') ? path.slice(1) : path;
-    preload(path, probability);
+    routeName = ensureSlash(routeName);
+    routeName = routeName.length > 1 && routeName.startsWith('/') ? routeName.slice(1) : routeName;
+    preload(routeName, probability);
   }
 };

@@ -6,7 +6,7 @@ import { StoreHandler, getStoreHandler } from './impl/store';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { _PROPS_HANDLER } from '../shared/utils/constants';
 import { BackRef, _EFFECT_BACK_REF } from './backref';
-import { type Consumer, type EffectSubscription } from './types';
+import { ComputedSignalFlags, type Consumer, type EffectSubscription } from './types';
 import { isPropsProxy, type PropsProxyHandler } from '../shared/jsx/props-proxy';
 
 export function clearAllEffects(container: Container, consumer: Consumer): void {
@@ -25,6 +25,11 @@ export function clearAllEffects(container: Container, consumer: Consumer): void 
 }
 
 export function clearEffectSubscription(container: Container, effect: EffectSubscription) {
+  const consumer = effect.consumer;
+  if (consumer instanceof WrappedSignalImpl) {
+    // Its cached value is unreachable by its sources now, so the next read must re-track
+    consumer.$flags$ |= ComputedSignalFlags.INVALID;
+  }
   const backRefs = effect.backRef;
   if (!backRefs) {
     return;

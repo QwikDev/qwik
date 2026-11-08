@@ -2,6 +2,7 @@ import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
+import { isStrippedSegment } from '../../../ts-optimizer/src/optimizer/rewrite/predicates';
 import type {
   DecoratorOptions,
   Diagnostic,
@@ -299,10 +300,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // we only provide inputs if none were provided by the user
       if (opts.target === 'ssr') {
         // this is for dev mode, prod will have own setting
-        opts.input = [resolvePath(srcDir, 'entry.ssr')];
+        opts.input = [resolvePath(opts.srcDir, 'entry.ssr')];
       } else if (opts.target === 'client') {
         // not really an entry, just a starting point
-        opts.input = [resolvePath(srcDir, 'root')];
+        opts.input = [resolvePath(opts.srcDir, 'root')];
       } else {
         // others including lib should be ok already
         opts.input = undefined!;
@@ -1458,14 +1459,18 @@ export const isDev = ${JSON.stringify(isDev)};
           if (module) {
             const segment = module.meta.segment as SegmentAnalysis | undefined;
             if (segment) {
+              const isSmartClientOnly =
+                opts.entryStrategy.type === 'smart' &&
+                isStrippedSegment(segment.ctxName, segment.ctxKind, CLIENT_STRIP_CTX_NAME, true);
               // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-              if (EAGER_CTX_NAMES.has(segment.ctxName)) {
+              if (EAGER_CTX_NAMES.has(segment.ctxName) && !isSmartClientOnly) {
                 return null;
               }
               const { hash } = segment;
               // Group segments by entry or Qwik Insights hash.
               const chunkName =
-                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] ||
+                (isSmartClientOnly ? segment.canonicalFilename : segment.entry);
               if (chunkName) {
                 return sanitizeChunkGroupName(chunkName);
               }
@@ -1614,6 +1619,8 @@ export const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 export const QWIK_CORE_ID = '@qwik.dev/core';
 
 export const QWIK_CORE_INTERNAL_ID = '@qwik.dev/core/internal';
+
+export const QWIK_CORE_SERIALIZER_ID = '@qwik.dev/core/internal/serializer';
 
 export const QWIK_BUILD_ID = '@qwik.dev/core/build';
 

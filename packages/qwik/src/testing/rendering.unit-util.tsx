@@ -178,6 +178,13 @@ export async function ssrRenderToDom(
   }
 
   const document = createDocument({ html });
+  // The browser runs these while parsing, and they remove themselves
+  const scripts = document.querySelectorAll('script');
+  for (let i = 0; i < scripts.length; i++) {
+    if (scripts[i].textContent?.endsWith('document.currentScript.remove()')) {
+      scripts[i].remove();
+    }
+  }
   const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
   const getStyles = getStylesFactory(document);
 

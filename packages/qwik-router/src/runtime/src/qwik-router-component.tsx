@@ -46,17 +46,20 @@ import {
   useSignal,
   useStore,
   useTask$,
+  untrack,
   type QRL,
+  type Signal,
 } from '@qwik.dev/core';
 import {
   _getContextContainer,
+  _getDomContainer,
   _hasStoreEffects,
+  _waitOn,
   _waitUntilRendered,
   forceStoreEffects,
   type _ComputedSignalInternal,
   type ComputedSignal,
   type ClientContainer,
-  type NoSerialize,
   type ValueOrPromise,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
@@ -68,15 +71,16 @@ import {
   DocumentHeadContext,
   HttpStatusContext,
   RouteActionContext,
+  RouteActionRunnerContext,
   RouteLoaderCtxContext,
   RouteLocationContext,
   RouteNavigateContext,
-  RoutePreventNavigateContext,
   RouteStateContext,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { refreshLinkPrefetchObserver } from './link-prefetch';
 import { getRouterConfig } from './router-config';
+import { internalState, preventNav, REFRESH_HEAD, RUN_PENDING_ACTION } from './navigation-state';
 import { loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
@@ -85,7 +89,7 @@ import {
   restoreScroll,
   saveScrollHistory,
 } from './scroll-restoration';
-import spaInit from './spa-init';
+import spaInit, { isPlainPrimaryClick } from './spa-init';
 import {
   clearNavFetchCache,
   abortRouteLoaderNavigation,
@@ -106,16 +110,17 @@ import type {
   DocumentHeadValue,
   Editable,
   EndpointResponse,
+  HttpStatus,
   LoadedRoute,
   Loader,
   LoaderInternal,
   MutableRouteLocation,
   NavigationType,
   PageModule,
-  PreventNavigateCallback,
   ResolvedDocumentHead,
   RouteActionResolver,
   RouteActionValue,
+  RouteLocation,
   RouteNavigate,
   RouteStateInternal,
   ScrollState,
@@ -160,19 +165,130 @@ export interface QwikRouterProps {
  */
 export type QwikCityProps = QwikRouterProps;
 
-// Gets populated by registerPreventNav on the client
-const preventNav: {
-  $cbs$?: Set<QRL<PreventNavigateCallback>> | undefined;
-  $handler$?: (event: BeforeUnloadEvent) => void;
-} = {};
+type Navigate = (
+  path?: string | number | URL,
+  options?: Parameters<RouteNavigate>[1]
+) => Promise<void>;
 
-// Track navigations during prevent so we don't overwrite.
-// We need to use an object so we can write into it from qrls.
-const internalState: {
+enum NavigationStartType {
+  Unchanged,
+  Duplicate,
+  Prepared,
+  Superseded,
+  External,
+}
+
+type NavigationStart = { type: NavigationStartType; finished?: Promise<void> };
+
+type NavigationPreparation = {
+  promise: Promise<void>;
+  resolve: (value: void | PromiseLike<void>) => void;
+  navCount?: number;
+};
+
+type ActionData = NonNullable<Parameters<typeof resolveHead>[0]>;
+
+type NavigationCommit = {
+  routeName: string;
+  navType: NavigationType;
+  prevUrl: URL;
+  replaceState: boolean | undefined;
+  shouldForcePrevUrl: boolean;
+  shouldForceUrl: boolean;
+  shouldForceParams: boolean;
   navCount: number;
-  attemptCount: number;
-  currentTransition?: ViewTransition;
-} = { navCount: 0, attemptCount: 0 };
+  contentModules: ContentModule[];
+  actionData: ActionData | undefined;
+};
+
+const ensureRouteInternal = (
+  routeInternal: Signal<RouteStateInternal | undefined>,
+  routeLocation: RouteLocation
+): RouteStateInternal =>
+  (routeInternal.untrackedValue ||= { type: 'initial', dest: routeLocation.url });
+
+/**
+ * A URL the client can't render itself (no matching page) may be a server `rewrite()`. Ask the
+ * server where it routes to. Returns the target pathname, `'reload'` if the server redirects, or
+ * `undefined` when the URL is not rewritten.
+ */
+const resolveServerRewrite = async (url: URL): Promise<string | undefined> => {
+  try {
+    const response = await fetch(`${ensureSlash(url.pathname)}q-route.json${url.search}`, {
+      redirect: 'manual',
+      headers: { accept: 'application/json' },
+    });
+    if (response.type === 'opaqueredirect' || (response.status >= 300 && response.status < 400)) {
+      return 'reload';
+    }
+    if (response.ok) {
+      const { p } = await response.json();
+      return typeof p === 'string' ? p : undefined;
+    }
+  } catch {
+    // Fall back to rendering what the client matched.
+  }
+};
+
+const getRouterContainer = () => _getDomContainer(document.documentElement);
+
+const getServerHttpStatus = (
+  notFound: boolean | undefined,
+  response: EndpointResponse
+): HttpStatus | undefined => {
+  if (notFound) {
+    return { status: 404, message: 'Not Found' };
+  }
+  const message = response.statusMessage ?? 'OK';
+  return response.status === 200 && message === 'OK'
+    ? undefined
+    : { status: response.status, message };
+};
+
+/** Resolves once the loaders still fetching have settled and the renders they trigger have flushed. */
+const whenRouteLoadersSettled = async (
+  loaderState: Record<string, ComputedSignal<unknown>>,
+  container: ClientContainer
+): Promise<void> => {
+  const pending: Promise<void>[] = [];
+  for (const id in loaderState) {
+    const signal = loaderState[id];
+    if ((signal as _ComputedSignalInternal<unknown>).untrackedPending) {
+      // A failed loader shows its error state; the navigation itself is still over.
+      pending.push(signal.promise().catch(() => {}));
+    }
+  }
+  if (pending.length === 0) {
+    return;
+  }
+  await Promise.all(pending);
+  await _waitUntilRendered(container);
+};
+
+const whenReady = async <T,>(read: () => T): Promise<T> => {
+  for (;;) {
+    try {
+      return untrack(read);
+    } catch (error) {
+      if (!isPromise(error)) {
+        throw error;
+      }
+      await error.catch(() => {});
+    }
+  }
+};
+
+const assignDocumentHead = (
+  documentHead: Editable<ResolvedDocumentHead>,
+  head: ResolvedDocumentHead
+) => {
+  documentHead.links = head.links;
+  documentHead.meta = head.meta;
+  documentHead.styles = head.styles;
+  documentHead.scripts = head.scripts;
+  documentHead.title = head.title;
+  documentHead.frontmatter = head.frontmatter;
+};
 
 const getScroller = () => {
   let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
@@ -213,6 +329,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   const serverHead = useServerData<DocumentHeadValue>('documentHead');
   const manifestHash =
     useServerData<Record<string, string>>('containerAttributes')?.['q:manifest-hash'];
+  const locale = getLocale('');
+  const viewTransition = props?.viewTransition;
 
   const url = new URL(urlEnv);
   const routeLocationTarget: MutableRouteLocation = {
@@ -222,9 +340,18 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     prevUrl: undefined,
   };
   const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
-  const navResolver: { r?: () => void; p?: Promise<void>; cancel?: () => void } = {};
-  const routeLoaderCtx = useStore(env.routeLoaderCtx);
+  const navResolver: {
+    r?: () => void;
+    p?: Promise<void>;
+    cancel?: () => void;
+    dest?: URL;
+    preparation?: NavigationPreparation;
+    /** Accepted route preparation survives a later blocked attempt. */
+    routePreparation?: { started: Promise<NavigationStart>; preparation: NavigationPreparation };
+  } = {};
+  const routeLoaderCtx = env.routeLoaderCtx;
   routeLoaderCtx.manifestHash = manifestHash;
+  Object.assign(routeLoaderCtx.loaderPaths, env.loadedRoute.$loaderPaths$);
   // Inject middleware values without fetching.
   const loaderState = {} as Record<string, ComputedSignal<unknown>>;
   const contentModulesForInit = env.loadedRoute.$mods$ as ContentModule[];
@@ -241,47 +368,20 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     }
   }
 
-  // The initial state of routeInternal uses the URL provided by the server environment.
-  // It may not be accurate to the actual URL the browser is accessing the site from.
-  // It is useful for the purposes of SSR and SSG, but may be overridden browser-side
-  // if needed for SPA routing.
-  const routeInternal = useSignal<RouteStateInternal>({
-    type: 'initial',
-    dest: url,
-  });
-  const documentHead = useStore<Editable<ResolvedDocumentHead>>(() =>
-    createDocumentHead(serverHead, manifestHash)
+  const routeInternal = useSignal<RouteStateInternal>();
+  const documentHead = useStore<Editable<ResolvedDocumentHead>>(
+    () => createDocumentHead(serverHead, manifestHash),
+    { deep: false }
   );
+  const pageModule = contentModulesForInit[contentModulesForInit.length - 1] as PageModule;
   const content = useStore<Editable<ContentState>>({
-    headings: undefined,
-    menu: undefined,
+    headings: pageModule.headings,
+    menu: env.loadedRoute.$menu$,
   });
 
-  const contentInternal = useSignal<ContentStateInternal>();
+  const contentInternal = useSignal<ContentStateInternal>(noSerialize(contentModulesForInit));
 
-  /**
-   * Non-serializable navigation context passed from the nav task to the navigation task. Only the
-   * data that can't be derived from existing stores/signals.
-   */
-  const navContext = useSignal<
-    NoSerialize<{
-      routeName: string;
-      navType: NavigationType;
-      prevUrl: URL;
-      replaceState: boolean | undefined;
-      shouldForcePrevUrl: boolean;
-      shouldForceUrl: boolean;
-      shouldForceParams: boolean;
-      navCount: number;
-    }>
-  >();
-
-  const httpStatus = useSignal({
-    status: env.response.status,
-    message: env.loadedRoute.$notFound$
-      ? 'Not Found'
-      : ((env.response.statusMessage as string) ?? ''),
-  });
+  const httpStatus = useSignal(getServerHttpStatus(env.loadedRoute.$notFound$, env.response));
 
   const currentActionId = env.response.action;
   const currentAction = currentActionId ? env.response.actionResult : undefined;
@@ -297,55 +397,34 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
       : undefined
   );
-  const actionDataSignal = useSignal<
-    { action?: string; actionResult?: unknown; status: number } | undefined
-  >(
-    currentActionId
-      ? {
-          action: currentActionId,
-          actionResult: currentAction,
-          status: env.response.status,
+  const serverActionData: ActionData | undefined =
+    currentActionId || env.response.status !== 200
+      ? { action: currentActionId, actionResult: currentAction, status: env.response.status }
+      : undefined;
+  const actionDataSignal = useSignal(serverActionData);
+
+  _waitOn(
+    whenReady(() => {
+      for (const loader of loaders) {
+        if (!isImmutableLoader(loader.__id)) {
+          (loaderState[loader.__id] as _ComputedSignalInternal<unknown>).untrackedPending;
         }
-      : undefined
+      }
+    })
+      .then(() =>
+        whenReady(() =>
+          resolveHead(
+            serverActionData,
+            loaderState,
+            routeLocation,
+            contentModulesForInit,
+            locale,
+            serverHead
+          )
+        )
+      )
+      .then((head) => assignDocumentHead(documentHead, head))
   );
-  const registerPreventNav = $((fn$: QRL<PreventNavigateCallback>) => {
-    if (!isBrowser) {
-      return;
-    }
-    preventNav.$handler$ ||= (event: BeforeUnloadEvent) => {
-      // track navigations during prevent so we don't overwrite
-      internalState.attemptCount++;
-      if (!preventNav.$cbs$) {
-        return;
-      }
-      const prevents = [...preventNav.$cbs$.values()].map((cb) =>
-        cb.resolved ? cb.resolved() : cb()
-      );
-      // this catches both true and Promise<any>
-      // we assume a Promise means to prevent the navigation
-      if (prevents.some(Boolean)) {
-        event.preventDefault();
-        // legacy support
-        event.returnValue = true;
-      }
-    };
-
-    (preventNav.$cbs$ ||= new Set()).add(fn$);
-    // we need the QRLs to be synchronous if possible, for the beforeunload event
-    fn$.resolve();
-    window.addEventListener('beforeunload', preventNav.$handler$);
-
-    return () => {
-      if (preventNav.$cbs$) {
-        preventNav.$cbs$.delete(fn$);
-        if (!preventNav.$cbs$.size) {
-          preventNav.$cbs$ = undefined;
-          // unregister the event listener if no more callbacks, to make older Firefox happy
-          window.removeEventListener('beforeunload', preventNav.$handler$!);
-        }
-      }
-    };
-  });
 
   /**
    * This is the `nav()` function that `useNavigation()` returns. It is also used internally for SPA
@@ -355,189 +434,268 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
    * treat it as a user-initiated navigation and allow scroll restoration to work. For this reason,
    * make sure to change the address bar before awaiting anything.
    */
-  const goto: RouteNavigate = $(async (path, opt) => {
-    const {
-      type = 'link',
-      forceReload = path === undefined, // Hack for nav() because this API is already set.
-      replaceState = false,
-      scroll = true,
-    } = typeof opt === 'object' ? opt : { forceReload: opt };
-    // If this is the first SPA navigation, we rewrite routeInternal's URL
-    // as the browser location URL to prevent an erroneous origin mismatch.
-    // The initial value of routeInternal is derived from the server env,
-    // which in the case of SSG may not match the actual origin the site
-    // is deployed on.
-    // We only do this for link navigations, as popstate will have already changed the URL
-    if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
-      const url = new URL(window.location.href);
-      routeInternal.value.dest = url;
-      routeLocation.url = url;
-    }
-
-    const lastDest = routeInternal.value.dest;
-    const dest =
-      path === undefined
-        ? lastDest
-        : typeof path === 'number'
-          ? path
-          : toUrl(path, routeLocation.url);
-
-    if (
-      navResolver.p &&
-      !forceReload &&
-      typeof dest !== 'number' &&
-      isSamePath(dest, lastDest) &&
-      dest.href === lastDest.href
-    ) {
-      // Repeated redirects/loaders can request the same in-flight destination. Treat that as a
-      // duplicate so we don't bump navCount and cancel the navigation that would commit it.
-      return navResolver.p;
-    }
-
-    const attemptCount = ++internalState.attemptCount;
-
-    if (
-      preventNav.$cbs$ &&
-      (forceReload ||
-        typeof dest === 'number' ||
-        !isSamePath(dest, lastDest) ||
-        !isSameOrigin(dest, lastDest))
-    ) {
-      const prevents = await Promise.all([...preventNav.$cbs$.values()].map((cb) => cb(dest)));
-      if (attemptCount !== internalState.attemptCount || prevents.some(Boolean)) {
-        if (attemptCount === internalState.attemptCount && type === 'popstate') {
-          // Popstate events are not cancellable, so we push to undo
-          // TODO keep state?
-          history.pushState(null, '', lastDest);
+  const goto: RouteNavigate = $((path, opt) => {
+    const startNavigation: Navigate = async (path, opt) => {
+      if ((path as unknown) === REFRESH_HEAD) {
+        const contentModules = contentInternal.untrackedValue;
+        if (contentModules) {
+          updateHead(contentModules, actionDataSignal.untrackedValue, internalState.navCount);
         }
         return;
       }
-    }
-
-    if (typeof dest === 'number') {
-      if (isBrowser) {
-        history.go(dest);
+      if ((path as unknown) === RUN_PENDING_ACTION) {
+        return loadNavigation(
+          ensureRouteInternal(routeInternal, routeLocation),
+          actionState.value,
+          getRouterContainer()
+        );
       }
-      return;
-    }
-
-    if (!isSameOrigin(dest, lastDest)) {
-      // Cross-origin nav() should always abort early.
-      if (isBrowser) {
-        location.href = dest.href;
-      }
-      return;
-    }
-
-    if (!forceReload && isSamePath(dest, lastDest)) {
-      if (isBrowser) {
-        // Use `location.href` because the lastDest signal is only updated on page navigates.
-        if (type === 'link' && dest.href !== location.href) {
-          history.pushState(null, '', dest);
-        }
-
-        // Always scroll on same-page popstates, #hash clicks, or links.
-        const scroller = getScroller();
-
-        restoreScroll(type, dest, new URL(location.href), scroller, getScrollHistory());
-
-        if (type === 'popstate') {
-          window._qRouterScrollEnabled = true;
-        }
-      }
-
-      // Update routeLocation.url on hash/search-only changes so components react to the new URL
-      if (dest.href !== routeLocation.url.href) {
-        const newUrl = new URL(dest.href);
-        routeInternal.value.dest = newUrl;
-        routeLocation.url = newUrl;
-      }
-
-      return navResolver.p;
-    }
-
-    const navCount = ++internalState.navCount;
-    internalState.currentTransition?.skipTransition();
-    navResolver.cancel?.();
-    navResolver.cancel = undefined;
-    navResolver.r?.();
-
-    let historyUpdated = false;
-    if (isBrowser) {
-      getClientRouteLoaders(routeLoaderCtx, routeLocation.url.href);
-    }
-    if (isBrowser && type === 'link' && !forceReload) {
-      // WebKit on iOS may treat async pushState() calls as skippable history entries.
-      // Commit the navigation entry while the original tap/click is still active.
-      const scroller = getScroller();
-
-      window._qRouterScrollEnabled = false;
-      clearTimeout(window._qRouterScrollDebounce);
-
-      const scrollState = currentScrollState(scroller);
-      saveScrollHistory(scrollState);
-      clientNavigate(window, type, new URL(location.href), dest, replaceState);
-      historyUpdated = true;
-    }
-
-    const wasNavigating = routeLocation.isNavigating;
-    routeLocation.isNavigating = true;
-    const container = isBrowser ? _getContextContainer() : undefined;
-    if (container && !wasNavigating) {
-      // flush isNavigating to the DOM before awaiting the next task so that the router outlet can show a loading state
-      await _waitUntilRendered(container);
-      if (navCount !== internalState.navCount) {
-        return;
-      }
-    }
-
-    actionState.value = undefined;
-    routeInternal.value = {
-      type,
-      dest,
-      forceReload,
-      replaceState,
-      scroll,
-      historyUpdated,
+      return prepareNavigation(path, opt).started.then((started) => started.finished);
     };
 
-    if (wasNavigating) {
-      abortRouteLoaderNavigation(routeLoaderCtx);
-    }
-    if (isBrowser) {
-      // Prefetch bundles; loader signals fetch navigation data below.
-      prefetchRoute(dest, false, 0.8, manifestHash, true);
-    }
+    const prepareNavigation = (path: Parameters<Navigate>[0], opt: Parameters<Navigate>[1]) => {
+      let resolvePreparation!: NavigationPreparation['resolve'];
+      let rejectPreparation!: (reason: unknown) => void;
+      const prepared = new Promise<void>((resolve, reject) => {
+        resolvePreparation = resolve;
+        rejectPreparation = reject;
+      });
+      // Public navigation callers only await the completion promise.
+      prepared.catch(() => {});
+      const preparation: NavigationPreparation = { promise: prepared, resolve: resolvePreparation };
+      const started = beginNavigation(path, opt, preparation);
+      started
+        .then(async (result) => {
+          if (
+            (result.type !== NavigationStartType.Duplicate &&
+              navResolver.preparation !== preparation &&
+              preparation.navCount !== internalState.navCount) ||
+            result.type === NavigationStartType.Superseded ||
+            result.type === NavigationStartType.External
+          ) {
+            return;
+          }
+          await navResolver.routePreparation?.started;
+          if (getClientRouteLoaders(routeLoaderCtx).navCount === internalState.navCount) {
+            resolvePreparation();
+          }
+        }, rejectPreparation)
+        .catch(rejectPreparation);
+      return { prepared, started };
+    };
 
-    navResolver.p = new Promise<void>((resolve) => {
-      navResolver.r = () => {
-        navResolver.r = undefined;
-        navResolver.p = undefined;
-        resolve();
-      };
-    });
-    return navResolver.p;
-  });
+    const beginNavigation = async (
+      path: Parameters<Navigate>[0],
+      opt: Parameters<Navigate>[1],
+      preparation: NavigationPreparation
+    ): Promise<NavigationStart> => {
+      const {
+        type = 'link',
+        forceReload = path === undefined, // Hack for nav() because this API is already set.
+        replaceState = false,
+        scroll = true,
+      } = typeof opt === 'object' ? opt : { forceReload: opt };
+      // If this is the first SPA navigation, we rewrite routeInternal's URL
+      // as the browser location URL to prevent an erroneous origin mismatch.
+      // The initial value of routeInternal is derived from the server env,
+      // which in the case of SSG may not match the actual origin the site
+      // is deployed on.
+      // We only do this for link navigations, as popstate will have already changed the URL
+      const current = ensureRouteInternal(routeInternal, routeLocation);
+      if (isBrowser && type === 'link' && current.type === 'initial') {
+        const url = new URL(window.location.href);
+        current.dest = url;
+        routeLocation.url = url;
+      }
 
-  useContextProvider(ContentContext, content);
-  useContextProvider(ContentInternalContext, contentInternal);
-  useContextProvider(DocumentHeadContext, documentHead);
-  useContextProvider(HttpStatusContext, httpStatus);
-  useContextProvider(RouteLocationContext, routeLocation);
-  useContextProvider(RouteNavigateContext, goto);
-  useContextProvider(RouteStateContext, loaderState);
-  useContextProvider(RouteLoaderCtxContext, routeLoaderCtx);
-  useContextProvider(RouteActionContext, actionState);
-  useContextProvider<any>(RoutePreventNavigateContext, registerPreventNav);
+      const lastDest = current.dest;
+      const dest =
+        path === undefined
+          ? lastDest
+          : typeof path === 'number'
+            ? path
+            : toUrl(path, routeLocation.url);
 
-  /**
-   * This is split in 3 tasks because we need to update the head once we figured out the route, and
-   * before we trigger the render, and we need to subscribe only head to loader signal updates
-   */
-  useTask$(
-    async ({ track }) => {
-      const navigation = track(routeInternal);
-      const action = track(actionState);
+      if (
+        navResolver.p &&
+        !forceReload &&
+        typeof dest !== 'number' &&
+        isSamePath(dest, lastDest) &&
+        dest.href === lastDest.href
+      ) {
+        // Repeated redirects/loaders can request the same in-flight destination. Treat that as a
+        // duplicate so we don't bump navCount and cancel the navigation that would commit it.
+        return {
+          type: NavigationStartType.Duplicate,
+          finished: navResolver.p,
+        };
+      }
+
+      const previousPreparation = navResolver.preparation;
+      navResolver.preparation = preparation;
+      if (previousPreparation?.navCount === undefined) {
+        previousPreparation?.resolve(preparation.promise);
+      }
+      const attemptCount = ++internalState.attemptCount;
+
+      if (
+        preventNav.$cbs$ &&
+        (forceReload ||
+          typeof dest === 'number' ||
+          !isSamePath(dest, lastDest) ||
+          !isSameOrigin(dest, lastDest))
+      ) {
+        const prevents = await Promise.all([...preventNav.$cbs$.values()].map((cb) => cb(dest)));
+        if (attemptCount !== internalState.attemptCount) {
+          return { type: NavigationStartType.Superseded };
+        }
+        if (prevents.some(Boolean)) {
+          if (type === 'popstate') {
+            // Popstate events are not cancellable, so we push to undo
+            // TODO keep state?
+            history.pushState(null, '', lastDest);
+          }
+          return { type: NavigationStartType.Unchanged };
+        }
+      }
+
+      if (typeof dest === 'number') {
+        if (isBrowser) {
+          history.go(dest);
+        }
+        return { type: NavigationStartType.External };
+      }
+
+      if (!isSameOrigin(dest, lastDest)) {
+        // Cross-origin nav() should always abort early.
+        if (isBrowser) {
+          location.href = dest.href;
+        }
+        return { type: NavigationStartType.External };
+      }
+
+      if (
+        !forceReload &&
+        isSamePath(dest, lastDest) &&
+        (!navResolver.dest ||
+          (isSamePath(navResolver.dest, dest) && navResolver.dest.href === dest.href))
+      ) {
+        if (isBrowser) {
+          // Use `location.href` because the lastDest signal is only updated on page navigates.
+          if (type === 'link' && dest.href !== location.href) {
+            history.pushState(null, '', dest);
+          }
+
+          // Always scroll on same-page popstates, #hash clicks, or links.
+          const scroller = getScroller();
+
+          restoreScroll(type, dest, new URL(location.href), scroller, getScrollHistory());
+
+          if (type === 'popstate') {
+            window._qRouterScrollEnabled = true;
+          }
+        }
+
+        // Update routeLocation.url on hash/search-only changes so components react to the new URL
+        if (dest.href !== routeLocation.url.href) {
+          const newUrl = new URL(dest.href);
+          ensureRouteInternal(routeInternal, routeLocation).dest = newUrl;
+          routeLocation.url = newUrl;
+          const contentModules = contentInternal.untrackedValue;
+          if (contentModules) {
+            updateHead(contentModules, actionDataSignal.untrackedValue, internalState.navCount);
+          }
+        }
+
+        return { type: NavigationStartType.Unchanged, finished: navResolver.p };
+      }
+
+      const navCount = ++internalState.navCount;
+      preparation.navCount = navCount;
+      navResolver.routePreparation?.preparation.resolve(preparation.promise);
+      internalState.currentTransition?.skipTransition();
+      navResolver.cancel?.();
+      navResolver.cancel = undefined;
+      navResolver.r?.();
+      navResolver.dest = dest;
+
+      const preparing = preparePageNavigation(
+        { type, dest, forceReload, replaceState, scroll },
+        navCount
+      );
+      navResolver.routePreparation = { started: preparing, preparation };
+      return preparing;
+    };
+
+    const preparePageNavigation = async (
+      navigation: RouteStateInternal,
+      navCount: number
+    ): Promise<NavigationStart> => {
+      const { type, dest, forceReload, replaceState } = navigation;
+      let historyUpdated = false;
+      if (isBrowser) {
+        getClientRouteLoaders(routeLoaderCtx, routeLocation.url.href);
+      }
+      if (isBrowser && type === 'link' && !forceReload) {
+        // WebKit on iOS may treat async pushState() calls as skippable history entries.
+        // Commit the navigation entry while the original tap/click is still active.
+        const scroller = getScroller();
+
+        window._qRouterScrollEnabled = false;
+        clearTimeout(window._qRouterScrollDebounce);
+
+        const scrollState = currentScrollState(scroller);
+        saveScrollHistory(scrollState);
+        clientNavigate(window, type, new URL(location.href), dest, replaceState);
+        historyUpdated = true;
+      }
+
+      const wasNavigating = routeLocation.isNavigating;
+      routeLocation.isNavigating = true;
+      const container = isBrowser ? _getContextContainer() : undefined;
+      if (container && !wasNavigating) {
+        // flush isNavigating to the DOM before awaiting the next task so that the router outlet can show a loading state
+        await _waitUntilRendered(container);
+        if (navCount !== internalState.navCount) {
+          return { type: NavigationStartType.Superseded };
+        }
+      }
+
+      actionState.value = undefined;
+      navigation.historyUpdated = historyUpdated;
+      routeInternal.value = navigation;
+      // routeInternal now holds the in-flight destination, so the shortcut can use it again.
+      navResolver.dest = undefined;
+
+      if (wasNavigating) {
+        abortRouteLoaderNavigation(routeLoaderCtx);
+      }
+      if (isBrowser) {
+        // Prefetch bundles; loader signals fetch navigation data below.
+        prefetchRoute(dest, false, 0.8, manifestHash, true);
+      }
+
+      navResolver.p = new Promise<void>((resolve) => {
+        navResolver.r = () => {
+          navResolver.r = undefined;
+          navResolver.p = undefined;
+          resolve();
+        };
+      });
+      const navigated = navResolver.p;
+      await loadNavigation(
+        navigation,
+        undefined,
+        (container as ClientContainer | undefined) ?? getRouterContainer()
+      );
+      return { type: NavigationStartType.Prepared, finished: navigated };
+    };
+
+    const loadNavigation = async (
+      navigation: RouteStateInternal,
+      action: RouteActionValue,
+      container: ClientContainer
+    ) => {
       action?.resolveDispatch?.();
       if (action) {
         action.resolveDispatch = undefined;
@@ -546,144 +704,182 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const prevUrl = routeLocation.url;
       const navType = action ? 'form' : navigation.type;
       const replaceState = navigation.replaceState;
-      // Capture navCount at task entry. If another goto() fires while we're awaiting
+      // Capture navCount at entry. If another goto() fires while we're awaiting
       // loadRoute or loaders, navCount will have been bumped and we should bail so
-      // the task's next invocation takes over with the newer destination.
+      // the newer navigation takes over.
       const navCountBefore = internalState.navCount;
-      let trackUrl: URL;
-      let endpointResponse: EndpointResponse | undefined;
-      let actionData: { action?: string; actionResult?: unknown; status: number } | undefined;
+      let actionData: ActionData | undefined;
       let actionLoaderHashes: string[] | undefined;
       let loadedRoute: LoadedRoute;
-      if (isServer) {
-        // server
-        trackUrl = new URL(navigation.dest, routeLocation.url);
-        loadedRoute = env!.loadedRoute;
-        endpointResponse = env!.response;
-        actionData = endpointResponse;
-      } else {
-        // client
-        trackUrl = new URL(navigation.dest, location as any as URL);
-        const canceled = new Promise<undefined>((resolve) => {
-          navResolver.cancel = () => resolve(undefined);
-        });
+      const trackUrl = new URL(navigation.dest, location as any as URL);
+      const canceled = new Promise<undefined>((resolve) => {
+        navResolver.cancel = () => resolve(undefined);
+      });
+      // A navigation that bails before submitting must still settle the submit promise.
+      const abandonAction = () => {
+        action?.reject?.(new Error('Action submission was superseded by a navigation'));
+        if (action) {
+          action.resolve = undefined;
+          action.reject = undefined;
+        }
+      };
 
-        // ensure correct trailing slash
-        if (trackUrl.pathname.endsWith('/')) {
-          if (globalThis.__NO_TRAILING_SLASH__) {
-            trackUrl.pathname = trackUrl.pathname.slice(0, -1);
-          }
-        } else if (!globalThis.__NO_TRAILING_SLASH__) {
-          trackUrl.pathname = ensureSlash(trackUrl.pathname);
+      // ensure correct trailing slash
+      if (trackUrl.pathname.endsWith('/')) {
+        if (globalThis.__NO_TRAILING_SLASH__) {
+          trackUrl.pathname = trackUrl.pathname.slice(0, -1);
         }
-        const loadRoutePromise = getRouterConfig().then((config) => {
-          if (internalState.navCount !== navCountBefore) {
-            return;
-          }
-          return loadRoute(config.routes, config.cacheModules, trackUrl.pathname);
-        });
-        try {
-          const route = await Promise.race([loadRoutePromise, canceled]);
-          if (!route) {
-            return;
-          }
-          loadedRoute = route;
-        } catch (e) {
-          if (internalState.navCount !== navCountBefore) {
-            return;
-          }
-          const preparedNavCount = getClientRouteLoaders(routeLoaderCtx).navCount;
-          if (preparedNavCount !== undefined) {
-            restoreRouteLoaders(loaderState, routeLoaderCtx, preparedNavCount);
-          }
-          console.error(`Could not load route ${trackUrl.pathname}, reloading:`, e);
-          window.location.href = trackUrl.href;
-          return;
-        }
-        // Bail if a second nav() was fired while we were loading route modules.
+      } else if (!globalThis.__NO_TRAILING_SLASH__) {
+        trackUrl.pathname = ensureSlash(trackUrl.pathname);
+      }
+      const loadRoutePromise = getRouterConfig().then((config) => {
         if (internalState.navCount !== navCountBefore) {
           return;
         }
+        return loadRoute(config.routes, config.cacheModules, trackUrl.pathname);
+      });
+      try {
+        const route = await Promise.race([loadRoutePromise, canceled]);
+        if (!route) {
+          abandonAction();
+          return;
+        }
+        loadedRoute = route;
+      } catch (e) {
+        if (internalState.navCount !== navCountBefore) {
+          abandonAction();
+          return;
+        }
+        const preparedNavCount = getClientRouteLoaders(routeLoaderCtx).navCount;
+        if (preparedNavCount !== undefined) {
+          restoreRouteLoaders(loaderState, routeLoaderCtx, preparedNavCount);
+        }
+        console.error(`Could not load route ${trackUrl.pathname}, reloading:`, e);
+        window.location.href = trackUrl.href;
+        return;
+      }
+      // Bail if a second nav() was fired while we were loading route modules.
+      if (internalState.navCount !== navCountBefore) {
+        abandonAction();
+        return;
+      }
 
-        // Submit action if one was triggered
-        if (action) {
-          const result = await Promise.race([
-            submitAction(action, trackUrl).then((result) => {
-              // Superseded actions still complete their caller's submit promise.
-              if (result && action.resolve) {
-                action.resolve({ status: result.status, result: result.result });
-                action.resolve = undefined;
-              }
-              return result;
-            }),
-            canceled,
-          ]);
-
-          if (internalState.navCount !== navCountBefore || action !== actionState.untrackedValue) {
+      // A server `rewrite()` is invisible to the client's route table. If nothing, or only a
+      // dynamic route, matched, let the server resolve the URL and load that route, keeping the URL.
+      let rewrittenTo: string | undefined;
+      const lastModule = loadedRoute.$mods$[loadedRoute.$mods$.length - 1] as
+        | PageModule
+        | undefined;
+      if (
+        loadedRoute.$notFound$ ||
+        typeof lastModule?.default !== 'function' ||
+        loadedRoute.$routeName$.includes('[')
+      ) {
+        // An action on a rewritten page also needs the real route, or the page renders as not found after submit.
+        const resolved = await Promise.race([resolveServerRewrite(trackUrl), canceled]);
+        if (internalState.navCount !== navCountBefore) {
+          abandonAction();
+          return;
+        }
+        if (resolved === 'reload') {
+          // With an action, skip the reload so the submission is not dropped; the action still runs.
+          if (!action) {
+            window.location.href = trackUrl.href;
             return;
           }
-          navResolver.cancel = undefined;
-          if (!result) {
-            routeInternal.untrackedValue = { type: navType, dest: trackUrl };
-            return;
-          }
-
-          if (result.redirect) {
-            if (result.redirect instanceof URL) {
-              location.href = result.redirect.href;
-            } else {
-              // Awaiting goto would deadlock this task's next execution.
-              goto(result.redirect, { replaceState: true });
+        } else if (resolved && resolved !== trackUrl.pathname) {
+          try {
+            const config = await getRouterConfig();
+            loadedRoute = await loadRoute(config.routes, config.cacheModules, resolved);
+            rewrittenTo = resolved;
+          } catch (e) {
+            if (internalState.navCount !== navCountBefore) {
+              abandonAction();
+              return;
             }
+            console.error(`Could not load rewritten route ${resolved}, reloading:`, e);
+            window.location.href = trackUrl.href;
             return;
           }
+          if (internalState.navCount !== navCountBefore) {
+            abandonAction();
+            return;
+          }
+        }
+      }
 
-          actionData = {
-            status: result.status,
-            action: action.id,
-            actionResult: result.result,
-          };
+      // Submit action if one was triggered
+      if (action) {
+        const result = await Promise.race([
+          submitAction(action, trackUrl).then(
+            (result) => {
+              // Superseded actions still complete their caller's submit promise.
+              action.resolve?.({ status: result.status, result: result.result });
+              action.resolve = undefined;
+              action.reject = undefined;
+              return result;
+            },
+            (error) => {
+              action.reject?.(error);
+              action.reject = undefined;
+              action.resolve = undefined;
+            }
+          ),
+          canceled,
+        ]);
 
-          actionLoaderHashes = result.loaderHashes;
+        if (internalState.navCount !== navCountBefore || action !== actionState.untrackedValue) {
+          return;
         }
         navResolver.cancel = undefined;
+        if (!result) {
+          routeInternal.untrackedValue = { type: navType, dest: trackUrl };
+          routeLocation.isNavigating = false;
+          navResolver.r?.();
+          return;
+        }
+
+        if (result.redirect) {
+          if (result.redirect instanceof URL) {
+            location.href = result.redirect.href;
+          } else {
+            startNavigation(result.redirect, { replaceState: true });
+          }
+          return;
+        }
+
+        actionData = {
+          status: result.status,
+          action: action.id,
+          actionResult: result.result,
+        };
+
+        actionLoaderHashes = result.loaderHashes;
       }
+      navResolver.cancel = undefined;
 
       const { $routeName$, $params$, $mods$, $menu$, $notFound$ } = loadedRoute;
       const contentModules = $mods$ as ContentModule[];
-      if (!isServer) {
-        routeLoaderCtx.goto = noSerialize(goto);
-      }
-      let routeLoaders;
-      if (isServer) {
-        Object.assign(routeLoaderCtx.loaderPaths, loadedRoute.$loaderPaths$);
-        routeLoaders = ensureRouteLoaderSignals(
-          contentModules,
-          loaderState,
-          routeLoaderCtx,
-          env.ev
-        );
-      } else {
-        routeLoaders = prepareRouteLoaders(
-          contentModules,
-          loaderState,
-          routeLoaderCtx,
-          loadedRoute.$loaderPaths$,
-          trackUrl,
-          prevUrl,
-          navCountBefore,
-          action ? (actionLoaderHashes ?? null) : undefined,
-          action ?? navigation
-        );
-      }
-      if (routeLoaders.length > 0) {
-        // Trigger loader signals to fetch data for the new route. No await —
-        // we want to render ASAP. Loaders update the page when they resolve,
-        // and SSR awaits them on the server side. A loader that redirects
-        // fires goto() directly; the new nav starts while this one finishes
-        // committing, producing a brief flash of the current page.
-        // Immutable loaders stay lazy: they download only when actually read,
-        // and are then browser-cached for the life of the deploy.
+      routeLoaderCtx.goto = noSerialize((path, opt) => prepareNavigation(path, opt).prepared);
+      const routeLoaders = prepareRouteLoaders(
+        contentModules,
+        loaderState,
+        routeLoaderCtx,
+        // After a rewrite, loaders are fetched via the visible URL so the server re-applies it.
+        rewrittenTo ? undefined : loadedRoute.$loaderPaths$,
+        trackUrl,
+        prevUrl,
+        navCountBefore,
+        action ? (actionLoaderHashes ?? null) : undefined,
+        action ?? navigation
+      );
+      // Trigger loader signals to fetch data for the new route. No await —
+      // we want to render ASAP. Loaders update the page when they resolve.
+      // A loader that redirects fires goto() directly; the new nav starts while
+      // this one finishes committing, producing a brief flash of the current page.
+      // Immutable loaders stay lazy: they download only when actually read,
+      // and are then browser-cached for the life of the deploy.
+      await whenReady(() => {
         for (let i = 0; i < routeLoaders.length; i++) {
           const loader = routeLoaders[i];
           if (!isImmutableLoader(loader.__id)) {
@@ -691,12 +887,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             (loaderState[loader.__id] as _ComputedSignalInternal<unknown>).untrackedPending;
           }
         }
-      }
-      if (!isServer) {
-        // Clear after the kick-off above so hover-prefetched promises are consumed
-        // by this nav's fetches; the next hover starts a fresh per-nav cache.
-        clearNavFetchCache();
-      }
+      });
+      // Clear after the kick-off above so hover-prefetched promises are consumed
+      // by this nav's fetches; the next hover starts a fresh per-nav cache.
+      clearNavFetchCache();
       if (internalState.navCount !== navCountBefore) {
         return;
       }
@@ -704,11 +898,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       // Update httpStatus for 404/error pages
       if ($notFound$) {
         httpStatus.value = { status: 404, message: 'Not Found' };
-      } else if (endpointResponse) {
-        httpStatus.value = {
-          status: endpointResponse.status,
-          message: endpointResponse.statusMessage ?? 'OK',
-        };
       } else if (actionData) {
         httpStatus.value = { status: actionData.status, message: 'OK' };
       } else {
@@ -768,105 +957,73 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       routeInternal.untrackedValue = nextRouteInternal;
 
       // Update content.
-      // IMPORTANT: contentInternal must use .untrackedValue, NOT .value. Subscribers
-      // (RouterOutlet, head task) are fired later by contentInternal.trigger()
-      // inside navigate(), which runs inside the view-transition's update callback.
-      // Using .value here would fire subscribers before startViewTransition captures
-      // the old DOM, breaking view transitions (the update callback never gets invoked).
+      // IMPORTANT: contentInternal must use .untrackedValue, NOT .value. RouterOutlet
+      // is fired later by contentInternal.trigger() inside navigate(), which runs
+      // inside the view-transition's update callback. Using .value here would fire it
+      // before startViewTransition captures the old DOM, breaking view transitions
+      // (the update callback never gets invoked).
       content.headings = pageModule.headings;
       content.menu = $menu$;
       contentInternal.untrackedValue = noSerialize(contentModules);
-      actionDataSignal.value = actionData;
+      actionDataSignal.untrackedValue = actionData;
 
-      // Preserve historyUpdated/scroll/etc. for the commit task. Without this, the
-      // commit task reads `navigation.historyUpdated` as undefined and calls
-      // clientNavigate a second time, pushing an extra history entry.
+      commitNavigation(
+        {
+          routeName: $routeName$,
+          navType,
+          prevUrl,
+          replaceState,
+          shouldForcePrevUrl,
+          shouldForceUrl,
+          shouldForceParams,
+          navCount: navCountBefore,
+          contentModules,
+          actionData,
+        },
+        nextRouteInternal,
+        container
+      );
+    };
 
-      // hand off to next tasks
-      navContext.value = noSerialize({
-        routeName: $routeName$,
-        navType,
-        prevUrl,
-        replaceState,
-        shouldForcePrevUrl,
-        shouldForceUrl,
-        shouldForceParams,
-        navCount: navCountBefore,
-      });
-    },
-    // We should only wait for head calculation to complete on the server
-    { deferUpdates: isServer }
-  );
-
-  /**
-   * Calc head. This is in a separate task so that loader updates can trigger head recalculation
-   * without re-running the navigation logic.
-   *
-   * Note that on the server these tasks run sequentially.
-   */
-  useTask$(
-    ({ track }) => {
-      const contentModules = track(contentInternal);
-      const nav = navContext.untrackedValue;
-      if (
-        !isServer &&
-        routeLocation.isNavigating &&
-        nav &&
-        nav.navCount !== internalState.navCount
-      ) {
-        return;
-      }
-      if (!contentModules) {
-        return;
-      }
-      const actionData = track(actionDataSignal);
-
+    const updateHead = (
+      contentModules: ContentModule[],
+      actionData: ActionData | undefined,
+      navCount: number
+    ): Promise<void> | void => {
       let head: ResolvedDocumentHead;
       try {
-        // Resolve head — this might throw a promise so keep it near the top of the function
-        head = track(() =>
-          resolveHead(
-            actionData,
-            loaderState,
-            routeLocation,
-            contentModules,
-            getLocale(''),
-            serverHead
-          )
+        head = resolveHead(
+          actionData,
+          loaderState,
+          routeLocation,
+          contentModules,
+          locale,
+          serverHead
         );
       } catch (error) {
-        if (isServer || isPromise(error)) {
-          throw error;
+        if (isPromise(error)) {
+          const retry = () => {
+            if (navCount === internalState.navCount) {
+              return updateHead(contentModules, actionData, navCount);
+            }
+          };
+          return error.then(retry, retry);
         }
         // Preserve the current head after client-side calculation errors.
         console.error(error);
         return;
       }
-      documentHead.links = head.links;
-      documentHead.meta = head.meta;
-      documentHead.styles = head.styles;
-      documentHead.scripts = head.scripts;
-      documentHead.title = head.title;
-      documentHead.frontmatter = head.frontmatter;
-    },
-    { deferUpdates: isServer }
-  );
+      assignDocumentHead(documentHead, head);
+    };
 
-  /** Actual navigation */
-  useTask$(
-    ({ track }) => {
-      const nav = track(navContext);
-      if (isServer || !nav) {
-        return;
-      }
-
+    const commitNavigation = (
+      nav: NavigationCommit,
+      navigation: RouteStateInternal,
+      container: ClientContainer
+    ) => {
       if (nav.navCount !== internalState.navCount) {
         return;
       }
-
-      const container = _getContextContainer();
-      const navigation = routeInternal.untrackedValue;
-
       const { navType, prevUrl, replaceState, routeName } = nav;
       const trackUrl = routeLocation.url;
 
@@ -888,7 +1045,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           restoreScroll(navType, trackUrl, prevUrl, scroller, scrollState);
       }
 
-      initializeSPA(goto, scroller);
+      initializeSPA(startNavigation, scroller);
 
       if (navType !== 'popstate') {
         window._qRouterScrollEnabled = false;
@@ -924,8 +1081,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         } else {
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
         }
+        const headUpdated = updateHead(nav.contentModules, nav.actionData, nav.navCount);
         contentInternal.trigger();
-        return (navigatePromise = _waitUntilRendered(container!).then(
+        return (navigatePromise = Promise.all([_waitUntilRendered(container), headUpdated]).then(
           () => {
             if (nav.navCount === internalState.navCount) {
               commitRouteLoaders(loaderState, routeLoaderCtx, nav.navCount);
@@ -941,7 +1099,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       };
 
       const _waitNextPage = () => {
-        if (!shouldStartViewTransition(props?.viewTransition)) {
+        if (!shouldStartViewTransition(viewTransition)) {
           return navigate().then(() => undefined as ViewTransition | undefined);
         }
         const { ready, transition } = startViewTransition({
@@ -970,7 +1128,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (nav.navCount !== internalState.navCount) {
           return;
         }
-        (container as ClientContainer).element.setAttribute?.(Q_ROUTE, routeName);
+        container.element.setAttribute?.(Q_ROUTE, routeName);
         const scrollState = currentScrollState(scroller);
         saveScrollHistory(scrollState);
         window._qRouterScrollEnabled = true;
@@ -986,12 +1144,37 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (nav.shouldForceParams) {
           forceStoreEffects(routeLocation, 'params');
         }
-        routeLocation.isNavigating = false;
-        navResolver.r?.();
+        // A route that reuses the current component renders its new data only when its loaders
+        // resolve, after the commit above has already settled.
+        whenRouteLoadersSettled(loaderState, container).then(() => {
+          if (nav.navCount !== internalState.navCount) {
+            return;
+          }
+          routeLocation.isNavigating = false;
+          navResolver.r?.();
+        });
       });
-    },
-    { deferUpdates: false }
-  );
+    };
+
+    if (isBrowser && !window._qRouterSPA) {
+      // Init-mode popstate must not wait for another QRL once navigation has resumed.
+      window._qRouterInitNavigate = startNavigation;
+    }
+    return startNavigation(path, opt);
+  });
+
+  routeLoaderCtx.onValue = goto;
+
+  useContextProvider(ContentContext, content);
+  useContextProvider(ContentInternalContext, contentInternal);
+  useContextProvider(DocumentHeadContext, documentHead);
+  useContextProvider(HttpStatusContext, httpStatus);
+  useContextProvider(RouteLocationContext, routeLocation);
+  useContextProvider(RouteNavigateContext, goto);
+  useContextProvider(RouteActionRunnerContext, goto);
+  useContextProvider(RouteStateContext, loaderState);
+  useContextProvider(RouteLoaderCtxContext, routeLoaderCtx);
+  useContextProvider(RouteActionContext, actionState);
 };
 
 /** @public This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component, unless you have a good reason to make your root component reactive. */
@@ -1184,6 +1367,8 @@ export interface ClientSPAWindow extends Window {
   /** @internal */
   _qRouterInitPopstate?: () => void;
   /** @internal */
+  _qRouterInitNavigate?: Navigate;
+  /** @internal */
   _qRouterInitAnchors?: (event: MouseEvent) => void;
   /** @internal */
   _qRouterInitVisibility?: () => void;
@@ -1196,7 +1381,7 @@ export interface ClientSPAWindow extends Window {
 }
 
 // See also spa-init.ts
-function initializeSPA(goto: RouteNavigate, scroller: HTMLElement) {
+function initializeSPA(goto: Navigate, scroller: HTMLElement) {
   if (!window._qRouterSPA) {
     // only add event listener once
     window._qRouterSPA = true;
@@ -1214,6 +1399,7 @@ function initializeSPA(goto: RouteNavigate, scroller: HTMLElement) {
 
     window.removeEventListener('popstate', window._qRouterInitPopstate!);
     window._qRouterInitPopstate = undefined;
+    window._qRouterInitNavigate = undefined;
 
     // Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
     // Devs could push their own states that we can't control.
@@ -1262,7 +1448,7 @@ function initializeSPA(goto: RouteNavigate, scroller: HTMLElement) {
     // Any <a> tags w/ #hash href will break SPA state in Firefox.
     // We patch these events and direct them to Link pipeline during SPA.
     document.addEventListener('click', (event) => {
-      if (event.defaultPrevented) {
+      if (event.defaultPrevented || !isPlainPrimaryClick(event)) {
         return;
       }
 

@@ -15,6 +15,7 @@ export const QSlot = 'q:slot';
 export const QSlotParent = 'q:sparent';
 export const QSlotS = 'q:s';
 export const QStatePatchAttr = 'q:patch';
+export const QStateStreamAttr = 'q:stream';
 export const QStatePatchAttrSelector = '[q\\:patch]';
 export const QPendingResolved = 'q:r';
 export const QPendingResultParent = 'q:rp';
@@ -86,6 +87,7 @@ export const enum QwikLoaderScanEvent {
 
 /** `<q:slot name="...">` */
 export const QDefaultSlot = '';
+export const QFallbackSlot = '_f';
 
 /**
  * Attribute to mark that this VNode has a pointer to itself from the `qwik/json` state.

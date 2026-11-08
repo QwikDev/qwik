@@ -5,7 +5,7 @@
     "priority": -10,
     "viteConfig": {},
     "docs": [
-      "https://qwik.dev/integrations/drizzle/",
+      "https://qwik.dev/docs/integrations/drizzle/",
       "https://orm.drizzle.team/docs/overview"
     ],
     "nextSteps": {

@@ -19,13 +19,16 @@ import {
   type ScopeAwareBindings,
 } from './jsx.js';
 
-function buildAdditionalSpreadsPart(additionalSpreads: string[], spreadArg: string): string {
+function buildAdditionalSpreadsPart(
+  additionalSpreads: string[],
+  splitSpreadArg: string | null
+): string {
   if (additionalSpreads.length === 0) {
     return '';
   }
 
   const spreadEntries = additionalSpreads.map((spread) => {
-    if (spread === spreadArg) {
+    if (spread === splitSpreadArg) {
       return `..._getVarProps(${spread})`;
     }
     return `...${spread}`;
@@ -190,35 +193,6 @@ function moveEventHandlersForNonConstCaptures(
   return movedAny;
 }
 
-function buildCreateElementCall(
-  tag: string,
-  spreadArg: string,
-  beforeSpreadEntries: string[],
-  varEntries: string[],
-  constEntries: string[],
-  explicitKey: string,
-  childrenText: string | null,
-  neededImports: Set<string>
-): JsxTransformResult {
-  neededImports.add('createElement as _createElement');
-
-  const allPropEntries = [...beforeSpreadEntries, ...varEntries, ...constEntries];
-  allPropEntries.push(`key: ${explicitKey}`);
-  const propsObj = `{ ...${spreadArg}, ${allPropEntries.join(', ')} }`;
-  const callString = `_createElement(${tag}, ${propsObj})`;
-
-  return {
-    tag,
-    varProps: null,
-    constProps: null,
-    children: childrenText,
-    flags: 0,
-    key: explicitKey,
-    callString,
-    neededImports,
-  };
-}
-
 /**
  * Source-ordered `_jsxSplit` emission. Returns null when the rule doesn't apply (single spread, no
  * spread, or no real-const-after-all-spreads — the wrapper-based path handles those).
@@ -310,6 +284,7 @@ function buildJsxSplitCall(
   tag: string,
   tagIsHtml: boolean,
   spreadArg: string,
+  shouldSplitSpread: boolean,
   beforeSpreadEntries: string[],
   varEntries: string[],
   constEntries: string[],
@@ -349,12 +324,12 @@ function buildJsxSplitCall(
         lastSpreadStart = slot.sourceStart;
       }
     }
-    // Only the props-proxy spread (the first spread's expression, per the
-    // legacy wrapping rule) splits into _getVarProps/_getConstProps;
+    // Only the props-proxy spread (the first spread, when it is an
+    // identifier) splits into _getVarProps/_getConstProps;
     // arbitrary expressions spread raw. A wrapped FINAL spread donates its
     // const part to the const arg; any other wrapped spread emits both parts
     // inline at its source position.
-    const isWrappable = (expr: string): boolean => expr === spreadArg;
+    const isWrappable = (expr: string): boolean => shouldSplitSpread && expr === spreadArg;
     let finalSpreadWrapped = false;
     const varParts: string[] = [];
     const constParts: string[] = [];
@@ -380,8 +355,10 @@ function buildJsxSplitCall(
       }
     }
     neededImports.add('_jsxSplit');
-    neededImports.add('_getVarProps');
-    neededImports.add('_getConstProps');
+    if (shouldSplitSpread) {
+      neededImports.add('_getVarProps');
+      neededImports.add('_getConstProps');
+    }
     const varPropsPart = varParts.length > 0 ? `{ ${varParts.join(', ')} }` : 'null';
     const constPropsPart = finalSpreadWrapped
       ? constParts.length > 0
@@ -404,12 +381,20 @@ function buildJsxSplitCall(
   }
 
   neededImports.add('_jsxSplit');
-  neededImports.add('_getVarProps');
-  neededImports.add('_getConstProps');
+  if (shouldSplitSpread) {
+    neededImports.add('_getVarProps');
+    neededImports.add('_getConstProps');
+  }
 
+  const varSpread = shouldSplitSpread ? `..._getVarProps(${spreadArg})` : `...${spreadArg}`;
+  const constSpreadInVar = shouldSplitSpread ? `, ..._getConstProps(${spreadArg})` : '';
+  const constSpreadInConst = shouldSplitSpread ? `..._getConstProps(${spreadArg}), ` : '';
   const beforePart = beforeSpreadEntries.length > 0 ? `${beforeSpreadEntries.join(', ')}, ` : '';
   const afterPart = varEntries.length > 0 ? `, ${varEntries.join(', ')}` : '';
-  const additionalSpreadsPart = buildAdditionalSpreadsPart(additionalSpreads, spreadArg);
+  const additionalSpreadsPart = buildAdditionalSpreadsPart(
+    additionalSpreads,
+    shouldSplitSpread ? spreadArg : null
+  );
 
   let varPropsPart: string;
   let constPropsPart: string;
@@ -426,13 +411,13 @@ function buildJsxSplitCall(
 
   if (partitionableComponentSpread) {
     const hasVarAfterSpread = varEntries.length > 0;
-    const getConstInVar = hasVarAfterSpread ? `, ..._getConstProps(${spreadArg})` : '';
-    varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${getConstInVar}${afterPart} }`;
-    const getConstInConst = hasVarAfterSpread ? '' : `..._getConstProps(${spreadArg}), `;
+    const getConstInVar = hasVarAfterSpread ? constSpreadInVar : '';
+    varPropsPart = `{ ${beforePart}${varSpread}${getConstInVar}${afterPart} }`;
+    const getConstInConst = hasVarAfterSpread ? '' : constSpreadInConst;
     constPropsPart = `{ ${getConstInConst}${constEntries.join(', ')} }`;
   } else if (componentHasExtras) {
     const constPart = constEntries.length > 0 ? `, ${constEntries.join(', ')}` : '';
-    varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${constPart}${additionalSpreadsPart} }`;
+    varPropsPart = `{ ${beforePart}${varSpread}${constSpreadInVar}${afterPart}${constPart}${additionalSpreadsPart} }`;
     constPropsPart = 'null';
   } else {
     const hasNonBindNonEventVarEntries = varEntries.some(
@@ -454,19 +439,22 @@ function buildJsxSplitCall(
         (e) => !isRewrittenEventEntry(e) && !e.startsWith('"q:')
       );
       if (hasRealConstEntries) {
-        varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
-        constPropsPart = `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`;
+        varPropsPart = `{ ${beforePart}${varSpread}${afterPart}${additionalSpreadsPart} }`;
+        constPropsPart = `{ ${constSpreadInConst}${constEntries.join(', ')} }`;
       } else {
-        varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg}), ..._getConstProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
-        const hasDuplicateSpreads = additionalSpreads.some((s) => s === spreadArg);
+        varPropsPart = `{ ${beforePart}${varSpread}${constSpreadInVar}${afterPart}${additionalSpreadsPart} }`;
+        const hasDuplicateSpreads =
+          shouldSplitSpread && additionalSpreads.some((s) => s === spreadArg);
         constPropsPart = buildConstPropsPart(constEntries, spreadArg, hasDuplicateSpreads);
       }
     } else {
-      varPropsPart = `{ ${beforePart}..._getVarProps(${spreadArg})${afterPart}${additionalSpreadsPart} }`;
+      varPropsPart = `{ ${beforePart}${varSpread}${afterPart}${additionalSpreadsPart} }`;
       constPropsPart =
         constEntries.length > 0
-          ? `{ ..._getConstProps(${spreadArg}), ${constEntries.join(', ')} }`
-          : `_getConstProps(${spreadArg})`;
+          ? `{ ${constSpreadInConst}${constEntries.join(', ')} }`
+          : shouldSplitSpread
+            ? `_getConstProps(${spreadArg})`
+            : 'null';
     }
   }
 
@@ -512,18 +500,6 @@ export function transformJsxElement(
   const elementPassiveEvents = passiveEvents ?? collectPassiveDirectives(openingElement.attributes);
   const inLoop = !!loopCtx && loopCtx.iterVars.length > 0;
 
-  const preHasSpread =
-    openingElement.attributes?.some((a: JSXAttributeItem) => a.type === 'JSXSpreadAttribute') ??
-    false;
-  const preHasKey =
-    openingElement.attributes?.some(
-      (a: JSXAttributeItem) =>
-        a.type === 'JSXAttribute' &&
-        ((a.name?.type === 'JSXIdentifier' && a.name.name === 'key') ||
-          (a.name?.type === 'JSXNamespacedName' && a.name.name?.name === 'key'))
-    ) ?? false;
-  const willUseCreateElement = preHasSpread && preHasKey;
-
   const {
     varEntries,
     constEntries,
@@ -539,7 +515,6 @@ export function transformJsxElement(
     tagIsHtml,
     passiveEvents: elementPassiveEvents,
     inLoop,
-    skipSignalAnalysis: willUseCreateElement,
     loopIterVars: loopCtx?.iterVars,
   });
   let hasVarEventHandler = initialHasVarEventHandler;
@@ -626,24 +601,13 @@ export function transformJsxElement(
     const spreadArg = spreadAttr
       ? source.slice(spreadAttr.argument.start, spreadAttr.argument.end)
       : 'props';
-
-    if (explicitKey !== null) {
-      return buildCreateElementCall(
-        tag,
-        spreadArg,
-        beforeSpreadEntries,
-        varEntries,
-        constEntries,
-        explicitKey,
-        childrenText,
-        neededImports
-      );
-    }
+    const shouldSplitSpread = spreadAttr?.argument.type === 'Identifier';
 
     return buildJsxSplitCall(
       tag,
       tagIsHtml,
       spreadArg,
+      shouldSplitSpread,
       beforeSpreadEntries,
       varEntries,
       constEntries,

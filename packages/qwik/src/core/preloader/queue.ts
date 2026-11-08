@@ -1,4 +1,3 @@
-import type { QwikSymbolEvent } from '../shared/jsx/types/jsx-qwik-events';
 import { createMacroTask } from '../shared/platform/next-tick';
 import { base, getBundle } from './bundle-graph';
 import { config, doc, isBrowser, rel, yieldInterval } from './constants';
@@ -9,12 +8,11 @@ import {
   BundleImportState_Preload,
   BundleImportState_Queued,
 } from './types';
-import { setPreloader } from './bridge';
 
 export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
 let queueDirty: boolean;
-let preloadCount = 0;
+const inFlight = new Set<BundleImport>();
 const queue: BundleImport[] = [];
 
 export const nextTriggerMacroTask = createMacroTask(trigger);
@@ -32,6 +30,18 @@ type AdjustmentFrame = {
 };
 
 const adjustmentStack: AdjustmentFrame[] = [];
+
+const isNeeded = (bundle: BundleImport) => 1 - bundle.$inverseProbability$ >= 0.99;
+
+// Read live: a speculative preload may since have been requested at probability 1
+const isNeededInFlight = () => {
+  for (const bundle of inFlight) {
+    if (isNeeded(bundle)) {
+      return true;
+    }
+  }
+  return false;
+};
 
 export const sortQueue = () => {
   if (queueDirty) {
@@ -59,10 +69,9 @@ function trigger() {
   let shouldYield = false;
   while (queue.length) {
     const bundle = queue[0];
-    const inverseProbability = bundle.$inverseProbability$;
-    const probability = 1 - inverseProbability;
     // We want to preload all the transitive static (1) and dynamic (0.99) dependencies, throttled by the user defined maxIdlePreloads.
-    if (probability >= 0.99 || preloadCount < config.$maxIdlePreloads$) {
+    // Speculative preloads wait while needed bundles load, so they don't take their bandwidth.
+    if (isNeeded(bundle) || (inFlight.size < config.$maxIdlePreloads$ && !isNeededInFlight())) {
       queue.shift();
       preloadOne(bundle);
       if (performance.now() >= deadline) {
@@ -207,7 +216,7 @@ const preloadOne = (bundle: BundleImport) => {
   if (bundle.$state$ >= BundleImportState_Preload) {
     return;
   }
-  preloadCount++;
+  inFlight.add(bundle);
 
   const start = performance.now();
   bundle.$waitedMs$ = start - bundle.$createdTs$;
@@ -219,9 +228,12 @@ const preloadOne = (bundle: BundleImport) => {
   link.rel = rel;
   // Needed when rel is 'preload'
   link.as = 'script';
+  if (!isNeeded(bundle)) {
+    link.setAttribute('fetchpriority', 'low');
+  }
   // Handle completion of the preload
   link.onload = link.onerror = () => {
-    preloadCount--;
+    inFlight.delete(bundle);
     const end = performance.now();
     bundle.$loadedMs$ = end - start;
     bundle.$state$ = BundleImportState_Loaded;
@@ -283,17 +295,3 @@ export const preload = (item: string | string[], probability?: number) => {
     processPendingAdjustments();
   }
 };
-
-if (isBrowser) {
-  setPreloader(preload);
-
-  // Get early hints from qwikloader
-  document.addEventListener('qsymbol', (ev) => {
-    const { symbol, href } = (ev as QwikSymbolEvent).detail;
-    // the qrl class doesn't emit href, we don't need to preload
-    if (href) {
-      const hash = symbol.slice(symbol.lastIndexOf('_') + 1);
-      preload(hash, 1);
-    }
-  });
-}

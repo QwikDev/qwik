@@ -1,10 +1,10 @@
 import SuperJSON from 'superjson';
-import { createBirpc, type EventOptions } from 'birpc';
+import { createBirpc, type BirpcResolver } from 'birpc';
 
 interface RpcChannel {
   post: (serialized: string) => void;
   on: (handler: (serialized: string) => void) => void;
-  resolver?: EventOptions['resolver'];
+  resolver?: BirpcResolver<unknown>;
 }
 
 const RPC_TIMEOUT = 120_000;

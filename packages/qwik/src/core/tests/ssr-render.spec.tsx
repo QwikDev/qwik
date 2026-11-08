@@ -161,6 +161,20 @@ describe('v2 ssr render', () => {
       expect((document.body.firstChild as Element).outerHTML).toEqual('<!--foo-->');
     });
 
+    it.each(['-->', '--!>', '>', '->', 'a--->'])(
+      'should not let comment data %s close the comment',
+      async (commentTerminator) => {
+        const { document } = await ssrRenderToDom(
+          <div id="host">
+            <SSRComment data={commentTerminator + '<b id="injected"></b>'} />
+          </div>,
+          { debug }
+        );
+        expect(document.querySelector('#injected')).toBeFalsy();
+        expect(document.querySelector('#host')!.firstChild!.nodeType).toBe(8 /* COMMENT_NODE */);
+      }
+    );
+
     it('should render SSRStreamBlock', async () => {
       const Cmp = component$(() => {
         return (

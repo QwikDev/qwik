@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 3588
 expression: output
 ---
 ==INPUT==
@@ -4105,9 +4104,9 @@ const q_routeActionQrl_action_submit_YuS5bpdQ360 = /*#__PURE__*/ qrl(()=>import(
 const q_serverQrl_w03grD0Ag68 = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_serverQrl_w03grD0Ag68.mjs"), "serverQrl_w03grD0Ag68");
 const q_spa_init_event_igI1pUsax0E = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_spa_init_event_igI1pUsax0E.mjs"), "spa_init_event_igI1pUsax0E");
 //
-qrl(()=>import("./index.qwik.mjs_useQwikMockRouter_createAsync_clbxpuXqpEU.mjs"), "useQwikMockRouter_createAsync_clbxpuXqpEU");
-qrl(()=>import("./index.qwik.mjs_useQwikMockRouter_goto_aViHFxQ1a3s.mjs"), "useQwikMockRouter_goto_aViHFxQ1a3s");
-qrl(()=>import("./index.qwik.mjs_useQwikMockRouter_useTask_tXTLR4tzCy0.mjs"), "useQwikMockRouter_useTask_tXTLR4tzCy0");
+/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikMockRouter_createAsync_clbxpuXqpEU.mjs"), "useQwikMockRouter_createAsync_clbxpuXqpEU");
+/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikMockRouter_goto_aViHFxQ1a3s.mjs"), "useQwikMockRouter_goto_aViHFxQ1a3s");
+/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikMockRouter_useTask_tXTLR4tzCy0.mjs"), "useQwikMockRouter_useTask_tXTLR4tzCy0");
 //
 const q_useQwikRouter_getScroller_0UhDFwlxeFQ = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikRouter_getScroller_0UhDFwlxeFQ.mjs"), "useQwikRouter_getScroller_0UhDFwlxeFQ");
 const q_useQwikRouter_goto_8j8Vrz2yUIM = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_useQwikRouter_goto_8j8Vrz2yUIM.mjs"), "useQwikRouter_goto_8j8Vrz2yUIM");

@@ -4,11 +4,13 @@ type EntryStrategyType = 'smart' | 'segment' | 'hook' | 'component' | 'single' |
 
 interface EntrySegment {
   symbolName: string;
+  canonicalFilename: string;
   rootContext: string | null;
   origin: string;
   ctxKind: 'eventHandler' | 'function' | 'jSXProp';
   ctxName: string;
   captures: boolean;
+  isEventOnly?: boolean;
 }
 
 const routeParamFileStem = /^\[\[\.\.\.(.+)\]\]$|^\[(.+)\]$/;
@@ -49,8 +51,15 @@ export function resolveEntryField(
     case 'component':
       return getRootEntry(segment) ?? 'entry_segments';
     case 'smart':
-      // Capture-free handlers load on their own; everything else loads with its root.
-      if (!segment.captures && (segment.ctxKind !== 'function' || segment.ctxName === 'event$')) {
+      if (segment.isEventOnly) {
+        return segment.canonicalFilename;
+      }
+      // Known events stay separate even when they capture state.
+      if (
+        segment.ctxKind === 'eventHandler' ||
+        segment.ctxName === 'event$' ||
+        (!segment.captures && segment.ctxKind !== 'function')
+      ) {
         return null;
       }
       return getRootEntry(segment);

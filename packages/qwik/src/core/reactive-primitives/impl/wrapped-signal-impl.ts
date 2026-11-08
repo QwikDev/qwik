@@ -2,11 +2,12 @@ import { assertFalse } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import type { Container, HostElement } from '../../shared/types';
 import { ChoreBits } from '../../shared/vnode/enums/chore-bits.enum';
-import { trackSignal } from '../../use/use-core';
+import { isPromise, retryOnPromise } from '../../shared/utils/promises';
+import { invokeApply, newInvokeContext, trackSignal } from '../../use/use-core';
 import { getValueProp } from '../internal-api';
 import type { AllSignalFlags, EffectSubscription } from '../types';
 import { EffectProperty, NEEDS_COMPUTATION, ComputedSignalFlags } from '../types';
-import { isSignal, scheduleEffects } from '../utils';
+import { invalidateDerived, isSignal, pullSourcesIfCheck, scheduleEffects } from '../utils';
 import { SignalImpl } from './signal-impl';
 import { markVNodeDirty } from '../../shared/vnode/vnode-dirty';
 import { _EFFECT_BACK_REF } from '../backref';
@@ -14,6 +15,7 @@ import { HOST_SIGNAL } from '../../shared/cursor/cursor-props';
 import { isDev } from '@qwik.dev/core/build';
 import { Brand, brandClass } from '../../shared/utils/brand';
 
+/** @internal */
 export class WrappedSignalImpl<T> extends SignalImpl<T> {
   $args$: any[];
   $func$: (...args: any[]) => T;
@@ -42,21 +44,40 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
   }
 
   invalidate() {
-    this.$flags$ |= ComputedSignalFlags.INVALID;
-    // we are trying to run computation without creating a chore, which can be expensive
-    // for many signals. If it fails, we schedule a chore to run the computation.
+    invalidateDerived(this);
+  }
+
+  /**
+   * Recompute now; when that throws (e.g. a lazy QRL), defer to a COMPUTE chore on the host. A
+   * signal without a host (e.g. a component prop) retries once the promise settles instead, so it
+   * is not left in CHECK with its sources unsubscribed.
+   */
+  $pull$(): void {
     try {
       this.$computeIfNeeded$();
-    } catch (_) {
+    } catch (err) {
       if (this.$container$ && this.$hostElement$) {
         this.$container$.setHostProp(this.$hostElement$ as HostElement, HOST_SIGNAL, this);
         markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
+      } else if (isPromise(err)) {
+        const ctx = newInvokeContext();
+        ctx.$container$ = this.$container$ || undefined;
+        const running = retryOnPromise(() => {
+          // A consumer cleaned up while the QRL loaded must not be resubscribed
+          if (this.$effects$?.size) {
+            invokeApply.call(this, ctx, this.$computeIfNeeded$);
+          }
+        });
+        if (isPromise(running)) {
+          running.catch((error: unknown) => {
+            if (this.$container$) {
+              this.$container$.handleError(error, null);
+            } else {
+              console.error('Error during computation', error);
+            }
+          });
+        }
       }
-    }
-    // if the computation not failed, we can run the effects directly
-    if (this.$flags$ & ComputedSignalFlags.RUN_EFFECTS) {
-      this.$flags$ &= ~ComputedSignalFlags.RUN_EFFECTS;
-      scheduleEffects(this.$container$, this, this.$effects$);
     }
   }
 
@@ -67,6 +88,9 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
   }
 
   $computeIfNeeded$() {
+    if (this.$flags$ & ComputedSignalFlags.CHECK) {
+      pullSourcesIfCheck(this);
+    }
     if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
@@ -76,19 +100,16 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> {
       EffectProperty.VNODE,
       this.$container$!
     );
-    // TODO: we should remove invalid flag here, but some tests are failing
-    // Sometimes we may call .value on wrapped signals without ctx. This means subscription will be
-    // not created and effects will not be triggered. After wrapping this with if (this.$container$)
-    // less tests are failing, but still some are failing.
-    // this.$flags$ &= ~SignalFlags.INVALID;
-
-    // reset flag in case we call computedIfNeeded twice and the value was changed only the first time
-    // TODO: change to version number?
-    this.$flags$ &= ~ComputedSignalFlags.RUN_EFFECTS;
-    const didChange = untrackedValue !== this.$untrackedValue$;
-    if (didChange) {
-      this.$flags$ |= ComputedSignalFlags.RUN_EFFECTS;
-      this.$untrackedValue$ = untrackedValue;
+    // A read-driven first compute (e.g. after resume) is not a change the subscribers can act on
+    const shouldNotify =
+      (this.$untrackedValue$ !== NEEDS_COMPUTATION ||
+        this.$flags$ & ComputedSignalFlags.SOURCE_CHANGED) &&
+      untrackedValue !== this.$untrackedValue$;
+    // Only a tracked compute may be cached; INVALID is restored whenever subscriptions are cleared
+    this.$flags$ &= ~ComputedSignalFlags.DIRTY_FLAGS;
+    this.$untrackedValue$ = untrackedValue;
+    if (shouldNotify) {
+      scheduleEffects(this.$container$, this, this.$effects$);
     }
   }
 

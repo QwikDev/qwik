@@ -149,37 +149,23 @@ function isPatternExpressionSlot(node: AstMaybeNode, key: string): boolean {
   return type === 'MemberExpression' || type === 'StaticMemberExpression';
 }
 
-export interface ReplaceableIdentifierPositionOptions {
-  /**
-   * How to treat MemberExpression `property` positions. `'nonComputed'` (default) excludes `.foo`
-   * but allows `[foo]`; `'all'` excludes both.
-   */
-  memberPropertyMode?: 'all' | 'nonComputed';
-}
-
 /**
  * Whether an Identifier at this position is a _reference_ worth substituting — `false` for
- * declarator names, property keys, member-access properties (per `memberPropertyMode`), and
- * function parameters.
+ * declarator names, property keys, non-computed member-access properties (`obj.foo`, not
+ * `obj[foo]`), and function parameters.
  *
  * Shorthand `Property` value positions return `true` here (not excluded); they need special-case
  * emit and the caller detects them via `parentKey === 'value' && parentNode.shorthand === true`.
  */
 export function isReplaceableIdentifierPosition(
   parentKey: string | undefined,
-  parentNode: AstParentNode | undefined,
-  options: ReplaceableIdentifierPositionOptions = {}
+  parentNode: AstParentNode | undefined
 ): boolean {
   if (parentKey === 'key' && parentNode?.type === 'Property') {
     return false;
   }
-  if (parentKey === 'property' && parentNode?.type === 'MemberExpression') {
-    if (options.memberPropertyMode === 'all') {
-      return false;
-    }
-    if (!parentNode.computed) {
-      return false;
-    }
+  if (parentKey === 'property' && parentNode?.type === 'MemberExpression' && !parentNode.computed) {
+    return false;
   }
   if (parentKey === 'params') {
     return false;

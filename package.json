@@ -176,11 +176,11 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.56.1",
     "vfile": "6.0.3",
-    "vite": "8.2.1",
+    "vite": "8.2.4",
     "vite-imagetools": "10.0.0",
     "vite-plugin-dts": "5.0.3",
     "vite-tsconfig-paths": "6.1.1",
-    "vitest": "5.0.0",
+    "vitest": "5.0.5",
     "watchlist": "0.3.1",
     "which-pm-runs": "1.1.0",
     "zod": "3.25.48"

@@ -6,13 +6,13 @@
   },
   "devDependencies": {
     "@netlify/edge-functions": "^3.0.6",
-    "netlify-cli": "^24.5.1"
+    "netlify-cli": "^27.1.2"
   },
   "__qwik__": {
     "priority": 30,
     "displayName": "Adapter: Netlify Edge",
     "docs": [
-      "https://qwik.dev/deployments/netlify-edge/",
+      "https://qwik.dev/docs/deployments/netlify-edge/",
       "https://docs.netlify.com/edge-functions/overview/",
       "https://docs.netlify.com/"
     ],

@@ -100,19 +100,16 @@ export const platformGlobal: { document: Document | undefined } = (__globalThis 
  * This is useful when testing async code.
  *
  * @param container - The application container.
+ * @param timeout - Milliseconds to wait for a render to be scheduled. When omitted, only an already
+ *   scheduled render is awaited.
  * @public
  */
-export async function waitForDrain(container: Container) {
+export async function waitForDrain(container: Container, timeout = 0) {
+  // yield a microtask so already resolved promises can schedule their render
+  await Promise.resolve();
   const start = Date.now();
-  const waitForRenderPromise = async (timeout: number) => {
-    if (container.$renderPromise$) {
-      return;
-    }
-    if (Date.now() - start > timeout) {
-      return;
-    }
-    setTimeout(() => waitForRenderPromise(timeout), 10);
-  };
-  await waitForRenderPromise(500);
+  while (!container.$renderPromise$ && Date.now() - start < timeout) {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
   await container.$renderPromise$;
 }

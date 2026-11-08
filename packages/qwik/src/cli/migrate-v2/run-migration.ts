@@ -2,7 +2,10 @@ import { confirm, intro, isCancel, log } from '@clack/prompts';
 import type { AppCommand } from '../utils/app-command';
 import { bgMagenta, bgRed, bold, green } from 'kleur/colors';
 import { bye } from '../utils/utils';
-import { replacePackage } from './replace-package';
+import { removePackage, replacePackage, updatePackageJsons } from './replace-package';
+import { nextSteps, takeWarnings, V2_BEHAVIOR_CHANGES, warnMentions } from './report';
+import { hasV1Libraries } from './tools/v1-libraries';
+import { updateConfigurations } from './update-configurations';
 import {
   installTsMorph,
   removeTsMorphFromPackageJson,
@@ -14,8 +17,12 @@ export async function runV2Migration(app: AppCommand) {
     `✨  ${bgMagenta(' This command will migrate your Qwik application from v1 to v2')}\n` +
       `This includes the following: \n` +
       `  - "@builder.io/qwik", "@builder.io/qwik-city" and "@builder.io/qwik-react" packages will be rescoped to "@qwik.dev/core", "@qwik.dev/router" and "@qwik.dev/react" respectively \n` +
-      `  - related dependencies will be updated \n\n` +
-      `${bold(bgRed('Warning: migration tool is experimental and will migrate your application to the "alpha" release of Qwik V2'))}`
+      `  - renamed and removed APIs will be updated in your code \n` +
+      `  - options will be added to keep the v1 behavior where v2 changed it (e.g. \`strictLoaders: false\`) \n` +
+      `  - "tsconfig.json", "package.json" and the related dependencies (e.g. Vite 8) will be updated \n` +
+      `  - changes that need your attention will be listed at the end \n` +
+      `On an app already on v2, only the updates for the current v2 release are applied.\n\n` +
+      `${bold(bgRed('Warning: migration tool is experimental, commit your changes before running it'))}`
   );
   const proceed = await confirm({
     message: 'Do you want to proceed?',
@@ -27,44 +34,94 @@ export async function runV2Migration(app: AppCommand) {
   }
 
   try {
+    const isV1App = dependsOnQwikV1();
     const installedTsMorph = await installTsMorph();
-    const { replaceImportInFiles } = await import('./rename-import');
-    await replaceImportInFiles(
-      [
-        ['QwikCityProvider', 'QwikRouterProvider'],
-        ['qwikCity', 'qwikRouter'],
-        ['QwikCityVitePluginOptions', 'QwikRouterVitePluginOptions'],
-        ['QwikCityPlugin', 'QwikRouterPlugin'],
-        ['createQwikCity', 'createQwikRouter'],
-        ['QwikCityNodeRequestOptions', 'QwikRouterNodeRequestOptions'],
-      ],
-      '@builder.io/qwik-city'
-    );
-    await replaceImportInFiles(
-      [['qwikCityPlan', 'qwikRouterConfig']],
-      '@qwik-city-plan' // using old name, package name will be updated in the next step
-    );
-    await replaceImportInFiles([['jsxs', 'jsx']], '@builder.io/qwik/jsx-runtime');
-
-    replacePackage('@qwik-city-plan', '@qwik-router-config', true);
-    replacePackage('@builder.io/qwik-city', '@qwik.dev/router');
-    replacePackage('@builder.io/qwik-react', '@qwik.dev/react');
-    // jsx-runtime contains re-exports from "core"
-    replacePackage('@builder.io/qwik/jsx-runtime', '@qwik.dev/core');
-    // "@builder.io/qwik" should be the last one because it's name is a substring of the package names above
-    replacePackage('@builder.io/qwik', '@qwik.dev/core');
+    const { codemods, projectCodemods, upgradeCodemods, runCodemods } = await import('./codemods');
+    if (isV1App) {
+      runCodemods([...codemods, ...upgradeCodemods], projectCodemods);
+      rescopeV1Packages();
+    } else {
+      runCodemods(upgradeCodemods);
+    }
 
     if (installedTsMorph) {
       await removeTsMorphFromPackageJson();
     }
 
-    // COMMENTED OUT FOR NOW 👇 (as this is fixed in https://github.com/QwikDev/qwik/pull/7159)
-    // updateConfigurations();
+    updateConfigurations();
 
-    await updateDependencies();
-    log.success(`${green(`Your application has been successfully migrated to v2!`)}`);
+    await updateDependencies({ redirectV1Packages: hasV1Libraries() });
+    const warnings = takeWarnings();
+    if (isV1App) {
+      log.info(
+        `${bold('Behavior changes of v2 that could not be migrated:')}\n${V2_BEHAVIOR_CHANGES.map((c) => `  - ${c}`).join('\n')}`
+      );
+    }
+    if (warnings.length) {
+      log.warn(
+        `${bold('Some changes need your attention:')}\n${warnings.map((w) => `  - ${w}`).join('\n')}`
+      );
+    }
+    log.success(
+      green(
+        isV1App
+          ? 'Your application has been successfully migrated to v2!'
+          : 'Your application has been updated to the current v2 release!'
+      )
+    );
+    log.info(
+      `${bold('Next steps to use the v2 defaults and recommended settings:')}\n${nextSteps()
+        .map((step, i) => `  ${i + 1}. ${step}`)
+        .join('\n')}`
+    );
   } catch (error) {
     console.error(error);
     throw error;
   }
+}
+
+/** Whether the app is still on v1, the v1 steps would break a v2 app. */
+function dependsOnQwikV1() {
+  let found = false;
+  // returns false, so it only reads the package.json files
+  updatePackageJsons((deps) => {
+    found ||= '@builder.io/qwik' in deps || '@builder.io/qwik-city' in deps;
+    return false;
+  });
+  return found;
+}
+
+/** Rescopes the v1 packages and reports mentions of v1 internals. */
+function rescopeV1Packages() {
+  removePackage('@builder.io/qwik-labs');
+  warnMentions('⭐️', 'scoped style classes use the `⚡️` prefix instead of `⭐️` in v2.');
+  warnMentions('q-data.json', 'v2 fetches route data from `q-loader-*.json` files instead.');
+  warnMentions('qwik/json', 'v2 serializes the state into `qwik/state` and `qwik/vnode` scripts.');
+  for (const attr of ['[on:', 'on-window:', 'on-document:']) {
+    warnMentions(attr, 'v2 renders listeners as `q-e:`, `q-w:` and `q-d:` attributes.');
+  }
+  warnMentions(
+    '@builder.io/qwik-auth',
+    '"@builder.io/qwik-auth" has no v2 version, use "@auth/qwik" (see https://qwik.dev/docs/integrations/authjs/).'
+  );
+  warnMentions(
+    '@qwik-city-not-found-paths',
+    '"@qwik-city-not-found-paths" does not exist in v2, the router renders 404 pages itself.'
+  );
+  // the vercel-edge adapter writes its routes config for this function name
+  replacePackage('_qwik-city.func', '_qwik-router.func', true);
+  replacePackage('@qwik-city-plan', '@qwik-router-config', true);
+  replacePackage('@qwik-city-entries', '@qwik-router-entries', true);
+  replacePackage('@qwik-city-sw-register', '@qwik-router-sw-register', true);
+  replacePackage('@qwik-city-static-paths', '@qwik.dev/router/middleware/request-handler', true);
+  replacePackage(
+    '@builder.io/qwik-city/adapters/static/vite',
+    '@qwik.dev/router/adapters/ssg/vite',
+    true
+  );
+  replacePackage('@builder.io/qwik-city/static', '@qwik.dev/router/ssg', true);
+  replacePackage('@builder.io/qwik-city', '@qwik.dev/router');
+  replacePackage('@builder.io/qwik-react', '@qwik.dev/react');
+  // "@builder.io/qwik" should be the last one because it's name is a substring of the package names above
+  replacePackage('@builder.io/qwik', '@qwik.dev/core');
 }

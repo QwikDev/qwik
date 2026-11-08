@@ -202,6 +202,25 @@ describe('request-event redirect', () => {
     }
   );
 
+  it.each(['/\t/evil.com', '/\n/evil.com', '/\r\\evil.com', '\t//evil.com', '/\t\t/evil.com'])(
+    'should fix protocol-relative URL redirects hidden behind tab/LF/CR: %j',
+    (url) => {
+      // Browsers remove ASCII tab/LF/CR before parsing a URL, so these are
+      // protocol-relative redirects to evil.com as well.
+      const requestEv = createMockRequestEvent();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = requestEv.redirect(302, url);
+
+      expect(result).toBeInstanceOf(RedirectMessage);
+      const location = requestEv.headers.get('Location')!;
+      expect(new URL(location, 'http://localhost:3000').host).toBe('localhost:3000');
+      expect(location).toBe('/evil.com');
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    }
+  );
+
   it('should preserve valid URLs with protocols', () => {
     const requestEv = createMockRequestEvent();
 
@@ -234,5 +253,23 @@ describe('request-event redirect', () => {
     expect(error).toBeInstanceOf(ServerError);
     expect(error.status).toBe(418);
     expect(error.data).toBe('teapot');
+  });
+});
+
+describe('request-event cacheControl', () => {
+  it('should set zero-valued directives', () => {
+    const requestEv = createMockRequestEvent();
+
+    requestEv.cacheControl({ maxAge: 0, staleWhileRevalidate: 0 });
+
+    expect(requestEv.headers.get('Cache-Control')).toBe('max-age=0, stale-while-revalidate=0');
+  });
+
+  it('should not set an empty Cache-Control header', () => {
+    const requestEv = createMockRequestEvent();
+
+    requestEv.cacheControl({});
+
+    expect(requestEv.headers.has('Cache-Control')).toBe(false);
   });
 });

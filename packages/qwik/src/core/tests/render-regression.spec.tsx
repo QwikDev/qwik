@@ -3,6 +3,8 @@ import {
   Fragment as Component,
   component$,
   Fragment,
+  Slot,
+  useComputed$,
   useSignal,
   useStore,
   useTask$,
@@ -15,6 +17,9 @@ import '../../testing/vdom-diff.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+const Placeholder = component$(() => <div />);
+const Chord = (props: { children: string }) => <b>{props.children}</b>;
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -144,6 +149,361 @@ describe.each([
 
       await trigger(container.element, '#close', 'click');
       expect(taskLog).toEqual([false, true, false]);
+    });
+  });
+
+  describe('issue #9189', () => {
+    it('should keep updating attributes of an element after a component is inserted before it', async () => {
+      const Alert = component$<{ message: string }>((props) => (
+        <div role="alert">{props.message}</div>
+      ));
+
+      const Issue9189 = component$(() => {
+        const error = useSignal('');
+        const busy = useSignal(false);
+        return (
+          <section>
+            {!!error.value && <Alert message={error.value} />}
+            <button
+              id="pay"
+              aria-busy={busy.value || undefined}
+              class={['pay', busy.value && 'busy']}
+              onClick$={() => {
+                error.value = '';
+                busy.value = true;
+              }}
+            />
+            <button
+              id="decline"
+              onClick$={() => {
+                error.value = 'Card declined';
+                busy.value = false;
+              }}
+            />
+          </section>
+        );
+      });
+
+      const { container, document } = await render(<Issue9189 />, { debug });
+      const pay = () => document.querySelector('#pay')!;
+
+      await trigger(container.element, '#pay', 'click');
+      expect(pay().getAttribute('class')).toBe('pay busy');
+      expect(pay().getAttribute('aria-busy')).toBe('true');
+
+      await trigger(container.element, '#decline', 'click');
+      expect(document.querySelector('[role=alert]')!.textContent).toBe('Card declined');
+      expect(pay().getAttribute('class')).toBe('pay');
+      expect(pay().hasAttribute('aria-busy')).toBe(false);
+
+      await trigger(container.element, '#pay', 'click');
+      expect(document.querySelectorAll('[role=alert]')).toHaveLength(0);
+      expect(pay().getAttribute('class')).toBe('pay busy');
+      expect(pay().getAttribute('aria-busy')).toBe('true');
+    });
+  });
+
+  describe('conditional siblings', () => {
+    it('should insert a conditional element in place before an empty conditional', async () => {
+      const Cmp = component$(() => {
+        const first = useSignal(false);
+        const second = useSignal(false);
+        return (
+          <div>
+            <button id="first" onClick$={() => (first.value = true)} />
+            {first.value && <i id="a" />}
+            {second.value && <i id="b" />}
+            <button id="second" onClick$={() => (second.value = true)} />
+          </div>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      const ids = () => Array.from(document.querySelectorAll('[id]'), (el) => el.id);
+
+      await trigger(container.element, '#first', 'click');
+      expect(ids()).toEqual(['first', 'a', 'second']);
+
+      await trigger(container.element, '#second', 'click');
+      expect(ids()).toEqual(['first', 'a', 'b', 'second']);
+    });
+
+    it('should insert a projected conditional in place before an empty conditional', async () => {
+      const Wrapper = component$(() => (
+        <div>
+          <Slot />
+          <span id="after" />
+        </div>
+      ));
+      const Cmp = component$(() => {
+        const first = useSignal(false);
+        const second = useSignal(false);
+        return (
+          <>
+            <button id="first" onClick$={() => (first.value = true)} />
+            <Wrapper>
+              {first.value && <i id="a" />}
+              {second.value && <i id="b" />}
+            </Wrapper>
+          </>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      const ids = () => Array.from(document.querySelectorAll('[id]'), (el) => el.id);
+
+      await trigger(container.element, '#first', 'click');
+      expect(ids()).toEqual(['first', 'a', 'after']);
+    });
+  });
+
+  describe('props derived from render-local values', () => {
+    const Child = component$<{ open?: boolean }>((props) => {
+      const computedOpen = useComputed$(() => props.open === true);
+      const trackedOpen = useSignal(false);
+      useTask$(({ track }) => {
+        trackedOpen.value = track(() => props.open) === true;
+      });
+      return (
+        <p>
+          {String(props.open)} {String(computedOpen.value)} {String(trackedOpen.value)}
+        </p>
+      );
+    });
+
+    it('should update subscribers of an expression prop', async () => {
+      const Parent = component$(() => {
+        const items = useSignal<string[]>([]);
+        const visible = items.value.slice(0, 5);
+        return (
+          <>
+            <button onClick$={() => (items.value = [...items.value, 'item'])} />
+            <Child open={visible.length > 0} />
+          </>
+        );
+      });
+
+      const { container, document } = await render(<Parent />, { debug });
+      expect(document.querySelector('p')!.textContent).toBe('false false false');
+
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('p')!.textContent).toBe('true true true');
+    });
+
+    it('should update subscribers of a member prop', async () => {
+      const Parent = component$(() => {
+        const items = useSignal<string[]>([]);
+        const state = { open: items.value.length > 0 };
+        return (
+          <>
+            <button onClick$={() => (items.value = [...items.value, 'item'])} />
+            <Child open={state.open} />
+          </>
+        );
+      });
+
+      const { container, document } = await render(<Parent />, { debug });
+      expect(document.querySelector('p')!.textContent).toBe('false false false');
+
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('p')!.textContent).toBe('true true true');
+    });
+  });
+
+  describe('inserted siblings', () => {
+    it('should keep the next sibling children when inserting an element without children', async () => {
+      const Cmp = component$(() => {
+        const rows = useSignal(['field']);
+        return (
+          <form>
+            <button type="button" onClick$={() => (rows.value = ['divider', ...rows.value])} />
+            {rows.value.map((row) =>
+              row === 'divider' ? (
+                <hr />
+              ) : (
+                <label>
+                  <input />
+                </label>
+              )
+            )}
+          </form>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      const input = document.querySelector('input')!;
+      input.value = 'typed';
+
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('hr')).not.toBeNull();
+      expect(document.querySelector('input')).toBe(input);
+      expect(input.value).toBe('typed');
+    });
+
+    it('should keep a component in the next sibling when inserting an element without children', async () => {
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        return (
+          <button id="count" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+        );
+      });
+      const Cmp = component$(() => {
+        const rows = useSignal(['counter']);
+        return (
+          <div>
+            <button id="add" onClick$={() => (rows.value = ['divider', ...rows.value])} />
+            {rows.value.map((row) =>
+              row === 'divider' ? (
+                <hr />
+              ) : (
+                <section>
+                  <Counter />
+                </section>
+              )
+            )}
+          </div>
+        );
+      });
+
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, '#count', 'click');
+      expect(document.querySelector('#count')!.textContent).toBe('1');
+
+      await trigger(container.element, '#add', 'click');
+      expect(document.querySelector('hr')).not.toBeNull();
+      expect(document.querySelector('#count')!.textContent).toBe('1');
+    });
+  });
+
+  describe('keyed list: SSR-shared text of keyed fragments after a keyed swap', () => {
+    // SSR writes the text of adjacent keyed fragments ("t1", "t2") as one DOM Text node. Swapping the keyed
+    // placeholders around them must not duplicate, overwrite or drop that text after resume.
+    it('element placeholders, text after the swapped items', async () => {
+      const Cmp = component$(() => {
+        const done = useSignal(false);
+        return (
+          <div>
+            <button onClick$={() => (done.value = true)} />
+            <section>
+              {done.value ? <b key="c0">X0</b> : <i key="c0" />}
+              <Fragment key="t1">t1</Fragment>
+              <Fragment key="t2">t2</Fragment>
+              {done.value ? <b key="c3">X3</b> : <i key="c3" />}
+              <Fragment key="t4">t4</Fragment>
+            </section>
+          </div>
+        );
+      });
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3t4');
+    });
+
+    it('element placeholders, no text after the swapped items', async () => {
+      const Cmp = component$(() => {
+        const done = useSignal(false);
+        return (
+          <div>
+            <button onClick$={() => (done.value = true)} />
+            <section>
+              {done.value ? <b key="c0">X0</b> : <i key="c0" />}
+              <Fragment key="t1">t1</Fragment>
+              <Fragment key="t2">t2</Fragment>
+              {done.value ? <b key="c3">X3</b> : <i key="c3" />}
+              {done.value ? <b key="c4">X4</b> : <i key="c4" />}
+            </section>
+          </div>
+        );
+      });
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3X4');
+    });
+
+    it('component placeholders replaced by keyed fragments', async () => {
+      const Cmp = component$(() => {
+        const done = useSignal(false);
+        return (
+          <div>
+            <button onClick$={() => (done.value = true)} />
+            <section>
+              {done.value ? (
+                <Fragment key="c0">
+                  <Chord key="c0">X0</Chord>
+                </Fragment>
+              ) : (
+                <Placeholder key="c0" />
+              )}
+              <Fragment key="t1">t1</Fragment>
+              <Fragment key="t2">t2</Fragment>
+              {done.value ? (
+                <Fragment key="c3">
+                  <Chord key="c3">X3</Chord>
+                </Fragment>
+              ) : (
+                <Placeholder key="c3" />
+              )}
+              <Fragment key="t4">t4</Fragment>
+            </section>
+          </div>
+        );
+      });
+      const { container, document } = await render(<Cmp />, { debug });
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('section')!.textContent).toBe('X0t1t2X3t4');
+    });
+  });
+
+  describe('issue #9370', () => {
+    it.each([
+      ['an empty list', false],
+      ['a nested list ending empty', true],
+    ])('should keep the siblings after %s on re-render', async (_, isNested) => {
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        return (
+          <button id="count" onClick$={() => count.value++}>
+            {count.value}
+          </button>
+        );
+      });
+      const List = component$(() => {
+        const clicks = useSignal(0);
+        const label = `clicked ${clicks.value}`;
+        const items: string[] = [];
+        const list = items.map((item) => <i key={item}>{item}</i>);
+        return (
+          <>
+            {isNested ? [list] : list}
+            {label}
+            <Counter />
+            <b>{label}</b>
+            <button id="rerender" onClick$={() => clicks.value++} />
+          </>
+        );
+      });
+      const Parent = component$(() => {
+        const shown = useSignal(false);
+        if (!shown.value) {
+          return <button id="show" onClick$={() => (shown.value = true)} />;
+        }
+        return <List />;
+      });
+
+      const { container, document } = await render(<Parent />, { debug });
+      await trigger(container.element, '#show', 'click');
+      await trigger(container.element, '#count', 'click');
+      const siblings = () => Array.from(document.querySelector('b')!.parentNode!.childNodes);
+      const siblingsBefore = siblings();
+
+      await trigger(container.element, '#rerender', 'click');
+      expect(document.querySelector('#count')!.textContent).toBe('1');
+      expect(document.querySelector('b')!.textContent).toBe('clicked 1');
+      const siblingsAfter = siblings();
+      expect(siblingsAfter.length).toBe(siblingsBefore.length);
+      expect(siblingsAfter.every((node, i) => node === siblingsBefore[i])).toBe(true);
     });
   });
 });

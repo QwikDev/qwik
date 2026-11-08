@@ -1,5 +1,10 @@
 import type {
   BindingPattern,
+  BindingIdentifier,
+  IdentifierReference,
+  AssignmentTarget,
+  AssignmentTargetRest,
+  AssignmentTargetWithDefault,
   BindingRestElement,
   FormalParameterRest,
   TSParameterProperty,
@@ -7,7 +12,7 @@ import type {
 
 /**
  * `BindingRestElement` and `FormalParameterRest` both surface as `type: "RestElement"` at runtime,
- * so `visitBindingNames` handles them in one arm.
+ * so `visitPatternIdentifiers` handles them in one arm.
  */
 export type BindingPatternLike =
   | BindingPattern
@@ -70,9 +75,15 @@ export function formatBindingPattern(pattern: BindingPatternLike): string | unde
   }
 }
 
-function visitBindingNames(
-  node: BindingPatternLike | null | undefined,
-  visit: (name: string) => void
+function visitPatternIdentifiers(
+  node:
+    | BindingPatternLike
+    | AssignmentTarget
+    | AssignmentTargetRest
+    | AssignmentTargetWithDefault
+    | null
+    | undefined,
+  visit: (identifier: BindingIdentifier | IdentifierReference) => void
 ): void {
   if (!node) {
     return;
@@ -80,34 +91,42 @@ function visitBindingNames(
 
   switch (node.type) {
     case 'Identifier':
-      visit(node.name);
+      visit(node);
       break;
 
     case 'ObjectPattern':
       for (const prop of node.properties ?? []) {
         const target = prop.type === 'RestElement' ? prop.argument : prop.value;
-        visitBindingNames(target, visit);
+        visitPatternIdentifiers(target, visit);
       }
       break;
 
     case 'ArrayPattern':
       for (const elem of node.elements ?? []) {
-        visitBindingNames(elem, visit);
+        visitPatternIdentifiers(elem, visit);
       }
       break;
 
     case 'RestElement':
-      visitBindingNames(node.argument, visit);
+      visitPatternIdentifiers(node.argument, visit);
       break;
 
     case 'AssignmentPattern':
-      visitBindingNames(node.left, visit);
+      visitPatternIdentifiers(node.left, visit);
       break;
 
     case 'TSParameterProperty':
-      visitBindingNames(node.parameter, visit);
+      visitPatternIdentifiers(node.parameter, visit);
       break;
 
+    case 'MemberExpression':
+      break;
+    case 'TSAsExpression':
+    case 'TSSatisfiesExpression':
+    case 'TSNonNullExpression':
+    case 'TSTypeAssertion':
+      visitPatternIdentifiers(node.expression as AssignmentTarget, visit);
+      break;
     default: {
       const _exhaustive: never = node;
       throw new Error(`unhandled binding-pattern node: ${(_exhaustive as { type?: string }).type}`);
@@ -119,7 +138,7 @@ export function collectBindingNamesFromPattern(
   pattern: BindingPatternLike | null | undefined
 ): string[] {
   const names: string[] = [];
-  visitBindingNames(pattern, (name) => names.push(name));
+  visitPatternIdentifiers(pattern, (identifier) => names.push(identifier.name));
   return names;
 }
 
@@ -127,12 +146,20 @@ export function appendBindingNamesFromPattern(
   pattern: BindingPatternLike | null | undefined,
   target: string[]
 ): void {
-  visitBindingNames(pattern, (name) => target.push(name));
+  visitPatternIdentifiers(pattern, (identifier) => target.push(identifier.name));
 }
 
 export function addBindingNamesFromPatternToSet(
   pattern: BindingPatternLike | null | undefined,
   target: Set<string>
 ): void {
-  visitBindingNames(pattern, (name) => target.add(name));
+  visitPatternIdentifiers(pattern, (identifier) => target.add(identifier.name));
+}
+
+export function collectAssignedIdentifiers(
+  target: AssignmentTarget | BindingPatternLike
+): (BindingIdentifier | IdentifierReference)[] {
+  const identifiers: (BindingIdentifier | IdentifierReference)[] = [];
+  visitPatternIdentifiers(target, (identifier) => identifiers.push(identifier));
+  return identifiers;
 }

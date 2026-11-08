@@ -1,0 +1,118 @@
+{
+  "id": "qwik-router-vite",
+  "package": "@qwik.dev/router/vite",
+  "members": [
+    {
+      "name": "extendConfig",
+      "id": "extendconfig",
+      "hierarchy": [
+        {
+          "name": "extendConfig",
+          "id": "extendconfig"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function extendConfig(baseConfigExport: UserConfigExport, serverConfigExport: UserConfigExport): (env: ConfigEnv) => Promise<Record<string, any>>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbaseConfigExport\n\n\n</td><td>\n\nUserConfigExport\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nserverConfigExport\n\n\n</td><td>\n\nUserConfigExport\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n(env: ConfigEnv) =&gt; Promise&lt;Record&lt;string, any&gt;&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/buildtime/vite/config.ts",
+      "mdFile": "router.extendconfig.md"
+    },
+    {
+      "name": "MdxOptions",
+      "id": "mdxoptions",
+      "hierarchy": [
+        {
+          "name": "MdxOptions",
+          "id": "mdxoptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type MdxOptions = CompileOptions;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/buildtime/vite/types.ts",
+      "mdFile": "router.mdxoptions.md"
+    },
+    {
+      "name": "qwikCity",
+      "id": "qwikcity",
+      "hierarchy": [
+        {
+          "name": "qwikCity",
+          "id": "qwikcity"
+        }
+      ],
+      "kind": "Function",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `qwikRouter` instead. Will be removed in V3\n> \n\n\n```typescript\nexport declare function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[];\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nuserOpts\n\n\n</td><td>\n\n[QwikCityVitePluginOptions](#qwikcityvitepluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPluginOption\\[\\]",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/buildtime/vite/plugin.ts",
+      "mdFile": "router.qwikcity.md"
+    },
+    {
+      "name": "QwikCityPlugin",
+      "id": "qwikcityplugin",
+      "hierarchy": [
+        {
+          "name": "QwikCityPlugin",
+          "id": "qwikcityplugin"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterPlugin` instead. Will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityPlugin = QwikRouterPlugin;\n```\n**References:** [QwikRouterPlugin](#qwikrouterplugin)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/buildtime/vite/types.ts",
+      "mdFile": "router.qwikcityplugin.md"
+    },
+    {
+      "name": "QwikCityVitePluginOptions",
+      "id": "qwikcityvitepluginoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityVitePluginOptions",
+          "id": "qwikcityvitepluginoptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterVitePluginOptions` instead. Will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityVitePluginOptions = QwikRouterVitePluginOptions;\n```\n**References:** [QwikRouterVitePluginOptions](#qwikroutervitepluginoptions)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/buildtime/vite/types.ts",
+      "mdFile": "router.qwikcityvitepluginoptions.md"
+    },
+    {
+      "name": "qwikRouter",
+      "id": "qwikrouter",
+      "hierarchy": [
+        {
+          "name": "qwikRouter",
+          "id": "qwikrouter"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function qwikRouter(userOpts?: QwikRouterVitePluginOptions): PluginOption[];\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nuserOpts\n\n\n</td><td>\n\n[QwikRouterVitePluginOptions](#qwikroutervitepluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPluginOption\\[\\]",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/buildtime/vite/plugin.ts",
+      "mdFile": "router.qwikrouter.md"
+    },
+    {
+      "name": "QwikRouterPlugin",
+      "id": "qwikrouterplugin",
+      "hierarchy": [
+        {
+          "name": "QwikRouterPlugin",
+          "id": "qwikrouterplugin"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterPlugin extends P<QwikRouterPluginApi> \n```\n**Extends:** P&lt;QwikRouterPluginApi&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\n\n</td><td>\n\n'vite-plugin-qwik-router'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/buildtime/vite/types.ts",
+      "mdFile": "router.qwikrouterplugin.md"
+    },
+    {
+      "name": "QwikRouterVitePluginOptions",
+      "id": "qwikroutervitepluginoptions",
+      "hierarchy": [
+        {
+          "name": "QwikRouterVitePluginOptions",
+          "id": "qwikroutervitepluginoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterVitePluginOptions extends Omit<PluginOptions, 'basePathname'> \n```\n**Extends:** Omit&lt;PluginOptions, 'basePathname'&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ndevSsrServer?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Qwik is an SSR first framework. This means that Qwik requires either SSR or SSG. In Vite dev mode the dev SSR server is responsible for rendering and pausing the application on the server.\n\nUnder normal circumstances this should be on, unless you have your own dev SSR server setup and wish to disable this one.\n\nDefault: true\n\n\n</td></tr>\n<tr><td>\n\nimageOptimization?\n\n\n</td><td>\n\n\n</td><td>\n\nImageOptimizationOptions\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nmdx?\n\n\n</td><td>\n\n\n</td><td>\n\n[MdxOptions](#mdxoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nmdxPlugins?\n\n\n</td><td>\n\n\n</td><td>\n\nMdxPlugins\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nplatform?\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, unknown&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nssrCacheSize?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of SSR-rendered pages to keep in the in-memory cache. Set to 0 to disable.\n\nDefault: 50\n\n\n</td></tr>\n<tr><td>\n\nstaticImportRoutes?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Whether to use static imports for route modules (layout and index files). Defaults to `false`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/buildtime/vite/types.ts",
+      "mdFile": "router.qwikroutervitepluginoptions.md"
+    }
+  ]
+}

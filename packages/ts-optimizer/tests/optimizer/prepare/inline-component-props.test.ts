@@ -2,6 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { normalizeInlineComponentProps } from '../../../src/optimizer/prepare/inline-component-props.js';
 
 describe('normalizeInlineComponentProps', () => {
+  it.each(['var', 'let'])('preserves %s props destructuring and local assignments', (kind) => {
+    const code = `export const List = (props) => { ${kind} { prefix } = props; prefix = 'updated'; return <div>{prefix}</div>; };`;
+    const out = normalizeInlineComponentProps(code, 'test.tsx');
+    expect(out.source).toBe(code);
+    expect(out.changed).toBe(false);
+  });
+
   it('converts a default-export arrow component with destructured props', () => {
     const code = `export default (({ data }) => <div active={data.on} onClick$={() => { data.on = true; }} />);`;
     const out = normalizeInlineComponentProps(code, 'test.tsx');

@@ -162,7 +162,7 @@ export function normalizeInlineComponentProps(
       const blockBody =
         body.type === 'BlockStatement' ? ((body as unknown as { body: AstNode[] }).body ?? []) : [];
       for (const stmt of blockBody) {
-        if (stmt.type !== 'VariableDeclaration') {
+        if (stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const') {
           continue;
         }
         const decls = (stmt as unknown as { declarations: AstNode[] }).declarations;

@@ -8,7 +8,7 @@
     "priority": 20,
     "displayName": "Adapter: Deno Server",
     "docs": [
-      "https://qwik.dev/deployments/deno/",
+      "https://qwik.dev/docs/deployments/deno/",
       "https://docs.deno.com/runtime/tutorials/http_server"
     ],
     "nextSteps": {

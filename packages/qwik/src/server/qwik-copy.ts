@@ -20,7 +20,7 @@ export {
 } from '../core/client/util-mapArray';
 export { QError, qError } from '../core/shared/error/error';
 export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
-export { DEBUG_TYPE, QContainerValue, VirtualType } from '../core/shared/types';
+export { DEBUG_TYPE, QContainerValue, VirtualType, EffectProperty } from '../core/shared/types';
 export {
   escapeHTML,
   encodeVNodeDataKey,
@@ -49,6 +49,7 @@ export {
   QSlotParent,
   QStatePrewarmAttr,
   QStatePatchAttr,
+  QStateStreamAttr,
   QStyle,
   QPendingResolved,
   QTemplate,
@@ -80,6 +81,7 @@ export { isHtmlAttributeAnEventName, isPreventDefault } from '../core/shared/uti
 export { ITERATION_ITEM_SINGLE, ITERATION_ITEM_MULTI } from '../core/shared/utils/markers';
 export { isObjectEmpty } from '../core/shared/utils/objects';
 export { CatchPhase } from '../core/shared/error/catch-phase';
+export { SubscriptionPatchChannel } from '../core/shared/serdes/subscription-patch';
 export {
   createStringStreamWriter,
   stringifyRootRefPath,

@@ -15,7 +15,6 @@ import {
   _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
   _verifySerializable,
-  _UNINITIALIZED,
   SerializerSymbol,
   type _AsyncSignalImpl,
   type _ComputedSignalInternal,
@@ -28,6 +27,7 @@ import type {
 // Import directly from leaf modules to avoid circular dependency:
 // route-loaders.ts → middleware barrel → runtime/src/ (same module group)
 import { _asyncRequestStore } from '../../middleware/request-handler/async-request-store';
+import { normalizeETag, resolvePreETag } from '../../middleware/request-handler/etag-hash';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
 import { RedirectMessage } from '../../middleware/request-handler/redirect-handler';
 import {
@@ -37,6 +37,7 @@ import {
 import { ensureSlash } from '../../utils/pathname';
 import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
 import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
+import { REFRESH_HEAD } from './navigation-state';
 import { getBasePathname } from './router-config';
 import type {
   DataValidator,
@@ -48,8 +49,8 @@ import type {
   QwikRouterEnvData,
   RequestEvent,
   RequestEventLoader,
-  RouteNavigate,
   RouteModule,
+  RouteNavigate,
   ValidatorReturn,
 } from './types';
 
@@ -67,7 +68,6 @@ const REQUEST_ROUTE_LOADERS = '@routeLoaders';
 const REQUEST_ROUTE_LOADER_PROMISES = '@routeLoaderPromises';
 const REQUEST_ROUTE_LOADER_EVENTS = '@routeLoaderEvents';
 const REQUEST_ROUTE_LOADER_ROOT_EVENT = '@routeLoaderRootEvent';
-const ROUTE_LOADER_VALUE_PREFIX = '__qwik_route_loader_value__';
 
 /** Header name sent by client to tell the server the actual page URL for loader requests. */
 export const FULLPATH_HEADER = 'X-Qwik-fullpath';
@@ -94,6 +94,7 @@ export type LoaderResponse = {
 export type LoaderFetchResult = {
   raw?: string;
   r?: string;
+  eTag?: string;
 };
 
 /**
@@ -102,6 +103,8 @@ export type LoaderFetchResult = {
  * across navigations the browser HTTP cache is the freshness authority.
  */
 let navFetchCache = new Map<string, Promise<LoaderFetchResult | undefined>>();
+/** Entries a loader signal already used: they only dedupe prefetches, so `invalidate()` refetches. */
+const signalFetches = new WeakSet<Promise<LoaderFetchResult | undefined>>();
 
 export const clearNavFetchCache = () => {
   navFetchCache = new Map();
@@ -124,8 +127,10 @@ const wrapWithAbort = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> 
 /** Shared SSR paths and client-only loader navigation state. */
 export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
-  /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
-  goto?: NoSerialize<RouteNavigate>;
+  /** Resolves after navigation prepares loader requests, before their results. */
+  goto?: NoSerialize<(path: string, options: { replaceState: boolean }) => Promise<void>>;
+  /** Router callback that re-resolves the document head after a loader gets a new value. */
+  onValue?: RouteNavigate;
   /** Client manifest hash for q-loader fetch URLs. */
   manifestHash?: string;
 };
@@ -137,6 +142,8 @@ type LoaderRequest = {
   hash?: string;
   /** An interrupting navigation aborted this request's fetch before it settled. */
   isAborted?: boolean;
+  /** Keep redirect reads pending until navigation installs the next request. */
+  redirect?: Promise<void>;
 };
 
 type LoaderNavigation = {
@@ -201,16 +208,27 @@ function assertCurrentLoaderRequest(
 
 export type RouteLoaderState = Record<string, ComputedSignal<unknown>>;
 
-const getRouteLoaderValueStateKey = (loaderId: string) => `${ROUTE_LOADER_VALUE_PREFIX}${loaderId}`;
-
 class ServerRouteLoaderCapture {
   constructor(
     readonly hash: string,
     readonly qrl: QRL<(event: RequestEventLoader) => unknown>,
     readonly validators: DataValidator[] | undefined,
     readonly blockSSR: boolean,
+    readonly loader: LoaderInternal,
     readonly requestEv?: RequestEvent
   ) {}
+
+  /** The eTag the q-loader endpoint will send for a value that isn't serialized. */
+  eTag() {
+    const option = this.loader.__eTag;
+    if (
+      this.requestEv &&
+      option !== undefined &&
+      this.loader.__serializationStrategy !== 'always'
+    ) {
+      return resolvePreETag(option, getLoaderRequestEvent(this.loader, this.requestEv));
+    }
+  }
 
   load() {
     const requestEv = this.requestEv;
@@ -283,12 +301,18 @@ export const fetchRouteLoaderData = async (
     }
   }
 
-  const cacheKey = `${url}\n${headers[FULLPATH_HEADER] ?? ''}`;
+  const pagePath = headers[FULLPATH_HEADER] ?? headers[ROUTE_PATH_HEADER] ?? '';
+  const cacheKey = `${url}\n${pagePath}`;
   const cache = navFetchCache;
   if (!opts?.ignoreCache) {
     const entry = cache.get(cacheKey);
-    if (entry) {
-      return opts?.signal ? wrapWithAbort(entry, opts.signal) : entry;
+    const signal = opts?.signal;
+    if (entry && !signal) {
+      return entry;
+    }
+    if (entry && signal && !signalFetches.has(entry)) {
+      signalFetches.add(entry);
+      return wrapWithAbort(entry, signal);
     }
   }
 
@@ -315,7 +339,7 @@ export const fetchRouteLoaderData = async (
     }
     const raw = await response.text();
     opts?.signal?.throwIfAborted();
-    return { raw };
+    return { raw, eTag: response.headers.get('ETag') ?? undefined };
   };
 
   if (opts?.ignoreCache) {
@@ -327,7 +351,9 @@ export const fetchRouteLoaderData = async (
     return request().then((value) => {
       opts.signal!.throwIfAborted();
       if (value !== undefined && !cache.has(cacheKey)) {
-        cache.set(cacheKey, Promise.resolve(value));
+        const settled = Promise.resolve(value);
+        signalFetches.add(settled);
+        cache.set(cacheKey, settled);
       }
       return value;
     });
@@ -349,6 +375,16 @@ export const fetchRouteLoaderData = async (
   return promise;
 };
 
+const retainLoaderValue = (previous: unknown, abortSignal: AbortSignal) => {
+  if (previous !== undefined) {
+    return previous;
+  }
+  return new Promise<never>((_, reject) => {
+    abortSignal.throwIfAborted();
+    abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
+  });
+};
+
 const createRouteLoaderSignal = (
   loader: LoaderInternal,
   routeLoaderCtx: RouteLoaderCtx,
@@ -356,14 +392,13 @@ const createRouteLoaderSignal = (
   requestEv?: RequestEvent
 ) => {
   const id = loader.__id;
-  const stateValues = state as Record<string, unknown>;
-  const resumeValueKey = getRouteLoaderValueStateKey(id);
   const capture = isServer
     ? new ServerRouteLoaderCapture(
         id,
         loader.__qrl,
         loader.__validators,
         loader.__blockSSR,
+        loader,
         requestEv ?? useServerData<QwikRouterEnvData>('qwikrouter')?.ev
       )
     : id;
@@ -371,17 +406,19 @@ const createRouteLoaderSignal = (
   const loaderHash = isDev ? loader.__qrl.getHash() : id;
   // Raw text of the last successful fetch, to skip deserialization and keep object
   // identity (no rerenders) when a refetch returns unchanged data.
-  const lastFetch: { raw?: string } = {};
+  // `e`: eTag of the SSR value, so the first client fetch can match it.
+  const lastFetch: { raw?: string; e?: string } = {};
   const signal = createComputed$(
     async (ctx) => {
       const { info, previous, abortSignal } = ctx;
       const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
+      const eTag = isServer && (capture as ServerRouteLoaderCapture).eTag();
+      if (eTag) {
+        lastFetch.e = eTag;
+      }
       // Pre-loaded value injection (from middleware via setLoaderSignalValue).
       if (hasInjectedValue) {
         const value = (info as { __v: unknown }).__v;
-        if (!isServer && resumeValueKey in stateValues) {
-          stateValues[resumeValueKey] = value;
-        }
         // The injected value may differ from the last fetched text; don't skip the next fetch
         lastFetch.raw = undefined;
         return value;
@@ -391,18 +428,11 @@ const createRouteLoaderSignal = (
       }
       const request = getLoaderRequest(routeLoaderCtx, state, id, loaderHash);
       if (!request.active) {
-        if (previous === undefined) {
-          return new Promise((_, reject) => {
-            abortSignal.throwIfAborted();
-            abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
-          });
-        }
-        return previous;
+        return retainLoaderValue(previous, abortSignal);
       }
       const pageUrl = new URL(request.pageUrl);
       const mHash = untrack(() => routeLoaderCtx.manifestHash) || 'dev';
       const basePath = getBasePathname();
-      const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
       const fetchRoutePath = request.routePath;
 
       // Build a URL with only the allowed search params for the fetch
@@ -440,31 +470,53 @@ const createRouteLoaderSignal = (
       }
       assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
       if (response.r) {
-        // Redirect — fire SPA goto if available, else full page nav. We don't
-        // await or coordinate with the current nav: the new nav starts while
-        // this one finishes committing, producing a brief flash of stale data
-        // before the new route's loaders resolve. That trade-off is intentional
-        // — awaiting all loader promises just to catch redirects is too costly
-        // for the common case.
-        //
+        const redirectUrl = response.r;
         const goto = routeLoaderCtx.goto;
-        if (goto) {
-          goto(response.r, { replaceState: true });
-        } else {
-          location.href = response.r;
-        }
-        // Return `previous` (stale data) rather than throwing:  a ComputedSignal
-        // in error state can drop Resource subscriptions, which would prevent
-        // the redirect-target fetch from updating the UI once it arrives.
-        return previous;
+        // Mark the redirect pending before navigation can abort requests.
+        const prepared = Promise.resolve().then(() => {
+          assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
+          if (goto) {
+            return goto(redirectUrl, { replaceState: true });
+          }
+          location.href = redirectUrl;
+          return new Promise<void>(() => {});
+        });
+        request.redirect = prepared;
+        return wrapWithAbort(prepared, abortSignal)
+          .then(() => {
+            assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
+            // Reading the stored value distinguishes undefined from missing data.
+            try {
+              return state[id].untrackedValue;
+            } catch {
+              throw new Error('Route loader redirect completed without data.');
+            }
+          })
+          .finally(() => {
+            if (request.redirect === prepared) {
+              request.redirect = undefined;
+            }
+          });
       }
       if (response.e) {
         // Error — throw so signal enters error state
         throw response.e;
       }
       lastFetch.raw = result.raw;
-      if (needsResumeFetch) {
-        stateValues[resumeValueKey] = response.d;
+      // Same eTag as during SSR: subscribers already rendered this data.
+      if (
+        previous === undefined &&
+        lastFetch.e &&
+        lastFetch.e === normalizeETag(result.eTag || '')
+      ) {
+        (state[id] as _ComputedSignalInternal<unknown>).untrackedValue = response.d;
+      }
+      lastFetch.e = undefined;
+      const onValue = routeLoaderCtx.onValue;
+      if (onValue) {
+        Promise.resolve()
+          .then(() => state[id].promise())
+          .then(() => onValue(REFRESH_HEAD as unknown as string));
       }
       return response.d;
     },
@@ -692,7 +744,9 @@ export function abortRouteLoaderNavigation(ctx: RouteLoaderCtx) {
     if ((signal as _ComputedSignalInternal<unknown>).untrackedPending) {
       request.isAborted = true;
     }
-    signal.abort();
+    if (!request.redirect) {
+      signal.abort();
+    }
   }
 }
 
@@ -724,9 +778,7 @@ export function prepareRouteLoaders(
   const previous = client.current;
   if (client.navCount === undefined) {
     for (const id in state) {
-      if (!id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
-        getLoaderRequest(ctx, state, id, id);
-      }
+      getLoaderRequest(ctx, state, id, id);
     }
   }
   client.navCount = navCount;
@@ -743,9 +795,6 @@ export function prepareRouteLoaders(
     current.paths[loader.__id] ||= current.paths[loader.__qrl.getHash()] || pageUrl.pathname;
   }
   for (const id in state) {
-    if (id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
-      continue;
-    }
     const signal = state[id];
     const old = previous.requests.get(signal);
     const loader = routeLoaders.get(id);
@@ -784,9 +833,6 @@ function pruneRouteLoaders(state: RouteLoaderState, ctx: RouteLoaderCtx) {
   const { requests } = clientRouteLoaders.get(ctx)!.current;
   const paths: Record<string, string> = {};
   for (const id in state) {
-    if (id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
-      continue;
-    }
     const signal = state[id];
     const request = requests.get(signal);
     if (request?.active) {
@@ -795,7 +841,6 @@ function pruneRouteLoaders(state: RouteLoaderState, ctx: RouteLoaderCtx) {
       (signal as _AsyncSignalImpl<unknown>).$dispose();
       requests.delete(signal);
       delete state[id];
-      delete (state as Record<string, unknown>)[getRouteLoaderValueStateKey(id)];
     }
   }
   ctx.loaderPaths = paths;
@@ -835,9 +880,6 @@ export const ensureRouteLoaderSignal = (
 ) => {
   if (loader.__cacheControl === 'immutable') {
     immutableLoaderIds.add(loader.__id);
-  }
-  if (isServer && loader.__serializationStrategy === 'never') {
-    (state as Record<string, unknown>)[getRouteLoaderValueStateKey(loader.__id)] = _UNINITIALIZED;
   }
   return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx, state, requestEv));
 };
@@ -952,14 +994,15 @@ export const getLoaderRequestEvent = (
   const filteredSearch = loader.__search
     ? filterSearchParams(url.searchParams, loader.__search)
     : rootRequestEv.url.search;
-  if (pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search) {
+  const isSameUrl =
+    pathname === rootRequestEv.url.pathname && filteredSearch === rootRequestEv.url.search;
+  const params = globalThis.__STRICT_LOADERS__
+    ? (getRouteLoaderParams(rootRequestEv)[loader.__id] ??
+      (pathname === rootRequestEv.url.pathname ? rootRequestEv.params : {}))
+    : rootRequestEv.params;
+  if (isSameUrl && params === rootRequestEv.params) {
     return rootRequestEv;
   }
-  // An ancestor path only sees params matched up to it; fail closed if none were recorded.
-  const params =
-    pathname === rootRequestEv.url.pathname
-      ? rootRequestEv.params
-      : getRouteLoaderParams(rootRequestEv)[loader.__id] || {};
 
   let events: Map<string, RequestEvent> = rootRequestEv.sharedMap.get(REQUEST_ROUTE_LOADER_EVENTS);
   if (!events) {
@@ -967,15 +1010,21 @@ export const getLoaderRequestEvent = (
     rootRequestEv.sharedMap.set(REQUEST_ROUTE_LOADER_EVENTS, events);
   }
 
-  const eventKey = `${pathname}\n${filteredSearch}`;
+  // Layouts sharing an endpoint can have different params.
+  const eventKey = `${pathname}\n${filteredSearch}\n${params === rootRequestEv.params ? '' : loader.__id}`;
   let loaderRequestEv = events.get(eventKey);
   if (!loaderRequestEv) {
     url.pathname = pathname;
     url.search = filteredSearch;
-    const request = new Request(url, rootRequestEv.request);
+    // Actions may have already consumed the original request body.
+    const request = new Request(url, {
+      method: rootRequestEv.request.method,
+      headers: rootRequestEv.request.headers,
+      signal: rootRequestEv.request.signal,
+    });
     loaderRequestEv = Object.create(rootRequestEv, {
       originalUrl: {
-        value: new URL(url),
+        value: isSameUrl ? rootRequestEv.originalUrl : new URL(url),
         enumerable: true,
       },
       params: {

@@ -24,14 +24,50 @@ packages/qwik/src/core/
   client/                     client render, VNode materialization, cursor/diff integration
   reactive-primitives/         signals, async signals, stores, subscriptions
   shared/qrl/                  QRL classes and helpers
-  shared/serdes/               serialization, inflation, root refs
+  shared/serdes/               inflation (deserializer), root refs, type ids
   shared/vnode/                VNode structures
   shared/cursor/               cursor walking and DOM update primitives
   ssr/                         server-side JSX rendering
   tests/                       core feature specs
+packages/qwik/src/serializer/ the writer, shipped as `@qwik.dev/core/internal/serializer`
 ```
 
 Closest tests are usually in the same subtree and named `*.unit.ts(x)` or `*.spec.ts(x)`.
+
+## Computed Invalidation Invariants
+
+Derived signals (`ComputedSignalImpl`, `WrappedSignalImpl`) are glitch-free through three states
+in `$flags$`: clean, `CHECK` (a transitive source changed) and `INVALID` (a direct source changed).
+`scheduleEffects` in `reactive-primitives/utils.ts` owns the protocol; keep these invariants:
+
+- Mark the whole derived closure before dispatching any task/vnode effect and before pulling. On
+  SSR `markVNodeDirty` runs tasks synchronously, so a task dispatched mid-mark would read a
+  not-yet-marked node.
+- `CHECK` is the only "walked this round" marker. `INVALID` can be left over from resume or a
+  cleared subscription, so an `INVALID` node is still walked and still pulled for its effects.
+- Pull only the derived signals that have task/vnode (or pending/error) subscribers; everything
+  else stays lazy until read. A node's non-derived effects run only when its value changed, so a
+  `CHECK` node must never dispatch them during marking.
+- A `CHECK` node resolves itself by pulling its own sources from its `backRef` and recomputes only
+  when one of them promoted it to `INVALID`. Async-mode sources are skipped: they compute in a
+  microtask and push when they settle. An async node with effects is still pulled, but its pull
+  only resolves `CHECK`; the promotion goes through `$setInvalid$`, which schedules the job in a
+  microtask, so a write never starts an async job synchronously and one tick starts one job. A
+  test for this must not read the node (`promise()` or `.value` resolves `CHECK` by itself).
+- A derived signal must push from the place it writes its value (`super.value =` for computeds,
+  `$computeIfNeeded$` for wrapped signals), since the CHECK walk calls `$computeIfNeeded$`
+  directly. A wrapped signal computed from `NEEDS_COMPUTATION` notifies only when
+  `SOURCE_CHANGED` was set by the mark walk (`markDirty`, or `markCheck` on a still-`INVALID`
+  resumed node); a read-driven first compute (e.g. after resume) is not a change its subscribers
+  can act on. A wrapped signal keeps its stale source subscriptions on recompute (clearing 1000
+  of them per store write is measurable in the perf app), so it cannot rely on a source's push.
+- A wrapped signal is cached only while it is subscribed to its sources: `clearEffectSubscription`
+  must set `INVALID` on a wrapped consumer, or a re-tracked attribute silently stops updating.
+- Never serialize `CHECK` or `SOURCE_CHANGED`: a `CHECK` node serializes as needing computation
+  and a resumed node has no own `backRef`, so its CHECK walk degrades to a recompute.
+
+Regression coverage: `impl/signal.unit.tsx` (`diamond`), `impl/async-computed.unit.tsx`,
+`cleanup.unit.tsx`, `shared/serdes/serdes.unit.ts`, and `tests/render-regression.spec.tsx`.
 
 ## AsyncSignal Current Model
 
@@ -67,7 +103,7 @@ When changing AsyncSignal behavior, inspect:
 - `packages/qwik/src/core/reactive-primitives/types.ts`
 - `packages/qwik/src/core/reactive-primitives/signal.public.ts`
 - `packages/qwik/src/core/reactive-primitives/cleanup.ts`
-- `packages/qwik/src/core/shared/serdes/serialize.ts`
+- `packages/qwik/src/serializer/serialize.ts`
 - `packages/qwik/src/core/shared/serdes/inflate.ts`
 - closest async signal unit/spec tests
 
@@ -129,6 +165,13 @@ When a core value gains serialized state:
 3. Add a round-trip test in `shared/serdes` or the closest subsystem.
 4. Check SSR and client resume behavior when the value affects resumed or streamed state.
 
+The serializer is its own bundle so browser apps only load it inside the segments that call it
+(e.g. `server$`). Like `src/server/`, it takes runtime values from `@qwik.dev/core/internal` (as
+`_name` exports tagged `@internal`) so classes and flyweights keep one identity; only
+`serializer/qwik-copy.ts` (const enums, identity-free helpers) and `serializer/qwik-types.ts` may
+import core through `../`. `pnpm build.core` names any core module outside the server's copyable
+directories that ends up in the serializer bundle.
+
 For AsyncSignal fields, inspect the serdes tests that deserialize async signals and verify
 concurrency, timeout, stale value, and error/loading state behavior.
 
@@ -159,14 +202,23 @@ Out-of-order (OOOS) invariants:
   container's root takes vnode data only from its own container, never from the outer walk.
 - The root walk must resume after a `q:rp` subtree even when it is its parent's last child;
   counting segment elements shifts the vnode data of everything after that parent.
+- Test subscription patches against producers already delivered in the shell or an earlier segment.
+  A newly serialized producer tests initial state rather than merging late subscriptions; keep later
+  segments blocked when verifying that serialization stays within the emitting segment's scope.
 - Unit harnesses resolve every segment before resume. Timing-dependent OOOS bugs (shell resumed
   before release, `SSRStream` nested containers) need the e2e fixtures to reproduce.
 
 ## QRL And Optimizer-Facing Runtime
 
+- Across package boundaries, inspect core values through helpers exported from `@qwik.dev/core/internal`;
+  production builds mangle `$...$` properties inside core, so external packages cannot read them
+  directly. Verify these integrations after a production build, including client-rendered elements.
 - Use `$`-suffixed APIs and `$()` in tests when a QRL boundary is expected.
 - Avoid manual QRL construction unless nearby tests already use it for the same reason.
 - If runtime behavior relies on optimizer output, inspect the optimizer transform and snapshot too.
+- Const props are trusted to never change, so their reads never subscribe. A child computed or task
+  stuck on an old prop value while the render shows the new one usually means an optimizer put a
+  render-varying value in the const bag (see the optimizer skill's "Const prop bag").
 - For event or JSX attribute changes, keep `event-names`, JSX runtime, qwikloader, and optimizer
   behavior aligned.
 

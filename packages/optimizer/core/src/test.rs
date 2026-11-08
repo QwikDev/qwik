@@ -1,6 +1,7 @@
 #![allow(unused_must_use)]
 
 use super::*;
+use crate::transform::SegmentKind;
 use serde_json::to_string_pretty;
 use swc_atoms::Atom;
 
@@ -85,6 +86,253 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		is_server: input.is_server,
 		// filler to maintain line offsets
 	})
+}
+
+#[test]
+fn migrated_qrl_pure() {
+	let code = include_str!("fixtures/migrated-qrl-pure.js").to_string();
+	for minify in [MinifyMode::None, MinifyMode::Simplify] {
+		let output = test_input_fn(TestInput {
+			code: code.clone(),
+			filename: "node_modules/library/index.qwik.mjs".into(),
+			entry_strategy: EntryStrategy::Smart,
+			mode: EmitMode::Prod,
+			minify,
+			is_server: Some(false),
+			..TestInput::default()
+		})
+		.unwrap();
+		let parent = output
+			.modules
+			.iter()
+			.find(|module| module.segment.is_none())
+			.unwrap();
+		let calls: Vec<_> = parent
+			.code
+			.lines()
+			.filter(|line| line.contains("qrl("))
+			.collect();
+		assert!(!calls.is_empty());
+		for call in calls {
+			assert!(call.contains("/*#__PURE__*/"), "{call}");
+		}
+		assert!(parent.code.contains("KEEP_SIDE_EFFECT"));
+		let render = output
+			.modules
+			.iter()
+			.find(|module| {
+				module
+					.segment
+					.as_ref()
+					.is_some_and(|segment| segment.display_name.ends_with("_App_component"))
+			})
+			.unwrap();
+		assert!(render.code.contains("useRead"));
+		assert!(render.code.contains("q_s_CCC333ccc33"));
+		if matches!(minify, MinifyMode::Simplify) {
+			snapshot_res!(
+				Ok::<_, anyhow::Error>(output),
+				format!("==INPUT==\n\n{}", code)
+			);
+		}
+	}
+}
+
+#[test]
+fn smart_visible_task_heavy_library() {
+	test_input!(TestInput {
+		code: include_str!("fixtures/smart-visible-task-heavy-library.tsx").to_string(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn smart_lifted_event_captures() {
+	let code = include_str!("fixtures/smart-lifted-captures.tsx").to_string();
+	let result = test_input_fn(TestInput {
+		code: code.clone(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+	let output = result.as_ref().unwrap();
+	let handlers: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.filter(|segment| segment.ctx_kind == SegmentKind::EventHandler)
+		.collect();
+	assert_eq!(handlers.len(), 2);
+	let lifted = handlers
+		.iter()
+		.find(|segment| {
+			segment
+				.param_names
+				.as_ref()
+				.is_some_and(|params| params.len() > 2)
+		})
+		.unwrap();
+	assert!(!lifted.captures);
+	assert!(lifted.entry.is_none());
+	assert_eq!(
+		handlers
+			.iter()
+			.filter(|segment| segment.entry.is_none())
+			.count(),
+		2
+	);
+	let callback = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.ctx_name == "$")
+		.unwrap();
+	let render = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.ctx_name == "component$")
+		.unwrap();
+	assert!(render.entry.is_some());
+	assert_eq!(callback.entry, render.entry);
+	let event = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.ctx_name == "event$")
+		.unwrap();
+	assert!(event.entry.is_none());
+	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
+}
+
+#[test]
+fn smart_event_qrl_alias_consumers() {
+	for (event, render, separated) in [
+		("alias", "", true),
+		("(alias)", "", true),
+		("[alias]", "", true),
+		("enabled ? alias : alias", "", true),
+		("() => alias()", "", true),
+		("alias", "alias();", false),
+		("alias", "unknown(alias);", false),
+		(
+			"alias",
+			"const View = alias; const rendered = <View />; consume(rendered);",
+			false,
+		),
+	] {
+		let output = test_input_fn(TestInput {
+			code: format!(
+				r#"
+import {{ $ as defer, component$, useSignal }} from '@qwik.dev/core';
+export const App = component$(() => {{
+  const count = useSignal(0);
+  const click = defer(() => count.value++);
+  const alias = click;
+  {render}
+  return <button onClick$={{{event}}} />;
+}});"#
+			),
+			entry_strategy: EntryStrategy::Smart,
+			transpile_ts: true,
+			transpile_jsx: true,
+			mode: EmitMode::Prod,
+			..TestInput::default()
+		})
+		.unwrap();
+		let callback = output
+			.modules
+			.iter()
+			.filter_map(|module| module.segment.as_ref())
+			.find(|segment| segment.display_name == "test.tsx_App_component_click")
+			.unwrap();
+		assert_eq!(
+			callback.entry.as_ref() == Some(&callback.canonical_filename),
+			separated,
+			"{event} {render}"
+		);
+	}
+}
+
+#[test]
+fn smart_event_qrl_render_consumers() {
+	let code = include_str!("fixtures/smart-event-qrl-render-consumers.tsx").to_string();
+	let result = test_input_fn(TestInput {
+		code: code.clone(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+	let output = result.as_ref().unwrap();
+	let segments: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.collect();
+	let parent = segments
+		.iter()
+		.find(|segment| segment.ctx_name == "component$")
+		.unwrap();
+	for name in ["View", "getter"] {
+		let segment = segments
+			.iter()
+			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
+			.unwrap();
+		assert_eq!(segment.entry, parent.entry, "{name}");
+	}
+	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
+}
+
+#[test]
+fn smart_event_qrl_references() {
+	let code = include_str!("fixtures/smart-event-qrl-references.tsx").to_string();
+	let result = test_input_fn(TestInput {
+		code: code.clone(),
+		entry_strategy: EntryStrategy::Smart,
+		transpile_ts: true,
+		transpile_jsx: true,
+		mode: EmitMode::Prod,
+		..TestInput::default()
+	});
+	let output = result.as_ref().unwrap();
+	for (name, is_event_only) in [
+		("click", true),
+		("wrapped", true),
+		("render", false),
+		("hookRead", false),
+		("mixed", false),
+		("custom", false),
+	] {
+		let segment = output
+			.modules
+			.iter()
+			.filter_map(|module| module.segment.as_ref())
+			.find(|segment| segment.display_name.ends_with(&format!("_{name}")))
+			.unwrap();
+		if is_event_only {
+			assert_eq!(
+				segment.entry.as_ref(),
+				Some(&segment.canonical_filename),
+				"{name}"
+			);
+		} else {
+			assert_eq!(
+				segment.entry.as_deref(),
+				Some("test.tsx_entry_App"),
+				"{name}"
+			);
+		}
+		assert_eq!(segment.ctx_kind, SegmentKind::Function);
+	}
+	snapshot_res!(&result, format!("==INPUT==\n\n{}", code));
 }
 
 #[test]
@@ -725,6 +973,269 @@ export const Cmp = component$((props: { flag?: boolean; className?: string }) =>
 }
 
 #[test]
+fn destructured_props_as_jsx_tags() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, getFallback } from './x';
+
+export const Cmp = component$((props: { Model?: any; ui?: any; icons: any; 'my-icon': any }) => {
+	const { Model = Fallback, ui = fallback, icons, 'my-icon': Icon } = props;
+	return (
+		<Model>
+			<ui.Home />
+			<icons.Star />
+			<Icon />
+		</Model>
+	);
+});
+
+export const Cmp2 = component$(({ Model = getFallback() }: { Model?: any }) => {
+	return <Model />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructured_props_as_jsx_tags_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, getFallback } from './x';
+
+export const Cmp = component$((props: { Model?: any; ui?: any; icons: any; 'my-icon': any }) => {
+	const { Model = Fallback, ui = fallback, icons, 'my-icon': Icon } = props;
+	return (
+		<Model>
+			<ui.Home />
+			<icons.Star />
+			<Icon />
+		</Model>
+	);
+});
+
+export const Cmp2 = component$(({ Model = getFallback() }: { Model?: any }) => {
+	return <Model />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_as_jsx_tags() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(<Model />)} />;
+});
+
+export const Cmp2 = component$(
+	({ Model, ui = fallback, icons, 'my-icon': Icon }: { Model: any; ui?: any; icons: any; 'my-icon': any }) => {
+		return (
+			<button
+				onClick$={() =>
+					render(
+						<Model>
+							<ui.Home />
+							<icons.Star />
+							<Icon />
+						</Model>
+					)
+				}
+			/>
+		);
+	}
+);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_as_jsx_tags_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Fallback, fallback, render } from './x';
+
+export const Cmp = component$(
+	({
+		Model = Fallback,
+		Layout,
+		ui = fallback,
+		icons,
+		'my-icon': Icon,
+	}: {
+		Model?: any;
+		Layout: any;
+		ui?: any;
+		icons: any;
+		'my-icon': any;
+	}) => {
+		const view = $(() =>
+			render(
+				<Layout>
+					<Model />
+					<ui.Home />
+					<icons.Star />
+					<Icon />
+				</Layout>
+			)
+		);
+		return <button onClick$={view} />;
+	}
+);
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_shadowed_in_segment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback }: { Model?: any }) => {
+	return <button onClick$={() => render(Model, [1].map((Model) => Model))} />;
+});
+
+export const Cmp2 = component$(({ Model }: { Model: any }) => {
+	return <button onClick$={() => render(<Model />, [1].map((Model) => <Model />))} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn captured_props_shadowed_in_segment_inline() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { Fallback, render } from './x';
+
+export const Cmp = component$(({ Model = Fallback, Layout }: { Model?: any; Layout: any }) => {
+	const read = $(() => render(Model, [1].map((Model) => Model)));
+	const view = $(() => render(<Layout />, [1].map((Layout) => <Layout />)));
+	return <button onClick$={read} onDblClick$={view} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		entry_strategy: EntryStrategy::Inline,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_consolidate_loop_params_named_like_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+
+export const List = component$(({ item, items }: any) => {
+	return <ul>{items.map((item: any) => <li onClick$={() => console.log(item)} />)}</ul>;
+});
+
+export const Tabs = component$(({ tab, tabs }: any) => {
+	const selected = useSignal('');
+	return <div>{tabs.map((tab: string) => <button onClick$={() => (selected.value = tab)} />)}</div>;
+});
+
+export const Rows = component$(({ item, items }: any) => {
+	return (
+		<ul>
+			{items.map((item: any, idx: number) => (
+				<li onClick$={() => console.log(item)} onDblClick$={() => console.log(idx)} />
+			))}
+		</ul>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_consolidate_locals_named_like_props() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+import { render } from './x';
+
+export const Nested = component$(({ Model }: { Model: any }) => {
+	return <button onClick$={() => render(Model, [1].map((Model) => $(() => render(Model))))} />;
+});
+
+export const Block = component$(({ item, other }: { item: string; other: string }) => {
+	if (other) {
+		const item = other.toUpperCase();
+		return <button onClick$={() => console.log(item)} />;
+	}
+	return <p>{item}</p>;
+});
+
+export const Helper = component$(({ label }: { label: string }) => {
+	const renderButton = (label: string) => <button onClick$={() => console.log(label)} />;
+	return <div>{renderButton(label + '!')}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_keep_loop_params_named_like_imports() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+import { item } from './x';
+
+export const List = component$(({ items }: { items: string[] }) => {
+	console.log(item);
+	return <ul>{items.map((item) => <li onClick$={() => console.log(item)} />)}</ul>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn local_shadowing_destructured_prop() {
 	test_input!(TestInput {
 		code: r#"
@@ -737,6 +1248,27 @@ export const Cmp = component$(({ value }: { value?: string }) => {
 	};
 	console.log(readInput);
 	return <input value={value} />;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructured_prop_as_computed_key_in_nested_closure() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useComputed$, untrack } from '@qwik.dev/core';
+
+export const Row = component$(({ index, row, runs }) => {
+	const label = useComputed$(() => {
+		untrack(() => (runs[index] = (runs[index] || 0) + 1));
+		return `row ${index}: ${row.value}`;
+	});
+	return <button onClick$={() => row.value++}>{label.value}</button>;
 });
 "#
 		.to_string(),
@@ -2836,6 +3368,26 @@ export const RouterHead = component$(() => {
 }
 
 #[test]
+fn example_moved_helper_spread_with_key() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+const Item = (props: { href: string }) => <a href={props.href} />;
+const List = (props: { links: { href: string }[] }) => (
+	<div>{props.links.map((link) => <Item key={link.href} {...link} />)}</div>
+);
+
+export const Cmp = component$(() => <List links={[{ href: '/a' }]} />);
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_export_issue() {
 	test_input!(TestInput {
 		code: r#"
@@ -4793,6 +5345,34 @@ fn should_wrap_prop_from_destructured_array() {
 }
 
 #[test]
+fn should_keep_render_local_component_props_var() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from '@qwik.dev/core';
+import { Child } from './child';
+
+export default component$((props: { label: string }) => {
+	const items = useSignal<string[]>([]);
+	const visible = items.value.slice(0, 5);
+	const state = { open: items.value.length > 0 };
+	return (
+		<Child
+			renderLocal={visible.length > 0}
+			renderLocalMember={state.open}
+			signal={items.value.length > 0}
+			param={props.label}
+		/>
+	);
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_wrap_object_with_fn_signal() {
 	test_input!(TestInput {
 		code: r#"
@@ -5159,6 +5739,59 @@ fn should_split_spread_props_with_additional_prop5() {
 			<div>1</div>
 			<div>2</div>
 		</Hola>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_split_member_expression_spreads() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+		import { Item } from './item';
+
+		export default component$((props: any) => {
+			return (
+				<>
+					<Item {...props.a} />
+					<Item {...props.a} title="x" />
+					<div {...props.a} />
+					<div {...props.a} title="x" />
+					<div title="x" {...props.a} />
+				</>
+			);
+		});
+
+		export const Destructured = component$(({ a }: any) => <div {...a} />);
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_props_with_key_after_spread() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+		import { Item } from './item';
+
+		export default component$((props: any) => {
+			return (
+				<>
+					<Item {...props.a} key="children">child</Item>
+					<Item {...props.a} {...props.b} key="spreads" />
+					<div title="x" {...props.a} key="attribute" />
+					<Item {...props.a} key="between" {...props.b} />
+				</>
+			);
 		});
 		"#
 		.to_string(),
@@ -6374,6 +7007,166 @@ export default component$(() => {
       })}
     </div>
   );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_nested_loop_handlers_in_expression_bodied_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Facets = component$((props) => (
+  <div>
+    {props.facets.map((facet) => (
+      <div key={facet.slug}>
+        {facet.items.map((item) => (
+          <input key={item.slug} onChange$={() => props.toggle$(facet.slug, item.slug)} />
+        ))}
+      </div>
+    ))}
+  </div>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_nested_loop_handlers_in_paren_less_callbacks() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const Facets = component$((props) => <div>{props.facets.map((facet) => <div>{facet.items.map((item) => <input onChange$={() => props.toggle$(facet.slug, item.slug)} />)}</div>)}</div>);
+
+export const Groups = component$((props) => {
+  return <div>{props.groups.map((group) => <div>{group.items.map((item) => <input onChange$={() => props.toggle$(group.slug, item.slug)} />)}</div>)}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_single_loop_handler_in_expression_bodied_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const List = component$((props) => (
+  <ul>
+    {props.items.map((item) => (
+      <li key={item.id} onClick$={() => props.select$(item.id)} />
+    ))}
+  </ul>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_handler_after_capture_reassignment() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const List = component$((props) => {
+  let prefix = props.prefix;
+  prefix = `${prefix}!`;
+  return (
+    <ul>
+      {props.items.map((item) => (
+        <li key={item.id} onClick$={() => props.select$(prefix, item.id)} />
+      ))}
+    </ul>
+  );
+});
+
+export const Groups = component$((props) => (
+  <div>
+    {props.groups.map((group) => {
+      let label = group.label;
+      label = label.toUpperCase();
+      return group.items.map((item) => (
+        <button key={item.id} onClick$={() => props.select$(label, item.id)} />
+      ));
+    })}
+  </div>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_handler_assigned_to_const_before_use() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const List = component$((props) => {
+  const rows = props.items.map((item) => (
+    <li key={item.id} onClick$={() => props.select$(item.id)} />
+  ));
+  const title = props.title.toUpperCase();
+  return (
+    <ul title={title}>
+      {rows}
+    </ul>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_handler_in_function_declared_after_return() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const List = component$((props) => {
+  return <ul>{renderRows()}</ul>;
+
+  function renderRows() {
+    return props.items.map((item) => (
+      <li key={item.id} onClick$={() => props.select$(item.id)} />
+    ));
+  }
+});
+
+export const Table = component$((props) => {
+  return <table><Rows /></table>;
+
+  function Rows() {
+    return props.rows.map((row) => (
+      <tr key={row.id} onClick$={() => props.select$(row.id)} />
+    ));
+  }
 });
 "#
 		.to_string(),
@@ -8503,4 +9296,1382 @@ export const task = inlinedQrl(() => {
 		"expected transformed capture array [left, true, right] to be preserved, got:\n{}",
 		entry_module.code
 	);
+}
+
+#[test]
+fn should_transform_loop_handler_between_declarators() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const prefix = props.prefix, rows = props.items.map((item) => (
+    <button onClick$={() => props.select$(prefix, item)} />
+  ));
+  return <div>{rows}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_handler_in_destructuring_default() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const { prefix, rows = props.items.map((item) => (
+    <button onClick$={() => props.select$(prefix, item)} />
+  )) } = props;
+  return <div>{rows}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_handler_in_awaited_destructuring_default() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$(async (props) => {
+  const { prefix, rows = await Promise.resolve(props.items.map((item) => (
+    <button onClick$={() => props.select$(prefix, item)} />
+  ))) } = props;
+  return <div>{rows}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_handler_with_awaited_default_receiver() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$(async (props) => {
+  const { prefix, rows = (await props.loadItems()).map((item) => (
+    <button onClick$={() => props.select$(prefix, item)} />
+  )) } = props;
+  return <div>{rows}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_nested_loop_handler_in_destructuring_default() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const Facets = component$((props) => {
+  const { rows = props.facets.map((facet) => facet.items.map((item) => (
+    <input onChange$={() => props.toggle$(facet.slug, item.slug)} />
+  ))) } = props;
+  return <div>{rows}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_helper_repeated_calls() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+let prefix = props.prefix; function renderRows() { return props.items.map(item => <button onClick$={() => props.select$(prefix, item)} />); } const first = renderRows(); prefix = 'updated'; return <div>{first}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_helper_alias() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+let prefix = props.prefix; const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item)} />); const alias = renderRows; prefix = 'updated'; return <div>{alias()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_helper_branches() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+let prefix = props.prefix; const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item)} />); if (props.updated) { prefix = 'updated'; return <div>{renderRows()}</div>; } return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_helper_forward_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item)} />); let prefix = props.prefix; prefix = 'updated'; return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_helper_forward_const_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+ const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item)} />);
+ const prefix = props.prefix;
+ return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true,  ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_assigned_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+let prefix = 'initial';
+return <div>{props.items.map(item => {
+  prefix = item.name;
+  return <button onClick$={() => props.select$(prefix, item.name)} />;
+})}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_for_of_assigned_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+let prefix = 'initial';
+const rows = [];
+for (const item of props.items) {
+  prefix = item.name;
+  rows.push(<button onClick$={() => props.select$(prefix, item.name)} />);
+}
+return <div>{rows}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_helper_assigned_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+let prefix = 'initial';
+const setPrefix = value => { prefix = value; };
+return <div>{props.items.map(item => { setPrefix(item.name); return <button onClick$={() => props.select$(prefix, item.name)} />; })}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_alias_assigned_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+let prefix = 'initial';
+const setPrefix = value => { prefix = value; }; const alias = setPrefix;
+return <div>{props.items.map(item => { alias(item.name); return <button onClick$={() => props.select$(prefix, item.name)} />; })}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_callback_assigned_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+ let prefix = 'initial';
+ const run = action => action();
+ return <div>{props.items.map(item => {
+   run(() => { prefix = item.name; });
+   return <button onClick$={() => props.select$(prefix, item.name)} />;
+ })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_stable_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+const prefix = props.prefix;
+
+return <div>{props.items.map(item => {  return <button onClick$={() => props.select$(prefix, item.name)} />; })}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_shadowed_write() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+const prefix = props.prefix;
+const setPrefix = prefix => { prefix = props.change$(prefix); props.log$(prefix, prefix); };
+return <div>{props.items.map(item => { setPrefix(item.name); return <button onClick$={() => props.select$(prefix, item.name)} />; })}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_array_assigned_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+ let prefix = 'initial';
+ return <div>{props.items.map(item => {
+ [prefix] = [item.name];
+ return <button onClick$={() => props.select$(prefix, item.name)} />;
+ })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_object_assigned_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+ let prefix = 'initial';
+ return <div>{props.items.map(item => {
+ ({ name: prefix } = item);
+ return <button onClick$={() => props.select$(prefix, item.name)} />;
+ })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_destructuring_key_read() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const key = props.key;
+  let prefix = 'initial';
+  return <div>{props.items.map(item => {
+    ({ [key]: prefix } = item);
+    props.log$(prefix);
+    return <button onClick$={() => props.select$(key, item.name)} />;
+  })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	})
+	.unwrap();
+	let component = output
+		.modules
+		.iter()
+		.find(|module| module.code.contains("props.items.map"))
+		.unwrap();
+	assert!(!component.code.contains("\"q:ps\""));
+}
+
+#[test]
+fn should_transform_loop_destructuring_default_read() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const fallback = props.fallback;
+  let prefix = 'initial';
+  return <div>{props.items.map(item => {
+    ({ prefix = fallback } = item);
+    props.log$(prefix);
+    return <button onClick$={() => props.select$(fallback, item.name)} />;
+  })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	})
+	.unwrap();
+	let component = output
+		.modules
+		.iter()
+		.find(|module| module.code.contains("props.items.map"))
+		.unwrap();
+	assert!(!component.code.contains("\"q:ps\""));
+}
+
+#[test]
+fn should_transform_loop_helper_multiple_declarators() {
+	test_input!(TestInput {
+ code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />), prefix = props.prefix;
+  return <div>{renderRows()}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_helper_call_in_declaration() {
+	test_input!(TestInput {
+ code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />), prefix = props.prefix, rows = renderRows();
+  return <div>{rows}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_parenthesized_update_capture() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  let prefix = 0;
+  return <div>{props.items.map(item => {
+    (prefix)++;
+    return <button onClick$={() => props.select$(prefix, item.name)} />;
+  })}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_for_of_head_capture() {
+	test_input!(TestInput {
+ code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  let prefix = props.prefix;
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const rows = [];
+  for (prefix of ['first', 'second']) { rows.push(...renderRows()); }
+  return <div>{rows}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_for_in_head_capture() {
+	test_input!(TestInput {
+ code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  let prefix = props.prefix;
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const rows = [];
+  for (prefix in { first: 0, second: 0 }) { rows.push(...renderRows()); }
+  return <div>{rows}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_handler_in_parameter_default() {
+	test_input!(TestInput {
+ code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  function renderRows({ prefix, rows = props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />) } = props) { return rows; }
+  return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_handler_in_arrow_parameter_default() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = ({ prefix, rows = props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />) } = props) => rows;
+  return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_helper_in_array() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const callbacks = [renderRows];
+  const prefix = props.prefix;
+  return <div>{callbacks[0]()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_helper_in_array_declaration() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />), callbacks = [renderRows], prefix = props.prefix;
+  return <div>{callbacks[0]()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_handler_before_var_initializer() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix, rows = props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />), prefix = 'later';
+  return <div>{rows}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_var_reinitialized_before_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix = 'first';
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const callbacks = [renderRows];
+  var prefix = 'second';
+  return <div>{callbacks[0]()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_var_reinitialized_between_helper_calls() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix = 'first';
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const first = renderRows();
+  var prefix = 'second';
+  return <div>{first}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_helper_call_after_capture_declarator() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const callbacks = [renderRows];
+  const prefix = props.prefix, rows = callbacks[0]();
+  return <div>{rows}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_stable_var_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix = props.prefix;
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  return <div>{renderRows()}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_var_capture_after_helper_storage() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const callbacks = [renderRows];
+  var prefix = props.prefix;
+  return <div>{callbacks[0]()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_handler_before_single_var_initializer() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const rows = props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  var prefix = props.prefix;
+  return <div>{rows}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_first_var_initialization_between_helper_calls() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const first = renderRows();
+  var prefix = props.prefix;
+  return <div>{first}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_first_var_initialization_between_declarators() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  var first = renderRows(), prefix = props.prefix, second = renderRows();
+  return <div>{first}{second}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_first_var_initialization_between_alias_calls() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  let alias = renderRows;
+  const first = alias();
+  var prefix = props.prefix;
+  alias = renderRows;
+  return <div>{first}{alias()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_first_var_initialization_between_branch_calls() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  let first;
+  if (props.items.length) {
+    first = renderRows();
+  }
+  var prefix = props.prefix;
+  return <div>{first}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_first_var_initialization_array_pattern() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const first = renderRows();
+  var [prefix] = [props.prefix];
+  return <div>{first}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_first_var_initialization_object_pattern() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const first = renderRows();
+  var { prefix } = props;
+  return <div>{first}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_inline_component_var_props_destructure() {
+	test_input!(TestInput {
+		code: r#"
+export const List = (props) => {
+  var { prefix } = props;
+  prefix = 'updated';
+  return <div>{prefix}</div>;
+};
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_inline_component_let_props_destructure() {
+	test_input!(TestInput {
+		code: r#"
+export const List = (props) => {
+  let { prefix } = props;
+  prefix = 'updated';
+  return <div>{prefix}</div>;
+};
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_destructured_array_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const [render] = [renderRows];
+  var prefix = props.prefix;
+  return <div>{render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_destructured_object_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const { render } = { render: renderRows };
+  var prefix = props.prefix;
+  return <div>{render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_conditional_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const render = props.items.length ? renderRows : renderRows;
+  var prefix = props.prefix;
+  return <div>{render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_destructured_helper_across_initialization() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const [render] = [renderRows];
+  const first = render();
+  var prefix = props.prefix;
+  return <div>{first}{render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_capture_named_padding() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  let _2 = props.prefix;
+  const change = () => { _2 = 'changed'; };
+  return <div>{props.items.map(item => <button onClick$={() => props.select$(_2, item.name)} />)}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_for_of_var_head() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix;
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const rows = [];
+  for (var prefix of ['first', 'second']) { rows.push(...renderRows()); }
+  return <div>{rows}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_for_in_var_head() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix;
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const rows = [];
+  for (var prefix in { first: 1, second: 2 }) { rows.push(...renderRows()); }
+  return <div>{rows}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_function_scoped_var_in_block() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  if (props.items.length) {
+    var prefix = props.prefix;
+    props.select$('setup', 'ready');
+  }
+  return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_function_scoped_var_in_for() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const rows = [];
+  for (var prefix = props.prefix; rows.length < 1;) { rows.push(...renderRows()); }
+  return <div>{rows}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_uncaptured_var_initializers() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var first = props.first, second = props.second;
+  return <div title={[first, second]}>{props.items.map(item => <button onClick$={() => props.select$(props.prefix, item.name)} />)}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_promoted_capture_consolidated_props() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const Panel = component$(({ showAll }) => {
+  return <button onClick$={() => { showAll.value = true; }}>Show all</button>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_shared_padding_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  let first = props.prefix + ':first';
+  let _2 = props.prefix + ':second';
+  const change = () => { first = 'x'; _2 = 'y'; };
+  return <div>{props.items.map(item => <button onClick$={() => props.select$(first, item.name)} onMouseDown$={() => props.select$(_2, item.name)} />)}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_shadowed_helper_name() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  function independent() { const renderRows = () => []; return renderRows(); }
+  independent();
+  var prefix = props.prefix;
+  return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_assigned_helper_alias() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  let render;
+  render = renderRows;
+  var prefix = props.prefix;
+  return <div>{render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_assigned_alias_across_initialization() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  let render;
+  render = renderRows;
+  const first = render();
+  var prefix = props.prefix;
+  return <div>{first}{render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_branch_assigned_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  let render;
+  if (props.items.length) { render = renderRows; }
+  var prefix = props.prefix;
+  return <div>{render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_factory_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = (() => () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />))();
+  var prefix = props.prefix;
+  return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_factory_across_initialization() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = (() => () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />))();
+  const first = renderRows();
+  var prefix = props.prefix;
+  return <div>{first}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_helper_in_call_result() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const renders = [renderRows].map(fn => fn);
+  var prefix = props.prefix;
+  return <div>{renders[0]()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_handler_with_awaited_map_argument() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$(async (props) => {
+  const { rows = props.items.map(item => <button onClick$={() => props.select$(props.prefix, item.name)} />, await props.context) } = props;
+  return <div>{rows}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_stable_var_in_block() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  {
+    var prefix = props.prefix;
+    return <div>{props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />)}</div>;
+  }
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_stable_var_in_branch() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  let rows = [];
+  if (props.items.length) {
+    var prefix = props.prefix;
+    rows = props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  }
+  return <div>{rows}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_named_factory() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const makeRender = () => () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const renderRows = makeRender();
+  var prefix = props.prefix;
+  return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_function_argument() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const identity = fn => fn;
+  const renderRows = identity(() => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />));
+  var prefix = props.prefix;
+  return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_conditional_factory() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = (() => props.items.length ? () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />) : () => [])();
+  var prefix = props.prefix;
+  return <div>{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_factory_returning_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const makeRender = () => renderRows;
+  const render = makeRender();
+  var prefix = props.prefix;
+  return <div>{render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_named_factory_across_initialization() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const makeRender = () => () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const renderRows = makeRender();
+  const first = renderRows();
+  var prefix = props.prefix;
+  return <div>{first}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_argument_across_initialization() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const identity = fn => fn;
+  const renderRows = identity(() => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />));
+  const first = renderRows();
+  var prefix = props.prefix;
+  return <div>{first}{renderRows()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_var_in_nested_blocks() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  {
+    const marker = props.prefix;
+    props.select$('setup', marker);
+    {
+      var prefix = marker;
+      return <div>{props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />)}</div>;
+    }
+  }
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_var_in_try() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  try {
+    var prefix = props.prefix;
+    return <div>{props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />)}</div>;
+  } finally { props.select$('setup', 'ready'); }
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_var_in_label() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  let rows = [];
+  render: {
+    var prefix = props.prefix;
+    if (!props.items.length) break render;
+    rows = props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  }
+  return <div>{rows}</div>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_loop_var_in_nested_branch() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  if (props.items.length) {
+    const marker = props.prefix;
+    props.select$('setup', marker);
+    {
+      var prefix = marker;
+      return <div>{props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />)}</div>;
+    }
+  }
+  return <div />;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_var_in_while() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const rows = [];
+  let index = 0;
+  while (index < 2) {
+    var prefix = String(index++);
+    rows.push(...props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />));
+  }
+  return <div>{rows}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_property_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const holder = {};
+  holder.render = renderRows;
+  var prefix = props.prefix;
+  return <div>{holder.render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_pushed_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const callbacks = [];
+  callbacks.push(renderRows);
+  var prefix = props.prefix;
+  return <div>{callbacks[0]()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_setter_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  let render;
+  const holder = { set callback(value) { render = value; } };
+  holder.callback = renderRows;
+  var prefix = props.prefix;
+  return <div>{render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_property_helper_across_initialization() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const holder = {};
+  holder.render = renderRows;
+  const first = holder.render();
+  var prefix = props.prefix;
+  return <div>{first}{holder.render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_stable_property_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix = props.prefix;
+  const renderRows = () => props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />);
+  const holder = {};
+  holder.render = renderRows;
+  return <div>{holder.render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_nullable_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  let prefix = props.prefix;
+  if (props.change) prefix = 'changed';
+  return <div>{props.items.map(item => <button onClick$={() => props.select$(prefix, 'fixed')} />)}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_logical_property_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => { for (const item of props.items) { return <button onClick$={() => prefix === 'stable' ? props.select$('stable', item.name) : props.select$('wrong', item.name)} />; } };
+  const holder = {};
+  holder.render ||= renderRows;
+  var prefix = props.prefix;
+  return <div>{holder.render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_array_property_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => { for (const item of props.items) { return <button onClick$={() => prefix === 'stable' ? props.select$('stable', item.name) : props.select$('wrong', item.name)} />; } };
+  const holder = {};
+  [holder.render] = [renderRows];
+  var prefix = props.prefix;
+  return <div>{holder.render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_object_property_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const renderRows = () => { for (const item of props.items) { return <button onClick$={() => prefix === 'stable' ? props.select$('stable', item.name) : props.select$('wrong', item.name)} />; } };
+  const holder = {};
+  ({ render: holder.render } = { render: renderRows });
+  var prefix = props.prefix;
+  return <div>{holder.render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_stable_logical_property_capture() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix = props.prefix;
+  const renderRows = () => { for (const item of props.items) { return <button onClick$={() => prefix === 'stable' ? props.select$('stable', item.name) : props.select$('wrong', item.name)} />; } };
+  const holder = {};
+  holder.render ||= renderRows;
+  return <div>{holder.render()}</div>;
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_hoisted_helper_initialization() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const first = renderRows();
+  var prefix = props.prefix;
+  return <div>{first}{renderRows()}</div>;
+  function renderRows() { return props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />); }
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_stable_hoisted_helper() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const prefix = props.prefix;
+  return <div>{renderRows()}</div>;
+  function renderRows() { return props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />); }
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_stable_hoisted_var() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix = props.prefix;
+  return <div>{renderRows()}</div>;
+  function renderRows() { return props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />); }
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_stable_hoisted_var_declarators() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix = props.prefix, rows = renderRows();
+  return <div>{rows}</div>;
+  function renderRows() { return props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />); }
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_hoisted_function_reference() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const callbacks = [renderRows];
+  var prefix = props.prefix;
+  return <div>{callbacks[0]()}</div>;
+  function renderRows() { return props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />); }
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_hoisted_function_chain() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  var prefix = props.prefix;
+  return <div>{renderRows()}</div>;
+  function renderRows() { return rows(); }
+  function rows() { return props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />); }
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
+}
+
+#[test]
+fn should_transform_loop_hoisted_function_chain_initialization() {
+	test_input!(TestInput { code: r#"
+import { component$ } from '@qwik.dev/core';
+export const List = component$((props) => {
+  const first = renderRows();
+  var prefix = props.prefix;
+  return <div>{first}{renderRows()}</div>;
+  function renderRows() { return rows(); }
+  function rows() { return props.items.map(item => <button onClick$={() => props.select$(prefix, item.name)} />); }
+});
+"#.to_string(), transpile_ts: true, transpile_jsx: true, ..TestInput::default() });
 }

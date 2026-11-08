@@ -12,6 +12,7 @@ import {
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
 import { isDev } from '@qwik.dev/core/build';
+import { limitRequestBody } from '../request-handler/request-body-limit';
 
 // @qwik.dev/router/middleware/netlify-edge
 
@@ -35,7 +36,7 @@ export function createQwikRouter(opts: QwikRouterNetlifyOptions) {
         locale: undefined,
         url,
         env: Deno.env,
-        request,
+        request: limitRequestBody(request, opts.requestBodyLimit),
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream<Uint8Array>();
           const response = new Response(readable, {
@@ -97,7 +98,10 @@ export function createQwikRouter(opts: QwikRouterNetlifyOptions) {
 export const createQwikCity = createQwikRouter;
 
 /** @public */
-export interface QwikRouterNetlifyOptions extends ServerRenderOptions {}
+export interface QwikRouterNetlifyOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+}
 
 /**
  * @deprecated Use `QwikRouterNetlifyOptions` instead. Will be removed in V3

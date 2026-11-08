@@ -1,5 +1,116 @@
 # @qwik.dev/core
 
+## 2.0.0-rc.4
+
+### Minor Changes
+
+- ✨ `migrate-v2` now includes all v1 migrations and runs with `npx @qwik.dev/core@latest migrate-v2`. (by [@wmertens](https://github.com/wmertens) in [#9178](https://github.com/QwikDev/qwik/pull/9178))
+
+### Patch Changes
+
+- 🐞🩹 reject oversized or malformed BigInt values in serialized state (by [@Varixo](https://github.com/Varixo) in [`271d87f`](https://github.com/QwikDev/qwik/commit/271d87fd1aac314dbafb330939d4eb763a7a7d79))
+
+- 🐞🩹 a resumed child component rerenders when its props change (by [@yiannis-psomadelis](https://github.com/yiannis-psomadelis) in [#9272](https://github.com/QwikDev/qwik/pull/9272))
+
+- 🐞🩹 click-to-source now finds elements created in the browser during dev (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#9210](https://github.com/QwikDev/qwik/pull/9210))
+
+- 🐞🩹 SSR subscribes qwikloader to event names as soon as their elements render, so interactions during streaming are not lost (by [@Varixo](https://github.com/Varixo) in [#9226](https://github.com/QwikDev/qwik/pull/9226))
+
+- 🐞🩹 preserve resumed state when pending segments finish before the shell (by [@Varixo](https://github.com/Varixo) in [#9254](https://github.com/QwikDev/qwik/pull/9254))
+
+- 🐞🩹 rewrite destructured props used as computed keys in nested closures (by [@Varixo](https://github.com/Varixo) in [#9215](https://github.com/QwikDev/qwik/pull/9215))
+
+- 🐞🩹 preserve zero content in streamed pending boundaries (by [@Varixo](https://github.com/Varixo) in [#9280](https://github.com/QwikDev/qwik/pull/9280))
+
+- 🐞🩹 defer visible tasks inside unclaimed projections (by [@Varixo](https://github.com/Varixo) in [#9029](https://github.com/QwikDev/qwik/pull/9029))
+
+- 🐞🩹 computed signals recompute once and without stale sources in diamond dependency graphs (by [@Varixo](https://github.com/Varixo) in [#9212](https://github.com/QwikDev/qwik/pull/9212))
+
+- 🐞🩹 inserting a component no longer drops the next sibling's signal bindings (by [@ybai08](https://github.com/ybai08) in [#9230](https://github.com/QwikDev/qwik/pull/9230))
+
+- 🐞🩹 removing or reordering elements no longer re-inserts the siblings that stay in place (by [@ybai08](https://github.com/ybai08) in [#9229](https://github.com/QwikDev/qwik/pull/9229))
+
+- 🐞🩹 preserve shared objects without retaining completed streaming state (by [@Varixo](https://github.com/Varixo) in [#9258](https://github.com/QwikDev/qwik/pull/9258))
+
+- 🐞🩹 re-export `createOptimizer` from `@qwik.dev/core/optimizer` so the runtime exports match the published types (and the v1 contract where `@builder.io/qwik/optimizer` exported it). (by [@A-Raphie](https://github.com/A-Raphie) in [#9248](https://github.com/QwikDev/qwik/pull/9248))
+
+- 🐞🩹 a throw inside out-of-order `<Pending>` content no longer crashes the server (by [@Varixo](https://github.com/Varixo) in [`75454ad`](https://github.com/QwikDev/qwik/commit/75454ad87e23f8b00334350c6fa554e7baf803a3))
+
+- 🐞🩹 the preloader applies hints sent before it loaded, and holds speculative preloads while needed bundles load (by [@Varixo](https://github.com/Varixo) in [#9223](https://github.com/QwikDev/qwik/pull/9223))
+
+- 🐞🩹 editing a plainly imported css file no longer reloads the page (by [@jantimon](https://github.com/jantimon) in [#9269](https://github.com/QwikDev/qwik/pull/9269))
+
+- 🐞🩹 a component serialized twice no longer resumes without its render function (by [@yiannis-psomadelis](https://github.com/yiannis-psomadelis) in [#9272](https://github.com/QwikDev/qwik/pull/9272))
+
+- 🐞🩹 preserve pre-resume interactions on WebKit while HTML streaming stalls. (by [@akasakariko](https://github.com/akasakariko) in [#9208](https://github.com/QwikDev/qwik/pull/9208))
+
+  The default `module` qwikloader strategy now starts the loader from a small inline bootstrap script instead of an external `<script type="module" src>` tag. The bootstrap receives the CSP nonce like other Qwik inline scripts, so nonce-based policies keep working. Deployments that allow inline scripts by hash instead (for example `script-src 'self'` plus a fixed list of `'sha256-...'` hashes) must add a hash for the new bootstrap script, otherwise the browser will block it.
+
+- 🐞🩹 keep resolved pending content visible after parent updates (by [@Varixo](https://github.com/Varixo) in [#9280](https://github.com/QwikDev/qwik/pull/9280))
+
+- 🐞🩹 preserve child state and prop bindings after parent updates (by [@Varixo](https://github.com/Varixo) in [#9280](https://github.com/QwikDev/qwik/pull/9280))
+
+- 🐞🩹 isolate subscriptions between pending boundaries sharing reactive state (by [@Varixo](https://github.com/Varixo) in [#9258](https://github.com/QwikDev/qwik/pull/9258))
+
+- 🐞🩹 keep client-only callbacks outside smart render bundles (by [@Varixo](https://github.com/Varixo) in [#9263](https://github.com/QwikDev/qwik/pull/9263))
+
+- 🐞🩹 with the TypeScript optimizer, elements with spread props and a `key` no longer lose children or props, or throw `_createElement is not defined` (by [@maiieul](https://github.com/maiieul) in [#9107](https://github.com/QwikDev/qwik/pull/9107))
+
+- 🐞🩹 the TypeScript optimizer keeps outer loop items in scope for handlers in nested loops (by [@SahinurDEV](https://github.com/SahinurDEV) in [#9231](https://github.com/QwikDev/qwik/pull/9231))
+
+- 🐞🩹 a component prop derived from a computed no longer goes stale when that computed first reads a lazy QRL during an update (by [@intellix](https://github.com/intellix) in [#9285](https://github.com/QwikDev/qwik/pull/9285))
+
+- Updated dependencies [[`51dc669`](https://github.com/QwikDev/qwik/commit/51dc6692c6b345caaf4767be4069ad6ddfa55225), [`42a901d`](https://github.com/QwikDev/qwik/commit/42a901d3667c0b9d96e6e78f6d05e13eee979b50)]:
+  - @qwik.dev/optimizer@2.1.0-rc.10
+
+## 2.0.0-rc.3
+
+### Patch Changes
+
+- 🐞🩹 dangerouslySetInnerHTML from an async value renders as content instead of an attribute (by [@intellix](https://github.com/intellix) in [#9194](https://github.com/QwikDev/qwik/pull/9194))
+
+- 🐞🩹 null-valued props spread into a component are no longer dropped (by [@intellix](https://github.com/intellix) in [#9193](https://github.com/QwikDev/qwik/pull/9193))
+
+- 🐞🩹 out-of-order Pending segments no longer break resume when a later segment shares their state (by [@Varixo](https://github.com/Varixo) in [#9197](https://github.com/QwikDev/qwik/pull/9197))
+
+- 🐞🩹 run nested visible task cleanups when removing parent components (by [@Varixo](https://github.com/Varixo) in [#9206](https://github.com/QwikDev/qwik/pull/9206))
+
+- 🐞🩹 a failed event-handler chunk import after resume is now reported as an `importError` `qerror` (like qwikloader) instead of rendering the raw "Failed to fetch dynamically imported module" message in the nearest `<ErrorBoundary>` (by [@akasakariko](https://github.com/akasakariko) in [#9180](https://github.com/QwikDev/qwik/pull/9180))
+
+- 🐞🩹 unchanged style and class objects no longer rewrite the attribute on re-render (by [@intellix](https://github.com/intellix) in [#9192](https://github.com/QwikDev/qwik/pull/9192))
+
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- 🐞🩹 dev server image auto fix endpoint accepted cross-site requests and paths outside `src` (by [@Varixo](https://github.com/Varixo) in [`9ef4079`](https://github.com/QwikDev/qwik/commit/9ef40794be3ca6d0f7a6001d14b5afa3e69f07c5))
+
+- 🐞🩹 ssr attribute names containing a carriage return are rejected (by [@Varixo](https://github.com/Varixo) in [`ea4ebd4`](https://github.com/QwikDev/qwik/commit/ea4ebd4c950513c4104f1dbd2e578847256b9875))
+
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- 🐞🩹 preserve state identities when streaming vnode patches between segments (by [@Varixo](https://github.com/Varixo) in [#9170](https://github.com/QwikDev/qwik/pull/9170))
+
+- 🐞🩹 adding spread props to a component first rendered without them no longer throws (by [@intellix](https://github.com/intellix) in [#9140](https://github.com/QwikDev/qwik/pull/9140))
+
+- Add type declarations for the `commandfor` attribute on buttons. (by [@tscpp](https://github.com/tscpp) in [#9105](https://github.com/QwikDev/qwik/pull/9105))
+
+- 🐞🩹 components after an out-of-order segment's parent element stay interactive after resume (by [@intellix](https://github.com/intellix) in [#9143](https://github.com/QwikDev/qwik/pull/9143))
+
+- 🐞🩹 `[object Promise]` error on resume when a streamed `<Pending>` attribute reads a computed (by [@Varixo](https://github.com/Varixo) in [#9147](https://github.com/QwikDev/qwik/pull/9147))
+
+- 🐞🩹 `SSRComment` data could close the comment early and inject markup (by [@Varixo](https://github.com/Varixo) in [`3a38a40`](https://github.com/QwikDev/qwik/commit/3a38a4014b49002d9d03751560f3da3a9cd58a8e))
+
+- 🐞🩹 the TypeScript optimizer no longer turns `<title>` into a prop read when a destructured prop is named `title` (by [@maiieul](https://github.com/maiieul) in [#9126](https://github.com/QwikDev/qwik/pull/9126))
+
+- 🐞🩹 the TypeScript optimizer now handles JSX tag names like `<ui.Home />` the same way as the Rust optimizer (by [@maiieul](https://github.com/maiieul) in [#9126](https://github.com/QwikDev/qwik/pull/9126))
+
+- 🐞🩹 `useVisibleTask$` no longer runs twice when invalidated twice before running (by [@intellix](https://github.com/intellix) in [#9145](https://github.com/QwikDev/qwik/pull/9145))
+
+- 🐞🩹 `waitForDrain` waits for a render to be scheduled when a timeout is passed (by [@Varixo](https://github.com/Varixo) in [#9149](https://github.com/QwikDev/qwik/pull/9149))
+
 ## 2.0.0-rc.0
 
 ### Patch Changes

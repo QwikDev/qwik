@@ -5,7 +5,7 @@
     "priority": -10,
     "viteConfig": {},
     "docs": [
-      "https://qwik.dev/integrations/turso/",
+      "https://qwik.dev/docs/integrations/turso/",
       "https://docs.turso.tech"
     ],
     "nextSteps": {

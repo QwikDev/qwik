@@ -1,0 +1,48 @@
+name: Install Playwright System Dependencies
+description: Runs `playwright install-deps`, reusing the apt packages that earlier runs downloaded.
+
+inputs:
+  browser:
+    description: Browser to install the system dependencies for
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Compute apt package cache key
+      id: apt-key
+      shell: bash
+      env:
+        BROWSER: ${{ inputs.browser }}
+      run: |
+        prefix="playwright-apt-${ImageOS}-${BROWSER}-$(pnpm exec playwright --version | cut -d' ' -f2)-"
+        echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
+        echo "key=$prefix$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore apt package cache
+      id: apt-cache
+      uses: actions/cache/restore@v5
+      with:
+        key: ${{ steps.apt-key.outputs.key }}
+        restore-keys: ${{ steps.apt-key.outputs.prefix }}
+        path: ~/playwright-apt
+
+    - name: Install system dependencies
+      shell: bash
+      env:
+        BROWSER: ${{ inputs.browser }}
+      run: |
+        mkdir -p ~/playwright-apt
+        sudo cp ~/playwright-apt/*.deb /var/cache/apt/archives/ 2>/dev/null || true
+        pnpm exec playwright install-deps "$BROWSER"
+        sudo apt-get autoclean -qq
+        rm -f ~/playwright-apt/*.deb
+        cp /var/cache/apt/archives/*.deb ~/playwright-apt/ 2>/dev/null || true
+
+    - name: Save apt package cache
+      if: steps.apt-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v5
+      continue-on-error: true
+      with:
+        key: ${{ steps.apt-key.outputs.key }}
+        path: ~/playwright-apt

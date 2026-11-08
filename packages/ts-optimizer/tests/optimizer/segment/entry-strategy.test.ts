@@ -4,6 +4,7 @@ import { resolveEntryField } from '../../../src/optimizer/segment/entry-strategy
 // Prod-mode symbol names carry only the hash; grouping must come from the context stack.
 const segment = {
   symbolName: 's_abc123',
+  canonicalFilename: 'test.tsx_App_component_abc123',
   rootContext: 'App' as string | null,
   origin: 'test.tsx',
   ctxKind: 'function' as const,
@@ -13,24 +14,46 @@ const segment = {
 
 describe('resolveEntryField', () => {
   describe('smart strategy', () => {
+    it.each([false, true])('groups ordinary QRLs with their root (captures: %s)', (captures) => {
+      expect(resolveEntryField('smart', { ...segment, ctxName: '$', captures }, undefined)).toBe(
+        'test.tsx_entry_App'
+      );
+    });
+    it('groups captured JSX prop callbacks with their root', () => {
+      expect(
+        resolveEntryField('smart', { ...segment, ctxKind: 'jSXProp', captures: true }, undefined)
+      ).toBe('test.tsx_entry_App');
+    });
     it('keeps capture-free event handlers separate', () => {
       expect(
         resolveEntryField('smart', { ...segment, ctxKind: 'eventHandler' }, undefined)
       ).toBeNull();
     });
 
-    it('keeps capture-free event$ functions separate', () => {
-      expect(resolveEntryField('smart', { ...segment, ctxName: 'event$' }, undefined)).toBeNull();
+    it.each([false, true])('keeps explicit events separate (captures: %s)', (captures) => {
+      expect(
+        resolveEntryField('smart', { ...segment, ctxName: 'event$', captures }, undefined)
+      ).toBeNull();
     });
 
-    it('groups event handlers that capture with their component', () => {
+    it('keeps captured JSX handlers separate', () => {
       expect(
         resolveEntryField(
           'smart',
           { ...segment, ctxKind: 'eventHandler', captures: true },
           undefined
         )
-      ).toBe('test.tsx_entry_App');
+      ).toBeNull();
+    });
+
+    it('names event-only QRLs after their canonical filename', () => {
+      expect(
+        resolveEntryField(
+          'smart',
+          { ...segment, ctxName: '$', captures: true, isEventOnly: true },
+          undefined
+        )
+      ).toBe('test.tsx_App_component_abc123');
     });
 
     it('returns null for segment strategy (alias of smart)', () => {
@@ -72,6 +95,11 @@ describe('resolveEntryField', () => {
     it('returns mapped value when symbol is in manual map', () => {
       const manual = { s_abc123: 'vendor' };
       expect(resolveEntryField('smart', segment, manual)).toBe('vendor');
+    });
+
+    it('prefers the manual entry over event-only separation', () => {
+      const manual = { s_abc123: 'vendor' };
+      expect(resolveEntryField('smart', { ...segment, isEventOnly: true }, manual)).toBe('vendor');
     });
 
     it('falls back to the selected strategy when symbol is not mapped', () => {

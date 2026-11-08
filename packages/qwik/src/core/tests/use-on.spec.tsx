@@ -8,18 +8,25 @@ import {
   Fragment,
   Fragment as Signal,
   Slot,
+  useConstant,
   useOn,
   useOnDocument,
   useOnWindow,
   useSignal,
   useTask$,
   useVisibleTask$,
+  type JSXOutput,
+  type QRL,
+  type Signal as SignalType,
 } from '@qwik.dev/core';
+import { _jsxSorted } from '@qwik.dev/core/internal';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+const useIncrement = (count: SignalType<number>) => $(() => count.value++);
 
 const InlineComponentNoChildren = (props: { count: number }) => <>Count: {props.count}!</>;
 
@@ -260,6 +267,213 @@ describe.each([
         </button>
       </Component>
     );
+  });
+
+  it('should keep the element var handler for the same event', async () => {
+    const Counter = component$((props: { step: number }) => {
+      const count = useSignal(0);
+      const step = props.step * 10;
+      useOn(
+        'click',
+        $(() => count.value++)
+      );
+      return <button onClick$={() => (count.value += step)}>Count: {count.value}!</button>;
+    });
+
+    const { vNode, container } = await render(<Counter step={1} />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal ssr-required>{'11'}</Signal>!
+        </button>
+      </Component>
+    );
+  });
+
+  it('should keep an array of element var handlers for the same event', async () => {
+    const Cmp = component$(() => {
+      const calls = useSignal('');
+      useOn(
+        'click',
+        $(() => {
+          calls.value += 'useOn;';
+        })
+      );
+      return _jsxSorted(
+        'button',
+        {
+          'q-e:click': [
+            $(() => {
+              calls.value += 'own1;';
+            }),
+            $(() => {
+              calls.value += 'own2;';
+            }),
+          ],
+        },
+        null,
+        calls.value,
+        0,
+        null
+      );
+    });
+
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('own1;own2;useOn;');
+  });
+
+  it('should run a handler once when it is both an element var handler and a useOn handler', async () => {
+    const Cmp = component$(() => {
+      const calls = useSignal('');
+      const handler = $(() => {
+        calls.value += 'handler;';
+      });
+      useOn('click', handler);
+      return _jsxSorted('button', { 'q-e:click': handler }, null, calls.value, 0, null);
+    });
+
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('handler;');
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('handler;handler;');
+  });
+
+  it('should run a handler once when it is both an element const handler and a useOn handler', async () => {
+    const Cmp = component$(() => {
+      const calls = useSignal('');
+      const handler = $(() => {
+        calls.value += 'handler;';
+      });
+      useOn('click', handler);
+      return _jsxSorted('button', null, { 'q-e:click': handler }, calls.value, 0, null);
+    });
+
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('handler;');
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('handler;handler;');
+  });
+
+  it('should not add useOn handlers twice to a JSX node reused across renders', async () => {
+    const Child = component$((props: { n: number; onClick$?: QRL<() => void> }) => {
+      const count = useSignal(0);
+      useOn(
+        'click',
+        $(() => count.value++)
+      );
+      const button = useConstant(
+        (): JSXOutput => <button id="target" onClick$={props.onClick$}></button>
+      );
+      // read in the body so that a new `n` re-renders Child
+      const renders = props.n + 1;
+      return (
+        <>
+          {button}
+          <i data-renders={renders}>{count.value}</i>
+        </>
+      );
+    });
+    const Parent = component$(() => {
+      const n = useSignal(0);
+      const count = useSignal(0);
+      return (
+        <>
+          <button id="rerender" onClick$={() => n.value++}></button>
+          <Child n={n.value} onClick$={$(() => count.value++)} />
+          <span>{count.value}</span>
+        </>
+      );
+    });
+
+    const { container } = await render(<Parent />, { debug });
+    await trigger(container.element, '#rerender', 'click');
+    await trigger(container.element, '#rerender', 'click');
+    expect(container.element.querySelector('i')!.getAttribute('data-renders')).toBe('3');
+    await trigger(container.element, '#target', 'click');
+    expect(container.element.querySelector('i')!.textContent).toBe('1');
+    expect(container.element.querySelector('span')!.textContent).toBe('1');
+  });
+
+  it('should keep re-rendering a reused JSX node that only has useOn handlers', async () => {
+    const Child = component$((props: { n: number }) => {
+      const count = useSignal(0);
+      useOn(
+        'click',
+        $(() => count.value++)
+      );
+      const button = useConstant((): JSXOutput => <button id="target"></button>);
+      // read in the body so that a new `n` re-renders Child
+      const renders = props.n + 1;
+      return (
+        <>
+          {button}
+          <i data-renders={renders}>{count.value}</i>
+        </>
+      );
+    });
+    const Parent = component$(() => {
+      const n = useSignal(0);
+      return (
+        <>
+          <button id="rerender" onClick$={() => n.value++}></button>
+          <Child n={n.value} />
+        </>
+      );
+    });
+
+    const { container } = await render(<Parent />, { debug });
+    for (let i = 0; i < 20; i++) {
+      await trigger(container.element, '#rerender', 'click');
+    }
+    expect(container.element.querySelector('i')!.getAttribute('data-renders')).toBe('21');
+    await trigger(container.element, '#target', 'click');
+    expect(container.element.querySelector('i')!.textContent).toBe('1');
+  });
+
+  it('should keep an element handler that has the same symbol as a useOn handler', async () => {
+    const Cmp = component$(() => {
+      const a = useSignal(0);
+      const b = useSignal(0);
+      useOn('click', useIncrement(a));
+      return (
+        <button onClick$={useIncrement(b)}>
+          {a.value}:{b.value}
+        </button>
+      );
+    });
+
+    const { container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('1:1');
+  });
+
+  it('should keep nested element handler arrays for the same event as useOn', async () => {
+    const Child = component$((props: { onClick$?: QRL<() => void> }) => {
+      const count = useSignal(0);
+      useOn(
+        'click',
+        $(() => count.value++)
+      );
+      return <button onClick$={[[props.onClick$]]}>{count.value}</button>;
+    });
+    const Parent = component$(() => {
+      const count = useSignal(0);
+      return (
+        <>
+          <Child onClick$={$(() => count.value++)} />
+          <span>{count.value}</span>
+        </>
+      );
+    });
+
+    const { container } = await render(<Parent />, { debug });
+    await trigger(container.element, 'button', 'click');
+    expect(container.element.querySelector('button')!.textContent).toBe('1');
+    expect(container.element.querySelector('span')!.textContent).toBe('1');
   });
 
   describe('useOnDocument', () => {

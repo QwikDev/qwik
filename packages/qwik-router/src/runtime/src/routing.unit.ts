@@ -1,5 +1,5 @@
-import { assert, describe, test } from 'vitest';
-import { loadRoute } from './routing';
+import { assert, describe, test, vi } from 'vitest';
+import { loadRoute, matchRouteTree } from './routing';
 import type { MenuModuleLoader, ModuleLoader, RouteData } from './types';
 
 // A minimal sync module loader for testing.
@@ -273,6 +273,112 @@ test('loadRoute — child routes inherit layout loaders but not parent page load
     });
   }
 });
+
+for (const sibling of ['dynamic', 'static']) {
+  test(`loadRoute — group loader paths avoid a ${sibling} sibling route`, async () => {
+    const groupLayout = makeLoader();
+    const area: RouteData = {
+      page: { _I: makeLoader() },
+      other: { _I: makeLoader() },
+    };
+    const routes: RouteData = {
+      k: {
+        _M: [{ _L: groupLayout, _R: ['group'], area }],
+        ...(sibling === 'dynamic'
+          ? { _W: { _P: 'x', _I: makeLoader() } }
+          : { area: { _I: makeLoader() } }),
+      },
+    };
+
+    for (const page of ['page', 'other']) {
+      const pathname = `/k/area/${page}/`;
+      const result = await loadRoute(routes, false, pathname);
+      assert.isFalse(result.$notFound$);
+      assert.deepEqual(result.$loaderPaths$, { group: pathname });
+      assert.deepEqual(result.$loaderParams$, { group: {} });
+      const endpoint = await loadRoute(routes, false, result.$loaderPaths$!.group);
+      assert.include(endpoint.$mods$, groupLayout());
+    }
+  });
+}
+
+test('loadRoute — loaders sharing an endpoint are checked independently', async () => {
+  for (const hashes of [
+    ['shared', 'group'],
+    ['group', 'shared'],
+  ]) {
+    const routes: RouteData = {
+      k: {
+        _M: [
+          {
+            _L: makeLoader(),
+            _R: hashes,
+            area: { page: { _I: makeLoader() } },
+          },
+        ],
+        _W: { _P: 'x', _L: makeLoader(), _R: ['shared'], _I: makeLoader() },
+      },
+    };
+
+    const result = await loadRoute(routes, false, '/k/area/page/');
+
+    assert.deepEqual(result.$loaderPaths$, {
+      shared: '/k/area/',
+      group: '/k/area/page/',
+    });
+  }
+});
+
+test('loadRoute — group loaders keep a shared endpoint that serves the layout', async () => {
+  const routes: RouteData = {
+    k: {
+      _M: [
+        {
+          _L: makeLoader(),
+          _R: ['group'],
+          area: {
+            _I: makeLoader(),
+            page: { _I: makeLoader() },
+            other: { _I: makeLoader() },
+          },
+        },
+      ],
+      _W: { _P: 'x', _I: makeLoader() },
+    },
+  };
+
+  for (const page of ['page', 'other']) {
+    const result = await loadRoute(routes, false, `/k/area/${page}/`);
+    assert.deepEqual(result.$loaderPaths$, { group: '/k/area/' });
+    const endpoint = await loadRoute(routes, false, result.$loaderPaths$!.group);
+    assert.include(endpoint.$loaders$!, 'group');
+  }
+});
+
+for (const id of ['100%', '%20', 'a/b', 'hello world', 'żółć']) {
+  test(`loadRoute — loader paths preserve encoded segments for ${id}`, async () => {
+    const routes: RouteData = {
+      products: {
+        _W: {
+          _P: 'id',
+          _L: makeLoader(),
+          _R: ['product'],
+          _I: makeLoader(),
+          view: { _I: makeLoader() },
+        },
+      },
+    };
+    const loaderPath = `/products/${encodeURIComponent(id)}/`;
+    const result = await loadRoute(routes, false, `${loaderPath}view/`);
+
+    assert.isFalse(result.$notFound$);
+    assert.deepEqual(result.$params$, { id });
+    assert.deepEqual(result.$loaderPaths$, { product: loaderPath });
+    const endpoint = await loadRoute(routes, false, result.$loaderPaths$!.product);
+    assert.isFalse(endpoint.$notFound$);
+    assert.deepEqual(endpoint.$params$, { id });
+  });
+}
 
 test('loadRoute — loader params match each loader path', async () => {
   const routes: RouteData = {
@@ -874,6 +980,138 @@ test('loadRoute — a catchall without a page does not match', async () => {
   const result = await loadRoute(routes, false, '/x/y');
   assert.isFalse(result.$notFound$);
   assert.deepEqual(result.$params$, { a: 'x', b: 'y' });
+});
+
+// ─── Rest params followed by more segments ───────────────────────────────────────
+
+describe('loadRoute — [...rest] followed by more segments', () => {
+  // routes/[...path]/index.tsx and routes/[...path]/product/[id]/index.tsx: category pages for
+  // any path, with product pages below each of them.
+  const makeRoutes = (): RouteData => ({
+    _A: {
+      _P: 'path',
+      _I: makeLoader(),
+      product: { _W: { _P: 'id', _I: makeLoader() } },
+    },
+  });
+
+  test.each([
+    { suffix: '', nested: false },
+    { suffix: '/product/123', nested: false },
+    { suffix: '', nested: true },
+    { suffix: '/product/123', nested: true },
+  ])(
+    'long rest paths avoid quadratic string work: $suffix, nested=$nested',
+    ({ suffix, nested }) => {
+      const segmentCount = 1000;
+      const routes = makeRoutes();
+      if (nested) {
+        const restRoute = routes._A as RouteData;
+        restRoute._A = { _P: 'inner', product: restRoute.product };
+        delete restRoute.product;
+      }
+      const pathname = '/' + Array(segmentCount).fill('a%2Fb').join('/') + suffix;
+      const originalJoin = Array.prototype.join;
+      let joinedSegments = 0;
+      const joinSpy = vi.spyOn(Array.prototype, 'join').mockImplementation(function (
+        this: unknown[],
+        separator
+      ) {
+        joinedSegments += this.length;
+        return originalJoin.call(this, separator);
+      });
+      let result: ReturnType<typeof matchRouteTree>;
+      try {
+        result = matchRouteTree(routes, pathname);
+      } finally {
+        joinSpy.mockRestore();
+      }
+      assert.isBelow(joinedSegments, segmentCount * 10);
+      assert.isFalse(result.notFound);
+      assert.equal(result.params.path, Array(segmentCount).fill('a/b').join('/'));
+      assert.equal(result.params.id, suffix ? '123' : undefined);
+      if (nested && suffix) {
+        assert.equal(result.params.inner, '');
+        assert.deepEqual(result.routeParts, ['[...path]', '[...inner]', 'product', '[id]']);
+      }
+    }
+  );
+
+  test('the segments after the rest match the route below it', async () => {
+    const result = await loadRoute(makeRoutes(), false, '/sports/balls/product/123');
+    assert.isFalse(result.$notFound$);
+    assert.deepEqual(result.$params$, { path: 'sports/balls', id: '123' });
+    assert.equal(result.$routeName$, '/[...path]/product/[id]');
+  });
+
+  test('the rest can be empty', async () => {
+    const result = await loadRoute(makeRoutes(), false, '/product/123');
+    assert.isFalse(result.$notFound$);
+    assert.deepEqual(result.$params$, { path: '', id: '123' });
+    assert.equal(result.$routeName$, '/[...path]/product/[id]');
+  });
+
+  test('the rest takes the longest span that still leaves a match', async () => {
+    const result = await loadRoute(makeRoutes(), false, '/a/product/1/product/2');
+    assert.deepEqual(result.$params$, { path: 'a/product/1', id: '2' });
+  });
+
+  test('paths that do not fit the route below fall back to the rest page', async () => {
+    const routes = makeRoutes();
+    for (const [pathname, path] of [
+      ['/sports/balls', 'sports/balls'],
+      ['/sports/product', 'sports/product'],
+      ['/sports/product/1/extra', 'sports/product/1/extra'],
+      ['/', ''],
+    ]) {
+      const result = await loadRoute(routes, false, pathname);
+      assert.isFalse(result.$notFound$, pathname);
+      assert.deepEqual(result.$params$, { path }, pathname);
+      assert.equal(result.$routeName$, '/[...path]', pathname);
+    }
+  });
+
+  test('a static route still outranks the rest', async () => {
+    const routes = makeRoutes();
+    routes.about = { _I: makeLoader() };
+    const result = await loadRoute(routes, false, '/about');
+    assert.deepEqual(result.$params$, {});
+    assert.equal(result.$routeName$, '/about');
+  });
+
+  test('segments below the rest without a page do not match', async () => {
+    const routes: RouteData = {
+      _A: { _P: 'path', product: { _W: { _P: 'id', _L: makeLoader() } } },
+    };
+    const result = await loadRoute(routes, false, '/a/product/1');
+    assert.isTrue(result.$notFound$);
+  });
+
+  test('layouts and loaders along the way get the paths they were matched at', async () => {
+    const routes: RouteData = {
+      _A: {
+        _P: 'path',
+        _L: makeLoader(),
+        _R: ['rest-layout-loader'],
+        _I: makeLoader(),
+        product: { _W: { _P: 'id', _I: makeLoader(), _D: ['product-loader'] } },
+      },
+    };
+    for (const [pathname, restPath] of [
+      ['/sports/balls/product/7/', '/sports/balls/'],
+      ['/product/7/', '/'],
+    ]) {
+      const result = await loadRoute(routes, false, pathname);
+      assert.isFalse(result.$notFound$, pathname);
+      // the rest layout and the product page
+      assert.equal(result.$mods$.length, 2, pathname);
+      assert.deepEqual(
+        result.$loaderPaths$,
+        { 'rest-layout-loader': restPath, 'product-loader': pathname },
+        pathname
+      );
+    }
+  });
 });
 
 test('loadRoute — underscore-prefixed static segments use escaped trie keys', async () => {

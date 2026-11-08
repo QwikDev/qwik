@@ -1,0 +1,116 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+import { Fallback, fallback, getFallback } from './x';
+
+export const Cmp = component$((props: { Model?: any; ui?: any; icons: any; 'my-icon': any }) => {
+	const { Model = Fallback, ui = fallback, icons, 'my-icon': Icon } = props;
+	return (
+		<Model>
+			<ui.Home />
+			<icons.Star />
+			<Icon />
+		</Model>
+	);
+});
+
+export const Cmp2 = component$(({ Model = getFallback() }: { Model?: any }) => {
+	return <Model />;
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_Cmp2_component_FnOz26iMYaM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp2_component_FnOz26iMYaM"), "Cmp2_component_FnOz26iMYaM");
+const q_Cmp_component_4ryKJTOKjWE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE");
+//
+export const Cmp = /*#__PURE__*/ componentQrl(q_Cmp_component_4ryKJTOKjWE);
+export const Cmp2 = /*#__PURE__*/ componentQrl(q_Cmp2_component_FnOz26iMYaM);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAIA,OAAO,MAAM,oBAAM,0CAShB;AAEH,OAAO,MAAM,qBAAO,2CAEjB\"}")
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
+
+import { Fallback } from "./x";
+import { _jsxSorted } from "@qwik.dev/core";
+import { fallback } from "./x";
+//
+export const Cmp_component_4ryKJTOKjWE = (props)=>{
+    return /*#__PURE__*/ _jsxSorted(props.Model ?? Fallback, null, null, [
+        /*#__PURE__*/ _jsxSorted((props.ui ?? fallback).Home, null, null, null, 3, "u6_0"),
+        /*#__PURE__*/ _jsxSorted(props.icons.Star, null, null, null, 3, "u6_1"),
+        /*#__PURE__*/ _jsxSorted(props["my-icon"], null, null, null, 3, "u6_2")
+    ], 1, "u6_3");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAI8B,CAAC;IAE9B,qBACC,WAFmE,MAA5D,SAAQ;sBAGd,WAAC,CAHiE,MAA1C,MAAK,UAGzB,IAAI;sBACR,WAAC,AAJiE,MAA3B,MAIhC,IAAI;sBACX,WALkE;;AAQrE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp_component_4ryKJTOKjWE",
+  "entry": null,
+  "displayName": "test.tsx_Cmp_component",
+  "hash": "4ryKJTOKjWE",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    133,
+    358
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_Cmp2_component_FnOz26iMYaM.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { getFallback } from "./x";
+import { untrack } from "@qwik.dev/core";
+//
+export const Cmp2_component_FnOz26iMYaM = (_rawProps)=>{
+    const _defaultValue = untrack(()=>_rawProps.Model) === void 0 ? getFallback() : void 0;
+    return /*#__PURE__*/ _jsxSorted(_rawProps.Model === void 0 ? _defaultValue : _rawProps.Model, null, null, null, 3, "u6_4");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAe+B;gDAAG,oBAAQ;IACzC,qBAAO,qBAD0B,6CAAA;AAElC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp2_component_FnOz26iMYaM",
+  "entry": null,
+  "displayName": "test.tsx_Cmp2_component",
+  "hash": "FnOz26iMYaM",
+  "canonicalFilename": "test.tsx_Cmp2_component_FnOz26iMYaM",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    393,
+    463
+  ],
+  "paramNames": [
+    "_rawProps"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -1,9 +1,15 @@
 import type { Container } from '../shared/types';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import { isPropsProxy } from '../shared/jsx/props-proxy';
+import { _PROPS_HANDLER } from '../shared/utils/constants';
 import { getStoreHandler, getStoreTarget } from '../reactive-primitives/impl/store';
 import type { EffectSubscription } from '../reactive-primitives/types';
 import { scheduleEffects } from '../reactive-primitives/utils';
-import type { SubscriptionPatch } from '../shared/serdes/subscription-patch';
+import {
+  SubscriptionPatchChannel,
+  type SubscriptionPatch,
+} from '../shared/serdes/subscription-patch';
 import {
   canRevealRegistration,
   type RevealItemLike,
@@ -121,14 +127,22 @@ export const applySubscriptionPatches = (
     const subscriptions = patch.subscriptions;
     if (root instanceof SignalImpl) {
       if (subscriptions instanceof Set) {
-        mergeSubscriptionSet(container, root, root, (root.$effects$ ||= new Set()), subscriptions);
+        const signal = root as ComputedSignalImpl<unknown>;
+        const effects =
+          patch.channel === SubscriptionPatchChannel.Pending
+            ? (signal.$loadingEffects$ ||= new Set())
+            : patch.channel === SubscriptionPatchChannel.Error
+              ? (signal.$errorEffects$ ||= new Set())
+              : (signal.$effects$ ||= new Set());
+        mergeSubscriptionSet(container, signal, signal, effects, subscriptions);
       }
     } else {
       if (!(subscriptions instanceof Map)) {
         continue;
       }
-      const handler = getStoreHandler(root as any);
-      const target = getStoreTarget(root as any);
+      const props = isPropsProxy(root);
+      const handler = props ? root[_PROPS_HANDLER] : getStoreHandler(root as any);
+      const target = props ? root : getStoreTarget(root as any);
       if (!handler || !target) {
         continue;
       }

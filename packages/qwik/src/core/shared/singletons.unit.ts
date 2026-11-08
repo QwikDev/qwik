@@ -139,6 +139,21 @@ describe('duplicate core copies share runtime state', async () => {
     expect(second.isErrorFromDeferredSegment(store)).toBe(true);
   });
 
+  test('QRL import errors are recognized by the other copy without mutating them', async () => {
+    const importFailure = Object.freeze(new Error('Failed to fetch dynamically imported module'));
+    const handler = first.qrl(() => Promise.reject(importFailure), 's_failedImport');
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await expect(handler.resolve()).rejects.toBe(importFailure);
+      expect(first.isQrlImportError(importFailure)).toBe(true);
+      expect(second.isQrlImportError(importFailure)).toBe(true);
+      expect(second.isQrlImportError(new Error('handler boom'))).toBe(false);
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
   test('registered symbols and captures are shared', () => {
     const registered = () => 'registered';
     first._regSymbol(registered, 'shared_hash');

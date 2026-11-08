@@ -13,7 +13,7 @@ import {
   transformJsxCalls,
   collectJsxFunctionNamesFromIterable,
 } from '../jsx/jsx-call-transform.js';
-import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
+import { eventHandlerQpParams, insertLoopWDecls, type LoopWDecl } from '../jsx/loop-hoisting.js';
 import { computeKeyPrefix } from '../jsx/key-prefix.js';
 import { SignalHoister } from '../jsx/signal-analysis.js';
 import { foldBodySimplifiableExpressions } from '../jsx/simplify.js';
@@ -34,9 +34,12 @@ import {
   bodyConsolidatesToRawProps,
   groupPropsFieldsByBinding,
   rawPropsBindingNames,
+  resolveDeferredTagReads,
   resolveRawPropsSlots,
+  collectElementBindingStarts,
   consolidateQpCaptureValues,
   extractDestructuredFieldInfo,
+  type DeferredTagReads,
   type InlineSegmentJsxOptions,
 } from './raw-props.js';
 import {
@@ -107,8 +110,15 @@ export function transformInlineSegmentBody(
     ? extractDestructuredFieldInfo(ext.bodyText)
     : undefined;
   const rawPropsFieldMap = rawPropsInfo?.fieldMap;
-  const qpValues = (params: string[]): string[] =>
-    rawPropsFieldMap === undefined ? params : consolidateQpCaptureValues(params, rawPropsFieldMap);
+  const qpValues = (params: string[], child: ExtractionResult): string[] =>
+    rawPropsFieldMap === undefined
+      ? params
+      : consolidateQpCaptureValues(
+          params,
+          rawPropsFieldMap,
+          ext.propsBindingStarts,
+          collectElementBindingStarts(child, nested, elementQpParamsMap)
+        );
 
   if (nested.length > 0) {
     const bodyOffset = ext.argStart;
@@ -130,7 +140,7 @@ export function transformInlineSegmentBody(
         };
       })
       .sort((a, b) => b.callStart - a.callStart);
-    const strippedLoopWDecls: Array<{ decl: string; symbolName: string }> = [];
+    const strippedLoopWDecls: LoopWDecl[] = [];
     const replaceBodyRange = (start: number, end: number, replacement: string): void => {
       const offsetChange = replacement.length - (end - start);
       const absoluteEnd = end + bodyOffset;
@@ -206,13 +216,16 @@ export function transformInlineSegmentBody(
           // a component-scope binding (the attr value must stay an identifier
           // for the `q:p` walk).
           const childIsStripped = isStrippedExtraction(child, stripCtxName, stripEventHandlers);
-          const promotedParams = childIsStripped ? eventHandlerQpParams(child.paramNames) : [];
+          const promotedParams = childIsStripped
+            ? eventHandlerQpParams(child.paramNames, child.captureParamNames)
+            : [];
 
           if (childIsStripped && promotedParams.length > 0 && childCaptureNames.length > 0) {
             const wCall = formatWCall(childVarName, childCaptureNames, '            ', '        ');
             strippedLoopWDecls.push({
               decl: `const ${child.symbolName} = ${wCall};`,
               symbolName: child.symbolName,
+              captureNames: childCaptureNames,
             });
             qrlRef = child.symbolName;
           } else if (hasLoopCrossCaptures && !childIsStripped) {
@@ -222,6 +235,7 @@ export function transformInlineSegmentBody(
             strippedLoopWDecls.push({
               decl: `const ${child.symbolName} = ${wCall};`,
               symbolName: child.symbolName,
+              captureNames: childCaptureNames,
             });
             qrlRef = child.symbolName;
           } else if (!isRegCtx && !childIsStripped && childCaptureNames.length > 0) {
@@ -282,43 +296,8 @@ export function transformInlineSegmentBody(
       }
     }
 
-    // Component-scope `.w([…])` bindings for stripped loop handlers, placed
-    // before the top-level statement that references them so their captures
-    // (declared earlier in the body) are in scope. Statement boundaries come
-    // from a parse — text scanning breaks on `;` inside type annotations.
     if (strippedLoopWDecls.length > 0) {
-      const wrapperPrefixText = 'const __w__ = ';
-      const wrapped = wrapperPrefixText + body + ';';
-      const parsed = parseWithRawTransfer('__w__.tsx', wrapped);
-      const init = parsed.program?.body?.[0];
-      const arrow = init?.type === 'VariableDeclaration' ? init.declarations?.[0]?.init : undefined;
-      const block =
-        arrow &&
-        (arrow.type === 'ArrowFunctionExpression' || arrow.type === 'FunctionExpression') &&
-        arrow.body?.type === 'BlockStatement'
-          ? arrow.body
-          : null;
-      if (block) {
-        const inserts: Array<{ at: number; decl: string }> = [];
-        for (const { decl, symbolName } of strippedLoopWDecls) {
-          const usePos = body.indexOf(symbolName);
-          if (usePos < 0) {
-            continue;
-          }
-          const stmt = block.body.find(
-            (st) =>
-              st.start - wrapperPrefixText.length <= usePos &&
-              usePos < st.end - wrapperPrefixText.length
-          );
-          if (stmt) {
-            inserts.push({ at: stmt.start - wrapperPrefixText.length, decl });
-          }
-        }
-        inserts.sort((a, b) => b.at - a.at);
-        for (const { at, decl } of inserts) {
-          body = body.slice(0, at) + `${decl}\n        ` + body.slice(at);
-        }
-      }
+      body = insertLoopWDecls(body, strippedLoopWDecls);
     }
   }
 
@@ -372,6 +351,7 @@ export function transformInlineSegmentBody(
       additionalImports.set('_capturesObj', '@qwik.dev/core');
     }
   }
+  const deferredTagReads: DeferredTagReads[] = [];
   {
     // Consolidate any destructured first param (component props AND hook
     // contexts like useComputed$'s { cleanup }) — a bare destructured method
@@ -382,9 +362,12 @@ export function transformInlineSegmentBody(
           rawPropsInfo?.fieldDynamicDefaults,
           bindingNames.get(ext.symbolName)
         )
-      : body;
-    if (rawPropsResult !== body) {
-      body = rawPropsResult;
+      : { code: body };
+    if (rawPropsResult.code !== body) {
+      body = rawPropsResult.code;
+      if (rawPropsResult.deferredTagReads) {
+        deferredTagReads.push(rawPropsResult.deferredTagReads);
+      }
       if (body.includes('_restProps(')) {
         additionalImports.set('_restProps', '@qwik.dev/core');
       }
@@ -402,13 +385,17 @@ export function transformInlineSegmentBody(
       bindingNames
     );
     for (const [propsName, fields] of groups) {
-      body = replacePropsFieldReferencesInBody(
+      const rewritten = replacePropsFieldReferencesInBody(
         body,
         fields,
         propsName,
         ext.propsFieldDefaults,
         ext.propsFieldDynamicDefaults
       );
+      body = rewritten.code;
+      if (rewritten.deferredTagReads) {
+        deferredTagReads.push(rewritten.deferredTagReads);
+      }
     }
   }
 
@@ -448,11 +435,11 @@ export function transformInlineSegmentBody(
               if (child.ctxKind !== 'eventHandler' && child.ctxKind !== 'jSXProp') {
                 continue;
               }
-              const params = eventHandlerQpParams(child.paramNames);
+              const params = eventHandlerQpParams(child.paramNames, child.captureParamNames);
               if (params.length > 0) {
                 qpByQrl.set(
                   qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`,
-                  qpValues(params)
+                  qpValues(params, child)
                 );
               }
             }
@@ -524,12 +511,14 @@ export function transformInlineSegmentBody(
           // The unified element array carries the client build's slot order;
           // per-child capture order would scramble multi-handler elements.
           const unified = elementQpParamsMap?.get(child.symbolName);
-          const captureParams = unified ? [...unified] : eventHandlerQpParams(child.paramNames);
+          const captureParams = unified
+            ? [...unified]
+            : eventHandlerQpParams(child.paramNames, child.captureParamNames);
           if (captureParams.length === 0) {
             continue;
           }
           const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
-          const consolidated = qpValues(captureParams);
+          const consolidated = qpValues(captureParams, child);
           qrlParamMap.set(childVarName, consolidated);
           qrlParamMap.set(child.symbolName, consolidated);
         }
@@ -558,7 +547,7 @@ export function transformInlineSegmentBody(
             // The unified element array carries the client build's slot order;
             // per-child capture order would scramble multi-handler elements.
             const unified = elementQpParamsMap?.get(child.symbolName);
-            const consolidated = qpValues(unified ? [...unified] : [...child.captureNames]);
+            const consolidated = qpValues(unified ? [...unified] : [...child.captureNames], child);
             qrlParamMap.set(childVarName, consolidated);
             qrlParamMap.set(child.symbolName, consolidated);
           }
@@ -618,6 +607,7 @@ export function transformInlineSegmentBody(
       if (body.endsWith(';') && !ext.bodyText.endsWith(';')) {
         body = body.slice(0, -1);
       }
+      body = resolveDeferredTagReads(body, deferredTagReads);
 
       for (const sym of bodyJsxResult.neededImports) {
         additionalImports.set(sym, '@qwik.dev/core');
@@ -664,7 +654,8 @@ function collectElementCaptureNames(
       continue;
     }
     const params =
-      elementQpParamsMap?.get(child.symbolName) ?? eventHandlerQpParams(child.paramNames);
+      elementQpParamsMap?.get(child.symbolName) ??
+      eventHandlerQpParams(child.paramNames, child.captureParamNames);
     for (const name of [...params, ...child.captureNames]) {
       names.add(name);
     }

@@ -1,14 +1,17 @@
 import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
-import { assertFalse, assertTrue } from '../../shared/error/assert';
+import { assertTrue } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
+import { toBoundaryError } from '../../shared/error/error-handling';
 import { isServerPlatform } from '../../shared/platform/platform';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
+import { SubscriptionPatchChannel } from '../../shared/serdes/subscription-patch';
 import type { Container } from '../../shared/types';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { SSRContainer } from '../../ssr/ssr-types';
+import { isSameContainer } from '../../shared/utils/container';
 import { invokeApply, newInvokeContext, tryGetInvokeContext } from '../../use/use-core';
 import type { Tracker } from '../../use/use-task';
 import { trackFn } from '../../use/utils/tracker';
@@ -22,14 +25,17 @@ import {
   EffectProperty,
   EffectSubscription,
   NEEDS_COMPUTATION,
+  NOT_READY,
   SerializationSignalFlags,
   type ComputeCtx,
   type ComputedOptions,
 } from '../types';
 import {
-  addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  getEffectSerializationContainer,
+  invalidateDerived,
+  pullSourcesIfCheck,
   scheduleEffects,
   throwIfQRLNotResolved,
 } from '../utils';
@@ -44,6 +50,7 @@ const log = (...args: any[]) => console.log('COMPUTED SIGNAL', ...args.map(qwikD
 export class Job<T> implements ComputeCtx<T> {
   /** First holds the compute promise and then the cleanup promise */
   $promise$: Promise<void> | null | void = null;
+  $computationSettled$: boolean = false;
   $cleanupRequested$: boolean = false;
   $canWrite$: boolean = true;
   declare $track$: Tracker | undefined;
@@ -115,6 +122,8 @@ export class Job<T> implements ComputeCtx<T> {
  * the async engine — jobs, `loading`, `error` — giving it the same API as an AsyncSignal.
  * Auto-tracking only covers reads before the first await point (the invoke context is lost after
  * it); later reads must use the ComputeCtx `track()`.
+ *
+ * @internal
  */
 // TODO when we make core lazy async, lazy load the async engine part of this class
 export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
@@ -201,15 +210,19 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$info$ = info;
       this.$infoVersion$ = this.$infoVersion$ === undefined ? 1 : this.$infoVersion$ + 1;
     }
-    if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
-      this.$setInvalid$(true);
-      return;
-    }
-    this.$flags$ |= ComputedSignalFlags.INVALID;
+    invalidateDerived(this);
+  }
+
+  /** Recompute now; a thrown QRL promise retries. Async signals only resolve CHECK here. */
+  $pull$(): void {
     const ctx = newInvokeContext();
     ctx.$container$ = this.$container$ || undefined;
+    const compute =
+      this.$flags$ & AsyncSignalFlags.ASYNC_MODE
+        ? () => pullSourcesIfCheck(this)
+        : this.$computeIfNeeded$;
     // @ts-expect-error it's confused about args any[] vs []
-    const running = retryOnPromise(invokeApply.bind(this, ctx, this.$computeIfNeeded$));
+    const running = retryOnPromise(invokeApply.bind(this, ctx, compute));
     if (isPromise(running)) {
       running.catch((err: unknown) => {
         if (this.$container$) {
@@ -233,7 +246,15 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * If you want to abort pending computations when setting, you have to call `abort()` manually.
    */
   override get value(): T {
-    return super.value;
+    try {
+      return super.value;
+    } catch (err) {
+      if (err === NOT_READY) {
+        // The reader reruns once a value arrives.
+        this.$subscribe$();
+      }
+      throw err;
+    }
   }
 
   override set value(value: T) {
@@ -280,9 +301,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     ) {
       throw qError(QError.asyncClientOnlyValueDuringSSR);
     }
-    isDev &&
-      !(this.$flags$ & AsyncSignalFlags.ASYNC_MODE) &&
-      assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
+    if (this.$untrackedValue$ === NEEDS_COMPUTATION) {
+      // Nothing can compute a value now, e.g. a cancelled loader or an input waiting for one.
+      throw NOT_READY;
+    }
     return this.$untrackedValue$;
   }
   set untrackedValue(value: T) {
@@ -305,14 +327,21 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
           'Do not use signals across containers'
         );
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
         ensureContainsSubscription((this.$loadingEffects$ ||= new Set()), effectSubscriber);
         ensureContainsBackRef(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
+        if (qTest ? isServerPlatform() : isServer) {
+          getEffectSerializationContainer(ctx.$container$, this.$container$)?.$recordEffect$?.(
+            this,
+            effectSubscriber,
+            null,
+            SubscriptionPatchChannel.Pending
+          );
+        }
       }
     }
     return val;
@@ -366,14 +395,21 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (ctx && (this.$container$ ||= ctx.$container$ || null)) {
       isDev &&
         assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
+          !ctx.$container$ || isSameContainer(ctx.$container$, this.$container$),
           'Do not use signals across containers'
         );
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
         ensureContainsSubscription((this.$errorEffects$ ||= new Set()), effectSubscriber);
         ensureContainsBackRef(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
+        if (qTest ? isServerPlatform() : isServer) {
+          getEffectSerializationContainer(ctx.$container$, this.$container$)?.$recordEffect$?.(
+            this,
+            effectSubscriber,
+            null,
+            SubscriptionPatchChannel.Error
+          );
+        }
       }
     }
     return val;
@@ -442,7 +478,13 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   /** Run the computation if needed */
   $computeIfNeeded$(): void {
-    if (this.$disposed$ || !(this.$flags$ & ComputedSignalFlags.INVALID)) {
+    if (this.$disposed$) {
+      return;
+    }
+    if (this.$flags$ & ComputedSignalFlags.CHECK) {
+      pullSourcesIfCheck(this);
+    }
+    if (!(this.$flags$ & ComputedSignalFlags.INVALID)) {
       return;
     }
     if (this.$flags$ & AsyncSignalFlags.ASYNC_MODE) {
@@ -465,15 +507,20 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     try {
       result = this.$invokeComputeFn$(computeQrl.resolved as Function, running);
     } catch (err) {
-      // A thrown promise is a retry request, not a failure
+      // A thrown promise is a retry request
       if (isPromise(err)) {
         throw err;
+      }
+      // A missing input leaves this computed invalid; its value read throws NOT_READY
+      if (err === NOT_READY) {
+        return;
       }
       if (running.$infoVersion$ === this.$infoVersion$) {
         this.$info$ = undefined;
       }
       this.$flags$ &= ~ComputedSignalFlags.INVALID;
-      this.$setError$(running, err as Error);
+      running.$computationSettled$ = true;
+      this.$setError$(running, err);
       return;
     }
     if (isPromise(result)) {
@@ -497,6 +544,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       this.$info$ = undefined;
     }
     this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    running.$computationSettled$ = true;
     this.untrackedError = undefined;
     super.value = result;
   }
@@ -525,7 +573,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       clearEffectSubscription(container, subscriber);
     }
     const ctx = newInvokeContext();
-    ctx.$container$ = container || undefined;
+    const isOnServer = qTest ? isServerPlatform() : isServer;
+    ctx.$container$ =
+      (isOnServer && __EXPERIMENTAL__.pendingBoundary
+        ? getEffectSerializationContainer(tryGetInvokeContext()?.$container$, container)
+        : container) || undefined;
     ctx.$effectSubscriber$ = subscriber;
     return invokeApply(ctx, computeFn, [job]);
   }
@@ -567,7 +619,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     if (this.$jobs$) {
       this.$jobs$.push(running);
     }
-    running.$promise$ = this.$runComputation$(running);
+    const promise = this.$runComputation$(running);
+    if (!running.$computationSettled$) {
+      running.$promise$ = promise;
+    }
   }
 
   async $runComputation$(running: Job<T>): Promise<void> {
@@ -579,6 +634,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       fn = await this.$computeQrl$.resolve();
       if (this.$disposed$ || running.$abortController$?.signal.aborted) {
         DEBUG && log('Computation aborted before it started');
+        running.$computationSettled$ = true;
         running.$promise$ = null;
         return;
       }
@@ -616,6 +672,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         value = valuePromise;
       }
 
+      running.$computationSettled$ = true;
       running.$promise$ = null;
 
       if (running.$canWrite$) {
@@ -643,9 +700,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
         super.value = value;
       }
     } catch (err) {
+      running.$computationSettled$ = true;
       running.$promise$ = null;
       DEBUG && log('Error caught in promise.catch', err);
-      this.$setError$(running, err as Error);
+      this.$setError$(running, err);
     }
 
     if (isCurrent() && !this.$disposed$) {
@@ -668,16 +726,16 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * Sets the error from the given job. We only accept errors from the current job and we ignore
    * AbortErrors.
    */
-  $setError$(job: Job<T>, error: Error): void {
+  $setError$(job: Job<T>, error: unknown): void {
     if (job !== this.$current$ || !job.$canWrite$) {
       return;
     }
     job.$canWrite$ = false;
-    if (error instanceof Error && error.name === 'AbortError') {
-      // AbortError from AbortSignal is a cancellation, not an actual error
+    if ((error instanceof Error && error.name === 'AbortError') || error === NOT_READY) {
+      // A cancellation or a missing input is not an actual error
       return;
     }
-    this.untrackedError = error;
+    this.untrackedError = toBoundaryError(error);
     // Job failures should be rare and require retrying
     this.untrackedValue = NEEDS_COMPUTATION;
   }
@@ -688,7 +746,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       return;
     }
     this.$disposed$ = true;
-    this.$flags$ &= ~ComputedSignalFlags.INVALID;
+    this.$flags$ &= ~ComputedSignalFlags.DIRTY_FLAGS;
     clearTimeout(this.$computationTimeoutId$);
     if (this.$container$) {
       clearAllEffects(this.$container$, this);

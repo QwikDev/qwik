@@ -1,7 +1,7 @@
 import { normalizeExcludePathnames } from '../../../kit/src/overlay-paths';
-import { readIndent } from '../parse/helpers';
 import { applySourceEdits } from '../parse/sourceEdits';
 import { parseProgram, traverseProgram } from '../parse/traverse';
+import { prependImportIfMissing } from './source-utils';
 
 export interface QwikDevtoolsOptions {
   overlay?: {
@@ -14,34 +14,22 @@ const STYLES_IMPORT = `import '@qwik.dev/devtools/ui/styles.css';`;
 
 export function transformRootFile(code: string, opts: QwikDevtoolsOptions = {}): string {
   const excludePathnames = normalizeExcludePathnames(opts.overlay?.excludePathnames);
-  const bodyInsertion = findBodyInsertion(code);
-  if (bodyInsertion !== null) {
+  const bodyClosingStart = findBodyClosingStart(code);
+  if (bodyClosingStart !== null) {
     const devtoolsElement =
       excludePathnames.length > 0
         ? `<QwikDevtools excludePathnames={${JSON.stringify(excludePathnames)}} />`
         : '<QwikDevtools />';
     code = applySourceEdits(code, [
-      {
-        kind: 'insert',
-        pos: bodyInsertion.pos,
-        text: `${bodyInsertion.prefix}${devtoolsElement}${bodyInsertion.suffix}`,
-      },
+      { kind: 'insert', pos: bodyClosingStart, text: devtoolsElement },
     ]);
   }
 
-  if (!code.includes(DEVTOOLS_IMPORT)) {
-    code = `${DEVTOOLS_IMPORT}\n${code}`;
-  }
-
-  if (!code.includes(STYLES_IMPORT)) {
-    code = `${STYLES_IMPORT}\n${code}`;
-  }
-
-  return code;
+  return prependImportIfMissing(prependImportIfMissing(code, DEVTOOLS_IMPORT), STYLES_IMPORT);
 }
 
-function findBodyInsertion(code: string): { pos: number; prefix: string; suffix: string } | null {
-  const edits: BodyInsertionEdit[] = [];
+function findBodyClosingStart(code: string): number | null {
+  let closingStart: number | null = null;
 
   try {
     const program = parseProgram(code);
@@ -52,15 +40,7 @@ function findBodyInsertion(code: string): { pos: number; prefix: string; suffix:
           return;
         }
 
-        const closingStart = node.closingElement.start;
-        const lineStart = findLineStart(code, closingStart);
-        const closingIndent = readIndent(code, lineStart);
-        const hasOnlyIndentBeforeClosing = code.slice(lineStart, closingStart).trim() === '';
-        edits.push({
-          pos: hasOnlyIndentBeforeClosing ? lineStart : closingStart,
-          prefix: hasOnlyIndentBeforeClosing ? `${closingIndent}  ` : `\n${closingIndent}  `,
-          suffix: hasOnlyIndentBeforeClosing ? '\n' : '',
-        });
+        closingStart = node.closingElement.start;
         path.stop();
       },
     });
@@ -68,18 +48,7 @@ function findBodyInsertion(code: string): { pos: number; prefix: string; suffix:
     return null;
   }
 
-  const edit = edits[0];
-  return edit ?? null;
-}
-
-function findLineStart(code: string, index: number): number {
-  for (let i = index - 1; i >= 0; i--) {
-    const ch = code[i];
-    if (ch === '\n' || ch === '\r') {
-      return i + 1;
-    }
-  }
-  return 0;
+  return closingStart;
 }
 
 function getJsxName(name: unknown): string | undefined {
@@ -97,10 +66,4 @@ interface JsxElementNode {
   closingElement?: {
     start: number;
   };
-}
-
-interface BodyInsertionEdit {
-  pos: number;
-  prefix: string;
-  suffix: string;
 }

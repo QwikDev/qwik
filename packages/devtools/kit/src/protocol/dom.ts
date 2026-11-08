@@ -8,6 +8,7 @@ export const QWIK_ATTR = {
   BASE: 'q:base',
   CONTAINER: 'q:container',
   ID: 'q:id',
+  INSPECTOR: 'data-qwik-inspector',
   KEY: 'q:key',
   MANIFEST_HASH: 'q:manifest-hash',
   RENDER: 'q:render',

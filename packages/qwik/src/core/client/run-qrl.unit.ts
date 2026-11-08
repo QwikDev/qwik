@@ -22,9 +22,14 @@ vi.mock('../shared/qrl/qrl-class', async () => {
   };
 });
 
-vi.mock('../shared/qrl/qrl-utils', () => ({
-  assertQrl: vi.fn(),
-}));
+vi.mock('../shared/qrl/qrl-utils', async () => {
+  const actual =
+    await vi.importActual<typeof import('../shared/qrl/qrl-utils')>('../shared/qrl/qrl-utils');
+  return {
+    ...actual,
+    assertQrl: vi.fn(),
+  };
+});
 
 vi.mock('../use/use-core', async () => {
   const actual = await vi.importActual<typeof import('../use/use-core')>('../use/use-core');
@@ -332,6 +337,43 @@ describe('runEventHandlerQRL', () => {
       mockEvent,
       mockElement,
     ]);
+  });
+
+  it.each([false, true])('keeps sync handlers synchronous with iteration=%s', (iteration) => {
+    const handler = vi.fn();
+    const qrl = qrlClass.createQRL('', 'sync', handler);
+    if (iteration) {
+      mockHostElement.flags = VNodeFlags.HasIterationItems;
+      vi.mocked(vnodeUtils.vnode_getProp).mockReturnValueOnce('item');
+    }
+    vi.mocked(useCore.invokeApply).mockImplementation((_context, callback, args) =>
+      callback(...args!)
+    );
+
+    expect(runEventHandlerQRL(qrl, mockEvent, mockElement, mockContext)).toBeUndefined();
+    expect(handler).toHaveBeenCalledWith(mockEvent, mockElement, ...(iteration ? ['item'] : []));
+  });
+
+  it('reports sync handler lookup failures through the event error boundary', () => {
+    const error = new Error('missing sync handler');
+    const qrl = qrlClass.createQRL('', '<sync>', () => {});
+    vi.spyOn(qrl.$lazy$, '$load$').mockImplementation(() => {
+      throw error;
+    });
+    vi.mocked(useCore.invokeApply).mockImplementation((_context, callback, args) =>
+      callback(...args!)
+    );
+    vi.mocked(promises.retryOnPromise).mockImplementation((callback, onError) => {
+      try {
+        return callback();
+      } catch (error) {
+        return onError!(error);
+      }
+    });
+
+    runEventHandlerQRL(qrl, mockEvent, mockElement, mockContext);
+
+    expect(mockContainer.handleError).toHaveBeenCalledWith(error, mockHostElement, 'event');
   });
 
   it('should not call invokeApply when host element is deleted', () => {

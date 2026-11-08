@@ -33,6 +33,11 @@ export function* processSegmentStateScriptsIterator(
   const qwikStates = stateContainer.element.querySelectorAll(
     `script[type="qwik/state"][q\\:instance="${stateContainer.$instanceHash$}"]${QStatePatchAttrSelector}`
   );
+  const isStreamComplete =
+    segmentId === undefined &&
+    stateContainer.element.querySelector(
+      `script[q\\:stream="done"][q\\:instance="${stateContainer.$instanceHash$}"]`
+    );
   const processedScripts = getProcessedStatePatchScripts(container);
   for (let i = 0; i < qwikStates.length; i++) {
     const stateScript = qwikStates[i];
@@ -45,6 +50,10 @@ export function* processSegmentStateScriptsIterator(
     processedScripts.add(stateScript);
     yield* processStatePatch(container, stateContainer, stateScript.textContent);
     yield;
+  }
+  // shortcut: interrupted streams retain references until destruction; revisit if costly.
+  if (isStreamComplete) {
+    container.$streamingObjectRefs$ = undefined;
   }
 }
 

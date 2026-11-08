@@ -14,6 +14,7 @@ import {
 } from '@qwik.dev/router/middleware/request-handler';
 import { extname, join } from 'node:path';
 import { MIME_TYPES } from '../request-handler/mime-types';
+import { limitRequestBody } from '../request-handler/request-body-limit';
 import { normalizeRequestUrl } from '../shared/url';
 import { getStaticFilePath } from '../shared/static-file';
 
@@ -60,7 +61,7 @@ export function createQwikRouter(opts: QwikRouterBunOptions): QwikRouterBunMiddl
             return Bun.env[key];
           },
         },
-        request,
+        request: limitRequestBody(request, opts.requestBodyLimit),
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream<Uint8Array>();
           const response = new Response(readable, {
@@ -179,6 +180,9 @@ export const createQwikCity = createQwikRouter;
 
 /** @public */
 export interface QwikRouterBunOptions extends ServerRenderOptions {
+  /** Maximum request body size in bytes. Defaults to 10 MiB. */
+  requestBodyLimit?: number;
+
   /** Options for serving static files */
   static?: {
     /** The root folder for statics files. Defaults to /dist */

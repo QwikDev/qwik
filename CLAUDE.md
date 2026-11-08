@@ -144,8 +144,8 @@ PR descriptions also show, when they apply (always for optimizer PRs):
 - a minimal code example of the change: the smallest input, and the relevant output or behavior
   before and after it;
 - the tests that cover the change, as a tree per test file in a code block, grouped by `describe`
-  block and written in plain English: `✓` existing, `+` added, `~` changed, `-` removed. For
-  example:
+  block: `✓` existing, `+` added, `~` changed, `-` removed. Existing tests keep their real names;
+  only new or refactored tests get new, plain-English names. For example:
 
   ```text
   packages/qwik/src/core/tests/use-task.spec.tsx

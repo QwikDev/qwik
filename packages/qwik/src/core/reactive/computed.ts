@@ -124,7 +124,9 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   override set untrackedValue(value: T) {
-    this.flags = (this.flags & ~ComputedFlags.Dirty) | ComputedFlags.HasValue;
+    this.flags =
+      (this.flags & ~(ComputedFlags.Dirty | ComputedFlags.ShowsServerValue)) |
+      ComputedFlags.HasValue;
     this.v = value;
   }
 
@@ -439,11 +441,13 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   private publishValue(value: T, notify = true): void {
-    // First materialization is not a change: no subscriber saw an older value.
-    const changed = !!(this.flags & ComputedFlags.HasValue) && !Object.is(this.v, value);
+    const showsServerValue = !!(this.flags & ComputedFlags.ShowsServerValue);
+    // First materialization is not a change, unless subscribers rendered the server's value.
+    const changed =
+      showsServerValue || (!!(this.flags & ComputedFlags.HasValue) && !Object.is(this.v, value));
     this.v = value;
-    this.flags |= ComputedFlags.HasValue;
-    if (changed && notify) {
+    this.flags = (this.flags | ComputedFlags.HasValue) & ~ComputedFlags.ShowsServerValue;
+    if (changed && (notify || showsServerValue)) {
       this.notify();
     }
   }

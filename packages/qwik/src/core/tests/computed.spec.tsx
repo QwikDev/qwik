@@ -118,6 +118,27 @@ describe(`${name}: computed`, () => {
 
     cleanup();
   });
+  it('updates subscribers when a value SSR did not serialize computes differently', async () => {
+    (globalThis as any).__neverComputeRuns = 0;
+    const MyComp = () => {
+      const source = useComputed$(() => ++(globalThis as any).__neverComputeRuns, {
+        serializationStrategy: 'never',
+      });
+      const label = useComputed$(() => 'label:' + source.value);
+      return <button onClick$={() => void source.value}>{label.value}</button>;
+    };
+
+    const { container, cleanup, flush, qwikLoader } = await render(MyComp, { debug });
+    const button = container.querySelector('button')!;
+    expect(button.textContent).toBe('label:1');
+
+    // after resume the click computes the value again, on the client
+    await qwikLoader?.dispatch(button, 'click');
+    await flush();
+    expect(button.textContent).toBe('label:' + (globalThis as any).__neverComputeRuns);
+
+    cleanup();
+  });
 });
 
 describe(`${name}: useComputed`, () => {

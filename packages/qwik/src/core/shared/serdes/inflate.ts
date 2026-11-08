@@ -391,6 +391,9 @@ const inflateResolved = (
             }
             if (end > 6) {
               restoreSourceSubs(computed, container, d, 6, end);
+              if (value === NEEDS_COMPUTATION) {
+                computed.flags |= ComputedFlags.ShowsServerValue;
+              }
             }
             if (value === NEEDS_COMPUTATION) {
               return maybeThen(
@@ -424,6 +427,9 @@ const inflateResolved = (
               }
               if (end > subscriberOffset) {
                 restoreSourceSubs(signal, container, d, subscriberOffset, end);
+                if (value === NEEDS_COMPUTATION) {
+                  signal.flags |= ComputedFlags.ShowsServerValue;
+                }
               }
               if (value === NEEDS_COMPUTATION) {
                 return maybeThen(

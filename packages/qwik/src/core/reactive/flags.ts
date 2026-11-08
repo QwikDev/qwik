@@ -43,4 +43,6 @@ export const enum ComputedFlags {
   Async = 1 << 3,
   Disposed = 1 << 4,
   Published = 1 << 5,
+  /** Resumed without its value, which the subscribers already rendered on the server. */
+  ShowsServerValue = 1 << 7,
 }

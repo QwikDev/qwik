@@ -125,7 +125,8 @@ export async function qwikInsights(qwikInsightsOpts: {
             logWarn(
               '`db` is set without `postUrl`: not adding the tracker, so beacons stay out of the central service. Set `postUrl` to your collector route.'
             );
-            return;
+            // Tells <Insights /> the tracker is off on purpose, so it renders nothing quietly.
+            return { define: { 'globalThis.__QI_URL__': 'false' } };
           }
           devCollectorPath = (viteConfig.base || '/') + DEV_COLLECTOR_PATH;
           postUrl = devCollectorPath;

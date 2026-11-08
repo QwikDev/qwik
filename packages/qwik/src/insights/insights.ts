@@ -147,6 +147,9 @@ export const Insights = component$(() => {
   const url = (globalThis as any).__QI_URL__;
   const sample = (globalThis as any).__QI_SAMPLE__ ?? 0.05;
   const pinger = (globalThis as any).__QI_PINGER__;
+  if (url === false) {
+    return null;
+  }
   if (!key || !url || !pinger) {
     if (!isDev) {
       console.warn('<Insights />: no config from qwikInsights plugin, skipping...');

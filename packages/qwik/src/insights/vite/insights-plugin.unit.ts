@@ -71,7 +71,10 @@ test('with db and no postUrl, dev beacons to the dev-server collector', () =>
 test('a build with db and no postUrl skips the tracker instead of beaconing centrally', () =>
   withDbEnv(async () => {
     const plugin = await getPlugin({ publicApiKey: 'key12345', db: 'file:/tmp/x.db' });
-    expect(await callConfig(plugin, 'build')).toBeUndefined();
+    // Only the "off on purpose" marker, so <Insights /> renders nothing without warning.
+    expect(await callConfig(plugin, 'build')).toEqual({
+      define: { 'globalThis.__QI_URL__': 'false' },
+    });
   }));
 
 test('an explicit postUrl is used in dev and build', () =>

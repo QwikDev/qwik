@@ -201,7 +201,7 @@ describe('lowerArray / reactive rows', () => {
         value: { v: ValueKind.Computed, resume: { r: ResumeKind.Qrl } },
       },
       key: { v: ValueKind.Qrl },
-      index: IndexMode.Effects,
+      index: IndexMode.Escapes,
     });
     const source = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'collection:source')!;
     expect(source.payloadKind).toBe(QrlPayloadKind.Function);
@@ -546,9 +546,13 @@ describe('lowerArray / reactive rows', () => {
       return each;
     };
     expect(eachOf(ROW).index).toBe(IndexMode.None);
+    expect(eachOf('<ul>{items.value.map((item, i) => <li>{i}</li>)}</ul>').index).toBe(
+      IndexMode.Effects
+    );
+    // a keyed row moves, so its index must survive resume
     expect(
       eachOf('<ul>{items.value.map((item, i) => <li key={item.id}>{i}</li>)}</ul>').index
-    ).toBe(IndexMode.Effects);
+    ).toBe(IndexMode.Escapes);
     expect(
       eachOf(
         '<ul>{items.value.map((item, i) => <li key={item.id} onClick$={() => console.log(i)}>x</li>)}</ul>'

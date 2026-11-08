@@ -25,6 +25,30 @@ const List = component$((props: { tick: Signal<number> }) => {
 });
 
 describe(`${name}: loops`, () => {
+  it('should renumber moved keyed rows after resume', async () => {
+    const Cmp = component$(() => {
+      const names = useSignal(['a', 'b', 'c']);
+      return (
+        <div>
+          <button onClick$={() => (names.value = [...names.value].reverse())}></button>
+          {names.value.map((label, index) => (
+            <span key={label} title={`t${index}`}>
+              {label}
+              {index}
+            </span>
+          ))}
+        </div>
+      );
+    });
+
+    const { container, cleanup } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    await triggerAll(container, 'button', 'click');
+    const spans = Array.from(container.querySelectorAll('span'));
+    expect(spans.map((span) => span.textContent)).toEqual(['c0', 'b1', 'a2']);
+    expect(spans.map((span) => span.getAttribute('title'))).toEqual(['t0', 't1', 't2']);
+  });
+
   it('resumes a row event directly from its serialized parameter', async () => {
     const MyComp = () => {
       const selected = useSignal('');

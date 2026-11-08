@@ -319,7 +319,8 @@ function lowerEach(
     paramBindings[1],
     descendants,
     paramPatterns.has(paramBindings[1]) ||
-      setupReads.locals.some(({ local }) => local.kind === LocalKind.RowIndex)
+      setupReads.locals.some(({ local }) => local.kind === LocalKind.RowIndex),
+    key !== null
   );
 
   promoteRowEventParams(program, paramBindings[0], rowCaptures.captures, ctx);
@@ -510,7 +511,8 @@ function lowerSource(node: Expression, ctx: LowerContext): { s: EachSourceKind; 
 function deriveIndexMode(
   indexBinding: number | undefined,
   descendants: readonly Qrl[],
-  readsSetupIndex: boolean
+  readsSetupIndex: boolean,
+  isKeyed: boolean
 ): IndexMode {
   if (indexBinding === undefined) {
     return IndexMode.None;
@@ -530,7 +532,8 @@ function deriveIndexMode(
     }
     mode = IndexMode.Effects;
   }
-  return mode;
+  // A keyed row moves, so after resume it must keep the index signal its content read on the server.
+  return mode === IndexMode.Effects && isKeyed ? IndexMode.Escapes : mode;
 }
 
 /** Lowers row setup and rendering within the callback's lexical scope. */

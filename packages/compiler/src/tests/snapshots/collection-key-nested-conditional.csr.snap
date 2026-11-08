@@ -42,7 +42,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
       prop0,
       _withCaptures(component_for_key_segment_1_24ursak4wzpxf, [props]),
       _withCaptures(component_for_render_segment_0_asyt89wzo2d3, [props]),
-      1,
+      2,
       3
     )
   );

@@ -646,11 +646,23 @@ function findGroupBoundary(
   return { v: r.value, layouts: groupLayouts };
 }
 
-const restoreRouteSpelling = (parts: string[], spellings: Record<number, string>) => {
+const restoreRouteSpelling = (
+  parts: string[],
+  spellings: Record<number, string>,
+  params: PathParams
+) => {
+  const renamedParams: PathParams = {};
+  const parameter = /\[(?:\.\.\.)?([\w-]+)\]/;
   for (const [index, spelling] of Object.entries(spellings)) {
+    const previousName = parameter.exec(parts[Number(index)])?.[1];
+    const canonicalName = parameter.exec(spelling)?.[1];
+    if (previousName && canonicalName && previousName !== canonicalName) {
+      renamedParams[canonicalName] = params[previousName];
+      delete params[previousName];
+    }
     parts[Number(index)] = spelling;
   }
-  return parts;
+  Object.assign(params, renamedParams);
 };
 
 /**
@@ -888,11 +900,14 @@ export function matchRouteTree(
 
     const fallback = resolveLoaders(root, fb.aNode, fbLayouts, fbParams);
     if (fallback) {
+      if (fb.aNode._C) {
+        restoreRouteSpelling(fbRouteParts, fb.aNode._C, fbParams);
+      }
       collectPageLoaders(fallback, fbLoaderPathsByHash, fbLoaderParamsByHash, pathname, fbParams);
       return {
         loaders: fallback.loaders,
         params: fbParams,
-        routeParts: fb.aNode._C ? restoreRouteSpelling(fbRouteParts, fb.aNode._C) : fbRouteParts,
+        routeParts: fbRouteParts,
         notFound: false,
         routeBundleNames: fb.aNode._B as string[] | undefined,
         loaderPathsByHash:
@@ -959,12 +974,15 @@ export function matchRouteTree(
     };
   }
 
+  if (node._C) {
+    restoreRouteSpelling(routeParts, node._C, params);
+  }
   collectPageLoaders(resolved!, loaderPathsByHash, loaderParamsByHash, pathname, params);
 
   return {
     loaders,
     params,
-    routeParts: node._C ? restoreRouteSpelling(routeParts, node._C) : routeParts,
+    routeParts,
     notFound: false,
     routeBundleNames: node._B as string[] | undefined,
     loaderPathsByHash: Object.keys(loaderPathsByHash).length > 0 ? loaderPathsByHash : undefined,

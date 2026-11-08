@@ -11,6 +11,7 @@ import {
 import { escapeStaticTrieKey } from '../../utils/route-trie-key';
 import type { BuildTrieNode, BuiltRoute, RoutingContext, RouteSourceFile } from '../types';
 import { getImportPath } from './utils';
+import { parseDirName } from '../routing/walk-routes-dir';
 
 export type RouteLoaderSourceFiles = ReadonlyMap<string, readonly string[]>;
 
@@ -30,6 +31,13 @@ function toRuntimeTriePath(path: string, basePathname: string) {
     .split('/')
     .map((segment) => escapeStaticTrieKey(segment.toLowerCase()));
   return baseKeys.join('/') + path.split('/').map(toRuntimeTrieKey).join('/');
+}
+
+function getRouteTriePath(routeName: string) {
+  return routeName
+    .split('/')
+    .map((segment) => parseDirName(segment).key)
+    .join('/');
 }
 
 /**
@@ -62,7 +70,7 @@ export function createRoutes(
   // First pass: collect all layout, route, and menu file IDs, emit imports
   const layoutIdMap = new Map<string, string>(); // filePath → varName
   const routeIdMap = new Map<string, string>(); // filePath → loader expression
-  const routeNames = new Map<string, string>();
+  const routeNamesByTriePath = new Map<string, string>();
   const menuIdMap = new Map<string, string>(); // filePath → varName
 
   let layoutCount = 0;
@@ -121,7 +129,7 @@ export function createRoutes(
   c.push(`\n/** Qwik Router Routes (${routeCount}) */`);
   for (const route of ctx.routes) {
     const name = route.routeName.split('/').filter(Boolean).join('/');
-    routeNames.set(name.toLowerCase(), name);
+    routeNamesByTriePath.set(getRouteTriePath(name), name);
     if (isPageExt(route.ext)) {
       // Skip the loader so the trie node prunes and the chunk tree-shakes out of the server bundle.
       if (serverExcludePaths?.has(route.filePath)) {
@@ -156,7 +164,7 @@ export function createRoutes(
     isSSR,
     '',
     baseSegments.join('/'),
-    routeNames,
+    routeNamesByTriePath,
     loadersByFile,
     routeLoaderSourceFiles
   );
@@ -203,7 +211,7 @@ function serializeBuildTrie(
   isSSR: boolean,
   indent: string,
   routeName: string,
-  routeNames: ReadonlyMap<string, string>,
+  routeNamesByTriePath: ReadonlyMap<string, string>,
   loadersByFile?: Map<string, string[]>,
   routeLoaderSourceFiles?: RouteLoaderSourceFiles
 ): string {
@@ -285,7 +293,7 @@ function serializeBuildTrie(
   }
 
   if (indexExpr || node._G != null) {
-    const canonicalName = routeNames.get(routeName.toLowerCase());
+    const canonicalName = routeNamesByTriePath.get(getRouteTriePath(routeName));
     if (canonicalName != null && canonicalName !== routeName) {
       const canonicalParts = canonicalName.split('/');
       const currentParts = routeName.split('/');
@@ -387,7 +395,7 @@ function serializeBuildTrie(
         isSSR,
         nextIndent,
         routeName,
-        routeNames,
+        routeNamesByTriePath,
         loadersByFile,
         routeLoaderSourceFiles
       );
@@ -416,7 +424,7 @@ function serializeBuildTrie(
       isSSR,
       nextIndent,
       childRouteName,
-      routeNames,
+      routeNamesByTriePath,
       loadersByFile,
       routeLoaderSourceFiles
     );

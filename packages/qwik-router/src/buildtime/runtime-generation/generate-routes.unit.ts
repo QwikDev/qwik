@@ -2,11 +2,12 @@ import fs from 'node:fs';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
-import { assert, describe, test, vi } from 'vitest';
+import { assert, describe, expect, test, vi } from 'vitest';
 import { normalizePath } from '../../utils/fs';
 import { createBuildContext } from '../context';
 import { updateRoutingContext } from '../build';
 import { matchRouteTree } from '../../runtime/src/routing';
+import { untypedAppUrl } from '../../runtime/src/typed-routes';
 import { getRouteImports } from '../vite/get-route-imports';
 import type { BuildTrieNode, BuiltRoute, RouteSourceFile } from '../types';
 import { createRoutes, type RouteLoaderSourceFiles } from './generate-routes';
@@ -495,6 +496,41 @@ test.each([
 
 test.each([
   {
+    path: 'product/[slug]/b',
+    extraPaths: ['Product/[id]/a'],
+    url: '/product/CaseSensitive/b/',
+    route: 'product/[slug]/b/',
+    names: 1,
+    params: { slug: 'CaseSensitive' },
+    neighbors: [['/Product/Other/a/', 'Product/[id]/a/']],
+  },
+  {
+    path: 'product/[itemid]/b',
+    extraPaths: ['Product/[ItemId]/a'],
+    url: '/product/CaseSensitive/b/',
+    route: 'product/[itemid]/b/',
+    names: 1,
+    params: { itemid: 'CaseSensitive' },
+  },
+  {
+    path: 'product/[b]/[a]/second',
+    extraPaths: ['Product/[a]/[b]/first'],
+    url: '/product/First/Second/second/',
+    route: 'product/[b]/[a]/second/',
+    names: 1,
+    paramValue: 'First/Second',
+    params: { b: 'First', a: 'Second' },
+  },
+  {
+    path: 'product/[slug]/b',
+    extraPaths: ['Product/[id]/a'],
+    rewrite: true,
+    url: '/IT/Prodotti/CaseSensitive/b/',
+    route: 'IT/Prodotti/[slug]/b/',
+    names: 3,
+    params: { slug: 'CaseSensitive' },
+  },
+  {
     path: 'shop/product/b',
     extraPaths: ['shop/Product/a'],
     url: '/SHOP/product/b/',
@@ -622,6 +658,7 @@ test.each([
     names,
     exception,
     paramValue,
+    params,
     neighbors = [],
   }) => {
     const root = await mkdtemp(join(tmpdir(), 'qwik-route-case-'));
@@ -668,9 +705,11 @@ test.each([
       // eslint-disable-next-line no-new-func
       const routes = new Function(expression.replace('export const routes =', 'return'))();
       assert.equal((expression.match(/_S:/g) ?? []).length, names);
-      assert.equal((expression.match(/_C:/g) ?? []).length, exception ? 1 : 0);
-      if (exception) {
-        assert.include(expression, `_C: ${JSON.stringify(exception)}`);
+      if (!params) {
+        assert.equal((expression.match(/_C:/g) ?? []).length, exception ? 1 : 0);
+        if (exception) {
+          assert.include(expression, `_C: ${JSON.stringify(exception)}`);
+        }
       }
       const matched = matchRouteTree(routes, url);
       assert.isFalse(matched.notFound);
@@ -679,6 +718,10 @@ test.each([
         Object.values(matched.params).join('/'),
         paramValue ?? (path.includes('[...') ? 'Case/Sensitive' : 'CaseSensitive')
       );
+      if (params) {
+        assert.equal(untypedAppUrl('/' + route, matched.params), url);
+        expect(matched.params).toEqual(params);
+      }
       const imports = getRouteImports(ctx.routes, {
         bundles: Object.fromEntries(
           files.map((source, index) => [

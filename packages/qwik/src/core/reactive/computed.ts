@@ -173,7 +173,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
 
   get error(): Error | undefined {
     this.trackStatus();
-    return this.errorValue;
+    return this.untrackedError;
   }
 
   set error(value: Error | undefined) {

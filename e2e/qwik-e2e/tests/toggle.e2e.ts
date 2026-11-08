@@ -45,7 +45,8 @@ test.describe('toggle', () => {
 
     // ToggleB
     await btnToggle.click();
-    logsStr += 'ToggleB()Child(1)';
+    // the shown arm cleans up when the next arm commits, after that arm's tasks ran
+    logsStr += 'Child(1)ToggleB()';
 
     await expect(title).toHaveText('ToggleA');
     await expect(mount).toHaveText('mounted in client');
@@ -64,7 +65,7 @@ test.describe('toggle', () => {
     // ToggleA + increment
     await btnToggle.click();
     await btnIncrement.click();
-    logsStr += 'ToggleA()Child(2)Log(3)Child(3)';
+    logsStr += 'Child(2)ToggleA()Log(3)Child(3)';
 
     await expect(title).toHaveText('ToggleB');
     await expect(mount).toHaveText('mounted in client');

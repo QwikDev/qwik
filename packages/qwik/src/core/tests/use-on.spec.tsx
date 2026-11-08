@@ -794,7 +794,7 @@ describe(`${name}: useOn`, () => {
   });
 
   // Fired from a task mid-render, before the old carrier detaches (group 12, item 9).
-  it('does not run a document event of a component removed in the same render', async () => {
+  it('runs a document event of a component until the render removing it commits', async () => {
     (globalThis as any).__dispatchChild = () => {};
     (globalThis as any).__receivedChild = [];
     const Dispatch = component$(() => {
@@ -837,11 +837,11 @@ describe(`${name}: useOn`, () => {
     const { container, document, cleanup, qwikLoader } = await render(App, { debug });
     onTestFinished(cleanup);
     (globalThis as any).__dispatchChild = () => {
-      // fire without awaiting: the removed carrier must not answer
+      // the outgoing arm is still shown, so its carrier answers
       void qwikLoader?.dispatch(document.body, 'child');
     };
     await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
-    expect((globalThis as any).__receivedChild).toEqual([]);
+    expect((globalThis as any).__receivedChild).toEqual(['child event']);
 
     cleanup();
     delete (globalThis as any).__dispatchChild;

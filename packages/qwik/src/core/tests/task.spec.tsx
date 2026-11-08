@@ -308,7 +308,7 @@ describe(`${name}: task`, () => {
     cleanup();
   });
 
-  it('a branch swap runs the previous arm visible task and computed cleanups first', async () => {
+  it('a branch swap keeps the previous arm visible task and computed live until the commit', async () => {
     const Arm = component$((props: { name: string; log: { value: string } }) => {
       useVisibleTask$(({ cleanup }) => {
         cleanup(() => {
@@ -346,13 +346,15 @@ describe(`${name}: task`, () => {
     const log = container.querySelector('b')!.textContent!;
     expect(log.indexOf('-vB')).toBeGreaterThan(-1);
     expect(log.indexOf('-cB')).toBeGreaterThan(-1);
-    expect(log.indexOf('-vB')).toBeLessThan(log.indexOf('+A'));
-    expect(log.indexOf('-cB')).toBeLessThan(log.indexOf('+A'));
+    // the shown arm stays live until the next arm replaces it; SSR ran its computed cleanup
+    const swap = log.slice(log.indexOf('+A'));
+    expect(swap).toContain('-vB');
+    expect(swap.includes('-cB')).toBe(name !== 'ssrRender');
 
     cleanup();
   });
 
-  it('a branch swap runs the previous arm cleanups before the next arm tasks', async () => {
+  it('a branch swap runs the previous arm cleanups when the next arm commits', async () => {
     const Arm = component$((props: { name: string; log: { value: string } }) => {
       useTask$(({ cleanup }) => {
         props.log.value += `+${props.name}`;
@@ -380,7 +382,7 @@ describe(`${name}: task`, () => {
     await qwikLoader?.dispatch(button, 'click');
 
     const log = container.querySelector('b')!.textContent!;
-    expect(log.slice(log.lastIndexOf('-B'))).toBe('-B+A');
+    expect(log.slice(log.lastIndexOf('+A'))).toBe('+A-B');
 
     cleanup();
   });

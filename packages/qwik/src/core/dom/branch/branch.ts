@@ -21,7 +21,6 @@ import {
 } from '../../runtime/invoke-context';
 import {
   disposeOwner,
-  runOwnerCleanups,
   getOrCreateContextOwner,
   registerSubscriberToOwner,
   type Owner,
@@ -178,12 +177,8 @@ export class BranchSubscription implements BranchSubscriber {
             return;
           }
 
-          const previousOwner = this.branch.currentOwner;
-          // The outgoing arm cleans up before the incoming arm's tasks run
-          return maybeThen(
-            previousOwner === null ? undefined : runOwnerCleanups(previousOwner),
-            () => renderBranchArm(this, renderer, nextBranch)
-          );
+          // The shown arm stays live until the commit replaces it.
+          return renderBranchArm(this, renderer, nextBranch);
         });
       });
     });

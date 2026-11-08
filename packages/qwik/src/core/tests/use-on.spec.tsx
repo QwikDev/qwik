@@ -1,8 +1,20 @@
-import { $, component$, Slot, Catch, useTask$, useVisibleTask$ } from '@qwik.dev/core';
-import { useOn, useOnDocument, useOnWindow } from '@qwik.dev/core';
-import { useSignal } from '@qwik.dev/core';
-import { describe, expect, it } from 'vitest';
+import {
+  $,
+  component$,
+  Slot,
+  Catch,
+  useTask$,
+  useVisibleTask$,
+  useOn,
+  useOnDocument,
+  useOnWindow,
+  useSignal,
+  sync$,
+} from '@qwik.dev/core';
+import { describe, expect, it, onTestFinished } from 'vitest';
 import { testRenderer } from '../test-utils';
+import { triggerAll } from './test-hooks';
+import { trigger } from '@qwik.dev/core/testing';
 
 const useClick = (handler: any): void => {
   useOn('click', handler);
@@ -289,7 +301,7 @@ describe(`${name}: useOn`, () => {
   });
 
   // Structural useOn roots currently have no event carrier.
-  it.skip('moves the carrier when a structural root is replaced', async () => {
+  it('moves the carrier when a structural root is replaced', async () => {
     const App = component$(() => {
       const button = useSignal(true);
       useOn(
@@ -302,6 +314,7 @@ describe(`${name}: useOn`, () => {
     });
 
     const { container, cleanup, qwikLoader } = await render(App, { debug });
+    onTestFinished(cleanup);
     await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
     const link = container.querySelector('a')!;
     expect(link).toBeTruthy();
@@ -654,7 +667,7 @@ describe(`${name}: useOn`, () => {
     delete (globalThis as any).__useOnGlobal;
   });
   // Dynamic roots have no useOn carrier yet: the emitters never set `useOnRoot` (group 12, item 9).
-  it.skip('attaches to the element a promise resolves to', async () => {
+  it('attaches to the element a promise resolves to', async () => {
     const App = component$(() => {
       const label = useSignal('empty');
       useOn(
@@ -667,6 +680,7 @@ describe(`${name}: useOn`, () => {
     });
 
     const { container, cleanup, qwikLoader } = await render(App, { debug });
+    onTestFinished(cleanup);
     const div = container.querySelector('div')!;
     await qwikLoader?.dispatch(div, 'click');
     expect(div.textContent).toBe('run');
@@ -674,7 +688,7 @@ describe(`${name}: useOn`, () => {
     cleanup();
   });
 
-  it.skip('attaches to the element a signal holds', async () => {
+  it('attaches to the element a signal holds', async () => {
     const App = component$(() => {
       const label = useSignal('empty');
       const content = useSignal(<div>{label.value}</div>);
@@ -688,6 +702,7 @@ describe(`${name}: useOn`, () => {
     });
 
     const { container, cleanup, qwikLoader } = await render(App, { debug });
+    onTestFinished(cleanup);
     const div = container.querySelector('div')!;
     await qwikLoader?.dispatch(div, 'click');
     expect(div.textContent).toBe('run');
@@ -695,7 +710,7 @@ describe(`${name}: useOn`, () => {
     cleanup();
   });
 
-  it.skip('adds the event once across task-driven rerenders', async () => {
+  it('adds the event once across task-driven rerenders', async () => {
     const App = component$(() => {
       const count = useSignal(0);
       useOn(
@@ -713,6 +728,7 @@ describe(`${name}: useOn`, () => {
     });
 
     const { container, cleanup, qwikLoader } = await render(App, { debug });
+    onTestFinished(cleanup);
     await qwikLoader?.dispatch(container.querySelector('div')!, 'click');
     expect(container.querySelector('div')?.textContent).toBe('1');
 
@@ -778,7 +794,7 @@ describe(`${name}: useOn`, () => {
   });
 
   // Fired from a task mid-render, before the old carrier detaches (group 12, item 9).
-  it.skip('does not run a document event of a component removed in the same render', async () => {
+  it('does not run a document event of a component removed in the same render', async () => {
     (globalThis as any).__dispatchChild = () => {};
     (globalThis as any).__receivedChild = [];
     const Dispatch = component$(() => {
@@ -819,6 +835,7 @@ describe(`${name}: useOn`, () => {
     });
 
     const { container, document, cleanup, qwikLoader } = await render(App, { debug });
+    onTestFinished(cleanup);
     (globalThis as any).__dispatchChild = () => {
       // fire without awaiting: the removed carrier must not answer
       void qwikLoader?.dispatch(document.body, 'child');
@@ -864,6 +881,282 @@ describe(`${name}: useOn`, () => {
       expect(button.textContent).toBe('seen');
 
       cleanup();
+    });
+  });
+});
+
+describe(`${name}: events`, () => {
+  it('should render event value', async () => {
+    (globalThis as any).logs = [];
+    const Cmp = component$(() => {
+      return (
+        <button
+          onClick$={() => {
+            (globalThis as any).logs.push('clicked');
+          }}
+        ></button>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('');
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect((globalThis as any).logs).toEqual(['clicked']);
+    (globalThis as any).logs = undefined;
+  });
+  it('should render event falsy value', async () => {
+    const Cmp = component$(() => {
+      return <button onClick$={undefined}></button>;
+    });
+
+    const { container, cleanup } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('');
+  });
+  it('should render events array of falsy value', async () => {
+    const Cmp = component$(() => {
+      return <button onClick$={[undefined, undefined]}></button>;
+    });
+
+    const { container, cleanup } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('');
+  });
+
+  it('should not throw if event handler is array with undefined value', async () => {
+    const Cmp = component$(() => {
+      return <button onClick$={[undefined]}></button>;
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    await triggerAll(container, 'button', 'click');
+    await flush();
+
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('');
+  });
+
+  it('registers touchmove as passive', async () => {
+    const Cmp = component$(() => {
+      return (
+        // @qwik-disable-next-line preventdefault-passive-check
+        <div passive:touchmove preventdefault:touchmove onTouchMove$={() => {}}></div>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+
+    const ev = await trigger(container, 'div', 'touchmove');
+    await flush();
+
+    expect(ev!.defaultPrevented).toBe(false);
+  });
+
+  it('dispatches capture handlers before bubbling handlers', async () => {
+    (globalThis as any).logs = [];
+    const Cmp = component$(() => {
+      return (
+        <div
+          capture:click
+          onClick$={() => {
+            (globalThis as any).logs.push('parent capture');
+          }}
+        >
+          <button
+            onClick$={() => {
+              (globalThis as any).logs.push('button bubble');
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect((globalThis as any).logs).toEqual(['parent capture', 'button bubble']);
+    (globalThis as any).logs = undefined;
+  });
+
+  it('stops bubbling after capture stoppropagation', async () => {
+    (globalThis as any).logs = [];
+    const Cmp = component$(() => {
+      return (
+        <div
+          capture:click
+          stoppropagation:click
+          onClick$={() => {
+            (globalThis as any).logs.push('parent capture');
+          }}
+        >
+          <button
+            onClick$={() => {
+              (globalThis as any).logs.push('button bubble');
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect((globalThis as any).logs).toEqual(['parent capture']);
+    (globalThis as any).logs = undefined;
+  });
+
+  it('applies parent preventdefault when a child button click bubbles through an anchor', async () => {
+    (globalThis as any).logs = [];
+    const Cmp = component$(() => {
+      return (
+        <a
+          href="https://qwik.dev"
+          preventdefault:click
+          onClick$={() => {
+            (globalThis as any).logs.push('parent');
+          }}
+        >
+          <button
+            onClick$={async () => {
+              (globalThis as any).logs.push('child');
+            }}
+          ></button>
+        </a>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    const ev = await trigger(container, 'button', 'click');
+    await flush();
+
+    expect(ev?.defaultPrevented).toBe(true);
+    expect((globalThis as any).logs).toEqual(['child', 'parent']);
+    (globalThis as any).logs = undefined;
+  });
+});
+
+describe(`${name}: sync-qrl`, () => {
+  it('should prevent updates the checkbox', async () => {
+    const Cmp = component$(() => {
+      return (
+        <input
+          type="checkbox"
+          onClick$={[
+            sync$((e: Event, target: Element) => {
+              if (target.getAttribute('shouldPreventDefault')) {
+                e.preventDefault();
+              }
+              target.setAttribute('prevented', String(e.defaultPrevented));
+            }),
+          ]}
+        />
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    const input = container.querySelector('input')!;
+
+    await trigger(container, input, 'click');
+    await flush();
+    expect(input?.getAttribute('prevented')).toBe('false');
+
+    input?.setAttribute('shouldPreventDefault', 'true');
+    await trigger(container, input, 'click');
+    await flush();
+    expect(input?.getAttribute('prevented')).toBe('true');
+  });
+
+  it('should run parent sync qrls when a child async click bubbles', async () => {
+    const Cmp = component$(() => {
+      return (
+        <div
+          onClick$={[
+            sync$((_event: Event, target: Element) => {
+              target.setAttribute('parent-sync', 'true');
+            }),
+          ]}
+        >
+          <button
+            onClick$={async (_event: Event, target: Element) => {
+              target.setAttribute('child-async', 'true');
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    const button = container.querySelector('button')!;
+    const parent = container.querySelector('div')!;
+
+    await trigger(container, button, 'click');
+    await flush();
+
+    expect(button?.getAttribute('child-async')).toBe('true');
+    expect(parent?.getAttribute('parent-sync')).toBe('true');
+  });
+});
+
+const InlineComponentNoChildren = (props: { count: number }) => <>Count: {props.count}!</>;
+
+describe(`${name}: useOn`, () => {
+  it('should support preventdefault option when listener is not passive', async () => {
+    const Counter = component$(() => {
+      useOn(
+        'touchmove',
+        $(() => {}),
+        {
+          preventdefault: true,
+        }
+      );
+      return <div></div>;
+    });
+
+    const { container, cleanup, flush } = await render(Counter, { debug });
+    onTestFinished(cleanup);
+    const event = await trigger(container, 'div', 'touchmove');
+    await flush();
+    expect(event!.defaultPrevented).toBe(true);
+  });
+
+  describe('useOnDocument', () => {
+    it('should work with inline component not rendering children', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnDocument(
+          'click',
+          $(() => count.value++)
+        );
+        return <InlineComponentNoChildren count={count.value} />;
+      });
+
+      const { container, cleanup, flush } = await render(Counter, {
+        ...{ debug },
+        props: { initial: 123 },
+      });
+      onTestFinished(cleanup);
+      expect(container.textContent).toContain('Count: 123!');
+
+      await trigger(container, container, 'd:click');
+      await flush();
+      expect(container.textContent).toContain('Count: 124!');
     });
   });
 });

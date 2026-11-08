@@ -17,8 +17,11 @@ import { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import { IsQLoader, QLoaderId } from './request-path';
 import { getRouteLoaderValues } from '../../runtime/src/route-loaders';
 
-function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
-  const mockRequest = new Request(url);
+function createMockServerRequestEvent(
+  url = 'http://localhost:3000/test',
+  method = 'GET'
+): ServerRequestEvent {
+  const mockRequest = new Request(url, { method });
 
   return {
     mode: 'server',
@@ -552,6 +555,37 @@ describe('resolve-request-handler', () => {
           params: { id: '123' },
         });
         expect(requestEv.params).toEqual({ id: '123', view: 'details' });
+      } finally {
+        globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+      }
+    });
+
+    it('scopes ancestor loader params to their matched path', async () => {
+      const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+      globalThis.__STRICT_LOADERS__ = true;
+      try {
+        const layoutLoader = vi.fn(() => 'layout');
+        const route = pageRouteWithLoaders(makeLoader('layout-loader', layoutLoader));
+        Object.assign(route, {
+          $routeName$: '/[tenantSlug]/agents/[id]/',
+          $params$: { tenantSlug: 'acme', id: '7' },
+          $loaderPaths$: { 'layout-loader': '/acme/' },
+          $loaderParams$: { 'layout-loader': { tenantSlug: 'acme' } },
+        });
+        const handlers = resolveRequestHandlers(undefined, route, 'GET', true, exitRender());
+        const requestEv = createRequestEvent(
+          createMockServerRequestEvent('http://localhost:3000/acme/agents/7/'),
+          route,
+          handlers,
+          '/',
+          vi.fn()
+        );
+
+        await requestEv.next();
+
+        expect(layoutLoader).toHaveBeenCalledWith(
+          expect.objectContaining({ params: { tenantSlug: 'acme' } })
+        );
       } finally {
         globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
       }

@@ -1,5 +1,5 @@
-import { component$, useSignal, useStore } from '@qwik.dev/core';
-import { describe, expect, it } from 'vitest';
+import { component$, useSignal, useStore, Slot, useAsync$ } from '@qwik.dev/core';
+import { describe, expect, it, onTestFinished } from 'vitest';
 import { testRenderer } from '../test-utils';
 
 const debug = false;
@@ -138,5 +138,93 @@ describe(`${name}: promise`, () => {
     expect(button?.textContent).toBe('from a signal');
 
     cleanup();
+  });
+});
+
+describe(`${name}: render promise`, () => {
+  it('should render promise', async () => {
+    const TestCmp = component$(() => {
+      const promise = Promise.resolve('PROMISE_VALUE');
+      return <div>{promise}</div>;
+    });
+
+    const { container, cleanup } = await render(TestCmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('div')).toHaveLength(1);
+    expect(container.querySelector('div')!.textContent).toBe('PROMISE_VALUE');
+  });
+
+  it('should handle thrown Promise', async () => {
+    const Child = component$(() => {
+      const value = useAsync$(async () => 'child');
+      return value.value;
+    });
+    const Cmp = component$(() => {
+      return (
+        <div>
+          <Child />
+        </div>
+      );
+    });
+    const { container, cleanup } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelector('div')).toHaveProperty('textContent', 'child');
+  });
+
+  it('should not duplicate projected element children when component throws a promise on first render', async () => {
+    const Wrapper = component$(() => (
+      <form>
+        <Slot />
+      </form>
+    ));
+    const Title = component$(() => <header>title</header>);
+    const Footer = component$(() => <footer>footer</footer>);
+    const Cmp = component$(() => {
+      const store = useAsync$(async () => 'resolved');
+      return (
+        <Wrapper>
+          <Title />
+          <div class="fields">{store.value}</div>
+          <Footer />
+        </Wrapper>
+      );
+    });
+    const { container, cleanup } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('div.fields')).toHaveLength(1);
+    expect(container.querySelectorAll('header')).toHaveLength(1);
+    expect(container.querySelectorAll('footer')).toHaveLength(1);
+  });
+
+  it('should not duplicate named slot content when component throws a promise on first render', async () => {
+    const Wrapper = component$(() => (
+      <form>
+        <section>
+          <Slot name="top" />
+        </section>
+        <Slot />
+      </form>
+    ));
+    const Title = component$(() => <header>title</header>);
+    const Footer = component$(() => <footer>footer</footer>);
+    const Cmp = component$(() => {
+      const store = useAsync$(async () => 'resolved');
+      return (
+        <Wrapper>
+          <div q:slot="top" class="banner">
+            banner
+          </div>
+          <Title />
+          <div class="fields">{store.value}</div>
+          <Footer />
+        </Wrapper>
+      );
+    });
+    const { container, cleanup } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('div.banner')).toHaveLength(1);
+    expect(container.querySelectorAll('div.fields')).toHaveLength(1);
+    expect(container.querySelectorAll('header')).toHaveLength(1);
+    expect(container.querySelectorAll('footer')).toHaveLength(1);
   });
 });

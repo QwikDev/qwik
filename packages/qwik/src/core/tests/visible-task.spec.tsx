@@ -5,12 +5,21 @@ import {
   useTask$,
   useVisibleTask$,
   type Signal,
+  createContextId,
+  Slot,
+  useComputed$,
+  useContext,
+  useContextProvider,
 } from '@qwik.dev/core';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, afterEach, onTestFinished, vi } from 'vitest';
 import { testRenderer } from '../test-utils';
+import { trigger } from '@qwik.dev/core/testing';
+import { triggerAll, useDelay } from './test-hooks';
 
 const { name, render } = testRenderer;
+
 const debug = false;
+
 const isResume = name === 'ssrRender';
 
 describe(`${name}: visible task`, () => {
@@ -612,5 +621,420 @@ describe(`${name}: visible task`, () => {
     cleanup();
     delete (globalThis as any).__childRenders;
     delete (globalThis as any).__childInstances;
+  });
+});
+
+describe(`${name}: useVisibleTask`, () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  describe(render.name + ': track', () => {});
+
+  describe(render.name + ': queue', () => {});
+
+  describe(render.name + ': cleanup', () => {
+    it('should run visible task once when invalidated by a signal and a ref it mounts', async () => {
+      (globalThis as any).log = [] as string[];
+      const Cmp = component$(() => {
+        const show = useSignal(false);
+        const el = useSignal<HTMLElement>();
+        useVisibleTask$(() => {
+          show.value;
+          el.value;
+          (globalThis as any).log.push(`visible task: ${show.value} ${!!el.value}`);
+          return () => (globalThis as any).log.push('cleanup');
+        });
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}>toggle</button>
+            {show.value && <div ref={el}>shown</div>}
+          </>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Cmp, { debug });
+      onTestFinished(cleanup);
+      await triggerAll(container, 'button', 'qvisible');
+      await flush();
+      expect((globalThis as any).log).toEqual(['visible task: false false']);
+      (globalThis as any).log = [];
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect((globalThis as any).log).toEqual(['cleanup', 'visible task: true true']);
+    });
+
+    it('#9203 - should run visible task cleanups for nested components', async () => {
+      (globalThis as any).log = [] as string[];
+      const Grandchild = component$(() => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('Grandchild mounted');
+          cleanup(() => (globalThis as any).log.push('Grandchild cleanup'));
+        });
+        return <p id="grandchild">Grandchild</p>;
+      });
+      const Child = component$(() => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('Child mounted');
+          cleanup(() => (globalThis as any).log.push('Child cleanup'));
+        });
+        return (
+          <div id="child">
+            <p>Child</p>
+            <Grandchild />
+          </div>
+        );
+      });
+      const Parent = component$(() => {
+        const show = useSignal(true);
+        return (
+          <main>
+            <button
+              onClick$={() => {
+                show.value = false;
+              }}
+            >
+              Remove
+            </button>
+            {show.value && <Child />}
+          </main>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Parent, { debug });
+      onTestFinished(cleanup);
+      await trigger(container, '#child', 'qvisible');
+      await flush();
+      await trigger(container, '#grandchild', 'qvisible');
+      await flush();
+      expect((globalThis as any).log).toEqual(['Child mounted', 'Grandchild mounted']);
+
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('#child').length).toBe(0);
+      expect((globalThis as any).log.slice(0, 2)).toEqual(['Child mounted', 'Grandchild mounted']);
+      expect((globalThis as any).log.slice(2).sort()).toEqual([
+        'Child cleanup',
+        'Grandchild cleanup',
+      ]);
+    });
+  });
+
+  describe('regression', () => {
+    it('updates child content across a child-to-array branch', async () => {
+      (globalThis as any).childRenderCounter = 0;
+      (globalThis as any).childInstanceCounter = 0;
+      const Child = component$<{ text: string }>((props) => {
+        (globalThis as any).childRenderCounter++;
+        useTask$(() => {
+          (globalThis as any).childInstanceCounter++;
+        });
+        return <span>{props.text}</span>;
+      });
+
+      const Cmp = component$(() => {
+        const isLoaded = useSignal(false);
+        useVisibleTask$(() => {
+          isLoaded.value = true;
+        });
+        const text = useComputed$(() => `v${isLoaded.value}`);
+        const child = <Child text={text.value} />;
+        return isLoaded.value ? [child] : child;
+      });
+
+      const { container, cleanup, flush } = await render(Cmp, { debug });
+      onTestFinished(cleanup);
+      await trigger(container, container, 'd:qinit');
+      await triggerAll(container, '[q-e\\:qvisible]', 'qvisible');
+      await flush();
+
+      expect(container.querySelector('span')?.textContent).toBe('vtrue');
+      expect((globalThis as any).childRenderCounter).toBe(2);
+      expect((globalThis as any).childInstanceCounter).toBe(2);
+      expect(container.querySelectorAll('span')).toHaveLength(1);
+      (globalThis as any).childRenderCounter = undefined;
+      (globalThis as any).childInstanceCounter = undefined;
+    });
+
+    it('should keep every headless component instance when the list is reordered', async () => {
+      (globalThis as any).childRenderCounter = 0;
+      (globalThis as any).childInstanceCounter = 0;
+      const Child = component$<{ label: string }>((props) => {
+        (globalThis as any).childRenderCounter++;
+        useTask$(() => {
+          (globalThis as any).childInstanceCounter++;
+        });
+        return <span>{props.label}</span>;
+      });
+
+      const Headless = component$<{ name: string; index: number }>((props) => {
+        useVisibleTask$(() => {});
+        return <Child label={`${props.name}${props.index}`} />;
+      });
+
+      const Cmp = component$(() => {
+        const names = useSignal(['a', 'b', 'c']);
+        return (
+          <div>
+            <button onClick$={() => (names.value = [...names.value].reverse())}>reverse</button>
+            {names.value.map((name, index) => (
+              <Headless key={name} name={name} index={index} />
+            ))}
+          </div>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Cmp, { debug });
+      onTestFinished(cleanup);
+      await trigger(container, container, 'd:qinit');
+      await triggerAll(container, '[q-e\\:qvisible]', 'qvisible');
+      await flush();
+      const spansBeforeReorder = Array.from(container.querySelectorAll('span'));
+      expect(spansBeforeReorder.map((span) => span.textContent)).toEqual(['a0', 'b1', 'c2']);
+      expect((globalThis as any).childRenderCounter).toBe(3);
+      expect((globalThis as any).childInstanceCounter).toBe(3);
+
+      await triggerAll(container, 'button', 'click');
+      await flush();
+
+      const spansAfterReorder = Array.from(container.querySelectorAll('span'));
+      expect(spansAfterReorder.map((span) => span.textContent)).toEqual(['c0', 'b1', 'a2']);
+      expect(spansAfterReorder[0]).toBe(spansBeforeReorder[2]);
+      expect(spansAfterReorder[1]).toBe(spansBeforeReorder[1]);
+      expect(spansAfterReorder[2]).toBe(spansBeforeReorder[0]);
+      expect((globalThis as any).childRenderCounter).toBe(3);
+      expect((globalThis as any).childInstanceCounter).toBe(3);
+      // one placeholder per instance, they do not share or steal each other's
+
+      (globalThis as any).childRenderCounter = undefined;
+      (globalThis as any).childInstanceCounter = undefined;
+    });
+
+    it('#1717 - custom hooks should work', async () => {
+      const Issue1717 = component$(() => {
+        const val1 = useDelay('valueA');
+        const val2 = useDelay('valueB');
+        return (
+          <div>
+            <p>{val1.value}</p>
+            <p>{val2.value}</p>
+          </div>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Issue1717, { debug });
+      onTestFinished(cleanup);
+
+      await triggerAll(container, 'div', 'qvisible');
+      await flush();
+
+      expect(container.querySelectorAll('div')).toHaveLength(1);
+      expect(container.querySelector('div')!.textContent).toBe('valueAvalueB');
+      expect(container.querySelectorAll('p')).toHaveLength(2);
+      expect(container.querySelector('p')!.textContent).toBe('valueA');
+      expect(container.querySelectorAll('p')[1]!.textContent).toBe('valueB');
+    });
+
+    it('#4432 - should cleanup child visible task with correct value', async () => {
+      const ContextIssue4432 = createContextId<{ url: URL; logs: string }>('issue-4432');
+
+      const Issue4432Child = component$(() => {
+        const state = useContext(ContextIssue4432);
+
+        const pathname = useComputed$(() => state.url.pathname);
+
+        useVisibleTask$(({ cleanup }) => {
+          pathname.value;
+
+          // This should only run on page load for path '/'
+          state.logs += `VisibleTask ChildA ${pathname.value}\n`;
+
+          // This should only run when leaving the page
+          cleanup(() => {
+            state.logs += `Cleanup ChildA ${pathname.value}\n`;
+          });
+        });
+
+        return <p>Child A</p>;
+      });
+
+      const Issue4432 = component$(() => {
+        const loc = useStore({
+          url: new URL('http://localhost:3000/'),
+          logs: '',
+        });
+        useContextProvider(ContextIssue4432, loc);
+
+        return (
+          <>
+            <button
+              onClick$={() => {
+                loc.url = new URL('http://localhost:3000/other');
+              }}
+            >
+              Change
+            </button>
+            <pre>{loc.logs}</pre>
+            {loc.url.pathname === '/' && <Issue4432Child />}
+          </>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Issue4432, { debug });
+      onTestFinished(cleanup);
+
+      await triggerAll(container, 'p', 'qvisible');
+      await flush();
+
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Change');
+      expect(container.querySelectorAll('pre')).toHaveLength(1);
+      expect(container.querySelector('pre')!.textContent).toBe('VisibleTask ChildA /\n');
+      expect(container.querySelectorAll('p')).toHaveLength(1);
+      expect(container.querySelector('p')!.textContent).toBe('Child A');
+
+      await triggerAll(container, 'button', 'click');
+      await flush();
+
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Change');
+      expect(container.querySelectorAll('pre')).toHaveLength(1);
+      expect(container.querySelector('pre')!.textContent).toBe(
+        'VisibleTask ChildA /\nCleanup ChildA /other\n'
+      );
+      expect(container.querySelectorAll('p')).toHaveLength(0);
+    });
+
+    it('#8309 -should run visible cleanup on unmount', async () => {
+      (globalThis as any).log = [] as string[];
+      const Foo = component$(() => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('entry /foo');
+          cleanup(() => {
+            (globalThis as any).log.push('cleanup /foo');
+          });
+          return () => {
+            (globalThis as any).log.push('return /foo');
+          };
+        });
+
+        return (
+          <div>
+            <p>You are in /foo</p>
+          </div>
+        );
+      });
+
+      const Layout = component$(() => {
+        return <Slot />;
+      });
+
+      const Main = component$(() => {
+        useVisibleTask$(({ cleanup }) => {
+          (globalThis as any).log.push('entry /');
+          cleanup(() => {
+            (globalThis as any).log.push('cleanup /');
+          });
+          return () => {
+            (globalThis as any).log.push('return /');
+          };
+        });
+
+        return (
+          <div>
+            <p>You are in /</p>
+          </div>
+        );
+      });
+
+      const Cmp = component$(() => {
+        const toggle = useSignal(true);
+        return (
+          <div>
+            <h1>Hello from Qwik!</h1>
+            <button
+              onClick$={() => {
+                toggle.value = !toggle.value;
+              }}
+            >
+              toggle
+            </button>
+            {toggle.value ? (
+              <Main />
+            ) : (
+              <Layout>
+                <Foo />
+              </Layout>
+            )}
+          </div>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Cmp, { debug });
+      onTestFinished(cleanup);
+      await triggerAll(container, 'div', 'qvisible');
+      await flush();
+      expect((globalThis as any).log).toEqual(['entry /']);
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      await triggerAll(container, 'div', 'qvisible');
+      await flush();
+      expect((globalThis as any).log).toEqual(['entry /', 'cleanup /', 'return /', 'entry /foo']);
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      await triggerAll(container, 'div', 'qvisible');
+      await flush();
+      expect((globalThis as any).log).toEqual([
+        'entry /',
+        'cleanup /',
+        'return /',
+        'entry /foo',
+        'cleanup /foo',
+        'return /foo',
+        'entry /',
+      ]);
+    });
+  });
+  it('should await returned async cleanup before rerun', async () => {
+    (globalThis as any).log = [] as string[];
+    const Counter = component$(() => {
+      const count = useSignal(0);
+      useVisibleTask$(() => {
+        const current = count.value;
+        (globalThis as any).log.push(`task:${current}`);
+        return async () => {
+          (globalThis as any).log.push(`cleanup:${current}:start`);
+          if (current === 0) {
+            await new Promise<void>((resolve) => {
+              (globalThis as any).__releaseVisibleCleanup = resolve;
+            });
+          }
+          (globalThis as any).log.push(`cleanup:${current}:end`);
+        };
+      });
+      return <button onClick$={() => count.value++}>{count.value}</button>;
+    });
+    const { container, cleanup, flush } = await render(Counter, { debug });
+    onTestFinished(cleanup);
+    await triggerAll(container, 'button', 'qvisible');
+    expect((globalThis as any).log).toEqual(['task:0']);
+    const clicked = triggerAll(container, 'button', 'click');
+    await vi.waitFor(() =>
+      expect((globalThis as any).__releaseVisibleCleanup).toBeTypeOf('function')
+    );
+    expect((globalThis as any).log).toEqual(['task:0', 'cleanup:0:start']);
+    (globalThis as any).__releaseVisibleCleanup();
+    delete (globalThis as any).__releaseVisibleCleanup;
+    await clicked;
+    await flush();
+    await vi.waitFor(() => {
+      expect((globalThis as any).log).toEqual([
+        'task:0',
+        'cleanup:0:start',
+        'cleanup:0:end',
+        'task:1',
+      ]);
+    });
   });
 });

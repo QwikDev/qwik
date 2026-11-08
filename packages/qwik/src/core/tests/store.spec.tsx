@@ -1,9 +1,22 @@
-import { describe, expect, it } from 'vitest';
-import { forceStoreEffects, unwrapStore, useStore } from '@qwik.dev/core';
+import { describe, expect, it, onTestFinished } from 'vitest';
+import {
+  forceStoreEffects,
+  unwrapStore,
+  useStore,
+  component$,
+  useComputed$,
+  untrack,
+  useTask$,
+  useVisibleTask$,
+  type EventHandler,
+  type PropsOf,
+} from '@qwik.dev/core';
 import { testRenderer } from '../test-utils';
 import { useComputed, useSignal } from '../reactive/public-api';
 import { getStoreSources } from '../reactive/store';
 import { createOwner, runWithOwner } from '../runtime/owner';
+import { triggerAll } from './test-hooks';
+import { trigger } from '@qwik.dev/core/testing';
 
 const debug = false;
 
@@ -426,3 +439,789 @@ describe(`${name}: stores`, () => {
 function createOwned<T>(run: () => T): T {
   return runWithOwner(createOwner(null), run);
 }
+
+describe(`${name}: useStore`, () => {
+  it('should render value', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ items: [{ num: 0 }] });
+      return (
+        <>
+          {store.items.map((item, key) => (
+            <div key={key}>{item.num}</div>
+          ))}
+        </>
+      );
+    });
+
+    const { container, cleanup } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('div')).toHaveLength(1);
+    expect(container.querySelector('div')!.textContent).toBe('0');
+  });
+  it('should update value', async () => {
+    const Counter = component$(() => {
+      const count = useStore({ count: 123 });
+      return <button onClick$={() => count.count++}>Count: {count.count}!</button>;
+    });
+
+    const { container, cleanup, flush } = await render(Counter, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Count: 123!');
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Count: 124!');
+  });
+  it('should update deep value', async () => {
+    const Counter = component$(() => {
+      const count = useStore({ obj: { count: 123 } });
+      return <button onClick$={() => count.obj.count++}>Count: {count.obj.count}!</button>;
+    });
+
+    const { container, cleanup, flush } = await render(Counter, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Count: 123!');
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Count: 124!');
+  });
+
+  it('should update array value', async () => {
+    const Counter = component$(() => {
+      const count = useStore([123]);
+      return <button onClick$={() => count[0]++}>Count: {count[0]}!</button>;
+    });
+
+    const { container, cleanup, flush } = await render(Counter, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Count: 123!');
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Count: 124!');
+  });
+
+  it('should rerender child', async () => {
+    (globalThis as any).__mainTestLog = [];
+    const Display = component$((props: { dValue: number }) => {
+      (globalThis as any).__mainTestLog.push('Display');
+      return <span>Count: {props.dValue}!</span>;
+    });
+    const Counter = component$((props: { initial: number }) => {
+      (globalThis as any).__mainTestLog.push('Counter');
+      const count = useStore({ obj: { value: props.initial } });
+      return (
+        <button onClick$={() => count.obj.value++}>
+          <Display dValue={count.obj.value} />
+        </button>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Counter, {
+      ...{ debug },
+      props: { initial: 123 },
+    });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Count: 123!');
+    expect(container.querySelectorAll('span')).toHaveLength(1);
+    expect(container.querySelector('span')!.textContent).toBe('Count: 123!');
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect((globalThis as any).__mainTestLog).toEqual(['Counter', 'Display']);
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Count: 124!');
+    expect(container.querySelectorAll('span')).toHaveLength(1);
+    expect(container.querySelector('span')!.textContent).toBe('Count: 124!');
+  });
+  describe('derived', () => {
+    it('should update value directly in DOM', async () => {
+      (globalThis as any).__mainTestLog = [];
+      const Counter = component$((props: { initial: number }) => {
+        const count = useStore({ value: props.initial });
+        (globalThis as any).__mainTestLog.push('Counter: ' + untrack(() => count.value));
+        return <button onClick$={() => count.value++}>Count: {count.value}!</button>;
+      });
+
+      const { container, cleanup, flush } = await render(Counter, {
+        ...{
+          debug,
+          // oldSSR: true,
+        },
+        props: { initial: 123 },
+      });
+      onTestFinished(cleanup);
+      expect((globalThis as any).__mainTestLog).toEqual(['Counter: 123']);
+      (globalThis as any).__mainTestLog.length = 0;
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Count: 123!');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect((globalThis as any).__mainTestLog).toEqual([]);
+      (globalThis as any).__mainTestLog.length = 0;
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Count: 124!');
+    });
+    it('should update value when store, update and render are separated', async () => {
+      (globalThis as any).renderLog = [];
+      const Display = component$((props: { displayValue: number }) => {
+        (globalThis as any).renderLog.push('Display');
+        return <>Count: {props.displayValue}!</>;
+      });
+      const Incrementor = component$((props: { countSignal: { value: number } }) => {
+        (globalThis as any).renderLog.push('Incrementor');
+        return (
+          <button
+            onClick$={() => {
+              const signal = props.countSignal;
+              signal.value++;
+            }}
+          >
+            +1
+          </button>
+        );
+      });
+      const Counter = component$(() => {
+        (globalThis as any).renderLog.push('Counter');
+        const count = useStore({ value: 123 });
+        return (
+          <>
+            <Display displayValue={count.value} />
+            <Incrementor countSignal={count} />
+          </>
+        );
+      });
+      const { container, cleanup, flush } = await render(Counter, { debug });
+      onTestFinished(cleanup);
+      expect((globalThis as any).renderLog).toEqual(['Counter', 'Display', 'Incrementor']);
+      (globalThis as any).renderLog.length = 0;
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect((globalThis as any).renderLog).toEqual([]);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('+1');
+    });
+
+    it('should rerender inner component with store as a prop', async () => {
+      interface InnerButtonProps {
+        text: string;
+        isActive: boolean;
+        onClick$: PropsOf<'button'>['onClick$'];
+      }
+      const InnerButton = component$((props: InnerButtonProps) => {
+        return (
+          <button
+            key={props.text}
+            class={{ 'active-tab': props.isActive, 'repl-tab-button': true }}
+            onClick$={props.onClick$}
+          >
+            {props.text}
+          </button>
+        );
+      });
+
+      const InnerButtonWrapper = component$((props: { data: any }) => {
+        return (
+          <InnerButton
+            text="Options"
+            isActive={props.data.selectedOutputDetail === 'options'}
+            onClick$={() => {
+              props.data.selectedOutputDetail = 'options';
+            }}
+          />
+        );
+      });
+
+      const Parent = component$(() => {
+        const store = useStore({
+          selectedOutputDetail: 'console',
+        });
+
+        return <InnerButtonWrapper data={store} />;
+      });
+
+      const { container, cleanup, flush } = await render(Parent, { debug });
+      onTestFinished(cleanup);
+
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Options');
+      expect(container.querySelector('button')!.getAttribute('class')?.trim() ?? '').toBe(
+        'repl-tab-button'
+      );
+
+      await triggerAll(container, 'button', 'click');
+      await flush();
+
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Options');
+      expect(container.querySelector('button')!.getAttribute('class')?.trim() ?? '').toBe(
+        'active-tab repl-tab-button'
+      );
+    });
+
+    it('should rerender inner inline component with destructured props', async () => {
+      interface InnerButtonProps {
+        text: string;
+        isActive: boolean;
+        onClick$: EventHandler<MouseEvent, HTMLButtonElement>;
+      }
+
+      const Parent = component$(() => {
+        const store = useStore({
+          selectedOutputDetail: 'console',
+        });
+
+        const InnerButton = (props: InnerButtonProps) => {
+          return (
+            <button
+              key={props.text}
+              class={{ 'active-tab': props.isActive, 'repl-tab-button': true }}
+              onClick$={props.onClick$}
+            >
+              {props.text}
+            </button>
+          );
+        };
+
+        const InnerButtonWrapper = ({ data }: { data: any }) => {
+          return (
+            <InnerButton
+              text="Options"
+              isActive={data.selectedOutputDetail === 'options'}
+              onClick$={() => {
+                data.selectedOutputDetail = 'options';
+              }}
+            />
+          );
+        };
+
+        return <InnerButtonWrapper data={store} />;
+      });
+
+      const { container, cleanup, flush } = await render(Parent, { debug });
+      onTestFinished(cleanup);
+
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Options');
+      expect(container.querySelector('button')!.getAttribute('class')?.trim() ?? '').toBe(
+        'repl-tab-button'
+      );
+
+      await triggerAll(container, 'button', 'click');
+      await flush();
+
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Options');
+      expect(container.querySelector('button')!.getAttribute('class')?.trim() ?? '').toBe(
+        'active-tab repl-tab-button'
+      );
+    });
+  });
+
+  describe('SerializationConstant at the start', () => {
+    it('should set the value with SerializationConstant at the start for initial empty value', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: '' });
+        return <button onClick$={() => (data.logs = '\n test')}>Data: {data.logs}!</button>;
+      });
+
+      const { container, cleanup, flush } = await render(DataCmp, { debug });
+      onTestFinished(cleanup);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Data: !');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Data: \n test!');
+    });
+
+    it('should set the value with SerializationConstant at the start', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: '\n abcd' });
+        return <button onClick$={() => (data.logs = '\n test')}>Data: {data.logs}!</button>;
+      });
+
+      const { container, cleanup, flush } = await render(DataCmp, { debug });
+      onTestFinished(cleanup);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Data: \n abcd!');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Data: \n test!');
+    });
+
+    it('should update the value with SerializationConstant at the start', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: '\n abcd' });
+        return <button onClick$={() => (data.logs += '\n test')}>Data: {data.logs}!</button>;
+      });
+
+      const { container, cleanup, flush } = await render(DataCmp, { debug });
+      onTestFinished(cleanup);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Data: \n abcd!');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Data: \n abcd\n test!');
+    });
+
+    it('should push the value with SerializationConstant at the start to array', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: ['\n abcd'] });
+        return (
+          <button onClick$={() => data.logs.push('\n test')}>
+            Data:
+            {data.logs.map((d) => (
+              <span>{d}</span>
+            ))}
+            !
+          </button>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(DataCmp, { debug });
+      onTestFinished(cleanup);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Data:\n abcd!');
+      expect(container.querySelectorAll('span')).toHaveLength(1);
+      expect(container.querySelector('span')!.textContent).toBe('\n abcd');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Data:\n abcd\n test!');
+      expect(container.querySelectorAll('span')).toHaveLength(2);
+      expect(container.querySelector('span')!.textContent).toBe('\n abcd');
+      expect(container.querySelectorAll('span')[1]!.textContent).toBe('\n test');
+    });
+  });
+
+  it('should deep watch store', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({
+        nested: {
+          fields: { are: 'also tracked' },
+        },
+        list: ['Item 1'],
+      });
+
+      return (
+        <>
+          <p>{store.nested.fields.are}</p>
+          <button
+            id="tracked"
+            onClick$={() => {
+              // Even though we are mutating a nested object, this will trigger a re-render
+              store.nested.fields.are = 'tracked';
+            }}
+          ></button>
+          <button
+            id="add-item"
+            onClick$={() => {
+              // Because store is deep watched, this will trigger a re-render
+              store.list.push(`Item ${store.list.length}`);
+            }}
+          ></button>
+          <ul>
+            {store.list.map((item, key) => (
+              <li key={key}>{item}</li>
+            ))}
+          </ul>
+        </>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('p')).toHaveLength(1);
+    expect(container.querySelector('p')!.textContent).toBe('also tracked');
+    expect(container.querySelectorAll('button')).toHaveLength(2);
+    expect(container.querySelector('button')!.textContent).toBe('');
+    expect(container.querySelector('button')!.getAttribute('id')).toBe('tracked');
+    expect(container.querySelectorAll('button')[1]!.textContent).toBe('');
+    expect(container.querySelectorAll('button')[1]!.getAttribute('id')).toBe('add-item');
+    expect(container.querySelectorAll('ul')).toHaveLength(1);
+    expect(container.querySelector('ul')!.textContent).toBe('Item 1');
+    expect(container.querySelectorAll('li')).toHaveLength(1);
+    expect(container.querySelector('li')!.textContent).toBe('Item 1');
+    await trigger(container, 'button#add-item', 'click');
+    await flush();
+    await trigger(container, 'button#add-item', 'click');
+    await flush();
+    expect(container.querySelectorAll('p')).toHaveLength(1);
+    expect(container.querySelector('p')!.textContent).toBe('also tracked');
+    expect(container.querySelectorAll('button')).toHaveLength(2);
+    expect(container.querySelector('button')!.textContent).toBe('');
+    expect(container.querySelector('button')!.getAttribute('id')).toBe('tracked');
+    expect(container.querySelectorAll('button')[1]!.textContent).toBe('');
+    expect(container.querySelectorAll('button')[1]!.getAttribute('id')).toBe('add-item');
+    expect(container.querySelectorAll('ul')).toHaveLength(1);
+    expect(container.querySelector('ul')!.textContent).toBe('Item 1Item 1Item 2');
+    expect(container.querySelectorAll('li')).toHaveLength(3);
+    expect(container.querySelector('li')!.textContent).toBe('Item 1');
+    expect(container.querySelectorAll('li')[1]!.textContent).toBe('Item 1');
+    expect(container.querySelectorAll('li')[2]!.textContent).toBe('Item 2');
+  });
+
+  it('should render value via JSON.stringify', async () => {
+    const Stringify = component$<{
+      data: any;
+      style?: any;
+    }>((props) => {
+      return <>{JSON.stringify(props.data)}</>;
+    });
+
+    const Cmp = component$(() => {
+      const group = useStore({
+        controls: {
+          ctrl: {
+            value: '',
+          },
+        },
+      });
+
+      return (
+        <button onClick$={() => (group.controls.ctrl.value = 'test')}>
+          <Stringify data={group} />
+          <Stringify data={group.controls} />
+          <Stringify data={group.controls.ctrl} />
+          <Stringify data={group.controls.ctrl.value} />
+        </button>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe(
+      '{"controls":{"ctrl":{"value":""}}}{"ctrl":{"value":""}}{"value":""}""'
+    );
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe(
+      '{"controls":{"ctrl":{"value":"test"}}}{"ctrl":{"value":"test"}}{"value":"test"}"test"'
+    );
+  });
+
+  it('should work with frozen store', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ items: [{ num: 0 }] });
+      Object.freeze(store);
+      return (
+        <>
+          {store.items.map((item, key) => (
+            <div key={key}>{item.num}</div>
+          ))}
+        </>
+      );
+    });
+
+    const { container, cleanup } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('div')).toHaveLength(1);
+    expect(container.querySelector('div')!.textContent).toBe('0');
+  });
+
+  it('should deserialize store without effects', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ counter: 0 });
+      useVisibleTask$(() => {
+        store.counter++;
+      });
+      return <div></div>;
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    await triggerAll(container, 'div', 'qvisible');
+    await flush();
+    expect(container.querySelectorAll('div')).toHaveLength(1);
+    expect(container.querySelector('div')!.textContent).toBe('');
+  });
+
+  it('should assign a store property to undefined', async () => {
+    (global as any).logs = [] as string[];
+
+    const Cmp = component$(() => {
+      const store = useStore<Record<string, any>>({});
+      useTask$(() => {
+        store.someId;
+        (global as any).logs.push('someId' in store);
+      });
+
+      return <button onClick$={() => (store['someId'] = undefined)}></button>;
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect((global as any).logs).toEqual([false, true]);
+  });
+
+  it('should trigger effects on property delete', async () => {
+    const Cmp = component$(() => {
+      const store = useStore<{ delete?: string }>({ delete: 'test' });
+      return <div onClick$={() => delete store.delete}>{store.delete}</div>;
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('div')).toHaveLength(1);
+    expect(container.querySelector('div')!.textContent).toBe('test');
+    await triggerAll(container, 'div', 'click');
+    await flush();
+    expect(container.querySelectorAll('div')).toHaveLength(1);
+    expect(container.querySelector('div')!.textContent).toBe('');
+  });
+
+  it('should update deep nested array of arrays inside object with inner component', async () => {
+    const Item = component$(({ item }: any) => {
+      return (
+        <div id={item.id} onClick$={() => (item.completed = true)}>
+          {item.title}
+        </div>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const todos = useStore(
+        {
+          filter: 'all',
+          items: [
+            { completed: false, title: 'Read Qwik docs', id: '0' },
+            { completed: false, title: 'Build HelloWorld', id: '1' },
+            { completed: false, title: 'Profit', id: '2' },
+          ],
+        },
+        { deep: true }
+      );
+      const remaining = useComputed$(
+        () => todos.items.filter((item) => item.completed === false).length
+      );
+
+      return (
+        <div>
+          {remaining.value}
+          {todos.items.map((item, key) => (
+            <Item key={key} item={item} />
+          ))}
+        </div>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('div')).toHaveLength(4);
+    expect(container.querySelector('div')!.textContent).toBe(
+      '3Read Qwik docsBuild HelloWorldProfit'
+    );
+    expect(container.querySelector('div')!.getAttribute('id')).toBe(null);
+    expect(container.querySelectorAll('div')[1]!.textContent).toBe('Read Qwik docs');
+    expect(container.querySelectorAll('div')[1]!.getAttribute('id')).toBe('0');
+    expect(container.querySelectorAll('div')[2]!.textContent).toBe('Build HelloWorld');
+    expect(container.querySelectorAll('div')[2]!.getAttribute('id')).toBe('1');
+    expect(container.querySelectorAll('div')[3]!.textContent).toBe('Profit');
+    expect(container.querySelectorAll('div')[3]!.getAttribute('id')).toBe('2');
+
+    await trigger(container, 'div[id="0"]', 'click');
+    await flush();
+    expect(container.querySelectorAll('div')).toHaveLength(4);
+    expect(container.querySelector('div')!.textContent).toBe(
+      '2Read Qwik docsBuild HelloWorldProfit'
+    );
+    expect(container.querySelector('div')!.getAttribute('id')).toBe(null);
+    expect(container.querySelectorAll('div')[1]!.textContent).toBe('Read Qwik docs');
+    expect(container.querySelectorAll('div')[1]!.getAttribute('id')).toBe('0');
+    expect(container.querySelectorAll('div')[2]!.textContent).toBe('Build HelloWorld');
+    expect(container.querySelectorAll('div')[2]!.getAttribute('id')).toBe('1');
+    expect(container.querySelectorAll('div')[3]!.textContent).toBe('Profit');
+    expect(container.querySelectorAll('div')[3]!.getAttribute('id')).toBe('2');
+  });
+  it('should update deep nested array of arrays inside object', async () => {
+    const Cmp = component$(() => {
+      const todos = useStore(
+        {
+          filter: 'all',
+          items: [
+            { completed: false, title: 'Read Qwik docs', id: '0' },
+            { completed: false, title: 'Build HelloWorld', id: '1' },
+            { completed: false, title: 'Profit', id: '2' },
+          ],
+        },
+        { deep: true }
+      );
+      const remaining = useComputed$(
+        () => todos.items.filter((item) => item.completed === false).length
+      );
+
+      return (
+        <div>
+          {remaining.value}
+          <button onClick$={() => (todos.items[0].completed = true)}></button>
+        </div>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('div')).toHaveLength(1);
+    expect(container.querySelector('div')!.textContent).toBe('3');
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('');
+
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect(container.querySelectorAll('div')).toHaveLength(1);
+    expect(container.querySelector('div')!.textContent).toBe('2');
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('');
+  });
+
+  describe('regression', () => {
+    it('#5597 - should update value', async () => {
+      (globalThis as any).clicks = 0;
+      const Issue5597 = component$(() => {
+        const count = useSignal(0);
+        const store = useStore({ items: [{ num: 0 }] });
+        return (
+          <>
+            <button
+              onClick$={() => {
+                count.value++;
+                store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
+                (globalThis as any).clicks++;
+              }}
+            >
+              Count: {count.value}!
+            </button>
+            {store.items.map((item, key) => (
+              <div key={key}>{item.num}</div>
+            ))}
+          </>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Issue5597, { debug });
+      onTestFinished(cleanup);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe(
+        'Count: ' + String((globalThis as any).clicks) + '!'
+      );
+      expect(container.querySelectorAll('div')).toHaveLength(1);
+      expect(container.querySelector('div')!.textContent).toBe(String((globalThis as any).clicks));
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe(
+        'Count: ' + String((globalThis as any).clicks) + '!'
+      );
+      expect(container.querySelectorAll('div')).toHaveLength(1);
+      expect(container.querySelector('div')!.textContent).toBe(String((globalThis as any).clicks));
+    });
+
+    it('#5017 - should update child nodes for direct array', async () => {
+      const Child = component$<{ columns: string }>(({ columns }) => {
+        return <div>Child: {columns}</div>;
+      });
+
+      const Parent = component$(() => {
+        const state = useStore([{ columns: 'INITIAL' }]);
+        return (
+          <>
+            <button onClick$={() => (state[0] = { columns: 'UPDATE' })}>update!</button>
+            <Child columns={state[0].columns} />
+            {state.map((block, idx) => {
+              return <Child columns={block.columns} key={idx} />;
+            })}
+          </>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Parent, { debug });
+      onTestFinished(cleanup);
+
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('update!');
+      expect(container.querySelectorAll('div')).toHaveLength(2);
+      expect(container.querySelector('div')!.textContent).toBe('Child: INITIAL');
+      expect(container.querySelectorAll('div')[1]!.textContent).toBe('Child: INITIAL');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('update!');
+      expect(container.querySelectorAll('div')).toHaveLength(2);
+      expect(container.querySelector('div')!.textContent).toBe('Child: UPDATE');
+      expect(container.querySelectorAll('div')[1]!.textContent).toBe('Child: UPDATE');
+    });
+
+    it('#5001 - should serialize naked value', async () => {
+      const Button = component$<{ unusedValue?: [number]; state: [number] }>(({ state }) => {
+        return (
+          <div>
+            <button onClick$={() => state[0]++}>+1</button>
+          </div>
+        );
+      });
+      const Parent = component$<{ nakedState: [number] }>(({ nakedState }) => {
+        // STEP 2
+        // We wrap the `nakedState` into `state`.
+        // This means that Qwik needs to serialize the Proxy for the `nakedState`.
+        const state = useStore(nakedState);
+        // const signal = useSignal(0);
+        return (
+          <>
+            <Button
+              // STEP 3
+              // Uncommenting the next line breaks the code. (UI no longer updates)
+              // This seems te be because Qwik somehow gets confused between the two
+              // objects and assumes that `state` is no longer a proxy hence no
+              // subscription
+              //
+              unusedValue={nakedState}
+              state={state}
+            />
+            Count: <span>{state[0]}</span>
+          </>
+        );
+      });
+      const Issue5001 = component$(() => {
+        const nakedState: [number] = [0];
+        // STEP 1
+        // By passing the `nakedState` into a child component, we force
+        // Qwik to serialize `nakedState` into `qwik/json`
+        return <Parent nakedState={nakedState} />;
+      });
+
+      const { container, cleanup, flush } = await render(Issue5001, { debug });
+      onTestFinished(cleanup);
+      expect(container.querySelectorAll('div')).toHaveLength(1);
+      expect(container.querySelector('div')!.textContent).toBe('+1');
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('+1');
+      expect(container.querySelectorAll('span')).toHaveLength(1);
+      expect(container.querySelector('span')!.textContent).toBe('0');
+
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('div')).toHaveLength(1);
+      expect(container.querySelector('div')!.textContent).toBe('+1');
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('+1');
+      expect(container.querySelectorAll('span')).toHaveLength(1);
+      expect(container.querySelector('span')!.textContent).toBe('1');
+    });
+  });
+});

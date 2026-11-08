@@ -1,5 +1,5 @@
-import { useSignal } from '@qwik.dev/core';
-import { describe, expect, it } from 'vitest';
+import { useSignal, component$ } from '@qwik.dev/core';
+import { describe, expect, it, onTestFinished } from 'vitest';
 import { testRenderer } from '../test-utils';
 
 const debug = false;
@@ -118,5 +118,118 @@ describe(`${name}: branching`, () => {
     expect(container.textContent).toContain('Parity: even');
     expect(container.textContent).not.toContain('large');
     cleanup();
+  });
+});
+
+describe(`${name}: Show behavior through compiled branches`, () => {
+  it.each([
+    { title: 'should render the true branch', visible: true, expected: 'Then' },
+    { title: 'should render the false branch', visible: false, expected: 'Else' },
+  ])('$title', async ({ visible, expected }) => {
+    const App = component$((props: { visible: boolean }) => (
+      <div id="show">{props.visible ? <span>Then</span> : <span>Else</span>}</div>
+    ));
+    const { container, cleanup } = await render(App, { props: { visible } });
+    onTestFinished(cleanup);
+    expect(container.querySelector('#show')?.textContent).toBe(expected);
+    expect(container.querySelectorAll('span')).toHaveLength(1);
+  });
+
+  it('should render empty content without else$', async () => {
+    const App = component$(() => {
+      const visible = useSignal(false);
+      return <div id="show">{visible.value ? <span>Then</span> : null}</div>;
+    });
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#show')?.textContent).toBe('');
+    expect(container.querySelectorAll('span')).toHaveLength(0);
+  });
+
+  it('should update when the condition changes', async () => {
+    const App = component$(() => {
+      const visible = useSignal(true);
+      return (
+        <section>
+          <div id="show">{visible.value ? <span>Then</span> : <span>Else</span>}</div>
+          <button onClick$={() => (visible.value = !visible.value)}>Toggle</button>
+        </section>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#show')?.textContent).toBe('Then');
+    await qwikLoader!.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('#show')?.textContent).toBe('Else');
+    await qwikLoader!.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('#show')?.textContent).toBe('Then');
+  });
+
+  it('should only invoke the selected branch', async () => {
+    (globalThis as any).__mainBranchCalls = [];
+    const Then = component$(() => {
+      (globalThis as any).__mainBranchCalls.push('then');
+      return <span>Then</span>;
+    });
+    const Else = component$(() => {
+      (globalThis as any).__mainBranchCalls.push('else');
+      return <span>Else</span>;
+    });
+    const App = component$(() => {
+      const visible = useSignal(false);
+      return (
+        <section>
+          <div id="show">{visible.value ? <Then /> : <Else />}</div>
+          <button onClick$={() => (visible.value = !visible.value)}>Toggle</button>
+        </section>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    onTestFinished(cleanup);
+    expect((globalThis as any).__mainBranchCalls).toEqual(['else']);
+    await qwikLoader!.dispatch(container.querySelector('button')!, 'click');
+    expect((globalThis as any).__mainBranchCalls).toEqual(['else', 'then']);
+    expect(container.querySelector('#show')?.textContent).toBe('Then');
+  });
+
+  it('should pass the when$ value to then$', async () => {
+    const App = component$(() => {
+      const value = useSignal('payload');
+      return <div id="show">{value.value ? <span>{value.value}</span> : null}</div>;
+    });
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#show')?.textContent).toBe('payload');
+  });
+
+  it('should pass the when$ value to else$', async () => {
+    const App = component$(() => {
+      const value = useSignal<string | null>(null);
+      return (
+        <div id="show">
+          {value.value ? <span>{value.value}</span> : <span>{String(value.value)}</span>}
+        </div>
+      );
+    });
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#show')?.textContent).toBe('null');
+  });
+
+  it('should pass the updated when$ value to then$ after signal change', async () => {
+    const App = component$(() => {
+      const value = useSignal('first');
+      return (
+        <section>
+          <div id="show">{value.value ? <span>{value.value}</span> : null}</div>
+          <button onClick$={() => (value.value = 'second')}>Change</button>
+        </section>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#show')?.textContent).toBe('first');
+    await qwikLoader!.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('#show')?.textContent).toBe('second');
   });
 });

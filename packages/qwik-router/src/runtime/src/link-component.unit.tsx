@@ -67,6 +67,19 @@ const RouterProvider = component$(() => {
   return <Slot />;
 });
 
+const PointerRoot = component$(() => (
+  <RouterProvider>
+    <Link
+      href="/test"
+      prefetch={false}
+      onPointerEnter$={() => (globalThis as any).__mainPointerEvents.push('pointerenter')}
+      onMouseOver$={() => (globalThis as any).__mainPointerEvents.push('mouseover')}
+    >
+      Test Link
+    </Link>
+  </RouterProvider>
+));
+
 const Root = component$((props: LinkPrefetchProps) => {
   return (
     <RouterProvider>
@@ -340,5 +353,20 @@ describe('link component', () => {
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
     expectPrefetchRouteCall(0, '/test', false, 1);
+  });
+});
+
+describe('main pointer events', () => {
+  it('calls onPointerEnter$ on pointerenter, not onMouseOver$', async () => {
+    (globalThis as any).__mainPointerEvents = [];
+    const { document } = await renderRoot(PointerRoot);
+    const anchor = document.querySelector('a')!;
+
+    await trigger(document.body, anchor, 'pointerenter');
+    expect((globalThis as any).__mainPointerEvents).toEqual(['pointerenter']);
+    await trigger(document.body, anchor, 'mouseover');
+    expect((globalThis as any).__mainPointerEvents).toEqual(['pointerenter', 'mouseover']);
+
+    delete (globalThis as any).__mainPointerEvents;
   });
 });

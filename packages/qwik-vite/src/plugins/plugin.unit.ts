@@ -1,5 +1,7 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path, { resolve } from 'node:path';
-import { assert, describe, expect, test } from 'vitest';
+import { assert, describe, expect, onTestFinished, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
 import {
@@ -808,6 +810,148 @@ export function App() { return ${hasCatch ? '<><Catch fallback$={() => <p>failed
   );
   expect(entries.filter((id) => id === '@qwik-catch-handlers')).toHaveLength(hasCatch ? 1 : 0);
 });
+
+test('keeps SSR dependencies visible as ordinary imports after client-only stripping', async () => {
+  const plugin = await mockPlugin(process.platform, false);
+  await plugin.normalizeOptions({
+    target: 'ssr',
+    rootDir: '/root',
+    srcDir: '/root/src',
+  });
+
+  const result = await plugin.transform(
+    {
+      addWatchFile: () => undefined,
+      emitFile: () => undefined,
+      parse: parseImportsOnly,
+      resolve: async (id: string) => {
+        if (id === '@qwik.dev/core' || id === '@qwik.dev/core/jsx-runtime') {
+          return { id: `/root/node_modules/${id}/index.mjs` };
+        }
+        if (id === '@example/server-fn') {
+          return { id: '/root/libs/server-fn.ts' };
+        }
+      },
+    } as any,
+    `import { component$, useVisibleTask$ } from '@qwik.dev/core';
+import { callServer } from '@example/server-fn';
+
+export default component$(() => {
+  useVisibleTask$(() => {
+    callServer();
+  });
+  return <span>ready</span>;
+});
+`,
+    '/root/src/routes/index.tsx'
+  );
+
+  expect(result?.code).not.toContain('import "@example/server-fn";');
+  expect(result?.code).toContain('import { callServer } from "@example/server-fn"');
+});
+
+describe('decorators follow tsconfig', () => {
+  const decoratedComponent = `import { component$ } from '@qwik.dev/core';
+const Entity = (): ClassDecorator => (target) => target;
+const Inject = (): ParameterDecorator => () => {};
+export default component$(() => <button onClick$={() => {
+  @Entity()
+  class User {
+    greet(@Inject() name: string) {
+      return name;
+    }
+  }
+  return new User().greet('hi');
+}}>hi</button>);
+`;
+
+  async function loadDecoratedSegment(compilerOptions: Record<string, unknown>) {
+    const rootDir = await mkdtemp(path.join(tmpdir(), 'qwik-decorators-'));
+    onTestFinished(() => rm(rootDir, { recursive: true, force: true }));
+    await writeFile(path.join(rootDir, 'tsconfig.json'), JSON.stringify({ compilerOptions }));
+    const plugin = await mockPlugin(process.platform, false);
+    await plugin.normalizeOptions({ rootDir });
+    const result = await plugin.transform(
+      { addWatchFile: () => undefined, emitFile: () => undefined } as any,
+      decoratedComponent,
+      path.join(rootDir, 'src/routes/index.tsx')
+    );
+    const output = [result!.code];
+    for (const segmentId of result!.meta!.qwikdeps) {
+      const loaded = await plugin.load({} as any, segmentId);
+      output.push((loaded as { code: string }).code);
+    }
+    return output.join('\n');
+  }
+
+  test('lowers legacy decorators with experimentalDecorators', async () => {
+    const code = await loadDecoratedSegment({ experimentalDecorators: true });
+    expect(code).not.toContain('@Entity');
+    expect(code).not.toContain('@Inject');
+  });
+
+  test('keeps standard decorators without experimentalDecorators', async () => {
+    const code = await loadDecoratedSegment({});
+    expect(code).toContain('@Entity()');
+  });
+});
+
+test('load bootstraps a cold QRL segment whose parent is not in the module graph', async () => {
+  const root = normalizePath(resolve(cwd, 'cold-test'));
+  const parentId = `${root}/src/cold.tsx`;
+  const code = `import { component$ } from '@qwik.dev/core';
+export const Cold = component$(() => <button onClick$={() => 'hello'}>hi</button>);
+`;
+  const transformCtx = {
+    addWatchFile: () => undefined,
+    emitFile: () => undefined,
+  } as any;
+
+  const discovery = await mockPlugin(process.platform, false);
+  await discovery.normalizeOptions({ rootDir: root });
+  discovery.configureServer({
+    hot: {},
+    moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+  } as any);
+  const discovered = await discovery.transform(transformCtx, code, parentId);
+  const segmentId: string = discovered!.meta!.qwikdeps![0];
+  expect(segmentId).toContain('cold.tsx_');
+
+  const plugin = await mockPlugin(process.platform, false);
+  await plugin.normalizeOptions({ rootDir: root });
+  const transformRequested: string[] = [];
+  plugin.configureServer({
+    hot: {},
+    moduleGraph: { getModuleById: () => undefined, invalidateModule: () => undefined },
+    transformRequest: async (reqId: string) => {
+      transformRequested.push(reqId);
+      await plugin.transform(transformCtx, code, parentId);
+      return null;
+    },
+  } as any);
+
+  await plugin.resolveId(
+    { resolve: async () => ({ id: parentId }) } as any,
+    segmentId,
+    `${root}/index.html`
+  );
+
+  const loaded = await plugin.load({} as any, segmentId);
+
+  expect(transformRequested).toContain(parentId);
+  expect((loaded as { code: string })?.code).toBeTypeOf('string');
+});
+
+function parseImportsOnly(code: string) {
+  const body = Array.from(
+    code.matchAll(/(?:import|export)\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]/g)
+  ).map(([, value]) => ({
+    type: 'ImportDeclaration',
+    importKind: 'value',
+    source: { value },
+  }));
+  return { type: 'Program', body };
+}
 
 async function mockPlugin(os = process.platform, useMockBinding = true) {
   const plugin = createQwikPlugin({

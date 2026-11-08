@@ -8,6 +8,40 @@ import type { LoaderInternal } from '../../../runtime/src/types';
 import type { RequestEventInternal } from '../request-event-core';
 import { createLoaderRequestEventFactory } from './loader-request-event';
 
+describe('main loader params', () => {
+  it('preserves route params on a `search: []` loader for a dynamic route, with or without a query string (#8964)', () => {
+    // Regression: params were dropped when search filtering was active.
+    const requestEv = createRequestEv('http://localhost/fr/?foo=bar', { lang: 'fr' });
+    const getLoaderRequestEvent = createLoaderRequestEventFactory(requestEv);
+    const strictLoader = createLoader('strict-loader', []);
+
+    const loaderEv = getLoaderRequestEvent(strictLoader);
+
+    expect(loaderEv).not.toBe(requestEv);
+    expect(loaderEv.url.search).toBe('');
+    expect(loaderEv.params).toEqual({ lang: 'fr' });
+  });
+});
+
+describe('main loader params', () => {
+  it('gives strict ancestor loaders no params when none were recorded for their path', () => {
+    const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+    globalThis.__STRICT_LOADERS__ = true;
+    try {
+      const requestEv = createRequestEv('http://localhost/products/123/view/');
+      getRouteLoaderCtx(requestEv).loaderPaths['details-loader'] = '/products/123/';
+      const getLoaderRequestEvent = createLoaderRequestEventFactory(requestEv);
+
+      const detailsEv = getLoaderRequestEvent(createLoader('details-loader', undefined));
+
+      expect(detailsEv.pathname).toBe('/products/123/');
+      expect(detailsEv.params).toEqual({});
+    } finally {
+      globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+    }
+  });
+});
+
 describe('createLoaderRequestEventFactory', () => {
   it('scopes filtered URL state per loader while delegating request state', () => {
     const requestEv = createRequestEv();
@@ -140,7 +174,8 @@ describe('createLoaderRequestEventFactory', () => {
 });
 
 function createRequestEv(
-  href = 'http://localhost/products/?q=shoes&page=2&ignored=true'
+  href = 'http://localhost/products/?q=shoes&page=2&ignored=true',
+  params: Record<string, string> = { id: '123' }
 ): RequestEventInternal {
   const url = new URL(href);
   const requestEv = {
@@ -148,7 +183,7 @@ function createRequestEv(
     headers: new Headers(),
     request: new Request(url),
     url,
-    params: { id: '123' },
+    params,
     sharedMap: new Map<string, unknown>(),
   } as any;
   requestEv.resolveValue = (loader: LoaderInternal) => loadRouteLoader(loader, requestEv);

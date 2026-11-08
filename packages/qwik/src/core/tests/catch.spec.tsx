@@ -7,8 +7,9 @@ import {
   Slot,
   useTask$,
   type Signal,
+  useVisibleTask$,
 } from '@qwik.dev/core';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, onTestFinished } from 'vitest';
 import { testRenderer } from '../test-utils';
 
 const { name, render } = testRenderer;
@@ -382,5 +383,230 @@ describe(`${name}: Catch`, () => {
     } finally {
       result.cleanup();
     }
+  });
+});
+
+describe(`${name}: Catch behavior`, () => {
+  it('projects children when there is no error', async () => {
+    const App = component$(() => (
+      <Catch fallback$={() => <p id="fallback">caught</p>}>
+        <p id="content">All good</p>
+      </Catch>
+    ));
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#content')?.textContent).toBe('All good');
+    expect(container.querySelector('#fallback')).toBeFalsy();
+  });
+
+  it('two throwing children in one boundary render a single fallback (first error wins)', async () => {
+    const Thrower = component$((props: { message: string }) => {
+      throw new Error(props.message);
+      return null;
+    });
+    const App = component$(() => (
+      <Catch fallback$={(error) => <p id="fallback">{error.message}</p>}>
+        <Thrower message="first" />
+        <Thrower message="second" />
+      </Catch>
+    ));
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('#fallback')).toHaveLength(1);
+    expect(container.querySelector('#fallback')?.textContent).toBe('first');
+  });
+
+  it('two adjacent boundaries that both throw each show their own fallback', async () => {
+    const Thrower = component$(() => {
+      throw new Error('boom');
+      return null;
+    });
+    const App = component$(() => (
+      <section>
+        <Catch fallback$={() => <p id="first">first</p>}>
+          <Thrower />
+        </Catch>
+        <Catch fallback$={() => <p id="second">second</p>}>
+          <Thrower />
+        </Catch>
+      </section>
+    ));
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#first')?.textContent).toBe('first');
+    expect(container.querySelector('#second')?.textContent).toBe('second');
+  });
+
+  it('the ORIGINAL error object propagates unchanged (not wrapped/projected)', async () => {
+    const error = new Error('original');
+    (globalThis as any).__mainOriginalError = error;
+    onTestFinished(() => {
+      delete (globalThis as any).__mainOriginalError;
+    });
+    const App = component$(() => {
+      throw (globalThis as any).__mainOriginalError;
+      return null;
+    });
+    await expect(render(App)).rejects.toBe(error);
+  });
+
+  it('an async component whose render rejects propagates and rejects the render', async () => {
+    const App = component$(async () => {
+      await Promise.resolve();
+      throw new Error('async boom');
+      return null;
+    });
+    await expect(render(App)).rejects.toThrow('async boom');
+  });
+
+  it('a rejected promise child propagates and rejects the render', async () => {
+    const App = component$(() => <p>{Promise.reject(new Error('child boom'))}</p>);
+    await expect(render(App)).rejects.toThrow('child boom');
+  });
+
+  it('a thrown non-Error class instance is caught', async () => {
+    const Thrower = component$(() => {
+      class ApplicationError {
+        message = 'custom error';
+      }
+      throw new ApplicationError();
+      return null;
+    });
+    const App = component$(() => (
+      <Catch fallback$={() => <p id="fallback">caught</p>}>
+        <Thrower />
+      </Catch>
+    ));
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#fallback')?.textContent).toBe('caught');
+  });
+
+  it('a throw of undefined during render reveals the fallback', async () => {
+    const Thrower = component$(() => {
+      throw undefined;
+      return null;
+    });
+    const App = component$(() => (
+      <Catch fallback$={() => <p id="fallback">caught</p>}>
+        <Thrower />
+      </Catch>
+    ));
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#fallback')?.textContent).toBe('caught');
+  });
+
+  it('a useTask$ throw is caught by the nearest parent <Catch>', async () => {
+    const Child = component$(() => {
+      useTask$(() => {
+        throw new Error('task boom');
+      });
+      return <p id="content">content</p>;
+    });
+    const App = component$(() => (
+      <Catch fallback$={(error) => <p id="fallback">{error.message}</p>}>
+        <Child />
+      </Catch>
+    ));
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#fallback')?.textContent).toBe('task boom');
+    expect(container.querySelector('#content')).toBeFalsy();
+  });
+
+  it('an async useTask$ throw is caught by the nearest <Catch>', async () => {
+    const Child = component$(() => {
+      useTask$(async () => {
+        await Promise.resolve();
+        throw new Error('async task boom');
+      });
+      return <p id="content">content</p>;
+    });
+    const App = component$(() => (
+      <Catch fallback$={(error) => <p id="fallback">{error.message}</p>}>
+        <Child />
+      </Catch>
+    ));
+    const { container, cleanup } = await render(App);
+    onTestFinished(cleanup);
+    expect(container.querySelector('#fallback')?.textContent).toBe('async task boom');
+    expect(container.querySelector('#content')).toBeFalsy();
+  });
+
+  it('a useVisibleTask$ throw is caught by the nearest parent <Catch>', async () => {
+    const Child = component$(() => {
+      useVisibleTask$(() => {
+        throw new Error('visible boom');
+      });
+      return <button id="content">content</button>;
+    });
+    const App = component$(() => (
+      <Catch fallback$={(error) => <p id="fallback">{error.message}</p>}>
+        <Child />
+      </Catch>
+    ));
+    const { container, cleanup, qwikLoader } = await render(App);
+    onTestFinished(cleanup);
+    await qwikLoader!.dispatch(container.querySelector('#content')!, 'qvisible');
+    expect(container.querySelector('#fallback')?.textContent).toBe('visible boom');
+    expect(container.querySelector('#content')).toBeFalsy();
+  });
+
+  it('an event handler throwing a revoked Proxy still renders the fallback', async () => {
+    const Child = component$(() => (
+      <button
+        id="content"
+        onClick$={() => {
+          const { proxy, revoke } = Proxy.revocable({}, {});
+          revoke();
+          throw proxy;
+        }}
+      >
+        throw
+      </button>
+    ));
+    const App = component$(() => (
+      <Catch fallback$={() => <p id="fallback">caught</p>}>
+        <Child />
+      </Catch>
+    ));
+    const { container, cleanup, qwikLoader } = await render(App);
+    onTestFinished(cleanup);
+    await qwikLoader!.dispatch(container.querySelector('#content')!, 'click');
+    expect(container.querySelector('#fallback')?.textContent).toBe('caught');
+    expect(container.querySelector('#content')).toBeFalsy();
+  });
+});
+
+describe(`${name}: error handling`, () => {
+  it('keeps updating a sibling after an uncaught client render error', async () => {
+    const Crasher = component$(() => {
+      throw new Error('boom');
+      return null;
+    });
+    const Counter = component$((props: { count: Signal<number> }) => (
+      <button onClick$={() => props.count.value++}>{props.count.value}</button>
+    ));
+    const App = component$(() => {
+      const count = useSignal(0);
+      return (
+        <>
+          <Counter count={count} />
+          {count.value === 1 && <Crasher />}
+        </>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    onTestFinished(cleanup);
+    const button = container.querySelector('button')!;
+    expect(button.textContent).toBe('0');
+    try {
+      await qwikLoader!.dispatch(button, 'click');
+    } catch (error) {
+      expect((error as Error).message).toContain('boom');
+    }
+    await qwikLoader!.dispatch(button, 'click');
+    expect(button.textContent).toBe('2');
   });
 });

@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { component$ } from '@qwik.dev/core';
-import { useAsync$, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
+import { describe, expect, it, onTestFinished, vi } from 'vitest';
+import { component$, useAsync$, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 import { testRenderer } from '../test-utils';
+import { usePoll } from '../../../../qwik-utils/src/use-poll';
 
 const debug = false;
 
@@ -478,3 +478,75 @@ async function drain(flush: () => Promise<void>): Promise<void> {
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+describe(`${name}: usePoll integration`, () => {
+  it('re-runs the signal after expires and keeps polling', async () => {
+    (globalThis as any).__mainPollRuns = 0;
+    const App = component$(() => {
+      const value = usePoll(
+        useAsync$(async () => ++(globalThis as any).__mainPollRuns),
+        20
+      );
+      return <span>{value.value}</span>;
+    });
+    const { container, cleanup, flush, qwikLoader } = await render(App);
+    onTestFinished(cleanup);
+    const initialRuns = (globalThis as any).__mainPollRuns;
+    if (name === 'ssrRender') {
+      expect(qwikLoader).toBeDefined();
+      await qwikLoader!.dispatch(container, 'd:qidle');
+    }
+    await vi.waitFor(async () => {
+      await flush();
+      expect((globalThis as any).__mainPollRuns).toBeGreaterThan(initialRuns);
+      expect(Number(container.querySelector('span')!.textContent)).toBeGreaterThan(initialRuns);
+    });
+  });
+
+  it('keeps polling after a failed computation', async () => {
+    (globalThis as any).__mainPollFailRuns = 0;
+    const App = component$(() => {
+      const value = usePoll(
+        useAsync$(async () => {
+          const count = ++(globalThis as any).__mainPollFailRuns;
+          if (count === 2) {
+            throw new Error('boom');
+          }
+          return count;
+        }),
+        20
+      );
+      return <span>{value.error ? 'err' : value.value}</span>;
+    });
+    const { container, cleanup, flush, qwikLoader } = await render(App);
+    onTestFinished(cleanup);
+    if (name === 'ssrRender') {
+      expect(qwikLoader).toBeDefined();
+      await qwikLoader!.dispatch(container, 'd:qidle');
+    }
+    await vi.waitFor(async () => {
+      await flush();
+      expect((globalThis as any).__mainPollFailRuns).toBeGreaterThan(2);
+      expect(Number(container.querySelector('span')!.textContent)).toBeGreaterThan(2);
+    });
+  });
+
+  it('clamps expires to the 5ms minimum', async () => {
+    const interval = vi.spyOn(globalThis, 'setInterval');
+    onTestFinished(() => interval.mockRestore());
+    const App = component$(() => {
+      const value = usePoll(
+        useAsync$(async () => 1),
+        0
+      );
+      return <span>{value.value}</span>;
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    onTestFinished(cleanup);
+    if (name === 'ssrRender') {
+      expect(qwikLoader).toBeDefined();
+      await qwikLoader!.dispatch(container, 'd:qidle');
+    }
+    expect(interval).toHaveBeenCalledWith(expect.any(Function), 5);
+  });
+});

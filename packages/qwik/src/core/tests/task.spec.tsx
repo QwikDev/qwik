@@ -1,14 +1,21 @@
-import { component$, Pending } from '@qwik.dev/core';
 import {
+  component$,
+  Pending,
   useAsync$,
+  untrack,
   useComputed$,
   useSignal,
   useStore,
   useTask$,
   useVisibleTask$,
+  Slot,
+  type Signal as SignalType,
 } from '@qwik.dev/core';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, afterEach, onTestFinished } from 'vitest';
 import { testRenderer } from '../test-utils';
+import { triggerAll } from './test-hooks';
+import { trigger } from '@qwik.dev/core/testing';
+import { delay } from '../shared/utils/promises';
 
 const debug = false;
 
@@ -642,5 +649,725 @@ describe(`${name}: task`, () => {
 
     delete (globalThis as any).__computedTaskRuns;
     cleanup();
+  });
+});
+
+describe(`${name}: useTask`, () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('should execute task', async () => {
+    const Counter = component$(() => {
+      const count = useSignal('wrong');
+      useTask$(() => {
+        count.value = 'WORKS';
+      });
+      return <span>{count.value}</span>;
+    });
+
+    const { container, cleanup } = await render(Counter, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('span')).toHaveLength(1);
+    expect(container.querySelector('span')!.textContent).toBe('WORKS');
+  });
+  it('should execute async task', async () => {
+    (globalThis as any).__mainTestLog = [];
+    const Counter = component$(() => {
+      (globalThis as any).__mainTestLog.push('Counter');
+      const count = useSignal('wrong');
+      useTask$(async () => {
+        (globalThis as any).__mainTestLog.push('task');
+        await delay(10);
+        (globalThis as any).__mainTestLog.push('resolved');
+        count.value = 'WORKS';
+      });
+      (globalThis as any).__mainTestLog.push('render');
+      return <span>{count.value}</span>;
+    });
+
+    const { container, cleanup } = await render(Counter, { debug });
+    onTestFinished(cleanup);
+    expect((globalThis as any).__mainTestLog).toEqual(['Counter', 'task', 'render', 'resolved']);
+    expect(container.querySelectorAll('span')).toHaveLength(1);
+    expect(container.querySelector('span')!.textContent).toBe('WORKS');
+  });
+  it('should not run next task until previous async task is finished', async () => {
+    (globalThis as any).__mainTestLog = [];
+    const Counter = component$(() => {
+      (globalThis as any).__mainTestLog.push('Counter');
+      const count = useSignal('');
+      useTask$(async () => {
+        (globalThis as any).__mainTestLog.push('1:task');
+        await delay(10);
+        (globalThis as any).__mainTestLog.push('1:resolved');
+        count.value += 'A';
+      });
+      useTask$(async () => {
+        (globalThis as any).__mainTestLog.push('2:task');
+        await delay(10);
+        (globalThis as any).__mainTestLog.push('2:resolved');
+        count.value += 'B';
+      });
+      (globalThis as any).__mainTestLog.push('render');
+      return <span>{count.value}</span>;
+    });
+
+    const { container, cleanup } = await render(Counter, { debug });
+    onTestFinished(cleanup);
+    expect((globalThis as any).__mainTestLog).toEqual([
+      'Counter',
+      '1:task',
+      'render',
+      '1:resolved',
+      '2:task',
+      '2:resolved',
+    ]);
+    expect(container.querySelectorAll('span')).toHaveLength(1);
+    expect(container.querySelector('span')!.textContent).toBe('AB');
+  });
+  describe('track', () => {
+    it('should rerun on track', async () => {
+      const Counter = component$(() => {
+        const count = useSignal(10);
+        const double = useSignal(0);
+        useTask$(() => {
+          double.value = 2 * count.value;
+        });
+        return (
+          <button
+            onClick$={() => {
+              count.value++;
+            }}
+          >
+            {double.value}
+          </button>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Counter, { debug });
+      onTestFinished(cleanup);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('20');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('22');
+      await flush();
+    });
+    it('should track store property', async () => {
+      const Counter = component$(() => {
+        const store = useStore({ count: 1, double: 0 });
+        useTask$(() => {
+          const count = store['count'];
+          store.double = 2 * count;
+        });
+        return <button onClick$={() => store.count++}>{store.double}</button>;
+      });
+
+      const { container, cleanup, flush } = await render(Counter, { debug });
+      onTestFinished(cleanup);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('2');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('4');
+    });
+    it('should track store', async () => {
+      const Counter = component$(() => {
+        const store = useStore({ count: 1, double: 0 });
+        useTask$(() => {
+          const storeCounter = store;
+          store.double = 2 * storeCounter.count;
+        });
+        return <button onClick$={() => store.count++}>{store.double}</button>;
+      });
+
+      const { container, cleanup, flush } = await render(Counter, { debug });
+      onTestFinished(cleanup);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('2');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('4');
+    });
+
+    it('should unsubscribe from removed component', async () => {
+      (global as any).logs = [] as string[];
+
+      const ToggleChild = component$((props: { name: string; count: number }) => {
+        useTask$(() => {
+          const count = props.count;
+          const logText = `Child of "${untrack(() => props.name)}" (${count})`;
+          (global as any).logs.push(logText);
+        });
+
+        return (
+          <div>
+            <h1>Toggle {props.name}</h1>
+          </div>
+        );
+      });
+
+      const Toggle = component$(() => {
+        const store = useStore({
+          count: 0,
+          cond: false,
+        });
+        return (
+          <div>
+            <button id="increment" type="button" onClick$={() => store.count++}>
+              Root increment
+            </button>
+            <div>
+              {!store.cond ? (
+                <ToggleChild name="A" count={store.count} />
+              ) : (
+                <ToggleChild name="B" count={store.count} />
+              )}
+              <button type="button" id="toggle" onClick$={() => (store.cond = !store.cond)}>
+                Toggle
+              </button>
+            </div>
+          </div>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Toggle, { debug });
+      onTestFinished(cleanup);
+
+      (global as any).logs = [];
+      await trigger(container, '#increment', 'click');
+      await flush();
+      expect(new Set((global as any).logs)).toEqual(new Set(['Child of "A" (1)']));
+      await trigger(container, '#toggle', 'click');
+      await flush();
+      (global as any).logs = [];
+      await trigger(container, '#increment', 'click');
+      await flush();
+      expect(new Set((global as any).logs)).toEqual(new Set(['Child of "B" (2)']));
+      await trigger(container, '#toggle', 'click');
+      await flush();
+      (global as any).logs = [];
+      await trigger(container, '#increment', 'click');
+      await flush();
+      expect(new Set((global as any).logs)).toEqual(new Set(['Child of "A" (3)']));
+    });
+
+    it('should not rerun on track if the value is not a signal', async () => {
+      (globalThis as any).counter = 0;
+      const OtpBase = component$((props: any) => {
+        useTask$(() => {
+          props.disabled;
+          (globalThis as any).counter++;
+        });
+
+        return (
+          <div>
+            <Slot />
+          </div>
+        );
+      });
+
+      const Cmp = component$(() => {
+        const isDisabled = useSignal(false);
+
+        const OtpRoot = (props: any) => {
+          return <OtpBase {...props}>{props.children}</OtpBase>;
+        };
+        return (
+          <>
+            <OtpRoot disabled={isDisabled.value} />
+
+            <button type="button" onClick$={() => (isDisabled.value = !isDisabled.value)}>
+              Disable OTP
+            </button>
+          </>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Cmp, { debug });
+      onTestFinished(cleanup);
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect((globalThis as any).counter).toBe(5);
+      (globalThis as any).counter = undefined;
+    });
+  });
+  describe('queue', () => {
+    it('should execute dependant tasks', async () => {
+      (globalThis as any).log = [] as string[];
+      const Counter = component$(() => {
+        const store = useStore({ count: 1, double: 0, quadruple: 0 });
+        // Quadruple runs first, but will run again after double is updated
+        useTask$(() => {
+          (globalThis as any).log.push('quadruple');
+          const trackingValue = store['double'] * 2;
+          store.quadruple = trackingValue;
+        });
+        useTask$(() => {
+          (globalThis as any).log.push('double');
+          store.double = store['count'] * 2;
+        });
+        (globalThis as any).log.push('Counter');
+        return (
+          <button onClick$={() => store.count++}>
+            {store.count + '/' + store.double + '/' + store.quadruple}
+          </button>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Counter, { debug });
+      onTestFinished(cleanup);
+      if (name === 'ssrRender') {
+        expect((globalThis as any).log).toEqual(['quadruple', 'double', 'quadruple', 'Counter']);
+      } else {
+        expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
+      }
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('1/2/4');
+      (globalThis as any).log.length = 0;
+      await triggerAll(container, 'button', 'click');
+      await flush();
+
+      expect((globalThis as any).log).toEqual(['double', 'quadruple']);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('2/4/8');
+    });
+  });
+  describe('cleanup', () => {
+    it('should execute cleanup task rerun on track', async () => {
+      (globalThis as any).log = [] as string[];
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        useTask$(() => {
+          const _count = count.value;
+          (globalThis as any).log.push('task: ' + _count);
+          return () => (globalThis as any).log.push('cleanup: ' + _count);
+        });
+
+        return <button onClick$={() => count.value++}>{count.value}</button>;
+      });
+      const isCSR = name === 'csrRender';
+
+      const { container, cleanup, flush } = await render(Counter, { debug });
+      onTestFinished(cleanup);
+
+      expect((globalThis as any).log).toEqual(isCSR ? ['task: 0'] : ['task: 0', 'cleanup: 0']);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('0');
+      (globalThis as any).log.length = 0;
+      await triggerAll(container, 'button', 'click');
+      await flush();
+
+      expect((globalThis as any).log).toEqual(isCSR ? ['cleanup: 0', 'task: 1'] : ['task: 1']);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('1');
+      (globalThis as any).log.length = 0;
+      await triggerAll(container, 'button', 'click');
+      await flush();
+
+      expect((globalThis as any).log).toEqual(['cleanup: 1', 'task: 2']);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('2');
+    });
+    it('should execute cleanup task on unmount', async () => {
+      (globalThis as any).log = [] as string[];
+      const Child = component$(() => {
+        useTask$(({ cleanup }) => {
+          (globalThis as any).log.push('task:');
+          cleanup(() => (globalThis as any).log.push('cleanup:'));
+        });
+        (globalThis as any).log.push('Child');
+        return <span>Child</span>;
+      });
+      const Parent = component$(() => {
+        const show = useSignal(true);
+        return (
+          <button onClick$={() => (show.value = !show.value)}>
+            {show.value ? <Child /> : null}
+          </button>
+        );
+      });
+      const isCSR = name === 'csrRender';
+
+      const { container, cleanup, flush } = await render(Parent, { debug });
+      onTestFinished(cleanup);
+
+      expect((globalThis as any).log).toEqual(
+        isCSR ? ['task:', 'Child'] : ['task:', 'Child', 'cleanup:']
+      );
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Child');
+      expect(container.querySelectorAll('span')).toHaveLength(1);
+      expect(container.querySelector('span')!.textContent).toBe('Child');
+      (globalThis as any).log = [];
+      await triggerAll(container, 'button', 'click');
+      await flush();
+
+      expect((globalThis as any).log).toEqual(isCSR ? ['cleanup:'] : []);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('');
+      expect(container.querySelectorAll('span')).toHaveLength(0);
+      (globalThis as any).log = [];
+      await triggerAll(container, 'button', 'click');
+      await flush();
+
+      expect((globalThis as any).log).toEqual(['task:', 'Child']);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Child');
+      expect(container.querySelectorAll('span')).toHaveLength(1);
+      expect(container.querySelector('span')!.textContent).toBe('Child');
+      (globalThis as any).log = [];
+      await triggerAll(container, 'button', 'click');
+      await flush();
+
+      expect((globalThis as any).log).toEqual(['cleanup:']);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('');
+      expect(container.querySelectorAll('span')).toHaveLength(0);
+      (globalThis as any).log = undefined;
+    });
+    it('should handle promises and tasks', async () => {
+      (global as any).log = [] as string[];
+      const MyComp = component$(() => {
+        const promise = useSignal<Promise<number>>();
+        (global as any).log.push('render');
+
+        // Tasks should run one after the other, awaiting returned promises.
+        // Here we "sideload" a promise via the signal
+        useTask$(() => {
+          promise.value = Promise.resolve(0)
+            .then(() => {
+              (global as any).log.push('inside.1');
+              return delay(10);
+            })
+            .then(() => {
+              (global as any).log.push('1b');
+              return 1;
+            });
+          (global as any).log.push('1a');
+        });
+
+        useTask$(async () => {
+          (global as any).log.push('2a');
+          await delay(10);
+          (global as any).log.push('2b');
+        });
+
+        useTask$(() => {
+          promise.value = promise.value!.then(() => {
+            (global as any).log.push('3b');
+            return 3;
+          });
+          (global as any).log.push('3a');
+        });
+
+        return <p>Should have a number: "{promise.value}"</p>;
+      });
+      const { container, cleanup } = await render(MyComp, { debug });
+      onTestFinished(cleanup);
+      expect((global as any).log).toEqual([
+        // 1st render
+        'render',
+        // task 1 returns sync and sideloads promise
+        '1a',
+        // task 2 runs sync after that and returns a promise
+        '2a',
+        // async microtasks run, task 1 queues a delay
+        'inside.1',
+        '2b',
+        // task 3 runs sync and attaches to the promise
+        '3a',
+        // microtasks run
+        '1b',
+        '3b',
+      ]);
+      // The DOM should have the final value of the sideloaded promise
+      expect(container.querySelectorAll('p')).toHaveLength(1);
+      expect(container.querySelector('p')!.textContent).toBe('Should have a number: "3"');
+    });
+  });
+
+  it('should update signal in async task', async () => {
+    const Cmp = component$(() => {
+      const basicData = useSignal(1);
+      const arrData = useSignal<number[]>([]);
+      useTask$(async () => {
+        await delay(100);
+        arrData.value = [1, 2, 3];
+        basicData.value++;
+      });
+      return (
+        <div>
+          <span>{basicData.value}</span>
+          <div>
+            {arrData.value.map((item) => (
+              <div>Item: {item}</div>
+            ))}
+          </div>
+        </div>
+      );
+    });
+    const { container, cleanup } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+
+    expect(container.querySelectorAll('div')).toHaveLength(5);
+    expect(container.querySelector('div')!.textContent).toBe('2Item: 1Item: 2Item: 3');
+    expect(container.querySelectorAll('div')[1]!.textContent).toBe('Item: 1Item: 2Item: 3');
+    expect(container.querySelectorAll('div')[2]!.textContent).toBe('Item: 1');
+    expect(container.querySelectorAll('div')[3]!.textContent).toBe('Item: 2');
+    expect(container.querySelectorAll('div')[4]!.textContent).toBe('Item: 3');
+    expect(container.querySelectorAll('span')).toHaveLength(1);
+    expect(container.querySelector('span')!.textContent).toBe('2');
+  });
+
+  describe('deferUpdates', () => {
+    it.each([
+      { title: 'should execute task and block render until finish', deferUpdates: true },
+      { title: 'should execute task and not block render until finish', deferUpdates: false },
+    ])('$title', async ({ deferUpdates }) => {
+      const Counter = component$((props: { deferUpdates: boolean }) => {
+        const count = useSignal(0);
+        const text = useSignal('val1');
+        useTask$(
+          async () => {
+            const current = count.value;
+            if (current === 0) {
+              return;
+            }
+            const pending = new Promise<void>((resolve) => {
+              (globalThis as any).__mainTaskRelease = resolve;
+            });
+            if (!props.deferUpdates) {
+              text.value = `val${current + 1}`;
+            }
+            (globalThis as any).__mainTaskPending = current;
+            await pending;
+            if (props.deferUpdates) {
+              text.value = `val${current + 1}`;
+            }
+          },
+          { deferUpdates: props.deferUpdates }
+        );
+        return <button onClick$={() => count.value++}>{text.value}</button>;
+      });
+      const { container, cleanup, flush } = await render(Counter, { props: { deferUpdates } });
+      onTestFinished(() => {
+        (globalThis as any).__mainTaskRelease?.();
+        cleanup();
+        delete (globalThis as any).__mainTaskRelease;
+        delete (globalThis as any).__mainTaskPending;
+      });
+      const button = container.querySelector('button')!;
+      expect(button.textContent).toBe('val1');
+      for (let count = 1; count <= 2; count++) {
+        const clicked = trigger(container, button, 'click');
+        await vi.waitFor(() => expect((globalThis as any).__mainTaskPending).toBe(count));
+        expect(button.textContent).toBe(`val${count + (deferUpdates ? 0 : 1)}`);
+        (globalThis as any).__mainTaskRelease();
+        await clicked;
+        await flush();
+        expect(button.textContent).toBe(`val${count + 1}`);
+      }
+    });
+  });
+
+  describe('regression', () => {
+    it('#5782', async () => {
+      const Child = component$(({ sig }: { sig: SignalType<SignalType<number>> }) => {
+        const counter = useSignal(0);
+        useTask$(() => {
+          sig.value;
+          sig.value = counter;
+        });
+        return <p>{counter.value}</p>;
+      });
+
+      const Issue5782 = component$(() => {
+        const counterDefault = useSignal(0);
+        const sig = useSignal(counterDefault);
+        const showChild = useSignal(false);
+        return (
+          <>
+            <button id="decrease" onClick$={() => sig.value.value--}>
+              --
+            </button>
+            {sig.value.value}
+            <button id="increase" onClick$={() => sig.value.value++}>
+              ++
+            </button>
+            <button id="toggle" onClick$={() => (showChild.value = !showChild.value)}>
+              Toggle
+            </button>
+            {showChild.value && <Child sig={sig} />}
+          </>
+        );
+      });
+
+      const { container, cleanup, flush } = await render(Issue5782, { debug });
+      onTestFinished(cleanup);
+
+      expect(container.querySelectorAll('button')).toHaveLength(3);
+      expect(container.querySelector('button')!.textContent).toBe('--');
+      expect(container.querySelector('button')!.getAttribute('id')).toBe('decrease');
+      expect(container.querySelectorAll('button')[1]!.textContent).toBe('++');
+      expect(container.querySelectorAll('button')[1]!.getAttribute('id')).toBe('increase');
+      expect(container.querySelectorAll('button')[2]!.textContent).toBe('Toggle');
+      expect(container.querySelectorAll('button')[2]!.getAttribute('id')).toBe('toggle');
+      expect(container.querySelectorAll('p')).toHaveLength(0);
+
+      await trigger(container, '#toggle', 'click');
+      await flush();
+
+      expect(container.querySelectorAll('button')).toHaveLength(3);
+      expect(container.querySelector('button')!.textContent).toBe('--');
+      expect(container.querySelector('button')!.getAttribute('id')).toBe('decrease');
+      expect(container.querySelectorAll('button')[1]!.textContent).toBe('++');
+      expect(container.querySelectorAll('button')[1]!.getAttribute('id')).toBe('increase');
+      expect(container.querySelectorAll('button')[2]!.textContent).toBe('Toggle');
+      expect(container.querySelectorAll('button')[2]!.getAttribute('id')).toBe('toggle');
+      expect(container.querySelectorAll('p')).toHaveLength(1);
+      expect(container.querySelector('p')!.textContent).toBe('0');
+
+      await trigger(container, '#increase', 'click');
+      await flush();
+      await trigger(container, '#increase', 'click');
+      await flush();
+
+      expect(container.querySelectorAll('button')).toHaveLength(3);
+      expect(container.querySelector('button')!.textContent).toBe('--');
+      expect(container.querySelector('button')!.getAttribute('id')).toBe('decrease');
+      expect(container.querySelectorAll('button')[1]!.textContent).toBe('++');
+      expect(container.querySelectorAll('button')[1]!.getAttribute('id')).toBe('increase');
+      expect(container.querySelectorAll('button')[2]!.textContent).toBe('Toggle');
+      expect(container.querySelectorAll('button')[2]!.getAttribute('id')).toBe('toggle');
+      expect(container.querySelectorAll('p')).toHaveLength(1);
+      expect(container.querySelector('p')!.textContent).toBe('2');
+      await trigger(container, '#decrease', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(3);
+      expect(container.querySelector('button')!.textContent).toBe('--');
+      expect(container.querySelector('button')!.getAttribute('id')).toBe('decrease');
+      expect(container.querySelectorAll('button')[1]!.textContent).toBe('++');
+      expect(container.querySelectorAll('button')[1]!.getAttribute('id')).toBe('increase');
+      expect(container.querySelectorAll('button')[2]!.textContent).toBe('Toggle');
+      expect(container.querySelectorAll('button')[2]!.getAttribute('id')).toBe('toggle');
+      expect(container.querySelectorAll('p')).toHaveLength(1);
+      expect(container.querySelector('p')!.textContent).toBe('1');
+
+      await trigger(container, '#toggle', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(3);
+      expect(container.querySelector('button')!.textContent).toBe('--');
+      expect(container.querySelector('button')!.getAttribute('id')).toBe('decrease');
+      expect(container.querySelectorAll('button')[1]!.textContent).toBe('++');
+      expect(container.querySelectorAll('button')[1]!.getAttribute('id')).toBe('increase');
+      expect(container.querySelectorAll('button')[2]!.textContent).toBe('Toggle');
+      expect(container.querySelectorAll('button')[2]!.getAttribute('id')).toBe('toggle');
+      expect(container.querySelectorAll('p')).toHaveLength(0);
+
+      await trigger(container, '#toggle', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(3);
+      expect(container.querySelector('button')!.textContent).toBe('--');
+      expect(container.querySelector('button')!.getAttribute('id')).toBe('decrease');
+      expect(container.querySelectorAll('button')[1]!.textContent).toBe('++');
+      expect(container.querySelectorAll('button')[1]!.getAttribute('id')).toBe('increase');
+      expect(container.querySelectorAll('button')[2]!.textContent).toBe('Toggle');
+      expect(container.querySelectorAll('button')[2]!.getAttribute('id')).toBe('toggle');
+      expect(container.querySelectorAll('p')).toHaveLength(1);
+      expect(container.querySelector('p')!.textContent).toBe('0');
+    });
+
+    it('#4332', async () => {
+      const Child = component$((props: { val: string }) => {
+        useTask$(() => {
+          props.val;
+        });
+        return <>{props.val}</>;
+      });
+
+      const Parent = component$(() => {
+        const sig = useSignal<{ data: string } | undefined>({ data: 'abcd' });
+
+        return (
+          <>
+            <button onClick$={() => (sig.value = sig.value ? undefined : { data: 'abcd' })}>
+              Toggle
+            </button>
+            {sig.value && <Child val={sig.value.data} />}
+          </>
+        );
+      });
+      const { container, cleanup, flush } = await render(Parent, { debug });
+      onTestFinished(cleanup);
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Toggle');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Toggle');
+      await triggerAll(container, 'button', 'click');
+      await flush();
+      expect(container.querySelectorAll('button')).toHaveLength(1);
+      expect(container.querySelector('button')!.textContent).toBe('Toggle');
+    });
+  });
+
+  it('should rerender component after task', async () => {
+    const Cmp = component$(() => {
+      const sort = useSignal<'id' | 'size'>('size');
+      const table = useSignal([
+        { id: 1, size: 4 },
+        { id: 2, size: 3 },
+        { id: 3, size: 2 },
+        { id: 4, size: 1 },
+        { id: 5, size: 7 },
+        { id: 6, size: 8 },
+        { id: 7, size: 9 },
+      ]);
+
+      useTask$(() => {
+        const key = sort.value;
+        table.value = table.value.sort((a, b) => a[key] - b[key]).slice();
+      });
+
+      return (
+        <>
+          <span>{table.value.map((row) => row.size).join(' ')}</span>
+          <button onClick$={() => (sort.value = sort.value === 'id' ? 'size' : 'id')}>Sort</button>
+        </>
+      );
+    });
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    expect(container.querySelectorAll('span')).toHaveLength(1);
+    expect(container.querySelector('span')!.textContent).toBe('1 2 3 4 7 8 9');
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Sort');
+
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect(container.querySelectorAll('span')).toHaveLength(1);
+    expect(container.querySelector('span')!.textContent).toBe('4 3 2 1 7 8 9');
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Sort');
+
+    await triggerAll(container, 'button', 'click');
+    await flush();
+    expect(container.querySelectorAll('span')).toHaveLength(1);
+    expect(container.querySelector('span')!.textContent).toBe('1 2 3 4 7 8 9');
+    expect(container.querySelectorAll('button')).toHaveLength(1);
+    expect(container.querySelector('button')!.textContent).toBe('Sort');
   });
 });

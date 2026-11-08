@@ -1,4 +1,4 @@
-import { afterEach, describe, it, expect, vi } from 'vitest';
+import { afterEach, onTestFinished, describe, it, expect, vi } from 'vitest';
 import { FULLPATH_HEADER, ROUTE_PATH_HEADER } from '../../runtime/src/route-loaders';
 import { _setRouterConfig } from '../../runtime/src/router-config';
 import { getLoaderName } from './request-path';
@@ -170,5 +170,68 @@ describe('getRequestHandlerPathname', () => {
     });
 
     expect(getRequestHandlerPathname(ev)).toBe('/products/');
+  });
+});
+
+describe('static trailing slash behavior', () => {
+  it.each([
+    [
+      'adds the slash for a prerendered path',
+      '/docs/start',
+      '/docs/start/',
+      true,
+      'GET',
+      '/docs/start/',
+    ],
+    [
+      'preserves the query string',
+      '/docs/start?q=a',
+      '/docs/start/',
+      true,
+      'GET',
+      '/docs/start/?q=a',
+    ],
+    ['does not redirect an unknown path', '/unknown', undefined, true, 'GET', null],
+    [
+      'removes the slash when configured',
+      '/docs/start/',
+      '/docs/start',
+      false,
+      'GET',
+      '/docs/start',
+    ],
+    ['redirects a HEAD request', '/docs/start', '/docs/start/', true, 'HEAD', '/docs/start/'],
+    ['does not redirect a POST request', '/docs/start', '/docs/start/', true, 'POST', null],
+    [
+      'does not redirect a protocol-relative pathname',
+      '//evil.com',
+      '//evil.com/',
+      true,
+      'GET',
+      null,
+    ],
+  ] as const)('%s', async (_name, pathname, prerenderedPath, trailingSlash, method, location) => {
+    const previousNoTrailingSlash = globalThis.__NO_TRAILING_SLASH__;
+    const staticPath = prerenderedPath?.endsWith('/')
+      ? prerenderedPath
+      : prerenderedPath && prerenderedPath + '/';
+    const alreadyStatic = staticPath !== undefined && staticPaths.has(staticPath);
+    onTestFinished(() => {
+      globalThis.__NO_TRAILING_SLASH__ = previousNoTrailingSlash;
+      if (staticPath !== undefined && !alreadyStatic) {
+        staticPaths.delete(staticPath);
+      }
+    });
+    globalThis.__NO_TRAILING_SLASH__ = !trailingSlash;
+    if (staticPath !== undefined) {
+      staticPaths.add(staticPath);
+    }
+    const event = createMockServerRequestEvent('http://localhost' + pathname, { method });
+    const result = await requestHandler(event, { render: (async () => ({ html: '' })) as any });
+    await result?.completion;
+    const responseHeaders = (event.getWritableStream as any).mock.calls[0]?.[1] as
+      | Headers
+      | undefined;
+    expect(responseHeaders?.get('Location') ?? null).toBe(location);
   });
 });

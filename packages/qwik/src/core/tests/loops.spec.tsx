@@ -1,6 +1,8 @@
 import { component$, untrack, useSignal, useStore, useTask$, type Signal } from '@qwik.dev/core';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, onTestFinished } from 'vitest';
 import { testRenderer } from '../test-utils';
+import { triggerAll } from './test-hooks';
+import { trigger } from '@qwik.dev/core/testing';
 
 const debug = false;
 
@@ -425,5 +427,117 @@ describe(`${name}: loops`, () => {
     await qwikLoader?.dispatch(container.querySelector('#rev')!, 'click');
     expect(ids(), 'reversed in place').toEqual(['3', '2', '1']);
     cleanup();
+  });
+});
+
+describe(`${name}: loops`, () => {
+  it('should correctly extract qrls from loop items', async () => {
+    (globalThis as any).log = [];
+    const Cmp = component$(() => {
+      const loop: string[] = ['abcd', 'xyz'];
+      return (
+        <div>
+          {loop.map((item, index) => {
+            return (
+              <div
+                id={`item-${index}`}
+                onClick$={() => (globalThis as any).log.push(item)}
+                onMouseOver$={() => (globalThis as any).log.push(index)}
+              >
+                {item}
+              </div>
+            );
+          })}
+        </div>
+      );
+    });
+
+    const { document, container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    await trigger(container, document.getElementById('item-0')!, 'click');
+    await flush();
+    expect((globalThis as any).log).toEqual(['abcd']);
+    await trigger(container, document.getElementById('item-0')!, 'mouseover');
+    await flush();
+    expect((globalThis as any).log).toEqual(['abcd', 0]);
+    (globalThis as any).log = [];
+    await trigger(container, document.getElementById('item-1')!, 'click');
+    await flush();
+    expect((globalThis as any).log).toEqual(['xyz']);
+    await trigger(container, document.getElementById('item-1')!, 'mouseover');
+    await flush();
+    expect((globalThis as any).log).toEqual(['xyz', 1]);
+    (globalThis as any).log = undefined;
+  });
+
+  it('should correctly extract qrls from loop items and capture refs', async () => {
+    (globalThis as any).log = [];
+    const Cmp = component$(() => {
+      const foo = useSignal('hi');
+      const bar = useSignal('ho');
+      const loop: string[] = ['abcd', 'xyz'];
+      return (
+        <div>
+          {loop.map((item, index) => {
+            return (
+              <div
+                id={`item-${index}`}
+                onClick$={() => (globalThis as any).log.push(item, foo.value)}
+                onMouseOver$={() => (globalThis as any).log.push(index, bar.value)}
+              >
+                {item}
+              </div>
+            );
+          })}
+        </div>
+      );
+    });
+
+    const { document, container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+    await trigger(container, document.getElementById('item-0')!, 'click');
+    await flush();
+    expect((globalThis as any).log).toEqual(['abcd', 'hi']);
+    await trigger(container, document.getElementById('item-0')!, 'mouseover');
+    await flush();
+    expect((globalThis as any).log).toEqual(['abcd', 'hi', 0, 'ho']);
+    (globalThis as any).log = [];
+    await trigger(container, document.getElementById('item-1')!, 'click');
+    await flush();
+    expect((globalThis as any).log).toEqual(['xyz', 'hi']);
+    await trigger(container, document.getElementById('item-1')!, 'mouseover');
+    await flush();
+    expect((globalThis as any).log).toEqual(['xyz', 'hi', 1, 'ho']);
+    (globalThis as any).log = undefined;
+  });
+
+  it('should transform block scoped variables in loops', async () => {
+    (globalThis as any).log = [];
+    const Cmp = component$(() => {
+      const arr = useSignal(['a', 'b']);
+      return (
+        <div>
+          {arr.value.map((val, i) => {
+            const index = i + 1;
+            return <div onClick$={() => (globalThis as any).log.push(index)}>{val}</div>;
+          })}
+        </div>
+      );
+    });
+
+    const { container, cleanup, flush } = await render(Cmp, { debug });
+    onTestFinished(cleanup);
+
+    expect(container.querySelectorAll('div')).toHaveLength(3);
+    expect(container.querySelector('div')!.textContent).toBe('ab');
+    expect(container.querySelectorAll('div')[1]!.textContent).toBe('a');
+    expect(container.querySelectorAll('div')[2]!.textContent).toBe('b');
+
+    await triggerAll(container, 'div', 'click');
+    await flush();
+
+    expect((globalThis as any).log).toEqual([1, 2]);
+
+    (globalThis as any).log = undefined;
   });
 });

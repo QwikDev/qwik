@@ -7,6 +7,7 @@
 // @beta
 export function handleInsightsBeacon(request: Request, opts?: {
     dbUrl?: string;
+    authToken?: string;
     publicApiKey?: string;
 }): Promise<boolean>;
 
@@ -54,7 +55,7 @@ export function resolveInsightsDbUrl(dbUrl?: string): string;
 // Warning: (ae-forgotten-export) The symbol "InsightsPayload" needs to be exported by the entry point index.d.ts
 //
 // @beta
-export function writeInsights(dbUrl: string, beacon: InsightsPayload): Promise<boolean>;
+export function writeInsights(dbUrl: string, beacon: InsightsPayload, authToken?: string): Promise<boolean>;
 
 // (No @packageDocumentation comment for this package)
 

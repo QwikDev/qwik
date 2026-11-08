@@ -344,6 +344,17 @@ describe('collectModuleLevelDecls', () => {
     expect(decls[0].name).toBe('a');
     expect(decls[0].isPartOfSharedDestructuring).toBe(false);
   });
+
+  it("records where a declaration's value starts, and none for a function declaration", () => {
+    const code = 'const Inner = component$(() => null);\nfunction Row() {}';
+    const program = parse(code);
+    const decls = collectModuleLevelDecls(program, code);
+
+    expect(decls).toHaveLength(2);
+    expect(decls[0].initStart).toBe(code.indexOf('component$('));
+    expect(decls[1].name).toBe('Row');
+    expect(decls[1].initStart).toBeUndefined();
+  });
 });
 
 describe('computeSegmentUsage', () => {

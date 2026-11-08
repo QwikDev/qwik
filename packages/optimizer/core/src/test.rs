@@ -7508,6 +7508,57 @@ export const Counter = component$(() => {
 }
 
 #[test]
+fn should_move_inline_component_function_declaration() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+function Row(props: { n: number }) {
+	return (
+		<tr onClick$={() => console.log('row')}>
+			<td>{props.n}</td>
+		</tr>
+	);
+}
+
+export const Table = component$(() => (
+	<table>
+		<Row n={1} />
+	</table>
+));
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_hook_function_declaration() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+
+function useLogger() {
+	const count = useSignal(0);
+	useTask$(() => console.log(count.value));
+	return count;
+}
+
+export const Counter = component$(() => {
+	const count = useLogger();
+	return <p>{count.value}</p>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_move_component_marker_into_its_only_consumer() {
 	test_input!(TestInput {
 		code: r#"
@@ -7533,6 +7584,26 @@ export const Outer = component$(() => (
 /// be migrated. Otherwise segment B loses access to it (the export is removed).
 /// This reproduces the qwik-router bug where `currentScrollState` and `saveScrollHistory`
 /// were migrated to the useTask segment but also needed by the goto segment.
+#[test]
+fn should_move_dollar_marker_into_its_only_consumer() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$ } from '@qwik.dev/core';
+
+const greet = $(() => console.log('hi'));
+
+export const Greeter = component$(() => {
+	greet();
+	return <p>hi</p>;
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 #[test]
 fn variable_migration_transitive_dep_used_by_other_segment() {
 	let res = test_input!(TestInput {
